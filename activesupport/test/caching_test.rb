@@ -146,6 +146,22 @@ class FileStoreTest < ActiveSupport::TestCase
   end
 
   include CacheStoreBehavior
+
+  def test_expires_in
+    time = Time.local(2008, 4, 24)
+    Time.stubs(:now).returns(time)
+    File.stubs(:mtime).returns(time)
+
+    @cache.write('foo', 'bar')
+    cache_read = lambda { @cache.read('foo', :expires_in => 1.minute) }
+    assert_equal 'bar', cache_read.call
+
+    Time.stubs(:now).returns(time + 30.seconds)
+    assert_equal 'bar', cache_read.call
+
+    Time.stubs(:now).returns(time + 2.minutes)
+    assert_nil cache_read.call
+  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase

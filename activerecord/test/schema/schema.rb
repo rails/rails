@@ -364,6 +364,7 @@ ActiveRecord::Schema.define do
   create_table :readers, :force => true do |t|
     t.integer :post_id, :null => false
     t.integer :person_id, :null => false
+    t.boolean :skimmer, :default => false
   end
 
   create_table :shape_expressions, :force => true do |t|

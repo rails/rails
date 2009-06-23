@@ -94,10 +94,17 @@ module ActiveRecord
       def construct_join_attributes(associate)
         # TODO: revist this to allow it for deletion, supposing dependent option is supported
         raise ActiveRecord::HasManyThroughCantAssociateThroughHasManyReflection.new(@owner, @reflection) if @reflection.source_reflection.macro == :has_many
+
         join_attributes = construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.primary_key_name => associate.id)
+
         if @reflection.options[:source_type]
           join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name.to_s)
         end
+
+        if @reflection.through_reflection.options[:conditions].is_a?(Hash)
+          join_attributes.merge!(@reflection.through_reflection.options[:conditions])
+        end
+
         join_attributes
       end
 

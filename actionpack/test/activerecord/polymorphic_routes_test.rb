@@ -234,10 +234,13 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_admin_test_routes do
       @project.save
       @task.save
+
+      options = {}
       object_array = [:admin, @project, @task]
-      assert_no_difference 'object_array.size' do
-        polymorphic_url(object_array)
-      end
+      original_args = [object_array.dup, options.dup]
+
+      assert_no_difference('object_array.size') { polymorphic_path(object_array, options) }
+      assert_equal original_args, [object_array, options]
     end
   end
   
