@@ -24,8 +24,7 @@ module Arel
       build_query \
         "UPDATE #{table_sql} SET",
         assignment_sql,
-        ("WHERE #{wheres.collect(&:to_sql).join('\n\tAND ')}"  unless wheres.blank? ),
-        ("LIMIT #{taken}"                                      unless taken.blank?  )
+        build_update_conditions_sql
     end
 
   protected
@@ -38,6 +37,23 @@ module Arel
       else
         assignments.value
       end
+    end
+
+    def build_update_conditions_sql
+      conditions = ""
+      conditions << " WHERE #{wheres.collect(&:to_sql).join('\n\tAND ')}" unless wheres.blank?
+      conditions << " ORDER BY #{order_clauses.join(', ')}" unless orders.blank?
+
+      unless taken.blank?
+        conditions << " LIMIT #{taken}"
+
+        if engine.adapter_name != "MySQL"
+          quote_primary_key = engine.quote_column_name(table.name.classify.constantize.primary_key)
+          conditions =  "WHERE #{quote_primary_key} IN (SELECT #{quote_primary_key} FROM #{engine.connection.quote_table_name table.name} #{conditions})"
+        end
+      end
+
+      conditions
     end
   end
 end
