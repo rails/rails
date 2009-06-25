@@ -8,7 +8,7 @@ class MailerGeneratorTest < GeneratorsTestCase
 
   def test_mailer_skeleton_is_created
     run_generator
-    assert_file "app/models/notifier.rb"
+    assert_file "app/models/notifier.rb", /class Notifier < ActionMailer::Base/
   end
 
   def test_check_class_collision
@@ -37,6 +37,12 @@ class MailerGeneratorTest < GeneratorsTestCase
   def test_logs_if_the_template_engine_cannot_be_found
     content = run_generator ["notifier", "foo", "bar", "--template-engine=unknown"]
     assert_match /Could not find and invoke 'unknown:generators:mailer'/, content
+  end
+
+  def test_actions_are_turned_into_methods
+    run_generator
+    assert_file "app/models/notifier.rb", /def foo/
+    assert_file "app/models/notifier.rb", /def bar/
   end
 
   protected
