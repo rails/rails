@@ -8,6 +8,7 @@ module Rails
                                     :desc => "When supplied creates generator base files."
 
       # TODO Check class collision
+      # class_collision class_name
 
       def create_root
         self.root = File.expand_path("vendor/plugins/#{file_name}", root)

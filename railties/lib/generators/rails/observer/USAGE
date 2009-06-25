@@ -1,0 +1,13 @@
+Description:
+    Stubs out a new observer. Pass the observer name, either CamelCased or
+    under_scored, as an argument.
+
+    The generator creates an observer class in app/models and a unit test in
+    the configured test framework.
+
+Example:
+    `./script/generate observer Account`
+
+    creates an Account observer and invoke the test framework:
+        Observer:   app/models/account_observer.rb
+        TestUnit:   test/unit/account_observer_test.rb
