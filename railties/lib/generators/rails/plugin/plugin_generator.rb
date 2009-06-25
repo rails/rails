@@ -27,7 +27,7 @@ module Rails
         directory 'lib'
       end
 
-      add_and_invoke_test_framework_option!
+      invoke_for :test_framework
 
       def create_tasks_files
         return unless options[:with_tasks]

@@ -4,6 +4,16 @@ require 'generators/rails/app/app_generator'
 
 class AppGeneratorTest < GeneratorsTestCase
 
+  def setup
+    super
+    Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+  end
+
+  def teardown
+    super
+    Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+  end
+
   def test_application_skeleton_is_created
     run_generator
 
@@ -118,6 +128,20 @@ class AppGeneratorTest < GeneratorsTestCase
 
     generator(:template => path, :database => "sqlite3").expects(:open).with(path).returns(template)
     assert_match /It works!/, silence(:stdout){ generator.invoke(:all) }
+  end
+
+  def test_usage_read_from_file
+    File.expects(:read).returns("USAGE FROM FILE")
+    assert_equal "USAGE FROM FILE", Rails::Generators::AppGenerator.desc
+  end
+
+  def test_default_usage
+    File.expects(:exist?).returns(false)
+    assert_match /Create rails files for app generator/, Rails::Generators::AppGenerator.desc
+  end
+
+  def test_default_namespace
+    assert_match "rails:generators:app", Rails::Generators::AppGenerator.namespace
   end
 
   protected

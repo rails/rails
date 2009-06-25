@@ -11,8 +11,7 @@ module Rails
         template "mailer.rb", File.join('app/models', class_path, "#{file_name}.rb")
       end
 
-      add_and_invoke_template_engine_option!
-      add_and_invoke_test_framework_option!
+      invoke_for :template_engine, :test_framework
     end
   end
 end

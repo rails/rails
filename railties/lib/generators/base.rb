@@ -2,6 +2,11 @@ require 'generators/actions'
 
 module Rails
   module Generators
+    DEFAULTS = {
+      :test_framework => 'test_unit',
+      :template_engine => 'erb'
+    }
+
     class Error < Thor::Error
     end
 
@@ -113,39 +118,29 @@ module Rails
           end
         end
 
-        # Small macro to add test_framework option and invoke it.
+        # Invoke a generator based on the given name. If a class option does not
+        # exist for the current name, it's created.
         #
-        def self.add_and_invoke_test_framework_option!
-          class_option :test_framework, :type => :string, :aliases => "-t", :default => "test_unit",
-                                        :desc => "Test framework to be invoked by this generator", :banner => "NAME"
-
-          define_method :invoke_test_framework do
-            return unless options[:test_framework]
-            name = "#{options[:test_framework]}:generators:#{self.class.generator_name}"
-
-            begin
-              invoke name
-            rescue Thor::UndefinedTaskError
-              say "Could not find and invoke '#{name}'."
+        def self.invoke_for(*names)
+          names.each do |name|
+            unless class_options[name]
+              aliases = "-" + name.to_s.gsub(/_framework$/, '').split('_').last[0,1]
+              class_option name, :type => :string, :default => DEFAULTS[name], :banner => "NAME", :aliases => aliases,
+                                 :desc => "#{name.to_s.humanize} to be used"
             end
-          end
-        end
 
-        # Small macro to add template engine option and invoke it.
-        #
-        def self.add_and_invoke_template_engine_option!
-          class_option :template_engine, :type => :string, :aliases => "-e", :default => "erb",
-                                         :desc => "Template engine to be invoked by this generator", :banner => "NAME"
+            class_eval <<-METHOD, __FILE__, __LINE__
+              def invoke_#{name}
+                return unless options[#{name.inspect}]
+                task = "\#{options[#{name.inspect}]}:generators:\#{self.class.generator_name}"
 
-          define_method :invoke_template_engine do
-            return unless options[:template_engine]
-            name = "#{options[:template_engine]}:generators:#{self.class.generator_name}"
-
-            begin
-              invoke name
-            rescue Thor::UndefinedTaskError
-              say "Could not find and invoke '#{name}'."
-            end
+                begin
+                  invoke task
+                rescue Thor::UndefinedTaskError
+                  say "Could not find and invoke '\#{task}'."
+                end
+              end
+            METHOD
           end
         end
 
