@@ -119,6 +119,25 @@ module Rails
             end
           end
         end
+
+        # Small macro to add template engine option and invoke it.
+        #
+        def self.add_and_invoke_template_engine_option!
+          class_option :template_engine, :type => :string, :aliases => "-e", :default => "erb",
+                                         :desc => "Template engine to be invoked by this generator", :banner => "NAME"
+
+          define_method :invoke_template_engine do
+            return unless options[:template_engine]
+            name = "#{options[:template_engine]}:generators:#{self.class.generator_name}"
+
+            begin
+              invoke name
+            rescue Thor::UndefinedTaskError
+              say "Could not find and invoke '#{name}'."
+            end
+          end
+        end
+
     end
   end
 end
