@@ -1,4 +1,4 @@
-require 'action_controller/performance_test'
+require 'action_controller/testing/performance_test'
 
 ActionController::Base.perform_caching = true
 ActiveSupport::Dependencies.mechanism = :require
