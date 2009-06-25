@@ -9,10 +9,15 @@ class MetalGeneratorTest < GeneratorsTestCase
     assert_file "app/metal/foo.rb", /class Foo/
   end
 
+  def test_check_class_collision
+    content = capture(:stderr){ run_generator ["object"] }
+    assert_match /The name 'Object' is either already used in your application or reserved/, content
+  end
+
   protected
 
-    def run_generator(args=[])
-      silence(:stdout) { Rails::Generators::MetalGenerator.start ["foo"].concat(args), :root => destination_root }
+    def run_generator(args=["foo"])
+      silence(:stdout) { Rails::Generators::MetalGenerator.start args, :root => destination_root }
     end
 
 end

@@ -12,12 +12,8 @@ class GeneratorsTestCase < Test::Unit::TestCase
   end
 
   def setup
+    rm_rf(destination_root)
     mkdir_p(destination_root)
-    rm_rf(destination_root)
-  end
-
-  def teardown
-    rm_rf(destination_root)
   end
 
   def test_truth

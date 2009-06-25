@@ -15,23 +15,28 @@ class PluginGeneratorTest < GeneratorsTestCase
     ).each{ |path| assert_file path }
   end
 
+  def test_check_class_collision
+    content = capture(:stderr){ run_generator ["object"] }
+    assert_match /The name 'Object' is either already used in your application or reserved/, content
+  end
+
   def test_invokes_default_test_framework
     run_generator
     assert_file "vendor/plugins/plugin_fu/test/plugin_fu_test.rb"
   end
 
   def test_logs_if_the_test_framework_cannot_be_found
-    content = run_generator ["--test-framework=unknown"]
+    content = run_generator ["plugin_fu", "--test-framework=unknown"]
     assert_match /Could not find and invoke 'unknown:generators:plugin'/, content
   end
 
   def test_creates_tasks_if_required
-    run_generator ["--with-tasks"]
+    run_generator ["plugin_fu", "--with-tasks"]
     assert_file "vendor/plugins/plugin_fu/tasks/plugin_fu_tasks.rake"
   end
 
   def test_creates_generator_if_required
-    run_generator ["--with-generator"]
+    run_generator ["plugin_fu", "--with-generator"]
     assert_file "vendor/plugins/plugin_fu/generators/plugin_fu/templates"
 
     flag = /class PluginFuGenerator < Rails::Generators::NamedBase/
@@ -40,8 +45,8 @@ class PluginGeneratorTest < GeneratorsTestCase
 
   protected
 
-    def run_generator(args=[])
-      silence(:stdout) { Rails::Generators::PluginGenerator.start ["plugin_fu"].concat(args), :root => destination_root }
+    def run_generator(args=["plugin_fu"])
+      silence(:stdout) { Rails::Generators::PluginGenerator.start args, :root => destination_root }
     end
 
 end

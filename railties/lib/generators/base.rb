@@ -29,6 +29,39 @@ module Rails
 
       protected
 
+        # Check whether the given class names are already taken by Ruby or Rails.
+        # In the future, expand to check other namespaces such as the rest of
+        # the user's app.
+        #
+        def class_collisions(*class_names)
+          return unless behavior == :invoke
+
+          class_names.flatten.each do |class_name|
+            class_name = class_name.to_s
+            next if class_name.strip.empty?
+
+            # Split the class from its module nesting
+            nesting = class_name.split('::')
+            last_name = nesting.pop
+
+            # Hack to limit const_defined? to non-inherited on 1.9
+            extra = []
+            extra << false unless Object.method(:const_defined?).arity == 1
+
+            # Extract the last Module in the nesting
+            last = nesting.inject(Object) do |last, nest|
+              break unless last.const_defined?(nest, *extra)
+              last.const_get(nest)
+            end
+
+            if last && last.const_defined?(last_name.camelize, *extra)
+              raise Error, "The name '#{class_name}' is either already used in your application " <<
+                           "or reserved by Ruby on Rails. Please choose an alternative and run "  <<
+                           "this generator again."
+            end
+          end
+        end
+
         # Use Rails default banner.
         #
         def self.banner
