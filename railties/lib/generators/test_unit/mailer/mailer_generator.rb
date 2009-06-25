@@ -3,11 +3,6 @@ module TestUnit
     class MailerGenerator < Base
       argument :actions, :type => :array, :default => []
 
-      desc <<DESC
-Description:
-    Create TestUnit files for mailer generator.
-DESC
-
       def create_test_files
         template "unit_test.rb", File.join('test', 'unit', class_path, "#{file_name}_test.rb")
       end

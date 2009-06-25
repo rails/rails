@@ -3,11 +3,6 @@ module Erb
     class MailerGenerator < Base
       argument :actions, :type => :array, :default => []
 
-      desc <<DESC
-Description:
-    Create Template engine files for mailer generator.
-DESC
-
       def create_view_files
         actions.each do |action|
           @action, @path = action, File.join(file_path, action)

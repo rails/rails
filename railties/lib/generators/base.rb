@@ -15,16 +15,27 @@ module Rails
         @source_root ||= File.expand_path(File.join(File.dirname(__FILE__), base_name, generator_name, 'templates'))
       end
 
+      # Tries to get the description from a USAGE file one folder above the source
+      # root otherwise uses a default description.
+      #
+      def self.desc(description=nil)
+        return super if description
+        usage = File.join(source_root, "..", "USAGE")
+
+        @desc ||= if File.exist?(usage)
+          File.read(usage)
+        else
+          "Description:\n    Create #{base_name.humanize.downcase} files for #{generator_name} generator."
+        end
+      end
+
       # Convenience method to get the namespace from the class name. It's the
       # same as Thor default except that the Generator at the end of the class
       # is removed.
       #
-      def self.namespace(name=nil) #:nodoc:
-        if name
-          super
-        else
-          @namespace ||= "#{base_name}:generators:#{generator_name}"
-        end
+      def self.namespace(name=nil)
+        return super if name
+        @namespace ||= "#{base_name}:generators:#{generator_name}"
       end
 
       protected
@@ -70,7 +81,7 @@ module Rails
 
         # Sets the base_name taking into account the current class namespace.
         #
-        def self.base_name #:nodoc:
+        def self.base_name
           @base_name ||= self.name.split('::').first.underscore
         end
 
