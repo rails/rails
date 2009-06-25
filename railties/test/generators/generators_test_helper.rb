@@ -16,6 +16,10 @@ class GeneratorsTestCase < Test::Unit::TestCase
     rm_rf(destination_root)
   end
 
+  def teardown
+    rm_rf(destination_root)
+  end
+
   def test_truth
     # don't complain, test/unit
   end
