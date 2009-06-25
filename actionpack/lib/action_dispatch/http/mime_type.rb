@@ -10,7 +10,7 @@ module Mime
     %w(<< concat shift unshift push pop []= clear compact! collect!
     delete delete_at delete_if flatten! map! insert reject! reverse!
     replace slice! sort! uniq!).each do |method|
-      define_method(method) { @symbols = nil; super }
+      define_method(method) {|*args| @symbols = nil; super(*args) }
     end
   end
 

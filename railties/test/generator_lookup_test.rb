@@ -7,9 +7,11 @@ class GeneratorLookupTest < Test::Unit::TestCase
     # We need to add our testing plugin directory to the plugin paths so
     # the locator knows where to look for our plugins
     @configuration.plugin_paths += @fixture_dirs.map{|fd| plugin_fixture_path(fd)}
-    @initializer = Rails::Initializer.new(@configuration)
-    @initializer.add_plugin_load_paths
-    @initializer.load_plugins
+    @initializer = Rails::Initializer.default
+    @initializer.config = @configuration
+    @initializer.run(:add_plugin_load_paths)
+    @initializer.run(:load_plugins)
+    @initializer.run(:set_root_path)
     load 'rails_generator.rb'
     require 'rails_generator/scripts'
   end

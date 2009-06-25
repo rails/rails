@@ -27,7 +27,8 @@ class PluginFileSystemLocatorTest < Test::Unit::TestCase
     # We need to add our testing plugin directory to the plugin paths so
     # the locator knows where to look for our plugins
     @configuration.plugin_paths << plugin_fixture_root_path
-    @initializer       = Rails::Initializer.new(@configuration)
+    @initializer       = Rails::Initializer.default
+    @initializer.config = @configuration
     @locator           = Rails::Plugin::FileSystemLocator.new(@initializer)
     @valid_plugin_path = plugin_fixture_path('default/stubby')
     @empty_plugin_path = plugin_fixture_path('default/empty')

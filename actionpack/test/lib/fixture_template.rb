@@ -12,7 +12,7 @@ module ActionView #:nodoc:
           @hash.select { |k,v| k =~ regexp }.each do |path, source|
             templates << Template.new(source, path, *path_to_details(path))
           end
-          templates
+          templates.sort_by {|t| -t.details.values.compact.size }
         end
       end
     end
@@ -44,7 +44,7 @@ module ActionView #:nodoc:
           k == :formats ? formats_regexp : ''
         end
       end
-      
+
       %r'^#{Regexp.escape(path)}#{extensions}#{handler_regexp}$'
     end
     
@@ -52,7 +52,7 @@ module ActionView #:nodoc:
     # :api: plugin
     def path_to_details(path)
       # [:erb, :format => :html, :locale => :en, :partial => true/false]
-      if m = path.match(%r'(_)?[\w-]+(\.[\w-]+)*\.(\w+)$')
+      if m = path.match(%r'(_)?[\w-]+((?:\.[\w-]+)*)\.(\w+)$')
         partial = m[1] == '_'
         details = (m[2]||"").split('.').reject { |e| e.empty? }
         handler = Template.handler_class_for_extension(m[3])
