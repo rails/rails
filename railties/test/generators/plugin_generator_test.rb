@@ -44,8 +44,4 @@ class PluginGeneratorTest < GeneratorsTestCase
       silence(:stdout) { Rails::Generators::PluginGenerator.start ["plugin_fu"].concat(args), :root => destination_root }
     end
 
-    def generator(options={})
-      @generator ||= Rails::Generators::PluginGenerator.new(["plugin_fu"], options, :root => destination_root)
-    end
-
 end
