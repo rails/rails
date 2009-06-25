@@ -2,6 +2,7 @@ require 'abstract_unit'
 
 class DurationTest < ActiveSupport::TestCase
   def test_inspect
+    assert_equal '0 seconds',                       0.seconds.inspect
     assert_equal '1 month',                         1.month.inspect
     assert_equal '1 month and 1 day',               (1.month + 1.day).inspect
     assert_equal '6 months and -2 days',            (6.months - 2.days).inspect
