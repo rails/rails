@@ -7,22 +7,40 @@ if %w(--version -v).include? ARGV.first
   exit(0)
 end
 
+require File.dirname(__FILE__) + '/../lib/generators'
+
 if ARGV.size == 0
-  puts "Please select a generator. Options: foo, bar"
-  return
+  rails = Rails::Generators.builtin.map do |group, name|
+    name if group == "rails"
+  end
+  rails.compact!
+  rails.sort!
+
+  others = Rails::Generators.builtin.map do |group, name|
+    "#{group}:#{name}" unless rails.include?(name)
+  end.compact
+  others.sort!
+
+  puts "Please select a generator."
+  puts "Builtin: #{rails.join(', ')}."
+  puts "Others: #{others.join(', ')}."
+
+  exit
 elsif ARGV.size == 1
   ARGV << "--help"
 end
-
-require File.dirname(__FILE__) + '/../lib/generators'
 
 Rails::Generators.builtin.each do |group, name|
   require "generators/#{group}/#{name}/#{name}_generator"
 end
 
-name = ARGV.shift
+name   = ARGV.shift
+middle = name.sub(':', ':generators:') if name.count(':') == 1
+full   = "rails:generators:#{name}"    if name.count(':') == 0
 
-if klass = Thor::Util.find_by_namespace("rails:generators:#{name}")
+if full && klass = Thor::Util.find_by_namespace(full)
+  klass.start
+elsif middle && klass = Thor::Util.find_by_namespace(middle)
   klass.start
 elsif klass = Thor::Util.find_by_namespace(name)
   klass.start

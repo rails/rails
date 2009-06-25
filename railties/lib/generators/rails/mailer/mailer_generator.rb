@@ -1,7 +1,7 @@
 module Rails
   module Generators
     class MailerGenerator < NamedBase
-      argument :actions, :type => :array, :default => []
+      argument :actions, :type => :array, :default => [], :banner => "method method"
 
       def check_class_collision
         class_collisions class_name

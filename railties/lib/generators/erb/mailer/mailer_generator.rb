@@ -1,7 +1,7 @@
 module Erb
   module Generators
     class MailerGenerator < Base
-      argument :actions, :type => :array, :default => []
+      argument :actions, :type => :array, :default => [], :banner => "method method"
 
       def create_view_folder
         empty_directory File.join("app", "views", file_path)

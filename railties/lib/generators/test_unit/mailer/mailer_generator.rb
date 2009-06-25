@@ -1,7 +1,7 @@
 module TestUnit
   module Generators
     class MailerGenerator < Base
-      argument :actions, :type => :array, :default => []
+      argument :actions, :type => :array, :default => [], :banner => "method method"
 
       def create_test_files
         template "unit_test.rb", File.join('test', 'unit', class_path, "#{file_name}_test.rb")
