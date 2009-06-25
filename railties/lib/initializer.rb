@@ -177,7 +177,8 @@ module Rails
   # Action Pack, Action Mailer, and Active Resource) are loaded.
   Initializer.default.add :require_frameworks do
     begin
-      require 'active_support/all'
+      require 'active_support'
+      require 'active_support/core_ext/kernel/reporting'
       configuration.frameworks.each { |framework| require(framework.to_s) }
     rescue LoadError => e
       # Re-raise as RuntimeError because Mongrel would swallow LoadError.
@@ -397,12 +398,15 @@ module Rails
   end
 
   Initializer.default.add :initialize_metal do
-    Rails::Rack::Metal.requested_metals = configuration.metals
-    Rails::Rack::Metal.metal_paths += plugin_loader.engine_metal_paths
+    # TODO: Make Rails and metal work without ActionController
+    if defined?(ActionController)
+      Rails::Rack::Metal.requested_metals = configuration.metals
+      Rails::Rack::Metal.metal_paths += plugin_loader.engine_metal_paths
 
-    configuration.middleware.insert_before(
-      :"ActionDispatch::ParamsParser",
-      Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
+      configuration.middleware.insert_before(
+        :"ActionDispatch::ParamsParser",
+        Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
+    end
   end
 
   # Add the load paths used by support functions such as the info controller
