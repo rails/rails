@@ -1,7 +1,8 @@
 require 'abstract_unit'
-require 'generators/generator_test_helper'
+require 'generators/generators_test_helper'
+require 'generators/rails/app/app_generator'
 
-class ActionsTest < GeneratorTestCase
+class ActionsTest < GeneratorsTestCase
   def setup
     super
     @git_plugin_uri = 'git://github.com/technoweenie/restful-authentication.git'

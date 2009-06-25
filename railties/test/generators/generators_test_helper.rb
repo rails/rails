@@ -2,12 +2,9 @@ require 'test/unit'
 require 'fileutils'
 
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
-
-# For this while, let's load all generators by hand
 require 'generators'
-require 'generators/rails/app/app_generator'
 
-class GeneratorTestCase < Test::Unit::TestCase
+class GeneratorsTestCase < Test::Unit::TestCase
   include FileUtils
 
   def destination_root

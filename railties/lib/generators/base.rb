@@ -71,7 +71,7 @@ module Rails
 
         # Small macro to add test_framework option and invoke it.
         #
-        def self.add_test_framework_option!
+        def self.add_and_invoke_test_framework_option!
           class_option :test_framework, :type => :string, :aliases => "-t", :default => "test_unit",
                                         :desc => "Test framework to be invoked by this generator", :banner => "NAME"
 
@@ -82,7 +82,7 @@ module Rails
             begin
               invoke name
             rescue Thor::UndefinedTaskError
-              say "Could not find and invoke #{name}."
+              say "Could not find and invoke '#{name}'."
             end
           end
         end

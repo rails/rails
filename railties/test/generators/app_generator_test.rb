@@ -1,7 +1,8 @@
 require 'abstract_unit'
-require 'generators/generator_test_helper'
+require 'generators/generators_test_helper'
+require 'generators/rails/app/app_generator'
 
-class AppTest < GeneratorTestCase
+class AppGeneratorTest < GeneratorsTestCase
 
   def test_application_skeleton_is_created
     run_generator
