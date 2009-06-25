@@ -179,6 +179,10 @@ module Rails
     begin
       require 'active_support'
       require 'active_support/core_ext/kernel/reporting'
+      require 'active_support/core_ext/logger'
+
+      # TODO: This is here to make Sam Ruby's tests pass. Needs discussion.
+      require 'active_support/core_ext/numeric/bytes'
       configuration.frameworks.each { |framework| require(framework.to_s) }
     rescue LoadError => e
       # Re-raise as RuntimeError because Mongrel would swallow LoadError.
@@ -307,6 +311,7 @@ module Rails
       end
     end
 
+    # TODO: Why are we silencing warning here?
     silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
   end
 
@@ -326,6 +331,7 @@ module Rails
   # Sets the dependency loading mechanism based on the value of
   # Configuration#cache_classes.
   Initializer.default.add :initialize_dependency_mechanism do
+    # TODO: Remove files from the $" and always use require
     ActiveSupport::Dependencies.mechanism = configuration.cache_classes ? :require : :load
   end
 
@@ -409,10 +415,6 @@ module Rails
     end
   end
 
-  # Add the load paths used by support functions such as the info controller
-  Initializer.default.add :add_support_load_paths do
-  end
-
   Initializer.default.add :check_for_unbuilt_gems do
     unbuilt_gems = config.gems.select {|gem| gem.frozen? && !gem.built? }
     if unbuilt_gems.size > 0
@@ -462,6 +464,7 @@ Run `rake gems:build` to build the unbuilt gems.
   # # pick up any gems that plugins depend on
   Initializer.default.add :add_gem_load_paths do
     require 'rails/gem_dependency'
+    # TODO: This seems extraneous
     Rails::GemDependency.add_frozen_gem_path
     unless config.gems.empty?
       require "rubygems"
@@ -529,6 +532,7 @@ Run `rake gems:install` to install the missing gems.
     end
   end
 
+  # TODO: Make a DSL way to limit an initializer to a particular framework
 
   # # Prepare dispatcher callbacks and run 'prepare' callbacks
   Initializer.default.add :prepare_dispatcher do
@@ -554,17 +558,6 @@ Run `rake gems:install` to install the missing gems.
   Initializer.default.add :load_observers do
     if gems_dependencies_loaded && configuration.frameworks.include?(:active_record)
       ActiveRecord::Base.instantiate_observers
-    end
-  end
-
-  # # Load view path cache
-  Initializer.default.add :load_view_paths do
-    if configuration.frameworks.include?(:action_view)
-      if configuration.cache_classes
-        view_path = ActionView::FileSystemResolverWithFallback.new(configuration.view_path)
-        ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller)
-        ActionMailer::Base.template_root = view_path if configuration.frameworks.include?(:action_mailer)
-      end
     end
   end
 
