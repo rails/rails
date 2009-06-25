@@ -101,6 +101,7 @@ module Rails
     def self.run(initializer = nil, config = nil)
       default.config = config if config
       default.config ||= Configuration.new
+      yield default.config if block_given?
       default.run(initializer)
     end
   end
