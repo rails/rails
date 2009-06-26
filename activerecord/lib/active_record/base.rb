@@ -67,12 +67,23 @@ module ActiveRecord #:nodoc:
   class StatementInvalid < ActiveRecordError
   end
 
+  # Parent class for all specific exceptions which wrap database driver exceptions
+  # provides access to the original exception also.
+  class WrappedDatabaseException < StatementInvalid
+    attr_reader :original_exception
+
+    def initialize(message, original_exception)
+      super(message)
+      @original_exception, = original_exception
+    end
+  end
+
   # Raised when a record cannot be inserted because it would violate a uniqueness constraint.
-  class RecordNotUnique < StatementInvalid
+  class RecordNotUnique < WrappedDatabaseException
   end
 
   # Raised when a record cannot be inserted or updated because it references a non-existent record.
-  class InvalidForeignKey < StatementInvalid
+  class InvalidForeignKey < WrappedDatabaseException
   end
 
   # Raised when number of bind variables in statement given to <tt>:condition</tt> key (for example, when using +find+ method)

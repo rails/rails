@@ -944,9 +944,9 @@ module ActiveRecord
         def translate_exception(exception, message)
           case exception.message
           when /duplicate key value violates unique constraint/
-            RecordNotUnique.new(message)
+            RecordNotUnique.new(message, exception)
           when /violates foreign key constraint/
-            InvalidForeignKey.new(message)
+            InvalidForeignKey.new(message, exception)
           else
             super
           end

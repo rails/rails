@@ -435,7 +435,7 @@ module ActiveRecord
         def translate_exception(exception, message)
           case exception.message
           when /column(s)? .* (is|are) not unique/
-            RecordNotUnique.new(message)
+            RecordNotUnique.new(message, exception)
           else
             super
           end
