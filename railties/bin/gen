@@ -23,7 +23,7 @@ if ARGV.size == 0
 
   puts "Please select a generator."
   puts "Builtin: #{rails.join(', ')}."
-  puts "Others: #{others.join(', ')}."
+  puts "Others: #{others.join(', ')}." unless others.empty?
 
   exit
 elsif ARGV.size == 1
