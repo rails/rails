@@ -118,7 +118,26 @@ module Rails
         end
 
         # Invoke a generator based on the given name. If a class option does not
-        # exist for the current name, it's created.
+        # exist for the current name, one created.
+        #
+        # ==== Examples
+        #
+        #   class ControllerGenerator < Rails::Generators::Base
+        #     invoke_for :test_framework
+        #   end
+        #
+        # The example above will create a test framework option and will invoke
+        # a generator based on the user supplied value.
+        #
+        # For example, if the user invoke the controller generator as:
+        #
+        #   ruby script/generate controller Account --test-framework=test_unit
+        #
+        # The controller generator will then invoke "test_unit:generators:controller".
+        # If it can't be found it then tries to invoke only "test_unit".
+        #
+        # This allows any test framework to hook into Rails as long as it
+        # provides a "test_framework:generators:controller" generator.
         #
         def self.invoke_for(*names)
           names.each do |name|
@@ -131,11 +150,14 @@ module Rails
             class_eval <<-METHOD, __FILE__, __LINE__
               def invoke_#{name}
                 return unless options[#{name.inspect}]
-                task = "\#{options[#{name.inspect}]}:generators:\#{self.class.generator_name}"
 
-                begin
-                  invoke task
-                rescue Thor::UndefinedTaskError
+                klass = Rails::Generators.find_by_namespace(options[#{name.inspect}],
+                                                            nil, self.class.generator_name)
+
+                if klass
+                  invoke klass
+                else
+                  task = "\#{options[#{name.inspect}]}:generators:\#{self.class.generator_name}"
                   say "Could not find and invoke '\#{task}'."
                 end
               end
