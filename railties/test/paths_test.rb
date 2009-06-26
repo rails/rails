@@ -1,68 +1,5 @@
 require 'abstract_unit'
-
-module Rails
-  class Application
-    module PathParent
-      def method_missing(id, *args)
-        name = id.to_s
-
-        if name =~ /^(.*)=$/
-          @children[$1] = Path.new(args.first, @root)
-        elsif path = @children[name]
-          path
-        else
-          super
-        end
-      end
-    end
-
-    class Root
-      include PathParent
-
-      attr_reader :path
-      def initialize(path)
-        raise unless path.is_a?(String)
-
-        @children = {}
-
-        # TODO: Move logic from set_root_path initializer
-        @path = File.expand_path(path)
-        @root = self
-      end
-    end
-
-    class Path
-      include PathParent
-
-      attr_reader :path #, :glob, :load_once, :eager
-
-      def initialize(path, root)
-        @children = {}
-        @root     = root
-        @paths    = [path].flatten
-      end
-
-      def push(path)
-        @paths.push path
-      end
-
-      alias << push
-
-      def unshift(path)
-        @paths.unshift path
-      end
-
-
-      def paths
-        @paths.map do |path|
-          path.index('/') == 0 ? path : File.join(@root.path, path)
-        end
-      end
-
-      alias to_a paths
-    end
-  end
-end
+require 'rails/paths'
 
 class PathsTest < ActiveSupport::TestCase
 
@@ -126,5 +63,44 @@ class PathsTest < ActiveSupport::TestCase
     assert_raise(NoMethodError) { @root.push "/biz"    }
     assert_raise(NoMethodError) { @root.unshift "/biz" }
     assert_raise(NoMethodError) { @root << "/biz"      }
+  end
+
+  test "it is possible to add a path that should be loaded only once" do
+    @root.app = "/app"
+    @root.app.load_once!
+    assert @root.app.load_once?
+    assert @root.load_once.include?(@root.app)
+  end
+
+  test "making a path load_once more than once only includes it once in @root.load_once" do
+    @root.app = "/app"
+    @root.app.load_once!
+    @root.app.load_once!
+    assert_equal 1, @root.load_once.select {|p| p == @root.app }.size
+  end
+
+  test "it is possible to mark a path as eager" do
+    @root.app = "/app"
+    @root.app.eager_load!
+    assert @root.app.eager_load?
+    assert @root.eager_load.include?(@root.app)
+  end
+
+  test "making a path eager more than once only includes it once in @root.eager_paths" do
+    @root.app = "/app"
+    @root.app.eager_load!
+    @root.app.eager_load!
+    assert_equal 1, @root.eager_load.select {|p| p == @root.app }.size
+  end
+
+  test "a path should have a glob that defaults to **/*.rb" do
+    @root.app = "/app"
+    assert_equal "**/*.rb", @root.app.glob
+  end
+
+  test "it should be possible to override a path's default glob" do
+    @root.app = "/app"
+    @root.app.glob = "*.rb"
+    assert_equal "*.rb", @root.app.glob
   end
 end
