@@ -4,7 +4,7 @@ module TestUnit
       argument :actions, :type => :array, :default => [], :banner => "method method"
 
       def check_class_collisions
-        class_collisions class_name, "#{class_name}Test"
+        class_collisions "#{class_name}Test"
       end
 
       def create_test_files

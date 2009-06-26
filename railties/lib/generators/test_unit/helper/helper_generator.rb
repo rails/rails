@@ -2,7 +2,7 @@ module TestUnit
   module Generators
     class HelperGenerator < Base
       def check_class_collisions
-        class_collisions "#{class_name}Helper"
+        class_collisions "#{class_name}HelperTest"
       end
 
       def create_helper_files

@@ -14,7 +14,7 @@ class HelperGeneratorTest < GeneratorsTestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/unit/helpers/admin_helper_test.rb"
+    assert_file "test/unit/helpers/admin_helper_test.rb", /class AdminHelperTest < ActionView::TestCase/
   end
 
   def test_logs_if_the_test_framework_cannot_be_found

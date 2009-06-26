@@ -2,7 +2,7 @@ module Rails
   module Generators
     class IntegrationTestGenerator < NamedBase
       def check_class_collisions
-        class_collisions class_name, "#{class_name}Test"
+        class_collisions "#{class_name}Test"
       end
 
       def create_test_files
