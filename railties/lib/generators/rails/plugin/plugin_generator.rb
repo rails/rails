@@ -7,9 +7,7 @@ module Rails
       class_option :with_generator, :type => :boolean, :aliases => "-g", :default => false,
                                     :desc => "When supplied creates generator base files."
 
-      def check_class_collision
-        class_collisions class_name
-      end
+      check_class_collision
 
       def create_root
         self.root = File.expand_path("vendor/plugins/#{file_name}", root)

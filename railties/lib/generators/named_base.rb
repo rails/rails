@@ -11,15 +11,43 @@ module Rails
 
       alias :file_name :singular_name
 
-      def initialize(*args)
+      class << self
+        # Add a class collisions name to be checked on class initialization. You
+        # can supply a hash with a :prefix or :suffix to be tested.
+        #
+        # ==== Examples
+        #
+        #   check_class_collision :suffix => "Observer"
+        #
+        # If the generator is invoked with class name Admin, it will check for
+        # the presence of "AdminObserver".
+        #
+        def check_class_collision(options={})
+          @class_collisions = options
+        end
+
+        # Returns the class collisions for this class and retreives one from
+        # superclass. The from_superclass method used below is from Thor.
+        #
+        def class_collisions #:nodoc:
+          @class_collisions ||= from_superclass(:class_collisions, nil)
+        end
+      end
+
+      def initialize(*args) #:nodoc:
         super
         assign_names!(self.name)
         parse_attributes! if respond_to?(:attributes)
+
+        if self.class.class_collisions
+          value = add_prefix_and_suffix(class_name, self.class.class_collisions) 
+          class_collisions(value)
+        end
       end
 
       protected
 
-        def assign_names!(given_name)
+        def assign_names!(given_name) #:nodoc:
           self.name, @class_path, @file_path, @class_nesting, @class_nesting_depth = extract_modules(given_name)
           @class_name_without_nesting, @singular_name, @plural_name = inflect_names(self.name)
 
@@ -40,7 +68,7 @@ module Rails
 
         # Convert attributes hash into an array with GeneratedAttribute objects.
         #
-        def parse_attributes!
+        def parse_attributes! #:nodoc:
           attributes.map! do |name, type|
             Rails::Generator::GeneratedAttribute.new(name, type)
           end
@@ -49,7 +77,7 @@ module Rails
         # Extract modules from filesystem-style or ruby-style path. Both
         # good/fun/stuff and Good::Fun::Stuff produce the same results.
         #
-        def extract_modules(name)
+        def extract_modules(name) #:nodoc:
           modules = name.include?('/') ? name.split('/') : name.split('::')
           name    = modules.pop
           path    = modules.map { |m| m.underscore }
@@ -62,11 +90,17 @@ module Rails
 
         # Receives name and return camelized, underscored and pluralized names.
         #
-        def inflect_names(name)
+        def inflect_names(name) #:nodoc:
           camel  = name.camelize
           under  = camel.underscore
           plural = under.pluralize
           [camel, under, plural]
+        end
+
+        # Receives a name and add suffix and prefix values frrm hash.
+        #
+        def add_prefix_and_suffix(name, hash) #:nodoc:
+          "#{hash[:prefix]}#{name}#{hash[:suffix]}"
         end
 
     end

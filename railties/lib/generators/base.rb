@@ -45,9 +45,8 @@ module Rails
 
       protected
 
-        # Check whether the given class names are already taken by Ruby or Rails.
-        # In the future, expand to check other namespaces such as the rest of
-        # the user's app.
+        # Check whether the given class names are already taken by user
+        # application or Ruby on Rails.
         #
         def class_collisions(*class_names)
           return unless behavior == :invoke
