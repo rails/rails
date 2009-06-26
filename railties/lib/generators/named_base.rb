@@ -30,7 +30,7 @@ module Rails
         # superclass. The from_superclass method used below is from Thor.
         #
         def class_collisions #:nodoc:
-          @class_collisions ||= from_superclass(:class_collisions, nil)
+          @class_collisions ||= from_superclass(:class_collisions, nil) rescue nil
         end
       end
 

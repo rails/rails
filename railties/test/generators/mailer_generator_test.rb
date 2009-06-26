@@ -25,8 +25,8 @@ class MailerGeneratorTest < GeneratorsTestCase
 
   def test_invokes_default_template_engine
     run_generator
-    assert_file "app/views/notifier/foo.erb"
-    assert_file "app/views/notifier/bar.erb"
+    assert_file "app/views/notifier/foo.erb", /app\/views\/notifier\/foo/
+    assert_file "app/views/notifier/bar.erb", /app\/views\/notifier\/bar/
   end
 
   def test_invokes_default_template_engine_even_with_no_action
