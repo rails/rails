@@ -45,7 +45,8 @@ module Rails
     #   "test_unit:generators:model", "test_unit:model"
     #
     def self.find_by_namespace(name, base=nil, context=nil)
-      attempts = [ ]
+      name, attempts = name.to_s, []
+
       attempts << "#{base}:generators:#{name}"    if base && name.count(':') == 0
       attempts << "#{name}:generators:#{context}" if context && name.count(':') == 0
       attempts << name.sub(':', ':generators:')   if name.count(':') == 1

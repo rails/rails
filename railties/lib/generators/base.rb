@@ -4,7 +4,8 @@ module Rails
   module Generators
     DEFAULTS = {
       :test_framework => 'test_unit',
-      :template_engine => 'erb'
+      :template_engine => 'erb',
+      :helper => true
     }
 
     class Error < Thor::Error
@@ -117,13 +118,15 @@ module Rails
           end
         end
 
-        # Invoke a generator based on the given name. If a class option does not
-        # exist for the current name, one created.
+        # Invoke a generator based on the value supplied by the user to the
+        # given option named "name". A class option is created when this method
+        # is invoked and you can set a hash to customize it, although type and
+        # default values cannot be given.
         #
         # ==== Examples
         #
         #   class ControllerGenerator < Rails::Generators::Base
-        #     invoke_for :test_framework
+        #     invoke_for :test_framework, :aliases => "-t"
         #   end
         #
         # The example above will create a test framework option and will invoke
@@ -139,13 +142,24 @@ module Rails
         # This allows any test framework to hook into Rails as long as it
         # provides a "test_framework:generators:controller" generator.
         #
+        # Finally, if the user don't want to use any test framework, he can do:
+        #
+        #   ruby script/generate controller Account --skip-test-framework
+        #
+        # Or similarly:
+        #
+        #   ruby script/generate controller Account --no-test-framework
+        #
         def self.invoke_for(*names)
+          default_options = names.extract_options!
+
           names.each do |name|
-            unless class_options[name]
-              aliases = "-" + name.to_s.gsub(/_framework$/, '').split('_').last[0,1]
-              class_option name, :type => :default, :default => DEFAULTS[name], :banner => "NAME", :aliases => aliases,
-                                 :desc => "#{name.to_s.humanize} to be used"
-            end
+            options = default_options.dup
+            options[:desc]    ||= "#{name.to_s.humanize} to be used"
+            options[:banner]  ||= "NAME"
+            options[:aliases] ||= "-" + name.to_s.gsub(/_framework$/, '').split('_').last[0,1]
+
+            class_option name, options.merge!(:type => :default, :default => DEFAULTS[name])
 
             class_eval <<-METHOD, __FILE__, __LINE__
               def invoke_#{name}
@@ -159,6 +173,56 @@ module Rails
                 else
                   task = "\#{options[#{name.inspect}]}:generators:\#{self.class.generator_name}"
                   say "Could not find and invoke '\#{task}'."
+                end
+              end
+            METHOD
+          end
+        end
+
+        # Invoke a generator with the given name if the user requires it. The
+        # difference to invoke_for is that the class option here is boolean
+        # and the generator invoked is not based on user input.
+        #
+        # A class option is created when this method is invoked and you can set
+        # a hash to customize it, although type and default values cannot be
+        # given.
+        #
+        # ==== Examples
+        #
+        #   class ControllerGenerator < Rails::Generators::Base
+        #     invoke_if :webrat, :aliases => "-w"
+        #   end
+        #
+        # The example above will create a helper option and will be invoked
+        # when the user requires so:
+        #
+        #   ruby script/generate controller Account --webrat
+        #
+        # The controller generator will then try to invoke the following generators:
+        #
+        #   "rails:generators:webrat", "webrat:generators:controller", "webrat"
+        #
+        def self.invoke_if(*names)
+          default_options = names.extract_options!
+
+          names.each do |name|
+            options = default_options.dup
+            options[:desc]    ||= "Indicates when to use #{name.to_s.humanize}"
+            options[:aliases] ||= "-" + name.to_s.last[0,1]
+
+            class_option name, options.merge!(:type => :boolean, :default => DEFAULTS[name] || false)
+
+            class_eval <<-METHOD, __FILE__, __LINE__
+              def invoke_#{name}
+                return unless options[#{name.inspect}]
+
+                klass = Rails::Generators.find_by_namespace(#{name.inspect},
+                                                            self.class.base_name, self.class.generator_name)
+
+                if klass
+                  invoke klass
+                else
+                  say "Could not find and invoke '#{name.inspect}'."
                 end
               end
             METHOD

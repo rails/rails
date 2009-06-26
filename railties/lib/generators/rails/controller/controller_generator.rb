@@ -9,10 +9,7 @@ module Rails
       end
 
       invoke_for :template_engine, :test_framework
-
-      def invoke_helper
-        invoke "rails:generators:helper"
-      end
+      invoke_if :helper, :aliases => "-v"
     end
   end
 end
