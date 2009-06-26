@@ -1,0 +1,8 @@
+Description:
+    Stubs out a new integration test. Pass the name of the test, either
+    CamelCased or under_scored, as an argument. The new test class is
+    generated in test/integration/testname_test.rb
+
+Example:
+    `./script/generate integration_test GeneralStories` creates a GeneralStories
+    integration test in test/integration/general_stories_test.rb
