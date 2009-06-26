@@ -124,7 +124,7 @@ module Rails
           names.each do |name|
             unless class_options[name]
               aliases = "-" + name.to_s.gsub(/_framework$/, '').split('_').last[0,1]
-              class_option name, :type => :string, :default => DEFAULTS[name], :banner => "NAME", :aliases => aliases,
+              class_option name, :type => :default, :default => DEFAULTS[name], :banner => "NAME", :aliases => aliases,
                                  :desc => "#{name.to_s.humanize} to be used"
             end
 
