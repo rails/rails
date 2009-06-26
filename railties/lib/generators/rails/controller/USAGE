@@ -5,9 +5,8 @@ Description:
     To create a controller within a module, specify the controller name as a
     path like 'parent_module/controller_name'.
 
-    This generates a controller class in app/controllers, view templates in
-    app/views/controller_name and then invokes the helper generator, the
-    current template engine and finally the test framework.
+    This generates a controller class in app/controllers and invokes helper,
+    template engine and test framework generators.
 
 Example:
     `./script/generate controller CreditCard open debit credit close`
@@ -18,13 +17,3 @@ Example:
         Views:           app/views/credit_card/debit.html.erb [...]
         Helper:          app/helpers/credit_card_helper.rb
         Helper Test:     test/unit/helpers/credit_card_helper_test.rb
-
-Modules Example:
-    `./script/generate controller 'admin/credit_card' suspend late_fee`
-
-    Credit card admin controller with URLs /admin/credit_card/suspend.
-        Controller:      app/controllers/admin/credit_card_controller.rb
-        Functional Test: test/functional/admin/credit_card_controller_test.rb
-        Views:           app/views/admin/credit_card/debit.html.erb [...]
-        Helper:          app/helpers/admin/credit_card_helper.rb
-        Helper Test:     test/unit/helpers/admin/credit_card_helper_test.rb
