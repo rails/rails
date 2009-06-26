@@ -6,7 +6,7 @@ class IntegrationTestGeneratorTest < GeneratorsTestCase
 
   def test_integration_test_skeleton_is_created
     run_generator
-    assert_file "test/integration/integration_test.rb"
+    assert_file "test/integration/integration_test.rb", /class IntegrationTest < ActionController::IntegrationTest/
   end
 
   protected

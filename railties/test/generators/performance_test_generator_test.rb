@@ -6,7 +6,7 @@ class PerformanceTestGeneratorTest < GeneratorsTestCase
 
   def test_performance_test_skeleton_is_created
     run_generator
-    assert_file "test/performance/performance_test.rb"
+    assert_file "test/performance/performance_test.rb", /class PerformanceTest < ActionController::PerformanceTest/
   end
 
   protected

@@ -13,15 +13,15 @@ module Rails
 
       def initialize(*args)
         super
-        assign_names!
+        assign_names!(self.name)
         parse_attributes! if respond_to?(:attributes)
       end
 
       protected
 
-        def assign_names!
-          base_name, @class_path, @file_path, @class_nesting, @class_nesting_depth = extract_modules(name)
-          @class_name_without_nesting, @singular_name, @plural_name = inflect_names(base_name)
+        def assign_names!(given_name)
+          self.name, @class_path, @file_path, @class_nesting, @class_nesting_depth = extract_modules(given_name)
+          @class_name_without_nesting, @singular_name, @plural_name = inflect_names(self.name)
 
           @table_name = if !defined?(ActiveRecord::Base) || ActiveRecord::Base.pluralize_table_names
             plural_name
