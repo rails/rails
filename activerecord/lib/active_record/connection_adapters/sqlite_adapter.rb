@@ -431,6 +431,16 @@ module ActiveRecord
             'INTEGER PRIMARY KEY NOT NULL'.freeze
           end
         end
+
+        def translate_exception(exception, message)
+          case exception.message
+          when /column(s)? .* (is|are) not unique/
+            RecordNotUnique.new(message, exception)
+          else
+            super
+          end
+        end
+
     end
 
     class SQLite2Adapter < SQLiteAdapter # :nodoc:

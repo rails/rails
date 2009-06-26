@@ -1268,13 +1268,6 @@ class RenderTest < ActionController::TestCase
     assert_equal "Hola: PratikHola: Amy", @response.body
   end
 
-  def test_partial_with_implicit_local_assignment
-    assert_deprecated do
-      get :partial_with_implicit_local_assignment
-      assert_equal "Hello: Marcel", @response.body
-    end
-  end
-
   def test_render_missing_partial_template
     assert_raise(ActionView::MissingTemplate) do
       get :missing_partial
