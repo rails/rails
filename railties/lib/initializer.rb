@@ -5,6 +5,7 @@ require 'railties_path'
 require 'rails/version'
 require 'rails/gem_dependency'
 require 'rails/rack'
+require 'rails/paths'
 require 'rails/core'
 require 'rails/configuration'
 
@@ -112,24 +113,6 @@ module Rails
     require 'ruby_version_check'
   end
 
-  Initializer.default.add :set_root_path do
-    raise 'RAILS_ROOT is not set' unless defined?(RAILS_ROOT)
-    raise 'RAILS_ROOT is not a directory' unless File.directory?(RAILS_ROOT)
-
-    configuration.root_path =
-      # Pathname is incompatible with Windows, but Windows doesn't have
-      # real symlinks so File.expand_path is safe.
-      if RUBY_PLATFORM =~ /(:?mswin|mingw)/
-        File.expand_path(RAILS_ROOT)
-
-      # Otherwise use Pathname#realpath which respects symlinks.
-      else
-        Pathname.new(RAILS_ROOT).realpath.to_s
-      end
-
-    RAILS_ROOT.replace configuration.root_path
-  end
-
   # If Rails is vendored and RubyGems is available, install stub GemSpecs
   # for Rails, Active Support, Active Record, Action Pack, Action Mailer, and
   # Active Resource. This allows Gem plugins to depend on Rails even when
@@ -158,8 +141,9 @@ module Rails
   # Set the <tt>$LOAD_PATH</tt> based on the value of
   # Configuration#load_paths. Duplicates are removed.
   Initializer.default.add :set_load_path do
-    load_paths = configuration.load_paths + configuration.framework_paths
-    load_paths.reverse_each { |dir| $LOAD_PATH.unshift(dir) if File.directory?(dir) }
+    # TODO: Think about unifying this with the general Rails paths
+    configuration.framework_paths.reverse_each { |dir| $LOAD_PATH.unshift(dir) if File.directory?(dir) }
+    configuration.paths.add_to_load_path
     $LOAD_PATH.uniq!
   end
 
@@ -179,6 +163,10 @@ module Rails
     begin
       require 'active_support'
       require 'active_support/core_ext/kernel/reporting'
+      require 'active_support/core_ext/logger'
+
+      # TODO: This is here to make Sam Ruby's tests pass. Needs discussion.
+      require 'active_support/core_ext/numeric/bytes'
       configuration.frameworks.each { |framework| require(framework.to_s) }
     rescue LoadError => e
       # Re-raise as RuntimeError because Mongrel would swallow LoadError.
@@ -217,6 +205,8 @@ module Rails
   Initializer.default.add :load_environment do
     silence_warnings do
       next if @environment_loaded
+      next unless File.file?(configuration.environment_path)
+
       @environment_loaded = true
 
       config = configuration
@@ -307,6 +297,7 @@ module Rails
       end
     end
 
+    # TODO: Why are we silencing warning here?
     silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
   end
 
@@ -326,6 +317,7 @@ module Rails
   # Sets the dependency loading mechanism based on the value of
   # Configuration#cache_classes.
   Initializer.default.add :initialize_dependency_mechanism do
+    # TODO: Remove files from the $" and always use require
     ActiveSupport::Dependencies.mechanism = configuration.cache_classes ? :require : :load
   end
 
@@ -409,10 +401,6 @@ module Rails
     end
   end
 
-  # Add the load paths used by support functions such as the info controller
-  Initializer.default.add :add_support_load_paths do
-  end
-
   Initializer.default.add :check_for_unbuilt_gems do
     unbuilt_gems = config.gems.select {|gem| gem.frozen? && !gem.built? }
     if unbuilt_gems.size > 0
@@ -462,6 +450,7 @@ Run `rake gems:build` to build the unbuilt gems.
   # # pick up any gems that plugins depend on
   Initializer.default.add :add_gem_load_paths do
     require 'rails/gem_dependency'
+    # TODO: This seems extraneous
     Rails::GemDependency.add_frozen_gem_path
     unless config.gems.empty?
       require "rubygems"
@@ -529,6 +518,7 @@ Run `rake gems:install` to install the missing gems.
     end
   end
 
+  # TODO: Make a DSL way to limit an initializer to a particular framework
 
   # # Prepare dispatcher callbacks and run 'prepare' callbacks
   Initializer.default.add :prepare_dispatcher do
@@ -557,20 +547,10 @@ Run `rake gems:install` to install the missing gems.
     end
   end
 
-  # # Load view path cache
-  Initializer.default.add :load_view_paths do
-    if configuration.frameworks.include?(:action_view)
-      if configuration.cache_classes
-        view_path = ActionView::FileSystemResolverWithFallback.new(configuration.view_path)
-        ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller)
-        ActionMailer::Base.template_root = view_path if configuration.frameworks.include?(:action_mailer)
-      end
-    end
-  end
-
   # Eager load application classes
   Initializer.default.add :load_application_classes do
     next if $rails_rake_task
+
     if configuration.cache_classes
       configuration.eager_load_paths.each do |load_path|
         matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
