@@ -113,6 +113,7 @@ module Rails
       #
       def self.hook_for(*names)
         default_options = names.extract_options!
+        verbose = default_options.key?(:verbose) ? default_options[:verbose] : :blue
 
         names.each do |name|
           options = default_options.dup
@@ -130,6 +131,7 @@ module Rails
                                                           self.class.base_name, self.class.generator_name)
 
               if klass
+                say_status :invoke, options[#{name.inspect}], #{verbose.inspect}
                 invoke klass
               else
                 say "Could not find and invoke '\#{options[#{name.inspect}]}'."
@@ -164,6 +166,7 @@ module Rails
       #
       def self.invoke_if(*names)
         default_options = names.extract_options!
+        verbose = default_options.key?(:verbose) ? default_options[:verbose] : :blue
 
         names.each do |name|
           conditional_class_option name, default_options.dup
@@ -176,6 +179,7 @@ module Rails
                                                           self.class.base_name, self.class.generator_name)
 
               if klass
+                say_status :invoke, #{name.inspect}, #{verbose.inspect}
                 invoke klass
               else
                 say "Could not find and invoke '#{name}'."
