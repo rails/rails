@@ -20,6 +20,8 @@ class ControllerGeneratorTest < GeneratorsTestCase
     assert_match /The name 'ObjectController' is either already used in your application or reserved/, content
   end
 
+  # No need to spec content since it's already spec'ed on helper generator.
+  #
   def test_invokes_helper
     run_generator
     assert_file "app/helpers/account_helper.rb"

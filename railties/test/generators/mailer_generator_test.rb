@@ -18,9 +18,9 @@ class MailerGeneratorTest < GeneratorsTestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/unit/notifier_test.rb"
-    assert_file "test/fixtures/notifier/foo"
-    assert_file "test/fixtures/notifier/bar"
+    assert_file "test/unit/notifier_test.rb", /class NotifierTest < ActionMailer::TestCase/
+    assert_file "test/fixtures/notifier/foo", /app\/views\/notifier\/foo/
+    assert_file "test/fixtures/notifier/bar", /app\/views\/notifier\/bar/
   end
 
   def test_invokes_default_template_engine

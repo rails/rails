@@ -96,7 +96,7 @@ module Rails
           class_option name, options.merge!(:type => :default, :default => DEFAULTS[name])
 
           class_eval <<-METHOD, __FILE__, __LINE__
-            def invoke_#{name}
+            def invoke_for_#{name}
               return unless options[#{name.inspect}]
 
               klass = Rails::Generators.find_by_namespace(options[#{name.inspect}],
@@ -143,10 +143,11 @@ module Rails
           options = default_options.dup
           options[:desc] ||= "Indicates when to use #{name.to_s.humanize}"
 
+          # TODO Reverse --name to --skip-name if default is given.
           class_option name, options.merge!(:type => :boolean, :default => DEFAULTS[name] || false)
 
           class_eval <<-METHOD, __FILE__, __LINE__
-            def invoke_#{name}
+            def invoke_if_#{name}
               return unless options[#{name.inspect}]
 
               klass = Rails::Generators.find_by_namespace(#{name.inspect},

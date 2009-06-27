@@ -6,19 +6,19 @@ require 'generators/test_unit/observer/observer_generator'
 
 class ObserverGeneratorTest < GeneratorsTestCase
 
-  def test_observer_skeleton_is_created
+  def test_invokes_default_orm
     run_generator
     assert_file "app/models/account_observer.rb", /class AccountObserver < ActiveRecord::Observer/
   end
 
-  def test_observer_with_class_path_skeleton_is_created
+  def test_invokes_default_orm_with_class_path
     run_generator ["admin/account"]
     assert_file "app/models/admin/account_observer.rb", /class Admin::AccountObserver < ActiveRecord::Observer/
   end
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/unit/account_observer_test.rb"
+    assert_file "test/unit/account_observer_test.rb", /class AccountObserverTest < ActiveSupport::TestCase/
   end
 
   def test_logs_if_the_test_framework_cannot_be_found

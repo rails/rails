@@ -34,15 +34,17 @@ class GeneratorsTestCase < Test::Unit::TestCase
   end
   alias :silence :capture
 
-  def assert_file(relative, content=nil)
+  def assert_file(relative, *contents)
     absolute = File.join(destination_root, relative)
     assert File.exists?(absolute)
 
-    case content
-      when String
-        assert_equal content, File.read(absolute)
-      when Regexp
-        assert_match content, File.read(absolute)
+    contents.each do |content|
+      case content
+        when String
+          assert_equal content, File.read(absolute)
+        when Regexp
+          assert_match content, File.read(absolute)
+      end
     end
   end
 

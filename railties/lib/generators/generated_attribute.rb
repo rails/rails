@@ -1,11 +1,10 @@
 module Rails
   module Generators
     class GeneratedAttribute
-      attr_accessor :name, :type, :column
+      attr_accessor :name, :type
 
       def initialize(name, type)
         @name, @type = name, type.to_sym
-        @column = ActiveRecord::ConnectionAdapters::Column.new(@name, nil, @type)
       end
 
       def field_type
