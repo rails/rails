@@ -7,7 +7,7 @@ module Rails
         template 'helper.rb', File.join('app/helpers', class_path, "#{file_name}_helper.rb")
       end
 
-      invoke_for :test_framework
+      hook_for :test_framework
     end
   end
 end

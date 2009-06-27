@@ -8,7 +8,7 @@ module Rails
         template "mailer.rb", File.join('app/models', class_path, "#{file_name}.rb")
       end
 
-      invoke_for :template_engine, :test_framework
+      hook_for :template_engine, :test_framework
     end
   end
 end

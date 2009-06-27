@@ -62,7 +62,7 @@ module Rails
       # ==== Examples
       #
       #   class ControllerGenerator < Rails::Generators::Base
-      #     invoke_for :test_framework, :aliases => "-t"
+      #     hook_for :test_framework, :aliases => "-t"
       #   end
       #
       # The example above will create a test framework option and will invoke
@@ -94,7 +94,7 @@ module Rails
       # Consider this TestUnit model generator:
       #
       #   class ModelGenerator < TestUnit::Generators::Base
-      #     invoke_for :fixture_replacement, :aliases => "-r"
+      #     hook_for :fixture_replacement, :aliases => "-r"
       #   end
       #
       # When invoked as:
@@ -111,7 +111,7 @@ module Rails
       # it will implement the second or the third depending on the number of
       # generators it has.
       #
-      def self.invoke_for(*names)
+      def self.hook_for(*names)
         default_options = names.extract_options!
 
         names.each do |name|
@@ -140,7 +140,7 @@ module Rails
       end
 
       # Invoke a generator with the given name if the user requires it. The
-      # difference to invoke_for is that the class option here is boolean
+      # difference to hook_for is that the class option here is boolean
       # and the generator invoked is not based on user input.
       #
       # A class option is created when this method is invoked and you can set

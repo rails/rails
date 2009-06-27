@@ -10,7 +10,7 @@ module TestUnit
         template 'unit_test.rb', File.join('test/unit', class_path, "#{file_name}_test.rb")
       end
 
-      invoke_for :fixture_replacement
+      hook_for :fixture_replacement
 
       def create_fixture_file
         if options[:fixture] && options[:fixture_replacement].nil?
