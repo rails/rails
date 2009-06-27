@@ -27,7 +27,7 @@ class PluginGeneratorTest < GeneratorsTestCase
 
   def test_logs_if_the_test_framework_cannot_be_found
     content = run_generator ["plugin_fu", "--test-framework=unknown"]
-    assert_match /Could not find and invoke 'unknown:generators:plugin'/, content
+    assert_match /Could not find and invoke 'unknown'/, content
   end
 
   def test_creates_tasks_if_required

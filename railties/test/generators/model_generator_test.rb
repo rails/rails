@@ -22,6 +22,12 @@ class ModelGeneratorTest < GeneratorsTestCase
     assert_no_file "test/fixtures/accounts.yml"
   end
 
+  def test_fixtures_are_skipped_if_fixture_replacement_is_given
+    content = run_generator ["account", "-r", "fixjour"]
+    assert_match /Could not find and invoke 'fixjour'/, content
+    assert_no_file "test/fixtures/accounts.yml"
+  end
+
   def test_check_class_collision
     content = capture(:stderr){ run_generator ["object"] }
     assert_match /The name 'Object' is either already used in your application or reserved/, content

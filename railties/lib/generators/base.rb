@@ -3,15 +3,17 @@ require 'generators/actions'
 module Rails
   module Generators
     DEFAULTS = {
-      :orm => 'active_record',
+      :fixture => true,
       :helper => true,
+      :orm => 'active_record',
       :test_framework => 'test_unit',
       :template_engine => 'erb'
     }
 
     ALIASES = {
+      :fixture_replacement => '-r',
+      :helper => '-l',
       :orm => '-o',
-      :helper => '-v',
       :test_framework => '-t',
       :template_engine => '-e'
     }
@@ -70,11 +72,13 @@ module Rails
       #
       #   ruby script/generate controller Account --test-framework=test_unit
       #
-      # The controller generator will then invoke "test_unit:generators:controller".
-      # If it can't be found it then tries to invoke only "test_unit".
+      # The controller generator will then try to invoke the following generators:
       #
-      # This allows any test framework to hook into Rails as long as it
-      # provides a "test_framework:generators:controller" generator.
+      #   "rails:generators:test_unit", "test_unit:generators:controller", "test_unit"
+      #
+      # In this case, the "test_unit:generators:controller" is available and is
+      # invoked. This allows any test framework to hook into Rails as long as it
+      # provides any of the hooks above.
       #
       # Finally, if the user don't want to use any test framework, he can do:
       #
@@ -84,12 +88,35 @@ module Rails
       #
       #   ruby script/generate controller Account --no-test-framework
       #
+      # ==== Another example
+      #
+      # Another example of invoke_for hooks is fixture replacement tools.
+      # Consider this TestUnit model generator:
+      #
+      #   class ModelGenerator < TestUnit::Generators::Base
+      #     invoke_for :fixture_replacement, :aliases => "-r"
+      #   end
+      #
+      # When invoked as:
+      #
+      #   ruby script/generate test_unit:model Account -r fixjour
+      #
+      # It will lookup for any of these generators:
+      #
+      #   "test_unit:generators:fixjour", "fixjour:generators:model", "fixjour"
+      #
+      # Fixjour can choose any of these hooks to implement. For example, if
+      # Fixjour has different output for rspec and test_unit, it will likely
+      # implement the first hook. However if the output is the same for both,
+      # it will implement the second or the third depending on the number of
+      # generators it has.
+      #
       def self.invoke_for(*names)
         default_options = names.extract_options!
 
         names.each do |name|
           options = default_options.dup
-          options[:desc]    ||= "#{name.to_s.humanize} to be used"
+          options[:desc]    ||= "#{name.to_s.humanize} to be invoked"
           options[:banner]  ||= "NAME"
           options[:aliases] ||= ALIASES[name]
 
@@ -100,13 +127,12 @@ module Rails
               return unless options[#{name.inspect}]
 
               klass = Rails::Generators.find_by_namespace(options[#{name.inspect}],
-                                                          nil, self.class.generator_name)
+                                                          self.class.base_name, self.class.generator_name)
 
               if klass
                 invoke klass
               else
-                task = "\#{options[#{name.inspect}]}:generators:\#{self.class.generator_name}"
-                say "Could not find and invoke '\#{task}'."
+                say "Could not find and invoke '\#{options[#{name.inspect}]}'."
               end
             end
           METHOD
@@ -140,11 +166,7 @@ module Rails
         default_options = names.extract_options!
 
         names.each do |name|
-          options = default_options.dup
-          options[:desc] ||= "Indicates when to use #{name.to_s.humanize}"
-
-          # TODO Reverse --name to --skip-name if default is given.
-          class_option name, options.merge!(:type => :boolean, :default => DEFAULTS[name] || false)
+          conditional_class_option name, default_options.dup
 
           class_eval <<-METHOD, __FILE__, __LINE__
             def invoke_if_#{name}
@@ -156,7 +178,7 @@ module Rails
               if klass
                 invoke klass
               else
-                say "Could not find and invoke '#{name.inspect}'."
+                say "Could not find and invoke '#{name}'."
               end
             end
           METHOD
@@ -218,6 +240,14 @@ module Rails
             klass_name.sub!(/Generator$/, '')
             klass_name.underscore
           end
+        end
+
+        # Creates a conditional class option with type boolean, default value
+        # lookup and default description.
+        #
+        def self.conditional_class_option(name, options={})
+          options[:desc] ||= "Indicates when to generate #{name.to_s.humanize.downcase}"
+          class_option name, options.merge!(:type => :boolean, :default => DEFAULTS[name] || false)
         end
 
         # Small macro to add ruby as an option to the generator with proper

@@ -20,7 +20,7 @@ class HelperGeneratorTest < GeneratorsTestCase
 
   def test_logs_if_the_test_framework_cannot_be_found
     content = run_generator ["admin", "--test-framework=unknown"]
-    assert_match /Could not find and invoke 'unknown:generators:helper'/, content
+    assert_match /Could not find and invoke 'unknown'/, content
   end
 
   def test_check_class_collision
