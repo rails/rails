@@ -38,7 +38,7 @@ module Rails
       #
       def self.desc(description=nil)
         return super if description
-        usage = File.join(source_root, "..", "USAGE")
+        usage = File.expand_path(File.join(source_root, "..", "USAGE"))
 
         @desc ||= if File.exist?(usage)
           File.read(usage)
@@ -90,32 +90,10 @@ module Rails
       #
       #   ruby script/generate controller Account --no-test-framework
       #
-      # ==== Another example
-      #
-      # Another example of invoke_for hooks is fixture replacement tools.
-      # Consider this TestUnit model generator:
-      #
-      #   class ModelGenerator < TestUnit::Generators::Base
-      #     hook_for :fixture_replacement, :aliases => "-r"
-      #   end
-      #
-      # When invoked as:
-      #
-      #   ruby script/generate test_unit:model Account -r fixjour
-      #
-      # It will lookup for any of these generators:
-      #
-      #   "test_unit:generators:fixjour", "fixjour:generators:model", "fixjour"
-      #
-      # Fixjour can choose any of these hooks to implement. For example, if
-      # Fixjour has different output for rspec and test_unit, it will likely
-      # implement the first hook. However if the output is the same for both,
-      # it will implement the second or the third depending on the number of
-      # generators it has.
-      #
       def self.hook_for(*names)
         default_options = names.extract_options!
         verbose = default_options.key?(:verbose) ? default_options[:verbose] : :blue
+        invocations.concat(names)
 
         names.each do |name|
           options = default_options.dup
@@ -169,6 +147,7 @@ module Rails
       def self.invoke_if(*names)
         default_options = names.extract_options!
         verbose = default_options.key?(:verbose) ? default_options[:verbose] : :blue
+        invocations.concat(names)
 
         names.each do |name|
           conditional_class_option name, default_options.dup
@@ -248,12 +227,46 @@ module Rails
           end
         end
 
+        # Stores invocations for this class merging with superclass values.
+        #
+        def self.invocations #:nodoc:
+          @invocations ||= from_superclass(:invocations, [])
+        end
+
         # Creates a conditional class option with type boolean, default value
         # lookup and default description.
         #
         def self.conditional_class_option(name, options={})
           options[:desc] ||= "Indicates when to generate #{name.to_s.humanize.downcase}"
           class_option name, options.merge!(:type => :boolean, :default => DEFAULTS[name] || false)
+        end
+
+        # Overwrite class options help to allow invoked generators options to be
+        # shown when invoking a generator. Only first level options and options
+        # that belongs to the default group are shown.
+        #
+        def self.class_options_help(shell, ungrouped_name=nil, extra_group=nil)
+          klass_options = Thor::CoreExt::OrderedHash.new
+
+          invocations.each do |name|
+            option = class_options[name]
+
+            klass_name = option.type == :boolean ? name : option.default
+            next unless klass_name
+
+            klass = Rails::Generators.find_by_namespace(klass_name, base_name, generator_name)
+            next unless klass
+
+            human_name = klass_name.to_s.classify
+
+            klass_options[human_name] ||= []
+            klass_options[human_name] += klass.class_options.values.select do |option|
+              class_options[option.human_name.to_sym].nil? && option.group.nil?
+            end
+          end
+
+          klass_options.merge!(extra_group) if extra_group
+          super(shell, ungrouped_name, klass_options)
         end
 
         # Small macro to add ruby as an option to the generator with proper
@@ -266,11 +279,12 @@ module Rails
           class_option :ruby, :type => :string, :aliases => "-r", :default => default,
                               :desc => "Path to the Ruby binary of your choice", :banner => "PATH"
 
-          no_tasks do
-            define_method :shebang do
-              "#!#{options[:ruby] || "/usr/bin/env ruby"}"
+          class_eval <<-METHOD, __FILE__, __LINE__
+            protected
+            def shebang
+              "#!\#{options[:ruby] || "/usr/bin/env ruby"}"
             end
-          end
+          METHOD
         end
 
     end

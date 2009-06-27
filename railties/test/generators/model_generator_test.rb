@@ -6,6 +6,12 @@ require 'generators/test_unit/model/model_generator'
 
 class ModelGeneratorTest < GeneratorsTestCase
 
+  def test_help_shows_invoked_generators_options
+    content = run_generator ["--help"]
+    assert_match /ActiveRecord options:/, content
+    assert_match /TestUnit options:/, content
+  end
+
   def test_invokes_default_orm
     run_generator
     assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
