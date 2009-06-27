@@ -9,6 +9,13 @@ module Rails
       :template_engine => 'erb'
     }
 
+    ALIASES = {
+      :orm => '-o',
+      :helper => '-v',
+      :test_framework => '-t',
+      :template_engine => '-e'
+    }
+
     class Error < Thor::Error
     end
 
@@ -84,7 +91,7 @@ module Rails
           options = default_options.dup
           options[:desc]    ||= "#{name.to_s.humanize} to be used"
           options[:banner]  ||= "NAME"
-          options[:aliases] ||= "-" + name.to_s.gsub(/_framework$/, '').split('_').last[0,1]
+          options[:aliases] ||= ALIASES[name]
 
           class_option name, options.merge!(:type => :default, :default => DEFAULTS[name])
 
@@ -134,8 +141,7 @@ module Rails
 
         names.each do |name|
           options = default_options.dup
-          options[:desc]    ||= "Indicates when to use #{name.to_s.humanize}"
-          options[:aliases] ||= "-" + name.to_s.last[0,1]
+          options[:desc] ||= "Indicates when to use #{name.to_s.humanize}"
 
           class_option name, options.merge!(:type => :boolean, :default => DEFAULTS[name] || false)
 
