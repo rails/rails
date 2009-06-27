@@ -5,9 +5,11 @@ module Rails
     DEFAULTS = {
       :fixture => true,
       :helper => true,
+      :migration => true,
       :orm => 'active_record',
       :test_framework => 'test_unit',
-      :template_engine => 'erb'
+      :template_engine => 'erb',
+      :timestamps => true
     }
 
     ALIASES = {
