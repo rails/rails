@@ -3,9 +3,10 @@ require 'generators/actions'
 module Rails
   module Generators
     DEFAULTS = {
+      :orm => 'active_record',
+      :helper => true,
       :test_framework => 'test_unit',
-      :template_engine => 'erb',
-      :helper => true
+      :template_engine => 'erb'
     }
 
     class Error < Thor::Error
@@ -41,7 +42,7 @@ module Rails
       #
       def self.namespace(name=nil)
         return super if name
-        @namespace ||= "#{base_name}:generators:#{generator_name}"
+        @namespace ||= super.sub(/_generator$/, '')
       end
 
       # Invoke a generator based on the value supplied by the user to the
@@ -207,7 +208,7 @@ module Rails
         def self.generator_name
           @generator_name ||= begin
             klass_name = self.name.split('::').last
-            klass_name.gsub!(/Generator$/, '')
+            klass_name.sub!(/Generator$/, '')
             klass_name.underscore
           end
         end
