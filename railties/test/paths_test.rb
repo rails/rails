@@ -69,28 +69,28 @@ class PathsTest < ActiveSupport::TestCase
     @root.app = "/app"
     @root.app.load_once!
     assert @root.app.load_once?
-    assert @root.load_once.include?(@root.app)
+    assert @root.load_once.include?(@root.app.paths.first)
   end
 
   test "making a path load_once more than once only includes it once in @root.load_once" do
     @root.app = "/app"
     @root.app.load_once!
     @root.app.load_once!
-    assert_equal 1, @root.load_once.select {|p| p == @root.app }.size
+    assert_equal 1, @root.load_once.select {|p| p == @root.app.paths.first }.size
   end
 
   test "it is possible to mark a path as eager" do
     @root.app = "/app"
     @root.app.eager_load!
     assert @root.app.eager_load?
-    assert @root.eager_load.include?(@root.app)
+    assert @root.eager_load.include?(@root.app.paths.first)
   end
 
   test "making a path eager more than once only includes it once in @root.eager_paths" do
     @root.app = "/app"
     @root.app.eager_load!
     @root.app.eager_load!
-    assert_equal 1, @root.eager_load.select {|p| p == @root.app }.size
+    assert_equal 1, @root.eager_load.select {|p| p == @root.app.paths.first }.size
   end
 
   test "a path should have a glob that defaults to **/*.rb" do
@@ -102,5 +102,18 @@ class PathsTest < ActiveSupport::TestCase
     @root.app = "/app"
     @root.app.glob = "*.rb"
     assert_equal "*.rb", @root.app.glob
+  end
+
+  test "a path can be added to the load path" do
+    @root.app = "app"
+    @root.app.load_path!
+    @root.app.models = "app/models"
+    assert_equal ["/foo/bar/app"], @root.load_paths
+  end
+
+  test "adding a path to the eager paths also adds it to the load path" do
+    @root.app = "app"
+    @root.app.eager_load!
+    assert_equal ["/foo/bar/app"], @root.load_paths
   end
 end

@@ -5,6 +5,7 @@ require 'railties_path'
 require 'rails/version'
 require 'rails/gem_dependency'
 require 'rails/rack'
+require 'rails/paths'
 require 'rails/core'
 require 'rails/configuration'
 
@@ -112,24 +113,6 @@ module Rails
     require 'ruby_version_check'
   end
 
-  Initializer.default.add :set_root_path do
-    raise 'RAILS_ROOT is not set' unless defined?(RAILS_ROOT)
-    raise 'RAILS_ROOT is not a directory' unless File.directory?(RAILS_ROOT)
-
-    configuration.root_path =
-      # Pathname is incompatible with Windows, but Windows doesn't have
-      # real symlinks so File.expand_path is safe.
-      if RUBY_PLATFORM =~ /(:?mswin|mingw)/
-        File.expand_path(RAILS_ROOT)
-
-      # Otherwise use Pathname#realpath which respects symlinks.
-      else
-        Pathname.new(RAILS_ROOT).realpath.to_s
-      end
-
-    RAILS_ROOT.replace configuration.root_path
-  end
-
   # If Rails is vendored and RubyGems is available, install stub GemSpecs
   # for Rails, Active Support, Active Record, Action Pack, Action Mailer, and
   # Active Resource. This allows Gem plugins to depend on Rails even when
@@ -158,8 +141,9 @@ module Rails
   # Set the <tt>$LOAD_PATH</tt> based on the value of
   # Configuration#load_paths. Duplicates are removed.
   Initializer.default.add :set_load_path do
-    load_paths = configuration.load_paths + configuration.framework_paths
-    load_paths.reverse_each { |dir| $LOAD_PATH.unshift(dir) if File.directory?(dir) }
+    # TODO: Think about unifying this with the general Rails paths
+    configuration.framework_paths.reverse_each { |dir| $LOAD_PATH.unshift(dir) if File.directory?(dir) }
+    configuration.paths.add_to_load_path
     $LOAD_PATH.uniq!
   end
 
@@ -221,6 +205,8 @@ module Rails
   Initializer.default.add :load_environment do
     silence_warnings do
       next if @environment_loaded
+      next unless File.file?(configuration.environment_path)
+
       @environment_loaded = true
 
       config = configuration
@@ -564,6 +550,7 @@ Run `rake gems:install` to install the missing gems.
   # Eager load application classes
   Initializer.default.add :load_application_classes do
     next if $rails_rake_task
+
     if configuration.cache_classes
       configuration.eager_load_paths.each do |load_path|
         matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
