@@ -12,6 +12,9 @@ Description:
     This generator invokes your configured ORM and test framework, which
     defaults to ActiveRecord and TestUnit.
 
+    Finally, if --parent option is given, it's used as superclass of the
+    created model. This allows you create Single Table Inheritance models.
+
 Examples:
     `./script/generate model account`
 

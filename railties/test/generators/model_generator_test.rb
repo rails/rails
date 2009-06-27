@@ -16,6 +16,11 @@ class ModelGeneratorTest < GeneratorsTestCase
     assert_file "app/models/account.rb", /class Account < Admin::Account/
   end
 
+  def test_orm_with_underscored_parent_option
+    run_generator ["account", "--parent", "admin/account"]
+    assert_file "app/models/account.rb", /class Account < Admin::Account/
+  end
+
   def test_invokes_default_test_framework
     run_generator
     assert_file "test/unit/account_test.rb", /class AccountTest < ActiveSupport::TestCase/
