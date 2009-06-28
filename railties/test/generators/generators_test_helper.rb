@@ -38,7 +38,9 @@ class GeneratorsTestCase < Test::Unit::TestCase
     absolute = File.join(destination_root, relative)
     assert File.exists?(absolute), "Expected file #{relative.inspect} to exist, but does not"
 
-    read = File.read(absolute) unless File.directory?(absolute)
+    read = File.read(absolute) if block_given? || !contents.empty?
+    yield read if block_given?
+
     contents.each do |content|
       case content
         when String
@@ -47,7 +49,6 @@ class GeneratorsTestCase < Test::Unit::TestCase
           assert_match content, read
       end
     end
-    read
   end
 
   def assert_no_file(relative)
@@ -55,10 +56,10 @@ class GeneratorsTestCase < Test::Unit::TestCase
     assert !File.exists?(absolute), "Expected file #{relative.inspect} to not exist, but does"
   end
 
-  def assert_migration(relative, *contents)
+  def assert_migration(relative, *contents, &block)
     file_name = migration_file_name(relative)
     assert file_name, "Expected migration #{relative} to exist, but was not found"
-    assert_file File.join(File.dirname(relative), file_name), *contents
+    assert_file File.join(File.dirname(relative), file_name), *contents, &block
   end
 
   def assert_no_migration(relative)
@@ -66,20 +67,22 @@ class GeneratorsTestCase < Test::Unit::TestCase
     assert_nil file_name, "Expected migration #{relative} to not exist, but found #{file_name}"
   end
 
-  def migration_file_name(relative)
-    absolute = File.join(destination_root, relative)
-    dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, '')
-
-    migration = Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
-    File.basename(migration) if migration
+  def assert_class_method(content, method, &block)
+    assert_instance_method content, "self.#{method}", &block
   end
 
-  def assert_class_method_for(content, method, &block)
-    assert_instance_method_for content, "self.#{method}", &block
-  end
-
-  def assert_instance_method_for(content, method)
+  def assert_instance_method(content, method)
     assert_match /def #{method}(.*?)end/m, content
-    yield content.match(/def #{method}(.*?)end/m)[1]
+    yield content.match(/def #{method}(.*?)end/m)[1] if block_given?
   end
+
+  protected
+
+    def migration_file_name(relative)
+      absolute = File.join(destination_root, relative)
+      dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, '')
+
+      migration = Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
+      File.basename(migration) if migration
+    end
 end

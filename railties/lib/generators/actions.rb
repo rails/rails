@@ -252,7 +252,7 @@ module Rails
         sentinel = "ActionController::Routing::Routes.draw do |map|"
 
         in_root do
-          inject_into_file 'config/routes.rb', "\n  #{routing_code}", { :after => sentinel }, false
+          inject_into_file 'config/routes.rb', "\n  #{routing_code}\n", { :after => sentinel }, false
         end
       end
 

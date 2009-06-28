@@ -16,7 +16,7 @@ module Rails
         if klass
           args = []
           args << class_name.pluralize
-          args.concat(options[:actions])
+          args << options[:actions]
 
           say_status :invoke, options[:resource_controller], :blue
           klass.new(args, options.dup, _overrides_config).invoke(:all)
@@ -26,7 +26,7 @@ module Rails
       end
 
       # TODO Add singleton support
-      def add_resource_routes
+      def add_resource_route
         route "map.resources :#{file_name.pluralize}"
       end
 

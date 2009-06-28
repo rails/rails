@@ -67,8 +67,11 @@ class ControllerGeneratorTest < GeneratorsTestCase
 
   def test_actions_are_turned_into_methods
     run_generator
-    assert_file "app/controllers/account_controller.rb", /def foo/
-    assert_file "app/controllers/account_controller.rb", /def bar/
+
+    assert_file "app/controllers/account_controller.rb" do |controller|
+      assert_instance_method controller, :foo
+      assert_instance_method controller, :bar
+    end
   end
 
   protected

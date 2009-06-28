@@ -20,32 +20,34 @@ class MigrationGeneratorTest < GeneratorsTestCase
   def test_add_migration_with_attributes
     @migration = "add_title_body_to_posts"
     run_generator [@migration, "title:string", "body:text"]
-    content = assert_migration "db/migrate/#{@migration}.rb"
 
-    assert_class_method_for content, :up do |up|
-      assert_match /add_column :posts, :title, :string/, up
-      assert_match /add_column :posts, :body, :text/, up
-    end
+    assert_migration "db/migrate/#{@migration}.rb" do |content|
+      assert_class_method content, :up do |up|
+        assert_match /add_column :posts, :title, :string/, up
+        assert_match /add_column :posts, :body, :text/, up
+      end
 
-    assert_class_method_for content, :down do |down|
-      assert_match /remove_column :posts, :title/, down
-      assert_match /remove_column :posts, :body/, down
+      assert_class_method content, :down do |down|
+        assert_match /remove_column :posts, :title/, down
+        assert_match /remove_column :posts, :body/, down
+      end
     end
   end
 
   def test_remove_migration_with_attributes
     @migration = "remove_title_body_from_posts"
     run_generator [@migration, "title:string", "body:text"]
-    content = assert_migration "db/migrate/#{@migration}.rb"
 
-    assert_class_method_for content, :up do |up|
-      assert_match /remove_column :posts, :title/, up
-      assert_match /remove_column :posts, :body/, up
-    end
+    assert_migration "db/migrate/#{@migration}.rb" do |content|
+      assert_class_method content, :up do |up|
+        assert_match /remove_column :posts, :title/, up
+        assert_match /remove_column :posts, :body/, up
+      end
 
-    assert_class_method_for content, :down do |down|
-      assert_match /add_column :posts, :title, :string/, down
-      assert_match /add_column :posts, :body, :text/, down
+      assert_class_method content, :down do |down|
+        assert_match /add_column :posts, :title, :string/, down
+        assert_match /add_column :posts, :body, :text/, down
+      end
     end
   end
 

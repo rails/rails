@@ -26,7 +26,8 @@ task :default => :test
 ## below passes.  It's not ideal, but at least
 ## we can see the failures
 task :test do 
-  Dir['test/**/*_test.rb'].all? do |file|
+  dir = ENV["TEST_DIR"] || "**"
+  Dir["test/#{dir}/*_test.rb"].all? do |file|
     ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
     system(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
   end or raise "Failures"

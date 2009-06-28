@@ -20,6 +20,7 @@ class ModelGeneratorTest < GeneratorsTestCase
   def test_model_with_parent_option
     run_generator ["account", "--parent", "Admin::Account"]
     assert_file "app/models/account.rb", /class Account < Admin::Account/
+    assert_no_migration "db/migrate/create_accounts.rb"
   end
 
   def test_model_with_underscored_parent_option
@@ -39,7 +40,18 @@ class ModelGeneratorTest < GeneratorsTestCase
 
   def test_migration_with_attributes
     run_generator ["product", "name:string", "supplier_id:integer"]
-    assert_migration "db/migrate/create_products.rb", /t\.string :name/, /t\.integer :supplier_id/
+
+    assert_migration "db/migrate/create_products.rb" do |m|
+      assert_class_method m, :up do |up|
+        assert_match /create_table :products/, up
+        assert_match /t\.string :name/, up
+        assert_match /t\.integer :supplier_id/, up
+      end
+
+      assert_class_method m, :down do |down|
+        assert_match /drop_table :products/, down
+      end
+    end
   end
 
   def test_model_with_references_attribute_generates_belongs_to_associations
@@ -59,8 +71,12 @@ class ModelGeneratorTest < GeneratorsTestCase
 
   def test_migration_timestamps_are_skipped
     run_generator ["account", "--no-timestamps"]
-    content = assert_migration "db/migrate/create_accounts.rb"
-    assert_no_match /t.timestamps/, content
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_class_method m, :up do |up|
+        assert_no_match /t.timestamps/, up
+      end
+    end
   end
 
   def test_invokes_default_test_framework
