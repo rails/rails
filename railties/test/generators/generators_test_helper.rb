@@ -73,4 +73,13 @@ class GeneratorsTestCase < Test::Unit::TestCase
     migration = Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
     File.basename(migration) if migration
   end
+
+  def assert_class_method_for(content, method, &block)
+    assert_instance_method_for content, "self.#{method}", &block
+  end
+
+  def assert_instance_method_for(content, method)
+    assert_match /def #{method}(.*?)end/m, content
+    yield content.match(/def #{method}(.*?)end/m)[1]
+  end
 end

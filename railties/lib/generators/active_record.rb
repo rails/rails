@@ -14,7 +14,7 @@ module ActiveRecord
       #
       # ==== Examples
       #
-      #   migration_template "migrate.rb", "db/migrate/add_foo_to_bar"
+      #   migration_template "migration.rb", "db/migrate/add_foo_to_bar.rb"
       #
       def migration_template(source, destination=nil, log_status=true)
         destination = File.expand_path(destination || source, self.destination_root)

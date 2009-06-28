@@ -1,0 +1,8 @@
+Description:
+    Creates a migration to add the sessions table used by the ORM session store.
+    Pass the migration name, either CamelCased or under_scored, as an argument.
+
+    Before invoking this generator, be sure that your ORM supports session stores.
+
+Example:
+    `./script/generate session_migration CreateSessionTable`

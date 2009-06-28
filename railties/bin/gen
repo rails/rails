@@ -26,8 +26,6 @@ if ARGV.size == 0
   puts "Others: #{others.join(', ')}." unless others.empty?
 
   exit
-elsif ARGV.size == 1
-  ARGV << "--help"
 end
 
 Rails::Generators.builtin.each do |group, name|
@@ -37,6 +35,7 @@ end
 name = ARGV.shift
 
 if klass = Rails::Generators.find_by_namespace(name, "rails")
+  ARGV << "--help" if klass.arguments.any? { |a| a.required? } && ARGV.empty?
   klass.start
 else
   puts "Could not find generator #{name}."
