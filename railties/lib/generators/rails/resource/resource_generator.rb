@@ -8,6 +8,9 @@ module Rails
       class_option :actions, :type => :array, :default => [], :banner => "ACTION ACTION",
                              :desc => "Actions for the resource controller", :aliases => "-a"
 
+      class_option :singleton, :type => :boolean, :default => false, :aliases => "-i",
+                               :desc => "Supply to create a singleton controller"
+
       def invoke_for_resource_controller
         return unless options[:resource_controller]
 
@@ -15,7 +18,7 @@ module Rails
 
         if klass
           args = []
-          args << class_name.pluralize
+          args << pluralize?(class_name)
           args << options[:actions]
 
           say_status :invoke, options[:resource_controller], :blue
@@ -25,10 +28,19 @@ module Rails
         end
       end
 
-      # TODO Add singleton support
       def add_resource_route
-        route "map.resources :#{file_name.pluralize}"
+        route "map.resource#{"s" unless options[:singleton]} :#{pluralize?(file_name)}"
       end
+
+      protected
+
+        def pluralize?(name)
+          if options[:singleton]
+            name
+          else
+            name.pluralize
+          end
+        end
 
     end
   end
