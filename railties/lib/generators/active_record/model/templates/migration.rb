@@ -1,10 +1,10 @@
-class <%= migration_name %> < ActiveRecord::Migration
+class <%= @migration_class_name %> < ActiveRecord::Migration
   def self.up
     create_table :<%= table_name %> do |t|
 <% for attribute in attributes -%>
       t.<%= attribute.type %> :<%= attribute.name %>
 <% end -%>
-<% unless options[:skip_timestamps] %>
+<% if options[:timestamps] %>
       t.timestamps
 <% end -%>
     end

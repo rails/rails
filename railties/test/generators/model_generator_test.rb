@@ -17,14 +17,50 @@ class ModelGeneratorTest < GeneratorsTestCase
     assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
   end
 
-  def test_orm_with_parent_option
+  def test_model_with_parent_option
     run_generator ["account", "--parent", "Admin::Account"]
     assert_file "app/models/account.rb", /class Account < Admin::Account/
   end
 
-  def test_orm_with_underscored_parent_option
+  def test_model_with_underscored_parent_option
     run_generator ["account", "--parent", "admin/account"]
     assert_file "app/models/account.rb", /class Account < Admin::Account/
+  end
+
+  def test_migration
+    run_generator
+    assert_migration "db/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration/
+  end
+
+  def test_migration_is_skipped
+    run_generator ["account", "--no-migration"]
+    assert_no_migration "db/migrate/create_accounts.rb"
+  end
+
+  def test_migration_with_attributes
+    run_generator ["product", "name:string", "supplier_id:integer"]
+    assert_migration "db/migrate/create_products.rb", /t\.string :name/, /t\.integer :supplier_id/
+  end
+
+  def test_model_with_references_attribute_generates_belongs_to_associations
+    run_generator ["product", "name:string", "supplier_id:references"]
+    assert_file "app/models/product.rb", /belongs_to :supplier/
+  end
+
+  def test_model_with_belongs_to_attribute_generates_belongs_to_associations
+    run_generator ["product", "name:string", "supplier_id:belongs_to"]
+    assert_file "app/models/product.rb", /belongs_to :supplier/
+  end
+
+  def test_migration_with_timestamps
+    run_generator
+    assert_migration "db/migrate/create_accounts.rb", /t.timestamps/
+  end
+
+  def test_migration_timestamps_are_skipped
+    run_generator ["account", "--no-timestamps"]
+    content = assert_migration "db/migrate/create_accounts.rb"
+    assert_no_match /t.timestamps/, content
   end
 
   def test_invokes_default_test_framework
@@ -33,12 +69,12 @@ class ModelGeneratorTest < GeneratorsTestCase
     assert_file "test/fixtures/accounts.yml", /name: MyString/, /age: 1/
   end
 
-  def test_fixtures_are_skipped
+  def test_fixture_is_skipped
     run_generator ["account", "--skip-fixture"]
     assert_no_file "test/fixtures/accounts.yml"
   end
 
-  def test_fixtures_are_skipped_if_fixture_replacement_is_given
+  def test_fixture_is_skipped_if_fixture_replacement_is_given
     content = run_generator ["account", "-r", "fixjour"]
     assert_match /Could not find and invoke 'fixjour'/, content
     assert_no_file "test/fixtures/accounts.yml"
@@ -48,42 +84,6 @@ class ModelGeneratorTest < GeneratorsTestCase
     content = capture(:stderr){ run_generator ["object"] }
     assert_match /The name 'Object' is either already used in your application or reserved/, content
   end
-
-#  def test_model_skip_migration_skips_migration
-#    run_generator('model', %w(Product name:string --skip-migration))
-
-#    assert_generated_model_for :product
-#    assert_generated_fixtures_for :products
-#    assert_skipped_migration :create_products
-#  end
-
-#  def test_model_with_attributes_generates_resources_with_attributes
-#    run_generator('model', %w(Product name:string supplier_id:integer created_at:timestamp))
-
-#    assert_generated_model_for :product
-#    assert_generated_fixtures_for :products
-#    assert_generated_migration :create_products do |t|
-#      assert_generated_column t, :name, :string
-#      assert_generated_column t, :supplier_id, :integer
-#      assert_generated_column t, :created_at, :timestamp
-#    end
-#  end
-
-#  def test_model_with_reference_attributes_generates_belongs_to_associations
-#    run_generator('model', %w(Product name:string supplier:references))
-
-#    assert_generated_model_for :product do |body|
-#      assert body =~ /^\s+belongs_to :supplier/, "#{body.inspect} should contain 'belongs_to :supplier'"
-#    end
-#  end
-
-#  def test_model_with_belongs_to_attributes_generates_belongs_to_associations
-#    run_generator('model', %w(Product name:string supplier:belongs_to))
-
-#    assert_generated_model_for :product do |body|
-#      assert body =~ /^\s+belongs_to :supplier/, "#{body.inspect} should contain 'belongs_to :supplier'"
-#    end
-#  end
 
   protected
 

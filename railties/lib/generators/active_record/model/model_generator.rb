@@ -1,3 +1,5 @@
+require 'generators/active_record'
+
 module ActiveRecord
   module Generators
     class ModelGenerator < Base
@@ -5,8 +7,7 @@ module ActiveRecord
 
       check_class_collision
 
-      conditional_class_option :timestamps
-      conditional_class_option :migration
+      conditional_class_options :migration, :timestamps
 
       class_option :parent, :type => :string,
                    :desc => "The parent class for the generated model"
@@ -15,12 +16,10 @@ module ActiveRecord
         template 'model.rb', File.join('app/models', class_path, "#{file_name}.rb")
       end
 
-      # TODO Add migration support
       def create_migration_file
         if options[:migration] && options[:parent].nil?
-#          m.migration_template 'migration.rb', 'db/migrate', :assigns => {
-#            :migration_name => "Create#{class_name.pluralize.gsub(/::/, '')}"
-#          }, :migration_file_name => "create_#{file_path.gsub(/\//, '_').pluralize}"
+          file_name = "create_#{file_path.gsub(/\//, '_').pluralize}"
+          migration_template "migration.rb", "db/migrate/#{file_name}.rb"
         end
       end
 

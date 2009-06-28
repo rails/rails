@@ -36,20 +36,41 @@ class GeneratorsTestCase < Test::Unit::TestCase
 
   def assert_file(relative, *contents)
     absolute = File.join(destination_root, relative)
-    assert File.exists?(absolute)
+    assert File.exists?(absolute), "Expected file #{relative.inspect} to exist, but does not"
 
+    read = File.read(absolute) unless File.directory?(absolute)
     contents.each do |content|
       case content
         when String
-          assert_equal content, File.read(absolute)
+          assert_equal content, read
         when Regexp
-          assert_match content, File.read(absolute)
+          assert_match content, read
       end
     end
+    read
   end
 
-  def assert_no_file(relative, content=nil)
+  def assert_no_file(relative)
     absolute = File.join(destination_root, relative)
-    assert !File.exists?(absolute)
+    assert !File.exists?(absolute), "Expected file #{relative.inspect} to not exist, but does"
+  end
+
+  def assert_migration(relative, *contents)
+    file_name = migration_file_name(relative)
+    assert file_name, "Expected migration #{relative} to exist, but was not found"
+    assert_file File.join(File.dirname(relative), file_name), *contents
+  end
+
+  def assert_no_migration(relative)
+    file_name = migration_file_name(relative)
+    assert_nil file_name, "Expected migration #{relative} to not exist, but found #{file_name}"
+  end
+
+  def migration_file_name(relative)
+    absolute = File.join(destination_root, relative)
+    dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, '')
+
+    migration = Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
+    File.basename(migration) if migration
   end
 end

@@ -1,3 +1,5 @@
+require 'generators/active_record'
+
 module ActiveRecord
   module Generators
     class ObserverGenerator < Base

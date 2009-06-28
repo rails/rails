@@ -145,13 +145,13 @@ module Rails
       #   "rails:generators:webrat", "webrat:generators:controller", "webrat"
       #
       def self.invoke_if(*names)
-        default_options = names.extract_options!
-        verbose = default_options.key?(:verbose) ? default_options[:verbose] : :blue
+        conditional_class_options(*names)
+
+        options = names.extract_options!
+        verbose = options.fetch(:verbose, :blue)
         invocations.concat(names)
 
         names.each do |name|
-          conditional_class_option name, default_options.dup
-
           class_eval <<-METHOD, __FILE__, __LINE__
             def invoke_if_#{name}
               return unless options[#{name.inspect}]
@@ -236,9 +236,14 @@ module Rails
         # Creates a conditional class option with type boolean, default value
         # lookup and default description.
         #
-        def self.conditional_class_option(name, options={})
-          options[:desc] ||= "Indicates when to generate #{name.to_s.humanize.downcase}"
-          class_option name, options.merge!(:type => :boolean, :default => DEFAULTS[name] || false)
+        def self.conditional_class_options(*names)
+          default_options = names.extract_options!
+
+          names.each do |name|
+            options = default_options.dup
+            options[:desc] ||= "Indicates when to generate #{name.to_s.humanize.downcase}"
+            class_option name, options.merge!(:type => :boolean, :default => DEFAULTS[name] || false)
+          end
         end
 
         # Overwrite class options help to allow invoked generators options to be

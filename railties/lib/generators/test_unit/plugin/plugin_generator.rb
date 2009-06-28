@@ -1,3 +1,5 @@
+require 'generators/test_unit'
+
 module TestUnit
   module Generators
     class PluginGenerator < Base

@@ -12,9 +12,6 @@ require 'rails/version' unless defined?(Rails::VERSION)
 
 require 'generators/base'
 require 'generators/named_base'
-require 'generators/active_record'
-require 'generators/erb'
-require 'generators/test_unit'
 
 module Rails
   module Generators

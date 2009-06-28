@@ -1,3 +1,5 @@
+require 'generators/erb'
+
 module Erb
   module Generators
     class ControllerGenerator < Base
