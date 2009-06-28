@@ -77,15 +77,13 @@ module Rails
       # file in config/environments.
       #
       def environment(data=nil, options={}, &block)
-        sentinel = 'Rails::Initializer.run do |config|'
+        sentinel = "Rails::Initializer.run do |config|"
 
         data = block.call if !data && block_given?
 
         in_root do
           if options[:env].nil?
-            gsub_file 'config/environment.rb', /(#{Regexp.escape(sentinel)})/mi, false do |match|
-              "#{match}\n  " << data
-            end
+            inject_into_file 'config/environment.rb', "\n  #{data}", { :after => sentinel }, false
           else
             Array.wrap(options[:env]).each do|env|
               append_file "config/environments/#{env}.rb", "\n#{data}", false
@@ -251,12 +249,10 @@ module Rails
       #
       def route(routing_code)
         log :route, routing_code
-        sentinel = 'ActionController::Routing::Routes.draw do |map|'
+        sentinel = "ActionController::Routing::Routes.draw do |map|"
 
         in_root do
-          gsub_file 'config/routes.rb', /(#{Regexp.escape(sentinel)})/mi, false do |match|
-            "#{match}\n  #{routing_code}\n"
-          end
+          inject_into_file 'config/routes.rb', "\n  #{routing_code}", { :after => sentinel }, false
         end
       end
 
