@@ -7,6 +7,7 @@ module Rails
       :helper => true,
       :migration => true,
       :orm => 'active_record',
+      :resource_controller => 'controller',
       :test_framework => 'test_unit',
       :template_engine => 'erb',
       :timestamps => true
@@ -14,8 +15,8 @@ module Rails
 
     ALIASES = {
       :fixture_replacement => '-r',
-      :helper => '-l',
       :orm => '-o',
+      :resource_controller => '-c',
       :test_framework => '-t',
       :template_engine => '-e'
     }
@@ -91,24 +92,19 @@ module Rails
       #   ruby script/generate controller Account --no-test-framework
       #
       def self.hook_for(*names)
-        default_options = names.extract_options!
-        verbose = default_options.key?(:verbose) ? default_options[:verbose] : :blue
-        invocations.concat(names)
+        default_class_options(*names)
+        options = names.extract_options!
+        verbose = options.fetch(:verbose, :blue)
 
         names.each do |name|
-          options = default_options.dup
-          options[:desc]    ||= "#{name.to_s.humanize} to be invoked"
-          options[:banner]  ||= "NAME"
-          options[:aliases] ||= ALIASES[name]
-
-          class_option name, options.merge!(:type => :default, :default => DEFAULTS[name])
+          invocations << [ name, base_name, generator_name ]
 
           class_eval <<-METHOD, __FILE__, __LINE__
             def invoke_for_#{name}
               return unless options[#{name.inspect}]
 
               klass = Rails::Generators.find_by_namespace(options[#{name.inspect}],
-                                                          self.class.base_name, self.class.generator_name)
+                                                          #{base_name.inspect}, #{generator_name.inspect})
 
               if klass
                 say_status :invoke, options[#{name.inspect}], #{verbose.inspect}
@@ -146,18 +142,18 @@ module Rails
       #
       def self.invoke_if(*names)
         conditional_class_options(*names)
-
         options = names.extract_options!
         verbose = options.fetch(:verbose, :blue)
-        invocations.concat(names)
 
         names.each do |name|
+          invocations << [ name, base_name, generator_name ]
+
           class_eval <<-METHOD, __FILE__, __LINE__
             def invoke_if_#{name}
               return unless options[#{name.inspect}]
 
               klass = Rails::Generators.find_by_namespace(#{name.inspect},
-                                                          self.class.base_name, self.class.generator_name)
+                                                          #{base_name.inspect}, #{generator_name.inspect})
 
               if klass
                 say_status :invoke, #{name.inspect}, #{verbose.inspect}
@@ -246,6 +242,21 @@ module Rails
           end
         end
 
+        # Creates a class option with type default, banner, alias lookup and
+        # description. Used internally by hook_for (ie, not part of plugin API).
+        #
+        def self.default_class_options(*names) #:nodoc:
+          default_options = names.extract_options!
+
+          names.each do |name|
+            options = default_options.dup
+            options[:desc]    ||= "#{name.to_s.humanize} to be invoked"
+            options[:banner]  ||= "NAME"
+            options[:aliases] ||= ALIASES[name]
+            class_option name, options.merge!(:type => :default, :default => DEFAULTS[name])
+          end
+        end
+
         # Overwrite class options help to allow invoked generators options to be
         # shown when invoking a generator. Only first level options and options
         # that belongs to the default group are shown.
@@ -253,13 +264,14 @@ module Rails
         def self.class_options_help(shell, ungrouped_name=nil, extra_group=nil)
           klass_options = Thor::CoreExt::OrderedHash.new
 
-          invocations.each do |name|
+          invocations.each do |args|
+            name, base, generator = args
             option = class_options[name]
 
             klass_name = option.type == :boolean ? name : option.default
             next unless klass_name
 
-            klass = Rails::Generators.find_by_namespace(klass_name, base_name, generator_name)
+            klass = Rails::Generators.find_by_namespace(klass_name, base, generator)
             next unless klass
 
             human_name = klass_name.to_s.classify

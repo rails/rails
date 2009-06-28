@@ -9,7 +9,7 @@ module Rails
       end
 
       hook_for :template_engine, :test_framework
-      invoke_if :helper, :aliases => "-v"
+      invoke_if :helper
     end
   end
 end
