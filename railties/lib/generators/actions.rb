@@ -262,12 +262,6 @@ module Rails
 
       protected
 
-        # Define file as an alias to create_file for backwards compatibility.
-        #
-        def file(*args, &block)
-          create_file(*args, &block)
-        end
-
         # Define log for backwards compatibility. If just one argument is sent,
         # invoke say, otherwise invoke say_status.
         #

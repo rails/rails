@@ -20,13 +20,13 @@ class ActionsTest < GeneratorsTestCase
     assert_equal generator.instance_variable_get("@foo"), "FOO"
   end
 
-  def test_file_should_write_data_to_file_path
-    action :file, 'lib/test_file.rb', 'heres test data'
+  def test_create_file_should_write_data_to_file_path
+    action :create_file, 'lib/test_file.rb', 'heres test data'
     assert_file 'lib/test_file.rb', 'heres test data'
   end
 
-  def test_file_should_write_block_contents_to_file_path
-    action(:file, 'lib/test_file.rb'){ 'heres block data' }
+  def test_create_file_should_write_block_contents_to_file_path
+    action(:create_file, 'lib/test_file.rb'){ 'heres block data' }
     assert_file 'lib/test_file.rb', 'heres block data'
   end
 

@@ -144,6 +144,11 @@ class AppGeneratorTest < GeneratorsTestCase
     assert_match "rails:generators:app", Rails::Generators::AppGenerator.namespace
   end
 
+  def test_file_is_added_for_backwards_compatibility
+    action :file, 'lib/test_file.rb', 'heres test data'
+    assert_file 'lib/test_file.rb', 'heres test data'
+  end
+
   protected
 
     def run_generator(args=[])
@@ -152,6 +157,10 @@ class AppGeneratorTest < GeneratorsTestCase
 
     def generator(options={})
       @generator ||= Rails::Generators::AppGenerator.new([destination_root], options, :root => destination_root)
+    end
+
+    def action(*args, &block)
+      silence(:stdout){ generator.send(*args, &block) }
     end
 
 end

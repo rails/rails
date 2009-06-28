@@ -171,6 +171,13 @@ module Rails::Generators
 
     protected
 
+      # Define file as an alias to create_file for backwards compatibility.
+      # TODO Add deprecation warning?
+      #
+      def file(*args, &block)
+        create_file(*args, &block)
+      end
+
       def app_name
         @app_name ||= File.basename(root)
       end
