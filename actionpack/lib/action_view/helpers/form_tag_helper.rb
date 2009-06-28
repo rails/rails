@@ -450,10 +450,10 @@ module ActionView
               ''
             when /^post$/i, "", nil
               html_options["method"] = "post"
-              protect_against_forgery? ? content_tag(:div, token_tag, :style => 'margin:0;padding:0') : ''
+              protect_against_forgery? ? content_tag(:div, token_tag, :style => 'margin:0;padding:0;display:inline') : ''
             else
               html_options["method"] = "post"
-              content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag, :style => 'margin:0;padding:0')
+              content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag, :style => 'margin:0;padding:0;display:inline')
           end
         end
 
