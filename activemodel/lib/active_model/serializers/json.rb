@@ -10,6 +10,8 @@ module ActiveModel
       include ActiveModel::Attributes
 
       included do
+        extend ActiveModel::Naming
+
         cattr_accessor :include_root_in_json, :instance_writer => false
       end
 

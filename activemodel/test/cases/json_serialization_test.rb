@@ -2,7 +2,6 @@ require 'cases/helper'
 
 class JsonSerializationTest < ActiveModel::TestCase
   class Contact
-    extend ActiveModel::Naming
     include ActiveModel::Serializers::JSON
     attr_accessor :name, :age, :created_at, :awesome, :preferences
   end
