@@ -34,6 +34,7 @@ module ActiveModel
   autoload :Naming, 'active_model/naming'
   autoload :Observer, 'active_model/observing'
   autoload :Observing, 'active_model/observing'
+  autoload :Serializer, 'active_model/serializer'
   autoload :StateMachine, 'active_model/state_machine'
   autoload :TestCase, 'active_model/test_case'
   autoload :Validations, 'active_model/validations'
@@ -41,6 +42,7 @@ module ActiveModel
 
   module Serializers
     autoload :JSON, 'active_model/serializers/json'
+    autoload :Xml, 'active_model/serializers/xml'
   end
 end
 

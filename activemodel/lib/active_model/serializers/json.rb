@@ -1,7 +1,5 @@
 require 'active_support/json'
 require 'active_support/core_ext/class/attribute_accessors'
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/hash/slice'
 
 module ActiveModel
   module Serializers
@@ -15,24 +13,30 @@ module ActiveModel
         cattr_accessor :include_root_in_json, :instance_writer => false
       end
 
-      def encode_json(encoder)
-        options = encoder.options || {}
-
-        hash = if options[:only]
-          only = Array.wrap(options[:only]).map { |attr| attr.to_s }
-          attributes.slice(*only)
-        elsif options[:except]
-          except = Array.wrap(options[:except]).map { |attr| attr.to_s }
-          attributes.except(*except)
-        else
-          attributes
+      class Serializer < ActiveModel::Serializer
+        def serializable_hash
+          model = super
+          if @serializable.include_root_in_json
+            model = { @serializable.class.model_name.element => model }
+          end
+          model
         end
 
-        hash = { self.class.model_name.element => hash } if include_root_in_json
-        ActiveSupport::JSON.encode(hash)
+        def serialize
+          ActiveSupport::JSON.encode(serializable_hash)
+        end
+      end
+
+      def encode_json(encoder)
+        Serializer.new(self, encoder.options).to_s
       end
 
       def as_json(options = nil)
+        self
+      end
+
+      def from_json(json)
+        self.attributes = ActiveSupport::JSON.decode(json)
         self
       end
     end
