@@ -81,12 +81,6 @@ class ResourceGeneratorTest < GeneratorsTestCase
   def test_singleton_resource
     run_generator ["account", "--singleton"]
 
-    assert_file "app/controllers/account_controller.rb", /class AccountController < ApplicationController/
-    assert_file "test/functional/account_controller_test.rb", /class AccountControllerTest < ActionController::TestCase/
-
-    assert_file "app/helpers/account_helper.rb", /module AccountHelper/
-    assert_file "test/unit/helpers/account_helper_test.rb", /class AccountHelperTest < ActionView::TestCase/
-
     assert_file "config/routes.rb" do |route|
       assert_match /map\.resource :account$/, route
     end

@@ -91,13 +91,29 @@ module Rails
       #
       #   ruby script/generate controller Account --no-test-framework
       #
-      def self.hook_for(*names)
+      # ==== Custom invocations
+      #
+      # You can also supply a block to hook for to customize how the hook is
+      # going to be invoked. The block receives two parameters, an instance
+      # of the current class and the klass to be invoked.
+      #
+      # For example, in the resource generator, the controller should be invoked
+      # with a pluralized class name. By default, it is invoked with the same
+      # name as the resource generator, which is singular. To change this, we
+      # can give a block to customize how the controller can be invoked.
+      #
+      #   hook_for :resource_controller do |instance, controller|
+      #     instance.invoke controller, [ instance.name.pluralize ]
+      #   end
+      #
+      def self.hook_for(*names, &block)
         default_class_options(*names)
         options = names.extract_options!
         verbose = options.fetch(:verbose, :blue)
 
         names.each do |name|
           invocations << [ name, base_name, generator_name ]
+          invocation_blocks[name] = block if block_given?
 
           class_eval <<-METHOD, __FILE__, __LINE__
             def invoke_for_#{name}
@@ -108,7 +124,7 @@ module Rails
 
               if klass
                 say_status :invoke, options[#{name.inspect}], #{verbose.inspect}
-                invoke klass
+                invoke_class_with_block #{name.inspect}, klass
               else
                 say "Could not find and invoke '\#{options[#{name.inspect}]}'."
               end
@@ -140,13 +156,19 @@ module Rails
       #
       #   "rails:generators:webrat", "webrat:generators:controller", "webrat"
       #
-      def self.invoke_if(*names)
+      # ==== Custom invocations
+      #
+      # This method accepts custom invocations as in hook_for. Check hook_for
+      # for usage and examples.
+      #
+      def self.invoke_if(*names, &block)
         conditional_class_options(*names)
         options = names.extract_options!
         verbose = options.fetch(:verbose, :blue)
 
         names.each do |name|
           invocations << [ name, base_name, generator_name ]
+          invocation_blocks[name] = block if block_given?
 
           class_eval <<-METHOD, __FILE__, __LINE__
             def invoke_if_#{name}
@@ -157,7 +179,7 @@ module Rails
 
               if klass
                 say_status :invoke, #{name.inspect}, #{verbose.inspect}
-                invoke klass
+                invoke_class_with_block #{name.inspect}, klass
               else
                 say "Could not find and invoke '#{name}'."
               end
@@ -167,6 +189,18 @@ module Rails
       end
 
       protected
+
+        # This is the common method that both hook_for and invoke_if use to
+        # invoke a class. It searches for a block in the invocation blocks
+        # in case the user wants to customize how the class is invoked.
+        #
+        def invoke_class_with_block(name, klass) #:nodoc:
+          if block = self.class.invocation_blocks[name]
+            block.call(self, klass)
+          else
+            invoke klass
+          end
+        end
 
         # Check whether the given class names are already taken by user
         # application or Ruby on Rails.
@@ -227,6 +261,12 @@ module Rails
         #
         def self.invocations #:nodoc:
           @invocations ||= from_superclass(:invocations, [])
+        end
+
+        # Stores invocation blocks used on hook_for and invoke_if.
+        #
+        def self.invocation_blocks #:nodoc:
+          @invocation_blocks ||= from_superclass(:invocation_blocks, {})
         end
 
         # Creates a conditional class option with type boolean, default value

@@ -22,7 +22,8 @@ class PluginGeneratorTest < GeneratorsTestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "vendor/plugins/plugin_fu/test/plugin_fu_test.rb"
+    assert_file "vendor/plugins/plugin_fu/test/plugin_fu_test.rb", /class PluginFuTest < ActiveSupport::TestCase/
+    assert_file "vendor/plugins/plugin_fu/test/test_helper.rb"
   end
 
   def test_logs_if_the_test_framework_cannot_be_found

@@ -111,7 +111,7 @@ class AppGeneratorTest < GeneratorsTestCase
 
   def test_rails_is_frozen
     generator(:freeze => true, :database => "sqlite3").expects(:run).with("rake rails:freeze:edge", false)
-    silence(:stdout){ generator.invoke(:all) }
+    silence(:stdout){ generator.invoke }
     assert_file 'config/environment.rb', /# RAILS_GEM_VERSION/
   end
 
@@ -127,7 +127,7 @@ class AppGeneratorTest < GeneratorsTestCase
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator(:template => path, :database => "sqlite3").expects(:open).with(path).returns(template)
-    assert_match /It works!/, silence(:stdout){ generator.invoke(:all) }
+    assert_match /It works!/, silence(:stdout){ generator.invoke }
   end
 
   def test_usage_read_from_file
