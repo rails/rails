@@ -2,19 +2,16 @@ require 'generators/rails/model/model_generator'
 
 module Rails
   module Generators
-    class ResourceGenerator < ModelGenerator
+    class ResourceGenerator < ModelGenerator #metagenerator
       hook_for :resource_controller do |base, controller|
         base.invoke controller, [ base.name.pluralize, base.options[:actions] ]
       end
 
-      class_option :actions, :type => :array, :default => [], :banner => "ACTION ACTION",
-                             :desc => "Actions for the resource controller", :aliases => "-a"
+      class_option :actions, :type => :array, :banner => "ACTION ACTION",
+                             :desc => "Actions for the resource controller"
 
-      class_option :singleton, :type => :boolean, :default => false, :aliases => "-i",
-                               :desc => "Supply to create a singleton controller"
-
-      class_option :force_plural, :type => :boolean, :default => false, :aliases => "-u",
-                                  :desc => "Forces the use of a plural ModelName"
+      class_option :singleton,    :type => :boolean, :desc => "Supply to create a singleton controller"
+      class_option :force_plural, :type => :boolean, :desc => "Forces the use of a plural ModelName"
 
       def initialize(args=[], options={}, config={})
         super

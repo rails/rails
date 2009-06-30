@@ -1,7 +1,7 @@
 module Rails
   module Generators
     class ControllerGenerator < NamedBase
-      argument :actions, :type => :array, :default => [], :banner => "action action"
+      argument :actions, :type => :array, :default => DEFAULTS[:actions], :banner => "action action"
       check_class_collision :suffix => "Controller"
 
       def create_controller_files

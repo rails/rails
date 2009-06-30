@@ -7,10 +7,9 @@ module ActiveRecord
 
       check_class_collision
 
-      conditional_class_options :migration, :timestamps
-
-      class_option :parent, :type => :string,
-                   :desc => "The parent class for the generated model"
+      class_option :migration,  :type => :boolean
+      class_option :timestamps, :type => :boolean
+      class_option :parent,     :type => :string, :desc => "The parent class for the generated model"
 
       def create_model_file
         template 'model.rb', File.join('app/models', class_path, "#{file_name}.rb")

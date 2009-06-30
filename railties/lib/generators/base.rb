@@ -3,18 +3,22 @@ require 'generators/actions'
 module Rails
   module Generators
     DEFAULTS = {
+      :actions => [],
       :fixture => true,
+      :force_plural => false,
       :helper => true,
       :migration => true,
       :orm => 'active_record',
       :resource_controller => 'controller',
       :scaffold_controller => 'scaffold_controller',
+      :singleton => false,
       :test_framework => 'test_unit',
       :template_engine => 'erb',
       :timestamps => true
     }
 
     ALIASES = {
+      :actions => '-a',
       :fixture_replacement => '-r',
       :orm => '-o',
       :resource_controller => '-c',
@@ -109,12 +113,14 @@ module Rails
       #   end
       #
       def self.hook_for(*names, &block)
-        default_class_options(*names)
         options = names.extract_options!
         as      = options.fetch(:as, generator_name)
         verbose = options.fetch(:verbose, :blue)
 
         names.each do |name|
+          default = { :desc => "#{name.to_s.humanize} to be invoked", :banner => "NAME" }
+          class_option name, default.merge!(options)
+
           invocations << [ name, base_name, as ]
           invocation_blocks[name] = block if block_given?
 
@@ -165,12 +171,13 @@ module Rails
       # for usage and examples.
       #
       def self.invoke_if(*names, &block)
-        conditional_class_options(*names)
-        options = names.extract_options!
+        options = names.extract_options!.merge(:type => :boolean)
         as      = options.fetch(:as, generator_name)
         verbose = options.fetch(:verbose, :blue)
 
         names.each do |name|
+          class_option name, options
+
           invocations << [ name, base_name, as ]
           invocation_blocks[name] = block if block_given?
 
@@ -205,6 +212,15 @@ module Rails
           invocations.delete_if { |i| i[0] == name }
           invocation_blocks.delete(name)
         end
+      end
+
+      # Make class option aware of DEFAULTS and ALIASES.
+      #
+      def self.class_option(name, options) #:nodoc:
+        options[:desc]    = "Indicates when to generate #{name.to_s.humanize.downcase}" unless options.key?(:desc)
+        options[:aliases] = ALIASES[name]  unless options.key?(:aliases)
+        options[:default] = DEFAULTS[name] unless options.key?(:default)
+        super(name, options)
       end
 
       protected
@@ -288,34 +304,6 @@ module Rails
           @invocation_blocks ||= from_superclass(:invocation_blocks, {})
         end
 
-        # Creates a conditional class option with type boolean, default value
-        # lookup and default description.
-        #
-        def self.conditional_class_options(*names)
-          default_options = names.extract_options!
-
-          names.each do |name|
-            options = default_options.dup
-            options[:desc] ||= "Indicates when to generate #{name.to_s.humanize.downcase}"
-            class_option name, options.merge!(:type => :boolean, :default => DEFAULTS[name] || false)
-          end
-        end
-
-        # Creates a class option with type default, banner, alias lookup and
-        # description. Used internally by hook_for (ie, not part of plugin API).
-        #
-        def self.default_class_options(*names) #:nodoc:
-          default_options = names.extract_options!
-
-          names.each do |name|
-            options = default_options.dup
-            options[:desc]    ||= "#{name.to_s.humanize} to be invoked"
-            options[:banner]  ||= "NAME"
-            options[:aliases] ||= ALIASES[name]
-            class_option name, options.merge!(:type => :default, :default => DEFAULTS[name])
-          end
-        end
-
         # Overwrite class options help to allow invoked generators options to be
         # shown when invoking a generator. Only first and second level options
         # are shown, for instance, if a generator invokes an ORM that invokes
@@ -338,7 +326,7 @@ module Rails
         # in base_options are not added twice.
         #
         def self.get_options_from_invocations(group_options, base_options)
-          invocations.sort{ |a,b| a[0].to_s <=> b[0].to_s }.each do |args|
+          invocations.each do |args|
             name, base, generator = args
             option = class_options[name]
 
@@ -353,7 +341,7 @@ module Rails
 
             group_options[human_name] += klass.class_options.values.select do |option|
               base_options[option.name.to_sym].nil? && option.group.nil? &&
-              !group_options[human_name].any? { |i| i.name == option.name }
+              !group_options.values.flatten.any? { |i| i.name == option.name }
             end
 
             yield klass if block_given?

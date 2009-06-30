@@ -1,6 +1,7 @@
 module Rails
   module Generators
     class ScaffoldControllerGenerator < NamedBase
+      class_option :singleton, :type => :boolean, :desc => "Supply to create a singleton controller"
       check_class_collision :suffix => "Controller"
 
       def create_controller_files

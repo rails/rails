@@ -4,9 +4,9 @@ module TestUnit
   module Generators
     class ModelGenerator < Base
       argument :attributes, :type => :hash, :default => {}, :banner => "field:type field:type"
+      class_option :fixture, :type => :boolean
 
       check_class_collision :suffix => "Test"
-      conditional_class_options :fixture
 
       def create_test_file
         template 'unit_test.rb', File.join('test/unit', class_path, "#{file_name}_test.rb")
