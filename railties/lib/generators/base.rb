@@ -313,13 +313,28 @@ module Rails
         end
 
         # Overwrite class options help to allow invoked generators options to be
-        # shown when invoking a generator. Only first level options and options
-        # that belongs to the default group are shown.
+        # shown when invoking a generator. Only first and second level options
+        # are shown, for instance, if a generator invokes an ORM that invokes
+        # a test framework, both options are shown, but if a third one is
+        # involved, those options do not appear.
         #
         def self.class_options_help(shell, ungrouped_name=nil, extra_group=nil)
-          klass_options = Thor::CoreExt::OrderedHash.new
+          group_options = Thor::CoreExt::OrderedHash.new
 
-          invocations.each do |args|
+          get_options_from_invocations(group_options, class_options) do |klass|
+            klass.send(:get_options_from_invocations, group_options, class_options)
+          end
+
+          group_options.merge!(extra_group) if extra_group
+          super(shell, ungrouped_name, group_options)
+        end
+
+        # Get invocations array and merge options from invocations. Those
+        # options are added to group_options hash. Options that already exists
+        # in base_options are not added twice.
+        #
+        def self.get_options_from_invocations(group_options, base_options)
+          invocations.sort{ |a,b| a[0].to_s <=> b[0].to_s }.each do |args|
             name, base, generator = args
             option = class_options[name]
 
@@ -330,15 +345,15 @@ module Rails
             next unless klass
 
             human_name = klass_name.to_s.classify
+            group_options[human_name] ||= []
 
-            klass_options[human_name] ||= []
-            klass_options[human_name] += klass.class_options.values.select do |option|
-              class_options[option.human_name.to_sym].nil? && option.group.nil?
+            group_options[human_name] += klass.class_options.values.select do |option|
+              base_options[option.name.to_sym].nil? && option.group.nil? &&
+              !group_options[human_name].any? { |i| i.name == option.name }
             end
-          end
 
-          klass_options.merge!(extra_group) if extra_group
-          super(shell, ungrouped_name, klass_options)
+            yield klass if block_given?
+          end
         end
 
         # Small macro to add ruby as an option to the generator with proper

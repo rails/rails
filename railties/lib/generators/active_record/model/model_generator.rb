@@ -23,6 +23,8 @@ module ActiveRecord
         end
       end
 
+      hook_for :test_framework
+
       protected
 
         def parent_class_name

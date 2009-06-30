@@ -8,6 +8,8 @@ module ActiveRecord
       def create_observer_file
         template 'observer.rb', File.join('app/models', class_path, "#{file_name}_observer.rb")
       end
+
+      hook_for :test_framework
     end
   end
 end
