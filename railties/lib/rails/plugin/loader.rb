@@ -105,7 +105,7 @@ module Rails
         end
 
         def register_plugin_as_loaded(plugin)
-          initializer.loaded_plugins << plugin
+          initializer.config.loaded_plugins << plugin
         end
 
         def configuration
@@ -174,7 +174,7 @@ module Rails
         end
 
         def loaded?(plugin_name)
-          initializer.loaded_plugins.detect { |plugin| plugin.name == plugin_name.to_s }
+          initializer.config.loaded_plugins.detect { |plugin| plugin.name == plugin_name.to_s }
         end
 
         def ensure_all_registered_plugins_are_loaded!

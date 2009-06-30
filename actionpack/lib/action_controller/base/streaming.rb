@@ -168,7 +168,7 @@ module ActionController #:nodoc:
         end
 
         headers.merge!(
-          'Content-Length'            => options[:length],
+          'Content-Length'            => options[:length].to_s,
           'Content-Disposition'       => disposition,
           'Content-Transfer-Encoding' => 'binary'
         )

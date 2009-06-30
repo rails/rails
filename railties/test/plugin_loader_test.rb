@@ -20,7 +20,8 @@ class TestPluginLoader < Test::Unit::TestCase
 
     @configuration     = Rails::Configuration.new
     @configuration.plugin_paths << plugin_fixture_root_path
-    @initializer       = Rails::Initializer.new(@configuration)
+    @initializer       = Rails::Initializer.default
+    @initializer.config = @configuration
     @valid_plugin_path = plugin_fixture_path('default/stubby')
     @empty_plugin_path = plugin_fixture_path('default/empty')
 

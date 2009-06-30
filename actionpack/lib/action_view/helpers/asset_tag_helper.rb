@@ -1,6 +1,7 @@
 require 'cgi'
 require 'action_view/helpers/url_helper'
 require 'action_view/helpers/tag_helper'
+require 'active_support/core_ext/file'
 
 module ActionView
   module Helpers #:nodoc:
@@ -285,7 +286,7 @@ module ActionView
           end
           javascript_src_tag(joined_javascript_name, options)
         else
-          expand_javascript_sources(sources, recursive).collect { |source| javascript_src_tag(source, options) }.join("\n")
+          ensure_javascript_sources!(expand_javascript_sources(sources, recursive)).collect { |source| javascript_src_tag(source, options) }.join("\n")
         end
       end
 
@@ -434,7 +435,7 @@ module ActionView
           end
           stylesheet_tag(joined_stylesheet_name, options)
         else
-          expand_stylesheet_sources(sources, recursive).collect { |source| stylesheet_tag(source, options) }.join("\n")
+          ensure_stylesheet_sources!(expand_stylesheet_sources(sources, recursive)).collect { |source| stylesheet_tag(source, options) }.join("\n")
         end
       end
 
@@ -664,13 +665,28 @@ module ActionView
           end
         end
 
+        def ensure_stylesheet_sources!(sources)
+          sources.each do |source|
+            asset_file_path!(path_to_stylesheet(source))
+          end
+          return sources
+        end
+
+        def ensure_javascript_sources!(sources)
+          sources.each do |source|
+            asset_file_path!(path_to_javascript(source))
+          end
+          return sources
+        end
+
         def join_asset_file_contents(paths)
-          paths.collect { |path| File.read(asset_file_path(path)) }.join("\n\n")
+          paths.collect { |path| File.read(asset_file_path!(path)) }.join("\n\n")
         end
 
         def write_asset_file_contents(joined_asset_path, asset_paths)
+
           FileUtils.mkdir_p(File.dirname(joined_asset_path))
-          File.open(joined_asset_path, "w+") { |cache| cache.write(join_asset_file_contents(asset_paths)) }
+          File.atomic_write(joined_asset_path) { |cache| cache.write(join_asset_file_contents(asset_paths)) }
 
           # Set mtime to the latest of the combined files to allow for
           # consistent ETag without a shared filesystem.
@@ -680,6 +696,14 @@ module ActionView
 
         def asset_file_path(path)
           File.join(ASSETS_DIR, path.split('?').first)
+        end
+
+        def asset_file_path!(path)
+          unless path =~ %r{^[-a-z]+://}
+            absolute_path = asset_file_path(path)
+            raise(Errno::ENOENT, "Asset file not found at '#{absolute_path}'" ) unless File.exist?(absolute_path)
+            return absolute_path
+          end
         end
 
         def collect_asset_files(*path)
