@@ -3,6 +3,7 @@
 silence_warnings { RAILS_ENV = "test" }
 
 require 'test/unit'
+require 'active_support/core_ext/kernel/requires'
 require 'action_controller/testing/test_case'
 require 'action_view/test_case'
 require 'action_controller/testing/integration'
