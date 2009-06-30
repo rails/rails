@@ -8,6 +8,7 @@ module Rails
       :migration => true,
       :orm => 'active_record',
       :resource_controller => 'controller',
+      :scaffold_controller => 'scaffold_controller',
       :test_framework => 'test_unit',
       :template_engine => 'erb',
       :timestamps => true
@@ -17,6 +18,7 @@ module Rails
       :fixture_replacement => '-r',
       :orm => '-o',
       :resource_controller => '-c',
+      :scaffold_controller => '-c',
       :test_framework => '-t',
       :template_engine => '-e'
     }
@@ -109,10 +111,11 @@ module Rails
       def self.hook_for(*names, &block)
         default_class_options(*names)
         options = names.extract_options!
+        as      = options.fetch(:as, generator_name)
         verbose = options.fetch(:verbose, :blue)
 
         names.each do |name|
-          invocations << [ name, base_name, generator_name ]
+          invocations << [ name, base_name, as ]
           invocation_blocks[name] = block if block_given?
 
           class_eval <<-METHOD, __FILE__, __LINE__
@@ -120,7 +123,7 @@ module Rails
               return unless options[#{name.inspect}]
 
               klass = Rails::Generators.find_by_namespace(options[#{name.inspect}],
-                                                          #{base_name.inspect}, #{generator_name.inspect})
+                                                          #{base_name.inspect}, #{as.inspect})
 
               if klass
                 say_status :invoke, options[#{name.inspect}], #{verbose.inspect}
@@ -164,10 +167,11 @@ module Rails
       def self.invoke_if(*names, &block)
         conditional_class_options(*names)
         options = names.extract_options!
+        as      = options.fetch(:as, generator_name)
         verbose = options.fetch(:verbose, :blue)
 
         names.each do |name|
-          invocations << [ name, base_name, generator_name ]
+          invocations << [ name, base_name, as ]
           invocation_blocks[name] = block if block_given?
 
           class_eval <<-METHOD, __FILE__, __LINE__
@@ -175,7 +179,7 @@ module Rails
               return unless options[#{name.inspect}]
 
               klass = Rails::Generators.find_by_namespace(#{name.inspect},
-                                                          #{base_name.inspect}, #{generator_name.inspect})
+                                                          #{base_name.inspect}, #{as.inspect})
 
               if klass
                 say_status :invoke, #{name.inspect}, #{verbose.inspect}
