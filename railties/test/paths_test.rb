@@ -52,6 +52,12 @@ class PathsTest < ActiveSupport::TestCase
     assert_equal ["/app", "/app2"], @root.app.to_a
   end
 
+  test "adding multiple physical paths using concat" do
+    @root.app = "/app"
+    @root.app.concat ["/app2", "/app3"]
+    assert_equal ["/app", "/app2", "/app3"], @root.app.to_a
+  end
+
   test "adding multiple physical paths using #unshift" do
     @root.app = "/app"
     @root.app.unshift "/app2"
@@ -62,6 +68,7 @@ class PathsTest < ActiveSupport::TestCase
     assert_raise(RuntimeError) { Rails::Application::Root.new(["/fiz", "/biz"]) }
     assert_raise(NoMethodError) { @root.push "/biz"    }
     assert_raise(NoMethodError) { @root.unshift "/biz" }
+    assert_raise(NoMethodError) { @root.concat ["/biz"]}
     assert_raise(NoMethodError) { @root << "/biz"      }
   end
 
