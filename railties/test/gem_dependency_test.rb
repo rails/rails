@@ -198,6 +198,15 @@ class GemDependencyTest < Test::Unit::TestCase
     assert_equal true,  Rails::GemDependency.new("dummy-gem-i").built?
     assert_equal false, Rails::GemDependency.new("dummy-gem-j").built?
   end
+  
+  def test_gem_determines_build_status_only_on_vendor_gems
+    framework_gem = Rails::GemDependency.new('dummy-framework-gem')
+    framework_gem.stubs(:framework_gem?).returns(true)  # already loaded
+    framework_gem.stubs(:vendor_rails?).returns(false)  # but not in vendor/rails
+    framework_gem.stubs(:vendor_gem?).returns(false)  # and not in vendor/gems
+    framework_gem.add_load_paths  # freeze framework gem early 
+    assert framework_gem.built?
+  end
 
   def test_gem_build_passes_options_to_dependencies
     start_gem = Rails::GemDependency.new("dummy-gem-g")

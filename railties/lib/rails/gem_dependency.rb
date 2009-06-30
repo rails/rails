@@ -122,10 +122,14 @@ module Rails
 
     def built?
       return false unless frozen?
-      specification.extensions.each do |ext|
-        makefile = File.join(unpacked_gem_directory, File.dirname(ext), 'Makefile')
-        return false unless File.exists?(makefile)
+
+      if vendor_gem?
+        specification.extensions.each do |ext|
+          makefile = File.join(unpacked_gem_directory, File.dirname(ext), 'Makefile')
+          return false unless File.exists?(makefile)
+        end
       end
+
       true
     end
 
