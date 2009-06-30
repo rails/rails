@@ -14,6 +14,8 @@ Rails::Initializer.run do |config|
 end
 
 class PathsTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+
   def setup
     @paths = Rails::Initializer.default.config.paths
   end
@@ -81,6 +83,21 @@ class PathsTest < ActiveSupport::TestCase
     assert_not_in_load_path "config", "environments"
     assert_not_in_load_path "tmp"
     assert_not_in_load_path "tmp", "cache"
+  end
+
+  test "controller paths include builtin in development mode" do
+    RAILS_ENV.replace "development"
+    assert Rails::Configuration.new.paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
+  end
+
+  test "controller paths does not have builtin_directories in test mode" do
+    RAILS_ENV.replace "test"
+    assert !Rails::Configuration.new.paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
+  end
+
+  test "controller paths does not have builtin_directories in production mode" do
+    RAILS_ENV.replace "production"
+    assert !Rails::Configuration.new.paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
   end
 
 end
