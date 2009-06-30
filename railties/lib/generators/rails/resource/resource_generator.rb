@@ -13,6 +13,17 @@ module Rails
       class_option :singleton, :type => :boolean, :default => false, :aliases => "-i",
                                :desc => "Supply to create a singleton controller"
 
+      class_option :force_plural, :type => :boolean, :default => false, :aliases => "-u",
+                                  :desc => "Forces the use of a plural ModelName"
+
+      def initialize(args=[], options={}, config={})
+        super
+        if args[0] == args[0].pluralize && !self.options[:force_plural]
+          say "Plural version of the model detected, using singularized version. Override with --force-plural."
+          args[0] = args[0].singularize
+        end
+      end
+
       def add_resource_route
         route "map.resource#{:s unless options[:singleton]} :#{pluralize?(file_name)}"
       end

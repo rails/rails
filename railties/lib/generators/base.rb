@@ -188,6 +188,21 @@ module Rails
         end
       end
 
+      # Remove a previously added hook.
+      #
+      # ==== Examples
+      #
+      #   remove_hook_for :orm
+      #
+      def self.remove_hook_for(*names)
+        names.each do |name|
+          remove_class_option name
+          remove_task name
+          invocations.delete_if { |i| i[0] == name }
+          invocation_blocks.delete(name)
+        end
+      end
+
       protected
 
         # This is the common method that both hook_for and invoke_if use to
