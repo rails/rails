@@ -13,11 +13,11 @@ module Rails
       class_option :singleton,    :type => :boolean, :desc => "Supply to create a singleton controller"
       class_option :force_plural, :type => :boolean, :desc => "Forces the use of a plural ModelName"
 
-      def initialize(args=[], options={}, config={})
+      def initialize(*args)
         super
-        if args[0] == args[0].pluralize && !self.options[:force_plural]
+        if name == name.pluralize && !options[:force_plural]
           say "Plural version of the model detected, using singularized version. Override with --force-plural."
-          args[0] = args[0].singularize
+          name.replace name.singularize
         end
       end
 
