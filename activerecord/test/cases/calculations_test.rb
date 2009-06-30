@@ -203,7 +203,7 @@ class CalculationsTest < ActiveRecord::TestCase
     c = Company.count(:all, :group => "UPPER(#{QUOTED_TYPE})")
     assert_equal 2, c[nil]
     assert_equal 1, c['DEPENDENTFIRM']
-    assert_equal 3, c['CLIENT']
+    assert_equal 4, c['CLIENT']
     assert_equal 2, c['FIRM']
   end
 
@@ -211,7 +211,7 @@ class CalculationsTest < ActiveRecord::TestCase
     c = Company.count(:all, :group => "UPPER(companies.#{QUOTED_TYPE})")
     assert_equal 2, c[nil]
     assert_equal 1, c['DEPENDENTFIRM']
-    assert_equal 3, c['CLIENT']
+    assert_equal 4, c['CLIENT']
     assert_equal 2, c['FIRM']
   end
 
