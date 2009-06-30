@@ -13,6 +13,7 @@ require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
 require 'active_support/testing/declarative'
 require 'active_support/testing/pending'
+require 'active_support/testing/isolation'
 
 module ActiveSupport
   class TestCase < ::Test::Unit::TestCase

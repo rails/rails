@@ -10,7 +10,7 @@ module Rails
                   :log_path, :log_level, :logger, :preload_frameworks,
                   :database_configuration_file, :cache_store, :time_zone,
                   :view_path, :metals, :controller_paths, :routes_configuration_file,
-                  :eager_load_paths, :dependency_loading
+                  :eager_load_paths, :dependency_loading, :paths
 
     def initialize
       set_root_path!
@@ -61,7 +61,36 @@ module Rails
           Pathname.new(RAILS_ROOT).realpath.to_s
         end
 
-      RAILS_ROOT.replace self.root_path
+      @paths = Rails::Application::Root.new(root_path)
+      @paths.app                 = "app"
+      @paths.app.metals          = "app/metal"
+      @paths.app.models          = "app/models"
+      @paths.app.controllers     = "app/controllers"
+      @paths.app.helpers         = "app/helpers"
+      @paths.app.services        = "app/services"
+      @paths.lib                 = "lib"
+      @paths.vendor              = "vendor"
+      @paths.vendor.plugins      = "vendor/plugins"
+      @paths.cache               = "tmp/cache"
+      @paths.config              = "config"
+      @paths.config.locales      = "config/locales"
+      @paths.config.environments = "config/environments"
+
+      @paths.app.controllers.concat builtin_directories
+
+      @paths.app.load_path!
+      @paths.app.metals.load_path!
+      @paths.app.models.eager_load!
+      @paths.app.controllers.eager_load!
+      @paths.app.helpers.eager_load!
+      @paths.app.services.load_path!
+      @paths.app.metals.eager_load!
+      @paths.lib.load_path!
+      @paths.vendor.load_path!
+
+      @paths.config.environments.glob = "#{RAILS_ENV}.rb"
+
+      RAILS_ROOT.replace root_path
     end
 
     # Enable threaded mode. Allows concurrent requests to controller actions and

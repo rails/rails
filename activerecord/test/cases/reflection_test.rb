@@ -5,12 +5,18 @@ require 'models/company'
 require 'models/company_in_module'
 require 'models/subscriber'
 require 'models/pirate'
+require 'models/price_estimate'
 
 class ReflectionTest < ActiveRecord::TestCase
-  fixtures :topics, :customers, :companies, :subscribers
+  fixtures :topics, :customers, :companies, :subscribers, :price_estimates
 
   def setup
     @first = Topic.find(1)
+  end
+
+  def test_human_name
+    assert_equal "Price estimate", PriceEstimate.human_name
+    assert_equal "Subscriber", Subscriber.human_name
   end
 
   def test_column_null_not_null
