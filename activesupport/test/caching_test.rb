@@ -1,3 +1,4 @@
+require 'logger'
 require 'abstract_unit'
 
 class CacheKeyTest < ActiveSupport::TestCase
@@ -173,6 +174,8 @@ uses_memcached 'memcached backed store' do
       @cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
       @data = @cache.instance_variable_get(:@data)
       @cache.clear
+      @cache.silence!
+      @cache.logger = Logger.new("/dev/null")
     end
 
     include CacheStoreBehavior
@@ -294,6 +297,22 @@ uses_memcached 'memcached backed store' do
       }
       app = @cache.middleware.new(app)
       app.call({})
+    end
+
+    def test_expires_in
+      result = @cache.write('foo', 'bar', :expires_in => 1)
+      assert_equal 'bar', @cache.read('foo')
+      sleep 2
+      assert_equal nil, @cache.read('foo')
+    end
+
+    def test_expires_in_with_invalid_value
+      @cache.write('baz', 'bat')
+      assert_raise(RuntimeError) do
+        @cache.write('foo', 'bar', :expires_in => 'Mon Jun 29 13:10:40 -0700 2150')
+      end
+      assert_equal 'bat', @cache.read('baz')
+      assert_equal nil, @cache.read('foo')
     end
   end
 
