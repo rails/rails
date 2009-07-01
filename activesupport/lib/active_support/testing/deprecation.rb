@@ -1,3 +1,5 @@
+require "active_support/core_ext/module"
+
 module ActiveSupport
   module Testing
     module Deprecation #:nodoc:
