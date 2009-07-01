@@ -74,8 +74,13 @@ class TestJSONEncoding < Test::Unit::TestCase
 
   def test_utf8_string_encoded_properly_when_kcode_is_utf8
     with_kcode 'UTF8' do
-      assert_equal '"\\u20ac2.99"', ActiveSupport::JSON.encode('€2.99')
-      assert_equal '"\\u270e\\u263a"', ActiveSupport::JSON.encode('✎☺')
+      result = ActiveSupport::JSON.encode('€2.99')
+      assert_equal '"\\u20ac2.99"', result
+      assert_equal(Encoding::UTF_8, result.encoding) if result.respond_to?(:encoding)
+
+      result = ActiveSupport::JSON.encode('✎☺')
+      assert_equal '"\\u270e\\u263a"', result
+      assert_equal(Encoding::UTF_8, result.encoding) if result.respond_to?(:encoding)
     end
   end
 
