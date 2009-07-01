@@ -6,8 +6,6 @@ require 'config'
 require 'rubygems'
 require 'test/unit'
 require 'stringio'
-gem 'mocha', '>= 0.9.5'
-require 'mocha'
 
 require 'active_record'
 require 'active_record/test_case'
