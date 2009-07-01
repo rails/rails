@@ -867,12 +867,12 @@ module ActiveRecord #:nodoc:
           arel = arel.where(Arel::SqlLiteral.new(conditions))
         end
 
-        if options.has_key?(:limit) || (scope && scope[:limit])
+        arel = if options.has_key?(:limit) || (scope && scope[:limit])
           # Only take order from scope if limit is also provided by scope, this
           # is useful for updating a has_many association with a limit.
-          arel = arel.order(construct_order(options[:order], scope)).take(construct_limit(options, scope))
+          arel.order(construct_order(options[:order], scope)).take(construct_limit(options, scope))
         else
-          arel = arel.order(construct_order(options[:order], nil))
+          arel.order(construct_order(options[:order], nil))
         end
 
         arel.update(sanitize_sql_for_assignment(updates))
