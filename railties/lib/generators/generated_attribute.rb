@@ -35,6 +35,10 @@ module Rails
         end
       end
 
+      def human_name
+        name.to_s.humanize
+      end
+
       def reference?
         [ :references, :belongs_to ].include?(self.type)
       end

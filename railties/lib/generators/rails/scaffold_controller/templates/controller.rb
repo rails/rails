@@ -1,4 +1,5 @@
 class <%= controller_class_name %>Controller < ApplicationController
+<% unless options[:singleton] -%>
   # GET /<%= table_name %>
   # GET /<%= table_name %>.xml
   def index
@@ -9,6 +10,7 @@ class <%= controller_class_name %>Controller < ApplicationController
       format.xml  { render :xml => @<%= table_name %> }
     end
   end
+<% end -%>
 
   # GET /<%= table_name %>/1
   # GET /<%= table_name %>/1.xml

@@ -7,6 +7,8 @@ module Rails
 
       remove_hook_for :actions, :resource_controller
       hook_for :scaffold_controller, :required => true
+
+      # invoke_if stylesheets
     end
   end
 end

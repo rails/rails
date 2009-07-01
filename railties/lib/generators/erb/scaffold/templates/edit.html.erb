@@ -1,0 +1,18 @@
+<h1>Editing <%= singular_name %></h1>
+
+<%% form_for(@<%= singular_name %>) do |f| %>
+  <%%= f.error_messages %>
+
+<% for attribute in attributes -%>
+  <p>
+    <%%= f.label :<%= attribute.name %> %><br />
+    <%%= f.<%= attribute.field_type %> :<%= attribute.name %> %>
+  </p>
+<% end -%>
+  <p>
+    <%%= f.submit 'Update' %>
+  </p>
+<%% end %>
+
+<%%= link_to 'Show', @<%= singular_name %> %> |
+<%%= link_to 'Back', <%= plural_name %>_path %>
