@@ -208,8 +208,8 @@ module ActiveRecord
         execute "INSERT INTO #{quote_table_name(table_name)} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
       end
 
-      def empty_insert_statement(table_name)
-        "INSERT INTO #{quote_table_name(table_name)} VALUES(DEFAULT)"
+      def empty_insert_statement_value
+        "VALUES(DEFAULT)"
       end
 
       def case_sensitive_equality_operator

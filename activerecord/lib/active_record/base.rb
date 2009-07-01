@@ -2907,18 +2907,13 @@ module ActiveRecord #:nodoc:
           self.id = connection.next_sequence_value(self.class.sequence_name)
         end
 
-        quoted_attributes = attributes_with_quotes
-
-        statement = if quoted_attributes.empty?
-          connection.empty_insert_statement(self.class.table_name)
+        new_id = if arel_attributes_values.empty?
+          arel_table.insert connection.empty_insert_statement_value
         else
-          "INSERT INTO #{self.class.quoted_table_name} " +
-          "(#{quoted_column_names.join(', ')}) " +
-          "VALUES(#{quoted_attributes.values.join(', ')})"
+          arel_table.insert arel_attributes_values
         end
 
-        self.id = connection.insert(statement, "#{self.class.name} Create",
-          self.class.primary_key, self.id, self.class.sequence_name)
+        self.id ||= new_id
 
         @new_record = false
         id
@@ -2987,6 +2982,10 @@ module ActiveRecord #:nodoc:
         default
       end
 
+      def arel_table
+        @arel_table = Arel::Table.new(self.class.table_name)
+      end
+
       # Returns a copy of the attributes hash where all the values have been safely quoted for use in
       # an SQL statement.
       def attributes_with_quotes(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
@@ -3007,10 +3006,8 @@ module ActiveRecord #:nodoc:
         include_readonly_attributes ? quoted : remove_readonly_attributes(quoted)
       end
 
-      def arel_table
-        @arel_table = Arel::Table.new(self.class.table_name)
-      end
-
+      # Returns a copy of the attributes hash where all the values have been safely quoted for use in
+      # an Arel insert/update method.
       def arel_attributes_values(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
         attrs = {}
         connection = self.class.connection
@@ -3019,7 +3016,11 @@ module ActiveRecord #:nodoc:
             value = read_attribute(name)
 
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
-              attrs[arel_table[name]] = value.is_a?(Hash) ? value.to_yaml : value
+              # We need explicit to_yaml because quote() does not properly convert Time/Date fields to YAML.
+              if value && self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))
+                value = value.to_yaml
+              end
+              attrs[arel_table[name]] = (value.is_a?(Hash) || value.is_a?(Array)) ? value.to_yaml : value
             end
           end
         end
