@@ -1,5 +1,7 @@
 # encoding: binary
 require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/instance_variables'
 require 'active_support/deprecation'
