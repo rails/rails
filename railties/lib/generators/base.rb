@@ -124,6 +124,23 @@ module Rails
           invocations << [ name, base_name, as ]
           invocation_blocks[name] = block if block_given?
 
+          # hook_for :test_framework
+          #
+          # ==== Generates
+          #
+          # def invoke_for_test_framework
+          #   return unless options[:test_framework]
+          #
+          #   klass = Rails::Generators.find_by_namespace(options[:test_framework],
+          #                                               "rails", "model")
+          #
+          #   if klass
+          #     say_status :invoke, options[:test_framework], :blue
+          #     invoke_class_with_block :test_framework, klass
+          #   else
+          #     say "Could not find and invoke '#{options[:test_framework]}'"
+          #   end
+          # end
           class_eval <<-METHOD, __FILE__, __LINE__
             def invoke_for_#{name}
               return unless options[#{name.inspect}]
@@ -181,6 +198,23 @@ module Rails
           invocations << [ name, base_name, as ]
           invocation_blocks[name] = block if block_given?
 
+          # invoke_if :helper
+          #
+          # ==== Generates
+          #
+          # def invoke_if_helper
+          #   return unless options[:helper]
+          #
+          #   klass = Rails::Generators.find_by_namespace(:helper,
+          #                                               "rails", "controller")
+          #
+          #   if klass
+          #     say_status :invoke, :helper, :blue
+          #     invoke_class_with_block :helper, klass
+          #   else
+          #     say "Could not find and invoke 'helper'"
+          #   end
+          # end
           class_eval <<-METHOD, __FILE__, __LINE__
             def invoke_if_#{name}
               return unless options[#{name.inspect}]
