@@ -28,13 +28,14 @@ module Erb
 
       # TODO invoke_if?
       def copy_layout_file
-        template "layout.html.erb", File.join("app", "views", "layouts", controller_class_path, "#{controller_file_name}.html.erb")
+        template "layout.html.erb",
+                 File.join("app/views/layouts", controller_class_path, "#{controller_file_name}.html.erb")
       end
 
       protected
 
         def copy_view(view)
-          template "#{view}.html.erb", File.join("app", "views", controller_file_path, "#{view}.html.erb")
+          template "#{view}.html.erb", File.join("app/views", controller_file_path, "#{view}.html.erb")
         end
 
     end
