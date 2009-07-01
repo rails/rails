@@ -117,6 +117,13 @@ module InflectorTestCases
     "area51_controller"      => "area51Controller"
   }
 
+  SymbolToLowerCamel = {
+    :product                => 'product',
+    :special_guest          => 'specialGuest',
+    :application_controller => 'applicationController',
+    :area51_controller      => 'area51Controller'
+  }
+
   CamelToUnderscoreWithoutReverse = {
     "HTMLTidy"              => "html_tidy",
     "HTMLTidyGenerator"     => "html_tidy_generator",

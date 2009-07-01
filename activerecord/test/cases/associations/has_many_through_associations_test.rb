@@ -157,6 +157,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal peeps + 1, posts(:thinking).people.count
   end
 
+  def test_associate_with_create_with_through_having_conditions
+    impatient_people = posts(:thinking).impatient_people.count
+    posts(:thinking).impatient_people.create!(:first_name => 'foo')
+    assert_equal impatient_people + 1, posts(:thinking).impatient_people.count
+  end
+
   def test_associate_with_create_exclamation_and_no_options
     peeps = posts(:thinking).people.count
     posts(:thinking).people.create!(:first_name => 'foo')

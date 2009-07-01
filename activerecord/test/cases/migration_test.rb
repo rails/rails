@@ -293,6 +293,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.drop_table table_name rescue nil
     end
 
+    def test_create_table_without_a_block
+      table_name = :testings
+      Person.connection.create_table table_name
+    ensure
+      Person.connection.drop_table table_name rescue nil
+    end
+
     # Sybase, and SQLite3 will not allow you to add a NOT NULL
     # column to a table without a default value.
     unless current_adapter?(:SybaseAdapter, :SQLiteAdapter)
@@ -632,6 +639,32 @@ if ActiveRecord::Base.connection.supports_migrations?
 
         Topic.connection.change_column "topics", "written_on", :datetime, :null => false
         Topic.reset_column_information
+      end
+    end
+
+    if current_adapter?(:SQLiteAdapter)
+      def test_rename_table_for_sqlite_should_work_with_reserved_words
+        begin
+          assert_nothing_raised do
+            ActiveRecord::Base.connection.rename_table :references, :old_references
+            ActiveRecord::Base.connection.create_table :octopuses do |t|
+              t.column :url, :string
+            end
+          end
+
+          assert_nothing_raised { ActiveRecord::Base.connection.rename_table :octopuses, :references }
+
+          # Using explicit id in insert for compatibility across all databases
+          con = ActiveRecord::Base.connection
+          assert_nothing_raised do
+            con.execute "INSERT INTO 'references' (#{con.quote_column_name('id')}, #{con.quote_column_name('url')}) VALUES (1, 'http://rubyonrails.com')"
+          end
+          assert_equal 'http://rubyonrails.com', ActiveRecord::Base.connection.select_value("SELECT url FROM 'references' WHERE id=1")
+
+        ensure
+          ActiveRecord::Base.connection.drop_table :references
+          ActiveRecord::Base.connection.rename_table :old_references, :references
+        end
       end
     end
 

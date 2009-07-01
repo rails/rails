@@ -84,7 +84,7 @@ module ActionView
     # ==== Example
     #
     #   # The template
-    #   <% render :layout => "my_layout" do |name| %>Hello <%= customer.name %><% end %>
+    #   <% render :layout => "my_layout" do |customer| %>Hello <%= customer.name %><% end %>
     #
     #   # The layout
     #   <html><% yield Struct.new(:name).new("David") %></html>
@@ -99,14 +99,12 @@ module ActionView
 
     def _render_template(template, local_assigns = {})
       with_template(template) do
-        _evaluate_assigns_and_ivars
-
         template.render(self, local_assigns) do |*names|
           capture(*names, &layout_proc(names.first))
         end
       end
     rescue Exception => e
-      if TemplateError === e
+      if e.is_a?(TemplateError)
         e.sub_template_of(template)
         raise e
       else

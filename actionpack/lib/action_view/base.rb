@@ -230,7 +230,7 @@ module ActionView #:nodoc:
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil, formats = nil)#:nodoc:
       @formats = formats || [:html]
-      @assigns = assigns_for_first_render
+      @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
       @controller = controller
       @helpers = ProxyModule.new(self)
       @_content_for = Hash.new {|h,k| h[k] = "" }
@@ -245,6 +245,7 @@ module ActionView #:nodoc:
     end
 
     def with_template(current_template)
+      _evaluate_assigns_and_ivars
       last_template, self.template = template, current_template
       last_formats, self.formats = formats, [current_template.mime_type.to_sym] + Mime::SET.symbols
       yield
@@ -260,10 +261,7 @@ module ActionView #:nodoc:
 
     # Evaluates the local assigns and controller ivars, pushes them to the view.
     def _evaluate_assigns_and_ivars #:nodoc:
-      return if @assigns_added
-      @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
-      _copy_ivars_from_controller
-      @assigns_added = true
+      @assigns_added ||= _copy_ivars_from_controller
     end
 
   private
@@ -274,6 +272,7 @@ module ActionView #:nodoc:
         variables -= @controller.protected_instance_variables if @controller.respond_to?(:protected_instance_variables)
         variables.each { |name| instance_variable_set(name, @controller.instance_variable_get(name)) }
       end
+      true
     end
 
   end

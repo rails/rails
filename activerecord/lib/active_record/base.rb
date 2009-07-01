@@ -67,6 +67,25 @@ module ActiveRecord #:nodoc:
   class StatementInvalid < ActiveRecordError
   end
 
+  # Parent class for all specific exceptions which wrap database driver exceptions
+  # provides access to the original exception also.
+  class WrappedDatabaseException < StatementInvalid
+    attr_reader :original_exception
+
+    def initialize(message, original_exception)
+      super(message)
+      @original_exception, = original_exception
+    end
+  end
+
+  # Raised when a record cannot be inserted because it would violate a uniqueness constraint.
+  class RecordNotUnique < WrappedDatabaseException
+  end
+
+  # Raised when a record cannot be inserted or updated because it references a non-existent record.
+  class InvalidForeignKey < WrappedDatabaseException
+  end
+
   # Raised when number of bind variables in statement given to <tt>:condition</tt> key (for example, when using +find+ method)
   # does not match number of expected variables.
   #
@@ -1385,14 +1404,14 @@ module ActiveRecord #:nodoc:
       end
 
       # Transform the modelname into a more humane format, using I18n.
-      # Defaults to the basic humanize method.
+      # By default, it will underscore then humanize the class name (BlogPost.human_name #=> "Blog post").
       # Default scope of the translation is activerecord.models
       # Specify +options+ with additional translating options.
       def human_name(options = {})
         defaults = self_and_descendants_from_active_record.map do |klass|
           :"#{klass.name.underscore}"
-        end 
-        defaults << self.name.humanize
+        end
+        defaults << self.name.underscore.humanize
         I18n.translate(defaults.shift, {:scope => [:activerecord, :models], :count => 1, :default => defaults}.merge(options))
       end
 
@@ -2849,6 +2868,13 @@ module ActiveRecord #:nodoc:
       # Returns +true+ if the attributes hash has been frozen.
       def frozen?
         @attributes.frozen?
+      end
+
+      # Returns duplicated record with unfreezed attributes.
+      def dup
+        obj = super
+        obj.instance_variable_set('@attributes', instance_variable_get('@attributes').dup)
+        obj
       end
 
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back

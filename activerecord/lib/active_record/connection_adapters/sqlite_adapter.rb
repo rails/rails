@@ -245,7 +245,7 @@ module ActiveRecord
       end
 
       def rename_table(name, new_name)
-        execute "ALTER TABLE #{name} RENAME TO #{new_name}"
+        execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
       end
 
       # See: http://www.sqlite.org/lang_altertable.html
@@ -431,6 +431,16 @@ module ActiveRecord
             'INTEGER PRIMARY KEY NOT NULL'.freeze
           end
         end
+
+        def translate_exception(exception, message)
+          case exception.message
+          when /column(s)? .* (is|are) not unique/
+            RecordNotUnique.new(message, exception)
+          else
+            super
+          end
+        end
+
     end
 
     class SQLite2Adapter < SQLiteAdapter # :nodoc:

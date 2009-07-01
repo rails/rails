@@ -15,12 +15,6 @@ module ActiveSupport
             end
           end
           
-          if defined?(Spec)
-            class << self
-              alias_method :test, :it
-            end
-          end          
-          
         end
       end 
 

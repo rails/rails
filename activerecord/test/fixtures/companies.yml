@@ -35,6 +35,14 @@ another_client:
   name: Ex Nihilo
   ruby_type: Client
 
+a_third_client:
+  id: 10
+  type: Client
+  firm_id: 4
+  client_of: 4
+  name: Ex Nihilo Part Deux
+  ruby_type: Client
+
 rails_core:
   id: 6          
   name: RailsCore

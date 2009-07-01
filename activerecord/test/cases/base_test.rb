@@ -599,9 +599,9 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_many
-    assert_equal 3, Client.count
-    Client.destroy([2, 3])
-    assert_equal 1, Client.count
+    assert_difference('Client.count', -2) do
+      Client.destroy([2, 3])
+    end
   end
 
   def test_delete_many
@@ -2115,5 +2115,9 @@ class BasicsTest < ActiveRecord::TestCase
       parrot = LiveParrot.create(:name => "colombian", attribute => custom_datetime)
       assert_equal custom_datetime, parrot[attribute]
     end
+  end
+
+  def test_dup
+    assert !Minimalistic.new.freeze.dup.frozen?
   end
 end

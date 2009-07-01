@@ -1,8 +1,7 @@
+ORIG_ARGV = ARGV.dup
+
 require 'rubygems'
 require 'test/unit'
-
-gem 'mocha', '>= 0.9.5'
-require 'mocha'
 
 ENV['NO_RELOAD'] = '1'
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
