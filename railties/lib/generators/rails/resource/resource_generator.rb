@@ -3,7 +3,7 @@ require 'generators/rails/model/model_generator'
 module Rails
   module Generators
     class ResourceGenerator < ModelGenerator #metagenerator
-      hook_for :resource_controller do |base, controller|
+      hook_for :resource_controller, :required => true do |base, controller|
         base.invoke controller, [ base.name.pluralize, base.options[:actions] ]
       end
 

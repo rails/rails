@@ -1,5 +1,6 @@
 require 'generators/named_base'
 require 'generators/migration'
+require 'generators/action_orm'
 require 'active_record'
 
 module ActiveRecord

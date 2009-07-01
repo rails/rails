@@ -6,7 +6,7 @@ module Rails
       class_option :test_framework, :banner => "NAME", :desc => "Test framework to be invoked"
 
       remove_hook_for :actions, :resource_controller
-      hook_for :scaffold_controller
+      hook_for :scaffold_controller, :required => true
     end
   end
 end

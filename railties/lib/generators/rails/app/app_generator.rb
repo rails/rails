@@ -20,13 +20,13 @@ module Rails::Generators
     class_option :with_dispatchers, :type => :boolean, :aliases => "-D", :default => false,
                                     :desc => "Add CGI/FastCGI/mod_ruby dispatchers code"
 
-    class_option :skip_activerecord, :type => :boolean, :aliases => "-A", :default => false,
+    class_option :skip_activerecord, :type => :boolean, :aliases => "-O", :default => false,
                                    :desc => "Skip ActiveRecord files"
 
-    class_option :skip_testunit, :type => :boolean, :aliases => "-U", :default => false,
+    class_option :skip_testunit, :type => :boolean, :aliases => "-T", :default => false,
                                :desc => "Skip TestUnit files"
 
-    class_option :skip_prototype, :type => :boolean, :aliases => "-P", :default => false,
+    class_option :skip_prototype, :type => :boolean, :aliases => "-J", :default => false,
                                 :desc => "Skip Prototype files"
 
     # Add Rails options
