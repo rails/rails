@@ -1,5 +1,7 @@
-# encoding: binary
+# encoding: utf-8
 require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/instance_variables'
 require 'active_support/deprecation'
@@ -95,12 +97,14 @@ module ActiveSupport
 
         def escape(string)
           string = string.dup.force_encoding(::Encoding::BINARY) if string.respond_to?(:force_encoding)
-          json = '"' + string.gsub(escape_regex) { |s| ESCAPED_CHARS[s] }
-          json.gsub(/([\xC0-\xDF][\x80-\xBF]|
+          json = string.
+            gsub(escape_regex) { |s| ESCAPED_CHARS[s] }.
+            gsub(/([\xC0-\xDF][\x80-\xBF]|
                    [\xE0-\xEF][\x80-\xBF]{2}|
                    [\xF0-\xF7][\x80-\xBF]{3})+/nx) { |s|
-            s.unpack("U*").pack("n*").unpack("H*")[0].gsub(/.{4}/, '\\\\u\&')
-          } + '"'
+            s.unpack("U*").pack("n*").unpack("H*")[0].gsub(/.{4}/n, '\\\\u\&')
+          }
+          %("#{json}")
         end
       end
 

@@ -176,6 +176,12 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert_raise(ActiveSupport::FrozenObjectError) { @cache.read('foo').gsub!(/.*/, 'baz') }
     assert_equal 'bar', @cache.read('foo')
   end
+
+  def test_original_store_objects_should_not_be_immutable
+    bar = 'bar'
+    @cache.write('foo', bar)
+    assert_nothing_raised { bar.gsub!(/.*/, 'baz') }
+  end
 end
 
 uses_memcached 'memcached backed store' do

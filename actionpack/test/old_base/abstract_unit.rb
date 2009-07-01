@@ -12,9 +12,6 @@ require 'yaml'
 require 'stringio'
 require 'test/unit'
 
-gem 'mocha', '>= 0.9.5'
-require 'mocha'
-
 begin
   require 'ruby-debug'
   Debugger.settings[:autoeval] = true

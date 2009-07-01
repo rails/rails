@@ -2116,4 +2116,8 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal custom_datetime, parrot[attribute]
     end
   end
+
+  def test_dup
+    assert !Minimalistic.new.freeze.dup.frozen?
+  end
 end

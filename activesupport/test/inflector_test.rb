@@ -202,6 +202,12 @@ class InflectorTest < Test::Unit::TestCase
     end
   end
 
+  def test_symbol_to_lower_camel
+    SymbolToLowerCamel.each do |symbol, lower_camel|
+      assert_equal(lower_camel, ActiveSupport::Inflector.camelize(symbol, false))
+    end
+  end
+
   %w{plurals singulars uncountables humans}.each do |inflection_type|
     class_eval "
       def test_clear_#{inflection_type}
