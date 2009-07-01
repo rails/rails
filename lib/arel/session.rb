@@ -24,7 +24,6 @@ module Arel
     module CRUD
       def create(insert)
         insert.call
-        insert
       end
 
       def read(select)

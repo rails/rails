@@ -10,9 +10,8 @@ module Arel
       ], [:id, :name])
       @photos = Table.new(:photos)
       @photos.delete
-      @photos                                                                              \
-        .insert(@photos[:id] => 1, @photos[:user_id] => 1, @photos[:camera_id] => 6) \
-        .insert(@photos[:id] => 2, @photos[:user_id] => 2, @photos[:camera_id] => 42)
+      @photos.insert(@photos[:id] => 1, @photos[:user_id] => 1, @photos[:camera_id] => 6)
+      @photos.insert(@photos[:id] => 2, @photos[:user_id] => 2, @photos[:camera_id] => 42)
     end
 
     describe 'when the in memory relation is on the left' do

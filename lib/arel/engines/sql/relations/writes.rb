@@ -11,11 +11,17 @@ module Arel
 
   class Insert < Compound
     def to_sql(formatter = nil)
+      insertion_attributes_values_sql = if record.is_a?(Value)
+        record.value
+      else
+        build_query "(#{record.keys.collect { |key| engine.quote_column_name(key.name) }.join(', ')})",
+          "VALUES (#{record.collect { |key, value| key.format(value) }.join(', ')})"
+      end
+
       build_query \
         "INSERT",
         "INTO #{table_sql}",
-        "(#{record.keys.collect { |key| engine.quote_column_name(key.name) }.join(', ')})",
-        "VALUES (#{record.collect { |key, value| key.format(value) }.join(', ')})"
+        insertion_attributes_values_sql
     end
   end
 
@@ -28,7 +34,6 @@ module Arel
     end
 
   protected
-
     def assignment_sql
       if assignments.respond_to?(:collect)
         assignments.collect do |attribute, value|
