@@ -23,7 +23,7 @@ module Rails
           base_name, @class_path, @file_path, class_nesting, @class_nesting_depth = extract_modules(given_name)
           class_name_without_nesting, @singular_name, @plural_name = inflect_names(base_name)
 
-          @table_name = if !defined?(ActiveRecord::Base) || ActiveRecord::Base.pluralize_table_names
+          @table_name = if pluralize_table_names?
             plural_name
           else
             singular_name
@@ -69,6 +69,10 @@ module Rails
           [camel, under, plural]
         end
 
+        def pluralize_table_names?
+          !defined?(ActiveRecord::Base) || ActiveRecord::Base.pluralize_table_names
+        end
+
         # Add a class collisions name to be checked on class initialization. You
         # can supply a hash with a :prefix or :suffix to be tested.
         #
@@ -81,7 +85,7 @@ module Rails
         #
         def self.check_class_collision(options={})
           define_method :check_class_collision do
-            name = if self.respond_to?(:controller_class_name) # for ControllerNamedBase
+            name = if self.respond_to?(:controller_class_name) # for ScaffoldBase
               controller_class_name
             else
               class_name
@@ -92,9 +96,10 @@ module Rails
         end
     end
 
-    # Deal with controller named base on scaffold.
+    # Deal with controller names on scaffold. Also provide helpers to deal with
+    # ActionORM.
     #
-    module ControllerNamedBase
+    module ScaffoldBase
       def self.included(base) #:nodoc:
         base.send :attr_reader, :controller_name, :controller_class_name, :controller_file_name,
                                 :controller_class_path, :controller_file_path
@@ -102,7 +107,7 @@ module Rails
 
       # Set controller variables on initialization.
       #
-      def initialize(*args)
+      def initialize(*args) #:nodoc:
         super
         @controller_name = name.pluralize
 
@@ -115,7 +120,31 @@ module Rails
           "#{class_nesting}::#{class_name_without_nesting}"
         end
       end
-    end
 
+      protected
+
+        # Loads the ORM::Generators::ActionORM class. This class is responsable
+        # to tell scaffold entities how to generate an specific method for the
+        # ORM. Check Rails::Generators::ActionORM for more information.
+        #
+        def orm_class
+          @orm_class ||= begin
+            unless self.class.class_options[:orm]
+              raise "You need to have :orm as class option to invoke orm_class and orm_instance" 
+            end
+
+            action_orm = "#{options[:orm].to_s.classify}::Generators::ActionORM"
+            action_orm.constantize
+          rescue NameError => e
+            raise Error, "Could not load #{action_orm}, skipping controller. Error: #{e.message}."
+          end
+        end
+
+        # Initialize ORM::Generators::ActionORM to access instance methods.
+        #
+        def orm_instance(name=file_name)
+          @orm_instance ||= @orm_class.new(name)
+        end
+    end
   end
 end

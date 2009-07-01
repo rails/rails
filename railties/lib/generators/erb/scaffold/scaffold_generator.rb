@@ -3,7 +3,7 @@ require 'generators/erb'
 module Erb
   module Generators
     class ScaffoldGenerator < Base
-      include Rails::Generators::ControllerNamedBase
+      include Rails::Generators::ScaffoldBase
 
       argument :attributes, :type => :hash, :default => {}, :banner => "field:type field:type"
 

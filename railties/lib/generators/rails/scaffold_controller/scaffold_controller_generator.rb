@@ -1,7 +1,8 @@
 module Rails
   module Generators
     class ScaffoldControllerGenerator < NamedBase
-      include ControllerNamedBase
+      # Add controller methods and ActionORM settings.
+      include ScaffoldBase
 
       check_class_collision :suffix => "Controller"
 
@@ -21,22 +22,6 @@ module Rails
       invoke_if :helper do |base, invoked|
         base.invoke invoked, [ base.controller_name ]
       end
-
-      protected
-
-        def orm_class
-          @orm_class ||= begin
-            action_orm = "#{options[:orm].to_s.classify}::Generators::ActionORM"
-            action_orm.constantize
-          rescue NameError => e
-            raise Error, "Could not load #{action_orm}, skipping controller. Error: #{e.message}."
-          end
-        end
-
-        def orm_instance
-          @orm_instance ||= @orm_class.new(file_name)
-        end
-
     end
   end
 end
