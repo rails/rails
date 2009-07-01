@@ -11,7 +11,7 @@ module ActionView
       self.erb_trim_mode = '-'
 
       def compile(template)
-        magic = $1 if template.source =~ /\A(<%#.*coding:\s*(\S+)\s*-?%>)/
+        magic = $1 if template.source =~ /\A(<%#.*coding[:=]\s*(\S+)\s*-?%>)/
         erb = "#{magic}<% __in_erb_template=true %>#{template.source}"
         ::ERB.new(erb, nil, erb_trim_mode, '@output_buffer').src
       end
