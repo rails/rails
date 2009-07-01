@@ -50,13 +50,15 @@ if ENV['CHILD']
     end
 
     test "resets requires one" do
-      assert !defined?(Curses)
-      require 'curses'
+      assert !defined?(OmgOmg)
+      assert_equal 0, $LOADED_FEATURES.grep(/fixtures\/omgomg/).size
+      require File.expand_path(File.join(File.dirname(__FILE__), "fixtures", "omgomg"))
     end
 
     test "resets requires two" do
-      assert !defined?(Curses)
-      require 'curses'
+      assert !defined?(OmgOmg)
+      assert_equal 0, $LOADED_FEATURES.grep(/fixtures\/omgomg/).size
+      require File.expand_path(File.join(File.dirname(__FILE__), "fixtures", "omgomg"))
     end
   end
 else
