@@ -1,0 +1,56 @@
+module Rails
+  module Generators
+    # Holds common methods for migrations. It assumes that migrations has the
+    # [0-9]*_name format and can be used by another frameworks (like Sequel)
+    # just by implementing the next migration number method.
+    #
+    module Migration
+
+      # Creates a migration template at the given destination. The difference
+      # to the default template method is that the migration number is appended
+      # to the destination file name.
+      #
+      # The migration number, migration file name, migration class name are
+      # available as instance variables in the template to be rendered.
+      #
+      # ==== Examples
+      #
+      #   migration_template "migration.rb", "db/migrate/add_foo_to_bar.rb"
+      #
+      def migration_template(source, destination=nil, log_status=true)
+        destination = File.expand_path(destination || source, self.destination_root)
+
+        migration_dir = File.dirname(destination)
+        @migration_number     = next_migration_number(migration_dir)
+        @migration_file_name  = File.basename(destination).sub(/\.rb$/, '')
+        @migration_class_name = @migration_file_name.camelize
+
+        if existing = migration_exists?(migration_dir, @migration_file_name)
+          raise Rails::Generators::Error, "Another migration is already named #{@migration_file_name}: #{existing}"
+        end
+
+        destination = File.join(migration_dir, "#{@migration_number}_#{@migration_file_name}.rb")
+        template(source, destination, log_status)
+      end
+
+      protected
+
+        def migration_lookup_at(dirname) #:nodoc:
+          Dir.glob("#{dirname}/[0-9]*_*.rb")
+        end
+
+        def migration_exists?(dirname, file_name) #:nodoc:
+          migration_lookup_at(dirname).grep(/\d+_#{file_name}.rb$/).first
+        end
+
+        def current_migration_number(dirname) #:nodoc:
+          migration_lookup_at(dirname).collect{ |f| f.split("_").first.to_i }.max
+        end
+
+        def next_migration_number(dirname) #:nodoc:
+          raise NotImplementError
+        end
+
+    end
+  end
+end

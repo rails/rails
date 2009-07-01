@@ -92,7 +92,7 @@ module Rails
         end
     end
 
-    # Deal with controller named base on scaffold
+    # Deal with controller named base on scaffold.
     #
     module ControllerNamedBase
       def self.included(base) #:nodoc:
