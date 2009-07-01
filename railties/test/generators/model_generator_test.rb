@@ -79,6 +79,24 @@ class ModelGeneratorTest < GeneratorsTestCase
     end
   end
 
+  def test_migration_already_exists_error_message
+    run_generator
+    error = capture(:stderr){ run_generator ["Account"], :behavior => :skip }
+    assert_match /Another migration is already named create_accounts/, error
+  end
+
+  def test_migration_error_is_not_shown_on_revoke
+    run_generator
+    error = capture(:stderr){ run_generator ["Account"], :behavior => :revoke }
+    assert_no_match /Another migration is already named create_accounts/, error
+  end
+
+  def test_migration_is_removed_on_revoke
+    run_generator
+    run_generator ["Account"], :behavior => :revoke
+    assert_no_migration "db/migrate/create_accounts.rb"
+  end
+
   def test_invokes_default_test_framework
     run_generator
     assert_file "test/unit/account_test.rb", /class AccountTest < ActiveSupport::TestCase/
@@ -103,8 +121,8 @@ class ModelGeneratorTest < GeneratorsTestCase
 
   protected
 
-    def run_generator(args=["Account", "name:string", "age:integer"])
-      silence(:stdout) { Rails::Generators::ModelGenerator.start args, :root => destination_root }
+    def run_generator(args=["Account", "name:string", "age:integer"], config={})
+      silence(:stdout) { Rails::Generators::ModelGenerator.start args, config.merge(:root => destination_root) }
     end
 
 end

@@ -25,11 +25,13 @@ module Rails
         @migration_file_name  = File.basename(destination).sub(/\.rb$/, '')
         @migration_class_name = @migration_file_name.camelize
 
-        if existing = migration_exists?(migration_dir, @migration_file_name)
-          raise Rails::Generators::Error, "Another migration is already named #{@migration_file_name}: #{existing}"
+        destination = migration_exists?(migration_dir, @migration_file_name)
+
+        if behavior == :invoke
+          raise Error, "Another migration is already named #{@migration_file_name}: #{destination}" if destination
+          destination = File.join(migration_dir, "#{@migration_number}_#{@migration_file_name}.rb")
         end
 
-        destination = File.join(migration_dir, "#{@migration_number}_#{@migration_file_name}.rb")
         template(source, destination, log_status)
       end
 

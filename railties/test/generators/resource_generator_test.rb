@@ -100,10 +100,19 @@ class ResourceGeneratorTest < GeneratorsTestCase
     assert_no_match /Plural version of the model detected/, content
   end
 
+  def test_route_is_removed_on_revoke
+    run_generator
+    run_generator ["account"], :behavior => :revoke
+
+    assert_file "config/routes.rb" do |route|
+      assert_no_match /map\.resources :accounts$/, route
+    end
+  end
+
   protected
 
-    def run_generator(args=["account"])
-      silence(:stdout) { Rails::Generators::ResourceGenerator.start args, :root => destination_root }
+    def run_generator(args=["account"], config={})
+      silence(:stdout) { Rails::Generators::ResourceGenerator.start args, config.merge(:root => destination_root) }
     end
 
 end
