@@ -50,13 +50,13 @@ if ENV['CHILD']
     end
 
     test "resets requires one" do
-      assert !defined?(Racc)
-      require 'racc/parser'
+      assert !defined?(Curses)
+      require 'curses'
     end
 
     test "resets requires two" do
-      assert !defined?(Racc)
-      require 'racc/parser'
+      assert !defined?(Curses)
+      require 'curses'
     end
   end
 else
