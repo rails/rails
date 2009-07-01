@@ -230,6 +230,8 @@ module ActionView
       # * <tt>:rows</tt> - Specify the number of rows in the textarea
       # * <tt>:cols</tt> - Specify the number of columns in the textarea
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:escape</tt> - By default, the contents of the text input are HTML escaped.
+      #   If you need unescaped contents, set this to false.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -256,6 +258,9 @@ module ActionView
         if size = options.delete("size")
           options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
         end
+
+        escape = options.key?("escape") ? options.delete("escape") : true
+        content = html_escape(content) if escape
 
         content_tag :textarea, content, { "name" => name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
       end

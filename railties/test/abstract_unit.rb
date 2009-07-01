@@ -9,9 +9,6 @@ require 'stringio'
 require 'rubygems'
 require 'test/unit'
 
-gem 'mocha', '>= 0.9.5'
-require 'mocha'
-
 require 'active_support'
 require 'active_support/test_case'
 

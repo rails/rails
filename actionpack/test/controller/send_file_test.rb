@@ -108,7 +108,7 @@ class SendFileTest < ActionController::TestCase
     @controller.send(:send_file_headers!, options)
 
     h = @controller.headers
-    assert_equal 1, h['Content-Length']
+    assert_equal '1', h['Content-Length']
     assert_equal 'image/png', h['Content-Type']
     assert_equal 'disposition; filename="filename"', h['Content-Disposition']
     assert_equal 'binary', h['Content-Transfer-Encoding']
