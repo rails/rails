@@ -1,3 +1,5 @@
+ORIG_ARGV = ARGV.dup
+
 require 'rubygems'
 require 'test/unit'
 

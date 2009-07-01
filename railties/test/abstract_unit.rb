@@ -1,3 +1,5 @@
+ORIG_ARGV = ARGV.dup
+
 $:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
 $:.unshift File.dirname(__FILE__) + "/../../activerecord/lib"
 $:.unshift File.dirname(__FILE__) + "/../../actionpack/lib"
