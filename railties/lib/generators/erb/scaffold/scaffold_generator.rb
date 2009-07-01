@@ -6,9 +6,10 @@ module Erb
       include Rails::Generators::ControllerNamedBase
 
       argument :attributes, :type => :hash, :default => {}, :banner => "field:type field:type"
-      class_option :singleton, :type => :boolean, :desc => "Supply to skip index action"
 
-      # TODO Spec me
+      class_option :singleton, :type => :boolean, :desc => "Supply to skip index action"
+      class_option :layout, :type => :boolean
+
       def copy_index_file
         return if options[:singleton]
         copy_view :index
@@ -26,8 +27,8 @@ module Erb
         copy_view :new
       end
 
-      # TODO invoke_if?
       def copy_layout_file
+        return unless options[:layout]
         template "layout.html.erb",
                  File.join("app/views/layouts", controller_class_path, "#{controller_file_name}.html.erb")
       end

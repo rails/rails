@@ -4,11 +4,14 @@ module Rails
       include ControllerNamedBase
 
       check_class_collision :suffix => "Controller"
-      class_option :orm, :desc => "ORM to generate the controller for", :banner => "NAME", :type => :string
-      class_option :singleton, :type => :boolean, :desc => "Supply to create a singleton controller" # TODO Spec me
+
+      class_option :orm, :banner => "NAME", :type => :string, :required => true,
+                         :desc => "ORM to generate the controller for"
+
+      class_option :singleton, :type => :boolean, :desc => "Supply to create a singleton controller"
 
       def create_controller_files
-        template 'controller.rb', File.join('app/controllers', class_path, "#{file_name}_controller.rb")
+        template 'controller.rb', File.join('app/controllers', class_path, "#{controller_file_name}_controller.rb")
       end
 
       hook_for :template_engine, :test_framework, :as => :scaffold
@@ -22,7 +25,12 @@ module Rails
       protected
 
         def orm_class
-          @orm_class ||= "#{options[:orm].to_s.classify}::Generators::ActionORM".constantize
+          @orm_class ||= begin
+            action_orm = "#{options[:orm].to_s.classify}::Generators::ActionORM"
+            action_orm.constantize
+          rescue NameError => e
+            raise Error, "Could not load #{action_orm}, skipping controller. Error: #{e.message}."
+          end
         end
 
         def orm_instance

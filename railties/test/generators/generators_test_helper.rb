@@ -72,8 +72,8 @@ class GeneratorsTestCase < Test::Unit::TestCase
   end
 
   def assert_instance_method(content, method)
-    assert_match /def #{method}(.*?)end/m, content
-    yield content.match(/def #{method}(.*?)end/m)[1] if block_given?
+    assert content =~ /def #{method}(\(.+\))?(.*?)\n  end/m, "Expected to have method #{method}"
+    yield $2.strip if block_given?
   end
 
   protected

@@ -1,11 +1,13 @@
 require 'test_helper'
 
 class <%= controller_class_name %>ControllerTest < ActionController::TestCase
+<% unless options[:singleton] -%>
   test "should get index" do
     get :index
     assert_response :success
     assert_not_nil assigns(:<%= table_name %>)
   end
+<% end -%>
 
   test "should get new" do
     get :new

@@ -7,6 +7,7 @@ module Rails
       :fixture => true,
       :force_plural => false,
       :helper => true,
+      :layout => true,
       :migration => true,
       :orm => 'active_record',
       :resource_controller => 'controller',
