@@ -4,9 +4,9 @@ module Rails
   module Generators
     class ScaffoldGenerator < ResourceGenerator #metagenerator
       remove_hook_for :actions, :resource_controller
-      hook_for :scaffold_controller, :required => true
 
-      # invoke_if stylesheets
+      hook_for :scaffold_controller, :required => true
+      hook_for :stylesheets
     end
   end
 end

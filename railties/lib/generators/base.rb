@@ -13,6 +13,7 @@ module Rails
       :resource_controller => 'controller',
       :scaffold_controller => 'scaffold_controller',
       :singleton => false,
+      :stylesheets => true,
       :test_framework => 'test_unit',
       :template_engine => 'erb',
       :timestamps => true
@@ -24,6 +25,7 @@ module Rails
       :orm => '-o',
       :resource_controller => '-c',
       :scaffold_controller => '-c',
+      :stylesheets => '-y',
       :test_framework => '-t',
       :template_engine => '-e'
     }
@@ -132,8 +134,9 @@ module Rails
           # def invoke_for_test_framework
           #   return unless options[:test_framework]
           #
-          #   klass = Rails::Generators.find_by_namespace(options[:test_framework],
-          #                                               "rails", "model")
+          #   klass_name = options[:test_framework]
+          #   klass_name = :test_framework if TrueClass === klass_name
+          #   klass = Rails::Generators.find_by_namespace(klass_name, "rails", "model")
           #
           #   if klass
           #     say_status :invoke, options[:test_framework], :blue
@@ -142,18 +145,20 @@ module Rails
           #     say "Could not find and invoke '#{options[:test_framework]}'"
           #   end
           # end
+          #
           class_eval <<-METHOD, __FILE__, __LINE__
             def invoke_for_#{name}
               return unless options[#{name.inspect}]
 
-              klass = Rails::Generators.find_by_namespace(options[#{name.inspect}],
-                                                          #{base_name.inspect}, #{as.inspect})
+              klass_name = options[#{name.inspect}]
+              klass_name = #{name.inspect} if TrueClass === klass_name
+              klass = Rails::Generators.find_by_namespace(klass_name, #{base_name.inspect}, #{as.inspect})
 
               if klass
-                say_status :invoke, options[#{name.inspect}], #{verbose.inspect}
+                say_status :invoke, klass_name, #{verbose.inspect}
                 invoke_class_with_block #{name.inspect}, klass
               else
-                say "Could not find and invoke '\#{options[#{name.inspect}]}'."
+                say "Could not find and invoke '\#{klass_name}'."
               end
             end
           METHOD
@@ -205,9 +210,7 @@ module Rails
           #
           # def invoke_if_helper
           #   return unless options[:helper]
-          #
-          #   klass = Rails::Generators.find_by_namespace(:helper,
-          #                                               "rails", "controller")
+          #   klass = Rails::Generators.find_by_namespace(:helper, "rails", "controller")
           #
           #   if klass
           #     say_status :invoke, :helper, :blue
@@ -216,12 +219,11 @@ module Rails
           #     say "Could not find and invoke 'helper'"
           #   end
           # end
+          #
           class_eval <<-METHOD, __FILE__, __LINE__
             def invoke_if_#{name}
               return unless options[#{name.inspect}]
-
-              klass = Rails::Generators.find_by_namespace(#{name.inspect},
-                                                          #{base_name.inspect}, #{as.inspect})
+              klass = Rails::Generators.find_by_namespace(#{name.inspect}, #{base_name.inspect}, #{as.inspect})
 
               if klass
                 say_status :invoke, #{name.inspect}, #{verbose.inspect}
@@ -340,10 +342,7 @@ module Rails
         end
 
         # Overwrite class options help to allow invoked generators options to be
-        # shown when invoking a generator. Only first and second level options
-        # are shown, for instance, if a generator invokes an ORM that invokes
-        # a test framework, both options are shown, but if a third one is
-        # involved, those options do not appear.
+        # shown recursively when invoking a generator.
         #
         def self.class_options_help(shell, ungrouped_name=nil, extra_group=nil)
           group_options = Thor::CoreExt::OrderedHash.new
