@@ -2,7 +2,7 @@ module Rails
   module Generators
     class StylesheetsGenerator < Base
       def copy_stylesheets_file
-        copy_file "scaffold.css", "public/stylesheets/scaffold.css"
+        template "scaffold.css", "public/stylesheets/scaffold.css" if behavior == :invoke
       end
     end
   end

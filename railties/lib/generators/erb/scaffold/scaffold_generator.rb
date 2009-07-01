@@ -10,6 +10,10 @@ module Erb
       class_option :singleton, :type => :boolean, :desc => "Supply to skip index action"
       class_option :layout, :type => :boolean
 
+      def create_root_folder
+        empty_directory File.join("app/views", controller_file_path)
+      end
+
       def copy_index_file
         return if options[:singleton]
         copy_view :index

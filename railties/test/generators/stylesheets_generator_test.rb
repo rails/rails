@@ -9,10 +9,16 @@ class StylesheetsGeneratorTest < GeneratorsTestCase
     assert_file "public/stylesheets/scaffold.css"
   end
 
+  def test_stylesheets_are_not_deleted_on_revoke
+    run_generator
+    run_generator :behavior => :revoke
+    assert_file "public/stylesheets/scaffold.css"
+  end
+
   protected
 
-    def run_generator(args=[])
-      silence(:stdout) { Rails::Generators::StylesheetsGenerator.start args, :root => destination_root }
+    def run_generator(config={})
+      silence(:stdout) { Rails::Generators::StylesheetsGenerator.start [], config.merge(:root => destination_root) }
     end
 
 end

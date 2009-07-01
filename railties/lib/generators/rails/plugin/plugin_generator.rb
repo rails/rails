@@ -11,7 +11,7 @@ module Rails
 
       def create_root
         self.root = File.expand_path("vendor/plugins/#{file_name}", root)
-        empty_directory '.'
+        empty_directory '.' if behavior == :invoke
         FileUtils.cd(root)
       end
 
@@ -35,6 +35,16 @@ module Rails
       def create_generator_files
         return unless options[:with_generator]
         directory 'generators'
+      end
+
+      # Work around for generator to work on revoke. If we remove the root
+      # folder at the beginning, it will raise an error since FileUtils.cd
+      # will move to a non-existent folder.
+      #
+      def remove_on_revoke
+        return unless behavior == :revoke
+        FileUtils.cd("../../..")
+        empty_directory "vendor/plugins/#{file_name}"
       end
     end
   end

@@ -44,10 +44,15 @@ class PluginGeneratorTest < GeneratorsTestCase
     assert_file "vendor/plugins/plugin_fu/generators/plugin_fu/plugin_fu_generator.rb", flag
   end
 
+  def test_plugin_generator_on_revoke
+    run_generator
+    run_generator ["plugin_fu"], :behavior => :revoke
+  end
+
   protected
 
-    def run_generator(args=["plugin_fu"])
-      silence(:stdout) { Rails::Generators::PluginGenerator.start args, :root => destination_root }
+    def run_generator(args=["plugin_fu"], config={})
+      silence(:stdout) { Rails::Generators::PluginGenerator.start args, config.merge(:root => destination_root) }
     end
 
 end
