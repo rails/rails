@@ -59,19 +59,18 @@ module ActiveRecord
         start = options.delete(:start).to_i
         batch_size = options.delete(:batch_size) || 1000
 
-        with_scope(:find => options.merge(:order => batch_order, :limit => batch_size)) do
-          records = find(:all, :conditions => [ "#{table_name}.#{primary_key} >= ?", start ])
+        proxy = scoped(options.merge(:order => batch_order, :limit => batch_size))
+        records = proxy.find(:all, :conditions => [ "#{table_name}.#{primary_key} >= ?", start ])
 
-          while records.any?
-            yield records
+        while records.any?
+          yield records
 
-            break if records.size < batch_size
-            records = find(:all, :conditions => [ "#{table_name}.#{primary_key} > ?", records.last.id ])
-          end
+          break if records.size < batch_size
+          records = proxy.find(:all, :conditions => [ "#{table_name}.#{primary_key} > ?", records.last.id ])
         end
       end
-      
-      
+
+
       private
         def batch_order
           "#{table_name}.#{primary_key} ASC"
