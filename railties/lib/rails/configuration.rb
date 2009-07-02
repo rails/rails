@@ -62,33 +62,19 @@ module Rails
         end
 
       @paths = Rails::Application::Root.new(root_path)
-      @paths.app                 = "app"
-      @paths.app.metals          = "app/metal"
-      @paths.app.models          = "app/models"
-      @paths.app.controllers     = "app/controllers"
-      @paths.app.helpers         = "app/helpers"
-      @paths.app.services        = "app/services"
-      @paths.lib                 = "lib"
-      @paths.vendor              = "vendor"
-      @paths.vendor.plugins      = "vendor/plugins"
-      @paths.cache               = "tmp/cache"
-      @paths.config              = "config"
-      @paths.config.locales      = "config/locales"
-      @paths.config.environments = "config/environments"
-
-      @paths.app.controllers.concat builtin_directories
-
-      @paths.app.load_path!
-      @paths.app.metals.load_path!
-      @paths.app.models.eager_load!
-      @paths.app.controllers.eager_load!
-      @paths.app.helpers.eager_load!
-      @paths.app.services.load_path!
-      @paths.app.metals.eager_load!
-      @paths.lib.load_path!
-      @paths.vendor.load_path!
-
-      @paths.config.environments.glob = "#{RAILS_ENV}.rb"
+      @paths.app                 "app",             :load_path => true
+      @paths.app.metals          "app/metal",       :eager_load => true
+      @paths.app.models          "app/models",      :eager_load => true
+      @paths.app.controllers     "app/controllers", builtin_directories, :eager_load => true
+      @paths.app.helpers         "app/helpers",     :eager_load => true
+      @paths.app.services        "app/services",    :load_path => true
+      @paths.lib                 "lib",             :load_path => true
+      @paths.vendor              "vendor",          :load_path => true
+      @paths.vendor.plugins      "vendor/plugins"
+      @paths.cache               "tmp/cache"
+      @paths.config              "config"
+      @paths.config.locales      "config/locales"
+      @paths.config.environments "config/environments", :glob => "#{RAILS_ENV}.rb"
 
       RAILS_ROOT.replace root_path
     end
