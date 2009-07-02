@@ -416,7 +416,7 @@ map.resources :magazines do |magazine|
 end
 </ruby>
 
-TIP: Further below you'll learn about a convenient shortcut for this construct:<br/>+map.resources :magazines, :has_many => :ads+.
+TIP: Further below you'll learn about a convenient shortcut for this construct:<br/>+map.resources :magazines, :has_many => :ads+
 
 In addition to the routes for magazines, this declaration will also create routes for ads, each of which requires the specification of a magazine in the URL:
 
