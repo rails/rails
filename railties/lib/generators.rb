@@ -15,10 +15,18 @@ require 'generators/named_base'
 
 module Rails
   module Generators
+    # Remove builtin generators.
+    #
     def self.builtin
       Dir[File.dirname(__FILE__) + '/generators/*/*'].collect do |file|
         file.split('/')[-2, 2]
       end
+    end
+
+    # Remove the color from output.
+    #
+    def self.no_color!
+      Thor::Base.shell = Thor::Shell::Basic
     end
 
     # Receives a namespace and tries different combinations to find a generator.
