@@ -39,13 +39,13 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_form_tag_with_method_put
     actual = form_tag({}, { :method => :put })
-    expected = %(<form action="http://www.example.com" method="post"><div style='margin:0;padding:0'><input type="hidden" name="_method" value="put" /></div>)
+    expected = %(<form action="http://www.example.com" method="post"><div style='margin:0;padding:0;display:inline'><input type="hidden" name="_method" value="put" /></div>)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_method_delete
     actual = form_tag({}, { :method => :delete })
-    expected = %(<form action="http://www.example.com" method="post"><div style='margin:0;padding:0'><input type="hidden" name="_method" value="delete" /></div>)
+    expected = %(<form action="http://www.example.com" method="post"><div style='margin:0;padding:0;display:inline'><input type="hidden" name="_method" value="delete" /></div>)
     assert_dom_equal expected, actual
   end
 
@@ -61,7 +61,7 @@ class FormTagHelperTest < ActionView::TestCase
     __in_erb_template = ''
     form_tag("http://example.com", :method => :put) { concat "Hello world!" }
 
-    expected = %(<form action="http://example.com" method="post"><div style='margin:0;padding:0'><input type="hidden" name="_method" value="put" /></div>Hello world!</form>)
+    expected = %(<form action="http://example.com" method="post"><div style='margin:0;padding:0;display:inline'><input type="hidden" name="_method" value="put" /></div>Hello world!</form>)
     assert_dom_equal expected, output_buffer
   end
 
