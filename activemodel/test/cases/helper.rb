@@ -10,8 +10,6 @@ ActiveSupport::Deprecation.debug = true
 
 require 'rubygems'
 require 'test/unit'
-gem 'mocha', '>= 0.9.5'
-require 'mocha'
 
 begin
   require 'ruby-debug'

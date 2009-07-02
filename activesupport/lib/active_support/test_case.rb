@@ -1,18 +1,19 @@
-begin
-  gem 'mocha', '>= 0.9.3'
-  require 'mocha'
-rescue LoadError
-  # Fake Mocha::ExpectationError so we can rescue it in #run. Bleh.
-  Object.const_set :Mocha, Module.new
-  Mocha.const_set :ExpectationError, Class.new(StandardError)
-end
-
 require 'test/unit/testcase'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
 require 'active_support/testing/declarative'
 require 'active_support/testing/pending'
+require 'active_support/testing/isolation'
+
+begin
+  gem 'mocha', ">= 0.9.7"
+  require 'mocha'
+rescue LoadError
+  # Fake Mocha::ExpectationError so we can rescue it in #run. Bleh.
+  Object.const_set :Mocha, Module.new
+  Mocha.const_set :ExpectationError, Class.new(StandardError)
+end
 
 module ActiveSupport
   class TestCase < ::Test::Unit::TestCase

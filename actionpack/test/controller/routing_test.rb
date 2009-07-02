@@ -1667,6 +1667,17 @@ class RouteSetTest < Test::Unit::TestCase
     assert_equal 1, set.routes.size
   end
 
+  def test_draw_symbol_controller_name
+    assert_equal 0, set.routes.size
+    set.draw do |map|
+      map.connect '/users/index', :controller => :users, :action => :index
+    end
+    @request = ActionController::TestRequest.new
+    @request.request_uri = '/users/index'
+    assert_nothing_raised { set.recognize(@request) }
+    assert_equal 1, set.routes.size
+  end
+
   def test_named_draw
     assert_equal 0, set.routes.size
     set.draw do |map|

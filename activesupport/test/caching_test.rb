@@ -1,3 +1,4 @@
+require 'logger'
 require 'abstract_unit'
 require 'active_support/cache'
 
@@ -176,6 +177,12 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert_raise(ActiveSupport::FrozenObjectError) { @cache.read('foo').gsub!(/.*/, 'baz') }
     assert_equal 'bar', @cache.read('foo')
   end
+
+  def test_original_store_objects_should_not_be_immutable
+    bar = 'bar'
+    @cache.write('foo', bar)
+    assert_nothing_raised { bar.gsub!(/.*/, 'baz') }
+  end
 end
 
 uses_memcached 'memcached backed store' do
@@ -184,6 +191,8 @@ uses_memcached 'memcached backed store' do
       @cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
       @data = @cache.instance_variable_get(:@data)
       @cache.clear
+      @cache.silence!
+      @cache.logger = Logger.new("/dev/null")
     end
 
     include CacheStoreBehavior
@@ -305,6 +314,22 @@ uses_memcached 'memcached backed store' do
       }
       app = @cache.middleware.new(app)
       app.call({})
+    end
+
+    def test_expires_in
+      result = @cache.write('foo', 'bar', :expires_in => 1)
+      assert_equal 'bar', @cache.read('foo')
+      sleep 2
+      assert_equal nil, @cache.read('foo')
+    end
+
+    def test_expires_in_with_invalid_value
+      @cache.write('baz', 'bat')
+      assert_raise(RuntimeError) do
+        @cache.write('foo', 'bar', :expires_in => 'Mon Jun 29 13:10:40 -0700 2150')
+      end
+      assert_equal 'bat', @cache.read('baz')
+      assert_equal nil, @cache.read('foo')
     end
   end
 

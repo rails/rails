@@ -76,7 +76,7 @@ module Rails
       @paths.config.locales      = "config/locales"
       @paths.config.environments = "config/environments"
 
-      @paths.app.controllers.push *builtin_directories
+      @paths.app.controllers.concat builtin_directories
 
       @paths.app.load_path!
       @paths.app.metals.load_path!

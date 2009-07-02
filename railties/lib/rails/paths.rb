@@ -80,6 +80,10 @@ module Rails
         @paths.unshift path
       end
 
+      def concat(paths)
+        @paths.concat paths
+      end
+
       def load_once!
         @load_once = true
         @root.load_once.push *self.paths

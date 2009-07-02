@@ -10,8 +10,6 @@ module ActiveSupport
 
           if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
             include ForMiniTest
-          elsif defined? Spec
-            include ForRspec
           else
             include ForClassicTestUnit
           end
