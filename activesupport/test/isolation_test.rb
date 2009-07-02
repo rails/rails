@@ -5,6 +5,12 @@ if ENV['CHILD']
   class ChildIsolationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
+    def self.setup
+      File.open(File.join(File.dirname(__FILE__), "fixtures", "isolation_test"), "a") do |f|
+        f.puts "hello"
+      end
+    end
+
     def setup
       @instance = "HELLO"
     end
@@ -63,6 +69,8 @@ if ENV['CHILD']
   end
 else
   class ParentIsolationTest < ActiveSupport::TestCase
+
+    File.open(File.join(File.dirname(__FILE__), "fixtures", "isolation_test"), "w") {}
 
     ENV["CHILD"] = "1"
     OUTPUT = `#{Gem.ruby} -I#{File.dirname(__FILE__)} #{File.expand_path(__FILE__)} -v`
@@ -131,12 +139,17 @@ else
 
     test "backtrace is printed for errors" do
       assert_equal 'Error', @backtraces["test_captures_errors"][:type]
-      assert_match %{isolation_test.rb:21:in `test_captures_errors'}, @backtraces["test_captures_errors"][:output]
+      assert_match %r{isolation_test.rb:\d+:in `test_captures_errors'}, @backtraces["test_captures_errors"][:output]
     end
 
     test "backtrace is printed for failures" do
       assert_equal 'Failure', @backtraces["test_captures_failures"][:type]
-      assert_match %{isolation_test.rb:25:in `test_captures_failures'}, @backtraces["test_captures_failures"][:output]
+      assert_match %r{isolation_test.rb:\d+:in `test_captures_failures'}, @backtraces["test_captures_failures"][:output]
+    end
+
+    test "self.setup is run only once" do
+      text = File.read(File.join(File.dirname(__FILE__), "fixtures", "isolation_test"))
+      assert_equal "hello\n", text
     end
 
   end

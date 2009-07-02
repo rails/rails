@@ -21,6 +21,11 @@ module ActiveSupport::Testing
     end
 
     def run(result)
+      unless defined?(@@ran_class_setup)
+        self.class.setup
+        @@ran_class_setup = true
+      end
+
       yield(Test::Unit::TestCase::STARTED, name)
 
       @_result = result

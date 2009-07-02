@@ -8,13 +8,14 @@ module Rails
   def self.vendor_rails? ; false ; end
 end
 
-# TODO: Can this be reset?
-Rails::Initializer.run do |config|
-  config.frameworks = [:action_controller, :action_view, :action_mailer, :active_record]
-end
-
 class PathsTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
+
+  def self.setup
+    Rails::Initializer.run do |config|
+      config.frameworks = [:action_controller, :action_view, :action_mailer, :active_record]
+    end
+  end
 
   def setup
     @paths = Rails::Initializer.default.config.paths
