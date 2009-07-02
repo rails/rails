@@ -118,7 +118,7 @@ module Rails
       def self.hook_for(*names, &block)
         options = names.extract_options!
         as      = options.fetch(:as, generator_name)
-        verbose = options.fetch(:verbose, :blue)
+        verbose = options.fetch(:verbose, :white)
 
         names.each do |name|
           default = { :desc => "#{name.to_s.humanize} to be invoked", :banner => "NAME" }
@@ -196,7 +196,7 @@ module Rails
       def self.invoke_if(*names, &block)
         options = names.extract_options!.merge(:type => :boolean)
         as      = options.fetch(:as, generator_name)
-        verbose = options.fetch(:verbose, :blue)
+        verbose = options.fetch(:verbose, :white)
 
         names.each do |name|
           class_option name, options
@@ -267,11 +267,13 @@ module Rails
         # in case the user wants to customize how the class is invoked.
         #
         def invoke_class_with_block(name, klass) #:nodoc:
+          shell.padding += 1
           if block = self.class.invocation_blocks[name]
             block.call(self, klass)
           else
             invoke klass
           end
+          shell.padding -= 1
         end
 
         # Check whether the given class names are already taken by user

@@ -131,6 +131,12 @@ class ScaffoldGeneratorTest < GeneratorsTestCase
     assert_file "public/stylesheets/scaffold.css"
   end
 
+  def test_invoke_output
+    output = run_generator
+    assert_match /invoke.{4}  active_record/, output
+    assert_match /create.{4}    app\/models\/product_line\.rb/, output
+  end
+
   protected
 
     def run_generator(config={})
