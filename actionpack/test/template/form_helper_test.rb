@@ -383,7 +383,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =
       "<form action='http://www.example.com' id='create-post' method='post'>" +
-      "<div style='margin:0;padding:0'><input name='_method' type='hidden' value='put' /></div>" +
+      "<div style='margin:0;padding:0;display:inline'><input name='_method' type='hidden' value='put' /></div>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
@@ -1092,7 +1092,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_existing_object
     form_for(@post) do |f| end
 
-    expected = "<form action=\"/posts/123\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
+    expected = "<form action=\"/posts/123\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0;display:inline\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
     assert_equal expected, output_buffer
   end
 
@@ -1113,7 +1113,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for([@post, @comment]) {}
 
-    expected = %(<form action="#{comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0"><input name="_method" type="hidden" value="put" /></div></form>)
+    expected = %(<form action="#{comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0;display:inline"><input name="_method" type="hidden" value="put" /></div></form>)
     assert_dom_equal expected, output_buffer
   end
 
@@ -1132,7 +1132,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for([:admin, @post, @comment]) {}
 
-    expected = %(<form action="#{admin_comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0"><input name="_method" type="hidden" value="put" /></div></form>)
+    expected = %(<form action="#{admin_comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0;display:inline"><input name="_method" type="hidden" value="put" /></div></form>)
     assert_dom_equal expected, output_buffer
   end
 
@@ -1148,7 +1148,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_existing_object_and_custom_url
     form_for(@post, :url => "/super_posts") do |f| end
 
-    expected = "<form action=\"/super_posts\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
+    expected = "<form action=\"/super_posts\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0;display:inline\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
     assert_equal expected, output_buffer
   end
 
