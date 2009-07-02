@@ -1,6 +1,10 @@
 require "#{RAILS_ROOT}/config/environment"
-require 'rails_generator'
-require 'rails_generator/scripts/generate'
+require 'generators'
 
-ARGV.shift if ['--help', '-h'].include?(ARGV[0])
-Rails::Generator::Scripts::Generate.new.run(ARGV)
+if ARGV.size == 0
+  Rails::Generators.help
+  exit
+end
+
+name = ARGV.shift
+Rails::Generators.invoke name, ARGV, :invoke

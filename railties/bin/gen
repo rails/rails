@@ -10,33 +10,9 @@ end
 require File.dirname(__FILE__) + '/../lib/generators'
 
 if ARGV.size == 0
-  rails = Rails::Generators.builtin.map do |group, name|
-    name if group == "rails"
-  end
-  rails.compact!
-  rails.sort!
-
-  others = Rails::Generators.builtin.map do |group, name|
-    "#{group}:#{name}" unless rails.include?(name)
-  end.compact
-  others.sort!
-
-  puts "Please select a generator."
-  puts "Builtin: #{rails.join(', ')}."
-  puts "Others: #{others.join(', ')}." unless others.empty?
-
+  Rails::Generators.help
   exit
 end
 
-Rails::Generators.builtin.each do |group, name|
-  require "generators/#{group}/#{name}/#{name}_generator"
-end
-
 name = ARGV.shift
-
-if klass = Rails::Generators.find_by_namespace(name, "rails")
-  ARGV << "--help" if klass.arguments.any? { |a| a.required? } && ARGV.empty?
-  klass.start
-else
-  puts "Could not find generator #{name}."
-end
+Rails::Generators.invoke name, ARGV, :invoke

@@ -25,7 +25,7 @@ module Rails
     #
     # ==== Examples
     #
-    #   lookup_by_namespace :webrat, :rails, :integration
+    #   find_by_namespace :webrat, :rails, :integration
     #
     # Will search for the following generators:
     #
@@ -36,7 +36,7 @@ module Rails
     #
     # Finally, it deals with one kind of shortcut:
     #
-    #   lookup_by_namespace "test_unit:model"
+    #   find_by_namespace "test_unit:model"
     #
     # It will search for generators at:
     #
@@ -51,11 +51,45 @@ module Rails
       attempts << name
 
       attempts.each do |namespace|
-        klass, task = Thor::Util.find_by_namespace(namespace)
+        klass = Thor::Util.find_by_namespace(namespace)
         return klass if klass
       end
 
       nil
+    end
+
+    # Show help message with available generators.
+    #
+    def self.help
+      rails = Rails::Generators.builtin.map do |group, name|
+        name if group == "rails"
+      end
+      rails.compact!
+      rails.sort!
+
+      puts "Please select a generator."
+      puts "Builtin: #{rails.join(', ')}."
+
+      # TODO Show others after lookup is implemented
+      # puts "Others: #{others.join(', ')}."
+    end
+
+    # Receives a namespace, arguments and the behavior to invoke the generator.
+    # It's used as the default entry point for generate, destroy and update
+    # commands.
+    #
+    def self.invoke(namespace, args=ARGV, behavior=:invoke)
+      # Load everything right now ...
+      builtin.each do |group, name|
+        require "generators/#{group}/#{name}/#{name}_generator"
+      end
+
+      if klass = find_by_namespace(namespace, "rails")
+        args << "--help" if klass.arguments.any? { |a| a.required? } && args.empty?
+        klass.start args, :behavior => behavior
+      else
+        puts "Could not find generator #{namespace}."
+      end
     end
   end
 end

@@ -1,4 +1,10 @@
 require "#{RAILS_ROOT}/config/environment"
-require 'rails_generator'
-require 'rails_generator/scripts/update'
-Rails::Generator::Scripts::Update.new.run(ARGV)
+require 'generators'
+
+if ARGV.size == 0
+  Rails::Generators.help
+  exit
+end
+
+name = ARGV.shift
+Rails::Generators.invoke name, ARGV, :skip
