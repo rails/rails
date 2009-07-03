@@ -21,6 +21,8 @@ module Rails
     # Generators load paths. First search on generators in the RAILS_ROOT, then
     # look for them in rails generators.
     #
+    # TODO Add plugins, gems and frozen gems to load path.
+    #
     def self.load_path
       @@load_path ||= begin
         paths = []
