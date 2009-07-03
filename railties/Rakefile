@@ -70,15 +70,6 @@ end
 
 # Update spinoffs -------------------------------------------------------------------
 
-desc "Updates railties to the latest version of the javascript spinoffs"
-task :update_js do
-  for js in %w( prototype controls dragdrop effects )
-    rm "lib/generators/rails/app/templates/public/javascripts/#{js}.js"
-    cp "./../actionpack/lib/action_view/helpers/javascripts/#{js}.js",
-       "lib/generators/rails/app/templates/public/javascripts"
-  end
-end
-
 desc "Updates application README to the latest version Railties README"
 task :update_readme do
   readme = "lib/generators/rails/app/templates/README"
