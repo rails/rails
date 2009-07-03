@@ -26,7 +26,7 @@ module Rails
 
       def create_generator_files
         return unless options[:generator]
-        directory 'generators', plugin_dir('generators')
+        directory 'lib/generators', plugin_dir('lib/generators')
       end
 
       protected

@@ -37,10 +37,9 @@ class PluginGeneratorTest < GeneratorsTestCase
 
   def test_creates_generator_if_required
     run_generator ["plugin_fu", "--generator"]
-    assert_file "vendor/plugins/plugin_fu/generators/plugin_fu/templates"
-
-    flag = /class PluginFuGenerator < Rails::Generators::NamedBase/
-    assert_file "vendor/plugins/plugin_fu/generators/plugin_fu/plugin_fu_generator.rb", flag
+    assert_file "vendor/plugins/plugin_fu/lib/generators/templates"
+    assert_file "vendor/plugins/plugin_fu/lib/generators/plugin_fu_generator.rb",
+                /class PluginFuGenerator < Rails::Generators::NamedBase/
   end
 
   def test_plugin_generator_on_revoke
