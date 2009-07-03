@@ -1,12 +1,4 @@
-require 'abstract_unit'
-require 'active_support/ruby/shim'
-require 'initializer'
-
-RAILS_ROOT.replace File.join(File.dirname(__FILE__), "root")
-
-module Rails
-  def self.vendor_rails? ; false ; end
-end
+require "initializer/test_helper"
 
 module InitializerTests
   class PathsTest < ActiveSupport::TestCase

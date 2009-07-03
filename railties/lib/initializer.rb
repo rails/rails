@@ -125,11 +125,8 @@ module Rails
     if Rails.vendor_rails?
       begin; require "rubygems"; rescue LoadError; return; end
 
-      stubs = %w(rails activesupport activerecord actionpack actionmailer activeresource)
-      stubs.reject! { |s| Gem.loaded_specs.key?(s) }
-
-      stubs.each do |stub|
-        Gem.loaded_specs[stub] = Gem::Specification.new do |s|
+      %w(rails activesupport activerecord actionpack actionmailer activeresource).each do |stub|
+        Gem.loaded_specs[stub] ||= Gem::Specification.new do |s|
           s.name = stub
           s.version = Rails::VERSION::STRING
           s.loaded_from = ""
