@@ -4,7 +4,7 @@ $:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
 require 'test/unit'
 require 'active_support'
 require 'initializer'
-require File.join(File.dirname(__FILE__), 'abstract_unit')
+require 'abstract_unit'
 
 # We need to set RAILS_ROOT if it isn't already set
 RAILS_ROOT = '.' unless defined?(RAILS_ROOT)

@@ -1,20 +1,13 @@
-require 'abstract_unit'
-require 'active_support/ruby/shim'
-require 'initializer'
-
-RAILS_ROOT.replace File.join(File.dirname(__FILE__), "root")
-
-module Rails
-  def self.vendor_rails? ; false ; end
-end
-
-# TODO: Can this be reset?
-Rails::Initializer.run do |config|
-  config.frameworks = [:action_controller, :action_view, :action_mailer, :active_record]
-end
+require "initializer/test_helper"
 
 class PathsTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
+
+  def self.setup
+    Rails::Initializer.run do |config|
+      config.frameworks = [:action_controller, :action_view, :action_mailer, :active_record]
+    end
+  end
 
   def setup
     @paths = Rails::Initializer.default.config.paths
