@@ -13,14 +13,14 @@ class GeneratorsTest < GeneratorsTestCase
     assert_match /Description:/, output
   end
 
-  def test_invoke_with_default_behavior
-    Rails::Generators::ModelGenerator.expects(:start).with(["Account"], :behavior => :invoke)
+  def test_invoke_with_default_values
+    Rails::Generators::ModelGenerator.expects(:start).with(["Account"], {})
     Rails::Generators.invoke :model, ["Account"]
   end
 
-  def test_invoke_with_given_behavior
+  def test_invoke_with_config_values
     Rails::Generators::ModelGenerator.expects(:start).with(["Account"], :behavior => :skip)
-    Rails::Generators.invoke :model, ["Account"], :skip
+    Rails::Generators.invoke :model, ["Account"], :behavior => :skip
   end
 
   def test_find_by_namespace_without_base_or_context
@@ -76,5 +76,12 @@ class GeneratorsTest < GeneratorsTestCase
   def test_rails_generators_with_others_information
     output = capture(:stdout){ Rails::Generators.help }.split("\n").last
     assert_equal "Others: active_record:fixjour, fixjour, rails:javascripts.", output
+  end
+
+  def test_no_color_sets_proper_shell
+    Rails::Generators.no_color!
+    assert_equal Thor::Shell::Basic, Thor::Base.shell
+  ensure
+    Thor::Base.shell = Thor::Shell::Color
   end
 end

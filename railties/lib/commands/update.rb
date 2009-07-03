@@ -7,4 +7,4 @@ if ARGV.size == 0
 end
 
 name = ARGV.shift
-Rails::Generators.invoke name, ARGV, :skip
+Rails::Generators.invoke name, ARGV, :behavior => :skip

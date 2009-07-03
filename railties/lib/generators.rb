@@ -123,10 +123,10 @@ module Rails
     # It's used as the default entry point for generate, destroy and update
     # commands.
     #
-    def self.invoke(namespace, args=ARGV, behavior=:invoke)
+    def self.invoke(namespace, args=ARGV, config={})
       if klass = find_by_namespace(namespace, "rails")
         args << "--help" if klass.arguments.any? { |a| a.required? } && args.empty?
-        klass.start args, :behavior => behavior
+        klass.start args, config
       else
         puts "Could not find generator #{namespace}."
       end
