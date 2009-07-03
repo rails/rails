@@ -1,15 +1,15 @@
 require 'test/unit'
 require 'fileutils'
 
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
-require 'generators'
-
 fixtures = File.expand_path(File.join(File.dirname(__FILE__), '..', 'fixtures'))
 if defined?(RAILS_ROOT)
   RAILS_ROOT.replace fixtures
 else
   RAILS_ROOT = fixtures
 end
+
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
+require 'generators'
 
 class GeneratorsTestCase < Test::Unit::TestCase
   include FileUtils

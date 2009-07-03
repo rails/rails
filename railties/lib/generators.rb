@@ -16,7 +16,6 @@ require 'generators/active_record' # We will need ActionORM from ActiveRecord, b
 
 module Rails
   module Generators
-    mattr_accessor :load_path
 
     # Generators load paths. First search on generators in the RAILS_ROOT, then
     # look for them in rails generators.
@@ -32,42 +31,6 @@ module Rails
       end
     end
     load_path # Cache load paths
-
-    # Receives paths in an array and tries to find generators for it in the load
-    # path.
-    #
-    def self.lookup(attempts)
-      generators_path = []
-
-      # Traverse attempts into directory lookups. For example:
-      #
-      #   rails:generators:model
-      #
-      # Becomes:
-      #
-      #   generators/rails/model/model_generator.rb
-      #   generators/rails/model_generator.rb
-      #   generators/model_generator.rb
-      #
-      attempts.each do |attempt|
-        paths = attempt.gsub(':generators:', ':').split(':')
-        paths << "#{paths.last}_generator.rb"
-
-        until paths.empty?
-          generators_path << File.join(*paths)
-          paths.delete_at(-1) unless paths.delete_at(-2)
-        end
-      end
-
-      generators_path.uniq!
-      generators_path.each do |generator_path|
-        self.load_path.each do |path|
-          Dir[File.join(path, generator_path)].each do |file|
-            require file
-          end
-        end
-      end
-    end
 
     # Keep builtin generators in an Array[Array[group, name]].
     #
@@ -114,11 +77,15 @@ module Rails
       attempts << name.sub(':', ':generators:') if name.count(':') == 1
       attempts << name
 
-      unless klass = find_many_by_namespace(attempts)
-        lookup(attempts)
-        klass = find_many_by_namespace(attempts)
+      unloaded = attempts - namespaces
+      lookup(unloaded)
+
+      attempts.each do |namespace|
+        klass = Thor::Util.find_by_namespace(namespace)
+        return klass if klass
       end
-      klass
+
+      nil
     end
 
     # Show help message with available generators.
@@ -133,8 +100,23 @@ module Rails
       puts "Please select a generator."
       puts "Builtin: #{rails.join(', ')}."
 
-      # TODO Show others after lookup is implemented
-      # puts "Others: #{others.join(', ')}."
+      # Load paths and remove builtin
+      paths, others = load_path.dup, []
+      paths.shift
+
+      paths.each do |path|
+        tail = [ "*", "*", "*_generator.rb" ]
+
+        until tail.empty?
+          others += Dir[File.join(path, *tail)].collect do |file|
+            file.split('/')[-tail.size, 2].join(':').sub(/_generator\.rb$/, '')
+          end
+          tail.shift
+        end
+      end
+
+      others.sort!
+      puts "Others: #{others.join(', ')}." unless others.empty?
     end
 
     # Receives a namespace, arguments and the behavior to invoke the generator.
@@ -152,12 +134,45 @@ module Rails
 
     protected
 
-      def self.find_many_by_namespace(attempts)
-        attempts.each do |namespace|
-          klass = Thor::Util.find_by_namespace(namespace)
-          return klass if klass
+      # Return all defined namespaces.
+      #
+      def self.namespaces
+        Thor::Base.subclasses.map(&:namespace)
+      end
+
+      # Receives namespaces in an array and tries to find matching generators
+      # in the load path. Each path is traversed into directory lookups. For
+      # example:
+      #
+      #   rails:generators:model
+      #
+      # Becomes:
+      #
+      #   generators/rails/model/model_generator.rb
+      #   generators/rails/model_generator.rb
+      #   generators/model_generator.rb
+      #
+      def self.lookup(attempts)
+        attempts.each do |attempt|
+          generators_path = ['.']
+
+          paths = attempt.gsub(':generators:', ':').split(':')
+          name  = "#{paths.last}_generator.rb"
+
+          until paths.empty?
+            generators_path.unshift File.join(*paths)
+            paths.pop
+          end
+
+          generators_path.uniq!
+          generators_path = "{#{generators_path.join(',')}}"
+
+          self.load_path.each do |path|
+            Dir[File.join(path, generators_path, name)].each do |file|
+              require file
+            end
+          end
         end
-        nil
       end
 
   end
