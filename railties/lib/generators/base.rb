@@ -3,7 +3,6 @@ require 'generators/actions'
 module Rails
   module Generators
     DEFAULTS = {
-      :actions => [],
       :fixture => true,
       :force_plural => false,
       :helper => true,
@@ -147,7 +146,7 @@ module Rails
           # end
           #
           class_eval <<-METHOD, __FILE__, __LINE__
-            def invoke_for_#{name}
+            def hook_for_#{name}
               return unless options[#{name.inspect}]
 
               klass_name = options[#{name.inspect}]

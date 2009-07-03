@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/active_record/migration/migration_generator'
 require 'generators/rails/migration/migration_generator'
 
 class MigrationGeneratorTest < GeneratorsTestCase

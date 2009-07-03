@@ -12,10 +12,62 @@ require 'rails/version' unless defined?(Rails::VERSION)
 
 require 'generators/base'
 require 'generators/named_base'
+require 'generators/active_record' # We will need ActionORM from ActiveRecord, but just it.
 
 module Rails
   module Generators
-    # Remove builtin generators.
+    mattr_accessor :load_path
+
+    # Generators load paths. First search on generators in the RAILS_ROOT, then
+    # look for them in rails generators.
+    #
+    def self.load_path
+      @@load_path ||= begin
+        paths = []
+        paths << File.expand_path(File.join(File.dirname(__FILE__), "generators"))
+        paths << File.join(RAILS_ROOT, "lib", "generators") if defined?(RAILS_ROOT)
+        paths
+      end
+    end
+    load_path # Cache load paths
+
+    # Receives paths in an array and tries to find generators for it in the load
+    # path.
+    #
+    def self.lookup(attempts)
+      generators_path = []
+
+      # Traverse attempts into directory lookups. For example:
+      #
+      #   rails:generators:model
+      #
+      # Becomes:
+      #
+      #   generators/rails/model/model_generator.rb
+      #   generators/rails/model_generator.rb
+      #   generators/model_generator.rb
+      #
+      attempts.each do |attempt|
+        paths = attempt.gsub(':generators:', ':').split(':')
+        paths << "#{paths.last}_generator.rb"
+
+        until paths.empty?
+          generators_path << File.join(*paths)
+          paths.delete_at(-1) unless paths.delete_at(-2)
+        end
+      end
+
+      generators_path.uniq!
+      generators_path.each do |generator_path|
+        self.load_path.each do |path|
+          Dir[File.join(path, generator_path)].each do |file|
+            require file
+          end
+        end
+      end
+    end
+
+    # Keep builtin generators in an Array[Array[group, name]].
     #
     def self.builtin
       Dir[File.dirname(__FILE__) + '/generators/*/*'].collect do |file|
@@ -53,17 +105,18 @@ module Rails
     def self.find_by_namespace(name, base=nil, context=nil)
       name, attempts = name.to_s, []
 
-      attempts << "#{base}:generators:#{name}"    if base && name.count(':') == 0
-      attempts << "#{name}:generators:#{context}" if context && name.count(':') == 0
-      attempts << name.sub(':', ':generators:')   if name.count(':') == 1
+      if name.count(':') == 0
+        attempts << "#{base}:generators:#{name}"    if base
+        attempts << "#{name}:generators:#{context}" if context
+      end
+      attempts << name.sub(':', ':generators:') if name.count(':') == 1
       attempts << name
 
-      attempts.each do |namespace|
-        klass = Thor::Util.find_by_namespace(namespace)
-        return klass if klass
+      unless klass = find_many_by_namespace(attempts)
+        lookup(attempts)
+        klass = find_many_by_namespace(attempts)
       end
-
-      nil
+      klass
     end
 
     # Show help message with available generators.
@@ -87,11 +140,6 @@ module Rails
     # commands.
     #
     def self.invoke(namespace, args=ARGV, behavior=:invoke)
-      # Load everything right now ...
-      builtin.each do |group, name|
-        require "generators/#{group}/#{name}/#{name}_generator"
-      end
-
       if klass = find_by_namespace(namespace, "rails")
         args << "--help" if klass.arguments.any? { |a| a.required? } && args.empty?
         klass.start args, :behavior => behavior
@@ -99,6 +147,17 @@ module Rails
         puts "Could not find generator #{namespace}."
       end
     end
+
+    protected
+
+      def self.find_many_by_namespace(attempts)
+        attempts.each do |namespace|
+          klass = Thor::Util.find_by_namespace(namespace)
+          return klass if klass
+        end
+        nil
+      end
+
   end
 end
 

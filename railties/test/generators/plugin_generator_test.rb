@@ -1,7 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'generators/rails/plugin/plugin_generator'
-require 'generators/test_unit/plugin/plugin_generator'
 
 class PluginGeneratorTest < GeneratorsTestCase
 
@@ -32,12 +31,12 @@ class PluginGeneratorTest < GeneratorsTestCase
   end
 
   def test_creates_tasks_if_required
-    run_generator ["plugin_fu", "--with-tasks"]
+    run_generator ["plugin_fu", "--tasks"]
     assert_file "vendor/plugins/plugin_fu/tasks/plugin_fu_tasks.rake"
   end
 
   def test_creates_generator_if_required
-    run_generator ["plugin_fu", "--with-generator"]
+    run_generator ["plugin_fu", "--generator"]
     assert_file "vendor/plugins/plugin_fu/generators/plugin_fu/templates"
 
     flag = /class PluginFuGenerator < Rails::Generators::NamedBase/

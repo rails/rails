@@ -1,12 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/erb/controller/controller_generator'
 require 'generators/rails/controller/controller_generator'
-require 'generators/rails/helper/helper_generator'
-require 'generators/test_unit/controller/controller_generator'
-require 'generators/test_unit/helper/helper_generator'
-
-ObjectController = Class.new
 
 class ControllerGeneratorTest < GeneratorsTestCase
 
@@ -21,8 +15,11 @@ class ControllerGeneratorTest < GeneratorsTestCase
   end
 
   def test_check_class_collision
+    Object.send :const_set, :ObjectController, Class.new
     content = capture(:stderr){ run_generator ["object"] }
     assert_match /The name 'ObjectController' is either already used in your application or reserved/, content
+  ensure
+    Object.send :remove_const, :ObjectController
   end
 
   # No need to spec content since it's already spec'ed on helper generator.

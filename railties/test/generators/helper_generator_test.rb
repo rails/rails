@@ -1,7 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'generators/rails/helper/helper_generator'
-require 'generators/test_unit/helper/helper_generator'
 
 ObjectHelper = Class.new
 AnotherObjectHelperTest = Class.new

@@ -1,20 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/active_record'
 require 'generators/rails/scaffold/scaffold_generator'
-require 'generators/rails/stylesheets/stylesheets_generator'
-
-# Model
-require 'generators/active_record/model/model_generator'
-require 'generators/rails/model/model_generator'
-require 'generators/test_unit/model/model_generator'
-
-# Controller
-require 'generators/erb/scaffold/scaffold_generator'
-require 'generators/rails/scaffold_controller/scaffold_controller_generator'
-require 'generators/rails/helper/helper_generator'
-require 'generators/test_unit/scaffold/scaffold_generator'
-require 'generators/test_unit/helper/helper_generator'
 
 class ScaffoldGeneratorTest < GeneratorsTestCase
 

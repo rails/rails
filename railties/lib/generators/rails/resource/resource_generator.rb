@@ -7,7 +7,7 @@ module Rails
         base.invoke controller, [ base.name.pluralize, base.options[:actions] ]
       end
 
-      class_option :actions, :type => :array, :banner => "ACTION ACTION",
+      class_option :actions, :type => :array, :banner => "ACTION ACTION", :default => [],
                              :desc => "Actions for the resource controller"
 
       class_option :singleton,    :type => :boolean, :desc => "Supply to create a singleton controller"

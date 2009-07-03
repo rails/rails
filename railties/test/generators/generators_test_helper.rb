@@ -1,5 +1,6 @@
 require 'test/unit'
 require 'fileutils'
+require 'mocha'
 
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
 require 'generators'

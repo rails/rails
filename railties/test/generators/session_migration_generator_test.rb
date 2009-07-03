@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/active_record/session_migration/session_migration_generator'
 require 'generators/rails/session_migration/session_migration_generator'
 
 class SessionMigrationGeneratorTest < GeneratorsTestCase

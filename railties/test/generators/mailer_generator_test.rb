@@ -1,8 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/erb/mailer/mailer_generator'
 require 'generators/rails/mailer/mailer_generator'
-require 'generators/test_unit/mailer/mailer_generator'
 
 class MailerGeneratorTest < GeneratorsTestCase
 

@@ -2,18 +2,6 @@ require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'generators/rails/resource/resource_generator'
 
-# Model
-require 'generators/active_record/model/model_generator'
-require 'generators/rails/model/model_generator'
-require 'generators/test_unit/model/model_generator'
-
-# Controller
-require 'generators/erb/controller/controller_generator'
-require 'generators/rails/controller/controller_generator'
-require 'generators/rails/helper/helper_generator'
-require 'generators/test_unit/controller/controller_generator'
-require 'generators/test_unit/helper/helper_generator'
-
 class ResourceGeneratorTest < GeneratorsTestCase
 
   def setup
