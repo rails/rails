@@ -301,6 +301,9 @@ class TestController < ActionController::Base
   def render_implicit_html_template_from_xhr_request
   end
 
+  def render_implicit_js_template_without_layout
+  end
+
   def formatted_html_erb
   end
 
@@ -928,16 +931,13 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_should_implicitly_render_html_template_from_xhr_request
-    pending
-    # xhr :get, :render_implicit_html_template_from_xhr_request
-    # assert_equal "XHR!\nHello HTML!", @response.body
+    xhr :get, :render_implicit_html_template_from_xhr_request
+    assert_equal "XHR!\nHello HTML!", @response.body
   end
 
   def test_should_implicitly_render_js_template_without_layout
-    pending do
-      get :render_implicit_js_template_without_layout, :format => :js
-      assert_no_match %r{<html>}, @response.body
-    end
+    get :render_implicit_js_template_without_layout, :format => :js
+    assert_no_match %r{<html>}, @response.body
   end
 
   def test_should_render_formatted_template
@@ -1266,13 +1266,6 @@ class RenderTest < ActionController::TestCase
   def test_partial_hash_collection_with_locals
     get :partial_hash_collection_with_locals
     assert_equal "Hola: PratikHola: Amy", @response.body
-  end
-
-  def test_partial_with_implicit_local_assignment
-    assert_deprecated do
-      get :partial_with_implicit_local_assignment
-      assert_equal "Hello: Marcel", @response.body
-    end
   end
 
   def test_render_missing_partial_template

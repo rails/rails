@@ -25,18 +25,15 @@ activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
 $:.unshift(activesupport_path) if File.directory?(activesupport_path)
 require 'active_support'
 
-begin
-  require 'active_model'
-rescue LoadError
-  $:.unshift "#{File.dirname(__FILE__)}/../../activemodel/lib"
-  require 'active_model'  
-end
-
-require 'active_resource/formats'
-require 'active_resource/base'
-require 'active_resource/validations'
-require 'active_resource/custom_methods'
+activemodel_path = "#{File.dirname(__FILE__)}/../../activemodel/lib"
+$:.unshift(activemodel_path) if File.directory?(activemodel_path)
+require 'active_model'
 
 module ActiveResource
   autoload :Base, 'active_resource/base'
+  autoload :Connection, 'active_resource/connection'
+  autoload :CustomMethods, 'active_resource/custom_methods'
+  autoload :Formats, 'active_resource/formats'
+  autoload :Validations, 'active_resource/validations'
+  autoload :HttpMock, 'active_resource/http_mock'
 end

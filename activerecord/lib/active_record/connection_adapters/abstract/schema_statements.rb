@@ -109,7 +109,7 @@ module ActiveRecord
         table_definition = TableDefinition.new(self)
         table_definition.primary_key(options[:primary_key] || Base.get_primary_key(table_name)) unless options[:id] == false
 
-        yield table_definition
+        yield table_definition if block_given?
 
         if options[:force] && table_exists?(table_name)
           drop_table(table_name, options)

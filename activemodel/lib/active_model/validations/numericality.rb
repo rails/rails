@@ -71,7 +71,7 @@ module ActiveModel
             case option
             when :odd, :even
               unless raw_value.to_i.method(ALL_NUMERICALITY_CHECKS[option])[]
-                record.errors.add(attr_name, option, :value => raw_value, :default => configuration[:message]) 
+                record.errors.add(attr_name, option, :value => raw_value, :default => configuration[:message])
               end
             else
               unless raw_value.method(ALL_NUMERICALITY_CHECKS[option])[configuration[option]]

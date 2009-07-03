@@ -1,5 +1,6 @@
 require 'cgi'
 require 'action_view/helpers/tag_helper'
+require 'active_support/core_ext/object/returning'
 
 module ActionView
   module Helpers
@@ -230,6 +231,8 @@ module ActionView
       # * <tt>:rows</tt> - Specify the number of rows in the textarea
       # * <tt>:cols</tt> - Specify the number of columns in the textarea
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:escape</tt> - By default, the contents of the text input are HTML escaped.
+      #   If you need unescaped contents, set this to false.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -257,7 +260,10 @@ module ActionView
           options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
         end
 
-        content_tag :textarea, content, { "name" => name, "id" => name }.update(options.stringify_keys)
+        escape = options.key?("escape") ? options.delete("escape") : true
+        content = html_escape(content) if escape
+
+        content_tag :textarea, content, { "name" => name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
       end
 
       # Creates a check box form input tag.
@@ -445,10 +451,10 @@ module ActionView
               ''
             when /^post$/i, "", nil
               html_options["method"] = "post"
-              protect_against_forgery? ? content_tag(:div, token_tag, :style => 'margin:0;padding:0') : ''
+              protect_against_forgery? ? content_tag(:div, token_tag, :style => 'margin:0;padding:0;display:inline') : ''
             else
               html_options["method"] = "post"
-              content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag, :style => 'margin:0;padding:0')
+              content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag, :style => 'margin:0;padding:0;display:inline')
           end
         end
 

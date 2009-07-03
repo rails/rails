@@ -5,31 +5,24 @@ module AbstractController
     include Renderer
 
     included do
-      extlib_inheritable_accessor :master_helper_module
-      self.master_helper_module = Module.new
+      extlib_inheritable_accessor(:_helpers) { Module.new }
     end
 
+    # Override AbstractController::Renderer's _action_view to include the
+    # helper module for this class into its helpers module.
     def _action_view
-      @_action_view ||= begin
-        av = super
-        av.helpers.send(:include, master_helper_module)
-        av
-      end
+      @_action_view ||= super.tap { |av| av.helpers.include(_helpers) }
     end
 
     module ClassMethods
+      # When a class is inherited, wrap its helper module in a new module.
+      # This ensures that the parent class's module can be changed
+      # independently of the child class's.
       def inherited(klass)
-        klass.master_helper_module = Module.new
-        klass.master_helper_module.__send__ :include, master_helper_module
+        helpers = _helpers
+        klass._helpers = Module.new { include helpers }
 
         super
-      end
-
-      # Makes all the (instance) methods in the helper module available to templates rendered through this controller.
-      # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules
-      # available to the templates.
-      def add_template_helper(mod)
-        master_helper_module.module_eval { include mod }
       end
 
       # Declare a controller method as a helper. For example, the following
@@ -48,9 +41,13 @@ module AbstractController
       #
       # In a view:
       #  <% if logged_in? -%>Welcome, <%= current_user.name %><% end -%>
+      #
+      # ==== Parameters
+      # meths<Array[#to_s]>:: The name of a method on the controller
+      #   to be made available on the view.
       def helper_method(*meths)
         meths.flatten.each do |meth|
-          master_helper_module.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
+          _helpers.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
             def #{meth}(*args, &blk)
               controller.send(%(#{meth}), *args, &blk)
             end
@@ -58,6 +55,14 @@ module AbstractController
         end
       end
 
+      # Make a number of helper modules part of this class' default
+      # helpers.
+      #
+      # ==== Parameters
+      # *args<Array[Module]>:: Modules to be included
+      # block<Block>:: Evalulate the block in the context
+      #   of the helper module. Any methods defined in the block
+      #   will be helpers.
       def helper(*args, &block)
         args.flatten.each do |arg|
           case arg
@@ -65,7 +70,18 @@ module AbstractController
             add_template_helper(arg)
           end
         end
-        master_helper_module.module_eval(&block) if block_given?
+        _helpers.module_eval(&block) if block_given?
+      end
+
+      private
+      # Makes all the (instance) methods in the helper module available to templates
+      # rendered through this controller.
+      #
+      # ==== Parameters
+      # mod<Module>:: The module to include into the current helper module
+      #   for the class
+      def add_template_helper(mod)
+        _helpers.module_eval { include mod }
       end
     end
   end

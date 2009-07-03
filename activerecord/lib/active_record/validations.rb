@@ -40,6 +40,7 @@ module ActiveRecord
       full_messages = []
 
       each do |attribute, messages|
+        messages = Array.wrap(messages)
         next if messages.empty?
 
         if attribute == :base
@@ -192,10 +193,6 @@ module ActiveRecord
       # Returns the Errors object that holds all information about attribute error messages.
       def errors
         @errors ||= Errors.new(self)
-      end
-
-      def get_attribute_value(attribute)
-        respond_to?(attribute.to_sym) ? send(attribute.to_sym) : self[attribute.to_sym]
       end
     end
   end

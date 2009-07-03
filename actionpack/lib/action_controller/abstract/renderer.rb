@@ -14,10 +14,32 @@ module AbstractController
       self._view_paths ||= ActionView::PathSet.new
     end
 
+    # An instance of a view class. The default view class is ActionView::Base
+    #
+    # The view class must have the following methods:
+    # initialize[paths, assigns_for_first_render, controller]
+    #   paths<Array[ViewPath]>:: A list of resolvers to look for templates in
+    #   controller<AbstractController::Base> A controller
+    # _render_partial_from_controller[options]
+    #   options<Hash>:: see _render_partial in ActionView::Base
+    # _render_template_from_controller[template, layout, options, partial]
+    #   template<ActionView::Template>:: The template to render
+    #   layout<ActionView::Template>:: The layout to render around the template
+    #   options<Hash>:: See _render_template_with_layout in ActionView::Base
+    #   partial<Boolean>:: Whether or not the template to render is a partial
+    # _partial:: If a partial, rather than a template, was rendered, return
+    #   the partial.
+    # helpers:: A module containing the helpers to be used in the view. This
+    #   module should respond_to include.
+    # controller:: The controller that initialized the ActionView
+    #
+    # Override this method in a to change the default behavior.
     def _action_view
       @_action_view ||= ActionView::Base.new(self.class.view_paths, {}, self)
     end
 
+    # Mostly abstracts the fact that calling render twice is a DoubleRenderError.
+    # Delegates render_to_body and sticks the result in self.response_body.
     def render(*args)
       if response_body
         raise AbstractController::DoubleRenderError, "OMG"
@@ -27,9 +49,10 @@ module AbstractController
     end
 
     # Raw rendering of a template to a Rack-compatible body.
-    # ====
-    # @option _prefix<String> The template's path prefix
-    # @option _layout<String> The relative path to the layout template to use
+    #
+    # ==== Options
+    # _partial_object<Object>:: The object that is being rendered. If this
+    #   exists, we are in the special case of rendering an object as a partial.
     #
     # :api: plugin
     def render_to_body(options = {})
@@ -42,21 +65,27 @@ module AbstractController
       end
     end
 
-    # Raw rendering of a template to a string.
-    # ====
-    # @option _prefix<String> The template's path prefix
-    # @option _layout<String> The relative path to the layout template to use
+    # Raw rendering of a template to a string. Just convert the results of
+    # render_to_body into a String.
     #
     # :api: plugin
     def render_to_string(options = {})
       AbstractController::Renderer.body_to_s(render_to_body(options))
     end
 
+    # Renders the template from an object.
+    #
+    # ==== Options
+    # _template<ActionView::Template>:: The template to render
+    # _layout<ActionView::Template>:: The layout to wrap the template in (optional)
+    # _partial<TrueClass, FalseClass>:: Whether or not the template to be rendered is a partial
     def _render_template(options)
       _action_view._render_template_from_controller(options[:_template], options[:_layout], options, options[:_partial])
     end
 
-    def view_paths()
+    # The list of view paths for this controller. See ActionView::ViewPathSet for
+    # more details about writing custom view paths.
+    def view_paths
       _view_paths
     end
 
@@ -73,6 +102,15 @@ module AbstractController
     end
 
   private
+    # Take in a set of options and determine the template to render
+    #
+    # ==== Options
+    # _template<ActionView::Template>:: If this is provided, the search is over
+    # _template_name<#to_s>:: The name of the template to look up. Otherwise,
+    #   use the current action name.
+    # _prefix<String>:: The prefix to look inside of. In a file system, this corresponds
+    #   to a directory.
+    # _partial<TrueClass, FalseClass>:: Whether or not the file to look up is a partial
     def _determine_template(options)
       name = (options[:_template_name] || action_name).to_s
 
@@ -82,18 +120,36 @@ module AbstractController
     end
 
     module ClassMethods
+      # Append a path to the list of view paths for this controller.
+      #
+      # ==== Parameters
+      # path<String, ViewPath>:: If a String is provided, it gets converted into 
+      # the default view path. You may also provide a custom view path 
+      # (see ActionView::ViewPathSet for more information)
       def append_view_path(path)
         self.view_paths << path
       end
 
+      # Prepend a path to the list of view paths for this controller.
+      #
+      # ==== Parameters
+      # path<String, ViewPath>:: If a String is provided, it gets converted into 
+      # the default view path. You may also provide a custom view path 
+      # (see ActionView::ViewPathSet for more information)
       def prepend_view_path(path)
         self.view_paths.unshift(path)
       end
 
+      # A list of all of the default view paths for this controller.
       def view_paths
         self._view_paths
       end
 
+      # Set the view paths.
+      #
+      # ==== Parameters
+      # paths<ViewPathSet, Object>:: If a ViewPathSet is provided, use that;
+      #   otherwise, process the parameter into a ViewPathSet.
       def view_paths=(paths)
         self._view_paths = paths.is_a?(ActionView::PathSet) ?
                             paths : ActionView::Base.process_view_paths(paths)

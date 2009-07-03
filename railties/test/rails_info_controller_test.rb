@@ -9,6 +9,12 @@ ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
 
+module ActionController
+  class Base
+    include ActionController::Testing
+  end
+end
+
 class InfoControllerTest < ActionController::TestCase
   tests Rails::InfoController
 

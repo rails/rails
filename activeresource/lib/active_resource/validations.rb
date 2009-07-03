@@ -1,4 +1,3 @@
-require 'active_resource/exceptions'
 require 'active_support/core_ext/array/wrap'
 
 module ActiveResource
@@ -46,10 +45,10 @@ module ActiveResource
   #   person.save                   # => true (and person is now saved to the remote service)
   #
   module Validations
-    def self.included(base) # :nodoc:
-      base.class_eval do
-        alias_method_chain :save, :validation
-      end
+    extend ActiveSupport::Concern
+
+    included do
+      alias_method_chain :save, :validation
     end
 
     # Validate a resource and save (POST) it to the remote web service.
@@ -79,9 +78,5 @@ module ActiveResource
     def errors
       @errors ||= Errors.new(self)
     end
-  end
-
-  class Base
-    include Validations
   end
 end

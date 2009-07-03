@@ -563,6 +563,19 @@ module ActiveRecord
         where_sql
       end
 
+      protected
+
+        def translate_exception(exception, message)
+          case exception.errno
+          when 1062
+            RecordNotUnique.new(message, exception)
+          when 1452
+            InvalidForeignKey.new(message, exception)
+          else
+            super
+          end
+        end
+
       private
         def connect
           encoding = @config[:encoding]

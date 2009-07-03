@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/metaclass'
+
 module ActiveRecord
   class IrreversibleMigration < ActiveRecordError#:nodoc:
   end
@@ -300,8 +302,7 @@ module ActiveRecord
 
           case sym
             when :up, :down
-              klass = (class << self; self; end)
-              klass.send(:alias_method_chain, sym, "benchmarks")
+              metaclass.send(:alias_method_chain, sym, "benchmarks")
           end
         ensure
           @ignore_new_methods = false

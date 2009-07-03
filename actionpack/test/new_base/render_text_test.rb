@@ -2,7 +2,7 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
 module RenderText
   class SimpleController < ActionController::Base
-    self.view_paths = [ActionView::Template::FixturePath.new]
+    self.view_paths = [ActionView::FixtureResolver.new]
     
     def index
       render :text => "hello david"
@@ -10,7 +10,7 @@ module RenderText
   end
 
   class WithLayoutController < ::ApplicationController
-    self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "layouts/application.html.erb" => "<%= yield %>, I'm here!",
       "layouts/greetings.html.erb"   => "<%= yield %>, I wish thee well.",
       "layouts/ivar.html.erb"        => "<%= yield %>, <%= @ivar %>"
@@ -135,5 +135,3 @@ module RenderText
     end
   end
 end
-
-ActionController::Base.app_loaded!

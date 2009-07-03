@@ -11,6 +11,7 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/symbol'
+require 'active_support/core_ext/object/metaclass'
 
 module ActiveRecord #:nodoc:
   # Generic Active Record exception class.
@@ -64,6 +65,25 @@ module ActiveRecord #:nodoc:
 
   # Raised when SQL statement cannot be executed by the database (for example, it's often the case for MySQL when Ruby driver used is too old).
   class StatementInvalid < ActiveRecordError
+  end
+
+  # Parent class for all specific exceptions which wrap database driver exceptions
+  # provides access to the original exception also.
+  class WrappedDatabaseException < StatementInvalid
+    attr_reader :original_exception
+
+    def initialize(message, original_exception)
+      super(message)
+      @original_exception, = original_exception
+    end
+  end
+
+  # Raised when a record cannot be inserted because it would violate a uniqueness constraint.
+  class RecordNotUnique < WrappedDatabaseException
+  end
+
+  # Raised when a record cannot be inserted or updated because it references a non-existent record.
+  class InvalidForeignKey < WrappedDatabaseException
   end
 
   # Raised when number of bind variables in statement given to <tt>:condition</tt> key (for example, when using +find+ method)
@@ -1420,14 +1440,14 @@ module ActiveRecord #:nodoc:
       end
 
       # Transform the modelname into a more humane format, using I18n.
-      # Defaults to the basic humanize method.
+      # By default, it will underscore then humanize the class name (BlogPost.human_name #=> "Blog post").
       # Default scope of the translation is activerecord.models
       # Specify +options+ with additional translating options.
       def human_name(options = {})
         defaults = self_and_descendants_from_active_record.map do |klass|
           :"#{klass.name.underscore}"
-        end 
-        defaults << self.name.humanize
+        end
+        defaults << self.name.underscore.humanize
         I18n.translate(defaults.shift, {:scope => [:activerecord, :models], :count => 1, :default => defaults}.merge(options))
       end
 
@@ -2076,7 +2096,7 @@ module ActiveRecord #:nodoc:
         #     end
         #   end
         def define_attr_method(name, value=nil, &block)
-          sing = class << self; self; end
+          sing = metaclass
           sing.send :alias_method, "original_#{name}", name
           if block_given?
             sing.send :define_method, name, &block
@@ -2886,6 +2906,13 @@ module ActiveRecord #:nodoc:
         @attributes.frozen?
       end
 
+      # Returns duplicated record with unfreezed attributes.
+      def dup
+        obj = super
+        obj.instance_variable_set('@attributes', instance_variable_get('@attributes').dup)
+        obj
+      end
+
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
       # attributes will be marked as read only since they cannot be saved.
       def readonly?
@@ -3079,11 +3106,11 @@ module ActiveRecord #:nodoc:
       def execute_callstack_for_multiparameter_attributes(callstack)
         errors = []
         callstack.each do |name, values|
-          klass = (self.class.reflect_on_aggregation(name.to_sym) || column_for_attribute(name)).klass
-          if values.empty?
-            send(name + "=", nil)
-          else
-            begin
+          begin
+            klass = (self.class.reflect_on_aggregation(name.to_sym) || column_for_attribute(name)).klass
+            if values.empty?
+              send(name + "=", nil)
+            else
               value = if Time == klass
                 instantiate_time_object(name, values)
               elsif Date == klass
@@ -3097,9 +3124,9 @@ module ActiveRecord #:nodoc:
               end
 
               send(name + "=", value)
-            rescue => ex
-              errors << AttributeAssignmentError.new("error on assignment #{values.inspect} to #{name}", ex, name)
             end
+          rescue => ex
+            errors << AttributeAssignmentError.new("error on assignment #{values.inspect} to #{name}", ex, name)
           end
         end
         unless errors.empty?
@@ -3125,7 +3152,7 @@ module ActiveRecord #:nodoc:
       end
 
       def type_cast_attribute_value(multiparameter_name, value)
-        multiparameter_name =~ /\([0-9]*([a-z])\)/ ? value.send("to_" + $1) : value
+        multiparameter_name =~ /\([0-9]*([if])\)/ ? value.send("to_" + $1) : value
       end
 
       def find_parameter_position(multiparameter_name)
@@ -3180,12 +3207,13 @@ module ActiveRecord #:nodoc:
   end
 
   Base.class_eval do
+    extend ActiveModel::Naming
     extend QueryCache::ClassMethods
     include Validations
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
     include Dirty
-    include Callbacks, Observing, Timestamp
+    include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
 
     # AutosaveAssociation needs to be included before Transactions, because we want

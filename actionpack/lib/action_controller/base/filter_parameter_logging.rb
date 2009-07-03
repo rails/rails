@@ -2,10 +2,7 @@ module ActionController
   module FilterParameterLogging
     extend ActiveSupport::Concern
 
-    # TODO : Remove the defined? check when new base is the main base
-    if defined?(ActionController::Http)
-      include AbstractController::Logger
-    end
+    include AbstractController::Logger
 
     included do
       include InstanceMethodsForNewBase
@@ -46,6 +43,10 @@ module ActionController
               filtered_parameters[key] = '[FILTERED]'
             elsif value.is_a?(Hash)
               filtered_parameters[key] = filter_parameters(value)
+            elsif value.is_a?(Array)
+              filtered_parameters[key] = value.collect do |item|
+                filter_parameters(item)
+              end
             elsif block_given?
               key = key.dup
               value = value.dup if value

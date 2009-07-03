@@ -3,7 +3,7 @@ module ActionView #:nodoc:
 
     def initialize(string, content_type = Mime[:html])
       super(string.to_s)
-      @content_type = Mime[content_type]
+      @content_type = Mime[content_type] || content_type
     end
 
     def details

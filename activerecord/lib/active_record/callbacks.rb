@@ -353,10 +353,5 @@ module ActiveRecord
 
         return result
       end
-
-      def notify(method) #:nodoc:
-        self.class.changed
-        self.class.notify_observers(method, self)
-      end
   end
 end

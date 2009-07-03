@@ -33,8 +33,8 @@ class ActiveRecordHelperTest < ActionView::TestCase
         ["Author name can't be <em>empty</em>"]
       end
 
-      def on(field)
-        "can't be <em>empty</em>"
+      def [](field)
+        ["can't be <em>empty</em>"]
       end
     end
 
@@ -47,14 +47,14 @@ class ActiveRecordHelperTest < ActionView::TestCase
     @post = Post.new
     def @post.errors
       Class.new {
-        def on(field)
+        def [](field)
           case field.to_s
           when "author_name"
-            "can't be empty"
+            ["can't be empty"]
           when "body"
-            true
+            ['foo']
           else
-            false
+            []
           end
         end
         def empty?() false end
@@ -85,7 +85,7 @@ class ActiveRecordHelperTest < ActionView::TestCase
     @user = User.new
     def @user.errors
       Class.new {
-        def on(field) field == "email" end
+        def [](field) field == "email" ? ['nonempty'] : [] end
         def empty?() false end
         def count() 1 end
         def full_messages() [ "User email can't be empty" ] end
@@ -171,7 +171,7 @@ class ActiveRecordHelperTest < ActionView::TestCase
     @request_forgery_protection_token = 'authenticity_token'
     @form_authenticity_token = '123'
     assert_dom_equal(
-      %(<form action="create" method="post"><div style='margin:0;padding:0'><input type='hidden' name='authenticity_token' value='123' /></div><p><label for="post_title">Title</label><br /><input id="post_title" name="post[title]" size="30" type="text" value="Hello World" /></p>\n<p><label for="post_body">Body</label><br /><div class="fieldWithErrors"><textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea></div></p><input name="commit" type="submit" value="Create" /></form>),
+      %(<form action="create" method="post"><div style='margin:0;padding:0;display:inline'><input type='hidden' name='authenticity_token' value='123' /></div><p><label for="post_title">Title</label><br /><input id="post_title" name="post[title]" size="30" type="text" value="Hello World" /></p>\n<p><label for="post_body">Body</label><br /><div class="fieldWithErrors"><textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea></div></p><input name="commit" type="submit" value="Create" /></form>),
       form("post")
     )
   end

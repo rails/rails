@@ -19,7 +19,7 @@ module ContentType
   class ImpliedController < ActionController::Base
     # Template's mime type is used if no content_type is specified
 
-    self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "content_type/implied/i_am_html_erb.html.erb"         => "Hello world!",
       "content_type/implied/i_am_xml_erb.xml.erb"          => "<xml>Hello world!</xml>",
       "content_type/implied/i_am_html_builder.html.builder" => "xml.p 'Hello'",

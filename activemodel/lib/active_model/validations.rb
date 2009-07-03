@@ -1,3 +1,6 @@
+require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/hash/keys'
+
 module ActiveModel
   module Validations
     extend ActiveSupport::Concern
@@ -61,7 +64,7 @@ module ActiveModel
         # Declare the validation.
         send(validation_method(options[:on]), options) do |record|
           attrs.each do |attr|
-            value = record.get_attribute_value(attr)
+            value = record.send(attr)
             next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
             yield record, attr, value
           end
@@ -69,10 +72,9 @@ module ActiveModel
       end
 
       private
-
-      def validation_method(on)
-        :validate
-      end
+        def validation_method(on)
+          :validate
+        end
     end
 
     # Returns the Errors object that holds all information about attribute error messages.
@@ -90,10 +92,6 @@ module ActiveModel
     # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added, false otherwise.
     def invalid?
       !valid?
-    end
-
-    def get_attribute_value(attribute)
-      respond_to?(attribute.to_sym) ? send(attribute.to_sym) : instance_variable_get(:"@#{attribute}")
     end
   end
 end

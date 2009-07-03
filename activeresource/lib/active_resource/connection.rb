@@ -1,5 +1,3 @@
-require 'active_resource/exceptions'
-require 'active_resource/formats'
 require 'active_support/core_ext/benchmark'
 require 'net/https'
 require 'date'

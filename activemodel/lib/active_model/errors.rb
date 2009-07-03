@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/inflections'
+
 module ActiveModel
   class Errors < Hash
     include DeprecatedErrorMethods
@@ -23,7 +25,7 @@ module ActiveModel
     end
 
     def each
-      each_key do |attribute| 
+      each_key do |attribute|
         self[attribute].each { |error| yield attribute, error }
       end
     end
@@ -66,7 +68,7 @@ module ActiveModel
     # Will add an error message to each of the attributes in +attributes+ that is empty.
     def add_on_empty(attributes, custom_message = nil)
       [attributes].flatten.each do |attribute|
-        value = @base.get_attribute_value(attribute)
+        value = @base.send(attribute)
         is_empty = value.respond_to?(:empty?) ? value.empty? : false
         add(attribute, :empty, :default => custom_message) unless !value.nil? && !is_empty
       end
@@ -75,7 +77,7 @@ module ActiveModel
     # Will add an error message to each of the attributes in +attributes+ that is blank (using Object#blank?).
     def add_on_blank(attributes, custom_message = nil)
       [attributes].flatten.each do |attribute|
-        value = @base.get_attribute_value(attribute)
+        value = @base.send(attribute)
         add(attribute, :blank, :default => custom_message) if value.blank?
       end
     end
@@ -94,6 +96,7 @@ module ActiveModel
       full_messages = []
 
       each do |attribute, messages|
+        messages = Array.wrap(messages)
         next if messages.empty?
 
         if attribute == :base
@@ -111,15 +114,15 @@ module ActiveModel
     end
 
     # Translates an error message in it's default scope (<tt>activemodel.errrors.messages</tt>).
-    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, if it's not there, 
-    # it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not there it returns the translation of the 
-    # default message (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model name, 
+    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, if it's not there,
+    # it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not there it returns the translation of the
+    # default message (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model name,
     # translated attribute name and the value are available for interpolation.
     #
     # When using inheritence in your models, it will check all the inherited models too, but only if the model itself
     # hasn't been found. Say you have <tt>class Admin < User; end</tt> and you wanted the translation for the <tt>:blank</tt>
     # error +message+ for the <tt>title</tt> +attribute+, it looks for these translations:
-    # 
+    #
     # <ol>
     # <li><tt>activemodel.errors.models.admin.attributes.title.blank</tt></li>
     # <li><tt>activemodel.errors.models.admin.blank</tt></li>
@@ -135,7 +138,7 @@ module ActiveModel
       klass_ancestors += @base.class.ancestors.reject {|x| x.is_a?(Module)}
 
       defaults = klass_ancestors.map do |klass|
-        [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}", 
+        [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}",
           :"models.#{klass.name.underscore}.#{message}" ]
       end
 
@@ -143,7 +146,7 @@ module ActiveModel
       defaults = defaults.compact.flatten << :"messages.#{message}"
 
       key = defaults.shift
-      value = @base.get_attribute_value(attribute)
+      value = @base.send(attribute)
 
       options = { :default => defaults,
         :model => @base.class.name.humanize,

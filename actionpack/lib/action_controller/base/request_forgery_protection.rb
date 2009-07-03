@@ -6,20 +6,16 @@ module ActionController #:nodoc:
     extend ActiveSupport::Concern
 
     # TODO : Remove the defined? check when new base is the main base
-    if defined?(ActionController::Http)
-      include AbstractController::Helpers, Session
-    end
+    include AbstractController::Helpers, Session
 
     included do
-      if defined?(ActionController::Http)
-        # Sets the token parameter name for RequestForgery. Calling +protect_from_forgery+
-        # sets it to <tt>:authenticity_token</tt> by default.
-        cattr_accessor :request_forgery_protection_token
+      # Sets the token parameter name for RequestForgery. Calling +protect_from_forgery+
+      # sets it to <tt>:authenticity_token</tt> by default.
+      cattr_accessor :request_forgery_protection_token
 
-        # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
-        class_inheritable_accessor :allow_forgery_protection
-        self.allow_forgery_protection = true
-      end
+      # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
+      class_inheritable_accessor :allow_forgery_protection
+      self.allow_forgery_protection = true
 
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?

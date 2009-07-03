@@ -2,10 +2,7 @@ module ActionController #:nodoc:
   module Verification #:nodoc:
     extend ActiveSupport::Concern
 
-    # TODO : Remove the defined? check when new base is the main base
-    if defined?(ActionController::Http)
-      include AbstractController::Callbacks, Session, Flash, Renderer
-    end
+    include AbstractController::Callbacks, Session, Flash, Renderer
 
     # This module provides a class-level method for specifying that certain
     # actions are guarded against being called without certain prerequisites

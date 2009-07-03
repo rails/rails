@@ -19,7 +19,7 @@ module AbstractController
     
     class TestBasic < ActiveSupport::TestCase
       test "dispatching works" do
-        result = Me.process(:index)
+        result = Me.new.process(:index)
         assert_equal "Hello world", result.response_body
       end
     end
@@ -68,27 +68,27 @@ module AbstractController
     
     class TestRenderer < ActiveSupport::TestCase
       test "rendering templates works" do
-        result = Me2.process(:index)
+        result = Me2.new.process(:index)
         assert_equal "Hello from index.erb", result.response_body
       end
       
       test "rendering passes ivars to the view" do
-        result = Me2.process(:action_with_ivars)
+        result = Me2.new.process(:action_with_ivars)
         assert_equal "Hello from index_with_ivars.erb", result.response_body
       end
       
       test "rendering with no template name" do
-        result = Me2.process(:naked_render)
+        result = Me2.new.process(:naked_render)
         assert_equal "Hello from naked_render.erb", result.response_body
       end
 
       test "rendering to a rack body" do
-        result = Me2.process(:rendering_to_body)
+        result = Me2.new.process(:rendering_to_body)
         assert_equal "Hello from naked_render.erb", result.response_body
       end
 
       test "rendering to a string" do
-        result = Me2.process(:rendering_to_string)
+        result = Me2.new.process(:rendering_to_string)
         assert_equal "Hello from naked_render.erb", result.response_body
       end
     end
@@ -120,12 +120,12 @@ module AbstractController
     
     class TestPrefixedViews < ActiveSupport::TestCase
       test "templates are located inside their 'prefix' folder" do
-        result = Me3.process(:index)
+        result = Me3.new.process(:index)
         assert_equal "Hello from me3/index.erb", result.response_body
       end
 
       test "templates included their format" do
-        result = Me3.process(:formatted)
+        result = Me3.new.process(:formatted)
         assert_equal "Hello from me3/formatted.html.erb", result.response_body
       end
     end
@@ -135,11 +135,6 @@ module AbstractController
     # self._layout is used when defined
     class WithLayouts < PrefixedViews
       include Layouts
-      
-      def self.inherited(klass)
-        klass._write_layout_method
-        super
-      end
       
       private
       def self.layout(formats)
@@ -154,7 +149,7 @@ module AbstractController
       end
 
       def render_to_body(options = {})
-        options[:_layout] = options[:layout] || _default_layout
+        options[:_layout] = options[:layout] || _default_layout({})
         super
       end  
     end
@@ -173,7 +168,7 @@ module AbstractController
     
     class TestLayouts < ActiveSupport::TestCase
       test "layouts are included" do
-        result = Me4.process(:index)
+        result = Me4.new.process(:index)
         assert_equal "Me4 Enter : Hello from me4/index.erb : Exit", result.response_body
       end
     end
@@ -210,7 +205,7 @@ module AbstractController
     class TestRespondToAction < ActiveSupport::TestCase
       
       def assert_dispatch(klass, body = "success", action = :index)
-        response = klass.process(action).response_body
+        response = klass.new.process(action).response_body
         assert_equal body, response
       end
       
@@ -219,7 +214,7 @@ module AbstractController
       end
       
       test "raises ActionNotFound when method does not exist and action_missing is not defined" do
-        assert_raise(ActionNotFound) { DefaultRespondToActionController.process(:fail) }
+        assert_raise(ActionNotFound) { DefaultRespondToActionController.new.process(:fail) }
       end
       
       test "dispatches to action_missing when method does not exist and action_missing is defined" do
@@ -231,7 +226,7 @@ module AbstractController
       end
       
       test "raises ActionNotFound if method is defined but respond_to_action? returns false" do
-        assert_raise(ActionNotFound) { RespondToActionController.process(:fail) }
+        assert_raise(ActionNotFound) { RespondToActionController.new.process(:fail) }
       end
     end
     

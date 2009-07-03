@@ -48,6 +48,10 @@ class Firm < Company
   has_many :clients_with_interpolated_conditions, :class_name => "Client", :conditions => 'rating > #{rating}'
   has_many :clients_like_ms_with_hash_conditions, :conditions => { :name => 'Microsoft' }, :class_name => "Client", :order => "id"
   has_many :clients_using_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE client_of = #{id}'
+  has_many :clients_using_multiline_sql, :class_name => "Client", :finder_sql => '
+  SELECT
+  companies.*
+  FROM companies WHERE companies.client_of = #{id}'
   has_many :clients_using_counter_sql, :class_name => "Client",
            :finder_sql  => 'SELECT * FROM companies WHERE client_of = #{id}',
            :counter_sql => 'SELECT COUNT(*) FROM companies WHERE client_of = #{id}'

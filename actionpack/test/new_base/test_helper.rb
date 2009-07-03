@@ -16,8 +16,7 @@ rescue LoadError
   # Debugging disabled. `gem install ruby-debug` to enable.
 end
 
-require 'action_controller/abstract'
-require 'action_controller/new_base'
+require 'action_controller'
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 require 'action_controller/testing/process'
@@ -42,15 +41,6 @@ class Rack::TestCase < ActionController::IntegrationTest
     end
 
     ActionController::Routing.use_controllers!(controllers)
-
-    # Move into a bootloader
-    ActionController::Base.subclasses.each do |klass|
-      klass = klass.constantize
-      next unless klass < AbstractController::Layouts
-      klass.class_eval do
-        _write_layout_method
-      end
-    end
   end
 
   def app

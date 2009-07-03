@@ -1,6 +1,7 @@
 require 'abstract_unit'
 
 class Post
+  extend ActiveModel::Naming
   def id
      45
   end

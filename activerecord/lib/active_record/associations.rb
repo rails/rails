@@ -1308,13 +1308,8 @@ module ActiveRecord
               association = association_proxy_class.new(self, reflection)
             end
 
-            if association_proxy_class == HasOneThroughAssociation
-              association.create_through_record(new_value)
-              self.send(reflection.name, new_value)
-            else
-              association.replace(new_value)
-              association_instance_set(reflection.name, new_value.nil? ? nil : association)
-            end
+            association.replace(new_value)
+            association_instance_set(reflection.name, new_value.nil? ? nil : association)
           end
 
           define_method("set_#{reflection.name}_target") do |target|

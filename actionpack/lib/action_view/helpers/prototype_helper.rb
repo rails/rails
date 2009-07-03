@@ -1,6 +1,7 @@
 require 'set'
 require 'active_support/json'
 require 'active_support/core_ext/object/extending'
+require 'active_support/core_ext/object/returning'
 
 module ActionView
   module Helpers
@@ -1175,7 +1176,7 @@ module ActionView
 
     class JavaScriptVariableProxy < JavaScriptProxy #:nodoc:
       def initialize(generator, variable)
-        @variable = variable
+        @variable = ::ActiveSupport::JSON::Variable.new(variable)
         @empty    = true # only record lines if we have to.  gets rid of unnecessary linebreaks
         super(generator)
       end
@@ -1186,7 +1187,7 @@ module ActionView
         true
       end
 
-      def rails_to_json(*)
+      def as_json(options = nil)
         @variable
       end
 

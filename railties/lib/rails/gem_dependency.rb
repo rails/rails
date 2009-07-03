@@ -29,11 +29,18 @@ module Rails
       end
     end
 
-    def self.from_directory_name(directory_name)
+    def self.from_directory_name(directory_name, load_spec=true)
       directory_name_parts = File.basename(directory_name).split('-')
       name    = directory_name_parts[0..-2].join('-')
       version = directory_name_parts.last
-      self.new(name, :version => version)
+      result = self.new(name, :version => version)
+      spec_filename = File.join(directory_name, '.specification')
+      if load_spec
+        raise "Missing specification file in #{File.dirname(spec_filename)}. Perhaps you need to do a 'rake gems:refresh_specs'?" unless File.exists?(spec_filename)
+        spec = YAML::load_file(spec_filename)
+        result.specification = spec
+      end
+      result
     rescue ArgumentError => e
       raise "Unable to determine gem name and version from '#{directory_name}'"
     end
@@ -104,6 +111,10 @@ module Rails
       end
     end
 
+    def specification=(s)
+      @spec = s
+    end
+
     def requirement
       r = version_requirements
       (r == Gem::Requirement.default) ? nil : r
@@ -111,10 +122,14 @@ module Rails
 
     def built?
       return false unless frozen?
-      specification.extensions.each do |ext|
-        makefile = File.join(unpacked_gem_directory, File.dirname(ext), 'Makefile')
-        return false unless File.exists?(makefile)
+
+      if vendor_gem?
+        specification.extensions.each do |ext|
+          makefile = File.join(unpacked_gem_directory, File.dirname(ext), 'Makefile')
+          return false unless File.exists?(makefile)
+        end
       end
+
       true
     end
 
@@ -170,13 +185,14 @@ module Rails
 
     def build(options={})
       require 'rails/gem_builder'
+      return if specification.nil?
       if options[:force] || !built?
         return unless File.exists?(unpacked_specification_filename)
         spec = YAML::load_file(unpacked_specification_filename)
         Rails::GemBuilder.new(spec, unpacked_gem_directory).build_extensions
         puts "Built gem: '#{unpacked_gem_directory}'"
       end
-      dependencies.each { |dep| dep.build }
+      dependencies.each { |dep| dep.build(options) }
     end
 
     def install
@@ -236,7 +252,7 @@ module Rails
         real_spec = Gem::Specification.load(specification.loaded_from)
         write_specification(real_spec)
       end
-      dependencies.each { |dep| dep.unpack } if options[:recursive]
+      dependencies.each { |dep| dep.unpack(options) } if options[:recursive]
     end
 
     def write_specification(spec)

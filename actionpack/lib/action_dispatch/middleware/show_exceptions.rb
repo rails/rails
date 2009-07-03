@@ -1,3 +1,5 @@
+require "active_support/core_ext/exception"
+
 module ActionDispatch
   class ShowExceptions
     include StatusCodes

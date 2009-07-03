@@ -1,2 +1,2 @@
-<title><%= @title || @content_for_title %></title>
-<%= @content_for_layout -%>
+<title><%= @title || yield(:title) %></title>
+<%= yield -%>

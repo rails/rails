@@ -10,11 +10,11 @@ module NewCallbacksTest
     define_callbacks :save
   
     def self.before_save(*filters, &blk)
-      save_callback(:before, *filters, &blk)
+      set_callback(:save, :before, *filters, &blk)
     end
   
     def self.after_save(*filters, &blk)
-      save_callback(:after, *filters, &blk)
+      set_callback(:save, :after, *filters, &blk)
     end
 
     class << self
@@ -37,7 +37,7 @@ module NewCallbacksTest
       def callback_object(callback_method)
         klass = Class.new
         klass.send(:define_method, callback_method) do |model|
-          model.history << [callback_method, :object]
+          model.history << [:"#{callback_method}_save", :object]
         end
         klass.new
       end
@@ -54,7 +54,7 @@ module NewCallbacksTest
       send(callback_method, callback_symbol(callback_method_sym))
       send(callback_method, callback_string(callback_method_sym))
       send(callback_method, callback_proc(callback_method_sym))
-      send(callback_method, callback_object(callback_method_sym))
+      send(callback_method, callback_object(callback_method_sym.to_s.gsub(/_save/, '')))
       send(callback_method) { |model| model.history << [callback_method_sym, :block] }
     end
 
@@ -64,10 +64,10 @@ module NewCallbacksTest
   end
 
   class PersonSkipper < Person
-    skip_save_callback :before, :before_save_method, :if => :yes
-    skip_save_callback :after, :before_save_method, :unless => :yes
-    skip_save_callback :after, :before_save_method, :if => :no
-    skip_save_callback :before, :before_save_method, :unless => :no
+    skip_callback :save, :before, :before_save_method, :if => :yes
+    skip_callback :save, :after, :before_save_method, :unless => :yes
+    skip_callback :save, :after, :before_save_method, :if => :no
+    skip_callback :save, :before, :before_save_method, :unless => :no
     def yes; true; end
     def no; false; end
   end
@@ -77,8 +77,8 @@ module NewCallbacksTest
 
     define_callbacks :dispatch
     
-    dispatch_callback :before, :log, :per_key => {:unless => proc {|c| c.action_name == :index || c.action_name == :show }}
-    dispatch_callback :after, :log2
+    set_callback :dispatch, :before, :log, :per_key => {:unless => proc {|c| c.action_name == :index || c.action_name == :show }}
+    set_callback :dispatch, :after, :log2
   
     attr_reader :action_name, :logger
     def initialize(action_name)
@@ -102,8 +102,8 @@ module NewCallbacksTest
   end
 
   class Child < ParentController
-    skip_dispatch_callback :before, :log, :per_key => {:if => proc {|c| c.action_name == :update} }
-    skip_dispatch_callback :after, :log2
+    skip_callback :dispatch, :before, :log, :per_key => {:if => proc {|c| c.action_name == :update} }
+    skip_callback :dispatch, :after, :log2
   end
 
   class OneTimeCompile < Record
@@ -188,19 +188,19 @@ module NewCallbacksTest
   class AroundPerson < MySuper
     attr_reader :history
   
-    save_callback :before, :nope,           :if =>     :no
-    save_callback :before, :nope,           :unless => :yes
-    save_callback :after,  :tweedle
-    save_callback :before, "tweedle_dee"
-    save_callback :before, proc {|m| m.history << "yup" }
-    save_callback :before, :nope,           :if =>     proc { false }
-    save_callback :before, :nope,           :unless => proc { true }
-    save_callback :before, :yup,            :if =>     proc { true }
-    save_callback :before, :yup,            :unless => proc { false }
-    save_callback :around, :tweedle_dum
-    save_callback :around, :w0tyes,         :if =>     :yes
-    save_callback :around, :w0tno,          :if =>     :no
-    save_callback :around, :tweedle_deedle
+    set_callback :save, :before, :nope,           :if =>     :no
+    set_callback :save, :before, :nope,           :unless => :yes
+    set_callback :save, :after,  :tweedle
+    set_callback :save, :before, "tweedle_dee"
+    set_callback :save, :before, proc {|m| m.history << "yup" }
+    set_callback :save, :before, :nope,           :if =>     proc { false }
+    set_callback :save, :before, :nope,           :unless => proc { true }
+    set_callback :save, :before, :yup,            :if =>     proc { true }
+    set_callback :save, :before, :yup,            :unless => proc { false }
+    set_callback :save, :around, :tweedle_dum
+    set_callback :save, :around, :w0tyes,         :if =>     :yes
+    set_callback :save, :around, :w0tno,          :if =>     :no
+    set_callback :save, :around, :tweedle_deedle
   
     def no; false; end
     def yes; true; end
@@ -260,7 +260,7 @@ module NewCallbacksTest
     define_callbacks :save
     attr_reader :stuff
     
-    save_callback :before, :omg, :per_key => {:if => :yes}
+    set_callback :save, :before, :omg, :per_key => {:if => :yes}
     
     def yes() true end
       
@@ -354,15 +354,15 @@ module NewCallbacksTest
   
     define_callbacks :save, "result == :halt"
   
-    save_callback :before, :first
-    save_callback :before, :second
-    save_callback :around, :around_it  
-    save_callback :before, :third
-    save_callback :after, :first
-    save_callback :around, :around_it
-    save_callback :after, :second
-    save_callback :around, :around_it
-    save_callback :after, :third
+    set_callback :save, :before, :first
+    set_callback :save, :before, :second
+    set_callback :save, :around, :around_it  
+    set_callback :save, :before, :third
+    set_callback :save, :after, :first
+    set_callback :save, :around, :around_it
+    set_callback :save, :after, :second
+    set_callback :save, :around, :around_it
+    set_callback :save, :after, :third
 
   
     attr_reader :history, :saved
@@ -397,11 +397,11 @@ module NewCallbacksTest
   end
 
   class CallbackObject
-    def before_save(caller)
+    def before(caller)
       caller.record << "before"
     end
     
-    def around_save(caller)
+    def around(caller)
       caller.record << "around before"
       yield
       caller.record << "around after"
@@ -412,7 +412,7 @@ module NewCallbacksTest
     include ActiveSupport::NewCallbacks
     
     define_callbacks :save
-    save_callback :before, CallbackObject.new
+    set_callback :save, :before, CallbackObject.new
     
     attr_accessor :record
     def initialize
@@ -430,7 +430,7 @@ module NewCallbacksTest
     include ActiveSupport::NewCallbacks
     
     define_callbacks :save
-    save_callback :around, CallbackObject.new
+    set_callback :save, :around, CallbackObject.new
     
     attr_accessor :record
     def initialize

@@ -56,6 +56,8 @@ module ActionController #:nodoc:
       @block = nil
       @length = 0
       @body = []
+      @charset = nil
+      @content_type = nil
 
       @request = @template = nil
     end
@@ -122,30 +124,24 @@ module ActionController #:nodoc:
 
       @request.recycle!
       @response.recycle!
+      @controller.response_body = nil
+      @controller.formats = nil
+      @controller.params = nil
 
       @html_document = nil
-      @request.request_method = http_method
+      @request.env['REQUEST_METHOD'] = http_method
 
       parameters ||= {}
       @request.assign_parameters(@controller.class.controller_path, action.to_s, parameters)
 
       @request.session = ActionController::TestSession.new(session) unless session.nil?
       @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
+
+      @controller.request = @request
+      @controller.params.merge!(parameters)
       build_request_uri(action, parameters)
-
-      Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
-
-      env = @request.env
-      app = @controller
-
-      # TODO: Enable Lint
-      # app = Rack::Lint.new(app)
-
-      status, headers, body = app.action(action, env)
-      response = Rack::MockResponse.new(status, headers, body)
-
-      @response.request, @response.template = @request, @controller.template
-      @response.status, @response.headers, @response.body = response.status, response.headers, response.body
+      Base.class_eval { include Testing }
+      @controller.process_with_new_base_test(@request, @response)
       @response
     end
 
@@ -165,7 +161,7 @@ module ActionController #:nodoc:
         next if ActionController::Base.protected_instance_variables.include?(ivar)
         assigns[ivar[1..-1]] = @controller.instance_variable_get(ivar)
       end
-      
+
       key.nil? ? assigns : assigns[key.to_s]
     end
 
@@ -260,28 +256,5 @@ module ActionController #:nodoc:
       end
       ActionController::Routing.const_set(:Routes, real_routes) if real_routes
     end
-  end
-
-  module ProcessWithTest #:nodoc:
-    def self.included(base)
-      base.class_eval {
-        attr_reader :assigns
-        alias_method_chain :process, :test
-      }
-    end
-
-    def process_with_test(*args)
-      process_without_test(*args).tap { set_test_assigns }
-    end
-
-    private
-      def set_test_assigns
-        @assigns = {}
-        (instance_variable_names - self.class.protected_instance_variables).each do |var|
-          name, value = var[1..-1], instance_variable_get(var)
-          @assigns[name] = value
-          @template.assigns[name] = value if response
-        end
-      end
   end
 end

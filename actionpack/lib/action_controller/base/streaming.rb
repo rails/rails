@@ -4,10 +4,7 @@ module ActionController #:nodoc:
   module Streaming
     extend ActiveSupport::Concern
 
-    # TODO : Remove the defined? check when new base is the main base
-    if defined?(ActionController::Http)
-      include ActionController::Renderer
-    end
+    include ActionController::Renderer
 
     DEFAULT_SEND_FILE_OPTIONS = {
       :type         => 'application/octet-stream'.freeze,
@@ -162,15 +159,16 @@ module ActionController #:nodoc:
         disposition <<= %(; filename="#{options[:filename]}") if options[:filename]
 
         content_type = options[:type]
+
         if content_type.is_a?(Symbol)
-          raise ArgumentError, "Unknown MIME type #{options[:type]}" unless Mime::EXTENSION_LOOKUP.has_key?(content_type.to_s)
-          content_type = Mime::Type.lookup_by_extension(content_type.to_s)
+          raise ArgumentError, "Unknown MIME type #{options[:type]}" unless Mime::EXTENSION_LOOKUP.key?(content_type.to_s)
+          self.content_type = Mime::Type.lookup_by_extension(content_type.to_s)
+        else
+          self.content_type = content_type
         end
-        content_type = content_type.to_s.strip # fixes a problem with extra '\r' with some browsers
 
         headers.merge!(
-          'Content-Length'            => options[:length],
-          'Content-Type'              => content_type,
+          'Content-Length'            => options[:length].to_s,
           'Content-Disposition'       => disposition,
           'Content-Transfer-Encoding' => 'binary'
         )

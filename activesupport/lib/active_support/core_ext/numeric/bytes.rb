@@ -1,4 +1,11 @@
 class Numeric
+  KILOBYTE = 1024
+  MEGABYTE = KILOBYTE * 1024
+  GIGABYTE = MEGABYTE * 1024
+  TERABYTE = GIGABYTE * 1024
+  PETABYTE = TERABYTE * 1024
+  EXABYTE  = PETABYTE * 1024
+
   # Enables the use of byte calculations and declarations, like 45.bytes + 2.6.megabytes
   def bytes
     self
@@ -6,32 +13,32 @@ class Numeric
   alias :byte :bytes
 
   def kilobytes
-    self * 1024
+    self * KILOBYTE
   end
   alias :kilobyte :kilobytes
 
   def megabytes
-    self * 1024.kilobytes
+    self * MEGABYTE
   end
   alias :megabyte :megabytes
 
   def gigabytes
-    self * 1024.megabytes 
+    self * GIGABYTE
   end
   alias :gigabyte :gigabytes
 
   def terabytes
-    self * 1024.gigabytes
+    self * TERABYTE
   end
   alias :terabyte :terabytes
-  
+
   def petabytes
-    self * 1024.terabytes
+    self * PETABYTE
   end
   alias :petabyte :petabytes
-  
+
   def exabytes
-    self * 1024.petabytes
+    self * EXABYTE
   end
   alias :exabyte :exabytes
 end

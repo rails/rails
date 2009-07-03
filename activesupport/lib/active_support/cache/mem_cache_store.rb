@@ -130,10 +130,6 @@ module ActiveSupport
       end
 
       private
-        def expires_in(options)
-          (options && options[:expires_in]) || 0
-        end
-
         def raw?(options)
           options && options[:raw]
         end

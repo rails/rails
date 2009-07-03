@@ -1,6 +1,8 @@
 require 'cgi'
 require 'action_view/helpers/form_helper'
 require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/kernel/reporting'
 
 module ActionView
   class Base
@@ -120,9 +122,9 @@ module ActionView
         options.reverse_merge!(:prepend_text => '', :append_text => '', :css_class => 'formError')
 
         if (obj = (object.respond_to?(:errors) ? object : instance_variable_get("@#{object}"))) &&
-          (errors = obj.errors.on(method))
+          (errors = obj.errors[method])
           content_tag("div",
-            "#{options[:prepend_text]}#{ERB::Util.html_escape(errors.is_a?(Array) ? errors.first : errors)}#{options[:append_text]}",
+            "#{options[:prepend_text]}#{ERB::Util.html_escape(errors.first)}#{options[:append_text]}",
             :class => options[:css_class]
           )
         else
@@ -245,57 +247,20 @@ module ActionView
         end
       end
 
-      alias_method :tag_without_error_wrapping, :tag
-      def tag(name, options)
-        if object.respond_to?(:errors) && object.errors.respond_to?(:on)
-          error_wrapping(tag_without_error_wrapping(name, options), object.errors.on(@method_name))
+      %w(tag content_tag to_date_select_tag to_datetime_select_tag to_time_select_tag).each do |meth|
+        without = "#{meth}_without_error_wrapping"
+        define_method "#{meth}_with_error_wrapping" do |*args|
+          error_wrapping(send(without, *args))
+        end
+        alias_method_chain meth, :error_wrapping
+      end
+
+      def error_wrapping(html_tag)
+        if object.respond_to?(:errors) && object.errors.respond_to?(:full_messages) && object.errors[@method_name].any?
+          Base.field_error_proc.call(html_tag, self)
         else
-          tag_without_error_wrapping(name, options)
+          html_tag
         end
-      end
-
-      alias_method :content_tag_without_error_wrapping, :content_tag
-      def content_tag(name, value, options)
-        if object.respond_to?(:errors) && object.errors.respond_to?(:on)
-          error_wrapping(content_tag_without_error_wrapping(name, value, options), object.errors.on(@method_name))
-        else
-          content_tag_without_error_wrapping(name, value, options)
-        end
-      end
-
-      alias_method :to_date_select_tag_without_error_wrapping, :to_date_select_tag
-      def to_date_select_tag(options = {}, html_options = {})
-        if object.respond_to?(:errors) && object.errors.respond_to?(:on)
-          error_wrapping(to_date_select_tag_without_error_wrapping(options, html_options), object.errors.on(@method_name))
-        else
-          to_date_select_tag_without_error_wrapping(options, html_options)
-        end
-      end
-
-      alias_method :to_datetime_select_tag_without_error_wrapping, :to_datetime_select_tag
-      def to_datetime_select_tag(options = {}, html_options = {})
-        if object.respond_to?(:errors) && object.errors.respond_to?(:on)
-            error_wrapping(to_datetime_select_tag_without_error_wrapping(options, html_options), object.errors.on(@method_name))
-          else
-            to_datetime_select_tag_without_error_wrapping(options, html_options)
-        end
-      end
-
-      alias_method :to_time_select_tag_without_error_wrapping, :to_time_select_tag
-      def to_time_select_tag(options = {}, html_options = {})
-        if object.respond_to?(:errors) && object.errors.respond_to?(:on)
-          error_wrapping(to_time_select_tag_without_error_wrapping(options, html_options), object.errors.on(@method_name))
-        else
-          to_time_select_tag_without_error_wrapping(options, html_options)
-        end
-      end
-
-      def error_wrapping(html_tag, has_error)
-        has_error ? Base.field_error_proc.call(html_tag, self) : html_tag
-      end
-
-      def error_message
-        object.errors.on(@method_name)
       end
 
       def column_type

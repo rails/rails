@@ -1623,13 +1623,13 @@ class RouteSetTest < Test::Unit::TestCase
     set.draw { |m| m.connect ':controller/:action/:id' }
     path, extras = set.generate_extras(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
     assert_equal "/foo/bar/15", path
-    assert_equal %w(that this), extras.map(&:to_s).sort
+    assert_equal %w(that this), extras.map { |e| e.to_s }.sort
   end
 
   def test_extra_keys
     set.draw { |m| m.connect ':controller/:action/:id' }
     extras = set.extra_keys(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
-    assert_equal %w(that this), extras.map(&:to_s).sort
+    assert_equal %w(that this), extras.map { |e| e.to_s }.sort
   end
 
   def test_generate_extras_not_first
@@ -1639,7 +1639,7 @@ class RouteSetTest < Test::Unit::TestCase
     end
     path, extras = set.generate_extras(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
     assert_equal "/foo/bar/15", path
-    assert_equal %w(that this), extras.map(&:to_s).sort
+    assert_equal %w(that this), extras.map { |e| e.to_s }.sort
   end
 
   def test_generate_not_first
@@ -1656,7 +1656,7 @@ class RouteSetTest < Test::Unit::TestCase
       map.connect ':controller/:action/:id'
     end
     extras = set.extra_keys(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
-    assert_equal %w(that this), extras.map(&:to_s).sort
+    assert_equal %w(that this), extras.map { |e| e.to_s }.sort
   end
 
   def test_draw
@@ -1664,6 +1664,17 @@ class RouteSetTest < Test::Unit::TestCase
     set.draw do |map|
       map.connect '/hello/world', :controller => 'a', :action => 'b'
     end
+    assert_equal 1, set.routes.size
+  end
+
+  def test_draw_symbol_controller_name
+    assert_equal 0, set.routes.size
+    set.draw do |map|
+      map.connect '/users/index', :controller => :users, :action => :index
+    end
+    @request = ActionController::TestRequest.new
+    @request.request_uri = '/users/index'
+    assert_nothing_raised { set.recognize(@request) }
     assert_equal 1, set.routes.size
   end
 
@@ -2481,6 +2492,16 @@ class RouteSetTest < Test::Unit::TestCase
     end
     assert_equal({:controller => 'pages', :action => 'show', :name => 'JAMIS'}, set.recognize_path('/page/JAMIS'))
   end
+
+  def test_routes_with_symbols
+    set.draw do |map|
+      map.connect 'unnamed', :controller => :pages, :action => :show, :name => :as_symbol
+      map.named   'named',   :controller => :pages, :action => :show, :name => :as_symbol
+    end
+    assert_equal({:controller => 'pages', :action => 'show', :name => :as_symbol}, set.recognize_path('/unnamed'))
+    assert_equal({:controller => 'pages', :action => 'show', :name => :as_symbol}, set.recognize_path('/named'))
+  end
+
 end
 
 class RouteLoadingTest < Test::Unit::TestCase

@@ -118,6 +118,27 @@ module ActiveSupport
     end
     alias_method :iso8601, :xmlschema
 
+    # Coerces the date to a string for JSON encoding.
+    #
+    # ISO 8601 format is used if ActiveSupport::JSON::Encoding.use_standard_json_time_format is set.
+    #
+    # ==== Examples
+    #
+    #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = true
+    #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
+    #   # => "2005-02-01T15:15:10Z"
+    #
+    #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = false
+    #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
+    #   # => "2005/02/01 15:15:10 +0000"
+    def as_json(options = nil)
+      if ActiveSupport::JSON::Encoding.use_standard_json_time_format
+        xmlschema
+      else
+        %(#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
+      end
+    end
+
     def to_yaml(options = {})
       if options.kind_of?(YAML::Emitter)
         utc.to_yaml(options)
@@ -301,26 +322,6 @@ module ActiveSupport
     end
 
     private
-      # Returns a JSON string representing the TimeWithZone. If ActiveSupport.use_standard_json_time_format is set to
-      # true, the ISO 8601 format is used.
-      #
-      # ==== Examples
-      #
-      #   # With ActiveSupport.use_standard_json_time_format = true
-      #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
-      #   # => "2005-02-01T15:15:10Z"
-      #
-      #   # With ActiveSupport.use_standard_json_time_format = false
-      #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
-      #   # => "2005/02/01 15:15:10 +0000"
-      def rails_to_json(*)
-        if !ActiveSupport.respond_to?(:use_standard_json_time_format) || ActiveSupport.use_standard_json_time_format
-          xmlschema.inspect
-        else
-          %("#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)}")
-        end
-      end
-
       def get_period_and_ensure_valid_local_time
         # we don't want a Time.local instance enforcing its own DST rules as well,
         # so transfer time values to a utc constructor if necessary

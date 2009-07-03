@@ -50,6 +50,9 @@ class RailsGeneratorTest < Test::Unit::TestCase
 
   def setup
     ActiveRecord::Base.pluralize_table_names = true
+    @initializer = Rails::Initializer.default
+    @initializer.config = Rails.configuration
+    @initializer.run(:set_root_path)
   end
 
   def test_sources

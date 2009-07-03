@@ -10,11 +10,23 @@ module ActiveSupport
         @cache_path = cache_path
       end
 
+      # Reads a value from the cache.
+      #
+      # Possible options:
+      # - +:expires_in+ - the number of seconds that this value may stay in
+      #   the cache.
       def read(name, options = nil)
         super
-        File.open(real_file_path(name), 'rb') { |f| Marshal.load(f) } rescue nil
+
+        file_name = real_file_path(name)
+        expires = expires_in(options)
+
+        if File.exist?(file_name) && (expires <= 0 || Time.now - File.mtime(file_name) < expires)
+          File.open(file_name, 'rb') { |f| Marshal.load(f) }
+        end
       end
 
+      # Writes a value to the cache.
       def write(name, value, options = nil)
         super
         ensure_cache_path(File.dirname(real_file_path(name)))

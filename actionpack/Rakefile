@@ -22,9 +22,11 @@ task :default => [ :test ]
 # Run the unit tests
 
 desc "Run all unit tests"
-task :test => [:test_action_pack, :test_active_record_integration, :test_new_base, :test_new_base_on_old_tests]
+task :test => [:test_action_pack, :test_active_record_integration, :test_new_base]
 
-test_lib_dirs = [ENV["NEW"] ? "test/new_base" : "test", "test/lib"]
+test_lib_dirs = ENV["NEW"] ? ["test/new_base"] : []
+test_lib_dirs.push "test", "test/lib"
+# test_lib_dirs = [ENV["NEW"] ? "test/new_base" : "test", "test/lib"]
 Rake::TestTask.new(:test_action_pack) do |t|
   t.libs.concat test_lib_dirs
 
@@ -35,6 +37,7 @@ Rake::TestTask.new(:test_action_pack) do |t|
   t.verbose = true
   #t.warning = true
 end
+
 task :isolated_test do
   ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
   Dir.glob("test/{controller,dispatch,template}/**/*_test.rb").all? do |file|
@@ -112,7 +115,7 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc = true
   s.requirements << 'none'
 
-  s.add_dependency('activesupport', '= 2.3.2' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 3.0.pre' + PKG_BUILD)
 
   s.require_path = 'lib'
   s.autorequire = 'action_controller'

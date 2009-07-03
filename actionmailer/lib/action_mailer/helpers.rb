@@ -48,13 +48,14 @@ module ActionMailer
               file_name  = arg.to_s.underscore + '_helper'
               class_name = file_name.camelize
 
-              begin
-                require_dependency(file_name)
-              rescue LoadError => load_error
-                requiree = / -- (.*?)(\.rb)?$/.match(load_error.message).to_a[1]
-                msg = (requiree == file_name) ? "Missing helper file helpers/#{file_name}.rb" : "Can't load file: #{requiree}"
-                raise LoadError.new(msg).copy_blame!(load_error)
-              end
+              require_dependency(file_name, "Missing helper file helpers/%s.rb")
+              # begin
+              #   require_dependency(file_name)
+              # rescue LoadError => load_error
+              #   requiree = / -- (.*?)(\.rb)?$/.match(load_error.message).to_a[1]
+              #   msg = (requiree == file_name) ? "Missing helper file helpers/#{file_name}.rb" : "Can't load file: #{requiree}"
+              #   raise LoadError.new(msg).copy_blame!(load_error)
+              # end
 
               add_template_helper(class_name.constantize)
             else
@@ -97,7 +98,7 @@ module ActionMailer
             child.master_helper_module.__send__(:include, master_helper_module)
             child.helper child.name.to_s.underscore
           rescue MissingSourceFile => e
-            raise unless e.is_missing?("helpers/#{child.name.to_s.underscore}_helper")
+            raise unless e.is_missing?("#{child.name.to_s.underscore}_helper")
           end
         end
     end

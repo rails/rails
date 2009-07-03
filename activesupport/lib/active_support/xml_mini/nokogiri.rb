@@ -9,13 +9,15 @@ module ActiveSupport
     # data::
     #   XML Document string or IO to parse
     def parse(data)
-      if data.respond_to?(:read)
-        data = data.read
+      if !data.respond_to?(:read)
+        data = StringIO.new(data || '')
       end
-
-      if data.blank?
+      
+      char = data.getc
+      if char.nil?
         {}
       else
+        data.ungetc(char)
         doc = Nokogiri::XML(data)
         raise doc.errors.first if doc.errors.length > 0
         doc.to_hash

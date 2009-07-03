@@ -232,26 +232,7 @@ module ActionView
       ensure
         @_proc_for_layout = nil
       end
-      
-      def _deprecated_ivar_assign(template)
-        if respond_to?(:controller)
-          ivar = :"@#{template.variable_name}"
-          object =
-            if controller.instance_variable_defined?(ivar)
-              ActiveSupport::Deprecation::DeprecatedObjectProxy.new(
-                controller.instance_variable_get(ivar),
-                "#{ivar} will no longer be implicitly assigned to #{template.variable_name}")
-            end
-        end
-      end
 
-      def _render_partial_with_block(layout, block, options)
-        @_proc_for_layout = block
-        concat(_render_partial(options.merge(:partial => layout)))
-      ensure
-        @_proc_for_layout = nil
-      end
-  
       def _render_partial_with_layout(layout, options)
         if layout
           prefix = controller && !layout.include?("/") ? controller.controller_path : nil
@@ -259,18 +240,6 @@ module ActionView
         end
         content = _render_partial(options)
         return _render_content_with_layout(content, layout, options[:locals])
-      end
-    
-      def _deprecated_ivar_assign(template)
-        if respond_to?(:controller)
-          ivar = :"@#{template.variable_name}"
-          object =
-            if controller.instance_variable_defined?(ivar)
-              ActiveSupport::Deprecation::DeprecatedObjectProxy.new(
-                controller.instance_variable_get(ivar),
-                "#{ivar} will no longer be implicitly assigned to #{template.variable_name}")
-            end
-        end
       end
 
       def _array_like_objects
@@ -297,8 +266,6 @@ module ActionView
       end
 
       def _set_locals(object, locals, template, options)
-        object ||= _deprecated_ivar_assign(template)
-        
         locals[:object] = locals[template.variable_name] = object
         locals[options[:as]] = object if options[:as]
       end

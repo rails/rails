@@ -39,7 +39,7 @@ module ActiveModel
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
           unless value == configuration[:accept]
-            record.errors.add(attr_name, :accepted, :default => configuration[:message]) 
+            record.errors.add(attr_name, :accepted, :default => configuration[:message])
           end
         end
       end

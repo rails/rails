@@ -87,11 +87,11 @@ class ControllerInstanceTests < Test::Unit::TestCase
   def test_action_methods
     @empty_controllers.each do |c|
       hide_mocha_methods_from_controller(c)
-      assert_equal Set.new, c.__send__(:action_methods), "#{c.controller_path} should be empty!"
+      assert_equal Set.new, c.class.__send__(:action_methods), "#{c.controller_path} should be empty!"
     end
     @non_empty_controllers.each do |c|
       hide_mocha_methods_from_controller(c)
-      assert_equal Set.new(%w(public_action)), c.__send__(:action_methods), "#{c.controller_path} should not be empty!"
+      assert_equal Set.new(%w(public_action)), c.class.__send__(:action_methods), "#{c.controller_path} should not be empty!"
     end
   end
 
@@ -145,7 +145,8 @@ class PerformActionTest < ActionController::TestCase
   
   def test_method_missing_is_not_an_action_name
     use_controller MethodMissingController
-    assert ! @controller.__send__(:action_methods).include?('method_missing')
+
+    assert ! @controller.__send__(:action_method?, 'method_missing')
     
     get :method_missing
     assert_response :success

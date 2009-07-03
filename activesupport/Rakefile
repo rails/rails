@@ -101,6 +101,16 @@ namespace :tzinfo do
   desc "Update bundled tzinfo gem. Only copies the subset of classes and definitions required to support Rails time zone features."
   task :update => ['tzinfo:copy_classes', 'tzinfo:copy_definitions'] do
     Rake::Task['tzinfo:cleanup_tmp'].invoke
+    puts <<-EOV
+    *** FINAL TZINFO BUNDLING STEPS ***
+    
+    1. Update TZInfo version in lib/active_support/vendor.rb
+    2. gem uninstall tzinfo on local system before running tests, to ensure tests are running against bundled version
+    
+    If a test fails because a particular zone can't be found, it's likely because the TZInfo identifier in the
+    ActiveSupport::TimeZone::MAPPING hash is referencing a linked timezone instead of referencing the timezone directly.
+    In this case, just change the MAPPING value to the correct identifier, and unpack TZInfo again.
+    EOV
   end
   
   task :unpack_gem do

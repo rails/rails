@@ -150,9 +150,9 @@ module ActionController
           end
 
           if only
-            @allowed_actions[:only] = Array(only).map(&:to_sym)
+            @allowed_actions[:only] = Array(only).map {|a| a.to_sym }
           elsif except
-            @allowed_actions[:except] = Array(except).map(&:to_sym)
+            @allowed_actions[:except] = Array(except).map {|a| a.to_sym }
           end
         end
 

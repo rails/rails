@@ -166,10 +166,23 @@ class GemDependencyTest < Test::Unit::TestCase
     dummy_gem.unpack
   end
 
+  def test_gem_from_directory_name_attempts_to_load_specification
+    assert_raises RuntimeError do
+      dummy_gem = Rails::GemDependency.from_directory_name('dummy-gem-1.1')
+    end
+  end
+
   def test_gem_from_directory_name
-    dummy_gem = Rails::GemDependency.from_directory_name('dummy-gem-1.1')
+    dummy_gem = Rails::GemDependency.from_directory_name('dummy-gem-1.1', false)
     assert_equal 'dummy-gem', dummy_gem.name
     assert_equal '= 1.1',     dummy_gem.version_requirements.to_s
+  end
+
+  def test_gem_from_directory_name_loads_specification_successfully
+    assert_nothing_raised do
+      dummy_gem = Rails::GemDependency.from_directory_name(File.join(Rails::GemDependency.unpacked_path, 'dummy-gem-g-1.0.0'))
+      assert_not_nil dummy_gem.specification
+    end
   end
 
   def test_gem_from_invalid_directory_name
@@ -185,6 +198,23 @@ class GemDependencyTest < Test::Unit::TestCase
     assert_equal true,  Rails::GemDependency.new("dummy-gem-a").built?
     assert_equal true,  Rails::GemDependency.new("dummy-gem-i").built?
     assert_equal false, Rails::GemDependency.new("dummy-gem-j").built?
+  end
+  
+  def test_gem_determines_build_status_only_on_vendor_gems
+    framework_gem = Rails::GemDependency.new('dummy-framework-gem')
+    framework_gem.stubs(:framework_gem?).returns(true)  # already loaded
+    framework_gem.stubs(:vendor_rails?).returns(false)  # but not in vendor/rails
+    framework_gem.stubs(:vendor_gem?).returns(false)  # and not in vendor/gems
+    framework_gem.add_load_paths  # freeze framework gem early 
+    assert framework_gem.built?
+  end
+
+  def test_gem_build_passes_options_to_dependencies
+    start_gem = Rails::GemDependency.new("dummy-gem-g")
+    dep_gem = Rails::GemDependency.new("dummy-gem-f")
+    start_gem.stubs(:dependencies).returns([dep_gem])
+    dep_gem.expects(:build).with({ :force => true }).once
+    start_gem.build(:force => true)
   end
 
 end

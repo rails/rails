@@ -45,8 +45,8 @@ class SendFileTest < ActionController::TestCase
     assert_equal file_data, response.body
   end
 
-  for_tag(:old_base) do
-    def test_file_stream
+  def test_file_stream
+    pending do
       response = nil
       assert_nothing_raised { response = process('file') }
       assert_not_nil response
@@ -91,10 +91,10 @@ class SendFileTest < ActionController::TestCase
 
   def test_headers_after_send_shouldnt_include_charset
     response = process('data')
-    assert_equal "application/octet-stream", response.content_type
+    assert_equal "application/octet-stream", response.headers["Content-Type"]
 
     response = process('file')
-    assert_equal "application/octet-stream", response.content_type
+    assert_equal "application/octet-stream", response.headers["Content-Type"]
   end
 
   # Test that send_file_headers! is setting the correct HTTP headers.
@@ -115,8 +115,8 @@ class SendFileTest < ActionController::TestCase
     @controller.send(:send_file_headers!, options)
 
     h = @controller.headers
-    assert_equal 1, h['Content-Length']
-    assert_equal 'image/png', h['Content-Type']
+    assert_equal '1', h['Content-Length']
+    assert_equal 'image/png', @controller.content_type
     assert_equal 'disposition; filename="filename"', h['Content-Disposition']
     assert_equal 'binary', h['Content-Transfer-Encoding']
 
@@ -136,9 +136,7 @@ class SendFileTest < ActionController::TestCase
     @controller.headers = {}
     @controller.send(:send_file_headers!, options)
 
-    headers = @controller.headers
-
-    assert_equal 'image/png', headers['Content-Type']
+    assert_equal 'image/png', @controller.content_type
   end
   
 

@@ -2,7 +2,7 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
 module RenderImplicitAction
   class SimpleController < ::ApplicationController
-    self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "render_implicit_action/simple/hello_world.html.erb" => "Hello world!",
       "render_implicit_action/simple/hyphen-ated.html.erb" => "Hello hyphen-ated!"
     )]

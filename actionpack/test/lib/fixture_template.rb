@@ -1,6 +1,5 @@
 module ActionView #:nodoc:
-class Template
-  class FixturePath < Path
+  class FixtureResolver < Resolver
     def initialize(hash = {}, options = {})
       super(options)
       @hash = hash
@@ -13,7 +12,7 @@ class Template
           @hash.select { |k,v| k =~ regexp }.each do |path, source|
             templates << Template.new(source, path, *path_to_details(path))
           end
-          templates
+          templates.sort_by {|t| -t.details.values.compact.size }
         end
       end
     end
@@ -22,7 +21,7 @@ class Template
   
     def formats_regexp
       @formats_regexp ||= begin
-        formats = Mime::SET.map { |m| m.symbol }
+        formats = Mime::SET.symbols
         '(?:' + formats.map { |l| "\\.#{Regexp.escape(l.to_s)}" }.join('|') + ')?'
       end
     end
@@ -45,7 +44,7 @@ class Template
           k == :formats ? formats_regexp : ''
         end
       end
-      
+
       %r'^#{Regexp.escape(path)}#{extensions}#{handler_regexp}$'
     end
     
@@ -53,7 +52,7 @@ class Template
     # :api: plugin
     def path_to_details(path)
       # [:erb, :format => :html, :locale => :en, :partial => true/false]
-      if m = path.match(%r'(_)?[\w-]+(\.[\w-]+)*\.(\w+)$')
+      if m = path.match(%r'(_)?[\w-]+((?:\.[\w-]+)*)\.(\w+)$')
         partial = m[1] == '_'
         details = (m[2]||"").split('.').reject { |e| e.empty? }
         handler = Template.handler_class_for_extension(m[3])
@@ -65,40 +64,4 @@ class Template
       end
     end
   end
-  
-  
-  # class FixtureTemplate < Template
-  #   class FixturePath < Template::Path
-  #     def initialize(hash = {})
-  #       @hash = {}
-  #       
-  #       hash.each do |k, v|
-  #         @hash[k.sub(/\.\w+$/, '')] = FixtureTemplate.new(v, k.split("/").last, self)
-  #       end
-  #       
-  #       super("fixtures://root")
-  #     end
-  #     
-  #     def find_template(path)
-  #       @hash[path]
-  #     end
-  #   end
-  #   
-  #   def initialize(body, *args)
-  #     @body = body
-  #     super(*args)
-  #   end
-  #   
-  #   def source
-  #     @body
-  #   end
-  # 
-  # private
-  # 
-  #   def find_full_path(path, load_paths)
-  #     return '/', path
-  #   end
-  # 
-  # end
-end
 end

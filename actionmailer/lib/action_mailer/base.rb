@@ -1,3 +1,7 @@
+require "active_support/core_ext/class"
+# Use the old layouts until actionmailer gets refactored
+require "action_controller/legacy/layout"
+
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
   #
@@ -697,7 +701,7 @@ module ActionMailer #:nodoc:
       def perform_delivery_smtp(mail)
         destinations = mail.destinations
         mail.ready_to_send
-        sender = (mail['return-path'] && mail['return-path'].spec) || mail.from
+        sender = (mail['return-path'] && mail['return-path'].spec) || mail['from']
 
         smtp = Net::SMTP.new(smtp_settings[:address], smtp_settings[:port])
         smtp.enable_starttls_auto if smtp_settings[:enable_starttls_auto] && smtp.respond_to?(:enable_starttls_auto)

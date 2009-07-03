@@ -143,8 +143,8 @@ module ActiveSupport #:nodoc:
         Dependencies.require_or_load(file_name)
       end
 
-      def require_dependency(file_name)
-        Dependencies.depend_on(file_name)
+      def require_dependency(file_name, message = "No such file to load -- %s")
+        Dependencies.depend_on(file_name, false, message)
       end
 
       def require_association(file_name)
@@ -230,11 +230,16 @@ module ActiveSupport #:nodoc:
       mechanism == :load
     end
 
-    def depend_on(file_name, swallow_load_errors = false)
+    def depend_on(file_name, swallow_load_errors = false, message = "No such file to load -- %s.rb")
       path = search_for_file(file_name)
       require_or_load(path || file_name)
-    rescue LoadError
-      raise unless swallow_load_errors
+    rescue LoadError => load_error
+      unless swallow_load_errors
+        if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
+          raise MissingSourceFile.new(message % file_name, load_error.path).copy_blame!(load_error)
+        end
+        raise
+      end
     end
 
     def associate_with(file_name)

@@ -21,6 +21,9 @@ silence_warnings do
 
     attr_accessor :comments
     def comments_attributes=(attributes); end
+
+    attr_accessor :tags
+    def tags_attributes=(attributes); end
   end
 
   class Comment
@@ -31,6 +34,50 @@ silence_warnings do
     def new_record?; @id.nil? end
     def to_param; @id; end
     def name
+      @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
+    end
+
+    attr_accessor :relevances
+    def relevances_attributes=(attributes); end
+
+  end
+
+  class Tag
+    attr_reader :id
+    attr_reader :post_id
+    def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end
+    def save; @id = 1; @post_id = 1 end
+    def new_record?; @id.nil? end
+    def to_param; @id; end
+    def value
+      @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
+    end
+
+    attr_accessor :relevances
+    def relevances_attributes=(attributes); end
+
+  end
+
+  class CommentRelevance
+    attr_reader :id
+    attr_reader :comment_id
+    def initialize(id = nil, comment_id = nil); @id, @comment_id = id, comment_id end
+    def save; @id = 1; @comment_id = 1 end
+    def new_record?; @id.nil? end
+    def to_param; @id; end
+    def value
+      @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
+    end
+  end
+
+  class TagRelevance
+    attr_reader :id
+    attr_reader :tag_id
+    def initialize(id = nil, tag_id = nil); @id, @tag_id = id, tag_id end
+    def save; @id = 1; @tag_id = 1 end
+    def new_record?; @id.nil? end
+    def to_param; @id; end
+    def value
       @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
     end
   end
@@ -50,7 +97,7 @@ class FormHelperTest < ActionView::TestCase
     @comment = Comment.new
     def @post.errors()
       Class.new{
-        def on(field); "can't be empty" if field == "author_name"; end
+        def [](field); field == "author_name" ? ["can't be empty"] : [] end
         def empty?() false end
         def count() 1 end
         def full_messages() [ "Author name can't be empty" ] end
@@ -97,6 +144,11 @@ class FormHelperTest < ActionView::TestCase
 
   def test_label_with_for_attribute_as_string
     assert_dom_equal('<label for="my_for">Title</label>', label(:post, :title, nil, "for" => "my_for"))
+  end
+
+  def test_label_for_radio_buttons_with_value
+    assert_dom_equal('<label for="post_title_great_title">The title goes here</label>', label("post", "title", "The title goes here", :value => "great_title"))
+    assert_dom_equal('<label for="post_title_great_title">The title goes here</label>', label("post", "title", "The title goes here", :value => "great title"))
   end
 
   def test_text_field
@@ -378,7 +430,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected =
       "<form action='http://www.example.com' id='create-post' method='post'>" +
-      "<div style='margin:0;padding:0'><input name='_method' type='hidden' value='put' /></div>" +
+      "<div style='margin:0;padding:0;display:inline'><input name='_method' type='hidden' value='put' /></div>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
@@ -527,6 +579,20 @@ class FormHelperTest < ActionView::TestCase
 
     expected = "<form action='http://www.example.com' method='post'>" +
                "<input name='post[123][comment][title]' size='30' type='text' id='post_123_comment_title' value='Hello World' />" +
+               "</form>"
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_index_radio_button
+    form_for(:post, @post) do |f|
+      f.fields_for(:comment, @post, :index => 5) do |c|
+        concat c.radio_button(:title, "hello")
+      end
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='post[comment][5][title]' type='radio' id='post_comment_5_title_hello' value='hello' />" +
                "</form>"
 
     assert_dom_equal expected, output_buffer
@@ -716,6 +782,51 @@ class FormHelperTest < ActionView::TestCase
     expected = '<form action="http://www.example.com" method="post">' +
                '<input id="post_comments_attributes_abc_id" name="post[comments_attributes][abc][id]" type="hidden" value="321" />' +
                '<input id="post_comments_attributes_abc_name" name="post[comments_attributes][abc][name]" size="30" type="text" value="comment #321" />' +
+               '</form>'
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_uses_unique_indices_for_different_collection_associations
+    @post.comments = [Comment.new(321)]
+    @post.tags = [Tag.new(123), Tag.new(456)]
+    @post.comments[0].relevances = []
+    @post.tags[0].relevances = []
+    @post.tags[1].relevances = []
+    form_for(:post, @post) do |f|
+      f.fields_for(:comments, @post.comments[0]) do |cf|
+        concat cf.text_field(:name)
+        cf.fields_for(:relevances, CommentRelevance.new(314)) do |crf|
+          concat crf.text_field(:value)
+        end
+      end
+      f.fields_for(:tags, @post.tags[0]) do |tf|
+        concat tf.text_field(:value)
+        tf.fields_for(:relevances, TagRelevance.new(3141)) do |trf|
+          concat trf.text_field(:value)
+        end
+      end
+      f.fields_for('tags', @post.tags[1]) do |tf|
+        concat tf.text_field(:value)
+        tf.fields_for(:relevances, TagRelevance.new(31415)) do |trf|
+          concat trf.text_field(:value)
+        end
+      end
+    end
+
+    expected = '<form action="http://www.example.com" method="post">' +
+               '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="321" />' +
+               '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" size="30" type="text" value="comment #321" />' +
+               '<input id="post_comments_attributes_0_relevances_attributes_0_id" name="post[comments_attributes][0][relevances_attributes][0][id]" type="hidden" value="314" />' +
+               '<input id="post_comments_attributes_0_relevances_attributes_0_value" name="post[comments_attributes][0][relevances_attributes][0][value]" size="30" type="text" value="commentrelevance #314" />' +
+               '<input id="post_tags_attributes_0_id" name="post[tags_attributes][0][id]" type="hidden" value="123" />' +
+               '<input id="post_tags_attributes_0_value" name="post[tags_attributes][0][value]" size="30" type="text" value="tag #123" />' +
+               '<input id="post_tags_attributes_0_relevances_attributes_0_id" name="post[tags_attributes][0][relevances_attributes][0][id]" type="hidden" value="3141" />' +
+               '<input id="post_tags_attributes_0_relevances_attributes_0_value" name="post[tags_attributes][0][relevances_attributes][0][value]" size="30" type="text" value="tagrelevance #3141" />' +
+               '<input id="post_tags_attributes_1_id" name="post[tags_attributes][1][id]" type="hidden" value="456" />' +
+               '<input id="post_tags_attributes_1_value" name="post[tags_attributes][1][value]" size="30" type="text" value="tag #456" />' +
+               '<input id="post_tags_attributes_1_relevances_attributes_0_id" name="post[tags_attributes][1][relevances_attributes][0][id]" type="hidden" value="31415" />' +
+               '<input id="post_tags_attributes_1_relevances_attributes_0_value" name="post[tags_attributes][1][relevances_attributes][0][value]" size="30" type="text" value="tagrelevance #31415" />' +
                '</form>'
 
     assert_dom_equal expected, output_buffer
@@ -1073,7 +1184,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_existing_object
     form_for(@post) do |f| end
 
-    expected = "<form action=\"/posts/123\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
+    expected = "<form action=\"/posts/123\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0;display:inline\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
     assert_equal expected, output_buffer
   end
 
@@ -1094,7 +1205,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for([@post, @comment]) {}
 
-    expected = %(<form action="#{comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0"><input name="_method" type="hidden" value="put" /></div></form>)
+    expected = %(<form action="#{comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0;display:inline"><input name="_method" type="hidden" value="put" /></div></form>)
     assert_dom_equal expected, output_buffer
   end
 
@@ -1113,7 +1224,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for([:admin, @post, @comment]) {}
 
-    expected = %(<form action="#{admin_comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0"><input name="_method" type="hidden" value="put" /></div></form>)
+    expected = %(<form action="#{admin_comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0;display:inline"><input name="_method" type="hidden" value="put" /></div></form>)
     assert_dom_equal expected, output_buffer
   end
 
@@ -1129,7 +1240,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_existing_object_and_custom_url
     form_for(@post, :url => "/super_posts") do |f| end
 
-    expected = "<form action=\"/super_posts\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
+    expected = "<form action=\"/super_posts\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0;display:inline\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
     assert_equal expected, output_buffer
   end
 

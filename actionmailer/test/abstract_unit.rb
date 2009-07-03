@@ -1,9 +1,6 @@
 require 'rubygems'
 require 'test/unit'
 
-gem 'mocha', '>= 0.9.5'
-require 'mocha'
-
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
 $:.unshift "#{File.dirname(__FILE__)}/../../activesupport/lib"
 $:.unshift "#{File.dirname(__FILE__)}/../../actionpack/lib"

@@ -33,21 +33,22 @@ module ActionView
     [Base, InlineTemplate, TemplateError]
   end
 
-  autoload :Base, 'action_view/base'
-  autoload :Helpers, 'action_view/helpers'
-  autoload :InlineTemplate, 'action_view/template/inline'
-  autoload :Partials, 'action_view/render/partials'
-  autoload :Path, 'action_view/template/path'
-  autoload :PathSet, 'action_view/paths'
-  autoload :Rendering, 'action_view/render/rendering'
-  autoload :Renderable, 'action_view/template/renderable'
+  autoload :Base,              'action_view/base'
+  autoload :Helpers,           'action_view/helpers'
+  autoload :InlineTemplate,    'action_view/template/inline'
+  autoload :Partials,          'action_view/render/partials'
+  autoload :Resolver,          'action_view/template/resolver'
+  autoload :PathSet,           'action_view/paths'
+  autoload :Rendering,         'action_view/render/rendering'
+  autoload :Renderable,        'action_view/template/renderable'
   autoload :RenderablePartial, 'action_view/template/partial'
-  autoload :Template, 'action_view/template/template'
-  autoload :TemplateError, 'action_view/template/error'
-  autoload :TemplateHandler, 'action_view/template/handler'
-  autoload :TemplateHandlers, 'action_view/template/handlers'
-  autoload :TextTemplate, 'action_view/template/text'
-  autoload :Helpers, 'action_view/helpers'
+  autoload :Template,          'action_view/template/template'
+  autoload :TemplateError,     'action_view/template/error'
+  autoload :TemplateHandler,   'action_view/template/handler'
+  autoload :TemplateHandlers,  'action_view/template/handlers'
+  autoload :TextTemplate,      'action_view/template/text'
+  autoload :Helpers,           'action_view/helpers'
+  autoload :FileSystemResolverWithFallback, 'action_view/template/resolver'
 end
 
 class ERB

@@ -3,7 +3,7 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 module RenderTemplate
   class WithoutLayoutController < ActionController::Base
     
-    self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "test/basic.html.erb"      => "Hello from basic.html.erb",
       "shared.html.erb"          => "Elastica",
       "locals.html.erb"          => "The secret is <%= secret %>",
@@ -79,7 +79,7 @@ module RenderTemplate
   end
     
   class WithLayoutController < ::ApplicationController
-    self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "test/basic.html.erb"          => "Hello from basic.html.erb",
       "shared.html.erb"              => "Elastica",
       "layouts/application.html.erb" => "<%= yield %>, I'm here!",
@@ -148,7 +148,7 @@ module RenderTemplate
 
   module Compatibility
     class WithoutLayoutController < ActionController::Base
-      self.view_paths = [ActionView::Template::FixturePath.new(
+      self.view_paths = [ActionView::FixtureResolver.new(
         "test/basic.html.erb" => "Hello from basic.html.erb",
         "shared.html.erb"     => "Elastica"
       )]

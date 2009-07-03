@@ -1,4 +1,3 @@
-require 'erb'
 require 'active_support/core_ext/class/attribute_accessors'
 
 module ActionView
@@ -16,7 +15,11 @@ module ActionView
       self.default_format = Mime::HTML
 
       def compile(template)
-        ::ERB.new("<% __in_erb_template=true %>#{template.source}", nil, erb_trim_mode, '@output_buffer').src
+        require 'erb'
+
+        magic = $1 if template.source =~ /\A(<%#.*coding[:=]\s*(\S+)\s*-?%>)/
+        erb = "#{magic}<% __in_erb_template=true %>#{template.source}"
+        ::ERB.new(erb, nil, erb_trim_mode, '@output_buffer').src
       end
     end
   end

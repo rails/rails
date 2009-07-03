@@ -1,4 +1,5 @@
 require 'active_support/json'
+require 'active_model/naming'
 
 module ActiveRecord #:nodoc:
   module Serialization
@@ -74,36 +75,17 @@ module ActiveRecord #:nodoc:
     #                    "title": "Welcome to the weblog"},
     #                   {"comments": [{"body": "Don't think too hard"}],
     #                    "title": "So I was thinking"}]}
-    def to_json(options = {})
-      json = JsonSerializer.new(self, options).to_s
-      if include_root_in_json
-        "{#{self.class.json_class_name}:#{json}}"
-      else
-        json
-      end
+    def encode_json(encoder)
+      hash = Serializer.new(self, encoder.options).serializable_record
+      hash = { self.class.model_name.element => hash } if include_root_in_json
+      ActiveSupport::JSON.encode(hash)
     end
+
+    def as_json(options = nil) self end #:nodoc:
 
     def from_json(json)
       self.attributes = ActiveSupport::JSON.decode(json)
       self
-    end
-
-    private
-      # For compatibility with ActiveSupport::JSON.encode
-      def rails_to_json(options, *args)
-        to_json(options)
-      end
-
-    class JsonSerializer < ActiveRecord::Serialization::Serializer #:nodoc:
-      def serialize
-        ActiveSupport::JSON.encode(serializable_record)
-      end
-    end
-
-    module ClassMethods
-      def json_class_name
-        @json_class_name ||= name.demodulize.underscore.inspect
-      end
     end
   end
 end

@@ -1,85 +1,80 @@
+require 'active_support/core_ext/load_error'
+require 'active_support/core_ext/name_error'
 require 'active_support/dependencies'
 
-# FIXME: helper { ... } is broken on Ruby 1.9
-module ActionController #:nodoc:
-  module Helpers #:nodoc:
+module ActionController
+  # The Rails framework provides a large number of helpers for working with +assets+, +dates+, +forms+,
+  # +numbers+ and model objects, to name a few. These helpers are available to all templates
+  # by default.
+  #
+  # In addition to using the standard template helpers provided in the Rails framework, creating custom helpers to
+  # extract complicated logic or reusable functionality is strongly encouraged. By default, the controller will
+  # include a helper whose name matches that of the controller, e.g., <tt>MyController</tt> will automatically
+  # include <tt>MyHelper</tt>.
+  #
+  # Additional helpers can be specified using the +helper+ class method in <tt>ActionController::Base</tt> or any
+  # controller which inherits from it.
+  #
+  # ==== Examples
+  # The +to_s+ method from the Time class can be wrapped in a helper method to display a custom message if
+  # the Time object is blank:
+  #
+  #   module FormattedTimeHelper
+  #     def format_time(time, format=:long, blank_message="&nbsp;")
+  #       time.blank? ? blank_message : time.to_s(format)
+  #     end
+  #   end
+  #
+  # FormattedTimeHelper can now be included in a controller, using the +helper+ class method:
+  #
+  #   class EventsController < ActionController::Base
+  #     helper FormattedTimeHelper
+  #     def index
+  #       @events = Event.find(:all)
+  #     end
+  #   end
+  #
+  # Then, in any view rendered by <tt>EventController</tt>, the <tt>format_time</tt> method can be called:
+  #
+  #   <% @events.each do |event| -%>
+  #     <p>
+  #       <% format_time(event.time, :short, "N/A") %> | <%= event.name %>
+  #     </p>
+  #   <% end -%>
+  #
+  # Finally, assuming we have two event instances, one which has a time and one which does not,
+  # the output might look like this:
+  #
+  #   23 Aug 11:30 | Carolina Railhawks Soccer Match
+  #   N/A | Carolina Railhaws Training Workshop
+  #
+  module Helpers
     extend ActiveSupport::Concern
 
+    include AbstractController::Helpers
+
     included do
-      # Initialize the base module to aggregate its helpers.
-      class_inheritable_accessor :master_helper_module
-      self.master_helper_module = Module.new
-
       # Set the default directory for helpers
-      class_inheritable_accessor :helpers_dir
-      self.helpers_dir = (defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/app/helpers" : "app/helpers")
-
-      class << self
-        alias_method_chain :inherited, :helper
+      extlib_inheritable_accessor(:helpers_dir) do
+        defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/app/helpers" : "app/helpers"
       end
     end
 
-    # The Rails framework provides a large number of helpers for working with +assets+, +dates+, +forms+, 
-    # +numbers+ and Active Record objects, to name a few. These helpers are available to all templates
-    # by default.
-    #
-    # In addition to using the standard template helpers provided in the Rails framework, creating custom helpers to
-    # extract complicated logic or reusable functionality is strongly encouraged.  By default, the controller will 
-    # include a helper whose name matches that of the controller, e.g., <tt>MyController</tt> will automatically
-    # include <tt>MyHelper</tt>.
-    # 
-    # Additional helpers can be specified using the +helper+ class method in <tt>ActionController::Base</tt> or any
-    # controller which inherits from it.
-    #
-    # ==== Examples
-    # The +to_s+ method from the Time class can be wrapped in a helper method to display a custom message if 
-    # the Time object is blank:
-    #
-    #   module FormattedTimeHelper
-    #     def format_time(time, format=:long, blank_message="&nbsp;")
-    #       time.blank? ? blank_message : time.to_s(format)
-    #     end
-    #   end
-    #
-    # FormattedTimeHelper can now be included in a controller, using the +helper+ class method:
-    #
-    #   class EventsController < ActionController::Base
-    #     helper FormattedTimeHelper
-    #     def index
-    #       @events = Event.find(:all)
-    #     end
-    #   end
-    #
-    # Then, in any view rendered by <tt>EventController</tt>, the <tt>format_time</tt> method can be called:
-    #
-    #   <% @events.each do |event| -%>
-    #     <p>
-    #       <% format_time(event.time, :short, "N/A") %> | <%= event.name %> 
-    #     </p>
-    #   <% end -%>
-    #
-    # Finally, assuming we have two event instances, one which has a time and one which does not, 
-    # the output might look like this:
-    #
-    #   23 Aug 11:30 | Carolina Railhawks Soccer Match 
-    #   N/A | Carolina Railhaws Training Workshop
-    #
     module ClassMethods
-      # Makes all the (instance) methods in the helper module available to templates rendered through this controller.
-      # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules
-      # available to the templates.
-      def add_template_helper(helper_module) #:nodoc:
-        master_helper_module.module_eval { include helper_module }
+      def inherited(klass)
+        klass.class_eval { default_helper_module! unless name.blank? }
+        super
       end
 
       # The +helper+ class method can take a series of helper module names, a block, or both.
       #
-      # * <tt>*args</tt>: One or more modules, strings or symbols, or the special symbol <tt>:all</tt>.
-      # * <tt>&block</tt>: A block defining helper methods.
-      # 
+      # ==== Parameters
+      # *args<Array[Module, Symbol, String, :all]>
+      # block<Block>:: A block defining helper methods
+      #
       # ==== Examples
-      # When the argument is a string or symbol, the method will provide the "_helper" suffix, require the file 
-      # and include the module in the template class.  The second form illustrates how to include custom helpers 
+      # When the argument is a string or symbol, the method will provide the "_helper" suffix, require the file
+      # and include the module in the template class.  The second form illustrates how to include custom helpers
       # when working with namespaced controllers, or other cases where the file containing the helper definition is not
       # in one of Rails' standard load paths:
       #   helper :foo             # => requires 'foo_helper' and includes FooHelper
@@ -92,78 +87,23 @@ module ActionController #:nodoc:
       # <tt>ActionController::Base.helpers_dir</tt> (defaults to <tt>app/helpers/**/*.rb</tt> under RAILS_ROOT).
       #   helper :all
       #
-      # Additionally, the +helper+ class method can receive and evaluate a block, making the methods defined available 
+      # Additionally, the +helper+ class method can receive and evaluate a block, making the methods defined available
       # to the template.
       #   # One line
       #   helper { def hello() "Hello, world!" end }
       #   # Multi-line
       #   helper do
-      #     def foo(bar) 
-      #       "#{bar} is the very best" 
+      #     def foo(bar)
+      #       "#{bar} is the very best"
       #     end
       #   end
-      # 
+      #
       # Finally, all the above styles can be mixed together, and the +helper+ method can be invoked with a mix of
       # +symbols+, +strings+, +modules+ and blocks.
       #   helper(:three, BlindHelper) { def mice() 'mice' end }
       #
       def helper(*args, &block)
-        args.flatten.each do |arg|
-          case arg
-            when Module
-              add_template_helper(arg)
-            when :all
-              helper(all_application_helpers)
-            when String, Symbol
-              file_name  = arg.to_s.underscore + '_helper'
-              class_name = file_name.camelize
-
-              begin
-                require_dependency(file_name)
-              rescue LoadError => load_error
-                requiree = / -- (.*?)(\.rb)?$/.match(load_error.message).to_a[1]
-                if requiree == file_name
-                  msg = "Missing helper file helpers/#{file_name}.rb"
-                  raise LoadError.new(msg).copy_blame!(load_error)
-                else
-                  raise
-                end
-              end
-
-              add_template_helper(class_name.constantize)
-            else
-              raise ArgumentError, "helper expects String, Symbol, or Module argument (was: #{args.inspect})"
-          end
-        end
-
-        # Evaluate block in template class if given.
-        master_helper_module.module_eval(&block) if block_given?
-      end
-
-      # Declare a controller method as a helper. For example, the following
-      # makes the +current_user+ controller method available to the view:
-      #   class ApplicationController < ActionController::Base
-      #     helper_method :current_user, :logged_in?
-      #
-      #     def current_user
-      #       @current_user ||= User.find_by_id(session[:user])
-      #     end
-      #
-      #      def logged_in?
-      #        current_user != nil
-      #      end
-      #   end
-      #
-      # In a view:
-      #  <% if logged_in? -%>Welcome, <%= current_user.name %><% end -%>
-      def helper_method(*methods)
-        methods.flatten.each do |method|
-          master_helper_module.module_eval <<-end_eval
-            def #{method}(*args, &block)                    # def current_user(*args, &block)
-              controller.send(%(#{method}), *args, &block)  #   controller.send(%(current_user), *args, &block)
-            end                                             # end
-          end_eval
-        end
+        super(*_modules_for_helpers(args), &block)
       end
 
       # Declares helper accessors for controller attributes. For example, the
@@ -171,51 +111,68 @@ module ActionController #:nodoc:
       # controller and makes them available to the view:
       #   helper_attr :name
       #   attr_accessor :name
+      #
+      # ==== Parameters
+      # *attrs<Array[String, Symbol]>:: Names of attributes to be converted
+      #   into helpers.
       def helper_attr(*attrs)
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end
 
       # Provides a proxy to access helpers methods from outside the view.
       def helpers
-        unless @helper_proxy
-          @helper_proxy = ActionView::Base.new
-          @helper_proxy.extend master_helper_module
-        else
-          @helper_proxy
+        @helper_proxy ||= ActionView::Base.new.extend(_helpers)
+      end
+
+    private
+      # Returns a list of modules, normalized from the acceptable kinds of
+      # helpers with the following behavior:
+      # String or Symbol:: :FooBar or "FooBar" becomes "foo_bar_helper",
+      #   and "foo_bar_helper.rb" is loaded using require_dependency.
+      # :all:: Loads all modules in the #helpers_dir
+      # Module:: No further processing
+      #
+      # After loading the appropriate files, the corresponding modules
+      # are returned.
+      #
+      # ==== Parameters
+      # args<Array[String, Symbol, Module, all]>:: A list of helpers
+      #
+      # ==== Returns
+      # Array[Module]:: A normalized list of modules for the list of
+      #   helpers provided.
+      def _modules_for_helpers(args)
+        args.flatten.map! do |arg|
+          case arg
+          when :all
+            _modules_for_helpers all_application_helpers
+          when String, Symbol
+            file_name = "#{arg.to_s.underscore}_helper"
+            require_dependency(file_name, "Missing helper file helpers/%s.rb")
+            file_name.camelize.constantize
+          when Module
+            arg
+          else
+            raise ArgumentError, "helper must be a String, Symbol, or Module"
+          end
         end
       end
 
-      private
-        def default_helper_module!
-          unless name.blank?
-            module_name = name.sub(/Controller$|$/, 'Helper')
-            module_path = module_name.split('::').map { |m| m.underscore }.join('/')
-            require_dependency module_path
-            helper module_name.constantize
-          end
-        rescue MissingSourceFile => e
-          raise unless e.is_missing? module_path
-        rescue NameError => e
-          raise unless e.missing_name? module_name
-        end
+      def default_helper_module!
+        module_name = name.sub(/Controller$/, '')
+        module_path = module_name.underscore
+        helper module_path
+      rescue MissingSourceFile => e
+        raise e unless e.is_missing? "#{module_path}_helper"
+      rescue NameError => e
+        raise e unless e.missing_name? "#{module_name}Helper"
+      end
 
-        def inherited_with_helper(child)
-          inherited_without_helper(child)
-
-          begin
-            child.master_helper_module = Module.new
-            child.master_helper_module.__send__ :include, master_helper_module
-            child.__send__ :default_helper_module!
-          rescue MissingSourceFile => e
-            raise unless e.is_missing?("helpers/#{child.controller_path}_helper")
-          end
-        end
-
-        # Extract helper names from files in app/helpers/**/*.rb
-        def all_application_helpers
-          extract = /^#{Regexp.quote(helpers_dir)}\/?(.*)_helper.rb$/
-          Dir["#{helpers_dir}/**/*_helper.rb"].map { |file| file.sub extract, '\1' }
-        end
+      # Extract helper names from files in app/helpers/**/*.rb
+      def all_application_helpers
+        extract = /^#{Regexp.quote(helpers_dir)}\/?(.*)_helper.rb$/
+        Dir["#{helpers_dir}/**/*_helper.rb"].map { |file| file.sub extract, '\1' }
+      end
     end
   end
 end

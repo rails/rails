@@ -111,15 +111,32 @@ module ActionView
       #
       # WARNING: content_for is ignored in caches. So you shouldn't use it
       # for elements that will be fragment cached.
-      #
-      # The deprecated way of accessing a content_for block is to use an instance variable
-      # named <tt>@content_for_#{name_of_the_content_block}</tt>. The preferred usage is now
-      # <tt><%= yield :footer %></tt>.
       def content_for(name, content = nil, &block)
-        ivar = "@content_for_#{name}"
         content = capture(&block) if block_given?
-        instance_variable_set(ivar, "#{instance_variable_get(ivar)}#{content}")
-        nil
+        return @_content_for[name] << content if content
+        @_content_for[name]
+      end
+
+      # content_for? simply checks whether any content has been captured yet using content_for
+      # Useful to render parts of your layout differently based on what is in your views.
+      # 
+      # ==== Examples
+      #
+      # Perhaps you will use different css in you layout if no content_for :right_column
+      #
+      #   <%# This is the layout %>
+      #   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+      #   <head>
+      #	    <title>My Website</title>
+      #	    <%= yield :script %>
+      #   </head>
+      #   <body class="<%= content_for?(:right_col) ? 'one-column' : 'two-column' %>">
+      #     <%= yield %>
+      #     <%= yield :right_col %>
+      #   </body>
+      #   </html>
+      def content_for?(name)
+        @_content_for[name].present?
       end
 
       # Use an alternate output buffer for the duration of the block.

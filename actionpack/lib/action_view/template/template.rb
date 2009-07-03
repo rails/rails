@@ -2,7 +2,7 @@
 # This is so that templates compiled in this file are UTF-8
 
 require 'set'
-require "action_view/template/path"
+require "action_view/template/resolver"
 
 module ActionView
   class Template
@@ -20,7 +20,7 @@ module ActionView
         handler.respond_to?(:default_format) ? handler.default_format.to_sym.to_s : "html"
       end
       @mime_type = Mime::Type.lookup_by_extension(format.to_s)
-      @details[:formats] = Array.wrap(format && format.to_sym)
+      @details[:formats] = Array.wrap(format.to_sym)
     end
     
     def render(view, locals, &blk)
@@ -53,7 +53,11 @@ module ActionView
       locals_code = locals.keys.map! { |key| "#{key} = local_assigns[:#{key}];" }.join
 
       code = @handler.call(self)
-      encoding_comment = $1 if code.sub!(/\A(#.*coding.*)\n/, '')
+      if code.sub!(/\A(#.*coding.*)\n/, '')
+        encoding_comment = $1
+      elsif defined?(Encoding) && Encoding.respond_to?(:default_external)
+        encoding_comment = "#coding:#{Encoding.default_external}"
+      end
 
       source = <<-end_src
         def #{method_name}(local_assigns)
