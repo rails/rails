@@ -2492,6 +2492,16 @@ class RouteSetTest < Test::Unit::TestCase
     end
     assert_equal({:controller => 'pages', :action => 'show', :name => 'JAMIS'}, set.recognize_path('/page/JAMIS'))
   end
+
+  def test_routes_with_symbols
+    set.draw do |map|
+      map.connect 'unnamed', :controller => :pages, :action => :show, :name => :as_symbol
+      map.named   'named',   :controller => :pages, :action => :show, :name => :as_symbol
+    end
+    assert_equal({:controller => 'pages', :action => 'show', :name => :as_symbol}, set.recognize_path('/unnamed'))
+    assert_equal({:controller => 'pages', :action => 'show', :name => :as_symbol}, set.recognize_path('/named'))
+  end
+
 end
 
 class RouteLoadingTest < Test::Unit::TestCase
