@@ -63,6 +63,12 @@ class GeneratorsTest < GeneratorsTestCase
     assert_equal "rails:generators:javascripts", klass.namespace
   end
 
+  def test_find_by_namespace_lookup_to_vendor_folders
+    klass = Rails::Generators.find_by_namespace(:mspec)
+    assert klass
+    assert_equal "mspec", klass.namespace
+  end
+
   def test_builtin_generators
     assert Rails::Generators.builtin.include? %w(rails model)
   end
@@ -75,7 +81,7 @@ class GeneratorsTest < GeneratorsTestCase
 
   def test_rails_generators_with_others_information
     output = capture(:stdout){ Rails::Generators.help }.split("\n").last
-    assert_equal "Others: active_record:fixjour, fixjour, rails:javascripts.", output
+    assert_equal "Others: active_record:fixjour, fixjour, mspec, rails:javascripts.", output
   end
 
   def test_no_color_sets_proper_shell

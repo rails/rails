@@ -20,13 +20,19 @@ module Rails
     # Generators load paths. First search on generators in the RAILS_ROOT, then
     # look for them in rails generators.
     #
-    # TODO Add plugins, gems and frozen gems to load path.
+    # TODO Right now, only plugin and frozen gems generators are loaded. Gems
+    # loaded by rubygems are not available since Rails dependencies system is
+    # being reworked.
     #
     def self.load_path
       @@load_path ||= begin
         paths = []
         paths << File.expand_path(File.join(File.dirname(__FILE__), "generators"))
-        paths << File.join(RAILS_ROOT, "lib", "generators") if defined?(RAILS_ROOT)
+        if defined?(RAILS_ROOT)
+          paths += Dir[File.join(RAILS_ROOT, "vendor", "gems", "*", "lib", "generators")]
+          paths += Dir[File.join(RAILS_ROOT, "vendor", "plugins", "*", "lib", "generators")]
+          paths << File.join(RAILS_ROOT, "lib", "generators")
+        end
         paths
       end
     end
