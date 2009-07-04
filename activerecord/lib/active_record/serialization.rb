@@ -1,42 +1,9 @@
 module ActiveRecord #:nodoc:
   module Serialization
-    class Serializer #:nodoc:
-      attr_reader :options
-
-      def initialize(record, options = nil)
-        @record = record
-        @options = options ? options.dup : {}
-      end
-
-      # To replicate the behavior in ActiveRecord#attributes,
-      # <tt>:except</tt> takes precedence over <tt>:only</tt>.  If <tt>:only</tt> is not set
-      # for a N level model but is set for the N+1 level models,
-      # then because <tt>:except</tt> is set to a default value, the second
-      # level model can have both <tt>:except</tt> and <tt>:only</tt> set.  So if
-      # <tt>:only</tt> is set, always delete <tt>:except</tt>.
-      def serializable_attribute_names
-        attribute_names = @record.attribute_names
-
-        if options[:only]
-          options.delete(:except)
-          attribute_names = attribute_names & Array.wrap(options[:only]).collect { |n| n.to_s }
-        else
-          options[:except] = Array.wrap(options[:except]) | Array.wrap(@record.class.inheritance_column)
-          attribute_names = attribute_names - options[:except].collect { |n| n.to_s }
-        end
-
-        attribute_names
-      end
-
-      def serializable_method_names
-        Array.wrap(options[:methods]).inject([]) do |method_attributes, name|
-          method_attributes << name if @record.respond_to?(name.to_s)
-          method_attributes
-        end
-      end
-
-      def serializable_names
-        serializable_attribute_names + serializable_method_names
+    module RecordSerializer #:nodoc:
+      def initialize(*args)
+        super
+        options[:except] |= Array.wrap(@serializable.class.inheritance_column)
       end
 
       # Add associations specified via the <tt>:includes</tt> option.
@@ -53,11 +20,11 @@ module ActiveRecord #:nodoc:
           associations = include_has_options ? include_associations.keys : Array.wrap(include_associations)
 
           for association in associations
-            records = case @record.class.reflect_on_association(association).macro
+            records = case @serializable.class.reflect_on_association(association).macro
             when :has_many, :has_and_belongs_to_many
-              @record.send(association).to_a
+              @serializable.send(association).to_a
             when :has_one, :belongs_to
-              @record.send(association)
+              @serializable.send(association)
             end
 
             unless records.nil?
@@ -71,28 +38,19 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      def serializable_record
-        record = {}
-        serializable_names.each { |name| record[name] = @record.send(name) }
+      def serializable_hash
+        hash = super
 
         add_includes do |association, records, opts|
-          record[association] =
+          hash[association] =
             if records.is_a?(Enumerable)
-              records.collect { |r| self.class.new(r, opts).serializable_record }
+              records.collect { |r| self.class.new(r, opts).serializable_hash }
             else
-              self.class.new(records, opts).serializable_record
+              self.class.new(records, opts).serializable_hash
             end
         end
 
-        record
-      end
-
-      def serialize
-        # overwrite to implement
-      end
-
-      def to_s(&block)
-        serialize(&block)
+        hash
       end
     end
   end
