@@ -81,7 +81,13 @@ class GeneratorsTest < GeneratorsTestCase
 
   def test_rails_generators_with_others_information
     output = capture(:stdout){ Rails::Generators.help }.split("\n").last
-    assert_equal "Others: active_record:fixjour, fixjour, mspec, rails:javascripts.", output
+    assert_equal "Others: active_record:fixjour, fixjour, mspec, rails:javascripts, wrong.", output
+  end
+
+  def test_warning_is_raised_if_generator_cant_be_loaded
+    output = capture(:stderr){ Rails::Generators.find_by_namespace(:wrong) }
+    assert_match /\[WARNING\] Could not load generator at/, output
+    assert_match /Error: uninitialized constant Rails::Generator/, output
   end
 
   def test_no_color_sets_proper_shell

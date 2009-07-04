@@ -1,14 +1,21 @@
 activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
 $:.unshift(activesupport_path) if File.directory?(activesupport_path)
-require 'active_support/all'
+
+begin
+  require 'active_support/all'
+rescue LoadError
+  require 'rubygems'
+  gem 'activesupport'
+  require 'active_support/all'
+end
+
+$:.unshift(File.dirname(__FILE__))
+require 'rails/version' unless defined?(Rails::VERSION)
 
 # TODO Use vendored Thor
 require 'rubygems'
 gem 'josevalim-thor'
 require 'thor'
-
-$:.unshift(File.dirname(__FILE__))
-require 'rails/version' unless defined?(Rails::VERSION)
 
 require 'generators/base'
 require 'generators/named_base'
@@ -16,12 +23,17 @@ require 'generators/named_base'
 module Rails
   module Generators
 
-    # Generators load paths. First search on generators in the RAILS_ROOT, then
-    # look for them in rails generators.
+    # Generators load paths used on lookup. The lookup happens as:
     #
-    # TODO Right now, only plugin and frozen gems generators are loaded. Gems
-    # loaded by rubygems are not available since Rails dependencies system is
-    # being reworked.
+    #   1) builtin generators
+    #   2) frozen gems generators
+    #   3) rubygems gems generators (not available yet)
+    #   4) plugin generators
+    #   5) lib generators
+    #   6) ~/rails/generators
+    #
+    # TODO Add Rubygems generators (depends on dependencies system rework)
+    # TODO Remove hardcoded paths for all, except (1).
     #
     def self.load_path
       @@load_path ||= begin
@@ -32,6 +44,7 @@ module Rails
           paths += Dir[File.join(RAILS_ROOT, "vendor", "plugins", "*", "lib", "generators")]
           paths << File.join(RAILS_ROOT, "lib", "generators")
         end
+        paths << File.join(Thor::Util.user_home, ".rails", "generators")
         paths
       end
     end
@@ -174,7 +187,11 @@ module Rails
 
           self.load_path.each do |path|
             Dir[File.join(path, generators_path, name)].each do |file|
-              require file
+              begin
+                require file
+              rescue Exception => e
+                warn "[WARNING] Could not load generator at #{file.inspect}. Error: #{e.message}"
+              end
             end
           end
         end
