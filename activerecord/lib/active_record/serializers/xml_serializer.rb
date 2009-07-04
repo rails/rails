@@ -164,7 +164,9 @@ module ActiveRecord #:nodoc:
     end
   end
 
-  class XmlSerializer < ActiveRecord::Serialization::Serializer #:nodoc:
+  class XmlSerializer < ActiveModel::Serializer #:nodoc:
+    include Serialization::RecordSerializer
+
     def builder
       @builder ||= begin
         require 'builder' unless defined? ::Builder
@@ -181,7 +183,7 @@ module ActiveRecord #:nodoc:
     end
 
     def root
-      root = (options[:root] || @record.class.to_s.underscore).to_s
+      root = (options[:root] || @serializable.class.to_s.underscore).to_s
       reformat_name(root)
     end
 
@@ -199,12 +201,12 @@ module ActiveRecord #:nodoc:
     end
 
     def serializable_attributes
-      serializable_attribute_names.collect { |name| Attribute.new(name, @record) }
+      serializable_attribute_names.collect { |name| Attribute.new(name, @serializable) }
     end
 
     def serializable_method_attributes
       Array(options[:methods]).inject([]) do |method_attributes, name|
-        method_attributes << MethodAttribute.new(name.to_s, @record) if @record.respond_to?(name.to_s)
+        method_attributes << MethodAttribute.new(name.to_s, @serializable) if @serializable.respond_to?(name.to_s)
         method_attributes
       end
     end
@@ -254,7 +256,7 @@ module ActiveRecord #:nodoc:
           end
         end
       else
-        if record = @record.send(association)
+        if record = @serializable.send(association)
           record.to_xml(opts.merge(:root => association))
         end
       end

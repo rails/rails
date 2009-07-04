@@ -2,6 +2,14 @@ require 'active_support/core_ext/object/instance_variables'
 
 module ActiveModel
   module Attributes
+    def self.append_features(base)
+      unless base.instance_methods.include?('attributes')
+        super
+      else
+        false
+      end
+    end
+
     def attributes
       instance_values
     end
