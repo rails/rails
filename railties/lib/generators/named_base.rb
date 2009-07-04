@@ -129,13 +129,24 @@ module Rails
         #
         def orm_class
           @orm_class ||= begin
+            # Raise an error if the class_option :orm was not defined.
             unless self.class.class_options[:orm]
               raise "You need to have :orm as class option to invoke orm_class and orm_instance" 
             end
 
             action_orm = "#{options[:orm].to_s.classify}::Generators::ActionORM"
-            action_orm.constantize
-          rescue NameError => e
+
+            # If the orm was not loaded, try to load it at "generators/orm",
+            # for example "generators/active_record" or "generators/sequel".
+            begin
+              klass = action_orm.constantize
+            rescue NameError
+              require "generators/#{options[:orm]}"
+            end
+
+            # Try once again after loading the file with success.
+            klass ||= action_orm.constantize
+          rescue Exception => e
             raise Error, "Could not load #{action_orm}, skipping controller. Error: #{e.message}."
           end
         end

@@ -100,7 +100,7 @@ class ScaffoldControllerGeneratorTest < GeneratorsTestCase
   def test_error_is_shown_if_orm_does_not_provide_interface
     error = capture(:stderr){ run_generator ["User", "--orm=unknown"] }
     assert_equal "Could not load Unknown::Generators::ActionORM, skipping controller. " <<
-                 "Error: uninitialized constant Unknown.\n", error
+                 "Error: no such file to load -- generators/unknown.\n", error
   end
 
   protected

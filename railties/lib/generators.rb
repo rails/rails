@@ -12,7 +12,6 @@ require 'rails/version' unless defined?(Rails::VERSION)
 
 require 'generators/base'
 require 'generators/named_base'
-require 'generators/active_record' # We will need ActionORM from ActiveRecord, but just it.
 
 module Rails
   module Generators
