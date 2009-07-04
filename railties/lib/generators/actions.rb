@@ -78,7 +78,6 @@ module Rails
       #
       def environment(data=nil, options={}, &block)
         sentinel = "Rails::Initializer.run do |config|"
-
         data = block.call if !data && block_given?
 
         in_root do
@@ -214,9 +213,9 @@ module Rails
       #
       def rake(command, options={})
         log :rake, command
-        env = options[:env] || 'development'
-        sudo = options[:sudo] ? 'sudo ' : ''
-        in_root { run("#{sudo}rake #{command} RAILS_ENV=#{env}", false) }
+        env  = options[:env] || 'development'
+        sudo = options[:sudo] && RUBY_PLATFORM !~ /win32|mswin/ ? 'sudo ' : ''
+        in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", false) }
       end
 
       # Just run the capify command in root
@@ -227,7 +226,7 @@ module Rails
       #
       def capify!
         log :capify, ""
-        in_root { run('capify .', false) }
+        in_root { run("#{extify(:capify)} .", false) }
       end
 
       # Add Rails to /vendor/rails
@@ -238,7 +237,7 @@ module Rails
       #
       def freeze!(args = {})
         log :vendor, "rails"
-        in_root { run('rake rails:freeze:edge', false) }
+        in_root { run("#{extify(:rake)} rails:freeze:edge", false) }
       end
 
       # Make an entry in Rails routing file conifg/routes.rb
@@ -267,6 +266,12 @@ module Rails
           else
             say_status *args
           end
+        end
+
+        # Add the ruby command extension to the given name.
+        #
+        def extify(name)
+          "#{name}#{File.extname(Thor::Util.ruby_command)}"
         end
 
     end

@@ -151,13 +151,31 @@ class ActionsTest < GeneratorsTestCase
     action :rake, 'log:clear', :sudo => true
   end
 
+  def test_rake_uses_ruby_extension
+    Thor::Util.expects(:ruby_command).returns('ruby.bat')
+    generator.expects(:run).once.with('rake.bat log:clear RAILS_ENV=development', false)
+    action :rake, 'log:clear'
+  end
+
   def test_capify_should_run_the_capify_command
     generator.expects(:run).once.with('capify .', false)
     action :capify!
   end
 
+  def test_capify_uses_ruby_extension
+    Thor::Util.expects(:ruby_command).returns('ruby.bat')
+    generator.expects(:run).once.with('capify.bat .', false)
+    action :capify!
+  end
+
   def test_freeze_should_freeze_rails_edge
     generator.expects(:run).once.with('rake rails:freeze:edge', false)
+    action :freeze!
+  end
+
+  def test_freeze_uses_ruby_extension
+    Thor::Util.expects(:ruby_command).returns('ruby.bat')
+    generator.expects(:run).once.with('rake.bat rails:freeze:edge', false)
     action :freeze!
   end
 
