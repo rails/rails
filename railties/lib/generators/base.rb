@@ -67,8 +67,7 @@ module Rails
 
       # Invoke a generator based on the value supplied by the user to the
       # given option named "name". A class option is created when this method
-      # is invoked and you can set a hash to customize it, although type and
-      # default values cannot be given.
+      # is invoked and you can set a hash to customize it.
       #
       # ==== Examples
       #
@@ -99,9 +98,25 @@ module Rails
       #
       #   ruby script/generate controller Account --no-test-framework
       #
+      # ==== Boolean hooks
+      #
+      # In some cases, you want to provide a boolean hook. For example, webrat
+      # developers might want to have webrat available on controller generator.
+      # This can be achieved as:
+      #
+      #   Rails::Generators::ControllerGenerator.hook_for :webrat, :type => :boolean
+      #
+      # Then, if you want, webrat to be invoked, just supply:
+      #
+      #   ruby script/generate controller Account --webrat
+      #
+      # The hooks lookup is similar as above:
+      #
+      #   "rails:generators:webrat", "webrat:generators:controller", "webrat"
+      #
       # ==== Custom invocations
       #
-      # You can also supply a block to hook for to customize how the hook is
+      # You can also supply a block to hook_for to customize how the hook is
       # going to be invoked. The block receives two parameters, an instance
       # of the current class and the klass to be invoked.
       #
@@ -120,9 +135,15 @@ module Rails
         verbose = options.fetch(:verbose, :white)
 
         names.each do |name|
-          default = { :desc => "#{name.to_s.humanize} to be invoked", :banner => "NAME" }
-          class_option name, default.merge!(options)
+          defaults = if options[:type] == :boolean
+            { }
+          elsif [true, false].include?(options.fetch(:default, DEFAULTS[name]))
+            { :banner => "" }
+          else
+            { :desc => "#{name.to_s.humanize} to be invoked", :banner => "NAME" }
+          end
 
+          class_option name, defaults.merge!(options)
           invocations << [ name, base_name, as ]
           invocation_blocks[name] = block if block_given?
 
@@ -130,7 +151,7 @@ module Rails
           #
           # ==== Generates
           #
-          # def invoke_for_test_framework
+          # def hook_for_test_framework
           #   return unless options[:test_framework]
           #
           #   klass_name = options[:test_framework]
@@ -138,10 +159,16 @@ module Rails
           #   klass = Rails::Generators.find_by_namespace(klass_name, "rails", "model")
           #
           #   if klass
-          #     say_status :invoke, options[:test_framework], :blue
-          #     invoke_class_with_block :test_framework, klass
+          #     say_status :invoke, options[:test_framework], :white
+          #      shell.padding += 1
+          #      if block = self.class.invocation_blocks[:test_framework]
+          #        block.call(self, klass)
+          #      else
+          #        invoke klass
+          #      end
+          #      shell.padding -= 1
           #   else
-          #     say "Could not find and invoke '#{options[:test_framework]}'"
+          #     say "Could not find and invoke '#{klass_name}'"
           #   end
           # end
           #
@@ -155,80 +182,15 @@ module Rails
 
               if klass
                 say_status :invoke, klass_name, #{verbose.inspect}
-                invoke_class_with_block #{name.inspect}, klass
+                shell.padding += 1
+                if block = self.class.invocation_blocks[#{name.inspect}]
+                  block.call(self, klass)
+                else
+                  invoke klass
+                end
+                shell.padding -= 1
               else
                 say "Could not find and invoke '\#{klass_name}'."
-              end
-            end
-          METHOD
-        end
-      end
-
-      # Invoke a generator with the given name if the user requires it. The
-      # difference to hook_for is that the class option here is boolean
-      # and the generator invoked is not based on user input.
-      #
-      # A class option is created when this method is invoked and you can set
-      # a hash to customize it, although type and default values cannot be
-      # given.
-      #
-      # ==== Examples
-      #
-      #   class ControllerGenerator < Rails::Generators::Base
-      #     invoke_if :webrat, :aliases => "-w"
-      #   end
-      #
-      # The example above will create a helper option and will be invoked
-      # when the user requires so:
-      #
-      #   ruby script/generate controller Account --webrat
-      #
-      # The controller generator will then try to invoke the following generators:
-      #
-      #   "rails:generators:webrat", "webrat:generators:controller", "webrat"
-      #
-      # ==== Custom invocations
-      #
-      # This method accepts custom invocations as in hook_for. Check hook_for
-      # for usage and examples.
-      #
-      def self.invoke_if(*names, &block)
-        options = names.extract_options!.merge(:type => :boolean)
-        as      = options.fetch(:as, generator_name)
-        verbose = options.fetch(:verbose, :white)
-
-        names.each do |name|
-          class_option name, options
-
-          invocations << [ name, base_name, as ]
-          invocation_blocks[name] = block if block_given?
-
-          # invoke_if :helper
-          #
-          # ==== Generates
-          #
-          # def invoke_if_helper
-          #   return unless options[:helper]
-          #   klass = Rails::Generators.find_by_namespace(:helper, "rails", "controller")
-          #
-          #   if klass
-          #     say_status :invoke, :helper, :blue
-          #     invoke_class_with_block :helper, klass
-          #   else
-          #     say "Could not find and invoke 'helper'"
-          #   end
-          # end
-          #
-          class_eval <<-METHOD, __FILE__, __LINE__
-            def invoke_if_#{name}
-              return unless options[#{name.inspect}]
-              klass = Rails::Generators.find_by_namespace(#{name.inspect}, #{base_name.inspect}, #{as.inspect})
-
-              if klass
-                say_status :invoke, #{name.inspect}, #{verbose.inspect}
-                invoke_class_with_block #{name.inspect}, klass
-              else
-                say "Could not find and invoke '#{name}'."
               end
             end
           METHOD
@@ -260,20 +222,6 @@ module Rails
       end
 
       protected
-
-        # This is the common method that both hook_for and invoke_if use to
-        # invoke a class. It searches for a block in the invocation blocks
-        # in case the user wants to customize how the class is invoked.
-        #
-        def invoke_class_with_block(name, klass) #:nodoc:
-          shell.padding += 1
-          if block = self.class.invocation_blocks[name]
-            block.call(self, klass)
-          else
-            invoke klass
-          end
-          shell.padding -= 1
-        end
 
         # Check whether the given class names are already taken by user
         # application or Ruby on Rails.
