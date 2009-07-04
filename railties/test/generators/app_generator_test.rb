@@ -109,6 +109,21 @@ class AppGeneratorTest < GeneratorsTestCase
     ).each { |path| assert_file "script/#{path}", /#!foo\/bar\/baz/ }
   end
 
+  def test_shebang_when_is_the_same_as_default_use_env
+    run_generator ["--ruby", Thor::Util.ruby_command]
+
+    %w(
+      about
+      console
+      dbconsole
+      destroy
+      generate
+      plugin
+      runner
+      server
+    ).each { |path| assert_file "script/#{path}", /#!\/usr\/bin\/env/ }
+  end
+
   def test_rails_is_frozen
     generator(:freeze => true, :database => "sqlite3").expects(:run).with("rake rails:freeze:edge", false)
     silence(:stdout){ generator.invoke }

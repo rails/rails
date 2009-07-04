@@ -335,18 +335,21 @@ module Rails
         # default value plus an instance helper method called shebang.
         #
         def self.add_shebang_option!
-          require 'rbconfig'
-          default = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
-
-          class_option :ruby, :type => :string, :aliases => "-r", :default => default,
+          class_option :ruby, :type => :string, :aliases => "-r", :default => Thor::Util.ruby_command,
                               :desc => "Path to the Ruby binary of your choice", :banner => "PATH"
 
-          class_eval <<-METHOD, __FILE__, __LINE__
-            protected
-            def shebang
-              "#!\#{options[:ruby] || "/usr/bin/env ruby"}"
+          no_tasks {
+            define_method :shebang do
+              @shebang ||= begin
+                command = if options[:ruby] == Thor::Util.ruby_command
+                  "/usr/bin/env #{File.basename(Thor::Util.ruby_command)}"
+                else
+                  options[:ruby]
+                end
+                "#!#{command}"
+              end
             end
-          METHOD
+          }
         end
 
     end
