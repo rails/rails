@@ -214,7 +214,7 @@ module Rails
       def rake(command, options={})
         log :rake, command
         env  = options[:env] || 'development'
-        sudo = options[:sudo] && RUBY_PLATFORM !~ /win32|mswin/ ? 'sudo ' : ''
+        sudo = options[:sudo] && RUBY_PLATFORM !~ /mswin|mingw/ ? 'sudo ' : ''
         in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", false) }
       end
 
@@ -268,10 +268,14 @@ module Rails
           end
         end
 
-        # Add the ruby command extension to the given name.
+        # Add an extension to the given name based on the platform.
         #
         def extify(name)
-          "#{name}#{File.extname(Thor::Util.ruby_command)}"
+          if RUBY_PLATFORM =~ /mswin|mingw/
+            "#{name}.bat"
+          else
+            name
+          end
         end
 
     end
