@@ -16,7 +16,7 @@ p. We'd like to thank the following people for their tireless contributions to t
 <% end %>
 
 <% author('Xavier Noria', 'fxn', 'fxn.png') do %>
-  Xavier Noria has been around dynamic languages since 2000. He fell in love with Rails in 2005, and cofounded Rails-based software company <a href="http://www.aspgems.com">ASPgems</a> in mid-2006. Xavier is president of the <a href="http://www.srug.org/">Spanish Ruby Users Group</a> and has been involved in Rails in several ways. He enjoys combining his passion for Rails and his past life as a proofreader of math textbooks. Oh, he also "tweets":http://twitter.com/fxn!
+  Xavier has been into Rails since 2005, he is currently a Rails consultant. Xavier is president of the <a href="http://www.srug.org/">Spanish Ruby Users Group</a> and has been involved in Rails in several ways. He enjoys combining his passion for Rails and his past life as a proofreader of math textbooks. Oh, he also "tweets":http://twitter.com/fxn!
 <% end %>
 
 <h3 class="section">Rails Guides Designers</h3>
