@@ -2,11 +2,11 @@ activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
 $:.unshift(activesupport_path) if File.directory?(activesupport_path)
 
 begin
-  require 'active_support/all'
+  require 'active_support/mini'
 rescue LoadError
   require 'rubygems'
   gem 'activesupport'
-  require 'active_support/all'
+  require 'active_support/mini'
 end
 
 $:.unshift(File.dirname(__FILE__))
