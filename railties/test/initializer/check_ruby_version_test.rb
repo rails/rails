@@ -1,7 +1,7 @@
 require "initializer/test_helper"
 
 module InitializerTests
-  class PathsTest < ActiveSupport::TestCase
+  class PathsTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
 
     test "rails does not initialize with ruby version 1.8.1" do

@@ -1,6 +1,6 @@
 require "initializer/test_helper"
 
-class PathsTest < ActiveSupport::TestCase
+class PathsTest < Test::Unit::TestCase
   include ActiveSupport::Testing::Isolation
 
   def self.setup
