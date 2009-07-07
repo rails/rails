@@ -839,6 +839,12 @@ module ActiveRecord
       #   Specifies the name of the <tt>belongs_to</tt> association on the associated object that is the inverse of this <tt>has_many</tt> 
       #   association.  Does not work in combination with <tt>:through</tt> or <tt>:as</tt> options.  
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional assocations for more detail.
+      # [:before_add]
+      # [:after_add]
+      # [:before_remove]
+      # [:after_remove]
+      #   Specifies callback function/Proc which gets called before/after target object is associated  / deassociated 
+      #   See "Association callbacks" section for more information and example.
       #
       # Option examples:
       #   has_many :comments, :order => "posted_on"
