@@ -53,7 +53,7 @@ class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
 
   def test_percent_s_interpolation_syntax_in_error_messages_is_deprecated
     assert_deprecated('using %s in messages') do
-      I18n.t :does_not_exist, :default => "%s interpolation syntax is deprected", :value => 'this'
+      I18n.t :does_not_exist, :default => "%s interpolation syntax is deprecated", :value => 'this'
     end
   end
 
@@ -67,6 +67,12 @@ class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
   def test_percent_d_interpolation_syntax_in_error_messages_is_deprecated
     assert_deprecated('using %d in messages') do
       I18n.t :does_not_exist, :default => "%d interpolation syntaxes are deprected", :count => 2
+    end
+  end
+
+  def test_percent_s_interpolation_syntax_not_changed_when_no_values_were_passed
+    assert_not_deprecated do
+      I18n.t :does_not_exist, :default => "%d interpolation syntaxes are deprected"
     end
   end
 

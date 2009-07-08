@@ -10,7 +10,7 @@ module I18n
 
       protected
         def interpolate_with_deprecated_syntax(locale, string, values = {})
-          return string unless string.is_a?(String)
+          return string unless string.is_a?(String) && !values.empty?
 
           string = string.gsub(/%d|%s/) do |s|
             instead = DEPRECATED_INTERPOLATORS[s]
