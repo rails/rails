@@ -25,7 +25,8 @@ class DispatcherTest < Test::Unit::TestCase
 
   def test_clears_dependencies_after_dispatch_if_in_loading_mode
     ActiveSupport::Dependencies.expects(:clear).once
-    dispatch(false)
+    # Close the response so dependencies kicks in
+    dispatch(false).last.close
   end
 
   def test_reloads_routes_before_dispatch_if_in_loading_mode
