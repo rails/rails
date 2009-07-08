@@ -278,6 +278,35 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
     end
 end
 
+class InitializerGeneratorsTests < Test::Unit::TestCase
+  def test_generators_empty_aliases_and_options
+    assert_equal({}, Rails::Configuration.new.generators.aliases)
+    assert_equal({}, Rails::Configuration.new.generators.options)
+  end
+
+  def test_generators_set_options
+    config = Rails::Configuration.new
+    config.generators.orm :datamapper
+    config.generators.test_framework :rspec
+    assert_equal({ :orm => :datamapper, :test_framework => :rspec }, config.generators.options)
+  end
+
+  def test_generators_set_aliases
+    config = Rails::Configuration.new
+    config.generators.aliases :test_framework => "-w"
+    assert_equal({ :test_framework => "-w" }, config.generators.aliases)
+  end
+
+  def test_generators_with_block
+    config = Rails::Configuration.new
+    config.generators do |g|
+      g.orm :datamapper
+      g.test_framework :rspec
+    end
+    assert_equal({ :orm => :datamapper, :test_framework => :rspec }, config.generators.options)
+  end
+end
+
 class InitializerSetupI18nTests < Test::Unit::TestCase
   def test_no_config_locales_dir_present_should_return_empty_load_path
     File.stubs(:exist?).returns(false)

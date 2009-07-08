@@ -249,5 +249,52 @@ module Rails
     def reload_plugins?
       @reload_plugins
     end
+
+    # Holds generators configuration:
+    #
+    #   config.generators.orm :datamapper
+    #   config.generators.test_framework :rspec
+    #   config.generators.template_engine :haml
+    #
+    # A block can also be given for less verbose configuration:
+    #
+    #   config.generators do |g|
+    #     g.orm :datamapper
+    #     g.test_framework :datamapper
+    #     g.template_engine :haml
+    #   end
+    #
+    # You can also configure/override aliases:
+    #
+    #   config.generators.aliases :test_framework => "-w"
+    #
+    def generators
+      @generators ||= Generators.new
+      if block_given?
+        yield @generators
+      else
+        @generators
+      end
+    end
+
+    class Generators #:nodoc:
+      def initialize
+        @aliases, @options = {}, {}
+      end
+
+      def aliases(values=nil)
+        @aliases = values if values
+        @aliases
+      end
+
+      def options(values=nil)
+        @options = values if values
+        @options
+      end
+
+      def method_missing(method, *args, &block)
+        @options[method.to_sym] = args.first
+      end
+    end
   end
 end
