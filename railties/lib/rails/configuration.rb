@@ -252,21 +252,25 @@ module Rails
 
     # Holds generators configuration:
     #
-    #   config.generators.orm :datamapper
-    #   config.generators.test_framework :rspec
-    #   config.generators.template_engine :haml
+    #   config.generators.orm = :datamapper
+    #   config.generators.test_framework = :rspec
+    #   config.generators.template_engine = :haml
     #
     # A block can also be given for less verbose configuration:
     #
     #   config.generators do |g|
-    #     g.orm :datamapper
-    #     g.test_framework :datamapper
-    #     g.template_engine :haml
+    #     g.orm = :datamapper
+    #     g.test_framework = :datamapper
+    #     g.template_engine = :haml
     #   end
     #
     # You can also configure/override aliases:
     #
-    #   config.generators.aliases :test_framework => "-w"
+    #   config.generators.aliases = :test_framework => "-w"
+    #
+    # Finally, to disable color in console, do:
+    #
+    #   config.generators.colorize_logging = false
     #
     def generators
       @generators ||= Generators.new
@@ -278,22 +282,19 @@ module Rails
     end
 
     class Generators #:nodoc:
+      attr_accessor :aliases, :options, :colorize_logging
+
       def initialize
-        @aliases, @options = {}, {}
-      end
-
-      def aliases(values=nil)
-        @aliases = values if values
-        @aliases
-      end
-
-      def options(values=nil)
-        @options = values if values
-        @options
+        @aliases, @options, @colorize_logging = {}, {}, true
       end
 
       def method_missing(method, *args, &block)
-        @options[method.to_sym] = args.first
+        method = method.to_s
+        if method.gsub!(/=$/, '')
+          @options[method.to_sym] = args.first
+        else
+          super(method.to_sym, *args, &block)
+        end
       end
     end
   end

@@ -2,33 +2,6 @@ require 'generators/actions'
 
 module Rails
   module Generators
-    DEFAULTS = {
-      :fixture => true,
-      :force_plural => false,
-      :helper => true,
-      :layout => true,
-      :migration => true,
-      :orm => 'active_record',
-      :resource_controller => 'controller',
-      :scaffold_controller => 'scaffold_controller',
-      :singleton => false,
-      :stylesheets => true,
-      :test_framework => 'test_unit',
-      :template_engine => 'erb',
-      :timestamps => true
-    }
-
-    ALIASES = {
-      :actions => '-a',
-      :fixture_replacement => '-r',
-      :orm => '-o',
-      :resource_controller => '-c',
-      :scaffold_controller => '-c',
-      :stylesheets => '-y',
-      :test_framework => '-t',
-      :template_engine => '-e'
-    }
-
     class Error < Thor::Error
     end
 
@@ -137,7 +110,7 @@ module Rails
         names.each do |name|
           defaults = if options[:type] == :boolean
             { }
-          elsif [true, false].include?(options.fetch(:default, DEFAULTS[name]))
+          elsif [true, false].include?(options.fetch(:default, Rails::Generators.options[name]))
             { :banner => "" }
           else
             { :desc => "#{name.to_s.humanize} to be invoked", :banner => "NAME" }
@@ -212,12 +185,12 @@ module Rails
         end
       end
 
-      # Make class option aware of DEFAULTS and ALIASES.
+      # Make class option aware of Rails::Generators.options and Rails::Generators.aliases.
       #
       def self.class_option(name, options) #:nodoc:
         options[:desc]    = "Indicates when to generate #{name.to_s.humanize.downcase}" unless options.key?(:desc)
-        options[:aliases] = ALIASES[name]  unless options.key?(:aliases)
-        options[:default] = DEFAULTS[name] unless options.key?(:default)
+        options[:aliases] = Rails::Generators.aliases[name]  unless options.key?(:aliases)
+        options[:default] = Rails::Generators.options[name] unless options.key?(:default)
         super(name, options)
       end
 

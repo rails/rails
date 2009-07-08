@@ -10,7 +10,6 @@ rescue LoadError
 end
 
 $:.unshift(File.dirname(__FILE__))
-require 'rails/version' unless defined?(Rails::VERSION)
 
 # TODO Use vendored Thor
 require 'rubygems'
@@ -22,6 +21,46 @@ require 'generators/named_base'
 
 module Rails
   module Generators
+    DEFAULT_ALIASES = {
+      :actions => '-a',
+      :fixture_replacement => '-r',
+      :orm => '-o',
+      :resource_controller => '-c',
+      :scaffold_controller => '-c',
+      :stylesheets => '-y',
+      :test_framework => '-t',
+      :template_engine => '-e'
+    }
+
+    DEFAULT_OPTIONS = {
+      :fixture => true,
+      :force_plural => false,
+      :helper => true,
+      :layout => true,
+      :migration => true,
+      :orm => 'active_record',
+      :resource_controller => 'controller',
+      :scaffold_controller => 'scaffold_controller',
+      :singleton => false,
+      :stylesheets => true,
+      :test_framework => 'test_unit',
+      :template_engine => 'erb',
+      :timestamps => true
+    }
+
+    def self.aliases
+      @@aliases ||= DEFAULT_ALIASES.dup
+    end
+
+    def self.options
+      @@options ||= DEFAULT_OPTIONS.dup
+    end
+
+    # Remove the color from output.
+    #
+    def self.no_color!
+      Thor::Base.shell = Thor::Shell::Basic
+    end
 
     # Generators load paths used on lookup. The lookup happens as:
     #
@@ -48,21 +87,7 @@ module Rails
         paths
       end
     end
-    load_path # Cache load paths
-
-    # Keep builtin generators in an Array[Array[group, name]].
-    #
-    def self.builtin
-      Dir[File.dirname(__FILE__) + '/generators/*/*'].collect do |file|
-        file.split('/')[-2, 2]
-      end
-    end
-
-    # Remove the color from output.
-    #
-    def self.no_color!
-      Thor::Base.shell = Thor::Shell::Basic
-    end
+    load_path # Cache load paths. Needed to avoid __FILE__ pointing to wrong paths.
 
     # Receives a namespace and tries different combinations to find a generator.
     #
@@ -106,6 +131,19 @@ module Rails
       nil
     end
 
+    # Receives a namespace, arguments and the behavior to invoke the generator.
+    # It's used as the default entry point for generate, destroy and update
+    # commands.
+    #
+    def self.invoke(namespace, args=ARGV, config={})
+      if klass = find_by_namespace(namespace, "rails")
+        args << "--help" if klass.arguments.any? { |a| a.required? } && args.empty?
+        klass.start args, config
+      else
+        puts "Could not find generator #{namespace}."
+      end
+    end
+
     # Show help message with available generators.
     #
     def self.help
@@ -137,25 +175,20 @@ module Rails
       puts "Others: #{others.join(', ')}." unless others.empty?
     end
 
-    # Receives a namespace, arguments and the behavior to invoke the generator.
-    # It's used as the default entry point for generate, destroy and update
-    # commands.
-    #
-    def self.invoke(namespace, args=ARGV, config={})
-      if klass = find_by_namespace(namespace, "rails")
-        args << "--help" if klass.arguments.any? { |a| a.required? } && args.empty?
-        klass.start args, config
-      else
-        puts "Could not find generator #{namespace}."
-      end
-    end
-
     protected
 
       # Return all defined namespaces.
       #
       def self.namespaces
         Thor::Base.subclasses.map(&:namespace)
+      end
+
+      # Keep builtin generators in an Array[Array[group, name]].
+      #
+      def self.builtin
+        Dir[File.dirname(__FILE__) + '/generators/*/*'].collect do |file|
+          file.split('/')[-2, 2]
+        end
       end
 
       # Receives namespaces in an array and tries to find matching generators
