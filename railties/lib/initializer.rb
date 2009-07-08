@@ -12,6 +12,10 @@ require 'rails/configuration'
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 
 module Rails
+  # Sanity check to make sure this file is only loaded once
+  # TODO: Get to the point where this can be removed.
+  raise "It looks like initializer.rb was required twice" if defined?(Initializer)
+
   class Initializer
     class Error < StandardError ; end
 
