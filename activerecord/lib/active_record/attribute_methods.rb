@@ -133,6 +133,7 @@ module ActiveRecord
       end
 
       private
+
         # Suffixes a, ?, c become regexp /(a|\?|c)$/
         def rebuild_attribute_method_regexp
           suffixes = attribute_method_suffixes.map { |s| Regexp.escape(s) }
@@ -238,19 +239,17 @@ module ActiveRecord
     def method_missing(method_id, *args, &block)
       method_name = method_id.to_s
 
-      if self.class.private_method_defined?(method_name)
-        raise NoMethodError.new("Attempt to call private method", method_name, args)
-      end
-
       # If we haven't generated any methods yet, generate them, then
       # see if we've created the method we're looking for.
       if !self.class.generated_methods?
         self.class.define_attribute_methods
+        guard_private_attribute_method!(method_name, args)
         if self.class.generated_methods.include?(method_name)
           return self.send(method_id, *args, &block)
         end
       end
       
+      guard_private_attribute_method!(method_name, args)
       if self.class.primary_key.to_s == method_name
         id
       elsif md = self.class.match_attribute_method?(method_name)
@@ -371,6 +370,12 @@ module ActiveRecord
     end
 
     private
+      # prevent method_missing from calling private methods with #send
+      def guard_private_attribute_method!(method_name, args)
+        if self.class.private_method_defined?(method_name)
+          raise NoMethodError.new("Attempt to call private method", method_name, args)
+        end
+      end
     
       def missing_attribute(attr_name, stack)
         raise ActiveRecord::MissingAttributeError, "missing attribute: #{attr_name}", stack
