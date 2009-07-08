@@ -371,9 +371,9 @@ ActionMailer::Base.default_charset = "iso-8859-1"
 
 h4. Action Mailer Configuration for GMail
 
-Instructions copied from http://http://www.fromjavatoruby.com/2008/11/actionmailer-with-gmail-must-issue.html
+Instructions copied from "this blog entry":http://www.fromjavatoruby.com/2008/11/actionmailer-with-gmail-must-issue.html by Robert Zotter.
 
-First you must install the +action_mailer_tls+ plugin from http://code.openrain.com/rails/action_mailer_tls/, then all you have to do is configure action mailer.
+First you must install the "action_mailer_tls":http://github.com/openrain/action_mailer_tls plugin, then all you have to do is configure Action Mailer:
 
 <ruby>
 ActionMailer::Base.smtp_settings = {
