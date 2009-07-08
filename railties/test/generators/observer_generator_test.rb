@@ -20,8 +20,8 @@ class ObserverGeneratorTest < GeneratorsTestCase
   end
 
   def test_logs_if_the_test_framework_cannot_be_found
-    content = run_generator ["account", "--test-framework=unknown"]
-    assert_match /Could not find and invoke 'unknown'/, content
+    content = run_generator ["account", "--test-framework=rspec"]
+    assert_match /rspec \[not found\]/, content
   end
 
   protected

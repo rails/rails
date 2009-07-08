@@ -1,6 +1,6 @@
 require 'digest/md5' 
 require 'active_support/secure_random'
-require 'rails/version' unless defined?(RAILS::VERSION)
+require 'rails/version' unless defined?(Rails::VERSION)
 
 module Rails::Generators
   class AppGenerator < Base

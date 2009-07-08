@@ -108,7 +108,7 @@ class ModelGeneratorTest < GeneratorsTestCase
 
   def test_fixture_is_skipped_if_fixture_replacement_is_given
     content = run_generator ["account", "-r", "factory_girl"]
-    assert_match /Could not find and invoke 'factory_girl'/, content
+    assert_match /factory_girl \[not found\]/, content
     assert_no_file "test/fixtures/accounts.yml"
   end
 

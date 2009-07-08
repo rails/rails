@@ -38,13 +38,13 @@ module Rails
       :helper => true,
       :layout => true,
       :migration => true,
-      :orm => 'active_record',
-      :resource_controller => 'controller',
-      :scaffold_controller => 'scaffold_controller',
+      :orm => :active_record,
+      :resource_controller => :controller,
+      :scaffold_controller => :scaffold_controller,
       :singleton => false,
       :stylesheets => true,
-      :test_framework => 'test_unit',
-      :template_engine => 'erb',
+      :test_framework => :test_unit,
+      :template_engine => :erb,
       :timestamps => true
     }
 

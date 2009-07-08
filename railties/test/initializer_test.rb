@@ -352,7 +352,7 @@ class InitializerGeneratorsTests < Test::Unit::TestCase
   def test_generators_are_not_invoked_with_other_environments
     @configuration.generators.test_framework = :rspec
     @initializer.run(:initialize_generators)
-    assert_equal "test_unit", Rails::Generators.options[:test_framework]
+    assert_equal :test_unit, Rails::Generators.options[:test_framework]
   end
 
   protected

@@ -33,8 +33,8 @@ class MailerGeneratorTest < GeneratorsTestCase
   end
 
   def test_logs_if_the_template_engine_cannot_be_found
-    content = run_generator ["notifier", "foo", "bar", "--template-engine=unknown"]
-    assert_match /Could not find and invoke 'unknown'/, content
+    content = run_generator ["notifier", "foo", "bar", "--template-engine=haml"]
+    assert_match /haml \[not found\]/, content
   end
 
   def test_actions_are_turned_into_methods

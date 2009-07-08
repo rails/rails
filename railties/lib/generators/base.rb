@@ -163,7 +163,7 @@ module Rails
                 end
                 shell.padding -= 1
               else
-                say "Could not find and invoke '\#{klass_name}'."
+                say_status :error, "\#{klass_name} [not found]", :red
               end
             end
           METHOD
