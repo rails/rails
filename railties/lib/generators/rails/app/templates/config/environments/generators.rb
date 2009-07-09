@@ -1,13 +1,12 @@
 # Settings specified here will take precedence over those in config/environment.rb
 
-# Cache classes and log when you accidentally call methods on nil.
-config.cache_classes = false
+# No need to reload in generators environment, so do cache classes.
+config.cache_classes = true
+
+# Log error messages when you accidentally call methods on nil.
 config.whiny_nils = true
 
-# We do not need any framework on generators. They are loaded on demand.
-config.frameworks.clear
-
-# Configure generators. Below you have the default values, delete them if you want.
+# Configure generators options (below are default values, delete them if you want).
 config.generators do |g|
   g.helper          = true
   g.layout          = true
