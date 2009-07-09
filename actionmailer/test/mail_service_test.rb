@@ -861,6 +861,26 @@ EOF
     assert_equal "text/yaml", mail.parts[2].content_type
   end
 
+  def test_implicitly_path_when_running_from_none_rails_root
+    exected_path = File.expand_path(File.join(File.dirname(__FILE__), "fixtures", "test_mailer"))
+    with_a_rails_root do
+      Dir.chdir "/" do
+        template_path = TestMailer.allocate.send(:template_path)
+        assert_equal exected_path, File.expand_path(template_path)
+      end
+    end
+  end
+
+
+  def test_implicitly_multipart_messages_run_from_another_location_with_a_rails_root
+    with_a_rails_root do
+      Dir.chdir "/" do
+        mail = TestMailer.create_implicitly_multipart_example(@recipient)
+        assert_equal 3, mail.parts.length
+      end
+    end
+  end
+
   def test_implicitly_multipart_messages_with_charset
     mail = TestMailer.create_implicitly_multipart_example(@recipient, 'iso-8859-1')
 
@@ -1008,6 +1028,16 @@ EOF
     TestMailer.deliver_signed_up(@recipient)
   ensure
     ActionMailer::Base.smtp_settings[:enable_starttls_auto] = true
+  end
+
+private
+  def with_a_rails_root
+    old_root = ::RAILS_ROOT if defined? ::RAILS_ROOT
+    Object.const_set(:RAILS_ROOT, File.join(File.dirname(__FILE__)))
+    yield
+  ensure
+    Object.send(:remove_const, :RAILS_ROOT) if defined? ::RAILS_ROOT
+    Object.const_set(:RAILS_ROOT, old_root) if old_root
   end
 end
 

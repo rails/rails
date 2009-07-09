@@ -593,7 +593,7 @@ module ActionMailer #:nodoc:
       end
 
       def template_path
-        "#{template_root}/#{mailer_name}"
+        File.join(template_root, mailer_name)
       end
 
       def initialize_template_class(assigns)
