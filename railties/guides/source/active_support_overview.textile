@@ -80,7 +80,7 @@ Active Support provides +duplicable?+ to programmatically query an object about 
 false.duplicable?  # => false
 </ruby>
 
-By definition all objects are +duplicable?+ except +nil+, +false+, +true+, symbols, and numbers.
+By definition all objects are +duplicable?+ except +nil+, +false+, +true+, symbols, numbers, and class objects.
 
 WARNING. Using +duplicable?+ is discouraged because it depends on a hard-coded list. Classes have means to disallow duplication like removing +dup+ and +clone+ or raising exceptions from them, only +rescue+ can tell.
 
