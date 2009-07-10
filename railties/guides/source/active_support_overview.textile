@@ -51,6 +51,40 @@ The method +present?+ is equivalent to +!blank?+:
 assert @response.body.present? # same as !@response.body.blank?
 </ruby>
 
+h4. +duplicable?+
+
+A few fundamental objects in Ruby are singletons. For example, in the whole live of a program the integer 1 refers always to the same instance:
+
+<ruby>
+1.object_id                 # => 3
+Math.cos(0).to_i.object_id  # => 3
+</ruby>
+
+Hence, there's no way these objects can be duplicated through +dup+ or +clone+:
+
+<ruby>
+true.dup  # => TypeError: can't dup TrueClass
+</ruby>
+
+Some numbers which are not singletons are not duplicable either:
+
+<ruby>
+0.0.clone        # => allocator undefined for Float
+(2**1024).clone  # => allocator undefined for Bignum
+</ruby>
+
+Active Support provides +duplicable?+ to programmatically query an object about this property:
+
+<ruby>
+"".duplicable?     # => true
+false.duplicable?  # => false
+</ruby>
+
+By definition all objects are +duplicable?+ except +nil+, +false+, +true+, symbols, and numbers.
+
+WARNING. Using +duplicable?+ is discouraged because it depends on a hard-coded list. Classes have means to disallow duplication like removing +dup+ and +clone+ or raising exceptions from them, only +rescue+ can tell.
+
+
 h4. +metaclass+
 
 The method +metaclass+ returns the singleton class on any object:
