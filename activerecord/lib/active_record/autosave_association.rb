@@ -314,9 +314,12 @@ module ActiveRecord
 
         if autosave && association.marked_for_destruction?
           association.destroy
-        elsif autosave != false && (new_record? || association.new_record? || association[reflection.primary_key_name] != id || autosave)
-          association[reflection.primary_key_name] = id
-          association.save(!autosave)
+        else
+          key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
+          if autosave != false && (new_record? || association.new_record? || association[reflection.primary_key_name] != key || autosave)
+            association[reflection.primary_key_name] = key
+            association.save(!autosave)
+          end
         end
       end
     end

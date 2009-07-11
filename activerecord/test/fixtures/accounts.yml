@@ -2,6 +2,7 @@ signals37:
   id: 1
   firm_id: 1
   credit_limit: 50
+  firm_name: 37signals
 
 unknown:
   id: 2
