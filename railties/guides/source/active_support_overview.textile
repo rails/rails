@@ -84,6 +84,24 @@ By definition all objects are +duplicable?+ except +nil+, +false+, +true+, symbo
 
 WARNING. Using +duplicable?+ is discouraged because it depends on a hard-coded list. Classes have means to disallow duplication like removing +dup+ and +clone+ or raising exceptions from them, only +rescue+ can tell.
 
+h4. +tap+
+
++Object#tap+ exists in Ruby 1.8.7 and 1.9, and it is defined by Active Support for previous versions. This method yields its receiver to a block and returns it.
+
+For example, the following class method from +ActionDispatch::TestResponse+ creates, initializes, and returns a new test response using +tap+:
+
+<ruby>
+def self.from_response(response)
+  new.tap do |resp|
+    resp.status  = response.status
+    resp.headers = response.headers
+    resp.body    = response.body
+  end
+end
+</ruby>
+
+See also +Object#returning+ in "Extensions to All Objects FIX THIS LINK":FIXME.
+
 
 h4. +metaclass+
 
