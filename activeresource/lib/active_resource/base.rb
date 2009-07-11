@@ -804,7 +804,8 @@ module ActiveResource
     #   my_company.size = 10
     #   my_company.save # sends PUT /companies/1 (update)
     def save
-      new? ? create : update
+      notify(:before_save)
+      (new? ? create : update).tap { notify(:after_save) }
     end
 
     # Deletes the resource from the remote service.
@@ -820,7 +821,8 @@ module ActiveResource
     #   new_person.destroy
     #   Person.find(new_id) # 404 (Resource Not Found)
     def destroy
-      connection.delete(element_path, self.class.headers)
+      notify(:before_destroy)
+      connection.delete(element_path, self.class.headers).tap { notify(:after_destroy) }
     end
 
     # Evaluates to <tt>true</tt> if this resource is not <tt>new?</tt> and is
@@ -995,16 +997,20 @@ module ActiveResource
 
       # Update the resource on the remote service.
       def update
+        notify(:before_update)
         connection.put(element_path(prefix_options), encode, self.class.headers).tap do |response|
           load_attributes_from_response(response)
+          notify(:after_update)
         end
       end
 
       # Create (i.e., \save to the remote service) the \new resource.
       def create
+        notify(:before_create)
         connection.post(collection_path, encode, self.class.headers).tap do |response|
           self.id = id_from_response(response)
           load_attributes_from_response(response)
+          notify(:after_create)
         end
       end
 
@@ -1088,5 +1094,6 @@ module ActiveResource
   class Base
     extend ActiveModel::Naming
     include CustomMethods, Validations
+    include ActiveModel::Observing
   end
 end
