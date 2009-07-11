@@ -556,6 +556,17 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       children.each { |child| child.mark_for_destruction }
       assert_difference("#{association_name.classify}.count", -2) { @pirate.save! }
     end
+    
+    define_method("test_should_skip_validation_on_the_#{association_name}_association_if_destroyed") do
+      @pirate.send(association_name).create!(:name => "#{association_name}_1")
+      children = @pirate.send(association_name)
+
+      children.each { |child| child.name = '' }
+      assert !@pirate.valid?
+
+      children.each { |child| child.destroy }
+      assert @pirate.valid?
+    end
 
     define_method("test_should_rollback_destructions_if_an_exception_occurred_while_saving_#{association_name}") do
       2.times { |i| @pirate.send(association_name).create!(:name => "#{association_name}_#{i}") }

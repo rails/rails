@@ -246,6 +246,8 @@ module ActiveRecord
     # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
     # enabled records if they're marked_for_destruction?.
     def association_valid?(reflection, association)
+      return true if association.destroyed?
+
       unless valid = association.valid?
         if reflection.options[:autosave]
           unless association.marked_for_destruction?
