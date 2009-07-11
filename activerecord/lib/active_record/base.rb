@@ -2813,6 +2813,11 @@ module ActiveRecord #:nodoc:
         @attributes.frozen?
       end
 
+      # Returns +true+ if the record has been destroyed.
+      def destroyed?
+        @destroyed
+      end
+
       # Returns duplicated record with unfreezed attributes.
       def dup
         obj = super
