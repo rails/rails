@@ -114,7 +114,7 @@ For the sake of completeness, let's mention that if you do not want to use the +
 To tell the I18n library where it can find your custom translation files you can specify the load path anywhere in your application - just make sure it gets run before any translations are actually looked up. You might also want to change the default locale. The simplest thing possible is to put the following into an initializer:
 
 <ruby>
-# in config/initializer/locale.rb
+# in config/initializers/locale.rb
 
 # tell the I18n library where to find your translations
 I18n.load_path << Dir[ File.join(RAILS_ROOT, 'lib', 'locale', 
