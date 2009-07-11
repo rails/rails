@@ -537,6 +537,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert !@pirate.valid?
 
     @pirate.ship.mark_for_destruction
+    @pirate.ship.expects(:valid?).never
     assert_difference('Ship.count', -1) { @pirate.save! }
   end
 
@@ -574,6 +575,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert !@ship.valid?
 
     @ship.pirate.mark_for_destruction
+    @ship.pirate.expects(:valid?).never
     assert_difference('Pirate.count', -1) { @ship.save! }
   end
 
@@ -617,7 +619,10 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       children.each { |child| child.name = '' }
       assert !@pirate.valid?
 
-      children.each { |child| child.mark_for_destruction }
+      children.each do |child|
+        child.mark_for_destruction
+        child.expects(:valid?).never
+      end
       assert_difference("#{association_name.classify}.count", -2) { @pirate.save! }
     end
     
