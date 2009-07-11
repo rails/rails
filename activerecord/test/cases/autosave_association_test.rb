@@ -436,6 +436,70 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   end
 end
 
+class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
+  def test_autosave_new_record_on_belongs_to_can_be_disabled_per_relationship
+    new_account = Account.new("credit_limit" => 1000)
+    new_firm = Firm.new("name" => "some firm")
+
+    assert new_firm.new_record?
+    new_account.firm = new_firm
+    new_account.save!
+
+    assert !new_firm.new_record?
+
+    new_account = Account.new("credit_limit" => 1000)
+    new_autosaved_firm = Firm.new("name" => "some firm")
+
+    assert new_autosaved_firm.new_record?
+    new_account.unautosaved_firm = new_autosaved_firm
+    new_account.save!
+
+    assert new_autosaved_firm.new_record?
+  end
+
+  def test_autosave_new_record_on_has_one_can_be_disabled_per_relationship
+    firm = Firm.new("name" => "some firm")
+    account = Account.new("credit_limit" => 1000)
+
+    assert account.new_record?
+    firm.account = account
+    firm.save!
+
+    assert !account.new_record?
+
+    firm = Firm.new("name" => "some firm")
+    account = Account.new("credit_limit" => 1000)
+
+    firm.unautosaved_account = account
+
+    assert account.new_record?
+    firm.unautosaved_account = account
+    firm.save!
+
+    assert account.new_record?
+  end
+
+  def test_autosave_new_record_on_has_many_can_be_disabled_per_relationship
+    firm = Firm.new("name" => "some firm")
+    account = Account.new("credit_limit" => 1000)
+
+    assert account.new_record?
+    firm.accounts << account
+
+    firm.save!
+    assert !account.new_record?
+
+    firm = Firm.new("name" => "some firm")
+    account = Account.new("credit_limit" => 1000)
+
+    assert account.new_record?
+    firm.unautosaved_accounts << account
+
+    firm.save!
+    assert account.new_record?
+  end
+end
+
 class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 

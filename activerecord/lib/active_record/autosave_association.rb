@@ -287,7 +287,7 @@ module ActiveRecord
           records.each do |record|
             if autosave && record.marked_for_destruction?
               association.destroy(record)
-            elsif @new_record_before_save || record.new_record?
+            elsif autosave != false && (@new_record_before_save || record.new_record?)
               if autosave
                 association.send(:insert_record, record, false, false)
               else
@@ -318,7 +318,7 @@ module ActiveRecord
 
         if autosave && association.marked_for_destruction?
           association.destroy
-        elsif new_record? || association.new_record? || association[reflection.primary_key_name] != id || autosave
+        elsif autosave != false && (new_record? || association.new_record? || association[reflection.primary_key_name] != id || autosave)
           association[reflection.primary_key_name] = id
           association.save(!autosave)
         end
@@ -339,7 +339,7 @@ module ActiveRecord
 
         if autosave && association.marked_for_destruction?
           association.destroy
-        else
+        elsif autosave != false
           association.save(!autosave) if association.new_record? || autosave
 
           if association.updated?
