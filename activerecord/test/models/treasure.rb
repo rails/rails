@@ -3,4 +3,6 @@ class Treasure < ActiveRecord::Base
   belongs_to :looter, :polymorphic => true
 
   has_many :price_estimates, :as => :estimate_of
+
+  accepts_nested_attributes_for :looter
 end
