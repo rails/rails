@@ -541,6 +541,13 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_difference('Ship.count', -1) { @pirate.save! }
   end
 
+  def test_a_child_marked_for_destruction_should_not_be_destroyed_twice
+    @pirate.ship.mark_for_destruction
+    assert @pirate.save
+    @pirate.ship.expects(:destroy).never
+    assert @pirate.save
+  end
+
   def test_should_rollback_destructions_if_an_exception_occurred_while_saving_a_child
     # Stub the save method of the @pirate.ship instance to destroy and then raise an exception
     class << @pirate.ship
@@ -577,6 +584,13 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @ship.pirate.mark_for_destruction
     @ship.pirate.expects(:valid?).never
     assert_difference('Pirate.count', -1) { @ship.save! }
+  end
+
+  def test_a_parent_marked_for_destruction_should_not_be_destroyed_twice
+    @ship.pirate.mark_for_destruction
+    assert @ship.save
+    @ship.pirate.expects(:destroy).never
+    assert @ship.save
   end
 
   def test_should_rollback_destructions_if_an_exception_occurred_while_saving_a_parent
@@ -635,6 +649,16 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
       children.each { |child| child.destroy }
       assert @pirate.valid?
+    end
+
+    define_method("test_a_child_marked_for_destruction_should_not_be_destroyed_twice_while_saving_#{association_name}") do
+      @pirate.send(association_name).create!(:name => "#{association_name}_1")
+      children = @pirate.send(association_name)
+
+      children.each { |child| child.mark_for_destruction }
+      assert @pirate.save
+      children.each { |child| child.expects(:destroy).never }
+      assert @pirate.save
     end
 
     define_method("test_should_rollback_destructions_if_an_exception_occurred_while_saving_#{association_name}") do
