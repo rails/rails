@@ -247,7 +247,12 @@ module ActiveRecord
 
       if attributes['id'].blank?
         unless reject_new_record?(association_name, attributes)
-          send("build_#{association_name}", attributes.except(*UNASSIGNABLE_KEYS))
+          method = "build_#{association_name}"
+          if respond_to?(method)
+            send(method, attributes.except(*UNASSIGNABLE_KEYS))
+          else
+            raise ArgumentError, "Cannot build association #{association_name}. Are you trying to build a polymorphic one-to-one association?"
+          end
         end
       elsif (existing_record = send(association_name)) && existing_record.id.to_s == attributes['id'].to_s
         assign_to_or_mark_for_destruction(existing_record, attributes, allow_destroy)

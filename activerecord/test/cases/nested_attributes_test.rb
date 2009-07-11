@@ -62,9 +62,17 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
+  include AssertRaiseWithMessage
+
   def setup
     @pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     @ship = @pirate.create_ship(:name => 'Nights Dirty Lightning')
+  end
+
+  def test_should_raise_argument_error_if_trying_to_build_polymorphic_belongs_to
+    assert_raise_with_message ArgumentError, "Cannot build association looter. Are you trying to build a polymorphic one-to-one association?" do
+      Treasure.new(:name => 'pearl', :looter_attributes => {:catchphrase => "Arrr"})
+    end
   end
 
   def test_should_define_an_attribute_writer_method_for_the_association
