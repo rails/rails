@@ -243,17 +243,15 @@ module ActiveRecord
 
     # Returns whether or not the association is valid and applies any errors to
     # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
-    # enabled records if they're marked_for_destruction?.
+    # enabled records if they're marked_for_destruction? or destroyed.
     def association_valid?(reflection, association)
-      return true if association.destroyed?
+      return true if association.destroyed? || association.marked_for_destruction?
 
       unless valid = association.valid?
         if reflection.options[:autosave]
-          unless association.marked_for_destruction?
-            association.errors.each do |attribute, message|
-              attribute = "#{reflection.name}_#{attribute}"
-              errors[attribute] << message if errors[attribute].empty?
-            end
+          association.errors.each do |attribute, message|
+            attribute = "#{reflection.name}_#{attribute}"
+            errors[attribute] << message if errors[attribute].empty?
           end
         else
           errors.add(reflection.name)
