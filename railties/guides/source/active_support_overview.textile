@@ -128,7 +128,6 @@ def log_info(sql, name, ms)
 end
 </ruby>
 
-
 h4. +metaclass+
 
 The method +metaclass+ returns the singleton class on any object:
