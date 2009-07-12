@@ -1,3 +1,7 @@
+*2.3.3 (July 12, 2009)*
+
+* No changes, just a version bump.
+
 *2.3.2 [Final] (March 15, 2009)*
 
 * Fixed that ActionMailer should send correctly formatted Return-Path in MAIL FROM for SMTP #1842 [Matt Jones]

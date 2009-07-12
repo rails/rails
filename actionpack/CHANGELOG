@@ -1,4 +1,4 @@
-*2.3.3 (pending)*
+*2.3.3 (July 12, 2009)*
 
 * Fixed that TestResponse.cookies was returning cookies unescaped #1867 [Doug McInnes]
 

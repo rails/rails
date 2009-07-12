@@ -1,4 +1,4 @@
-*2.3.3 (pending)*
+*2.3.3 (July 12, 2009)*
 
 * Added :touch option to belongs_to associations that will touch the parent record when the current record is saved or destroyed [DHH]
 
