@@ -102,6 +102,32 @@ end
 
 See also +Object#returning+ in "Extensions to All Objects FIX THIS LINK":FIXME.
 
+h4. +try+
+
+Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first.
+
+For instance, note how this method of +ActiveRecord::ConnectionAdapters::AbstractAdapter+ checks if there's a +@logger+:
+
+<ruby>
+def log_info(sql, name, ms)
+  if @logger && @logger.debug?
+    name = '%s (%.1fms)' % [name || 'SQL', ms]
+    @logger.debug(format_log_entry(name, sql.squeeze(' ')))
+  end
+end
+</ruby>
+
+You can shorten that using +Object#try+. This method is a synonim for +Object#send+ except that it returns +nil+ if sent to +nil+. The previous example could then be rewritten as:
+
+<ruby>
+def log_info(sql, name, ms)
+  if @logger.try(:debug?)
+    name = '%s (%.1fms)' % [name || 'SQL', ms]
+    @logger.debug(format_log_entry(name, sql.squeeze(' ')))
+  end
+end
+</ruby>
+
 
 h4. +metaclass+
 
