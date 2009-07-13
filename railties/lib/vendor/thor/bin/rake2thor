@@ -1,0 +1,87 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'ruby2ruby'
+require 'parse_tree'
+if Ruby2Ruby::VERSION >= "1.2.0"
+  require 'parse_tree_extensions'
+end
+require 'rake'
+
+input  = ARGV[0] || 'Rakefile'
+output = ARGV[1] || 'Thorfile'
+
+$requires = []
+
+module Kernel
+  def require_with_record(file)
+    $requires << file if caller[1] =~ /rake2thor:/
+    require_without_record file
+  end
+  alias_method :require_without_record, :require
+  alias_method :require, :require_with_record
+end
+
+load input
+
+@private_methods = []
+
+def file_task_name(name)
+  "compile_" + name.gsub('/', '_slash_').gsub('.', '_dot_').gsub(/\W/, '_')
+end
+
+def method_for_task(task)
+  file_task = task.is_a?(Rake::FileTask)
+  comment = task.instance_variable_get('@comment')
+  prereqs = task.instance_variable_get('@prerequisites').select(&Rake::Task.method(:task_defined?))
+  actions = task.instance_variable_get('@actions')
+  name = task.name.gsub(/^([^:]+:)+/, '')
+  name = file_task_name(name) if file_task
+  meth = ''
+
+  meth << "desc #{name.inspect}, #{comment.inspect}\n" if comment
+  meth << "def #{name}\n"
+
+  meth << prereqs.map do |pre|
+    pre = pre.to_s
+    pre = file_task_name(pre) if Rake::Task[pre].is_a?(Rake::FileTask)
+    '  ' + pre
+  end.join("\n")
+
+  meth << "\n\n" unless prereqs.empty? || actions.empty?
+
+  meth << actions.map do |act|
+    act = act.to_ruby
+    unless act.gsub!(/^proc \{ \|(\w+)\|\n/,
+                     "  \\1 = Struct.new(:name).new(#{name.inspect}) # A crude mock Rake::Task object\n")
+      act.gsub!(/^proc \{\n/, '')
+    end
+    act.gsub(/\n\}$/, '')
+  end.join("\n")
+
+  meth << "\nend"
+
+  if file_task
+    @private_methods << meth
+    return
+  end
+
+  meth
+end
+
+body = Rake::Task.tasks.map(&method(:method_for_task)).compact.map { |meth| meth.gsub(/^/, '  ') }.join("\n\n")
+
+unless @private_methods.empty?
+  body << "\n\n  private\n\n"
+  body << @private_methods.map { |meth| meth.gsub(/^/, '  ') }.join("\n\n")
+end
+
+requires = $requires.map { |r| "require #{r.inspect}" }.join("\n")
+
+File.open(output, 'w') { |f| f.write(<<END.lstrip) }
+#{requires}
+
+class Default < Thor
+#{body}
+end
+END
