@@ -25,7 +25,7 @@ module ActiveRecord
         "#{klass}.all"
       end
 
-      def self.find(klass, params)
+      def self.find(klass, params=nil)
         "#{klass}.find(#{params})"
       end
 
@@ -41,7 +41,7 @@ module ActiveRecord
         "#{name}.save"
       end
 
-      def update_attributes(params)
+      def update_attributes(params=nil)
         "#{name}.update_attributes(#{params})"
       end
 

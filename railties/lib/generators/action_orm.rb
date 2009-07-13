@@ -39,7 +39,7 @@ module Rails
       # GET edit
       # PUT update
       # DELETE destroy
-      def self.find(klass, params)
+      def self.find(klass, params=nil)
         raise NotImplementedError
       end
 
