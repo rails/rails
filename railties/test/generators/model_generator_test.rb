@@ -52,6 +52,17 @@ class ModelGeneratorTest < GeneratorsTestCase
     end
   end
 
+  def test_migration_without_timestamps
+    ActiveRecord::Base.timestamped_migrations = false
+    run_generator ["account"]
+    assert_file  "db/migrate/001_create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration/
+
+    run_generator ["project"]
+    assert_file  "db/migrate/002_create_projects.rb", /class CreateProjects < ActiveRecord::Migration/
+  ensure
+    ActiveRecord::Base.timestamped_migrations = true
+  end
+
   def test_model_with_references_attribute_generates_belongs_to_associations
     run_generator ["product", "name:string", "supplier_id:references"]
     assert_file "app/models/product.rb", /belongs_to :supplier/

@@ -51,7 +51,9 @@ module Rails
         end
 
         def current_migration_number(dirname) #:nodoc:
-          migration_lookup_at(dirname).collect{ |f| f.split("_").first.to_i }.max
+          migration_lookup_at(dirname).collect do |file|
+            File.basename(file).split("_").first.to_i
+          end.max.to_i
         end
 
         def next_migration_number(dirname) #:nodoc:
