@@ -1,0 +1,8 @@
+Description:
+    Explain the generator
+
+Example:
+    ./script/generate <%= file_name %> Thing
+
+    This will create:
+        what/will/it/create
