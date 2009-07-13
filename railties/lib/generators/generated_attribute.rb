@@ -30,6 +30,7 @@ module Rails
           when :string                      then "MyString"
           when :text                        then "MyText"
           when :boolean                     then false
+          when :references, :belongs_to     then nil
           else
             ""
         end
