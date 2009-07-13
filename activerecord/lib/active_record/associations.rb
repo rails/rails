@@ -1276,9 +1276,9 @@ module ActiveRecord
               if reflection.through_reflection && reflection.source_reflection.belongs_to?
                 through = reflection.through_reflection
                 primary_key = reflection.source_reflection.primary_key_name
-                send(through.name).all(:select => "DISTINCT #{through.quoted_table_name}.#{primary_key}").map(&:"#{primary_key}")
+                send(through.name).all(:select => "DISTINCT #{through.quoted_table_name}.#{primary_key}").map!(&:"#{primary_key}")
               else
-                send(reflection.name).all(:select => "#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map(&:id)
+                send(reflection.name).all(:select => "#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map!(&:id)
               end
             end
           end
