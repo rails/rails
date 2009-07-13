@@ -569,10 +569,9 @@ Run `rake gems:install` to install the missing gems.
     end
   end
 
-  # Load generators if RAILS_ENV == "generators"
+  # Configure generators if they were already loaded
   Initializer.default.add :initialize_generators do
-    if RAILS_ENV == "generators"
-      require "generators"
+    if defined?(Rails::Generators)
       Rails::Generators.no_color! unless config.generators.colorize_logging
       Rails::Generators.aliases.merge! config.generators.aliases
       Rails::Generators.options.merge! config.generators.options

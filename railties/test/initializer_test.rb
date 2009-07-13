@@ -293,7 +293,6 @@ end
 class InitializerGeneratorsTests < Test::Unit::TestCase
 
   def setup
-    @old_env_value = RAILS_ENV.dup
     @configuration = Rails::Configuration.new
     @initializer   = Rails::Initializer.default
     @initializer.config = @configuration
@@ -349,16 +348,9 @@ class InitializerGeneratorsTests < Test::Unit::TestCase
     end
   end
 
-  def test_generators_are_not_invoked_with_other_environments
-    @configuration.generators.test_framework = :rspec
-    @initializer.run(:initialize_generators)
-    assert_equal :test_unit, Rails::Generators.options[:test_framework]
-  end
-
   protected
 
     def teardown
-      RAILS_ENV.replace @old_env_value
       Rails::Generators.clear_aliases!
       Rails::Generators.clear_options!
     end

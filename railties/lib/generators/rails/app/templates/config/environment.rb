@@ -42,4 +42,23 @@ Rails::Initializer.run do |config|
   # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
   # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}')]
   # config.i18n.default_locale = :de
+
+  # Configure generators default options.
+  config.generators do |g|
+    # Scaffold configuration
+    g.helper      = true
+    g.layout      = true
+    g.stylesheets = true
+
+    # ORM configuration
+    g.orm        = :active_record
+    g.timestamps = true
+
+    # Template engine configuration
+    g.template_engine = :erb
+
+    # Test framework configuration
+    g.test_framework = :test_unit
+    g.fixtures       = true
+  end
 end
