@@ -5,6 +5,11 @@ module Rails
     # just by implementing the next migration number method.
     #
     module Migration
+      def self.included(base) #:nodoc:
+        base.send :attr_reader, :migration_number,
+                                :migration_file_name,
+                                :migration_class_name
+      end
 
       # Creates a migration template at the given destination. The difference
       # to the default template method is that the migration number is appended
