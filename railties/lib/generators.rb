@@ -11,11 +11,7 @@ end
 
 $:.unshift(File.dirname(__FILE__))
 
-# TODO Use vendored Thor
-require 'rubygems'
-gem 'josevalim-thor'
-require 'thor'
-
+require 'vendor/thor'
 require 'generators/base'
 require 'generators/named_base'
 
