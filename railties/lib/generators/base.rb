@@ -187,7 +187,7 @@ module Rails
 
       # Make class option aware of Rails::Generators.options and Rails::Generators.aliases.
       #
-      def self.class_option(name, options) #:nodoc:
+      def self.class_option(name, options={}) #:nodoc:
         options[:desc]    = "Indicates when to generate #{name.to_s.humanize.downcase}" unless options.key?(:desc)
         options[:aliases] = Rails::Generators.aliases[name]  unless options.key?(:aliases)
         options[:default] = Rails::Generators.options[name] unless options.key?(:default)
