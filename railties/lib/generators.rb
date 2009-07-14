@@ -178,7 +178,7 @@ module Rails
       # Return all defined namespaces.
       #
       def self.namespaces
-        Thor::Base.subclasses.map(&:namespace)
+        Thor::Base.subclasses.map{ |klass| klass.namespace }
       end
 
       # Keep builtin generators in an Array[Array[group, name]].
