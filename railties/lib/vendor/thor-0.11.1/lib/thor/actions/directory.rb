@@ -53,7 +53,6 @@ class Thor
       end
 
       def invoke!
-        raise "Source #{source.inspect} does not exist" unless File.exists?(source)
         base.empty_directory given_destination, @log_status
         execute!
       end
@@ -69,8 +68,8 @@ class Thor
           lookup = File.join(lookup, '{*,.[a-z]*}')
 
           Dir[lookup].each do |file_source|
-            file_destination = File.join(given_destination, file_source.gsub(source, '.'))
             next if File.directory?(file_source)
+            file_destination = File.join(given_destination, file_source.gsub(source, '.'))
 
             case file_source
               when /\.empty_directory$/

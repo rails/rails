@@ -46,11 +46,11 @@ module Rails::Generators
     end
 
     def create_root
-      self.root = File.expand_path(app_path, root)
+      self.destination_root = File.expand_path(app_path, destination_root)
       empty_directory '.'
 
       app_name # Sets the app name
-      FileUtils.cd(root)
+      FileUtils.cd(destination_root)
     end
 
     def create_root_files
@@ -162,7 +162,7 @@ module Rails::Generators
 
     def apply_rails_template
       apply options[:template] if options[:template]
-    rescue LoadError, Errno::ENOENT => e
+    rescue Thor::Error, LoadError, Errno::ENOENT => e
       raise Error, "The template [#{options[:template]}] could not be loaded. Error: #{e}"
     end
 
@@ -180,7 +180,7 @@ module Rails::Generators
       end
 
       def app_name
-        @app_name ||= File.basename(root)
+        @app_name ||= File.basename(destination_root)
       end
 
       def app_secret

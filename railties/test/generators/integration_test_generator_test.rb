@@ -12,7 +12,7 @@ class IntegrationTestGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=["integration"])
-      silence(:stdout) { Rails::Generators::IntegrationTestGenerator.start args, :root => destination_root }
+      silence(:stdout) { Rails::Generators::IntegrationTestGenerator.start args, :destination_root => destination_root }
     end
 
 end

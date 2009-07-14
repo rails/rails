@@ -38,8 +38,8 @@ class Thor
     #                    It also accepts :force, :skip and :pretend to set the behavior
     #                    and the respective option.
     #
-    # root<String>:: The root directory needed for some actions. It's also known
-    #                as destination root.
+    # destination_root<String>:: The root directory needed for some actions. It's also known
+    #                            as destination root.
     #
     def initialize(args=[], options={}, config={})
       self.behavior = case config[:behavior].to_s
@@ -53,7 +53,7 @@ class Thor
       end
 
       super
-      self.root = config[:root]
+      self.destination_root = config[:destination_root]
     end
 
     # Wraps an action object and call it accordingly to the thor class behavior.
@@ -68,44 +68,44 @@ class Thor
 
     # Returns the root for this thor class (also aliased as destination root).
     #
-    def root
-      @root_stack.last
+    def destination_root
+      @destination_stack.last
     end
-    alias :destination_root :root
 
     # Sets the root for this thor class. Relatives path are added to the
     # directory where the script was invoked and expanded.
     #
-    def root=(root)
-      @root_stack ||= []
-      @root_stack[0] = File.expand_path(root || '')
-    end
-
-    # Gets the current root relative to the absolute root.
-    #
-    #   inside "foo" do
-    #     relative_root #=> "foo"
-    #   end
-    #
-    def relative_root(remove_dot=true)
-      relative_to_absolute_root(root, remove_dot)
+    def destination_root=(root)
+      @destination_stack ||= []
+      @destination_stack[0] = File.expand_path(root || '')
     end
 
     # Returns the given path relative to the absolute root (ie, root where
     # the script started).
     #
-    def relative_to_absolute_root(path, remove_dot=true)
-      path = path.gsub(@root_stack[0], '.')
+    def relative_to_original_destination_root(path, remove_dot=true)
+      path = path.gsub(@destination_stack[0], '.')
       remove_dot ? (path[2..-1] || '') : path
     end
 
-    # Get the source root in the class. Raises an error if a source root is
-    # not specified in the thor class.
+    # Receives a file or directory and serach for it in the source paths. Paths
+    # added for last are the one searched first.
     #
-    def source_root
-      self.class.source_root
-    rescue NoMethodError => e
-      raise NoMethodError, "You have to specify the class method source_root in your thor class."
+    def find_in_source_paths(file)
+      relative_root = relative_to_original_destination_root(destination_root, false)
+      source_file   = nil
+
+      self.class.source_paths.reverse_each do |source|
+        source_file = File.expand_path(file, File.join(source, relative_root))
+        return source_file if File.exists?(source_file)
+      end
+
+      if self.class.source_paths.empty?
+        raise Error, "You don't have any source path defined for class #{self.class.name}. To fix this, " <<
+                     "you can define a source_root in your class."
+      else
+        raise Error, "Could not find #{file.inspect} in source paths."
+      end
     end
 
     # Do something in the root or on a provided subfolder. If a relative path
@@ -117,16 +117,16 @@ class Thor
     # dir<String>:: the directory to move to.
     #
     def inside(dir='', &block)
-      @root_stack.push File.expand_path(dir, root)
-      FileUtils.mkdir_p(root) unless File.exist?(root)
-      FileUtils.cd(root) { block.arity == 1 ? yield(root) : yield }
-      @root_stack.pop
+      @destination_stack.push File.expand_path(dir, destination_root)
+      FileUtils.mkdir_p(destination_root) unless File.exist?(destination_root)
+      FileUtils.cd(destination_root) { block.arity == 1 ? yield(destination_root) : yield }
+      @destination_stack.pop
     end
 
     # Goes to the root and execute the given block.
     #
     def in_root
-      inside(@root_stack.first) { yield }
+      inside(@destination_stack.first) { yield }
     end
 
     # Changes the mode of the given file or directory.
@@ -143,8 +143,8 @@ class Thor
     #
     def chmod(path, mode, log_status=true)
       return unless behavior == :invoke
-      path = File.expand_path(path, root)
-      say_status :chmod, relative_to_absolute_root(path), log_status
+      path = File.expand_path(path, destination_root)
+      say_status :chmod, relative_to_original_destination_root(path), log_status
       FileUtils.chmod_R(mode, path) unless options[:pretend]
     end
 
@@ -163,7 +163,7 @@ class Thor
     #
     def run(command, log_status=true)
       return unless behavior == :invoke
-      say_status :run, "\"#{command}\" from #{relative_to_absolute_root(root, false)}", log_status
+      say_status :run, "\"#{command}\" from #{relative_to_original_destination_root(destination_root, false)}", log_status
       `#{command}` unless options[:pretend]
     end
 
@@ -224,10 +224,10 @@ class Thor
     #
     def remove_file(path, log_status=true)
       return unless behavior == :invoke
-      path  = File.expand_path(path, root)
+      path  = File.expand_path(path, destination_root)
       color = log_status.is_a?(Symbol) ? log_status : :red
 
-      say_status :remove, relative_to_absolute_root(path), log_status
+      say_status :remove, relative_to_original_destination_root(path), log_status
       ::FileUtils.rm_rf(path) if !options[:pretend] && File.exists?(path)
     end
 
@@ -252,8 +252,8 @@ class Thor
       return unless behavior == :invoke
       log_status = args.last.is_a?(Symbol) || [ true, false ].include?(args.last) ? args.pop : true
 
-      path = File.expand_path(path, root)
-      say_status :gsub, relative_to_absolute_root(path), log_status
+      path = File.expand_path(path, destination_root)
+      say_status :gsub, relative_to_original_destination_root(path), log_status
 
       unless options[:pretend]
         content = File.read(path)
@@ -276,8 +276,8 @@ class Thor
     #
     def append_file(path, data=nil, log_status=true, &block)
       return unless behavior == :invoke
-      path = File.expand_path(path, root)
-      say_status :append, relative_to_absolute_root(path), log_status
+      path = File.expand_path(path, destination_root)
+      say_status :append, relative_to_original_destination_root(path), log_status
       File.open(path, 'ab') { |file| file.write(data || block.call) } unless options[:pretend]
     end
 
@@ -295,8 +295,8 @@ class Thor
     #
     def prepend_file(path, data=nil, log_status=true, &block)
       return unless behavior == :invoke
-      path = File.expand_path(path, root)
-      say_status :prepend, relative_to_absolute_root(path), log_status
+      path = File.expand_path(path, destination_root)
+      say_status :prepend, relative_to_original_destination_root(path), log_status
 
       unless options[:pretend]
         content = data || block.call
@@ -310,7 +310,7 @@ class Thor
       # Allow current root to be shared between invocations.
       #
       def _shared_configuration #:nodoc:
-        super.merge!(:root => self.root)
+        super.merge!(:destination_root => self.destination_root)
       end
 
       def _cleanup_options_and_set(options, key) #:nodoc:

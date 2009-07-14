@@ -17,7 +17,7 @@ module Rails
       #   apply "recipes/jquery.rb"
       #
       def apply(path, log_status=true)
-        path = File.expand_path(path, source_root) unless path =~ /^http\:\/\//
+        path = find_in_source_paths(path) unless path =~ /^http\:\/\//
 
         log :apply, path, log_status
         instance_eval(open(path).read)

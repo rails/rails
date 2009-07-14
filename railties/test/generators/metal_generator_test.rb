@@ -17,7 +17,7 @@ class MetalGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=["foo"])
-      silence(:stdout) { Rails::Generators::MetalGenerator.start args, :root => destination_root }
+      silence(:stdout) { Rails::Generators::MetalGenerator.start args, :destination_root => destination_root }
     end
 
 end

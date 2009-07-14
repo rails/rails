@@ -4,9 +4,7 @@ require 'thor/group'
 require 'thor/actions'
 
 class Thor
-
   class << self
-
     # Sets the default task when thor is executed without an explicit task to be called.
     #
     # ==== Parameters
@@ -108,7 +106,7 @@ class Thor
     # :group    - The group for this options. Use by class options to output options in different levels.
     # :banner   - String to show on usage notes.
     #
-    def method_option(name, options)
+    def method_option(name, options={})
       scope = if options[:for]
         find_and_refresh_task(options[:for]).options
       else
@@ -220,7 +218,6 @@ class Thor
         meth = mapping || meth || default_task
         meth.to_s.gsub('-','_') # treat foo-bar > foo_bar
       end
-
   end
 
   include Thor::Base

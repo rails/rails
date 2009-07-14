@@ -74,7 +74,7 @@ class ControllerGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=["Account", "foo", "bar"])
-      silence(:stdout) { Rails::Generators::ControllerGenerator.start args, :root => destination_root }
+      silence(:stdout) { Rails::Generators::ControllerGenerator.start args, :destination_root => destination_root }
     end
 
 end

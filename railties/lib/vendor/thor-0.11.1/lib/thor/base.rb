@@ -9,7 +9,7 @@ require 'thor/util'
 
 class Thor
   HELP_MAPPINGS       = %w(-h -? --help -D)
-  THOR_RESERVED_WORDS = %w(invoke shell options behavior root destination_root relative_root source_root)
+  THOR_RESERVED_WORDS = %w(invoke shell options behavior root destination_root relative_root)
 
   module Base
     attr_accessor :options
@@ -75,15 +75,15 @@ class Thor
 
       # Whenever a class inherits from Thor or Thor::Group, we should track the
       # class and the file on Thor::Base. This is the method responsable for it.
-      # Also invoke the source_root if the klass respond to it. This is needed
-      # to ensure that the source_root does not change after FileUtils#cd is
-      # called.
+      # Also adds the source root to the source paths if the klass respond to it.
       #
       def register_klass_file(klass) #:nodoc:
         file = caller[1].match(/(.*):\d+/)[1]
-
-        klass.source_root if klass.respond_to?(:source_root)
         Thor::Base.subclasses << klass unless Thor::Base.subclasses.include?(klass)
+
+        if klass.respond_to?(:source_root) && !klass.source_paths.include?(klass.source_root)
+          klass.source_paths.unshift(klass.source_root)
+        end
 
         file_subclasses = Thor::Base.subclass_files[File.expand_path(file)]
         file_subclasses << klass unless file_subclasses.include?(klass)
@@ -189,7 +189,7 @@ class Thor
       # :type     - The type of the argument, can be :string, :hash, :array, :numeric or :boolean.
       # :banner   - String to show on usage notes.
       #
-      def class_option(name, options)
+      def class_option(name, options={})
         build_option(name, options, class_options)
       end
 
@@ -341,6 +341,13 @@ class Thor
         end
       end
 
+      # Hold source paths used by Thor::Actions. Paths added for last are the
+      # one searched first.
+      #
+      def source_paths
+        @source_paths ||= []
+      end
+
       # Default way to start generators from the command line.
       #
       def start(given_args=ARGV, config={}) #:nodoc:
@@ -359,51 +366,48 @@ class Thor
         # Prints the class options per group. If an option does not belong to
         # any group, it uses the ungrouped name value. This method provide to
         # hooks to add extra options, one of them if the third argument called
-        # extra_group that should be a Thor::CoreExt::OrderedHash in the format
-        # :group => Array[Options].
+        # extra_group that should be a hash in the format :group => Array[Options].
         #
         # The second is by returning a lamda used to print values. The lambda
         # requires two options: the group name and the array of options.
         #
         def class_options_help(shell, ungrouped_name=nil, extra_group=nil) #:nodoc:
-          unless self.class_options.empty?
-            groups = {}
+          groups = {}
 
-            class_options.each do |_, value|
-              groups[value.group] ||= []
-              groups[value.group] << value
-            end
-
-            printer = proc do |group_name, options|
-              list = []
-              padding = options.collect{ |o| o.aliases.size  }.max.to_i * 4
-
-              options.each do |option|
-                list << [ option.usage(padding), option.description || "" ]
-                list << [ "", "Default: #{option.default}" ] if option.show_default?
-              end
-
-              unless list.empty?
-                if group_name
-                  shell.say "#{group_name} options:"
-                else
-                  shell.say "Options:"
-                end
-
-                shell.print_table(list, :emphasize_last => true, :ident => 2)
-                shell.say ""
-              end
-            end
-
-            # Deal with default group
-            global_options = groups.delete(nil) || []
-            printer.call(ungrouped_name, global_options) if global_options
-
-            # Print all others
-            groups = extra_group.merge(groups) if extra_group
-            groups.each(&printer)
-            printer
+          class_options.each do |_, value|
+            groups[value.group] ||= []
+            groups[value.group] << value
           end
+
+          printer = proc do |group_name, options|
+            list = []
+            padding = options.collect{ |o| o.aliases.size  }.max.to_i * 4
+
+            options.each do |option|
+              list << [ option.usage(padding), option.description || "" ]
+              list << [ "", "Default: #{option.default}" ] if option.show_default?
+            end
+
+            unless list.empty?
+              if group_name
+                shell.say "#{group_name} options:"
+              else
+                shell.say "Options:"
+              end
+
+              shell.print_table(list, :emphasize_last => true, :ident => 2)
+              shell.say ""
+            end
+          end
+
+          # Deal with default group
+          global_options = groups.delete(nil) || []
+          printer.call(ungrouped_name, global_options) if global_options
+
+          # Print all others
+          groups = extra_group.merge(groups) if extra_group
+          groups.each(&printer)
+          printer
         end
 
         # Raises an error if the word given is a Thor reserved word.

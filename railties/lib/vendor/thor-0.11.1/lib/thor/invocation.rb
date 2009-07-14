@@ -1,5 +1,22 @@
 class Thor
   module Invocation
+    def self.included(base) #:nodoc:
+      base.extend ClassMethods
+    end
+
+    module ClassMethods
+      # Prepare for class methods invocations. This method must return a klass to
+      # have the invoked class options showed in help messages in generators.
+      #
+      def prepare_for_invocation(key, name) #:nodoc:
+        case name
+          when Symbol, String
+            Thor::Util.namespace_to_thor_class(name.to_s, false)
+          else
+            name
+        end
+      end
+    end
 
     # Make initializer aware of invocations and the initializer proc.
     #
@@ -79,7 +96,7 @@ class Thor
       task, args, opts, config = nil, task, args, opts if task.nil? || task.is_a?(Array)
       args, opts, config = nil, args, opts if args.is_a?(Hash)
 
-      object, task = _setup_for_invoke(name, task)
+      object, task = _prepare_for_invocation(name, task)
       if object.is_a?(Class)
         klass = object
 
@@ -113,6 +130,26 @@ class Thor
       end
     end
 
+    # Shortcut for invoke with padding and status handling. Used internally by
+    # class options invoke and invoke_from_option.
+    #
+    def invoke_with_padding(klass, task=nil, *args, &block)
+      shell.padding += 1
+
+      result = if block_given?
+        if block.arity == 2
+          block.call(self, klass)
+        else
+          block.call(self, klass, task)
+        end
+      else
+        invoke klass, task, *args
+      end
+
+      shell.padding -= 1
+      result
+    end
+
     protected
 
       # Configuration values that are shared between invocations.
@@ -121,23 +158,18 @@ class Thor
         { :invocations => @_invocations }
       end
 
-      # This is the method responsable for retrieving and setting up an
-      # instance to be used in invoke.
+      # Prepare for invocation in the instance level. In this case, we have to
+      # take into account that a just a task name from the current class was
+      # given or even a Thor::Task object.
       #
-      def _setup_for_invoke(name, sent_task=nil) #:nodoc:
-        case name
-          when Thor::Task
-            task = name
-          when Symbol, String
-            name = name.to_s
-
-            # If is not one of this class tasks, do a lookup.
-            unless task = self.class.all_tasks[name]
-              object, task = Thor::Util.namespace_to_thor_class(name, false)
-              task ||= sent_task
-            end
-          else
-            object, task = name, sent_task
+      def _prepare_for_invocation(name, sent_task=nil) #:nodoc:
+        if name.is_a?(Thor::Task)
+          task = name
+        elsif task = self.class.all_tasks[name.to_s]
+          object = self
+        else
+          object, task = self.class.prepare_for_invocation(nil, name)
+          task ||= sent_task
         end
 
         # If the object was not set, use self and use the name as task.
@@ -148,7 +180,7 @@ class Thor
       # Check if the object given is a Thor class object and get a task object
       # for it.
       #
-      def _validate_klass_and_task(object, task)
+      def _validate_klass_and_task(object, task) #:nodoc:
         klass = object.is_a?(Class) ? object : object.class
         raise "Expected Thor class, got #{klass}" unless klass <= Thor::Base
 
@@ -156,6 +188,5 @@ class Thor
         task = klass.all_tasks[task.to_s] || Task.dynamic(task) if task && !task.is_a?(Thor::Task)
         task
       end
-
   end
 end

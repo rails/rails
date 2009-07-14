@@ -17,7 +17,7 @@ class SessionMigrationGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=[])
-      silence(:stdout) { Rails::Generators::SessionMigrationGenerator.start args, :root => destination_root }
+      silence(:stdout) { Rails::Generators::SessionMigrationGenerator.start args, :destination_root => destination_root }
     end
 
 end

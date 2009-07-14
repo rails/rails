@@ -171,7 +171,7 @@ class AppGeneratorTest < GeneratorsTestCase
     end
 
     def generator(options={})
-      @generator ||= Rails::Generators::AppGenerator.new([destination_root], options, :root => destination_root)
+      @generator ||= Rails::Generators::AppGenerator.new([destination_root], options, :destination_root => destination_root)
     end
 
     def action(*args, &block)
