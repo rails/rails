@@ -115,7 +115,7 @@ def self.from_response(response)
 end
 </ruby>
 
-See also +Object#returning+ in "Extensions to All Objects FIX THIS LINK":FIXME.
+See also "+Object#returning+":#returning.
 
 h4. +try+
 
