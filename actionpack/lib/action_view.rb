@@ -36,6 +36,7 @@ module ActionView
   autoload :Base,              'action_view/base'
   autoload :Helpers,           'action_view/helpers'
   autoload :InlineTemplate,    'action_view/template/inline'
+  autoload :MissingTemplate,   'action_view/base'
   autoload :Partials,          'action_view/render/partials'
   autoload :Resolver,          'action_view/template/resolver'
   autoload :PathSet,           'action_view/paths'
