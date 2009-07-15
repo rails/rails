@@ -277,6 +277,45 @@ The method +Hash#to_query+ accepts an optional namespace for the keys:
 # => "user%5Bid%5D=89&user%5Bname%5D=John+Smith"
 </ruby>
 
+h4. +with_options+
+
+The method +with_options+ provides a way to factor out common options in a series of method calls.
+
+Given a default options hash, +with_options+ yields a proxy object to a block. Within the block, methods called on the proxy are forwarded to the receiver with their options merged. For example, you get rid of the duplication in:
+
+<ruby>
+class Account < ActiveRecord::Base
+  has_many :customers, :dependent => :destroy
+  has_many :products,  :dependent => :destroy
+  has_many :invoices,  :dependent => :destroy
+  has_many :expenses,  :dependent => :destroy
+end
+</ruby>
+
+this way:
+
+<ruby>
+class Account < ActiveRecord::Base
+  with_options :dependent => :destroy do |assoc|
+    assoc.has_many :customers
+    assoc.has_many :products
+    assoc.has_many :invoices
+    assoc.has_many :expenses
+  end
+end
+</ruby>
+
+That idiom may convey _grouping_ to the reader as well. For example, say you want to send a newsletter whose language depends on the user. Somewhere in the mailer you could group locale-dependent bits like this:
+
+<ruby>
+I18n.with_options :locale => user.locale, :scope => "newsletter" do |i18n|
+  subject i18n.t :subject
+  body    i18n.t :body, :user_name => user.name 
+end
+</ruby>
+
+TIP: Since +with_options+ forwards calls to its receiver they can be nested. Each nesting level will merge inherited defaults in addition to their own.
+
 h4. Silencing Warnings, Streams, and Exceptions
 
 The methods +silence_warnings+ and +enable_warnings+ change the value of +$VERBOSE+ accordingly for the duration of their block, and reset it afterwards:
