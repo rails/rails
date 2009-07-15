@@ -271,8 +271,8 @@ module ActionView
       end
 
       # Returns the text with all the Markdown codes turned into HTML tags.
-      # <i>This method requires BlueCloth[http://www.deveiate.org/projects/BlueCloth]
-      # to be available</i>.
+      # <i>This method requires BlueCloth[http://www.deveiate.org/projects/BlueCloth] or another
+      # Markdown library to be installed.</i>.
       #
       # ==== Examples
       #   markdown("We are using __Markdown__ now!")
@@ -288,7 +288,7 @@ module ActionView
       #   markdown('![The ROR logo](http://rubyonrails.com/images/rails.png "Ruby on Rails")')
       #   # => '<p><img src="http://rubyonrails.com/images/rails.png" alt="The ROR logo" title="Ruby on Rails" /></p>'
       def markdown(text)
-        text.blank? ? "" : BlueCloth.new(text).to_html
+        text.blank? ? "" : Markdown.new(text).to_html
       end
 
       # Returns +text+ transformed into HTML using simple formatting rules.
