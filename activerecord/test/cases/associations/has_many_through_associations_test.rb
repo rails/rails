@@ -243,8 +243,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, people(:michael).jobs.size
   end
 
-  def test_get_ids
-    assert_equal [posts(:welcome).id, posts(:authorless).id].sort, people(:michael).post_ids.sort
+  def test_get_ids_for_belongs_to_source
+    assert_sql(/DISTINCT/) { assert_equal [posts(:welcome).id, posts(:authorless).id].sort, people(:michael).post_ids.sort }
+  end
+
+  def test_get_ids_for_has_many_source
+    assert_equal [comments(:eager_other_comment1).id], authors(:mary).comment_ids
   end
 
   def test_get_ids_for_loaded_associations
