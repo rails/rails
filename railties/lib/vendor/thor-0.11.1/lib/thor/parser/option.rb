@@ -95,14 +95,21 @@ class Thor
       end
     end
 
-    def input_required?
-      type != :boolean
+    # Allow some type predicates as: boolean?, string? and etc.
+    #
+    def method_missing(method, *args, &block)
+      given = method.to_s.sub(/\?$/, '').to_sym
+      if valid_type?(given)
+        self.type == given
+      else
+        super
+      end
     end
 
     protected
 
       def validate!
-        raise ArgumentError, "An option cannot be boolean and required." if type == :boolean && required?
+        raise ArgumentError, "An option cannot be boolean and required." if boolean? && required?
       end
 
       def valid_type?(type)

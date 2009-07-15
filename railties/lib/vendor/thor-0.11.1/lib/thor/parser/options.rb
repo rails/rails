@@ -122,9 +122,16 @@ class Thor
       # Parse the value at the peek analyzing if it requires an input or not.
       #
       def parse_peek(switch, option)
-        if option.input_required?
-          return nil if no_or_skip?(switch)
-          raise MalformattedArgumentError, "no value provided for option '#{switch}'" unless current_is_value?
+        unless current_is_value?
+          if option.boolean?
+            # No problem for boolean types
+          elsif no_or_skip?(switch)
+            return nil # User set value to nil
+          elsif option.string? && !option.required?
+            return option.human_name # Return the option name
+          else
+            raise MalformattedArgumentError, "no value provided for option '#{switch}'"
+          end
         end
 
         @non_assigned_required.delete(option)

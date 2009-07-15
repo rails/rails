@@ -17,34 +17,64 @@ require 'generators/named_base'
 
 module Rails
   module Generators
-    DEFAULT_ALIASES = {
-      :actions => '-a',
-      :fixture_replacement => '-r',
-      :orm => '-o',
-      :resource_controller => '-c',
-      :scaffold_controller => '-c',
-      :stylesheets => '-y',
-      :test_framework => '-t',
-      :template_engine => '-e'
-    }
+    DEFAULT_ALIASES = Hash.new{ |h,k| h[k] = {} }
+    DEFAULT_ALIASES.merge!(
+      :rails => {
+        :actions => '-a',
+        :orm => '-o',
+        :resource_controller => '-c',
+        :scaffold_controller => '-c',
+        :stylesheets => '-y',
+        :template_engine => '-e',
+        :test_framework => '-t'
+      },
 
-    DEFAULT_OPTIONS = {
-      :fixture => true,
-      :force_plural => false,
-      :helper => true,
-      :integration_tool => :test_unit,
-      :layout => true,
-      :migration => true,
-      :orm => :active_record,
-      :performance_tool => :test_unit,
-      :resource_controller => :controller,
-      :scaffold_controller => :scaffold_controller,
-      :singleton => false,
-      :stylesheets => true,
-      :test_framework => :test_unit,
-      :template_engine => :erb,
-      :timestamps => true
-    }
+      :test_unit => {
+        :fixture_replacement => '-r',
+      },
+
+      :plugin => {
+        :generator => '-g',
+        :tasks => '-r'
+      }
+    )
+
+    DEFAULT_OPTIONS = Hash.new{ |h,k| h[k] = {} }
+    DEFAULT_OPTIONS.merge!(
+      :active_record => {
+        :migration  => true,
+        :timestamps => true
+      },
+
+      :erb => {
+        :layout => true
+      },
+
+      :rails => {
+        :force_plural => false,
+        :helper => true,
+        :layout => true,
+        :orm => :active_record,
+        :integration_tool => :test_unit,
+        :performance_tool => :test_unit,
+        :resource_controller => :controller,
+        :scaffold_controller => :scaffold_controller,
+        :singleton => false,
+        :stylesheets => true,
+        :template_engine => :erb,
+        :test_framework => :test_unit
+      },
+
+      :test_unit => {
+        :fixture => true,
+        :fixture_replacement => nil
+      },
+
+      :plugin => {
+        :generator => false,
+        :tasks => false
+      }
+    )
 
     def self.aliases
       @@aliases ||= DEFAULT_ALIASES.dup

@@ -3,8 +3,7 @@ require 'generators/rails/generator/generator_generator'
 module Rails
   module Generators
     class PluginGenerator < NamedBase
-      class_option :tasks, :type => :boolean, :aliases => "-t", :default => false,
-                           :desc => "When supplied creates tasks base files."
+      class_option :tasks, :desc => "When supplied creates tasks base files."
 
       check_class_collision
 
@@ -21,7 +20,7 @@ module Rails
         directory 'tasks', plugin_dir('tasks')
       end
 
-      hook_for :generator, :aliases => "-g", :type => :boolean do |instance, generator|
+      hook_for :generator do |instance, generator|
         instance.inside_with_padding instance.send(:plugin_dir) do
           instance.invoke generator, [ instance.name ], :namespace => false
         end

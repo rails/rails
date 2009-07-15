@@ -252,23 +252,22 @@ module Rails
 
     # Holds generators configuration:
     #
-    #   config.generators.orm = :datamapper
-    #   config.generators.test_framework = :rspec
-    #   config.generators.template_engine = :haml
-    #
-    # A block can also be given for less verbose configuration:
-    #
     #   config.generators do |g|
-    #     g.orm = :datamapper
-    #     g.test_framework = :datamapper
+    #     g.orm :datamapper do |dm|
+    #       dm.migration  = true
+    #       dm.timestamps = false
+    #     end
+    #
     #     g.template_engine = :haml
+    #     g.test_framework = :datamapper
+    #
+    #     g.plugin do |p|
+    #       p.aliases :generator => "-g"
+    #       p.generator = true
+    #     end
     #   end
     #
-    # You can also configure/override aliases:
-    #
-    #   config.generators.aliases = :test_framework => "-w"
-    #
-    # Finally, to disable color in console, do:
+    # If you want to disable color in console, do:
     #
     #   config.generators.colorize_logging = false
     #
@@ -282,18 +281,30 @@ module Rails
     end
 
     class Generators #:nodoc:
-      attr_accessor :aliases, :options, :colorize_logging
+      attr_reader :aliases, :options
+      attr_accessor :colorize_logging
 
       def initialize
-        @aliases, @options, @colorize_logging = {}, {}, true
+        @namespace, @colorize_logging = :rails, true
+        @aliases = Hash.new { |h,k| h[k] = {} }
+        @options = Hash.new { |h,k| h[k] = {} }
       end
 
-      def method_missing(method, *args, &block)
-        method = method.to_s
-        if method.gsub!(/=$/, '')
-          @options[method.to_sym] = args.first
-        else
-          super(method.to_sym, *args, &block)
+      def aliases(another=nil)
+        @aliases[@namespace].merge!(another) if another
+        @aliases
+      end
+      alias :aliases= :aliases
+
+      def method_missing(method, *args)
+        sanitized_method = method.to_s.sub(/=$/, '').to_sym
+        @options[@namespace][sanitized_method] = args.first if args.first
+
+        if block_given?
+          previous_namespace = @namespace
+          @namespace = (args.first || sanitized_method).to_sym
+          yield self
+          @namespace = previous_namespace
         end
       end
     end

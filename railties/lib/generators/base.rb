@@ -110,7 +110,7 @@ module Rails
         names.each do |name|
           defaults = if options[:type] == :boolean
             { }
-          elsif [true, false].include?(options.fetch(:default, Rails::Generators.options[name]))
+          elsif [true, false].include?(options.fetch(:default, default_value_for_option(name)))
             { :banner => "" }
           else
             { :desc => "#{name.to_s.humanize} to be invoked", :banner => "NAME" }
@@ -143,8 +143,8 @@ module Rails
       #
       def self.class_option(name, options={}) #:nodoc:
         options[:desc]    = "Indicates when to generate #{name.to_s.humanize.downcase}" unless options.key?(:desc)
-        options[:aliases] = Rails::Generators.aliases[name] unless options.key?(:aliases)
-        options[:default] = Rails::Generators.options[name] unless options.key?(:default)
+        options[:aliases] = default_aliases_for_option(name) unless options.key?(:aliases)
+        options[:default] = default_value_for_option(name)   unless options.key?(:default)
         super(name, options)
       end
 
@@ -202,6 +202,36 @@ module Rails
             klass_name = self.name.split('::').last
             klass_name.sub!(/Generator$/, '')
             klass_name.underscore
+          end
+        end
+
+        # Return the default value for the option name given doing a lookup in
+        # Rails::Generators.options.
+        #
+        def self.default_value_for_option(option)
+          options = Rails::Generators.options
+
+          if options[generator_name.to_sym].key?(option)
+            options[generator_name.to_sym][option]
+          elsif options[base_name.to_sym].key?(option)
+            options[base_name.to_sym][option]
+          else
+            options[:rails][option]
+          end
+        end
+
+        # Return default aliases for the option name given doing a lookup in
+        # Rails::Generators.aliases.
+        #
+        def self.default_aliases_for_option(option)
+          aliases = Rails::Generators.aliases
+
+          if aliases[generator_name.to_sym].key?(option)
+            aliases[generator_name.to_sym][option]
+          elsif aliases[base_name.to_sym].key?(option)
+            aliases[base_name.to_sym][option]
+          else
+            aliases[:rails][option]
           end
         end
 

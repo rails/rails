@@ -45,20 +45,22 @@ Rails::Initializer.run do |config|
 
   # Configure generators default options.
   config.generators do |g|
-    # Scaffold configuration
-    g.helper      = true
-    g.layout      = true
-    g.stylesheets = true
+    g.rails do |r|
+      r.helper      = true
+      r.stylesheets = true
+    end
 
-    # ORM configuration
-    g.orm        = :active_record
-    g.timestamps = true
+    g.orm :active_record do |ar|
+      ar.migration  = true
+      ar.timestamps = true
+    end
 
-    # Template engine configuration
-    g.template_engine = :erb
+    g.template_engine :erb do |erb|
+      erb.layout = true
+    end
 
-    # Test framework configuration
-    g.test_framework = :test_unit
-    g.fixtures       = true
+    g.test_framework :test_unit do |tu|
+      tu.fixtures = true
+    end
   end
 end
