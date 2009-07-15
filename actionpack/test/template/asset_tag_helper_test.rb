@@ -158,8 +158,8 @@ class AssetTagHelperTest < ActionView::TestCase
 
   VideoLinkToTag = {
     %(video_tag("xml.ogg")) => %(<video src="/videos/xml.ogg" />),
-    %(video_tag("rss.m4v", :autoplay => true, :controls => true)) => %(<video autoplay="autoplay" controls="controls" src="/videos/rss.m4v" />),
-    %(video_tag("rss.m4v", :autobuffer => true)) => %(<video autobuffer="autobuffer" src="/videos/rss.m4v" />),
+    %(video_tag("rss.m4v", :autoplay => true, :controls => true)) => %(<video autoplay="true" controls="true" src="/videos/rss.m4v" />),
+    %(video_tag("rss.m4v", :autobuffer => true)) => %(<video autobuffer="true" src="/videos/rss.m4v" />),
     %(video_tag("gold.m4v", :size => "160x120")) => %(<video height="120" src="/videos/gold.m4v" width="160" />),
     %(video_tag("gold.m4v", "size" => "320x240")) => %(<video height="240" src="/videos/gold.m4v" width="320" />),
     %(video_tag("trailer.ogg", :poster => "screenshot.png")) => %(<video poster="/images/screenshot.png" src="/videos/trailer.ogg" />),
@@ -168,7 +168,27 @@ class AssetTagHelperTest < ActionView::TestCase
     %(video_tag("error.avi", "size" => "x")) => %(<video src="/videos/error.avi" />),
     %(video_tag("http://media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="http://media.rubyonrails.org/video/rails_blog_2.mov" />),
     %(video_tag(["multiple.ogg", "multiple.avi"])) => %(<video><source src="multiple.ogg" /><source src="multiple.avi" /></video>),
-    %(video_tag(["multiple.ogg", "multiple.avi"], :size => "160x120", :controls => true)) => %(<video controls="controls" height="120" width="160"><source src="multiple.ogg" /><source src="multiple.avi" /></video>)
+    %(video_tag(["multiple.ogg", "multiple.avi"], :size => "160x120", :controls => true)) => %(<video controls="true" height="120" width="160"><source src="multiple.ogg" /><source src="multiple.avi" /></video>)
+  }
+
+ AudioPathToTag = {
+    %(audio_path("xml"))          => %(/audios/xml),
+    %(audio_path("xml.wav"))      => %(/audios/xml.wav),
+    %(audio_path("dir/xml.wav"))  => %(/audios/dir/xml.wav),
+    %(audio_path("/dir/xml.wav")) => %(/dir/xml.wav)
+  }
+
+  PathToAudioToTag = {
+    %(path_to_audio("xml"))          => %(/audios/xml),
+    %(path_to_audio("xml.wav"))      => %(/audios/xml.wav),
+    %(path_to_audio("dir/xml.wav"))  => %(/audios/dir/xml.wav),
+    %(path_to_audio("/dir/xml.wav")) => %(/dir/xml.wav)
+  }
+
+  AudioLinkToTag = {
+    %(audio_tag("xml.wav")) => %(<audio src="/audios/xml.wav" />),
+    %(audio_tag("rss.wav", :autoplay => true, :controls => true)) => %(<audio autoplay="true" controls="true" src="/audios/rss.wav" />),
+    %(audio_tag("http://media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="http://media.rubyonrails.org/audio/rails_blog_2.mov" />),
   }
 
   def test_auto_discovery_link_tag
@@ -311,6 +331,18 @@ class AssetTagHelperTest < ActionView::TestCase
     VideoLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_audio_path
+    AudioPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_path_to_audio_alias_for_audio_path
+    PathToAudioToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_audio_tag
+    AudioLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
   def test_timebased_asset_id
     expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
     assert_equal %(<img alt="Rails" src="/images/rails.png?#{expected_time}" />), image_tag("rails.png")
@@ -354,7 +386,7 @@ class AssetTagHelperTest < ActionView::TestCase
         "#{request.protocol}assets#{source.length}.example.com"
       end
     end
-    
+
     ActionController::Base.perform_caching = true
 
 

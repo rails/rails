@@ -277,6 +277,22 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
   end
 
+  def test_read_attribute_overwrites_private_method_not_considered_implemented
+    # simulate a model with a db column that shares its name an inherited
+    # private method (e.g. Object#system)
+    #
+    Object.class_eval do
+      private
+      def title; "private!"; end
+    end
+    assert !@target.instance_method_already_implemented?(:title)
+    topic = @target.new
+    assert_equal nil, topic.title
+
+    Object.send(:undef_method, :title) # remove test method from object
+  end
+
+
   private
   def time_related_columns_on_topic
     Topic.columns.select{|c| [:time, :date, :datetime, :timestamp].include?(c.type)}.map(&:name)

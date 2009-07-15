@@ -17,6 +17,15 @@ module ActiveModel
             @value = compute_value
           end
 
+          # There is a significant speed improvement if the value
+          # does not need to be escaped, as <tt>tag!</tt> escapes all values
+          # to ensure that valid XML is generated. For known binary
+          # values, it is at least an order of magnitude faster to
+          # Base64 encode binary values and directly put them in the
+          # output XML than to pass the original value or the Base64
+          # encoded value to the <tt>tag!</tt> method. It definitely makes
+          # no sense to Base64 encode the value and then give it to
+          # <tt>tag!</tt>, since that just adds additional overhead.
           def needs_encoding?
             ![ :binary, :date, :datetime, :boolean, :float, :integer ].include?(type)
           end
@@ -105,28 +114,6 @@ module ActiveModel
           end
         end
 
-        def add_attributes
-          (serializable_attributes + serializable_method_attributes).each do |attribute|
-            add_tag(attribute)
-          end
-        end
-
-        def add_procs
-          if procs = options.delete(:procs)
-            [ *procs ].each do |proc|
-              proc.call(options)
-            end
-          end
-        end
-
-        def add_tag(attribute)
-          builder.tag!(
-            reformat_name(attribute.name),
-            attribute.value.to_s,
-            attribute.decorations(!options[:skip_types])
-          )
-        end
-
         def serialize
           args = [root]
 
@@ -151,6 +138,24 @@ module ActiveModel
           def reformat_name(name)
             name = name.camelize if camelize?
             dasherize? ? name.dasherize : name
+          end
+
+          def add_attributes
+            (serializable_attributes + serializable_method_attributes).each do |attribute|
+              builder.tag!(
+                reformat_name(attribute.name),
+                attribute.value.to_s,
+                attribute.decorations(!options[:skip_types])
+              )
+            end
+          end
+
+          def add_procs
+            if procs = options.delete(:procs)
+              [ *procs ].each do |proc|
+                proc.call(options)
+              end
+            end
           end
       end
 
