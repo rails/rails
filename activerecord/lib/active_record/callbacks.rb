@@ -276,11 +276,19 @@ module ActiveRecord
     private :create_with_callbacks
 
     # Is called _before_ <tt>Base.save</tt> on existing objects that have a record.
+    #
+    #  class Contact < ActiveRecord::Base
+    #    before_update { |record| logger.info( "Contact #{record.id} is about to be updated." ) }
+    #  end
     def before_update() end
 
     # Is called _after_ <tt>Base.save</tt> on existing objects that have a record.
     # Note that this callback is still wrapped in the transaction around +save+. For example, if you
     # invoke an external indexer at this point it won't see the changes in the database.
+    #
+    #  class Contact < ActiveRecord::Base
+    #    after_update { |record| logger.info( "Contact #{record.id} was updated." ) }
+    #  end
     def after_update() end
 
     def update_with_callbacks(*args) #:nodoc:
@@ -330,6 +338,10 @@ module ActiveRecord
     #
     # Note: If you need to _destroy_ or _nullify_ associated records first,
     # use the <tt>:dependent</tt> option on your associations.
+    #
+    #  class Contact < ActiveRecord::Base
+    #    after_destroy { |record| logger.info( "Contact #{record.id} is about to be destroyed." ) }
+    #  end
     def before_destroy() end
 
     # Is called _after_ <tt>Base.destroy</tt> (and all the attributes have been frozen).
