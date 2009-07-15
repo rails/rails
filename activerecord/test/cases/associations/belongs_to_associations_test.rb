@@ -14,6 +14,7 @@ require 'models/tagging'
 require 'models/comment'
 require 'models/sponsor'
 require 'models/member'
+require 'models/essay'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -23,6 +24,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Client.find(3).firm.name
     assert_equal companies(:first_firm).name, Client.find(3).firm.name
     assert !Client.find(3).firm.nil?, "Microsoft should have a firm"
+  end
+
+  def test_belongs_to_with_primary_key
+    client = Client.create(:name => "Primary key client", :firm_name => companies(:first_firm).name)
+    assert_equal companies(:first_firm).name, client.firm_with_primary_key.name
   end
 
   def test_proxy_assignment
@@ -47,6 +53,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal apple.id, citibank.firm_id
   end
 
+  def test_natural_assignment_with_primary_key
+    apple = Firm.create("name" => "Apple")
+    citibank = Client.create("name" => "Primary key client")
+    citibank.firm_with_primary_key = apple
+    assert_equal apple.name, citibank.firm_name
+  end
+
   def test_no_unexpected_aliasing
     first_firm = companies(:first_firm)
     another_firm = companies(:another_firm)
@@ -69,6 +82,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal apple, citibank.firm
   end
 
+  def test_creating_the_belonging_object_with_primary_key
+    client = Client.create(:name => "Primary key client")
+    apple  = client.create_firm_with_primary_key("name" => "Apple")
+    assert_equal apple, client.firm_with_primary_key
+    client.save
+    client.reload
+    assert_equal apple, client.firm_with_primary_key
+  end
+
   def test_building_the_belonging_object
     citibank = Account.create("credit_limit" => 10)
     apple    = citibank.build_firm("name" => "Apple")
@@ -76,11 +98,26 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal apple.id, citibank.firm_id
   end
 
+  def test_building_the_belonging_object_with_primary_key
+    client = Client.create(:name => "Primary key client")
+    apple  = client.build_firm_with_primary_key("name" => "Apple")
+    client.save
+    assert_equal apple.name, client.firm_name
+  end
+
   def test_natural_assignment_to_nil
     client = Client.find(3)
     client.firm = nil
     client.save
     assert_nil client.firm(true)
+    assert_nil client.client_of
+  end
+
+  def test_natural_assignment_to_nil_with_primary_key
+    client = Client.create(:name => "Primary key client", :firm_name => companies(:first_firm).name)
+    client.firm_with_primary_key = nil
+    client.save
+    assert_nil client.firm_with_primary_key(true)
     assert_nil client.client_of
   end
 
@@ -110,6 +147,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply deleted"
   end
 
+  def test_belongs_to_with_primary_key_counter
+    debate = Topic.create("title" => "debate")
+    assert_equal 0, debate.send(:read_attribute, "replies_count"), "No replies yet"
+
+    trash = debate.replies_with_primary_key.create("title" => "blah!", "content" => "world around!")
+    assert_equal 1, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply created"
+
+    trash.destroy
+    assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply deleted"
+  end
+
   def test_belongs_to_counter_with_assigning_nil
     p = Post.find(1)
     c = Comment.find(1)
@@ -120,6 +168,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     c.post = nil
 
     assert_equal 1, Post.find(p.id).comments.size
+  end
+
+  def test_belongs_to_with_primary_key_counter_with_assigning_nil
+    debate = Topic.create("title" => "debate")
+    reply  = Reply.create("title" => "blah!", "content" => "world around!", "parent_title" => "debate")
+
+    assert_equal debate.title, reply.parent_title
+    assert_equal 1, Topic.find(debate.id).send(:read_attribute, "replies_count")
+
+    reply.topic_with_primary_key = nil
+
+    assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count")
   end
 
   def test_belongs_to_counter_with_reassigning
@@ -219,6 +279,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal firm, final_cut.firm(true)
   end
 
+  def test_assignment_before_child_saved_with_primary_key
+    final_cut = Client.new("name" => "Final Cut")
+    firm = Firm.find(1)
+    final_cut.firm_with_primary_key = firm
+    assert final_cut.new_record?
+    assert final_cut.save
+    assert !final_cut.new_record?
+    assert !firm.new_record?
+    assert_equal firm, final_cut.firm_with_primary_key
+    assert_equal firm, final_cut.firm_with_primary_key(true)
+  end
+
   def test_new_record_with_foreign_key_but_no_object
     c = Client.new("firm_id" => 1)
     assert_equal Firm.find(:first), c.firm_with_basic_id
@@ -297,24 +369,50 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     member = Member.create
     sponsor.sponsorable = member
     assert_equal "Member", sponsor.sponsorable_type
-    
+
     # should update when assigning a new record
     sponsor = Sponsor.new
     member = Member.new
     sponsor.sponsorable = member
     assert_equal "Member", sponsor.sponsorable_type
   end
-  
+
+  def test_polymorphic_assignment_with_primary_key_foreign_type_field_updating
+    # should update when assigning a saved record
+    essay = Essay.new
+    writer = Author.create(:name => "David")
+    essay.writer = writer
+    assert_equal "Author", essay.writer_type
+
+    # should update when assigning a new record
+    essay = Essay.new
+    writer = Author.new
+    essay.writer = writer
+    assert_equal "Author", essay.writer_type
+  end
+
   def test_polymorphic_assignment_updates_foreign_id_field_for_new_and_saved_records
     sponsor = Sponsor.new
     saved_member = Member.create
     new_member = Member.new
-    
+
     sponsor.sponsorable = saved_member
     assert_equal saved_member.id, sponsor.sponsorable_id
-    
+
     sponsor.sponsorable = new_member
     assert_equal nil, sponsor.sponsorable_id
+  end
+
+  def test_polymorphic_assignment_with_primary_key_updates_foreign_id_field_for_new_and_saved_records
+    essay = Essay.new
+    saved_writer = Author.create(:name => "David")
+    new_writer = Author.new
+
+    essay.writer = saved_writer
+    assert_equal saved_writer.name, essay.writer_id
+
+    essay.writer = new_writer
+    assert_equal nil, essay.writer_id
   end
 
   def test_belongs_to_proxy_should_not_respond_to_private_methods

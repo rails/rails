@@ -14,7 +14,7 @@ module ActiveRecord
 
         if record.nil?
           if counter_cache_name && !@owner.new_record?
-            @reflection.klass.decrement_counter(counter_cache_name, @owner[@reflection.primary_key_name]) if @owner[@reflection.primary_key_name]
+            @reflection.klass.decrement_counter(counter_cache_name, previous_record_id) if @owner[@reflection.primary_key_name]
           end
 
           @target = @owner[@reflection.primary_key_name] = nil
@@ -27,7 +27,7 @@ module ActiveRecord
           end
 
           @target = (AssociationProxy === record ? record.target : record)
-          @owner[@reflection.primary_key_name] = record.id unless record.new_record?
+          @owner[@reflection.primary_key_name] = record_id(record) unless record.new_record?
           @updated = true
         end
 
@@ -41,17 +41,35 @@ module ActiveRecord
       
       private
         def find_target
-          @reflection.klass.find(
+          find_method = if @reflection.options[:primary_key]
+                          "find_by_#{@reflection.options[:primary_key]}"
+                        else
+                          "find"
+                        end
+          @reflection.klass.send(find_method,
             @owner[@reflection.primary_key_name],
             :select     => @reflection.options[:select],
             :conditions => conditions,
             :include    => @reflection.options[:include],
             :readonly   => @reflection.options[:readonly]
-          )
+          ) if @owner[@reflection.primary_key_name]
         end
 
         def foreign_key_present
           !@owner[@reflection.primary_key_name].nil?
+        end
+
+        def record_id(record)
+          record.send(@reflection.options[:primary_key] || :id)
+        end
+
+        def previous_record_id
+          @previous_record_id ||= if @reflection.options[:primary_key]
+                                    previous_record = @owner.send(@reflection.name)
+                                    previous_record.nil? ? nil : previous_record.id
+                                  else
+                                    @owner[@reflection.primary_key_name]
+                                  end
         end
     end
   end
