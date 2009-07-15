@@ -253,18 +253,9 @@ module Rails
     # Holds generators configuration:
     #
     #   config.generators do |g|
-    #     g.orm :datamapper do |dm|
-    #       dm.migration  = true
-    #       dm.timestamps = false
-    #     end
-    #
-    #     g.template_engine = :haml
-    #     g.test_framework = :datamapper
-    #
-    #     g.plugin do |p|
-    #       p.aliases :generator => "-g"
-    #       p.generator = true
-    #     end
+    #     g.orm             :datamapper, :migration => true
+    #     g.template_engine :haml
+    #     g.test_framework  :rspec
     #   end
     #
     # If you want to disable color in console, do:
@@ -281,30 +272,26 @@ module Rails
     end
 
     class Generators #:nodoc:
-      attr_reader :aliases, :options
-      attr_accessor :colorize_logging
+      attr_accessor :aliases, :options, :colorize_logging
 
       def initialize
-        @namespace, @colorize_logging = :rails, true
         @aliases = Hash.new { |h,k| h[k] = {} }
         @options = Hash.new { |h,k| h[k] = {} }
+        @colorize_logging = true
       end
-
-      def aliases(another=nil)
-        @aliases[@namespace].merge!(another) if another
-        @aliases
-      end
-      alias :aliases= :aliases
 
       def method_missing(method, *args)
-        sanitized_method = method.to_s.sub(/=$/, '').to_sym
-        @options[@namespace][sanitized_method] = args.first unless args.empty?
+        method        = method.to_s.sub(/=$/, '').to_sym
+        namespace     = args.first.is_a?(Symbol) ? args.shift : nil
+        configuration = args.first.is_a?(Hash)   ? args.shift : nil
 
-        if block_given?
-          previous_namespace = @namespace
-          @namespace = (args.first || sanitized_method).to_sym
-          yield self
-          @namespace = previous_namespace
+        @options[:rails][method] = namespace if namespace
+        namespace ||= method
+
+        if configuration
+          aliases = configuration.delete(:aliases)
+          @aliases[namespace].merge!(aliases) if aliases
+          @options[namespace].merge!(configuration)
         end
       end
     end

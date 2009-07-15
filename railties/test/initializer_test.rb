@@ -312,22 +312,13 @@ class InitializerGeneratorsTests < Test::Unit::TestCase
   end
 
   def test_generators_set_rails_aliases
-    @configuration.generators.aliases = { :test_framework => "-w" }
+    @configuration.generators.aliases = { :rails => { :test_framework => "-w" } }
     expected = { :rails => { :test_framework => "-w" } }
     assert_equal expected, @configuration.generators.aliases
   end
 
-  def test_generators_with_block_for_rails_configuration
-    @configuration.generators do |g|
-      g.orm = :datamapper
-      g.test_framework = :rspec
-    end
-    expected = { :rails => { :orm => :datamapper, :test_framework => :rspec } }
-    assert_equal expected, @configuration.generators.options
-  end
-
   def test_generators_aliases_and_options_on_initialization
-    @configuration.generators.aliases :test_framework => "-w"
+    @configuration.generators.rails :aliases => { :test_framework => "-w" }
     @configuration.generators.orm :datamapper
     @configuration.generators.test_framework :rspec
 
@@ -343,38 +334,36 @@ class InitializerGeneratorsTests < Test::Unit::TestCase
     assert_equal Thor::Base.shell, Thor::Shell::Basic
   end
 
-  def test_generators_with_namespaced_blocks_for_options_and_aliases
-    namespaced_configuration!
+  def test_generators_with_hashes_for_options_and_aliases
+    @configuration.generators do |g|
+      g.orm    :datamapper, :migration => false
+      g.plugin :aliases => { :generator => "-g" },
+               :generator => true
+    end
+
     expected = {
       :rails => { :orm => :datamapper },
       :plugin => { :generator => true },
-      :datamapper => { :migrations => false }
+      :datamapper => { :migration => false }
     }
+
     assert_equal expected, @configuration.generators.options
     assert_equal({ :plugin => { :generator => "-g" } }, @configuration.generators.aliases)
   end
 
-  def test_generators_with_namespaced_configuration_are_deep_merged
-    namespaced_configuration!
+  def test_generators_with_hashes_are_deep_merged
+    @configuration.generators do |g|
+      g.orm    :datamapper, :migration => false
+      g.plugin :aliases => { :generator => "-g" },
+               :generator => true
+    end
     @initializer.run(:initialize_generators)
+
     assert Rails::Generators.aliases.size >= 1
     assert Rails::Generators.options.size >= 1
   end
 
   protected
-
-    def namespaced_configuration!
-      @configuration.generators do |g|
-        g.orm :datamapper do |dm|
-          dm.migrations = false
-        end
-
-        g.plugin do |p|
-          p.aliases   = { :generator => "-g" }
-          p.generator = true
-        end
-      end
-    end
 
     def teardown
       Rails::Generators.clear_aliases!

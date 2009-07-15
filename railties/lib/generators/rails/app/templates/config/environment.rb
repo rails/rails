@@ -43,24 +43,11 @@ Rails::Initializer.run do |config|
   # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}')]
   # config.i18n.default_locale = :de
 
-  # Configure generators default options.
+  # Configure generators values. Many other options are available, be sure to
+  # check the documentation.
   config.generators do |g|
-    g.rails do |r|
-      r.helper      = true
-      r.stylesheets = true
-    end
-
-    g.orm :active_record do |ar|
-      ar.migration  = true
-      ar.timestamps = true
-    end
-
-    g.template_engine :erb do |erb|
-      erb.layout = true
-    end
-
-    g.test_framework :test_unit do |tu|
-      tu.fixtures = true
-    end
+    g.orm             :active_record
+    g.template_engine :erb
+    g.test_framework  :test_unit, :fixture => true
   end
 end
