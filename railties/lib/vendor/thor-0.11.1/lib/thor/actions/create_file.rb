@@ -9,7 +9,7 @@ class Thor
     # ==== Parameters
     # destination<String>:: the relative path to the destination root.
     # data<String|NilClass>:: the data to append to the file.
-    # log_status<Boolean>:: if false, does not log the status. True by default.
+    # config<Hash>:: give :verbose => false to not log the status.
     #
     # ==== Examples
     #
@@ -20,8 +20,8 @@ class Thor
     #
     #   create_file "config/apach.conf", "your apache config"
     #
-    def create_file(destination, data=nil, log_status=true, &block)
-      action CreateFile.new(self, destination, block || data.to_s, log_status)
+    def create_file(destination, data=nil, config={}, &block)
+      action CreateFile.new(self, destination, block || data.to_s, config)
     end
     alias :add_file :create_file
 
@@ -31,8 +31,8 @@ class Thor
     class CreateFile < Templater #:nodoc:
       attr_reader :data
 
-      def initialize(base, destination, data, log_status)
-        super(base, nil, destination, log_status)
+      def initialize(base, destination, data, config={})
+        super(base, nil, destination, config)
         @data = data
       end
 

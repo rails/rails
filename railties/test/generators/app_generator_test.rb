@@ -125,7 +125,8 @@ class AppGeneratorTest < GeneratorsTestCase
   end
 
   def test_rails_is_frozen
-    generator(:freeze => true, :database => "sqlite3").expects(:run).with("rake rails:freeze:edge", false)
+    generator(:freeze => true, :database => "sqlite3").expects(:run).
+              with("rake rails:freeze:edge", :verbose => false)
     silence(:stdout){ generator.invoke }
     assert_file 'config/environment.rb', /# RAILS_GEM_VERSION/
   end

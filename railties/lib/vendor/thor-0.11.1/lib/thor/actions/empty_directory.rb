@@ -6,21 +6,21 @@ class Thor
     # Creates an empty directory.
     #
     # ==== Parameters
-    # destination<String>:: the relative path to the destination root
-    # log_status<Boolean>:: if false, does not log the status. True by default.
+    # destination<String>:: the relative path to the destination root.
+    # config<Hash>:: give :verbose => false to not log the status.
     #
     # ==== Examples
     #
     #   empty_directory "doc"
     #
-    def empty_directory(destination, log_status=true)
-      action EmptyDirectory.new(self, nil, destination, log_status)
+    def empty_directory(destination, config={})
+      action EmptyDirectory.new(self, nil, destination, config)
     end
 
     class EmptyDirectory < Templater #:nodoc:
 
       def invoke!
-        invoke_with_options!(base.options) do
+        invoke_with_options!(base.options.merge(config)) do
           ::FileUtils.mkdir_p(destination)
         end
       end

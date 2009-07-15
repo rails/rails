@@ -9,9 +9,8 @@ class Thor
     # ==== Parameters
     # destination<String>:: Relative path to the destination root
     # data<String>:: Data to add to the file. Can be given as a block.
-    # flag<String>:: Flag of where to add the changes.
-    # log_status<Boolean>:: If false, does not log the status. True by default.
-    #                       If a symbol is given, uses it as the output color.
+    # config<Hash>:: give :verbose => false to not log the status and the flag
+    #                for injection (:after or :before).
     # 
     # ==== Examples
     #
@@ -24,28 +23,29 @@ class Thor
     #
     def inject_into_file(destination, *args, &block)
       if block_given?
-        data, flag = block, args.shift
+        data, config = block, args.shift
       else
-        data, flag = args.shift, args.shift
+        data, config = args.shift, args.shift
       end
 
       log_status = args.empty? || args.pop
-      action InjectIntoFile.new(self, destination, data, flag, log_status)
+      action InjectIntoFile.new(self, destination, data, config)
     end
 
     class InjectIntoFile #:nodoc:
-      attr_reader :base, :destination, :relative_destination, :flag, :replacement
+      attr_reader :base, :destination, :relative_destination, :flag, :replacement, :config
 
-      def initialize(base, destination, data, flag, log_status=true)
-        @base, @log_status = base, log_status
-        behavior, @flag = flag.keys.first, flag.values.first
+      def initialize(base, destination, data, config)
+        @base, @config = base, { :verbose => true }.merge(config)
 
         self.destination = destination
         data = data.call if data.is_a?(Proc)
 
-        @replacement = if behavior == :after
+        @replacement = if @config.key?(:after)
+          @flag = @config.delete(:after)
           @flag + data
         else
+          @flag = @config.delete(:before)
           data + @flag
         end
       end
@@ -75,7 +75,7 @@ class Thor
         # Shortcut to say_status shell method.
         #
         def say_status(status)
-          base.shell.say_status status, relative_destination, @log_status
+          base.shell.say_status status, relative_destination, config[:verbose]
         end
 
         # Adds the content to the file.

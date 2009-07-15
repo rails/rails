@@ -9,9 +9,9 @@ class Thor
     # the url is yielded and used as location.
     #
     # ==== Parameters
-    # source<String>:: the address of the given content
-    # destination<String>:: the relative path to the destination root
-    # log_status<Boolean>:: if false, does not log the status. True by default.
+    # source<String>:: the address of the given content.
+    # destination<String>:: the relative path to the destination root.
+    # config<Hash>:: give :verbose => false to not log the status.
     #
     # ==== Examples
     #
@@ -21,8 +21,8 @@ class Thor
     #     content.split("\n").first
     #   end
     #
-    def get(source, destination=nil, log_status=true, &block)
-      action Get.new(self, source, block || destination, log_status)
+    def get(source, destination=nil, config={}, &block)
+      action Get.new(self, source, block || destination, config)
     end
 
     class Get < Templater #:nodoc:

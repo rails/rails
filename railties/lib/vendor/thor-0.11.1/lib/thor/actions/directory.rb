@@ -30,30 +30,27 @@ class Thor
     #     blog.rb
     #
     # ==== Parameters
-    # source<String>:: the relative path to the source root
-    # destination<String>:: the relative path to the destination root
-    # recursive<Boolean>:: if the directory must be copied recursively, true by default
-    # log_status<Boolean>:: if false, does not log the status. True by default.
+    # source<String>:: the relative path to the source root.
+    # destination<String>:: the relative path to the destination root.
+    # config<Hash>:: give :verbose => false to not log the status.
+    #                If :recursive => false, does not look for paths recursively.
     #
     # ==== Examples
     #
     #   directory "doc"
-    #   directory "doc", "docs", false
+    #   directory "doc", "docs", :recursive => false
     #
-    def directory(source, destination=nil, recursive=true, log_status=true)
-      action Directory.new(self, source, destination || source, recursive, log_status)
+    def directory(source, destination=nil, config={})
+      action Directory.new(self, source, destination || source, config)
     end
 
     class Directory < Templater #:nodoc:
-      attr_reader :recursive
-
-      def initialize(base, source, destination=nil, recursive=true, log_status=true)
-        @recursive = recursive
-        super(base, source, destination, log_status)
+      def initialize(base, source, destination=nil, config={})
+        super(base, source, destination, { :recursive => true }.merge(config))
       end
 
       def invoke!
-        base.empty_directory given_destination, @log_status
+        base.empty_directory given_destination, config
         execute!
       end
 
@@ -64,7 +61,7 @@ class Thor
       protected
 
         def execute!
-          lookup = recursive ? File.join(source, '**') : source
+          lookup = config[:recursive] ? File.join(source, '**') : source
           lookup = File.join(lookup, '{*,.[a-z]*}')
 
           Dir[lookup].each do |file_source|
@@ -73,11 +70,11 @@ class Thor
 
             case file_source
               when /\.empty_directory$/
-                base.empty_directory(File.dirname(file_destination), @log_status)
+                base.empty_directory(File.dirname(file_destination), config)
               when /\.tt$/
-                base.template(file_source, file_destination[0..-4], @log_status)
+                base.template(file_source, file_destination[0..-4], config)
               else
-                base.copy_file(file_source, file_destination, @log_status)
+                base.copy_file(file_source, file_destination, config)
             end
           end
         end

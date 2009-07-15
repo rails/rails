@@ -16,12 +16,13 @@ module Rails
       #
       #   apply "recipes/jquery.rb"
       #
-      def apply(path, log_status=true)
+      def apply(path)
         path = find_in_source_paths(path) unless path =~ /^http\:\/\//
 
-        log :apply, path, log_status
+        log :apply, path
+        shell.padding += 1
         instance_eval(open(path).read)
-        log :applied, path, log_status
+        shell.padding -= 1
       end
 
       # Install a plugin. You must provide either a Subversion url or Git url.
@@ -38,11 +39,11 @@ module Rails
 
         if options[:git] && options[:submodule]
           in_root do
-            run "git submodule add #{options[:git]} vendor/plugins/#{name}", false
+            run "git submodule add #{options[:git]} vendor/plugins/#{name}", :verbose => false
           end
         elsif options[:git] || options[:svn]
           in_root do
-            run_ruby_script "script/plugin install #{options[:svn] || options[:git]}", false
+            run_ruby_script "script/plugin install #{options[:svn] || options[:git]}", :verbose => false
           end
         else
           log "! no git or svn provided for #{name}. Skipping..."
@@ -57,7 +58,7 @@ module Rails
       #   gem "rspec", :env => :test
       #   gem "technoweenie-restful-authentication", :lib => "restful-authentication", :source => "http://gems.github.com/"
       #
-      def gem(name, options = {})
+      def gem(name, options={})
         log :gem, name
         env = options.delete(:env)
 
@@ -82,10 +83,10 @@ module Rails
 
         in_root do
           if options[:env].nil?
-            inject_into_file 'config/environment.rb', "\n  #{data}", { :after => sentinel }, false
+            inject_into_file 'config/environment.rb', "\n  #{data}", :after => sentinel, :verbose => false
           else
             Array.wrap(options[:env]).each do|env|
-              append_file "config/environments/#{env}.rb", "\n#{data}", false
+              append_file "config/environments/#{env}.rb", "\n#{data}", :verbose => false
             end
           end
         end
@@ -99,7 +100,7 @@ module Rails
       #   git :add => "this.file that.rb"
       #   git :add => "onefile.rb", :rm => "badfile.cxx"
       #
-      def git(command = {})
+      def git(command={})
         in_root do
           if command.is_a?(Symbol)
             run "git #{command}"
@@ -125,7 +126,7 @@ module Rails
       #
       def vendor(filename, data=nil, &block)
         log :vendor, filename
-        create_file("vendor/#{filename}", data, false, &block)
+        create_file("vendor/#{filename}", data, :verbose => false, &block)
       end
 
       # Create a new file in the lib/ directory. Code can be specified
@@ -141,7 +142,7 @@ module Rails
       #
       def lib(filename, data=nil, &block)
         log :lib, filename
-        create_file("lib/#{filename}", data, false, &block)
+        create_file("lib/#{filename}", data, :verbose => false, &block)
       end
 
       # Create a new Rakefile with the provided code (either in a block or a string).
@@ -164,7 +165,7 @@ module Rails
       #
       def rakefile(filename, data=nil, &block)
         log :rakefile, filename
-        create_file("lib/tasks/#{filename}", data, false, &block)
+        create_file("lib/tasks/#{filename}", data, :verbose => false, &block)
       end
 
       # Create a new initializer with the provided code (either in a block or a string).
@@ -185,7 +186,7 @@ module Rails
       #
       def initializer(filename, data=nil, &block)
         log :initializer, filename
-        create_file("config/initializers/#{filename}", data, false, &block)
+        create_file("config/initializers/#{filename}", data, :verbose => false, &block)
       end
 
       # Generate something using a generator from Rails or a plugin.
@@ -200,7 +201,7 @@ module Rails
         log :generate, what
         argument = args.map {|arg| arg.to_s }.flatten.join(" ")
 
-        in_root { run_ruby_script("script/generate #{what} #{argument}", false) }
+        in_root { run_ruby_script("script/generate #{what} #{argument}", :verbose => false) }
       end
 
       # Runs the supplied rake task
@@ -215,7 +216,7 @@ module Rails
         log :rake, command
         env  = options[:env] || 'development'
         sudo = options[:sudo] && RUBY_PLATFORM !~ /mswin|mingw/ ? 'sudo ' : ''
-        in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", false) }
+        in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", :verbose => false) }
       end
 
       # Just run the capify command in root
@@ -226,7 +227,7 @@ module Rails
       #
       def capify!
         log :capify, ""
-        in_root { run("#{extify(:capify)} .", false) }
+        in_root { run("#{extify(:capify)} .", :verbose => false) }
       end
 
       # Add Rails to /vendor/rails
@@ -237,7 +238,7 @@ module Rails
       #
       def freeze!(args = {})
         log :vendor, "rails"
-        in_root { run("#{extify(:rake)} rails:freeze:edge", false) }
+        in_root { run("#{extify(:rake)} rails:freeze:edge", :verbose => false) }
       end
 
       # Make an entry in Rails routing file conifg/routes.rb
@@ -251,7 +252,7 @@ module Rails
         sentinel = "ActionController::Routing::Routes.draw do |map|"
 
         in_root do
-          inject_into_file 'config/routes.rb', "\n  #{routing_code}\n", { :after => sentinel }, false
+          inject_into_file 'config/routes.rb', "\n  #{routing_code}\n", { :after => sentinel, :verbose => false }
         end
       end
 

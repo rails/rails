@@ -8,11 +8,11 @@ module Rails
       check_class_collision
 
       def create_root_files
-        directory '.', plugin_dir, false # non-recursive
+        directory '.', plugin_dir, :recursive => false
       end
 
       def create_lib_files
-        directory 'lib', plugin_dir('lib'), false # non-recursive
+        directory 'lib', plugin_dir('lib'), :recursive => false
       end
 
       def create_tasks_files

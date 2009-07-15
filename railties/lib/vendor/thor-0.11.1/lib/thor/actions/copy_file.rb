@@ -7,9 +7,9 @@ class Thor
     # the destination is not given it's assumed to be equal to the source.
     #
     # ==== Parameters
-    # source<String>:: the relative path to the source root
-    # destination<String>:: the relative path to the destination root
-    # log_status<Boolean>:: if false, does not log the status. True by default.
+    # source<String>:: the relative path to the source root.
+    # destination<String>:: the relative path to the destination root.
+    # config<Hash>:: give :verbose => false to not log the status.
     #
     # ==== Examples
     #
@@ -17,8 +17,8 @@ class Thor
     #
     #   copy_file "doc/README"
     #
-    def copy_file(source, destination=nil, log_status=true)
-      action CopyFile.new(self, source, destination || source, log_status)
+    def copy_file(source, destination=nil, config={})
+      action CopyFile.new(self, source, destination || source, config)
     end
 
     class CopyFile < Templater #:nodoc:

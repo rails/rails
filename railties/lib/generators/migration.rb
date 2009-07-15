@@ -22,7 +22,7 @@ module Rails
       #
       #   migration_template "migration.rb", "db/migrate/add_foo_to_bar.rb"
       #
-      def migration_template(source, destination=nil, log_status=true)
+      def migration_template(source, destination=nil, config={})
         destination = File.expand_path(destination || source, self.destination_root)
 
         migration_dir = File.dirname(destination)
@@ -37,7 +37,7 @@ module Rails
           destination = File.join(migration_dir, "#{@migration_number}_#{@migration_file_name}.rb")
         end
 
-        template(source, destination, log_status)
+        template(source, destination, config)
       end
 
       protected

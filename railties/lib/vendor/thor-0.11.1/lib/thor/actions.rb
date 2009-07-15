@@ -164,8 +164,8 @@ class Thor
 
     # Same as inside, but log status and use padding.
     #
-    def inside_with_padding(dir='', log_status=true, &block)
-      say_status :inside, dir, log_status
+    def inside_with_padding(dir='', config={}, &block)
+      say_status :inside, dir, config.fetch(:verbose, true)
       shell.padding += 1
       inside(dir, &block)
       shell.padding -= 1
@@ -182,17 +182,16 @@ class Thor
     # ==== Parameters
     # mode<Integer>:: the file mode
     # path<String>:: the name of the file to change mode
-    # log_status<Boolean>:: if false, does not log the status. True by default.
-    #                       If a symbol is given, uses it as the output color.
+    # config<Hash>:: give :verbose => false to not log the status.
     #
     # ==== Example
     #
     #   chmod "script/*", 0755
     #
-    def chmod(path, mode, log_status=true)
+    def chmod(path, mode, config={})
       return unless behavior == :invoke
       path = File.expand_path(path, destination_root)
-      say_status :chmod, relative_to_original_destination_root(path), log_status
+      say_status :chmod, relative_to_original_destination_root(path), config.fetch(:verbose, true)
       FileUtils.chmod_R(mode, path) unless options[:pretend]
     end
 
@@ -200,8 +199,7 @@ class Thor
     #
     # ==== Parameters
     # command<String>:: the command to be executed.
-    # log_status<Boolean>:: if false, does not log the status. True by default.
-    #                       If a symbol is given, uses it as the output color.
+    # config<Hash>:: give :verbose => false to not log the status.
     #
     # ==== Example
     #
@@ -209,9 +207,10 @@ class Thor
     #     run('ln -s ~/edge rails')
     #   end
     #
-    def run(command, log_status=true)
+    def run(command, config={})
       return unless behavior == :invoke
-      say_status :run, "\"#{command}\" from #{relative_to_original_destination_root(destination_root, false)}", log_status
+      description = "#{command.inspect} from #{relative_to_original_destination_root(destination_root, false)}"
+      say_status :run, description, config.fetch(:verbose, true)
       `#{command}` unless options[:pretend]
     end
 
@@ -219,12 +218,11 @@ class Thor
     #
     # ==== Parameters
     # command<String>:: the command to be executed.
-    # log_status<Boolean>:: if false, does not log the status. True by default.
-    #                       If a symbol is given, uses it as the output color.
+    # config<Hash>:: give :verbose => false to not log the status.
     #
-    def run_ruby_script(command, log_status=true)
+    def run_ruby_script(command, config={})
       return unless behavior == :invoke
-      say_status File.basename(Thor::Util.ruby_command), command, log_status
+      say_status File.basename(Thor::Util.ruby_command), command, config.fetch(:verbose, true)
       `#{Thor::Util.ruby_command} #{command}` unless options[:pretend]
     end
 
@@ -234,9 +232,8 @@ class Thor
     # ==== Parameters
     # task<String>:: the task to be invoked
     # args<Array>:: arguments to the task
-    # options<Hash>:: a hash with options used on invocation
-    # log_status<Boolean>:: if false, does not log the status. True by default.
-    #                       If a symbol is given, uses it as the output color.
+    # options<Hash>:: give :verbose => false to not log the status. Other options
+    #                 are given as parameter to Thor.
     #
     # ==== Examples
     #
@@ -247,35 +244,33 @@ class Thor
     #   #=> thor list --all --substring=rails
     #
     def thor(task, *args)
-      log_status = args.last.is_a?(Symbol) || [true, false].include?(args.last) ? args.pop : true
-      options    = args.last.is_a?(Hash) ? args.pop : {}
+      config  = args.last.is_a?(Hash) ? args.pop : {}
+      verbose = config.key?(:verbose) ? config.delete(:verbose) : true
 
       args.unshift task
-      args.push Thor::Options.to_switches(options)
+      args.push Thor::Options.to_switches(config)
       command = args.join(' ').strip
 
-      say_status :thor, command, log_status
-      run "thor #{command}", false
+      say_status :thor, command, verbose
+      run "thor #{command}", :verbose => false
     end
 
     # Removes a file at the given location.
     #
     # ==== Parameters
     # path<String>:: path of the file to be changed
-    # log_status<Boolean>:: if false, does not log the status. True by default.
-    #                       If a symbol is given, uses it as the output color.
+    # config<Hash>:: give :verbose => false to not log the status.
     #
     # ==== Example
     #
     #   remove_file 'README'
     #   remove_file 'app/controllers/application_controller.rb'
     #
-    def remove_file(path, log_status=true)
+    def remove_file(path, config={})
       return unless behavior == :invoke
       path  = File.expand_path(path, destination_root)
-      color = log_status.is_a?(Symbol) ? log_status : :red
 
-      say_status :remove, relative_to_original_destination_root(path), log_status
+      say_status :remove, relative_to_original_destination_root(path), config.fetch(:verbose, true)
       ::FileUtils.rm_rf(path) if !options[:pretend] && File.exists?(path)
     end
 
@@ -285,8 +280,7 @@ class Thor
     # path<String>:: path of the file to be changed
     # flag<Regexp|String>:: the regexp or string to be replaced
     # replacement<String>:: the replacement, can be also given as a block
-    # log_status<Boolean>:: if false, does not log the status. True by default.
-    #                       If a symbol is given, uses it as the output color.
+    # config<Hash>:: give :verbose => false to not log the status.
     #
     # ==== Example
     #
@@ -298,10 +292,10 @@ class Thor
     #
     def gsub_file(path, flag, *args, &block)
       return unless behavior == :invoke
-      log_status = args.last.is_a?(Symbol) || [ true, false ].include?(args.last) ? args.pop : true
+      config = args.last.is_a?(Hash) ? args.pop : {}
 
       path = File.expand_path(path, destination_root)
-      say_status :gsub, relative_to_original_destination_root(path), log_status
+      say_status :gsub, relative_to_original_destination_root(path), config.fetch(:verbose, true)
 
       unless options[:pretend]
         content = File.read(path)
@@ -315,17 +309,16 @@ class Thor
     # ==== Parameters
     # path<String>:: path of the file to be changed
     # data<String>:: the data to append to the file, can be also given as a block.
-    # log_status<Boolean>:: if false, does not log the status. True by default.
-    #                       If a symbol is given, uses it as the output color.
+    # config<Hash>:: give :verbose => false to not log the status.
     #
     # ==== Example
     #
     #   append_file 'config/environments/test.rb', 'config.gem "rspec"'
     #
-    def append_file(path, data=nil, log_status=true, &block)
+    def append_file(path, data=nil, config={}, &block)
       return unless behavior == :invoke
       path = File.expand_path(path, destination_root)
-      say_status :append, relative_to_original_destination_root(path), log_status
+      say_status :append, relative_to_original_destination_root(path), config.fetch(:verbose, true)
       File.open(path, 'ab') { |file| file.write(data || block.call) } unless options[:pretend]
     end
 
@@ -334,17 +327,16 @@ class Thor
     # ==== Parameters
     # path<String>:: path of the file to be changed
     # data<String>:: the data to prepend to the file, can be also given as a block.
-    # log_status<Boolean>:: if false, does not log the status. True by default.
-    #                       If a symbol is given, uses it as the output color.
+    # config<Hash>:: give :verbose => false to not log the status.
     #
     # ==== Example
     #
     #   prepend_file 'config/environments/test.rb', 'config.gem "rspec"'
     #
-    def prepend_file(path, data=nil, log_status=true, &block)
+    def prepend_file(path, data=nil, config={}, &block)
       return unless behavior == :invoke
       path = File.expand_path(path, destination_root)
-      say_status :prepend, relative_to_original_destination_root(path), log_status
+      say_status :prepend, relative_to_original_destination_root(path), config.fetch(:verbose, true)
 
       unless options[:pretend]
         content = data || block.call

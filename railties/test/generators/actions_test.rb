@@ -20,6 +20,17 @@ class ActionsTest < GeneratorsTestCase
     assert_equal generator.instance_variable_get("@foo"), "FOO"
   end
 
+  def test_apply_uses_padding_in_the_applied_template
+    template = <<-TEMPLATE
+      say_status :cool, :padding
+    TEMPLATE
+    template.instance_eval "def read; self; end"
+
+    generator.expects(:open).with("http://gist.github.com/103208.txt").returns(template)
+    content = action(:apply, "http://gist.github.com/103208.txt")
+    assert_match /cool    padding/, content
+  end
+
   def test_create_file_should_write_data_to_file_path
     action :create_file, 'lib/test_file.rb', 'heres test data'
     assert_file 'lib/test_file.rb', 'heres test data'
@@ -31,17 +42,17 @@ class ActionsTest < GeneratorsTestCase
   end
 
   def test_plugin_with_git_option_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/plugin install #{@git_plugin_uri}", false)
+    generator.expects(:run_ruby_script).once.with("script/plugin install #{@git_plugin_uri}", :verbose => false)
     action :plugin, 'restful-authentication', :git => @git_plugin_uri
   end
 
   def test_plugin_with_svn_option_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/plugin install #{@svn_plugin_uri}", false)
+    generator.expects(:run_ruby_script).once.with("script/plugin install #{@svn_plugin_uri}", :verbose => false)
     action :plugin, 'restful-authentication', :svn => @svn_plugin_uri
   end
 
   def test_plugin_with_git_option_and_submodule_should_use_git_scm
-    generator.expects(:run).with("git submodule add #{@git_plugin_uri} vendor/plugins/rest_auth", false)
+    generator.expects(:run).with("git submodule add #{@git_plugin_uri} vendor/plugins/rest_auth", :verbose => false)
     action :plugin, 'rest_auth', :git => @git_plugin_uri, :submodule => true
   end
 
@@ -135,32 +146,32 @@ class ActionsTest < GeneratorsTestCase
   end
 
   def test_generate_should_run_script_generate_with_argument_and_options
-    generator.expects(:run_ruby_script).once.with('script/generate model MyModel', false)
+    generator.expects(:run_ruby_script).once.with('script/generate model MyModel', :verbose => false)
     action :generate, 'model', 'MyModel'
   end
 
   def test_rake_should_run_rake_command_with_development_env
-    generator.expects(:run).once.with('rake log:clear RAILS_ENV=development', false)
+    generator.expects(:run).once.with('rake log:clear RAILS_ENV=development', :verbose => false)
     action :rake, 'log:clear'
   end
 
   def test_rake_with_env_option_should_run_rake_command_in_env
-    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', false)
+    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', :verbose => false)
     action :rake, 'log:clear', :env => 'production'
   end
 
   def test_rake_with_sudo_option_should_run_rake_command_with_sudo
-    generator.expects(:run).once.with('sudo rake log:clear RAILS_ENV=development', false)
+    generator.expects(:run).once.with('sudo rake log:clear RAILS_ENV=development', :verbose => false)
     action :rake, 'log:clear', :sudo => true
   end
 
   def test_capify_should_run_the_capify_command
-    generator.expects(:run).once.with('capify .', false)
+    generator.expects(:run).once.with('capify .', :verbose => false)
     action :capify!
   end
 
   def test_freeze_should_freeze_rails_edge
-    generator.expects(:run).once.with('rake rails:freeze:edge', false)
+    generator.expects(:run).once.with('rake rails:freeze:edge', :verbose => false)
     action :freeze!
   end
 

@@ -100,13 +100,13 @@ module Rails::Generators
       inside "log" do
         %w( server production development test ).each do |file|
           create_file "#{file}.log"
-          chmod "#{file}.log", 0666, false
+          chmod "#{file}.log", 0666, :verbose => false
         end
       end
     end
 
     def create_public_files
-      directory "public", "public", false # Non-recursive. Do small steps, so anyone can overwrite it.
+      directory "public", "public", :recursive => false # Do small steps, so anyone can overwrite it.
     end
 
     def create_dispatch_files
@@ -114,13 +114,13 @@ module Rails::Generators
       copy_file "dispatchers/config.ru", "config.ru"
 
       template "dispatchers/dispatch.rb", "public/dispatch.rb"
-      chmod "public/dispatch.rb", 0755, false
+      chmod "public/dispatch.rb", 0755, :verbose => false
 
       template "dispatchers/dispatch.rb", "public/dispatch.cgi"
-      chmod "public/dispatch.cgi", 0755, false
+      chmod "public/dispatch.cgi", 0755, :verbose => false
 
       template "dispatchers/dispatch.fcgi", "public/dispatch.fcgi"
-      chmod "public/dispatch.fcgi", 0755, false
+      chmod "public/dispatch.fcgi", 0755, :verbose => false
     end
 
     def create_public_image_files
@@ -138,7 +138,7 @@ module Rails::Generators
 
     def create_script_files
       directory "script"
-      chmod "script", 0755, false
+      chmod "script", 0755, :verbose => false
     end
 
     def create_test_files

@@ -9,9 +9,9 @@ class Thor
     # to be equal to the source removing .tt from the filename.
     #
     # ==== Parameters
-    # source<String>:: the relative path to the source root
-    # destination<String>:: the relative path to the destination root
-    # log_status<Boolean>:: if false, does not log the status. True by default.
+    # source<String>:: the relative path to the source root.
+    # destination<String>:: the relative path to the destination root.
+    # config<Hash>:: give :verbose => false to not log the status.
     #
     # ==== Examples
     #
@@ -19,9 +19,9 @@ class Thor
     #
     #   template "doc/README"
     #
-    def template(source, destination=nil, log_status=true)
+    def template(source, destination=nil, config={})
       destination ||= source.gsub(/.tt$/, '')
-      action Template.new(self, source, destination, log_status)
+      action Template.new(self, source, destination, config)
     end
 
     class Template < Templater #:nodoc:

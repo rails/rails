@@ -8,7 +8,7 @@ class Thor
     # by Jonas Nicklas and Michael S. Klishin under MIT LICENSE.
     #
     class Templater #:nodoc:
-      attr_reader :base, :source, :destination, :given_destination, :relative_destination
+      attr_reader :base, :source, :destination, :given_destination, :relative_destination, :config
 
       # Initializes given the source and destination.
       #
@@ -16,11 +16,10 @@ class Thor
       # base<Thor::Base>:: A Thor::Base instance
       # source<String>:: Relative path to the source of this file
       # destination<String>:: Relative path to the destination of this file
-      # log_status<Boolean>:: If false, does not log the status. True by default.
-      #                       Templater log status does not accept color.
+      # config<Hash>:: give :verbose => false to not log the status.
       #
-      def initialize(base, source, destination, log_status=true)
-        @base, @log_status = base, log_status
+      def initialize(base, source, destination, config={})
+        @base, @config = base, { :verbose => true }.merge(config)
         self.source = source
         self.destination = destination
       end
@@ -56,7 +55,7 @@ class Thor
       # but you can modify in the subclass.
       #
       def invoke!
-        invoke_with_options!(base.options) do
+        invoke_with_options!(base.options.merge(config)) do
           ::FileUtils.mkdir_p(::File.dirname(destination))
           ::File.open(destination, 'w'){ |f| f.write render }
         end
@@ -187,7 +186,7 @@ class Thor
         # Shortcut to say_status shell method.
         #
         def say_status(status, color)
-          base.shell.say_status status, relative_destination, color if @log_status
+          base.shell.say_status status, relative_destination, color if config[:verbose]
         end
 
     end

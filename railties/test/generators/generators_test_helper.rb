@@ -13,6 +13,7 @@ $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
 require 'generators'
 
 CURRENT_PATH = File.expand_path(Dir.pwd)
+Rails::Generators.no_color!
 
 class GeneratorsTestCase < Test::Unit::TestCase
   include FileUtils
