@@ -6,14 +6,14 @@ module Rails
     end
 
     class Base < Thor::Group
-      include Rails::Generators::Actions
-      include Thor::Actions
-
       # Automatically sets the source root based on the class name.
       #
       def self.source_root
-        @_rails_source_root ||= File.expand_path(File.join(File.dirname(__FILE__), base_name, generator_name, 'templates'))
+        File.expand_path(File.join(File.dirname(__FILE__), base_name, generator_name, 'templates'))
       end
+
+      include Thor::Actions
+      include Rails::Generators::Actions
 
       # Tries to get the description from a USAGE file one folder above the source
       # root otherwise uses a default description.

@@ -6,7 +6,7 @@ module TestUnit
       check_class_collision :suffix => "Test"
 
       def create_test_files
-        directory 'test', "vendor/plugins/#{file_name}/test"
+        directory '.', 'test'
       end
     end
   end

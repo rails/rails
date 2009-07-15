@@ -83,7 +83,7 @@ task :create_rails do
   require File.join(File.dirname(__FILE__), 'lib', 'generators')
   require 'generators/rails/app/app_generator'
   Rails::Generators::AppGenerator.start [ File.basename(PKG_DESTINATION), "--quiet" ],
-                                        :root => File.expand_path(File.dirname(PKG_DESTINATION))
+                                        :destination_root => File.expand_path(File.dirname(PKG_DESTINATION))
 end
 
 # Copy Vendors ----------------------------------------------------------------------------

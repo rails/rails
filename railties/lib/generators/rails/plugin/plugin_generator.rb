@@ -1,11 +1,10 @@
+require 'generators/rails/generator/generator_generator'
+
 module Rails
   module Generators
     class PluginGenerator < NamedBase
       class_option :tasks, :type => :boolean, :aliases => "-t", :default => false,
                            :desc => "When supplied creates tasks base files."
-
-      class_option :generator, :type => :boolean, :aliases => "-g", :default => false,
-                               :desc => "When supplied creates generator base files."
 
       check_class_collision
 
@@ -17,16 +16,21 @@ module Rails
         directory 'lib', plugin_dir('lib'), false # non-recursive
       end
 
-      hook_for :test_framework
-
       def create_tasks_files
         return unless options[:tasks]
         directory 'tasks', plugin_dir('tasks')
       end
 
-      def create_generator_files
-        return unless options[:generator]
-        directory 'lib/generators', plugin_dir('lib/generators')
+      hook_for :generator, :aliases => "-g", :type => :boolean do |instance, generator|
+        instance.inside_with_padding instance.send(:plugin_dir) do
+          instance.invoke generator, [ instance.name ], :namespace => false
+        end
+      end
+
+      hook_for :test_framework do |instance, test_framework|
+        instance.inside_with_padding instance.send(:plugin_dir) do
+          instance.invoke test_framework
+        end
       end
 
       protected

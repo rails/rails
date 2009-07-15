@@ -12,19 +12,18 @@ $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../activerecord/lib"
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
 require 'generators'
 
+CURRENT_PATH = File.expand_path(Dir.pwd)
+
 class GeneratorsTestCase < Test::Unit::TestCase
   include FileUtils
 
-  def self.test_dir
-    @@test_dir = File.expand_path("#{File.dirname(__FILE__)}/../../")
-  end
-
   def destination_root
-    @destination_root ||= File.join(self.class.test_dir, 'fixtures', 'tmp')
+    @destination_root ||= File.expand_path(File.join(File.dirname(__FILE__), 
+                                            '..', '..', 'fixtures', 'tmp'))
   end
 
   def setup
-    cd self.class.test_dir
+    cd CURRENT_PATH
     rm_rf(destination_root)
     mkdir_p(destination_root)
   end
