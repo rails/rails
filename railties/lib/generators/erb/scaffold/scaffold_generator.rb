@@ -7,8 +7,9 @@ module Erb
 
       argument :attributes, :type => :hash, :default => {}, :banner => "field:type field:type"
 
-      class_option :singleton, :type => :boolean, :desc => "Supply to skip index action"
-      class_option :layout, :type => :boolean
+      class_option :form,      :type => :boolean
+      class_option :layout,    :type => :boolean
+      class_option :singleton, :type => :boolean, :desc => "Supply to skip index view"
 
       def create_root_folder
         empty_directory File.join("app/views", controller_file_path)
@@ -29,6 +30,11 @@ module Erb
 
       def copy_new_file
         copy_view :new
+      end
+
+      def copy_form_file
+        return unless options[:form]
+        copy_view :_form
       end
 
       def copy_layout_file
