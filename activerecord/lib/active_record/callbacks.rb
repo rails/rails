@@ -262,6 +262,10 @@ module ActiveRecord
     # Is called _after_ <tt>Base.save</tt> on new objects that haven't been saved yet (no record exists).
     # Note that this callback is still wrapped in the transaction around +save+. For example, if you
     # invoke an external indexer at this point it won't see the changes in the database.
+    #
+    #  class Contact < ActiveRecord::Base
+    #    after_create { |record| logger.info( "Contact #{record.id} was created." ) }
+    #  end
     def after_create() end
     def create_with_callbacks #:nodoc:
       return false if callback(:before_create) == false
