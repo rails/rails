@@ -348,7 +348,7 @@ class InitializerGeneratorsTests < Test::Unit::TestCase
     expected = {
       :rails => { :orm => :datamapper },
       :plugin => { :generator => true },
-      :datamapper => { :migrations => true }
+      :datamapper => { :migrations => false }
     }
     assert_equal expected, @configuration.generators.options
     assert_equal({ :plugin => { :generator => "-g" } }, @configuration.generators.aliases)
@@ -366,7 +366,7 @@ class InitializerGeneratorsTests < Test::Unit::TestCase
     def namespaced_configuration!
       @configuration.generators do |g|
         g.orm :datamapper do |dm|
-          dm.migrations = true
+          dm.migrations = false
         end
 
         g.plugin do |p|

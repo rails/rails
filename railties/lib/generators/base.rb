@@ -210,11 +210,12 @@ module Rails
         #
         def self.default_value_for_option(option)
           options = Rails::Generators.options
+          generator, base = generator_name.to_sym, base_name.to_sym
 
-          if options[generator_name.to_sym].key?(option)
-            options[generator_name.to_sym][option]
-          elsif options[base_name.to_sym].key?(option)
-            options[base_name.to_sym][option]
+          if options[generator] && options[generator].key?(option)
+            options[generator][option]
+          elsif options[base] && options[base].key?(option)
+            options[base][option]
           else
             options[:rails][option]
           end
@@ -225,11 +226,12 @@ module Rails
         #
         def self.default_aliases_for_option(option)
           aliases = Rails::Generators.aliases
+          generator, base = generator_name.to_sym, base_name.to_sym
 
-          if aliases[generator_name.to_sym].key?(option)
-            aliases[generator_name.to_sym][option]
-          elsif aliases[base_name.to_sym].key?(option)
-            aliases[base_name.to_sym][option]
+          if aliases[generator] && aliases[generator].key?(option)
+            aliases[generator][option]
+          elsif aliases[base] && aliases[base].key?(option)
+            aliases[base][option]
           else
             aliases[:rails][option]
           end

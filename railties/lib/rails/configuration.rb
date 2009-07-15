@@ -298,7 +298,7 @@ module Rails
 
       def method_missing(method, *args)
         sanitized_method = method.to_s.sub(/=$/, '').to_sym
-        @options[@namespace][sanitized_method] = args.first if args.first
+        @options[@namespace][sanitized_method] = args.first unless args.empty?
 
         if block_given?
           previous_namespace = @namespace

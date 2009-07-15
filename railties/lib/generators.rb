@@ -17,8 +17,7 @@ require 'generators/named_base'
 
 module Rails
   module Generators
-    DEFAULT_ALIASES = Hash.new{ |h,k| h[k] = {} }
-    DEFAULT_ALIASES.merge!(
+    DEFAULT_ALIASES = {
       :rails => {
         :actions => '-a',
         :orm => '-o',
@@ -37,10 +36,9 @@ module Rails
         :generator => '-g',
         :tasks => '-r'
       }
-    )
+    }
 
-    DEFAULT_OPTIONS = Hash.new{ |h,k| h[k] = {} }
-    DEFAULT_OPTIONS.merge!(
+    DEFAULT_OPTIONS = {
       :active_record => {
         :migration  => true,
         :timestamps => true
@@ -74,7 +72,7 @@ module Rails
         :generator => false,
         :tasks => false
       }
-    )
+    }
 
     def self.aliases
       @@aliases ||= DEFAULT_ALIASES.dup
