@@ -75,12 +75,29 @@ module Rails
       }
     }
 
-    def self.aliases
+    def self.aliases #:nodoc:
       @@aliases ||= DEFAULT_ALIASES.dup
     end
 
-    def self.options
+    def self.options #:nodoc:
       @@options ||= DEFAULT_OPTIONS.dup
+    end
+
+    # Hold configured generators fallbacks. If a plugin developer wants a
+    # generator group to fallback to another group in case of missing generators,
+    # they can add a fallback.
+    #
+    # For example, shoulda is considered a test_framework and is an extension
+    # of test_unit. However, most part of shoulda generators are similar to
+    # test_unit ones.
+    #
+    # Shoulda then can tell generators to search for test_unit generators when
+    # some of them are not available by adding a fallback:
+    #
+    #   Rails::Generators.fallbacks[:shoulda] = :test_unit
+    #
+    def self.fallbacks
+      @@fallbacks ||= {}
     end
 
     # Remove the color from output.
@@ -137,16 +154,23 @@ module Rails
     #
     #   "test_unit:generators:model", "test_unit:model"
     #
-    def self.find_by_namespace(name, base=nil, context=nil)
+    def self.find_by_namespace(name, base=nil, context=nil) #:nodoc:
       name, attempts = name.to_s, []
 
-      if name.count(':') == 0
-        attempts << "#{base}:generators:#{name}"    if base
-        attempts << "#{name}:generators:#{context}" if context
+      case name.count(':')
+        when 1
+          base, name = name.split(':')
+          return find_by_namespace(name, base)
+        when 0
+          if base
+            base = base.to_sym
+            attempts << "#{base}:generators:#{name}"
+            attempts << "#{fallbacks[base]}:generators:#{name}" if fallbacks[base]
+          end
+          attempts << "#{name}:generators:#{context}" if context
       end
-      attempts << name.sub(':', ':generators:') if name.count(':') == 1
-      attempts << name
 
+      attempts << name
       unloaded = attempts - namespaces
       lookup(unloaded)
 
@@ -206,13 +230,13 @@ module Rails
 
       # Return all defined namespaces.
       #
-      def self.namespaces
+      def self.namespaces #:nodoc:
         Thor::Base.subclasses.map{ |klass| klass.namespace }
       end
 
       # Keep builtin generators in an Array[Array[group, name]].
       #
-      def self.builtin
+      def self.builtin #:nodoc:
         Dir[File.dirname(__FILE__) + '/generators/*/*'].collect do |file|
           file.split('/')[-2, 2]
         end
@@ -230,7 +254,7 @@ module Rails
       #   generators/rails/model_generator.rb
       #   generators/model_generator.rb
       #
-      def self.lookup(attempts)
+      def self.lookup(attempts) #:nodoc:
         attempts.each do |attempt|
           generators_path = ['.']
 

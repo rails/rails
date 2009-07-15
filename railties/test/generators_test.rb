@@ -1,5 +1,6 @@
 require File.join(File.dirname(__FILE__), 'generators', 'generators_test_helper')
 require 'generators/rails/model/model_generator'
+require 'generators/test_unit/model/model_generator'
 require 'mocha'
 
 class GeneratorsTest < GeneratorsTestCase
@@ -113,5 +114,18 @@ class GeneratorsTest < GeneratorsTestCase
     end
   ensure
     rm_rf File.dirname(template)
+  end
+
+  def test_fallbacks_for_generators_on_invoke
+    Rails::Generators.fallbacks[:shoulda] = :test_unit
+    TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
+    Rails::Generators.invoke "shoulda:model", ["Account"]
+  end
+
+  def test_fallbacks_for_generators_on_find_by_namespace
+    Rails::Generators.fallbacks[:remarkable] = :test_unit
+    klass = Rails::Generators.find_by_namespace(:plugin, :remarkable)
+    assert klass
+    assert_equal "test_unit:generators:plugin", klass.namespace
   end
 end
