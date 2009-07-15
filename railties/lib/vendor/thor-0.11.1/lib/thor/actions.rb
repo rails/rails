@@ -28,45 +28,27 @@ class Thor
     end
 
     module ClassMethods
-      # Hold source paths used by Thor::Actions.
+      # Hold source paths for one Thor instance. source_paths_for_search is the
+      # method responsible to gather source_paths from this current class,
+      # inherited paths and the source root.
       #
       def source_paths
-        @source_paths ||= from_superclass(:source_paths, [])
+        @source_paths ||= []
       end
 
-      # On inheritance, add source root to source paths so dynamic source_root
-      # (that depends on the class name, for example) are cached properly.
+      # Returns the source paths in the following order:
       #
-      def inherited(base) #:nodoc:
-        super
-        base.source_paths
-        if base.respond_to?(:source_root) && !base.source_paths.include?(base.source_root)
-          base.source_paths.unshift(base.source_root)
-        end
-      end
-
-      # Deal with source root cache in source_paths. source_paths in the
-      # inheritance chain are tricky to implement because:
+      #   1) This class source paths
+      #   2) Source root
+      #   3) Parents source paths
       #
-      # 1) We have to ensure that paths from the parent class appears later in
-      #    the source paths array.
-      #
-      # 2) Whenever source_root is added, it has to be cached because __FILE__
-      #    in ruby returns relative locations.
-      #
-      # 3) If someone wants to add source paths dinamically, added paths have
-      #    to come before the source root.
-      #
-      # This method basically check if source root was added and put it between
-      # the inherited paths and the user added paths.
-      #
-      def singleton_method_added(method) #:nodoc:
-        if method == :source_root
-          inherited_paths = from_superclass(:source_paths, [])
-
-          self.source_paths.reject!{ |path| inherited_paths.include?(path) }
-          self.source_paths.push(*self.source_root)
-          self.source_paths.concat(inherited_paths)
+      def source_paths_for_search
+        @source_paths_for_search ||= begin
+          paths = []
+          paths += self.source_paths
+          paths << self.source_root if self.respond_to?(:source_root)
+          paths += from_superclass(:source_paths, [])
+          paths
         end
       end
     end
@@ -132,14 +114,14 @@ class Thor
     #
     def find_in_source_paths(file)
       relative_root = relative_to_original_destination_root(destination_root, false)
-      source_file   = nil
+      paths = self.class.source_paths_for_search
 
-      self.class.source_paths.each do |source|
+      paths.each do |source|
         source_file = File.expand_path(file, File.join(source, relative_root))
         return source_file if File.exists?(source_file)
       end
 
-      if self.class.source_paths.empty?
+      if paths.empty?
         raise Error, "You don't have any source path defined for class #{self.class.name}. To fix this, " <<
                      "you can define a source_root in your class."
       else

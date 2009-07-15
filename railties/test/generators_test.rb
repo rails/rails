@@ -84,7 +84,7 @@ class GeneratorsTest < GeneratorsTestCase
     assert_equal "Others: active_record:fixjour, fixjour, mspec, rails:javascripts, wrong.", output
   end
 
-  def test_warning_is_raised_if_generator_cant_be_loaded
+  def test_warning_is_shown_if_generator_cant_be_loaded
     output = capture(:stderr){ Rails::Generators.find_by_namespace(:wrong) }
     assert_match /\[WARNING\] Could not load generator at/, output
     assert_match /Error: uninitialized constant Rails::Generator/, output
@@ -95,5 +95,23 @@ class GeneratorsTest < GeneratorsTestCase
     assert_equal Thor::Shell::Basic, Thor::Base.shell
   ensure
     Thor::Base.shell = Thor::Shell::Color
+  end
+
+  def test_rails_root_templates
+    template = File.join(RAILS_ROOT, "lib", "templates", "active_record", "model", "model.rb")
+
+    # Create template
+    mkdir_p(File.dirname(template))
+    File.open(template, 'w'){ |f| f.write "empty" }
+
+    output = capture(:stdout) do
+      Rails::Generators.invoke :model, ["user"], :destination_root => destination_root
+    end
+
+    assert_file "app/models/user.rb" do |content|
+      assert_equal "empty", content
+    end
+  ensure
+    rm_rf File.dirname(template)
   end
 end

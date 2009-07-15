@@ -6,14 +6,15 @@ module Rails
     end
 
     class Base < Thor::Group
+      include Thor::Actions
+      include Rails::Generators::Actions
+
       # Automatically sets the source root based on the class name.
       #
       def self.source_root
-        File.expand_path(File.join(File.dirname(__FILE__), base_name, generator_name, 'templates'))
+        @_rails_source_root ||= File.expand_path(File.join(File.dirname(__FILE__),
+                                                 base_name, generator_name, 'templates'))
       end
-
-      include Thor::Actions
-      include Rails::Generators::Actions
 
       # Tries to get the description from a USAGE file one folder above the source
       # root otherwise uses a default description.
@@ -146,6 +147,19 @@ module Rails
         options[:aliases] = default_aliases_for_option(name) unless options.key?(:aliases)
         options[:default] = default_value_for_option(name)   unless options.key?(:default)
         super(name, options)
+      end
+
+      # Cache source root and add lib/generators/base/generator/templates to
+      # source paths.
+      #
+      def self.inherited(base) #:nodoc:
+        super
+        base.source_root # Cache source root
+
+        if defined?(RAILS_ROOT) && base.name !~ /Base$/
+          path = File.expand_path(File.join(RAILS_ROOT, 'lib', 'templates'))
+          base.source_paths << File.join(path, base.base_name, base.generator_name)
+        end
       end
 
       protected
