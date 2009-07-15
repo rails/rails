@@ -6,6 +6,7 @@ module AbstractController
 
     included do
       extlib_inheritable_accessor(:_layout_conditions) { Hash.new }
+      _write_layout_method
     end
 
     module ClassMethods
