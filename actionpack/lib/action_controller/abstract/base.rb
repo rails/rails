@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/attr_internal'
-
 module AbstractController
 
   class Base
