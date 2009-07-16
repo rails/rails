@@ -1,4 +1,4 @@
-require 'thor/actions/templater'
+require 'thor/actions/empty_directory'
 
 class Thor
   module Actions
@@ -44,9 +44,12 @@ class Thor
       action Directory.new(self, source, destination || source, config)
     end
 
-    class Directory < Templater #:nodoc:
+    class Directory < EmptyDirectory #:nodoc:
+      attr_reader :source
+
       def initialize(base, source, destination=nil, config={})
-        super(base, source, destination, { :recursive => true }.merge(config))
+        @source = File.expand_path(base.find_in_source_paths(source.to_s))
+        super(base, destination, { :recursive => true }.merge(config))
       end
 
       def invoke!

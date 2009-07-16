@@ -1,3 +1,5 @@
+require 'thor/actions/empty_directory'
+
 class Thor
   module Actions
 
@@ -32,13 +34,12 @@ class Thor
       action InjectIntoFile.new(self, destination, data, config)
     end
 
-    class InjectIntoFile #:nodoc:
-      attr_reader :base, :destination, :relative_destination, :flag, :replacement, :config
+    class InjectIntoFile < EmptyDirectory
+      attr_reader :flag, :replacement
 
       def initialize(base, destination, data, config)
-        @base, @config = base, { :verbose => true }.merge(config)
+        super(base, destination, { :verbose => true }.merge(config))
 
-        self.destination = destination
         data = data.call if data.is_a?(Proc)
 
         @replacement = if @config.key?(:after)
@@ -51,32 +52,16 @@ class Thor
       end
 
       def invoke!
-        say_status :inject
+        say_status :inject, config[:verbose]
         replace!(flag, replacement)
       end
 
       def revoke!
-        say_status :deinject
+        say_status :deinject, config[:verbose]
         replace!(replacement, flag)
       end
 
       protected
-
-        # Sets the destination value from a relative destination value. The
-        # relative destination is kept to be used in output messages.
-        #
-        def destination=(destination)
-          if destination
-            @destination = ::File.expand_path(destination.to_s, base.destination_root)
-            @relative_destination = base.relative_to_original_destination_root(@destination)
-          end
-        end
-
-        # Shortcut to say_status shell method.
-        #
-        def say_status(status)
-          base.shell.say_status status, relative_destination, config[:verbose]
-        end
 
         # Adds the content to the file.
         #

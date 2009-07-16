@@ -159,24 +159,6 @@ class Thor
       inside(@destination_stack.first) { yield }
     end
 
-    # Changes the mode of the given file or directory.
-    #
-    # ==== Parameters
-    # mode<Integer>:: the file mode
-    # path<String>:: the name of the file to change mode
-    # config<Hash>:: give :verbose => false to not log the status.
-    #
-    # ==== Example
-    #
-    #   chmod "script/*", 0755
-    #
-    def chmod(path, mode, config={})
-      return unless behavior == :invoke
-      path = File.expand_path(path, destination_root)
-      say_status :chmod, relative_to_original_destination_root(path), config.fetch(:verbose, true)
-      FileUtils.chmod_R(mode, path) unless options[:pretend]
-    end
-
     # Executes a command.
     #
     # ==== Parameters
@@ -235,96 +217,6 @@ class Thor
 
       say_status :thor, command, verbose
       run "thor #{command}", :verbose => false
-    end
-
-    # Removes a file at the given location.
-    #
-    # ==== Parameters
-    # path<String>:: path of the file to be changed
-    # config<Hash>:: give :verbose => false to not log the status.
-    #
-    # ==== Example
-    #
-    #   remove_file 'README'
-    #   remove_file 'app/controllers/application_controller.rb'
-    #
-    def remove_file(path, config={})
-      return unless behavior == :invoke
-      path  = File.expand_path(path, destination_root)
-
-      say_status :remove, relative_to_original_destination_root(path), config.fetch(:verbose, true)
-      ::FileUtils.rm_rf(path) if !options[:pretend] && File.exists?(path)
-    end
-
-    # Run a regular expression replacement on a file.
-    #
-    # ==== Parameters
-    # path<String>:: path of the file to be changed
-    # flag<Regexp|String>:: the regexp or string to be replaced
-    # replacement<String>:: the replacement, can be also given as a block
-    # config<Hash>:: give :verbose => false to not log the status.
-    #
-    # ==== Example
-    #
-    #   gsub_file 'app/controllers/application_controller.rb', /#\s*(filter_parameter_logging :password)/, '\1'
-    #
-    #   gsub_file 'README', /rake/, :green do |match|
-    #     match << " no more. Use thor!"
-    #   end
-    #
-    def gsub_file(path, flag, *args, &block)
-      return unless behavior == :invoke
-      config = args.last.is_a?(Hash) ? args.pop : {}
-
-      path = File.expand_path(path, destination_root)
-      say_status :gsub, relative_to_original_destination_root(path), config.fetch(:verbose, true)
-
-      unless options[:pretend]
-        content = File.read(path)
-        content.gsub!(flag, *args, &block)
-        File.open(path, 'wb') { |file| file.write(content) }
-      end
-    end
-
-    # Append text to a file.
-    #
-    # ==== Parameters
-    # path<String>:: path of the file to be changed
-    # data<String>:: the data to append to the file, can be also given as a block.
-    # config<Hash>:: give :verbose => false to not log the status.
-    #
-    # ==== Example
-    #
-    #   append_file 'config/environments/test.rb', 'config.gem "rspec"'
-    #
-    def append_file(path, data=nil, config={}, &block)
-      return unless behavior == :invoke
-      path = File.expand_path(path, destination_root)
-      say_status :append, relative_to_original_destination_root(path), config.fetch(:verbose, true)
-      File.open(path, 'ab') { |file| file.write(data || block.call) } unless options[:pretend]
-    end
-
-    # Prepend text to a file.
-    #
-    # ==== Parameters
-    # path<String>:: path of the file to be changed
-    # data<String>:: the data to prepend to the file, can be also given as a block.
-    # config<Hash>:: give :verbose => false to not log the status.
-    #
-    # ==== Example
-    #
-    #   prepend_file 'config/environments/test.rb', 'config.gem "rspec"'
-    #
-    def prepend_file(path, data=nil, config={}, &block)
-      return unless behavior == :invoke
-      path = File.expand_path(path, destination_root)
-      say_status :prepend, relative_to_original_destination_root(path), config.fetch(:verbose, true)
-
-      unless options[:pretend]
-        content = data || block.call
-        content << File.read(path)
-        File.open(path, 'wb') { |file| file.write(content) }
-      end
     end
 
     protected
