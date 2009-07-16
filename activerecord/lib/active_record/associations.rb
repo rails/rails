@@ -1599,16 +1599,16 @@ module ActiveRecord
           conditions = construct_conditions(options[:conditions], scope) || ''
           conditions << construct_limited_ids_condition(conditions, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
-          arel = arel_table((scope && scope[:from]) || options[:from] || table_name).
-            join(joins).
-            where(conditions).
-            project(column_aliases(join_dependency)).
-            group(construct_group(options[:group], options[:having], scope)).
-            order(construct_order(options[:order], scope))
+          arel_table((scope && scope[:from]) || options[:from])
+          join(joins)
+          where(conditions)
+          project(column_aliases(join_dependency))
+          group(construct_group(options[:group], options[:having], scope))
+          order(construct_order(options[:order], scope))
 
-          arel = arel.take(construct_limit(options, scope)) if using_limitable_reflections?(join_dependency.reflections)
+          take(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)
 
-          return sanitize_sql(arel.to_sql)
+          return sanitize_sql(arel_relation.to_sql)
         end
 
          def construct_limited_ids_condition(where, options, join_dependency)

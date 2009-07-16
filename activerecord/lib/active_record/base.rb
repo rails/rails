@@ -861,21 +861,22 @@ module ActiveRecord #:nodoc:
       def update_all(updates, conditions = nil, options = {})
         scope = scope(:find)
 
-        arel = arel_table
+        arel_table
 
         if conditions = construct_conditions(conditions, scope)
-          arel = arel.where(Arel::SqlLiteral.new(conditions))
+          where(Arel::SqlLiteral.new(conditions))
         end
 
-        arel = if options.has_key?(:limit) || (scope && scope[:limit])
+        if options.has_key?(:limit) || (scope && scope[:limit])
           # Only take order from scope if limit is also provided by scope, this
           # is useful for updating a has_many association with a limit.
-          arel.order(construct_order(options[:order], scope)).take(construct_limit(options, scope))
+          order(construct_order(options[:order], scope))
+          take(construct_limit(options[:limit], scope))
         else
-          arel.order(construct_order(options[:order], nil))
+          order(construct_order(options[:order], nil))
         end
 
-        arel.update(sanitize_sql_for_assignment(updates))
+        arel_relation.update(sanitize_sql_for_assignment(updates))
       end
 
       # Destroys the records matching +conditions+ by instantiating each
@@ -1532,6 +1533,30 @@ module ActiveRecord #:nodoc:
         "(#{segments.join(') AND (')})" unless segments.empty?
       end
 
+
+      def arel_table(table = nil)
+        table = table_name if table.blank?
+        self.arel_relation = Arel::Table.new(table)
+      end
+
+      def arel_relation
+        Thread.current[:"#{self}_arel_relation"] ||=  Arel::Table.new(table_name)
+      end
+
+      def arel_relation=(relation)
+        Thread.current[:"#{self}_arel_relation"] = relation
+      end
+
+      CLAUSES_METHODS = ["where", "join", "project", "group", "order", "take", "skip"].freeze
+
+      for clause in CLAUSES_METHODS
+        class_eval %{
+          def #{clause}(_#{clause})
+            self.arel_relation = self.arel_relation.#{clause}(_#{clause}) if _#{clause}
+          end
+        }
+      end
+
       private
         def find_initial(options)
           options.update(:limit => 1)
@@ -1711,21 +1736,17 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def arel_table(table = table_name)
-          @arel_table = Arel::Table.new(table)
-        end
-
         def construct_finder_arel(options, scope = scope(:find))
           # TODO add lock to Arel
-          arel_table(options[:from] || table_name).
-            join(construct_join(options[:joins], scope)).
-            where(construct_conditions(options[:conditions], scope)).
-            project(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
-            group(construct_group(options[:group], options[:having], scope)).
-            order(construct_order(options[:order], scope)).
-            take(construct_limit(options, scope)).
-            skip(construct_offset(options, scope)
-          )
+          arel_table(options[:from])
+          join(construct_join(options[:joins], scope))
+          where(construct_conditions(options[:conditions], scope))
+          project(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins])))
+          group(construct_group(options[:group], options[:having], scope))
+          order(construct_order(options[:order], scope))
+          take(construct_limit(options[:limit], scope))
+          skip(construct_offset(options[:offset], scope))
+          arel_relation
         end
 
         def construct_finder_sql(options, scope = scope(:find))
@@ -1754,11 +1775,9 @@ module ActiveRecord #:nodoc:
           if group
             sql << group.to_s
             sql << " HAVING #{sanitize_sql_for_conditions(having)}" if having
-          else
-            if scope && (scoped_group = scope[:group])
-              sql << scoped_group.to_s
-              sql << " HAVING #{sanitize_sql_for_conditions(scope[:having])}" if scope[:having]
-            end
+          elsif scope && (scoped_group = scope[:group])
+            sql << scoped_group.to_s
+            sql << " HAVING #{sanitize_sql_for_conditions(scope[:having])}" if scope[:having]
           end
           sql
         end
@@ -1769,20 +1788,20 @@ module ActiveRecord #:nodoc:
           if order
             orders << order
             orders << scoped_order if scoped_order && scoped_order != order
-          else
-            orders << scoped_order if scoped_order
+          elsif scoped_order
+            orders << scoped_order
           end
           orders
         end
 
-        def construct_limit(options, scope)
-          options[:limit] ||= scope[:limit] if scope
-          options[:limit]
+        def construct_limit(limit, scope)
+          limit ||= scope[:limit] if scope
+          limit
         end
 
-        def construct_offset(options, scope)
-          options[:offset] ||= scope[:offset] if scope
-          options[:offset]
+        def construct_offset(offset, scope)
+          offset ||= scope[:offset] if scope
+          offset
         end
 
         def construct_conditions(conditions, scope)
