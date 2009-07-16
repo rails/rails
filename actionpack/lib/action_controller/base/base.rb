@@ -114,6 +114,8 @@ module ActionController
     # * <tt>String</tt> starting with <tt>protocol://</tt> (like <tt>http://</tt>) - Is passed straight through as the target for redirection.
     # * <tt>String</tt> not containing a protocol - The current protocol and host is prepended to the string.
     # * <tt>:back</tt> - Back to the page that issued the request. Useful for forms that are triggered from multiple places.
+    # * <tt>:params</tt> - A hash containing the parameters to be passed as a GET request
+    #
     #   Short-hand for <tt>redirect_to(request.env["HTTP_REFERER"])</tt>
     #
     # Examples:
@@ -123,6 +125,7 @@ module ActionController
     #   redirect_to "/images/screenshot.jpg"
     #   redirect_to articles_url
     #   redirect_to :back
+    #	redirect_to articles_url, :params => {"name" => "Ruby"}
     #
     # The redirection happens as a "302 Moved" header unless otherwise specified.
     #
