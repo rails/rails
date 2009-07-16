@@ -316,6 +316,98 @@ end
 
 TIP: Since +with_options+ forwards calls to its receiver they can be nested. Each nesting level will merge inherited defaults in addition to their own.
 
+h4. Instance Variables
+
+Active Support provides several methods to ease access to instance variables.
+
+h5. +instance_variable_defined?+
+
+The method +instance_variable_defined?+ exists in Ruby 1.8.6 and later, and it is defined for previous versions anyway:
+
+<ruby>
+class C
+  def initialize
+    @a = 1
+  end
+
+  def m
+    @b = 2
+  end
+end
+
+c = C.new
+
+c.instance_variable_defined?("@a") # => true
+c.instance_variable_defined?(:@a)  # => true
+c.instance_variable_defined?("a")  # => NameError: `a' is not allowed as an instance variable name
+
+c.instance_variable_defined?("@b") # => false
+c.m
+c.instance_variable_defined?("@b") # => true
+</ruby>
+
+h5. +instance_variable_names+
+
+Ruby 1.8 and 1.9 have a method called +instance_variables+ that returns the names of the defined instance variables. But they behave differently, in 1.8 it returns strings whereas in 1.9 it returns symbols. Active Support defines +instance_variable_names+ as a portable way to obtain them as strings:
+
+<ruby>
+class C
+  def initialize(x, y)
+    @x, @y = x, y
+  end
+end
+
+C.new(0, 1).instance_variable_names # => ["@y", "@x"]
+</ruby>
+
+WARNING: The order in which the names are returned is unespecified, and it indeed depends on the version of the interpreter.
+
+h5. +instance_values+
+
+The method +instance_values+ returns a hash that maps instance variable names without "@" to their
+corresponding values. Keys are strings both in Ruby 1.8 and 1.9:
+
+<ruby>
+class C
+  def initialize(x, y)
+    @x, @y = x, y
+  end
+end
+
+C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
+</ruby>
+
+h5. +copy_instance_variables_from(object, exclude = [])+
+
+Copies the instance variables of +object+ into +self+.
+
+Instance variable names in the +exclude+ array are ignored. If +object+
+responds to +protected_instance_variables+ the ones returned are
+also ignored. For example, Rails controllers implement that method.
+
+In both arrays strings and symbols are understood, and they have to include
+the at sign.
+
+<ruby>
+class C
+  def initialize(x, y, z)
+    @x, @y, @z = x, y, z
+  end
+
+  def protected_instance_variables
+    %w(@z)
+  end
+end
+
+a = C.new(0, 1, 2)
+b = C.new(3, 4, 5)
+
+a.copy_instance_variables_from(b, [:@y])
+# a is now: @x = 3, @y = 1, @z = 2
+</ruby>
+
+In the example +object+ and +self+ are of the same type, but they don't need to.
+
 h4. Silencing Warnings, Streams, and Exceptions
 
 The methods +silence_warnings+ and +enable_warnings+ change the value of +$VERBOSE+ accordingly for the duration of their block, and reset it afterwards:
