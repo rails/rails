@@ -418,7 +418,7 @@ def show
 end
 </ruby>
 
-Note that the implicit render done by ActionController detects if +render+ has been called, and thus avoids this error. So this code will work with problems:
+Note that the implicit render done by ActionController detects if +render+ has been called, and thus avoids this error. Therefore, the following will work without errors:
 
 <ruby>
 def show
