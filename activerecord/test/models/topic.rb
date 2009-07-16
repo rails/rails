@@ -39,6 +39,7 @@ class Topic < ActiveRecord::Base
   named_scope :by_rejected_ids, lambda {{ :conditions => { :id => all(:conditions => {:approved => false}).map(&:id) } }}
 
   has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
+  has_many :replies_with_primary_key, :class_name => "Reply", :dependent => :destroy, :primary_key => "title", :foreign_key => "parent_title"
   serialize :content
 
   before_create  :default_written_on
