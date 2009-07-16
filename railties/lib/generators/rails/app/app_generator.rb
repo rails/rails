@@ -66,7 +66,6 @@ module Rails::Generators
       empty_directory "config"
 
       inside "config" do
-        copy_file "boot.rb"
         copy_file "routes.rb"
         template  "environment.rb"
 
@@ -74,6 +73,10 @@ module Rails::Generators
         directory "initializers"
         directory "locales"
       end
+    end
+
+    def create_boot_file
+      copy_file "config/boot.rb"
     end
 
     def create_activerecord_files

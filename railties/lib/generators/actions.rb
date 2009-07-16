@@ -16,13 +16,14 @@ module Rails
       #
       #   apply "recipes/jquery.rb"
       #
-      def apply(path)
-        path = find_in_source_paths(path) unless path =~ /^http\:\/\//
+      def apply(path, options={})
+        verbose = options.fetch(:verbose, true)
+        path    = find_in_source_paths(path) unless path =~ /^http\:\/\//
 
-        log :apply, path
-        shell.padding += 1
+        log :apply, path, verbose
+        shell.padding += 1 if verbose
         instance_eval(open(path).read)
-        shell.padding -= 1
+        shell.padding -= 1 if verbose
       end
 
       # Install a plugin. You must provide either a Subversion url or Git url.

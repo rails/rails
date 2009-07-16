@@ -21,13 +21,13 @@ module Rails
       end
 
       hook_for :generator do |instance, generator|
-        instance.inside_with_padding instance.send(:plugin_dir) do
+        instance.inside instance.send(:plugin_dir), :verbose => true do
           instance.invoke generator, [ instance.name ], :namespace => false
         end
       end
 
       hook_for :test_framework do |instance, test_framework|
-        instance.inside_with_padding instance.send(:plugin_dir) do
+        instance.inside instance.send(:plugin_dir), :verbose => true do
           instance.invoke test_framework
         end
       end

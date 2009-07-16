@@ -87,7 +87,7 @@ class Thor::Group
             if klass
               say_status :invoke, #{name.inspect}, #{verbose.inspect}
               block = self.class.invocation_blocks[#{name.inspect}]
-              invoke_with_padding klass, task, &block
+              _invoke_for_class_method klass, task, &block
             else
               say_status :error, %(#{name.inspect} [not found]), :red
             end
@@ -150,7 +150,7 @@ class Thor::Group
             if klass
               say_status :invoke, value, #{verbose.inspect}
               block = self.class.invocation_blocks[#{name.inspect}]
-              invoke_with_padding klass, task, &block
+              _invoke_for_class_method klass, task, &block
             else
               say_status :error, %(\#{value} [not found]), :red
             end
@@ -237,4 +237,26 @@ class Thor::Group
   end
 
   include Thor::Base
+
+  protected
+
+    # Shortcut to invoke with padding and block handling. Use internally by
+    # invoke and invoke_from_option class methods.
+    #
+    def _invoke_for_class_method(klass, task=nil, *args, &block)
+      shell.padding += 1
+
+      result = if block_given?
+        if block.arity == 2
+          block.call(self, klass)
+        else
+          block.call(self, klass, task)
+        end
+      else
+        invoke klass, task, *args
+      end
+
+      shell.padding -= 1
+      result
+    end
 end

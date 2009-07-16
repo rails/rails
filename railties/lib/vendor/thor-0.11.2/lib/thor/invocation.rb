@@ -130,26 +130,6 @@ class Thor
       end
     end
 
-    # Shortcut for invoke with padding and status handling. Used internally by
-    # class options invoke and invoke_from_option.
-    #
-    def invoke_with_padding(klass, task=nil, *args, &block)
-      shell.padding += 1
-
-      result = if block_given?
-        if block.arity == 2
-          block.call(self, klass)
-        else
-          block.call(self, klass, task)
-        end
-      else
-        invoke klass, task, *args
-      end
-
-      shell.padding -= 1
-      result
-    end
-
     protected
 
       # Configuration values that are shared between invocations.

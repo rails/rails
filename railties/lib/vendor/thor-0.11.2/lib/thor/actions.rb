@@ -136,21 +136,20 @@ class Thor
     #
     # ==== Parameters
     # dir<String>:: the directory to move to.
+    # config<Hash>:: give :verbose => true to log and use padding.
     #
-    def inside(dir='', &block)
+    def inside(dir='', config={}, &block)
+      verbose = config.fetch(:verbose, false)
+
+      say_status :inside, dir, verbose
+      shell.padding += 1 if verbose
       @destination_stack.push File.expand_path(dir, destination_root)
+
       FileUtils.mkdir_p(destination_root) unless File.exist?(destination_root)
       FileUtils.cd(destination_root) { block.arity == 1 ? yield(destination_root) : yield }
-      @destination_stack.pop
-    end
 
-    # Same as inside, but log status and use padding.
-    #
-    def inside_with_padding(dir='', config={}, &block)
-      say_status :inside, dir, config.fetch(:verbose, true)
-      shell.padding += 1
-      inside(dir, &block)
-      shell.padding -= 1
+      @destination_stack.pop
+      shell.padding -= 1 if verbose
     end
 
     # Goes to the root and execute the given block.
@@ -173,8 +172,7 @@ class Thor
     #
     def run(command, config={})
       return unless behavior == :invoke
-      description = "#{command.inspect} from #{relative_to_original_destination_root(destination_root, false)}"
-      say_status :run, description, config.fetch(:verbose, true)
+      say_status :run, command, config.fetch(:verbose, true)
       `#{command}` unless options[:pretend]
     end
 
@@ -196,8 +194,8 @@ class Thor
     # ==== Parameters
     # task<String>:: the task to be invoked
     # args<Array>:: arguments to the task
-    # options<Hash>:: give :verbose => false to not log the status. Other options
-    #                 are given as parameter to Thor.
+    # config<Hash>:: give :verbose => false to not log the status. Other options
+    #                are given as parameter to Thor.
     #
     # ==== Examples
     #
