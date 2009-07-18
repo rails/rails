@@ -9,7 +9,7 @@ This guide covers getting up and running with Ruby on Rails. After reading it, y
 
 endprologue.
 
-WARNING. This Guide is based on Rails 2.3. Some of the code shown here will not work in older versions of Rails.
+WARNING. This Guide is based on Rails 2.3.3. Some of the code shown here will not work in other versions of Rails.
 
 h3. This Guide Assumes
 
@@ -19,22 +19,22 @@ This guide is designed for beginners who want to get started with a Rails applic
 * The "RubyGems":http://rubyforge.org/frs/?group_id=126 packaging system
 * A working installation of "SQLite":http://www.sqlite.org (preferred), "MySQL":http://www.mysql.com, or "PostgreSQL":http://www.postgresql.org
 
-It is highly recommended that you *familiarize yourself with Ruby before diving into Rails*. You will find it much easier to follow what’s going on with a Rails application if you understand basic Ruby syntax. Rails isn’t going to magically revolutionize the way you write web applications if you have no experience with the language it uses. There are some good free resources on the internet for learning Ruby, including:
+It is highly recommended that you *familiarize yourself with Ruby before diving into Rails*. You will find it much easier to follow what's going on with a Rails application if you understand basic Ruby syntax. Rails isn't going to magically revolutionize the way you write web applications if you have no experience with the language it uses. There are some good free resources on the internet for learning Ruby, including:
 
-* "Mr. Neighborly’s Humble Little Ruby Book":http://www.humblelittlerubybook.com
+* "Mr. Neighborly's Humble Little Ruby Book":http://www.humblelittlerubybook.com
 * "Programming Ruby":http://www.rubycentral.com/book
-* "Why’s (Poignant) Guide to Ruby":http://poignantguide.net/ruby/
+* "Why's (Poignant) Guide to Ruby":http://poignantguide.net/ruby/
 
 h3. What is Rails?
 
-Rails is a web development framework written in the Ruby language. It is designed to make programming web applications easier by making several assumptions about what every developer needs to get started. It allows you to write less code while accomplishing more than many other languages and frameworks. Longtime Rails developers also report that it makes web application development more fun.
+Rails is a web development framework written in the Ruby language. It is designed to make programming web applications easier by making assumptions about what every developer needs to get started. It allows you to write less code while accomplishing more than many other languages and frameworks. Longtime Rails developers also report that it makes web application development more fun.
 
-Rails is opinionated software. That is, it assumes that there is a best way to do things, and it’s designed to encourage that best way - and in some cases to discourage alternatives. If you learn "The Rails Way" you’ll probably discover a tremendous increase in productivity. If you persist in bringing old habits from other languages to your Rails development, and trying to use patterns you learned elsewhere, you may have a less happy experience.
+Rails is opinionated software. That is, it assumes that there is a best way to do things, and it's designed to encourage that best way - and in some cases to discourage alternatives. If you learn "The Rails Way" you'll probably discover a tremendous increase in productivity. If you persist in bringing old habits from other languages to your Rails development, and trying to use patterns you learned elsewhere, you may have a less happy experience.
 
 The Rails philosophy includes several guiding principles:
 
-* DRY - "Don’t Repeat Yourself" - suggests that writing the same code over and over again is a bad thing.
-* Convention Over Configuration - means that Rails makes assumptions about what you want to do and how you’re going to do it, rather than letting you tweak every little thing through endless configuration files.
+* DRY - "Don't Repeat Yourself" - suggests that writing the same code over and over again is a bad thing.
+* Convention Over Configuration - means that Rails makes assumptions about what you want to do and how you're going to do it, rather than letting you tweak every little thing through endless configuration files.
 * REST is the best pattern for web applications - organizing your application around resources and standard HTTP verbs is the fastest way to go.
 
 h4. The MVC Architecture
@@ -47,7 +47,7 @@ Rails is organized around the Model, View, Controller architecture, usually just
 
 h5. Models
 
-A model represents the information (data) of the application and the rules to manipulate that data. In the case of Rails, models are primarily used for managing the rules of interaction with a corresponding database table. In most cases, one table in your database will correspond to one model in your application. The bulk of your application’s business logic will be concentrated in the models.
+A model represents the information (data) of the application and the rules to manipulate that data. In the case of Rails, models are primarily used for managing the rules of interaction with a corresponding database table. In most cases, one table in your database will correspond to one model in your application. The bulk of your application's business logic will be concentrated in the models.
 
 h5. Views
 
@@ -99,7 +99,7 @@ Active Support is an extensive collection of utility classes and standard Ruby l
 
 h4. REST
 
-The foundation of the RESTful architecture is generally considered to be Roy Fielding’s doctoral thesis, "Architectural Styles and the Design of Network-based Software Architectures":http://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm. Fortunately, you need not read this entire document to understand how REST works in Rails. REST, an acronym for Representational State Transfer, boils down to two main principles for our purposes:
+The foundation of the RESTful architecture is generally considered to be Roy Fielding's doctoral thesis, "Architectural Styles and the Design of Network-based Software Architectures":http://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm. Fortunately, you need not read this entire document to understand how REST works in Rails. REST, an acronym for Representational State Transfer, boils down to two main principles for our purposes:
 
 * Using resource identifiers (which, for the purposes of discussion, you can think of as URLs) to represent resources
 * Transferring representations of the state of that resource between system components.
@@ -110,7 +110,7 @@ For example, to a Rails application a request such as this:
 
 would be understood to refer to a photo resource with the ID of 17, and to indicate a desired action - deleting that resource. REST is a natural style for the architecture of web applications, and Rails makes it even more natural by using conventions to shield you from some of the RESTful complexities and browser quirks.
 
-If you’d like more details on REST as an architectural style, these resources are more approachable than Fielding’s thesis:
+If you'd like more details on REST as an architectural style, these resources are more approachable than Fielding's thesis:
 
 * "A Brief Introduction to REST":http://www.infoq.com/articles/rest-introduction by Stefan Tilkov
 * "An Introduction to REST":http://bitworking.org/news/373/An-Introduction-to-REST (video tutorial) by Joe Gregorio
@@ -119,7 +119,7 @@ If you’d like more details on REST as an architectural style, these resources 
 
 h3. Creating a New Rails Project
 
-If you follow this guide, you’ll create a Rails project called <tt>blog</tt>, a (very) simple weblog. Before you can start building the application, you need to make sure that you have Rails itself installed.
+If you follow this guide, you'll create a Rails project called <tt>blog</tt>, a (very) simple weblog. Before you can start building the application, you need to make sure that you have Rails itself installed.
 
 h4. Installing Rails
 
@@ -131,8 +131,10 @@ $ gem install rails
 
 NOTE. There are some special circumstances in which you might want to use an alternate installation strategy:
 
-* If you’re working on Windows, you may find it easier to install Instant Rails. Be aware, though, that "Instant Rails":http://instantrails.rubyforge.org/wiki/wiki.pl releases tend to lag seriously behind the actual Rails version. Also, you will find that Rails development on Windows is overall less pleasant than on other operating systems. If at all possible, we suggest that you install a Linux virtual machine and use that for Rails development, instead of using Windows.
-* If you want to keep up with cutting-edge changes to Rails, you’ll want to clone the "Rails source code":http://github.com/rails/rails/tree/master from github. This is not recommended as an option for beginners, though.
+* If you're working on Windows, you may find it easier to install Instant Rails. Be aware, though, that "Instant Rails":http://instantrails.rubyforge.org/wiki/wiki.pl releases tend to lag seriously behind the actual Rails version. Also, you will find that Rails development on Windows is overall less pleasant than on other operating systems. If at all possible, we suggest that you install a Linux virtual machine and use that for Rails development, instead of using Windows.
+* If you want to keep up with cutting-edge changes to Rails, you'll want to clone the "Rails source code":http://github.com/rails/rails/tree/master from github. This is not recommended as an option for beginners, though.
+
+WARNING. As of mid-2009, cloning the master branch will get you preliminary Rails 3.0 code. To follow along with this guide, you should clone the 2-3-stable branch instead.
 
 h4. Creating the Blog Application
 
@@ -148,7 +150,7 @@ This will create a Rails application that uses a SQLite database for data storag
 $ rails blog -d mysql
 </shell>
 
-And if you’re using PostgreSQL for data storage, run this command:
+And if you're using PostgreSQL for data storage, run this command:
 
 <shell>
 $ rails blog -d postgresql
@@ -162,7 +164,7 @@ After you create the blog application, switch to its folder to continue work dir
 $ cd blog
 </shell>
 
-In any case, Rails will create a folder in your working directory called <tt>blog</tt>. Open up that folder and explore its contents. Most of the work in this tutorial will happen in the <tt>app/</tt> folder, but here’s a basic rundown on the function of each folder that Rails creates in a new application by default:
+In any case, Rails will create a folder in your working directory called <tt>blog</tt>. Open up that folder and explore its contents. Most of the work in this tutorial will happen in the <tt>app/</tt> folder, but here's a basic rundown on the function of each folder that Rails creates in a new application by default:
 
 |_.File/Folder|_.Purpose|
 |README|This is a brief instruction manual for your application. Use it to tell others what your application does, how to set it up, and so on.|
@@ -508,7 +510,7 @@ This view iterates over the contents of the +@posts+ array to display content an
 
 * +h+ is a Rails helper method to sanitize displayed data, preventing cross-site scripting attacks
 * +link_to+ builds a hyperlink to a particular destination
-* +edit_post_path+ is a helper that Rails provides as part of RESTful routing. You’ll see a variety of these helpers for the different actions that the controller includes.
+* +edit_post_path+ is a helper that Rails provides as part of RESTful routing. You'll see a variety of these helpers for the different actions that the controller includes.
 
 TIP: For more details on the rendering process, see "Layouts and Rendering in Rails":layouts_and_rendering.html.
 
@@ -710,7 +712,7 @@ end
 
 In the +update+ action, Rails first uses the +:id+ parameter passed back from the edit view to locate the database record that's being edited. The +update_attributes+ call then takes the rest of the parameters from the request and applies them to this record. If all goes well, the user is redirected to the post's +show+ view. If there are any problems, it's back to +edit+ to correct them.
 
-NOTE. Sharp-eyed readers will have noticed that the +form_for+ declaration is identical for the +new+ and +edit+ views. Rails generates different code for the two forms because it's smart enough to notice that in the one case it's being passed a new record that has never been saved, and in the other case an existing record that has already been saved to the database. In a production Rails application, you would ordinarily eliminate this duplication by moving identical code to a _partial template_, which you could then include in both parent templates. But the scaffold generator tries not to make too many assumptions, and generates code that’s easy to modify if you want different forms for +create+ and +edit+.
+NOTE. Sharp-eyed readers will have noticed that the +form_for+ declaration is identical for the +new+ and +edit+ views. Rails generates different code for the two forms because it's smart enough to notice that in the one case it's being passed a new record that has never been saved, and in the other case an existing record that has already been saved to the database. In a production Rails application, you would ordinarily eliminate this duplication by moving identical code to a _partial template_, which you could then include in both parent templates. But the scaffold generator tries not to make too many assumptions, and generates code that's easy to modify if you want different forms for +create+ and +edit+.
 
 h4. Destroying a Post
 
@@ -732,7 +734,7 @@ The +destroy+ method of an Active Record model instance removes the correspondin
 
 h3. DRYing up the Code
 
-At this point, it’s worth looking at some of the tools that Rails provides to eliminate duplication in your code. In particular, you can use _partials_ to clean up duplication in views and _filters_ to help with duplication in controllers.
+At this point, it's worth looking at some of the tools that Rails provides to eliminate duplication in your code. In particular, you can use _partials_ to clean up duplication in views and _filters_ to help with duplication in controllers.
 
 h4. Using Partials to Eliminate View Duplication
 
@@ -740,13 +742,13 @@ As you saw earlier, the scaffold-generated views for the +new+ and +edit+ action
 
 <tt>new.html.erb</tt>:
 
-<html>
+<erb>
 <h1>New post</h1>
 
 <%= render :partial => "form" %>
 
 <%= link_to 'Back', posts_path %>
-</html>
+</erb>
 
 <tt>edit.html.erb</tt>:
 
@@ -789,7 +791,7 @@ For more information on partials, refer to the "Layouts and Rendering in Rails":
 
 h4. Using Filters to Eliminate Controller Duplication
 
-At this point, if you look at the controller for posts, you’ll see some duplication:
+At this point, if you look at the controller for posts, you'll see some duplication:
 
 <ruby>
 class PostsController < ApplicationController
@@ -815,7 +817,7 @@ class PostsController < ApplicationController
 end
 </ruby>
 
-Four instances of the exact same line of code doesn’t seem very DRY. Rails provides _filters_ as a way to address this sort of repeated code. In this case, you can DRY things up by using a +before_filter+:
+Four instances of the exact same line of code doesn't seem very DRY. Rails provides _filters_ as a way to address this sort of repeated code. In this case, you can DRY things up by using a +before_filter+:
 
 <ruby>
 class PostsController < ApplicationController
@@ -837,10 +839,10 @@ class PostsController < ApplicationController
     # ...
   end
 
-  private
-    def find_post
-      @post = Post.find(params[:id])
-    end
+private
+  def find_post
+    @post = Post.find(params[:id])
+  end
 end
 </ruby>
 
@@ -988,23 +990,21 @@ You'll need to flesh this out with code to actually process requests appropriate
 
 <ruby>
 class CommentsController < ApplicationController
+  before_filter :find_post
+
   def index
-    @post = Post.find(params[:post_id])
     @comments = @post.comments
   end
 
   def show
-    @post = Post.find(params[:post_id])
     @comment = @post.comments.find(params[:id])
   end
 
   def new
-    @post = Post.find(params[:post_id])
     @comment = @post.comments.build
   end
 
   def create
-    @post = Post.find(params[:post_id])
     @comment = @post.comments.build(params[:comment])
     if @comment.save
       redirect_to post_comment_url(@post, @comment)
@@ -1014,12 +1014,10 @@ class CommentsController < ApplicationController
   end
 
   def edit
-    @post = Post.find(params[:post_id])
     @comment = @post.comments.find(params[:id])
   end
 
   def update
-    @post = Post.find(params[:post_id])
     @comment = Comment.find(params[:id])
     if @comment.update_attributes(params[:comment])
       redirect_to post_comment_url(@post, @comment)
@@ -1029,10 +1027,14 @@ class CommentsController < ApplicationController
   end
 
   def destroy
-    @post = Post.find(params[:post_id])
     @comment = Comment.find(params[:id])
     @comment.destroy
     redirect_to post_comments_path(@post)
+  end
+
+private
+  def find_post
+    @post = Post.find(params[:post_id])
   end
 
 end
@@ -1204,10 +1206,6 @@ class Post < ActiveRecord::Base
   validates_presence_of :name, :title
   validates_length_of :title, :minimum => 5
   has_many :comments, :dependent => :destroy
-  has_many :tags
-
-  accepts_nested_attributes_for :tags, :allow_destroy => :true, 
-    :reject_if => proc { |attrs| attrs.all? { |k, v| v.blank? } }
 end
 </ruby> 
 
@@ -1225,7 +1223,7 @@ Run the migration to create the database table:
 $ rake db:migrate
 </shell>
 
-Next, edit the +post.rb+ file to create the other side of the association, and to tell Rails that you intend to edit tags via posts:
+Next, edit the +post.rb+ file to create the other side of the association, and to tell Rails (via the +accepts_nested_attributes+ macro) that you intend to edit tags via posts:
 
 <ruby>
 class Post < ActiveRecord::Base
@@ -1302,6 +1300,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2
 
+* July 18, 2009: Minor cleanup in anticipation of Rails 2.3.3 by "Mike Gunderloy":credits.html#mgunderloy
 * February 1, 2009: Updated for Rails 2.3 by "Mike Gunderloy":credits.html#mgunderloy
 * November 3, 2008: Formatting patch from Dave Rothlisberger
 * November 1, 2008: First approved version by "Mike Gunderloy":credits.html#mgunderloy
