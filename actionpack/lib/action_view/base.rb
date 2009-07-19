@@ -172,8 +172,6 @@ module ActionView #:nodoc:
     attr_accessor :controller
     attr_internal :captures
 
-    attr_accessor :output_buffer
-
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
       delegate :logger, :to => 'ActionController::Base', :allow_nil => true
@@ -206,10 +204,7 @@ module ActionView #:nodoc:
 
     delegate :find_by_parts, :to => :view_paths
 
-    module CompiledTemplates #:nodoc:
-      # holds compiled template code
-    end
-    include CompiledTemplates
+    include Context
 
     def self.process_view_paths(value)
       ActionView::PathSet.new(Array(value))
