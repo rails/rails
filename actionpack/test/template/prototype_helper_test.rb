@@ -1,10 +1,12 @@
 require 'abstract_unit'
+require 'active_model'
 
 Bunny = Struct.new(:Bunny, :id)
-Bunny.extend ActiveModel::Naming
+Bunny.extend ActiveModel::APICompliant
 
 class Author
-  extend ActiveModel::Naming
+  extend ActiveModel::APICompliant
+
   attr_reader :id
   def save; @id = 1 end
   def new_record?; @id.nil? end
@@ -14,7 +16,7 @@ class Author
 end
 
 class Article
-  extend ActiveModel::Naming
+  extend ActiveModel::APICompliant
   attr_reader :id
   attr_reader :author_id
   def save; @id = 1; @author_id = 1 end

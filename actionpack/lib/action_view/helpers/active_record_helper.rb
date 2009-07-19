@@ -77,6 +77,7 @@ module ActionView
       # * <tt>:submit_value</tt> - The text of the submit button (default: "Create" if a new record, otherwise "Update").
       def form(record_name, options = {})
         record = instance_variable_get("@#{record_name}")
+        record = record.to_model if record.respond_to?(:to_model)
 
         options = options.symbolize_keys
         options[:action] ||= record.new_record? ? "create" : "update"
@@ -120,6 +121,8 @@ module ActionView
           options[:css_class] = args[2] || 'formError'
         end
         options.reverse_merge!(:prepend_text => '', :append_text => '', :css_class => 'formError')
+
+        object = object.to_model if object.respond_to?(:to_model)
 
         if (obj = (object.respond_to?(:errors) ? object : instance_variable_get("@#{object}"))) &&
           (errors = obj.errors[method])
@@ -179,6 +182,8 @@ module ActionView
           objects = params.collect {|object_name| instance_variable_get("@#{object_name}") }.compact
         end
 
+        objects.map! {|o| o.respond_to?(:to_model) ? o.to_model : o }
+
         count  = objects.inject(0) {|sum, object| sum + object.errors.count }
         unless count.zero?
           html = {}
@@ -226,7 +231,14 @@ module ActionView
         end
     end
 
-    class InstanceTag #:nodoc:
+    module ActiveRecordInstanceTag
+      def object
+        @active_model_object ||= begin
+          object = super
+          object.respond_to?(:to_model) ? object.to_model : object
+        end
+      end
+
       def to_tag(options = {})
         case column_type
           when :string
@@ -248,11 +260,9 @@ module ActionView
       end
 
       %w(tag content_tag to_date_select_tag to_datetime_select_tag to_time_select_tag).each do |meth|
-        without = "#{meth}_without_error_wrapping"
-        define_method "#{meth}_with_error_wrapping" do |*args|
-          error_wrapping(send(without, *args))
+        define_method meth do |*|
+          error_wrapping(super)
         end
-        alias_method_chain meth, :error_wrapping
       end
 
       def error_wrapping(html_tag)
@@ -266,6 +276,10 @@ module ActionView
       def column_type
         object.send(:column_for_attribute, @method_name).type
       end
+    end
+
+    class InstanceTag
+      include ActiveRecordInstanceTag
     end
   end
 end

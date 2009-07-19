@@ -20,6 +20,7 @@ require 'action_controller/testing/process'
 require 'action_view/test_case'
 require 'action_controller/testing/integration'
 require 'active_support/dependencies'
+require 'active_model'
 
 $tags[:new_base] = true
 

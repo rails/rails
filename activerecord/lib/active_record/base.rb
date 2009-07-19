@@ -2511,6 +2511,13 @@ module ActiveRecord #:nodoc:
         (id = self.id) ? id.to_s : nil # Be sure to stringify the id for routes
       end
 
+      # Returns the ActiveRecord object when asked for its
+      # ActiveModel-compliant representation, because ActiveRecord is
+      # ActiveModel-compliant.
+      def to_model
+        self
+      end
+
       # Returns a cache key that can be used to identify this record.
       #
       # ==== Examples

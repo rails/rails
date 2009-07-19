@@ -4,19 +4,17 @@ class ActiveRecordHelperTest < ActionView::TestCase
   tests ActionView::Helpers::ActiveRecordHelper
 
   silence_warnings do
-    Post = Struct.new("Post", :title, :author_name, :body, :secret, :written_on)
-    Post.class_eval do
-      alias_method :title_before_type_cast, :title unless respond_to?(:title_before_type_cast)
-      alias_method :body_before_type_cast, :body unless respond_to?(:body_before_type_cast)
-      alias_method :author_name_before_type_cast, :author_name unless respond_to?(:author_name_before_type_cast)
+    class Post < Struct.new(:title, :author_name, :body, :secret, :written_on)
+      extend ActiveModel::APICompliant
     end
 
-    User = Struct.new("User", :email)
-    User.class_eval do
-      alias_method :email_before_type_cast, :email unless respond_to?(:email_before_type_cast)
+    class User < Struct.new(:email)
+      extend ActiveModel::APICompliant
     end
 
-    Column = Struct.new("Column", :type, :name, :human_name)
+    class Column < Struct.new(:type, :name, :human_name)
+      extend ActiveModel::APICompliant
+    end
   end
 
   class DirtyPost
