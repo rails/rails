@@ -17,25 +17,22 @@ module AbstractController
     # An instance of a view class. The default view class is ActionView::Base
     #
     # The view class must have the following methods:
-    # initialize[paths, assigns_for_first_render, controller]
-    #   paths<Array[ViewPath]>:: A list of resolvers to look for templates in
-    #   controller<AbstractController::Base> A controller
-    # _render_partial_from_controller[options]
+    # View.for_controller[controller] Create a new ActionView instance for a 
+    #   controller
+    # View#_render_partial_from_controller[options]
+    #   - responsible for setting options[:_template]
+    #   - Returns String with the rendered partial
     #   options<Hash>:: see _render_partial in ActionView::Base
-    # _render_template_from_controller[template, layout, options, partial]
+    # View#_render_template_from_controller[template, layout, options, partial]
+    #   - Returns String with the rendered template
     #   template<ActionView::Template>:: The template to render
     #   layout<ActionView::Template>:: The layout to render around the template
     #   options<Hash>:: See _render_template_with_layout in ActionView::Base
     #   partial<Boolean>:: Whether or not the template to render is a partial
-    # _partial:: If a partial, rather than a template, was rendered, return
-    #   the partial.
-    # helpers:: A module containing the helpers to be used in the view. This
-    #   module should respond_to include.
-    # controller:: The controller that initialized the ActionView
     #
     # Override this method in a to change the default behavior.
     def _action_view
-      @_action_view ||= ActionView::Base.new(self.class.view_paths, {}, self)
+      @_action_view ||= ActionView::Base.for_controller(self)
     end
 
     # Mostly abstracts the fact that calling render twice is a DoubleRenderError.

@@ -228,6 +228,12 @@ module ActionView #:nodoc:
       end
     end
 
+    def self.for_controller(controller)
+      new(controller.class.view_paths, {}, controller).tap do |view|
+        view.helpers.include(controller._helpers) if controller.respond_to?(:_helpers)
+      end
+    end
+
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil, formats = nil)#:nodoc:
       @formats = formats || [:html]
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }

@@ -97,7 +97,7 @@ module ActionController
           partials = hax[:partials]
           if expected_count = options[:count]
             found = partials.detect { |p, _| p.identifier.match(expected_partial) }
-            actual_count = found.nil? ? 0 : found.second
+            actual_count = found.nil? ? 0 : found[1]
             msg = build_message(message,
                     "expecting ? to be rendered ? time(s) but rendered ? time(s)",
                      expected_partial, expected_count, actual_count)
