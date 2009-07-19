@@ -1,5 +1,9 @@
 *Edge*
 
+* Added :primary_key option to belongs_to associations.  #765 [Szymon Nowak, Philip Hallstrom, Noel Rocha]
+    # employees.company_name references companies.name
+    Employee.belongs_to :company, :primary_key => 'name', :foreign_key => 'company_name'
+
 * Implement #many? for NamedScope and AssociationCollection using #size. #1500 [Chris Kampmeier]
 
 * Added :touch option to belongs_to associations that will touch the parent record when the current record is saved or destroyed [DHH]

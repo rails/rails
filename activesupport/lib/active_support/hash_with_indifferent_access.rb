@@ -98,6 +98,10 @@ module ActiveSupport
       super other_hash.with_indifferent_access
     end
 
+    def reverse_merge!(other_hash)
+      replace(reverse_merge( other_hash ))
+    end
+
     # Removes a specified key from the hash.
     def delete(key)
       super(convert_key(key))
@@ -109,7 +113,7 @@ module ActiveSupport
 
     # Convert to a Hash with String keys.
     def to_hash
-      Hash.new(default).merge(self)
+      Hash.new(default).merge!(self)
     end
 
     protected

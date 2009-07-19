@@ -161,6 +161,12 @@ ActiveRecord::Schema.define do
     t.integer :course_id, :null => false
   end
 
+  create_table :essays, :force => true do |t|
+    t.string :name
+    t.string :writer_id
+    t.string :writer_type
+  end
+
   create_table :events, :force => true do |t|
     t.string :title, :limit => 5
   end
@@ -421,6 +427,7 @@ ActiveRecord::Schema.define do
     t.boolean  :approved, :default => true
     t.integer  :replies_count, :default => 0
     t.integer  :parent_id
+    t.string   :parent_title
     t.string   :type
   end
 
