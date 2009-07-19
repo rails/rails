@@ -77,7 +77,7 @@ module ActionView
       # * <tt>:submit_value</tt> - The text of the submit button (default: "Create" if a new record, otherwise "Update").
       def form(record_name, options = {})
         record = instance_variable_get("@#{record_name}")
-        record = record.to_model if record.respond_to?(:to_model)
+        record = convert_to_model(record)
 
         options = options.symbolize_keys
         options[:action] ||= record.new_record? ? "create" : "update"
@@ -122,7 +122,7 @@ module ActionView
         end
         options.reverse_merge!(:prepend_text => '', :append_text => '', :css_class => 'formError')
 
-        object = object.to_model if object.respond_to?(:to_model)
+        object = convert_to_model(object)
 
         if (obj = (object.respond_to?(:errors) ? object : instance_variable_get("@#{object}"))) &&
           (errors = obj.errors[method])
@@ -182,7 +182,7 @@ module ActionView
           objects = params.collect {|object_name| instance_variable_get("@#{object_name}") }.compact
         end
 
-        objects.map! {|o| o.respond_to?(:to_model) ? o.to_model : o }
+        objects.map! {|o| convert_to_model(o) }
 
         count  = objects.inject(0) {|sum, object| sum + object.errors.count }
         unless count.zero?

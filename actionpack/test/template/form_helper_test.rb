@@ -1,11 +1,9 @@
 require 'abstract_unit'
 
 silence_warnings do
-  Post = Struct.new(:title, :author_name, :body, :secret, :written_on, :cost)
-  Post.class_eval do
-    alias_method :title_before_type_cast, :title unless respond_to?(:title_before_type_cast)
-    alias_method :body_before_type_cast, :body unless respond_to?(:body_before_type_cast)
-    alias_method :author_name_before_type_cast, :author_name unless respond_to?(:author_name_before_type_cast)
+  class Post < Struct.new(:title, :author_name, :body, :secret, :written_on, :cost)
+    extend ActiveModel::APICompliant
+
     alias_method :secret?, :secret
 
     def new_record=(boolean)
@@ -27,6 +25,8 @@ silence_warnings do
   end
 
   class Comment
+    extend ActiveModel::APICompliant
+
     attr_reader :id
     attr_reader :post_id
     def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end

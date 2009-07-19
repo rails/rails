@@ -6,7 +6,7 @@ class Post
      45
   end
   def body
-    "What a wonderful world!"
+    super || "What a wonderful world!"
   end
 end
 

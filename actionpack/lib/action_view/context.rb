@@ -2,7 +2,7 @@ module ActionView
   module CompiledTemplates #:nodoc:
     # holds compiled template code
   end
-  
+
   # ActionView contexts are supplied to ActionController
   # to render template. The default ActionView context
   # is ActionView::Base.
@@ -10,7 +10,7 @@ module ActionView
   # In order to work with ActionController, a Context
   # must implement:
   #
-  # Context.for_controller[controller] Create a new ActionView instance for a 
+  # Context.for_controller[controller] Create a new ActionView instance for a
   #   controller
   # Context#_render_partial_from_controller[options]
   #   - responsible for setting options[:_template]
@@ -36,5 +36,9 @@ module ActionView
   module Context
     include CompiledTemplates
     attr_accessor :output_buffer
+
+    def convert_to_model(object)
+      object.respond_to?(:to_model) ? object.to_model : object
+    end
   end
 end
