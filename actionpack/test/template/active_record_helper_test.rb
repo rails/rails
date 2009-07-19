@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
 class ActiveRecordHelperTest < ActionView::TestCase
-  tests ActionView::Helpers::ActiveRecordHelper
+  tests ActionView::Helpers::ActiveModelHelper
 
   silence_warnings do
     class Post < Struct.new(:title, :author_name, :body, :secret, :written_on)

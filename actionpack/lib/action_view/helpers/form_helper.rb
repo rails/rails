@@ -1044,8 +1044,6 @@ module ActionView
         end
 
         def fields_for_nested_model(name, object, args, block)
-          object = convert_to_model(object)
-
           if object.new_record?
             @template.fields_for(name, object, *args, &block)
           else

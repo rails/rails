@@ -15,7 +15,7 @@ module ActionView
     # method that creates a complete form for all the basic content types of the record (not associations or aggregations, though). This
     # is a great way of making the record quickly available for editing, but likely to prove lackluster for a complicated real-world form.
     # In that case, it's better to use the +input+ method and the specialized +form+ methods in link:classes/ActionView/Helpers/FormHelper.html
-    module ActiveRecordHelper
+    module ActiveModelHelper
       # Returns a default input tag for the type of object returned by the method. For example, if <tt>@post</tt>
       # has an attribute +title+ mapped to a +VARCHAR+ column that holds "Hello World":
       #
