@@ -129,7 +129,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     assert_equal 'Definitely Maybe', @response.body
   end
 
-   test "authentication request with request-uri that doesn't match credentials digest-uri" do
+  test "authentication request with request-uri that doesn't match credentials digest-uri" do
     @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
     @request.env['REQUEST_URI'] = "/http_digest_authentication_test/dummy_digest/altered/uri"
     get :display
@@ -138,10 +138,33 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     assert_equal "Authentication Failed", @response.body
   end
 
-   test "authentication request with absolute uri" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:uri => "http://test.host/http_digest_authentication_test/dummy_digest/display",
+  test "authentication request with absolute request uri (as in webrick)" do
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
+    @request.env['REQUEST_URI'] = "http://test.host/http_digest_authentication_test/dummy_digest"
+
+    get :display
+
+    assert_response :success
+    assert assigns(:logged_in)
+    assert_equal 'Definitely Maybe', @response.body
+  end
+
+  test "authentication request with absolute uri in credentials (as in IE)" do
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:url => "http://test.host/http_digest_authentication_test/dummy_digest",
                                                             :username => 'pretty', :password => 'please')
-    @request.env['REQUEST_URI'] = "http://test.host/http_digest_authentication_test/dummy_digest/display"
+
+    get :display
+
+    assert_response :success
+    assert assigns(:logged_in)
+    assert_equal 'Definitely Maybe', @response.body
+  end
+
+  test "authentication request with absolute uri in both request and credentials (as in Webrick with IE)" do
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:url => "http://test.host/http_digest_authentication_test/dummy_digest",
+                                                            :username => 'pretty', :password => 'please')
+    @request.env['REQUEST_URI'] = "http://test.host/http_digest_authentication_test/dummy_digest"
+
     get :display
 
     assert_response :success
@@ -199,7 +222,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
     credentials = decode_credentials(@response.headers['WWW-Authenticate'])
     credentials.merge!(options)
-    credentials.reverse_merge!(:uri => "#{@request.env['REQUEST_URI']}")
+    credentials.merge!(:uri => @request.env['REQUEST_URI'].to_s)
     ActionController::HttpAuthentication::Digest.encode_credentials(method, credentials, password, options[:password_is_ha1])
   end
 
