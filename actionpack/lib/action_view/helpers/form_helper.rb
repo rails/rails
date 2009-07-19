@@ -1029,7 +1029,7 @@ module ActionView
         def fields_for_with_nested_attributes(association_name, args, block)
           name = "#{object_name}[#{association_name}_attributes]"
           association = @object.send(association_name)
-          explicit_object = args.first if args.first.respond_to?(:new_record?)
+          explicit_object = args.first.to_model if args.first.respond_to?(:to_model)
 
           if association.is_a?(Array)
             children = explicit_object ? [explicit_object] : association
@@ -1044,6 +1044,8 @@ module ActionView
         end
 
         def fields_for_nested_model(name, object, args, block)
+          object = convert_to_model(object)
+
           if object.new_record?
             @template.fields_for(name, object, *args, &block)
           else

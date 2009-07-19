@@ -43,6 +43,8 @@ silence_warnings do
   end
 
   class Tag
+    extend ActiveModel::APICompliant
+
     attr_reader :id
     attr_reader :post_id
     def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end
@@ -59,6 +61,8 @@ silence_warnings do
   end
 
   class CommentRelevance
+    extend ActiveModel::APICompliant
+
     attr_reader :id
     attr_reader :comment_id
     def initialize(id = nil, comment_id = nil); @id, @comment_id = id, comment_id end
@@ -71,6 +75,8 @@ silence_warnings do
   end
 
   class TagRelevance
+    extend ActiveModel::APICompliant
+
     attr_reader :id
     attr_reader :tag_id
     def initialize(id = nil, tag_id = nil); @id, @tag_id = id, tag_id end
