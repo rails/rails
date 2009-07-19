@@ -488,7 +488,7 @@ module ActionView
           object_name = ActionController::RecordIdentifier.singular_class_name(object)
         end
 
-        builder = options[:builder] || ActionView::Base.default_form_builder
+        builder = options[:builder] || ActionView.default_form_builder
         yield builder.new(object_name, object, self, options, block)
       end
 
@@ -1054,9 +1054,21 @@ module ActionView
     end
   end
 
-  class << Base
+  class << ActionView
     attr_accessor :default_form_builder
   end
 
-  Base.default_form_builder = ::ActionView::Helpers::FormBuilder
+  self.default_form_builder = ::ActionView::Helpers::FormBuilder
+
+  # 2.3 compatibility
+  class << Base
+    def default_form_builder=(builder)
+      ActionView.default_form_builder = builder
+    end
+
+    def default_form_builder
+      ActionView.default_form_builder
+    end
+  end
+
 end
