@@ -22,7 +22,7 @@ module ActiveRecord
   # * (8) <tt>after_save</tt>
   #
   # That's a total of eight callbacks, which gives you immense power to react and prepare for each state in the
-  # Active Record lifecycle. The sequence for calling <tt>Base#save</tt> an existing record is similar, except that each 
+  # Active Record lifecycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar, except that each 
   # <tt>_on_create</tt> callback is replaced by the corresponding <tt>_on_update</tt> callback.
   #
   # Examples:
