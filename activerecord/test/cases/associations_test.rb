@@ -65,25 +65,6 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal 1, firm.clients(true).size, "New firm should have reloaded clients count"
   end
 
-  def test_storing_in_pstore
-    require "tmpdir"
-    store_filename = File.join(Dir.tmpdir, "ar-pstore-association-test")
-    File.delete(store_filename) if File.exist?(store_filename)
-    require "pstore"
-    apple = Firm.create("name" => "Apple")
-    natural = Client.new("name" => "Natural Company")
-    apple.clients << natural
-
-    db = PStore.new(store_filename)
-    db.transaction do
-      db["apple"] = apple
-    end
-
-    db = PStore.new(store_filename)
-    db.transaction do
-      assert_equal "Natural Company", db["apple"].clients.first.name
-    end
-  end
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase
