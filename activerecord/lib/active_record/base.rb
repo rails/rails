@@ -2933,10 +2933,12 @@ module ActiveRecord #:nodoc:
           self.id = connection.next_sequence_value(self.class.sequence_name)
         end
 
-        new_id = if arel_attributes_values.empty?
+        attributes_values = arel_attributes_values
+
+        new_id = if attributes_values.empty?
           arel_table.insert connection.empty_insert_statement_value
         else
-          arel_table.insert arel_attributes_values
+          arel_table.insert attributes_values
         end
 
         self.id ||= new_id
@@ -3036,7 +3038,6 @@ module ActiveRecord #:nodoc:
       # an Arel insert/update method.
       def arel_attributes_values(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
         attrs = {}
-        connection = self.class.connection
         attribute_names.each do |name|
           if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
             value = read_attribute(name)
