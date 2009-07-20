@@ -259,7 +259,7 @@ module ActionView
           
           _set_locals(object, locals, template, options)
           
-          self._partial = template
+          options[:_template] = template
           
           _render_template(template, locals)
         end
@@ -278,7 +278,7 @@ module ActionView
         locals = (options[:locals] ||= {})
         index, @_partial_path = 0, nil
         collection.map do |object|
-          template = passed_template || begin
+          options[:_template] = template = passed_template || begin
             _partial_path = 
               ActionController::RecordIdentifier.partial_path(object, controller_path)
             template = _pick_partial_template(_partial_path)
@@ -288,8 +288,6 @@ module ActionView
           locals[template.counter_name] = index
           
           index += 1
-          
-          self._partial = template
           
           _render_template(template, locals)
         end.join(spacer)

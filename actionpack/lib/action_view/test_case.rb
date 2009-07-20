@@ -23,6 +23,7 @@ module ActionView
   class TestCase < ActiveSupport::TestCase
     include ActionDispatch::Assertions
     include ActionController::TestProcess
+    include ActionView::Context
 
     class_inheritable_accessor :helper_class
     @@helper_class = nil

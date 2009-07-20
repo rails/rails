@@ -77,6 +77,7 @@ module ActionController
       end
 
       record    = extract_record(record_or_hash_or_array)
+      record    = record.to_model if record.respond_to?(:to_model)
       namespace = extract_namespace(record_or_hash_or_array)
 
       args = case record_or_hash_or_array

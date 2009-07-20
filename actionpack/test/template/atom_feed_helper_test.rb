@@ -1,7 +1,12 @@
 require 'abstract_unit'
 
-Scroll = Struct.new(:id, :to_param, :title, :body, :updated_at, :created_at)
-Scroll.extend ActiveModel::Naming
+class Scroll < Struct.new(:id, :to_param, :title, :body, :updated_at, :created_at)
+  extend ActiveModel::APICompliant
+
+  def new_record?
+    true
+  end
+end
 
 class ScrollsController < ActionController::Base
   FEEDS = {}

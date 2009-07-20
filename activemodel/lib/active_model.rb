@@ -26,6 +26,7 @@ $:.unshift(activesupport_path) if File.directory?(activesupport_path)
 require 'active_support'
 
 module ActiveModel
+  autoload :APICompliant, 'active_model/api_compliant'
   autoload :Attributes, 'active_model/attributes'
   autoload :Base, 'active_model/base'
   autoload :DeprecatedErrorMethods, 'active_model/deprecated_error_methods'

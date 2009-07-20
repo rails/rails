@@ -75,7 +75,7 @@ module ActionView
       end
 
       begin
-        ActionView::Base::CompiledTemplates.module_eval(source, identifier, line)
+        ActionView::CompiledTemplates.module_eval(source, identifier, line)
         method_name
       rescue Exception => e # errors from template code
         if logger = (view && view.logger)

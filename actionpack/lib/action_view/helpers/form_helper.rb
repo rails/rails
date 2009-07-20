@@ -288,6 +288,8 @@ module ActionView
       def apply_form_for_options!(object_or_array, options) #:nodoc:
         object = object_or_array.is_a?(Array) ? object_or_array.last : object_or_array
 
+        object = convert_to_model(object)
+
         html_options =
           if object.respond_to?(:new_record?) && object.new_record?
             { :class  => dom_class(object, :new),  :id => dom_id(object), :method => :post }
@@ -488,7 +490,7 @@ module ActionView
           object_name = ActionController::RecordIdentifier.singular_class_name(object)
         end
 
-        builder = options[:builder] || ActionView::Base.default_form_builder
+        builder = options[:builder] || ActionView.default_form_builder
         yield builder.new(object_name, object, self, options, block)
       end
 
@@ -626,8 +628,8 @@ module ActionView
 
       # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). This object must be an instance object (@object) and not a local object.
-      # It's intended that +method+ returns an integer and if that integer is above zero, then the checkbox is checked. 
-      # Additional options on the input tag can be passed as a hash with +options+. The +checked_value+ defaults to 1 
+      # It's intended that +method+ returns an integer and if that integer is above zero, then the checkbox is checked.
+      # Additional options on the input tag can be passed as a hash with +options+. The +checked_value+ defaults to 1
       # while the default +unchecked_value+ is set to 0 which is convenient for boolean values.
       #
       # ==== Gotcha
@@ -709,7 +711,8 @@ module ActionView
       end
     end
 
-    class InstanceTag #:nodoc:
+    module InstanceTagMethods #:nodoc:
+      extend ActiveSupport::Concern
       include Helpers::TagHelper, Helpers::FormTagHelper
 
       attr_reader :method_name, :object_name
@@ -832,7 +835,7 @@ module ActionView
         self.class.value_before_type_cast(object, @method_name)
       end
 
-      class << self
+      module ClassMethods
         def value(object, method_name)
           object.send method_name unless object.nil?
         end
@@ -916,6 +919,10 @@ module ActionView
         def sanitized_method_name
           @sanitized_method_name ||= @method_name.sub(/\?$/,"")
         end
+    end
+
+    class InstanceTag
+      include InstanceTagMethods
     end
 
     class FormBuilder #:nodoc:
@@ -1022,7 +1029,7 @@ module ActionView
         def fields_for_with_nested_attributes(association_name, args, block)
           name = "#{object_name}[#{association_name}_attributes]"
           association = @object.send(association_name)
-          explicit_object = args.first if args.first.respond_to?(:new_record?)
+          explicit_object = args.first.to_model if args.first.respond_to?(:to_model)
 
           if association.is_a?(Array)
             children = explicit_object ? [explicit_object] : association
@@ -1054,9 +1061,21 @@ module ActionView
     end
   end
 
-  class << Base
+  class << ActionView
     attr_accessor :default_form_builder
   end
 
-  Base.default_form_builder = ::ActionView::Helpers::FormBuilder
+  self.default_form_builder = ::ActionView::Helpers::FormBuilder
+
+  # 2.3 compatibility
+  class << Base
+    def default_form_builder=(builder)
+      ActionView.default_form_builder = builder
+    end
+
+    def default_form_builder
+      ActionView.default_form_builder
+    end
+  end
+
 end

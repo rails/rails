@@ -1,87 +1,93 @@
-if RUBY_VERSION < '1.9'
-
 =begin
-  string.rb - Extension for String.
-
+  heavily based on Masao Mutoh's gettext String interpolation extension
+  http://github.com/mutoh/gettext/blob/f6566738b981fe0952548c421042ad1e0cdfb31e/lib/gettext/core_ext/string.rb
   Copyright (C) 2005-2009 Masao Mutoh
-
-  You may redistribute it and/or modify it under the same
-  license terms as Ruby.
+  You may redistribute it and/or modify it under the same license terms as Ruby.
 =end
 
-# This feature is included in Ruby 1.9 or later but not occur TypeError.
-#
-# String#% method which accepts named arguments. Particularly useful if the
-# string is to be used by a translator because named arguments mean more
-# than %s/%d style.
-class String
+if RUBY_VERSION < '1.9'
 
-  unless instance_methods.find {|m| m.to_s == 'bytesize'}
-    # For older ruby (such as ruby-1.8.5)
-    alias :bytesize :size
-  end
+  # KeyError is raised by String#% when the string contains a named placeholder
+  # that is not contained in the given arguments hash. Ruby 1.9 includes and
+  # raises this exception natively. We define it to mimic Ruby 1.9's behaviour
+  # in Ruby 1.8.x
 
-  alias :_old_format_m :% # :nodoc:
+  class KeyError < IndexError
+    def initialize(message = nil)
+      super(message || "key not found")
+    end
+  end unless defined?(KeyError)
 
-  PERCENT_MATCH_RE = Regexp.union(
+  # Extension for String class. This feature is included in Ruby 1.9 or later but not occur TypeError.
+  #
+  # String#% method which accept "named argument". The translator can know
+  # the meaning of the msgids using "named argument" instead of %s/%d style.
+
+  class String
+    # For older ruby versions, such as ruby-1.8.5
+    alias :bytesize :size unless instance_methods.find {|m| m.to_s == 'bytesize'}
+    alias :interpolate_without_ruby_19_syntax :% # :nodoc:
+
+    INTERPOLATION_PATTERN = Regexp.union(
       /%%/,
-      /%\{(\w+)\}/,
-      /%<(\w+)>(.*?\d*\.?\d*[bBdiouxXeEfgGcps])/
-  )
+      /%\{(\w+)\}/,                               # matches placeholders like "%{foo}"
+      /%<(\w+)>(.*?\d*\.?\d*[bBdiouxXeEfgGcps])/  # matches placeholders like "%<foo>.d"
+    )
 
-  # call-seq:
-  #   %(arg)
-  #   %(hash)
-  #
-  # Format - Uses str as a format specification, and returns the result of applying it to arg.
-  # If the format specification contains more than one substitution, then arg must be
-  # an Array containing the values to be substituted. See Kernel::sprintf for details of the
-  # format string. This is the default behavior of the String class.
-  #   * arg: an Array or other class except Hash.
-  #   * Returns: formatted String
-  # Example:
-  #    "%s, %s" % ["Masao", "Mutoh"]
-  #
-  # Also you can use a Hash as the "named argument". This is recommended way so translators
-  # can understand the meanings of the msgids easily.
-  #   * hash: {:key1 => value1, :key2 => value2, ... }
-  #   * Returns: formatted String
-  # Example:
-  #   For strings.
-  #   "%{firstname}, %{familyname}" % {:firstname => "Masao", :familyname => "Mutoh"}
-  #
-  #   With field type to specify format such as d(decimal), f(float),...
-  #   "%<age>d, %<weight>.1f" % {:age => 10, :weight => 43.4}
-  def %(args)
-    if args.kind_of?(Hash)
-      ret = dup
-      ret.gsub!(PERCENT_MATCH_RE) {|match|
-        if match == '%%'
-          '%'
-        elsif $1
-          key = $1.to_sym
-          args.has_key?(key) ? args[key] : match
-        elsif $2
-          key = $2.to_sym
-          args.has_key?(key) ? sprintf("%#{$3}", args[key]) : match
+    # % uses self (i.e. the String) as a format specification and returns the
+    # result of applying it to the given arguments. In other words it interpolates
+    # the given arguments to the string according to the formats the string
+    # defines.
+    #
+    # There are three ways to use it:
+    #
+    # * Using a single argument or Array of arguments.
+    #
+    #   This is the default behaviour of the String class. See Kernel#sprintf for
+    #   more details about the format string.
+    #
+    #   Example:
+    #
+    #     "%d %s" % [1, "message"]
+    #     # => "1 message"
+    #
+    # * Using a Hash as an argument and unformatted, named placeholders.
+    #
+    #   When you pass a Hash as an argument and specify placeholders with %{foo}
+    #   it will interpret the hash values as named arguments.
+    #
+    #   Example:
+    #
+    #     "%{firstname}, %{lastname}" % {:firstname => "Masao", :lastname => "Mutoh"}
+    #     # => "Masao Mutoh"
+    #
+    # * Using a Hash as an argument and formatted, named placeholders.
+    #
+    #   When you pass a Hash as an argument and specify placeholders with %<foo>d
+    #   it will interpret the hash values as named arguments and format the value
+    #   according to the formatting instruction appended to the closing >.
+    #
+    #   Example:
+    #
+    #     "%<integer>d, %<float>.1f" % { :integer => 10, :float => 43.4 }
+    #     # => "10, 43.3"
+    def %(args)
+      if args.kind_of?(Hash)
+        dup.gsub(INTERPOLATION_PATTERN) do |match|
+          if match == '%%'
+            '%'
+          else
+            key = ($1 || $2).to_sym
+            raise KeyError unless args.has_key?(key)
+            $3 ? sprintf("%#{$3}", args[key]) : args[key]
+          end
         end
-      }
-      ret
-    else
-      ret = gsub(/%([{<])/, '%%\1')
-      begin
-        ret._old_format_m(args)
-      rescue ArgumentError => e
-        if $DEBUG
-          $stderr.puts "  The string:#{ret}"
-          $stderr.puts "  args:#{args.inspect}"
-          puts e.backtrace
-        else
-          raise ArgumentError, e.message
-        end
+      elsif self =~ INTERPOLATION_PATTERN
+        raise ArgumentError.new('one hash required')
+      else
+        result = gsub(/%([{<])/, '%%\1')
+        result.send :'interpolate_without_ruby_19_syntax', args
       end
     end
   end
-end
-
 end

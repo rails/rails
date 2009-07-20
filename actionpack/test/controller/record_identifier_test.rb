@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
 class Comment
-  extend ActiveModel::Naming
+  extend ActiveModel::APICompliant
 
   attr_reader :id
   def save; @id = 1 end

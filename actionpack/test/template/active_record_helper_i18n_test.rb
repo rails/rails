@@ -1,7 +1,8 @@
 require 'abstract_unit'
 
 class ActiveRecordHelperI18nTest < Test::Unit::TestCase
-  include ActionView::Helpers::ActiveRecordHelper
+  include ActionView::Context
+  include ActionView::Helpers::ActiveModelHelper
   
   attr_reader :request
 

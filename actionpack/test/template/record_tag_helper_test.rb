@@ -1,12 +1,12 @@
 require 'abstract_unit'
 
 class Post
-  extend ActiveModel::Naming
+  extend ActiveModel::APICompliant
   def id
      45
   end
   def body
-    "What a wonderful world!"
+    super || "What a wonderful world!"
   end
 end
 
