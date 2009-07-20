@@ -493,7 +493,12 @@ module ActionController #:nodoc:
               filtered_parameters[key] = filter_parameters(value)
             elsif value.is_a?(Array)
               filtered_parameters[key] = value.collect do |item|
-                filter_parameters(item)
+                case item
+                when Hash, Array
+                  filter_parameters(item)
+                else
+                  item
+                end
               end
             elsif block_given?
               key = key.dup
