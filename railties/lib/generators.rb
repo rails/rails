@@ -162,11 +162,7 @@ module Rails
           base, name = name.split(':')
           return find_by_namespace(name, base)
         when 0
-          if base
-            base = base.to_sym
-            attempts << "#{base}:generators:#{name}"
-            attempts << "#{fallbacks[base]}:generators:#{name}" if fallbacks[base]
-          end
+          attempts << "#{base}:generators:#{name}"    if base
           attempts << "#{name}:generators:#{context}" if context
       end
 
@@ -179,7 +175,7 @@ module Rails
         return klass if klass
       end
 
-      nil
+      invoke_fallbacks_for(name, base)
     end
 
     # Receives a namespace, arguments and the behavior to invoke the generator.
@@ -240,6 +236,24 @@ module Rails
         Dir[File.dirname(__FILE__) + '/generators/*/*'].collect do |file|
           file.split('/')[-2, 2]
         end
+      end
+
+      # Try callbacks for the given base.
+      #
+      def self.invoke_fallbacks_for(name, base)
+        return nil unless base && fallbacks[base.to_sym]
+
+        invoked_fallbacks = []
+
+        Array(fallbacks[base.to_sym]).each do |fallback|
+          next if invoked_fallbacks.include?(fallback)
+          invoked_fallbacks << fallback
+
+          klass = find_by_namespace(name, fallback)
+          return klass if klass
+        end
+
+        nil
       end
 
       # Receives namespaces in an array and tries to find matching generators
