@@ -1,7 +1,8 @@
 require 'observer'
 require 'singleton'
-require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/module/aliasing'
+require 'active_support/core_ext/string/inflections'
 
 module ActiveModel
   module Observing
@@ -39,6 +40,23 @@ module ActiveModel
         observers.each { |o| instantiate_observer(o) }
       end
 
+      # Wraps methods with before and after notifications.
+      #
+      #  wrap_with_notifications :create, :save, :update, :destroy
+      def wrap_with_notifications(*methods)
+        methods.each do |method|
+          class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+            def #{method}_with_notifications(*args, &block)
+              notify_observers(:before_#{method})
+              result = #{method}_without_notifications(*args, &block)
+              notify_observers(:after_#{method})
+              result
+            end
+          EOS
+          alias_method_chain(method, :notifications)
+        end
+      end
+
       protected
         def instantiate_observer(observer)
           # string/symbol
@@ -60,7 +78,7 @@ module ActiveModel
     end
 
     private
-      def notify(method) #:nodoc:
+      def notify_observers(method)
         self.class.changed
         self.class.notify_observers(method, self)
       end
