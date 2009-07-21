@@ -2528,13 +2528,6 @@ module ActiveRecord #:nodoc:
         (id = self.id) ? id.to_s : nil # Be sure to stringify the id for routes
       end
 
-      # Returns the ActiveRecord object when asked for its
-      # ActiveModel-compliant representation, because ActiveRecord is
-      # ActiveModel-compliant.
-      def to_model
-        self
-      end
-
       # Returns a cache key that can be used to identify this record.
       #
       # ==== Examples
@@ -3215,6 +3208,7 @@ module ActiveRecord #:nodoc:
     include Dirty
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
+    include ActiveModel::Conversion
 
     # AutosaveAssociation needs to be included before Transactions, because we want
     # #save_with_autosave_associations to be wrapped inside a transaction.

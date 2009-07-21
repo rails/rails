@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+require "optparse"
+require "bundler"
+
+options = {}
+
+parser = OptionParser.new do |op|
+  op.banner = "Usage: gem_bundler [OPTIONS] [PATH]"
+
+  op.on("-m", "--manifest MANIFEST") do |manifest|
+    options[:manifest] = manifest
+  end
+
+  op.on_tail("-h", "--help", "Show this message") do
+    puts op
+    exit
+  end
+end
+parser.parse!
+
+options[:path] = ARGV.shift
+
+unless options[:path]
+  puts parser
+  puts %(
+    [PATH] must be specified
+  )
+  exit
+end
+
+unless options[:manifest] && File.exist?(options[:manifest])
+  puts parser
+  puts %(
+    MANIFEST must be a valid manifest file
+  )
+  exit
+end
+
+
+Bundler.run(options)

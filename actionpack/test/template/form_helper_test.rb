@@ -2,7 +2,8 @@ require 'abstract_unit'
 
 silence_warnings do
   class Post < Struct.new(:title, :author_name, :body, :secret, :written_on, :cost)
-    extend ActiveModel::APICompliant
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
 
     alias_method :secret?, :secret
 
@@ -25,7 +26,8 @@ silence_warnings do
   end
 
   class Comment
-    extend ActiveModel::APICompliant
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
 
     attr_reader :id
     attr_reader :post_id
@@ -43,7 +45,8 @@ silence_warnings do
   end
 
   class Tag
-    extend ActiveModel::APICompliant
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
 
     attr_reader :id
     attr_reader :post_id
@@ -61,7 +64,8 @@ silence_warnings do
   end
 
   class CommentRelevance
-    extend ActiveModel::APICompliant
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
 
     attr_reader :id
     attr_reader :comment_id
@@ -75,7 +79,8 @@ silence_warnings do
   end
 
   class TagRelevance
-    extend ActiveModel::APICompliant
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
 
     attr_reader :id
     attr_reader :tag_id

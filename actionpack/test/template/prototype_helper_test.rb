@@ -1,11 +1,14 @@
 require 'abstract_unit'
 require 'active_model'
 
-Bunny = Struct.new(:Bunny, :id)
-Bunny.extend ActiveModel::APICompliant
+class Bunny < Struct.new(:Bunny, :id)
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+end
 
 class Author
-  extend ActiveModel::APICompliant
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
 
   attr_reader :id
   def save; @id = 1 end
@@ -16,7 +19,8 @@ class Author
 end
 
 class Article
-  extend ActiveModel::APICompliant
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
   attr_reader :id
   attr_reader :author_id
   def save; @id = 1; @author_id = 1 end

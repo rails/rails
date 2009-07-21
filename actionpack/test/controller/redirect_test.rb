@@ -4,7 +4,8 @@ class WorkshopsController < ActionController::Base
 end
 
 class Workshop
-  extend ActiveModel::APICompliant
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
   attr_accessor :id, :new_record
 
   def initialize(id, new_record)
