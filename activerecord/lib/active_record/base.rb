@@ -663,7 +663,8 @@ module ActiveRecord #:nodoc:
       # This is an alias for find(:all).  You can pass in all the same arguments to this method as you can
       # to find(:all)
       def all(*args)
-        find(:all, *args)
+        relation = arel_table
+        construct_finder_arel(*args)
       end
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
@@ -861,22 +862,21 @@ module ActiveRecord #:nodoc:
       def update_all(updates, conditions = nil, options = {})
         scope = scope(:find)
 
-        arel_table
+        relation = arel_table.relation
 
         if conditions = construct_conditions(conditions, scope)
-          where(Arel::SqlLiteral.new(conditions))
+          relation = relation.where(Arel::SqlLiteral.new(conditions))
         end
 
         if options.has_key?(:limit) || (scope && scope[:limit])
           # Only take order from scope if limit is also provided by scope, this
           # is useful for updating a has_many association with a limit.
-          order(construct_order(options[:order], scope))
-          take(construct_limit(options[:limit], scope))
+          relation = relation.order(construct_order(options[:order], scope)).take(construct_limit(options[:limit], scope))
         else
-          order(construct_order(options[:order], nil))
+          relation = relation.order(construct_order(options[:order], nil))
         end
 
-        arel_relation.update(sanitize_sql_for_assignment(updates))
+        relation.update(sanitize_sql_for_assignment(updates))
       end
 
       # Destroys the records matching +conditions+ by instantiating each
@@ -1536,25 +1536,7 @@ module ActiveRecord #:nodoc:
 
       def arel_table(table = nil)
         table = table_name if table.blank?
-        self.arel_relation = Arel::Table.new(table)
-      end
-
-      def arel_relation
-        Thread.current[:"#{self}_arel_relation"] ||=  Arel::Table.new(table_name)
-      end
-
-      def arel_relation=(relation)
-        Thread.current[:"#{self}_arel_relation"] = relation
-      end
-
-      CLAUSES_METHODS = ["where", "join", "project", "group", "order", "take", "skip"].freeze
-
-      for clause in CLAUSES_METHODS
-        class_eval %{
-          def #{clause}(_#{clause})
-            self.arel_relation = self.arel_relation.#{clause}(_#{clause}) if _#{clause}
-          end
-        }
+        Relation.new(self, table)
       end
 
       private
@@ -1736,21 +1718,21 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def construct_finder_arel(options, scope = scope(:find))
+        def construct_finder_arel(options = {}, scope = scope(:find))
           # TODO add lock to Arel
-          arel_table(options[:from])
-          join(construct_join(options[:joins], scope))
-          where(construct_conditions(options[:conditions], scope))
-          project(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins])))
-          group(construct_group(options[:group], options[:having], scope))
-          order(construct_order(options[:order], scope))
-          take(construct_limit(options[:limit], scope))
-          skip(construct_offset(options[:offset], scope))
-          arel_relation
+          arel_table(options[:from]).
+            join(construct_join(options[:joins], scope)).
+            where(construct_conditions(options[:conditions], scope)).
+            project(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
+            group(construct_group(options[:group], options[:having], scope)).
+            order(construct_order(options[:order], scope)).
+            take(construct_limit(options[:limit], scope)).
+            skip(construct_offset(options[:offset], scope)
+          )
         end
 
         def construct_finder_sql(options, scope = scope(:find))
-          construct_finder_arel(options, scope).to_sql
+          construct_finder_arel(options, scope).relation.to_sql
         end
 
         def construct_join(joins, scope)
