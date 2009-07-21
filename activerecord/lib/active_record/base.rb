@@ -663,7 +663,6 @@ module ActiveRecord #:nodoc:
       # This is an alias for find(:all).  You can pass in all the same arguments to this method as you can
       # to find(:all)
       def all(*args)
-        relation = arel_table
         construct_finder_arel(*args)
       end
 
