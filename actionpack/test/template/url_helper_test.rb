@@ -494,7 +494,8 @@ class LinkToUnlessCurrentWithControllerTest < ActionView::TestCase
 end
 
 class Workshop
-  extend ActiveModel::APICompliant
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
   attr_accessor :id, :new_record
 
   def initialize(id, new_record)
@@ -511,7 +512,8 @@ class Workshop
 end
 
 class Session
-  extend ActiveModel::APICompliant
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
   attr_accessor :id, :workshop_id, :new_record
 
   def initialize(id, new_record)

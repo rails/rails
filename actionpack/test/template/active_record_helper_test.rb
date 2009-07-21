@@ -5,15 +5,18 @@ class ActiveRecordHelperTest < ActionView::TestCase
 
   silence_warnings do
     class Post < Struct.new(:title, :author_name, :body, :secret, :written_on)
-      extend ActiveModel::APICompliant
+      extend ActiveModel::Naming
+      include ActiveModel::Conversion
     end
 
     class User < Struct.new(:email)
-      extend ActiveModel::APICompliant
+      extend ActiveModel::Naming
+      include ActiveModel::Conversion
     end
 
     class Column < Struct.new(:type, :name, :human_name)
-      extend ActiveModel::APICompliant
+      extend ActiveModel::Naming
+      include ActiveModel::Conversion
     end
   end
 

@@ -1,7 +1,8 @@
 require 'abstract_unit'
 
 class Post
-  extend ActiveModel::APICompliant
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
   def id
      45
   end
