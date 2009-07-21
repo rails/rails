@@ -3,7 +3,7 @@ require 'generators/test_unit'
 module TestUnit
   module Generators
     class ModelGenerator < Base
-      argument :attributes, :type => :hash, :default => {}, :banner => "field:type field:type"
+      argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
       class_option :fixture, :type => :boolean
 
       check_class_collision :suffix => "Test"

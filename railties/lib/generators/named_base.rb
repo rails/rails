@@ -41,7 +41,8 @@ module Rails
         # Convert attributes hash into an array with GeneratedAttribute objects.
         #
         def parse_attributes! #:nodoc:
-          self.attributes = (attributes || {}).map do |name, type|
+          self.attributes = (attributes || []).map do |key_value|
+            name, type = key_value.split(':')
             Rails::Generators::GeneratedAttribute.new(name, type)
           end
         end
