@@ -1,5 +1,4 @@
 require 'action_controller/abstract'
-require 'active_support/core_ext/module/delegation'
 
 module ActionController
   # ActionController::Http provides a way to get a valid Rack application from a controller.

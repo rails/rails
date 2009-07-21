@@ -127,6 +127,7 @@ end
 
 class Game < Struct.new(:name, :id)
   extend ActiveModel::Naming
+  include ActiveModel::Conversion
   def to_param
     id.to_s
   end

@@ -311,8 +311,8 @@ class TestGetTextString < Test::Unit::TestCase
   end
 
   def test_sprintf_lack_argument
-    assert_equal("%{num}, test", "%{num}, %{record}" % {:record => "test"})
-    assert_equal("%{record}", "%{record}" % {:num => 1})
+    assert_raises(KeyError) { "%{num}, %{record}" % {:record => "test"} }
+    assert_raises(KeyError) { "%{record}" % {:num => 1} }
   end
 
   def test_no_placeholder
@@ -336,9 +336,12 @@ class TestGetTextString < Test::Unit::TestCase
     assert_equal("foo 1.000000", "%s %f" % ["foo", 1.0])
   end
 
-  def test_sprintf_mix
+  def test_sprintf_mix_unformatted_and_formatted_named_placeholders
     assert_equal("foo 1.000000", "%{name} %<num>f" % {:name => "foo", :num => 1.0})
-    assert_equal("%{name} 1.000000", "%{name} %f" % [1.0])
-    assert_equal("%{name} 1.000000", "%{name} %f" % [1.0, 2.0])
+  end
+
+  def test_string_interpolation_raises_an_argument_error_when_mixing_named_and_unnamed_placeholders
+    assert_raises(ArgumentError) { "%{name} %f" % [1.0] }
+    assert_raises(ArgumentError) { "%{name} %f" % [1.0, 2.0] }
   end
 end

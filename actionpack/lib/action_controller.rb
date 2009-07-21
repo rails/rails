@@ -52,11 +52,21 @@ module ActionController
   autoload :SessionOverflowError,     'action_controller/base/exceptions'
   autoload :UnknownHttpMethod,        'action_controller/base/exceptions'
 
-  require 'action_controller/routing'
+  autoload :Routing,                  'action_controller/routing'
 end
 
 autoload :HTML, 'action_controller/vendor/html-scanner'
 autoload :AbstractController, 'action_controller/abstract'
 
-require 'action_dispatch'
-require 'action_view'
+autoload :Rack,                       'action_dispatch'
+autoload :ActionDispatch,             'action_dispatch'
+autoload :ActionView,                 'action_view'
+
+# Common ActiveSupport usage in ActionController
+require "active_support/concern"
+require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/load_error'
+require 'active_support/core_ext/module/attr_internal'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/name_error'
+require 'active_support/inflector'

@@ -30,12 +30,14 @@ require File.join(File.dirname(__FILE__), "action_pack")
 
 module ActionView
   def self.load_all!
-    [Base, InlineTemplate, TemplateError]
+    [Context, Base, InlineTemplate, TemplateError]
   end
 
   autoload :Base,              'action_view/base'
+  autoload :Context,           'action_view/context'
   autoload :Helpers,           'action_view/helpers'
   autoload :InlineTemplate,    'action_view/template/inline'
+  autoload :MissingTemplate,   'action_view/base'
   autoload :Partials,          'action_view/render/partials'
   autoload :Resolver,          'action_view/template/resolver'
   autoload :PathSet,           'action_view/paths'

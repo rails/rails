@@ -1,6 +1,7 @@
 module ActionView #:nodoc:
   module Helpers #:nodoc:
-    autoload :ActiveRecordHelper, 'action_view/helpers/active_record_helper'
+    autoload :ActiveModelHelper, 'action_view/helpers/active_model_helper'
+    autoload :AjaxHelper, 'action_view/helpers/ajax_helper'
     autoload :AssetTagHelper, 'action_view/helpers/asset_tag_helper'
     autoload :AtomFeedHelper, 'action_view/helpers/atom_feed_helper'
     autoload :BenchmarkHelper, 'action_view/helpers/benchmark_helper'
@@ -31,7 +32,7 @@ module ActionView #:nodoc:
       include SanitizeHelper::ClassMethods
     end
 
-    include ActiveRecordHelper
+    include ActiveModelHelper
     include AssetTagHelper
     include AtomFeedHelper
     include BenchmarkHelper

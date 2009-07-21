@@ -8,12 +8,6 @@ module AbstractController
       extlib_inheritable_accessor(:_helpers) { Module.new }
     end
 
-    # Override AbstractController::Renderer's _action_view to include the
-    # helper module for this class into its helpers module.
-    def _action_view
-      @_action_view ||= super.tap { |av| av.helpers.include(_helpers) }
-    end
-
     module ClassMethods
       # When a class is inherited, wrap its helper module in a new module.
       # This ensures that the parent class's module can be changed

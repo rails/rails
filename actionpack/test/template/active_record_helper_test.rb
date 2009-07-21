@@ -1,22 +1,23 @@
 require 'abstract_unit'
 
 class ActiveRecordHelperTest < ActionView::TestCase
-  tests ActionView::Helpers::ActiveRecordHelper
+  tests ActionView::Helpers::ActiveModelHelper
 
   silence_warnings do
-    Post = Struct.new("Post", :title, :author_name, :body, :secret, :written_on)
-    Post.class_eval do
-      alias_method :title_before_type_cast, :title unless respond_to?(:title_before_type_cast)
-      alias_method :body_before_type_cast, :body unless respond_to?(:body_before_type_cast)
-      alias_method :author_name_before_type_cast, :author_name unless respond_to?(:author_name_before_type_cast)
+    class Post < Struct.new(:title, :author_name, :body, :secret, :written_on)
+      extend ActiveModel::Naming
+      include ActiveModel::Conversion
     end
 
-    User = Struct.new("User", :email)
-    User.class_eval do
-      alias_method :email_before_type_cast, :email unless respond_to?(:email_before_type_cast)
+    class User < Struct.new(:email)
+      extend ActiveModel::Naming
+      include ActiveModel::Conversion
     end
 
-    Column = Struct.new("Column", :type, :name, :human_name)
+    class Column < Struct.new(:type, :name, :human_name)
+      extend ActiveModel::Naming
+      include ActiveModel::Conversion
+    end
   end
 
   class DirtyPost

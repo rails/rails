@@ -34,6 +34,7 @@ module ActiveResource
   autoload :Connection, 'active_resource/connection'
   autoload :CustomMethods, 'active_resource/custom_methods'
   autoload :Formats, 'active_resource/formats'
+  autoload :Observing, 'active_resource/observing'
   autoload :Validations, 'active_resource/validations'
   autoload :HttpMock, 'active_resource/http_mock'
 end

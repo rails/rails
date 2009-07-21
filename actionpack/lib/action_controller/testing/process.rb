@@ -1,3 +1,4 @@
+require 'action_dispatch'
 require 'rack/session/abstract/id'
 require 'active_support/core_ext/object/conversions'
 

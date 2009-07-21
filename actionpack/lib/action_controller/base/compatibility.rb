@@ -114,7 +114,7 @@ module ActionController
       super || (respond_to?(:method_missing) && "_handle_method_missing")
     end
 
-    def _find_by_parts(name, details)
+    def _find_layout(name, details)
       details[:prefix] = nil if name =~ /\blayouts/
       super
     end
@@ -123,7 +123,7 @@ module ActionController
     def _default_layout(details, require_layout = false)
       super
     rescue ActionView::MissingTemplate
-      _find_by_parts(_layout({}), {})
+      _find_layout(_layout({}), {})
       nil
     end
 

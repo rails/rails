@@ -2,6 +2,7 @@ require 'abstract_unit'
 
 class Comment
   extend ActiveModel::Naming
+  include ActiveModel::Conversion
 
   attr_reader :id
   def save; @id = 1 end
