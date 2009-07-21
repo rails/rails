@@ -51,7 +51,7 @@ module ActionController #:nodoc:
     protected
       # Returns the cookie container, which operates as described above.
       def cookies
-        CookieJar.new(self)
+        @cookies ||= CookieJar.new(self)
       end
   end
 

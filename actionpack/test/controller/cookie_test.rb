@@ -118,4 +118,10 @@ class CookieTest < ActionController::TestCase
     get :delete_cookie_with_path
     assert_equal ["user_name=; path=/beaten; expires=Thu, 01-Jan-1970 00:00:00 GMT"], @response.headers["Set-Cookie"]
   end
+
+  def test_cookies_persist_throughout_request
+    get :authenticate
+    cookies = @controller.send(:cookies)
+    assert_equal 'david', cookies['user_name']
+  end
 end
