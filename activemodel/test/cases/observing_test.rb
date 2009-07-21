@@ -1,6 +1,8 @@
 require 'cases/helper'
 
-class ObservedModel < ActiveModel::Base
+class ObservedModel
+  include ActiveModel::Observing
+
   class Observer
   end
 end
@@ -17,7 +19,8 @@ class FooObserver < ActiveModel::Observer
   end
 end
 
-class Foo < ActiveModel::Base
+class Foo
+  include ActiveModel::Observing
 end
 
 class ObservingTest < ActiveModel::TestCase
