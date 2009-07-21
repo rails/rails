@@ -5,7 +5,6 @@ module ActiveModel
   module Serializers
     module JSON
       extend ActiveSupport::Concern
-      include ActiveModel::Attributes
 
       included do
         extend ActiveModel::Naming

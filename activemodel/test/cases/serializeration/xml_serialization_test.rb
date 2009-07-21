@@ -3,6 +3,10 @@ require 'models/contact'
 
 class Contact
   include ActiveModel::Serializers::Xml
+
+  def attributes
+    instance_values
+  end
 end
 
 class XmlSerializationTest < ActiveModel::TestCase

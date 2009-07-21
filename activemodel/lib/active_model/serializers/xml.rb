@@ -5,7 +5,6 @@ module ActiveModel
   module Serializers
     module Xml
       extend ActiveSupport::Concern
-      include ActiveModel::Attributes
 
       class Serializer < ActiveModel::Serializer #:nodoc:
         class Attribute #:nodoc:
