@@ -2602,7 +2602,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          arel_table.where(arel_table[self.class.primary_key].eq(id)).delete
+          arel_table(true).where(arel_table[self.class.primary_key].eq(id)).delete
         end
 
         freeze
@@ -2904,7 +2904,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        arel_table.where(arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
+        arel_table(true).where(arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes
@@ -2991,8 +2991,9 @@ module ActiveRecord #:nodoc:
         default
       end
 
-      def arel_table
-        @arel_table = Arel::Table.new(self.class.table_name)
+      def arel_table(reload = nil)
+        @arel_table = Relation.new(self, self.class.table_name) if reload || @arel_table.nil?
+        @arel_table
       end
 
       # Returns a copy of the attributes hash where all the values have been safely quoted for use in
