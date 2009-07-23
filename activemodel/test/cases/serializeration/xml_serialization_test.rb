@@ -9,6 +9,11 @@ class Contact
   end
 end
 
+module Admin
+  class Contact < ::Contact
+  end
+end
+
 class XmlSerializationTest < ActiveModel::TestCase
   def setup
     @contact = Contact.new
@@ -23,6 +28,12 @@ class XmlSerializationTest < ActiveModel::TestCase
     @xml = @contact.to_xml
     assert_match %r{^<contact>},  @xml
     assert_match %r{</contact>$}, @xml
+  end
+
+  test "should serialize namespaced root" do
+    @xml = Admin::Contact.new(@contact.attributes).to_xml
+    assert_match %r{^<admin-contact>},  @xml
+    assert_match %r{</admin-contact>$}, @xml
   end
 
   test "should serialize default root with namespace" do

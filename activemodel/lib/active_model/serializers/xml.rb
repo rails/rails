@@ -90,7 +90,7 @@ module ActiveModel
         end
 
         def root
-          root = (options[:root] || @serializable.class.to_s.underscore).to_s
+          root = (options[:root] || @serializable.class.model_name.singular).to_s
           reformat_name(root)
         end
 
