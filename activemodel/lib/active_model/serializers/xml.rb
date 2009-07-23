@@ -152,7 +152,11 @@ module ActiveModel
           def add_procs
             if procs = options.delete(:procs)
               [ *procs ].each do |proc|
-                proc.call(options)
+                if proc.arity > 1
+                  proc.call(options, @serializable)
+                else
+                  proc.call(options)
+                end
               end
             end
           end

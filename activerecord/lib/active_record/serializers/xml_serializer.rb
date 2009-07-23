@@ -71,6 +71,21 @@ module ActiveRecord #:nodoc:
     #     </account>
     #   </firm>
     #
+    # Additionally, the record being serialized will be passed to a Proc's second
+    # parameter.  This allows for ad hoc additions to the resultant document that
+    # incorporate the context of the record being serialized. And by leveraging the
+    # closure created by a Proc, to_xml can be used to add elements that normally fall
+    # outside of the scope of the model -- for example, generating and appending URLs
+    # associated with models.
+    # 
+    #   proc = Proc.new { |options, record| options[:builder].tag!('name-reverse', record.name.reverse) }
+    #   firm.to_xml :procs => [ proc ]
+    #
+    #   <firm>
+    #     # ... normal attributes as shown above ...
+    #     <name-reverse>slangis73</name-reverse>
+    #   </firm>
+    #
     # To include deeper levels of associations pass a hash like this:
     #
     #   firm.to_xml :include => {:account => {}, :clients => {:include => :address}}

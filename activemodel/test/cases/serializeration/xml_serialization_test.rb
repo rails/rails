@@ -82,4 +82,16 @@ class XmlSerializationTest < ActiveModel::TestCase
   test "should serialize yaml" do
     assert_match %r{<preferences type=\"yaml\">--- \n:gem: ruby\n</preferences>}, @contact.to_xml
   end
+
+  test "should call proc on object" do
+    proc = Proc.new { |options| options[:builder].tag!('nationality', 'unknown') }
+    xml = @contact.to_xml(:procs => [ proc ])
+    assert_match %r{<nationality>unknown</nationality>}, xml
+  end
+
+  test 'should supply serializable to second proc argument' do
+    proc = Proc.new { |options, record| options[:builder].tag!('name-reverse', record.name.reverse) }
+    xml = @contact.to_xml(:procs => [ proc ])
+    assert_match %r{<name-reverse>kcats noraa</name-reverse>}, xml
+  end
 end
