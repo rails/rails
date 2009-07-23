@@ -132,7 +132,13 @@ class AdapterTest < ActiveRecord::TestCase
   def test_foreign_key_violations_are_translated_to_specific_exception
     unless @connection.adapter_name == 'SQLite'
       assert_raises(ActiveRecord::InvalidForeignKey) do
-        @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
+        # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
+        if @connection.prefetch_primary_key?
+          id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
+          @connection.execute "INSERT INTO fk_test_has_fk (id, fk_id) VALUES (#{id_value},0)"
+        else
+          @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
+        end
       end
     end
   end
