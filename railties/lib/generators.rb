@@ -11,7 +11,7 @@ end
 
 $:.unshift(File.dirname(__FILE__))
 
-require 'vendor/thor'
+require 'vendor/thor-0.11.2/lib/thor'
 require 'generators/base'
 require 'generators/named_base'
 
