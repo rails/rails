@@ -44,17 +44,17 @@ class Thor
       # Set the terminal's background ANSI color to white.
       ON_WHITE   = "\e[47m"
 
-      protected
+      # Set color by using a string or one of the defined constants. Based
+      # on Highline implementation. CLEAR is automatically be embedded to
+      # the end of the returned String.
+      #
+      def set_color(string, color, bold=false)
+        color = self.class.const_get(color.to_s.upcase) if color.is_a?(Symbol)
+        bold  = bold ? BOLD : ""
+        "#{bold}#{color}#{string}#{CLEAR}"
+      end
 
-        # Set color by using a string or one of the defined constants. Based
-        # on Highline implementation. CLEAR is automatically be embedded to
-        # the end of the returned String.
-        #
-        def set_color(string, color, bold=false)
-          color = self.class.const_get(color.to_s.upcase) if color.is_a?(Symbol)
-          bold  = bold ? BOLD : ""
-          "#{bold}#{color}#{string}#{CLEAR}"
-        end
+      protected
 
         # Overwrite show_diff to show diff with colors if Diff::LCS is
         # available.

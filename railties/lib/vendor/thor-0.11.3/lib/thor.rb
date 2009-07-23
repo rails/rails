@@ -166,16 +166,19 @@ class Thor
         shell.say task.description
       else
         list = (options[:short] ? tasks : all_tasks).map do |_, task|
-          [ banner(task, options[:namespace]), task.short_description || '' ]
+          item = [ "  " + banner(task, options[:namespace]) ]
+          item << if task.short_description
+            "\n  # #{task.short_description}\n"
+          else
+            "\n"
+          end
         end
 
         if options[:short]
-          shell.print_table(list, :emphasize_last => true)
+          shell.print_table(list)
         else
           shell.say "Tasks:"
-          shell.print_table(list, :ident => 2, :emphasize_last => true)
-          shell.say
-
+          shell.print_table(list)
           class_options_help(shell, "Class")
         end
       end
@@ -196,13 +199,19 @@ class Thor
         Thor
       end
 
-      def valid_task?(meth) #:nodoc:
-        @usage && @desc
-      end
-
       def create_task(meth) #:nodoc:
-        tasks[meth.to_s] = Thor::Task.new(meth, @desc, @usage, method_options)
-        @usage, @desc, @method_options = nil
+        if @usage && @desc
+          tasks[meth.to_s] = Thor::Task.new(meth, @desc, @usage, method_options)
+          @usage, @desc, @method_options = nil
+          true
+        elsif self.all_tasks[meth.to_s] || meth.to_sym == :method_missing
+          true
+        else
+          puts "[WARNING] Attempted to create task #{meth.inspect} without usage or description. " <<
+               "Call desc if you want this method to be available as task or declare it inside a " <<
+               "no_tasks{} block. Invoked from #{caller[1].inspect}."
+          false
+        end
       end
 
       def initialize_added #:nodoc:

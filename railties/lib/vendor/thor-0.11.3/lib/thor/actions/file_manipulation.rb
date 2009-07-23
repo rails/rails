@@ -189,6 +189,7 @@ class Thor
       say_status :remove, relative_to_original_destination_root(path), config.fetch(:verbose, true)
       ::FileUtils.rm_rf(path) if !options[:pretend] && File.exists?(path)
     end
+    alias :remove_dir :remove_file
 
   end
 end

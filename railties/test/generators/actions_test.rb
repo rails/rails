@@ -9,41 +9,6 @@ class ActionsTest < GeneratorsTestCase
     @svn_plugin_uri = 'svn://svnhub.com/technoweenie/restful-authentication/trunk'
   end
 
-  def test_apply_loads_and_evaluates_a_template
-    template = <<-TEMPLATE
-      @foo = "FOO"
-    TEMPLATE
-    template.instance_eval "def read; self; end" # Make the string respond to read
-
-    generator.expects(:open).with("http://gist.github.com/103208.txt").returns(template)
-    action :apply, "http://gist.github.com/103208.txt"
-    assert_equal generator.instance_variable_get("@foo"), "FOO"
-  end
-
-  def test_apply_uses_padding_in_the_applied_template
-    template = <<-TEMPLATE
-      say_status :cool, :padding
-    TEMPLATE
-    template.instance_eval "def read; self; end"
-
-    generator.expects(:open).with("http://gist.github.com/103208.txt").returns(template)
-    content = action(:apply, "http://gist.github.com/103208.txt")
-    assert_match /cool    padding/, content
-  end
-
-  def test_apply_does_not_log_status_if_required
-    template = <<-TEMPLATE
-      say_status :cool, :padding
-    TEMPLATE
-    template.instance_eval "def read; self; end"
-
-    generator.expects(:open).with("http://gist.github.com/103208.txt").returns(template)
-    content = action(:apply, "http://gist.github.com/103208.txt", :verbose => false)
-
-    assert_match    /cool  padding/, content
-    assert_no_match /apply  http/, content
-  end
-
   def test_create_file_should_write_data_to_file_path
     action :create_file, 'lib/test_file.rb', 'heres test data'
     assert_file 'lib/test_file.rb', 'heres test data'

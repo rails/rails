@@ -117,13 +117,6 @@ class Thor
         formats[0] = formats[0].insert(0, " " * options[:ident]) if options[:ident]
         formats << "%s"
 
-        if options[:emphasize_last]
-          table.each do |row|
-            next if row[-1].empty?
-            row[-1] = "# #{row[-1]}"
-          end
-        end
-
         table.each do |row|
           row.each_with_index do |column, i|
             $stdout.print formats[i] % column.to_s
@@ -175,11 +168,13 @@ class Thor
         $stderr.puts statement
       end
 
-      protected
+      # Apply color to the given string with optional bold.
+      #
+      def set_color(string, color, bold=false)
+        string
+      end
 
-        def set_color(string, color, bold=false)
-          string
-        end
+      protected
 
         def is?(value)
           value = value.to_s

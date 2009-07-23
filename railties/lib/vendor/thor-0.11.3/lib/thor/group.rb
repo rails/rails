@@ -233,6 +233,7 @@ class Thor::Group
 
       def create_task(meth) #:nodoc:
         tasks[meth.to_s] = Thor::Task.new(meth, nil, nil, nil)
+        true
       end
   end
 

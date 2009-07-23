@@ -281,15 +281,11 @@ class Thor::Runner < Thor
       unless klass.tasks.empty?
         base = klass.namespace
 
-        if base == "default"
-          say "\033[1;35m#{base}\033[0m"
-        else
-          say "\033[1;34m#{base}\033[0m"
-        end
+        color = base == "default" ? :magenta : :blue
+        say shell.set_color(base, color, true)
         say "-" * base.length
 
         klass.help(shell, :short => true, :namespace => true)
-        say
       end
     end
 end

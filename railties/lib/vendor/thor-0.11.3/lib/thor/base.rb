@@ -9,7 +9,8 @@ require 'thor/util'
 
 class Thor
   HELP_MAPPINGS       = %w(-h -? --help -D)
-  THOR_RESERVED_WORDS = %w(invoke shell options behavior root destination_root relative_root)
+  THOR_RESERVED_WORDS = %w(invoke shell options behavior root destination_root relative_root
+                           action add_file create_file in_root inside run run_ruby_script)
 
   module Base
     attr_accessor :options
@@ -375,8 +376,16 @@ class Thor
             padding = options.collect{ |o| o.aliases.size  }.max.to_i * 4
 
             options.each do |option|
-              list << [ option.usage(padding), option.description || "" ]
-              list << [ "", "Default: #{option.default}" ] if option.show_default?
+              item = [ option.usage(padding) ]
+
+              item << if option.description
+                "# #{option.description}"
+              else
+                ""
+              end
+
+              list << item
+              list << [ "", "# Default: #{option.default}" ] if option.show_default?
             end
 
             unless list.empty?
@@ -386,7 +395,7 @@ class Thor
                 shell.say "Options:"
               end
 
-              shell.print_table(list, :emphasize_last => true, :ident => 2)
+              shell.print_table(list, :ident => 2)
               shell.say ""
             end
           end
@@ -405,7 +414,7 @@ class Thor
         #
         def is_thor_reserved_word?(word, type)
           return false unless THOR_RESERVED_WORDS.include?(word.to_s)
-          raise "'#{word}' is a Thor reserved word and cannot be defined as #{type}"
+          raise "#{word.inspect} is a Thor reserved word and cannot be defined as #{type}"
         end
 
         # Build an option and adds it to the given scope.
@@ -470,12 +479,10 @@ class Thor
           return unless public_instance_methods.include?(meth) ||
                         public_instance_methods.include?(meth.to_sym)
 
-          # Return if @no_tasks is enabled or it's not a valid task
-          return if @no_tasks || !valid_task?(meth)
+          return if @no_tasks || !create_task(meth)
 
           is_thor_reserved_word?(meth, :task)
           Thor::Base.register_klass_file(self)
-          create_task(meth)
         end
 
         # Retrieves a value from superclass. If it reaches the baseclass,
@@ -493,12 +500,6 @@ class Thor
         # SIGNATURE: Sets the baseclass. This is where the superclass lookup
         # finishes.
         def baseclass #:nodoc:
-        end
-
-        # SIGNATURE: Defines if a given method is a valid_task?. This method is
-        # called before a new method is added to the class.
-        def valid_task?(meth) #:nodoc:
-          true # unless otherwise given
         end
 
         # SIGNATURE: Creates a new task if valid_task? is true. This method is

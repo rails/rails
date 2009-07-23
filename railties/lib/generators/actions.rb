@@ -4,28 +4,6 @@ module Rails
   module Generators
     module Actions
 
-      # Loads an external file and execute it in the instance binding.
-      #
-      # ==== Parameters
-      # path<String>:: The path to the file to execute. Can be a web address or
-      #                a relative path from the source root.
-      #
-      # ==== Examples
-      #
-      #   apply "http://gist.github.com/103208"
-      #
-      #   apply "recipes/jquery.rb"
-      #
-      def apply(path, options={})
-        verbose = options.fetch(:verbose, true)
-        path    = find_in_source_paths(path) unless path =~ /^http\:\/\//
-
-        log :apply, path, verbose
-        shell.padding += 1 if verbose
-        instance_eval(open(path).read)
-        shell.padding -= 1 if verbose
-      end
-
       # Install a plugin. You must provide either a Subversion url or Git url.
       # For a Git-hosted plugin, you can specify if it should be added as a submodule instead of cloned.
       #
