@@ -4,20 +4,11 @@ module ActiveRecord
   module AttributeMethods #:nodoc:
     extend ActiveSupport::Concern
 
-    DEFAULT_SUFFIXES = %w(= ? _before_type_cast)
     ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
 
     included do
-      attribute_method_suffix(*DEFAULT_SUFFIXES)
-
       cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
       self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
-
-      cattr_accessor :time_zone_aware_attributes, :instance_writer => false
-      self.time_zone_aware_attributes = false
-
-      class_inheritable_accessor :skip_time_zone_conversion_for_attributes, :instance_writer => false
-      self.skip_time_zone_conversion_for_attributes = []
     end
 
     # Declare and check for suffixed attribute methods.
@@ -60,41 +51,31 @@ module ActiveRecord
         @@attribute_method_regexp.match(method_name)
       end
 
-
       # Contains the names of the generated attribute methods.
       def generated_methods #:nodoc:
         @generated_methods ||= Set.new
       end
-      
+
       def generated_methods?
         !generated_methods.empty?
       end
-      
+
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods
         return if generated_methods?
-        columns_hash.each do |name, column|
-          unless instance_method_already_implemented?(name)
-            if self.serialized_attributes[name]
-              define_read_method_for_serialized_attribute(name)
-            elsif create_time_zone_conversion_attribute?(name, column)
-              define_read_method_for_time_zone_conversion(name)
-            else
-              define_read_method(name.to_sym, name, column)
+        columns_hash.keys.each do |name|
+          # TODO: Generate for all defined suffixes
+          ["", "=", "?"].each do |suffix|
+            method_name = "#{name}#{suffix}"
+            unless instance_method_already_implemented?(method_name)
+              generate_method = "define_attribute_method#{suffix}"
+              if respond_to?(generate_method)
+                send(generate_method, name)
+              else
+                evaluate_attribute_method(name, "def #{method_name}(*args); attribute#{suffix}('#{name}', *args); end", method_name)
+              end
             end
-          end
-
-          unless instance_method_already_implemented?("#{name}=")
-            if create_time_zone_conversion_attribute?(name, column)
-              define_write_method_for_time_zone_conversion(name)
-            else  
-              define_write_method(name.to_sym)
-            end
-          end
-
-          unless instance_method_already_implemented?("#{name}?")
-            define_question_method(name)
           end
         end
       end
@@ -104,14 +85,12 @@ module ActiveRecord
       # method is defined by Active Record though.
       def instance_method_already_implemented?(method_name)
         method_name = method_name.to_s
-        return true if method_name =~ /^id(=$|\?$|$)/
+        return true if method_name =~ /^id(=$|\?$|$)/ # TODO: Check against all defined suffixes
         @_defined_class_methods         ||= ancestors.first(ancestors.index(ActiveRecord::Base)).sum([]) { |m| m.public_instance_methods(false) | m.private_instance_methods(false) | m.protected_instance_methods(false) }.map {|m| m.to_s }.to_set
         @@_defined_activerecord_methods ||= (ActiveRecord::Base.public_instance_methods(false) | ActiveRecord::Base.private_instance_methods(false) | ActiveRecord::Base.protected_instance_methods(false)).map{|m| m.to_s }.to_set
         raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord" if @@_defined_activerecord_methods.include?(method_name)
         @_defined_class_methods.include?(method_name)
       end
-      
-      alias :define_read_methods :define_attribute_methods
 
       # +cache_attributes+ allows you to declare which converted attribute values should
       # be cached. Usually caching only pays off for attributes with expensive conversion
@@ -133,83 +112,18 @@ module ActiveRecord
       end
 
       private
-
         # Suffixes a, ?, c become regexp /(a|\?|c)$/
         def rebuild_attribute_method_regexp
           suffixes = attribute_method_suffixes.map { |s| Regexp.escape(s) }
           @@attribute_method_regexp = /(#{suffixes.join('|')})$/.freeze
         end
 
-        # Default to =, ?, _before_type_cast
         def attribute_method_suffixes
           @@attribute_method_suffixes ||= []
         end
-        
-        def create_time_zone_conversion_attribute?(name, column)
-          time_zone_aware_attributes && !skip_time_zone_conversion_for_attributes.include?(name.to_sym) && [:datetime, :timestamp].include?(column.type)
-        end
-        
-        # Define an attribute reader method.  Cope with nil column.
-        def define_read_method(symbol, attr_name, column)
-          cast_code = column.type_cast_code('v') if column
-          access_code = cast_code ? "(v=@attributes['#{attr_name}']) && #{cast_code}" : "@attributes['#{attr_name}']"
-
-          unless attr_name.to_s == self.primary_key.to_s
-            access_code = access_code.insert(0, "missing_attribute('#{attr_name}', caller) unless @attributes.has_key?('#{attr_name}'); ")
-          end
-          
-          if cache_attribute?(attr_name)
-            access_code = "@attributes_cache['#{attr_name}'] ||= (#{access_code})"
-          end
-          evaluate_attribute_method attr_name, "def #{symbol}; #{access_code}; end"
-        end
-
-        # Define read method for serialized attribute.
-        def define_read_method_for_serialized_attribute(attr_name)
-          evaluate_attribute_method attr_name, "def #{attr_name}; unserialize_attribute('#{attr_name}'); end"
-        end
-        
-        # Defined for all +datetime+ and +timestamp+ attributes when +time_zone_aware_attributes+ are enabled.
-        # This enhanced read method automatically converts the UTC time stored in the database to the time zone stored in Time.zone.
-        def define_read_method_for_time_zone_conversion(attr_name)
-          method_body = <<-EOV
-            def #{attr_name}(reload = false)
-              cached = @attributes_cache['#{attr_name}']
-              return cached if cached && !reload
-              time = read_attribute('#{attr_name}')
-              @attributes_cache['#{attr_name}'] = time.acts_like?(:time) ? time.in_time_zone : time
-            end
-          EOV
-          evaluate_attribute_method attr_name, method_body
-        end
-
-        # Defines a predicate method <tt>attr_name?</tt>.
-        def define_question_method(attr_name)
-          evaluate_attribute_method attr_name, "def #{attr_name}?; query_attribute('#{attr_name}'); end", "#{attr_name}?"
-        end
-
-        def define_write_method(attr_name)
-          evaluate_attribute_method attr_name, "def #{attr_name}=(new_value);write_attribute('#{attr_name}', new_value);end", "#{attr_name}="
-        end
-        
-        # Defined for all +datetime+ and +timestamp+ attributes when +time_zone_aware_attributes+ are enabled.
-        # This enhanced write method will automatically convert the time passed to it to the zone stored in Time.zone.
-        def define_write_method_for_time_zone_conversion(attr_name)
-          method_body = <<-EOV
-            def #{attr_name}=(time)
-              unless time.acts_like?(:time)
-                time = time.is_a?(String) ? Time.zone.parse(time) : time.to_time rescue time
-              end
-              time = time.in_time_zone rescue nil if time
-              write_attribute(:#{attr_name}, time)
-            end
-          EOV
-          evaluate_attribute_method attr_name, method_body, "#{attr_name}="
-        end
 
         # Evaluate the definition for an attribute related method
-        def evaluate_attribute_method(attr_name, method_definition, method_name=attr_name)
-
+        def evaluate_attribute_method(attr_name, method_definition, method_name)
           unless method_name.to_s == primary_key.to_s
             generated_methods << method_name
           end
@@ -225,8 +139,7 @@ module ActiveRecord
             end
           end
         end
-    end #  ClassMethods
-
+    end
 
     # Allows access to the object attributes, which are held in the <tt>@attributes</tt> hash, as though they
     # were first-class methods. So a Person class with a name attribute can use Person#name and
@@ -248,7 +161,7 @@ module ActiveRecord
           return self.send(method_id, *args, &block)
         end
       end
-      
+
       guard_private_attribute_method!(method_name, args)
       if self.class.primary_key.to_s == method_name
         id
@@ -266,80 +179,6 @@ module ActiveRecord
       end
     end
 
-    # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
-    # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
-    def read_attribute(attr_name)
-      attr_name = attr_name.to_s
-      if !(value = @attributes[attr_name]).nil?
-        if column = column_for_attribute(attr_name)
-          if unserializable_attribute?(attr_name, column)
-            unserialize_attribute(attr_name)
-          else
-            column.type_cast(value)
-          end
-        else
-          value
-        end
-      else
-        nil
-      end
-    end
-
-    def read_attribute_before_type_cast(attr_name)
-      @attributes[attr_name]
-    end
-
-    # Returns true if the attribute is of a text column and marked for serialization.
-    def unserializable_attribute?(attr_name, column)
-      column.text? && self.class.serialized_attributes[attr_name]
-    end
-
-    # Returns the unserialized object of the attribute.
-    def unserialize_attribute(attr_name)
-      unserialized_object = object_from_yaml(@attributes[attr_name])
-
-      if unserialized_object.is_a?(self.class.serialized_attributes[attr_name]) || unserialized_object.nil?
-        @attributes.frozen? ? unserialized_object : @attributes[attr_name] = unserialized_object
-      else
-        raise SerializationTypeMismatch,
-          "#{attr_name} was supposed to be a #{self.class.serialized_attributes[attr_name]}, but was a #{unserialized_object.class.to_s}"
-      end
-    end
-  
-
-    # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+. Empty strings for fixnum and float
-    # columns are turned into +nil+.
-    def write_attribute(attr_name, value)
-      attr_name = attr_name.to_s
-      @attributes_cache.delete(attr_name)
-      if (column = column_for_attribute(attr_name)) && column.number?
-        @attributes[attr_name] = convert_number_column_value(value)
-      else
-        @attributes[attr_name] = value
-      end
-    end
-
-
-    def query_attribute(attr_name)
-      unless value = read_attribute(attr_name)
-        false
-      else
-        column = self.class.columns_hash[attr_name]
-        if column.nil?
-          if Numeric === value || value !~ /[^0-9]/
-            !value.to_i.zero?
-          else
-            return false if ActiveRecord::ConnectionAdapters::Column::FALSE_VALUES.include?(value)
-            !value.blank?
-          end
-        elsif column.number?
-          !value.zero?
-        else
-          !value.blank?
-        end
-      end
-    end
-    
     # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
     # <tt>person.respond_to?(:name=)</tt>, and <tt>person.respond_to?(:name?)</tt>
     # which will all return +true+.
@@ -358,7 +197,7 @@ module ActiveRecord
           return true
         end
       end
-        
+
       if @attributes.nil?
         return super
       elsif @attributes.include?(method_name)
@@ -376,24 +215,9 @@ module ActiveRecord
           raise NoMethodError.new("Attempt to call private method", method_name, args)
         end
       end
-    
+
       def missing_attribute(attr_name, stack)
         raise ActiveRecord::MissingAttributeError, "missing attribute: #{attr_name}", stack
-      end
-      
-      # Handle *? for method_missing.
-      def attribute?(attribute_name)
-        query_attribute(attribute_name)
-      end
-
-      # Handle *= for method_missing.
-      def attribute=(attribute_name, value)
-        write_attribute(attribute_name, value)
-      end
-
-      # Handle *_before_type_cast for method_missing.
-      def attribute_before_type_cast(attribute_name)
-        read_attribute_before_type_cast(attribute_name)
       end
   end
 end

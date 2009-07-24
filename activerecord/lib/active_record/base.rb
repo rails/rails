@@ -3212,7 +3212,9 @@ module ActiveRecord #:nodoc:
     include Validations
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
-    include Dirty
+    include AttributeMethods::Read, AttributeMethods::Write, AttributeMethods::BeforeTypeCast, AttributeMethods::Query
+    include AttributeMethods::TimeZoneConversion
+    include AttributeMethods::Dirty
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
     include ActiveModel::Conversion
