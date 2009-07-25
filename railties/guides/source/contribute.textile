@@ -40,7 +40,7 @@ For each completed guide, the lead contributor will receive all of the following
 
 * $200 from Caboose Rails Documentation Project.
 * 1 year of GitHub Micro account worth $84.
-* 1 year of RPM Basic (Production performance management) for up to 10 hosts worth 12 months x $40 per host x $10 hosts = $4800. And also, savings of $45 per host per month over list price to upgrade to advanced product.
+* 1 year of RPM Basic (Production performance management) for up to 10 hosts worth 12 months x $40 per host x 10 hosts = $4800. And also, savings of $45 per host per month over list price to upgrade to advanced product.
 
 h3. Rules
 

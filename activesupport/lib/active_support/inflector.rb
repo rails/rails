@@ -155,7 +155,7 @@ module ActiveSupport
     # Examples:
     #   "posts".singularize            # => "post"
     #   "octopi".singularize           # => "octopus"
-    #   "sheep".singluarize            # => "sheep"
+    #   "sheep".singularize            # => "sheep"
     #   "word".singularize             # => "word"
     #   "CamelOctopi".singularize      # => "CamelOctopus"
     def singularize(word)
@@ -261,9 +261,9 @@ module ActiveSupport
     #   <%= link_to(@person.name, person_path(@person)) %>
     #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
     def parameterize(string, sep = '-')
-      # replace accented chars with ther ascii equivalents
+      # replace accented chars with their ascii equivalents
       parameterized_string = transliterate(string)
-      # Turn unwanted chars into the seperator
+      # Turn unwanted chars into the separator
       parameterized_string.gsub!(/[^a-z0-9\-_\+]+/i, sep)
       unless sep.blank?
         re_sep = Regexp.escape(sep)

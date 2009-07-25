@@ -12,7 +12,7 @@ class Array
     default_two_words_connector = I18n.translate(:'support.array.two_words_connector', :locale => options[:locale])
     default_last_word_connector = I18n.translate(:'support.array.last_word_connector', :locale => options[:locale])
 
-    # Try to emulate to_senteces previous to 2.3
+    # Try to emulate to_sentences previous to 2.3
     if options.has_key?(:connector) || options.has_key?(:skip_last_comma)
       ::ActiveSupport::Deprecation.warn(":connector has been deprecated. Use :words_connector instead", caller) if options.has_key? :connector
       ::ActiveSupport::Deprecation.warn(":skip_last_comma has been deprecated. Use :last_word_connector instead", caller) if options.has_key? :skip_last_comma

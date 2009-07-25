@@ -256,6 +256,12 @@ module ActiveRecord #:nodoc:
   #
   #   Student.find(:all, :conditions => { :grade => [9,11,12] })
   #
+  # When joining tables, nested hashes or keys written in the form 'table_name.column_name' can be used to qualify the table name of a
+  # particular condition. For instance:
+  #
+  #   Student.find(:all, :conditions => { :schools => { :type => 'public' }}, :joins => :schools)
+  #   Student.find(:all, :conditions => { 'schools.type' => 'public' }, :joins => :schools)
+  #
   # == Overwriting default accessors
   #
   # All column values are automatically available through basic accessors on the Active Record object, but sometimes you
@@ -854,7 +860,7 @@ module ActiveRecord #:nodoc:
       #   Book.update_all "author = 'David'", "title LIKE '%Rails%'"
       #
       #   # Update all avatars migrated more than a week ago
-      #   Avatar.update_all ['migrated_at = ?, Time.now.utc], ['migrated_at > ?', 1.week.ago]
+      #   Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
       #
       #   # Update all books that match our conditions, but limit it to 5 ordered by date
       #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
@@ -1055,6 +1061,21 @@ module ActiveRecord #:nodoc:
       #
       # To start from an all-closed default and enable attributes as needed,
       # have a look at +attr_accessible+.
+      #
+      # If the access logic of your application is richer you can use <tt>Hash#except</tt>
+      # or <tt>Hash#slice</tt> to sanitize the hash of parameters before they are
+      # passed to Active Record.
+      # 
+      # For example, it could be the case that the list of protected attributes
+      # for a given model depends on the role of the user:
+      #
+      #   # Assumes plan_id is not protected because it depends on the role.
+      #   params[:account] = params[:account].except(:plan_id) unless admin?
+      #   @account.update_attributes(params[:account])
+      #
+      # Note that +attr_protected+ is still applied to the received hash. Thus,
+      # with this technique you can at most _extend_ the list of protected
+      # attributes for a particular mass-assignment call.
       def attr_protected(*attributes)
         write_inheritable_attribute(:attr_protected, Set.new(attributes.map {|a| a.to_s}) + (protected_attributes || []))
       end
@@ -1088,6 +1109,21 @@ module ActiveRecord #:nodoc:
       #
       #   customer.credit_rating = "Average"
       #   customer.credit_rating # => "Average"
+      #
+      # If the access logic of your application is richer you can use <tt>Hash#except</tt>
+      # or <tt>Hash#slice</tt> to sanitize the hash of parameters before they are
+      # passed to Active Record.
+      # 
+      # For example, it could be the case that the list of accessible attributes
+      # for a given model depends on the role of the user:
+      #
+      #   # Assumes plan_id is accessible because it depends on the role.
+      #   params[:account] = params[:account].except(:plan_id) unless admin?
+      #   @account.update_attributes(params[:account])
+      #
+      # Note that +attr_accessible+ is still applied to the received hash. Thus,
+      # with this technique you can at most _narrow_ the list of accessible
+      # attributes for a particular mass-assignment call.
       def attr_accessible(*attributes)
         write_inheritable_attribute(:attr_accessible, Set.new(attributes.map(&:to_s)) + (accessible_attributes || []))
       end
@@ -1382,14 +1418,14 @@ module ActiveRecord #:nodoc:
         classes
       rescue
         # OPTIMIZE this rescue is to fix this test: ./test/cases/reflection_test.rb:56:in `test_human_name_for_column'
-        # Appearantly the method base_class causes some trouble.
+        # Apparently the method base_class causes some trouble.
         # It now works for sure.
         [self]
       end
 
       # Transforms attribute key names into a more humane format, such as "First name" instead of "first_name". Example:
       #   Person.human_attribute_name("first_name") # => "First name"
-      # This used to be depricated in favor of humanize, but is now preferred, because it automatically uses the I18n
+      # This used to be deprecated in favor of humanize, but is now preferred, because it automatically uses the I18n
       # module now.
       # Specify +options+ with additional translating options.
       def human_attribute_name(attribute_key_name, options = {})

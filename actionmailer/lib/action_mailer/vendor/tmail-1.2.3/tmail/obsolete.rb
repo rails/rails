@@ -1,6 +1,6 @@
 =begin rdoc
 
-= Obsolete methods that are depriciated
+= Obsolete methods that are deprecated
 
 If you really want to see them, go to lib/tmail/obsolete.rb and view to your
 heart's content.

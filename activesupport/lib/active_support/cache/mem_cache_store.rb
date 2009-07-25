@@ -12,7 +12,7 @@ module ActiveSupport
     #   and MemCacheStore will load balance between all available servers. If a
     #   server goes down, then MemCacheStore will ignore it until it goes back
     #   online.
-    # - Time-based expiry support. See #write and the +:expires_in+ option.
+    # - Time-based expiry support. See #write and the <tt>:expires_in</tt> option.
     # - Per-request in memory cache for all communication with the MemCache server(s).
     class MemCacheStore < Store
       module Response # :nodoc:
@@ -64,9 +64,9 @@ module ActiveSupport
       # Writes a value to the cache.
       #
       # Possible options:
-      # - +:unless_exist+ - set to true if you don't want to update the cache
+      # - <tt>:unless_exist</tt> - set to true if you don't want to update the cache
       #   if the key is already set.
-      # - +:expires_in+ - the number of seconds that this value may stay in
+      # - <tt>:expires_in</tt> - the number of seconds that this value may stay in
       #   the cache. See ActiveSupport::Cache::Store#write for an example.
       def write(key, value, options = nil)
         super

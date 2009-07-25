@@ -237,7 +237,7 @@ module ActiveSupport
     #  * the result from the callback
     #  * the object which has the callback
     #
-    # If the result from the block evaluates to false, the callback chain is stopped.
+    # If the result from the block evaluates to +true+, the callback chain is stopped.
     #
     # Example:
     #   class Storage

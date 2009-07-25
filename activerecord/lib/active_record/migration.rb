@@ -109,8 +109,8 @@ module ActiveRecord
   #   script/generate migration MyNewMigration
   #
   # where MyNewMigration is the name of your migration. The generator will
-  # create an empty migration file <tt>nnn_my_new_migration.rb</tt> in the <tt>db/migrate/</tt>
-  # directory where <tt>nnn</tt> is the next largest migration number.
+  # create an empty migration file <tt>timestamp_my_new_migration.rb</tt> in the <tt>db/migrate/</tt>
+  # directory where <tt>timestamp</tt> is the UTC formatted date and time that the migration was generated.
   #
   # You may then edit the <tt>self.up</tt> and <tt>self.down</tt> methods of
   # MyNewMigration.
@@ -118,7 +118,7 @@ module ActiveRecord
   # There is a special syntactic shortcut to generate migrations that add fields to a table.
   #   script/generate migration add_fieldname_to_tablename fieldname:string
   #
-  # This will generate the file <tt>nnn_add_fieldname_to_tablename</tt>, which will look like this:
+  # This will generate the file <tt>timestamp_add_fieldname_to_tablename</tt>, which will look like this:
   #   class AddFieldnameToTablename < ActiveRecord::Migration
   #     def self.up
   #       add_column :tablenames, :fieldname, :string

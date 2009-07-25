@@ -63,7 +63,7 @@ module ActiveRecord
     # default message (e.g. <tt>activerecord.errors.messages.MESSAGE</tt>). The translated model name, 
     # translated attribute name and the value are available for interpolation.
     #
-    # When using inheritence in your models, it will check all the inherited models too, but only if the model itself
+    # When using inheritance in your models, it will check all the inherited models too, but only if the model itself
     # hasn't been found. Say you have <tt>class Admin < User; end</tt> and you wanted the translation for the <tt>:blank</tt>
     # error +message+ for the <tt>title</tt> +attribute+, it looks for these translations:
     # 

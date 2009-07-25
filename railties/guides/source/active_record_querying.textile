@@ -6,7 +6,6 @@ This guide covers different ways to retrieve data from the database using Active
 * Specify the order, retrieved attributes, grouping, and other properties of the found records
 * Use eager loading to reduce the number of database queries needed for data retrieval
 * Use dynamic finders methods
-* Create named scopes to add custom finding behavior to your models
 * Check for the existence of particular records
 * Perform various calculations on Active Record models
 
@@ -23,7 +22,6 @@ TIP: All of the following models uses +id+ as the primary key, unless specified 
 <ruby>
 class Client < ActiveRecord::Base
   has_one :address
-  has_one :mailing_address
   has_many :orders
   has_and_belongs_to_many :roles
 end
@@ -32,11 +30,6 @@ end
 <ruby>
 class Address < ActiveRecord::Base
   belongs_to :client
-end
-</ruby>
-
-<ruby>
-class MailingAddress < Address
 end
 </ruby>
 
@@ -245,7 +238,7 @@ WARNING: Building your own conditions as pure strings can leave you vulnerable t
 
 h4. Array Conditions
 
-Now what if that number could vary, say as a argument from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like:
+Now what if that number could vary, say as an argument from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like:
 
 <ruby>
 Client.first(:conditions => ["orders_count = ?", params[:orders]])
@@ -465,7 +458,7 @@ Be careful because this also means you're initializing a model object with only 
 ActiveRecord::MissingAttributeError: missing attribute: <attribute>
 </shell>
 
-Where +<attribute>+ is the attribute you asked for. The +id+ method will not raise the +ActiveRecord::MissingAttributeError+, so just be careful when working with associations because they need the +id+ method to function properly.
+Where +&lt;attribute&gt;+ is the attribute you asked for. The +id+ method will not raise the +ActiveRecord::MissingAttributeError+, so just be careful when working with associations because they need the +id+ method to function properly.
 
 You can also call SQL functions within the select option. For example, if you would like to only grab a single record per unique value in a certain field by using the +DISTINCT+ function you can do it like this:
 
@@ -539,7 +532,7 @@ This will return single order objects for each day, but only for the last month.
 
 h4. Readonly Objects
 
-To explicitly disallow modification/destroyal of the matching records returned by +Model.find+, you could specify the +:readonly+ option as +true+ to the find call.
+To explicitly disallow modification/destruction of the matching records returned by +Model.find+, you could specify the +:readonly+ option as +true+ to the find call.
 
 Any attempt to alter or destroy the readonly records will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception. To set this option, specify it like this:
 
@@ -807,12 +800,12 @@ For every field (also known as an attribute) you define in your table, Active Re
 
 You can do +find_last_by_*+ methods too which will find the last record matching your argument.
 
-You can specify an exclamation point (!) on the end of the dynamic finders to get them to raise an +ActiveRecord::RecordNotFound+ error if they do not return any records, like +Client.find_by_name!("Ryan")+
+You can specify an exclamation point (<tt>!</tt>) on the end of the dynamic finders to get them to raise an +ActiveRecord::RecordNotFound+ error if they do not return any records, like +Client.find_by_name!("Ryan")+
 
 If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_name_and_locked("Ryan", true)+.
 
 
-There's another set of dynamic finders that let you find or create/initialize objects if they aren't found. These work in a similar fashion to the other finders and can be used like +find_or_create_by_name(params[:name])+. Using this will firstly perform a find and then create if the find returns nil. The SQL looks like this for +Client.find_or_create_by_name("Ryan")+:
+There's another set of dynamic finders that let you find or create/initialize objects if they aren't found. These work in a similar fashion to the other finders and can be used like +find_or_create_by_name(params[:name])+. Using this will firstly perform a find and then create if the find returns +nil+. The SQL looks like this for +Client.find_or_create_by_name("Ryan")+:
 
 <sql>
 SELECT * FROM clients WHERE (clients.name = 'Ryan') LIMIT 1

@@ -1,0 +1,818 @@
+h2. Active Support Overview
+
+Active Support is the Rails component responsible for providing Ruby language extensions, utilities, and other transversal stuff. It offers a richer bottom-line at the language level, targeted both at the development of Rails applications, and at the development of Rails itself.
+
+By referring to this guide you will learn:
+
+* The extensions to the Ruby core modules and classes provided by Rails.
+* The rest of fundamental libraries available in Rails.
+
+endprologue.
+
+h3. Extensions to All Objects
+
+h4. +blank?+ and +present?+
+
+The following values are considered to be blank in a Rails application:
+
+* +nil+ and +false+,
+
+* strings composed only of whitespace, i.e. matching +/\A\s*\z/+,
+
+* empty arrays and hashes, and
+
+* any other object that responds to +empty?+ and it is empty.
+
+WARNING: Note that numbers are not mentioned, in particular 0 and 0.0 are *not* blank.
+
+For example, this method from +ActionDispatch::Response+ uses +blank?+ to easily be robust to +nil+ and whitespace strings in one shot:
+
+<ruby>
+def charset
+  charset = String(headers["Content-Type"] || headers["type"]).split(";")[1]
+  charset.blank? ? nil : charset.strip.split("=")[1]
+end
+</ruby>
+
+That's a typical use case for +blank?+.
+
+Here, the method Rails runs to instantiate observers upon initialization has nothing to do if there are none:
+
+<ruby>
+def instantiate_observers
+  return if @observers.blank?
+  # ...
+end
+</ruby>
+
+The method +present?+ is equivalent to +!blank?+:
+
+<ruby>
+assert @response.body.present? # same as !@response.body.blank?
+</ruby>
+
+h4. +duplicable?+
+
+A few fundamental objects in Ruby are singletons. For example, in the whole live of a program the integer 1 refers always to the same instance:
+
+<ruby>
+1.object_id                 # => 3
+Math.cos(0).to_i.object_id  # => 3
+</ruby>
+
+Hence, there's no way these objects can be duplicated through +dup+ or +clone+:
+
+<ruby>
+true.dup  # => TypeError: can't dup TrueClass
+</ruby>
+
+Some numbers which are not singletons are not duplicable either:
+
+<ruby>
+0.0.clone        # => allocator undefined for Float
+(2**1024).clone  # => allocator undefined for Bignum
+</ruby>
+
+Active Support provides +duplicable?+ to programmatically query an object about this property:
+
+<ruby>
+"".duplicable?     # => true
+false.duplicable?  # => false
+</ruby>
+
+By definition all objects are +duplicable?+ except +nil+, +false+, +true+, symbols, numbers, and class objects.
+
+WARNING. Using +duplicable?+ is discouraged because it depends on a hard-coded list. Classes have means to disallow duplication like removing +dup+ and +clone+ or raising exceptions from them, only +rescue+ can tell.
+
+h4. +returning+
+
+The method +returning+ yields its argument to a block and returns it. You tipically use it with a mutable object that gets modified in the block:
+
+<ruby>
+def html_options_for_form(url_for_options, options, *parameters_for_url)
+  returning options.stringify_keys do |html_options|
+    html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
+    html_options["action"]  = url_for(url_for_options, *parameters_for_url)
+  end
+end
+</ruby>
+
+See also "+Object#tap+":#tap.
+
+h4. +tap+
+
++Object#tap+ exists in Ruby 1.8.7 and 1.9, and it is defined by Active Support for previous versions. This method yields its receiver to a block and returns it.
+
+For example, the following class method from +ActionDispatch::TestResponse+ creates, initializes, and returns a new test response using +tap+:
+
+<ruby>
+def self.from_response(response)
+  new.tap do |resp|
+    resp.status  = response.status
+    resp.headers = response.headers
+    resp.body    = response.body
+  end
+end
+</ruby>
+
+See also "+Object#returning+":#returning.
+
+h4. +try+
+
+Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first.
+
+For instance, note how this method of +ActiveRecord::ConnectionAdapters::AbstractAdapter+ checks if there's a +@logger+:
+
+<ruby>
+def log_info(sql, name, ms)
+  if @logger && @logger.debug?
+    name = '%s (%.1fms)' % [name || 'SQL', ms]
+    @logger.debug(format_log_entry(name, sql.squeeze(' ')))
+  end
+end
+</ruby>
+
+You can shorten that using +Object#try+. This method is a synonim for +Object#send+ except that it returns +nil+ if sent to +nil+. The previous example could then be rewritten as:
+
+<ruby>
+def log_info(sql, name, ms)
+  if @logger.try(:debug?)
+    name = '%s (%.1fms)' % [name || 'SQL', ms]
+    @logger.debug(format_log_entry(name, sql.squeeze(' ')))
+  end
+end
+</ruby>
+
+h4. +metaclass+
+
+The method +metaclass+ returns the singleton class on any object:
+
+<ruby>
+String.metaclass     # => #<Class:String>
+String.new.metaclass # => #<Class:#<String:0x17a1d1c>>
+</ruby>
+
+h4. +class_eval(*args, &block)+
+
+You can evaluate code in the context of any object's singleton class using +class_eval+:
+
+<ruby>
+class Proc
+  def bind(object)
+    block, time = self, Time.now
+    object.class_eval do
+      method_name = "__bind_#{time.to_i}_#{time.usec}"
+      define_method(method_name, &block)
+      method = instance_method(method_name)
+      remove_method(method_name)
+      method
+    end.bind(object)
+  end
+end
+</ruby>
+
+h4. +acts_like?(duck)+
+
+The method +acts_like+ provides a way to check whether some class acts like some other class based on a simple convention: a class that provides the same interface as +String+ defines
+
+<ruby>
+def acts_like_string?
+end
+</ruby>
+
+which is only a marker, its body or return value are irrelevant. Then, client code can query for duck-type-safeness this way:
+
+<ruby>
+some_klass.acts_like?(:string)
+</ruby>
+
+Rails has classes that act like +Date+ or +Time+ and follow this contract.
+
+h4. +to_param+
+
+All objects in Rails respond to the method +to_param+, which is meant to return something that represents them as values in a query string, or as a URL fragments.
+
+By default +to_param+ just calls +to_s+:
+
+<ruby>
+7.to_param # => "7"
+</ruby>
+
+The return value of +to_param+ should *not* be escaped:
+
+<ruby>
+"Tom & Jerry".to_param # => "Tom & Jerry"
+</ruby>
+
+Several classes in Rails overwrite this method.
+
+For example +nil+, +true+, and +false+ return themselves. +Array#to_param+ calls +to_param+ on the elements and joins the result with "/":
+
+<ruby>
+[0, true, String].to_param # => "0/true/String"
+</ruby>
+
+Notably, the Rails routing system calls +to_param+ on models to get a value for the +:id+ placeholder. +ActiveRecord::Base#to_param+ returns the +id+ of a model, but you can redefine that method in your models. For example, given
+
+<ruby>
+class User
+  def to_param
+    "#{id}-#{name.parameterize}"
+  end
+end
+</ruby>
+
+we get:
+
+<ruby>
+user_path(@user) # => "/users/357-john-smith"
+</ruby>
+
+WARNING. Controllers need to be aware of any redifinition of +to_param+ because when a request like that comes in "357-john-smith" is the value of +params[:id]+.
+
+h4. +to_query+
+
+Except for hashes, given an unescaped +key+ this method constructs the part of a query string that would map such key to what +to_param+ returns. For example, given
+
+<ruby>
+class User
+  def to_param
+    "#{id}-#{name.parameterize}"
+  end
+end
+</ruby>
+
+we get:
+
+<ruby>
+current_user.to_query('user') # => user=357-john-smith
+</ruby>
+
+This method escapes whatever is needed, both for the key and the value:
+
+<ruby>
+account.to_query('company[name]')
+# => "company%5Bname%5D=Johnson+%26+Johnson"
+</ruby>
+
+so its output is ready to be used in a query string.
+
+Arrays return the result of applying +to_query+ to each element with <tt>_key_[]</tt> as key, and join the result with "/":
+
+<ruby>
+[3.4, -45.6].to_query('sample')
+# => "sample%5B%5D=3.4&sample%5B%5D=-45.6"
+</ruby>
+
+Hashes also respond to +to_query+ but with a different signature. If no argument is passed a call generates a sorted series of key/value assigments calling +to_query(key)+ on its values. Then it joins the result with "&":
+
+<ruby>
+{:c => 3, :b => 2, :a => 1}.to_query # => "a=1&b=2&c=3"
+</ruby>
+
+The method +Hash#to_query+ accepts an optional namespace for the keys:
+
+<ruby>
+{:id => 89, :name => "John Smith"}.to_query('user')
+# => "user%5Bid%5D=89&user%5Bname%5D=John+Smith"
+</ruby>
+
+h4. +with_options+
+
+The method +with_options+ provides a way to factor out common options in a series of method calls.
+
+Given a default options hash, +with_options+ yields a proxy object to a block. Within the block, methods called on the proxy are forwarded to the receiver with their options merged. For example, you get rid of the duplication in:
+
+<ruby>
+class Account < ActiveRecord::Base
+  has_many :customers, :dependent => :destroy
+  has_many :products,  :dependent => :destroy
+  has_many :invoices,  :dependent => :destroy
+  has_many :expenses,  :dependent => :destroy
+end
+</ruby>
+
+this way:
+
+<ruby>
+class Account < ActiveRecord::Base
+  with_options :dependent => :destroy do |assoc|
+    assoc.has_many :customers
+    assoc.has_many :products
+    assoc.has_many :invoices
+    assoc.has_many :expenses
+  end
+end
+</ruby>
+
+That idiom may convey _grouping_ to the reader as well. For example, say you want to send a newsletter whose language depends on the user. Somewhere in the mailer you could group locale-dependent bits like this:
+
+<ruby>
+I18n.with_options :locale => user.locale, :scope => "newsletter" do |i18n|
+  subject i18n.t :subject
+  body    i18n.t :body, :user_name => user.name 
+end
+</ruby>
+
+TIP: Since +with_options+ forwards calls to its receiver they can be nested. Each nesting level will merge inherited defaults in addition to their own.
+
+h4. Instance Variables
+
+Active Support provides several methods to ease access to instance variables.
+
+h5. +instance_variable_defined?+
+
+The method +instance_variable_defined?+ exists in Ruby 1.8.6 and later, and it is defined for previous versions anyway:
+
+<ruby>
+class C
+  def initialize
+    @a = 1
+  end
+
+  def m
+    @b = 2
+  end
+end
+
+c = C.new
+
+c.instance_variable_defined?("@a") # => true
+c.instance_variable_defined?(:@a)  # => true
+c.instance_variable_defined?("a")  # => NameError: `a' is not allowed as an instance variable name
+
+c.instance_variable_defined?("@b") # => false
+c.m
+c.instance_variable_defined?("@b") # => true
+</ruby>
+
+h5. +instance_variable_names+
+
+Ruby 1.8 and 1.9 have a method called +instance_variables+ that returns the names of the defined instance variables. But they behave differently, in 1.8 it returns strings whereas in 1.9 it returns symbols. Active Support defines +instance_variable_names+ as a portable way to obtain them as strings:
+
+<ruby>
+class C
+  def initialize(x, y)
+    @x, @y = x, y
+  end
+end
+
+C.new(0, 1).instance_variable_names # => ["@y", "@x"]
+</ruby>
+
+WARNING: The order in which the names are returned is unespecified, and it indeed depends on the version of the interpreter.
+
+h5. +instance_values+
+
+The method +instance_values+ returns a hash that maps instance variable names without "@" to their
+corresponding values. Keys are strings both in Ruby 1.8 and 1.9:
+
+<ruby>
+class C
+  def initialize(x, y)
+    @x, @y = x, y
+  end
+end
+
+C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
+</ruby>
+
+h5. +copy_instance_variables_from(object, exclude = [])+
+
+Copies the instance variables of +object+ into +self+.
+
+Instance variable names in the +exclude+ array are ignored. If +object+
+responds to +protected_instance_variables+ the ones returned are
+also ignored. For example, Rails controllers implement that method.
+
+In both arrays strings and symbols are understood, and they have to include
+the at sign.
+
+<ruby>
+class C
+  def initialize(x, y, z)
+    @x, @y, @z = x, y, z
+  end
+
+  def protected_instance_variables
+    %w(@z)
+  end
+end
+
+a = C.new(0, 1, 2)
+b = C.new(3, 4, 5)
+
+a.copy_instance_variables_from(b, [:@y])
+# a is now: @x = 3, @y = 1, @z = 2
+</ruby>
+
+In the example +object+ and +self+ are of the same type, but they don't need to.
+
+h4. Silencing Warnings, Streams, and Exceptions
+
+The methods +silence_warnings+ and +enable_warnings+ change the value of +$VERBOSE+ accordingly for the duration of their block, and reset it afterwards:
+
+<ruby>
+silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
+</ruby>
+
+You can silence any stream while a block runs with +silence_stream+:
+
+<ruby>
+silence_stream(STDOUT) do
+  # STDOUT is silent here
+end
+</ruby>
+
+Silencing exceptions is also possible with +suppress+. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is +kind_of?+ any of the arguments, +suppress+ captures it and returns silently. Otherwise the exception is reraised:
+
+<ruby>
+# If the user is locked the increment is lost, no big deal.
+suppress(ActiveRecord::StaleObjectError) do
+  current_user.increment! :visits
+end
+</ruby>
+
+h3. Extensions to +Module+
+
+...
+
+h3. Extensions to +Class+
+
+h4. Class Attribute Accessors
+
+The macros +cattr_reader+, +cattr_writer+, and +cattr_accessor+ are analogous to their +attr_*+ counterparts but for classes. They initialize a class variable to +nil+ unless it already exists, and generate the corresponding class methods to access it:
+
+<ruby>
+class MysqlAdapter < AbstractAdapter
+  # Generates class methods to access @@emulate_booleans.
+  cattr_accessor :emulate_booleans
+  self.emulate_booleans = true
+end
+</ruby>
+
+Instance methods are created as well for convenience. For example given
+
+<ruby>
+module ActionController
+  class Base
+    cattr_accessor :logger
+  end
+end
+</ruby>
+
+we can access +logger+ in actions. The generation of the writer instance method can be prevented setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
+
+<ruby>
+module ActiveRecord
+  class Base
+    # No pluralize_table_names= instance writer is generated.
+    cattr_accessor :pluralize_table_names, :instance_writer => false
+  end
+end
+</ruby>
+
+h4. Class Inheritable Attributes
+
+Class variables are shared down the inheritance tree. Class instance variables are not shared, but they are not inherited either. The macros +class_inheritable_reader+, +class_inheritable_writer+, and +class_inheritable_accessor+ provide accesors for class-level data which is inherited but not shared with children:
+
+<ruby>
+module ActionController
+  class Base
+    # FIXME: REVISE/SIMPLIFY THIS COMMENT.
+    # The value of allow_forgery_protection is inherited,
+    # but its value in a particular class does not affect
+    # the value in the rest of the controllers hierarchy.
+    class_inheritable_accessor :allow_forgery_protection
+  end
+end
+</ruby>
+
+They accomplish this with class instance variables and cloning on subclassing, there are no class variables involved. Cloning is performed with +dup+ as long as the value is duplicable.
+
+There are some variants specialised in arrays and hashes:
+
+<ruby>
+class_inheritable_array
+class_inheritable_hash
+</ruby>
+
+Those writers take any inherited array or hash into account and extend them rather than overwrite them.
+
+As with vanilla class attribute accessors these macros create convenience instance methods for reading and writing. The generation of the writer instance method can be prevented setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
+
+<ruby>
+module ActiveRecord
+  class Base
+    class_inheritable_accessor :default_scoping, :instance_writer => false
+  end
+end
+</ruby>
+
+Since values are copied when a subclass is defined, if the base class changes the attribute after that, the subclass does not see the new value. That's the point. 
+
+There's a related macro called +superclass_delegating_accessor+, however, that does not copy the value when the base class is subclassed. Instead, it delegates reading to the superclass as long as the attribute is not set via its own writer. For example, +ActionMailer::Base+ defines +delivery_method+ this way:
+
+<ruby>
+module ActionMailer
+  class Base
+    superclass_delegating_accessor :delivery_method
+    self.delivery_method = :smtp
+  end
+end
+</ruby>
+
+If for whatever reason an application loads the definition of a mailer class and after that sets +ActionMailer::Base.delivery_method+, the mailer class will still see the new value. In addition, the mailer class is able to change the +delivery_method+ without affecting the value in the parent using its own inherited class attribute writer.
+
+h4. Subclasses
+
+The +subclasses+ method returns the names of all subclasses of a given class as an array of strings. That comprises not only direct subclasses, but all descendants down the hierarchy:
+
+<ruby>
+class C; end
+C.subclasses # => []
+
+Integer.subclasses # => ["Bignum", "Fixnum"]
+
+module M
+  class A; end
+  class B1 < A; end
+  class B2 < A; end
+end
+
+module N
+  class C < M::B1; end
+end
+
+M::A.subclasses # => ["N::C", "M::B2", "M::B1"]
+</ruby>
+
+The order in which these class names are returned is unspecified.
+
+See also +Object#subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
+
+h4. Class Removal
+
+Roughly speaking, the +remove_class+ method removes the class objects passed as arguments:
+
+<ruby>
+Class.remove_class(Hash, Dir) # => [Hash, Dir]
+Hash # => NameError: uninitialized constant Hash
+Dir  # => NameError: uninitialized constant Dir
+</ruby>
+
+More specifically, +remove_class+ attempts to remove constants with the same name as the passed class objects from their parent modules. So technically this method does not guarantee the class objects themselves are not still valid and alive somewhere after the method call:
+
+<ruby>
+module M
+  class A; end
+  class B < A; end
+end
+
+A2 = M::A
+
+M::A.object_id            # => 13053950
+Class.remove_class(M::A)
+
+M::B.superclass.object_id # => 13053950 (same object as before)
+A2.name                   # => "M::A" (name is hard-coded in object)
+</ruby>
+
+WARNING: Removing fundamental classes like +String+ can result in really funky behaviour.
+
+The method +remove_subclasses+ provides a shortcut for removing all descendants of a given class, where "removing" has the meaning explained above:
+
+<ruby>
+class A; end
+class B1 < A; end
+class B2 < A; end
+class C < A; end
+
+A.subclasses        # => ["C", "B2", "B1"]
+A.remove_subclasses
+A.subclasses        # => []
+C                   # => NameError: uninitialized constant C
+</ruby>
+
+See also +Object#remove_subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
+
+h3. Extensions to +NilClass+
+
+...
+
+h3. Extensions to +TrueClass+
+
+...
+
+h3. Extensions to +FalseClass+
+
+...
+
+h3. Extensions to +Symbol+
+
+...
+
+h3. Extensions to +String+
+
+...
+
+h3. Extensions to +Numeric+
+
+...
+
+h3. Extensions to +Integer+
+
+...
+
+h3. Extensions to +Float+
+
+...
+
+h3. Extensions to +BigDecimal+
+
+...
+
+h3. Extensions to +Enumerable+
+
+...
+
+h3. Extensions to +Array+
+
+h4. Accessing
+
+Active Support augments the API of arrays to ease certain ways of accessing them. For example, +to+ returns the subarray of elements up to the one at the passed index:
+
+<ruby>
+%w(a b c d).to(2) # => %w(a b c)
+[].to(7)          # => []
+</ruby>
+
+Similarly, +from+ returns the tail from the element at the passed index on:
+
+<ruby>
+%w(a b c d).from(2)  # => %w(c d)
+%w(a b c d).from(10) # => nil
+[].from(0)           # => nil
+</ruby>
+
+The methods +second+, +third+, +fourth+, and +fifth+ return the corresponding element (+first+ is builtin). Thanks to social wisdom and positive constructiveness all around, +forty_two+ is also available.
+
+You can pick a random element with +rand+:
+
+<ruby>
+shape_type = [Circle, Square, Triangle].rand
+</ruby>
+
+h4. Grouping
+
+h5. +in_groups_of(number, fill_with = nil)+
+
+The method +in_groups_of+ splits an array into consecutive groups of a certain size. It returns an array with the groups:
+
+<ruby>
+[1, 2, 3].in_groups_of(2) # => [[1, 2], [3, nil]]
+</ruby>
+
+or yields them in turn if a block is passed:
+
+<ruby>
+<% sample.in_groups_of(3) do |a, b, c| %>
+  <tr>
+    <td><%=h a %></td>
+    <td><%=h b %></td>
+    <td><%=h c %></td>
+  </tr>
+<% end %>
+</ruby>
+
+The first example shows +in_groups_of+ fills the last group with as many +nil+ elements as needed to have the requested size. You can change this padding value using the second optional argument:
+
+<ruby>
+[1, 2, 3].in_groups_of(2, 0) # => [[1, 2], [3, 0]]
+</ruby>
+
+And you can tell the method not to fill the last group passing +false+:
+
+<ruby>
+[1, 2, 3].in_groups_of(2, false) # => [[1, 2], [3]]
+</ruby>
+
+As a consequence +false+ can't be a used as a padding value.
+
+h5. +in_groups(number, fill_with = nil)+
+
+The method +in_groups+ splits an array into a certain number of groups. The method returns and array with the groups:
+
+<ruby>
+%w(1 2 3 4 5 6 7).in_groups(3)
+# => [["1", "2", "3"], ["4", "5", nil], ["6", "7", nil]]
+</ruby>
+
+or yields them in turn if a block is passed:
+
+<ruby>
+%w(1 2 3 4 5 6 7).in_groups(3) {|group| p group}
+["1", "2", "3"]
+["4", "5", nil]
+["6", "7", nil]
+</ruby>
+
+The examples above show that +in_groups+ fills some groups with a trailing +nil+ element as needed. A group can get at most one of these extra elements, the rightmost one if any. And the groups that have them are always the last ones.
+
+You can change this padding value using the second optional argument:
+
+<ruby>
+%w(1 2 3 4 5 6 7).in_groups(3, "0")
+# => [["1", "2", "3"], ["4", "5", "0"], ["6", "7", "0"]]
+</ruby>
+
+And you can tell the method not to fill the smaller groups passing +false+:
+
+<ruby>
+%w(1 2 3 4 5 6 7).in_groups(3, false)
+# => [["1", "2", "3"], ["4", "5"], ["6", "7"]]
+</ruby>
+
+As a consequence +false+ can't be a used as a padding value.
+
+h5. +split(value = nil)+
+
+The method +split+ divides an array by a separator and returns the resulting chunks.
+
+If a block is passed the separators are those elements of the array for which the block returns true:
+
+<ruby>
+(-5..5).to_a.split { |i| i.multiple_of?(4) }
+# => [[-5], [-3, -2, -1], [1, 2, 3], [5]]
+</ruby>
+
+Otherwise, the value received as argument, which defaults to +nil+, is the separator:
+
+<ruby>
+[0, 1, -5, 1, 1, "foo", "bar"].split(1)
+# => [[0], [-5], [], ["foo", "bar"]]
+</ruby>
+
+NOTE: Observe in the previous example that consecutive separators result in empty arrays.
+
+h3. Extensions to +Hash+
+
+...
+
+h3. Extensions to +Range+
+
+...
+
+h3. Extensions to +Proc+
+
+...
+
+h3. Extensions to +Date+
+
+...
+
+h3. Extensions to +DateTime+
+
+...
+
+h3. Extensions to +Time+
+
+...
+
+h3. Extensions to +Process+
+
+...
+
+h3. Extensions to +Pathname+
+
+...
+
+h3. Extensions to +File+
+
+...
+
+h3. Extensions to +Exception+
+
+...
+
+h3. Extensions to +NameError+
+
+...
+
+h3. Extensions to +LoadError+
+
+...
+
+h3. Extensions to +CGI+
+
+...
+
+h3. Extensions to +Benchmark+
+
+...
+
+h3. Changelog
+
+"Lighthouse ticket":https://rails.lighthouseapp.com/projects/16213/tickets/67
+
+* April 18, 2009: Initial version by "Xavier Noria":credits.html#fxn

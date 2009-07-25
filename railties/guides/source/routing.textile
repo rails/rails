@@ -236,7 +236,7 @@ will recognize incoming URLs containing +photo+ but route the requests to the Im
 |GET        |/photos/new     |Images      |new      |return an HTML form for creating a new image|
 |POST       |/photos         |Images      |create   |create a new image|
 |GET        |/photos/1       |Images      |show     |display a specific image|
-|GET        |/photos/1/edit  |Images      |edit     |return an HTML form for editing a image|
+|GET        |/photos/1/edit  |Images      |edit     |return an HTML form for editing an image|
 |PUT        |/photos/1       |Images      |update   |update a specific image|
 |DELETE     |/photos/1       |Images      |destroy  |delete a specific image|
 
@@ -416,7 +416,7 @@ map.resources :magazines do |magazine|
 end
 </ruby>
 
-TIP: Further below you'll learn about a convenient shortcut for this construct:<br/>+map.resources :magazines, :has_many => :ads+.
+TIP: Further below you'll learn about a convenient shortcut for this construct:<br/>+map.resources :magazines, :has_many => :ads+
 
 In addition to the routes for magazines, this declaration will also create routes for ads, each of which requires the specification of a magazine in the URL:
 
@@ -614,7 +614,7 @@ To add a new route (one that creates a new resource), use the +:new+ option:
 map.resources :photos, :new => { :upload => :post }
 </ruby>
 
-This will enable Rails to recognize URLs such as +/photos/upload+ using the POST HTTP verb, and route them to the upload action of the Photos controller. It will also create the +upload_photos_path+ and +upload_photos_url+ route helpers.
+This will enable Rails to recognize URLs such as +/photos/new/upload+ using the POST HTTP verb, and route them to the upload action of the Photos controller. It will also create the +upload_new_photos_path+ and +upload_new_photos_url+ route helpers.
 
 TIP: If you want to redefine the verbs accepted by one of the standard actions, you can do so by explicitly mapping that action. For example:<br/>+map.resources :photos, :new => { :new => :any }+<br/>This will allow the new action to be invoked by any request to +photos/new+, no matter what HTTP verb you use.
 
@@ -695,7 +695,7 @@ Regular routes need not use the +connect+ method. You can use any other name her
 map.logout '/logout', :controller => 'sessions', :action => 'destroy'
 </ruby>
 
-This will do two things. First, requests to +/logout+ will be sent to the +destroy+ method of the +Sessions+ controller. Second, Rails will maintain the +logout_path+ and +logout_url+ helpers for use within your code.
+This will do two things. First, requests to +/logout+ will be sent to the +destroy+ action of the +Sessions+ controller. Second, Rails will maintain the +logout_path+ and +logout_url+ helpers for use within your code.
 
 h4. Route Requirements
 
