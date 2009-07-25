@@ -146,41 +146,6 @@ This requires you to pass the locale as a URL query parameter as in +http://exam
 
 Of course, you probably don't want to manually include the locale in every URL all over your application, or want the URLs look differently, e.g. the usual +http://example.com/pt/books+ versus +http://example.com/en/books+. Let's discuss the different options you have.
 
-IMPORTANT: The following examples rely on having available locales loaded into your application as an array of strings like +["en", "es", "gr"]+. This is not included in the current version of Rails 2.2 -- the forthcoming Rails version 2.3 will contain the easy accessor +available_locales+. (See "this commit":http://github.com/svenfuchs/i18n/commit/411f8fe7c8f3f89e9b6b921fa62ed66cb92f3af4 and background at "Rails I18n Wiki":http://rails-i18n.org/wiki/pages/i18n-available_locales.)
-
-So, for having available locales easily accessible in Rails 2.2, we have to include this support manually in an initializer, like this:
-
-<ruby>
-# config/initializers/available_locales.rb
-#
-# Get loaded locales conveniently
-# See http://rails-i18n.org/wiki/pages/i18n-available_locales
-module I18n
-  class << self
-    def available_locales; backend.available_locales; end
-  end
-  module Backend
-    class Simple
-      def available_locales; translations.keys.collect { |l| l.to_s }.sort; end
-    end
-  end
-end
-
-# You need to "force-initialize" loaded locales
-I18n.backend.send(:init_translations)
-
-AVAILABLE_LOCALES = I18n.backend.available_locales
-RAILS_DEFAULT_LOGGER.debug "* Loaded locales: #{AVAILABLE_LOCALES.inspect}"
-</ruby>
-
-You can then wrap the constant for easy access in ApplicationController:
-
-<ruby>
-class ApplicationController < ActionController::Base
-  def available_locales; AVAILABLE_LOCALES; end
-end
-</ruby>
-
 h4. Setting the Locale from the Domain Name
 
 One option you have is to set the locale from the domain name where your application runs. For example, we want +www.example.com+ to load the English (or default) locale, and +www.example.es+ to load the Spanish locale. Thus the _top-level domain name_ is used for locale setting. This has several advantages:
@@ -207,7 +172,7 @@ end
 # in your /etc/hosts file to try this out locally
 def extract_locale_from_tld
   parsed_locale = request.host.split('.').last
-  available_locales.include?(parsed_locale) ? parsed_locale  : nil
+  I18n.available_locales.include?(parsed_locale.to_sym) ? parsed_locale  : nil
 end
 </ruby>
 
@@ -220,7 +185,7 @@ We can also set the locale from the _subdomain_ in a very similar way:
 # in your /etc/hosts file to try this out locally
 def extract_locale_from_subdomain
   parsed_locale = request.subdomains.first
-  available_locales.include?(parsed_locale) ? parsed_locale  : nil
+  I18n.available_locales.include?(parsed_locale.to_sym) ? parsed_locale  : nil
 end
 </ruby>
 
