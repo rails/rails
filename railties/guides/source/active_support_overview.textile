@@ -789,7 +789,25 @@ h3. Extensions to +Pathname+
 
 h3. Extensions to +File+
 
-...
+h4. +atomic_write+
+
+With the class method +File.atomic_write+ you can write to a file in a way that will prevent any reader from seeing half-written content.
+
+The name of the file is passed as an argument, and the method yields a file handle opened for writing. Once the block is done +atomic_write+ closes the file handle and completes its job.
+
+For example, Action Pack uses this method to write asset cache files like +all.css+:
+
+<ruby>
+File.atomic_write(joined_asset_path) do |cache|
+  cache.write(join_asset_file_contents(asset_paths))
+end
+</ruby>
+
+To accomplish this +atomic_write+ creates a temporary file. That's the file the code in the block actually writes to. On completion, the temporary file is renamed. If the target file exists +atomic_write+ overwrites it and keeps owners and permissions.
+
+WARNING. Note you can't append with +atomic_write+.
+
+The auxiliary file is written in a standard directory for temporary files, but you can pass a directory of your choice as second argument.
 
 h3. Extensions to +Exception+
 
