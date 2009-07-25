@@ -185,18 +185,20 @@ h4. Setting the Locale from the Domain Name
 
 One option you have is to set the locale from the domain name where your application runs. For example, we want +www.example.com+ to load the English (or default) locale, and +www.example.es+ to load the Spanish locale. Thus the _top-level domain name_ is used for locale setting. This has several advantages:
 
-* The locale is an _obvious_ part of the URL
-* People intuitively grasp in which language the content will be displayed
-* It is very trivial to implement in Rails
-* Search engines seem to like that content in different languages lives at different, inter-linked domains
+* The locale is an _obvious_ part of the URL.
+* People intuitively grasp in which language the content will be displayed.
+* It is very trivial to implement in Rails.
+* Search engines seem to like that content in different languages lives at different, inter-linked domains.
 
-You can implement it like this in your ApplicationController:
+You can implement it like this in your +ApplicationController+:
 
 <ruby>
 before_filter :set_locale
+
 def set_locale
   I18n.locale = extract_locale_from_uri
 end
+
 # Get locale from top-level domain or return nil if such locale is not available
 # You have to put something like:
 #   127.0.0.1 application.com
@@ -205,7 +207,7 @@ end
 # in your /etc/hosts file to try this out locally
 def extract_locale_from_tld
   parsed_locale = request.host.split('.').last
-  (available_locales.include? parsed_locale) ? parsed_locale  : nil
+  available_locales.include?(parsed_locale) ? parsed_locale  : nil
 end
 </ruby>
 
@@ -218,7 +220,7 @@ We can also set the locale from the _subdomain_ in a very similar way:
 # in your /etc/hosts file to try this out locally
 def extract_locale_from_subdomain
   parsed_locale = request.subdomains.first
-  (available_locales.include? parsed_locale) ? parsed_locale  : nil
+  available_locales.include?(parsed_locale) ? parsed_locale  : nil
 end
 </ruby>
 
