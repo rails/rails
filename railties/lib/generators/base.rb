@@ -158,7 +158,11 @@ module Rails
 
         if defined?(RAILS_ROOT) && base.name !~ /Base$/
           path = File.expand_path(File.join(RAILS_ROOT, 'lib', 'templates'))
-          base.source_paths << File.join(path, base.base_name, base.generator_name)
+          if base.name.include?('::')
+            base.source_paths << File.join(path, base.base_name, base.generator_name)
+          else
+            base.source_paths << File.join(path, base.generator_name)
+          end
         end
       end
 
