@@ -23,7 +23,7 @@ module ActionView
     # For example, you'd define <tt>assets.example.com</tt> to be your asset
     # host this way:
     #
-    #   config.action_controller.asset_host = "assets.example.com"
+    #   ActionController::Base.asset_host = "assets.example.com"
     #
     # Helpers take that into account:
     #
@@ -56,7 +56,7 @@ module ActionView
     # Alternatively, you can exert more control over the asset host by setting
     # +asset_host+ to a proc like this:
     #
-    #   config.action_controller.asset_host = Proc.new { |source|
+    #   ActionController::Base.asset_host = Proc.new { |source|
     #     "http://assets#{rand(2) + 1}.example.com"
     #   }
     #   image_tag("rails.png")
@@ -72,7 +72,7 @@ module ActionView
     # absolute path of the asset with any extensions and timestamps in place,
     # for example "/images/rails.png?1230601161".
     #
-    #    config.action_controller.asset_host = Proc.new { |source|
+    #    ActionController::Base.asset_host = Proc.new { |source|
     #      if source.starts_with?('/images')
     #        "http://images.example.com"
     #      else
@@ -91,7 +91,7 @@ module ActionView
     # have SSL certificates for each of the asset hosts this technique allows you
     # to avoid warnings in the client about mixed media.
     #
-    #   config.action_controller.asset_host = Proc.new { |source, request|
+    #   ActionController::Base.asset_host = Proc.new { |source, request|
     #     if request.ssl?
     #       "#{request.protocol}#{request.host_with_port}"
     #     else
@@ -170,16 +170,15 @@ module ActionView
         )
       end
 
-      # Computes the path to a JavaScript asset in the public javascripts directory.
-      # If the +source+ filename has no extension, <tt>.js</tt> will be appended.
-      # Full paths from the document root are passed through, URLs remain
-      # untouched. Local files get a timestamp appended as query string.
-      # Used internally by <tt>javascript_include_tag</tt> to build the script path.
+      # Computes the path to a javascript asset in the public javascripts directory.
+      # If the +source+ filename has no extension, .js will be appended.
+      # Full paths from the document root will be passed through.
+      # Used internally by javascript_include_tag to build the script path.
       #
       # ==== Examples
-      #   javascript_path "xmlhr" # => /javascripts/xmlhr.js?1240848408
-      #   javascript_path "dir/xmlhr.js" # => /javascripts/dir/xmlhr.js?1239899358
-      #   javascript_path "/dir/xmlhr" # => /dir/xmlhr.js?1240300432
+      #   javascript_path "xmlhr" # => /javascripts/xmlhr.js
+      #   javascript_path "dir/xmlhr.js" # => /javascripts/dir/xmlhr.js
+      #   javascript_path "/dir/xmlhr" # => /dir/xmlhr.js
       #   javascript_path "http://www.railsapplication.com/js/xmlhr" # => http://www.railsapplication.com/js/xmlhr.js
       #   javascript_path "http://www.railsapplication.com/js/xmlhr.js" # => http://www.railsapplication.com/js/xmlhr.js
       def javascript_path(source)
@@ -199,14 +198,14 @@ module ActionView
       #
       # ==== Examples
       #   javascript_include_tag "xmlhr" # =>
-      #     <script type="text/javascript" src="/javascripts/xmlhr.js?1240848408"></script>
+      #     <script type="text/javascript" src="/javascripts/xmlhr.js"></script>
       #
       #   javascript_include_tag "xmlhr.js" # =>
-      #     <script type="text/javascript" src="/javascripts/xmlhr.js?1240848408"></script>
+      #     <script type="text/javascript" src="/javascripts/xmlhr.js"></script>
       #
       #   javascript_include_tag "common.javascript", "/elsewhere/cools" # =>
-      #     <script type="text/javascript" src="/javascripts/common.javascript?1239899358"></script>
-      #     <script type="text/javascript" src="/elsewhere/cools.js?1240300432"></script>
+      #     <script type="text/javascript" src="/javascripts/common.javascript"></script>
+      #     <script type="text/javascript" src="/elsewhere/cools.js"></script>
       #
       #   javascript_include_tag "http://www.railsapplication.com/xmlhr" # =>
       #     <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js"></script>
@@ -215,25 +214,25 @@ module ActionView
       #     <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js"></script>
       #
       #   javascript_include_tag :defaults # =>
-      #     <script type="text/javascript" src="/javascripts/prototype.js?1240300432"></script>
-      #     <script type="text/javascript" src="/javascripts/effects.js?1240300432"></script>
+      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
+      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
       #     ...
-      #     <script type="text/javascript" src="/javascripts/application.js?1240300432"></script>
+      #     <script type="text/javascript" src="/javascripts/application.js"></script>
       #
       # * = The application.js file is only referenced if it exists
       #
       # Though it's not really recommended practice, if you need to extend the default JavaScript set for any reason
-      # (e.g., you're going to be using a certain .js file in every action), then take a look at the <tt>register_javascript_include_default</tt> method.
+      # (e.g., you're going to be using a certain .js file in every action), then take a look at the register_javascript_include_default method.
       #
       # You can also include all javascripts in the javascripts directory using <tt>:all</tt> as the source:
       #
       #   javascript_include_tag :all # =>
-      #     <script type="text/javascript" src="/javascripts/prototype.js?1240300432"></script>
-      #     <script type="text/javascript" src="/javascripts/effects.js?1240300432"></script>
+      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
+      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
       #     ...
-      #     <script type="text/javascript" src="/javascripts/application.js?1240300432"></script>
-      #     <script type="text/javascript" src="/javascripts/shop.js?1240848408"></script>
-      #     <script type="text/javascript" src="/javascripts/checkout.js?1239899358"></script>
+      #     <script type="text/javascript" src="/javascripts/application.js"></script>
+      #     <script type="text/javascript" src="/javascripts/shop.js"></script>
+      #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
       #
       # Note that the default javascript files will be included first. So Prototype and Scriptaculous are available to
       # all subsequently included files.
@@ -251,23 +250,23 @@ module ActionView
       #
       # ==== Examples
       #   javascript_include_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
-      #     <script type="text/javascript" src="/javascripts/prototype.js?1240848408"></script>
-      #     <script type="text/javascript" src="/javascripts/effects.js?1239899358"></script>
+      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
+      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
       #     ...
-      #     <script type="text/javascript" src="/javascripts/application.js?1240300432"></script>
-      #     <script type="text/javascript" src="/javascripts/shop.js?1239622973"></script>
-      #     <script type="text/javascript" src="/javascripts/checkout.js?1240310204"></script>
+      #     <script type="text/javascript" src="/javascripts/application.js"></script>
+      #     <script type="text/javascript" src="/javascripts/shop.js"></script>
+      #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
       #
       #   javascript_include_tag :all, :cache => true # when ActionController::Base.perform_caching is true =>
-      #     <script type="text/javascript" src="/javascripts/all.js?1240848852"></script>
+      #     <script type="text/javascript" src="/javascripts/all.js"></script>
       #
       #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when ActionController::Base.perform_caching is false =>
-      #     <script type="text/javascript" src="/javascripts/prototype.js?1240848408"></script>
-      #     <script type="text/javascript" src="/javascripts/cart.js?1240848852"></script>
-      #     <script type="text/javascript" src="/javascripts/checkout.js?1240310204"></script>
+      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
+      #     <script type="text/javascript" src="/javascripts/cart.js"></script>
+      #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
       #
       #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when ActionController::Base.perform_caching is true =>
-      #     <script type="text/javascript" src="/javascripts/shop.js?1240845632"></script>
+      #     <script type="text/javascript" src="/javascripts/shop.js"></script>
       #
       # The <tt>:recursive</tt> option is also available for caching:
       #
@@ -301,9 +300,9 @@ module ActionView
       #   ActionView::Helpers::AssetTagHelper.register_javascript_expansion :monkey => ["head", "body", "tail"]
       #
       #   javascript_include_tag :monkey # =>
-      #     <script type="text/javascript" src="/javascripts/head.js?1240848852"></script>
-      #     <script type="text/javascript" src="/javascripts/body.js?1240845632"></script>
-      #     <script type="text/javascript" src="/javascripts/tail.js?1240300432"></script>
+      #     <script type="text/javascript" src="/javascripts/head.js"></script>
+      #     <script type="text/javascript" src="/javascripts/body.js"></script>
+      #     <script type="text/javascript" src="/javascripts/tail.js"></script>
       def self.register_javascript_expansion(expansions)
         @@javascript_expansions.merge!(expansions)
       end
@@ -318,9 +317,9 @@ module ActionView
       #   ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion :monkey => ["head", "body", "tail"]
       #
       #   stylesheet_link_tag :monkey # =>
-      #     <link href="/stylesheets/head.css?1240376589"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/body.css?1245476314"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/tail.css?1245586314"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/head.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/body.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/tail.css"  media="screen" rel="stylesheet" type="text/css" />
       def self.register_stylesheet_expansion(expansions)
         @@stylesheet_expansions.merge!(expansions)
       end
@@ -339,14 +338,13 @@ module ActionView
 
       # Computes the path to a stylesheet asset in the public stylesheets directory.
       # If the +source+ filename has no extension, <tt>.css</tt> will be appended.
-      # Full paths from the document root are passed through, URLs remain
-      # untouched. Local files get a timestamp appended as query string.
+      # Full paths from the document root will be passed through.
       # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
       #
       # ==== Examples
-      #   stylesheet_path "style" # => /stylesheets/style.css?1239622973
-      #   stylesheet_path "dir/style.css" # => /stylesheets/dir/style.css?1245586314
-      #   stylesheet_path "/dir/style.css" # => /dir/style.css?1240376589
+      #   stylesheet_path "style" # => /stylesheets/style.css
+      #   stylesheet_path "dir/style.css" # => /stylesheets/dir/style.css
+      #   stylesheet_path "/dir/style.css" # => /dir/style.css
       #   stylesheet_path "http://www.railsapplication.com/css/style" # => http://www.railsapplication.com/css/style.css
       #   stylesheet_path "http://www.railsapplication.com/css/style.js" # => http://www.railsapplication.com/css/style.css
       def stylesheet_path(source)
@@ -360,30 +358,30 @@ module ActionView
       #
       # ==== Examples
       #   stylesheet_link_tag "style" # =>
-      #     <link href="/stylesheets/style.css?1239622973" media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "style.css" # =>
-      #     <link href="/stylesheets/style.css?1239622973" media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "http://www.railsapplication.com/style.css" # =>
       #     <link href="http://www.railsapplication.com/style.css" media="screen" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "style", :media => "all" # =>
-      #     <link href="/stylesheets/style.css?1239622973" media="all" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/style.css" media="all" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "style", :media => "print" # =>
-      #     <link href="/stylesheets/style.css?1239622973" media="print" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/style.css" media="print" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "random.styles", "/css/stylish" # =>
-      #     <link href="/stylesheets/random.styles?1239667843" media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/css/stylish.css?1239667973" media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/random.styles" media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/css/stylish.css" media="screen" rel="stylesheet" type="text/css" />
       #
       # You can also include all styles in the stylesheets directory using <tt>:all</tt> as the source:
       #
       #   stylesheet_link_tag :all # =>
-      #     <link href="/stylesheets/style1.css?1239622973"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/styleB.css?1239622973"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/styleX2.css?1239667843" media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/style1.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/styleB.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/styleX2.css" media="screen" rel="stylesheet" type="text/css" />
       #
       # If you want Rails to search in all the subdirectories under stylesheets, you should explicitly set <tt>:recursive</tt>:
       #
@@ -398,20 +396,20 @@ module ActionView
       #
       # ==== Examples
       #   stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
-      #     <link href="/stylesheets/style1.css?1239622973"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/styleB.css?1239622973"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/styleX2.css?1239667843" media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/style1.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/styleB.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/styleX2.css" media="screen" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is true =>
-      #     <link href="/stylesheets/all.css?1245327490"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/all.css"  media="screen" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when ActionController::Base.perform_caching is false =>
-      #     <link href="/stylesheets/shop.css?1239622973"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/cart.css?1239622973"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/checkout.css?1239667843" media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/shop.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/cart.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/checkout.css" media="screen" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when ActionController::Base.perform_caching is true =>
-      #     <link href="/stylesheets/payment.css?1245327490"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/payment.css"  media="screen" rel="stylesheet" type="text/css" />
       #
       # The <tt>:recursive</tt> option is also available for caching:
       #
@@ -442,15 +440,14 @@ module ActionView
       end
 
       # Computes the path to an image asset in the public images directory.
-      # Full paths from the document root are passed through, URLs remain
-      # untouched. Local files get a timestamp appended as query string.
+      # Full paths from the document root will be passed through.
       # Used internally by +image_tag+ to build the image path.
       #
       # ==== Examples
-      #   image_path("edit")                                         # => /images/edit?1245327490
-      #   image_path("edit.png")                                     # => /images/edit.png?1239622973
-      #   image_path("icons/edit.png")                               # => /images/icons/edit.png?1239667843
-      #   image_path("/icons/edit.png")                              # => /icons/edit.png?1240376589
+      #   image_path("edit")                                         # => /images/edit
+      #   image_path("edit.png")                                     # => /images/edit.png
+      #   image_path("icons/edit.png")                               # => /images/icons/edit.png
+      #   image_path("/icons/edit.png")                              # => /icons/edit.png
       #   image_path("http://www.railsapplication.com/img/edit.png") # => http://www.railsapplication.com/img/edit.png
       def image_path(source)
         compute_public_path(source, 'images')
@@ -505,21 +502,21 @@ module ActionView
       #
       # ==== Examples
       #  image_tag("icon")  # =>
-      #    <img src="/images/icon?1240376589" alt="Icon" />
+      #    <img src="/images/icon" alt="Icon" />
       #  image_tag("icon.png")  # =>
       #    <img src="/images/icon.png" alt="Icon" />
       #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")  # =>
-      #    <img src="/images/icon.png?1239667843" width="16" height="10" alt="Edit Entry" />
+      #    <img src="/images/icon.png" width="16" height="10" alt="Edit Entry" />
       #  image_tag("/icons/icon.gif", :size => "16x16")  # =>
-      #    <img src="/icons/icon.gif?1239622973" width="16" height="16" alt="Icon" />
+      #    <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
       #  image_tag("/icons/icon.gif", :height => '32', :width => '32') # =>
-      #    <img alt="Icon" height="32" src="/icons/icon.gif?1245327490" width="32" />
+      #    <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
       #  image_tag("/icons/icon.gif", :class => "menu_icon") # =>
-      #    <img alt="Icon" class="menu_icon" src="/icons/icon.gif?1239667831" />
+      #    <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
       #  image_tag("mouse.png", :mouseover => "/images/mouse_over.png") # =>
-      #    <img src="/images/mouse.png?1245320089" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
+      #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
       #  image_tag("mouse.png", :mouseover => image_path("mouse_over.png")) # =>
-      #    <img src="/images/mouse.png?1245322298" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
+      #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
       def image_tag(source, options = {})
         options.symbolize_keys!
 
