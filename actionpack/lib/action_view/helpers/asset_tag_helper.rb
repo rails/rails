@@ -465,12 +465,27 @@ module ActionView
       #   video_path("hd")                                            # => /videos/hd
       #   video_path("hd.avi")                                        # => /videos/hd.avi
       #   video_path("trailers/hd.avi")                               # => /videos/trailers/hd.avi
-      #   video_path("/trailers/hd.avi")                              # => /videos/hd.avi
+      #   video_path("/trailers/hd.avi")                              # => /trailers/hd.avi
       #   video_path("http://www.railsapplication.com/vid/hd.avi") # => http://www.railsapplication.com/vid/hd.avi
       def video_path(source)
         compute_public_path(source, 'videos')
       end
-      alias_method :path_to_video, :video_path # aliased to avoid conflicts with an video_path named route
+      alias_method :path_to_video, :video_path # aliased to avoid conflicts with a video_path named route
+
+      # Computes the path to an audio asset in the public audios directory.
+      # Full paths from the document root will be passed through.
+      # Used internally by +audio_tag+ to build the audio path.
+      #
+      # ==== Examples
+      #   audio_path("horse")                                            # => /audios/horse
+      #   audio_path("horse.wav")                                        # => /audios/horse.avi
+      #   audio_path("sounds/horse.wav")                                 # => /audios/sounds/horse.avi
+      #   audio_path("/sounds/horse.wav")                                # => /sounds/horse.avi
+      #   audio_path("http://www.railsapplication.com/sounds/horse.wav") # => http://www.railsapplication.com/sounds/horse.wav
+      def audio_path(source)
+        compute_public_path(source, 'audios')
+      end
+      alias_method :path_to_audio, :audio_path # aliased to avoid conflicts with an audio_path named route
 
       # Returns an html image tag for the +source+. The +source+ can be a full
       # path or a file that exists in your public images directory.
@@ -545,7 +560,7 @@ module ActionView
       #  video_tag("trailer.ogg")  # =>
       #    <video src="/videos/trailer.ogg" />
       #  video_tag("trailer.ogg", :controls => true, :autobuffer => true)  # =>
-      #    <video autobuffer="autobuffer" controls="controls" src="/videos/trailer.ogg" />
+      #    <video autobuffer="true" controls="true" src="/videos/trailer.ogg" />
       #  video_tag("trailer.m4v", :size => "16x10", :poster => "screenshot.png")  # =>
       #    <video src="/videos/trailer.m4v" width="16" height="10" poster="/images/screenshot.png" />
       #  video_tag("/trailers/hd.avi", :size => "16x16")  # =>
@@ -573,6 +588,23 @@ module ActionView
           options[:src] = path_to_video(sources)
           tag("video", options)
         end
+      end
+
+      # Returns an html audio tag for the +source+.
+      # The +source+ can be full path or file that exists in
+      # your public audios directory.
+      #
+      # ==== Examples
+      #  audio_tag("sound")  # =>
+      #    <audio src="/audios/sound" />
+      #  audio_tag("sound.wav")  # =>
+      #    <audio src="/audios/sound.wav" />
+      #  audio_tag("sound.wav", :autoplay => true, :controls => true)  # =>
+      #    <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav" />
+      def audio_tag(source, options = {})
+        options.symbolize_keys!
+        options[:src] = path_to_audio(source)
+        tag("audio", options)
       end
 
       def self.cache_asset_timestamps

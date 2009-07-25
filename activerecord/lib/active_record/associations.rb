@@ -1031,6 +1031,8 @@ module ActiveRecord
       #   of the association with an "_id" suffix. So a class that defines a <tt>belongs_to :person</tt> association will use
       #   "person_id" as the default <tt>:foreign_key</tt>. Similarly, <tt>belongs_to :favorite_person, :class_name => "Person"</tt>
       #   will use a foreign key of "favorite_person_id".
+      # [:primary_key]
+      #   Specify the method that returns the primary key of associated object used for the association. By default this is id.
       # [:dependent]
       #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
       #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. This option should not be specified when
@@ -1065,6 +1067,7 @@ module ActiveRecord
       #
       # Option examples:
       #   belongs_to :firm, :foreign_key => "client_of"
+      #   belongs_to :person, :primary_key => "name", :foreign_key => "person_name"
       #   belongs_to :author, :class_name => "Person", :foreign_key => "author_id"
       #   belongs_to :valid_coupon, :class_name => "Coupon", :foreign_key => "coupon_id",
       #              :conditions => 'discounts > #{payments_count}'
@@ -1345,9 +1348,16 @@ module ActiveRecord
             if send(reflection.name).loaded? || reflection.options[:finder_sql]
               send(reflection.name).map(&:id)
             else
-              send(reflection.name).all(:select => "#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map(&:id)
+              if reflection.through_reflection && reflection.source_reflection.belongs_to?
+                through = reflection.through_reflection
+                primary_key = reflection.source_reflection.primary_key_name
+                send(through.name).all(:select => "DISTINCT #{through.quoted_table_name}.#{primary_key}").map!(&:"#{primary_key}")
+              else
+                send(reflection.name).all(:select => "#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map!(&:id)
+              end
             end
           end
+
         end
 
         def collection_accessor_methods(reflection, association_proxy_class, writer = true)
@@ -1393,14 +1403,14 @@ module ActiveRecord
           method_name = "belongs_to_counter_cache_after_create_for_#{reflection.name}".to_sym
           define_method(method_name) do
             association = send(reflection.name)
-            association.class.increment_counter(cache_column, send(reflection.primary_key_name)) unless association.nil?
+            association.class.increment_counter(cache_column, association.id) unless association.nil?
           end
           after_create(method_name)
 
           method_name = "belongs_to_counter_cache_before_destroy_for_#{reflection.name}".to_sym
           define_method(method_name) do
             association = send(reflection.name)
-            association.class.decrement_counter(cache_column, send(reflection.primary_key_name)) unless association.nil?
+            association.class.decrement_counter(cache_column, association.id) unless association.nil?
           end
           before_destroy(method_name)
 
@@ -1592,7 +1602,7 @@ module ActiveRecord
 
         mattr_accessor :valid_keys_for_belongs_to_association
         @@valid_keys_for_belongs_to_association = [
-          :class_name, :foreign_key, :foreign_type, :remote, :select, :conditions,
+          :class_name, :primary_key, :foreign_key, :foreign_type, :remote, :select, :conditions,
           :include, :dependent, :counter_cache, :extend, :polymorphic, :readonly,
           :validate, :touch, :inverse_of
         ]

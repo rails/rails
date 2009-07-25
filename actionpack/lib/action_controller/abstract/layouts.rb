@@ -6,6 +6,7 @@ module AbstractController
 
     included do
       extlib_inheritable_accessor(:_layout_conditions) { Hash.new }
+      _write_layout_method
     end
 
     module ClassMethods
@@ -99,7 +100,7 @@ module AbstractController
     #   the lookup to. By default, layout lookup is limited to the
     #   formats specified for the current request.
     def _layout_for_name(name, details = {:formats => formats})
-      name && _find_by_parts(name, details)
+      name && _find_layout(name, details)
     end
 
     # Take in the name and details and find a Template.
@@ -111,7 +112,7 @@ module AbstractController
     #
     # ==== Returns
     # Template:: A template object matching the name and details
-    def _find_by_parts(name, details)
+    def _find_layout(name, details)
       # TODO: Make prefix actually part of details in ViewPath#find_by_parts
       prefix = details.key?(:prefix) ? details.delete(:prefix) : "layouts"
       view_paths.find_by_parts(name, details, prefix)

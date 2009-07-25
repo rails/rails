@@ -1087,6 +1087,6 @@ module ActiveResource
 
   class Base
     extend ActiveModel::Naming
-    include CustomMethods, Validations
+    include CustomMethods, Observing, Validations
   end
 end

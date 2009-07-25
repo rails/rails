@@ -1,11 +1,10 @@
 require 'abstract_unit'
 
 silence_warnings do
-  Post = Struct.new(:title, :author_name, :body, :secret, :written_on, :cost)
-  Post.class_eval do
-    alias_method :title_before_type_cast, :title unless respond_to?(:title_before_type_cast)
-    alias_method :body_before_type_cast, :body unless respond_to?(:body_before_type_cast)
-    alias_method :author_name_before_type_cast, :author_name unless respond_to?(:author_name_before_type_cast)
+  class Post < Struct.new(:title, :author_name, :body, :secret, :written_on, :cost)
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+
     alias_method :secret?, :secret
 
     def new_record=(boolean)
@@ -27,6 +26,9 @@ silence_warnings do
   end
 
   class Comment
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+
     attr_reader :id
     attr_reader :post_id
     def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end
@@ -43,6 +45,9 @@ silence_warnings do
   end
 
   class Tag
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+
     attr_reader :id
     attr_reader :post_id
     def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end
@@ -59,6 +64,9 @@ silence_warnings do
   end
 
   class CommentRelevance
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+
     attr_reader :id
     attr_reader :comment_id
     def initialize(id = nil, comment_id = nil); @id, @comment_id = id, comment_id end
@@ -71,6 +79,9 @@ silence_warnings do
   end
 
   class TagRelevance
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+
     attr_reader :id
     attr_reader :tag_id
     def initialize(id = nil, tag_id = nil); @id, @tag_id = id, tag_id end
@@ -1024,8 +1035,8 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_default_form_builder
-    old_default_form_builder, ActionView::Base.default_form_builder =
-      ActionView::Base.default_form_builder, LabelledFormBuilder
+    old_default_form_builder, ActionView.default_form_builder =
+      ActionView.default_form_builder, LabelledFormBuilder
 
     form_for(:post, @post) do |f|
       concat f.text_field(:title)
@@ -1042,7 +1053,7 @@ class FormHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, output_buffer
   ensure
-    ActionView::Base.default_form_builder = old_default_form_builder
+    ActionView.default_form_builder = old_default_form_builder
   end
 
   def test_default_form_builder_with_active_record_helpers

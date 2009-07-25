@@ -1,3 +1,5 @@
+require "active_support/new_callbacks"
+
 module AbstractController
   module Callbacks
     extend ActiveSupport::Concern

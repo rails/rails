@@ -7,7 +7,7 @@ module ActiveRecord
         else
           @target = (AssociationProxy === record ? record.target : record)
 
-          @owner[@reflection.primary_key_name] = record.id
+          @owner[@reflection.primary_key_name] = record_id(record)
           @owner[@reflection.options[:foreign_type]] = record.class.base_class.name.to_s
 
           @updated = true
@@ -39,6 +39,10 @@ module ActiveRecord
 
         def foreign_key_present
           !@owner[@reflection.primary_key_name].nil?
+        end
+
+        def record_id(record)
+          record.send(@reflection.options[:primary_key] || :id)
         end
 
         def association_class

@@ -1,12 +1,15 @@
 require 'cases/helper'
+require 'models/contact'
+
+class Contact
+  include ActiveModel::Serializers::JSON
+
+  def attributes
+    instance_values
+  end
+end
 
 class JsonSerializationTest < ActiveModel::TestCase
-  class Contact
-    extend ActiveModel::Naming
-    include ActiveModel::Serializers::JSON
-    attr_accessor :name, :age, :created_at, :awesome, :preferences
-  end
-
   def setup
     @contact = Contact.new
     @contact.name = 'Konata Izumi'
@@ -60,5 +63,19 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_match %r{"awesome":true}, json
     assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
     assert_match %r{"preferences":\{"shows":"anime"\}}, json
+  end
+
+  test "methds are called on object" do
+    # Define methods on fixture.
+    def @contact.label; "Has cheezburger"; end
+    def @contact.favorite_quote; "Constraints are liberating"; end
+
+    # Single method.
+    assert_match %r{"label":"Has cheezburger"}, @contact.to_json(:only => :name, :methods => :label)
+
+    # Both methods.
+    methods_json = @contact.to_json(:only => :name, :methods => [:label, :favorite_quote])
+    assert_match %r{"label":"Has cheezburger"}, methods_json
+    assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
   end
 end

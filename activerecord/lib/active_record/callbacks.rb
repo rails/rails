@@ -365,7 +365,7 @@ module ActiveRecord
           result = send(method)
         end
 
-        notify(method)
+        notify_observers(method)
 
         return result
       end

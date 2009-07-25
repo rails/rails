@@ -1,5 +1,3 @@
-require 'active_support/core_ext/load_error'
-require 'active_support/core_ext/name_error'
 require 'active_support/dependencies'
 
 module ActionController

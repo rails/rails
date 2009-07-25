@@ -6,8 +6,8 @@ module Rails
       def method_missing(id, *args)
         name = id.to_s
 
-        if name =~ /^(.*)=$/
-          @children[$1] = Path.new(args.first, @root)
+        if name =~ /^(.*)=$/ || args.any?
+          @children[$1 || name] = Path.new(@root, *args)
         elsif path = @children[name]
           path
         else
@@ -28,17 +28,15 @@ module Rails
         # TODO: Move logic from set_root_path initializer
         @path = File.expand_path(path)
         @root = self
-        @load_once, @eager_load, @all_paths = [], [], []
+        @all_paths = []
       end
 
       def load_once
-        @load_once.uniq!
-        @load_once
+        all_paths.map { |path| path.paths if path.load_once? }.compact.flatten.uniq
       end
 
       def eager_load
-        @eager_load.uniq!
-        @eager_load
+        all_paths.map { |path| path.paths if path.eager_load? }.compact.flatten.uniq
       end
 
       def all_paths
@@ -47,7 +45,7 @@ module Rails
       end
 
       def load_paths
-        all_paths.map { |path| path.paths }.flatten
+        all_paths.map { |path| path.paths if path.load_path? }.compact.flatten.uniq
       end
 
       def add_to_load_path
@@ -55,6 +53,14 @@ module Rails
           $LOAD_PATH.unshift(path) if File.directory?(path)
         end
       end
+
+      def push(*)
+        raise "Application root can only have one physical path"
+      end
+
+      alias unshift push
+      alias << push
+      alias concat push
     end
 
     class Path
@@ -63,11 +69,18 @@ module Rails
       attr_reader :path
       attr_accessor :glob
 
-      def initialize(path, root)
+      def initialize(root, *paths)
+        @options  = paths.last.is_a?(::Hash) ? paths.pop : {}
         @children = {}
         @root     = root
-        @paths    = [path].flatten
-        @glob     = "**/*.rb"
+        @paths    = paths.flatten
+        @glob     = @options[:glob] || "**/*.rb"
+
+        @load_once  = @options[:load_once]
+        @eager_load = @options[:eager_load]
+        @load_path  = @options[:load_path] || @eager_load
+
+        @root.all_paths << self
       end
 
       def push(path)
@@ -86,7 +99,6 @@ module Rails
 
       def load_once!
         @load_once = true
-        @root.load_once.push *self.paths
       end
 
       def load_once?
@@ -95,8 +107,7 @@ module Rails
 
       def eager_load!
         @eager_load = true
-        @root.all_paths << self
-        @root.eager_load.push *self.paths
+        @load_path  = true
       end
 
       def eager_load?
@@ -105,7 +116,6 @@ module Rails
 
       def load_path!
         @load_path = true
-        @root.all_paths << self
       end
 
       def load_path?

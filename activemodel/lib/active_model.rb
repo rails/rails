@@ -26,14 +26,14 @@ $:.unshift(activesupport_path) if File.directory?(activesupport_path)
 require 'active_support'
 
 module ActiveModel
-  autoload :Attributes, 'active_model/attributes'
-  autoload :Base, 'active_model/base'
+  autoload :Conversion, 'active_model/conversion'
   autoload :DeprecatedErrorMethods, 'active_model/deprecated_error_methods'
   autoload :Errors, 'active_model/errors'
   autoload :Name, 'active_model/naming'
   autoload :Naming, 'active_model/naming'
   autoload :Observer, 'active_model/observing'
   autoload :Observing, 'active_model/observing'
+  autoload :Serializer, 'active_model/serializer'
   autoload :StateMachine, 'active_model/state_machine'
   autoload :TestCase, 'active_model/test_case'
   autoload :Validations, 'active_model/validations'
@@ -41,6 +41,7 @@ module ActiveModel
 
   module Serializers
     autoload :JSON, 'active_model/serializers/json'
+    autoload :Xml, 'active_model/serializers/xml'
   end
 end
 

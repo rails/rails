@@ -12,9 +12,9 @@ module ActionView
     end
     
     def load!
-      names = Base::CompiledTemplates.instance_methods.grep(/#{method_name_without_locals}/)
+      names = CompiledTemplates.instance_methods.grep(/#{method_name_without_locals}/)
       names.each do |name|
-        Base::CompiledTemplates.class_eval do
+        CompiledTemplates.class_eval do
           remove_method(name)
         end
       end
@@ -56,7 +56,7 @@ module ActionView
     def compile(local_assigns)
       render_symbol = method_name(local_assigns)
 
-      if !Base::CompiledTemplates.method_defined?(render_symbol) || recompile?
+      if !CompiledTemplates.method_defined?(render_symbol) || recompile?
         compile!(render_symbol, local_assigns)
       end
     end
@@ -74,7 +74,7 @@ module ActionView
         end_src
 
         begin
-          ActionView::Base::CompiledTemplates.module_eval(source, filename.to_s, 0)
+          ActionView::CompiledTemplates.module_eval(source, filename.to_s, 0)
         rescue Exception => e # errors from template code
           if logger = defined?(ActionController) && Base.logger
             logger.debug "ERROR: compiling #{render_symbol} RAISED #{e}"
