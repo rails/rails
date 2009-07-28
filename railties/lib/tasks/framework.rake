@@ -86,7 +86,7 @@ namespace :rails do
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
 
     require 'generators'
-    generator = Rails::Generators::Base.new [], {}, :destination_root => RAILS_ROOT
+    generator = Rails::Generators::App.new [ RAILS_ROOT ], {}, :destination_root => RAILS_ROOT
     generator.apply template, :verbose => false
   end
 
