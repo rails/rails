@@ -148,4 +148,9 @@ class GeneratorsTest < GeneratorsTestCase
 
     assert_equal false, klass.class_options[:generate].default
   end
+
+  def test_source_paths_for_not_namespaced_generators
+    mspec = Rails::Generators.find_by_namespace :mspec
+    assert mspec.source_paths.include?(File.join(RAILS_ROOT, "lib", "templates", "mspec"))
+  end
 end
