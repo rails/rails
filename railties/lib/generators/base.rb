@@ -111,7 +111,7 @@ module Rails
         names.each do |name|
           defaults = if options[:type] == :boolean
             { }
-          elsif [true, false].include?(options.fetch(:default, default_value_for_option(name)))
+          elsif [true, false].include?(default_value_for_option(name, options))
             { :banner => "" }
           else
             { :desc => "#{name.to_s.humanize} to be invoked", :banner => "NAME" }
@@ -144,8 +144,8 @@ module Rails
       #
       def self.class_option(name, options={}) #:nodoc:
         options[:desc]    = "Indicates when to generate #{name.to_s.humanize.downcase}" unless options.key?(:desc)
-        options[:aliases] = default_aliases_for_option(name) unless options.key?(:aliases)
-        options[:default] = default_value_for_option(name)   unless options.key?(:default)
+        options[:aliases] = default_aliases_for_option(name, options)
+        options[:default] = default_value_for_option(name, options)
         super(name, options)
       end
 
@@ -226,32 +226,36 @@ module Rails
         # Return the default value for the option name given doing a lookup in
         # Rails::Generators.options.
         #
-        def self.default_value_for_option(option)
-          options = Rails::Generators.options
+        def self.default_value_for_option(name, options)
+          config = Rails::Generators.options
           generator, base = generator_name.to_sym, base_name.to_sym
 
-          if options[generator] && options[generator].key?(option)
-            options[generator][option]
-          elsif options[base] && options[base].key?(option)
-            options[base][option]
+          if config[generator] && config[generator].key?(name)
+            config[generator][name]
+          elsif config[base] && config[base].key?(name)
+            config[base][name]
+          elsif config[:rails].key?(name)
+            config[:rails][name]
           else
-            options[:rails][option]
+            options[:default]
           end
         end
 
         # Return default aliases for the option name given doing a lookup in
         # Rails::Generators.aliases.
         #
-        def self.default_aliases_for_option(option)
-          aliases = Rails::Generators.aliases
+        def self.default_aliases_for_option(name, options)
+          config = Rails::Generators.aliases
           generator, base = generator_name.to_sym, base_name.to_sym
 
-          if aliases[generator] && aliases[generator].key?(option)
-            aliases[generator][option]
-          elsif aliases[base] && aliases[base].key?(option)
-            aliases[base][option]
+          if config[generator] && config[generator].key?(name)
+            config[generator][name]
+          elsif config[base] && config[base].key?(name)
+            config[base][name]
+          elsif config[:rails].key?(name)
+            config[:rails][name]
           else
-            aliases[:rails][option]
+            options[:aliases]
           end
         end
 

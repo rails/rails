@@ -134,4 +134,18 @@ class GeneratorsTest < GeneratorsTestCase
     TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
     Rails::Generators.invoke "super_shoulda:model", ["Account"]
   end
+
+  def test_developer_options_are_overwriten_by_user_options
+    Rails::Generators.options[:new_generator] = { :generate => false }
+
+    klass = Class.new(Rails::Generators::Base) do
+      def self.name
+        "NewGenerator"
+      end
+
+      class_option :generate, :default => true
+    end
+
+    assert_equal false, klass.class_options[:generate].default
+  end
 end
