@@ -174,6 +174,12 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
     assert_match %r{<nationality>Danish</nationality>}, xml
   end
 
+  def test_dual_arity_procs_are_called_on_object
+    proc = Proc.new { |options, record| options[:builder].tag!('name-reverse', record.name.reverse) }
+    xml = authors(:david).to_xml(:procs => [ proc ])
+    assert_match %r{<name-reverse>divaD</name-reverse>}, xml
+  end
+
   def test_top_level_procs_arent_applied_to_associations
     author_proc = Proc.new { |options| options[:builder].tag!('nationality', 'Danish') }
     xml = authors(:david).to_xml(:procs => [ author_proc ], :include => :posts, :indent => 2)

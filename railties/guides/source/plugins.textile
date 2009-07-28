@@ -601,7 +601,7 @@ This is just a simple test to make sure the class is being loaded correctly.  Af
 end
 </ruby>
 
-Adding directories to the load path makes them appear just like files in the the main app directory - except that they are only loaded once, so you have to restart the web server to see the changes in the browser.  Removing directories from the 'load_once_paths' allow those changes to picked up as soon as you save the file - without having to restart the web server.  This is particularly useful as you develop the plugin.
+Adding directories to the load path makes them appear just like files in the main app directory - except that they are only loaded once, so you have to restart the web server to see the changes in the browser.  Removing directories from the 'load_once_paths' allow those changes to picked up as soon as you save the file - without having to restart the web server.  This is particularly useful as you develop the plugin.
 
 * *vendor/plugins/yaffle/lib/app/models/woodpecker.rb:*
 

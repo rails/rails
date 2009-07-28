@@ -11,6 +11,9 @@ module Rails
       cattr_accessor :metal_paths
       self.metal_paths = ["#{Rails.root}/app/metal"]
       cattr_accessor :requested_metals
+      
+      cattr_accessor :pass_through_on
+      self.pass_through_on = 404
 
       def self.metals
         matcher = /#{Regexp.escape('/app/metal/')}(.*)\.rb\Z/
@@ -36,6 +39,9 @@ module Rails
 
       def initialize(app)
         @app = app
+        @pass_through_on = {}
+        [*self.class.pass_through_on].each { |status| @pass_through_on[status] = true }
+        
         @metals = ActiveSupport::OrderedHash.new
         self.class.metals.each { |app| @metals[app] = true }
         freeze
@@ -44,7 +50,7 @@ module Rails
       def call(env)
         @metals.keys.each do |app|
           result = app.call(env)
-          return result unless result[0].to_i == 404
+          return result unless @pass_through_on.include?(result[0].to_i)
         end
         @app.call(env)
       end

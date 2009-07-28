@@ -139,7 +139,7 @@ module ActionController
   #   # In routes.rb
   #   map.with_options :controller => 'blog' do |blog|
   #     blog.show    '',            :action  => 'list'
-  #     blog.delete  'delete/:id',  :action  => 'delete',
+  #     blog.delete  'delete/:id',  :action  => 'delete'
   #     blog.edit    'edit/:id',    :action  => 'edit'
   #   end
   #

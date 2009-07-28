@@ -293,7 +293,7 @@ WARNING: Performance test configurability is not yet enabled in Rails. But it wi
 
 h4. Performance Test Environment
 
-Performance tests are run in the +development+ environment. But running performance tests will set the following configuration parameters:
+Performance tests are run in the +test+ environment. But running performance tests will set the following configuration parameters:
 
 <shell>
 ActionController::Base.perform_caching = true

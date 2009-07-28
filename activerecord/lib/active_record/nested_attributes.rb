@@ -284,7 +284,7 @@ module ActiveRecord
     #   })
     #
     # Will update the name of the Person with ID 1, build a new associated
-    # person with the name `John', and mark the associatied Person with ID 2
+    # person with the name `John', and mark the associated Person with ID 2
     # for destruction.
     #
     # Also accepts an Array of attribute hashes:

@@ -42,7 +42,7 @@ module Enumerable
   #
   # The latter is a shortcut for:
   #
-  #  payments.inject { |sum, p| sum + p.price }
+  #  payments.inject(0) { |sum, p| sum + p.price }
   #
   # It can also calculate the sum without the use of a block.
   #

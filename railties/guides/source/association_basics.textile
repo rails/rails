@@ -30,7 +30,7 @@ Now, suppose we wanted to add a new order for an existing customer. We'd need to
 Or consider deleting a customer, and ensuring that all of its orders get deleted as well:
 
 <ruby>
-@orders = Order.find_by_customer_id(@customer.id)
+@orders = Order.find_all_by_customer_id(@customer.id)
 @orders.each do |order|
   order.destroy
 end
@@ -600,6 +600,7 @@ The +belongs_to+ association supports these options:
 * +:polymorphic+
 * +:readonly+
 * +:select+
+* +:touch+
 * +:validate+
 
 h6. +:autosave+
@@ -735,6 +736,28 @@ h6. +:select+
 The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.
 
 TIP: If you set the +:select+ option on a +belongs_to+ association, you should also set the +foreign_key+ option to guarantee the correct results.
+
+h6. +:touch+
+
+If you set the +:touch+ option to +:true+, then the +updated_at+ or +updated_on+ timestamp on the associated object will be set to the current time whenever this object is saved or destroyed:
+
+<ruby>
+class Order < ActiveRecord::Base
+  belongs_to :customer, :touch => true
+end
+
+class Customer < ActiveRecord::Base
+  has_many :orders
+end
+</ruby>
+
+In this case, saving or destroying an order will update the timestamp on the associated customer. You can also specify a particular timestamp attribute to update:
+
+<ruby>
+class Order < ActiveRecord::Base
+  belongs_to :customer, :touch => :orders_updated_at
+end
+</ruby>
 
 h6. +:validate+
 
@@ -996,7 +1019,7 @@ When you declare a +has_many+ association, the declaring class automatically gai
 * <tt><em>collection</em>.empty?</tt>
 * <tt><em>collection</em>.size</tt>
 * <tt><em>collection</em>.find(...)</tt>
-* <tt><em>collection</em>.exist?(...)</tt>
+* <tt><em>collection</em>.exists?(...)</tt>
 * <tt><em>collection</em>.build(attributes = {}, ...)</tt>
 * <tt><em>collection</em>.create(attributes = {})</tt>
 
@@ -1021,7 +1044,7 @@ orders.clear
 orders.empty?
 orders.size
 orders.find(...)
-orders.exist?(...)
+orders.exists?(...)
 orders.build(attributes = {}, ...)
 orders.create(attributes = {})
 </ruby>
@@ -1099,9 +1122,9 @@ The <tt><em>collection</em>.find</tt> method finds objects within the collection
 @open_orders = @customer.orders.find(:all, :conditions => "open = 1")
 </ruby>
 
-h6. <tt><em>collection</em>.exist?(...)</tt>
+h6. <tt><em>collection</em>.exists?(...)</tt>
 
-The <tt><em>collection</em>.exist?</tt> method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as +ActiveRecord::Base.exists?+.
+The <tt><em>collection</em>.exists?</tt> method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as +ActiveRecord::Base.exists?+.
 
 h6. <tt><em>collection</em>.build(attributes = {}, ...)</tt>
 
@@ -1195,6 +1218,17 @@ end
 </ruby>
 
 If you use a hash-style +:conditions+ option, then record creation via this association will be automatically scoped using the hash. In this case, using +@customer.confirmed_orders.create+ or +@customer.confirmed_orders.build+ will create orders where the confirmed column has the value +true+.
+
+If you need to evaluate conditions dynamically at runtime, you could use string interpolation in single quotes:
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :latest_orders, :class_name => "Order",
+    :conditions => 'orders.created_at > #{10.hours.ago.to_s(:db).inspect}'
+end
+</ruby>
+
+Be sure to use single quotes.
 
 h6. +:counter_sql+
 
@@ -1361,7 +1395,7 @@ When you declare a +has_and_belongs_to_many+ association, the declaring class au
 * <tt><em>collection</em>.empty?</tt>
 * <tt><em>collection</em>.size</tt>
 * <tt><em>collection</em>.find(...)</tt>
-* <tt><em>collection</em>.exist?(...)</tt>
+* <tt><em>collection</em>.exists?(...)</tt>
 * <tt><em>collection</em>.build(attributes = {})</tt>
 * <tt><em>collection</em>.create(attributes = {})</tt>
 
@@ -1386,7 +1420,7 @@ assemblies.clear
 assemblies.empty?
 assemblies.size
 assemblies.find(...)
-assemblies.exist?(...)
+assemblies.exists?(...)
 assemblies.build(attributes = {}, ...)
 assemblies.create(attributes = {})
 </ruby>
@@ -1471,9 +1505,9 @@ The <tt><em>collection</em>.find</tt> method finds objects within the collection
   :conditions => ["created_at > ?", 2.days.ago])
 </ruby>
 
-h6. <tt><em>collection</em>.exist?(...)</tt>
+h6. <tt><em>collection</em>.exists?(...)</tt>
 
-The <tt><em>collection</em>.exist?</tt> method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as +ActiveRecord::Base.exists?+.
+The <tt><em>collection</em>.exists?</tt> method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as +ActiveRecord::Base.exists?+.
 
 h6. <tt><em>collection</em>.build(attributes = {})</tt>
 
@@ -1775,6 +1809,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/11
 
+* April 19, 2009: Added +:touch+ option to +belongs_to+ associations by "Mike Gunderloy":credits.html#mgunderloy
 * February 1, 2009: Added +:autosave+ option "Mike Gunderloy":credits.html#mgunderloy
 * September 28, 2008: Corrected +has_many :through+ diagram, added polymorphic diagram, some reorganization by "Mike Gunderloy":credits.html#mgunderloy . First release version.
 * September 22, 2008: Added diagrams, misc. cleanup by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)

@@ -362,7 +362,7 @@ module ActiveRecord
       def call(env)
         @app.call(env)
       ensure
-        # Don't return connection (and peform implicit rollback) if
+        # Don't return connection (and perform implicit rollback) if
         # this request is a part of integration test
         unless env.key?("rack.test")
           ActiveRecord::Base.clear_active_connections!

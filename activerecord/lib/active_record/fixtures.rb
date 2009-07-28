@@ -409,7 +409,7 @@ end
 #     subdomain: $LABEL
 #
 # Also, sometimes (like when porting older join table fixtures) you'll need
-# to be able to get ahold of the identifier for a given label. ERB
+# to be able to get a hold of the identifier for a given label. ERB
 # to the rescue:
 #
 #   george_reginald:

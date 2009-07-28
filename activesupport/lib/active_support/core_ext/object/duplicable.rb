@@ -1,6 +1,6 @@
 class Object
   # Can you safely .dup this object?
-  # False for nil, false, true, symbols, and numbers; true otherwise.
+  # False for nil, false, true, symbols, numbers, and class objects; true otherwise.
   def duplicable?
     true
   end

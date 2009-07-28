@@ -9,6 +9,11 @@ class Contact
   end
 end
 
+module Admin
+  class Contact < ::Contact
+  end
+end
+
 class XmlSerializationTest < ActiveModel::TestCase
   def setup
     @contact = Contact.new
@@ -23,6 +28,12 @@ class XmlSerializationTest < ActiveModel::TestCase
     @xml = @contact.to_xml
     assert_match %r{^<contact>},  @xml
     assert_match %r{</contact>$}, @xml
+  end
+
+  test "should serialize namespaced root" do
+    @xml = Admin::Contact.new(@contact.attributes).to_xml
+    assert_match %r{^<admin-contact>},  @xml
+    assert_match %r{</admin-contact>$}, @xml
   end
 
   test "should serialize default root with namespace" do
@@ -81,5 +92,17 @@ class XmlSerializationTest < ActiveModel::TestCase
 
   test "should serialize yaml" do
     assert_match %r{<preferences type=\"yaml\">--- \n:gem: ruby\n</preferences>}, @contact.to_xml
+  end
+
+  test "should call proc on object" do
+    proc = Proc.new { |options| options[:builder].tag!('nationality', 'unknown') }
+    xml = @contact.to_xml(:procs => [ proc ])
+    assert_match %r{<nationality>unknown</nationality>}, xml
+  end
+
+  test 'should supply serializable to second proc argument' do
+    proc = Proc.new { |options, record| options[:builder].tag!('name-reverse', record.name.reverse) }
+    xml = @contact.to_xml(:procs => [ proc ])
+    assert_match %r{<name-reverse>kcats noraa</name-reverse>}, xml
   end
 end
