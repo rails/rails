@@ -86,6 +86,7 @@ class RespondToController < ActionController::Base
       type.mobile { render :text => "Mobile" }
     end
   ensure
+    Mime::SET.delete(:mobile)
     Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
   end
 
@@ -98,6 +99,7 @@ class RespondToController < ActionController::Base
     end
 
   ensure
+    Mime::SET.delete(:mobile)
     Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
   end
 
@@ -132,6 +134,7 @@ class RespondToController < ActionController::Base
     end
 
   ensure
+    Mime::SET.delete(:iphone)
     Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
   end
 
@@ -145,6 +148,7 @@ class RespondToController < ActionController::Base
     end
 
   ensure
+    Mime::SET.delete(:iphone)
     Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
   end
 
@@ -467,7 +471,13 @@ class MimeControllerTest < ActionController::TestCase
   end
 end
 
+class ClassRespondToController < ActionController::Base
+
+end
+
 class AbstractPostController < ActionController::Base
+  respond_to :html, :iphone
+
   self.view_paths = File.dirname(__FILE__) + "/../fixtures/post_test/"
 end
 
@@ -476,10 +486,7 @@ class PostController < AbstractPostController
   around_filter :with_iphone
 
   def index
-    respond_to do |type|
-      type.html
-      type.iphone
-    end
+    respond_to # It will use formats declared above
   end
 
 protected
@@ -489,17 +496,12 @@ protected
     request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
     yield
   ensure
+    Mime::SET.delete(:iphone)
     Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
   end
 end
 
 class SuperPostController < PostController
-  def index
-    respond_to do |type|
-      type.html
-      type.iphone
-    end
-  end
 end
 
 class MimeControllerLayoutsTest < ActionController::TestCase

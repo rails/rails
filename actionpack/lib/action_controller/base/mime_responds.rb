@@ -1,5 +1,57 @@
 module ActionController #:nodoc:
   module MimeResponds #:nodoc:
+    extend ActiveSupport::Concern
+
+    included do
+      class_inheritable_reader :mimes_for_respond_to
+      respond_to # Set mimes_for_respond_to hash
+    end
+
+    module ClassMethods
+      # Defines mimes that are rendered by default when invoking respond_with.
+      #
+      # Examples:
+      #
+      #   respond_to :html, :xml, :json
+      #
+      # All actions on your controller will respond to :html, :xml and :json.
+      #
+      # But if you want to specify it based on your actions, you can use only and
+      # except:
+      #
+      #   respond_to :html
+      #   respond_to :xml, :json, :except => [ :edit ]
+      #
+      # The definition above explicits that all actions respond to :html. And all
+      # actions except :edit respond to :xml and :json.
+      #
+      # You can specify also only parameters:
+      #
+      #   respond_to :rjs, :only => :create
+      #
+      def respond_to(*mimes)
+        options = mimes.extract_options!
+        mimes_hash = {}
+
+        only_actions   = Array(options.delete(:only))
+        except_actions = Array(options.delete(:except))
+
+        mimes.each do |mime|
+          mime = mime.to_sym
+          mimes_hash[mime]          = {}
+          mimes_hash[mime][:only]   = only_actions   unless only_actions.empty?
+          mimes_hash[mime][:except] = except_actions unless except_actions.empty?
+        end
+
+        write_inheritable_hash(:mimes_for_respond_to, mimes_hash)
+      end
+
+      # Clear all mimes in respond_to.
+      #
+      def clear_respond_to!
+        mimes_for_respond_to.each { |k,v| mimes[k] = { :only => [] } }
+      end
+    end
 
     # Without web-service support, an action which collects the data for displaying a list of people
     # might look something like this:
@@ -94,24 +146,20 @@ module ActionController #:nodoc:
     #
     #   Mime::Type.register "image/jpg", :jpg
     def respond_to(*mimes, &block)
-      raise ArgumentError, "respond_to takes either types or a block, never both" unless mimes.any? ^ block
+      responder = Responder.new
 
-      responder = Responder.new(request.formats)
+      block.call(responder) if block_given?
 
-      if block_given?
-        block.call(responder)
-      else
-        mimes.each { |mime| responder.send(mime) }
-      end
+      mimes = collect_mimes_from_class_level if mimes.empty?
+      mimes.each { |mime| responder.send(mime) }
 
-      mime = responder.respond
+      if format = request.negotiate_mime(responder.order)
+        # TODO It should be just: self.formats = [ :foo ]
+        self.formats = [format.to_sym]
+        self.content_type = format
+        self.template.formats = [format.to_sym]
 
-      if mime
-        self.formats = [mime.to_sym]
-        self.content_type = mime
-        self.template.formats = [mime.to_sym]
-
-        if response = responder.response_for(mime)
+        if response = responder.response_for(format)
           response.call
         else
           default_render
@@ -121,10 +169,31 @@ module ActionController #:nodoc:
       end
     end
 
-    class Responder #:nodoc:
+    protected
 
-      def initialize(priorities)
-        @mime_type_priority = priorities
+      # Collect mimes declared in the class method respond_to valid for the
+      # current action.
+      #
+      def collect_mimes_from_class_level #:nodoc:
+        action = action_name.to_sym
+
+        mimes_for_respond_to.keys.select do |mime|
+          config = mimes_for_respond_to[mime]
+
+          if config[:except]
+            !config[:except].include?(action)
+          elsif config[:only]
+            config[:only].include?(action)
+          else
+            true
+          end
+        end
+      end
+
+    class Responder #:nodoc:
+      attr_accessor :order
+
+      def initialize
         @order, @responses = [], {}
       end
 
@@ -132,7 +201,7 @@ module ActionController #:nodoc:
         if args.any?
           args.each { |type| send(type, &block) }
         else
-          custom(@mime_type_priority.first, &block)
+          custom(Mime::ALL, &block)
         end
       end
 
@@ -143,47 +212,11 @@ module ActionController #:nodoc:
         @responses[mime_type] ||= block
       end
 
-      def respond
-        available_mimes.first
-      end
-
       def response_for(mime)
-        @responses[mime]
+        @responses[mime] || @responses[Mime::ALL]
       end
 
-      # Compares mimes sent by the client (@mime_type_priorities) with the ones
-      # that the user configured in the controller respond_to. Returns them
-      # all in an array.
-      #
-      def available_mimes
-        mimes = []
-
-        @mime_type_priority.each do |priority|
-          if priority == Mime::ALL
-            mimes << @order.first unless mimes.include?(@order.first)
-          elsif @order.include?(priority)
-            mimes << priority
-          end
-        end
-
-        mimes << Mime::ALL if @order.include?(Mime::ALL)
-        mimes
-      end
-
-    protected
-
-      def method_missing(symbol, &block)
-        mime_constant = Mime.const_get(symbol.to_s.upcase)
-
-        if Mime::SET.include?(mime_constant)
-          generate_method_for_mime(mime_constant)
-          send(symbol, &block)
-        else
-          super
-        end
-      end
-
-      def generate_method_for_mime(mime)
+      def self.generate_method_for_mime(mime)
         sym = mime.is_a?(Symbol) ? mime : mime.to_sym
         const = sym.to_s.upcase
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -191,6 +224,21 @@ module ActionController #:nodoc:
             custom(Mime::#{const}, &block)  #   custom(Mime::HTML, &block)
           end                               # end
         RUBY
+      end
+
+      Mime::SET.each do |mime|
+        generate_method_for_mime(mime)
+      end
+
+      def method_missing(symbol, &block)
+        mime_constant = Mime.const_get(symbol.to_s.upcase)
+
+        if Mime::SET.include?(mime_constant)
+          self.class.generate_method_for_mime(mime_constant)
+          send(symbol, &block)
+        else
+          super
+        end
       end
 
     end
