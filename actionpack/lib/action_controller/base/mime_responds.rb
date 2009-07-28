@@ -1,5 +1,6 @@
 module ActionController #:nodoc:
   module MimeResponds #:nodoc:
+
     # Without web-service support, an action which collects the data for displaying a list of people
     # might look something like this:
     #
@@ -92,40 +93,39 @@ module ActionController #:nodoc:
     # environment.rb as follows.
     #
     #   Mime::Type.register "image/jpg", :jpg
-    def respond_to(*types, &block)
-      raise ArgumentError, "respond_to takes either types or a block, never both" unless types.any? ^ block
-      block ||= lambda { |responder| types.each { |type| responder.send(type) } }
-      responder = Responder.new(self)
-      block.call(responder)
-      responder.respond
+    def respond_to(*mimes, &block)
+      raise ArgumentError, "respond_to takes either types or a block, never both" unless mimes.any? ^ block
+
+      responder = Responder.new(request.formats)
+
+      if block_given?
+        block.call(responder)
+      else
+        mimes.each { |mime| responder.send(mime) }
+      end
+
+      mime = responder.respond
+
+      if mime
+        self.formats = [mime.to_sym]
+        self.content_type = mime
+        self.template.formats = [mime.to_sym]
+
+        if response = responder.response_for(mime)
+          response.call
+        else
+          default_render
+        end
+      else
+        head :not_acceptable
+      end
     end
 
     class Responder #:nodoc:
-      
-      def initialize(controller)
-        @controller = controller
-        @request    = controller.request
-        @response   = controller.response
 
-        @mime_type_priority = @request.formats
-
-        @order     = []
-        @responses = {}
-      end
-
-      def custom(mime_type, &block)
-        mime_type = mime_type.is_a?(Mime::Type) ? mime_type : Mime::Type.lookup(mime_type.to_s)
-
-        @order << mime_type
-
-        @responses[mime_type] ||= Proc.new do
-          # TODO: Remove this when new base is merged in
-          @controller.formats = [mime_type.to_sym]
-          @controller.content_type = mime_type
-          @controller.template.formats = [mime_type.to_sym]
-
-          block_given? ? block.call : @controller.send(:render, :action => @controller.action_name)
-        end
+      def initialize(priorities)
+        @mime_type_priority = priorities
+        @order, @responses = [], {}
       end
 
       def any(*args, &block)
@@ -135,8 +135,55 @@ module ActionController #:nodoc:
           custom(@mime_type_priority.first, &block)
         end
       end
-      
-      def self.generate_method_for_mime(mime)
+
+      def custom(mime_type, &block)
+        mime_type = mime_type.is_a?(Mime::Type) ? mime_type : Mime::Type.lookup(mime_type.to_s)
+
+        @order << mime_type
+        @responses[mime_type] ||= block
+      end
+
+      def respond
+        available_mimes.first
+      end
+
+      def response_for(mime)
+        @responses[mime]
+      end
+
+      # Compares mimes sent by the client (@mime_type_priorities) with the ones
+      # that the user configured in the controller respond_to. Returns them
+      # all in an array.
+      #
+      def available_mimes
+        mimes = []
+
+        @mime_type_priority.each do |priority|
+          if priority == Mime::ALL
+            mimes << @order.first unless mimes.include?(@order.first)
+          elsif @order.include?(priority)
+            mimes << priority
+          end
+        end
+
+        mimes << Mime::ALL if @order.include?(Mime::ALL)
+        mimes
+      end
+
+    protected
+
+      def method_missing(symbol, &block)
+        mime_constant = Mime.const_get(symbol.to_s.upcase)
+
+        if Mime::SET.include?(mime_constant)
+          generate_method_for_mime(mime_constant)
+          send(symbol, &block)
+        else
+          super
+        end
+      end
+
+      def generate_method_for_mime(mime)
         sym = mime.is_a?(Symbol) ? mime : mime.to_sym
         const = sym.to_s.upcase
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -146,40 +193,6 @@ module ActionController #:nodoc:
         RUBY
       end
 
-      Mime::SET.each do |mime|
-        generate_method_for_mime(mime)
-      end
-
-      def method_missing(symbol, &block)
-        mime_constant = Mime.const_get(symbol.to_s.upcase)
-      
-        if Mime::SET.include?(mime_constant)
-          self.class.generate_method_for_mime(mime_constant)
-          send(symbol, &block)
-        else
-          super
-        end
-      end
-
-      def respond
-        for priority in @mime_type_priority
-          if priority == Mime::ALL
-            @responses[@order.first].call
-            return
-          else
-            if @responses[priority]
-              @responses[priority].call
-              return # mime type match found, be happy and return
-            end
-          end
-        end
-
-        if @order.include?(Mime::ALL)
-          @responses[Mime::ALL].call
-        else
-          @controller.send :head, :not_acceptable
-        end
-      end
     end
   end
 end

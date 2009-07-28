@@ -436,9 +436,9 @@ class MimeControllerTest < ActionController::TestCase
   def test_render_action_for_html
     @controller.instance_eval do
       def render(*args)
-        unless args.empty?
-          @action = args.first[:action] || action_name
-        end
+        @action = args.first[:action] unless args.empty?
+        @action ||= action_name
+
         response.body = "#{@action} - #{@template.formats}"
       end
     end
