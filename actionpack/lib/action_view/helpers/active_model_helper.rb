@@ -160,10 +160,23 @@ module ActionView
       #
       #   error_messages_for 'user'
       #
+      # You can also supply an object:
+      #
+      #   error_messages_for @user
+      #
+      # This will use the last part of the model name in the presentation. For instance, if
+      # this is a MyKlass::User object, this will use "user" as the name in the String. This
+      # is taken from MyKlass::User.model_name.human, which can be overridden.
+      #
       # To specify more than one object, you simply list them; optionally, you can add an extra <tt>:object_name</tt> parameter, which
       # will be the name used in the header message:
       #
       #   error_messages_for 'user_common', 'user', :object_name => 'user'
+      #
+      # You can also use a number of objects, which will have the same naming semantics
+      # as a single object.
+      #
+      #   error_messages_for @user, @post
       #
       # If the objects cannot be located as instance variables, you can add an extra <tt>:object</tt> parameter which gives the actual
       # object (or array of objects to use):
@@ -176,15 +189,20 @@ module ActionView
       def error_messages_for(*params)
         options = params.extract_options!.symbolize_keys
 
-        if object = options.delete(:object)
-          objects = [object].flatten
-        else
-          objects = params.collect {|object_name| instance_variable_get("@#{object_name}") }.compact
+        objects = Array.wrap(options.delete(:object) || params).map do |object|
+          unless object.respond_to?(:to_model)
+            object = instance_variable_get("@#{object}")
+            object = convert_to_model(object)
+          else
+            object = object.to_model
+            options[:object_name] ||= object.class.model_name.human
+          end
+          object
         end
 
-        objects.map! {|o| convert_to_model(o) }
+        objects.compact!
 
-        count  = objects.inject(0) {|sum, object| sum + object.errors.count }
+        count = objects.inject(0) {|sum, object| sum + object.errors.count }
         unless count.zero?
           html = {}
           [:id, :class].each do |key|
