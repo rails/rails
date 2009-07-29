@@ -86,6 +86,7 @@ class RespondToController < ActionController::Base
       type.mobile { render :text => "Mobile" }
     end
   ensure
+    Mime::SET.delete(:mobile)
     Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
   end
 
@@ -98,6 +99,7 @@ class RespondToController < ActionController::Base
     end
 
   ensure
+    Mime::SET.delete(:mobile)
     Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
   end
 
@@ -132,6 +134,7 @@ class RespondToController < ActionController::Base
     end
 
   ensure
+    Mime::SET.delete(:iphone)
     Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
   end
 
@@ -145,6 +148,7 @@ class RespondToController < ActionController::Base
     end
 
   ensure
+    Mime::SET.delete(:iphone)
     Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
   end
 
@@ -162,7 +166,7 @@ class RespondToController < ActionController::Base
     end
 end
 
-class MimeControllerTest < ActionController::TestCase
+class RespondToControllerTest < ActionController::TestCase
   tests RespondToController
 
   def setup
@@ -436,10 +440,10 @@ class MimeControllerTest < ActionController::TestCase
   def test_render_action_for_html
     @controller.instance_eval do
       def render(*args)
-        unless args.empty?
-          @action = args.first[:action] || action_name
-        end
-        response.body = "#{@action} - #{@template.formats}"
+        @action = args.first[:action] unless args.empty?
+        @action ||= action_name
+
+        response.body = "#{@action} - #{formats}"
       end
     end
 
@@ -467,7 +471,185 @@ class MimeControllerTest < ActionController::TestCase
   end
 end
 
+class RespondResource
+  undef_method :to_json
+
+  def to_xml
+    "XML"
+  end
+
+  def to_js
+    "JS"
+  end
+end
+
+class RespondWithController < ActionController::Base
+  respond_to :html, :json
+  respond_to :xml, :except => :using_defaults
+  respond_to :js,  :only => :using_defaults
+
+  def using_defaults
+    respond_to do |format|
+      format.csv { render :text => "CSV" }
+    end
+  end
+
+  def using_defaults_with_type_list
+    respond_to(:js, :xml)
+  end
+
+  def using_resource
+    respond_with(RespondResource.new)
+  end
+
+  def using_resource_with_options
+    respond_with(RespondResource.new, :status => :unprocessable_entity) do |format|
+      format.js
+    end
+  end
+
+  def default_overwritten
+    respond_to do |format|
+      format.html { render :text => "HTML" }
+    end
+  end
+
+protected
+
+  def _render_js(js, options)
+    self.content_type ||= Mime::JS
+    self.response_body = js.respond_to?(:to_js) ? js.to_js : js
+  end
+end
+
+class InheritedRespondWithController < RespondWithController
+  clear_respond_to
+  respond_to :xml, :json
+
+  def index
+    respond_with(RespondResource.new) do |format|
+      format.json { render :text => "JSON" }
+    end
+  end
+end
+
+class RespondWithControllerTest < ActionController::TestCase
+  tests RespondWithController
+
+  def setup
+    super
+    ActionController::Base.use_accept_header = true
+    @request.host = "www.example.com"
+  end
+
+  def teardown
+    super
+    ActionController::Base.use_accept_header = false
+  end
+
+  def test_using_defaults
+    @request.accept = "*/*"
+    get :using_defaults
+    assert_equal "text/html", @response.content_type
+    assert_equal 'Hello world!', @response.body
+
+    @request.accept = "text/csv"
+    get :using_defaults
+    assert_equal "text/csv", @response.content_type
+    assert_equal "CSV", @response.body
+
+    @request.accept = "text/javascript"
+    get :using_defaults
+    assert_equal "text/javascript", @response.content_type
+    assert_equal '$("body").visualEffect("highlight");', @response.body
+  end
+
+  def test_using_defaults_with_type_list
+    @request.accept = "*/*"
+    get :using_defaults_with_type_list
+    assert_equal "text/javascript", @response.content_type
+    assert_equal '$("body").visualEffect("highlight");', @response.body
+
+    @request.accept = "application/xml"
+    get :using_defaults_with_type_list
+    assert_equal "application/xml", @response.content_type
+    assert_equal "<p>Hello world!</p>\n", @response.body
+  end
+
+  def test_using_resource
+    @request.accept = "text/html"
+    get :using_resource
+    assert_equal "text/html", @response.content_type
+    assert_equal "Hello world!", @response.body
+
+    @request.accept = "application/xml"
+    get :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal "XML", @response.body
+
+    @request.accept = "application/json"
+    assert_raise ActionView::MissingTemplate do
+      get :using_resource
+    end
+  end
+
+  def test_using_resource_with_options
+    @request.accept = "application/xml"
+    get :using_resource_with_options
+    assert_equal "application/xml", @response.content_type
+    assert_equal 422, @response.status
+    assert_equal "XML", @response.body
+
+    @request.accept = "text/javascript"
+    get :using_resource_with_options
+    assert_equal "text/javascript", @response.content_type
+    assert_equal 422, @response.status
+    assert_equal "JS", @response.body
+  end
+
+  def test_default_overwritten
+    get :default_overwritten
+    assert_equal "text/html", @response.content_type
+    assert_equal "HTML", @response.body
+  end
+
+  def test_clear_respond_to
+    @controller = InheritedRespondWithController.new
+    @request.accept = "text/html"
+    get :index
+    assert_equal 406, @response.status
+  end
+
+  def test_first_in_respond_to_has_higher_priority
+    @controller = InheritedRespondWithController.new
+    @request.accept = "*/*"
+    get :index
+    assert_equal "application/xml", @response.content_type
+    assert_equal "XML", @response.body
+  end
+
+  def test_not_acceptable
+    @request.accept = "application/xml"
+    get :using_defaults
+    assert_equal 406, @response.status
+
+    @request.accept = "text/html"
+    get :using_defaults_with_type_list
+    assert_equal 406, @response.status
+
+    @request.accept = "application/json"
+    get :using_defaults_with_type_list
+    assert_equal 406, @response.status
+
+    @request.accept = "text/javascript"
+    get :using_resource
+    assert_equal 406, @response.status
+  end
+end
+
 class AbstractPostController < ActionController::Base
+  respond_to :html, :iphone
+
   self.view_paths = File.dirname(__FILE__) + "/../fixtures/post_test/"
 end
 
@@ -476,10 +658,7 @@ class PostController < AbstractPostController
   around_filter :with_iphone
 
   def index
-    respond_to do |type|
-      type.html
-      type.iphone
-    end
+    respond_to # It will use formats declared above
   end
 
 protected
@@ -489,17 +668,12 @@ protected
     request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
     yield
   ensure
+    Mime::SET.delete(:iphone)
     Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
   end
 end
 
 class SuperPostController < PostController
-  def index
-    respond_to do |type|
-      type.html
-      type.iphone
-    end
-  end
 end
 
 class MimeControllerLayoutsTest < ActionController::TestCase

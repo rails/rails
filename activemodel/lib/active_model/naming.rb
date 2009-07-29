@@ -2,7 +2,7 @@ require 'active_support/inflector'
 
 module ActiveModel
   class Name < String
-    attr_reader :singular, :plural, :element, :collection, :partial_path
+    attr_reader :singular, :plural, :element, :collection, :partial_path, :human
     alias_method :cache_key, :collection
 
     def initialize(name)
@@ -10,6 +10,7 @@ module ActiveModel
       @singular = ActiveSupport::Inflector.underscore(self).tr('/', '_').freeze
       @plural = ActiveSupport::Inflector.pluralize(@singular).freeze
       @element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self)).freeze
+      @human = @element.gsub(/_/, " ")
       @collection = ActiveSupport::Inflector.tableize(self).freeze
       @partial_path = "#{@collection}/#{@element}".freeze
     end
