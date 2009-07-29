@@ -263,11 +263,7 @@ module ActionController #:nodoc:
   protected
 
     def respond_to_block_or_template_or_resource(format, resource, options)
-      # TODO It should be just: self.formats = [ :foo ]
       self.formats = [format.to_sym]
-      self.content_type = format
-      self.template.formats = [format.to_sym]
-
       return yield if block_given?
 
       begin

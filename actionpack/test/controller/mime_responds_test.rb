@@ -443,7 +443,7 @@ class RespondToControllerTest < ActionController::TestCase
         @action = args.first[:action] unless args.empty?
         @action ||= action_name
 
-        response.body = "#{@action} - #{@template.formats}"
+        response.body = "#{@action} - #{formats}"
       end
     end
 

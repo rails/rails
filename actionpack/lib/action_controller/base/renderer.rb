@@ -11,11 +11,10 @@ module ActionController
 
     def render(options)
       super
-      options[:_template] ||= _action_view._partial
       self.content_type ||= begin
         mime = options[:_template].mime_type
         formats.include?(mime && mime.to_sym) || formats.include?(:all) ? mime : Mime::Type.lookup_by_extension(formats.first)
-      end
+      end.to_s
       response_body
     end
 
