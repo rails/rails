@@ -396,10 +396,49 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal({"bar" => 2}, request.query_parameters)
   end
 
+  test "formats" do
+    request = stub_request 'HTTP_ACCEPT' => 'text/html'
+    request.expects(:parameters).at_least_once.returns({})
+    assert_equal [ Mime::HTML ], request.formats
+
+    request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8'
+    request.expects(:parameters).at_least_once.returns({})
+    assert_equal with_set(Mime::XML, Mime::HTML), request.formats
+
+    begin
+      ActionController::Base.use_accept_header, old =
+        false, ActionController::Base.use_accept_header
+
+      request = stub_request
+      request.expects(:parameters).at_least_once.returns({ :format => :txt })
+      assert_equal with_set(Mime::TEXT), request.formats
+    ensure
+      ActionController::Base.use_accept_header = old
+    end
+  end
+
+  test "negotiate_mime" do
+    request = stub_request 'HTTP_ACCEPT' => 'text/html'
+    request.expects(:parameters).at_least_once.returns({})
+
+    assert_equal nil, request.negotiate_mime([Mime::XML, Mime::JSON])
+    assert_equal Mime::HTML, request.negotiate_mime([Mime::XML, Mime::HTML])
+    assert_equal Mime::HTML, request.negotiate_mime([Mime::XML, Mime::ALL])
+
+    request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8'
+    request.expects(:parameters).at_least_once.returns({})
+    assert_equal Mime::XML, request.negotiate_mime([Mime::XML, Mime::CSV])
+    assert_equal Mime::CSV, request.negotiate_mime([Mime::CSV, Mime::YAML])
+  end
+
 protected
 
   def stub_request(env={})
     ActionDispatch::Request.new(env)
+  end
+
+  def with_set(*args)
+    args + Mime::SET
   end
 
 end
