@@ -204,6 +204,7 @@ module ActionController #:nodoc:
           custom(Mime::ALL, &block)
         end
       end
+      alias :all :any
 
       def custom(mime_type, &block)
         mime_type = mime_type.is_a?(Mime::Type) ? mime_type : Mime::Type.lookup(mime_type.to_s)
