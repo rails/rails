@@ -146,12 +146,12 @@ module ActionController #:nodoc:
     #
     #   Mime::Type.register "image/jpg", :jpg
     def respond_to(*mimes, &block)
+      raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
       responder = Responder.new
-
       block.call(responder) if block_given?
 
       mimes = collect_mimes_from_class_level if mimes.empty?
-      mimes.each { |mime| responder.send(mime) }
+      mimes.each { |mime| responder.custom(mime) }
 
       if format = request.negotiate_mime(responder.order)
         # TODO It should be just: self.formats = [ :foo ]
