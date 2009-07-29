@@ -151,7 +151,7 @@ module ActionController #:nodoc:
       block.call(responder) if block_given?
 
       mimes = collect_mimes_from_class_level if mimes.empty?
-      mimes.each { |mime| responder.custom(mime) }
+      mimes.each { |mime| responder.send(mime) }
 
       if format = request.negotiate_mime(responder.order)
         # TODO It should be just: self.formats = [ :foo ]

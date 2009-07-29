@@ -166,7 +166,7 @@ class RespondToController < ActionController::Base
     end
 end
 
-class MimeControllerTest < ActionController::TestCase
+class RespondToControllerTest < ActionController::TestCase
   tests RespondToController
 
   def setup
@@ -471,8 +471,74 @@ class MimeControllerTest < ActionController::TestCase
   end
 end
 
-class ClassRespondToController < ActionController::Base
+class RespondWithController < ActionController::Base
+  respond_to :html
+  respond_to :xml, :except => :using_defaults
+  respond_to :js,  :only => :using_defaults
 
+  def using_defaults
+    respond_to do |format|
+      format.csv { render :text => "CSV" }
+    end
+  end
+
+  def using_defaults_with_type_list
+    respond_to(:js, :xml)
+  end
+end
+
+class RespondWithControllerTest < ActionController::TestCase
+  tests RespondWithController
+
+  def setup
+    super
+    ActionController::Base.use_accept_header = true
+    @request.host = "www.example.com"
+  end
+
+  def teardown
+    super
+    ActionController::Base.use_accept_header = false
+  end
+
+  def test_using_defaults
+    @request.accept = "*/*"
+    get :using_defaults
+    assert_equal "text/html", @response.content_type
+    assert_equal 'Hello world!', @response.body
+
+    @request.accept = "text/csv"
+    get :using_defaults
+    assert_equal "text/csv", @response.content_type
+    assert_equal "CSV", @response.body
+
+    @request.accept = "text/javascript"
+    get :using_defaults
+    assert_equal "text/javascript", @response.content_type
+    assert_equal '$("body").visualEffect("highlight");', @response.body
+  end
+
+  def test_using_defaults_with_type_list
+    @request.accept = "*/*"
+    get :using_defaults_with_type_list
+    assert_equal "text/javascript", @response.content_type
+    assert_equal '$("body").visualEffect("highlight");', @response.body
+
+    @request.accept = "application/xml"
+    get :using_defaults_with_type_list
+    assert_equal "application/xml", @response.content_type
+    assert_equal "<p>Hello world!</p>\n", @response.body
+  end
+
+  def test_not_acceptable
+    @request.accept = "application/xml"
+    get :using_defaults
+    assert_equal 406, @response.status
+
+    @request.accept = "text/html"
+    get :using_defaults_with_type_list
+    assert_equal 406, @response.status
+  end
 end
 
 class AbstractPostController < ActionController::Base
