@@ -354,10 +354,6 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).all.uniq
   end
 
-  def test_methods_invoked_within_scopes_should_respect_scope
-    assert_equal [], Topic.approved.by_rejected_ids.proxy_options[:conditions][:id]
-  end
-
   def test_named_scopes_batch_finders
     assert_equal 3, Topic.approved.count
 

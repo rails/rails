@@ -92,12 +92,7 @@ module ActiveRecord
             when Hash
               options
             when Proc
-              case parent_scope
-              when Scope
-                with_scope(:find => parent_scope.proxy_options) { options.call(*args) }
-              else
-                options.call(*args)
-              end
+              options.call(*args)
           end, &block)
         end
         metaclass.instance_eval do
