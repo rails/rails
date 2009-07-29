@@ -471,8 +471,20 @@ class RespondToControllerTest < ActionController::TestCase
   end
 end
 
+class RespondResource
+  undef_method :to_json
+
+  def to_xml
+    "XML"
+  end
+
+  def to_js
+    "JS"
+  end
+end
+
 class RespondWithController < ActionController::Base
-  respond_to :html
+  respond_to :html, :json
   respond_to :xml, :except => :using_defaults
   respond_to :js,  :only => :using_defaults
 
@@ -484,6 +496,23 @@ class RespondWithController < ActionController::Base
 
   def using_defaults_with_type_list
     respond_to(:js, :xml)
+  end
+
+  def using_resource
+    respond_with(RespondResource.new)
+  end
+
+  def using_resource_with_options
+    respond_with(RespondResource.new, :status => :unprocessable_entity) do |format|
+      format.js
+    end
+  end
+
+protected
+
+  def _render_js(js, options)
+    self.content_type ||= Mime::JS
+    self.response_body = js.respond_to?(:to_js) ? js.to_js : js
   end
 end
 
@@ -530,6 +559,37 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
 
+  def test_using_resource
+    @request.accept = "text/html"
+    get :using_resource
+    assert_equal "text/html", @response.content_type
+    assert_equal "Hello world!", @response.body
+
+    @request.accept = "application/xml"
+    get :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal "XML", @response.body
+
+    @request.accept = "application/json"
+    assert_raise ActionView::MissingTemplate do
+      get :using_resource
+    end
+  end
+
+  def test_using_resource_with_options
+    @request.accept = "application/xml"
+    get :using_resource_with_options
+    assert_equal "application/xml", @response.content_type
+    assert_equal 422, @response.status
+    assert_equal "XML", @response.body
+
+    @request.accept = "text/javascript"
+    get :using_resource_with_options
+    assert_equal "text/javascript", @response.content_type
+    assert_equal 422, @response.status
+    assert_equal "JS", @response.body
+  end
+
   def test_not_acceptable
     @request.accept = "application/xml"
     get :using_defaults
@@ -537,6 +597,14 @@ class RespondWithControllerTest < ActionController::TestCase
 
     @request.accept = "text/html"
     get :using_defaults_with_type_list
+    assert_equal 406, @response.status
+
+    @request.accept = "application/json"
+    get :using_defaults_with_type_list
+    assert_equal 406, @response.status
+
+    @request.accept = "text/javascript"
+    get :using_resource
     assert_equal 406, @response.status
   end
 end

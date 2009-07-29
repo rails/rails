@@ -145,8 +145,45 @@ module ActionController #:nodoc:
     # environment.rb as follows.
     #
     #   Mime::Type.register "image/jpg", :jpg
+    #
+    # Respond to also allows you to specify a common block for different formats by using any:
+    #
+    #   def index
+    #     @people = Person.find(:all)
+    #
+    #     respond_to do |format|
+    #       format.html
+    #       format.any(:xml, :json) { render request.format.to_sym => @people }
+    #     end
+    #   end
+    #
+    # In the example above, if the format is xml, it will render:
+    #
+    #   render :xml => @people
+    #
+    # Or if the format is json:
+    #
+    #   render :json => @people
+    #
+    # Since this is a common pattern, you can use the class method respond_to
+    # with the respond_with method to have the same results:
+    #
+    #   class PeopleController < ApplicationController
+    #     respond_to :html, :xml, :json
+    #
+    #     def index
+    #       @people = Person.find(:all)
+    #       respond_with(@person)
+    #     end
+    #   end
+    #
+    # Be sure to check respond_with and respond_to documentation for more examples.
+    #
     def respond_to(*mimes, &block)
+      options = mimes.extract_options!
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
+
+      resource  = options.delete(:with)
       responder = Responder.new
       block.call(responder) if block_given?
 
@@ -154,41 +191,117 @@ module ActionController #:nodoc:
       mimes.each { |mime| responder.send(mime) }
 
       if format = request.negotiate_mime(responder.order)
-        # TODO It should be just: self.formats = [ :foo ]
-        self.formats = [format.to_sym]
-        self.content_type = format
-        self.template.formats = [format.to_sym]
-
-        if response = responder.response_for(format)
-          response.call
-        else
-          default_render
-        end
+        respond_to_block_or_template_or_resource(format, resource,
+          options, &responder.response_for(format))
       else
         head :not_acceptable
       end
     end
 
-    protected
+    # respond_with allows you to respond an action with a given resource. It
+    # requires that you set your class with a :respond_to method with the
+    # formats allowed:
+    #
+    #   class PeopleController < ApplicationController
+    #     respond_to :html, :xml, :json
+    #
+    #     def index
+    #       @people = Person.find(:all)
+    #       respond_with(@person)
+    #     end
+    #   end
+    #
+    # When a request comes with format :xml, the respond_with will first search
+    # for a template as person/index.xml, if the template is not available, it
+    # will see if the given resource responds to :to_xml.
+    #
+    # If neither are available, it will raise an error.
+    #
+    # Extra parameters given to respond_with are used when :to_format is invoked.
+    # This allows you to set status and location for several formats at the same
+    # time. Consider this restful controller response on create for both xml
+    # and json formats:
+    #
+    #   class PeopleController < ApplicationController
+    #     respond_to :xml, :json
+    #
+    #     def create
+    #       @person = Person.new(params[:person])
+    #
+    #       if @person.save
+    #         respond_with(@person, :status => :ok, :location => person_url(@person))
+    #       else
+    #         respond_with(@person.errors, :status => :unprocessable_entity)
+    #       end
+    #     end
+    #   end
+    #
+    # Finally, respond_with also accepts blocks, as in respond_to. Let's take
+    # the same controller and create action above and add common html behavior:
+    #
+    #   class PeopleController < ApplicationController
+    #     respond_to :html, :xml, :json
+    #
+    #     def create
+    #       @person = Person.new(params[:person])
+    #
+    #       if @person.save
+    #         options = { :status => :ok, :location => person_url(@person) }
+    #
+    #         respond_with(@person, options) do |format|
+    #           format.html { redirect_to options[:location] }
+    #         end
+    #       else
+    #         respond_with(@person.errors, :status => :unprocessable_entity) do
+    #           format.html { render :action => :new }
+    #         end
+    #       end
+    #     end
+    #   end
+    #
+    def respond_with(resource, options={}, &block)
+      respond_to(options.merge!(:with => resource), &block)
+    end
 
-      # Collect mimes declared in the class method respond_to valid for the
-      # current action.
-      #
-      def collect_mimes_from_class_level #:nodoc:
-        action = action_name.to_sym
+  protected
 
-        mimes_for_respond_to.keys.select do |mime|
-          config = mimes_for_respond_to[mime]
+    def respond_to_block_or_template_or_resource(format, resource, options)
+      # TODO It should be just: self.formats = [ :foo ]
+      self.formats = [format.to_sym]
+      self.content_type = format
+      self.template.formats = [format.to_sym]
 
-          if config[:except]
-            !config[:except].include?(action)
-          elsif config[:only]
-            config[:only].include?(action)
-          else
-            true
-          end
+      return yield if block_given?
+
+      begin
+        default_render
+      rescue ActionView::MissingTemplate => e
+        if resource && resource.respond_to?("to_#{format.to_sym}")
+          render options.merge(format.to_sym => resource)
+        else
+          raise e
         end
       end
+    end
+
+    # Collect mimes declared in the class method respond_to valid for the
+    # current action.
+    #
+    def collect_mimes_from_class_level #:nodoc:
+      action = action_name.to_sym
+
+      mimes_for_respond_to.keys.select do |mime|
+        config = mimes_for_respond_to[mime]
+
+        if config[:except]
+          !config[:except].include?(action)
+        elsif config[:only]
+          config[:only].include?(action)
+        else
+          true
+        end
+      end
+    end
 
     class Responder #:nodoc:
       attr_accessor :order
