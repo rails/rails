@@ -508,11 +508,28 @@ class RespondWithController < ActionController::Base
     end
   end
 
+  def default_overwritten
+    respond_to do |format|
+      format.html { render :text => "HTML" }
+    end
+  end
+
 protected
 
   def _render_js(js, options)
     self.content_type ||= Mime::JS
     self.response_body = js.respond_to?(:to_js) ? js.to_js : js
+  end
+end
+
+class InheritedRespondWithController < RespondWithController
+  clear_respond_to
+  respond_to :xml, :json
+
+  def index
+    respond_with(RespondResource.new) do |format|
+      format.json { render :text => "JSON" }
+    end
   end
 end
 
@@ -588,6 +605,27 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal "text/javascript", @response.content_type
     assert_equal 422, @response.status
     assert_equal "JS", @response.body
+  end
+
+  def test_default_overwritten
+    get :default_overwritten
+    assert_equal "text/html", @response.content_type
+    assert_equal "HTML", @response.body
+  end
+
+  def test_clear_respond_to
+    @controller = InheritedRespondWithController.new
+    @request.accept = "text/html"
+    get :index
+    assert_equal 406, @response.status
+  end
+
+  def test_first_in_respond_to_has_higher_priority
+    @controller = InheritedRespondWithController.new
+    @request.accept = "*/*"
+    get :index
+    assert_equal "application/xml", @response.content_type
+    assert_equal "XML", @response.body
   end
 
   def test_not_acceptable

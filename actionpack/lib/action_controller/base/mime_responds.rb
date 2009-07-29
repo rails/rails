@@ -4,7 +4,7 @@ module ActionController #:nodoc:
 
     included do
       class_inheritable_reader :mimes_for_respond_to
-      respond_to # Set mimes_for_respond_to hash
+      clear_respond_to
     end
 
     module ClassMethods
@@ -31,25 +31,22 @@ module ActionController #:nodoc:
       #
       def respond_to(*mimes)
         options = mimes.extract_options!
-        mimes_hash = {}
 
         only_actions   = Array(options.delete(:only))
         except_actions = Array(options.delete(:except))
 
         mimes.each do |mime|
           mime = mime.to_sym
-          mimes_hash[mime]          = {}
-          mimes_hash[mime][:only]   = only_actions   unless only_actions.empty?
-          mimes_hash[mime][:except] = except_actions unless except_actions.empty?
+          mimes_for_respond_to[mime]          = {}
+          mimes_for_respond_to[mime][:only]   = only_actions   unless only_actions.empty?
+          mimes_for_respond_to[mime][:except] = except_actions unless except_actions.empty?
         end
-
-        write_inheritable_hash(:mimes_for_respond_to, mimes_hash)
       end
 
       # Clear all mimes in respond_to.
       #
-      def clear_respond_to!
-        mimes_for_respond_to.each { |k,v| mimes[k] = { :only => [] } }
+      def clear_respond_to
+        write_inheritable_attribute(:mimes_for_respond_to, ActiveSupport::OrderedHash.new)
       end
     end
 
@@ -185,10 +182,10 @@ module ActionController #:nodoc:
 
       resource  = options.delete(:with)
       responder = Responder.new
-      block.call(responder) if block_given?
 
       mimes = collect_mimes_from_class_level if mimes.empty?
       mimes.each { |mime| responder.send(mime) }
+      block.call(responder) if block_given?
 
       if format = request.negotiate_mime(responder.order)
         respond_to_block_or_template_or_resource(format, resource,
@@ -276,7 +273,7 @@ module ActionController #:nodoc:
       begin
         default_render
       rescue ActionView::MissingTemplate => e
-        if resource && resource.respond_to?("to_#{format.to_sym}")
+        if resource && resource.respond_to?(:"to_#{format.to_sym}")
           render options.merge(format.to_sym => resource)
         else
           raise e
