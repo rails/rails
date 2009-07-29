@@ -65,8 +65,7 @@ module ActiveRecord
       def define_attribute_methods
         return if generated_methods?
         columns_hash.keys.each do |name|
-          # TODO: Generate for all defined suffixes
-          ["", "=", "?"].each do |suffix|
+          attribute_method_suffixes.each do |suffix|
             method_name = "#{name}#{suffix}"
             unless instance_method_already_implemented?(method_name)
               generate_method = "define_attribute_method#{suffix}"
@@ -81,14 +80,10 @@ module ActiveRecord
       end
 
       # Checks whether the method is defined in the model or any of its subclasses
-      # that also derive from Active Record. Raises DangerousAttributeError if the
-      # method is defined by Active Record though.
+      # that also derive from Active Record.
       def instance_method_already_implemented?(method_name)
         method_name = method_name.to_s
-        return true if method_name =~ /^id(=$|\?$|$)/ # TODO: Check against all defined suffixes
-        @_defined_class_methods         ||= ancestors.first(ancestors.index(ActiveRecord::Base)).sum([]) { |m| m.public_instance_methods(false) | m.private_instance_methods(false) | m.protected_instance_methods(false) }.map {|m| m.to_s }.to_set
-        @@_defined_activerecord_methods ||= (ActiveRecord::Base.public_instance_methods(false) | ActiveRecord::Base.private_instance_methods(false) | ActiveRecord::Base.protected_instance_methods(false)).map{|m| m.to_s }.to_set
-        raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord" if @@_defined_activerecord_methods.include?(method_name)
+        @_defined_class_methods ||= ancestors.first(ancestors.index(ActiveRecord::Base)).sum([]) { |m| m.public_instance_methods(false) | m.private_instance_methods(false) | m.protected_instance_methods(false) }.map(&:to_s).to_set
         @_defined_class_methods.include?(method_name)
       end
 
@@ -124,9 +119,7 @@ module ActiveRecord
 
         # Evaluate the definition for an attribute related method
         def evaluate_attribute_method(attr_name, method_definition, method_name)
-          unless method_name.to_s == primary_key.to_s
-            generated_methods << method_name
-          end
+          generated_methods << method_name
 
           begin
             class_eval(method_definition, __FILE__, __LINE__)

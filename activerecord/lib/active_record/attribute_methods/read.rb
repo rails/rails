@@ -3,9 +3,9 @@ module ActiveRecord
     module Read
       extend ActiveSupport::Concern
 
-      # included do
-      #   attribute_method_suffix ""
-      # end
+      included do
+        attribute_method_suffix ""
+      end
 
       module ClassMethods
         protected
@@ -74,6 +74,11 @@ module ActiveRecord
             "#{attr_name} was supposed to be a #{self.class.serialized_attributes[attr_name]}, but was a #{unserialized_object.class.to_s}"
         end
       end
+
+      private
+        def attribute(attribute_name)
+          read_attribute(attribute_name)
+        end
     end
   end
 end
