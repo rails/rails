@@ -8,7 +8,10 @@ module ActionView
     module TagHelper
       include ERB::Util
 
-      BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked).to_set
+      BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked autobuffer
+                           autoplay controls loop selected hidden scoped async
+                           defer reversed ismap seemless muted required
+                           autofocus novalidate formnovalidate open).to_set
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attr| attr.to_sym })
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML
