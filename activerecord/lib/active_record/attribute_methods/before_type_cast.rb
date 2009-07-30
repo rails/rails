@@ -19,14 +19,14 @@ module ActiveRecord
         end
       end
 
-      def id_before_type_cast #:nodoc:
-        read_attribute_before_type_cast(self.class.primary_key)
-      end
-
       private
         # Handle *_before_type_cast for method_missing.
         def attribute_before_type_cast(attribute_name)
-          read_attribute_before_type_cast(attribute_name)
+          if attribute_name == 'id'
+            read_attribute_before_type_cast(self.class.primary_key)
+          else
+            read_attribute_before_type_cast(attribute_name)
+          end
         end
     end
   end
