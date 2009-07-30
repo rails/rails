@@ -79,6 +79,11 @@ module ActiveRecord
         end
       end
 
+      def undefine_attribute_methods
+        generated_methods.each { |name| undef_method(name) }
+        @generated_methods = nil
+      end
+
       # Checks whether the method is defined in the model or any of its subclasses
       # that also derive from Active Record.
       def instance_method_already_implemented?(method_name)

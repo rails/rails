@@ -1397,8 +1397,8 @@ module ActiveRecord #:nodoc:
       #    end
       #  end
       def reset_column_information
-        generated_methods.each { |name| undef_method(name) }
-        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @generated_methods = @inheritance_column = nil
+        undefine_attribute_methods
+        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
