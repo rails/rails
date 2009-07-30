@@ -34,8 +34,9 @@ module ActiveRecord
       #   person.name = 'Hubert'
       #   person.name_changed?    # => true
       def attribute_method_suffix(*suffixes)
-        attribute_method_suffixes.concat suffixes
+        attribute_method_suffixes.concat(suffixes)
         rebuild_attribute_method_regexp
+        undefine_attribute_methods
       end
 
       # Returns MatchData if method_name is an attribute method.
@@ -101,12 +102,12 @@ module ActiveRecord
 
         # Evaluate the definition for an attribute related method
         def evaluate_attribute_method(method_definition, method_name)
-          generated_methods << method_name
+          generated_methods << method_name.to_s
 
           begin
             class_eval(method_definition, __FILE__, __LINE__)
           rescue SyntaxError => err
-            generated_methods.delete(method_name)
+            generated_methods.delete(method_name.to_s)
             if logger
               logger.warn "Exception occurred during reader method compilation."
               logger.warn "Maybe #{method_name} is not a valid Ruby identifier?"
@@ -137,17 +138,14 @@ module ActiveRecord
         end
       end
 
-      guard_private_attribute_method!(method_name, args)
       if md = self.class.match_attribute_method?(method_name)
         attribute_name, method_type = md.pre_match, md.to_s
         if attribute_name == 'id' || @attributes.include?(attribute_name)
-          __send__("attribute#{method_type}", attribute_name, *args, &block)
-        else
-          super
+          guard_private_attribute_method!(method_name, args)
+          return __send__("attribute#{method_type}", attribute_name, *args, &block)
         end
-      else
-        super
       end
+      super
     end
 
     # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
