@@ -5,6 +5,7 @@ module ActiveRecord
 
       included do
         attribute_method_suffix ""
+        undef_method :id
       end
 
       module ClassMethods
@@ -54,7 +55,7 @@ module ActiveRecord
             if cache_attribute?(attr_name)
               access_code = "@attributes_cache['#{attr_name}'] ||= (#{access_code})"
             end
-            evaluate_attribute_method attr_name, "def #{symbol}; #{access_code}; end", attr_name
+            evaluate_attribute_method attr_name, "def #{symbol}; #{access_code}; end", symbol
           end
       end
 
@@ -76,16 +77,6 @@ module ActiveRecord
         else
           nil
         end
-      end
-
-      # A model instance's primary key is always available as model.id
-      # whether you name it the default 'id' or set it to something else.
-      def id
-        attr_name = self.class.primary_key
-        column = column_for_attribute(attr_name)
-
-        self.class.send(:define_read_method, :id, attr_name, column)
-        id
       end
 
       # Returns true if the attribute is of a text column and marked for serialization.

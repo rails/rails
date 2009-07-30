@@ -77,6 +77,9 @@ module ActiveRecord
             end
           end
         end
+        unless generated_methods.include?("id")
+          define_read_method(:id, primary_key, columns_hash[primary_key.to_s])
+        end
       end
 
       def undefine_attribute_methods
@@ -89,7 +92,6 @@ module ActiveRecord
       # method is defined by Active Record though.
       def instance_method_already_implemented?(method_name)
         method_name = method_name.to_s
-        return true if method_name == "id"
         @_defined_class_methods         ||= ancestors.first(ancestors.index(ActiveRecord::Base)).sum([]) { |m| m.public_instance_methods(false) | m.private_instance_methods(false) | m.protected_instance_methods(false) }.map {|m| m.to_s }.to_set
         @@_defined_activerecord_methods ||= (ActiveRecord::Base.public_instance_methods(false) | ActiveRecord::Base.private_instance_methods(false) | ActiveRecord::Base.protected_instance_methods(false)).map{|m| m.to_s }.to_set
         raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord" if @@_defined_activerecord_methods.include?(method_name)
@@ -109,9 +111,7 @@ module ActiveRecord
 
         # Evaluate the definition for an attribute related method
         def evaluate_attribute_method(attr_name, method_definition, method_name)
-          unless method_name.to_s == primary_key.to_s
-            generated_methods << method_name
-          end
+          generated_methods << method_name
 
           begin
             class_eval(method_definition, __FILE__, __LINE__)

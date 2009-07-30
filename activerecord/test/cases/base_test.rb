@@ -422,11 +422,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
 
-  def test_reader_for_invalid_column_names
-    Topic.send(:define_read_method, "mumub-jumbo".to_sym, "mumub-jumbo", nil)
-    assert !Topic.generated_methods.include?("mumub-jumbo")
-  end
-
   def test_non_attribute_access_and_assignment
     topic = Topic.new
     assert !topic.respond_to?("mumbo")
