@@ -62,6 +62,7 @@ module ActiveRecord
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
         attr_name = attr_name.to_s
+        attr_name = self.class.primary_key if attr_name == 'id'
         if !(value = @attributes[attr_name]).nil?
           if column = column_for_attribute(attr_name)
             if unserializable_attribute?(attr_name, column)
@@ -84,8 +85,7 @@ module ActiveRecord
         column = column_for_attribute(attr_name)
 
         self.class.send(:define_read_method, :id, attr_name, column)
-        # now that the method exists, call it
-        self.send attr_name.to_sym
+        id
       end
 
       # Returns true if the attribute is of a text column and marked for serialization.

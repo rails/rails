@@ -148,9 +148,7 @@ module ActiveRecord
       end
 
       guard_private_attribute_method!(method_name, args)
-      if self.class.primary_key.to_s == method_name
-        id
-      elsif md = self.class.match_attribute_method?(method_name)
+      if md = self.class.match_attribute_method?(method_name)
         attribute_name, method_type = md.pre_match, md.to_s
         if attribute_name == 'id' || @attributes.include?(attribute_name)
           __send__("attribute#{method_type}", attribute_name, *args, &block)
