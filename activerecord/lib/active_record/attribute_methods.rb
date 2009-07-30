@@ -146,8 +146,6 @@ module ActiveRecord
         else
           super
         end
-      elsif @attributes.include?(method_name)
-        read_attribute(method_name)
       else
         super
       end
@@ -172,11 +170,7 @@ module ActiveRecord
         end
       end
 
-      if @attributes.nil?
-        return super
-      elsif @attributes.include?(method_name)
-        return true
-      elsif md = self.class.match_attribute_method?(method_name)
+      if md = self.class.match_attribute_method?(method_name)
         return true if @attributes.include?(md.pre_match)
       end
       super
