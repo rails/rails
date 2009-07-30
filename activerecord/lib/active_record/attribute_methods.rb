@@ -39,6 +39,36 @@ module ActiveRecord
         undefine_attribute_methods
       end
 
+      # Defines an "attribute" method (like +inheritance_column+ or
+      # +table_name+). A new (class) method will be created with the
+      # given name. If a value is specified, the new method will
+      # return that value (as a string). Otherwise, the given block
+      # will be used to compute the value of the method.
+      #
+      # The original method will be aliased, with the new name being
+      # prefixed with "original_". This allows the new method to
+      # access the original value.
+      #
+      # Example:
+      #
+      #   class A < ActiveRecord::Base
+      #     define_attr_method :primary_key, "sysid"
+      #     define_attr_method( :inheritance_column ) do
+      #       original_inheritance_column + "_id"
+      #     end
+      #   end
+      def define_attr_method(name, value=nil, &block)
+        sing = metaclass
+        sing.send :alias_method, "original_#{name}", name
+        if block_given?
+          sing.send :define_method, name, &block
+        else
+          # use eval instead of a block to work around a memory leak in dev
+          # mode in fcgi
+          sing.class_eval "def #{name}; #{value.to_s.inspect}; end"
+        end
+      end
+
       # Returns MatchData if method_name is an attribute method.
       def match_attribute_method?(method_name)
         rebuild_attribute_method_regexp unless defined?(@@attribute_method_regexp) && @@attribute_method_regexp

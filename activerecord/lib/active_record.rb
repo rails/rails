@@ -73,6 +73,7 @@ module ActiveRecord
   module AttributeMethods
     autoload :BeforeTypeCast, 'active_record/attribute_methods/before_type_cast'
     autoload :Dirty, 'active_record/attribute_methods/dirty'
+    autoload :PrimaryKey, 'active_record/attribute_methods/primary_key'
     autoload :Query, 'active_record/attribute_methods/query'
     autoload :Read, 'active_record/attribute_methods/read'
     autoload :TimeZoneConversion, 'active_record/attribute_methods/time_zone_conversion'

@@ -1225,29 +1225,6 @@ module ActiveRecord #:nodoc:
         name
       end
 
-      # Defines the primary key field -- can be overridden in subclasses. Overwriting will negate any effect of the
-      # primary_key_prefix_type setting, though.
-      def primary_key
-        reset_primary_key
-      end
-
-      def reset_primary_key #:nodoc:
-        key = get_primary_key(base_class.name)
-        set_primary_key(key)
-        key
-      end
-
-      def get_primary_key(base_name) #:nodoc:
-        key = 'id'
-        case primary_key_prefix_type
-          when :table_name
-            key = base_name.to_s.foreign_key(false)
-          when :table_name_with_underscore
-            key = base_name.to_s.foreign_key
-        end
-        key
-      end
-
       # Defines the column name for use with single table inheritance
       # -- can be set in subclasses like so: self.inheritance_column = "type_id"
       def inheritance_column
@@ -1276,18 +1253,6 @@ module ActiveRecord #:nodoc:
         define_attr_method :table_name, value, &block
       end
       alias :table_name= :set_table_name
-
-      # Sets the name of the primary key column to use to the given value,
-      # or (if the value is nil or false) to the value returned by the given
-      # block.
-      #
-      #   class Project < ActiveRecord::Base
-      #     set_primary_key "sysid"
-      #   end
-      def set_primary_key(value = nil, &block)
-        define_attr_method :primary_key, value, &block
-      end
-      alias :primary_key= :set_primary_key
 
       # Sets the name of the inheritance column to use to the given value,
       # or (if the value # is nil or false) to the value returned by the
@@ -2074,36 +2039,6 @@ module ActiveRecord #:nodoc:
           case id_or_conditions
             when Array, Hash then id_or_conditions
             else sanitize_sql(primary_key => id_or_conditions)
-          end
-        end
-
-        # Defines an "attribute" method (like +inheritance_column+ or
-        # +table_name+). A new (class) method will be created with the
-        # given name. If a value is specified, the new method will
-        # return that value (as a string). Otherwise, the given block
-        # will be used to compute the value of the method.
-        #
-        # The original method will be aliased, with the new name being
-        # prefixed with "original_". This allows the new method to
-        # access the original value.
-        #
-        # Example:
-        #
-        #   class A < ActiveRecord::Base
-        #     define_attr_method :primary_key, "sysid"
-        #     define_attr_method( :inheritance_column ) do
-        #       original_inheritance_column + "_id"
-        #     end
-        #   end
-        def define_attr_method(name, value=nil, &block)
-          sing = metaclass
-          sing.send :alias_method, "original_#{name}", name
-          if block_given?
-            sing.send :define_method, name, &block
-          else
-            # use eval instead of a block to work around a memory leak in dev
-            # mode in fcgi
-            sing.class_eval "def #{name}; #{value.to_s.inspect}; end"
           end
         end
 
@@ -3184,6 +3119,7 @@ module ActiveRecord #:nodoc:
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
     include AttributeMethods::Read, AttributeMethods::Write, AttributeMethods::BeforeTypeCast, AttributeMethods::Query
+    include AttributeMethods::PrimaryKey
     include AttributeMethods::TimeZoneConversion
     include AttributeMethods::Dirty
     include Callbacks, ActiveModel::Observing, Timestamp
