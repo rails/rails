@@ -25,7 +25,7 @@ module ActiveRecord
                   @attributes_cache['#{attr_name}'] = time.acts_like?(:time) ? time.in_time_zone : time
                 end
               EOV
-              evaluate_attribute_method attr_name, method_body, attr_name
+              evaluate_attribute_method method_body, attr_name
             else
               super
             end
@@ -44,7 +44,7 @@ module ActiveRecord
                   write_attribute(:#{attr_name}, time)
                 end
               EOV
-              evaluate_attribute_method attr_name, method_body, "#{attr_name}="
+              evaluate_attribute_method method_body, "#{attr_name}="
             else
               super
             end

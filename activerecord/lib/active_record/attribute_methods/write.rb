@@ -10,7 +10,7 @@ module ActiveRecord
       module ClassMethods
         protected
           def define_attribute_method=(attr_name)
-            evaluate_attribute_method attr_name, "def #{attr_name}=(new_value); write_attribute('#{attr_name}', new_value); end", "#{attr_name}="
+            evaluate_attribute_method "def #{attr_name}=(new_value); write_attribute('#{attr_name}', new_value); end", "#{attr_name}="
           end
       end
 

@@ -72,7 +72,7 @@ module ActiveRecord
               if respond_to?(generate_method)
                 send(generate_method, name)
               else
-                evaluate_attribute_method(name, "def #{method_name}(*args); attribute#{suffix}('#{name}', *args); end", method_name)
+                evaluate_attribute_method("def #{method_name}(*args); attribute#{suffix}('#{name}', *args); end", method_name)
               end
             end
           end
@@ -110,16 +110,16 @@ module ActiveRecord
         end
 
         # Evaluate the definition for an attribute related method
-        def evaluate_attribute_method(attr_name, method_definition, method_name)
+        def evaluate_attribute_method(method_definition, method_name)
           generated_methods << method_name
 
           begin
             class_eval(method_definition, __FILE__, __LINE__)
           rescue SyntaxError => err
-            generated_methods.delete(attr_name)
+            generated_methods.delete(method_name)
             if logger
               logger.warn "Exception occurred during reader method compilation."
-              logger.warn "Maybe #{attr_name} is not a valid Ruby identifier?"
+              logger.warn "Maybe #{method_name} is not a valid Ruby identifier?"
               logger.warn err.message
             end
           end
