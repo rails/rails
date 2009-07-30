@@ -4,13 +4,6 @@ module ActiveRecord
   module AttributeMethods #:nodoc:
     extend ActiveSupport::Concern
 
-    ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
-
-    included do
-      cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
-      self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
-    end
-
     # Declare and check for suffixed attribute methods.
     module ClassMethods
       # Declares a method available for all attributes with the given suffix.
@@ -76,9 +69,6 @@ module ActiveRecord
               end
             end
           end
-        end
-        unless generated_methods.include?("id")
-          define_read_method(:id, primary_key, columns_hash[primary_key.to_s])
         end
       end
 

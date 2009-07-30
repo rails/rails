@@ -3,8 +3,15 @@ module ActiveRecord
     module Read
       extend ActiveSupport::Concern
 
+      ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
+
       included do
         attribute_method_suffix ""
+
+        cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
+        self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
+
+        # Undefine id so it can be used as an attribute name
         undef_method :id
       end
 
@@ -34,6 +41,10 @@ module ActiveRecord
               define_read_method_for_serialized_attribute(attr_name)
             else
               define_read_method(attr_name.to_sym, attr_name, columns_hash[attr_name])
+            end
+
+            if attr_name == primary_key && attr_name != "id"
+              define_read_method(:id, attr_name, columns_hash[attr_name])
             end
           end
 
