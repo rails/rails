@@ -144,6 +144,10 @@ module ActiveRecord #:nodoc:
   class Rollback < ActiveRecordError
   end
 
+  # Raised when attribute has a name reserved by Active Record (when attribute has name of one of Active Record instance methods).
+  class DangerousAttributeError < ActiveRecordError
+  end
+
   # Raised when you've tried to access a column which wasn't loaded by your finder.
   # Typically this is because <tt>:select</tt> has been specified.
   class MissingAttributeError < NoMethodError

@@ -85,10 +85,14 @@ module ActiveRecord
       end
 
       # Checks whether the method is defined in the model or any of its subclasses
-      # that also derive from Active Record.
+      # that also derive from Active Record. Raises DangerousAttributeError if the
+      # method is defined by Active Record though.
       def instance_method_already_implemented?(method_name)
         method_name = method_name.to_s
-        @_defined_class_methods ||= ancestors.first(ancestors.index(ActiveRecord::Base)).sum([]) { |m| m.public_instance_methods(false) | m.private_instance_methods(false) | m.protected_instance_methods(false) }.map(&:to_s).to_set
+        return true if method_name =~ /^id(=$|\?$|_before_type_cast$|$)/
+        @_defined_class_methods         ||= ancestors.first(ancestors.index(ActiveRecord::Base)).sum([]) { |m| m.public_instance_methods(false) | m.private_instance_methods(false) | m.protected_instance_methods(false) }.map {|m| m.to_s }.to_set
+        @@_defined_activerecord_methods ||= (ActiveRecord::Base.public_instance_methods(false) | ActiveRecord::Base.private_instance_methods(false) | ActiveRecord::Base.protected_instance_methods(false)).map{|m| m.to_s }.to_set
+        raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord" if @@_defined_activerecord_methods.include?(method_name)
         @_defined_class_methods.include?(method_name)
       end
 
@@ -105,7 +109,9 @@ module ActiveRecord
 
         # Evaluate the definition for an attribute related method
         def evaluate_attribute_method(attr_name, method_definition, method_name)
-          generated_methods << method_name
+          unless method_name.to_s == primary_key.to_s
+            generated_methods << method_name
+          end
 
           begin
             class_eval(method_definition, __FILE__, __LINE__)

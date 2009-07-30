@@ -74,6 +74,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_primary_key_implemented
+    assert Class.new(ActiveRecord::Base).instance_method_already_implemented?('id')
+  end
+
   def test_defined_kernel_methods_implemented_in_model
     %w(test name display y).each do |method|
       klass = Class.new ActiveRecord::Base
@@ -89,6 +93,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       abstract.abstract_class = true
       klass = Class.new abstract
       assert klass.instance_method_already_implemented?(method), "##{method} is not defined"
+    end
+  end
+
+  def test_raises_dangerous_attribute_error_when_defining_activerecord_method_in_model
+    %w(save create_or_update).each do |method|
+      klass = Class.new ActiveRecord::Base
+      klass.class_eval "def #{method}() 'defined #{method}' end"
+      assert_raise ActiveRecord::DangerousAttributeError do
+        klass.instance_method_already_implemented?(method)
+      end
     end
   end
 
