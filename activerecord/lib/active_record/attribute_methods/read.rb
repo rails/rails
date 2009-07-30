@@ -8,6 +8,25 @@ module ActiveRecord
       end
 
       module ClassMethods
+        # +cache_attributes+ allows you to declare which converted attribute values should
+        # be cached. Usually caching only pays off for attributes with expensive conversion
+        # methods, like time related columns (e.g. +created_at+, +updated_at+).
+        def cache_attributes(*attribute_names)
+          attribute_names.each {|attr| cached_attributes << attr.to_s}
+        end
+
+        # Returns the attributes which are cached. By default time related columns
+        # with datatype <tt>:datetime, :timestamp, :time, :date</tt> are cached.
+        def cached_attributes
+          @cached_attributes ||=
+            columns.select{|c| attribute_types_cached_by_default.include?(c.type)}.map{|col| col.name}.to_set
+        end
+
+        # Returns +true+ if the provided attribute is being cached.
+        def cache_attribute?(attr_name)
+          cached_attributes.include?(attr_name)
+        end
+
         protected
           def define_attribute_method(attr_name)
             if self.serialized_attributes[attr_name]
