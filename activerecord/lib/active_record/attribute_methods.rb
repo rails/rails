@@ -89,7 +89,7 @@ module ActiveRecord
       # method is defined by Active Record though.
       def instance_method_already_implemented?(method_name)
         method_name = method_name.to_s
-        return true if method_name =~ /^id(=$|\?$|$)/
+        return true if method_name == "id"
         @_defined_class_methods         ||= ancestors.first(ancestors.index(ActiveRecord::Base)).sum([]) { |m| m.public_instance_methods(false) | m.private_instance_methods(false) | m.protected_instance_methods(false) }.map {|m| m.to_s }.to_set
         @@_defined_activerecord_methods ||= (ActiveRecord::Base.public_instance_methods(false) | ActiveRecord::Base.private_instance_methods(false) | ActiveRecord::Base.protected_instance_methods(false)).map{|m| m.to_s }.to_set
         raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord" if @@_defined_activerecord_methods.include?(method_name)
@@ -152,7 +152,7 @@ module ActiveRecord
         id
       elsif md = self.class.match_attribute_method?(method_name)
         attribute_name, method_type = md.pre_match, md.to_s
-        if @attributes.include?(attribute_name)
+        if attribute_name == 'id' || @attributes.include?(attribute_name)
           __send__("attribute#{method_type}", attribute_name, *args, &block)
         else
           super
@@ -182,7 +182,7 @@ module ActiveRecord
       end
 
       if md = self.class.match_attribute_method?(method_name)
-        return true if @attributes.include?(md.pre_match)
+        return true if md.pre_match == 'id' || @attributes.include?(md.pre_match)
       end
       super
     end
