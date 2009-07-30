@@ -1,3 +1,0 @@
-#!/usr/bin/env ruby
-require File.expand_path('../../config/boot',  __FILE__)
-require 'commands/generate'

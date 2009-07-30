@@ -2,7 +2,6 @@
 # http://www.iana.org/assignments/media-types/
 
 Mime::Type.register "text/html", :html, %w( application/xhtml+xml ), %w( xhtml )
-Mime::Type.register "*/*", :all
 Mime::Type.register "text/plain", :text, [], %w(txt)
 Mime::Type.register "text/javascript", :js, %w( application/javascript application/x-javascript )
 Mime::Type.register "text/css", :css
@@ -19,3 +18,6 @@ Mime::Type.register "application/x-www-form-urlencoded", :url_encoded_form
 # http://www.ietf.org/rfc/rfc4627.txt
 # http://www.json.org/JSONRequest.html
 Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
+
+# Create Mime::ALL but do not add it to the SET.
+Mime::ALL = Mime::Type.new("*/*", :all, [])

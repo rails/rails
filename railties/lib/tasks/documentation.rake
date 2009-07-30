@@ -21,7 +21,7 @@ namespace :doc do
     rdoc.rdoc_files.include('vendor/rails/railties/CHANGELOG')
     rdoc.rdoc_files.include('vendor/rails/railties/MIT-LICENSE')
     rdoc.rdoc_files.include('vendor/rails/railties/README')
-    rdoc.rdoc_files.include('vendor/rails/railties/lib/{*.rb,commands/*.rb,rails_generator/*.rb}')
+    rdoc.rdoc_files.include('vendor/rails/railties/lib/{*.rb,commands/*.rb,generators/*.rb}')
     rdoc.rdoc_files.include('vendor/rails/activerecord/README')
     rdoc.rdoc_files.include('vendor/rails/activerecord/CHANGELOG')
     rdoc.rdoc_files.include('vendor/rails/activerecord/lib/active_record/**/*.rb')

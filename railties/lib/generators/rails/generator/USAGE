@@ -1,0 +1,11 @@
+Description:
+    Stubs out a new generator at lib/generators. Pass the generator name, either
+    CamelCased or under_scored, as an argument. 
+
+Example:
+    `./script/generate generator Awesome`
+
+    creates a standard awesome generator:
+        lib/generators/awesome/
+        lib/generators/awesome/awesome_generator.rb
+        lib/generators/awesome/templates/
