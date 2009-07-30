@@ -26,6 +26,11 @@ module ActiveRecord
         end
       end
 
+      # Sets the primary ID.
+      def id=(value)
+        write_attribute(self.class.primary_key, value)
+      end
+
       private
         # Handle *= for method_missing.
         def attribute=(attribute_name, value)

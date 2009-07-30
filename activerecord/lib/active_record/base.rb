@@ -2508,18 +2508,6 @@ module ActiveRecord #:nodoc:
         result
       end
 
-      # A model instance's primary key is always available as model.id
-      # whether you name it the default 'id' or set it to something else.
-      def id
-        attr_name = self.class.primary_key
-        column = column_for_attribute(attr_name)
-
-        self.class.send(:define_read_method, :id, attr_name, column)
-        # now that the method exists, call it
-        self.send attr_name.to_sym
-
-      end
-
       # Returns a String, which Action Pack uses for constructing an URL to this
       # object. The default implementation returns this record's id as a String,
       # or nil if this record's unsaved.
@@ -2565,17 +2553,8 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      def id_before_type_cast #:nodoc:
-        read_attribute_before_type_cast(self.class.primary_key)
-      end
-
       def quoted_id #:nodoc:
         quote_value(id, column_for_attribute(self.class.primary_key))
-      end
-
-      # Sets the primary ID.
-      def id=(value)
-        write_attribute(self.class.primary_key, value)
       end
 
       # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet; otherwise, returns false.
@@ -2818,14 +2797,6 @@ module ActiveRecord #:nodoc:
       def attributes
         self.attribute_names.inject({}) do |attrs, name|
           attrs[name] = read_attribute(name)
-          attrs
-        end
-      end
-
-      # Returns a hash of attributes before typecasting and deserialization.
-      def attributes_before_type_cast
-        self.attribute_names.inject({}) do |attrs, name|
-          attrs[name] = read_attribute_before_type_cast(name)
           attrs
         end
       end

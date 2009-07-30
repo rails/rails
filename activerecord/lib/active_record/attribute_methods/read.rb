@@ -77,6 +77,17 @@ module ActiveRecord
         end
       end
 
+      # A model instance's primary key is always available as model.id
+      # whether you name it the default 'id' or set it to something else.
+      def id
+        attr_name = self.class.primary_key
+        column = column_for_attribute(attr_name)
+
+        self.class.send(:define_read_method, :id, attr_name, column)
+        # now that the method exists, call it
+        self.send attr_name.to_sym
+      end
+
       # Returns true if the attribute is of a text column and marked for serialization.
       def unserializable_attribute?(attr_name, column)
         column.text? && self.class.serialized_attributes[attr_name]
