@@ -177,19 +177,21 @@ module ActionController #:nodoc:
     # Be sure to check respond_with and respond_to documentation for more examples.
     #
     def respond_to(*mimes, &block)
-      options = mimes.extract_options!
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
-      resource  = options.delete(:with)
       responder = Responder.new
-
       mimes = collect_mimes_from_class_level if mimes.empty?
       mimes.each { |mime| responder.send(mime) }
       block.call(responder) if block_given?
 
       if format = request.negotiate_mime(responder.order)
-        respond_to_block_or_template_or_resource(format, resource,
-          options, &responder.response_for(format))
+        self.formats = [format.to_sym]
+
+        if response = responder.response_for(format)
+          response.call
+        else
+          default_render
+        end
       else
         head :not_acceptable
       end
@@ -257,25 +259,20 @@ module ActionController #:nodoc:
     #   end
     #
     def respond_with(resource, options={}, &block)
-      respond_to(options.merge!(:with => resource), &block)
-    end
-
-  protected
-
-    def respond_to_block_or_template_or_resource(format, resource, options)
-      self.formats = [format.to_sym]
-      return yield if block_given?
-
       begin
-        default_render
+        respond_to(&block)
       rescue ActionView::MissingTemplate => e
-        if resource && resource.respond_to?(:"to_#{format.to_sym}")
-          render options.merge(format.to_sym => resource)
+        format = self.formats.first
+
+        if resource.respond_to?(:"to_#{format}")
+          render options.merge(format => resource)
         else
           raise e
         end
       end
     end
+
+  protected
 
     # Collect mimes declared in the class method respond_to valid for the
     # current action.
