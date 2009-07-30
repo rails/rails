@@ -66,7 +66,7 @@ module ActiveRecord
               if respond_to?(generate_method)
                 send(generate_method, name)
               else
-                evaluate_attribute_method("def #{method_name}(*args); attribute#{suffix}('#{name}', *args); end", method_name)
+                evaluate_attribute_method("def #{method_name}(*args); send(:attribute#{suffix}, '#{name}', *args); end", method_name)
               end
             end
           end
