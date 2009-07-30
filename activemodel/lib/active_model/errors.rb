@@ -113,7 +113,7 @@ module ActiveModel
       full_messages
     end
 
-    # Translates an error message in it's default scope (<tt>activemodel.errrors.messages</tt>).
+    # Translates an error message in it's default scope (<tt>activemodel.errors.messages</tt>).
     # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, if it's not there,
     # it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not there it returns the translation of the
     # default message (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model name,
