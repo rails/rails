@@ -663,7 +663,11 @@ module ActiveRecord #:nodoc:
       # This is an alias for find(:all).  You can pass in all the same arguments to this method as you can
       # to find(:all)
       def all(*args)
-        construct_finder_arel(*args)
+        if args.empty? && !scoped?(:find)
+          arel_table
+        else
+          construct_finder_arel(*args)
+        end
       end
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
@@ -2992,7 +2996,7 @@ module ActiveRecord #:nodoc:
       end
 
       def arel_table(reload = nil)
-        @arel_table = Relation.new(self, self.class.table_name) if reload || @arel_table.nil?
+        @arel_table = Relation.new(self.class, self.class.table_name) if reload || @arel_table.nil?
         @arel_table
       end
 
