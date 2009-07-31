@@ -46,18 +46,22 @@ module ActionDispatch # :nodoc:
       @header = Rack::Utils::HeaderHash.new
     end
 
+    def status=(status)
+      @status = status.to_i
+    end
+
     # The response code of the request
     def response_code
-      status.to_s[0,3].to_i rescue 0
+      @status
     end
 
     # Returns a String to ensure compatibility with Net::HTTPResponse
     def code
-      status.to_s.split(' ')[0]
+      @status.to_s
     end
 
     def message
-      status.to_s.split(' ',2)[1] || StatusCodes::STATUS_CODES[response_code]
+      StatusCodes::STATUS_CODES[@status]
     end
     alias_method :status_message, :message
 
@@ -143,10 +147,7 @@ module ActionDispatch # :nodoc:
     def prepare!
       assign_default_content_type_and_charset!
       handle_conditional_get!
-      set_content_length!
-      convert_content_type!
-      convert_language!
-      convert_cookies!
+      self["Set-Cookie"] ||= ""
     end
 
     def each(&callback)
@@ -203,7 +204,7 @@ module ActionDispatch # :nodoc:
           self.etag = body
 
           if request && request.etag_matches?(etag)
-            self.status = '304 Not Modified'
+            self.status = 304
             self.body = []
           end
 
@@ -214,7 +215,7 @@ module ActionDispatch # :nodoc:
       end
 
       def nonempty_ok_response?
-        ok = !status || status.to_s[0..2] == '200'
+        ok = !@status || @status == 200
         ok && string_body?
       end
 
@@ -237,37 +238,6 @@ module ActionDispatch # :nodoc:
         options.concat(extras) if extras
 
         headers["Cache-Control"] = options.join(", ")
-      end
-
-      def convert_content_type!
-        headers['Content-Type'] ||= "text/html"
-        headers['Content-Type'] += "; charset=" + headers.delete('charset') if headers['charset']
-      end
-
-      # Don't set the Content-Length for block-based bodies as that would mean
-      # reading it all into memory. Not nice for, say, a 2GB streaming file.
-      def set_content_length!
-        if status && status.to_s[0..2] == '204'
-          headers.delete('Content-Length')
-        elsif length = headers['Content-Length']
-          headers['Content-Length'] = length.to_s
-        elsif string_body? && (!status || status.to_s[0..2] != '304')
-          headers["Content-Length"] = Rack::Utils.bytesize(body).to_s
-        end
-      end
-
-      def convert_language!
-        headers["Content-Language"] = headers.delete("language") if headers["language"]
-      end
-
-      def convert_cookies!
-        headers['Set-Cookie'] =
-          if header = headers['Set-Cookie']
-            header = header.split("\n") if header.respond_to?(:to_str)
-            header.compact
-          else
-            []
-          end
       end
   end
 end
