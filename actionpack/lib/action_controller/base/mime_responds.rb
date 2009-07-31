@@ -202,11 +202,11 @@ module ActionController #:nodoc:
     # formats allowed:
     #
     #   class PeopleController < ApplicationController
-    #     respond_to :html, :xml, :json
+    #     respond_to :xml, :json
     #
     #     def index
     #       @people = Person.find(:all)
-    #       respond_with(@person)
+    #       respond_with(@people)
     #     end
     #   end
     #
@@ -216,63 +216,100 @@ module ActionController #:nodoc:
     #
     # If neither are available, it will raise an error.
     #
-    # Extra parameters given to respond_with are used when :to_format is invoked.
-    # This allows you to set status and location for several formats at the same
-    # time. Consider this restful controller response on create for both xml
-    # and json formats:
+    # respond_with holds semantics for each HTTP verb. The example above cover
+    # GET requests. Let's check a POST request example:
     #
-    #   class PeopleController < ApplicationController
-    #     respond_to :xml, :json
-    #
-    #     def create
-    #       @person = Person.new(params[:person])
-    #
-    #       if @person.save
-    #         respond_with(@person, :status => :ok, :location => person_url(@person))
-    #       else
-    #         respond_with(@person.errors, :status => :unprocessable_entity)
-    #       end
-    #     end
+    #   def create
+    #     @person = Person.new(params[:person])
+    #     @person.save
+    #     respond_with(@person)
     #   end
     #
-    # Finally, respond_with also accepts blocks, as in respond_to. Let's take
-    # the same controller and create action above and add common html behavior:
+    # Since the request is a POST, respond_with will check wether @people
+    # resource have errors or not. If it has errors, it will render the error
+    # object with unprocessable entity status (422).
+    #
+    # If no error was found, it will render the @people resource, with status
+    # created (201) and location header set to person_url(@people).
+    #
+    # If you also want to provide html behavior in the method above, you can
+    # supply a block to customize it:
     #
     #   class PeopleController < ApplicationController
-    #     respond_to :html, :xml, :json
+    #     respond_to :html, :xml, :json # Add :html to respond_to definition
     #
     #     def create
-    #       @person = Person.new(params[:person])
+    #       @person = Person.new(params[:pe])
     #
-    #       if @person.save
-    #         options = { :status => :ok, :location => person_url(@person) }
-    #
-    #         respond_with(@person, options) do |format|
-    #           format.html { redirect_to options[:location] }
-    #         end
-    #       else
-    #         respond_with(@person.errors, :status => :unprocessable_entity) do
-    #           format.html { render :action => :new }
+    #       respond_with(@person) do |format|
+    #         if @person.save
+    #           flash[:notice] = 'Person was successfully created.'
+    #           format.html { redirect_to @person }
+    #         else
+    #           format.html { render :action => "new" }
     #         end
     #       end
     #     end
     #   end
+    #
+    # It works similarly for PUT requests:
+    #
+    #   def update
+    #     @person = Person.find(params[:id])
+    #     @person.update_attributes(params[:person])
+    #     respond_with(@person)
+    #   end
+    #
+    # In case of failures, it works as POST requests, but in success failures
+    # it just reply status ok (200) to the client.
+    #
+    # A DELETE request also works in the same way:
+    #
+    #   def destroy
+    #     @person = Person.find(params[:id])
+    #     @person.destroy
+    #     respond_with(@person)
+    #   end
+    #
+    # It just replies with status ok, indicating the record was successfuly
+    # destroyed.
     #
     def respond_with(resource, options={}, &block)
-      begin
-        respond_to(&block)
-      rescue ActionView::MissingTemplate => e
-        format = self.formats.first
+      respond_to(&block)
+    rescue ActionView::MissingTemplate => e
+      format   = self.formats.first
+      resource = normalize_resource_options_by_verb(resource, options)
 
-        if resource.respond_to?(:"to_#{format}")
-          render options.merge(format => resource)
+      if resource.respond_to?(:"to_#{format}")
+        if options.delete(:no_content)
+          head options
         else
-          raise e
+          render options.merge(format => resource)
         end
+      else
+        raise e
       end
     end
 
   protected
+
+    # Change respond with behavior based on the HTTP verb.
+    #
+    def normalize_resource_options_by_verb(resource_or_array, options)
+      resource   = resource_or_array.is_a?(Array) ? resource_or_array.last : resource_or_array
+      has_errors = resource.respond_to?(:errors) && !resource.errors.empty?
+
+      if has_errors && (request.post? || request.put?)
+        options.reverse_merge!(:status => :unprocessable_entity)
+        return resource.errors
+      elsif request.post?
+        options.reverse_merge!(:status => :created, :location => resource_or_array)
+      elsif !request.get?
+        options.reverse_merge!(:status => :ok, :no_content => true)
+      end
+
+      return resource
+    end
 
     # Collect mimes declared in the class method respond_to valid for the
     # current action.

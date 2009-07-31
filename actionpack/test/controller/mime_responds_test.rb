@@ -474,12 +474,24 @@ end
 class RespondResource
   undef_method :to_json
 
+  def self.model_name
+    @_model_name ||= ActiveModel::Name.new(name)
+  end
+
+  def to_param
+    13
+  end
+
   def to_xml
     "XML"
   end
 
   def to_js
     "JS"
+  end
+
+  def errors
+    []
   end
 end
 
@@ -519,6 +531,10 @@ protected
   def _render_js(js, options)
     self.content_type ||= Mime::JS
     self.response_body = js.respond_to?(:to_js) ? js.to_js : js
+  end
+
+  def respond_resource_url(id)
+    request.host + "/respond/resource/#{id.to_param}"
   end
 end
 
@@ -593,6 +609,51 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
+  def test_using_resource_for_post
+    @request.accept = "application/xml"
+
+    post :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal 201, @response.status
+    assert_equal "XML", @response.body
+    assert_equal "www.example.com/respond/resource/13", @response.location
+
+    errors = { :name => :invalid }
+    RespondResource.any_instance.stubs(:errors).returns(errors)
+    post :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal 422, @response.status
+    assert_equal errors.to_xml, @response.body
+    assert_nil @response.location
+  end
+
+  def test_using_resource_for_put
+    @request.accept = "application/xml"
+
+    put :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal 200, @response.status
+    assert_equal " ", @response.body
+    assert_nil @response.location
+
+    errors = { :name => :invalid }
+    RespondResource.any_instance.stubs(:errors).returns(errors)
+    put :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal 422, @response.status
+    assert_equal errors.to_xml, @response.body
+    assert_nil   @response.location
+  end
+
+  def test_using_resource_for_delete
+    @request.accept = "application/xml"
+    delete :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal 200, @response.status
+    assert_equal " ", @response.body
+    assert_nil @response.location
+  end
+
   def test_using_resource_with_options
     @request.accept = "application/xml"
     get :using_resource_with_options
@@ -648,8 +709,6 @@ class RespondWithControllerTest < ActionController::TestCase
 end
 
 class AbstractPostController < ActionController::Base
-  respond_to :html, :iphone
-
   self.view_paths = File.dirname(__FILE__) + "/../fixtures/post_test/"
 end
 
@@ -658,7 +717,7 @@ class PostController < AbstractPostController
   around_filter :with_iphone
 
   def index
-    respond_to # It will use formats declared above
+    respond_to(:html, :iphone)
   end
 
 protected
