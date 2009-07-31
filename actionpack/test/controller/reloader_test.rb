@@ -22,9 +22,27 @@ class ReloaderTests < ActiveSupport::TestCase
     end
   end
 
+  class MyLock
+    def lock
+      @locked = true
+    end
+
+    def unlock
+      @locked = false
+    end
+
+    def locked?
+      @locked
+    end
+  end
+
+  def setup
+    @lock = Mutex.new
+  end
+
   def setup_and_return_body(app = lambda { })
     Dispatcher.expects(:reload_application)
-    reloader = Reloader.new(app)
+    reloader = Reloader.new(app, @lock)
     headers, status, body = reloader.call({ })
     body
   end
@@ -33,8 +51,30 @@ class ReloaderTests < ActiveSupport::TestCase
     Dispatcher.expects(:reload_application)
     reloader = Reloader.new(lambda {
       [200, { "Content-Type" => "text/html" }, [""]]
-    })
+    }, @lock)
     reloader.call({ })
+  end
+
+  def test_it_locks_before_calling_app
+    lock = MyLock.new
+    Dispatcher.expects(:reload_application)
+    reloader = Reloader.new(lambda {
+      [200, { "Content-Type" => "text/html" }, [""]]
+    }, lock)
+    assert !lock.locked?
+    reloader.call({ })
+    assert lock.locked?
+  end
+
+  def it_unlocks_upon_calling_close_on_body
+    lock = MyLock.new
+    Dispatcher.expects(:reload_application)
+    reloader = Reloader.new(lambda {
+      [200, { "Content-Type" => "text/html" }, [""]]
+    }, lock)
+    headers, status, body = reloader.call({ })
+    body.close
+    assert !lock.locked?
   end
 
   def test_returned_body_object_always_responds_to_close

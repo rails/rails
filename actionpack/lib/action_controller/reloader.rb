@@ -1,14 +1,20 @@
+require 'thread'
+
 module ActionController
   class Reloader
+    @@lock = Mutex.new
+
     class BodyWrapper
-      def initialize(body)
+      def initialize(body, lock)
         @body = body
+        @lock = lock
       end
 
       def close
         @body.close if @body.respond_to?(:close)
       ensure
         Dispatcher.cleanup_application
+        @lock.unlock
       end
 
       def method_missing(*args, &block)
@@ -20,11 +26,13 @@ module ActionController
       end
     end
 
-    def initialize(app)
+    def initialize(app, lock = @@lock)
       @app = app
+      @lock = lock
     end
 
     def call(env)
+      @lock.lock
       Dispatcher.reload_application
       status, headers, body = @app.call(env)
       # We do not want to call 'cleanup_application' in an ensure block
@@ -39,7 +47,7 @@ module ActionController
       # completely finished. So we wrap the body in a BodyWrapper class so that
       # when the Rack handler calls #close during the end of the request, we get to
       # run our cleanup code.
-      [status, headers, BodyWrapper.new(body)]
+      [status, headers, BodyWrapper.new(body, @lock)]
     end
   end
 end
