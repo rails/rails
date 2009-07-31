@@ -249,5 +249,51 @@ module Rails
     def reload_plugins?
       @reload_plugins
     end
+
+    # Holds generators configuration:
+    #
+    #   config.generators do |g|
+    #     g.orm             :datamapper, :migration => true
+    #     g.template_engine :haml
+    #     g.test_framework  :rspec
+    #   end
+    #
+    # If you want to disable color in console, do:
+    #
+    #   config.generators.colorize_logging = false
+    #
+    def generators
+      @generators ||= Generators.new
+      if block_given?
+        yield @generators
+      else
+        @generators
+      end
+    end
+
+    class Generators #:nodoc:
+      attr_accessor :aliases, :options, :colorize_logging
+
+      def initialize
+        @aliases = Hash.new { |h,k| h[k] = {} }
+        @options = Hash.new { |h,k| h[k] = {} }
+        @colorize_logging = true
+      end
+
+      def method_missing(method, *args)
+        method        = method.to_s.sub(/=$/, '').to_sym
+        namespace     = args.first.is_a?(Symbol) ? args.shift : nil
+        configuration = args.first.is_a?(Hash)   ? args.shift : nil
+
+        @options[:rails][method] = namespace if namespace
+        namespace ||= method
+
+        if configuration
+          aliases = configuration.delete(:aliases)
+          @aliases[namespace].merge!(aliases) if aliases
+          @options[namespace].merge!(configuration)
+        end
+      end
+    end
   end
 end

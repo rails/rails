@@ -41,8 +41,16 @@ module ActiveRecord
       #  # create_table() passes a TableDefinition object to the block.
       #  # This form will not only create the table, but also columns for the
       #  # table.
+      #
       #  create_table(:suppliers) do |t|
       #    t.column :name, :string, :limit => 60
+      #    # Other fields here
+      #  end
+      #
+      # === Block form, with shorthand
+      #  # You can also use the column types as method calls, rather than calling the column method.
+      #  create_table(:suppliers) do |t|
+      #    t.string :name, :limit => 60
       #    # Other fields here
       #  end
       #

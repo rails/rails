@@ -338,16 +338,11 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "XMLHttpRequest" do
-    begin
-      ActionController::Base.use_accept_header, old =
-        false, ActionController::Base.use_accept_header
-
+    with_accept_header false do
       request = stub_request 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'
       request.expects(:parameters).at_least_once.returns({})
       assert request.xhr?
       assert_equal Mime::JS, request.format
-    ensure
-      ActionController::Base.use_accept_header = old
     end
   end
 
@@ -396,10 +391,54 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal({"bar" => 2}, request.query_parameters)
   end
 
+  test "formats with accept header" do
+    with_accept_header true do
+      request = stub_request 'HTTP_ACCEPT' => 'text/html'
+      request.expects(:parameters).at_least_once.returns({})
+      assert_equal [ Mime::HTML ], request.formats
+
+      request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8'
+      request.expects(:parameters).at_least_once.returns({})
+      assert_equal with_set(Mime::XML, Mime::HTML), request.formats
+    end
+
+    with_accept_header false do
+      request = stub_request
+      request.expects(:parameters).at_least_once.returns({ :format => :txt })
+      assert_equal with_set(Mime::TEXT), request.formats
+    end
+  end
+
+  test "negotiate_mime" do
+    with_accept_header true do
+      request = stub_request 'HTTP_ACCEPT' => 'text/html'
+      request.expects(:parameters).at_least_once.returns({})
+
+      assert_equal nil, request.negotiate_mime([Mime::XML, Mime::JSON])
+      assert_equal Mime::HTML, request.negotiate_mime([Mime::XML, Mime::HTML])
+      assert_equal Mime::HTML, request.negotiate_mime([Mime::XML, Mime::ALL])
+
+      request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8'
+      request.expects(:parameters).at_least_once.returns({})
+      assert_equal Mime::XML, request.negotiate_mime([Mime::XML, Mime::CSV])
+      assert_equal Mime::CSV, request.negotiate_mime([Mime::CSV, Mime::YAML])
+    end
+  end
+
 protected
 
   def stub_request(env={})
     ActionDispatch::Request.new(env)
   end
 
+  def with_set(*args)
+    args + Mime::SET
+  end
+
+  def with_accept_header(value)
+    ActionController::Base.use_accept_header, old = value, ActionController::Base.use_accept_header
+    yield
+  ensure
+    ActionController::Base.use_accept_header = old
+  end
 end

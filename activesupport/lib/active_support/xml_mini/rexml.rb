@@ -60,7 +60,7 @@ module ActiveSupport
       # Merge all the texts of an element into the hash
       #
       # hash::
-      #   Hash to add the converted emement to.
+      #   Hash to add the converted element to.
       # element::
       #   XML element whose texts are to me merged into the hash
       def merge_texts!(hash, element)

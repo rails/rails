@@ -55,8 +55,38 @@ class MetalTest < Test::Unit::TestCase
       assert_equal(["FooMetal", "EngineMetal"], found_metals_as_string_array)
     end
   end
+  
+  def test_metal_default_pass_through_on_404
+    use_appdir("multiplemetals") do
+      result = Rails::Rack::Metal.new(app).call({})
+      assert_equal 200, result.first
+      assert_equal ["Metal B"], result.last
+    end
+  end
+  
+  def test_metal_pass_through_on_417
+    use_appdir("multiplemetals") do
+      Rails::Rack::Metal.pass_through_on = 417
+      result = Rails::Rack::Metal.new(app).call({})
+      assert_equal 404, result.first
+      assert_equal ["Metal A"], result.last
+    end
+  end
+  
+  def test_metal_pass_through_on_404_and_200
+    use_appdir("multiplemetals") do
+      Rails::Rack::Metal.pass_through_on = [404, 200]
+      result = Rails::Rack::Metal.new(app).call({})
+      assert_equal 402, result.first
+      assert_equal ["End of the Line"], result.last
+    end
+  end
 
   private
+  
+  def app
+    lambda{[402,{},["End of the Line"]]}
+  end
 
   def use_appdir(root)
     dir = "#{File.dirname(__FILE__)}/fixtures/metal/#{root}"

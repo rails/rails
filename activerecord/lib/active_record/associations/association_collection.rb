@@ -11,7 +11,7 @@ module ActiveRecord
     # ones created with +build+ are added to the target. So, the target may be
     # non-empty and still lack children waiting to be read from the database.
     # If you look directly to the database you cannot assume that's the entire
-    # collection because new records may have beed added to the target, etc.
+    # collection because new records may have been added to the target, etc.
     #
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
@@ -228,7 +228,7 @@ module ActiveRecord
         self
       end
 
-      # Destory all the records from this association.
+      # Destroy all the records from this association.
       #
       # See destroy for more info.
       def destroy_all

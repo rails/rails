@@ -557,7 +557,7 @@ module ActionView
       #  video_tag("trailer.ogg")  # =>
       #    <video src="/videos/trailer.ogg" />
       #  video_tag("trailer.ogg", :controls => true, :autobuffer => true)  # =>
-      #    <video autobuffer="true" controls="true" src="/videos/trailer.ogg" />
+      #    <video autobuffer="autobuffer" controls="controls" src="/videos/trailer.ogg" />
       #  video_tag("trailer.m4v", :size => "16x10", :poster => "screenshot.png")  # =>
       #    <video src="/videos/trailer.m4v" width="16" height="10" poster="/images/screenshot.png" />
       #  video_tag("/trailers/hd.avi", :size => "16x16")  # =>

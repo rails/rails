@@ -1,0 +1,29 @@
+Description:
+    Stubs out a new database migration. Pass the migration name, either
+    CamelCased or under_scored, and an optional list of attribute pairs as arguments.
+
+    A migration class is generated in db/migrate prefixed by a timestamp of the current date and time.
+
+    You can name your migration in either of these formats to generate add/remove
+    column lines from supplied attributes: AddColumnsToTable or RemoveColumnsFromTable
+
+Example:
+    `./script/generate migration AddSslFlag`
+
+    If the current date is May 14, 2008 and the current time 09:09:12, this creates the AddSslFlag migration
+    db/migrate/20080514090912_add_ssl_flag.rb
+
+    `./script/generate migration AddTitleBodyToPost title:string body:text published:boolean`
+
+    This will create the AddTitleBodyToPost in db/migrate/20080514090912_add_title_body_to_post.rb with
+    this in the Up migration:
+
+      add_column :posts, :title, :string  
+      add_column :posts, :body, :text  
+      add_column :posts, :published, :boolean
+
+    And this in the Down migration:
+
+      remove_column :posts, :published  
+      remove_column :posts, :body  
+      remove_column :posts, :title

@@ -26,7 +26,8 @@ task :default => :test
 ## below passes.  It's not ideal, but at least
 ## we can see the failures
 task :test do 
-  Dir['test/**/*_test.rb'].all? do |file|
+  dir = ENV["TEST_DIR"] || "**"
+  Dir["test/#{dir}/*_test.rb"].all? do |file|
     ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
     system(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
   end or raise "Failures"
@@ -40,56 +41,22 @@ Rake::TestTask.new("regular_test") do |t|
   t.verbose = true
 end
 
-
-BASE_DIRS = %w( 
-  app
-  config/environments
-  config/initializers
-  config/locales
-  db
-  doc
-  log
-  lib
-  lib/tasks
-  public
-  script
-  script/performance
-  test
-  vendor
-  vendor/plugins
-  tmp/sessions
-  tmp/cache
-  tmp/sockets
-  tmp/pids
-)
-
-APP_DIRS    = %w( models controllers helpers views views/layouts )
-PUBLIC_DIRS = %w( images javascripts stylesheets )
-TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/test )
-
-LOG_FILES    = %w( server.log development.log test.log production.log )
-HTML_FILES   = %w( 422.html 404.html 500.html index.html robots.txt favicon.ico images/rails.png
-                   javascripts/prototype.js javascripts/application.js
-                   javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js )
-BIN_FILES    = %w( about console destroy generate performance/benchmarker performance/profiler runner server plugin )
-
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport activeresource railties )
 
-
 desc "Generates a fresh Rails package with documentation"
-task :fresh_rails => [ :clean, :make_dir_structure, :initialize_file_stubs, :copy_vendor_libraries, :copy_ties_content, :generate_documentation ]
+task :fresh_rails => [ :clean, :create_rails, :copy_vendor_libraries, :generate_documentation ]
 
 desc "Generates a fresh Rails package using GEMs with documentation"
-task :fresh_gem_rails => [ :clean, :make_dir_structure, :initialize_file_stubs, :copy_ties_content, :copy_gem_environment ]
+task :fresh_gem_rails => [ :clean, :create_rails ]
 
 desc "Generates a fresh Rails package without documentation (faster)"
-task :fresh_rails_without_docs => [ :clean, :make_dir_structure, :initialize_file_stubs, :copy_vendor_libraries, :copy_ties_content ]
+task :fresh_rails_without_docs => [ :clean, :create_rails, :copy_vendor_libraries ]
 
-desc "Generates a fresh Rails package without documentation (faster)"
-task :fresh_rails_without_docs_using_links => [ :clean, :make_dir_structure, :initialize_file_stubs, :link_vendor_libraries, :copy_ties_content ]
+desc "Generates a fresh Rails package without documentation using links (faster)"
+task :fresh_rails_without_docs_using_links => [ :clean, :create_rails, :link_vendor_libraries ]
 
 desc "Generates minimal Rails package using symlinks"
-task :dev => [ :clean, :make_dir_structure, :initialize_file_stubs, :link_vendor_libraries, :copy_ties_content ]
+task :dev => [ :clean, :create_rails, :link_vendor_libraries ]
 
 desc "Packages the fresh Rails package with documentation"
 task :package => [ :clean, :fresh_rails ] do
@@ -101,46 +68,23 @@ task :clean do
   rm_rf PKG_DESTINATION
 end
 
-# Get external spinoffs -------------------------------------------------------------------
+# Update spinoffs -------------------------------------------------------------------
 
-desc "Updates railties to the latest version of the javascript spinoffs"
-task :update_js do
-  for js in %w( prototype controls dragdrop effects )
-    rm "html/javascripts/#{js}.js"
-    cp "./../actionpack/lib/action_view/helpers/javascripts/#{js}.js", "html/javascripts"
-  end
+desc "Updates application README to the latest version Railties README"
+task :update_readme do
+  readme = "lib/generators/rails/app/templates/README"
+  rm readme
+  cp "./README", readme
 end
 
-# Make directory structure ----------------------------------------------------------------
+# Run application generator -------------------------------------------------------------
 
-def make_dest_dirs(dirs, path = '.')
-  mkdir_p dirs.map { |dir| File.join(PKG_DESTINATION, path.to_s, dir) }
+task :create_rails do
+  require File.join(File.dirname(__FILE__), 'lib', 'generators')
+  require 'generators/rails/app/app_generator'
+  Rails::Generators::AppGenerator.start [ File.basename(PKG_DESTINATION), "--quiet" ],
+                                        :destination_root => File.expand_path(File.dirname(PKG_DESTINATION))
 end
-
-desc "Make the directory structure for the new Rails application"
-task :make_dir_structure => [ :make_base_dirs, :make_app_dirs, :make_public_dirs, :make_test_dirs ]
-
-task(:make_base_dirs)   { make_dest_dirs BASE_DIRS              }
-task(:make_app_dirs)    { make_dest_dirs APP_DIRS,    'app'     }
-task(:make_public_dirs) { make_dest_dirs PUBLIC_DIRS, 'public'  }
-task(:make_test_dirs)   { make_dest_dirs TEST_DIRS,   'test'    }
-
-
-# Initialize file stubs -------------------------------------------------------------------
-
-desc "Initialize empty file stubs (such as for logging)"
-task :initialize_file_stubs => [ :initialize_log_files ]
-
-task :initialize_log_files do
-  log_dir = File.join(PKG_DESTINATION, 'log')
-  chmod 0777, log_dir
-  LOG_FILES.each do |log_file|
-    log_path = File.join(log_dir, log_file)
-    touch log_path
-    chmod 0666, log_path
-  end
-end
-
 
 # Copy Vendors ----------------------------------------------------------------------------
 
@@ -148,7 +92,7 @@ desc "Copy in all the Rails packages to vendor"
 task :copy_vendor_libraries do
   mkdir File.join(PKG_DESTINATION, 'vendor', 'rails')
   VENDOR_LIBS.each { |dir| cp_r File.join('..', dir), File.join(PKG_DESTINATION, 'vendor', 'rails', dir) }
-  FileUtils.rm_r(Dir.glob(File.join(PKG_DESTINATION, 'vendor', 'rails', "**", ".svn")))
+  FileUtils.rm_r(Dir.glob(File.join(PKG_DESTINATION, 'vendor', 'rails', "**", ".git")))
 end
 
 desc "Link in all the Rails packages to vendor"
@@ -157,96 +101,6 @@ task :link_vendor_libraries do
   VENDOR_LIBS.each { |dir| ln_s File.join('..', '..', '..', dir), File.join(PKG_DESTINATION, 'vendor', 'rails', dir) }
 end
 
-
-# Copy Ties Content -----------------------------------------------------------------------
-
-desc "Make copies of all the default content of ties"
-task :copy_ties_content => [ 
-  :copy_rootfiles, :copy_dispatches, :copy_html_files, :copy_application,
-  :copy_configs, :copy_binfiles, :copy_test_helpers, :copy_app_doc_readme ]
-
-task :copy_dispatches do
-  copy_with_rewritten_ruby_path("dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.rb")
-  chmod 0755, "#{PKG_DESTINATION}/public/dispatch.rb"
-
-  copy_with_rewritten_ruby_path("dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.cgi")
-  chmod 0755, "#{PKG_DESTINATION}/public/dispatch.cgi"
-
-  copy_with_rewritten_ruby_path("dispatches/dispatch.fcgi", "#{PKG_DESTINATION}/public/dispatch.fcgi")
-  chmod 0755, "#{PKG_DESTINATION}/public/dispatch.fcgi"
-end
-
-task :copy_html_files do
-  HTML_FILES.each { |file| cp File.join('html', file), File.join(PKG_DESTINATION, 'public', file) }
-end
-
-task :copy_application do
-  cp "helpers/application_controller.rb", "#{PKG_DESTINATION}/app/controllers/application_controller.rb"
-  cp "helpers/application_helper.rb", "#{PKG_DESTINATION}/app/helpers/application_helper.rb"
-end
-
-task :copy_configs do
-  app_name = "rails"
-  socket = nil
-  require 'erb'
-  File.open("#{PKG_DESTINATION}/config/database.yml", 'w') {|f| f.write ERB.new(IO.read("configs/databases/sqlite3.yml"), nil, '-').result(binding)}
-  
-  cp "configs/routes.rb", "#{PKG_DESTINATION}/config/routes.rb"
-
-  cp "configs/initializers/backtrace_silencers.rb", "#{PKG_DESTINATION}/config/initializers/backtrace_silencers.rb"
-  cp "configs/initializers/inflections.rb",         "#{PKG_DESTINATION}/config/initializers/inflections.rb"
-  cp "configs/initializers/mime_types.rb",          "#{PKG_DESTINATION}/config/initializers/mime_types.rb"
-  cp "configs/initializers/new_rails_defaults.rb",  "#{PKG_DESTINATION}/config/initializers/new_rails_defaults.rb"
-
-  cp "configs/locales/en.yml", "#{PKG_DESTINATION}/config/locales/en.yml"
-
-  cp "configs/seeds.rb", "#{PKG_DESTINATION}/db/seeds.rb"
-
-  cp "environments/boot.rb",        "#{PKG_DESTINATION}/config/boot.rb"
-  cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
-  cp "environments/production.rb",  "#{PKG_DESTINATION}/config/environments/production.rb"
-  cp "environments/development.rb", "#{PKG_DESTINATION}/config/environments/development.rb"
-  cp "environments/test.rb",        "#{PKG_DESTINATION}/config/environments/test.rb"
-
-end
-
-task :copy_binfiles do
-  BIN_FILES.each do |file|
-    dest_file = File.join(PKG_DESTINATION, 'script', file)
-    copy_with_rewritten_ruby_path(File.join('bin', file), dest_file)
-    chmod 0755, dest_file
-  end
-end
-
-task :copy_rootfiles do
-  cp "fresh_rakefile", "#{PKG_DESTINATION}/Rakefile"
-  cp "README", "#{PKG_DESTINATION}/README"
-  cp "CHANGELOG", "#{PKG_DESTINATION}/CHANGELOG"
-end
-
-task :copy_test_helpers do
-  cp "helpers/test_helper.rb", "#{PKG_DESTINATION}/test/test_helper.rb"
-end
-
-task :copy_app_doc_readme do
-  cp "doc/README_FOR_APP", "#{PKG_DESTINATION}/doc/README_FOR_APP"
-end
-
-def copy_with_rewritten_ruby_path(src_file, dest_file)
-  ruby = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
-
-  File.open(dest_file, 'w') do |df|
-    File.open(src_file) do |sf|
-      line = sf.gets
-      if (line =~ /#!.+ruby\s*/) != nil
-        df.puts("#!#{ruby}")
-      else
-        df.puts(line)
-      end
-      df.write(sf.read)
-    end
-  end
-end
 
 desc 'Generate guides (for authors), use ONLY=foo to process just "foo.textile"'
 task :generate_guides do
@@ -265,7 +119,6 @@ task :generate_rails_framework_doc do
 end
 
 task :generate_app_doc do
-  cp "doc/README_FOR_APP", "#{PKG_DESTINATION}/doc/README_FOR_APP"
   system %{cd #{PKG_DESTINATION}; rake doc:app}
 end
 
@@ -278,30 +131,17 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/*.rb')
   rdoc.rdoc_files.include('lib/rails/*.rb')
-  rdoc.rdoc_files.include('lib/rails_generator/*.rb')
+  rdoc.rdoc_files.include('lib/generators/*.rb')
   rdoc.rdoc_files.include('lib/commands/**/*.rb')
 }
 
 # Generate GEM ----------------------------------------------------------------------------
 
-task :copy_gem_environment do
-  cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
-  chmod 0755, dest_file
-end
-
-
 PKG_FILES = FileList[
   '[a-zA-Z]*',
   'bin/**/*', 
   'builtin/**/*',
-  'configs/**/*', 
-  'doc/**/*', 
-  'dispatches/**/*', 
-  'environments/**/*', 
   'guides/**/*',
-  'helpers/**/*', 
-  'generators/**/*', 
-  'html/**/*', 
   'lib/**/*'
 ] - [ 'test' ]
 

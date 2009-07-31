@@ -256,6 +256,12 @@ module ActiveRecord #:nodoc:
   #
   #   Student.find(:all, :conditions => { :grade => [9,11,12] })
   #
+  # When joining tables, nested hashes or keys written in the form 'table_name.column_name' can be used to qualify the table name of a
+  # particular condition. For instance:
+  #
+  #   Student.find(:all, :conditions => { :schools => { :type => 'public' }}, :joins => :schools)
+  #   Student.find(:all, :conditions => { 'schools.type' => 'public' }, :joins => :schools)
+  #
   # == Overwriting default accessors
   #
   # All column values are automatically available through basic accessors on the Active Record object, but sometimes you
@@ -858,7 +864,7 @@ module ActiveRecord #:nodoc:
       #   Book.update_all "author = 'David'", "title LIKE '%Rails%'"
       #
       #   # Update all avatars migrated more than a week ago
-      #   Avatar.update_all ['migrated_at = ?, Time.now.utc], ['migrated_at > ?', 1.week.ago]
+      #   Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
       #
       #   # Update all books that match our conditions, but limit it to 5 ordered by date
       #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
@@ -1058,6 +1064,21 @@ module ActiveRecord #:nodoc:
       #
       # To start from an all-closed default and enable attributes as needed,
       # have a look at +attr_accessible+.
+      #
+      # If the access logic of your application is richer you can use <tt>Hash#except</tt>
+      # or <tt>Hash#slice</tt> to sanitize the hash of parameters before they are
+      # passed to Active Record.
+      # 
+      # For example, it could be the case that the list of protected attributes
+      # for a given model depends on the role of the user:
+      #
+      #   # Assumes plan_id is not protected because it depends on the role.
+      #   params[:account] = params[:account].except(:plan_id) unless admin?
+      #   @account.update_attributes(params[:account])
+      #
+      # Note that +attr_protected+ is still applied to the received hash. Thus,
+      # with this technique you can at most _extend_ the list of protected
+      # attributes for a particular mass-assignment call.
       def attr_protected(*attributes)
         write_inheritable_attribute(:attr_protected, Set.new(attributes.map {|a| a.to_s}) + (protected_attributes || []))
       end
@@ -1091,6 +1112,21 @@ module ActiveRecord #:nodoc:
       #
       #   customer.credit_rating = "Average"
       #   customer.credit_rating # => "Average"
+      #
+      # If the access logic of your application is richer you can use <tt>Hash#except</tt>
+      # or <tt>Hash#slice</tt> to sanitize the hash of parameters before they are
+      # passed to Active Record.
+      # 
+      # For example, it could be the case that the list of accessible attributes
+      # for a given model depends on the role of the user:
+      #
+      #   # Assumes plan_id is accessible because it depends on the role.
+      #   params[:account] = params[:account].except(:plan_id) unless admin?
+      #   @account.update_attributes(params[:account])
+      #
+      # Note that +attr_accessible+ is still applied to the received hash. Thus,
+      # with this technique you can at most _narrow_ the list of accessible
+      # attributes for a particular mass-assignment call.
       def attr_accessible(*attributes)
         write_inheritable_attribute(:attr_accessible, Set.new(attributes.map(&:to_s)) + (accessible_attributes || []))
       end
@@ -1192,29 +1228,6 @@ module ActiveRecord #:nodoc:
         name
       end
 
-      # Defines the primary key field -- can be overridden in subclasses. Overwriting will negate any effect of the
-      # primary_key_prefix_type setting, though.
-      def primary_key
-        reset_primary_key
-      end
-
-      def reset_primary_key #:nodoc:
-        key = get_primary_key(base_class.name)
-        set_primary_key(key)
-        key
-      end
-
-      def get_primary_key(base_name) #:nodoc:
-        key = 'id'
-        case primary_key_prefix_type
-          when :table_name
-            key = base_name.to_s.foreign_key(false)
-          when :table_name_with_underscore
-            key = base_name.to_s.foreign_key
-        end
-        key
-      end
-
       # Defines the column name for use with single table inheritance
       # -- can be set in subclasses like so: self.inheritance_column = "type_id"
       def inheritance_column
@@ -1243,18 +1256,6 @@ module ActiveRecord #:nodoc:
         define_attr_method :table_name, value, &block
       end
       alias :table_name= :set_table_name
-
-      # Sets the name of the primary key column to use to the given value,
-      # or (if the value is nil or false) to the value returned by the given
-      # block.
-      #
-      #   class Project < ActiveRecord::Base
-      #     set_primary_key "sysid"
-      #   end
-      def set_primary_key(value = nil, &block)
-        define_attr_method :primary_key, value, &block
-      end
-      alias :primary_key= :set_primary_key
 
       # Sets the name of the inheritance column to use to the given value,
       # or (if the value # is nil or false) to the value returned by the
@@ -1368,8 +1369,8 @@ module ActiveRecord #:nodoc:
       #    end
       #  end
       def reset_column_information
-        generated_methods.each { |name| undef_method(name) }
-        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @generated_methods = @inheritance_column = nil
+        undefine_attribute_methods
+        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -1385,14 +1386,14 @@ module ActiveRecord #:nodoc:
         classes
       rescue
         # OPTIMIZE this rescue is to fix this test: ./test/cases/reflection_test.rb:56:in `test_human_name_for_column'
-        # Appearantly the method base_class causes some trouble.
+        # Apparently the method base_class causes some trouble.
         # It now works for sure.
         [self]
       end
 
       # Transforms attribute key names into a more humane format, such as "First name" instead of "first_name". Example:
       #   Person.human_attribute_name("first_name") # => "First name"
-      # This used to be depricated in favor of humanize, but is now preferred, because it automatically uses the I18n
+      # This used to be deprecated in favor of humanize, but is now preferred, because it automatically uses the I18n
       # module now.
       # Specify +options+ with additional translating options.
       def human_attribute_name(attribute_key_name, options = {})
@@ -2043,36 +2044,6 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Defines an "attribute" method (like +inheritance_column+ or
-        # +table_name+). A new (class) method will be created with the
-        # given name. If a value is specified, the new method will
-        # return that value (as a string). Otherwise, the given block
-        # will be used to compute the value of the method.
-        #
-        # The original method will be aliased, with the new name being
-        # prefixed with "original_". This allows the new method to
-        # access the original value.
-        #
-        # Example:
-        #
-        #   class A < ActiveRecord::Base
-        #     define_attr_method :primary_key, "sysid"
-        #     define_attr_method( :inheritance_column ) do
-        #       original_inheritance_column + "_id"
-        #     end
-        #   end
-        def define_attr_method(name, value=nil, &block)
-          sing = metaclass
-          sing.send :alias_method, "original_#{name}", name
-          if block_given?
-            sing.send :define_method, name, &block
-          else
-            # use eval instead of a block to work around a memory leak in dev
-            # mode in fcgi
-            sing.class_eval "def #{name}; #{value.to_s.inspect}; end"
-          end
-        end
-
       protected
         # Scope parameters to method calls within the block.  Takes a hash of method_name => parameters hash.
         # method_name may be <tt>:find</tt> or <tt>:create</tt>. <tt>:find</tt> parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
@@ -2474,18 +2445,6 @@ module ActiveRecord #:nodoc:
         result
       end
 
-      # A model instance's primary key is always available as model.id
-      # whether you name it the default 'id' or set it to something else.
-      def id
-        attr_name = self.class.primary_key
-        column = column_for_attribute(attr_name)
-
-        self.class.send(:define_read_method, :id, attr_name, column)
-        # now that the method exists, call it
-        self.send attr_name.to_sym
-
-      end
-
       # Returns a String, which Action Pack uses for constructing an URL to this
       # object. The default implementation returns this record's id as a String,
       # or nil if this record's unsaved.
@@ -2531,17 +2490,8 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      def id_before_type_cast #:nodoc:
-        read_attribute_before_type_cast(self.class.primary_key)
-      end
-
       def quoted_id #:nodoc:
         quote_value(id, column_for_attribute(self.class.primary_key))
-      end
-
-      # Sets the primary ID.
-      def id=(value)
-        write_attribute(self.class.primary_key, value)
       end
 
       # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet; otherwise, returns false.
@@ -2780,14 +2730,6 @@ module ActiveRecord #:nodoc:
       def attributes
         self.attribute_names.inject({}) do |attrs, name|
           attrs[name] = read_attribute(name)
-          attrs
-        end
-      end
-
-      # Returns a hash of attributes before typecasting and deserialization.
-      def attributes_before_type_cast
-        self.attribute_names.inject({}) do |attrs, name|
-          attrs[name] = read_attribute_before_type_cast(name)
           attrs
         end
       end
@@ -3191,7 +3133,10 @@ module ActiveRecord #:nodoc:
     include Validations
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
-    include Dirty
+    include AttributeMethods::Read, AttributeMethods::Write, AttributeMethods::BeforeTypeCast, AttributeMethods::Query
+    include AttributeMethods::PrimaryKey
+    include AttributeMethods::TimeZoneConversion
+    include AttributeMethods::Dirty
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
     include ActiveModel::Conversion

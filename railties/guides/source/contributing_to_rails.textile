@@ -161,7 +161,7 @@ h4. Fork the Rails Source Code
 Fork Rails. You’re not going to put your patches right into the master branch, OK? This is where you need that copy of Rails that you cloned earlier. Think of a name for your new branch and run
 
 <shell>
-git checkout -b my_new_branch  
+git checkout -b my_new_branch
 </shell>
 
 It doesn’t really matter what name you use, because this branch will only exist on your local computer.
@@ -174,6 +174,15 @@ Now get busy and add your code to Rails (or edit the existing code). You’re on
 * Use Rails idioms and helpers
 * Include tests that fail without your code, and pass with it
 * Update the documentation
+
+h4. Follow the Coding Conventions
+
+Rails follows a simple set of coding style conventions.
+
+* Two spaces, no tabs
+* Prefer +&&+/+||+ over +and+/+or+
+* +MyClass.my_method(my_arg)+ not +my_method( my_arg )+ or +my_method my_arg+
+* Follow the conventions you see used in the source already
 
 h4. Sanity Check
 

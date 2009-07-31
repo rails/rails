@@ -35,8 +35,6 @@ class Topic < ActiveRecord::Base
   end
   named_scope :named_extension, :extend => NamedExtension
   named_scope :multiple_extensions, :extend => [MultipleExtensionTwo, MultipleExtensionOne]
-  
-  named_scope :by_rejected_ids, lambda {{ :conditions => { :id => all(:conditions => {:approved => false}).map(&:id) } }}
 
   has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
   has_many :replies_with_primary_key, :class_name => "Reply", :dependent => :destroy, :primary_key => "title", :foreign_key => "parent_title"

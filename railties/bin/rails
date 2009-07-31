@@ -7,14 +7,9 @@ if %w(--version -v).include? ARGV.first
   exit(0)
 end
 
-freeze   = ARGV.any? { |option| %w(--freeze -f).include?(option) }
+ARGV << "--help" if ARGV.empty?
 
-app_path = ARGV.first
+require File.dirname(__FILE__) + '/../lib/generators'
+require 'generators/rails/app/app_generator'
 
-require File.dirname(__FILE__) + '/../lib/rails_generator'
-
-require 'rails_generator/scripts/generate'
-Rails::Generator::Base.use_application_sources!
-Rails::Generator::Scripts::Generate.new.run(ARGV, :generator => 'app')
-
-Dir.chdir(app_path) { `rake rails:freeze:gems`; puts "froze" } if freeze
+Rails::Generators::AppGenerator.start

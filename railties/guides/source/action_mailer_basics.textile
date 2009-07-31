@@ -46,7 +46,7 @@ class UserMailer < ActionMailer::Base
     from          "My Awesome Site Notifications <notifications@example.com>"
     subject       "Welcome to My Awesome Site"
     sent_on       Time.now
-    body          {:user => user, :url => "http://example.com/login"}
+    body(         {:user => user, :url => "http://example.com/login"})
   end
 end
 </ruby>
@@ -137,9 +137,9 @@ Hence, if the method name starts with +deliver_+ followed by any combination of 
 
 h4. Complete List of Action Mailer User-Settable Attributes
 
-|bcc| The BCC addresses of the email|
+|bcc| The BCC addresses of the email, either as a string (for a single address) or an array of strings (for multiple addresses)|
 |body| The body of the email. This is either a hash (in which case it specifies the variables to pass to the template when it is rendered), or a string, in which case it specifies the actual body of the message|
-|cc| The CC addresses for the email|
+|cc| The CC addresses for the email, either as a string (for a single address) or an array of strings (for multiple addresses)|
 |charset| The charset to use for the email. This defaults to the +default_charset+ specified for ActionMailer::Base.|
 |content_type| The content type for the email. This defaults to "text/plain" but the filename may specify it|
 |from| The from address of the email|
@@ -165,10 +165,11 @@ class UserMailer < ActionMailer::Base
     from          "My Awesome Site Notifications<notifications@example.com>"
     subject       "Welcome to My Awesome Site"
     sent_on       Time.now
-    body          {:user => user, :url => "http://example.com/login"}
+    body(         {:user => user, :url => "http://example.com/login"})
     content_type  "text/html"
     # use some_other_template.text.(html|plain).erb instead
     template "some_other_template"
+  end
 end
 </ruby>
 
@@ -264,9 +265,9 @@ end
 
 h4. Sending Multipart Emails with Attachments
 
-Once you use the +attachment+ method, ActionMailer will no longer automagically use the correct template based on the filename. You must declare which template you are using for each content type via the +part+ method.
+Once you use the +attachment+ method, ActionMailer will no longer automagically use the correct template based on the filename, nor will it properly order the alternative parts. You must declare which template you are using for each content type via the +part+ method.  And you must declare these templates in the proper order.
 
-In the following example, there would be two template files, +welcome_email_html.erb+ and +welcome_email_plain.erb+ in the +app/views/user_mailer+ folder.
+In the following example, there would be two template files, +welcome_email_html.erb+ and +welcome_email_plain.erb+ in the +app/views/user_mailer+ folder.  The +text/plain+ part must be listed first for full compatibility with email clients.  If +text/plain+ is listed after +text/html+, some clients may display both the HTML and plain text versions of the email.  The text alternatives alone must be enclosed in a +multipart/alternative+ part.  Do not set the entire message's +content_type+ to +multipart/alternative+ or some email clients may ignore the display of attachments such as PDF's.
 
 <ruby>
 class UserMailer < ActionMailer::Base
@@ -274,14 +275,15 @@ class UserMailer < ActionMailer::Base
     recipients      user.email_address
     subject         "New account information"
     from            "system@example.com"
-    content_type    "multipart/alternative"
 
-    part "text/html" do |p|
-      p.body = render_message("welcome_email_html", :message => "<h1>HTML content</h1>")
-    end
+    part "multipart/alternative" do |pt|
+      pt.part "text/plain" do |p|
+        p.body = render_message("welcome_email_plain", :message => "text content")
+      end
 
-    part "text/plain" do |p|
-      p.body = render_message("welcome_email_plain", :message => "text content")
+      pt.part "text/html" do |p|
+        p.body = render_message("welcome_email_html", :message => "<h1>HTML content</h1>")
+      end
     end
 
     attachment :content_type => "image/jpeg",
@@ -369,9 +371,9 @@ ActionMailer::Base.default_charset = "iso-8859-1"
 
 h4. Action Mailer Configuration for GMail
 
-Instructions copied from http://http://www.fromjavatoruby.com/2008/11/actionmailer-with-gmail-must-issue.html
+Instructions copied from "this blog entry":http://www.fromjavatoruby.com/2008/11/actionmailer-with-gmail-must-issue.html by Robert Zotter.
 
-First you must install the +action_mailer_tls+ plugin from http://code.openrain.com/rails/action_mailer_tls/, then all you have to do is configure action mailer.
+First you must install the "action_mailer_tls":http://github.com/openrain/action_mailer_tls plugin, then all you have to do is configure Action Mailer:
 
 <ruby>
 ActionMailer::Base.smtp_settings = {

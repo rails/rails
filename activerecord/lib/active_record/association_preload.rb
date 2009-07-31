@@ -28,7 +28,7 @@ module ActiveRecord
     # 'books' table is useful; the joined 'authors' data is just redundant, and
     # processing this redundant data takes memory and CPU time. The problem
     # quickly becomes worse and worse as the level of eager loading increases
-    # (i.e. if ActiveRecord is to eager load the associations' assocations as
+    # (i.e. if ActiveRecord is to eager load the associations' associations as
     # well).
     #
     # The second strategy is to use multiple database queries, one for each
@@ -58,7 +58,7 @@ module ActiveRecord
       # +associations+ specifies one or more associations that you want to
       # preload. It may be:
       # - a Symbol or a String which specifies a single association name. For
-      #   example, specifiying +:books+ allows this method to preload all books
+      #   example, specifying +:books+ allows this method to preload all books
       #   for an Author.
       # - an Array which specifies multiple association names. This array
       #   is processed recursively. For example, specifying <tt>[:avatar, :books]</tt>

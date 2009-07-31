@@ -338,7 +338,7 @@ end
 Besides +:only_integer+, the +validates_numericality_of+ helper also accepts the following options to add constraints to acceptable values:
 
 * +:greater_than+ - Specifies the value must be greater than the supplied value. The default error message for this option is "_must be greater than {{count}}_".
-* +:greater_than_or_equal_to+ - Specifies the value must be greater than or equal to the supplied value. The default error message for this option is "_must be greater than or equal to {{count}}".
+* +:greater_than_or_equal_to+ - Specifies the value must be greater than or equal to the supplied value. The default error message for this option is "_must be greater than or equal to {{count}}_".
 * +:equal_to+ - Specifies the value must be equal to the supplied value. The default error message for this option is "_must be equal to {{count}}_".
 * +:less_than+ - Specifies the value must be less than the supplied value. The default error message for this option is "_must be less than {{count}}_".
 * +:less_than_or_equal_to+ - Specifies the value must be less than or equal the supplied value. The default error message for this option is "_must be less or equal to {{count}}_".
@@ -530,11 +530,11 @@ class Invoice < ActiveRecord::Base
 end
 </ruby>
 
-You can even create your own validation helpers and reuse them in several different models. Here is an example where we create a custom validation helper to validate the format of fields that represent email addresses:
+You can even create your own validation helpers and reuse them in several different models. For example, an application that manages surveys may find useful to express that a certain field corresponds to a set of choices:
 
 <ruby>
 ActiveRecord::Base.class_eval do
-  def self.validates_as_radio(attr_name, n, options={})
+  def self.validates_as_choice(attr_name, n, options={})
     validates_inclusion_of attr_name, {:in => 1..n}.merge(options)
   end
 end
@@ -544,7 +544,7 @@ Simply reopen +ActiveRecord::Base+ and define a class method like that. You'd ty
 
 <ruby>
 class Movie < ActiveRecord::Base
-  validates_as_radio :rating, 5
+  validates_as_choice :rating, 5
 end
 </ruby>
 

@@ -1,5 +1,5 @@
-class MetalA < Rails::Rack::Metal
+class MetalA
   def self.call(env)
-    [200, { "Content-Type" => "text/html"}, ["Hi"]]
+    [404, { "Content-Type" => "text/html"}, ["Metal A"]]
   end
 end

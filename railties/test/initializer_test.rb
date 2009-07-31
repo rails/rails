@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'initializer'
+require 'generators'
 
 require 'action_view'
 require 'action_mailer'
@@ -10,7 +11,18 @@ module Rails
   def self.configuration
     Rails::Configuration.new
   end
+
+  module Generators
+    def self.clear_aliases!
+      @aliases = nil
+    end
+
+    def self.clear_options!
+      @@options = nil
+    end
+  end
 end
+
 
 class ConfigurationMock < Rails::Configuration
   attr_reader :environment_path
@@ -275,6 +287,87 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
     def load_plugins!
       @initializer.run(:add_plugin_load_paths)
       @initializer.run(:load_plugins)
+    end
+end
+
+class InitializerGeneratorsTests < Test::Unit::TestCase
+
+  def setup
+    @configuration = Rails::Configuration.new
+    @initializer   = Rails::Initializer.default
+    @initializer.config = @configuration
+  end
+
+  def test_generators_default_values
+    assert_equal(true, @configuration.generators.colorize_logging)
+    assert_equal({}, @configuration.generators.aliases)
+    assert_equal({}, @configuration.generators.options)
+  end
+
+  def test_generators_set_rails_options
+    @configuration.generators.orm = :datamapper
+    @configuration.generators.test_framework = :rspec
+    expected = { :rails => { :orm => :datamapper, :test_framework => :rspec } }
+    assert_equal expected, @configuration.generators.options
+  end
+
+  def test_generators_set_rails_aliases
+    @configuration.generators.aliases = { :rails => { :test_framework => "-w" } }
+    expected = { :rails => { :test_framework => "-w" } }
+    assert_equal expected, @configuration.generators.aliases
+  end
+
+  def test_generators_aliases_and_options_on_initialization
+    @configuration.generators.rails :aliases => { :test_framework => "-w" }
+    @configuration.generators.orm :datamapper
+    @configuration.generators.test_framework :rspec
+
+    @initializer.run(:initialize_generators)
+
+    assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
+    assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]
+  end
+
+  def test_generators_no_color_on_initialization
+    @configuration.generators.colorize_logging = false
+    @initializer.run(:initialize_generators)
+    assert_equal Thor::Base.shell, Thor::Shell::Basic
+  end
+
+  def test_generators_with_hashes_for_options_and_aliases
+    @configuration.generators do |g|
+      g.orm    :datamapper, :migration => false
+      g.plugin :aliases => { :generator => "-g" },
+               :generator => true
+    end
+
+    expected = {
+      :rails => { :orm => :datamapper },
+      :plugin => { :generator => true },
+      :datamapper => { :migration => false }
+    }
+
+    assert_equal expected, @configuration.generators.options
+    assert_equal({ :plugin => { :generator => "-g" } }, @configuration.generators.aliases)
+  end
+
+  def test_generators_with_hashes_are_deep_merged
+    @configuration.generators do |g|
+      g.orm    :datamapper, :migration => false
+      g.plugin :aliases => { :generator => "-g" },
+               :generator => true
+    end
+    @initializer.run(:initialize_generators)
+
+    assert Rails::Generators.aliases.size >= 1
+    assert Rails::Generators.options.size >= 1
+  end
+
+  protected
+
+    def teardown
+      Rails::Generators.clear_aliases!
+      Rails::Generators.clear_options!
     end
 end
 

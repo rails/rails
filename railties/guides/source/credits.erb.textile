@@ -8,15 +8,15 @@ p. We'd like to thank the following people for their tireless contributions to t
 <h3 class="section">Rails Documentation Team</h3>
 
 <% author('Mike Gunderloy', 'mgunderloy') do %>
-  Mike Gunderloy is a consultant with "ActionRails":http://www.actionrails.com and also a member of the "Rails activism team":http://rubyonrails.org/activists . He brings 25 years of experience in a variety of languages to bear on his current work with Rails. His near-daily links and other blogging can be found at "A Fresh Cup":http://afreshcup.com and he "twitters":http://twitter.com/MikeG1 too much.
+  Mike Gunderloy is a consultant with "ActionRails":http://www.actionrails.com. He brings 25 years of experience in a variety of languages to bear on his current work with Rails. His near-daily links and other blogging can be found at "A Fresh Cup":http://afreshcup.com and he "twitters":http://twitter.com/MikeG1 too much.
 <% end %>
 
 <% author('Pratik Naik', 'lifo') do %>
   Pratik Naik is a Ruby on Rails consultant with "ActionRails":http://www.actionrails.com and also a member of the "Rails core team":http://rubyonrails.org/core. He maintains a blog at "has_many :bugs, :through => :rails":http://m.onkey.org and has an active "twitter account":http://twitter.com/lifo.
 <% end %>
 
-<% author('Xavier Noria', 'fxn', 'fxn.jpg') do %>
-  Xavier Noria has been around dynamic languages since 2000. He fell in love with Rails in 2005, and cofounded Rails-based software company <a href="http://www.aspgems.com">ASPgems</a> in mid-2006. Xavier is president of the <a href="http://www.srug.org/">Spanish Ruby Users Group</a> and has been involved in Rails in several ways. He enjoys combining his passion for Rails and his past life as a proofreader of math textbooks. Oh, he also "tweets":http://twitter.com/fxn!
+<% author('Xavier Noria', 'fxn', 'fxn.png') do %>
+  Xavier has been into Rails since 2005, he is currently a Rails consultant. Xavier is president of the <a href="http://www.srug.org/">Spanish Ruby Users Group</a> and has been involved in Rails in several ways. He enjoys combining his passion for Rails and his past life as a proofreader of math textbooks. Oh, he also "tweets":http://twitter.com/fxn!
 <% end %>
 
 <h3 class="section">Rails Guides Designers</h3>

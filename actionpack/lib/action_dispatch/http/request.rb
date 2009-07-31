@@ -161,7 +161,7 @@ module ActionDispatch
     #   GET /posts/5.xml   | request.format => Mime::XML
     #   GET /posts/5.xhtml | request.format => Mime::HTML
     #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first depending on the value of <tt>ActionController::Base.use_accept_header</tt>
-
+    #
     def format(view_path = [])
       @env["action_dispatch.request.format"] ||=
         if parameters[:format]
@@ -173,13 +173,11 @@ module ActionDispatch
         end
     end
 
+    # Expand raw_formats by converting Mime::ALL to the Mime::SET.
+    #
     def formats
       if ActionController::Base.use_accept_header
-        if param = parameters[:format]
-          Array.wrap(Mime[param])
-        else
-          accepts.dup
-        end.tap do |ret|
+        raw_formats.tap do |ret|
           if ret == ONLY_ALL
             ret.replace Mime::SET
           elsif all = ret.index(Mime::ALL)
@@ -187,7 +185,7 @@ module ActionDispatch
           end
         end
       else
-        [format] + Mime::SET
+        raw_formats + Mime::SET
       end
     end
 
@@ -232,7 +230,7 @@ module ActionDispatch
     def xml_http_request?
       !(@env['HTTP_X_REQUESTED_WITH'] !~ /XMLHttpRequest/i)
     end
-    alias xhr? :xml_http_request?
+    alias :xhr? :xml_http_request?
 
     # Which IP addresses are "trusted proxies" that can be stripped from
     # the right-hand-side of X-Forwarded-For
@@ -485,7 +483,35 @@ EOM
       session['flash'] || {}
     end
 
+    # Receives an array of mimes and return the first user sent mime that
+    # matches the order array.
+    #
+    def negotiate_mime(order)
+      raw_formats.each do |priority|
+        if priority == Mime::ALL
+          return order.first
+        elsif order.include?(priority)
+          return priority
+        end
+      end
+
+      order.include?(Mime::ALL) ? formats.first : nil
+    end
+
     private
+
+      def raw_formats
+        if ActionController::Base.use_accept_header
+          if param = parameters[:format]
+            Array.wrap(Mime[param])
+          else
+            accepts.dup
+          end
+        else
+          [format]
+        end
+      end
+
       def named_host?(host)
         !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
       end

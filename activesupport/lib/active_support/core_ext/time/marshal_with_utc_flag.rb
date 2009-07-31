@@ -1,5 +1,5 @@
 # Pre-1.9 versions of Ruby have a bug with marshaling Time instances, where utc instances are
-# unmarshaled in the local zone, instead of utc. We're layering behavior on the _dump and _load
+# unmarshalled in the local zone, instead of utc. We're layering behavior on the _dump and _load
 # methods so that utc instances can be flagged on dump, and coerced back to utc on load.
 if RUBY_VERSION < '1.9'
   class Time

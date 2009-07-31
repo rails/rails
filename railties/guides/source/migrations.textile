@@ -1,10 +1,10 @@
 h2. Migrations
 
-Migrations are a convenient way for you to alter your database in a structured and organised manner. You could edit fragments of SQL by hand but you would then be responsible for telling other developers that they need to go and run it. You'd also have to keep track of which changes need to be run against the production machines next time you deploy.
+Migrations are a convenient way for you to alter your database in a structured and organized manner. You could edit fragments of SQL by hand but you would then be responsible for telling other developers that they need to go and run it. You'd also have to keep track of which changes need to be run against the production machines next time you deploy.
 
 Active Record tracks which migrations have already been run so all you have to do is update your source and run +rake db:migrate+. Active Record will work out which migrations should be run. It will also update your +db/schema.rb+ file to match the structure of your database.
 
-Migrations also allow you to describe these transformations using Ruby. The great thing about this is that (like most of Active Record's functionality) it is database independent: you don't need to worry about the precise syntax of +CREATE TABLE+ any more that you worry about variations on +SELECT *+ (you can drop down to raw SQL for database specific features). For example you could use SQLite3 in development, but MySQL in production.
+Migrations also allow you to describe these transformations using Ruby. The great thing about this is that (like most of Active Record's functionality) it is database independent: you don't need to worry about the precise syntax of +CREATE TABLE+ any more than you worry about variations on +SELECT *+ (you can drop down to raw SQL for database specific features). For example you could use SQLite3 in development, but MySQL in production.
 
 You'll learn all about migrations including:
 
@@ -78,7 +78,7 @@ Active Record provides methods that perform common data definition tasks in a da
 
 If you need to perform tasks specific to your database (for example create a "foreign key":#active-record-and-referential-integrity constraint) then the +execute+ function allows you to execute arbitrary SQL. A migration is just a regular Ruby class so you're not limited to these functions. For example after adding a column you could write code to set the value of that column for existing records (if necessary using your models).
 
-On databases that support transactions with statements that change the schema (such as PostgreSQL), migrations are wrapped in a transaction. If the database does not support this (for example MySQL and SQLite) then when a migration fails the parts of it that succeeded will not be rolled back. You will have to unpick the changes that were made by hand.
+On databases that support transactions with statements that change the schema (such as PostgreSQL or SQLite3), migrations are wrapped in a transaction. If the database does not support this (for example MySQL) then when a migration fails the parts of it that succeeded will not be rolled back. You will have to unpick the changes that were made by hand.
 
 h4. What's in a Name
 
@@ -508,7 +508,7 @@ The migration has its own minimal copy of the +Product+ model and no longer care
 
 h4. Dealing with Changing Models
 
-For performance reasons information about the columns a model has is cached. For example if you add a column to a table and then try and use the corresponding model to insert a new row it may try and use the old column information. You can force Active Record to re-read the column information with the +reset_column_information+ method, for example
+For performance reasons information about the columns a model has is cached. For example if you add a column to a table and then try and use the corresponding model to insert a new row it may try to use the old column information. You can force Active Record to re-read the column information with the +reset_column_information+ method, for example
 
 <ruby>
 class AddPartNumberToProducts < ActiveRecord::Migration
@@ -538,7 +538,7 @@ There is no need (and it is error prone) to deploy a new instance of an app by r
 
 For example, this is how the test database is created: the current development database is dumped (either to +db/schema.rb+ or +db/development.sql+) and then loaded into the test database.
 
-Schema files are also useful if you want a quick look at what attributes an Active Record object has. This information is not in the model's code and is frequently spread across several migrations but is all summed up in the schema file. The "annotate_models":http://agilewebdevelopment.com/plugins/annotate_models plugin, which automatically adds (and updates) comments at the top of each model summarising the schema, may also be of interest.
+Schema files are also useful if you want a quick look at what attributes an Active Record object has. This information is not in the model's code and is frequently spread across several migrations but is all summed up in the schema file. The "annotate_models":http://agilewebdevelopment.com/plugins/annotate_models plugin, which automatically adds (and updates) comments at the top of each model summarizing the schema, may also be of interest.
 
 h4. Types of Schema Dumps
 
@@ -582,7 +582,7 @@ The Active Record way claims that intelligence belongs in your models, not in th
 
 Validations such as +validates_uniqueness_of+ are one way in which models can enforce data integrity. The +:dependent+ option on associations allows models to automatically destroy child objects when the parent is destroyed. Like anything which operates at the application level these cannot guarantee referential integrity and so some people augment them with foreign key constraints.
 
-Although Active Record does not provide any tools for working directly with such features, the +execute+ method can be used to execute arbitrary SQL. There are also a number of plugins such as "redhillonrails":http://agilewebdevelopment.com/plugins/search?search=redhillonrails which add foreign key support to Active Record (including support for dumping foreign keys in +db/schema.rb+).
+Although Active Record does not provide any tools for working directly with such features, the +execute+ method can be used to execute arbitrary SQL. There are also a number of plugins such as "foreign_key_migrations":http://github.com/harukizaemon/foreign_key_migrations/tree/master which add foreign key support to Active Record (including support for dumping foreign keys in +db/schema.rb+).
 
 h3. Changelog
 

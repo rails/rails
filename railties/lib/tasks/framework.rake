@@ -78,51 +78,48 @@ namespace :rails do
   end
 
   desc "Update both configs, scripts and public/javascripts from Rails"
-  task :update => [ "update:scripts", "update:javascripts", "update:configs", "update:application_controller" ]
+  task :update => [ "update:configs", "update:javascripts", "update:scripts", "update:application_controller" ]
 
   desc "Applies the template supplied by LOCATION=/path/to/template"
   task :template do
-    require 'rails_generator/generators/applications/app/template_runner'
     template = ENV["LOCATION"]
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
-    Rails::TemplateRunner.new(template)
+
+    require 'generators'
+    generator = Rails::Generators::App.new [ RAILS_ROOT ], {}, :destination_root => RAILS_ROOT
+    generator.apply template, :verbose => false
   end
 
   namespace :update do
-    desc "Add new scripts to the application script/ directory"
-    task :scripts do
-      local_base = "script"
-      edge_base  = "#{File.dirname(__FILE__)}/../../bin"
+    def invoke_from_app_generator(method)
+      require 'generators'
+      require 'generators/rails/app/app_generator'
 
-      local = Dir["#{local_base}/**/*"].reject { |path| File.directory?(path) }
-      edge  = Dir["#{edge_base}/**/*"].reject { |path| File.directory?(path) }
-  
-      edge.each do |script|
-        base_name = script[(edge_base.length+1)..-1]
-        next if base_name == "rails"
-        next if local.detect { |path| base_name == path[(local_base.length+1)..-1] }
-        if !File.directory?("#{local_base}/#{File.dirname(base_name)}")
-          mkdir_p "#{local_base}/#{File.dirname(base_name)}"
-        end
-        install script, "#{local_base}/#{base_name}", :mode => 0755
-      end
-    end
-
-    desc "Update your javascripts from your current rails install"
-    task :javascripts do
-      require 'railties_path'  
-      project_dir = RAILS_ROOT + '/public/javascripts/'
-      scripts = Dir[RAILTIES_PATH + '/html/javascripts/*.js']
-      scripts.reject!{|s| File.basename(s) == 'application.js'} if File.exist?(project_dir + 'application.js')
-      FileUtils.cp(scripts, project_dir)
+      generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
+                                                      :destination_root => RAILS_ROOT
+      generator.invoke(method)
     end
 
     desc "Update config/boot.rb from your current rails install"
     task :configs do
-      require 'railties_path'  
-      FileUtils.cp(RAILTIES_PATH + '/environments/boot.rb', RAILS_ROOT + '/config/boot.rb')
+      invoke_from_app_generator :create_boot_file
     end
-    
+
+    desc "Update Prototype javascripts from your current rails install"
+    task :javascripts do
+      invoke_from_app_generator :create_prototype_files
+    end
+
+    desc "Generate dispatcher files in RAILS_ROOT/public"
+    task :generate_dispatchers do
+      invoke_from_app_generator :create_dispatch_files
+    end
+
+    desc "Add new scripts to the application script/ directory"
+    task :scripts do
+      invoke_from_app_generator :create_script_files
+    end
+
     desc "Rename application.rb to application_controller.rb"
     task :application_controller do
       old_style = RAILS_ROOT + '/app/controllers/application.rb'
@@ -131,15 +128,6 @@ namespace :rails do
         FileUtils.mv(old_style, new_style)
         puts "#{old_style} has been renamed to #{new_style}, update your SCM as necessary"
       end
-    end
-    
-    desc "Generate dispatcher files in RAILS_ROOT/public"
-    task :generate_dispatchers do
-      require 'railties_path'
-      FileUtils.cp(RAILTIES_PATH + '/dispatches/config.ru', RAILS_ROOT + '/config.ru')
-      FileUtils.cp(RAILTIES_PATH + '/dispatches/dispatch.fcgi', RAILS_ROOT + '/public/dispatch.fcgi')
-      FileUtils.cp(RAILTIES_PATH + '/dispatches/dispatch.rb', RAILS_ROOT + '/public/dispatch.rb')
-      FileUtils.cp(RAILTIES_PATH + '/dispatches/dispatch.rb', RAILS_ROOT + '/public/dispatch.cgi')
     end
   end
 end

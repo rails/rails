@@ -401,7 +401,7 @@ And then ask again for the instance_variables:
 true
 </shell>
 
-Now +@posts+ is a included in the instance variables, because the line defining it was executed.
+Now +@posts+ is included in the instance variables, because the line defining it was executed.
 
 TIP: You can also step into *irb* mode with the command +irb+ (of course!). This way an irb session will be started within the context you invoked it. But be warned: this is an experimental feature.
 

@@ -244,7 +244,6 @@ module Rails
     if RUBY_VERSION < '1.9'
       $KCODE='u'
     else
-      Encoding.default_internal = Encoding::UTF_8
       Encoding.default_external = Encoding::UTF_8
     end
   end
@@ -566,6 +565,15 @@ Run `rake gems:install` to install the missing gems.
   Initializer.default.add :disable_dependency_loading do
     if configuration.cache_classes && !configuration.dependency_loading
       ActiveSupport::Dependencies.unhook!
+    end
+  end
+
+  # Configure generators if they were already loaded
+  Initializer.default.add :initialize_generators do
+    if defined?(Rails::Generators)
+      Rails::Generators.no_color! unless config.generators.colorize_logging
+      Rails::Generators.aliases.deep_merge! config.generators.aliases
+      Rails::Generators.options.deep_merge! config.generators.options
     end
   end
 end
