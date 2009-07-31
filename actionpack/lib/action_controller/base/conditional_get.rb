@@ -29,11 +29,7 @@ module ActionController
       response.last_modified = options[:last_modified] if options[:last_modified]
 
       if options[:public]
-        cache_control = response.headers["Cache-Control"].split(",").map {|k| k.strip }
-        cache_control.delete("private")
-        cache_control.delete("no-cache")
-        cache_control << "public"
-        response.headers["Cache-Control"] = cache_control.join(', ')
+        response.cache_control[:public] = true
       end
 
       if request.fresh?(response)
@@ -107,21 +103,10 @@ module ActionController
     # This method will overwrite an existing Cache-Control header.
     # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     def expires_in(seconds, options = {}) #:doc:
-      cache_control = response.headers["Cache-Control"].split(",").map {|k| k.strip }
+      response.cache_control.merge!(:max_age => seconds, :public => options.delete(:public))
+      options.delete(:private)
 
-      cache_control << "max-age=#{seconds}"
-      cache_control.delete("no-cache")
-      if options[:public]
-        cache_control.delete("private")
-        cache_control << "public"
-      else
-        cache_control << "private"
-      end
-
-      # This allows for additional headers to be passed through like 'max-stale' => 5.hours
-      cache_control += options.symbolize_keys.reject{|k,v| k == :public || k == :private }.map{ |k,v| v == true ? k.to_s : "#{k.to_s}=#{v.to_s}"}
-
-      response.headers["Cache-Control"] = cache_control.join(', ')
+      response.cache_control[:extras] = options.map {|k,v| "#{k}=#{v}"}
     end
 
     # Sets a HTTP 1.1 Cache-Control header of "no-cache" so no caching should occur by the browser or

@@ -129,7 +129,7 @@ class SendFileTest < ActionController::TestCase
     # test overriding Cache-Control: no-cache header to fix IE open/save dialog
     @controller.headers = { 'Cache-Control' => 'no-cache' }
     @controller.send(:send_file_headers!, options)
-    h = @controller.headers
+    @controller.response.prepare!
     assert_equal 'private', h['Cache-Control']
   end
 

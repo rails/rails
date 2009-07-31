@@ -181,7 +181,7 @@ module ActionController #:nodoc:
         # after it displays the "open/save" dialog, which means that if you
         # hit "open" the file isn't there anymore when the application that
         # is called for handling the download is run, so let's workaround that
-        headers['Cache-Control'] = 'private' if headers['Cache-Control'] == 'no-cache'
+        response.cache_control[:public] ||= false
       end
   end
 end

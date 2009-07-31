@@ -32,8 +32,8 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response < Rack::Response
-    DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
     attr_accessor :request
+    attr_reader :cache_control
 
     attr_writer :header
     alias_method :headers=, :header=
@@ -42,7 +42,8 @@ module ActionDispatch # :nodoc:
 
     def initialize
       super
-      @header = Rack::Utils::HeaderHash.new(DEFAULT_HEADERS)
+      @cache_control = {}
+      @header = Rack::Utils::HeaderHash.new
     end
 
     # The response code of the request
@@ -196,7 +197,7 @@ module ActionDispatch # :nodoc:
 
     private
       def handle_conditional_get!
-        if etag? || last_modified?
+        if etag? || last_modified? || !cache_control.empty?
           set_conditional_cache_control!
         elsif nonempty_ok_response?
           self.etag = body
@@ -207,6 +208,8 @@ module ActionDispatch # :nodoc:
           end
 
           set_conditional_cache_control!
+        else
+          headers["Cache-Control"] = "no-cache"
         end
       end
 
@@ -220,9 +223,20 @@ module ActionDispatch # :nodoc:
       end
 
       def set_conditional_cache_control!
-        if headers['Cache-Control'] == DEFAULT_HEADERS['Cache-Control']
-          headers['Cache-Control'] = 'private, max-age=0, must-revalidate'
+        if cache_control.empty?
+          cache_control.merge!(:public => false, :max_age => 0, :must_revalidate => true)
         end
+
+        public_cache, max_age, must_revalidate, extras =
+          cache_control.values_at(:public, :max_age, :must_revalidate, :extras)
+
+        options = []
+        options << "max-age=#{max_age}" if max_age
+        options << (public_cache ? "public" : "private")
+        options << "must-revalidate" if must_revalidate
+        options.concat(extras) if extras
+
+        headers["Cache-Control"] = options.join(", ")
       end
 
       def convert_content_type!

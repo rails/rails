@@ -1331,7 +1331,7 @@ class EtagRenderTest < ActionController::TestCase
   def test_render_200_should_set_etag
     get :render_hello_world_from_variable
     assert_equal etag_for("hello david"), @response.headers['ETag']
-    assert_equal "private, max-age=0, must-revalidate", @response.headers['Cache-Control']
+    assert_equal "max-age=0, private, must-revalidate", @response.headers['Cache-Control']
   end
 
   def test_render_against_etag_request_should_304_when_match
