@@ -14,7 +14,7 @@ endprologue.
 
 h3. Reporting a Rails Issue
 
-Rails uses a "Lighthouse project":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/ to track issues (primarily bugs and contributions of new code). If you've found a bug in Rails, this is the place to start.
+Rails uses a "Lighthouse project":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/ to track issues (primarily bugs and contributions of new code). If you've found a bug in Rails, this is the place to start. You'll need to create a (free) Lighthouse account in order to comment on issues or to upload tests or patches.
 
 NOTE: Bugs in the most recent released version of Rails are likely to get the most attention. Also, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this Guide you'll find out how to get edge Rails for testing.
 
@@ -32,6 +32,10 @@ h4. Special Treatment for Security Issues
 
 If you've found a security vulnerability in Rails, please do *not* report it via a Lighthouse ticket. Lighthouse tickets are public as soon as they are entered. Instead, you should use the dedicated email address "security@rubyonrails.org":mailto:security@rubyonrails.org to report any vulnerabilities. This alias is monitored and the core team will work with you to quickly and completely address any such vulnerabilities.
 
+WARNING: Just to emphasize the point, _please do not report security vulnerabilities on public Lighthouse tickets_. This will only expose your fellow Rails developers to needless risks.
+
+You should receive an acknowledgement and detailed response to any reported security issue within 48 hours. If you don't think you're getting adequate response from the security alias, refer to the "Rails security policy page":http://rubyonrails.org/security for direct emails for the current Rails security coordinators.
+
 h4. What About Feature Requests?
 
 Please don't put "feature request" tickets into Lighthouse. If there's a new feature that you want to see added to Rails, you'll need to write the code yourself - or convince someone else to partner with you to write the code. Later in this guide you'll find detailed instructions for proposing a patch to Rails. If you enter a wishlist item in Lighthouse with no code, you can expect it to be marked "invalid" as soon as it's reviewed.
@@ -47,6 +51,7 @@ Rails uses git for source code control. You won’t be able to do anything witho
 * "Everyday Git":http://www.kernel.org/pub/software/scm/git/docs/everyday.html will teach you just enough about git to get by. 
 * The "PeepCode screencast":https://peepcode.com/products/git on git ($9) is easier to follow.
 * "GitHub":http://github.com/guides/home offers links to a variety of git resources.
+* "Pro Git":http://progit.org/book/ is an entire book about git with a Creative Commons license.
 
 h4. Get the Rails Source Code
 
@@ -56,6 +61,17 @@ Don’t fork the main Rails repository. Instead, you want to clone it to your ow
 git clone git://github.com/rails/rails.git  
 cd rails
 </shell>
+
+h4. Pick a Branch
+
+Currently, there is active work being done on both the 2-3-stable branch of Rails and on the master branch (which will become Rails 3.0). If you want to work with the master branch, you're all set. To work with 2.3, you'll need to set up and switch to your own local tracking branch:
+
+<shell>
+git branch --track 2-3-stable origin/2-3-stable
+git checkout 2-3-stable
+</shell>
+
+TIP: You may want to "put your git branch name in your shell prompt":http://github.com/guides/put-your-git-branch-name-in-your-shell-prompt to make it easier to remember which version of the code you're working with.
 
 h4. Set up and Run the Tests
 
@@ -79,7 +95,7 @@ rake test_sqlite3
 rake test_sqlite3 TEST=test/cases/validations_test.rb
 </shell>
 
-You can change +sqlite3+ with +jdbcmysql+, +jdbcsqlite3+, +jdbcpostgresql+, +mysql+ or +postgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/ci_build.rb+ to see the test suite that the Rails continuous integration server runs.
+You can replace +sqlite3+ with +jdbcmysql+, +jdbcsqlite3+, +jdbcpostgresql+, +mysql+ or +postgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/ci_build.rb+ to see the test suite that the Rails continuous integration server runs.
 
 
 
@@ -132,7 +148,7 @@ h3. Contributing to the Rails Documentation
 
 Another area where you can help out if you're not yet ready to take the plunge to writing Rails core code is with Rails documentation. You can help with the Rails Guides or the Rails API documentation.
 
-TIP: "docrails":http://github.com/lifo/docrails/tree/master is the documentation branch for Rails with an *open commit policy*. You can simply PM "lifo":http://github.com/lifo on Github and ask for the commit rights. Documentation changes made as part of the "docrails":http://github.com/lifo/docrails/tree/master project, are merged back to the Rails master code from time to time. Check out the "original announcement":http://weblog.rubyonrails.org/2008/5/2/help-improve-rails-documentation-on-git-branch for more details.
+TIP: "docrails":http://github.com/lifo/docrails/tree/master is the documentation branch for Rails with an *open commit policy*. You can simply PM "lifo":http://github.com/lifo on Github and ask for the commit rights. Documentation changes made as part of the "docrails":http://github.com/lifo/docrails/tree/master project are merged back to the Rails master code from time to time. Check out the "original announcement":http://weblog.rubyonrails.org/2008/5/2/help-improve-rails-documentation-on-git-branch for more details.
 
 h4. The Rails Guides
 
@@ -187,6 +203,8 @@ Rails follows a simple set of coding style conventions.
 h4. Sanity Check
 
 You should not be the only person who looks at the code before you submit it. You know at least one other Rails developer, right? Show them what you’re doing and ask for feedback. Doing this in private before you push a patch out publicly is the “smoke test” for a patch: if you can’t convince one other developer of the beauty of your code, you’re unlikely to convince the core team either.
+
+You might also want to check out the "RailsBridge BugMash":http://wiki.railsbridge.org/projects/railsbridge/wiki/BugMash as a way to get involved in a group effort to improve Rails. This can help you get started and help check your code when you're writing your first patches.
 
 h4. Commit Your Changes
 
@@ -243,6 +261,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/64
 
+* August 1, 2009: Updates/amplifications by "Mike Gunderloy":credits.html#mgunderloy
 * March 2, 2009: Initial draft by "Mike Gunderloy":credits.html#mgunderloy
 
 
