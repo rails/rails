@@ -198,11 +198,11 @@ module ActionController #:nodoc:
     end
 
     # respond_with allows you to respond an action with a given resource. It
-    # requires that you set your class with a :respond_to method with the
+    # requires that you set your class with a respond_to method with the
     # formats allowed:
     #
     #   class PeopleController < ApplicationController
-    #     respond_to :xml, :json
+    #     respond_to :html, :xml, :json
     #
     #     def index
     #       @people = Person.find(:all)
@@ -210,14 +210,43 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # When a request comes with format :xml, the respond_with will first search
-    # for a template as person/index.xml, if the template is not available, it
-    # will see if the given resource responds to :to_xml.
+    # When a request comes, for example with format :xml, three steps happen:
     #
-    # If neither are available, it will raise an error.
+    #   1) respond_with searches for a template at people/index.xml;
     #
-    # respond_with holds semantics for each HTTP verb. The example above cover
-    # GET requests. Let's check a POST request example:
+    #   2) if the template is not available, it will check if the given
+    #      resource responds to :to_xml.
+    #
+    #   3) if a :location option was provided, redirect to the location with
+    #      redirect status if a string was given, or render an action if a
+    #      symbol was given.
+    #
+    # If all steps fail, a missing template error will be raised.
+    #
+    # === Supported options
+    #
+    # [status]
+    #   Sets the response status.
+    #
+    # [head]
+    #   Tell respond_with to set the content type, status and location header,
+    #   but do not render the object, leaving the response body empty. This
+    #   option only has effect if the resource is being rendered. If a
+    #   template was found, it's going to be rendered anyway.
+    #
+    # [location]
+    #   Sets the location header with the given value. It accepts a string,
+    #   representing the location header value, or a symbol representing an
+    #   action name.
+    #
+    # === Builtin HTTP verb semantics
+    #
+    # respond_with holds semantics for each HTTP verb. Depending on the verb
+    # and the resource status, respond_with will automatically set the options
+    # above.
+    #
+    # Above we saw an example for GET requests, where actually no option is
+    # configured. A create action for POST requests, could be written as:
     #
     #   def create
     #     @person = Person.new(params[:person])
@@ -225,34 +254,40 @@ module ActionController #:nodoc:
     #     respond_with(@person)
     #   end
     #
-    # Since the request is a POST, respond_with will check wether @people
-    # resource have errors or not. If it has errors, it will render the error
-    # object with unprocessable entity status (422).
+    # respond_with will inspect the @person object and check if we have any
+    # error. If errors are empty, it will add status and location to the options
+    # hash. Then the create action in case of success, is equivalent to this:
     #
-    # If no error was found, it will render the @people resource, with status
-    # created (201) and location header set to person_url(@people).
+    #   respond_with(@person, :status => :created, :location => @person)
     #
-    # If you also want to provide html behavior in the method above, you can
-    # supply a block to customize it:
+    # From them on, the lookup happens as described above. Let's suppose a :xml
+    # request and we don't have a people/create.xml template. But since the
+    # @person object responds to :to_xml, it will render the newly created
+    # resource and set status and location.
     #
-    #   class PeopleController < ApplicationController
-    #     respond_to :html, :xml, :json # Add :html to respond_to definition
+    # However, if the request is :html, a template is not available and @person
+    # does not respond to :to_html. But since a :location options was provided,
+    # it will redirect to it.
     #
-    #     def create
-    #       @person = Person.new(params[:pe])
+    # In case of failures (when the @person could not be saved and errors are
+    # not empty), respond_with can be expanded as this:
     #
-    #       respond_with(@person) do |format|
-    #         if @person.save
-    #           flash[:notice] = 'Person was successfully created.'
-    #           format.html { redirect_to @person }
-    #         else
-    #           format.html { render :action => "new" }
-    #         end
-    #       end
+    #   respond_with(@person.errors, :status => :unprocessable_entity, :location => :new)
+    #
+    # In other words, respond_with(@person) for POST requests is expanded
+    # internally into this:
+    #
+    #   def create
+    #     @person = Person.new(params[:person])
+    #
+    #     if @person.save
+    #       respond_with(@person, :status => :created, :location => @person)
+    #     else
+    #       respond_with(@person.errors, :status => :unprocessable_entity, :location => :new)
     #     end
     #   end
     #
-    # It works similarly for PUT requests:
+    # For an update action for PUT requests, we would have:
     #
     #   def update
     #     @person = Person.find(params[:id])
@@ -260,10 +295,23 @@ module ActionController #:nodoc:
     #     respond_with(@person)
     #   end
     #
-    # In case of failures, it works as POST requests, but in success failures
-    # it just reply status ok (200) to the client.
+    # Which, in face of success and failure scenarios, can be expanded as:
     #
-    # A DELETE request also works in the same way:
+    #   def update
+    #     @person = Person.find(params[:id])
+    #     @person.update_attributes(params[:person])
+    #
+    #     if @person.save
+    #       respond_with(@person, :status => :ok, :location => @person, :head => true)
+    #     else
+    #       respond_with(@person.errors, :status => :unprocessable_entity, :location => :edit)
+    #     end
+    #   end
+    #
+    # Notice that in case of success, we just need to reply :ok to the client.
+    # The option :head ensures that the object is not rendered.
+    #
+    # Finally, we have the destroy action with DELETE verb:
     #
     #   def destroy
     #     @person = Person.find(params[:id])
@@ -271,21 +319,30 @@ module ActionController #:nodoc:
     #     respond_with(@person)
     #   end
     #
-    # It just replies with status ok, indicating the record was successfuly
-    # destroyed.
+    # Which is expanded as:
+    #
+    #   def destroy
+    #     @person = Person.find(params[:id])
+    #     @person.destroy
+    #     respond_with(@person, :status => :ok, :location => @person, :head => true)
+    #   end
+    #
+    # In this case, since @person.destroyed? returns true, polymorphic urls will
+    # redirect to the collection url, instead of the resource url.
     #
     def respond_with(resource, options={}, &block)
       respond_to(&block)
     rescue ActionView::MissingTemplate => e
       format   = self.formats.first
       resource = normalize_resource_options_by_verb(resource, options)
+      action   = options.delete(:location) if options[:location].is_a?(Symbol)
 
       if resource.respond_to?(:"to_#{format}")
-        if options.delete(:no_content)
-          head options
-        else
-          render options.merge(format => resource)
-        end
+        options.delete(:head) ? head(options) : render(options.merge(format => resource))
+      elsif action
+        render :action => action
+      elsif options[:location]
+        redirect_to options[:location]
       else
         raise e
       end
@@ -296,16 +353,22 @@ module ActionController #:nodoc:
     # Change respond with behavior based on the HTTP verb.
     #
     def normalize_resource_options_by_verb(resource_or_array, options)
-      resource   = resource_or_array.is_a?(Array) ? resource_or_array.last : resource_or_array
-      has_errors = resource.respond_to?(:errors) && !resource.errors.empty?
+      resource = resource_or_array.is_a?(Array) ? resource_or_array.last : resource_or_array
 
-      if has_errors && (request.post? || request.put?)
-        options.reverse_merge!(:status => :unprocessable_entity)
+      if resource.respond_to?(:errors) && !resource.errors.empty?
+        options[:status]   ||= :unprocessable_entity
+        options[:location] ||= :new  if request.post?
+        options[:location] ||= :edit if request.put?
         return resource.errors
-      elsif request.post?
-        options.reverse_merge!(:status => :created, :location => resource_or_array)
       elsif !request.get?
-        options.reverse_merge!(:status => :ok, :no_content => true)
+        options[:location] ||= resource_or_array
+
+        if request.post?
+          options[:status] ||= :created
+        else
+          options[:status] ||= :ok
+          options[:head] = true unless options.key?(:head)
+        end
       end
 
       return resource

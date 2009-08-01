@@ -86,17 +86,16 @@ module ActionController
         else        [ record_or_hash_or_array ]
       end
 
-      inflection =
-        case
-        when options[:action].to_s == "new"
-          args.pop
-          :singular
-        when record.respond_to?(:new_record?) && record.new_record?
-          args.pop
-          :plural
-        else
-          :singular
-        end
+      inflection = if options[:action].to_s == "new"
+        args.pop
+        :singular
+      elsif (record.respond_to?(:new_record?) && record.new_record?) ||
+            (record.respond_to?(:destroyed?) && record.destroyed?)
+        args.pop
+        :plural
+      else
+        :singular
+      end
 
       args.delete_if {|arg| arg.is_a?(Symbol) || arg.is_a?(String)}
 
