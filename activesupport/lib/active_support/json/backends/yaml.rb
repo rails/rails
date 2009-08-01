@@ -27,11 +27,9 @@ module ActiveSupport
                   pos = scanner.pos
                 elsif quoting == char
                   if json[pos..scanner.pos-2] =~ DATE_REGEX
-                    # found a date, track the exact positions of the quotes so we can remove them later.
-                    # oh, and increment them for each current mark, each one is an extra padded space that bumps
-                    # the position in the final YAML output
-                    total_marks = marks.size
-                    times << pos+total_marks << scanner.pos+total_marks
+                    # found a date, track the exact positions of the quotes so we can
+                    # overwrite them with spaces later.
+                    times << pos << scanner.pos
                   end
                   quoting = false
                 end
@@ -59,7 +57,12 @@ module ActiveSupport
               output    = []
               left_pos.each_with_index do |left, i|
                 scanner.pos = left.succ
-                output << scanner.peek(right_pos[i] - scanner.pos + 1).gsub(/\\([\\\/]|u[[:xdigit:]]{4})/) do
+                chunk = scanner.peek(right_pos[i] - scanner.pos + 1)
+                # overwrite the quotes found around the dates with spaces
+                while times.size > 0 && times[0] <= right_pos[i]
+                  chunk[times.shift - scanner.pos - 1] = ' '
+                end
+                chunk.gsub!(/\\([\\\/]|u[[:xdigit:]]{4})/) do
                   ustr = $1
                   if ustr.start_with?('u')
                     [ustr[1..-1].to_i(16)].pack("U")
@@ -69,10 +72,10 @@ module ActiveSupport
                     ustr
                   end
                 end
+                output << chunk
               end
               output = output * " "
 
-              times.each { |i| output[i-1] = ' ' }
               output.gsub!(/\\\//, '/')
               output
             end
