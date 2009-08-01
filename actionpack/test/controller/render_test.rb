@@ -459,7 +459,7 @@ class TestController < ActionController::Base
   end
 
   def head_with_location_object
-    head :location => Customer.new("david")
+    head :location => Customer.new("david", 1)
   end
 
   def head_with_symbolic_status
@@ -622,9 +622,6 @@ class TestController < ActionController::Base
   end
 
   private
-    def customer_url(customer)
-      request.host + "/customers/1" 
-    end
 
     def determine_layout
       case action_name
@@ -1093,9 +1090,14 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_head_with_location_object
+    ActionController::Routing::Routes.draw do |map|
+      map.resources :customers
+      map.connect ':controller/:action/:id'
+    end
+
     get :head_with_location_object
     assert @response.body.blank?
-    assert_equal "www.nextangle.com/customers/1", @response.headers["Location"]
+    assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
     assert_response :ok
   end
 

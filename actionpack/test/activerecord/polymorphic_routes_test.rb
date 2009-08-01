@@ -52,6 +52,13 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
+  def test_with_destroyed_record
+    with_test_routes do 
+      @project.destroy
+      assert_equal "http://example.com/projects", polymorphic_url(@project)
+    end
+  end
+
   def test_with_record_and_action
     with_test_routes do 
       assert_equal "http://example.com/projects/new", polymorphic_url(@project, :action => 'new')
@@ -125,6 +132,14 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_with_nested_unsaved
     with_test_routes do
       @project.save
+      assert_equal "http://example.com/projects/#{@project.id}/tasks", polymorphic_url([@project, @task])
+    end
+  end
+  
+  def test_with_nested_destroyed
+    with_test_routes do
+      @project.save
+      @task.destroy
       assert_equal "http://example.com/projects/#{@project.id}/tasks", polymorphic_url([@project, @task])
     end
   end
@@ -254,6 +269,13 @@ class PolymorphicRoutesTest < ActionController::TestCase
   
   def test_with_irregular_plural_new_record
     with_test_routes do 
+      assert_equal "http://example.com/taxes", polymorphic_url(@tax)
+    end
+  end
+
+  def test_with_irregular_plural_destroyed_record
+    with_test_routes do
+      @tax.destroy 
       assert_equal "http://example.com/taxes", polymorphic_url(@tax)
     end
   end

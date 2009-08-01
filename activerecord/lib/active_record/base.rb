@@ -2492,6 +2492,11 @@ module ActiveRecord #:nodoc:
         @new_record || false
       end
 
+      # Returns true if this object has been destroyed, otherwise returns false.
+      def destroyed?
+        @destroyed || false
+      end
+
       # :call-seq:
       #   save(perform_validation = true)
       #
@@ -2542,6 +2547,7 @@ module ActiveRecord #:nodoc:
       # options, use <tt>#destroy</tt>.
       def delete
         self.class.delete(id) unless new_record?
+        @destroyed = true
         freeze
       end
 
@@ -2556,6 +2562,7 @@ module ActiveRecord #:nodoc:
           )
         end
 
+        @destroyed = true
         freeze
       end
 

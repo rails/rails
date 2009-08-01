@@ -330,6 +330,37 @@ module ActionController #:nodoc:
     # In this case, since @person.destroyed? returns true, polymorphic urls will
     # redirect to the collection url, instead of the resource url.
     #
+    # === Nested resources
+    #
+    # respond_with also works with nested resources, you just need to pass them
+    # as you do in form_for and polymorphic_url. Consider the project has many
+    # tasks example. The create action for TasksController would be like:
+    #
+    #   def create
+    #     @project = Project.find(params[:project_id])
+    #     @task = @project.comments.build(params[:task])
+    #     @task.save
+    #     respond_with([@project, @task])
+    #   end
+    #
+    # Namespaced and singleton resources requires a symbol to be given, as in
+    # polymorphic urls. If a project has one manager with has many tasks, it
+    # should be invoked as:
+    #
+    #   respond_with([@project, :manager, @task])
+    #
+    # Be sure to check polymorphic_url documentation. The only occasion you will
+    # need to give clear input to respond_with is in DELETE verbs for singleton
+    # resources. In such cases, the collection url does not exist, so you need
+    # to supply the destination url after delete:
+    #
+    #   def destroy
+    #     @project = Project.find(params[:project_id])
+    #     @manager = @project.manager
+    #     @manager.destroy
+    #     respond_with([@project, @manager], :location => root_url)
+    #   end
+    #
     def respond_with(resource, options={}, &block)
       respond_to(&block)
     rescue ActionView::MissingTemplate => e
