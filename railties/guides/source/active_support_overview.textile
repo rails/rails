@@ -638,7 +638,40 @@ h3. Extensions to +Numeric+
 
 h3. Extensions to +Integer+
 
-...
+h4. +multiple_of?+
+
+The method +multiple_of?+ tests whether an integer is multiple of the argument:
+
+<ruby>
+2.multiple_of?(1) # => true
+1.multiple_of?(2) # => false
+</ruby>
+
+WARNING: Due the way it is implemented the argument must be nonzero, otherwise +ZeroDivisionError+ is raised.
+
+h4. +even?+ and +odd?+
+
+Integers in Ruby 1.8.7 and above respond to +even?+ and +odd?+, Active Support defines them for older versions:
+
+<ruby>
+-1.even?  # => false
+-1.odd?   # => true
+ 0.even?  # => true
+ 0.odd?   # => false
+ 2.even?  # => true
+ 2.odd?   # => false
+</ruby>
+
+h4. +ordinalize+
+
+The method +ordinalize+ returns the ordinal string corresponding to the receiver integer:
+
+<ruby>
+1.ordinalize    # => "1st"
+2.ordinalize    # => "2nd"
+53.ordinalize   # => "53rd"
+2009.ordinalize # => "2009th"
+</ruby>
 
 h3. Extensions to +Float+
 
