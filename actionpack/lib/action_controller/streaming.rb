@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/bytesize'
+
 module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
   # instead of rendering.
@@ -137,7 +139,7 @@ module ActionController #:nodoc:
       # instead. See ActionController::Base#render for more information.
       def send_data(data, options = {}) #:doc:
         logger.info "Sending data #{options[:filename]}" if logger
-        send_file_headers! options.merge(:length => data.size)
+        send_file_headers! options.merge(:length => data.bytesize)
         @performed_render = false
         render :status => options[:status], :text => data
       end

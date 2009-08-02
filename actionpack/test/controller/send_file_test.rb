@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'abstract_unit'
 
 module TestFileUtils
@@ -15,6 +16,7 @@ class SendFileController < ActionController::Base
 
   def file() send_file(file_path, options) end
   def data() send_data(file_data, options) end
+  def multibyte_text_data() send_data("Кирилица\n祝您好運", options) end
 
   def rescue_action(e) raise end
 end
@@ -157,5 +159,12 @@ class SendFileTest < ActionController::TestCase
       assert_nothing_raised { assert_not_nil process(method) }
       assert_equal ActionController::Base::DEFAULT_RENDER_STATUS_CODE, @response.status
     end
+  end
+
+  def test_send_data_content_length_header
+    @controller.headers = {}
+    @controller.options = { :type => :text, :filename => 'file_with_utf8_text' }
+    process('multibyte_text_data')
+    assert_equal '29', @controller.headers['Content-Length']
   end
 end

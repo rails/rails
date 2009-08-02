@@ -1,3 +1,8 @@
+*2.3.4 (pending)*
+
+* Ruby 1.9: fix Content-Length for multibyte send_data streaming.  #2661 [Sava Chankov]
+
+
 *2.3.3 (July 12, 2009)*
 
 * Fixed that TestResponse.cookies was returning cookies unescaped #1867 [Doug McInnes]
