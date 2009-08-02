@@ -40,7 +40,7 @@ class ReloaderTests < ActiveSupport::TestCase
     @lock = Mutex.new
   end
 
-  def setup_and_return_body(app = lambda { })
+  def setup_and_return_body(app = lambda { |env| })
     Dispatcher.expects(:reload_application)
     reloader = Reloader.new(app, @lock)
     headers, status, body = reloader.call({ })
@@ -49,7 +49,7 @@ class ReloaderTests < ActiveSupport::TestCase
 
   def test_it_reloads_the_application_before_the_request
     Dispatcher.expects(:reload_application)
-    reloader = Reloader.new(lambda {
+    reloader = Reloader.new(lambda { |env|
       [200, { "Content-Type" => "text/html" }, [""]]
     }, @lock)
     reloader.call({ })
@@ -58,7 +58,7 @@ class ReloaderTests < ActiveSupport::TestCase
   def test_it_locks_before_calling_app
     lock = MyLock.new
     Dispatcher.expects(:reload_application)
-    reloader = Reloader.new(lambda {
+    reloader = Reloader.new(lambda { |env|
       [200, { "Content-Type" => "text/html" }, [""]]
     }, lock)
     assert !lock.locked?
@@ -69,7 +69,7 @@ class ReloaderTests < ActiveSupport::TestCase
   def it_unlocks_upon_calling_close_on_body
     lock = MyLock.new
     Dispatcher.expects(:reload_application)
-    reloader = Reloader.new(lambda {
+    reloader = Reloader.new(lambda { |env|
       [200, { "Content-Type" => "text/html" }, [""]]
     }, lock)
     headers, status, body = reloader.call({ })
@@ -78,14 +78,14 @@ class ReloaderTests < ActiveSupport::TestCase
   end
 
   def test_returned_body_object_always_responds_to_close
-    body = setup_and_return_body(lambda {
+    body = setup_and_return_body(lambda { |env|
       [200, { "Content-Type" => "text/html" }, [""]]
     })
     assert body.respond_to?(:close)
   end
 
   def test_returned_body_object_behaves_like_underlying_object
-    body = setup_and_return_body(lambda {
+    body = setup_and_return_body(lambda { |env|
       b = MyBody.new
       b << "hello"
       b << "world"
@@ -100,7 +100,7 @@ class ReloaderTests < ActiveSupport::TestCase
 
   def test_it_calls_close_on_underlying_object_when_close_is_called_on_body
     close_called = false
-    body = setup_and_return_body(lambda {
+    body = setup_and_return_body(lambda { |env|
       b = MyBody.new do
         close_called = true
       end
@@ -111,7 +111,7 @@ class ReloaderTests < ActiveSupport::TestCase
   end
 
   def test_returned_body_object_responds_to_all_methods_supported_by_underlying_object
-    body = setup_and_return_body(lambda {
+    body = setup_and_return_body(lambda { |env|
       [200, { "Content-Type" => "text/html" }, MyBody.new]
     })
     assert body.respond_to?(:size)
@@ -122,14 +122,14 @@ class ReloaderTests < ActiveSupport::TestCase
 
   def test_it_doesnt_clean_up_the_application_after_call
     Dispatcher.expects(:cleanup_application).never
-    body = setup_and_return_body(lambda {
+    body = setup_and_return_body(lambda { |env|
       [200, { "Content-Type" => "text/html" }, MyBody.new]
     })
   end
 
   def test_it_cleans_up_the_application_when_close_is_called_on_body
     Dispatcher.expects(:cleanup_application)
-    body = setup_and_return_body(lambda {
+    body = setup_and_return_body(lambda { |env|
       [200, { "Content-Type" => "text/html" }, MyBody.new]
     })
     body.close
