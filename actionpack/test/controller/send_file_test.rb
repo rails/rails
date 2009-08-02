@@ -4,7 +4,7 @@ require 'abstract_unit'
 module TestFileUtils
   def file_name() File.basename(__FILE__) end
   def file_path() File.expand_path(__FILE__) end
-  def file_data() File.open(file_path, 'rb') { |f| f.read } end
+  def file_data() @data ||= File.open(file_path, 'rb') { |f| f.read } end
 end
 
 class SendFileController < ActionController::Base
@@ -51,6 +51,7 @@ class SendFileTest < ActionController::TestCase
     require 'stringio'
     output = StringIO.new
     output.binmode
+    output.string.force_encoding(file_data.encoding) if output.string.respond_to?(:force_encoding)
     assert_nothing_raised { response.body.call(response, output) }
     assert_equal file_data, output.string
   end
