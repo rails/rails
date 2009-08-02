@@ -274,3 +274,10 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
     end
   end
 end
+
+class StringBytesizeTest < Test::Unit::TestCase
+  def test_bytesize
+    assert_respond_to 'foo', :bytesize
+    assert_equal 3, 'foo'.bytesize
+  end
+end
