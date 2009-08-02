@@ -87,9 +87,6 @@ task :release => [ :package ] do
   rubyforge.add_release(PKG_NAME, PKG_NAME, "REL #{PKG_VERSION}", *packages)
 end
 
-
-require 'lib/active_support/values/time_zone'
-
 namespace :tzinfo do
   desc "Update bundled tzinfo gem. Only copies the subset of classes and definitions required to support Rails time zone features."
   task :update => ['tzinfo:copy_classes', 'tzinfo:copy_definitions'] do
@@ -118,6 +115,8 @@ namespace :tzinfo do
   end
   
   task :copy_definitions => :unpack_gem do
+    $:.unshift "#{File.dirname(__FILE__)}/lib"
+    require 'active_support/values/time_zone'
     definitions_path = "#{destination_path}/tzinfo/definitions/"
     mkdir_p definitions_path
     ActiveSupport::TimeZone::MAPPING.values.each do |zone|
