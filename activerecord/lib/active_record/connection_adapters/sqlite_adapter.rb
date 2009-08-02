@@ -27,6 +27,10 @@ module ActiveRecord
 
       private
         def parse_sqlite_config!(config)
+          if config.include?(:dbfile)
+            ActiveSupport::Deprecation.warn "Please update config/database.yml to use 'database' instead of 'dbfile'"
+          end
+
           config[:database] ||= config[:dbfile]
           # Require database.
           unless config[:database]

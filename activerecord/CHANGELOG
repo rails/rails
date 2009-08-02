@@ -1,3 +1,8 @@
+*2.3.4 (pending)*
+
+* SQLite: deprecate the 'dbfile' option in favor of 'database.'  #2363 [Paul Hinze, Jeremy Kemper]
+
+
 *2.3.3 (July 12, 2009)*
 
 * Added :primary_key option to belongs_to associations.  #765 [Szymon Nowak, Philip Hallstrom, Noel Rocha]
