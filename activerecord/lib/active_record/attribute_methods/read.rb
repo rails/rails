@@ -51,7 +51,7 @@ module ActiveRecord
         private
           # Define read method for serialized attribute.
           def define_read_method_for_serialized_attribute(attr_name)
-            evaluate_attribute_method "def #{attr_name}; unserialize_attribute('#{attr_name}'); end", attr_name
+            generated_methods.module_eval("def #{attr_name}; unserialize_attribute('#{attr_name}'); end", __FILE__, __LINE__)
           end
 
           # Define an attribute reader method.  Cope with nil column.
@@ -66,7 +66,7 @@ module ActiveRecord
             if cache_attribute?(attr_name)
               access_code = "@attributes_cache['#{attr_name}'] ||= (#{access_code})"
             end
-            evaluate_attribute_method "def #{symbol}; #{access_code}; end", symbol
+            generated_methods.module_eval("def #{symbol}; #{access_code}; end", __FILE__, __LINE__)
           end
       end
 

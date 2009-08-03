@@ -27,7 +27,6 @@ module ActiveRecord
 
       private
         def parse_sqlite_config!(config)
-          config[:database] ||= config[:dbfile]
           # Require database.
           unless config[:database]
             raise ArgumentError, "No database file specified. Missing argument: database"

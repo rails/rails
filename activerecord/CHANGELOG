@@ -1,5 +1,7 @@
 *Edge*
 
+* SQLite: drop support for 'dbfile' option in favor of 'database.'  #2363 [Paul Hinze, Jeremy Kemper]
+
 * Added :primary_key option to belongs_to associations.  #765 [Szymon Nowak, Philip Hallstrom, Noel Rocha]
     # employees.company_name references companies.name
     Employee.belongs_to :company, :primary_key => 'name', :foreign_key => 'company_name'

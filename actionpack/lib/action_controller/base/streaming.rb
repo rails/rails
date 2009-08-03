@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/bytesize'
+
 module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
   # instead of rendering.
@@ -142,7 +144,7 @@ module ActionController #:nodoc:
       # instead. See ActionController::Base#render for more information.
       def send_data(data, options = {}) #:doc:
         logger.info "Sending data #{options[:filename]}" if logger
-        send_file_headers! options.merge(:length => data.size)
+        send_file_headers! options.merge(:length => data.bytesize)
         @performed_render = false
         render :status => options[:status], :text => data
       end
@@ -179,7 +181,7 @@ module ActionController #:nodoc:
         # after it displays the "open/save" dialog, which means that if you
         # hit "open" the file isn't there anymore when the application that
         # is called for handling the download is run, so let's workaround that
-        headers['Cache-Control'] = 'private' if headers['Cache-Control'] == 'no-cache'
+        response.cache_control[:public] ||= false
       end
   end
 end

@@ -75,19 +75,18 @@ module ActiveRecord
         @@attribute_method_regexp.match(method_name)
       end
 
-      # Contains the names of the generated attribute methods.
       def generated_methods #:nodoc:
-        @generated_methods ||= Set.new
-      end
-
-      def generated_methods?
-        !generated_methods.empty?
+        @generated_methods ||= begin
+          mod = Module.new
+          include mod
+          mod
+        end
       end
 
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods
-        return if generated_methods?
+        return unless generated_methods.instance_methods.empty?
         columns_hash.keys.each do |name|
           attribute_method_suffixes.each do |suffix|
             method_name = "#{name}#{suffix}"
@@ -96,7 +95,7 @@ module ActiveRecord
               if respond_to?(generate_method)
                 send(generate_method, name)
               else
-                evaluate_attribute_method("def #{method_name}(*args); send(:attribute#{suffix}, '#{name}', *args); end", method_name)
+                generated_methods.module_eval("def #{method_name}(*args); send(:attribute#{suffix}, '#{name}', *args); end", __FILE__, __LINE__)
               end
             end
           end
@@ -104,8 +103,9 @@ module ActiveRecord
       end
 
       def undefine_attribute_methods
-        generated_methods.each { |name| undef_method(name) }
-        @generated_methods = nil
+        generated_methods.module_eval do
+          instance_methods.each { |m| undef_method(m) }
+        end
       end
 
       # Checks whether the method is defined in the model or any of its subclasses
@@ -129,22 +129,6 @@ module ActiveRecord
         def attribute_method_suffixes
           @@attribute_method_suffixes ||= []
         end
-
-        # Evaluate the definition for an attribute related method
-        def evaluate_attribute_method(method_definition, method_name)
-          generated_methods << method_name.to_s
-
-          begin
-            class_eval(method_definition, __FILE__, __LINE__)
-          rescue SyntaxError => err
-            generated_methods.delete(method_name.to_s)
-            if logger
-              logger.warn "Exception occurred during reader method compilation."
-              logger.warn "Maybe #{method_name} is not a valid Ruby identifier?"
-              logger.warn err.message
-            end
-          end
-        end
     end
 
     # Allows access to the object attributes, which are held in the <tt>@attributes</tt> hash, as though they
@@ -160,10 +144,10 @@ module ActiveRecord
 
       # If we haven't generated any methods yet, generate them, then
       # see if we've created the method we're looking for.
-      if !self.class.generated_methods?
+      if self.class.generated_methods.instance_methods.empty?
         self.class.define_attribute_methods
         guard_private_attribute_method!(method_name, args)
-        if self.class.generated_methods.include?(method_name)
+        if self.class.generated_methods.instance_methods.include?(method_name)
           return self.send(method_id, *args, &block)
         end
       end
@@ -190,9 +174,9 @@ module ActiveRecord
         # If we're here than we haven't found among non-private methods
         # but found among all methods. Which means that given method is private.
         return false
-      elsif !self.class.generated_methods?
+      elsif self.class.generated_methods.instance_methods.empty?
         self.class.define_attribute_methods
-        if self.class.generated_methods.include?(method_name)
+        if self.class.generated_methods.instance_methods.include?(method_name)
           return true
         end
       end
