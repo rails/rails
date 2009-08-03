@@ -13,6 +13,10 @@ module ActiveRecord
       @klass.find_by_sql(@relation.to_sql)
     end
 
+    def each(&block)
+      to_a.each(&block)
+    end
+
     def first
       @relation = @relation.take(1)
       to_a.first

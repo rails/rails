@@ -73,6 +73,5 @@ class RealtionTest < ActiveRecord::TestCase
     ).to_a
     assert_equal 1, person_with_reader_and_post.size
   end
-
 end
 
