@@ -72,9 +72,7 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
      ShapeExpression, NonPolyOne, NonPolyTwo].each do |c|
       c.delete_all
     end
-
   end
-
 
   def generate_test_object_graphs
     1.upto(NUM_SIMPLE_OBJS) do

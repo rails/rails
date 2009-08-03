@@ -1068,7 +1068,7 @@ module ActiveRecord #:nodoc:
       # If the access logic of your application is richer you can use <tt>Hash#except</tt>
       # or <tt>Hash#slice</tt> to sanitize the hash of parameters before they are
       # passed to Active Record.
-      # 
+      #
       # For example, it could be the case that the list of protected attributes
       # for a given model depends on the role of the user:
       #
@@ -1116,7 +1116,7 @@ module ActiveRecord #:nodoc:
       # If the access logic of your application is richer you can use <tt>Hash#except</tt>
       # or <tt>Hash#slice</tt> to sanitize the hash of parameters before they are
       # passed to Active Record.
-      # 
+      #
       # For example, it could be the case that the list of accessible attributes
       # for a given model depends on the role of the user:
       #
@@ -2968,14 +2968,14 @@ module ActiveRecord #:nodoc:
         attrs = {}
         attribute_names.each do |name|
           if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
-            value = read_attribute(name)
 
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
-              # We need explicit to_yaml because quote() does not properly convert Time/Date fields to YAML.
-              if value && self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))
+              value = read_attribute(name)
+
+              if value && ((self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))) || value.is_a?(Hash) || value.is_a?(Array))
                 value = value.to_yaml
               end
-              attrs[arel_table[name]] = (value.is_a?(Hash) || value.is_a?(Array)) ? value.to_yaml : value
+              attrs[arel_table[name]] = value
             end
           end
         end
