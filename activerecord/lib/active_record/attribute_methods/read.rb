@@ -36,7 +36,7 @@ module ActiveRecord
         end
 
         protected
-          def define_attribute_method(attr_name)
+          def define_method_attribute(attr_name)
             if self.serialized_attributes[attr_name]
               define_read_method_for_serialized_attribute(attr_name)
             else

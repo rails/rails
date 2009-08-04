@@ -15,7 +15,7 @@ module ActiveRecord
         protected
           # Defined for all +datetime+ and +timestamp+ attributes when +time_zone_aware_attributes+ are enabled.
           # This enhanced read method automatically converts the UTC time stored in the database to the time zone stored in Time.zone.
-          def define_attribute_method(attr_name)
+          def define_method_attribute(attr_name)
             if create_time_zone_conversion_attribute?(attr_name, columns_hash[attr_name])
               method_body = <<-EOV
                 def #{attr_name}(reload = false)
@@ -33,7 +33,7 @@ module ActiveRecord
 
           # Defined for all +datetime+ and +timestamp+ attributes when +time_zone_aware_attributes+ are enabled.
           # This enhanced write method will automatically convert the time passed to it to the zone stored in Time.zone.
-          def define_attribute_method=(attr_name)
+          def define_method_attribute=(attr_name)
             if create_time_zone_conversion_attribute?(attr_name, columns_hash[attr_name])
               method_body = <<-EOV
                 def #{attr_name}=(time)
