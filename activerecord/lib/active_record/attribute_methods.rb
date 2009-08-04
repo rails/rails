@@ -6,7 +6,7 @@ module ActiveRecord
 
     class AttributeMethodMatcher
       attr_reader :prefix, :suffix
-      
+
       AttributeMethodMatch = Struct.new(:prefix, :base, :suffix)
 
       def initialize(options = {})
@@ -121,11 +121,11 @@ module ActiveRecord
         attribute_method_matchers.concat(affixes.map { |affix| AttributeMethodMatcher.new :prefix => affix[:prefix], :suffix => affix[:suffix] })
         undefine_attribute_methods
       end
-      
+
       def matching_attribute_methods(method_name)
         attribute_method_matchers.collect { |method| method.match(method_name) }.compact
       end
-      
+
       # Defines an "attribute" method (like +inheritance_column+ or
       # +table_name+). A new (class) method will be created with the
       # given name. If a value is specified, the new method will
@@ -173,7 +173,7 @@ module ActiveRecord
             method_name = "#{method.prefix}#{name}#{method.suffix}"
             unless instance_method_already_implemented?(method_name)
               generate_method = "define_method_#{method.prefix}attribute#{method.suffix}"
-              
+
               if respond_to?(generate_method)
                 send(generate_method, name)
               else
@@ -215,7 +215,7 @@ module ActiveRecord
         match.base == 'id' || @attributes.include?(match.base)
       end
     end
-    
+
     # Allows access to the object attributes, which are held in the <tt>@attributes</tt> hash, as though they
     # were first-class methods. So a Person class with a name attribute can use Person#name and
     # Person#name= and never directly use the attributes hash -- except for multiple assigns with
