@@ -423,6 +423,42 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal customers(:david), found_customer
   end
 
+  def test_condition_utc_time_interpolation_with_default_timezone_local
+    with_env_tz 'America/New_York' do
+      with_active_record_default_timezone :local do
+        topic = Topic.first
+        assert_equal topic, Topic.find(:first, :conditions => ['written_on = ?', topic.written_on.getutc])
+      end
+    end
+  end
+
+  def test_hash_condition_utc_time_interpolation_with_default_timezone_local
+    with_env_tz 'America/New_York' do
+      with_active_record_default_timezone :local do
+        topic = Topic.first
+        assert_equal topic, Topic.find(:first, :conditions => {:written_on => topic.written_on.getutc})
+      end
+    end
+  end
+
+  def test_condition_local_time_interpolation_with_default_timezone_utc
+    with_env_tz 'America/New_York' do
+      with_active_record_default_timezone :utc do
+        topic = Topic.first
+        assert_equal topic, Topic.find(:first, :conditions => ['written_on = ?', topic.written_on.getlocal])
+      end
+    end
+  end
+
+  def test_hash_condition_local_time_interpolation_with_default_timezone_utc
+    with_env_tz 'America/New_York' do
+      with_active_record_default_timezone :utc do
+        topic = Topic.first
+        assert_equal topic, Topic.find(:first, :conditions => {:written_on => topic.written_on.getlocal})
+      end
+    end
+  end
+
   def test_bind_variables
     assert_kind_of Firm, Company.find(:first, :conditions => ["name = ?", "37signals"])
     assert_nil Company.find(:first, :conditions => ["name = ?", "37signals!"])
@@ -1086,5 +1122,19 @@ class FinderTest < ActiveRecord::TestCase
       else
         ActiveRecord::Base.send(:replace_bind_variables, statement, vars)
       end
+    end
+
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end
+
+    def with_active_record_default_timezone(zone)
+      old_zone, ActiveRecord::Base.default_timezone = ActiveRecord::Base.default_timezone, zone
+      yield
+    ensure
+      ActiveRecord::Base.default_timezone = old_zone
     end
 end
