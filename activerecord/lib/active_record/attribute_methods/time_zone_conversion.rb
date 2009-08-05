@@ -25,7 +25,7 @@ module ActiveRecord
                   @attributes_cache['#{attr_name}'] = time.acts_like?(:time) ? time.in_time_zone : time
                 end
               EOV
-              generated_methods.module_eval(method_body, __FILE__, __LINE__)
+              generated_attribute_methods.module_eval(method_body, __FILE__, __LINE__)
             else
               super
             end
@@ -44,7 +44,7 @@ module ActiveRecord
                   write_attribute(:#{attr_name}, time)
                 end
               EOV
-              generated_methods.module_eval(method_body, __FILE__, __LINE__)
+              generated_attribute_methods.module_eval(method_body, __FILE__, __LINE__)
             else
               super
             end

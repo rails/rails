@@ -16,53 +16,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
   end
 
-  def test_match_attribute_method_query_returns_default_match_data
-    topic = @target.new(:title => 'Budget')
-    assert_not_nil match = topic.match_attribute_method?('title=')
-    assert_equal '', match.prefix
-    assert_equal 'title', match.base
-    assert_equal '=', match.suffix
-  end
-  
-  def test_match_attribute_method_query_returns_match_data_for_prefixes
-    topic = @target.new(:title => 'Budget')
-    %w(default_ title_).each do |prefix|
-      @target.class_eval "def #{prefix}attribute(*args) args end"
-      @target.attribute_method_prefix prefix
-
-      assert_not_nil match = topic.match_attribute_method?("#{prefix}title")
-      assert_equal prefix, match.prefix
-      assert_equal 'title', match.base
-      assert_equal '', match.suffix
-    end
-  end
-  
-  def test_match_attribute_method_query_returns_match_data_for_suffixes
-    topic = @target.new(:title => 'Budget')
-    %w(_default _title_default it! _candidate=  _maybe?).each do |suffix|
-      @target.class_eval "def attribute#{suffix}(*args) args end"
-      @target.attribute_method_suffix suffix
-
-      assert_not_nil match = topic.match_attribute_method?("title#{suffix}")
-      assert_equal '', match.prefix
-      assert_equal 'title', match.base
-      assert_equal suffix, match.suffix
-    end
-  end
-  
-  def test_match_attribute_method_query_returns_match_data_for_affixes
-    topic = @target.new(:title => 'Budget')
-    [['mark_', '_for_update'], ['reset_', '!'], ['default_', '_value?']].each do |prefix, suffix|
-      @target.class_eval "def #{prefix}attribute#{suffix}(*args) args end"
-      @target.attribute_method_affix({ :prefix => prefix, :suffix => suffix })
-
-      assert_not_nil match = topic.match_attribute_method?("#{prefix}title#{suffix}")
-      assert_equal prefix, match.prefix
-      assert_equal 'title', match.base
-      assert_equal suffix, match.suffix
-    end
-  end
-  
   def test_undeclared_attribute_method_does_not_affect_respond_to_and_method_missing
     topic = @target.new(:title => 'Budget')
     assert topic.respond_to?('title')

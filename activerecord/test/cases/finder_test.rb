@@ -251,7 +251,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_only_some_columns
     topic = Topic.find(1, :select => "author_name")
-    assert_raise(ActiveRecord::MissingAttributeError) {topic.title}
+    assert_raise(ActiveModel::MissingAttributeError) {topic.title}
     assert_equal "David", topic.author_name
     assert !topic.attribute_present?("title")
     #assert !topic.respond_to?("title")
