@@ -5,6 +5,7 @@ require 'cases/tests_database'
 require 'models/topic'
 require 'models/reply'
 require 'models/developer'
+require 'models/custom_reader'
 
 class ValidationsTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
@@ -93,6 +94,19 @@ class ValidationsTest < ActiveModel::TestCase
     end
     t = Topic.new("title" => "valid", "content" => "whatever")
     assert !t.save
+    assert_equal 4, hits
+    assert_equal %w(gotcha gotcha), t.errors[:title]
+    assert_equal %w(gotcha gotcha), t.errors[:content]
+  end
+  
+  def test_validates_each_custom_reader
+    hits = 0
+    CustomReader.validates_each(:title, :content, [:title, :content]) do |record, attr|
+      record.errors.add attr, 'gotcha'
+      hits += 1
+    end
+    t = CustomReader.new("title" => "valid", "content" => "whatever")
+    assert !t.valid?
     assert_equal 4, hits
     assert_equal %w(gotcha gotcha), t.errors[:title]
     assert_equal %w(gotcha gotcha), t.errors[:content]
