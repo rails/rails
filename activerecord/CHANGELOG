@@ -1,7 +1,5 @@
 *Edge*
 
-* fallback_string_to_date sets Date._parse comp arg to true, so that strings with two-digit years, e.g. '1/1/09', are interpreted as modern years #2019 [Matt Ganderup]
-
 * quoted_date converts time-like objects to ActiveRecord::Base.default_timezone before serialization. This allows you to use Time.now in find conditions and have it correctly be serialized as the current time in UTC when default_timezone == :utc. #2946 [Geoff Buesing]
 
 * SQLite: drop support for 'dbfile' option in favor of 'database.'  #2363 [Paul Hinze, Jeremy Kemper]
