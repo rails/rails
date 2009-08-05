@@ -1,4 +1,146 @@
 module ActionController #:nodoc:
+
+  # Presenter is responsible to expose a resource for different mime requests,
+  # usually depending on the HTTP verb. The presenter is triggered when
+  # respond_with is called. The simplest case to study is a GET request:
+  #
+  #   class PeopleController < ApplicationController
+  #     respond_to :html, :xml, :json
+  #
+  #     def index
+  #       @people = Person.find(:all)
+  #       respond_with(@people)
+  #     end
+  #   end
+  #
+  # When a request comes, for example with format :xml, three steps happen:
+  #
+  #   1) respond_with searches for a template at people/index.xml;
+  #
+  #   2) if the template is not available, it will create a presenter, passing
+  #      the controller and the resource, and invoke :to_xml on it;
+  #
+  #   3) if the presenter does not respond_to :to_xml, call to_format on it.
+  #
+  # === Builtin HTTP verb semantics
+  #
+  # Rails default presenter holds semantics for each HTTP verb. Depending on the
+  # content type, verb and the resource status, it will behave differently.
+  #
+  # Using Rails default presenter, a POST request could be written as:
+  #
+  #   def create
+  #     @user = User.new(params[:user])
+  #     flash[:notice] = 'User was successfully created.' if @user.save
+  #     respond_with(@user)
+  #   end
+  #
+  # Which is exactly the same as:
+  #
+  #   def create
+  #     @user = User.new(params[:user])
+  #
+  #     respond_to do |format|
+  #       if @user.save
+  #         flash[:notice] = 'User was successfully created.'
+  #         format.html { redirect_to(@user) }
+  #         format.xml { render :xml => @user, :status => :created, :location => @user }
+  #       else
+  #         format.html { render :action => "new" }
+  #         format.xml { render :xml => @user.errors, :status => :unprocessable_entity }
+  #       end
+  #     end
+  #   end
+  #
+  # The same happens for PUT and DELETE requests. By default, it accepts just
+  # :location as parameter, which is used as redirect destination, in both
+  # POST, PUT, DELETE requests for HTML mime, as in the example below:
+  #
+  #   def destroy
+  #     @person = Person.find(params[:id])
+  #     @person.destroy
+  #     respond_with(@person, :location => root_url)
+  #   end
+  #
+  # === Nested resources
+  #
+  # You can given nested resource as you do in form_for and polymorphic_url.
+  # Consider the project has many tasks example. The create action for
+  # TasksController would be like:
+  #
+  #   def create
+  #     @project = Project.find(params[:project_id])
+  #     @task = @project.comments.build(params[:task])
+  #     flash[:notice] = 'Task was successfully created.' if @task.save
+  #     respond_with([@project, @task])
+  #   end
+  #
+  # Given a nested resource, you ensure that the presenter will redirect to
+  # project_task_url instead of task_url.
+  #
+  # Namespaced and singleton resources requires a symbol to be given, as in
+  # polymorphic urls. If a project has one manager which has many tasks, it
+  # should be invoked as:
+  #
+  #   respond_with([@project, :manager, @task])
+  #
+  # Check polymorphic_url documentation for more examples.
+  #
+  class Presenter
+    attr_reader :controller, :request, :format, :resource, :resource_location, :options
+
+    def initialize(controller, resource, options)
+      @controller = controller
+      @request = controller.request
+      @format = controller.formats.first
+      @resource = resource.is_a?(Array) ? resource.last : resource
+      @resource_location = options[:location] || resource
+      @options = options
+    end
+
+    delegate :head, :render, :redirect_to,   :to => :controller
+    delegate :get?, :post?, :put?, :delete?, :to => :request
+
+    # Undefine :to_json since it's defined on Object
+    undef_method :to_json
+
+    def to_html
+      if get?
+        render
+      elsif has_errors?
+        render :action => default_action
+      else
+        redirect_to resource_location
+      end
+    end
+
+    def to_format
+      return render unless resourceful?
+
+      if get?
+        render format => resource
+      elsif has_errors?
+        render format => resource.errors, :status => :unprocessable_entity
+      elsif post?
+        render format => resource, :status => :created, :location => resource_location
+      else
+        head :ok
+      end
+    end
+
+    def resourceful?
+      resource.respond_to?(:"to_#{format}")
+    end
+
+    def has_errors?
+      resource.respond_to?(:errors) && !resource.errors.empty?
+    end
+
+    def default_action
+      request.post? ? :new : :edit
+    end
+  end
+
   module MimeResponds #:nodoc:
     extend ActiveSupport::Concern
 
@@ -197,213 +339,46 @@ module ActionController #:nodoc:
       end
     end
 
-    # respond_with allows you to respond an action with a given resource. It
-    # requires that you set your class with a respond_to method with the
-    # formats allowed:
+    # respond_with wraps a resource around a presenter for default representation.
+    # First it invokes respond_to, if a response cannot be found (ie. no block
+    # for the request was given and template was not available), it instantiates
+    # an ActionController::Presenter with the controller and resource.
     #
-    #   class PeopleController < ApplicationController
-    #     respond_to :html, :xml, :json
+    # ==== Example
     #
-    #     def index
-    #       @people = Person.find(:all)
-    #       respond_with(@people)
+    #   def index
+    #     @users = User.all
+    #     respond_with(@users)
+    #   end
+    #
+    # It also accepts a block to be given. It's used to overwrite a default
+    # response:
+    #
+    #   def destroy
+    #     @user = User.find(params[:id])
+    #     flash[:notice] = "User was successfully created." if @user.save
+    #
+    #     respond_with(@user) do |format|
+    #       format.html { render }
     #     end
     #   end
     #
-    # When a request comes, for example with format :xml, three steps happen:
-    #
-    #   1) respond_with searches for a template at people/index.xml;
-    #
-    #   2) if the template is not available, it will check if the given
-    #      resource responds to :to_xml.
-    #
-    #   3) if a :location option was provided, redirect to the location with
-    #      redirect status if a string was given, or render an action if a
-    #      symbol was given.
-    #
-    # If all steps fail, a missing template error will be raised.
-    #
-    # === Supported options
-    #
-    # [status]
-    #   Sets the response status.
-    #
-    # [head]
-    #   Tell respond_with to set the content type, status and location header,
-    #   but do not render the object, leaving the response body empty. This
-    #   option only has effect if the resource is being rendered. If a
-    #   template was found, it's going to be rendered anyway.
-    #
-    # [location]
-    #   Sets the location header with the given value. It accepts a string,
-    #   representing the location header value, or a symbol representing an
-    #   action name.
-    #
-    # === Builtin HTTP verb semantics
-    #
-    # respond_with holds semantics for each HTTP verb. Depending on the verb
-    # and the resource status, respond_with will automatically set the options
-    # above.
-    #
-    # Above we saw an example for GET requests, where actually no option is
-    # configured. A create action for POST requests, could be written as:
-    #
-    #   def create
-    #     @person = Person.new(params[:person])
-    #     @person.save
-    #     respond_with(@person)
-    #   end
-    #
-    # respond_with will inspect the @person object and check if we have any
-    # error. If errors are empty, it will add status and location to the options
-    # hash. Then the create action in case of success, is equivalent to this:
-    #
-    #   respond_with(@person, :status => :created, :location => @person)
-    #
-    # From them on, the lookup happens as described above. Let's suppose a :xml
-    # request and we don't have a people/create.xml template. But since the
-    # @person object responds to :to_xml, it will render the newly created
-    # resource and set status and location.
-    #
-    # However, if the request is :html, a template is not available and @person
-    # does not respond to :to_html. But since a :location options was provided,
-    # it will redirect to it.
-    #
-    # In case of failures (when the @person could not be saved and errors are
-    # not empty), respond_with can be expanded as this:
-    #
-    #   respond_with(@person.errors, :status => :unprocessable_entity, :location => :new)
-    #
-    # In other words, respond_with(@person) for POST requests is expanded
-    # internally into this:
-    #
-    #   def create
-    #     @person = Person.new(params[:person])
-    #
-    #     if @person.save
-    #       respond_with(@person, :status => :created, :location => @person)
-    #     else
-    #       respond_with(@person.errors, :status => :unprocessable_entity, :location => :new)
-    #     end
-    #   end
-    #
-    # For an update action for PUT requests, we would have:
-    #
-    #   def update
-    #     @person = Person.find(params[:id])
-    #     @person.update_attributes(params[:person])
-    #     respond_with(@person)
-    #   end
-    #
-    # Which, in face of success and failure scenarios, can be expanded as:
-    #
-    #   def update
-    #     @person = Person.find(params[:id])
-    #     @person.update_attributes(params[:person])
-    #
-    #     if @person.save
-    #       respond_with(@person, :status => :ok, :location => @person, :head => true)
-    #     else
-    #       respond_with(@person.errors, :status => :unprocessable_entity, :location => :edit)
-    #     end
-    #   end
-    #
-    # Notice that in case of success, we just need to reply :ok to the client.
-    # The option :head ensures that the object is not rendered.
-    #
-    # Finally, we have the destroy action with DELETE verb:
-    #
-    #   def destroy
-    #     @person = Person.find(params[:id])
-    #     @person.destroy
-    #     respond_with(@person)
-    #   end
-    #
-    # Which is expanded as:
-    #
-    #   def destroy
-    #     @person = Person.find(params[:id])
-    #     @person.destroy
-    #     respond_with(@person, :status => :ok, :location => @person, :head => true)
-    #   end
-    #
-    # In this case, since @person.destroyed? returns true, polymorphic urls will
-    # redirect to the collection url, instead of the resource url.
-    #
-    # === Nested resources
-    #
-    # respond_with also works with nested resources, you just need to pass them
-    # as you do in form_for and polymorphic_url. Consider the project has many
-    # tasks example. The create action for TasksController would be like:
-    #
-    #   def create
-    #     @project = Project.find(params[:project_id])
-    #     @task = @project.comments.build(params[:task])
-    #     @task.save
-    #     respond_with([@project, @task])
-    #   end
-    #
-    # Namespaced and singleton resources requires a symbol to be given, as in
-    # polymorphic urls. If a project has one manager with has many tasks, it
-    # should be invoked as:
-    #
-    #   respond_with([@project, :manager, @task])
-    #
-    # Be sure to check polymorphic_url documentation. The only occasion you will
-    # need to give clear input to respond_with is in DELETE verbs for singleton
-    # resources. In such cases, the collection url does not exist, so you need
-    # to supply the destination url after delete:
-    #
-    #   def destroy
-    #     @project = Project.find(params[:project_id])
-    #     @manager = @project.manager
-    #     @manager.destroy
-    #     respond_with([@project, @manager], :location => root_url)
-    #   end
+    # All options given to respond_with are sent to the underlying presenter.
     #
     def respond_with(resource, options={}, &block)
       respond_to(&block)
-    rescue ActionView::MissingTemplate => e
-      format   = self.formats.first
-      resource = normalize_resource_options_by_verb(resource, options)
-      action   = options.delete(:location) if options[:location].is_a?(Symbol)
+    rescue ActionView::MissingTemplate
+      presenter = ActionController::Presenter.new(self, resource, options)
+      format_method = :"to_#{self.formats.first}"
 
-      if resource.respond_to?(:"to_#{format}")
-        options.delete(:head) ? head(options) : render(options.merge(format => resource))
-      elsif action
-        render :action => action
-      elsif options[:location]
-        redirect_to options[:location]
+      if presenter.respond_to?(format_method)
+        presenter.send(format_method)
       else
-        raise e
+        presenter.to_format
       end
     end
 
   protected
-
-    # Change respond with behavior based on the HTTP verb.
-    #
-    def normalize_resource_options_by_verb(resource_or_array, options)
-      resource = resource_or_array.is_a?(Array) ? resource_or_array.last : resource_or_array
-
-      if resource.respond_to?(:errors) && !resource.errors.empty?
-        options[:status]   ||= :unprocessable_entity
-        options[:location] ||= :new  if request.post?
-        options[:location] ||= :edit if request.put?
-        return resource.errors
-      elsif !request.get?
-        options[:location] ||= resource_or_array
-
-        if request.post?
-          options[:status] ||= :created
-        else
-          options[:status] ||= :ok
-          options[:head] = true unless options.key?(:head)
-        end
-      end
-
-      return resource
-    end
 
     # Collect mimes declared in the class method respond_to valid for the
     # current action.

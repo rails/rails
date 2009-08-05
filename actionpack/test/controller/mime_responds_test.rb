@@ -497,14 +497,12 @@ class RespondWithController < ActionController::Base
     respond_with(Customer.new("david", 13))
   end
 
-  def using_resource_with_options
-    respond_with(Customer.new("david", 13), :status => :unprocessable_entity) do |format|
-      format.js
-    end
-  end
-
   def using_resource_with_parent
     respond_with([Quiz::Store.new("developer?", 11), Customer.new("david", 13)])
+  end
+
+  def using_resource_with_location
+    respond_with(Customer.new("david", 13), :location => "http://test.host/")
   end
 
 protected
@@ -654,7 +652,6 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal "application/xml", @response.content_type
     assert_equal 200, @response.status
     assert_equal " ", @response.body
-    assert_equal "http://www.example.com/customers/13", @response.location
 
     errors = { :name => :invalid }
     Customer.any_instance.stubs(:errors).returns(errors)
@@ -680,21 +677,6 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal "application/xml", @response.content_type
     assert_equal 200, @response.status
     assert_equal " ", @response.body
-    assert_equal "http://www.example.com/customers", @response.location
-  end
-
-  def test_using_resource_with_options
-    @request.accept = "application/xml"
-    get :using_resource_with_options
-    assert_equal "application/xml", @response.content_type
-    assert_equal 422, @response.status
-    assert_equal "XML", @response.body
-
-    @request.accept = "text/javascript"
-    get :using_resource_with_options
-    assert_equal "text/javascript", @response.content_type
-    assert_equal 422, @response.status
-    assert_equal "JS", @response.body
   end
 
   def test_using_resource_with_parent_for_get
@@ -736,6 +718,20 @@ class RespondWithControllerTest < ActionController::TestCase
     get :index
     assert_equal "application/xml", @response.content_type
     assert_equal "XML", @response.body
+  end
+
+  def test_no_double_render_is_raised
+    @request.accept = "text/html"
+    assert_raise ActionView::MissingTemplate do
+      get :using_resource
+    end
+  end
+
+  def test_using_resource_with_location
+    @request.accept = "text/html"
+    post :using_resource_with_location
+    assert @response.redirect?
+    assert_equal "http://test.host/", @response.location
   end
 
   def test_not_acceptable
