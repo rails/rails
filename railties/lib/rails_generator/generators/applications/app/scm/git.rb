@@ -1,16 +1,18 @@
+STDOUT.sync = true
+
 module Rails
   class Git < Scm
     def self.clone(repos, branch=nil)
-      `git clone #{repos}`
+      system "git clone #{repos}"
 
       if branch
-        `cd #{repos.split('/').last}/`
-        `git checkout #{branch}`
+        system "cd #{repos.split('/').last}/"
+        system "git checkout #{branch}"
       end
     end
 
     def self.run(command)
-      `git #{command}`
+      system "git #{command}"
     end
   end
 end
