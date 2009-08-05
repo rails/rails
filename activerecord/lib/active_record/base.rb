@@ -148,11 +148,6 @@ module ActiveRecord #:nodoc:
   class DangerousAttributeError < ActiveRecordError
   end
 
-  # Raised when you've tried to access a column which wasn't loaded by your finder.
-  # Typically this is because <tt>:select</tt> has been specified.
-  class MissingAttributeError < NoMethodError
-  end
-
   # Raised when unknown attributes are supplied via mass assignment.
   class UnknownAttributeError < NoMethodError
   end

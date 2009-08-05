@@ -70,6 +70,7 @@ module ActiveRecord
   autoload :SchemaDumper, 'active_record/schema_dumper'
   autoload :Serialization, 'active_record/serialization'
   autoload :SessionStore, 'active_record/session_store'
+  autoload :StateMachine, 'active_record/state_machine'
   autoload :TestCase, 'active_record/test_case'
   autoload :Timestamp, 'active_record/timestamp'
   autoload :Transactions, 'active_record/transactions'

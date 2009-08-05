@@ -3,17 +3,17 @@ module ActiveRecord
     # Track unsaved attribute changes.
     #
     # A newly instantiated object is unchanged:
-    #   person = Person.find_by_name('uncle bob')
+    #   person = Person.find_by_name('Uncle Bob')
     #   person.changed?       # => false
     #
     # Change the name:
     #   person.name = 'Bob'
     #   person.changed?       # => true
     #   person.name_changed?  # => true
-    #   person.name_was       # => 'uncle bob'
-    #   person.name_change    # => ['uncle bob', 'Bob']
+    #   person.name_was       # => 'Uncle Bob'
+    #   person.name_change    # => ['Uncle Bob', 'Bob']
     #   person.name = 'Bill'
-    #   person.name_change    # => ['uncle bob', 'Bill']
+    #   person.name_change    # => ['Uncle Bob', 'Bill']
     #
     # Save the changes:
     #   person.save
@@ -26,21 +26,33 @@ module ActiveRecord
     #   person.name_change    # => nil
     #
     # Which attributes have changed?
-    #   person.name = 'bob'
+    #   person.name = 'Bob'
     #   person.changed        # => ['name']
-    #   person.changes        # => { 'name' => ['Bill', 'bob'] }
+    #   person.changes        # => { 'name' => ['Bill', 'Bob'] }
+    #
+    # Resetting an attribute returns it to its original state:
+    #   person.reset_name!    # => 'Bill'
+    #   person.changed?       # => false
+    #   person.name_changed?  # => false
+    #   person.name           # => 'Bill'
     #
     # Before modifying an attribute in-place:
     #   person.name_will_change!
-    #   person.name << 'by'
-    #   person.name_change    # => ['uncle bob', 'uncle bobby']
+    #   person.name << 'y'
+    #   person.name_change    # => ['Bill', 'Billy']
     module Dirty
       extend ActiveSupport::Concern
 
-      DIRTY_SUFFIXES = ['_changed?', '_change', '_will_change!', '_was']
+      DIRTY_AFFIXES = [
+        { :suffix => '_changed?' },
+        { :suffix => '_change' },
+        { :suffix => '_will_change!' },
+        { :suffix => '_was' },
+        { :prefix => 'reset_', :suffix => '!' }
+      ]
 
       included do
-        attribute_method_suffix *DIRTY_SUFFIXES
+        attribute_method_affix *DIRTY_AFFIXES
 
         alias_method_chain :save,            :dirty
         alias_method_chain :save!,           :dirty
@@ -118,6 +130,11 @@ module ActiveRecord
           attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
         end
 
+        # Handle <tt>reset_*!</tt> for +method_missing+.
+        def reset_attribute!(attr)
+          self[attr] = changed_attributes[attr] if attribute_changed?(attr)
+        end
+
         # Handle <tt>*_will_change!</tt> for +method_missing+.
         def attribute_will_change!(attr)
           changed_attributes[attr] = clone_attribute_value(:read_attribute, attr)
@@ -175,9 +192,9 @@ module ActiveRecord
 
         def alias_attribute_with_dirty(new_name, old_name)
           alias_attribute_without_dirty(new_name, old_name)
-          DIRTY_SUFFIXES.each do |suffix|
+          DIRTY_AFFIXES.each do |affixes|
             module_eval <<-STR, __FILE__, __LINE__+1
-              def #{new_name}#{suffix}; self.#{old_name}#{suffix}; end  # def subject_changed?; self.title_changed?; end
+              def #{affixes[:prefix]}#{new_name}#{affixes[:suffix]}; self.#{affixes[:prefix]}#{old_name}#{affixes[:suffix]}; end  # def reset_subject!; self.reset_title!; end
             STR
           end
         end

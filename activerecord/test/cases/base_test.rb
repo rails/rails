@@ -464,6 +464,60 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preserving_time_objects_with_local_time_conversion_to_default_timezone_utc
+    with_env_tz 'America/New_York' do
+      with_active_record_default_timezone :utc do
+        time = Time.local(2000)
+        topic = Topic.create('written_on' => time)
+        saved_time = Topic.find(topic.id).written_on
+        assert_equal time, saved_time
+        assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "EST"], time.to_a
+        assert_equal [0, 0, 5, 1, 1, 2000, 6, 1, false, "UTC"], saved_time.to_a
+      end
+    end
+  end
+
+  def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_utc
+    with_env_tz 'America/New_York' do
+      with_active_record_default_timezone :utc do
+        Time.use_zone 'Central Time (US & Canada)' do
+          time = Time.zone.local(2000)
+          topic = Topic.create('written_on' => time)
+          saved_time = Topic.find(topic.id).written_on
+          assert_equal time, saved_time
+          assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "CST"], time.to_a
+          assert_equal [0, 0, 6, 1, 1, 2000, 6, 1, false, "UTC"], saved_time.to_a
+        end
+      end
+    end
+  end
+
+  def test_preserving_time_objects_with_utc_time_conversion_to_default_timezone_local
+    with_env_tz 'America/New_York' do
+      time = Time.utc(2000)
+      topic = Topic.create('written_on' => time)
+      saved_time = Topic.find(topic.id).written_on
+      assert_equal time, saved_time
+      assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "UTC"], time.to_a
+      assert_equal [0, 0, 19, 31, 12, 1999, 5, 365, false, "EST"], saved_time.to_a
+    end
+  end
+
+  def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_local
+    with_env_tz 'America/New_York' do
+      with_active_record_default_timezone :local do
+        Time.use_zone 'Central Time (US & Canada)' do
+          time = Time.zone.local(2000)
+          topic = Topic.create('written_on' => time)
+          saved_time = Topic.find(topic.id).written_on
+          assert_equal time, saved_time
+          assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "CST"], time.to_a
+          assert_equal [0, 0, 1, 1, 1, 2000, 6, 1, false, "EST"], saved_time.to_a
+        end
+      end
+    end
+  end
+
   def test_custom_mutator
     topic = Topic.find(1)
     # This mutator is protected in the class definition
@@ -2115,4 +2169,19 @@ class BasicsTest < ActiveRecord::TestCase
   def test_dup
     assert !Minimalistic.new.freeze.dup.frozen?
   end
+
+  protected
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end
+
+    def with_active_record_default_timezone(zone)
+      old_zone, ActiveRecord::Base.default_timezone = ActiveRecord::Base.default_timezone, zone
+      yield
+    ensure
+      ActiveRecord::Base.default_timezone = old_zone
+    end
 end
