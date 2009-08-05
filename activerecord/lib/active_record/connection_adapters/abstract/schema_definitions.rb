@@ -277,7 +277,6 @@ module ActiveRecord
         add_column_options!(column_sql, column_options) unless type.to_sym == :primary_key
         column_sql
       end
-      alias to_s :to_sql
 
       private
 
@@ -508,7 +507,7 @@ module ActiveRecord
       # concatenated together. This string can then be prepended and appended to
       # to generate the final SQL to create the table.
       def to_sql
-        @columns * ', '
+        @columns.map(&:to_sql) * ', '
       end
 
       private
