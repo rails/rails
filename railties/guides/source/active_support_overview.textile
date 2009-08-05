@@ -600,14 +600,6 @@ h3. Extensions to +NilClass+
 
 ...
 
-h3. Extensions to +TrueClass+
-
-...
-
-h3. Extensions to +FalseClass+
-
-...
-
 h3. Extensions to +Symbol+
 
 h4. +to_proc+
