@@ -74,12 +74,14 @@ module ActiveRecord #:nodoc:
     #                   {"comments": [{"body": "Don't think too hard"}],
     #                    "title": "So I was thinking"}]}
     def to_json(options = {})
-      hash = Serializer.new(self, options).serializable_record
-      hash = { self.class.model_name.element => hash } if include_root_in_json
-      ActiveSupport::JSON.encode(hash)
+      super
     end
 
-    def as_json(options = nil) self end #:nodoc:
+    def as_json(options = nil) #:nodoc:
+      hash = Serializer.new(self, options).serializable_record
+      hash = { self.class.model_name.element => hash } if include_root_in_json
+      hash
+    end
 
     def from_json(json)
       self.attributes = ActiveSupport::JSON.decode(json)
