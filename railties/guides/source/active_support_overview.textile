@@ -856,7 +856,33 @@ h3. Extensions to +NameError+
 
 h3. Extensions to +LoadError+
 
+Rails hijacks +LoadError.new+ to return a +MissingSourceFile+ exception:
+
+<shell>
+$ ruby -e 'require "nonexistent"'
+...: no such file to load -- nonexistent (LoadError)
 ...
+$ script/runner 'require "nonexistent"'
+...: no such file to load -- nonexistent (MissingSourceFile)
+...
+</shell>
+
+The class +MissingSourceFile+ is a subclass of +LoadError+, so any code that rescues +LoadError+ as usual still works as expected. Point is these exception objects respond to +is_missing?+, which given a path name tests whether the exception was raised due to that particular file (except perhaps for the ".rb" extension).
+
+For example, when an action of +PostsController+ is called Rails tries to load +posts_helper.rb+, but that file may not exist. That's fine, the helper module is not mandatory so Rails silences a load error. But it could be the case that the helper module does exist, but it in turn requires another library that is missing. In that case Rails must reraise the exception. The method +is_missing?+ provides a way to distinguish both cases:
+
+<ruby>
+def inherited_with_helper(child)
+  inherited_without_helper(child)
+  begin
+    child.master_helper_module = Module.new
+    child.master_helper_module.__send__(:include, master_helper_module)
+    child.helper child.name.to_s.underscore
+  rescue MissingSourceFile => e
+    raise unless e.is_missing?("#{child.name.to_s.underscore}_helper")
+  end
+end
+</ruby>
 
 h3. Extensions to +CGI+
 
