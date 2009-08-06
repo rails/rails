@@ -1,3 +1,4 @@
+require "rubygems"
 require "activerecord"
 puts "Using native MySQL"
 

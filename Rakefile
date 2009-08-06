@@ -1,13 +1,33 @@
-require 'rubygems'
-require 'spec/rake/spectask'
+require "rubygems"
+require "spec/rake/spectask"
 
-spec_file_list = FileList['spec/**/*_spec.rb']
+$LOAD_PATH.unshift "lib"
+require "arel"
+
+begin
+  require 'jeweler'
+
+  Jeweler::Tasks.new do |s|
+    s.name      = "arel"
+    s.authors   = ["Bryan Helmkamp", "Nick Kallen"]
+    s.email     = "bryan" + "@" + "brynary.com"
+    s.homepage  = "http://github.com/brynary/arel"
+    s.summary   = "Arel is a relational algebra engine for Ruby"
+    # s.description  = "TODO"
+    s.rubyforge_project = "arel"
+    s.extra_rdoc_files = %w(README.markdown)
+  end
+
+  Jeweler::RubyforgeTasks.new
+rescue LoadError
+  puts "Jeweler not available. Install it with: gem install jeweler"
+end
 
 desc "Run specs using RCov (uses mysql database adapter)"
 Spec::Rake::SpecTask.new(:coverage) do |t|
   t.spec_files =
     ["spec/connections/mysql_connection.rb"] +
-    spec_file_list
+    FileList['spec/**/*_spec.rb']
 
   t.rcov = true
   t.rcov_opts << '--exclude' << "spec,gems"
@@ -23,13 +43,13 @@ namespace :spec do
       t.spec_files =
         ["spec/connections/#{adapter}_connection.rb"] +
         ["spec/schemas/#{adapter}_schema.rb"] +
-        spec_file_list
+        FileList['spec/**/*_spec.rb']
     end
   end
 end
 
 desc "Run specs with mysql and sqlite3 database adapters (default)"
-task :spec => ["spec:sqlite3", "spec:mysql", "spec:postgresql"]
+task :spec => ["check_dependencies", "spec:sqlite3", "spec:mysql", "spec:postgresql"]
 
 desc "Default task is to run specs"
 task :default => :spec
