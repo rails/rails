@@ -66,7 +66,7 @@ module ActiveModel
         # Declare the validation.
         send(validation_method(options[:on]), options) do |record|
           attrs.each do |attr|
-            value = record.instance_eval { read_attribute_for_validation(attr) }
+            value = record.send(:read_attribute_for_validation, attr)
             next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
             yield record, attr, value
           end
