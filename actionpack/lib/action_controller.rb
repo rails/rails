@@ -33,6 +33,7 @@ end
 
 gem 'rack', '~> 1.0.0'
 require 'rack'
+require 'action_controller/cgi_ext'
 
 module ActionController
   # TODO: Review explicit to see if they will automatically be handled by
