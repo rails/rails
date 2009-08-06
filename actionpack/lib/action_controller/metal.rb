@@ -72,11 +72,11 @@ module ActionController
     def call(name, env)
       @_env = env
       process(name)
-      to_rack
+      to_a
     end
 
     # :api: private
-    def to_rack
+    def to_a
       [status, headers, response_body]
     end
 
