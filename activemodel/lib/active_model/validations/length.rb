@@ -80,8 +80,10 @@ module ActiveModel
 
           validates_each(attrs, options) do |record, attr, value|
             value = options[:tokenizer].call(value) if value.kind_of?(String)
-            unless !value.nil? and value.size.method(validity_checks[option])[option_value]
-              record.errors.add(attr, key, :default => custom_message, :count => option_value)
+            unless option == :maximum and value.nil?
+              unless !value.nil? and value.size.send(validity_checks[option], option_value)
+                record.errors.add(attr, key, :default => custom_message, :count => option_value)
+              end
             end
           end
         end
