@@ -177,7 +177,7 @@ module ActionView
       attr_accessor :_partial      
     end
 
-    def _render_partial_from_controller(*args)
+    def render_partial(*args)
       @assigns_added = false
       _render_partial(*args)
     end

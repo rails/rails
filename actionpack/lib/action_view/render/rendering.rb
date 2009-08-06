@@ -123,7 +123,7 @@ module ActionView
       layout ? _render_content_with_layout(text, layout, options[:locals]) : text
     end
 
-    def _render_template_from_controller(*args)
+    def render_template(*args)
       @assigns_added = nil
       _render_template_with_layout(*args)
     end

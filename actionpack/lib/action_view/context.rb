@@ -12,11 +12,11 @@ module ActionView
   #
   # Context.for_controller[controller] Create a new ActionView instance for a
   #   controller
-  # Context#_render_partial_from_controller[options]
+  # Context#render_partial[options]
   #   - responsible for setting options[:_template]
   #   - Returns String with the rendered partial
   #   options<Hash>:: see _render_partial in ActionView::Base
-  # Context#_render_template_from_controller[template, layout, options, partial]
+  # Context#render_template[template, layout, options, partial]
   #   - Returns String with the rendered template
   #   template<ActionView::Template>:: The template to render
   #   layout<ActionView::Template>:: The layout to render around the template
