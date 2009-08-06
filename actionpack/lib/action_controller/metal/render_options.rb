@@ -47,7 +47,7 @@ module ActionController
     end
   end
 
-  module Renderers
+  module RenderOptions
     module Json
       extend RenderOption
       register_renderer :json
@@ -94,10 +94,10 @@ module ActionController
     module All
       extend ActiveSupport::Concern
 
-      include ActionController::Renderers::Json
-      include ActionController::Renderers::Js
-      include ActionController::Renderers::Xml
-      include ActionController::Renderers::RJS
+      include ActionController::RenderOptions::Json
+      include ActionController::RenderOptions::Js
+      include ActionController::RenderOptions::Xml
+      include ActionController::RenderOptions::RJS
     end
   end
 end

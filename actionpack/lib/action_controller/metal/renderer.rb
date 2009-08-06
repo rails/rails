@@ -1,66 +1,181 @@
-module ActionController
-  module Renderer
-    extend ActiveSupport::Concern
+module ActionController #:nodoc:
+  # Renderer is responsible to expose a resource for different mime requests,
+  # usually depending on the HTTP verb. The renderer is triggered when
+  # respond_with is called. The simplest case to study is a GET request:
+  #
+  #   class PeopleController < ApplicationController
+  #     respond_to :html, :xml, :json
+  #
+  #     def index
+  #       @people = Person.find(:all)
+  #       respond_with(@people)
+  #     end
+  #   end
+  #
+  # When a request comes, for example with format :xml, three steps happen:
+  #
+  #   1) respond_with searches for a template at people/index.xml;
+  #
+  #   2) if the template is not available, it will create a renderer, passing
+  #      the controller and the resource and invoke :to_xml on it;
+  #
+  #   3) if the renderer does not respond_to :to_xml, call to_format on it.
+  #
+  # === Builtin HTTP verb semantics
+  #
+  # Rails default renderer holds semantics for each HTTP verb. Depending on the
+  # content type, verb and the resource status, it will behave differently.
+  #
+  # Using Rails default renderer, a POST request for creating an object could
+  # be written as:
+  #
+  #   def create
+  #     @user = User.new(params[:user])
+  #     flash[:notice] = 'User was successfully created.' if @user.save
+  #     respond_with(@user)
+  #   end
+  #
+  # Which is exactly the same as:
+  #
+  #   def create
+  #     @user = User.new(params[:user])
+  #
+  #     respond_to do |format|
+  #       if @user.save
+  #         flash[:notice] = 'User was successfully created.'
+  #         format.html { redirect_to(@user) }
+  #         format.xml { render :xml => @user, :status => :created, :location => @user }
+  #       else
+  #         format.html { render :action => "new" }
+  #         format.xml { render :xml => @user.errors, :status => :unprocessable_entity }
+  #       end
+  #     end
+  #   end
+  #
+  # The same happens for PUT and DELETE requests.
+  #
+  # === Nested resources
+  #
+  # You can given nested resource as you do in form_for and polymorphic_url.
+  # Consider the project has many tasks example. The create action for
+  # TasksController would be like:
+  #
+  #   def create
+  #     @project = Project.find(params[:project_id])
+  #     @task = @project.comments.build(params[:task])
+  #     flash[:notice] = 'Task was successfully created.' if @task.save
+  #     respond_with([@project, @task])
+  #   end
+  #
+  # Giving an array of resources, you ensure that the renderer will redirect to
+  # project_task_url instead of task_url.
+  #
+  # Namespaced and singleton resources requires a symbol to be given, as in
+  # polymorphic urls. If a project has one manager which has many tasks, it
+  # should be invoked as:
+  #
+  #   respond_with([@project, :manager, @task])
+  #
+  # Check polymorphic_url documentation for more examples.
+  #
+  class Renderer
+    attr_reader :controller, :request, :format, :resource, :resource_location, :options
 
-    include AbstractController::Renderer
-
-    def process_action(*)
-      self.formats = request.formats.map {|x| x.to_sym}
-      super
+    def initialize(controller, resource, options={})
+      @controller = controller
+      @request = controller.request
+      @format = controller.formats.first
+      @resource = resource.is_a?(Array) ? resource.last : resource
+      @resource_location = options[:location] || resource
+      @options = options
     end
 
-    def render(options)
-      super
-      self.content_type ||= begin
-        mime = options[:_template].mime_type
-        formats.include?(mime && mime.to_sym) || formats.include?(:all) ? mime : Mime::Type.lookup_by_extension(formats.first)
-      end.to_s
-      response_body
+    delegate :head, :render, :redirect_to,   :to => :controller
+    delegate :get?, :post?, :put?, :delete?, :to => :request
+
+    # Undefine :to_json since it's defined on Object
+    undef_method :to_json
+
+    # Initializes a new renderer an invoke the proper format. If the format is
+    # not defined, call to_format.
+    #
+    def self.call(*args)
+      renderer = new(*args)
+      method = :"to_#{renderer.format}"
+      renderer.respond_to?(method) ? renderer.send(method) : renderer.to_format
     end
 
-    def render_to_body(options)
-      _process_options(options)
-
-      if options.key?(:partial)
-        options[:partial] = action_name if options[:partial] == true
-        options[:_details] = {:formats => formats}
+    # HTML format does not render the resource, it always attempt to render a
+    # template.
+    #
+    def to_html
+      if get?
+        render
+      elsif has_errors?
+        render :action => default_action
+      else
+        redirect_to resource_location
       end
-
-      super
     end
 
-    private
-      def _prefix
-        controller_path
-      end
+    # All others formats try to render the resource given instead. For this
+    # purpose a helper called display as a shortcut to render a resource with
+    # the current format.
+    #
+    def to_format
+      return render unless resourceful?
 
-      def _determine_template(options)
-        if options.key?(:text)
-          options[:_template] = ActionView::TextTemplate.new(options[:text], formats.first)
-        elsif options.key?(:inline)
-          handler = ActionView::Template.handler_class_for_extension(options[:type] || "erb")
-          template = ActionView::Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
-          options[:_template] = template
-        elsif options.key?(:template)
-          options[:_template_name] = options[:template]
-        elsif options.key?(:file)
-          options[:_template_name] = options[:file]
-        elsif !options.key?(:partial)
-          options[:_template_name] = (options[:action] || action_name).to_s
-          options[:_prefix] = _prefix
-        end
-
-        super
+      if get?
+        display resource
+      elsif has_errors?
+        display resource.errors, :status => :unprocessable_entity
+      elsif post?
+        display resource, :status => :created, :location => resource_location
+      else
+        head :ok
       end
+    end
 
-      def _render_partial(partial, options)
-      end
+  protected
 
-      def _process_options(options)
-        status, content_type, location = options.values_at(:status, :content_type, :location)
-        self.status = status if status
-        self.content_type = content_type if content_type
-        self.headers["Location"] = url_for(location) if location
-      end
+    # Checks whether the resource responds to the current format or not.
+    #
+    def resourceful?
+      resource.respond_to?(:"to_#{format}")
+    end
+
+    # display is just a shortcut to render a resource with the current format.
+    #
+    #   display @user, :status => :ok
+    #
+    # For xml request is equivalent to:
+    #
+    #   render :xml => @user, :status => :ok
+    #
+    # Options sent by the user are also used:
+    #
+    #   respond_with(@user, :status => :created)
+    #   display(@user, :status => :ok)
+    #
+    # Results in:
+    #
+    #   render :xml => @user, :status => :created
+    #
+    def display(resource, given_options={})
+      render given_options.merge!(options).merge!(format => resource)
+    end
+
+    # Check if the resource has errors or not.
+    #
+    def has_errors?
+      resource.respond_to?(:errors) && !resource.errors.empty?
+    end
+
+    # By default, render the :edit action for html requests with failure, unless
+    # the verb is post.
+    #
+    def default_action
+      request.post? ? :new : :edit
+    end
   end
 end

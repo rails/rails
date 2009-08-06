@@ -1,7 +1,7 @@
 require "abstract_controller/logger"
 
 module AbstractController
-  module Renderer
+  module RenderingController
     extend ActiveSupport::Concern
 
     include AbstractController::Logger
@@ -67,7 +67,7 @@ module AbstractController
     #
     # :api: plugin
     def render_to_string(options = {})
-      AbstractController::Renderer.body_to_s(render_to_body(options))
+      AbstractController::RenderingController.body_to_s(render_to_body(options))
     end
 
     # Renders the template from an object.

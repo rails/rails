@@ -6,7 +6,7 @@ require "action_controller"
 class Kaigi < ActionController::Metal
   include AbstractController::Callbacks
   include ActionController::RackConvenience
-  include ActionController::Renderer
+  include ActionController::RenderingController
   include ActionController::Layouts
   include ActionView::Context
   

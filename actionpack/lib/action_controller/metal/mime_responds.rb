@@ -1,146 +1,4 @@
 module ActionController #:nodoc:
-
-  # Presenter is responsible to expose a resource for different mime requests,
-  # usually depending on the HTTP verb. The presenter is triggered when
-  # respond_with is called. The simplest case to study is a GET request:
-  #
-  #   class PeopleController < ApplicationController
-  #     respond_to :html, :xml, :json
-  #
-  #     def index
-  #       @people = Person.find(:all)
-  #       respond_with(@people)
-  #     end
-  #   end
-  #
-  # When a request comes, for example with format :xml, three steps happen:
-  #
-  #   1) respond_with searches for a template at people/index.xml;
-  #
-  #   2) if the template is not available, it will create a presenter, passing
-  #      the controller and the resource, and invoke :to_xml on it;
-  #
-  #   3) if the presenter does not respond_to :to_xml, call to_format on it.
-  #
-  # === Builtin HTTP verb semantics
-  #
-  # Rails default presenter holds semantics for each HTTP verb. Depending on the
-  # content type, verb and the resource status, it will behave differently.
-  #
-  # Using Rails default presenter, a POST request could be written as:
-  #
-  #   def create
-  #     @user = User.new(params[:user])
-  #     flash[:notice] = 'User was successfully created.' if @user.save
-  #     respond_with(@user)
-  #   end
-  #
-  # Which is exactly the same as:
-  #
-  #   def create
-  #     @user = User.new(params[:user])
-  #
-  #     respond_to do |format|
-  #       if @user.save
-  #         flash[:notice] = 'User was successfully created.'
-  #         format.html { redirect_to(@user) }
-  #         format.xml { render :xml => @user, :status => :created, :location => @user }
-  #       else
-  #         format.html { render :action => "new" }
-  #         format.xml { render :xml => @user.errors, :status => :unprocessable_entity }
-  #       end
-  #     end
-  #   end
-  #
-  # The same happens for PUT and DELETE requests. By default, it accepts just
-  # :location as parameter, which is used as redirect destination, in both
-  # POST, PUT, DELETE requests for HTML mime, as in the example below:
-  #
-  #   def destroy
-  #     @person = Person.find(params[:id])
-  #     @person.destroy
-  #     respond_with(@person, :location => root_url)
-  #   end
-  #
-  # === Nested resources
-  #
-  # You can given nested resource as you do in form_for and polymorphic_url.
-  # Consider the project has many tasks example. The create action for
-  # TasksController would be like:
-  #
-  #   def create
-  #     @project = Project.find(params[:project_id])
-  #     @task = @project.comments.build(params[:task])
-  #     flash[:notice] = 'Task was successfully created.' if @task.save
-  #     respond_with([@project, @task])
-  #   end
-  #
-  # Given a nested resource, you ensure that the presenter will redirect to
-  # project_task_url instead of task_url.
-  #
-  # Namespaced and singleton resources requires a symbol to be given, as in
-  # polymorphic urls. If a project has one manager which has many tasks, it
-  # should be invoked as:
-  #
-  #   respond_with([@project, :manager, @task])
-  #
-  # Check polymorphic_url documentation for more examples.
-  #
-  class Presenter
-    attr_reader :controller, :request, :format, :resource, :resource_location, :options
-
-    def initialize(controller, resource, options)
-      @controller = controller
-      @request = controller.request
-      @format = controller.formats.first
-      @resource = resource.is_a?(Array) ? resource.last : resource
-      @resource_location = options[:location] || resource
-      @options = options
-    end
-
-    delegate :head, :render, :redirect_to,   :to => :controller
-    delegate :get?, :post?, :put?, :delete?, :to => :request
-
-    # Undefine :to_json since it's defined on Object
-    undef_method :to_json
-
-    def to_html
-      if get?
-        render
-      elsif has_errors?
-        render :action => default_action
-      else
-        redirect_to resource_location
-      end
-    end
-
-    def to_format
-      return render unless resourceful?
-
-      if get?
-        render format => resource
-      elsif has_errors?
-        render format => resource.errors, :status => :unprocessable_entity
-      elsif post?
-        render format => resource, :status => :created, :location => resource_location
-      else
-        head :ok
-      end
-    end
-
-    def resourceful?
-      resource.respond_to?(:"to_#{format}")
-    end
-
-    def has_errors?
-      resource.respond_to?(:errors) && !resource.errors.empty?
-    end
-
-    def default_action
-      request.post? ? :new : :edit
-    end
-  end
-
   module MimeResponds #:nodoc:
     extend ActiveSupport::Concern
 
@@ -339,10 +197,10 @@ module ActionController #:nodoc:
       end
     end
 
-    # respond_with wraps a resource around a presenter for default representation.
+    # respond_with wraps a resource around a renderer for default representation.
     # First it invokes respond_to, if a response cannot be found (ie. no block
     # for the request was given and template was not available), it instantiates
-    # an ActionController::Presenter with the controller and resource.
+    # an ActionController::Renderer with the controller and resource.
     #
     # ==== Example
     #
@@ -363,19 +221,19 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # All options given to respond_with are sent to the underlying presenter.
+    # All options given to respond_with are sent to the underlying renderer,
+    # except for the option :renderer itself. Since the renderer interface
+    # is quite simple (it just needs to respond to call), you can even give
+    # a proc to it.
     #
     def respond_with(resource, options={}, &block)
       respond_to(&block)
     rescue ActionView::MissingTemplate
-      presenter = ActionController::Presenter.new(self, resource, options)
-      format_method = :"to_#{self.formats.first}"
+      (options.delete(:renderer) || renderer).call(self, resource, options)
+    end
 
-      if presenter.respond_to?(format_method)
-        presenter.send(format_method)
-      else
-        presenter.to_format
-      end
+    def renderer
+      ActionController::Renderer
     end
 
   protected

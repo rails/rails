@@ -2,7 +2,7 @@ module AbstractController
   module Layouts
     extend ActiveSupport::Concern
 
-    include Renderer
+    include RenderingController
 
     included do
       extlib_inheritable_accessor(:_layout_conditions) { Hash.new }

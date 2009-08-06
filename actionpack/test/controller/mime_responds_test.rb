@@ -501,8 +501,13 @@ class RespondWithController < ActionController::Base
     respond_with([Quiz::Store.new("developer?", 11), Customer.new("david", 13)])
   end
 
-  def using_resource_with_location
-    respond_with(Customer.new("david", 13), :location => "http://test.host/")
+  def using_resource_with_status_and_location
+    respond_with(Customer.new("david", 13), :location => "http://test.host/", :status => :created)
+  end
+
+  def using_resource_with_renderer
+    renderer = proc { |c, r, o| c.render :text => "Resource name is #{r.name}" }
+    respond_with(Customer.new("david", 13), :renderer => renderer)
   end
 
 protected
@@ -727,11 +732,20 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
-  def test_using_resource_with_location
+  def test_using_resource_with_status_and_location
     @request.accept = "text/html"
-    post :using_resource_with_location
+    post :using_resource_with_status_and_location
     assert @response.redirect?
     assert_equal "http://test.host/", @response.location
+
+    @request.accept = "application/xml"
+    get :using_resource_with_status_and_location
+    assert_equal 201, @response.status
+  end
+
+  def test_using_resource_with_renderer
+    get :using_resource_with_renderer
+    assert_equal "Resource name is david", @response.body
   end
 
   def test_not_acceptable

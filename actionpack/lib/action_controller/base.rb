@@ -10,8 +10,8 @@ module ActionController
     include ActionController::HideActions
     include ActionController::UrlFor
     include ActionController::Redirector
-    include ActionController::Renderer
-    include ActionController::Renderers::All
+    include ActionController::RenderingController
+    include ActionController::RenderOptions::All
     include ActionController::Layouts
     include ActionController::ConditionalGet
     include ActionController::RackConvenience
