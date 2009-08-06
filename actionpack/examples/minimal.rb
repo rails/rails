@@ -45,11 +45,9 @@ end
 OK = [200, {}, []]
 MetalPostController = lambda { OK }
 
-if ActionController.const_defined?(:Http)
-  class HttpPostController < ActionController::Http
-    def index
-      self.response_body = ''
-    end
+class HttpPostController < ActionController::Metal
+  def index
+    self.response_body = ''
   end
 end
 

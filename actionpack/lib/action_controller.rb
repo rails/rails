@@ -2,7 +2,7 @@ module ActionController
   autoload :Base,                 "action_controller/base/base"
   autoload :ConditionalGet,       "action_controller/base/conditional_get"
   autoload :HideActions,          "action_controller/base/hide_actions"
-  autoload :Http,                 "action_controller/base/http"
+  autoload :Metal,                "action_controller/base/metal"
   autoload :Layouts,              "action_controller/base/layouts"
   autoload :RackConvenience,      "action_controller/base/rack_convenience"
   autoload :Rails2Compatibility,  "action_controller/base/compatibility"
