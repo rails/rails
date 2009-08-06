@@ -31,8 +31,8 @@ module AbstractController
     #   partial<Boolean>:: Whether or not the template to render is a partial
     #
     # Override this method in a to change the default behavior.
-    def _action_view
-      @_action_view ||= ActionView::Base.for_controller(self)
+    def view_context
+      @_view_context ||= ActionView::Base.for_controller(self)
     end
 
     # Mostly abstracts the fact that calling render twice is a DoubleRenderError.
@@ -55,7 +55,7 @@ module AbstractController
     def render_to_body(options = {})
       # TODO: Refactor so we can just use the normal template logic for this
       if options[:_partial_object]
-        _action_view.render_partial(options)
+        view_context.render_partial(options)
       else
         _determine_template(options)
         _render_template(options)
@@ -77,7 +77,7 @@ module AbstractController
     # _layout<ActionView::Template>:: The layout to wrap the template in (optional)
     # _partial<TrueClass, FalseClass>:: Whether or not the template to be rendered is a partial
     def _render_template(options)
-      _action_view.render_template(options[:_template], options[:_layout], options, options[:_partial])
+      view_context.render_template(options[:_template], options[:_layout], options, options[:_partial])
     end
 
     # The list of view paths for this controller. See ActionView::ViewPathSet for

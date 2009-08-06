@@ -72,7 +72,7 @@ module ActionController
 
     # TODO: Remove this after we flip
     def template
-      @template ||= _action_view
+      @template ||= view_context
     end
 
     def process_action(*)
@@ -141,7 +141,7 @@ module ActionController
     end
 
     def view_paths
-      _action_view.view_paths
+      view_context.view_paths
     end
   end
 end

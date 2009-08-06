@@ -85,7 +85,7 @@ module ActionController
       register_renderer :update
 
       def _render_update(proc, options)
-        generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(_action_view, &proc)
+        generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(view_context, &proc)
         self.content_type = Mime::JS
         self.response_body = generator.to_s
       end

@@ -13,7 +13,7 @@ class Kaigi < ActionController::Http
   before_filter :set_name
   append_view_path "views"
   
-  def _action_view
+  def view_context
     self
   end
   
