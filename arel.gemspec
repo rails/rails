@@ -18,6 +18,8 @@ Gem::Specification.new do |s|
     ".gitignore",
      "README.markdown",
      "Rakefile",
+     "VERSION",
+     "arel.gemspec",
      "doc/CONVENTIONS",
      "doc/TODO",
      "lib/arel.rb",
