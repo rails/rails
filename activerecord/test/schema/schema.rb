@@ -448,6 +448,13 @@ ActiveRecord::Schema.define do
     t.integer :pet_id, :integer
   end
 
+  create_table :traffic_lights, :force => true do |t|
+    t.string   :location
+    t.string   :state
+    t.datetime :created_at
+    t.datetime :updated_at
+  end
+
   create_table :treasures, :force => true do |t|
     t.column :name, :string
     t.column :looter_id, :integer

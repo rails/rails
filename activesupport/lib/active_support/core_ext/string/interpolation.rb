@@ -6,6 +6,7 @@
 =end
 
 if RUBY_VERSION < '1.9'
+  require 'active_support/core_ext/string/bytesize'
 
   # KeyError is raised by String#% when the string contains a named placeholder
   # that is not contained in the given arguments hash. Ruby 1.9 includes and
@@ -24,8 +25,6 @@ if RUBY_VERSION < '1.9'
   # the meaning of the msgids using "named argument" instead of %s/%d style.
 
   class String
-    # For older ruby versions, such as ruby-1.8.5
-    alias :bytesize :size unless instance_methods.find {|m| m.to_s == 'bytesize'}
     alias :interpolate_without_ruby_19_syntax :% # :nodoc:
 
     INTERPOLATION_PATTERN = Regexp.union(

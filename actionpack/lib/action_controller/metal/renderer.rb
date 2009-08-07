@@ -57,7 +57,7 @@ module ActionController
         when true
           options[:_prefix] = _prefix
         when String
-          options[:_prefix] = _prefix unless partial.index('/')
+          options[:_prefix] = _prefix unless partial.include?(?/)
           options[:_template_name] = partial
         else
           options[:_partial_object] = true

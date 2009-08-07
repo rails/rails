@@ -1,13 +1,11 @@
-require 'action_controller/abstract'
-
 module ActionController
-  # ActionController::Http provides a way to get a valid Rack application from a controller.
+  # ActionController::Metal provides a way to get a valid Rack application from a controller.
   #
   # In AbstractController, dispatching is triggered directly by calling #process on a new controller.
-  # ActionController::Http provides an #action method that returns a valid Rack application for a
+  # ActionController::Metal provides an #action method that returns a valid Rack application for a
   # given action. Other rack builders, such as Rack::Builder, Rack::URLMap, and the Rails router,
   # can dispatch directly to the action returned by FooController.action(:index).
-  class Http < AbstractController::Base
+  class Metal < AbstractController::Base
     abstract!
 
     # :api: public
@@ -72,11 +70,11 @@ module ActionController
     def call(name, env)
       @_env = env
       process(name)
-      to_rack
+      to_a
     end
 
     # :api: private
-    def to_rack
+    def to_a
       [status, headers, response_body]
     end
 

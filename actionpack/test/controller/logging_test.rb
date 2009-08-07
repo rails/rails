@@ -17,9 +17,10 @@ class LoggingTest < ActionController::TestCase
       @level = Logger::DEBUG
     end
     
-    def method_missing(method, *args)
+    def method_missing(method, *args, &blk)
       @logged ||= []
       @logged << args.first
+      @logged << blk.call if block_given?
     end
   end
 

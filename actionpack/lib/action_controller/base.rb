@@ -1,5 +1,5 @@
 module ActionController
-  class Base < Http
+  class Base < Metal
     abstract!
 
     include AbstractController::Benchmarker

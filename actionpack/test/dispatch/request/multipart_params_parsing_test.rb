@@ -120,8 +120,6 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
       fixture = FIXTURE_PATH + "/mona_lisa.jpg"
       params = { :uploaded_data => fixture_file_upload(fixture, "image/jpg") }
       post '/read', params
-      expected_length = 'File: '.length + File.size(fixture)
-      assert_equal expected_length, response.content_length
     end
   end
 

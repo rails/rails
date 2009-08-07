@@ -66,7 +66,7 @@ module ActiveModel
         # Declare the validation.
         send(validation_method(options[:on]), options) do |record|
           attrs.each do |attr|
-            value = record.send(attr)
+            value = record.send(:read_attribute_for_validation, attr)
             next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
             yield record, attr, value
           end
@@ -95,6 +95,28 @@ module ActiveModel
     def invalid?
       !valid?
     end
+    
+    protected
+      # Hook method defining how an attribute value should be retieved. By default this is assumed
+      # to be an instance named after the attribute. Override this method in subclasses should you
+      # need to retrieve the value for a given attribute differently e.g.
+      #   class MyClass
+      #     include ActiveModel::Validations
+      #
+      #     def initialize(data = {})
+      #       @data = data
+      #     end
+      #     
+      #     private
+      #     
+      #     def read_attribute_for_validation(key)
+      #       @data[key]
+      #     end
+      #   end
+      #
+      def read_attribute_for_validation(key)
+        send(key)
+      end
   end
 end
 

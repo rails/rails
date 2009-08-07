@@ -13,7 +13,7 @@ module ActionController
           <<-RUBY_EVAL
             if options.key?(:#{r})
               _process_options(options)
-              return _render_#{r}(options[:#{r}], options)
+              return render_#{r}(options[:#{r}], options)
             end
           RUBY_EVAL
         end
@@ -52,7 +52,7 @@ module ActionController
       extend RenderOption
       register_renderer :json
 
-      def _render_json(json, options)
+      def render_json(json, options)
         json = ActiveSupport::JSON.encode(json) unless json.respond_to?(:to_str)
         json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
         self.content_type ||= Mime::JSON
@@ -64,9 +64,9 @@ module ActionController
       extend RenderOption
       register_renderer :js
 
-      def _render_js(js, options)
+      def render_js(js, options)
         self.content_type ||= Mime::JS
-        self.response_body = js
+        self.response_body  = js.respond_to?(:to_js) ? js.to_js : js
       end
     end
 
@@ -74,7 +74,7 @@ module ActionController
       extend RenderOption
       register_renderer :xml
 
-      def _render_xml(xml, options)
+      def render_xml(xml, options)
         self.content_type ||= Mime::XML
         self.response_body  = xml.respond_to?(:to_xml) ? xml.to_xml : xml
       end
@@ -84,8 +84,8 @@ module ActionController
       extend RenderOption
       register_renderer :update
 
-      def _render_update(proc, options)
-        generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(_action_view, &proc)
+      def render_update(proc, options)
+        generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(view_context, &proc)
         self.content_type = Mime::JS
         self.response_body = generator.to_s
       end

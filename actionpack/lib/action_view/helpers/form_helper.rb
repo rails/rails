@@ -932,6 +932,10 @@ module ActionView
 
       attr_accessor :object_name, :object, :options
 
+      def self.model_name
+        @model_name ||= Struct.new(:partial_path).new(name.demodulize.underscore.sub!(/_builder$/, ''))
+      end
+
       def initialize(object_name, object, template, options, proc)
         @nested_child_index = {}
         @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc

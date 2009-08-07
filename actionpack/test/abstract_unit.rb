@@ -13,7 +13,6 @@ require 'test/unit'
 require 'active_support'
 
 require 'active_support/test_case'
-require 'action_controller/abstract'
 require 'action_controller'
 require 'fixture_template'
 require 'action_controller/testing/process'
@@ -78,7 +77,7 @@ module ActionController
     def assert_template(options = {}, message = nil)
       validate_request!
 
-      hax = @controller._action_view.instance_variable_get(:@_rendered)
+      hax = @controller.view_context.instance_variable_get(:@_rendered)
 
       case options
       when NilClass, String

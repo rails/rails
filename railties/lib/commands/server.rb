@@ -3,13 +3,6 @@ require 'action_controller'
 require 'fileutils'
 require 'optparse'
 
-# TODO: Push Thin adapter upstream so we don't need worry about requiring it
-begin
-  require_library_or_gem 'thin'
-rescue Exception
-  # Thin not available
-end
-
 options = {
   :Port        => 3000,
   :Host        => "0.0.0.0",

@@ -129,8 +129,7 @@ module ActionController #:nodoc:
           end
 
           def content_for_layout(controller)
-            # TODO: Remove this when new base is merged in
-            template = controller.respond_to?(:template) ? controller.template : controller._action_view
+            template = controller.view_context
             template.layout && template.instance_variable_get('@cached_content_for_layout')
           end
       end

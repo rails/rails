@@ -345,3 +345,10 @@ class TestGetTextString < Test::Unit::TestCase
     assert_raises(ArgumentError) { "%{name} %f" % [1.0, 2.0] }
   end
 end
+
+class StringBytesizeTest < Test::Unit::TestCase
+  def test_bytesize
+    assert_respond_to 'foo', :bytesize
+    assert_equal 3, 'foo'.bytesize
+  end
+end

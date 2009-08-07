@@ -20,7 +20,7 @@ module ActionController
     end
 
     # :api: private
-    def to_rack
+    def to_a
       @_response.prepare!
       @_response.to_a
     end

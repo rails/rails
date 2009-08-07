@@ -1,4 +1,4 @@
-require "action_controller/abstract/logger"
+require "abstract_controller/logger"
 
 module AbstractController
   module Renderer
@@ -19,11 +19,11 @@ module AbstractController
     # The view class must have the following methods:
     # View.for_controller[controller] Create a new ActionView instance for a 
     #   controller
-    # View#_render_partial_from_controller[options]
+    # View#render_partial[options]
     #   - responsible for setting options[:_template]
     #   - Returns String with the rendered partial
     #   options<Hash>:: see _render_partial in ActionView::Base
-    # View#_render_template_from_controller[template, layout, options, partial]
+    # View#render_template[template, layout, options, partial]
     #   - Returns String with the rendered template
     #   template<ActionView::Template>:: The template to render
     #   layout<ActionView::Template>:: The layout to render around the template
@@ -31,8 +31,8 @@ module AbstractController
     #   partial<Boolean>:: Whether or not the template to render is a partial
     #
     # Override this method in a to change the default behavior.
-    def _action_view
-      @_action_view ||= ActionView::Base.for_controller(self)
+    def view_context
+      @_view_context ||= ActionView::Base.for_controller(self)
     end
 
     # Mostly abstracts the fact that calling render twice is a DoubleRenderError.
@@ -54,8 +54,8 @@ module AbstractController
     # :api: plugin
     def render_to_body(options = {})
       # TODO: Refactor so we can just use the normal template logic for this
-      if options[:_partial_object]
-        _action_view._render_partial_from_controller(options)
+      if options.key?(:_partial_object)
+        view_context.render_partial(options)
       else
         _determine_template(options)
         _render_template(options)
@@ -77,7 +77,7 @@ module AbstractController
     # _layout<ActionView::Template>:: The layout to wrap the template in (optional)
     # _partial<TrueClass, FalseClass>:: Whether or not the template to be rendered is a partial
     def _render_template(options)
-      _action_view._render_template_from_controller(options[:_template], options[:_layout], options, options[:_partial])
+      view_context.render_template(options)
     end
 
     # The list of view paths for this controller. See ActionView::ViewPathSet for
