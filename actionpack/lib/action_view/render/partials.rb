@@ -258,7 +258,7 @@ module ActionView
 
       def _pick_partial_template(partial_path) #:nodoc:
         prefix = controller_path unless partial_path.include?(?/)
-        find_by_parts(partial_path, {:formats => formats}, prefix, true)
+        find(partial_path, {:formats => formats}, prefix, true)
       end
   end
 end

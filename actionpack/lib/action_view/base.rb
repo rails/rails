@@ -202,7 +202,7 @@ module ActionView #:nodoc:
 
     delegate :logger, :to => :controller, :allow_nil => true
 
-    delegate :find_by_parts, :to => :view_paths
+    delegate :find, :to => :view_paths
 
     include Context
 

@@ -499,7 +499,7 @@ module ActionMailer #:nodoc:
         # ====
         # TODO: Revisit this
         # template_exists = @parts.empty?
-        # template_exists ||= template_root.find_by_parts("#{mailer_name}/#{@template}")
+        # template_exists ||= template_root.find("#{mailer_name}/#{@template}")
         # @body = render_message(@template, @body) if template_exists
 
         # Finally, if there are other message parts and a textual body exists,
@@ -585,7 +585,7 @@ module ActionMailer #:nodoc:
           
           if file
             prefix = mailer_name unless file =~ /\//
-            template = view_paths.find_by_parts(file, {:formats => formats}, prefix)
+            template = view_paths.find(file, {:formats => formats}, prefix)
           end
 
           layout = _pick_layout(layout, 

@@ -76,7 +76,7 @@ module AbstractController
         when nil
           self.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
             def _layout(details)
-              if view_paths.find_by_parts?("#{_implied_layout_name}", details, "layouts")
+              if view_paths.exists?("#{_implied_layout_name}", details, "layouts")
                 "#{_implied_layout_name}"
               else
                 super
@@ -131,7 +131,7 @@ module AbstractController
     def _find_layout(name, details)
       # TODO: Make prefix actually part of details in ViewPath#find_by_parts
       prefix = details.key?(:prefix) ? details.delete(:prefix) : "layouts"
-      view_paths.find_by_parts(name, details, prefix)
+      view_paths.find(name, details, prefix)
     end
 
     # Returns the default layout for this controller and a given set of details. 

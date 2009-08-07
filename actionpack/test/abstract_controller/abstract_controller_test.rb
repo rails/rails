@@ -139,10 +139,10 @@ module AbstractController
       private
       def self.layout(formats)
         begin
-          view_paths.find_by_parts(name.underscore, {:formats => formats}, "layouts")
+          view_paths.find(name.underscore, {:formats => formats}, "layouts")
         rescue ActionView::MissingTemplate
           begin
-            view_paths.find_by_parts("application", {:formats => formats}, "layouts")
+            view_paths.find("application", {:formats => formats}, "layouts")
           rescue ActionView::MissingTemplate
           end
         end

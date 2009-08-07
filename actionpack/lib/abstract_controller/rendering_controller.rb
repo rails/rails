@@ -111,7 +111,7 @@ module AbstractController
     def _determine_template(options)
       name = (options[:_template_name] || action_name).to_s
 
-      options[:_template] ||= view_paths.find_by_parts(
+      options[:_template] ||= view_paths.find(
         name, { :formats => formats }, options[:_prefix], options[:_partial]
       )
     end
