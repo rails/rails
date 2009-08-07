@@ -229,19 +229,10 @@ module ActionView
 
       def _render_partial_with_layout(layout, options)
         if layout
-          prefix = controller && !layout.include?("/") ? controller.controller_path : nil
+          prefix = layout.include?(?/) ? nil : controller_path
           layout = find_by_parts(layout, {:formats => formats}, prefix, true)
         end
-        content = _render_partial(options)
-        return _render_content_with_layout(content, layout, options[:locals])
-      end
-
-      def _array_like_objects
-        array_like = [Array]
-        if defined?(ActiveRecord)
-          array_like.push(ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope)
-        end
-        array_like
+        _render_content(_render_partial(options), layout, options[:locals])
       end
 
       def _render_partial_object(template, options)

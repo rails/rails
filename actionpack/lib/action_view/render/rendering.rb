@@ -40,7 +40,7 @@ module ActionView
       end
     end
     
-    def _render_content_with_layout(content, layout, locals)
+    def _render_content(content, layout, locals)
       return content unless layout
   
       locals ||= {}
@@ -116,11 +116,11 @@ module ActionView
       handler = Template.handler_class_for_extension(options[:type] || "erb")
       template = Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
       content = _render_template(template, options[:locals] || {})
-      layout ? _render_content_with_layout(content, layout, options[:locals]) : content
+      layout ? _render_content(content, layout, options[:locals]) : content
     end
 
     def _render_text(text, layout, options)
-      layout ? _render_content_with_layout(text, layout, options[:locals]) : text
+      layout ? _render_content(text, layout, options[:locals]) : text
     end
 
     # This is the API to render a ViewContext's template from a controller.
@@ -146,7 +146,7 @@ module ActionView
         _render_template(template, locals)
       end
   
-      layout ? _render_content_with_layout(content, layout, locals) : content
+      _render_content(content, layout, locals)
     end
   end
 end
