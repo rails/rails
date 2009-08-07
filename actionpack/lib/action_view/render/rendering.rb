@@ -16,16 +16,16 @@ module ActionView
         _render_partial(:partial => options, :locals => locals || {})
       when Hash
         layout = options[:layout]
-            
+
         if block_given?
           return concat(_render_partial(options.merge(:partial => layout), &block))
         elsif options.key?(:partial)
           layout = _pick_partial_template(layout) if layout
           return _render_content(_render_partial(options), layout, options[:locals])
         end
-    
+
         layout = find_by_parts(layout, {:formats => formats}) if layout
-    
+
         if file = options[:file]
           template = find_by_parts(file, {:formats => formats})
           _render_template(template, layout, :locals => options[:locals] || {})
@@ -38,17 +38,17 @@ module ActionView
         update_page(&block)
       end
     end
-    
+
     def _render_content(content, layout, locals)
       return content unless layout
-  
+
       locals ||= {}
 
       if controller && layout
         @_layout = layout.identifier
         logger.info("Rendering template within #{layout.identifier}") if logger
       end
-  
+
       begin
         old_content, @_content_for[:layout] = @_content_for[:layout], content
 
@@ -161,7 +161,7 @@ module ActionView
       else
         _render_single_template(template, locals)
       end
-  
+
       _render_content(content, layout, locals)
     end
   end
