@@ -148,19 +148,27 @@ module ActiveRecord
         end
 
         catch :invalid_query do
-          conditions = construct_conditions(options[:conditions], scope)
-          conditions << construct_limited_ids_condition(conditions, options, join_dependency) if join_dependency && !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
+          relation = arel_table((scope && scope[:from]) || options[:from])
+
+          relation.join(joins)
+
+          relation.where(construct_conditions(options[:conditions], scope))
+          relation.where(construct_arel_limited_ids_condition(options, join_dependency)) if join_dependency && !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
+
+          relation.order(construct_order(options[:order], scope))
+          relation.take(options[:limit])
+          relation.skip(options[:offset])
 
           if options[:group]
-            return execute_grouped_calculation(operation, column_name, options.merge(:conditions => conditions, :joins => joins, :distinct => distinct))
+            return execute_grouped_calculation(operation, column_name, options, relation)
           else
-            return execute_simple_calculation(operation, column_name, options.merge(:conditions => conditions, :joins => joins, :distinct => distinct))
+            return execute_simple_calculation(operation, column_name, options.merge(:distinct => distinct), relation)
           end
         end
         0
       end
 
-      def execute_simple_calculation(operation, column_name, options) #:nodoc:
+      def execute_simple_calculation(operation, column_name, options, relation) #:nodoc:
         column = if column_names.include?(column_name.to_s)
           Arel::Attribute.new(arel_table(options[:from] || table_name),
                               options[:select] || column_name)
@@ -169,14 +177,12 @@ module ActiveRecord
                                (column_name == :all ? "*" : column_name.to_s))
         end
 
-        value = construct_finder_sql(options.merge(
-          :select => operation == 'count' ? column.count(options[:distinct]) : column.send(operation)
-        ), nil)
+        relation.project(operation == 'count' ? column.count(options[:distinct]) : column.send(operation))
 
-        type_cast_calculated_value(connection.select_value(value), column_for(column_name), operation)
+        type_cast_calculated_value(connection.select_value(relation.to_sql), column_for(column_name), operation)
       end
 
-      def execute_grouped_calculation(operation, column_name, options) #:nodoc:
+      def execute_grouped_calculation(operation, column_name, options, relation) #:nodoc:
         group_attr      = options[:group].to_s
         association     = reflect_on_association(group_attr.to_sym)
         associated      = association && association.macro == :belongs_to # only count belongs_to associations
@@ -194,7 +200,10 @@ module ActiveRecord
 
         options[:select] <<  ", #{group_field} AS #{group_alias}"
 
-        calculated_data = connection.select_all(construct_finder_sql(options, nil))
+        relation.project(options[:select])
+        relation.group(construct_group(options[:group], options[:having], nil))
+
+        calculated_data = connection.select_all(relation.to_sql)
 
         if association
           key_ids     = calculated_data.collect { |row| row[group_alias] }

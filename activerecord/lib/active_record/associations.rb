@@ -1662,40 +1662,39 @@ module ActiveRecord
         def construct_finder_sql_with_included_associations(options, join_dependency)
           scope = scope(:find)
 
+          relation = arel_table((scope && scope[:from]) || options[:from])
+
           joins = join_dependency.join_associations.collect{|join| join.association_join }.join
           joins << construct_join(options[:joins], scope)
+          relation.join(joins)
 
-          conditions = construct_conditions(options[:conditions], scope) || ''
-          conditions << construct_limited_ids_condition(conditions, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
+          relation.where(construct_conditions(options[:conditions], scope))
+          relation.where(construct_arel_limited_ids_condition(options, join_dependency)) if join_dependency && !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
-          relation = arel_table((scope && scope[:from]) || options[:from]).
-            join(joins).
-            where(conditions).
-            project(column_aliases(join_dependency)).
-            group(construct_group(options[:group], options[:having], scope)).
-            order(construct_order(options[:order], scope)
-          )
+          relation.project(column_aliases(join_dependency))
+          relation.group(construct_group(options[:group], options[:having], scope))
+          relation.order(construct_order(options[:order], scope))
+          relation.take(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)
 
-          relation = relation.take(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)
-
-          return sanitize_sql(relation.to_sql)
+          sanitize_sql(relation.to_sql)
         end
 
-         def construct_limited_ids_condition(where, options, join_dependency)
-          unless (id_list = select_limited_ids_list(options, join_dependency)).empty?
-            "#{where.blank? ? '' : ' AND '} #{connection.quote_table_name table_name}.#{primary_key} IN (#{id_list}) "
-          else
+        def construct_arel_limited_ids_condition(options, join_dependency)
+          if (ids_array = select_limited_ids_array(options, join_dependency)).empty?
             throw :invalid_query
+          else
+            Arel::In.new(
+              Arel::SqlLiteral.new("#{connection.quote_table_name table_name}.#{primary_key}"),
+              ids_array
+            )
           end
         end
 
-        def select_limited_ids_list(options, join_dependency)
-          pk = columns_hash[primary_key]
-
+        def select_limited_ids_array(options, join_dependency)
           connection.select_all(
             construct_finder_sql_for_association_limiting(options, join_dependency),
             "#{name} Load IDs For Limited Eager Loading"
-          ).collect { |row| connection.quote(row[primary_key], pk) }.join(", ")
+          ).collect { |row| row[primary_key] }
         end
 
         def construct_finder_sql_for_association_limiting(options, join_dependency)
