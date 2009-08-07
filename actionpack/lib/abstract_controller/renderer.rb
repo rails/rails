@@ -54,7 +54,7 @@ module AbstractController
     # :api: plugin
     def render_to_body(options = {})
       # TODO: Refactor so we can just use the normal template logic for this
-      if options.key?(:_partial_object)
+      if options.key?(:partial)
         view_context.render_partial(options)
       else
         _determine_template(options)

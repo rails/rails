@@ -185,6 +185,8 @@ module ActionView
 
     def render_partial(options)
       @assigns_added = false
+      # TODO: Handle other details here.
+      self.formats = options[:_details][:formats]
       _render_partial(options)
     end
 
@@ -235,6 +237,8 @@ module ActionView
       end
 
       def _render_partial_collection(collection, options = {}, template = nil, &block) #:nodoc:
+        options[:_template] ||= template
+
         return nil if collection.blank?
 
         if options.key?(:spacer_template)
