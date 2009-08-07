@@ -10,24 +10,22 @@ module ActionView
     #
     # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
     # as the locals hash.
-    def render(options = {}, local_assigns = {}, &block) #:nodoc:
-      local_assigns ||= {}
-
-      @exempt_from_layout = true
-
+    def render(options = {}, locals = {}, &block) #:nodoc:
       case options
+      when String, NilClass
+        _render_partial_unknown_type(:partial => options, :locals => locals || {})
       when Hash
-        options[:locals] ||= {}
         layout = options[:layout]
             
-        return _render_partial_with_layout(layout, options) if options.key?(:partial)
-        return _render_partial_with_block(layout, block, options) if block_given?
+        if options.key?(:partial) || block_given?
+          return _render_partial(layout, options, block)
+        end
     
         layout = find_by_parts(layout, {:formats => formats}) if layout
     
         if file = options[:file]
           template = find_by_parts(file, {:formats => formats})
-          _render_template(template, layout, :locals => options[:locals])
+          _render_template(template, layout, :locals => options[:locals] || {})
         elsif inline = options[:inline]
           _render_inline(inline, layout, options)
         elsif text = options[:text]
@@ -35,8 +33,6 @@ module ActionView
         end
       when :update
         update_page(&block)
-      when String, NilClass
-        _render_partial(:partial => options, :locals => local_assigns)
       end
     end
     

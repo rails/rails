@@ -185,10 +185,10 @@ module ActionView
 
     def render_partial(options)
       @assigns_added = false
-      _render_partial(options)
+      _render_partial_unknown_type(options)
     end
 
-    def _render_partial(options) #:nodoc:
+    def _render_partial_unknown_type(options) #:nodoc:
       options[:locals] ||= {}
 
       path = partial = options[:partial]
@@ -220,19 +220,21 @@ module ActionView
         end
       end
 
-      def _render_partial_with_block(layout, block, options)
-        @_proc_for_layout = block
-        concat(_render_partial(options.merge(:partial => layout)))
-      ensure
-        @_proc_for_layout = nil
-      end
-
-      def _render_partial_with_layout(layout, options)
-        if layout
-          prefix = layout.include?(?/) ? nil : controller_path
-          layout = find_by_parts(layout, {:formats => formats}, prefix, true)
+      def _render_partial(layout, options, block = nil)
+        if block
+          begin
+            @_proc_for_layout = block
+            concat(_render_partial_unknown_type(options.merge(:partial => layout)))
+          ensure
+            @_proc_for_layout = nil
+          end
+        else
+          if layout
+            prefix = layout.include?(?/) ? nil : controller_path
+            layout = find_by_parts(layout, {:formats => formats}, prefix, true)
+          end
+          _render_content(_render_partial_unknown_type(options), layout, options[:locals])
         end
-        _render_content(_render_partial(options), layout, options[:locals])
       end
 
       def _render_partial_object(template, options)
@@ -260,7 +262,8 @@ module ActionView
       def _render_partial_collection(collection, options = {}, passed_template = nil) #:nodoc:
         return nil if collection.blank?
 
-        spacer = options[:spacer_template] ? _render_partial(:partial => options[:spacer_template]) : ''
+        spacer = options[:spacer_template] ?
+          _render_partial_unknown_type(:partial => options[:spacer_template]) : ''
 
         locals = (options[:locals] ||= {})
         index, @_partial_path = 0, nil
