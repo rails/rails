@@ -154,7 +154,8 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
   end
 
   def test_save_fails_for_invalid_belongs_to
-    assert log = AuditLog.create(:developer_id => 0, :message => "")
+    # Oracle saves empty string as NULL therefore :message changed to one space
+    assert log = AuditLog.create(:developer_id => 0, :message => " ")
 
     log.developer = Developer.new
     assert !log.developer.valid?
@@ -164,7 +165,8 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
   end
 
   def test_save_succeeds_for_invalid_belongs_to_with_validate_false
-    assert log = AuditLog.create(:developer_id => 0, :message=> "")
+    # Oracle saves empty string as NULL therefore :message changed to one space
+    assert log = AuditLog.create(:developer_id => 0, :message=> " ")
 
     log.unvalidated_developer = Developer.new
     assert !log.unvalidated_developer.valid?
@@ -666,7 +668,12 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.catchphrase = ''
     @pirate.ship.name = ''
     @pirate.save(false)
-    assert_equal ['', ''], [@pirate.reload.catchphrase, @pirate.ship.name]
+    # Oracle saves empty string as NULL
+    if current_adapter?(:OracleAdapter)
+      assert_equal [nil, nil], [@pirate.reload.catchphrase, @pirate.ship.name]
+    else
+      assert_equal ['', ''], [@pirate.reload.catchphrase, @pirate.ship.name]
+    end
   end
 
   def test_should_allow_to_bypass_validations_on_associated_models_at_any_depth
@@ -678,7 +685,12 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.save(false)
 
     values = [@pirate.reload.catchphrase, @pirate.ship.name, *@pirate.ship.parts.map(&:name)]
-    assert_equal ['', '', '', ''], values
+    # Oracle saves empty string as NULL
+    if current_adapter?(:OracleAdapter)
+      assert_equal [nil, nil, nil, nil], values
+    else
+      assert_equal ['', '', '', ''], values
+    end
   end
 
   def test_should_still_raise_an_ActiveRecordRecord_Invalid_exception_if_we_want_that
@@ -756,7 +768,12 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     @ship.pirate.catchphrase = ''
     @ship.name = ''
     @ship.save(false)
-    assert_equal ['', ''], [@ship.reload.name, @ship.pirate.catchphrase]
+    # Oracle saves empty string as NULL
+    if current_adapter?(:OracleAdapter)
+      assert_equal [nil, nil], [@ship.reload.name, @ship.pirate.catchphrase]
+    else
+      assert_equal ['', ''], [@ship.reload.name, @ship.pirate.catchphrase]
+    end
   end
 
   def test_should_still_raise_an_ActiveRecordRecord_Invalid_exception_if_we_want_that
@@ -837,11 +854,20 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).each { |child| child.name = '' }
 
     assert @pirate.save(false)
-    assert_equal ['', '', ''], [
-      @pirate.reload.catchphrase,
-      @pirate.send(@association_name).first.name,
-      @pirate.send(@association_name).last.name
-    ]
+    # Oracle saves empty string as NULL
+    if current_adapter?(:OracleAdapter)
+      assert_equal [nil, nil, nil], [
+        @pirate.reload.catchphrase,
+        @pirate.send(@association_name).first.name,
+        @pirate.send(@association_name).last.name
+      ]
+    else
+      assert_equal ['', '', ''], [
+        @pirate.reload.catchphrase,
+        @pirate.send(@association_name).first.name,
+        @pirate.send(@association_name).last.name
+      ]
+    end
   end
 
   def test_should_validation_the_associated_models_on_create

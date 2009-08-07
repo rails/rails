@@ -75,13 +75,23 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_typecast_attribute_from_select_to_false
     topic = Topic.create(:title => 'Budget')
-    topic = Topic.find(:first, :select => "topics.*, 1=2 as is_test")
+    # Oracle does not support boolean expressions in SELECT
+    if current_adapter?(:OracleAdapter)
+      topic = Topic.find(:first, :select => "topics.*, 0 as is_test")
+    else
+      topic = Topic.find(:first, :select => "topics.*, 1=2 as is_test")
+    end
     assert !topic.is_test?
   end
 
   def test_typecast_attribute_from_select_to_true
     topic = Topic.create(:title => 'Budget')
-    topic = Topic.find(:first, :select => "topics.*, 2=2 as is_test")
+    # Oracle does not support boolean expressions in SELECT
+    if current_adapter?(:OracleAdapter)
+      topic = Topic.find(:first, :select => "topics.*, 1 as is_test")
+    else
+      topic = Topic.find(:first, :select => "topics.*, 2=2 as is_test")
+    end
     assert topic.is_test?
   end
 
