@@ -1,5 +1,3 @@
-require 'action_controller/abstract'
-
 module ActionController
   # ActionController::Metal provides a way to get a valid Rack application from a controller.
   #

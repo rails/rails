@@ -1,4 +1,4 @@
-require "action_controller/abstract/logger"
+require "abstract_controller/logger"
 
 module AbstractController
   module Renderer

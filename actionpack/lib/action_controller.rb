@@ -56,7 +56,7 @@ module ActionController
 end
 
 autoload :HTML, 'action_controller/vendor/html-scanner'
-autoload :AbstractController, 'action_controller/abstract'
+autoload :AbstractController, 'abstract_controller'
 
 autoload :Rack,                       'action_dispatch'
 autoload :ActionDispatch,             'action_dispatch'

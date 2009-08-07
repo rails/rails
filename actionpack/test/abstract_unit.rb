@@ -13,7 +13,6 @@ require 'test/unit'
 require 'active_support'
 
 require 'active_support/test_case'
-require 'action_controller/abstract'
 require 'action_controller'
 require 'fixture_template'
 require 'action_controller/testing/process'
