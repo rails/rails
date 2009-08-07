@@ -123,19 +123,25 @@ module ActionView
       layout ? _render_content_with_layout(text, layout, options[:locals]) : text
     end
 
-    def render_template(*args)
+    # This is the API to render a ViewContext's template from a controller.
+    #
+    # Internal Options:
+    # _template:: The Template object to render
+    # _layout::   The layout, if any, to wrap the Template in
+    # _partial::  true if the template is a partial
+    def render_template(options)
       @assigns_added = nil
-      _render_template_with_layout(*args)
+      template, layout, partial = options.values_at(:_template, :_layout, :_partial)
+      _render_template_with_layout(template, layout, options, partial)
     end
 
-    def _render_template_with_layout(template, layout = nil, options = {}, partial = false)
+    def _render_template_with_layout(template, layout = nil, options = {}, partial = nil)
       logger && logger.info("Rendering #{template.identifier}#{' (#{options[:status]})' if options[:status]}")
 
       locals = options[:locals] || {}
 
       content = if partial
-        object = partial unless partial == true
-        _render_partial_object(template, options, object)
+        _render_partial_object(template, options)
       else
         _render_template(template, locals)
       end

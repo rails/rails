@@ -183,12 +183,12 @@ module ActionView
       end
     end
 
-    def render_partial(*args)
+    def render_partial(options)
       @assigns_added = false
-      _render_partial(*args)
+      _render_partial(options)
     end
 
-    def _render_partial(options = {}) #:nodoc:
+    def _render_partial(options) #:nodoc:
       options[:locals] ||= {}
 
       path = partial = options[:partial]
@@ -244,7 +244,9 @@ module ActionView
         array_like
       end
 
-      def _render_partial_object(template, options, object = nil)
+      def _render_partial_object(template, options)
+        object = options[:object]
+
         if options.key?(:collection)
           _render_partial_collection(options.delete(:collection), options, template)
         else

@@ -54,7 +54,7 @@ module AbstractController
     # :api: plugin
     def render_to_body(options = {})
       # TODO: Refactor so we can just use the normal template logic for this
-      if options[:_partial_object]
+      if options.key?(:_partial_object)
         view_context.render_partial(options)
       else
         _determine_template(options)
@@ -77,7 +77,7 @@ module AbstractController
     # _layout<ActionView::Template>:: The layout to wrap the template in (optional)
     # _partial<TrueClass, FalseClass>:: Whether or not the template to be rendered is a partial
     def _render_template(options)
-      view_context.render_template(options[:_template], options[:_layout], options, options[:_partial])
+      view_context.render_template(options)
     end
 
     # The list of view paths for this controller. See ActionView::ViewPathSet for
