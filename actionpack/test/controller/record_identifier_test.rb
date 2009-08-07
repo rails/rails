@@ -54,24 +54,6 @@ class RecordIdentifierTest < Test::Unit::TestCase
     assert_equal "edit_#{@singular}_1", dom_id(@record, :edit)
   end
 
-  def test_partial_path
-    expected = "#{@plural}/#{@singular}"
-    assert_equal expected, partial_path(@record)
-    assert_equal expected, partial_path(Comment)
-  end
-
-  def test_partial_path_with_namespaced_controller_path
-    expected = "admin/#{@plural}/#{@singular}"
-    assert_equal expected, partial_path(@record, "admin/posts")
-    assert_equal expected, partial_path(@klass, "admin/posts")
-  end
-
-  def test_partial_path_with_not_namespaced_controller_path
-    expected = "#{@plural}/#{@singular}"
-    assert_equal expected, partial_path(@record, "posts")
-    assert_equal expected, partial_path(@klass, "posts")
-  end
-
   def test_dom_class
     assert_equal @singular, dom_class(@record)
   end
@@ -100,43 +82,4 @@ class RecordIdentifierTest < Test::Unit::TestCase
     def method_missing(method, *args)
       RecordIdentifier.send(method, *args)
     end
-end
-
-class NestedRecordIdentifierTest < RecordIdentifierTest
-  def setup
-    @klass  = Comment::Nested
-    @record = @klass.new
-    @singular = 'comment_nested'
-    @plural = 'comment_nesteds'
-  end
-
-  def test_partial_path
-    expected = "comment/nesteds/nested"
-    assert_equal expected, partial_path(@record)
-    assert_equal expected, partial_path(Comment::Nested)
-  end
-
-  def test_partial_path_with_namespaced_controller_path
-    expected = "admin/comment/nesteds/nested"
-    assert_equal expected, partial_path(@record, "admin/posts")
-    assert_equal expected, partial_path(@klass, "admin/posts")
-  end
-
-  def test_partial_path_with_deeper_namespaced_controller_path
-    expected = "deeper/admin/comment/nesteds/nested"
-    assert_equal expected, partial_path(@record, "deeper/admin/posts")
-    assert_equal expected, partial_path(@klass, "deeper/admin/posts")
-  end
-
-  def test_partial_path_with_even_deeper_namespaced_controller_path
-    expected = "even/more/deeper/admin/comment/nesteds/nested"
-    assert_equal expected, partial_path(@record, "even/more/deeper/admin/posts")
-    assert_equal expected, partial_path(@klass, "even/more/deeper/admin/posts")
-  end
-
-  def test_partial_path_with_not_namespaced_controller_path
-    expected = "comment/nesteds/nested"
-    assert_equal expected, partial_path(@record, "posts")
-    assert_equal expected, partial_path(@klass, "posts")
-  end
 end

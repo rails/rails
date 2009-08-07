@@ -177,6 +177,12 @@ module ActionView
       attr_accessor :_partial
     end
 
+    module ClassMethods
+      def _partial_names
+        @_partial_names ||= ActiveSupport::ConcurrentHash.new
+      end
+    end
+
     def render_partial(*args)
       @assigns_added = false
       _render_partial(*args)
@@ -189,12 +195,9 @@ module ActionView
 
       if partial.respond_to?(:to_ary)
         return _render_partial_collection(partial, options)
-      elsif partial.is_a?(ActionView::Helpers::FormBuilder)
-        path = partial.class.model_name.partial_path
-        options[:locals].merge!(path.to_sym => partial)
       elsif !partial.is_a?(String)
         options[:object] = object = partial
-        path = ActionController::RecordIdentifier.partial_path(object, controller_path)
+        path = _partial_path(object)
       end
 
       parts = partial_parts(path, options)
@@ -203,6 +206,17 @@ module ActionView
     end
 
     private
+      def _partial_path(object)
+        self.class._partial_names[[controller.class, object.class]] ||= begin
+          name = object.class.model_name
+          if controller_path && controller_path.include?("/")
+            File.join(File.dirname(controller_path), name.partial_path)
+          else
+            name.partial_path
+          end
+        end
+      end
+
       def partial_parts(name, options)
         segments = name.split("/")
         parts = segments.pop.split(".")
@@ -278,8 +292,7 @@ module ActionView
         index, @_partial_path = 0, nil
         collection.map do |object|
           options[:_template] = template = passed_template || begin
-            _partial_path =
-              ActionController::RecordIdentifier.partial_path(object, controller_path)
+            _partial_path = _partial_path(object)
             template = _pick_partial_template(_partial_path)
           end
 
