@@ -2184,7 +2184,7 @@ module ActiveRecord
                     ]
                 else
                   ""
-              end || ''
+              end
               join << %(AND %s) % [
                 klass.send(:type_condition, aliased_table_name)] unless klass.descends_from_active_record?
 
