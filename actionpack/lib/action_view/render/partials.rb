@@ -172,9 +172,9 @@ module ActionView
   module Partials
     extend ActiveSupport::Memoizable
     extend ActiveSupport::Concern
-    
+
     included do
-      attr_accessor :_partial      
+      attr_accessor :_partial
     end
 
     def render_partial(*args)
@@ -185,22 +185,21 @@ module ActionView
     def _render_partial(options = {}) #:nodoc:
       options[:locals] ||= {}
 
-      case path = partial = options[:partial]
-      when *_array_like_objects
+      path = partial = options[:partial]
+
+      if partial.respond_to?(:to_ary)
         return _render_partial_collection(partial, options)
-      else
-        if partial.is_a?(ActionView::Helpers::FormBuilder)
-          path = partial.class.to_s.demodulize.underscore.sub(/_builder$/, '')
-          options[:locals].merge!(path.to_sym => partial)
-        elsif !partial.is_a?(String)
-          options[:object] = object = partial
-          path = ActionController::RecordIdentifier.partial_path(object, controller_path)
-        end
-        _, _, prefix, object = parts = partial_parts(path, options)
-        parts[1] = {:formats => parts[1]}
-        template = find_by_parts(*parts)
-        _render_partial_object(template, options, (object unless object == true))
+      elsif partial.is_a?(ActionView::Helpers::FormBuilder)
+        path = partial.class.model_name.partial_path
+        options[:locals].merge!(path.to_sym => partial)
+      elsif !partial.is_a?(String)
+        options[:object] = object = partial
+        path = ActionController::RecordIdentifier.partial_path(object, controller_path)
       end
+
+      parts = partial_parts(path, options)
+      template = find_by_parts(*parts)
+      _render_partial_object(template, options, (parts[3] unless parts[3] == true))
     end
 
     private
@@ -222,7 +221,7 @@ module ActionView
         path = parts.join(".")
         prefix = segments[0..-1].join("/")
         prefix = prefix.blank? ? controller_path : prefix
-        parts = [path, formats, prefix]
+        parts = [path, {:formats => formats}, prefix]
         parts.push options[:object] || true
       end
 
@@ -256,11 +255,11 @@ module ActionView
         else
           locals = (options[:locals] ||= {})
           object ||= locals[:object] || locals[template.variable_name]
-          
+
           _set_locals(object, locals, template, options)
-          
+
           options[:_template] = template
-          
+
           _render_template(template, locals)
         end
       end
@@ -272,23 +271,23 @@ module ActionView
 
       def _render_partial_collection(collection, options = {}, passed_template = nil) #:nodoc:
         return nil if collection.blank?
-        
+
         spacer = options[:spacer_template] ? _render_partial(:partial => options[:spacer_template]) : ''
 
         locals = (options[:locals] ||= {})
         index, @_partial_path = 0, nil
         collection.map do |object|
           options[:_template] = template = passed_template || begin
-            _partial_path = 
+            _partial_path =
               ActionController::RecordIdentifier.partial_path(object, controller_path)
             template = _pick_partial_template(_partial_path)
           end
 
           _set_locals(object, locals, template, options)
           locals[template.counter_name] = index
-          
+
           index += 1
-          
+
           _render_template(template, locals)
         end.join(spacer)
       end
