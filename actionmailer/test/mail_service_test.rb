@@ -573,12 +573,14 @@ class ActionMailerTest < Test::Unit::TestCase
       @info_contents, @debug_contents = "", ""
     end
     
-    def info(str)
-      @info_contents << str
+    def info(str = nil, &blk)
+      @info_contents << str if str
+      @info_contents << blk.call if block_given?
     end
     
-    def debug(str)
-      @debug_contents << str
+    def debug(str = nil, &blk)
+      @debug_contents << str if str
+      @debug_contents << blk.call if block_given?
     end
   end
 

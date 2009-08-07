@@ -17,8 +17,9 @@ class MockLogger
     @logged = []
   end
 
-  def method_missing(method, *args)
+  def method_missing(method, *args, &blk)
     @logged << args.first
+    @logged << blk.call if block_given?
   end
 end
 

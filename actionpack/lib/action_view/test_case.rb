@@ -9,8 +9,8 @@ module ActionView
     end
 
     attr_internal :rendered
-    alias_method :_render_template_without_template_tracking, :_render_template
-    def _render_template(template, local_assigns = {})
+    alias_method :_render_template_without_template_tracking, :_render_single_template
+    def _render_single_template(template, local_assigns = {})
       if template.respond_to?(:identifier) && template.present?
         @_rendered[:partials][template] += 1 if template.partial?
         @_rendered[:template] ||= []

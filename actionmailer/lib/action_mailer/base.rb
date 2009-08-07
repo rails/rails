@@ -566,7 +566,7 @@ module ActionMailer #:nodoc:
         @template = initialize_template_class(body)
         layout = _pick_layout(layout, true) unless 
           ActionController::Base.exempt_from_layout.include?(template.handler)
-        @template._render_template_with_layout(template, layout, {})
+        @template._render_template(template, layout, {})
       ensure
         @current_template_content_type = nil
       end
@@ -592,7 +592,7 @@ module ActionMailer #:nodoc:
             !template || ActionController::Base.exempt_from_layout.include?(template.handler))
 
           if template
-            @template._render_template_with_layout(template, layout, opts)
+            @template._render_template(template, layout, opts)
           elsif inline = opts[:inline]
             @template._render_inline(inline, layout, opts)
           end

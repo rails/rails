@@ -248,7 +248,7 @@ module ActionView
 
           options[:_template] = template
 
-          _render_template(template, locals)
+          _render_single_template(template, locals)
         end
       end
 
@@ -275,7 +275,7 @@ module ActionView
 
           index += 1
 
-          _render_template(template, locals)
+          _render_single_template(template, locals)
         end.join(spacer)
       end
 

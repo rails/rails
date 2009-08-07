@@ -27,7 +27,7 @@ module ActionView
     
         if file = options[:file]
           template = find_by_parts(file, {:formats => formats})
-          _render_template_with_layout(template, layout, :locals => options[:locals])
+          _render_template(template, layout, :locals => options[:locals])
         elsif inline = options[:inline]
           _render_inline(inline, layout, options)
         elsif text = options[:text]
@@ -54,7 +54,7 @@ module ActionView
         old_content, @_content_for[:layout] = @_content_for[:layout], content
 
         @cached_content_for_layout = @_content_for[:layout]
-        _render_template(layout, locals)
+        _render_single_template(layout, locals)
       ensure
         @_content_for[:layout] = old_content
       end
@@ -97,9 +97,9 @@ module ActionView
       !@_content_for.key?(name) && @_proc_for_layout || @_default_layout
     end
 
-    def _render_template(template, local_assigns = {})
+    def _render_single_template(template, locals = {})
       with_template(template) do
-        template.render(self, local_assigns) do |*names|
+        template.render(self, locals) do |*names|
           capture(*names, &layout_proc(names.first))
         end
       end
@@ -115,7 +115,7 @@ module ActionView
     def _render_inline(inline, layout, options)
       handler = Template.handler_class_for_extension(options[:type] || "erb")
       template = Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
-      content = _render_template(template, options[:locals] || {})
+      content = _render_single_template(template, options[:locals] || {})
       layout ? _render_content(content, layout, options[:locals]) : content
     end
 
@@ -132,18 +132,22 @@ module ActionView
     def render_template(options)
       @assigns_added = nil
       template, layout, partial = options.values_at(:_template, :_layout, :_partial)
-      _render_template_with_layout(template, layout, options, partial)
+      _render_template(template, layout, options, partial)
     end
 
-    def _render_template_with_layout(template, layout = nil, options = {}, partial = nil)
-      logger && logger.info("Rendering #{template.identifier}#{' (#{options[:status]})' if options[:status]}")
+    def _render_template(template, layout = nil, options = {}, partial = nil)
+      logger && logger.info do
+        msg = "Rendering #{template.identifier}"
+        msg << " (#{options[:status]})" if options[:status]
+        msg
+      end
 
       locals = options[:locals] || {}
 
       content = if partial
         _render_partial_object(template, options)
       else
-        _render_template(template, locals)
+        _render_single_template(template, locals)
       end
   
       _render_content(content, layout, locals)
