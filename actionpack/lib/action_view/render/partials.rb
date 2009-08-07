@@ -200,9 +200,12 @@ module ActionView
         path = _partial_path(object)
       end
 
-      parts = partial_parts(path, options)
+      parts = [path, {:formats => formats}]
+      parts.push path.include?(?/) ? nil : controller_path
+      parts.push true
+
       template = find_by_parts(*parts)
-      _render_partial_object(template, options, (parts[3] unless parts[3] == true))
+      _render_partial_object(template, options)
     end
 
     private
@@ -215,28 +218,6 @@ module ActionView
             name.partial_path
           end
         end
-      end
-
-      def partial_parts(name, options)
-        segments = name.split("/")
-        parts = segments.pop.split(".")
-
-        case parts.size
-        when 1
-          parts
-        when 2, 3
-          extension = parts.delete_at(1).to_sym
-          if formats.include?(extension)
-            self.formats.replace [extension]
-          end
-          parts.pop if parts.size == 2
-        end
-
-        path = parts.join(".")
-        prefix = segments[0..-1].join("/")
-        prefix = prefix.blank? ? controller_path : prefix
-        parts = [path, {:formats => formats}, prefix]
-        parts.push options[:object] || true
       end
 
       def _render_partial_with_block(layout, block, options)
