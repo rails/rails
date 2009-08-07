@@ -155,7 +155,7 @@ module ActiveRecord
           relation.where(construct_conditions(options[:conditions], scope))
           relation.where(construct_arel_limited_ids_condition(options, join_dependency)) if join_dependency && !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
-          relation.order(construct_order(options[:order], scope))
+          relation.order(options[:order])
           relation.take(options[:limit])
           relation.skip(options[:offset])
 
