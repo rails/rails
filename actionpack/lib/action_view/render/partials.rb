@@ -185,10 +185,10 @@ module ActionView
 
     def render_partial(options)
       @assigns_added = false
-      _render_partial_unknown_type(options)
+      _render_partial(options)
     end
 
-    def _render_partial_unknown_type(options, &block) #:nodoc:
+    def _render_partial(options, &block) #:nodoc:
       options[:locals] ||= {}
 
       path = partial = options[:partial]
@@ -200,21 +200,10 @@ module ActionView
         path = _partial_path(object)
       end
 
-      _render_partial_path(path, options, &block)
+      _render_partial_object(_pick_partial_template(path), options, &block)
     end
 
     private
-      def _render_partial_path(path, options, &block)
-        return '' if path.nil?
-
-        parts = [path, {:formats => formats}]
-        parts.push path.include?(?/) ? nil : controller_path
-        parts.push true
-
-        template = find_by_parts(*parts)
-        _render_partial_object(template, options, &block)
-      end
-
       def _partial_path(object)
         self.class._partial_names[[controller.class, object.class]] ||= begin
           name = object.class.model_name
@@ -226,62 +215,45 @@ module ActionView
         end
       end
 
-      def _render_partial(layout, options, &block)
-        if block_given?
-          concat(_render_partial_unknown_type(options.merge(:partial => layout), &block))
-        else
-          if layout
-            prefix = layout.include?(?/) ? nil : controller_path
-            layout = find_by_parts(layout, {:formats => formats}, prefix, true)
-          end
-          _render_content(_render_partial_unknown_type(options), layout, options[:locals])
-        end
+      def _render_partial_template(template, locals, object, options = {}, &block)
+        options[:_template] = template
+        locals[:object] = locals[template.variable_name] = object
+        locals[options[:as]] = object if options[:as]
+
+        _render_single_template(template, locals, &block)
       end
 
       def _render_partial_object(template, options, &block)
-        object = options[:object]
-
         if options.key?(:collection)
           _render_partial_collection(options.delete(:collection), options, template, &block)
         else
           locals = (options[:locals] ||= {})
-          object ||= locals[:object] || locals[template.variable_name]
+          object = options[:object] || locals[:object] || locals[template.variable_name]
 
-          _set_locals(object, locals, template, options)
-
-          options[:_template] = template
-
-          _render_single_template(template, locals, &block)
+          _render_partial_template(template, locals, object, options, &block)
         end
-      end
-
-      def _set_locals(object, locals, template, options)
-        locals[:object] = locals[template.variable_name] = object
-        locals[options[:as]] = object if options[:as]
       end
 
       def _render_partial_collection(collection, options = {}, template = nil, &block) #:nodoc:
         return nil if collection.blank?
 
-        spacer = _render_partial_path(options[:spacer_template], {})
+        if options.key?(:spacer_template)
+          spacer = _render_partial(:partial => options[:spacer_template])
+        end
 
         locals, index = options[:locals] || {}, 0
 
         collection.map do |object|
           tmp = template || _pick_partial_template(_partial_path(object))
-          options[:_template] = tmp
-
-          _set_locals(object, locals, tmp, options)
           locals[tmp.counter_name] = index
-
           index += 1
 
-          _render_single_template(tmp, locals, &block)
+          _render_partial_template(tmp, locals, object, options, &block)
         end.join(spacer)
       end
 
       def _pick_partial_template(partial_path) #:nodoc:
-        prefix = controller_path unless partial_path.include?('/')
+        prefix = controller_path unless partial_path.include?(?/)
         find_by_parts(partial_path, {:formats => formats}, prefix, true)
       end
   end
