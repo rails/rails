@@ -22,7 +22,8 @@ module ActionController
       _process_options(options)
 
       if options.key?(:partial)
-        _render_partial(options[:partial], options)
+        options[:partial] = action_name if options[:partial] == true
+        options[:_details] = {:formats => formats}
       end
 
       super
@@ -53,18 +54,6 @@ module ActionController
       end
 
       def _render_partial(partial, options)
-        case partial
-        when true
-          options[:_prefix] = _prefix
-        when String
-          options[:_prefix] = _prefix unless partial.include?(?/)
-          options[:_template_name] = partial
-        else
-          options[:_partial_object] = true
-          return
-        end
-
-        options[:_partial] = options[:object] || true
       end
 
       def _process_options(options)
