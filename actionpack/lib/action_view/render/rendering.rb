@@ -18,7 +18,7 @@ module ActionView
         layout = options[:layout]
             
         if options.key?(:partial) || block_given?
-          return _render_partial(layout, options, block)
+          return _render_partial(layout, options, &block)
         end
     
         layout = find_by_parts(layout, {:formats => formats}) if layout
@@ -56,10 +56,10 @@ module ActionView
       end
     end
 
-    # You can think of a layout as a method that is called with a block. This method
-    # returns the block that the layout is called with. If the user calls yield :some_name,
-    # the block, by default, returns content_for(:some_name). If the user calls yield,
-    # the default block returns content_for(:layout).
+    # You can think of a layout as a method that is called with a block. _layout_for
+    # returns the contents that are yielded to the layout. If the user calls yield
+    # :some_name, the block, by default, returns content_for(:some_name). If the user
+    # calls yield, the default block returns content_for(:layout).
     #
     # The user can override this default by passing a block to the layout.
     #
@@ -88,15 +88,28 @@ module ActionView
     # In this case, the layout would receive the block passed into <tt>render :layout</tt>,
     # and the Struct specified in the layout would be passed into the block. The result
     # would be <html>Hello David</html>.
-    def layout_proc(name)
-      @_default_layout ||= proc { |*names| @_content_for[names.first || :layout] }
-      !@_content_for.key?(name) && @_proc_for_layout || @_default_layout
+    def _layout_for(names, &block)
+      with_output_buffer do
+        # This is due to the potentially ambiguous use of yield when
+        # a block is passed in to a template *and* there is a content_for()
+        # of the same name. Suggested solution: require explicit use of content_for
+        # in these ambiguous cases.
+        #
+        # We would be able to continue supporting yield in all non-ambiguous
+        # cases. Question: should we deprecate yield in favor of content_for
+        # and reserve yield for cases where there is a yield into a real block?
+        if @_content_for.key?(names.first) || !block_given?
+          return @_content_for[names.first || :layout]
+        else
+          return yield(names)
+        end
+      end
     end
 
-    def _render_single_template(template, locals = {})
+    def _render_single_template(template, locals = {}, &block)
       with_template(template) do
         template.render(self, locals) do |*names|
-          capture(*names, &layout_proc(names.first))
+          _layout_for(names, &block)
         end
       end
     rescue Exception => e
