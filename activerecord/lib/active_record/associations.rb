@@ -1639,19 +1639,6 @@ module ActiveRecord
           reflection
         end
 
-        def reflect_on_included_associations(associations)
-          [ associations ].flatten.collect { |association| reflect_on_association(association.to_s.intern) }
-        end
-
-        def guard_against_unlimitable_reflections(reflections, options)
-          if (options[:offset] || options[:limit]) && !using_limitable_reflections?(reflections)
-            raise(
-              ConfigurationError,
-              "You can not use offset and limit together with has_many or has_and_belongs_to_many associations"
-            )
-          end
-        end
-
         def select_all_rows(options, join_dependency)
           connection.select_all(
             construct_finder_sql_with_included_associations(options, join_dependency),
@@ -2083,25 +2070,24 @@ module ActiveRecord
                      options[:association_foreign_key] || klass.to_s.foreign_key
                      ]
                 when :has_many, :has_one
-                  case
-                    when reflection.options[:through]
-                      through_conditions = through_reflection.options[:conditions] ? "AND #{interpolate_sql(sanitize_sql(through_reflection.options[:conditions]))}" : ''
+                  if reflection.options[:through]
+                    through_conditions = through_reflection.options[:conditions] ? "AND #{interpolate_sql(sanitize_sql(through_reflection.options[:conditions]))}" : ''
 
-                      jt_foreign_key = jt_as_extra = jt_source_extra = jt_sti_extra = nil
-                      first_key = second_key = as_extra = nil
+                    jt_foreign_key = jt_as_extra = jt_source_extra = jt_sti_extra = nil
+                    first_key = second_key = as_extra = nil
 
-                      if through_reflection.options[:as] # has_many :through against a polymorphic join
-                        jt_foreign_key = through_reflection.options[:as].to_s + '_id'
-                        jt_as_extra = " AND %s.%s = %s" % [
-                          connection.quote_table_name(aliased_join_table_name),
-                          connection.quote_column_name(through_reflection.options[:as].to_s + '_type'),
-                          klass.quote_value(parent.active_record.base_class.name)
-                        ]
-                      else
-                        jt_foreign_key = through_reflection.primary_key_name
-                      end
+                    if through_reflection.options[:as] # has_many :through against a polymorphic join
+                      jt_foreign_key = through_reflection.options[:as].to_s + '_id'
+                      jt_as_extra = " AND %s.%s = %s" % [
+                        connection.quote_table_name(aliased_join_table_name),
+                        connection.quote_column_name(through_reflection.options[:as].to_s + '_type'),
+                        klass.quote_value(parent.active_record.base_class.name)
+                      ]
+                    else
+                      jt_foreign_key = through_reflection.primary_key_name
+                    end
 
-                      case source_reflection.macro
+                    case source_reflection.macro
                       when :has_many
                         if source_reflection.options[:as]
                           first_key   = "#{source_reflection.options[:as]}_id"
@@ -2134,45 +2120,45 @@ module ActiveRecord
                         else
                           second_key = source_reflection.primary_key_name
                         end
-                      end
+                    end
 
-                      " #{join_type} %s ON (%s.%s = %s.%s%s%s%s) " % [
-                        table_alias_for(through_reflection.klass.table_name, aliased_join_table_name),
-                        connection.quote_table_name(parent.aliased_table_name),
-                        connection.quote_column_name(parent.primary_key),
-                        connection.quote_table_name(aliased_join_table_name),
-                        connection.quote_column_name(jt_foreign_key),
-                        jt_as_extra, jt_source_extra, jt_sti_extra
-                      ] +
-                      " #{join_type} %s ON (%s.%s = %s.%s%s) " % [
-                        table_name_and_alias,
-                        connection.quote_table_name(aliased_table_name),
-                        connection.quote_column_name(first_key),
-                        connection.quote_table_name(aliased_join_table_name),
-                        connection.quote_column_name(second_key),
-                        as_extra
-                      ]
+                    " #{join_type} %s ON (%s.%s = %s.%s%s%s%s) " % [
+                      table_alias_for(through_reflection.klass.table_name, aliased_join_table_name),
+                      connection.quote_table_name(parent.aliased_table_name),
+                      connection.quote_column_name(parent.primary_key),
+                      connection.quote_table_name(aliased_join_table_name),
+                      connection.quote_column_name(jt_foreign_key),
+                      jt_as_extra, jt_source_extra, jt_sti_extra
+                    ] +
+                    " #{join_type} %s ON (%s.%s = %s.%s%s) " % [
+                      table_name_and_alias,
+                      connection.quote_table_name(aliased_table_name),
+                      connection.quote_column_name(first_key),
+                      connection.quote_table_name(aliased_join_table_name),
+                      connection.quote_column_name(second_key),
+                      as_extra
+                    ]
 
-                    when reflection.options[:as] && [:has_many, :has_one].include?(reflection.macro)
-                      " #{join_type} %s ON %s.%s = %s.%s AND %s.%s = %s" % [
-                        table_name_and_alias,
-                        connection.quote_table_name(aliased_table_name),
-                        "#{reflection.options[:as]}_id",
-                        connection.quote_table_name(parent.aliased_table_name),
-                        parent.primary_key,
-                        connection.quote_table_name(aliased_table_name),
-                        "#{reflection.options[:as]}_type",
-                        klass.quote_value(parent.active_record.base_class.name)
-                      ]
-                    else
-                      foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
-                      " #{join_type} %s ON %s.%s = %s.%s " % [
-                        table_name_and_alias,
-                        aliased_table_name,
-                        foreign_key,
-                        parent.aliased_table_name,
-                        reflection.options[:primary_key] || parent.primary_key
-                      ]
+                 elsif reflection.options[:as] && [:has_many, :has_one].include?(reflection.macro)
+                    " #{join_type} %s ON %s.%s = %s.%s AND %s.%s = %s" % [
+                      table_name_and_alias,
+                      connection.quote_table_name(aliased_table_name),
+                      "#{reflection.options[:as]}_id",
+                      connection.quote_table_name(parent.aliased_table_name),
+                      parent.primary_key,
+                      connection.quote_table_name(aliased_table_name),
+                      "#{reflection.options[:as]}_type",
+                      klass.quote_value(parent.active_record.base_class.name)
+                    ]
+                 else
+                    foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
+                    " #{join_type} %s ON %s.%s = %s.%s " % [
+                      table_name_and_alias,
+                      aliased_table_name,
+                      foreign_key,
+                      parent.aliased_table_name,
+                      reflection.options[:primary_key] || parent.primary_key
+                    ]
                   end
                 when :belongs_to
                   " #{join_type} %s ON %s.%s = %s.%s " % [
