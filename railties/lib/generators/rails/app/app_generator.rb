@@ -49,7 +49,7 @@ module Rails::Generators
       self.destination_root = File.expand_path(app_path, destination_root)
       empty_directory '.'
 
-      app_name # Sets the app name
+      set_default_accessors!
       FileUtils.cd(destination_root)
     end
 
@@ -164,9 +164,9 @@ module Rails::Generators
     end
 
     def apply_rails_template
-      apply options[:template] if options[:template]
+      apply rails_template if rails_template
     rescue Thor::Error, LoadError, Errno::ENOENT => e
-      raise Error, "The template [#{options[:template]}] could not be loaded. Error: #{e}"
+      raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
     end
 
     def freeze?
@@ -174,6 +174,21 @@ module Rails::Generators
     end
 
     protected
+
+      attr_accessor :rails_template
+
+      def set_default_accessors!
+        app_name # Cache app name
+
+        self.rails_template = case options[:template]
+          when /^http:\/\//
+            options[:template]
+          when String
+            File.expand_path(options[:template], Dir.pwd)
+          else
+            options[:template]
+        end
+      end
 
       # Define file as an alias to create_file for backwards compatibility.
       #

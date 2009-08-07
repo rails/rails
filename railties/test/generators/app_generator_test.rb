@@ -131,6 +131,11 @@ class AppGeneratorTest < GeneratorsTestCase
     assert_file 'config/environment.rb', /# RAILS_GEM_VERSION/
   end
 
+  def test_template_from_dir_pwd
+    FileUtils.cd(RAILS_ROOT)
+    assert_match /It works from file!/, run_generator(["-m", "lib/template.rb"])
+  end
+
   def test_template_raises_an_error_with_invalid_path
     content = capture(:stderr){ run_generator(["-m", "non/existant/path"]) }
     assert_match /The template \[.*\] could not be loaded/, content
