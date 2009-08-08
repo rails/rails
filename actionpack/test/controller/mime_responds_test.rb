@@ -505,9 +505,9 @@ class RespondWithController < ActionController::Base
     respond_with(Customer.new("david", 13), :location => "http://test.host/", :status => :created)
   end
 
-  def using_resource_with_renderer
-    renderer = proc { |c, r, o| c.render :text => "Resource name is #{r.name}" }
-    respond_with(Customer.new("david", 13), :renderer => renderer)
+  def using_resource_with_responder
+    responder = proc { |c, r, o| c.render :text => "Resource name is #{r.name}" }
+    respond_with(Customer.new("david", 13), :responder => responder)
   end
 
 protected
@@ -743,8 +743,8 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal 201, @response.status
   end
 
-  def test_using_resource_with_renderer
-    get :using_resource_with_renderer
+  def test_using_resource_with_responder
+    get :using_resource_with_responder
     assert_equal "Resource name is david", @response.body
   end
 
