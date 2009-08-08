@@ -3,6 +3,7 @@ ENV['RAILS_ENV'] ||= 'production'
 ENV['NO_RELOAD'] ||= '1'
 
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../activesupport/lib"
 require 'action_controller'
 require 'action_controller/new_base' if ENV['NEW']
 require 'benchmark'
@@ -26,7 +27,7 @@ class Runner
 
   def self.run(app, n, label = nil)
     puts '=' * label.size, label, '=' * label.size if label
-    env = { 'n' => n, 'rack.input' => StringIO.new(''), 'rack.errors' => $stdout }
+    env = Rack::MockRequest.env_for("/").merge('n' => n, 'rack.input' => StringIO.new(''), 'rack.errors' => $stdout)
     t = Benchmark.realtime { new(app).call(env) }
     puts "%d ms / %d req = %.1f usec/req" % [10**3 * t, n, 10**6 * t / n]
     puts
@@ -37,8 +38,26 @@ end
 N = (ENV['N'] || 1000).to_i
 
 class BasePostController < ActionController::Base
+  append_view_path "#{File.dirname(__FILE__)}/views"
+
   def index
     render :text => ''
+  end
+
+  def partial
+    render :partial => "/partial"
+  end
+
+  def many_partials
+    render :partial => "/many_partials"
+  end
+
+  def partial_collection
+    render :partial => "/collection", :collection => [1,2,3,4,5,6,7,8,9,10]
+  end
+
+  def show_template
+    render :template => "template"
   end
 end
 
@@ -51,6 +70,10 @@ class HttpPostController < ActionController::Metal
   end
 end
 
-Runner.run(MetalPostController, N, 'metal')
-Runner.run(HttpPostController.action(:index), N, 'http') if defined? HttpPostController
-Runner.run(BasePostController.action(:index), N, 'base')
+# Runner.run(MetalPostController, N, 'metal')
+# Runner.run(HttpPostController.action(:index), N, 'http') if defined? HttpPostController
+# Runner.run(BasePostController.action(:index), N, 'base')
+Runner.run(BasePostController.action(:partial), N, 'partial')
+Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
+Runner.run(BasePostController.action(:partial_collection), N, 'collection')
+Runner.run(BasePostController.action(:show_template), N, 'template')
