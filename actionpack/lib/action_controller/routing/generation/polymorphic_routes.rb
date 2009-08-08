@@ -50,6 +50,7 @@ module ActionController
     #   polymorphic_url([blog, post]) # => "http://example.com/blogs/1/posts/1"
     #   polymorphic_url([:admin, blog, post]) # => "http://example.com/admin/blogs/1/posts/1"
     #   polymorphic_url([user, :blog, post]) # => "http://example.com/users/1/blog/posts/1"
+    #   polymorphic_url(Comment) # => "http://example.com/comments"
     #
     # ==== Options
     #
@@ -69,6 +70,9 @@ module ActionController
     #   # it recognizes new records and maps to the collection
     #   record = Comment.new
     #   polymorphic_url(record)  # same as comments_url()
+    #
+    #   # the class of a record will also map to the collection
+    #   polymorphic_url(Comment) # same as comments_url()
     #
     def polymorphic_url(record_or_hash_or_array, options = {})
       if record_or_hash_or_array.kind_of?(Array)
@@ -91,6 +95,9 @@ module ActionController
         :singular
       elsif (record.respond_to?(:new_record?) && record.new_record?) ||
             (record.respond_to?(:destroyed?) && record.destroyed?)
+        args.pop
+        :plural
+      elsif record.is_a?(Class)
         args.pop
         :plural
       else
