@@ -8,6 +8,8 @@ module ActiveRecord
       alias_method :new, :build
 
       def create!(attrs = nil)
+        ensure_owner_is_not_new
+
         transaction do
           self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association! } : @reflection.create_association!)
           object
@@ -15,6 +17,8 @@ module ActiveRecord
       end
 
       def create(attrs = nil)
+        ensure_owner_is_not_new
+
         transaction do
           self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association } : @reflection.create_association)
           object
