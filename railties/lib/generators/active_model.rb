@@ -1,6 +1,6 @@
 module Rails
   module Generators
-    # ActionORM is a class to be implemented by each ORM to allow Rails to
+    # ActiveModel is a class to be implemented by each ORM to allow Rails to
     # generate customized controller code.
     #
     # The API has the same methods as ActiveRecord, but each method returns a
@@ -8,22 +8,22 @@ module Rails
     #
     # For example:
     #
-    #   ActiveRecord::Generators::ActionORM.find(Foo, "params[:id]")
+    #   ActiveRecord::Generators::ActiveModel.find(Foo, "params[:id]")
     #   #=> "Foo.find(params[:id])"
     #
-    #   Datamapper::Generators::ActionORM.find(Foo, "params[:id]")
+    #   Datamapper::Generators::ActiveModel.find(Foo, "params[:id]")
     #   #=> "Foo.get(params[:id])"
     #
-    # On initialization, the ActionORM accepts the instance name that will
+    # On initialization, the ActiveModel accepts the instance name that will
     # receive the calls:
     #
-    #   builder = ActiveRecord::Generators::ActionORM.new "@foo"
+    #   builder = ActiveRecord::Generators::ActiveModel.new "@foo"
     #   builder.save #=> "@foo.save"
     #
-    # The only exception in ActionORM for ActiveRecord is the use of self.build
+    # The only exception in ActiveModel for ActiveRecord is the use of self.build
     # instead of self.new.
     #
-    class ActionORM
+    class ActiveModel
       attr_reader :name
 
       def initialize(name)

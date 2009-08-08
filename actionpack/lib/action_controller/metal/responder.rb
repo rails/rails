@@ -1,6 +1,6 @@
 module ActionController #:nodoc:
-  # Renderer is responsible to expose a resource for different mime requests,
-  # usually depending on the HTTP verb. The renderer is triggered when
+  # Responder is responsible to expose a resource for different mime requests,
+  # usually depending on the HTTP verb. The responder is triggered when
   # respond_with is called. The simplest case to study is a GET request:
   #
   #   class PeopleController < ApplicationController
@@ -16,17 +16,17 @@ module ActionController #:nodoc:
   #
   #   1) respond_with searches for a template at people/index.xml;
   #
-  #   2) if the template is not available, it will create a renderer, passing
+  #   2) if the template is not available, it will create a responder, passing
   #      the controller and the resource and invoke :to_xml on it;
   #
-  #   3) if the renderer does not respond_to :to_xml, call to_format on it.
+  #   3) if the responder does not respond_to :to_xml, call to_format on it.
   #
   # === Builtin HTTP verb semantics
   #
-  # Rails default renderer holds semantics for each HTTP verb. Depending on the
+  # Rails default responder holds semantics for each HTTP verb. Depending on the
   # content type, verb and the resource status, it will behave differently.
   #
-  # Using Rails default renderer, a POST request for creating an object could
+  # Using Rails default responder, a POST request for creating an object could
   # be written as:
   #
   #   def create
@@ -67,7 +67,7 @@ module ActionController #:nodoc:
   #     respond_with([@project, @task])
   #   end
   #
-  # Giving an array of resources, you ensure that the renderer will redirect to
+  # Giving an array of resources, you ensure that the responder will redirect to
   # project_task_url instead of task_url.
   #
   # Namespaced and singleton resources requires a symbol to be given, as in
@@ -78,7 +78,7 @@ module ActionController #:nodoc:
   #
   # Check polymorphic_url documentation for more examples.
   #
-  class Renderer
+  class Responder
     attr_reader :controller, :request, :format, :resource, :resource_location, :options
 
     def initialize(controller, resource, options={})
@@ -96,13 +96,13 @@ module ActionController #:nodoc:
     # Undefine :to_json since it's defined on Object
     undef_method :to_json
 
-    # Initializes a new renderer an invoke the proper format. If the format is
+    # Initializes a new responder an invoke the proper format. If the format is
     # not defined, call to_format.
     #
     def self.call(*args)
-      renderer = new(*args)
-      method = :"to_#{renderer.format}"
-      renderer.respond_to?(method) ? renderer.send(method) : renderer.to_format
+      responder = new(*args)
+      method = :"to_#{responder.format}"
+      responder.respond_to?(method) ? responder.send(method) : responder.to_format
     end
 
     # HTML format does not render the resource, it always attempt to render a

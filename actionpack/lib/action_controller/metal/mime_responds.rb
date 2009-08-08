@@ -179,15 +179,15 @@ module ActionController #:nodoc:
     def respond_to(*mimes, &block)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
-      responder = Responder.new
+      collector = Collector.new
       mimes = collect_mimes_from_class_level if mimes.empty?
-      mimes.each { |mime| responder.send(mime) }
-      block.call(responder) if block_given?
+      mimes.each { |mime| collector.send(mime) }
+      block.call(collector) if block_given?
 
-      if format = request.negotiate_mime(responder.order)
+      if format = request.negotiate_mime(collector.order)
         self.formats = [format.to_sym]
 
-        if response = responder.response_for(format)
+        if response = collector.response_for(format)
           response.call
         else
           default_render
@@ -197,10 +197,10 @@ module ActionController #:nodoc:
       end
     end
 
-    # respond_with wraps a resource around a renderer for default representation.
+    # respond_with wraps a resource around a responder for default representation.
     # First it invokes respond_to, if a response cannot be found (ie. no block
     # for the request was given and template was not available), it instantiates
-    # an ActionController::Renderer with the controller and resource.
+    # an ActionController::Responder with the controller and resource.
     #
     # ==== Example
     #
@@ -221,19 +221,19 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # All options given to respond_with are sent to the underlying renderer,
-    # except for the option :renderer itself. Since the renderer interface
+    # All options given to respond_with are sent to the underlying responder,
+    # except for the option :responder itself. Since the responder interface
     # is quite simple (it just needs to respond to call), you can even give
     # a proc to it.
     #
     def respond_with(resource, options={}, &block)
       respond_to(&block)
     rescue ActionView::MissingTemplate
-      (options.delete(:renderer) || renderer).call(self, resource, options)
+      (options.delete(:responder) || responder).call(self, resource, options)
     end
 
-    def renderer
-      ActionController::Renderer
+    def responder
+      ActionController::Responder
     end
 
   protected
@@ -257,7 +257,7 @@ module ActionController #:nodoc:
       end
     end
 
-    class Responder #:nodoc:
+    class Collector #:nodoc:
       attr_accessor :order
 
       def initialize
