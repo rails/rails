@@ -89,16 +89,18 @@ module AbstractController
     end
 
     def render_to_body(options = {})
+      # In the case of a partial with a layout, handle the layout
+      # here, and make sure the view does not try to handle it
+      layout = options.delete(:layout) if options.key?(:partial)
+
       response = super
 
-      if options.key?(:partial)
-        # This is a little bit messy. We need to explicitly handle partial
-        # layouts here since the core lookup logic is in the view, but
-        # we need to determine the layout based on the controller
-        if options.key?(:layout)
-          layout = _layout_for_option(options[:layout], options[:_template].details)
-          response = layout.render(view_context, options[:locals]) { response }
-        end
+      # This is a little bit messy. We need to explicitly handle partial
+      # layouts here since the core lookup logic is in the view, but
+      # we need to determine the layout based on the controller
+      if layout
+        layout = _layout_for_option(layout, options[:_template].details)
+        response = layout.render(view_context, options[:locals] || {}) { response }
       end
 
       response

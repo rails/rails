@@ -170,95 +170,117 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   module Partials
-    extend ActiveSupport::Memoizable
     extend ActiveSupport::Concern
 
-    included do
-      attr_accessor :_partial
-    end
+    class PartialRenderer
+      def self.partial_names
+        @partial_names ||= Hash.new {|h,k| h[k] = ActiveSupport::ConcurrentHash.new }
+      end
 
-    module ClassMethods
-      def _partial_names
-        @_partial_names ||= ActiveSupport::ConcurrentHash.new
+      def initialize(view_context, options, formats)
+        object = options[:partial]
+
+        @view, @formats = view_context, formats
+        @options = options || {}
+
+        if object.is_a?(String)
+          @path = object
+        elsif
+          @object = object
+          @path   = partial_path unless collection
+        end
+
+        @locals = options[:locals] || {}
+        @object ||= @options[:object] || @locals[:object]
+        @layout = options[:layout]
+      end
+
+      def render(&block)
+        template = find if @path
+
+        if collection
+          render_collection(template, &block)
+        else
+          render_object(template, &block)
+        end
+      end
+
+      def render_template(template, &block)
+        @options[:_template] = template
+        @locals[:object] = @locals[template.variable_name] = @object
+        @locals[@options[:as]] = @object if @options[:as]
+
+        content = @view._render_single_template(template, @locals, &block)
+        return content if block_given? || !@layout
+        find(@layout).render(@view, @locals) { content }
+      end
+
+      def render_object(template, &block)
+        @object ||= @locals[template.variable_name]
+        render_template(template, &block)
+      end
+
+      def render_collection(passed_template = nil, &block)
+        @options[:_template] = passed_template
+
+        return nil if collection.blank?
+
+        if @options.key?(:spacer_template)
+          spacer = @view.render_partial(
+            :partial => @options[:spacer_template], :_details => @options[:_details])
+        end
+
+        index = 0
+
+        collection.map do |@object|
+          @path = partial_path
+          template = passed_template || find
+          @locals[template.counter_name] = index
+          index += 1
+
+          render_template(template, &block)
+        end.join(spacer)
+      end
+
+    private
+      def collection
+        @collection ||= if @object.respond_to?(:to_ary)
+          @object
+        elsif @options.key?(:collection)
+          @options[:collection] || []
+        end
+      end
+
+      def find(path = @path)
+        prefix = @view.controller.controller_path unless path.include?(?/)
+        @view.find(path, {:formats => @view.formats}, prefix, true)
+      end
+
+      def partial_path(object = @object)
+        self.class.partial_names[@view.controller.class][object.class] ||= begin
+          return nil unless object.class.respond_to?(:model_name)
+
+          name = object.class.model_name
+          path = @view.controller_path
+          if path && path.include?(?/)
+            File.join(File.dirname(path), name.partial_path)
+          else
+            name.partial_path
+          end
+        end
       end
     end
 
     def render_partial(options)
       @assigns_added = false
       # TODO: Handle other details here.
-      self.formats = options[:_details][:formats]
+      self.formats = options[:_details][:formats] if options[:_details]
       _render_partial(options)
     end
 
     def _render_partial(options, &block) #:nodoc:
-      options[:locals] ||= {}
-
-      path = partial = options[:partial]
-
-      if partial.respond_to?(:to_ary)
-        return _render_partial_collection(partial, options, &block)
-      elsif !partial.is_a?(String)
-        options[:object] = object = partial
-        path = _partial_path(object)
-      end
-
-      _render_partial_object(_pick_partial_template(path), options, &block)
+      PartialRenderer.new(self, options, formats).render(&block)
     end
 
-    private
-      def _partial_path(object)
-        self.class._partial_names[[controller.class, object.class]] ||= begin
-          name = object.class.model_name
-          if controller_path && controller_path.include?("/")
-            File.join(File.dirname(controller_path), name.partial_path)
-          else
-            name.partial_path
-          end
-        end
-      end
-
-      def _render_partial_template(template, locals, object, options = {}, &block)
-        options[:_template] = template
-        locals[:object] = locals[template.variable_name] = object
-        locals[options[:as]] = object if options[:as]
-
-        _render_single_template(template, locals, &block)
-      end
-
-      def _render_partial_object(template, options, &block)
-        if options.key?(:collection)
-          _render_partial_collection(options.delete(:collection), options, template, &block)
-        else
-          locals = (options[:locals] ||= {})
-          object = options[:object] || locals[:object] || locals[template.variable_name]
-
-          _render_partial_template(template, locals, object, options, &block)
-        end
-      end
-
-      def _render_partial_collection(collection, options = {}, template = nil, &block) #:nodoc:
-        options[:_template] ||= template
-
-        return nil if collection.blank?
-
-        if options.key?(:spacer_template)
-          spacer = _render_partial(:partial => options[:spacer_template])
-        end
-
-        locals, index = options[:locals] || {}, 0
-
-        collection.map do |object|
-          tmp = template || _pick_partial_template(_partial_path(object))
-          locals[tmp.counter_name] = index
-          index += 1
-
-          _render_partial_template(tmp, locals, object, options, &block)
-        end.join(spacer)
-      end
-
-      def _pick_partial_template(partial_path) #:nodoc:
-        prefix = controller_path unless partial_path.include?(?/)
-        find(partial_path, {:formats => formats}, prefix, true)
-      end
   end
 end

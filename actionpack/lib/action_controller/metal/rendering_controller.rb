@@ -53,9 +53,6 @@ module ActionController
         super
       end
 
-      def _render_partial(partial, options)
-      end
-
       def _process_options(options)
         status, content_type, location = options.values_at(:status, :content_type, :location)
         self.status = status if status

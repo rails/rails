@@ -20,8 +20,7 @@ module ActionView
         if block_given?
           return concat(_render_partial(options.merge(:partial => layout), &block))
         elsif options.key?(:partial)
-          layout = _pick_partial_template(layout) if layout
-          return _render_content(_render_partial(options), layout, options[:locals])
+          return _render_partial(options)
         end
 
         layout = find(layout, {:formats => formats}) if layout
