@@ -156,10 +156,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_all_with_limit
-    entrants = Entrant.find(:all, :order => "id ASC", :limit => 2)
-
-    assert_equal(2, entrants.size)
-    assert_equal(entrants(:first).name, entrants.first.name)
+    assert_equal(2, Entrant.find(:all, :limit => 2).size)
+    assert_equal(0, Entrant.find(:all, :limit => 0).size)
   end
 
   def test_find_all_with_prepared_limit_and_offset
@@ -168,21 +166,22 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(2, entrants.size)
     assert_equal(entrants(:second).name, entrants.first.name)
 
+    assert_equal 3, Entrant.count
     entrants = Entrant.find(:all, :order => "id ASC", :limit => 2, :offset => 2)
     assert_equal(1, entrants.size)
     assert_equal(entrants(:third).name, entrants.first.name)
   end
 
-  def test_find_all_with_limit_and_offset_and_multiple_orderings
-    developers = Developer.find(:all, :order => "salary ASC, id DESC", :limit => 3, :offset => 1)
-    assert_equal ["David", "fixture_10", "fixture_9"], developers.collect {|d| d.name}
+  def test_find_all_with_limit_and_offset_and_multiple_order_clauses
+    first_three_posts = Post.find :all, :order => 'author_id, id', :limit => 3, :offset => 0
+    second_three_posts = Post.find :all, :order => ' author_id,id ', :limit => 3, :offset => 3
+    last_posts = Post.find :all, :order => ' author_id, id  ', :limit => 3, :offset => 6
+
+    assert_equal [[0,3],[1,1],[1,2]], first_three_posts.map { |p| [p.author_id, p.id] }
+    assert_equal [[1,4],[1,5],[1,6]], second_three_posts.map { |p| [p.author_id, p.id] }
+    assert_equal [[2,7]], last_posts.map { |p| [p.author_id, p.id] }
   end
 
-  def test_find_with_limit_and_condition
-    developers = Developer.find(:all, :order => "id DESC", :conditions => "salary = 100000", :limit => 3, :offset =>7)
-    assert_equal(1, developers.size)
-    assert_equal("fixture_3", developers.first.name)
-  end
 
   def test_find_with_group
     developers =  Developer.find(:all, :group => "salary", :select => "salary")
@@ -939,40 +938,6 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_dynamic_finder_with_invalid_params
     assert_raise(ArgumentError) { Topic.find_by_title 'No Title', :join => "It should be `joins'" }
-  end
-
-  def test_find_all_with_limit
-    first_five_developers = Developer.find :all, :order => 'id ASC', :limit =>  5
-    assert_equal 5, first_five_developers.length
-    assert_equal 'David', first_five_developers.first.name
-    assert_equal 'fixture_5', first_five_developers.last.name
-
-    no_developers = Developer.find :all, :order => 'id ASC', :limit => 0
-    assert_equal 0, no_developers.length
-  end
-
-  def test_find_all_with_limit_and_offset
-    first_three_developers = Developer.find :all, :order => 'id ASC', :limit => 3, :offset => 0
-    second_three_developers = Developer.find :all, :order => 'id ASC', :limit => 3, :offset => 3
-    last_two_developers = Developer.find :all, :order => 'id ASC', :limit => 2, :offset => 8
-
-    assert_equal 3, first_three_developers.length
-    assert_equal 3, second_three_developers.length
-    assert_equal 2, last_two_developers.length
-
-    assert_equal 'David', first_three_developers.first.name
-    assert_equal 'fixture_4', second_three_developers.first.name
-    assert_equal 'fixture_9', last_two_developers.first.name
-  end
-
-  def test_find_all_with_limit_and_offset_and_multiple_order_clauses
-    first_three_posts = Post.find :all, :order => 'author_id, id', :limit => 3, :offset => 0
-    second_three_posts = Post.find :all, :order => ' author_id,id ', :limit => 3, :offset => 3
-    last_posts = Post.find :all, :order => ' author_id, id  ', :limit => 3, :offset => 6
-
-    assert_equal [[0,3],[1,1],[1,2]], first_three_posts.map { |p| [p.author_id, p.id] }
-    assert_equal [[1,4],[1,5],[1,6]], second_three_posts.map { |p| [p.author_id, p.id] }
-    assert_equal [[2,7]], last_posts.map { |p| [p.author_id, p.id] }
   end
 
   def test_find_all_with_join
