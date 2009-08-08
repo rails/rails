@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class BaseRackTest < Test::Unit::TestCase
+class BaseRackTest < ActiveSupport::TestCase
   def setup
     @env = {
       "HTTP_MAX_FORWARDS" => "10",
@@ -260,6 +260,23 @@ class RackResponseTest < BaseRackTest
     parts = []
     body.each { |part| parts << part }
     assert_equal ["0", "1", "2", "3", "4"], parts
+  end
+
+  def test_streaming_block_with_flush_is_deprecated
+    @response.body = Proc.new do |response, output|
+      5.times do |n|
+        output.write(n)
+        output.flush
+      end
+    end
+
+    assert_deprecated(/output.flush is no longer needed/) do
+      @response.prepare!
+      status, headers, body = @response.to_a
+
+      parts = []
+      body.each { |part| parts << part }
+    end
   end
 end
 

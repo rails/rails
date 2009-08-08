@@ -819,7 +819,6 @@ module ActionController #:nodoc:
       #   render :text => proc { |response, output|
       #     10_000_000.times do |i|
       #       output.write("This is line #{i}\n")
-      #       output.flush
       #     end
       #   }
       #
