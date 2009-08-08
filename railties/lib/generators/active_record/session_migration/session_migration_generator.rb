@@ -12,7 +12,11 @@ module ActiveRecord
       protected
 
         def session_table_name
-          ActiveRecord::Base.pluralize_table_names ? 'session'.pluralize : 'session'
+          current_table_name = ActiveRecord::SessionStore::Session.table_name
+          if current_table_name == "sessions" || current_table_name == "session"
+            current_table_name = (ActiveRecord::Base.pluralize_table_names ? 'session'.pluralize : 'session')
+          end
+          current_table_name
         end
 
     end

@@ -448,7 +448,7 @@ def drop_database(config)
 end
 
 def session_table_name
-  ActiveRecord::Base.pluralize_table_names ? :sessions : :session
+  ActiveRecord::SessionStore::Session.table_name
 end
 
 def set_firebird_env(config)
