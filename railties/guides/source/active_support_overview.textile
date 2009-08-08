@@ -852,8 +852,26 @@ h3. Extensions to +Exception+
 
 h3. Extensions to +NameError+
 
-...
+Active Support adds +missing_name?+ to +NameError+, which tests whether the exception was raised because of the name passed as argument.
 
+The name may be given as a symbol or string. A symbol is tested against the bare constant name, a string is against the fully-qualified constant name.
+
+TIP: A symbol can represent a fully-qualified constant name as in +:"ActiveRecord::Base"+, so the behaviour for symbols is defined for convenience, not because it has to be that way technically.
+
+For example, when an action of +PostsController+ is called Rails tries optimistically to use +PostsHelper+. It is OK that the helper module does not exist, so if an exception for that constant name is raised it should be silenced. But it could be the case that +posts_helper.rb+ raises a +NameError+ due to an actual unknown constant. That should be reraised. The method +missing_name?+ provides a way to distinguish both cases:
+
+<ruby>
+def default_helper_module!
+  module_name = name.sub(/Controller$/, '')
+  module_path = module_name.underscore
+  helper module_path
+rescue MissingSourceFile => e
+  raise e unless e.is_missing? "#{module_path}_helper"
+rescue NameError => e
+  raise e unless e.missing_name? "#{module_name}Helper"
+end
+</ruby>
+ 
 h3. Extensions to +LoadError+
 
 Rails hijacks +LoadError.new+ to return a +MissingSourceFile+ exception:
