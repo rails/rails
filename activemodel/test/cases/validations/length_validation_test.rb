@@ -55,7 +55,6 @@ class LengthValidationTest < ActiveModel::TestCase
   def test_validates_length_of_using_maximum_should_allow_nil
     Topic.validates_length_of :title, :maximum => 10
     t = Topic.create
-    puts t.errors
     assert t.valid?
   end
 
