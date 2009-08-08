@@ -177,63 +177,65 @@ module ActionView
         @partial_names ||= Hash.new {|h,k| h[k] = ActiveSupport::ConcurrentHash.new }
       end
 
-      def initialize(view_context, options)
+      def initialize(view_context, options, block)
         partial = options[:partial]
 
-        @view    = view_context
-        @options = options || {}
-        @locals  = options[:locals] || {}
-        @layout  = options[:layout]
+        @view           = view_context
+        @options        = options
+        @locals         = options[:locals] || {}
+        @block          = block
 
-        @partial_names = self.class.partial_names[@view.controller.class]
-        @templates, @formats_hash = Hash.new {|h,k| h[k] = {}}, view_context.formats.hash
+        # Set up some instance variables to speed up memoizing
+        @partial_names  = self.class.partial_names[@view.controller.class]
+        @templates      = Hash.new {|h,k| h[k] = {}}
+        @formats_hash   = view_context.formats.hash
 
-        if partial.is_a?(String)
-          @object, @path = options[:object], partial
-        else
-          @object = partial
-          @path = partial_path(partial)
-        end
+        # Set up the object and path
+        @object         = partial.is_a?(String) ? options[:object] : partial
+        @path           = partial_path(partial)
       end
 
-      def render(&block)
-        collection ? render_collection(&block) : render_object(&block)
-      end
+      def render
+        return render_collection if collection
 
-      def render_template(template, object = @object, &block)
-        @options[:_template] = template
-        @locals[:object] = @locals[template.variable_name] = object
-        @locals[@options[:as]] = object if @options[:as]
-
-        content = @view._render_single_template(template, @locals, &block)
-        return content if block_given? || !@layout
-        find_template(@layout).render(@view, @locals) { content }
-      end
-
-      def render_object(&block)
         template = find_template
-        render_template(template, @object || @locals[template.variable_name], &block)
+        render_template(template, @object || @locals[template.variable_name])
       end
 
-      def render_collection(&block)
-        @options[:_template] = provided_template = @path && find_template
+      def render_collection
+        # Even if no template is rendered, this will ensure that the MIME type
+        # for the empty response is the same as the provided template
+        @options[:_template] = default_template = find_template
 
         return nil if collection.blank?
 
         if @options.key?(:spacer_template)
-          spacer = render_template(find_template(@options[:spacer_template]))
+          spacer = find_template(@options[:spacer_template]).render(@view, @locals)
         end
 
         segments = []
 
         collection.each_with_index do |object, index|
-          template = provided_template || find_template(partial_path(object))
+          template = default_template || find_template(partial_path(object))
           @locals[template.counter_name] = index
-          segments << render_template(template, object, &block)
+          segments << render_template(template, object)
         end
 
         segments.join(spacer)
       end
+
+      def render_template(template, object = @object)
+        @options[:_template] ||= template
+
+        # TODO: is locals[:object] really necessary?
+        @locals[:object] = @locals[template.variable_name] = object
+        @locals[@options[:as]] = object if @options[:as]
+
+        content = @view._render_single_template(template, @locals, &@block)
+        return content if @block || !@options[:layout]
+        find_template(@options[:layout]).render(@view, @locals) { content }
+      end
+
 
     private
       def collection
@@ -245,6 +247,7 @@ module ActionView
       end
 
       def find_template(path = @path)
+        return if !path
         @templates[path][@formats_hash] ||= begin
           prefix = @view.controller.controller_path unless path.include?(?/)
           @view.find(path, {:formats => @view.formats}, prefix, true)
@@ -252,10 +255,11 @@ module ActionView
       end
 
       def partial_path(object = @object)
+        return object if object.is_a?(String)
         @partial_names[object.class] ||= begin
           return nil unless object.respond_to?(:to_model)
 
-          object.to_model.class.model_name.partial_path.tap do |partial|
+          object.to_model.class.model_name.partial_path.dup.tap do |partial|
             path = @view.controller_path
             partial.insert(0, "#{File.dirname(path)}/") if path.include?(?/)
           end
@@ -271,7 +275,7 @@ module ActionView
     end
 
     def _render_partial(options, &block) #:nodoc:
-      PartialRenderer.new(self, options).render(&block)
+      PartialRenderer.new(self, options, block).render
     end
 
   end
