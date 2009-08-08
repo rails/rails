@@ -737,19 +737,20 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_change_column
       Person.connection.add_column 'people', 'age', :integer
-      old_columns = Person.connection.columns(Person.table_name, "#{name} Columns")
+      label = "test_change_column Columns"
+      old_columns = Person.connection.columns(Person.table_name, label)
       assert old_columns.find { |c| c.name == 'age' and c.type == :integer }
 
       assert_nothing_raised { Person.connection.change_column "people", "age", :string }
 
-      new_columns = Person.connection.columns(Person.table_name, "#{name} Columns")
+      new_columns = Person.connection.columns(Person.table_name, label)
       assert_nil new_columns.find { |c| c.name == 'age' and c.type == :integer }
       assert new_columns.find { |c| c.name == 'age' and c.type == :string }
 
-      old_columns = Topic.connection.columns(Topic.table_name, "#{name} Columns")
+      old_columns = Topic.connection.columns(Topic.table_name, label)
       assert old_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
       assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => false }
-      new_columns = Topic.connection.columns(Topic.table_name, "#{name} Columns")
+      new_columns = Topic.connection.columns(Topic.table_name, label)
       assert_nil new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
       assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }
       assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => true }
