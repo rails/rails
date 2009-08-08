@@ -393,6 +393,16 @@ module ActiveRecord
         down(migrations_path, finish ? finish.version : 0)
       end
 
+      def forward(migrations_path, steps=1)
+        migrator = self.new(:up, migrations_path)
+        start_index = migrator.migrations.index(migrator.current_migration)
+
+        return unless start_index
+
+        finish = migrator.migrations[start_index + steps]
+        up(migrations_path, finish ? finish.version : 0)
+      end
+
       def up(migrations_path, target_version = nil)
         self.new(:up, migrations_path, target_version).migrate
       end

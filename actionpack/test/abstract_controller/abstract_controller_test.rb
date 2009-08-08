@@ -27,7 +27,7 @@ module AbstractController
     # Test Render mixin
     # ====
     class RenderingController < AbstractController::Base
-      include Renderer
+      include ::AbstractController::RenderingController
 
       def _prefix() end
 
@@ -65,8 +65,8 @@ module AbstractController
         self.response_body = render_to_string :_template_name => "naked_render.erb"
       end
     end
-    
-    class TestRenderer < ActiveSupport::TestCase
+
+    class TestRenderingController < ActiveSupport::TestCase
       test "rendering templates works" do
         result = Me2.new.process(:index)
         assert_equal "Hello from index.erb", result.response_body
@@ -139,10 +139,10 @@ module AbstractController
       private
       def self.layout(formats)
         begin
-          view_paths.find_by_parts(name.underscore, {:formats => formats}, "layouts")
+          view_paths.find(name.underscore, {:formats => formats}, "layouts")
         rescue ActionView::MissingTemplate
           begin
-            view_paths.find_by_parts("application", {:formats => formats}, "layouts")
+            view_paths.find("application", {:formats => formats}, "layouts")
           rescue ActionView::MissingTemplate
           end
         end

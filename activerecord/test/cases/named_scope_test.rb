@@ -154,7 +154,8 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert !authors(:david).posts.ranked_by_comments.limit(5).empty?
     assert_not_equal Post.ranked_by_comments.limit(5), authors(:david).posts.ranked_by_comments.limit(5)
     assert_not_equal Post.top(5), authors(:david).posts.top(5)
-    assert_equal authors(:david).posts.ranked_by_comments.limit(5), authors(:david).posts.top(5)
+    # Oracle sometimes sorts differently if WHERE condition is changed
+    assert_equal authors(:david).posts.ranked_by_comments.limit(5).sort_by(&:id), authors(:david).posts.top(5).sort_by(&:id)
     assert_equal Post.ranked_by_comments.limit(5), Post.top(5)
   end
 

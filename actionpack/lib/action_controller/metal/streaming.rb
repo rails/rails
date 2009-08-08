@@ -6,7 +6,7 @@ module ActionController #:nodoc:
   module Streaming
     extend ActiveSupport::Concern
 
-    include ActionController::Renderer
+    include ActionController::RenderingController
 
     DEFAULT_SEND_FILE_OPTIONS = {
       :type         => 'application/octet-stream'.freeze,

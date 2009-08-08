@@ -101,8 +101,12 @@ namespace :db do
       ActiveRecord::Base.configurations.each_value do |config|
         # Skip entries that don't have a database key
         next unless config['database']
-        # Only connect to local databases
-        local_database?(config) { drop_database(config) }
+        begin
+          # Only connect to local databases
+          local_database?(config) { drop_database(config) }
+        rescue Exception => e
+          puts "Couldn't drop #{config['database']} : #{e.inspect}"
+        end
       end
     end
   end
@@ -169,6 +173,13 @@ namespace :db do
   task :rollback => :environment do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     ActiveRecord::Migrator.rollback('db/migrate/', step)
+    Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
+  end
+
+  desc 'Pushes the schema to the next version. Specify the number of steps with STEP=n'
+  task :forward => :environment do
+    step = ENV['STEP'] ? ENV['STEP'].to_i : 1
+    ActiveRecord::Migrator.forward('db/migrate/', step)
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 

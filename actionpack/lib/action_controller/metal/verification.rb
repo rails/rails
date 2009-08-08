@@ -2,7 +2,7 @@ module ActionController #:nodoc:
   module Verification #:nodoc:
     extend ActiveSupport::Concern
 
-    include AbstractController::Callbacks, Session, Flash, Renderer
+    include AbstractController::Callbacks, Session, Flash, RenderingController
 
     # This module provides a class-level method for specifying that certain
     # actions are guarded against being called without certain prerequisites

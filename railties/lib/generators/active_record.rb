@@ -1,6 +1,6 @@
 require 'generators/named_base'
 require 'generators/migration'
-require 'generators/action_orm'
+require 'generators/active_model'
 require 'active_record'
 
 module ActiveRecord
@@ -20,7 +20,7 @@ module ActiveRecord
         end
     end
 
-    class ActionORM < Rails::Generators::ActionORM #:nodoc:
+    class ActiveModel < Rails::Generators::ActiveModel #:nodoc:
       def self.all(klass)
         "#{klass}.all"
       end

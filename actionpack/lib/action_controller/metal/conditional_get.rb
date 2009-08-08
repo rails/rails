@@ -55,14 +55,15 @@ module ActionController
       elsif args.empty?
         raise ArgumentError, "too few arguments to head"
       end
-      options = args.extract_options!
-      status = args.shift || options.delete(:status) || :ok
+      options  = args.extract_options!
+      status   = args.shift || options.delete(:status) || :ok
+      location = options.delete(:location)
 
       options.each do |key, value|
         headers[key.to_s.dasherize.split(/-/).map { |v| v.capitalize }.join("-")] = value.to_s
       end
 
-      render :nothing => true, :status => status
+      render :nothing => true, :status => status, :location => location
     end
 
     # Sets the etag and/or last_modified on the response and checks it against

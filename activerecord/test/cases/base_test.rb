@@ -1271,6 +1271,23 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Topic.find(1).new_record?, false
   end
 
+  def test_destroyed_returns_boolean
+    developer = Developer.new
+    assert_equal developer.destroyed?, false
+    developer.destroy
+    assert_equal developer.destroyed?, true
+
+    developer = Developer.first
+    assert_equal developer.destroyed?, false
+    developer.destroy
+    assert_equal developer.destroyed?, true
+
+    developer = Developer.last
+    assert_equal developer.destroyed?, false
+    developer.delete
+    assert_equal developer.destroyed?, true
+  end
+
   def test_clone
     topic = Topic.find(1)
     cloned_topic = nil

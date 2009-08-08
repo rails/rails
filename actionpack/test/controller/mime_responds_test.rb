@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'controller/fake_models'
 
 class RespondToController < ActionController::Base
   layout :set_layout
@@ -471,22 +472,10 @@ class RespondToControllerTest < ActionController::TestCase
   end
 end
 
-class RespondResource
-  undef_method :to_json
-
-  def to_xml
-    "XML"
-  end
-
-  def to_js
-    "JS"
-  end
-end
-
 class RespondWithController < ActionController::Base
   respond_to :html, :json
   respond_to :xml, :except => :using_defaults
-  respond_to :js,  :only => :using_defaults
+  respond_to :js,  :only => [ :using_defaults, :using_resource ]
 
   def using_defaults
     respond_to do |format|
@@ -498,20 +487,27 @@ class RespondWithController < ActionController::Base
     respond_to(:js, :xml)
   end
 
-  def using_resource
-    respond_with(RespondResource.new)
-  end
-
-  def using_resource_with_options
-    respond_with(RespondResource.new, :status => :unprocessable_entity) do |format|
-      format.js
-    end
-  end
-
   def default_overwritten
     respond_to do |format|
       format.html { render :text => "HTML" }
     end
+  end
+
+  def using_resource
+    respond_with(Customer.new("david", 13))
+  end
+
+  def using_resource_with_parent
+    respond_with([Quiz::Store.new("developer?", 11), Customer.new("david", 13)])
+  end
+
+  def using_resource_with_status_and_location
+    respond_with(Customer.new("david", 13), :location => "http://test.host/", :status => :created)
+  end
+
+  def using_resource_with_responder
+    responder = proc { |c, r, o| c.render :text => "Resource name is #{r.name}" }
+    respond_with(Customer.new("david", 13), :responder => responder)
   end
 
 protected
@@ -527,7 +523,7 @@ class InheritedRespondWithController < RespondWithController
   respond_to :xml, :json
 
   def index
-    respond_with(RespondResource.new) do |format|
+    respond_with(Customer.new("david", 13)) do |format|
       format.json { render :text => "JSON" }
     end
   end
@@ -540,6 +536,11 @@ class RespondWithControllerTest < ActionController::TestCase
     super
     ActionController::Base.use_accept_header = true
     @request.host = "www.example.com"
+
+    ActionController::Routing::Routes.draw do |map|
+      map.resources :customers
+      map.resources :quiz_stores, :has_many => :customers
+    end
   end
 
   def teardown
@@ -576,11 +577,17 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
 
-  def test_using_resource
-    @request.accept = "text/html"
-    get :using_resource
+  def test_default_overwritten
+    get :default_overwritten
     assert_equal "text/html", @response.content_type
-    assert_equal "Hello world!", @response.body
+    assert_equal "HTML", @response.body
+  end
+
+  def test_using_resource
+    @request.accept = "text/javascript"
+    get :using_resource
+    assert_equal "text/javascript", @response.content_type
+    assert_equal '$("body").visualEffect("highlight");', @response.body
 
     @request.accept = "application/xml"
     get :using_resource
@@ -593,24 +600,114 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
-  def test_using_resource_with_options
-    @request.accept = "application/xml"
-    get :using_resource_with_options
-    assert_equal "application/xml", @response.content_type
-    assert_equal 422, @response.status
-    assert_equal "XML", @response.body
+  def test_using_resource_for_post_with_html
+    post :using_resource
+    assert_equal "text/html", @response.content_type
+    assert_equal 302, @response.status
+    assert_equal "http://www.example.com/customers/13", @response.location
+    assert @response.redirect?
 
-    @request.accept = "text/javascript"
-    get :using_resource_with_options
-    assert_equal "text/javascript", @response.content_type
-    assert_equal 422, @response.status
-    assert_equal "JS", @response.body
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+    post :using_resource
+    assert_equal "text/html", @response.content_type
+    assert_equal 200, @response.status
+    assert_equal "New world!\n", @response.body
+    assert_nil @response.location
   end
 
-  def test_default_overwritten
-    get :default_overwritten
+  def test_using_resource_for_post_with_xml
+    @request.accept = "application/xml"
+
+    post :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal 201, @response.status
+    assert_equal "XML", @response.body
+    assert_equal "http://www.example.com/customers/13", @response.location
+
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+    post :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal 422, @response.status
+    assert_equal errors.to_xml, @response.body
+    assert_nil @response.location
+  end
+
+  def test_using_resource_for_put_with_html
+    put :using_resource
     assert_equal "text/html", @response.content_type
-    assert_equal "HTML", @response.body
+    assert_equal 302, @response.status
+    assert_equal "http://www.example.com/customers/13", @response.location
+    assert @response.redirect?
+
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+    put :using_resource
+    assert_equal "text/html", @response.content_type
+    assert_equal 200, @response.status
+    assert_equal "Edit world!\n", @response.body
+    assert_nil @response.location
+  end
+
+  def test_using_resource_for_put_with_xml
+    @request.accept = "application/xml"
+
+    put :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal 200, @response.status
+    assert_equal " ", @response.body
+
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+    put :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal 422, @response.status
+    assert_equal errors.to_xml, @response.body
+    assert_nil @response.location
+  end
+
+  def test_using_resource_for_delete_with_html
+    Customer.any_instance.stubs(:destroyed?).returns(true)
+    delete :using_resource
+    assert_equal "text/html", @response.content_type
+    assert_equal 302, @response.status
+    assert_equal "http://www.example.com/customers", @response.location
+  end
+
+  def test_using_resource_for_delete_with_xml
+    Customer.any_instance.stubs(:destroyed?).returns(true)
+    @request.accept = "application/xml"
+    delete :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal 200, @response.status
+    assert_equal " ", @response.body
+  end
+
+  def test_using_resource_with_parent_for_get
+    @request.accept = "application/xml"
+    get :using_resource_with_parent
+    assert_equal "application/xml", @response.content_type
+    assert_equal 200, @response.status
+    assert_equal "XML", @response.body
+  end
+
+  def test_using_resource_with_parent_for_post
+    @request.accept = "application/xml"
+
+    post :using_resource_with_parent
+    assert_equal "application/xml", @response.content_type
+    assert_equal 201, @response.status
+    assert_equal "XML", @response.body
+    assert_equal "http://www.example.com/quiz_stores/11/customers/13", @response.location
+
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+    post :using_resource
+    assert_equal "application/xml", @response.content_type
+    assert_equal 422, @response.status
+    assert_equal errors.to_xml, @response.body
+    assert_nil @response.location
   end
 
   def test_clear_respond_to
@@ -628,6 +725,29 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal "XML", @response.body
   end
 
+  def test_no_double_render_is_raised
+    @request.accept = "text/html"
+    assert_raise ActionView::MissingTemplate do
+      get :using_resource
+    end
+  end
+
+  def test_using_resource_with_status_and_location
+    @request.accept = "text/html"
+    post :using_resource_with_status_and_location
+    assert @response.redirect?
+    assert_equal "http://test.host/", @response.location
+
+    @request.accept = "application/xml"
+    get :using_resource_with_status_and_location
+    assert_equal 201, @response.status
+  end
+
+  def test_using_resource_with_responder
+    get :using_resource_with_responder
+    assert_equal "Resource name is david", @response.body
+  end
+
   def test_not_acceptable
     @request.accept = "application/xml"
     get :using_defaults
@@ -642,14 +762,12 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal 406, @response.status
 
     @request.accept = "text/javascript"
-    get :using_resource
+    get :default_overwritten
     assert_equal 406, @response.status
   end
 end
 
 class AbstractPostController < ActionController::Base
-  respond_to :html, :iphone
-
   self.view_paths = File.dirname(__FILE__) + "/../fixtures/post_test/"
 end
 
@@ -658,7 +776,7 @@ class PostController < AbstractPostController
   around_filter :with_iphone
 
   def index
-    respond_to # It will use formats declared above
+    respond_to(:html, :iphone)
   end
 
 protected

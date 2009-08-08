@@ -298,7 +298,12 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_sum_expression
-    assert_equal '636', Account.sum("2 * credit_limit")
+    # Oracle adapter returns floating point value 636.0 after SUM
+    if current_adapter?(:OracleAdapter)
+      assert_equal 636, Account.sum("2 * credit_limit")
+    else
+      assert_equal '636', Account.sum("2 * credit_limit")
+    end
   end
 
   def test_count_with_from_option

@@ -12,7 +12,7 @@ module ActiveRecord
         self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
 
         # Undefine id so it can be used as an attribute name
-        undef_method :id
+        undef_method(:id) if method_defined?(:id)
       end
 
       module ClassMethods

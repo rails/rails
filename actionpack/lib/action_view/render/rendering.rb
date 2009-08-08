@@ -20,14 +20,13 @@ module ActionView
         if block_given?
           return concat(_render_partial(options.merge(:partial => layout), &block))
         elsif options.key?(:partial)
-          layout = _pick_partial_template(layout) if layout
-          return _render_content(_render_partial(options), layout, options[:locals])
+          return _render_partial(options)
         end
 
-        layout = find_by_parts(layout, {:formats => formats}) if layout
+        layout = find(layout, {:formats => formats}) if layout
 
         if file = options[:file]
-          template = find_by_parts(file, {:formats => formats})
+          template = find(file, {:formats => formats})
           _render_template(template, layout, :locals => options[:locals] || {})
         elsif inline = options[:inline]
           _render_inline(inline, layout, options)

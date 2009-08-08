@@ -73,12 +73,16 @@ class Firm < Company
   has_one :unvalidated_account, :foreign_key => "firm_id", :class_name => 'Account', :validate => false
   has_one :account_with_select, :foreign_key => "firm_id", :select => "id, firm_id", :class_name=>'Account'
   has_one :readonly_account, :foreign_key => "firm_id", :class_name => "Account", :readonly => true
-  has_one :account_using_primary_key, :primary_key => "firm_id", :class_name => "Account"
+  # added order by id as in fixtures there are two accounts for Rails Core
+  # Oracle tests were failing because of that as the second fixture was selected
+  has_one :account_using_primary_key, :primary_key => "firm_id", :class_name => "Account", :order => "id"
   has_one :deletable_account, :foreign_key => "firm_id", :class_name => "Account", :dependent => :delete
 end
 
 class DependentFirm < Company
-  has_one :account, :foreign_key => "firm_id", :dependent => :nullify
+  # added order by id as in fixtures there are two accounts for Rails Core
+  # Oracle tests were failing because of that as the second fixture was selected
+  has_one :account, :foreign_key => "firm_id", :dependent => :nullify, :order => "id"
   has_many :companies, :foreign_key => 'client_of', :order => "id", :dependent => :nullify
 end
 

@@ -284,12 +284,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_creation_respects_hash_condition
-    post = categories(:general).post_with_conditions.build(:body => '')
+    # in Oracle '' is saved as null therefore need to save ' ' in not null column
+    post = categories(:general).post_with_conditions.build(:body => ' ')
 
     assert        post.save
     assert_equal  'Yet Another Testing Title', post.title
 
-    another_post = categories(:general).post_with_conditions.create(:body => '')
+    # in Oracle '' is saved as null therefore need to save ' ' in not null column
+    another_post = categories(:general).post_with_conditions.create(:body => ' ')
 
     assert        !another_post.new_record?
     assert_equal  'Yet Another Testing Title', another_post.title

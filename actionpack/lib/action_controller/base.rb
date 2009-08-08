@@ -10,8 +10,8 @@ module ActionController
     include ActionController::HideActions
     include ActionController::UrlFor
     include ActionController::Redirector
-    include ActionController::Renderer
-    include ActionController::Renderers::All
+    include ActionController::RenderingController
+    include ActionController::RenderOptions::All
     include ActionController::Layouts
     include ActionController::ConditionalGet
     include ActionController::RackConvenience
@@ -51,7 +51,7 @@ module ActionController
 
       def method_for_action(action_name)
         super || begin
-          if view_paths.find_by_parts?(action_name.to_s, {:formats => formats, :locales => [I18n.locale]}, controller_path)
+          if view_paths.exists?(action_name.to_s, {:formats => formats, :locales => [I18n.locale]}, controller_path)
             "default_render"
           end
         end
