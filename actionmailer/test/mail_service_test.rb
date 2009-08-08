@@ -889,6 +889,18 @@ EOF
     assert_no_match %r{^Bcc: root@loudthinking.com}, MockSMTP.deliveries[0][0]
   end
 
+   def test_file_delivery_should_create_a_file
+     ActionMailer::Base.delivery_method = :file
+     tmp_location = ActionMailer::Base.file_settings[:location]
+
+     TestMailer.deliver_cc_bcc(@recipient)
+     assert File.exists? tmp_location
+     assert File.directory? tmp_location
+     assert File.exists? File.join(tmp_location, @recipient)
+     assert File.exists? File.join(tmp_location, 'nobody@loudthinking.com')
+     assert File.exists? File.join(tmp_location, 'root@loudthinking.com')
+   end
+
   def test_recursive_multipart_processing
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email7")
     mail = TMail::Mail.parse(fixture)
