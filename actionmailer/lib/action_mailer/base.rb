@@ -556,6 +556,7 @@ module ActionMailer #:nodoc:
         @headers ||= {}
         @body ||= {}
         @mime_version = @@default_mime_version.dup if @@default_mime_version
+        @sent_on ||= Time.now
       end
 
       def render_template(template, body)
