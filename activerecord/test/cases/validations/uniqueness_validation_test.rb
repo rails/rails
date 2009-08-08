@@ -43,13 +43,13 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   def test_validate_uniqueness
     Topic.validates_uniqueness_of(:title)
 
-    t = Topic.new("title" => "I'm unique!")
+    t = Topic.new("title" => "I'm uniqué!")
     assert t.save, "Should save t as unique"
 
     t.content = "Remaining unique"
     assert t.save, "Should still save t as unique"
 
-    t2 = Topic.new("title" => "I'm unique!")
+    t2 = Topic.new("title" => "I'm uniqué!")
     assert !t2.valid?, "Shouldn't be valid"
     assert !t2.save, "Shouldn't save t2 as unique"
     assert_equal ["has already been taken"], t2.errors[:title]
