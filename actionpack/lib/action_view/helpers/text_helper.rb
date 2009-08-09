@@ -235,12 +235,20 @@ module ActionView
       #
       #   textilize("Visit the Rails website "here":http://www.rubyonrails.org/.)
       #   # => "<p>Visit the Rails website <a href="http://www.rubyonrails.org/">here</a>.</p>"
-      def textilize(text)
+      #
+      #   textilize("This is worded <strong>strongly</strong>")
+      #   # => "<p>This is worded <strong>strongly</strong></p>"
+      #
+      #   textilize("This is worded <strong>strongly</strong>", :filter_html)
+      #   # => "<p>This is worded &lt;strong&gt;strongly&lt;/strong&gt;</p>"
+      #
+      def textilize(text, *options)
+        options ||= [:hard_breaks]
+
         if text.blank?
           ""
         else
-          textilized = RedCloth.new(text, [ :hard_breaks ])
-          textilized.hard_breaks = true if textilized.respond_to?(:hard_breaks=)
+          textilized = RedCloth.new(text, options)
           textilized.to_html
         end
       end
