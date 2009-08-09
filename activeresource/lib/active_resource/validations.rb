@@ -7,11 +7,10 @@ module ActiveResource
   # Active Resource validation is reported to and from this object, which is used by Base#save
   # to determine whether the object in a valid state to be saved. See usage example in Validations.  
   class Errors < ActiveModel::Errors
-    # Grabs errors from the XML response.
-    def from_xml(xml)
+    # Grabs errors from an array of messages (like ActiveRecord::Validations)
+    def from_array(messages)
       clear
       humanized_attributes = @base.attributes.keys.inject({}) { |h, attr_name| h.update(attr_name.humanize => attr_name) }
-      messages = Array.wrap(Hash.from_xml(xml)['errors']['error']) rescue []
       messages.each do |message|
         attr_message = humanized_attributes.keys.detect do |attr_name|
           if message[0, attr_name.size + 1] == "#{attr_name} "
@@ -21,6 +20,18 @@ module ActiveResource
         
         self[:base] << message if attr_message.nil?
       end
+    end
+
+    # Grabs errors from the json response.
+    def from_json(json)
+      array = ActiveSupport::JSON.decode(json)['errors'] rescue []
+      from_array array
+    end
+
+    # Grabs errors from the XML response.
+    def from_xml(xml)
+      array = Array.wrap(Hash.from_xml(xml)['errors']['error']) rescue []
+      from_array array
     end
   end
   
@@ -56,7 +67,12 @@ module ActiveResource
       save_without_validation
       true
     rescue ResourceInvalid => error
-      errors.from_xml(error.response.body)
+      case error.response['Content-Type']
+      when 'application/xml'
+        errors.from_xml(error.response.body)
+      when 'application/json'
+        errors.from_json(error.response.body)
+      end
       false
     end
 
