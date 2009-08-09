@@ -91,6 +91,8 @@ class HttpPostController < ActionController::Metal
   end
 end
 
+ActionController::Base.use_accept_header = false
+
 unless ENV["PROFILE"]
   Runner.run(BasePostController.action(:overhead), N, 'overhead', false)
   Runner.run(BasePostController.action(:index), N, 'index', false)
@@ -108,10 +110,10 @@ unless ENV["PROFILE"]
     Runner.run(BasePostController.action(:show_template), N, 'template')
   end
 else
-  Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
+  Runner.run(BasePostController.action(ENV["PROFILE"].to_sym), N, ENV["PROFILE"])
   require "ruby-prof"
   RubyProf.start
-  Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
+  Runner.run(BasePostController.action(ENV["PROFILE"].to_sym), N, ENV["PROFILE"])
   result = RubyProf.stop
   printer = RubyProf::CallStackPrinter.new(result)
   printer.print(File.open("output.html", "w"))
