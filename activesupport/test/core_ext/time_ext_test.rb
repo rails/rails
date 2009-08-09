@@ -84,45 +84,45 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_end_of_day
-    assert_equal Time.local(2007,8,12,23,59,59), Time.local(2007,8,12,10,10,10).end_of_day
+    assert_equal Time.local(2007,8,12,23,59,59,999999.999), Time.local(2007,8,12,10,10,10).end_of_day
     with_env_tz 'US/Eastern' do
-      assert_equal Time.local(2007,4,2,23,59,59), Time.local(2007,4,2,10,10,10).end_of_day, 'start DST'
-      assert_equal Time.local(2007,10,29,23,59,59), Time.local(2007,10,29,10,10,10).end_of_day, 'ends DST'
+      assert_equal Time.local(2007,4,2,23,59,59,999999.999), Time.local(2007,4,2,10,10,10).end_of_day, 'start DST'
+      assert_equal Time.local(2007,10,29,23,59,59,999999.999), Time.local(2007,10,29,10,10,10).end_of_day, 'ends DST'
     end
     with_env_tz 'NZ' do
-      assert_equal Time.local(2006,3,19,23,59,59), Time.local(2006,3,19,10,10,10).end_of_day, 'ends DST'
-      assert_equal Time.local(2006,10,1,23,59,59), Time.local(2006,10,1,10,10,10).end_of_day, 'start DST'
+      assert_equal Time.local(2006,3,19,23,59,59,999999.999), Time.local(2006,3,19,10,10,10).end_of_day, 'ends DST'
+      assert_equal Time.local(2006,10,1,23,59,59,999999.999), Time.local(2006,10,1,10,10,10).end_of_day, 'start DST'
     end
   end
 
   def test_end_of_week
-    assert_equal Time.local(2008,1,6,23,59,59), Time.local(2007,12,31,10,10,10).end_of_week
-    assert_equal Time.local(2007,9,2,23,59,59), Time.local(2007,8,27,0,0,0).end_of_week #monday
-    assert_equal Time.local(2007,9,2,23,59,59), Time.local(2007,8,28,0,0,0).end_of_week #tuesday
-    assert_equal Time.local(2007,9,2,23,59,59), Time.local(2007,8,29,0,0,0).end_of_week #wednesday
-    assert_equal Time.local(2007,9,2,23,59,59), Time.local(2007,8,30,0,0,0).end_of_week #thursday
-    assert_equal Time.local(2007,9,2,23,59,59), Time.local(2007,8,31,0,0,0).end_of_week #friday
-    assert_equal Time.local(2007,9,2,23,59,59), Time.local(2007,9,01,0,0,0).end_of_week #saturday
-    assert_equal Time.local(2007,9,2,23,59,59), Time.local(2007,9,02,0,0,0).end_of_week #sunday
+    assert_equal Time.local(2008,1,6,23,59,59,999999.999), Time.local(2007,12,31,10,10,10).end_of_week
+    assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,8,27,0,0,0).end_of_week #monday
+    assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,8,28,0,0,0).end_of_week #tuesday
+    assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,8,29,0,0,0).end_of_week #wednesday
+    assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,8,30,0,0,0).end_of_week #thursday
+    assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,8,31,0,0,0).end_of_week #friday
+    assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,9,01,0,0,0).end_of_week #saturday
+    assert_equal Time.local(2007,9,2,23,59,59,999999.999), Time.local(2007,9,02,0,0,0).end_of_week #sunday
   end
 
   def test_end_of_month
-    assert_equal Time.local(2005,3,31,23,59,59), Time.local(2005,3,20,10,10,10).end_of_month
-    assert_equal Time.local(2005,2,28,23,59,59), Time.local(2005,2,20,10,10,10).end_of_month
-    assert_equal Time.local(2005,4,30,23,59,59), Time.local(2005,4,20,10,10,10).end_of_month
+    assert_equal Time.local(2005,3,31,23,59,59,999999.999), Time.local(2005,3,20,10,10,10).end_of_month
+    assert_equal Time.local(2005,2,28,23,59,59,999999.999), Time.local(2005,2,20,10,10,10).end_of_month
+    assert_equal Time.local(2005,4,30,23,59,59,999999.999), Time.local(2005,4,20,10,10,10).end_of_month
   end
 
   def test_end_of_quarter
-    assert_equal Time.local(2007,3,31,23,59,59), Time.local(2007,2,15,10,10,10).end_of_quarter
-    assert_equal Time.local(2007,3,31,23,59,59), Time.local(2007,3,31,0,0,0).end_of_quarter
-    assert_equal Time.local(2007,12,31,23,59,59), Time.local(2007,12,21,10,10,10).end_of_quarter
-    assert_equal Time.local(2007,6,30,23,59,59), Time.local(2007,4,1,0,0,0).end_of_quarter
-    assert_equal Time.local(2008,6,30,23,59,59), Time.local(2008,5,31,0,0,0).end_of_quarter
+    assert_equal Time.local(2007,3,31,23,59,59,999999.999), Time.local(2007,2,15,10,10,10).end_of_quarter
+    assert_equal Time.local(2007,3,31,23,59,59,999999.999), Time.local(2007,3,31,0,0,0).end_of_quarter
+    assert_equal Time.local(2007,12,31,23,59,59,999999.999), Time.local(2007,12,21,10,10,10).end_of_quarter
+    assert_equal Time.local(2007,6,30,23,59,59,999999.999), Time.local(2007,4,1,0,0,0).end_of_quarter
+    assert_equal Time.local(2008,6,30,23,59,59,999999.999), Time.local(2008,5,31,0,0,0).end_of_quarter
   end
 
   def test_end_of_year
-    assert_equal Time.local(2007,12,31,23,59,59), Time.local(2007,2,22,10,10,10).end_of_year
-    assert_equal Time.local(2007,12,31,23,59,59), Time.local(2007,12,31,10,10,10).end_of_year
+    assert_equal Time.local(2007,12,31,23,59,59,999999.999), Time.local(2007,2,22,10,10,10).end_of_year
+    assert_equal Time.local(2007,12,31,23,59,59,999999.999), Time.local(2007,12,31,10,10,10).end_of_year
   end
 
   def test_beginning_of_year
