@@ -889,7 +889,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       lambda { authors(:mary).comments = [comments(:greetings), comments(:more_greetings)] },
       lambda { authors(:mary).comments << Comment.create!(:body => "Yay", :post_id => 424242) },
       lambda { authors(:mary).comments.delete(authors(:mary).comments.first) },
-    ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasManyReflection, &block) }
+    ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
   end
 
   def test_dynamic_find_should_respect_association_order_for_through
