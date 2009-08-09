@@ -66,6 +66,7 @@ class EnumerableTests < Test::Unit::TestCase
     assert_equal 10, (1..4).sum
     assert_equal 6, (1...4).sum
     assert_equal 'abc', ('a'..'c').sum
+    assert_raises(NoMethodError) { 1..2.5.sum }
   end
 
   def test_each_with_object
