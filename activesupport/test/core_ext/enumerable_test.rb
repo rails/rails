@@ -61,7 +61,9 @@ class EnumerableTests < Test::Unit::TestCase
   end
 
   def test_enumerable_sums
+    assert_equal 20, (1..4).sum { |i| i * 2 }
     assert_equal 10, (1..4).sum
+    assert_equal 6, (1...4).sum
   end
 
   def test_each_with_object

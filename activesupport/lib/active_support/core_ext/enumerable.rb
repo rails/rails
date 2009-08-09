@@ -111,3 +111,12 @@ module Enumerable
     !any?(&block)
   end unless [].respond_to?(:none?)
 end
+
+class Range #:nodoc:
+  # Optimize range sum to use arithmetic progression if a block is not given.
+  def sum(identity=0, &block)
+    return super if block_given?
+    actual_last = exclude_end? ? (last - 1) : last
+    (actual_last - first + 1) * (actual_last + first) / 2
+  end
+end
