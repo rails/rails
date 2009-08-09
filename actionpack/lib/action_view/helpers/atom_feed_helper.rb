@@ -98,7 +98,7 @@ module ActionView
           options[:schema_date] = "2005" # The Atom spec copyright date
         end
 
-        xml = options[:xml] || eval("xml", block.binding)
+        xml = options.delete(:xml) || eval("xml", block.binding)
         xml.instruct!
         if options[:instruct]
           options[:instruct].each do |target,attrs|
