@@ -208,6 +208,7 @@ module ActiveRecord
       # Note that this method will _always_ remove records from the database
       # ignoring the +:dependent+ option.
       def destroy(*records)
+        records = find(records) if records.any? {|record| record.kind_of?(Fixnum) || record.kind_of?(String)}
         remove_records(records) do |records, old_records|
           old_records.each { |record| record.destroy }
         end
