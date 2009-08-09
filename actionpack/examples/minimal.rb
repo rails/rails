@@ -70,10 +70,9 @@ class HttpPostController < ActionController::Metal
   end
 end
 
-# Runner.run(MetalPostController, N, 'metal')
-# Runner.run(HttpPostController.action(:index), N, 'http') if defined? HttpPostController
-# Runner.run(BasePostController.action(:index), N, 'base')
-Runner.run(BasePostController.action(:partial), N, 'partial')
-Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
-Runner.run(BasePostController.action(:partial_collection), N, 'collection')
-Runner.run(BasePostController.action(:show_template), N, 'template')
+(ENV["M"] || 1).to_i.times do
+  Runner.run(BasePostController.action(:partial), N, 'partial')
+  Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
+  Runner.run(BasePostController.action(:partial_collection), N, 'collection')
+  Runner.run(BasePostController.action(:show_template), N, 'template')
+end
