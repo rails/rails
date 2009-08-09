@@ -899,6 +899,13 @@ class HashToXmlTest < Test::Unit::TestCase
     assert_equal hash, Hash.from_xml(hash.to_xml(@xml_options))['person']
   end
   
+  def test_to_xml_dups_options
+    options = {:skip_instruct => true}
+    {}.to_xml(options)
+    # :builder, etc, shouldn't be added to options
+    assert_equal({:skip_instruct => true}, options)
+  end
+
   def test_datetime_xml_type_with_utc_time
     alert_xml = <<-XML
       <alert>

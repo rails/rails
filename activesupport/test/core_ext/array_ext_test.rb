@@ -233,6 +233,13 @@ class ArrayToXmlTests < Test::Unit::TestCase
     assert xml.include?(%(<name>Jason</name>)), xml
   end
 
+  def test_to_xml_dups_options
+    options = {:skip_instruct => true}
+    [].to_xml(options)
+    # :builder, etc, shouldn't be added to options
+    assert_equal({:skip_instruct => true}, options)
+  end
+
   def test_to_xml_with_dedicated_name
     xml = [
       { :name => "David", :age => 26, :age_in_millis => 820497600000 }, { :name => "Jason", :age => 31 }
