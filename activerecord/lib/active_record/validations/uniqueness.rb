@@ -119,7 +119,7 @@ module ActiveRecord
             comparison_operator = "IS ?"
           elsif column.text?
             comparison_operator = "#{connection.case_sensitive_equality_operator} ?"
-            value = column.limit ? value.to_s[0, column.limit] : value.to_s
+            value = column.limit ? value.to_s.mb_chars[0, column.limit] : value.to_s
           else
             comparison_operator = "= ?"
           end

@@ -238,6 +238,16 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert !e2.valid?, "Created an event whose title, with limit taken into account, is not unique"
   end
 
+  def test_validate_uniqueness_with_limit_and_utf8
+    with_kcode('UTF8') do
+      # Event.title is limited to 5 characters
+      e1 = Event.create(:title => "一二三四五")
+      assert e1.valid?, "Could not create an event with a unique, 5 character title"
+      e2 = Event.create(:title => "一二三四五六七八")
+      assert !e2.valid?, "Created an event whose title, with limit taken into account, is not unique"
+    end
+  end
+
   def test_validate_straight_inheritance_uniqueness
     w1 = IneptWizard.create(:name => "Rincewind", :city => "Ankh-Morpork")
     assert w1.valid?, "Saving w1"
