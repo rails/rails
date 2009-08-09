@@ -232,8 +232,8 @@ module ActionView
 
         index = 0
 
-        collection.map do |@object|
-          @path = partial_path
+        collection.map do |object|
+          @object, @path = object, partial_path
           template = passed_template || find
           @locals[template.counter_name] = index
           index += 1
