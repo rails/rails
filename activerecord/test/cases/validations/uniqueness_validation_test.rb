@@ -5,6 +5,7 @@ require 'models/reply'
 require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/event'
+require 'models/developer'
 
 # The following methods in Topic are used in test_conditional_validation_*
 class Topic
@@ -36,7 +37,7 @@ class Thaumaturgist < IneptWizard
 end
 
 class UniquenessValidationTest < ActiveRecord::TestCase
-  fixtures :topics, 'warehouse-things'
+  fixtures :topics, 'warehouse-things', :developers
 
   repair_validations(Topic)
 
