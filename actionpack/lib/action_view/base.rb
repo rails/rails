@@ -195,7 +195,9 @@ module ActionView #:nodoc:
 
     attr_internal :request, :layout
 
-    delegate :controller_path, :to => :controller, :allow_nil => true
+    def controller_path
+      @controller_path ||= controller && controller.controller_path
+    end
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
              :flash, :action_name, :controller_name, :to => :controller
