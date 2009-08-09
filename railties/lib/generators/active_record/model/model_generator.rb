@@ -12,12 +12,8 @@ module ActiveRecord
       class_option :parent,     :type => :string, :desc => "The parent class for the generated model"
 
       def create_migration_file
-        if options[:migration] && options[:parent].nil?
-          klass_name = file_path.gsub(/\//, '_')
-          klass_name = klass_name.pluralize if ActiveRecord::Base.pluralize_table_names
-          file_name = "create_#{klass_name}"
-          migration_template "migration.rb", "db/migrate/#{file_name}.rb"
-        end
+        return unless options[:migration] && options[:parent].nil?
+        migration_template "migration.rb", "db/migrate/create_#{table_name}.rb"
       end
 
       def create_model_file

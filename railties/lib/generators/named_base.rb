@@ -36,7 +36,7 @@ module Rails
             @class_name = "#{class_nesting}::#{class_name_without_nesting}"
           end
 
-          @table_name.gsub! '/', '_'
+          @table_name.gsub!('/', '_')
         end
 
         # Convert attributes hash into an array with GeneratedAttribute objects.
