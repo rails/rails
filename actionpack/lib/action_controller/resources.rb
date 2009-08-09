@@ -317,9 +317,10 @@ module ActionController
     #       notes.resources :attachments
     #     end
     #
-    # * <tt>:path_names</tt> - Specify different names for the 'new' and 'edit' actions. For example:
+    # * <tt>:path_names</tt> - Specify different path names for the actions. For example:
     #     # new_products_path == '/productos/nuevo'
-    #     map.resources :products, :as => 'productos', :path_names => { :new => 'nuevo', :edit => 'editar' }
+    #     # bids_product_path(1) == '/productos/1/licitacoes'
+    #     map.resources :products, :as => 'productos', :member => { :bids => :get }, :path_names => { :new => 'nuevo', :bids => 'licitacoes' }
     #
     #   You can also set default action names from an environment, like this:
     #     config.action_controller.resources_path_names = { :new => 'nuevo', :edit => 'editar' }
