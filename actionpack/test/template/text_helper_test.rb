@@ -1,6 +1,10 @@
 require 'abstract_unit'
 require 'testing_sandbox'
-require 'redcloth'
+begin
+  require 'redcloth'
+rescue LoadError
+  $stderr.puts "Skipping textilize tests. `gem install RedCloth` to enable."
+end
 
 class TextHelperTest < ActionView::TestCase
   tests ActionView::Helpers::TextHelper
@@ -530,19 +534,21 @@ class TextHelperTest < ActionView::TestCase
     assert_equal(%w{Specialized Fuji Giant}, @cycles)
   end
 
-  def test_textilize
-    assert_equal("<p><strong>This is Textile!</strong>  Rejoice!</p>", textilize("*This is Textile!*  Rejoice!"))
-  end
+  if defined? RedCloth
+    def test_textilize
+      assert_equal("<p><strong>This is Textile!</strong>  Rejoice!</p>", textilize("*This is Textile!*  Rejoice!"))
+    end
 
-  def test_textilize_with_blank
-    assert_equal("", textilize(""))
-  end
+    def test_textilize_with_blank
+      assert_equal("", textilize(""))
+    end
 
-  def test_textilize_with_options
-    assert_equal("<p>This is worded &lt;strong&gt;strongly&lt;/strong&gt;</p>", textilize("This is worded <strong>strongly</strong>", :filter_html))
-  end
+    def test_textilize_with_options
+      assert_equal("<p>This is worded &lt;strong&gt;strongly&lt;/strong&gt;</p>", textilize("This is worded <strong>strongly</strong>", :filter_html))
+    end
 
-  def test_textilize_with_hard_breaks
-    assert_equal("<p>This is one scary world.<br />\n True.</p>", textilize("This is one scary world.\n True."))
+    def test_textilize_with_hard_breaks
+      assert_equal("<p>This is one scary world.<br />\n True.</p>", textilize("This is one scary world.\n True."))
+    end
   end
 end
