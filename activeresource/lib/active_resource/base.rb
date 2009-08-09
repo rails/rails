@@ -103,6 +103,8 @@ module ActiveResource
   #
   # Many REST APIs will require authentication, usually in the form of basic
   # HTTP authentication.  Authentication can be specified by:
+  #
+  # === HTTP Basic Authentication
   # * putting the credentials in the URL for the +site+ variable.
   #
   #    class Person < ActiveResource::Base
@@ -122,6 +124,19 @@ module ActiveResource
   #
   # Note: Some values cannot be provided in the URL passed to site.  e.g. email addresses
   # as usernames.  In those situations you should use the separate user and password option.
+  #
+  # === Certificate Authentication
+  #
+  # * End point uses an X509 certificate for authentication. <tt>See ssl_options=</tt> for all options.
+  #
+  #    class Person < ActiveResource::Base
+  #      self.site = "https://secure.api.people.com/"
+  #      self.ssl_options = {:cert         => OpenSSL::X509::Certificate.new(File.open(pem_file))
+  #                          :key          => OpenSSL::PKey::RSA.new(File.open(pem_file)),
+  #                          :ca_path      => "/path/to/OpenSSL/formatted/CA_Certs",
+  #                          :verify_mode  => OpenSSL::SSL::VERIFY_PEER}
+  #    end
+  #
   #
   # == Errors & Validation
   #
@@ -342,6 +357,31 @@ module ActiveResource
         end
       end
 
+      # Options that will get applied to an SSL connection.
+      #
+      # * <tt>:key</tt> - An OpenSSL::PKey::RSA or OpenSSL::PKey::DSA object.
+      # * <tt>:cert</tt> - An OpenSSL::X509::Certificate object as client certificate
+      # * <tt>:ca_file</tt> - Path to a CA certification file in PEM format. The file can contrain several CA certificates.
+      # * <tt>:ca_path</tt> - Path of a CA certification directory containing certifications in PEM format.
+      # * <tt>:verify_mode</tt> - Flags for server the certification verification at begining of SSL/TLS session. (OpenSSL::SSL::VERIFY_NONE or OpenSSL::SSL::VERIFY_PEER is acceptable)
+      # * <tt>:verify_callback</tt> - The verify callback for the server certification verification.
+      # * <tt>:verify_depth</tt> - The maximum depth for the certificate chain verification.
+      # * <tt>:cert_store</tt> - OpenSSL::X509::Store to verify peer certificate.
+      # * <tt>:ssl_timeout</tt> -The SSL timeout in seconds.
+      def ssl_options=(opts={})
+        @connection   = nil
+        @ssl_options  = opts
+      end
+
+      # Returns the SSL options hash.
+      def ssl_options
+        if defined?(@ssl_options)
+          @ssl_options
+        elsif superclass != Object && superclass.ssl_options
+          superclass.ssl_options
+        end
+      end
+
       # An instance of ActiveResource::Connection that is the base \connection to the remote service.
       # The +refresh+ parameter toggles whether or not the \connection is refreshed at every request
       # or not (defaults to <tt>false</tt>).
@@ -352,6 +392,7 @@ module ActiveResource
           @connection.user = user if user
           @connection.password = password if password
           @connection.timeout = timeout if timeout
+          @connection.ssl_options = ssl_options if ssl_options
           @connection
         else
           superclass.connection

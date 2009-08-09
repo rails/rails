@@ -166,6 +166,13 @@ class BaseTest < Test::Unit::TestCase
     assert_equal(5, Forum.connection.timeout)
   end
 
+  def test_should_accept_setting_ssl_options
+    expected = {:verify => 1}
+    Forum.ssl_options= expected
+    assert_equal(expected, Forum.ssl_options)
+    assert_equal(expected, Forum.connection.ssl_options)
+  end
+
   def test_user_variable_can_be_reset
     actor = Class.new(ActiveResource::Base)
     actor.site = 'http://cinema'
@@ -194,6 +201,16 @@ class BaseTest < Test::Unit::TestCase
     actor.timeout = nil
     assert_nil actor.timeout
     assert_nil actor.connection.timeout
+  end
+
+  def test_ssl_options_hash_can_be_reset
+    actor = Class.new(ActiveResource::Base)
+    actor.site = 'https://cinema'
+    assert_nil actor.ssl_options
+    actor.ssl_options = {:foo => 5}
+    actor.ssl_options = nil
+    assert_nil actor.ssl_options
+    assert_nil actor.connection.ssl_options
   end
 
   def test_credentials_from_site_are_decoded
@@ -393,6 +410,40 @@ class BaseTest < Test::Unit::TestCase
 
     fruit.timeout = 30
     assert_equal fruit.timeout, apple.timeout, 'subclass did not adopt changes from parent class'
+  end
+
+  def test_ssl_options_reader_uses_superclass_ssl_options_until_written
+    # Superclass is Object so returns nil.
+    assert_nil ActiveResource::Base.ssl_options
+    assert_nil Class.new(ActiveResource::Base).ssl_options
+    Person.ssl_options = {:foo => 'bar'}
+
+    # Subclass uses superclass ssl_options.
+    actor = Class.new(Person)
+    assert_equal Person.ssl_options, actor.ssl_options
+
+    # Changing subclass ssl_options doesn't change superclass ssl_options.
+    actor.ssl_options = {:baz => ''}
+    assert_not_equal Person.ssl_options, actor.ssl_options
+
+    # Changing superclass ssl_options doesn't overwrite subclass ssl_options.
+    Person.ssl_options = {:color => 'blue'}
+    assert_not_equal Person.ssl_options, actor.ssl_options
+
+    # Changing superclass ssl_options after subclassing changes subclass ssl_options.
+    jester = Class.new(actor)
+    actor.ssl_options = {:color => 'red'}
+    assert_equal actor.ssl_options, jester.ssl_options
+
+    # Subclasses are always equal to superclass ssl_options when not overridden.
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+
+    fruit.ssl_options = {:alpha => 'betas'}
+    assert_equal fruit.ssl_options, apple.ssl_options, 'subclass did not adopt changes from parent class'
+
+    fruit.ssl_options = {:omega => 'moos'}
+    assert_equal fruit.ssl_options, apple.ssl_options, 'subclass did not adopt changes from parent class'
   end
 
   def test_updating_baseclass_site_object_wipes_descendent_cached_connection_objects
