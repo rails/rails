@@ -5,13 +5,20 @@ class ModulesTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :projects, :developers
 
   def setup
-    # need to make sure Object::Firm is not defined, so that constantize will not be able to cheat when having to load namespaced classes
-    @firm_const = Object.send(:remove_const, :Firm) if Object.const_defined?(:Firm)
+    # need to make sure Object::Firm and Object::Client are not defined,
+    # so that constantize will not be able to cheat when having to load namespaced classes
+    @undefined_consts = {}
+
+    [:Firm, :Client].each do |const|
+      @undefined_consts.merge! const => Object.send(:remove_const, const) if Object.const_defined?(const)
+    end
   end
 
   def teardown
-    # reinstate the Object::Firm constant for further tests
-    Object.send :const_set, :Firm, @firm_const unless @firm_const.nil?
+    # reinstate the constants that we undefined in the setup
+    @undefined_consts.each do |constant, value|
+      Object.send :const_set, constant, value unless value.nil?
+    end
   end
 
   def test_module_spanning_associations
@@ -47,17 +54,25 @@ class ModulesTest < ActiveRecord::TestCase
     assert_equal 'company_contacts', MyApplication::Business::Client::Contact.table_name, 'table_name for ActiveRecord model enclosed by another ActiveRecord model'
   end
 
+  def test_assign_ids
+    firm = MyApplication::Business::Firm.first
+
+    assert_nothing_raised NameError, "Should be able to resolve all class constants via reflection" do
+      firm.client_ids = [MyApplication::Business::Client.first.id]
+    end
+  end
+
+  # need to add an eager loading condition to force the eager loading model into
+  # the old join model, to test that. See http://dev.rubyonrails.org/ticket/9640
   def test_eager_loading_in_modules
-    # need to add an eager loading condition to force the eager loading model into
-    # the old join model, to test that. See http://dev.rubyonrails.org/ticket/9640
-    begin
-      client_join_loaded = MyApplication::Business::Client.find(3, :include => {:firm => :account}, :conditions => 'accounts.id IS NOT NULL')
-      client_sequential_loaded = MyApplication::Business::Client.find(3, :include => {:firm => :account})
-    rescue NameError => nE
-      flunk "Should be able to resolve all classes via reflections"
+    clients = []
+
+    assert_nothing_raised NameError, "Should be able to resolve all class constants via reflection" do
+      clients << MyApplication::Business::Client.find(3, :include => {:firm => :account}, :conditions => 'accounts.id IS NOT NULL')
+      clients << MyApplication::Business::Client.find(3, :include => {:firm => :account})
     end
 
-    [client_join_loaded, client_sequential_loaded].each do |client|
+    clients.each do |client|
       assert_no_queries do
         assert_not_nil(client.firm.account)
       end
