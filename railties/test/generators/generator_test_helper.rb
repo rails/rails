@@ -264,6 +264,8 @@ class GeneratorTestCase < Test::Unit::TestCase
 
   def assert_generated_migration(name, parent = "ActiveRecord::Migration")
     file = Dir.glob("#{RAILS_ROOT}/db/migrate/*_#{name.to_s.underscore}.rb").first
+    assert !file.nil?, "should have generated the migration file but didn't"
+
     file = file.match(/db\/migrate\/[0-9]+_\w+/).to_s
     assert_generated_class file, parent do |body|
       assert_match /timestamps/, body, "should have timestamps defined"
@@ -299,5 +301,10 @@ class GeneratorTestCase < Test::Unit::TestCase
   # Asserts that the given column is defined in the migration.
   def assert_generated_column(body, name, type)
     assert_match /t\.#{type.to_s} :#{name.to_s}/, body, "should have column #{name.to_s} defined"
+  end
+
+  # Asserts that the given table is defined in the migration.
+  def assert_generated_table(body, name)
+    assert_match /create_table :#{name.to_s} do/, body, "should have table #{name.to_s} defined"
   end
 end
