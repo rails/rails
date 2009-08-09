@@ -69,6 +69,7 @@ module ActiveRecord
   autoload :TestCase, 'active_record/test_case'
   autoload :Timestamp, 'active_record/timestamp'
   autoload :Transactions, 'active_record/transactions'
+  autoload :Validator, 'active_record/validator'
   autoload :Validations, 'active_record/validations'
 
   module AttributeMethods
