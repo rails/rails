@@ -72,6 +72,34 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal '9.9.9.9', request.remote_ip
   end
 
+  test "remote ip with user specified trusted proxies" do
+    ActionController::Base.trusted_proxies = /^67\.205\.106\.73$/i
+
+    request = stub_request 'REMOTE_ADDR' => '67.205.106.73',
+                           'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
+    assert_equal '3.4.5.6', request.remote_ip
+
+    request = stub_request 'REMOTE_ADDR' => '172.16.0.1,67.205.106.73',
+                           'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
+    assert_equal '3.4.5.6', request.remote_ip
+
+    request = stub_request 'REMOTE_ADDR' => '67.205.106.73,172.16.0.1',
+                           'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
+    assert_equal '3.4.5.6', request.remote_ip
+
+    request = stub_request 'REMOTE_ADDR' => '67.205.106.74,172.16.0.1',
+                           'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
+    assert_equal '67.205.106.74', request.remote_ip
+
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,67.205.106.73'
+    assert_equal 'unknown', request.remote_ip
+
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 67.205.106.73'
+    assert_equal '3.4.5.6', request.remote_ip
+
+    ActionController::Base.trusted_proxies = nil
+  end
+
   test "domains" do
     request = stub_request 'HTTP_HOST' => 'www.rubyonrails.org'
     assert_equal "rubyonrails.org", request.domain

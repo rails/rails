@@ -64,6 +64,8 @@ module ActionController
 
       cattr_accessor :ip_spoofing_check
       self.ip_spoofing_check = true
+
+      cattr_accessor :trusted_proxies
     end
 
     # For old tests
