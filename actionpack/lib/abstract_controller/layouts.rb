@@ -15,6 +15,18 @@ module AbstractController
         klass._write_layout_method
       end
 
+      def cache_layout(details)
+        layout = @found_layouts ||= {}
+        values = details.values_at(:formats, :locale)
+
+        # Cache nil
+        if layout.key?(values)
+          return layout[values]
+        else
+          layout[values] = yield
+        end
+      end
+
       # Specify the layout to use for this class.
       #
       # If the specified layout is a:
@@ -76,10 +88,12 @@ module AbstractController
         when nil
           self.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
             def _layout(details)
-              if view_paths.exists?("#{_implied_layout_name}", details, "layouts")
-                "#{_implied_layout_name}"
-              else
-                super
+              self.class.cache_layout(details) do
+                if view_paths.exists?("#{_implied_layout_name}", details, "layouts")
+                  "#{_implied_layout_name}"
+                else
+                  super
+                end
               end
             end
           ruby_eval

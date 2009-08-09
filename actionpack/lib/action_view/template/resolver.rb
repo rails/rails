@@ -62,6 +62,10 @@ module ActionView
 
   class FileSystemResolver < Resolver
 
+    def self.cached_glob
+      @@cached_glob ||= {}
+    end
+
     def initialize(path, options = {})
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
       super(options)
@@ -107,20 +111,22 @@ module ActionView
 
     # :api: plugin
     def details_to_glob(name, details, prefix, partial, root)
-      path = ""
-      path << "#{prefix}/" unless prefix.empty?
-      path << (partial ? "_#{name}" : name)
+      self.class.cached_glob[[name, prefix, partial, details, root]] ||= begin
+        path = ""
+        path << "#{prefix}/" unless prefix.empty?
+        path << (partial ? "_#{name}" : name)
 
-      extensions = ""
-      [:locales, :formats].each do |k|
-        extensions << if exts = details[k]
-          '{' + exts.map {|e| ".#{e},"}.join + '}'
-        else
-          k == :formats ? formats_glob : ''
+        extensions = ""
+        [:locales, :formats].each do |k|
+          extensions << if exts = details[k]
+            '{' + exts.map {|e| ".#{e},"}.join + '}'
+          else
+            k == :formats ? formats_glob : ''
+          end
         end
-      end
       
-      "#{root}#{path}#{extensions}#{handler_glob}"
+        "#{root}#{path}#{extensions}#{handler_glob}"
+      end
     end
 
     # TODO: fix me
