@@ -299,4 +299,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_association_through_a_has_many_association_with_nonstandard_primary_keys
     assert_equal 1, owners(:blackbeard).toys.count
   end
+
+  def test_find_on_has_many_association_collection_with_include_and_conditions
+    post_with_no_comments = people(:michael).posts_with_no_comments.first
+    assert_equal post_with_no_comments, posts(:authorless)
+  end
 end
