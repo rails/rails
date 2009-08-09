@@ -20,7 +20,7 @@ module ActiveSupport
         rescue ArgumentError => e
           raise ParseError, "Invalid JSON string"
         end
-    
+
         protected
           # Ensure that ":" and "," are always followed by a space
           def convert_json_to_yaml(json) #:nodoc:
@@ -42,6 +42,8 @@ module ActiveSupport
                 end
               when ":",","
                 marks << scanner.pos - 1 unless quoting
+              when "\\"
+                scanner.skip(/\\/)
               end
             end
 
@@ -89,3 +91,4 @@ module ActiveSupport
     end
   end
 end
+
