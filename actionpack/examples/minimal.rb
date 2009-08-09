@@ -73,8 +73,16 @@ class BasePostController < ActionController::Base
     render :partial => "/many_partials"
   end
 
+  def hundred_partials
+    render :partial => "/hundred_partials"
+  end
+
   def partial_collection
     render :partial => "/collection", :collection => [1,2,3,4,5,6,7,8,9,10]
+  end
+
+  def large_collection
+    render :partial => "/collection", :collection => (1...100).to_a
   end
 
   def show_template
@@ -99,6 +107,8 @@ unless ENV["PROFILE"]
   Runner.run(BasePostController.action(:partial), N, 'partial', false)
   Runner.run(BasePostController.action(:many_partials), N, 'many_partials', false)
   Runner.run(BasePostController.action(:partial_collection), N, 'collection', false)
+  Runner.run(BasePostController.action(:hundred_partials), N, 'hundred_partials', false)
+  Runner.run(BasePostController.action(:large_collection), N, 'large_collection', false)
   Runner.run(BasePostController.action(:show_template), N, 'template', false)
 
   (ENV["M"] || 1).to_i.times do
@@ -107,6 +117,8 @@ unless ENV["PROFILE"]
     Runner.run(BasePostController.action(:partial), N, 'partial')
     Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
     Runner.run(BasePostController.action(:partial_collection), N, 'collection')
+    Runner.run(BasePostController.action(:hundred_partials), N, 'hundred_partials')
+    Runner.run(BasePostController.action(:large_collection), N, 'large_collection')
     Runner.run(BasePostController.action(:show_template), N, 'template')
   end
 else
