@@ -304,4 +304,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post_with_no_comments = people(:michael).posts_with_no_comments.first
     assert_equal post_with_no_comments, posts(:authorless)
   end
+
+  def test_has_many_through_has_one_reflection
+    assert_equal [comments(:eager_sti_on_associations_vs_comment)], authors(:david).very_special_comments
+  end
+
+  def test_modifying_has_many_through_has_one_reflection_should_raise
+    [
+      lambda { authors(:david).very_special_comments = [VerySpecialComment.create!(:body => "Gorp!", :post_id => 1011), VerySpecialComment.create!(:body => "Eep!", :post_id => 1012)] },
+      lambda { authors(:david).very_special_comments << VerySpecialComment.create!(:body => "Hoohah!", :post_id => 1013) },
+      lambda { authors(:david).very_special_comments.delete(authors(:david).very_special_comments.first) },
+    ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
+  end
 end
