@@ -2,6 +2,8 @@ require "cases/helper"
 require 'models/company'
 require 'models/topic'
 require 'models/edge'
+require 'models/club'
+require 'models/organization'
 
 Company.has_many :accounts
 
@@ -223,6 +225,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 15, companies(:rails_core).companies.sum(:id)
   end
 
+  def test_should_sum_scoped_field_with_from
+    assert_equal Club.count, Organization.clubs.count
+  end
+
   def test_should_sum_scoped_field_with_conditions
     assert_equal 8,  companies(:rails_core).companies.sum(:id, :conditions => 'id > 7')
   end
@@ -298,7 +304,12 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_sum_expression
-    assert_equal '636', Account.sum("2 * credit_limit")
+    # Oracle adapter returns floating point value 636.0 after SUM
+    if current_adapter?(:OracleAdapter)
+      assert_equal 636, Account.sum("2 * credit_limit")
+    else
+      assert_equal '636', Account.sum("2 * credit_limit")
+    end
   end
 
   def test_count_with_from_option

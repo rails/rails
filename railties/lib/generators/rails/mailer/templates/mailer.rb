@@ -1,5 +1,4 @@
 class <%= class_name %> < ActionMailer::Base
-  
 <% for action in actions -%>
 
   def <%= action %>(sent_at = Time.now)
@@ -10,6 +9,6 @@ class <%= class_name %> < ActionMailer::Base
     
     body       :greeting => 'Hi,'
   end
-<% end -%>
 
+<% end -%>
 end

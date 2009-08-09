@@ -1,5 +1,9 @@
 *Edge*
 
+* quoted_date converts time-like objects to ActiveRecord::Base.default_timezone before serialization. This allows you to use Time.now in find conditions and have it correctly be serialized as the current time in UTC when default_timezone == :utc. #2946 [Geoff Buesing]
+
+* SQLite: drop support for 'dbfile' option in favor of 'database.'  #2363 [Paul Hinze, Jeremy Kemper]
+
 * Added :primary_key option to belongs_to associations.  #765 [Szymon Nowak, Philip Hallstrom, Noel Rocha]
     # employees.company_name references companies.name
     Employee.belongs_to :company, :primary_key => 'name', :foreign_key => 'company_name'

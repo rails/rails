@@ -10,7 +10,7 @@ module ActionView
     end
 
     # Normalizes the arguments and passes it on to find_template
-    def find_by_parts(*args)
+    def find(*args)
       find_all_by_parts(*args).first
     end
     

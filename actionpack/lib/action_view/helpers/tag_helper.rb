@@ -8,7 +8,10 @@ module ActionView
     module TagHelper
       include ERB::Util
 
-      BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked).to_set
+      BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked autobuffer
+                           autoplay controls loop selected hidden scoped async
+                           defer reversed ismap seemless muted required
+                           autofocus novalidate formnovalidate open).to_set
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attr| attr.to_sym })
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML
@@ -131,16 +134,14 @@ module ActionView
         def tag_options(options, escape = true)
           unless options.blank?
             attrs = []
-            if escape
-              options.each_pair do |key, value|
-                if BOOLEAN_ATTRIBUTES.include?(key)
-                  attrs << %(#{key}="#{key}") if value
-                else
-                  attrs << %(#{key}="#{escape_once(value)}") if !value.nil?
-                end
+            options.each_pair do |key, value|
+              if BOOLEAN_ATTRIBUTES.include?(key)
+                attrs << %(#{key}="#{key}") if value
+              elsif !value.nil?
+                final_value = value.is_a?(Array) ? value.join(" ") : value
+                final_value = escape_once(final_value) if escape
+                attrs << %(#{key}="#{final_value}")
               end
-            else
-              attrs = options.map { |key, value| %(#{key}="#{value}") }
             end
             " #{attrs.sort * ' '}" unless attrs.empty?
           end

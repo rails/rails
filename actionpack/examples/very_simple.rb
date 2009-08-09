@@ -3,17 +3,17 @@ $:.push "rails/actionpack/lib"
 
 require "action_controller"
 
-class Kaigi < ActionController::Http
+class Kaigi < ActionController::Metal
   include AbstractController::Callbacks
   include ActionController::RackConvenience
-  include ActionController::Renderer
+  include ActionController::RenderingController
   include ActionController::Layouts
   include ActionView::Context
   
   before_filter :set_name
   append_view_path "views"
   
-  def _action_view
+  def view_context
     self
   end
   
@@ -23,7 +23,7 @@ class Kaigi < ActionController::Http
 
   DEFAULT_LAYOUT = Object.new.tap {|l| def l.render(*) yield end }
   
-  def _render_template_from_controller(template, layout = DEFAULT_LAYOUT, options = {}, partial = false)
+  def render_template(template, layout = DEFAULT_LAYOUT, options = {}, partial = false)
     ret = template.render(self, {})
     layout.render(self, {}) { ret }
   end

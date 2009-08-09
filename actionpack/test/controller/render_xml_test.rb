@@ -11,7 +11,7 @@ class TestController < ActionController::Base
 
   def render_with_object_location
     customer = Customer.new("Some guy", 1)
-    render :xml => "<customer/>", :location => customer_url(customer), :status => :created
+    render :xml => "<customer/>", :location => customer, :status => :created
   end
 
   def render_with_to_xml

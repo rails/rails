@@ -158,7 +158,7 @@ class Time
   alias :monday :beginning_of_week
   alias :at_beginning_of_week :beginning_of_week
 
-  # Returns a new Time representing the end of this week (Sunday, 23:59:59)
+  # Returns a new Time representing the end of this week, (end of Sunday)
   def end_of_week
     days_to_sunday = wday!=0 ? 7-wday : 0
     (self + days_to_sunday.days).end_of_day
@@ -178,9 +178,9 @@ class Time
   alias :at_midnight :beginning_of_day
   alias :at_beginning_of_day :beginning_of_day
 
-  # Returns a new Time representing the end of the day (23:59:59)
+  # Returns a new Time representing the end of the day, 23:59:59.999999 (.999999999 in ruby1.9)
   def end_of_day
-    change(:hour => 23, :min => 59, :sec => 59)
+    change(:hour => 23, :min => 59, :sec => 59, :usec => 999999.999)
   end
 
   # Returns a new Time representing the start of the month (1st of the month, 0:00)
@@ -190,11 +190,11 @@ class Time
   end
   alias :at_beginning_of_month :beginning_of_month
 
-  # Returns a new Time representing the end of the month (last day of the month, 0:00)
+  # Returns a new Time representing the end of the month (end of the last day of the month)
   def end_of_month
     #self - ((self.mday-1).days + self.seconds_since_midnight)
     last_day = ::Time.days_in_month(month, year)
-    change(:day => last_day, :hour => 23, :min => 59, :sec => 59, :usec => 0)
+    change(:day => last_day, :hour => 23, :min => 59, :sec => 59, :usec => 999999.999)
   end
   alias :at_end_of_month :end_of_month
 
@@ -204,7 +204,7 @@ class Time
   end
   alias :at_beginning_of_quarter :beginning_of_quarter
 
-  # Returns a new Time representing the end of the quarter (last day of march, june, september, december, 23:59:59)
+  # Returns a new Time representing the end of the quarter (end of the last day of march, june, september, december)
   def end_of_quarter
     beginning_of_month.change(:month => [3, 6, 9, 12].detect { |m| m >= month }).end_of_month
   end
@@ -216,9 +216,9 @@ class Time
   end
   alias :at_beginning_of_year :beginning_of_year
 
-  # Returns a new Time representing the end of the year (31st of december, 23:59:59)
+  # Returns a new Time representing the end of the year (end of the 31st of december)
   def end_of_year
-    change(:month => 12, :day => 31, :hour => 23, :min => 59, :sec => 59)
+    change(:month => 12, :day => 31, :hour => 23, :min => 59, :sec => 59, :usec => 999999.999)
   end
   alias :at_end_of_year :end_of_year
 

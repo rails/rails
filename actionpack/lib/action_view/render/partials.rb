@@ -170,133 +170,117 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   module Partials
-    extend ActiveSupport::Memoizable
     extend ActiveSupport::Concern
-    
-    included do
-      attr_accessor :_partial      
-    end
 
-    def _render_partial_from_controller(*args)
-      @assigns_added = false
-      _render_partial(*args)
-    end
-
-    def _render_partial(options = {}) #:nodoc:
-      options[:locals] ||= {}
-
-      case path = partial = options[:partial]
-      when *_array_like_objects
-        return _render_partial_collection(partial, options)
-      else
-        if partial.is_a?(ActionView::Helpers::FormBuilder)
-          path = partial.class.to_s.demodulize.underscore.sub(/_builder$/, '')
-          options[:locals].merge!(path.to_sym => partial)
-        elsif !partial.is_a?(String)
-          options[:object] = object = partial
-          path = ActionController::RecordIdentifier.partial_path(object, controller_path)
-        end
-        _, _, prefix, object = parts = partial_parts(path, options)
-        parts[1] = {:formats => parts[1]}
-        template = find_by_parts(*parts)
-        _render_partial_object(template, options, (object unless object == true))
+    class PartialRenderer
+      def self.partial_names
+        @partial_names ||= Hash.new {|h,k| h[k] = ActiveSupport::ConcurrentHash.new }
       end
-    end
+
+      def self.formats
+        @formats ||= Hash.new {|h,k| h[k] = Hash.new{|h,k| h[k] = Hash.new {|h,k| h[k] = {}}}}
+      end
+
+      def initialize(view_context, options, block)
+        partial = options[:partial]
+
+        @view           = view_context
+        @options        = options
+        @locals         = options[:locals] || {}
+        @block          = block
+
+        # Set up some instance variables to speed up memoizing
+        @partial_names  = self.class.partial_names[@view.controller.class]
+        @templates      = self.class.formats
+        @format         = view_context.formats
+
+        # Set up the object and path
+        @object         = partial.is_a?(String) ? options[:object] : partial
+        @path           = partial_path(partial)
+      end
+
+      def render
+        return render_collection if collection
+
+        template = find_template
+        render_template(template, @object || @locals[template.variable_name])
+      end
+
+      def render_collection
+        # Even if no template is rendered, this will ensure that the MIME type
+        # for the empty response is the same as the provided template
+        @options[:_template] = default_template = find_template
+
+        return nil if collection.blank?
+
+        if @options.key?(:spacer_template)
+          spacer = find_template(@options[:spacer_template]).render(@view, @locals)
+        end
+
+        segments = []
+
+        collection.each_with_index do |object, index|
+          template = default_template || find_template(partial_path(object))
+          @locals[template.counter_name] = index
+          segments << render_template(template, object)
+        end
+
+        segments.join(spacer)
+      end
+
+      def render_template(template, object = @object)
+        @options[:_template] ||= template
+
+        # TODO: is locals[:object] really necessary?
+        @locals[:object] = @locals[template.variable_name] = object
+        @locals[@options[:as]] = object if @options[:as]
+
+        content = @view._render_single_template(template, @locals, &@block)
+        return content if @block || !@options[:layout]
+        find_template(@options[:layout]).render(@view, @locals) { content }
+      end
+
 
     private
-      def partial_parts(name, options)
-        segments = name.split("/")
-        parts = segments.pop.split(".")
+      def collection
+        @collection ||= if @object.respond_to?(:to_ary)
+          @object
+        elsif @options.key?(:collection)
+          @options[:collection] || []
+        end
+      end
 
-        case parts.size
-        when 1
-          parts
-        when 2, 3
-          extension = parts.delete_at(1).to_sym
-          if formats.include?(extension)
-            self.formats.replace [extension]
+      def find_template(path = @path)
+        return if !path
+        @templates[path][@view.controller_path][@format][I18n.locale] ||= begin
+          prefix = @view.controller.controller_path unless path.include?(?/)
+          @view.find(path, {:formats => @view.formats}, prefix, true)
+        end
+      end
+
+      def partial_path(object = @object)
+        return object if object.is_a?(String)
+        @partial_names[object.class] ||= begin
+          return nil unless object.respond_to?(:to_model)
+
+          object.to_model.class.model_name.partial_path.dup.tap do |partial|
+            path = @view.controller_path
+            partial.insert(0, "#{File.dirname(path)}/") if path.include?(?/)
           end
-          parts.pop if parts.size == 2
-        end
-
-        path = parts.join(".")
-        prefix = segments[0..-1].join("/")
-        prefix = prefix.blank? ? controller_path : prefix
-        parts = [path, formats, prefix]
-        parts.push options[:object] || true
-      end
-
-      def _render_partial_with_block(layout, block, options)
-        @_proc_for_layout = block
-        concat(_render_partial(options.merge(:partial => layout)))
-      ensure
-        @_proc_for_layout = nil
-      end
-
-      def _render_partial_with_layout(layout, options)
-        if layout
-          prefix = controller && !layout.include?("/") ? controller.controller_path : nil
-          layout = find_by_parts(layout, {:formats => formats}, prefix, true)
-        end
-        content = _render_partial(options)
-        return _render_content_with_layout(content, layout, options[:locals])
-      end
-
-      def _array_like_objects
-        array_like = [Array]
-        if defined?(ActiveRecord)
-          array_like.push(ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope)
-        end
-        array_like
-      end
-
-      def _render_partial_object(template, options, object = nil)
-        if options.key?(:collection)
-          _render_partial_collection(options.delete(:collection), options, template)
-        else
-          locals = (options[:locals] ||= {})
-          object ||= locals[:object] || locals[template.variable_name]
-          
-          _set_locals(object, locals, template, options)
-          
-          options[:_template] = template
-          
-          _render_template(template, locals)
         end
       end
+    end
 
-      def _set_locals(object, locals, template, options)
-        locals[:object] = locals[template.variable_name] = object
-        locals[options[:as]] = object if options[:as]
-      end
+    def render_partial(options)
+      @assigns_added = false
+      # TODO: Handle other details here.
+      self.formats = options[:_details][:formats] if options[:_details]
+      _render_partial(options)
+    end
 
-      def _render_partial_collection(collection, options = {}, passed_template = nil) #:nodoc:
-        return nil if collection.blank?
-        
-        spacer = options[:spacer_template] ? _render_partial(:partial => options[:spacer_template]) : ''
+    def _render_partial(options, &block) #:nodoc:
+      PartialRenderer.new(self, options, block).render
+    end
 
-        locals = (options[:locals] ||= {})
-        index, @_partial_path = 0, nil
-        collection.map do |object|
-          options[:_template] = template = passed_template || begin
-            _partial_path = 
-              ActionController::RecordIdentifier.partial_path(object, controller_path)
-            template = _pick_partial_template(_partial_path)
-          end
-
-          _set_locals(object, locals, template, options)
-          locals[template.counter_name] = index
-          
-          index += 1
-          
-          _render_template(template, locals)
-        end.join(spacer)
-      end
-
-      def _pick_partial_template(partial_path) #:nodoc:
-        prefix = controller_path unless partial_path.include?('/')
-        find_by_parts(partial_path, {:formats => formats}, prefix, true)
-      end
-      memoize :_pick_partial_template
   end
 end

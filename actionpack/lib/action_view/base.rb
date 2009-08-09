@@ -164,6 +164,9 @@ module ActionView #:nodoc:
   #
   # See the ActionView::Helpers::PrototypeHelper::GeneratorMethods documentation for more details.
   class Base
+    module Subclasses
+    end
+
     include Helpers, Rendering, Partials, ::ERB::Util
 
     extend ActiveSupport::Memoizable
@@ -195,14 +198,16 @@ module ActionView #:nodoc:
 
     attr_internal :request, :layout
 
-    delegate :controller_path, :to => :controller, :allow_nil => true
+    def controller_path
+      @controller_path ||= controller && controller.controller_path
+    end
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
              :flash, :action_name, :controller_name, :to => :controller
 
     delegate :logger, :to => :controller, :allow_nil => true
 
-    delegate :find_by_parts, :to => :view_paths
+    delegate :find, :to => :view_paths
 
     include Context
 
@@ -210,30 +215,35 @@ module ActionView #:nodoc:
       ActionView::PathSet.new(Array(value))
     end
 
+    extlib_inheritable_accessor :helpers
     attr_reader :helpers
 
-    class ProxyModule < Module
-      def initialize(receiver)
-        @receiver = receiver
-      end
-
-      def include(*args)
-        super(*args)
-        @receiver.extend(*args)
-      end
-    end
-
     def self.for_controller(controller)
-      new(controller.class.view_paths, {}, controller).tap do |view|
-        view.helpers.include(controller._helpers) if controller.respond_to?(:_helpers)
+      @views ||= {}
+
+      # TODO: Decouple this so helpers are a separate concern in AV just like
+      # they are in AC.
+      if controller.class.respond_to?(:_helper_serial)
+        klass = @views[controller.class._helper_serial] ||= Class.new(self) do
+          Subclasses.const_set(controller.class.name.gsub(/::/, '__'), self)
+
+          if controller.respond_to?(:_helpers)
+            include controller._helpers
+            self.helpers = controller._helpers
+          end
+        end
+      else
+        klass = self
       end
+
+      klass.new(controller.class.view_paths, {}, controller)
     end
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil, formats = nil)#:nodoc:
       @formats = formats || [:html]
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
       @controller = controller
-      @helpers = ProxyModule.new(self)
+      @helpers = self.class.helpers || Module.new
       @_content_for = Hash.new {|h,k| h[k] = "" }
       self.view_paths = view_paths
     end
@@ -248,7 +258,7 @@ module ActionView #:nodoc:
     def with_template(current_template)
       _evaluate_assigns_and_ivars
       last_template, self.template = template, current_template
-      last_formats, self.formats = formats, [current_template.mime_type.to_sym] + Mime::SET.symbols
+      last_formats, self.formats = formats, current_template.formats
       yield
     ensure
       self.template, self.formats = last_template, last_formats

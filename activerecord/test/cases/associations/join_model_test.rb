@@ -14,7 +14,9 @@ require 'models/citation'
 
 class AssociationsJoinModelTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
-  fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items, :books
+  fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items, :books,
+    # Reload edges table from fixtures as otherwise repeated test was failing
+    :edges
 
   def test_has_many
     assert authors(:david).categories.include?(categories(:general))
@@ -343,14 +345,16 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_polymorphic_with_source_type
-    assert_equal posts(:welcome, :thinking), tags(:general).tagged_posts
+    # added sort by ID as otherwise Oracle select sometimes returned rows in different order
+    assert_equal posts(:welcome, :thinking).sort_by(&:id), tags(:general).tagged_posts.sort_by(&:id)
   end
 
   def test_eager_has_many_polymorphic_with_source_type
     tag_with_include = Tag.find(tags(:general).id, :include => :tagged_posts)
     desired = posts(:welcome, :thinking)
     assert_no_queries do
-      assert_equal desired, tag_with_include.tagged_posts
+      # added sort by ID as otherwise test using JRuby was failing as array elements were in different order
+      assert_equal desired.sort_by(&:id), tag_with_include.tagged_posts.sort_by(&:id)
     end
     assert_equal 5, tag_with_include.taggings.length
   end

@@ -104,7 +104,13 @@ ActiveRecord::Schema.define do
 
   create_table :comments, :force => true do |t|
     t.integer :post_id, :null => false
-    t.text    :body, :null => false
+    # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
+    # Oracle SELECT WHERE clause which causes many unit test failures
+    if current_adapter?(:OracleAdapter)
+      t.string  :body, :null => false, :limit => 4000
+    else
+      t.text    :body, :null => false
+    end
     t.string  :type
   end
 
@@ -279,7 +285,12 @@ ActiveRecord::Schema.define do
     t.decimal :my_house_population, :precision => 2, :scale => 0
     t.decimal :decimal_number_with_default, :precision => 3, :scale => 2, :default => 2.78
     t.float   :temperature
-    t.decimal :atoms_in_universe, :precision => 55, :scale => 0
+    # Oracle supports precision up to 38
+    if current_adapter?(:OracleAdapter)
+      t.decimal :atoms_in_universe, :precision => 38, :scale => 0
+    else
+      t.decimal :atoms_in_universe, :precision => 55, :scale => 0
+    end
   end
 
   create_table :orders, :force => true do |t|
@@ -350,7 +361,13 @@ ActiveRecord::Schema.define do
   create_table :posts, :force => true do |t|
     t.integer :author_id
     t.string  :title, :null => false
-    t.text    :body, :null => false
+    # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
+    # Oracle SELECT WHERE clause which causes many unit test failures
+    if current_adapter?(:OracleAdapter)
+      t.string  :body, :null => false, :limit => 4000
+    else
+      t.text    :body, :null => false
+    end
     t.string  :type
     t.integer :comments_count, :default => 0
     t.integer :taggings_count, :default => 0
@@ -423,7 +440,13 @@ ActiveRecord::Schema.define do
     t.datetime :written_on
     t.time     :bonus_time
     t.date     :last_read
-    t.text     :content
+    # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
+    # Oracle SELECT WHERE clause which causes many unit test failures
+    if current_adapter?(:OracleAdapter)
+      t.string   :content, :limit => 4000
+    else
+      t.text     :content
+    end
     t.boolean  :approved, :default => true
     t.integer  :replies_count, :default => 0
     t.integer  :parent_id
@@ -446,6 +469,13 @@ ActiveRecord::Schema.define do
   create_table :toys, :primary_key => :toy_id ,:force => true do |t|
     t.string :name
     t.integer :pet_id, :integer
+  end
+
+  create_table :traffic_lights, :force => true do |t|
+    t.string   :location
+    t.string   :state
+    t.datetime :created_at
+    t.datetime :updated_at
   end
 
   create_table :treasures, :force => true do |t|

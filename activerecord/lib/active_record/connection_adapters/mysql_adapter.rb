@@ -587,6 +587,10 @@ module ActiveRecord
             @connection.ssl_set(@config[:sslkey], @config[:sslcert], @config[:sslca], @config[:sslcapath], @config[:sslcipher])
           end
 
+          @connection.options(Mysql::OPT_CONNECT_TIMEOUT, @config[:connect_timeout]) if @config[:connect_timeout]
+          @connection.options(Mysql::OPT_READ_TIMEOUT, @config[:read_timeout]) if @config[:read_timeout]
+          @connection.options(Mysql::OPT_WRITE_TIMEOUT, @config[:write_timeout]) if @config[:write_timeout]
+
           @connection.real_connect(*@connection_options)
 
           # reconnect must be set after real_connect is called, because real_connect sets it to false internally

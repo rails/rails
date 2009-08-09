@@ -34,6 +34,10 @@ class RedirectController < ActionController::Base
     redirect_to({:action => "hello_world"}, {:status => 301})
   end
 
+  def redirect_with_protocol
+    redirect_to :action => "hello_world", :protocol => "https"
+  end
+
   def url_redirect_with_status
     redirect_to("http://www.example.com", :status => :moved_permanently)
   end
@@ -130,6 +134,12 @@ class RedirectTest < ActionController::TestCase
     get :redirect_with_status_hash
     assert_response 301
     assert_equal "http://test.host/redirect/hello_world", redirect_to_url
+  end
+
+  def test_redirect_with_protocol
+    get :redirect_with_protocol
+    assert_response 302
+    assert_equal "https://test.host/redirect/hello_world", redirect_to_url
   end
 
   def test_url_redirect_with_status

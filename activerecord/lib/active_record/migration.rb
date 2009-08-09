@@ -388,13 +388,11 @@ module ActiveRecord
       end
 
       def rollback(migrations_path, steps=1)
-        migrator = self.new(:down, migrations_path)
-        start_index = migrator.migrations.index(migrator.current_migration)
-        
-        return unless start_index
-        
-        finish = migrator.migrations[start_index + steps]
-        down(migrations_path, finish ? finish.version : 0)
+        move(:down, migrations_path, steps)
+      end
+
+      def forward(migrations_path, steps=1)
+        move(:up, migrations_path, steps)
       end
 
       def up(migrations_path, target_version = nil)
@@ -429,6 +427,19 @@ module ActiveRecord
       def proper_table_name(name)
         # Use the Active Record objects own table_name, or pre/suffix from ActiveRecord::Base if name is a symbol/string
         name.table_name rescue "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
+      end
+
+      private
+
+      def move(direction, migrations_path, steps)
+        migrator = self.new(direction, migrations_path)
+        start_index = migrator.migrations.index(migrator.current_migration)
+
+        if start_index
+          finish = migrator.migrations[start_index + steps]
+          version = finish ? finish.version : 0
+          send(direction, migrations_path, version)
+        end
       end
     end
 

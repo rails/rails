@@ -148,11 +148,6 @@ module ActiveRecord #:nodoc:
   class DangerousAttributeError < ActiveRecordError
   end
 
-  # Raised when you've tried to access a column which wasn't loaded by your finder.
-  # Typically this is because <tt>:select</tt> has been specified.
-  class MissingAttributeError < NoMethodError
-  end
-
   # Raised when unknown attributes are supplied via mass assignment.
   class UnknownAttributeError < NoMethodError
   end
@@ -1225,29 +1220,6 @@ module ActiveRecord #:nodoc:
         name
       end
 
-      # Defines the primary key field -- can be overridden in subclasses. Overwriting will negate any effect of the
-      # primary_key_prefix_type setting, though.
-      def primary_key
-        reset_primary_key
-      end
-
-      def reset_primary_key #:nodoc:
-        key = get_primary_key(base_class.name)
-        set_primary_key(key)
-        key
-      end
-
-      def get_primary_key(base_name) #:nodoc:
-        key = 'id'
-        case primary_key_prefix_type
-          when :table_name
-            key = base_name.to_s.foreign_key(false)
-          when :table_name_with_underscore
-            key = base_name.to_s.foreign_key
-        end
-        key
-      end
-
       # Defines the column name for use with single table inheritance
       # -- can be set in subclasses like so: self.inheritance_column = "type_id"
       def inheritance_column
@@ -1276,18 +1248,6 @@ module ActiveRecord #:nodoc:
         define_attr_method :table_name, value, &block
       end
       alias :table_name= :set_table_name
-
-      # Sets the name of the primary key column to use to the given value,
-      # or (if the value is nil or false) to the value returned by the given
-      # block.
-      #
-      #   class Project < ActiveRecord::Base
-      #     set_primary_key "sysid"
-      #   end
-      def set_primary_key(value = nil, &block)
-        define_attr_method :primary_key, value, &block
-      end
-      alias :primary_key= :set_primary_key
 
       # Sets the name of the inheritance column to use to the given value,
       # or (if the value # is nil or false) to the value returned by the
@@ -1401,8 +1361,8 @@ module ActiveRecord #:nodoc:
       #    end
       #  end
       def reset_column_information
-        generated_methods.each { |name| undef_method(name) }
-        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @generated_methods = @inheritance_column = nil
+        undefine_attribute_methods
+        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -2077,36 +2037,6 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Defines an "attribute" method (like +inheritance_column+ or
-        # +table_name+). A new (class) method will be created with the
-        # given name. If a value is specified, the new method will
-        # return that value (as a string). Otherwise, the given block
-        # will be used to compute the value of the method.
-        #
-        # The original method will be aliased, with the new name being
-        # prefixed with "original_". This allows the new method to
-        # access the original value.
-        #
-        # Example:
-        #
-        #   class A < ActiveRecord::Base
-        #     define_attr_method :primary_key, "sysid"
-        #     define_attr_method( :inheritance_column ) do
-        #       original_inheritance_column + "_id"
-        #     end
-        #   end
-        def define_attr_method(name, value=nil, &block)
-          sing = metaclass
-          sing.send :alias_method, "original_#{name}", name
-          if block_given?
-            sing.send :define_method, name, &block
-          else
-            # use eval instead of a block to work around a memory leak in dev
-            # mode in fcgi
-            sing.class_eval "def #{name}; #{value.to_s.inspect}; end"
-          end
-        end
-
       protected
         # Scope parameters to method calls within the block.  Takes a hash of method_name => parameters hash.
         # method_name may be <tt>:find</tt> or <tt>:create</tt>. <tt>:find</tt> parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
@@ -2508,18 +2438,6 @@ module ActiveRecord #:nodoc:
         result
       end
 
-      # A model instance's primary key is always available as model.id
-      # whether you name it the default 'id' or set it to something else.
-      def id
-        attr_name = self.class.primary_key
-        column = column_for_attribute(attr_name)
-
-        self.class.send(:define_read_method, :id, attr_name, column)
-        # now that the method exists, call it
-        self.send attr_name.to_sym
-
-      end
-
       # Returns a String, which Action Pack uses for constructing an URL to this
       # object. The default implementation returns this record's id as a String,
       # or nil if this record's unsaved.
@@ -2565,22 +2483,18 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      def id_before_type_cast #:nodoc:
-        read_attribute_before_type_cast(self.class.primary_key)
-      end
-
       def quoted_id #:nodoc:
         quote_value(id, column_for_attribute(self.class.primary_key))
-      end
-
-      # Sets the primary ID.
-      def id=(value)
-        write_attribute(self.class.primary_key, value)
       end
 
       # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet; otherwise, returns false.
       def new_record?
         @new_record || false
+      end
+
+      # Returns true if this object has been destroyed, otherwise returns false.
+      def destroyed?
+        @destroyed || false
       end
 
       # :call-seq:
@@ -2633,6 +2547,7 @@ module ActiveRecord #:nodoc:
       # options, use <tt>#destroy</tt>.
       def delete
         self.class.delete(id) unless new_record?
+        @destroyed = true
         freeze
       end
 
@@ -2647,6 +2562,7 @@ module ActiveRecord #:nodoc:
           )
         end
 
+        @destroyed = true
         freeze
       end
 
@@ -2818,14 +2734,6 @@ module ActiveRecord #:nodoc:
       def attributes
         self.attribute_names.inject({}) do |attrs, name|
           attrs[name] = read_attribute(name)
-          attrs
-        end
-      end
-
-      # Returns a hash of attributes before typecasting and deserialization.
-      def attributes_before_type_cast
-        self.attribute_names.inject({}) do |attrs, name|
-          attrs[name] = read_attribute_before_type_cast(name)
           attrs
         end
       end
@@ -3212,7 +3120,10 @@ module ActiveRecord #:nodoc:
     include Validations
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
-    include Dirty
+    include AttributeMethods::Read, AttributeMethods::Write, AttributeMethods::BeforeTypeCast, AttributeMethods::Query
+    include AttributeMethods::PrimaryKey
+    include AttributeMethods::TimeZoneConversion
+    include AttributeMethods::Dirty
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
     include ActiveModel::Conversion

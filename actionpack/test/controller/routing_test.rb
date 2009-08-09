@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'abstract_unit'
 require 'controller/fake_controllers'
 require 'active_support/dependencies'
@@ -1179,7 +1180,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal({:controller => "content", :action => 'show_page', :id => 'foo'}, rs.recognize_path("/page/foo"))
 
     token = "\321\202\320\265\320\272\321\201\321\202" # 'text' in russian
-    token.force_encoding("UTF-8") if token.respond_to?(:force_encoding)
     escaped_token = CGI::escape(token)
 
     assert_equal '/page/' + escaped_token, rs.generate(:controller => 'content', :action => 'show_page', :id => token)

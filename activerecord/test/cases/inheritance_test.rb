@@ -137,7 +137,8 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_update_all_within_inheritance
     Client.update_all "name = 'I am a client'"
     assert_equal "I am a client", Client.find(:all).first.name
-    assert_equal "37signals", Firm.find(:all).first.name
+    # Order by added as otherwise Oracle tests were failing because of different order of results
+    assert_equal "37signals", Firm.find(:all, :order => "id").first.name
   end
 
   def test_alt_update_all_within_inheritance

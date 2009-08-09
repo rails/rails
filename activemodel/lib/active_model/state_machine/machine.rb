@@ -1,6 +1,3 @@
-require 'active_model/state_machine/state'
-require 'active_model/state_machine/event'
-
 module ActiveModel
   module StateMachine
     class Machine
@@ -57,22 +54,22 @@ module ActiveModel
         "@#{@name}_current_state"
       end
 
-    private
-      def state(name, options = {})
-        @states << (state_index[name] ||= State.new(name, :machine => self)).update(options)
-      end
+      private
+        def state(name, options = {})
+          @states << (state_index[name] ||= State.new(name, :machine => self)).update(options)
+        end
 
-      def event(name, options = {}, &block)
-        (@events[name] ||= Event.new(self, name)).update(options, &block)
-      end
+        def event(name, options = {}, &block)
+          (@events[name] ||= Event.new(self, name)).update(options, &block)
+        end
 
-      def event_fired_callback
-        @event_fired_callback ||= (@name == :default ? '' : "#{@name}_") + 'event_fired'
-      end
+        def event_fired_callback
+          @event_fired_callback ||= (@name == :default ? '' : "#{@name}_") + 'event_fired'
+        end
 
-      def event_failed_callback
-        @event_failed_callback ||= (@name == :default ? '' : "#{@name}_") + 'event_failed'
-      end
+        def event_failed_callback
+          @event_failed_callback ||= (@name == :default ? '' : "#{@name}_") + 'event_failed'
+        end
     end
   end
 end

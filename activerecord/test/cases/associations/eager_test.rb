@@ -813,7 +813,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_include_has_many_using_primary_key
     expected = Firm.find(1).clients_using_primary_key.sort_by &:name
-    firm = Firm.find 1, :include => :clients_using_primary_key, :order => 'clients_using_primary_keys_companies.name'
+    # Oracle adapter truncates alias to 30 characters
+    if current_adapter?(:OracleAdapter)
+      firm = Firm.find 1, :include => :clients_using_primary_key, :order => 'clients_using_primary_keys_companies'[0,30]+'.name'
+    else
+      firm = Firm.find 1, :include => :clients_using_primary_key, :order => 'clients_using_primary_keys_companies.name'
+    end
     assert_no_queries do
       assert_equal expected, firm.clients_using_primary_key
     end

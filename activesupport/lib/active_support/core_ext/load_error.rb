@@ -20,7 +20,8 @@ class MissingSourceFile < LoadError #:nodoc:
   REGEXPS = [
     [/^no such file to load -- (.+)$/i, 1],
     [/^Missing \w+ (file\s*)?([^\s]+.rb)$/i, 2],
-    [/^Missing API definition file in (.+)$/i, 1]
+    [/^Missing API definition file in (.+)$/i, 1],
+    [/win32/, 0]
   ] unless defined?(REGEXPS)
 end
 

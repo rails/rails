@@ -257,6 +257,22 @@ module ActiveResource
         end
       end
 
+      # Gets the \proxy variable if a proxy is required
+      def proxy
+        # Not using superclass_delegating_reader. See +site+ for explanation
+        if defined?(@proxy)
+          @proxy
+        elsif superclass != Object && superclass.proxy
+          superclass.proxy.dup.freeze
+        end
+      end
+
+      # Sets the URI of the http proxy to the value in the +proxy+ argument.
+      def proxy=(proxy)
+        @connection = nil
+        @proxy = proxy.nil? ? nil : create_proxy_uri_from(proxy)
+      end
+
       # Gets the \user for REST HTTP authentication.
       def user
         # Not using superclass_delegating_reader. See +site+ for explanation
@@ -332,6 +348,7 @@ module ActiveResource
       def connection(refresh = false)
         if defined?(@connection) || superclass == Object
           @connection = Connection.new(site, format) if refresh || @connection.nil?
+          @connection.proxy = proxy if proxy
           @connection.user = user if user
           @connection.password = password if password
           @connection.timeout = timeout if timeout
@@ -620,6 +637,11 @@ module ActiveResource
         # Accepts a URI and creates the site URI from that.
         def create_site_uri_from(site)
           site.is_a?(URI) ? site.dup : URI.parse(site)
+        end
+
+        # Accepts a URI and creates the proxy URI from that.
+        def create_proxy_uri_from(proxy)
+          proxy.is_a?(URI) ? proxy.dup : URI.parse(proxy)
         end
 
         # contains a set of the current prefix parameters.

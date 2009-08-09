@@ -625,6 +625,21 @@ class FragmentCachingTest < ActionController::TestCase
     assert !fragment_computed
     assert_equal 'generated till now -> fragment content', buffer
   end
+
+  def test_fragment_for_logging
+    fragment_computed = false
+
+    @controller.class.expects(:benchmark).with('Cached fragment exists?: views/expensive')
+    @controller.class.expects(:benchmark).with('Cached fragment miss: views/expensive')
+    @controller.class.expects(:benchmark).with('Cached fragment hit: views/expensive').never
+
+    buffer = 'generated till now -> '
+    @controller.fragment_for(buffer, 'expensive') { fragment_computed = true }
+
+    assert fragment_computed
+    assert_equal 'generated till now -> ', buffer
+  end
+
 end
 
 class FunctionalCachingController < ActionController::Base

@@ -45,9 +45,22 @@ class PolymorphicRoutesTest < ActionController::TestCase
       assert_equal "http://example.com/projects/#{@project.id}", polymorphic_url(@project)
     end
   end
+  
+  def test_with_class
+    with_test_routes do
+      assert_equal "http://example.com/projects", polymorphic_url(@project.class)
+    end
+  end
 
   def test_with_new_record
     with_test_routes do 
+      assert_equal "http://example.com/projects", polymorphic_url(@project)
+    end
+  end
+
+  def test_with_destroyed_record
+    with_test_routes do 
+      @project.destroy
       assert_equal "http://example.com/projects", polymorphic_url(@project)
     end
   end
@@ -126,6 +139,27 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_test_routes do
       @project.save
       assert_equal "http://example.com/projects/#{@project.id}/tasks", polymorphic_url([@project, @task])
+    end
+  end
+  
+  def test_with_nested_destroyed
+    with_test_routes do
+      @project.save
+      @task.destroy
+      assert_equal "http://example.com/projects/#{@project.id}/tasks", polymorphic_url([@project, @task])
+    end
+  end
+  
+  def test_with_nested_class
+    with_test_routes do
+      @project.save
+      assert_equal "http://example.com/projects/#{@project.id}/tasks", polymorphic_url([@project, @task.class])
+    end
+  end
+  
+  def test_class_with_array_and_namespace
+    with_admin_test_routes do 
+      assert_equal "http://example.com/admin/projects", polymorphic_url([:admin, @project.class])
     end
   end
   
@@ -252,8 +286,21 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
   
+  def test_with_irregular_plural_class
+    with_test_routes do 
+      assert_equal "http://example.com/taxes", polymorphic_url(@tax.class)
+    end
+  end
+  
   def test_with_irregular_plural_new_record
     with_test_routes do 
+      assert_equal "http://example.com/taxes", polymorphic_url(@tax)
+    end
+  end
+
+  def test_with_irregular_plural_destroyed_record
+    with_test_routes do
+      @tax.destroy 
       assert_equal "http://example.com/taxes", polymorphic_url(@tax)
     end
   end
@@ -295,6 +342,12 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_new_with_irregular_plural_array_and_namespace
     with_admin_test_routes do 
       assert_equal "http://example.com/admin/taxes/new", polymorphic_url([:admin, @tax], :action => 'new')
+    end
+  end
+  
+  def test_class_with_irregular_plural_array_and_namespace
+    with_admin_test_routes do 
+      assert_equal "http://example.com/admin/taxes", polymorphic_url([:admin, @tax.class])
     end
   end
   

@@ -17,8 +17,9 @@ class MockLogger
     @logged = []
   end
 
-  def method_missing(method, *args)
+  def method_missing(method, *args, &blk)
     @logged << args.first
+    @logged << blk.call if block_given?
   end
 end
 
@@ -457,6 +458,10 @@ class TestController < ActionController::Base
     head :location => "/foo"
   end
 
+  def head_with_location_object
+    head :location => Customer.new("david", 1)
+  end
+
   def head_with_symbolic_status
     head :status => params[:status].intern
   end
@@ -617,6 +622,7 @@ class TestController < ActionController::Base
   end
 
   private
+
     def determine_layout
       case action_name
         when "hello_world", "layout_test", "rendering_without_layout",
@@ -1083,6 +1089,18 @@ class RenderTest < ActionController::TestCase
     assert_response :ok
   end
 
+  def test_head_with_location_object
+    ActionController::Routing::Routes.draw do |map|
+      map.resources :customers
+      map.connect ':controller/:action/:id'
+    end
+
+    get :head_with_location_object
+    assert @response.body.blank?
+    assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
+    assert_response :ok
+  end
+
   def test_head_with_custom_header
     get :head_with_custom_header
     assert @response.body.blank?
@@ -1219,7 +1237,6 @@ class RenderTest < ActionController::TestCase
   def test_partial_collection_with_spacer
     get :partial_collection_with_spacer
     assert_equal "Hello: davidonly partialHello: mary", @response.body
-    assert_template :partial => 'test/_partial_only'
     assert_template :partial => '_customer'
   end
 
@@ -1331,7 +1348,7 @@ class EtagRenderTest < ActionController::TestCase
   def test_render_200_should_set_etag
     get :render_hello_world_from_variable
     assert_equal etag_for("hello david"), @response.headers['ETag']
-    assert_equal "private, max-age=0, must-revalidate", @response.headers['Cache-Control']
+    assert_equal "max-age=0, private, must-revalidate", @response.headers['Cache-Control']
   end
 
   def test_render_against_etag_request_should_304_when_match

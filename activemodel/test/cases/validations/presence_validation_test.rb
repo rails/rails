@@ -54,4 +54,18 @@ class PresenceValidationTest < ActiveModel::TestCase
       assert p.valid?
     end
   end
+  
+  def test_validates_presence_of_for_ruby_class_with_custom_reader
+    repair_validations(Person) do
+      CustomReader.validates_presence_of :karma
+
+      p = CustomReader.new
+      assert p.invalid?
+
+      assert_equal ["can't be blank"], p.errors[:karma]
+
+      p[:karma] = "Cold"
+      assert p.valid?
+    end
+  end
 end

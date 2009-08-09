@@ -20,7 +20,7 @@ class GeneratorsTestCase < Test::Unit::TestCase
 
   def destination_root
     @destination_root ||= File.expand_path(File.join(File.dirname(__FILE__), 
-                                            '..', '..', 'fixtures', 'tmp'))
+                                            '..', 'fixtures', 'tmp'))
   end
 
   def setup

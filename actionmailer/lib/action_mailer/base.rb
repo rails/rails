@@ -1,3 +1,5 @@
+require 'tmpdir'
+
 require "active_support/core_ext/class"
 # Use the old layouts until actionmailer gets refactored
 require "action_controller/legacy/layout"
@@ -224,9 +226,13 @@ module ActionMailer #:nodoc:
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
   #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i -t</tt>.
   #
+  # * <tt>file_settings</tt> - Allows you to override options for the <tt>:file</tt> delivery method.
+  #   * <tt>:location</tt> - The directory into which emails will be written. Defaults to the application <tt>tmp/mails</tt>.
+  #
   # * <tt>raise_delivery_errors</tt> - Whether or not errors should be raised if the email fails to be delivered.
   #
-  # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default), <tt>:sendmail</tt>, and <tt>:test</tt>.
+  # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default), <tt>:sendmail</tt>, <tt>:test</tt>,
+  #   and <tt>:file</tt>.
   #
   # * <tt>perform_deliveries</tt> - Determines whether <tt>deliver_*</tt> methods are actually carried out. By default they are,
   #   but this can be turned off to help functional testing.
@@ -278,6 +284,12 @@ module ActionMailer #:nodoc:
       :arguments      => '-i -t'
     }
     cattr_accessor :sendmail_settings
+
+    @@file_settings = {
+      :location       => defined?(Rails) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"
+    }
+
+    cattr_accessor :file_settings
 
     @@raise_delivery_errors = true
     cattr_accessor :raise_delivery_errors
@@ -499,7 +511,7 @@ module ActionMailer #:nodoc:
         # ====
         # TODO: Revisit this
         # template_exists = @parts.empty?
-        # template_exists ||= template_root.find_by_parts("#{mailer_name}/#{@template}")
+        # template_exists ||= template_root.find("#{mailer_name}/#{@template}")
         # @body = render_message(@template, @body) if template_exists
 
         # Finally, if there are other message parts and a textual body exists,
@@ -556,6 +568,7 @@ module ActionMailer #:nodoc:
         @headers ||= {}
         @body ||= {}
         @mime_version = @@default_mime_version.dup if @@default_mime_version
+        @sent_on ||= Time.now
       end
 
       def render_template(template, body)
@@ -566,7 +579,7 @@ module ActionMailer #:nodoc:
         @template = initialize_template_class(body)
         layout = _pick_layout(layout, true) unless 
           ActionController::Base.exempt_from_layout.include?(template.handler)
-        @template._render_template_with_layout(template, layout, {})
+        @template._render_template(template, layout, {})
       ensure
         @current_template_content_type = nil
       end
@@ -585,14 +598,14 @@ module ActionMailer #:nodoc:
           
           if file
             prefix = mailer_name unless file =~ /\//
-            template = view_paths.find_by_parts(file, {:formats => formats}, prefix)
+            template = view_paths.find(file, {:formats => formats}, prefix)
           end
 
           layout = _pick_layout(layout, 
             !template || ActionController::Base.exempt_from_layout.include?(template.handler))
 
           if template
-            @template._render_template_with_layout(template, layout, opts)
+            @template._render_template(template, layout, opts)
           elsif inline = opts[:inline]
             @template._render_inline(inline, layout, opts)
           end
@@ -722,6 +735,14 @@ module ActionMailer #:nodoc:
 
       def perform_delivery_test(mail)
         deliveries << mail
+      end
+
+      def perform_delivery_file(mail)
+        FileUtils.mkdir_p file_settings[:location]
+
+        (mail.to + mail.cc + mail.bcc).uniq.each do |to|
+          File.open(File.join(file_settings[:location], to), 'a') { |f| f.write(mail) }
+        end
       end
   end
 

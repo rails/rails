@@ -4,44 +4,61 @@ require 'models/minimalistic'
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :topics
+  
   def setup
-    @old_suffixes = ActiveRecord::Base.send(:attribute_method_suffixes).dup
+    @old_matchers = ActiveRecord::Base.send(:attribute_method_matchers).dup
     @target = Class.new(ActiveRecord::Base)
     @target.table_name = 'topics'
   end
 
   def teardown
-    ActiveRecord::Base.send(:attribute_method_suffixes).clear
-    ActiveRecord::Base.attribute_method_suffix *@old_suffixes
+    ActiveRecord::Base.send(:attribute_method_matchers).clear
+    ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
   end
 
-  def test_match_attribute_method_query_returns_match_data
-    assert_not_nil md = @target.match_attribute_method?('title=')
-    assert_equal 'title', md.pre_match
-    assert_equal ['='], md.captures
-
-    %w(_hello_world ist! _maybe?).each do |suffix|
-      @target.class_eval "def attribute#{suffix}(*args) args end"
-      @target.attribute_method_suffix suffix
-
-      assert_not_nil md = @target.match_attribute_method?("title#{suffix}")
-      assert_equal 'title', md.pre_match
-      assert_equal [suffix], md.captures
-    end
-  end
-
-  def test_declared_attribute_method_affects_respond_to_and_method_missing
+  def test_undeclared_attribute_method_does_not_affect_respond_to_and_method_missing
     topic = @target.new(:title => 'Budget')
     assert topic.respond_to?('title')
     assert_equal 'Budget', topic.title
     assert !topic.respond_to?('title_hello_world')
     assert_raise(NoMethodError) { topic.title_hello_world }
+  end
 
-    %w(_hello_world _it! _candidate= able?).each do |suffix|
+  def test_declared_prefixed_attribute_method_affects_respond_to_and_method_missing
+    topic = @target.new(:title => 'Budget')
+    %w(default_ title_).each do |prefix|
+      @target.class_eval "def #{prefix}attribute(*args) args end"
+      @target.attribute_method_prefix prefix
+
+      meth = "#{prefix}title"
+      assert topic.respond_to?(meth)
+      assert_equal ['title'], topic.send(meth)
+      assert_equal ['title', 'a'], topic.send(meth, 'a')
+      assert_equal ['title', 1, 2, 3], topic.send(meth, 1, 2, 3)
+    end
+  end
+
+  def test_declared_suffixed_attribute_method_affects_respond_to_and_method_missing
+    topic = @target.new(:title => 'Budget')
+    %w(_default _title_default _it! _candidate= able?).each do |suffix|
       @target.class_eval "def attribute#{suffix}(*args) args end"
       @target.attribute_method_suffix suffix
 
       meth = "title#{suffix}"
+      assert topic.respond_to?(meth)
+      assert_equal ['title'], topic.send(meth)
+      assert_equal ['title', 'a'], topic.send(meth, 'a')
+      assert_equal ['title', 1, 2, 3], topic.send(meth, 1, 2, 3)
+    end
+  end
+
+  def test_declared_affixed_attribute_method_affects_respond_to_and_method_missing
+    topic = @target.new(:title => 'Budget')
+    [['mark_', '_for_update'], ['reset_', '!'], ['default_', '_value?']].each do |prefix, suffix|
+      @target.class_eval "def #{prefix}attribute#{suffix}(*args) args end"
+      @target.attribute_method_affix({ :prefix => prefix, :suffix => suffix })
+
+      meth = "#{prefix}title#{suffix}"
       assert topic.respond_to?(meth)
       assert_equal ['title'], topic.send(meth)
       assert_equal ['title', 'a'], topic.send(meth, 'a')
@@ -58,13 +75,23 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_typecast_attribute_from_select_to_false
     topic = Topic.create(:title => 'Budget')
-    topic = Topic.find(:first, :select => "topics.*, 1=2 as is_test")
+    # Oracle does not support boolean expressions in SELECT
+    if current_adapter?(:OracleAdapter)
+      topic = Topic.find(:first, :select => "topics.*, 0 as is_test")
+    else
+      topic = Topic.find(:first, :select => "topics.*, 1=2 as is_test")
+    end
     assert !topic.is_test?
   end
 
   def test_typecast_attribute_from_select_to_true
     topic = Topic.create(:title => 'Budget')
-    topic = Topic.find(:first, :select => "topics.*, 2=2 as is_test")
+    # Oracle does not support boolean expressions in SELECT
+    if current_adapter?(:OracleAdapter)
+      topic = Topic.find(:first, :select => "topics.*, 1 as is_test")
+    else
+      topic = Topic.find(:first, :select => "topics.*, 2=2 as is_test")
+    end
     assert topic.is_test?
   end
 
@@ -72,10 +99,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     %w(test name display y).each do |method|
       assert !ActiveRecord::Base.instance_method_already_implemented?(method), "##{method} is defined"
     end
-  end
-
-  def test_primary_key_implemented
-    assert Class.new(ActiveRecord::Base).instance_method_already_implemented?('id')
   end
 
   def test_defined_kernel_methods_implemented_in_model

@@ -5,22 +5,31 @@ module Rails
     module Actions
 
       # Install a plugin. You must provide either a Subversion url or Git url.
-      # For a Git-hosted plugin, you can specify if it should be added as a submodule instead of cloned.
+      #
+      # For a Git-hosted plugin, you can specify a branch and
+      # whether it should be added as a submodule instead of cloned.
+      #
+      # For a Subversion-hosted plugin you can specify a revision.
       #
       # ==== Examples
       #
       #   plugin 'restful-authentication', :git => 'git://github.com/technoweenie/restful-authentication.git'
+      #   plugin 'restful-authentication', :git => 'git://github.com/technoweenie/restful-authentication.git', :branch => 'stable'
       #   plugin 'restful-authentication', :git => 'git://github.com/technoweenie/restful-authentication.git', :submodule => true
       #   plugin 'restful-authentication', :svn => 'svn://svnhub.com/technoweenie/restful-authentication/trunk'
+      #   plugin 'restful-authentication', :svn => 'svn://svnhub.com/technoweenie/restful-authentication/trunk', :revision => 1234
       #
       def plugin(name, options)
         log :plugin, name
 
         if options[:git] && options[:submodule]
+          options[:git] = "-b #{options[:branch]} #{options[:git]}" if options[:branch]
           in_root do
             run "git submodule add #{options[:git]} vendor/plugins/#{name}", :verbose => false
           end
         elsif options[:git] || options[:svn]
+          options[:git] = "-b #{options[:branch]} #{options[:git]}"   if options[:branch]
+          options[:svn] = "-r #{options[:revision]} #{options[:svn]}" if options[:revision]
           in_root do
             run_ruby_script "script/plugin install #{options[:svn] || options[:git]}", :verbose => false
           end

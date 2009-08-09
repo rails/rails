@@ -34,7 +34,6 @@ module Dispatching
       assert_body "success"
       assert_status 200
       assert_content_type "text/html; charset=utf-8"
-      assert_header "Content-Length", "7"
     end
 
     # :api: plugin
@@ -42,7 +41,6 @@ module Dispatching
       get "/dispatching/simple/modify_response_body"
 
       assert_body "success"
-      assert_header "Content-Length", "7" # setting the body manually sets the content length
     end
 
     # :api: plugin
@@ -50,7 +48,6 @@ module Dispatching
       get "/dispatching/simple/modify_response_body_twice"
 
       assert_body "success!"
-      assert_header "Content-Length", "8"
     end
 
     test "controller path" do

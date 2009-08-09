@@ -55,12 +55,10 @@ module Enumerable
   #  [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
   #
   def sum(identity = 0, &block)
-    return identity unless size > 0
-
     if block_given?
-      map(&block).sum
+      map(&block).sum(identity)
     else
-      inject { |sum, element| sum + element }
+      inject { |sum, element| sum + element } || identity
     end
   end
 
@@ -112,4 +110,14 @@ module Enumerable
   def none?(&block)
     !any?(&block)
   end unless [].respond_to?(:none?)
+end
+
+class Range #:nodoc:
+  # Optimize range sum to use arithmetic progression if a block is not given and
+  # we have a range of numeric values.
+  def sum(identity = 0)
+    return super if block_given? || !(first.instance_of?(Integer) && last.instance_of?(Integer))
+    actual_last = exclude_end? ? (last - 1) : last
+    (actual_last - first + 1) * (actual_last + first) / 2
+  end
 end

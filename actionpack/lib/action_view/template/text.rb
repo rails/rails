@@ -15,7 +15,9 @@ module ActionView #:nodoc:
     def render(*) self end
     
     def mime_type() @content_type end
-      
+
+    def formats() [mime_type] end
+
     def partial?() false end
   end
 end

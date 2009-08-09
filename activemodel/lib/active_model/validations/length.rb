@@ -66,10 +66,14 @@ module ActiveModel
 
           validates_each(attrs, options) do |record, attr, value|
             value = options[:tokenizer].call(value) if value.kind_of?(String)
-            if value.nil? or value.size < option_value.begin
-              record.errors.add(attr, :too_short, :default => custom_message || options[:too_short], :count => option_value.begin)
-            elsif value.size > option_value.end
-              record.errors.add(attr, :too_long, :default => custom_message || options[:too_long], :count => option_value.end)
+
+            min, max = option_value.begin, option_value.end
+            max = max - 1 if option_value.exclude_end?
+
+            if value.nil? || value.size < min
+              record.errors.add(attr, :too_short, :default => custom_message || options[:too_short], :count => min)
+            elsif value.size > max
+              record.errors.add(attr, :too_long, :default => custom_message || options[:too_long], :count => max)
             end
           end
         when :is, :minimum, :maximum
@@ -80,9 +84,14 @@ module ActiveModel
 
           validates_each(attrs, options) do |record, attr, value|
             value = options[:tokenizer].call(value) if value.kind_of?(String)
-            unless !value.nil? and value.size.method(validity_checks[option])[option_value]
-              record.errors.add(attr, key, :default => custom_message, :count => option_value)
+
+            valid_value = if option == :maximum
+              value.nil? || value.size.send(validity_checks[option], option_value)
+            else
+              value && value.size.send(validity_checks[option], option_value)
             end
+
+            record.errors.add(attr, key, :default => custom_message, :count => option_value) unless valid_value
           end
         end
       end

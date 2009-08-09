@@ -244,7 +244,6 @@ module Rails
     if RUBY_VERSION < '1.9'
       $KCODE='u'
     else
-      Encoding.default_internal = Encoding::UTF_8
       Encoding.default_external = Encoding::UTF_8
     end
   end

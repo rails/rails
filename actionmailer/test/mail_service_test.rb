@@ -18,7 +18,6 @@ class TestMailer < ActionMailer::Base
     @recipients   = recipient
     @subject      = "[Signed up] Welcome #{recipient}"
     @from         = "system@loudthinking.com"
-    @sent_on      = Time.local(2004, 12, 12)
     @body["recipient"] = recipient
   end
 
@@ -357,12 +356,14 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def test_signed_up
+    Time.stubs(:now => Time.now)
+
     expected = new_mail
     expected.to      = @recipient
     expected.subject = "[Signed up] Welcome #{@recipient}"
     expected.body    = "Hello there, \n\nMr. #{@recipient}"
     expected.from    = "system@loudthinking.com"
-    expected.date    = Time.local(2004, 12, 12)
+    expected.date    = Time.now
 
     created = nil
     assert_nothing_raised { created = TestMailer.create_signed_up(@recipient) }
@@ -573,12 +574,14 @@ class ActionMailerTest < Test::Unit::TestCase
       @info_contents, @debug_contents = "", ""
     end
     
-    def info(str)
-      @info_contents << str
+    def info(str = nil, &blk)
+      @info_contents << str if str
+      @info_contents << blk.call if block_given?
     end
     
-    def debug(str)
-      @debug_contents << str
+    def debug(str = nil, &blk)
+      @debug_contents << str if str
+      @debug_contents << blk.call if block_given?
     end
   end
 
@@ -885,6 +888,18 @@ EOF
     assert_match %r{^To: #{@recipient}}, MockSMTP.deliveries[0][0]
     assert_no_match %r{^Bcc: root@loudthinking.com}, MockSMTP.deliveries[0][0]
   end
+
+   def test_file_delivery_should_create_a_file
+     ActionMailer::Base.delivery_method = :file
+     tmp_location = ActionMailer::Base.file_settings[:location]
+
+     TestMailer.deliver_cc_bcc(@recipient)
+     assert File.exists?(tmp_location)
+     assert File.directory?(tmp_location)
+     assert File.exists?(File.join(tmp_location, @recipient))
+     assert File.exists?(File.join(tmp_location, 'nobody@loudthinking.com'))
+     assert File.exists?(File.join(tmp_location, 'root@loudthinking.com'))
+   end
 
   def test_recursive_multipart_processing
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email7")

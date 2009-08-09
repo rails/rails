@@ -1,9 +1,10 @@
+# encoding: utf-8
 require 'abstract_unit'
 
 module TestFileUtils
   def file_name() File.basename(__FILE__) end
   def file_path() File.expand_path(__FILE__) end
-  def file_data() File.open(file_path, 'rb') { |f| f.read } end
+  def file_data() @data ||= File.open(file_path, 'rb') { |f| f.read } end
 end
 
 class SendFileController < ActionController::Base
@@ -21,6 +22,10 @@ class SendFileController < ActionController::Base
 
   def data
     send_data(file_data, options)
+  end
+
+  def multibyte_text_data
+    send_data("Кирилица\n祝您好運", options)
   end
 end
 
@@ -55,6 +60,7 @@ class SendFileTest < ActionController::TestCase
       require 'stringio'
       output = StringIO.new
       output.binmode
+      output.string.force_encoding(file_data.encoding) if output.string.respond_to?(:force_encoding)
       assert_nothing_raised { response.body_parts.each { |part| output << part.to_s } }
       assert_equal file_data, output.string
     end
@@ -123,7 +129,7 @@ class SendFileTest < ActionController::TestCase
     # test overriding Cache-Control: no-cache header to fix IE open/save dialog
     @controller.headers = { 'Cache-Control' => 'no-cache' }
     @controller.send(:send_file_headers!, options)
-    h = @controller.headers
+    @controller.response.prepare!
     assert_equal 'private', h['Cache-Control']
   end
 
@@ -162,5 +168,12 @@ class SendFileTest < ActionController::TestCase
       assert_nothing_raised { assert_not_nil process(method) }
       assert_equal 200, @response.status
     end
+  end
+
+  def test_send_data_content_length_header
+    @controller.headers = {}
+    @controller.options = { :type => :text, :filename => 'file_with_utf8_text' }
+    process('multibyte_text_data')
+    assert_equal '29', @controller.headers['Content-Length']
   end
 end

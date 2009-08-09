@@ -345,13 +345,16 @@ module ActionDispatch
       #
       # Use the first argument to narrow down assertions to only statements
       # of that type. Possible values are <tt>:replace</tt>, <tt>:replace_html</tt>, 
-      # <tt>:show</tt>, <tt>:hide</tt>, <tt>:toggle</tt>, <tt>:remove</tt> and
-      # <tt>:insert_html</tt>.
+      # <tt>:show</tt>, <tt>:hide</tt>, <tt>:toggle</tt>, <tt>:remove</tta>,
+      # <tt>:insert_html</tt> and <tt>:redirect</tt>.
       #
       # Use the argument <tt>:insert</tt> followed by an insertion position to narrow
       # down the assertion to only statements that insert elements in that
       # position. Possible values are <tt>:top</tt>, <tt>:bottom</tt>, <tt>:before</tt>
       # and <tt>:after</tt>.
+      #
+      # Use the argument <tt>:redirect</tt> follwed by a path to check that an statement
+      # which redirects to the specified path is generated.
       #
       # Using the <tt>:remove</tt> statement, you will be able to pass a block, but it will
       # be ignored as there is no HTML passed for this statement.
@@ -399,6 +402,9 @@ module ActionDispatch
       #
       #   # The same, but shorter.
       #   assert_select "ol>li", 4
+      #
+      #   # Checking for a redirect.
+      #   assert_select_rjs :redirect, root_path
       def assert_select_rjs(*args, &block)
         rjs_type = args.first.is_a?(Symbol) ? args.shift : nil
         id       = args.first.is_a?(String) ? args.shift : nil
@@ -576,7 +582,8 @@ module ActionDispatch
             :chained_replace      => "\\$\\(#{RJS_ANY_ID}\\)\\.replace\\(#{RJS_PATTERN_HTML}\\)",
             :chained_replace_html => "\\$\\(#{RJS_ANY_ID}\\)\\.update\\(#{RJS_PATTERN_HTML}\\)",
             :replace_html         => "Element\\.update\\(#{RJS_ANY_ID}, #{RJS_PATTERN_HTML}\\)",
-            :replace              => "Element\\.replace\\(#{RJS_ANY_ID}, #{RJS_PATTERN_HTML}\\)"
+            :replace              => "Element\\.replace\\(#{RJS_ANY_ID}, #{RJS_PATTERN_HTML}\\)",
+            :redirect             => "window.location.href = #{RJS_ANY_ID}"
           }
           [:remove, :show, :hide, :toggle].each do |action|
             RJS_STATEMENTS[action] = "Element\\.#{action}\\(#{RJS_ANY_ID}\\)"

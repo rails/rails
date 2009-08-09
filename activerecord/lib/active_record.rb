@@ -52,7 +52,6 @@ module ActiveRecord
   autoload :Batches, 'active_record/batches'
   autoload :Calculations, 'active_record/calculations'
   autoload :Callbacks, 'active_record/callbacks'
-  autoload :Dirty, 'active_record/dirty'
   autoload :DynamicFinderMatch, 'active_record/dynamic_finder_match'
   autoload :DynamicScopeMatch, 'active_record/dynamic_scope_match'
   autoload :Migration, 'active_record/migration'
@@ -66,10 +65,21 @@ module ActiveRecord
   autoload :SchemaDumper, 'active_record/schema_dumper'
   autoload :Serialization, 'active_record/serialization'
   autoload :SessionStore, 'active_record/session_store'
+  autoload :StateMachine, 'active_record/state_machine'
   autoload :TestCase, 'active_record/test_case'
   autoload :Timestamp, 'active_record/timestamp'
   autoload :Transactions, 'active_record/transactions'
   autoload :Validations, 'active_record/validations'
+
+  module AttributeMethods
+    autoload :BeforeTypeCast, 'active_record/attribute_methods/before_type_cast'
+    autoload :Dirty, 'active_record/attribute_methods/dirty'
+    autoload :PrimaryKey, 'active_record/attribute_methods/primary_key'
+    autoload :Query, 'active_record/attribute_methods/query'
+    autoload :Read, 'active_record/attribute_methods/read'
+    autoload :TimeZoneConversion, 'active_record/attribute_methods/time_zone_conversion'
+    autoload :Write, 'active_record/attribute_methods/write'
+  end
 
   module Locking
     autoload :Optimistic, 'active_record/locking/optimistic'

@@ -71,7 +71,8 @@ module Rails
       @paths.lib                 "lib",             :load_path => true
       @paths.vendor              "vendor",          :load_path => true
       @paths.vendor.plugins      "vendor/plugins"
-      @paths.cache               "tmp/cache"
+      @paths.tmp                 "tmp"
+      @paths.tmp.cache           "tmp/cache"
       @paths.config              "config"
       @paths.config.locales      "config/locales"
       @paths.config.environments "config/environments", :glob => "#{RAILS_ENV}.rb"

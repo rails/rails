@@ -101,8 +101,12 @@ namespace :db do
       ActiveRecord::Base.configurations.each_value do |config|
         # Skip entries that don't have a database key
         next unless config['database']
-        # Only connect to local databases
-        local_database?(config) { drop_database(config) }
+        begin
+          # Only connect to local databases
+          local_database?(config) { drop_database(config) }
+        rescue Exception => e
+          puts "Couldn't drop #{config['database']} : #{e.inspect}"
+        end
       end
     end
   end
@@ -169,6 +173,13 @@ namespace :db do
   task :rollback => :environment do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     ActiveRecord::Migrator.rollback('db/migrate/', step)
+    Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
+  end
+
+  desc 'Pushes the schema to the next version. Specify the number of steps with STEP=n'
+  task :forward => :environment do
+    step = ENV['STEP'] ? ENV['STEP'].to_i : 1
+    ActiveRecord::Migrator.forward('db/migrate/', step)
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
@@ -429,7 +440,11 @@ def drop_database(config)
     ActiveRecord::Base.establish_connection(config)
     ActiveRecord::Base.connection.drop_database config['database']
   when /^sqlite/
-    FileUtils.rm(File.join(RAILS_ROOT, config['database']))
+    require 'pathname'
+    path = Pathname.new(config['database'])
+    file = path.absolute? ? path.to_s : File.join(RAILS_ROOT, path)
+
+    FileUtils.rm(file)
   when 'postgresql'
     ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
     ActiveRecord::Base.connection.drop_database config['database']
@@ -437,7 +452,7 @@ def drop_database(config)
 end
 
 def session_table_name
-  ActiveRecord::Base.pluralize_table_names ? :sessions : :session
+  ActiveRecord::SessionStore::Session.table_name
 end
 
 def set_firebird_env(config)

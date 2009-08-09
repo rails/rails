@@ -28,7 +28,6 @@ module Rails
           else
             singular_name
           end
-          @table_name.gsub! '/', '_'
 
           if class_nesting.empty?
             @class_name = class_name_without_nesting
@@ -36,6 +35,8 @@ module Rails
             @table_name = class_nesting.underscore << "_" << @table_name
             @class_name = "#{class_nesting}::#{class_name_without_nesting}"
           end
+
+          @table_name.gsub!('/', '_')
         end
 
         # Convert attributes hash into an array with GeneratedAttribute objects.
@@ -124,18 +125,18 @@ module Rails
 
       protected
 
-        # Loads the ORM::Generators::ActionORM class. This class is responsable
+        # Loads the ORM::Generators::ActiveModel class. This class is responsable
         # to tell scaffold entities how to generate an specific method for the
-        # ORM. Check Rails::Generators::ActionORM for more information.
+        # ORM. Check Rails::Generators::ActiveModel for more information.
         #
         def orm_class
           @orm_class ||= begin
             # Raise an error if the class_option :orm was not defined.
             unless self.class.class_options[:orm]
-              raise "You need to have :orm as class option to invoke orm_class and orm_instance" 
+              raise "You need to have :orm as class option to invoke orm_class and orm_instance"
             end
 
-            action_orm = "#{options[:orm].to_s.classify}::Generators::ActionORM"
+            action_orm = "#{options[:orm].to_s.classify}::Generators::ActiveModel"
 
             # If the orm was not loaded, try to load it at "generators/orm",
             # for example "generators/active_record" or "generators/sequel".
@@ -152,7 +153,7 @@ module Rails
           end
         end
 
-        # Initialize ORM::Generators::ActionORM to access instance methods.
+        # Initialize ORM::Generators::ActiveModel to access instance methods.
         #
         def orm_instance(name=file_name)
           @orm_instance ||= @orm_class.new(name)

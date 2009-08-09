@@ -79,6 +79,13 @@ module ActionView
       #   #    <option>Paris</option><option>Rome</option></select>
       def select_tag(name, option_tags = nil, options = {})
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
+        if blank = options.delete(:include_blank)
+          if blank.kind_of?(String)
+            option_tags = "<option value=\"\">#{blank}</option>" + option_tags
+          else
+            option_tags = "<option value=\"\"></option>" + option_tags
+          end
+        end
         content_tag :select, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
       end
 
@@ -263,7 +270,7 @@ module ActionView
         escape = options.key?("escape") ? options.delete("escape") : true
         content = html_escape(content) if escape
 
-        content_tag :textarea, content, { "name" => name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
+        content_tag :textarea, content, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
       end
 
       # Creates a check box form input tag.

@@ -101,6 +101,16 @@ class ConnectionTest < Test::Unit::TestCase
     assert_equal site, @conn.site
   end
 
+  def test_proxy_accessor_accepts_uri_or_string_argument
+    proxy = URI.parse("http://proxy_user:proxy_password@proxy.local:4242")
+
+    assert_nothing_raised { @conn.proxy = "http://proxy_user:proxy_password@proxy.local:4242" }
+    assert_equal proxy, @conn.proxy
+
+    assert_nothing_raised { @conn.proxy = proxy }
+    assert_equal proxy, @conn.proxy
+  end
+
   def test_timeout_accessor
     @conn.timeout = 5
     assert_equal 5, @conn.timeout
@@ -173,6 +183,17 @@ class ConnectionTest < Test::Unit::TestCase
     @conn.expects(:http).returns(@http)
     @http.expects(:get).raises(Timeout::Error, 'execution expired')
     assert_raise(ActiveResource::TimeoutError) { @conn.get('/people_timeout.xml') }
+  end
+
+  def test_setting_timeout
+    http = Net::HTTP.new('')
+
+    [10, 20].each do |timeout|
+      @conn.timeout = timeout
+      @conn.send(:configure_http, http)
+      assert_equal timeout, http.open_timeout
+      assert_equal timeout, http.read_timeout
+    end
   end
 
   def test_accept_http_header

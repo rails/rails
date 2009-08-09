@@ -872,8 +872,8 @@ module ActionView
 
       private
         def add_default_name_and_id_for_value(tag_value, options)
-          if tag_value
-            pretty_tag_value    = tag_value.to_s.gsub(/\s/, "_").gsub(/\W/, "").downcase
+          unless tag_value.nil?
+            pretty_tag_value = tag_value.to_s.gsub(/\s/, "_").gsub(/\W/, "").downcase
             specified_id = options["id"]
             add_default_name_and_id(options)
             options["id"] += "_#{pretty_tag_value}" unless specified_id
@@ -931,6 +931,14 @@ module ActionView
       self.field_helpers = (FormHelper.instance_methods - ['form_for'])
 
       attr_accessor :object_name, :object, :options
+
+      def self.model_name
+        @model_name ||= Struct.new(:partial_path).new(name.demodulize.underscore.sub!(/_builder$/, ''))
+      end
+
+      def to_model
+        self
+      end
 
       def initialize(object_name, object, template, options, proc)
         @nested_child_index = {}

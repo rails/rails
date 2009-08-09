@@ -11,7 +11,7 @@ end
 
 $:.unshift(File.dirname(__FILE__))
 
-require 'vendor/thor-0.11.3/lib/thor'
+require 'vendor/thor-0.11.5/lib/thor'
 require 'generators/base'
 require 'generators/named_base'
 
@@ -83,6 +83,34 @@ module Rails
       @@options ||= DEFAULT_OPTIONS.dup
     end
 
+    # Get paths only from loaded rubygems. In other words, to use rspec
+    # generators, you first have to ensure that rspec gem was already loaded.
+    #
+    def self.rubygems_generators_paths
+      paths = []
+      return paths unless defined?(Gem)
+
+      Gem.loaded_specs.each do |name, spec|
+        generator_path = File.join(spec.full_gem_path, "lib/generators")
+        paths << generator_path if File.exist?(generator_path)
+      end
+
+      paths
+    end
+
+    # If RAILS_ROOT is defined, add vendor/gems, vendor/plugins and lib/generators
+    # paths.
+    #
+    def self.rails_root_generators_paths
+      paths = []
+      if defined?(RAILS_ROOT)
+        paths += Dir[File.join(RAILS_ROOT, "vendor", "gems", "gems", "*", "lib", "generators")]
+        paths += Dir[File.join(RAILS_ROOT, "vendor", "plugins", "*", "lib", "generators")]
+        paths << File.join(RAILS_ROOT, "lib", "generators")
+      end
+      paths
+    end
+
     # Hold configured generators fallbacks. If a plugin developer wants a
     # generator group to fallback to another group in case of missing generators,
     # they can add a fallback.
@@ -108,30 +136,25 @@ module Rails
 
     # Generators load paths used on lookup. The lookup happens as:
     #
-    #   1) builtin generators
-    #   2) frozen gems generators
-    #   3) rubygems gems generators (not available yet)
-    #   4) plugin generators
-    #   5) lib generators
-    #   6) ~/rails/generators
+    #   1) lib generators
+    #   2) vendor/plugin generators
+    #   3) vendor/gems generators
+    #   4) ~/rails/generators
+    #   5) rubygems generators
+    #   6) builtin generators
     #
-    # TODO Add Rubygems generators (depends on dependencies system rework)
     # TODO Remove hardcoded paths for all, except (1).
     #
-    def self.load_path
-      @@load_path ||= begin
-        paths = []
-        paths << File.expand_path(File.join(File.dirname(__FILE__), "generators"))
-        if defined?(RAILS_ROOT)
-          paths += Dir[File.join(RAILS_ROOT, "vendor", "gems", "*", "lib", "generators")]
-          paths += Dir[File.join(RAILS_ROOT, "vendor", "plugins", "*", "lib", "generators")]
-          paths << File.join(RAILS_ROOT, "lib", "generators")
-        end
+    def self.load_paths
+      @@load_paths ||= begin
+        paths = self.rails_root_generators_paths
         paths << File.join(Thor::Util.user_home, ".rails", "generators")
+        paths += self.rubygems_generators_paths
+        paths << File.expand_path(File.join(File.dirname(__FILE__), "generators"))
         paths
       end
     end
-    load_path # Cache load paths. Needed to avoid __FILE__ pointing to wrong paths.
+    load_paths # Cache load paths. Needed to avoid __FILE__ pointing to wrong paths.
 
     # Receives a namespace and tries different combinations to find a generator.
     #
@@ -204,8 +227,8 @@ module Rails
       puts "Builtin: #{rails.join(', ')}."
 
       # Load paths and remove builtin
-      paths, others = load_path.dup, []
-      paths.shift
+      paths, others = load_paths.dup, []
+      paths.pop
 
       paths.each do |path|
         tail = [ "*", "*", "*_generator.rb" ]
@@ -242,7 +265,6 @@ module Rails
       #
       def self.invoke_fallbacks_for(name, base)
         return nil unless base && fallbacks[base.to_sym]
-
         invoked_fallbacks = []
 
         Array(fallbacks[base.to_sym]).each do |fallback|
@@ -283,7 +305,7 @@ module Rails
           generators_path.uniq!
           generators_path = "{#{generators_path.join(',')}}"
 
-          self.load_path.each do |path|
+          self.load_paths.each do |path|
             Dir[File.join(path, generators_path, name)].each do |file|
               begin
                 require file

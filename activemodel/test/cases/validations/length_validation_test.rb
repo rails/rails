@@ -52,6 +52,12 @@ class LengthValidationTest < ActiveModel::TestCase
     assert_equal ["is too short (minimum is 5 characters)"], t.errors["title"]
   end
 
+  def test_validates_length_of_using_maximum_should_allow_nil
+    Topic.validates_length_of :title, :maximum => 10
+    t = Topic.create
+    assert t.valid?
+  end
+
   def test_optionally_validates_length_of_using_minimum
     Topic.validates_length_of :title, :minimum => 5, :allow_nil => true
 
@@ -75,9 +81,6 @@ class LengthValidationTest < ActiveModel::TestCase
 
     t.title = ""
     assert t.valid?
-
-    t.title = nil
-    assert !t.valid?
   end
 
   def test_optionally_validates_length_of_using_maximum
@@ -106,6 +109,20 @@ class LengthValidationTest < ActiveModel::TestCase
 
     t.title = "abe"
     t.content  = "mad"
+    assert t.valid?
+  end
+
+  def test_validates_length_of_using_within_with_exclusive_range
+    Topic.validates_length_of(:title, :within => 4...10)
+
+    t = Topic.new("title" => "9 chars!!")
+    assert t.valid?
+
+    t.title = "Now I'm 10"
+    assert !t.valid?
+    assert_equal ["is too long (maximum is 9 characters)"], t.errors[:title]
+
+    t.title = "Four"
     assert t.valid?
   end
 

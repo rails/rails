@@ -32,8 +32,8 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response < Rack::Response
-    DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
     attr_accessor :request
+    attr_reader :cache_control
 
     attr_writer :header
     alias_method :headers=, :header=
@@ -42,21 +42,26 @@ module ActionDispatch # :nodoc:
 
     def initialize
       super
-      @header = Rack::Utils::HeaderHash.new(DEFAULT_HEADERS)
+      @cache_control = {}
+      @header = Rack::Utils::HeaderHash.new
+    end
+
+    def status=(status)
+      @status = status.to_i
     end
 
     # The response code of the request
     def response_code
-      status.to_s[0,3].to_i rescue 0
+      @status
     end
 
     # Returns a String to ensure compatibility with Net::HTTPResponse
     def code
-      status.to_s.split(' ')[0]
+      @status.to_s
     end
 
     def message
-      status.to_s.split(' ',2)[1] || StatusCodes::STATUS_CODES[response_code]
+      StatusCodes::STATUS_CODES[@status]
     end
     alias_method :status_message, :message
 
@@ -142,10 +147,7 @@ module ActionDispatch # :nodoc:
     def prepare!
       assign_default_content_type_and_charset!
       handle_conditional_get!
-      set_content_length!
-      convert_content_type!
-      convert_language!
-      convert_cookies!
+      self["Set-Cookie"] ||= ""
     end
 
     def each(&callback)
@@ -196,22 +198,24 @@ module ActionDispatch # :nodoc:
 
     private
       def handle_conditional_get!
-        if etag? || last_modified?
+        if etag? || last_modified? || !cache_control.empty?
           set_conditional_cache_control!
         elsif nonempty_ok_response?
           self.etag = body
 
           if request && request.etag_matches?(etag)
-            self.status = '304 Not Modified'
+            self.status = 304
             self.body = []
           end
 
           set_conditional_cache_control!
+        else
+          headers["Cache-Control"] = "no-cache"
         end
       end
 
       def nonempty_ok_response?
-        ok = !status || status.to_s[0..2] == '200'
+        ok = !@status || @status == 200
         ok && string_body?
       end
 
@@ -220,40 +224,20 @@ module ActionDispatch # :nodoc:
       end
 
       def set_conditional_cache_control!
-        if headers['Cache-Control'] == DEFAULT_HEADERS['Cache-Control']
-          headers['Cache-Control'] = 'private, max-age=0, must-revalidate'
+        if cache_control.empty?
+          cache_control.merge!(:public => false, :max_age => 0, :must_revalidate => true)
         end
-      end
 
-      def convert_content_type!
-        headers['Content-Type'] ||= "text/html"
-        headers['Content-Type'] += "; charset=" + headers.delete('charset') if headers['charset']
-      end
+        public_cache, max_age, must_revalidate, extras =
+          cache_control.values_at(:public, :max_age, :must_revalidate, :extras)
 
-      # Don't set the Content-Length for block-based bodies as that would mean
-      # reading it all into memory. Not nice for, say, a 2GB streaming file.
-      def set_content_length!
-        if status && status.to_s[0..2] == '204'
-          headers.delete('Content-Length')
-        elsif length = headers['Content-Length']
-          headers['Content-Length'] = length.to_s
-        elsif string_body? && (!status || status.to_s[0..2] != '304')
-          headers["Content-Length"] = Rack::Utils.bytesize(body).to_s
-        end
-      end
+        options = []
+        options << "max-age=#{max_age}" if max_age
+        options << (public_cache ? "public" : "private")
+        options << "must-revalidate" if must_revalidate
+        options.concat(extras) if extras
 
-      def convert_language!
-        headers["Content-Language"] = headers.delete("language") if headers["language"]
-      end
-
-      def convert_cookies!
-        headers['Set-Cookie'] =
-          if header = headers['Set-Cookie']
-            header = header.split("\n") if header.respond_to?(:to_str)
-            header.compact
-          else
-            []
-          end
+        headers["Cache-Control"] = options.join(", ")
       end
   end
 end

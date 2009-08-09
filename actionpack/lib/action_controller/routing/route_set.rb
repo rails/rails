@@ -463,13 +463,6 @@ module ActionController
         routes_by_controller[controller][action][merged.keys]
       end
 
-      def routes_for_controller_and_action(controller, action)
-        selected = routes.select do |route|
-          route.matches_controller_and_action? controller, action
-        end
-        (selected.length == routes.length) ? routes : selected
-      end
-
       def routes_for_controller_and_action_and_keys(controller, action, keys)
         selected = routes.select do |route|
           route.matches_controller_and_action? controller, action

@@ -18,7 +18,7 @@ module ActiveModel
           true
         end
       end
-      
+
       def execute(obj, *args)
         case @on_transition
         when Symbol, String

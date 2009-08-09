@@ -1367,7 +1367,7 @@ module ActiveRecord
 
             define_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
               ids = (new_value || []).reject { |nid| nid.blank? }
-              send("#{reflection.name}=", reflection.class_name.constantize.find(ids))
+              send("#{reflection.name}=", reflection.klass.find(ids))
             end
           end
         end
@@ -1912,7 +1912,7 @@ module ActiveRecord
                     descendant
                   end.flatten.compact
 
-                  remove_duplicate_results!(reflection.class_name.constantize, parent_records, associations[name]) unless parent_records.empty?
+                  remove_duplicate_results!(reflection.klass, parent_records, associations[name]) unless parent_records.empty?
                 end
             end
           end

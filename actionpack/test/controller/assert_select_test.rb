@@ -257,6 +257,13 @@ class AssertSelectTest < ActionController::TestCase
     end
     assert_raise(Assertion) {assert_select_rjs :insert, :top, "test2"}
   end
+  
+  def test_assert_select_rjs_for_redirect_to
+    render_rjs do |page|
+      page.redirect_to '/'
+    end
+    assert_select_rjs :redirect, '/'
+  end
 
   def test_elect_with_xml_namespace_attributes
     render_html %Q{<link xlink:href="http://nowhere.com"></link>}

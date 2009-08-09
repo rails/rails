@@ -171,7 +171,7 @@ module ActionView
       end
 
       # Computes the path to a javascript asset in the public javascripts directory.
-      # If the +source+ filename has no extension, .js will be appended.
+      # If the +source+ filename has no extension, .js will be appended (except for explicit URIs)
       # Full paths from the document root will be passed through.
       # Used internally by javascript_include_tag to build the script path.
       #
@@ -179,7 +179,7 @@ module ActionView
       #   javascript_path "xmlhr" # => /javascripts/xmlhr.js
       #   javascript_path "dir/xmlhr.js" # => /javascripts/dir/xmlhr.js
       #   javascript_path "/dir/xmlhr" # => /dir/xmlhr.js
-      #   javascript_path "http://www.railsapplication.com/js/xmlhr" # => http://www.railsapplication.com/js/xmlhr.js
+      #   javascript_path "http://www.railsapplication.com/js/xmlhr" # => http://www.railsapplication.com/js/xmlhr
       #   javascript_path "http://www.railsapplication.com/js/xmlhr.js" # => http://www.railsapplication.com/js/xmlhr.js
       def javascript_path(source)
         compute_public_path(source, 'javascripts', 'js')
@@ -337,7 +337,7 @@ module ActionView
       end
 
       # Computes the path to a stylesheet asset in the public stylesheets directory.
-      # If the +source+ filename has no extension, <tt>.css</tt> will be appended.
+      # If the +source+ filename has no extension, <tt>.css</tt> will be appended (except for explicit URIs).
       # Full paths from the document root will be passed through.
       # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
       #
@@ -345,8 +345,8 @@ module ActionView
       #   stylesheet_path "style" # => /stylesheets/style.css
       #   stylesheet_path "dir/style.css" # => /stylesheets/dir/style.css
       #   stylesheet_path "/dir/style.css" # => /dir/style.css
-      #   stylesheet_path "http://www.railsapplication.com/css/style" # => http://www.railsapplication.com/css/style.css
-      #   stylesheet_path "http://www.railsapplication.com/css/style.js" # => http://www.railsapplication.com/css/style.css
+      #   stylesheet_path "http://www.railsapplication.com/css/style" # => http://www.railsapplication.com/css/style
+      #   stylesheet_path "http://www.railsapplication.com/css/style.css" # => http://www.railsapplication.com/css/style.css
       def stylesheet_path(source)
         compute_public_path(source, 'stylesheets', 'css')
       end
@@ -557,7 +557,7 @@ module ActionView
       #  video_tag("trailer.ogg")  # =>
       #    <video src="/videos/trailer.ogg" />
       #  video_tag("trailer.ogg", :controls => true, :autobuffer => true)  # =>
-      #    <video autobuffer="true" controls="true" src="/videos/trailer.ogg" />
+      #    <video autobuffer="autobuffer" controls="controls" src="/videos/trailer.ogg" />
       #  video_tag("trailer.m4v", :size => "16x10", :poster => "screenshot.png")  # =>
       #    <video src="/videos/trailer.m4v" width="16" height="10" poster="/images/screenshot.png" />
       #  video_tag("/trailers/hd.avi", :size => "16x16")  # =>
@@ -629,11 +629,11 @@ module ActionView
           has_request = @controller.respond_to?(:request)
 
           source_ext = File.extname(source)[1..-1]
-          if ext && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(ASSETS_DIR, dir, "#{source}.#{ext}"))))
+          if ext && !is_uri?(source) && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(ASSETS_DIR, dir, "#{source}.#{ext}"))))
             source += ".#{ext}"
           end
 
-          unless source =~ %r{^[-a-z]+://}
+          unless is_uri?(source)
             source = "/#{dir}/#{source}" unless source[0] == ?/
 
             source = rewrite_asset_path(source)
@@ -645,10 +645,10 @@ module ActionView
             end
           end
 
-          if include_host && source !~ %r{^[-a-z]+://}
+          if include_host && !is_uri?(source)
             host = compute_asset_host(source)
 
-            if has_request && !host.blank? && host !~ %r{^[-a-z]+://}
+            if has_request && !host.blank? && !is_uri?(host)
               host = "#{@controller.request.protocol}#{host}"
             end
 
@@ -656,6 +656,10 @@ module ActionView
           else
             source
           end
+        end
+
+        def is_uri?(path)
+          path =~ %r{^[-a-z]+://}
         end
 
         # Pick an asset host for this source. Returns +nil+ if no host is set,
@@ -798,7 +802,7 @@ module ActionView
         end
 
         def asset_file_path!(path)
-          unless path =~ %r{^[-a-z]+://}
+          unless is_uri?(path)
             absolute_path = asset_file_path(path)
             raise(Errno::ENOENT, "Asset file not found at '#{absolute_path}'" ) unless File.exist?(absolute_path)
             return absolute_path

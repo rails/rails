@@ -82,8 +82,8 @@ module Rails
       end
 
       def load_rubygems
+        min_version = '1.3.2'
         require 'rubygems'
-        min_version = '1.3.1'
         unless rubygems_version >= min_version
           $stderr.puts %Q(Rails requires RubyGems >= #{min_version} (you have #{rubygems_version}). Please `gem update --system` and try again.)
           exit 1
