@@ -6,6 +6,7 @@ $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../activesupport/lib"
 require 'action_controller'
 require 'action_controller/new_base' if ENV['NEW']
+require 'action_view'
 require 'benchmark'
 
 class Runner
@@ -37,8 +38,18 @@ end
 
 N = (ENV['N'] || 1000).to_i
 
+module ActionController::Rails2Compatibility
+  instance_methods.each do |name|
+    remove_method name
+  end
+end
+
 class BasePostController < ActionController::Base
   append_view_path "#{File.dirname(__FILE__)}/views"
+
+  def overhead
+    self.response_body = ''
+  end
 
   def index
     render :text => ''
@@ -71,17 +82,27 @@ class HttpPostController < ActionController::Metal
 end
 
 unless ENV["PROFILE"]
+  Runner.run(BasePostController.action(:overhead), N, 'overhead')
+  Runner.run(BasePostController.action(:index), N, 'index')
+  Runner.run(BasePostController.action(:partial), N, 'partial')
+  Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
+  Runner.run(BasePostController.action(:partial_collection), N, 'collection')
+  Runner.run(BasePostController.action(:show_template), N, 'template')
+
   (ENV["M"] || 1).to_i.times do
+    Runner.run(BasePostController.action(:overhead), N, 'overhead')
+    Runner.run(BasePostController.action(:index), N, 'index')
     Runner.run(BasePostController.action(:partial), N, 'partial')
     Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
     Runner.run(BasePostController.action(:partial_collection), N, 'collection')
     Runner.run(BasePostController.action(:show_template), N, 'template')
   end
 else
+  Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
   require "ruby-prof"
   RubyProf.start
-  Runner.run(BasePostController.action(:many_partials), N, 'partial')
+  Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
   result = RubyProf.stop
   printer = RubyProf::CallStackPrinter.new(result)
-  printer.print(File.open("output.html", "w"), :min_percent => 2)
+  printer.print(File.open("output.html", "w"))
 end
