@@ -699,6 +699,28 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, companies(:first_firm).clients_of_firm(true).size
   end
 
+  def test_destroying_by_fixnum_id
+    force_signal37_to_load_all_clients_of_firm
+
+    assert_difference "Client.count", -1 do
+      companies(:first_firm).clients_of_firm.destroy(companies(:first_firm).clients_of_firm.first.id)
+    end
+
+    assert_equal 0, companies(:first_firm).reload.clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+  end
+
+  def test_destroying_by_string_id
+    force_signal37_to_load_all_clients_of_firm
+
+    assert_difference "Client.count", -1 do
+      companies(:first_firm).clients_of_firm.destroy(companies(:first_firm).clients_of_firm.first.id.to_s)
+    end
+
+    assert_equal 0, companies(:first_firm).reload.clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+  end
+
   def test_destroying_a_collection
     force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
