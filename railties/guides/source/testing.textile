@@ -162,7 +162,7 @@ require 'test_helper'
 
 class PostTest < ActiveSupport::TestCase
   # Replace this with your real tests.
-  def test_truth
+  test "the truth" do
     assert true
   end
 end
@@ -186,7 +186,17 @@ The +PostTest+ class defines a _test case_ because it inherits from +ActiveSuppo
 def test_truth
 </ruby>
 
-Any method defined within a test case that begins with +test+ (case sensitive) is simply called a test. So, +test_password+, +test_valid_password+ and +testValidPassword+ all are legal test names and are run automatically when the test case is run.
+Any method defined within a +Test::Unit+ test case that begins with +test+ (case sensitive) is simply called a test. So, +test_password+, +test_valid_password+ and +testValidPassword+ all are legal test names and are run automatically when the test case is run.
+
+Rails adds a +test+ method that takes a test name and a block. It generates a normal +Test::Unit+ test with method names prefixed with +test_+.
+
+<ruby>
+test "the truth" do
+  # ...
+end
+</ruby>
+
+This makes test names more readable by replacing underscores with regular language.
 
 <ruby>
 assert true
@@ -262,7 +272,7 @@ The +.+ (dot) above indicates a passing test. When a test fails you see an +F+; 
 To see how a test failure is reported, you can add a failing test to the +post_test.rb+ test case.
 
 <ruby>
-def test_should_not_save_post_without_title
+test "should not save post without title" do
   post = Post.new
   assert !post.save
 end
@@ -272,16 +282,13 @@ Let us run this newly added test.
 
 <pre>
 $ ruby unit/post_test.rb -n test_should_not_save_post_without_title
-Loaded suite unit/post_test
+Loaded suite -e
 Started
 F
-Finished in 0.197094 seconds.
+Finished in 0.102072 seconds.
 
   1) Failure:
-test_should_not_save_post_without_title(PostTest)
-    [unit/post_test.rb:11:in `test_should_not_save_post_without_title'
-     /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `__send__'
-     /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `run']:
+test_should_not_save_post_without_title(PostTest) [/test/unit/post_test.rb:6]:
 <false> is not true.
 
 1 tests, 1 assertions, 1 failures, 0 errors
@@ -290,7 +297,7 @@ test_should_not_save_post_without_title(PostTest)
 In the output, +F+ denotes a failure. You can see the corresponding trace shown under +1)+ along with the name of the failing test. The next few lines contain the stack trace followed by a message which mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable every assertion provides an optional message parameter, as shown here:
 
 <ruby>
-def test_should_not_save_post_without_title
+test "should not save post without title" do
   post = Post.new
   assert !post.save, "Saved the post without a title"
 end
@@ -299,21 +306,10 @@ end
 Running this test shows the friendlier assertion message:
 
 <pre>
-$ ruby unit/post_test.rb -n test_should_not_save_post_without_title
-Loaded suite unit/post_test
-Started
-F
-Finished in 0.198093 seconds.
-
   1) Failure:
-test_should_not_save_post_without_title(PostTest)
-    [unit/post_test.rb:11:in `test_should_not_save_post_without_title'
-     /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `__send__'
-     /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `run']:
+test_should_not_save_post_without_title(PostTest) [/test/unit/post_test.rb:6]:
 Saved the post without a title.
 <false> is not true.
-
-1 tests, 1 assertions, 1 failures, 0 errors
 </pre>
 
 Now to get this test to pass we can add a model level validation for the _title_ field.
@@ -343,7 +339,7 @@ TIP: Many Rails developers practice _Test-Driven Development_ (TDD). This is an 
 To see how an error gets reported, here's a test containing an error:
 
 <ruby>
-def test_should_report_error
+test "should report error" do
   # some_undefined_variable is not defined elsewhere in the test case
   some_undefined_variable
   assert true
@@ -354,18 +350,15 @@ Now you can see even more output in the console from running the tests:
 
 <pre>
 $ ruby unit/post_test.rb -n test_should_report_error
-Loaded suite unit/post_test
+Loaded suite -e
 Started
 E
-Finished in 0.195757 seconds.
+Finished in 0.082603 seconds.
 
   1) Error:
 test_should_report_error(PostTest):
-NameError: undefined local variable or method `some_undefined_variable' for #<PostTest:0x2cc9de8>
-    /opt/local/lib/ruby/gems/1.8/gems/actionpack-2.1.1/lib/action_controller/test_process.rb:467:in `method_missing'
-    unit/post_test.rb:16:in `test_should_report_error'
-    /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `__send__'
-    /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `run'
+NameError: undefined local variable or method `some_undefined_variable' for #<PostTest:0x249d354>
+    /test/unit/post_test.rb:6:in `test_should_report_error'
 
 1 tests, 0 assertions, 0 failures, 1 errors
 </pre>
@@ -446,7 +439,7 @@ Now that we have used Rails scaffold generator for our +Post+ resource, it has a
 Let me take you through one such test, +test_should_get_index+ from the file +posts_controller_test.rb+.
 
 <ruby>
-def test_should_get_index
+test "should get index" do
   get :index
   assert_response :success
   assert_not_nil assigns(:posts)
@@ -479,7 +472,7 @@ NOTE: If you try running +test_should_create_post+ test from +posts_controller_t
 Let us modify +test_should_create_post+ test in +posts_controller_test.rb+ so that all our test pass:
 
 <ruby>
-def test_should_create_post
+test "should create post" do
   assert_difference('Post.count') do
     post :create, :post => { :title => 'Some title'}
   end
@@ -535,7 +528,7 @@ h4. A Fuller Functional Test Example
 Here's another example that uses +flash+, +assert_redirected_to+, and +assert_difference+:
 
 <ruby>
-def test_should_create_post
+test "should create post" do
   assert_difference('Post.count') do
     post :create, :post => { :title => 'Hi', :body => 'This is my first post.'}
   end
@@ -625,7 +618,7 @@ class UserFlowsTest < ActionController::IntegrationTest
   # fixtures :your, :models
 
   # Replace this with your real tests.
-  def test_truth
+  test "the truth" do
     assert true
   end
 end
@@ -660,7 +653,7 @@ require 'test_helper'
 class UserFlowsTest < ActionController::IntegrationTest
   fixtures :users
 
-  def test_login_and_browse_site
+  test "login and browse site" do
     # login via https
     https!
     get "/login"
@@ -688,7 +681,7 @@ require 'test_helper'
 class UserFlowsTest < ActionController::IntegrationTest
   fixtures :users
 
-  def test_login_and_browse_site
+  test "login and browse site" do
 
     # User avs logs in
     avs = login(:avs)
@@ -771,12 +764,12 @@ class PostsControllerTest < ActionController::TestCase
     @post = nil
   end
 
-  def test_should_show_post
+  test "should show post" do
     get :show, :id => @post.id
     assert_response :success
   end
 
-  def test_should_destroy_post
+  test "should destroy post" do
     assert_difference('Post.count', -1) do
       delete :destroy, :id => @post.id
     end
@@ -809,17 +802,17 @@ class PostsControllerTest < ActionController::TestCase
     @post = nil
   end
 
-  def test_should_show_post
+  test "should show post" do
     get :show, :id => @post.id
     assert_response :success
   end
 
-  def test_should_update_post
+  test "should update post" do
     put :update, :id => @post.id, :post => { }
     assert_redirected_to post_path(assigns(:post))
   end
 
-  def test_should_destroy_post
+  test "should destroy post" do
     assert_difference('Post.count', -1) do
       delete :destroy, :id => @post.id
     end
@@ -841,7 +834,7 @@ h3. Testing Routes
 Like everything else in your Rails application, it is recommended that you test your routes. An example test for a route in the default +show+ action of +Posts+ controller above should look like:
 
 <ruby>
-def test_should_route_to_post
+test "should route to post" do
   assert_routing '/posts/1', { :controller => "posts", :action => "show", :id => "1" }
 end
 </ruby>
@@ -883,7 +876,7 @@ require 'test_helper'
 
 class UserMailerTest < ActionMailer::TestCase
   tests UserMailer
-  def test_invite
+  test "invite" do
     @expected.from    = 'me@example.com'
     @expected.to      = 'friend@example.com'
     @expected.subject = "You have been invited by #{@expected.from}"
@@ -920,7 +913,7 @@ Functional testing for mailers involves more than just checking that the email b
 require 'test_helper'
 
 class UserControllerTest < ActionController::TestCase
-  def test_invite_friend
+  test "invite friend" do
     assert_difference 'ActionMailer::Base.deliveries.size', +1 do
       post :invite_friend, :email => 'friend@example.com'
     end
