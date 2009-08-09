@@ -70,9 +70,18 @@ class HttpPostController < ActionController::Metal
   end
 end
 
-(ENV["M"] || 1).to_i.times do
-  Runner.run(BasePostController.action(:partial), N, 'partial')
-  Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
-  Runner.run(BasePostController.action(:partial_collection), N, 'collection')
-  Runner.run(BasePostController.action(:show_template), N, 'template')
+unless ENV["PROFILE"]
+  (ENV["M"] || 1).to_i.times do
+    Runner.run(BasePostController.action(:partial), N, 'partial')
+    Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
+    Runner.run(BasePostController.action(:partial_collection), N, 'collection')
+    Runner.run(BasePostController.action(:show_template), N, 'template')
+  end
+else
+  require "ruby-prof"
+  RubyProf.start
+  Runner.run(BasePostController.action(:many_partials), N, 'partial')
+  result = RubyProf.stop
+  printer = RubyProf::CallStackPrinter.new(result)
+  printer.print(File.open("output.html", "w"), :min_percent => 2)
 end

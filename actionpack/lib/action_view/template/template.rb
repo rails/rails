@@ -30,12 +30,12 @@ module ActionView
     
     # TODO: Figure out how to abstract this
     def variable_name
-      identifier[%r'_?(\w+)(\.\w+)*$', 1].to_sym
+      @variable_name ||= identifier[%r'_?(\w+)(\.\w+)*$', 1].to_sym
     end
 
     # TODO: Figure out how to abstract this
     def counter_name
-      "#{variable_name}_counter".to_sym
+      @counter_name ||= "#{variable_name}_counter".to_sym
     end
     
     # TODO: kill hax
