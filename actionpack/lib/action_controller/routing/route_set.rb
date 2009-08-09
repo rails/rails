@@ -464,7 +464,7 @@ module ActionController
       end
 
       def routes_for_controller_and_action(controller, action)
-        ActionSupport::Deprecation.warn "routes_for_controller_and_action() has been deprecated. Please use routes_for()"
+        ActiveSupport::Deprecation.warn "routes_for_controller_and_action() has been deprecated. Please use routes_for()"
         selected = routes.select do |route|
           route.matches_controller_and_action? controller, action
         end

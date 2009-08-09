@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
+require 'action_controller/routing/route_set'
 
 class MilestonesController < ActionController::Base
   def index() head :ok end
@@ -742,7 +743,7 @@ class MockController
   end
 end
 
-class LegacyRouteSetTests < Test::Unit::TestCase
+class LegacyRouteSetTests < ActiveSupport::TestCase
   attr_reader :rs
 
   def setup
@@ -756,6 +757,10 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   
   def teardown
     @rs.clear!
+  end
+
+  def test_routes_for_controller_and_action_deprecated
+    assert_deprecated { @rs.routes_for_controller_and_action("controller", "action") }
   end
 
   def test_default_setup
