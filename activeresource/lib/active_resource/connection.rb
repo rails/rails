@@ -137,15 +137,27 @@ module ActiveResource
       # Creates new Net::HTTP instance for communication with the
       # remote service and resources.
       def http
-        http =
-          if @proxy
-            Net::HTTP.new(@site.host, @site.port, @proxy.host, @proxy.port, @proxy.user, @proxy.password)
-          else
-            Net::HTTP.new(@site.host, @site.port)
-          end
+        configure_http(new_http)
+      end
+
+      def new_http
+        if @proxy
+          Net::HTTP.new(@site.host, @site.port, @proxy.host, @proxy.port, @proxy.user, @proxy.password)
+        else
+          Net::HTTP.new(@site.host, @site.port)
+        end
+      end
+
+      def configure_http(http)
         http.use_ssl = @site.is_a?(URI::HTTPS)
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE if http.use_ssl?
-        http.read_timeout = @timeout if @timeout # If timeout is not set, the default Net::HTTP timeout (60s) is used.
+
+        # Net::HTTP timeouts default to 60 seconds.
+        if @timeout
+          http.open_timeout = @timeout
+          http.read_timeout = @timeout
+        end
+
         http
       end
 
