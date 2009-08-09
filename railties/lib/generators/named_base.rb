@@ -28,7 +28,6 @@ module Rails
           else
             singular_name
           end
-          @table_name.gsub! '/', '_'
 
           if class_nesting.empty?
             @class_name = class_name_without_nesting
@@ -36,6 +35,8 @@ module Rails
             @table_name = class_nesting.underscore << "_" << @table_name
             @class_name = "#{class_nesting}::#{class_name_without_nesting}"
           end
+
+          @table_name.gsub! '/', '_'
         end
 
         # Convert attributes hash into an array with GeneratedAttribute objects.

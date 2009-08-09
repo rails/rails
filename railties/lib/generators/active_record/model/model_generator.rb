@@ -13,7 +13,9 @@ module ActiveRecord
 
       def create_migration_file
         if options[:migration] && options[:parent].nil?
-          file_name = "create_#{file_path.gsub(/\//, '_').pluralize}"
+          klass_name = file_path.gsub(/\//, '_')
+          klass_name = klass_name.pluralize if ActiveRecord::Base.pluralize_table_names
+          file_name = "create_#{klass_name}"
           migration_template "migration.rb", "db/migrate/#{file_name}.rb"
         end
       end
