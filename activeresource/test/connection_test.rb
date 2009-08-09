@@ -185,6 +185,17 @@ class ConnectionTest < Test::Unit::TestCase
     assert_raise(ActiveResource::TimeoutError) { @conn.get('/people_timeout.xml') }
   end
 
+  def test_setting_timeout
+    http = Net::HTTP.new('')
+
+    [10, 20].each do |timeout|
+      @conn.timeout = timeout
+      @conn.send(:configure_http, http)
+      assert_equal timeout, http.open_timeout
+      assert_equal timeout, http.read_timeout
+    end
+  end
+
   def test_accept_http_header
     @http = mock('new Net::HTTP')
     @conn.expects(:http).returns(@http)
