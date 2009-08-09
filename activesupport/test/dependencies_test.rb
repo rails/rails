@@ -24,9 +24,11 @@ class DependenciesTest < Test::Unit::TestCase
 
   def with_loading(*from)
     old_mechanism, ActiveSupport::Dependencies.mechanism = ActiveSupport::Dependencies.mechanism, :load
-    dir = File.dirname(__FILE__)
+    this_dir = File.dirname(__FILE__)
+    parent_dir = File.dirname(this_dir)
+    $LOAD_PATH.unshift(parent_dir) unless $LOAD_PATH.include?(parent_dir)
     prior_load_paths = ActiveSupport::Dependencies.load_paths
-    ActiveSupport::Dependencies.load_paths = from.collect { |f| "#{dir}/#{f}" }
+    ActiveSupport::Dependencies.load_paths = from.collect { |f| "#{this_dir}/#{f}" }
     yield
   ensure
     ActiveSupport::Dependencies.load_paths = prior_load_paths
