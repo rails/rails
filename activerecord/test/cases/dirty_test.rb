@@ -288,6 +288,16 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_save_should_not_save_serialized_attribute_with_partial_updates_if_not_present
+    with_partial_updates(Topic) do
+      Topic.create!(:author_name => 'Bill', :content => {:a => "a"})
+      topic = Topic.first(:select => 'id, author_name')
+      topic.update_attribute :author_name, 'John'
+      topic = Topic.first
+      assert_not_nil topic.content
+    end
+  end
+
   private
     def with_partial_updates(klass, on = true)
       old = klass.partial_updates?
