@@ -56,6 +56,9 @@ class ConnectionTest < Test::Unit::TestCase
     # 409 is an optimistic locking error
     assert_response_raises ActiveResource::ResourceConflict, 409
 
+    # 410 is a removed resource
+    assert_response_raises ActiveResource::ResourceGone, 410
+
     # 422 is a validation error
     assert_response_raises ActiveResource::ResourceInvalid, 422
 

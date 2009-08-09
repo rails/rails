@@ -57,6 +57,9 @@ module ActiveResource
   # 409 Conflict
   class ResourceConflict < ClientError; end # :nodoc:
 
+  # 410 Gone
+  class ResourceGone < ClientError; end # :nodoc:
+
   # 5xx Server Error
   class ServerError < ConnectionError; end # :nodoc:
 
@@ -193,6 +196,8 @@ module ActiveResource
             raise(MethodNotAllowed.new(response))
           when 409
             raise(ResourceConflict.new(response))
+          when 410
+            raise(ResourceGone.new(response))
           when 422
             raise(ResourceInvalid.new(response))
           when 401...500
