@@ -10,8 +10,12 @@ require 'action_view'
 require 'benchmark'
 
 class Runner
-  def initialize(app)
-    @app = app
+  def initialize(app, output)
+    @app, @output = app, output
+  end
+
+  def puts(*)
+    super if @output
   end
 
   def call(env)
@@ -20,16 +24,22 @@ class Runner
   end
 
   def report(env, response)
+    return unless ENV["DEBUG"]
     out = env['rack.errors']
     out.puts response[0], response[1].to_yaml, '---'
     response[2].each { |part| out.puts part }
     out.puts '---'
   end
 
-  def self.run(app, n, label = nil)
-    puts '=' * label.size, label, '=' * label.size if label
+  def self.puts(*)
+    super if @output
+  end
+
+  def self.run(app, n, label, output = true)
+    @output = output
+    puts label, '=' * label.size if label
     env = Rack::MockRequest.env_for("/").merge('n' => n, 'rack.input' => StringIO.new(''), 'rack.errors' => $stdout)
-    t = Benchmark.realtime { new(app).call(env) }
+    t = Benchmark.realtime { new(app, output).call(env) }
     puts "%d ms / %d req = %.1f usec/req" % [10**3 * t, n, 10**6 * t / n]
     puts
   end
@@ -82,12 +92,12 @@ class HttpPostController < ActionController::Metal
 end
 
 unless ENV["PROFILE"]
-  Runner.run(BasePostController.action(:overhead), N, 'overhead')
-  Runner.run(BasePostController.action(:index), N, 'index')
-  Runner.run(BasePostController.action(:partial), N, 'partial')
-  Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
-  Runner.run(BasePostController.action(:partial_collection), N, 'collection')
-  Runner.run(BasePostController.action(:show_template), N, 'template')
+  Runner.run(BasePostController.action(:overhead), N, 'overhead', false)
+  Runner.run(BasePostController.action(:index), N, 'index', false)
+  Runner.run(BasePostController.action(:partial), N, 'partial', false)
+  Runner.run(BasePostController.action(:many_partials), N, 'many_partials', false)
+  Runner.run(BasePostController.action(:partial_collection), N, 'collection', false)
+  Runner.run(BasePostController.action(:show_template), N, 'template', false)
 
   (ENV["M"] || 1).to_i.times do
     Runner.run(BasePostController.action(:overhead), N, 'overhead')
