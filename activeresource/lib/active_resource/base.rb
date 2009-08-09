@@ -1020,7 +1020,13 @@ module ActiveResource
           case value
             when Array
               resource = find_or_create_resource_for_collection(key)
-              value.map { |attrs| attrs.is_a?(String) ? attrs.dup : resource.new(attrs) }
+              value.map do |attrs|
+                if attrs.is_a?(String) || attrs.is_a?(Numeric)
+                  attrs.duplicable? ? attrs.dup : attrs
+                else
+                  resource.new(attrs)
+                end
+              end
             when Hash
               resource = find_or_create_resource_for(key)
               resource.new(value)
