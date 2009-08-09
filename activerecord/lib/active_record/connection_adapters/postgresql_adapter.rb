@@ -39,6 +39,12 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
+    class TableDefinition
+      def xml(*args)
+        options = args.extract_options!
+        column(args[0], 'xml', options)
+      end
+    end
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
       # Instantiates a new PostgreSQL column definition in a table.
@@ -67,7 +73,7 @@ module ActiveRecord
           # depending on the server specifics
           super
         end
-  
+
         # Maps PostgreSQL-specific data types to logical Rails types.
         def simplified_type(field_type)
           case field_type
@@ -99,10 +105,10 @@ module ActiveRecord
               :string
             # XML type
             when /^xml$/
-              :string
+              :xml
             # Arrays
             when /^\D+\[\]$/
-              :string              
+              :string
             # Object identifier types
             when /^oid$/
               :integer
@@ -111,7 +117,7 @@ module ActiveRecord
               super
           end
         end
-  
+
         # Extracts the value from a PostgreSQL column default definition.
         def self.extract_value_from_default(default)
           case default
@@ -194,7 +200,8 @@ module ActiveRecord
         :time        => { :name => "time" },
         :date        => { :name => "date" },
         :binary      => { :name => "bytea" },
-        :boolean     => { :name => "boolean" }
+        :boolean     => { :name => "boolean" },
+        :xml         => { :name => "xml" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
@@ -277,7 +284,7 @@ module ActiveRecord
       def supports_ddl_transactions?
         true
       end
-      
+
       def supports_savepoints?
         true
       end
@@ -369,7 +376,7 @@ module ActiveRecord
         if value.kind_of?(String) && column && column.type == :binary
           "#{quoted_string_prefix}'#{escape_bytea(value)}'"
         elsif value.kind_of?(String) && column && column.sql_type =~ /^xml$/
-          "xml '#{quote_string(value)}'"
+          "xml E'#{quote_string(value)}'"
         elsif value.kind_of?(Numeric) && column && column.sql_type =~ /^money$/
           # Not truly string input, so doesn't require (or allow) escape string syntax.
           "'#{value.to_s}'"
@@ -568,7 +575,7 @@ module ActiveRecord
       def rollback_db_transaction
         execute "ROLLBACK"
       end
-      
+
       if defined?(PGconn::PQTRANS_IDLE)
         # The ruby-pg driver supports inspecting the transaction status,
         # while the ruby-postgres driver does not.
@@ -919,18 +926,18 @@ module ActiveRecord
         sql = "DISTINCT ON (#{columns}) #{columns}, "
         sql << order_columns * ', '
       end
-      
+
       # Returns an ORDER BY clause for the passed order option.
-      # 
+      #
       # PostgreSQL does not allow arbitrary ordering when using DISTINCT ON, so we work around this
       # by wrapping the +sql+ string as a sub-select and ordering in that query.
       def add_order_by_for_association_limiting!(sql, options) #:nodoc:
         return sql if options[:order].blank?
-        
+
         order = options[:order].split(',').collect { |s| s.strip }.reject(&:blank?)
         order.map! { |s| 'DESC' if s =~ /\bdesc$/i }
         order = order.zip((0...order.size).to_a).map { |s,i| "id_list.alias_#{i} #{s}" }.join(', ')
-        
+
         sql.replace "SELECT * FROM (#{sql}) AS id_list ORDER BY #{order}"
       end
 
@@ -1043,7 +1050,7 @@ module ActiveRecord
                 if res.ftype(cell_index) == MONEY_COLUMN_TYPE_OID
                   # Because money output is formatted according to the locale, there are two
                   # cases to consider (note the decimal separators):
-                  #  (1) $12,345,678.12        
+                  #  (1) $12,345,678.12
                   #  (2) $12.345.678,12
                   case column = row[cell_index]
                     when /^-?\D+[\d,]+\.\d{2}$/  # (1)
@@ -1103,3 +1110,4 @@ module ActiveRecord
     end
   end
 end
+

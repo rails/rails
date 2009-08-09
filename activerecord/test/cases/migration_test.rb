@@ -389,7 +389,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal 9, wealth_column.precision
       assert_equal 7, wealth_column.scale
     end
-    
+
     def test_native_types
       Person.delete_all
       Person.connection.add_column "people", "last_name", :string
@@ -921,9 +921,9 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_migrator_one_down
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid")
-    
+
       ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 1)
-    
+
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
@@ -1059,20 +1059,20 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
       assert_equal "hello world", Reminder.find(:first).content
     end
-    
+
     def test_migrator_rollback
       ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
       assert_equal(3, ActiveRecord::Migrator.current_version)
-      
+
       ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
       assert_equal(2, ActiveRecord::Migrator.current_version)
-      
+
       ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
       assert_equal(1, ActiveRecord::Migrator.current_version)
-      
+
       ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
       assert_equal(0, ActiveRecord::Migrator.current_version)
-      
+
       ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
       assert_equal(0, ActiveRecord::Migrator.current_version)
     end
@@ -1224,7 +1224,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
 
   end
-  
+
   class SexyMigrationsTest < ActiveRecord::TestCase
     def test_references_column_type_adds_id
       with_new_table do |t|
@@ -1277,6 +1277,15 @@ if ActiveRecord::Base.connection.supports_migrations?
         t.expects(:column).with(:foo, 'string', {})
         t.expects(:column).with(:bar, 'string', {})
         t.string :foo, :bar
+      end
+    end
+
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_xml_creates_xml_column
+        with_new_table do |t|
+          t.expects(:column).with(:data, 'xml', {})
+          t.xml :data
+        end
       end
     end
 
@@ -1493,3 +1502,4 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
   end
 end
+

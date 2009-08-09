@@ -1,5 +1,7 @@
 *2.3.4 (pending)*
 
+* PostgreSQL: XML datatype support.  #1874 [Leonardo Borges]
+
 * SQLite: deprecate the 'dbfile' option in favor of 'database.'  #2363 [Paul Hinze, Jeremy Kemper]
 
 
