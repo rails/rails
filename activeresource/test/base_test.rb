@@ -966,6 +966,14 @@ class BaseTest < Test::Unit::TestCase
     end
   end
 
+  def test_exists_without_http_mock
+    http = Net::HTTP.new(Person.site.host, Person.site.port)
+    ActiveResource::Connection.any_instance.expects(:http).returns(http)
+    http.expects(:request).returns(ActiveResource::Response.new(""))
+
+    assert Person.exists?('not-mocked')
+  end
+
   def test_to_xml
     matz = Person.find(1)
     xml = matz.encode
