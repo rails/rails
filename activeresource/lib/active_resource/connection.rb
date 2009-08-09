@@ -131,6 +131,8 @@ module ActiveResource
             raise(MethodNotAllowed.new(response))
           when 409
             raise(ResourceConflict.new(response))
+          when 410
+            raise(ResourceGone.new(response))
           when 422
             raise(ResourceInvalid.new(response))
           when 401...500

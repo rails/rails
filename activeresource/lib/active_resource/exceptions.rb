@@ -51,6 +51,9 @@ module ActiveResource
   # 409 Conflict
   class ResourceConflict < ClientError; end # :nodoc:
 
+  # 410 Gone
+  class ResourceGone < ClientError; end # :nodoc:
+
   # 5xx Server Error
   class ServerError < ConnectionError; end # :nodoc:
 

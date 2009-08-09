@@ -899,6 +899,14 @@ class BaseTest < Test::Unit::TestCase
     assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
   end
 
+  def test_destroy_with_410_gone
+    assert Person.find(1).destroy
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/people/1.xml", {}, nil, 410
+    end
+    assert_raise(ActiveResource::ResourceGone) { Person.find(1).destroy }
+  end
+
   def test_delete
     assert Person.delete(1)
     ActiveResource::HttpMock.respond_to do |mock|
@@ -913,6 +921,14 @@ class BaseTest < Test::Unit::TestCase
       mock.get "/people/1/addresses/1.xml", {}, nil, 404
     end
     assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
+  end
+  
+  def test_delete_with_410_gone
+    assert Person.delete(1)
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/people/1.xml", {}, nil, 410
+    end
+    assert_raise(ActiveResource::ResourceGone) { Person.find(1) }
   end
 
   def test_exists
@@ -972,6 +988,14 @@ class BaseTest < Test::Unit::TestCase
     http.expects(:request).returns(ActiveResource::Response.new(""))
 
     assert Person.exists?('not-mocked')
+  end
+
+  def test_exists_with_410_gone
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.head "/people/1.xml", {}, nil, 410
+    end
+
+    assert !Person.exists?(1)
   end
 
   def test_to_xml

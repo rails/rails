@@ -164,6 +164,7 @@ module ActiveResource
   # * 404 - ActiveResource::ResourceNotFound
   # * 405 - ActiveResource::MethodNotAllowed
   # * 409 - ActiveResource::ResourceConflict
+  # * 410 - ActiveResource::ResourceGone
   # * 422 - ActiveResource::ResourceInvalid (rescued by save as validation errors)
   # * 401..499 - ActiveResource::ClientError
   # * 500..599 - ActiveResource::ServerError
@@ -626,7 +627,7 @@ module ActiveResource
           response.code.to_i == 200
         end
         # id && !find_single(id, options).nil?
-      rescue ActiveResource::ResourceNotFound
+      rescue ActiveResource::ResourceNotFound, ActiveResource::ResourceGone
         false
       end
 
