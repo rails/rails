@@ -3013,16 +3013,22 @@ module ActiveRecord #:nodoc:
 
       def execute_callstack_for_multiparameter_attributes(callstack)
         errors = []
-        callstack.each do |name, values|
+        callstack.each do |name, values_with_empty_parameters|
           begin
             klass = (self.class.reflect_on_aggregation(name.to_sym) || column_for_attribute(name)).klass
+            # in order to allow a date to be set without a year, we must keep the empty values.
+            # Otherwise, we wouldn't be able to distinguish it from a date with an empty day.
+            values = values_with_empty_parameters.reject(&:nil?)
+
             if values.empty?
               send(name + "=", nil)
             else
+
               value = if Time == klass
                 instantiate_time_object(name, values)
               elsif Date == klass
                 begin
+                  values = values_with_empty_parameters.collect do |v| v.nil? ? 1 : v end
                   Date.new(*values)
                 rescue ArgumentError => ex # if Date.new raises an exception on an invalid date
                   instantiate_time_object(name, values).to_date # we instantiate Time object and convert it back to a date thus using Time's logic in handling invalid dates
@@ -3050,10 +3056,8 @@ module ActiveRecord #:nodoc:
           attribute_name = multiparameter_name.split("(").first
           attributes[attribute_name] = [] unless attributes.include?(attribute_name)
 
-          unless value.empty?
-            attributes[attribute_name] <<
-              [ find_parameter_position(multiparameter_name), type_cast_attribute_value(multiparameter_name, value) ]
-          end
+          parameter_value = value.empty? ? nil : type_cast_attribute_value(multiparameter_name, value)
+          attributes[attribute_name] << [ find_parameter_position(multiparameter_name), parameter_value ]
         end
 
         attributes.each { |name, values| attributes[name] = values.sort_by{ |v| v.first }.collect { |v| v.last } }
