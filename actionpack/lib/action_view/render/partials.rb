@@ -178,7 +178,7 @@ module ActionView
       end
 
       def self.formats
-        @formats ||= Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = {}}}
+        @formats ||= Hash.new {|h,k| h[k] = Hash.new{|h,k| h[k] = Hash.new {|h,k| h[k] = {}}}}
       end
 
       def initialize(view_context, options, block)
@@ -192,7 +192,7 @@ module ActionView
         # Set up some instance variables to speed up memoizing
         @partial_names  = self.class.partial_names[@view.controller.class]
         @templates      = self.class.formats
-        @details_hash   = [view_context.formats, I18n.locale].hash
+        @format         = view_context.formats
 
         # Set up the object and path
         @object         = partial.is_a?(String) ? options[:object] : partial
@@ -252,7 +252,7 @@ module ActionView
 
       def find_template(path = @path)
         return if !path
-        @templates[@details_hash][path][@view.controller_path] ||= begin
+        @templates[path][@view.controller_path][@format][I18n.locale] ||= begin
           prefix = @view.controller.controller_path unless path.include?(?/)
           @view.find(path, {:formats => @view.formats}, prefix, true)
         end

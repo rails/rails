@@ -7,19 +7,22 @@ require "action_view/template/resolver"
 module ActionView
   class Template
     extend TemplateHandlers
-    attr_reader :source, :identifier, :handler, :mime_type, :details
+    attr_reader :source, :identifier, :handler, :mime_type, :formats, :details
     
     def initialize(source, identifier, handler, details)
       @source     = source
       @identifier = identifier
       @handler    = handler
       @details    = details
+      @method_names = {}
 
       format = details.delete(:format) || begin
         # TODO: Clean this up
         handler.respond_to?(:default_format) ? handler.default_format.to_sym.to_s : "html"
       end
       @mime_type = Mime::Type.lookup_by_extension(format.to_s)
+      @formats = [format.to_sym]
+      @formats << :html if format == :js
       @details[:formats] = Array.wrap(format.to_sym)
     end
     
@@ -90,7 +93,8 @@ module ActionView
   
     def build_method_name(locals)
       # TODO: is locals.keys.hash reliably the same?
-      "_render_template_#{@identifier.hash}_#{__id__}_#{locals.keys.hash}".gsub('-', "_")
+      @method_names[locals.keys.hash] ||=
+        "_render_template_#{@identifier.hash}_#{__id__}_#{locals.keys.hash}".gsub('-', "_")
     end
   end
 end
