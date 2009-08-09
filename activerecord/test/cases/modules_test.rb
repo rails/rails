@@ -4,6 +4,16 @@ require 'models/company_in_module'
 class ModulesTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :projects, :developers
 
+  def setup
+    # need to make sure Object::Firm is not defined, so that constantize will not be able to cheat when having to load namespaced classes
+    @firm_const = Object.send(:remove_const, :Firm) if Object.const_defined?(:Firm)
+  end
+
+  def teardown
+    # reinstate the Object::Firm constant for further tests
+    Object.send :const_set, :Firm, @firm_const unless @firm_const.nil?
+  end
+
   def test_module_spanning_associations
     firm = MyApplication::Business::Firm.find(:first)
     assert !firm.clients.empty?, "Firm should have clients"
@@ -40,8 +50,12 @@ class ModulesTest < ActiveRecord::TestCase
   def test_eager_loading_in_modules
     # need to add an eager loading condition to force the eager loading model into
     # the old join model, to test that. See http://dev.rubyonrails.org/ticket/9640
-    client_join_loaded = MyApplication::Business::Client.find(3, :include => {:firm => :account}, :conditions => 'accounts.id IS NOT NULL')
-    client_sequential_loaded = MyApplication::Business::Client.find(3, :include => {:firm => :account})
+    begin
+      client_join_loaded = MyApplication::Business::Client.find(3, :include => {:firm => :account}, :conditions => 'accounts.id IS NOT NULL')
+      client_sequential_loaded = MyApplication::Business::Client.find(3, :include => {:firm => :account})
+    rescue NameError => nE
+      flunk "Should be able to resolve all classes via reflections"
+    end
 
     [client_join_loaded, client_sequential_loaded].each do |client|
       assert_no_queries do
