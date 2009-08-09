@@ -25,6 +25,24 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
   end
 
+  class MigrationTableAndIndexTest < ActiveRecord::TestCase
+    def test_add_schema_info_respects_prefix_and_suffix
+      conn = ActiveRecord::Base.connection
+
+      conn.drop_table(ActiveRecord::Migrator.schema_migrations_table_name) if conn.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
+      ActiveRecord::Base.table_name_prefix = 'foo_'
+      ActiveRecord::Base.table_name_suffix = '_bar'
+      conn.drop_table(ActiveRecord::Migrator.schema_migrations_table_name) if conn.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
+
+      conn.initialize_schema_migrations_table
+
+      assert_equal "foo_unique_schema_migrations_bar", conn.indexes(ActiveRecord::Migrator.schema_migrations_table_name)[0][:name]
+    ensure
+      ActiveRecord::Base.table_name_prefix = ""
+      ActiveRecord::Base.table_name_suffix = ""
+    end
+  end
+
   class MigrationTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
 
