@@ -73,7 +73,7 @@ else
     File.open(File.join(File.dirname(__FILE__), "fixtures", "isolation_test"), "w") {}
 
     ENV["CHILD"] = "1"
-    OUTPUT = `#{Gem.ruby} -I#{File.dirname(__FILE__)} #{File.expand_path(__FILE__)} -v`
+    OUTPUT = `#{Gem.ruby} -I#{File.dirname(__FILE__)} "#{File.expand_path(__FILE__)}" -v`
     ENV.delete("CHILD")
 
     def setup
