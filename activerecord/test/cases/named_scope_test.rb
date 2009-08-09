@@ -332,6 +332,12 @@ class NamedScopeTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_table_names_for_chaining_scopes_with_and_without_table_name_included
+    assert_nothing_raised do
+      Comment.for_first_post.for_first_author.all
+    end
+  end
 end
 
 class DynamicScopeMatchTest < ActiveRecord::TestCase  
