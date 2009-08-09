@@ -279,6 +279,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal client2, firm.clients.find(:first, :conditions => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }])
   end
 
+  def test_find_all_with_include_and_conditions
+    assert_nothing_raised do
+      Developer.find(:all, :joins => :audit_logs, :conditions => {'audit_logs.message' => nil, :name => 'Smith'})
+    end
+  end
+
   def test_find_in_collection
     assert_equal Client.find(2).name, companies(:first_firm).clients.find(2).name
     assert_raise(ActiveRecord::RecordNotFound) { companies(:first_firm).clients.find(6) }
