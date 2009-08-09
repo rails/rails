@@ -196,7 +196,7 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_end_of_day
-    assert_equal Time.local(2005,2,21,23,59,59), Date.new(2005,2,21).end_of_day
+    assert_equal Time.local(2005,2,21,23,59,59,999999.999), Date.new(2005,2,21).end_of_day
   end
 
   def test_xmlschema
