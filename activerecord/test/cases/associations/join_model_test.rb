@@ -317,11 +317,11 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_polymorphic_with_counter_cache
-    assert_equal 0, posts(:welcome)[:taggings_count]
+    assert_equal 1, posts(:welcome)[:taggings_count]
     tagging = posts(:welcome).taggings.create(:tag => tags(:general))
-    assert_equal 1, posts(:welcome, :reload)[:taggings_count]
+    assert_equal 2, posts(:welcome, :reload)[:taggings_count]
     tagging.destroy
-    assert posts(:welcome, :reload)[:taggings_count].zero?
+    assert_equal 1, posts(:welcome, :reload)[:taggings_count]
   end
 
   def test_unavailable_through_reflection

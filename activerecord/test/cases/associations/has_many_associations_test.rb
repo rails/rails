@@ -508,6 +508,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, new_firm.clients_of_firm.size
   end
 
+  def test_deleting_updates_counter_cache
+    topic = Topic.first
+    assert_equal topic.replies.to_a.size, topic.replies_count
+
+    topic.replies.delete(topic.replies.first)
+    topic.reload
+    assert_equal topic.replies.to_a.size, topic.replies_count
+  end
+
+  def test_deleting_updates_counter_cache_without_dependent_destroy
+    post = posts(:welcome)
+
+    assert_difference "post.reload.taggings_count", -1 do
+      post.taggings.delete(post.taggings.first)
+    end
+  end
+
   def test_deleting_a_collection
     force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
@@ -551,6 +568,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       assert Client.find(client_id).firm.nil?
     end
+  end
+
+  def test_clearing_updates_counter_cache
+    topic = Topic.first
+
+    topic.replies.clear
+    topic.reload
+    assert_equal 0, topic.replies_count
   end
 
   def test_clearing_a_dependent_association_collection
