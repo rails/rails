@@ -204,6 +204,24 @@ class ConnectionTest < Test::Unit::TestCase
     assert_nothing_raised(Mocha::ExpectationError) { @conn.get(path, {'Accept' => 'application/xhtml+xml'}) }
   end
 
+  def test_ssl_options_get_applied_to_http
+    http = Net::HTTP.new('')
+    @conn.site="https://secure"
+    @conn.ssl_options={:verify_mode => OpenSSL::SSL::VERIFY_PEER}
+    @conn.timeout = 10 # prevent warning about uninitialized.
+    @conn.send(:configure_http, http)
+
+    assert http.use_ssl?
+    assert_equal http.verify_mode, OpenSSL::SSL::VERIFY_PEER
+  end
+
+  def test_ssl_error
+    http = Net::HTTP.new('')
+    @conn.expects(:http).returns(http)
+    http.expects(:get).raises(OpenSSL::SSL::SSLError, 'Expired certificate')
+    assert_raise(ActiveResource::SSLError) { @conn.get('/people/1.xml') }
+  end
+
   protected
     def assert_response_raises(klass, code)
       assert_raise(klass, "Expected response code #{code} to raise #{klass}") do
