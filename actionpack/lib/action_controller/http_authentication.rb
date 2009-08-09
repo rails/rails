@@ -139,7 +139,7 @@ module ActionController
       end
 
       def decode_credentials(request)
-        ActiveSupport::Base64.decode64(authorization(request).split.last || '')
+        ActiveSupport::Base64.decode64(authorization(request).split(' ', 2).last || '')
       end
 
       def encode_credentials(user_name, password)
