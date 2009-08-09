@@ -248,7 +248,7 @@ module ActionView #:nodoc:
     def with_template(current_template)
       _evaluate_assigns_and_ivars
       last_template, self.template = template, current_template
-      last_formats, self.formats = formats, [current_template.mime_type.to_sym] + Mime::SET.symbols
+      last_formats, self.formats = formats, current_template.formats
       yield
     ensure
       self.template, self.formats = last_template, last_formats
