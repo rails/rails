@@ -11,6 +11,7 @@ actionpack/pkg
 activemodel/test/fixtures/fixture_database.sqlite3
 actionmailer/pkg
 activesupport/pkg
+activesupport/test/fixtures/isolation_test
 railties/pkg
 railties/test/500.html
 railties/test/fixtures/tmp
