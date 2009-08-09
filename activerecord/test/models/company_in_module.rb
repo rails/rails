@@ -11,7 +11,7 @@ module MyApplication
       has_many :clients_like_ms, :conditions => "name = 'Microsoft'", :class_name => "Client", :order => "id"
       has_many :clients_using_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE client_of = #{id}'
 
-      has_one :account, :dependent => :destroy
+      has_one :account, :class_name => 'MyApplication::Billing::Account', :dependent => :destroy
     end
 
     class Client < Company

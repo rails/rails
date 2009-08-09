@@ -1838,7 +1838,7 @@ module ActiveRecord
                     descendant
                   end.flatten.compact
 
-                  remove_duplicate_results!(reflection.class_name.constantize, parent_records, associations[name]) unless parent_records.empty?
+                  remove_duplicate_results!(reflection.klass, parent_records, associations[name]) unless parent_records.empty?
                 end
             end
           end
