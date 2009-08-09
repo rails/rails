@@ -440,7 +440,11 @@ def drop_database(config)
     ActiveRecord::Base.establish_connection(config)
     ActiveRecord::Base.connection.drop_database config['database']
   when /^sqlite/
-    FileUtils.rm((config['database'] =~ /^\// ? config['database'] : File.join(RAILS_ROOT, config['database'])))
+    require 'pathname'
+    path = Pathname.new(config['database'])
+    file = path.absolute? ? path.to_s : File.join(RAILS_ROOT, path)
+
+    FileUtils.rm(file)
   when 'postgresql'
     ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
     ActiveRecord::Base.connection.drop_database config['database']
