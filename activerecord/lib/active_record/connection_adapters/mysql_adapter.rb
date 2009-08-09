@@ -52,12 +52,7 @@ module ActiveRecord
       socket   = config[:socket]
       username = config[:username] ? config[:username].to_s : 'root'
       password = config[:password].to_s
-
-      if config.has_key?(:database)
-        database = config[:database]
-      else
-        raise ArgumentError, "No database specified. Missing argument: database."
-      end
+      database = config[:database]
 
       # Require the MySQL driver and define Mysql::Result.all_hashes
       unless defined? Mysql
