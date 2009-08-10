@@ -1,7 +1,6 @@
 require 'generators/named_base'
 require 'generators/migration'
 require 'generators/active_model'
-require 'active_record'
 
 module ActiveRecord
   module Generators

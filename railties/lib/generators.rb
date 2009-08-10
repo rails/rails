@@ -76,39 +76,37 @@ module Rails
     }
 
     def self.aliases #:nodoc:
-      @@aliases ||= DEFAULT_ALIASES.dup
+      @aliases ||= DEFAULT_ALIASES.dup
     end
 
     def self.options #:nodoc:
-      @@options ||= DEFAULT_OPTIONS.dup
+      @options ||= DEFAULT_OPTIONS.dup
     end
 
-    # Get paths only from loaded rubygems. In other words, to use rspec
-    # generators, you first have to ensure that rspec gem was already loaded.
+    # We have two scenarios here: when rubygems is loaded and when bundler is
+    # being used. If rubygems is loaded, we get all generators paths from loaded
+    # specs. Otherwise we just have to look into vendor/gems/gems.
     #
-    def self.rubygems_generators_paths
+    def self.gems_generators_paths
       paths = []
-      return paths unless defined?(Gem)
 
-      Gem.loaded_specs.each do |name, spec|
-        generator_path = File.join(spec.full_gem_path, "lib/generators")
-        paths << generator_path if File.exist?(generator_path)
-      end
-
-      paths
-    end
-
-    # If RAILS_ROOT is defined, add vendor/gems, vendor/plugins and lib/generators
-    # paths.
-    #
-    def self.rails_root_generators_paths
-      paths = []
-      if defined?(RAILS_ROOT)
+      if defined?(Gem) && Gem.respond_to?(:loaded_specs)
+        Gem.loaded_specs.each do |name, spec|
+          generator_path = File.join(spec.full_gem_path, "lib/generators")
+          paths << generator_path if File.exist?(generator_path)
+        end
+      elsif defined?(RAILS_ROOT)
         paths += Dir[File.join(RAILS_ROOT, "vendor", "gems", "gems", "*", "lib", "generators")]
-        paths += Dir[File.join(RAILS_ROOT, "vendor", "plugins", "*", "lib", "generators")]
-        paths << File.join(RAILS_ROOT, "lib", "generators")
       end
+
       paths
+    end
+
+    # Load paths from plugin.
+    #
+    def self.plugins_generators_paths
+      return [] unless defined?(RAILS_ROOT)
+      Dir[File.join(RAILS_ROOT, "vendor", "plugins", "*", "lib", "generators")]
     end
 
     # Hold configured generators fallbacks. If a plugin developer wants a
@@ -125,7 +123,7 @@ module Rails
     #   Rails::Generators.fallbacks[:shoulda] = :test_unit
     #
     def self.fallbacks
-      @@fallbacks ||= {}
+      @fallbacks ||= {}
     end
 
     # Remove the color from output.
@@ -143,14 +141,17 @@ module Rails
     #   5) rubygems generators
     #   6) builtin generators
     #
-    # TODO Remove hardcoded paths for all, except (1).
+    # TODO Remove hardcoded paths for all, except (6).
     #
     def self.load_paths
-      @@load_paths ||= begin
-        paths = self.rails_root_generators_paths
+      @load_paths ||= begin
+        paths = []
+        paths << File.join(RAILS_ROOT, "lib", "generators") if defined?(RAILS_ROOT)
         paths << File.join(Thor::Util.user_home, ".rails", "generators")
-        paths += self.rubygems_generators_paths
+        paths += self.plugins_generators_paths
+        paths += self.gems_generators_paths
         paths << File.expand_path(File.join(File.dirname(__FILE__), "generators"))
+        paths.uniq!
         paths
       end
     end
@@ -279,39 +280,18 @@ module Rails
       end
 
       # Receives namespaces in an array and tries to find matching generators
-      # in the load path. Each path is traversed into directory lookups. For
-      # example:
-      #
-      #   rails:generators:model
-      #
-      # Becomes:
-      #
-      #   generators/rails/model/model_generator.rb
-      #   generators/rails/model_generator.rb
-      #   generators/model_generator.rb
+      # in the load path.
       #
       def self.lookup(attempts) #:nodoc:
-        attempts.each do |attempt|
-          generators_path = ['.']
+        attempts = attempts.map { |a| "#{a.split(":").last}_generator" }.uniq
+        attempts = "{#{attempts.join(',')}}.rb"
 
-          paths = attempt.gsub(':generators:', ':').split(':')
-          name  = "#{paths.last}_generator.rb"
-
-          until paths.empty?
-            generators_path.unshift File.join(*paths)
-            paths.pop
-          end
-
-          generators_path.uniq!
-          generators_path = "{#{generators_path.join(',')}}"
-
-          self.load_paths.each do |path|
-            Dir[File.join(path, generators_path, name)].each do |file|
-              begin
-                require file
-              rescue Exception => e
-                warn "[WARNING] Could not load generator at #{file.inspect}. Error: #{e.message}"
-              end
+        self.load_paths.each do |path|
+          Dir[File.join(path, '**', attempts)].each do |file|
+            begin
+              require file
+            rescue Exception => e
+              warn "[WARNING] Could not load generator at #{file.inspect}. Error: #{e.message}"
             end
           end
         end
