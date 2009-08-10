@@ -184,6 +184,7 @@ module ActionView
       def initialize(view_context, options, block)
         partial = options[:partial]
 
+        @memo           = {}
         @view           = view_context
         @options        = options
         @locals         = options[:locals] || {}
@@ -222,41 +223,39 @@ module ActionView
       def collection_with_template(template)
         options = @options
 
-        segments, locals, as = [], @locals, options[:as]
+        segments, locals, as = [], @locals, options[:as] || :object
 
-        [].tap do |segments|
-          variable_name = template.variable_name
-          counter_name  = template.counter_name
-          locals[counter_name] = -1
+        variable_name = template.variable_name
+        counter_name  = template.counter_name
+        locals[counter_name] = -1
 
-          collection.each do |object|
-            locals[counter_name] += 1
-            locals[variable_name] = object
-            locals[as] = object if as
+        collection.each do |object|
+          locals[counter_name] += 1
+          locals[variable_name] = object
+          locals[as] = object if as
 
-            segments << template.render(@view, locals)
-          end
+          segments << template.render(@view, locals)
         end
+        segments
       end
 
       def collection_without_template
         options = @options
 
-        segments, locals, as = [], @locals, options[:as]
+        segments, locals, as = [], @locals, options[:as] || :object
         index, template = -1, nil
 
-        [].tap do |segments|
-          collection.each do |object|
-            template = find_template(partial_path(object))
-            locals[template.counter_name] = (index += 1)
-            locals[template.variable_name] = object
-            locals[as] = object if as
+        collection.each do |object|
+          template = find_template(partial_path(object))
+          locals[template.counter_name] = (index += 1)
+          locals[template.variable_name] = object
+          locals[as] = object if as
 
-            segments << template.render(@view, locals)
-          end
-
-          @options[:_template] = template
+          segments << template.render(@view, locals)
         end
+
+        @options[:_template] = template
+        segments
       end
 
       def render_template(template, object = @object)
