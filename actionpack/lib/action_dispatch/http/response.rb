@@ -32,18 +32,42 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response < Rack::Response
+    class SimpleHeaderHash < Hash
+      def to_hash
+        result = {}
+        each do |k,v|
+          v = v.join("\n") if v.is_a?(Array)
+          result[k] = v
+        end
+        result
+      end
+    end
+
     attr_accessor :request
     attr_reader :cache_control
 
-    attr_writer :header
+    attr_writer :header, :sending_file
     alias_method :headers=, :header=
 
-    delegate :default_charset, :to => 'ActionController::Base'
-
     def initialize
-      super
+      @status = 200
+      @header = SimpleHeaderHash.new
       @cache_control = {}
-      @header = Rack::Utils::HeaderHash.new
+
+      @writer = lambda { |x| @body << x }
+      @block = nil
+      @length = 0
+
+      @body = []
+      @sending_file = false
+
+      yield self if block_given?
+    end
+
+    def write(str)
+      s = str.to_s
+      @writer.call s
+      str
     end
 
     def status=(status)
@@ -128,20 +152,20 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    def sending_file?
-      headers["Content-Transfer-Encoding"] == "binary"
-    end
+    CONTENT_TYPE    = "Content-Type"
+
+    cattr_accessor(:default_charset) { "utf-8" }
 
     def assign_default_content_type_and_charset!
-      return if !headers["Content-Type"].blank?
+      return if !headers[CONTENT_TYPE].blank?
 
       @content_type ||= Mime::HTML
-      @charset      ||= default_charset
+      @charset      ||= self.class.default_charset
 
       type = @content_type.to_s.dup
-      type << "; charset=#{@charset}" unless sending_file?
+      type << "; charset=#{@charset}" unless @sending_file
 
-      headers["Content-Type"] = type
+      headers[CONTENT_TYPE] = type
     end
 
     def prepare!
@@ -168,17 +192,6 @@ module ActionDispatch # :nodoc:
       str
     end
 
-    def set_cookie(key, value)
-      if value.has_key?(:http_only)
-        ActiveSupport::Deprecation.warn(
-          "The :http_only option in ActionController::Response#set_cookie " +
-          "has been renamed. Please use :httponly instead.", caller)
-        value[:httponly] ||= value.delete(:http_only)
-      end
-
-      super(key, value)
-    end
-
     # Returns the response cookies, converted to a Hash of (name => value) pairs
     #
     #   assert_equal 'AuthorOfNewPage', r.cookies['author']
@@ -201,7 +214,7 @@ module ActionDispatch # :nodoc:
         if etag? || last_modified? || !cache_control.empty?
           set_conditional_cache_control!
         elsif nonempty_ok_response?
-          self.etag = body
+          self.etag = @body
 
           if request && request.etag_matches?(etag)
             self.status = 304
@@ -214,30 +227,37 @@ module ActionDispatch # :nodoc:
         end
       end
 
+      EMPTY_RESPONSE = [" "]
+
       def nonempty_ok_response?
         ok = !@status || @status == 200
-        ok && string_body?
+        ok && string_body? && @body != EMPTY_RESPONSE
       end
 
       def string_body?
         !body_parts.respond_to?(:call) && body_parts.any? && body_parts.all? { |part| part.is_a?(String) }
       end
 
+      DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
+
       def set_conditional_cache_control!
-        if cache_control.empty?
-          cache_control.merge!(:public => false, :max_age => 0, :must_revalidate => true)
+        control = cache_control
+
+        if control.empty?
+          headers["Cache-Control"] = DEFAULT_CACHE_CONTROL
+        else
+          extras  = control[:extras]
+          max_age = control[:max_age]
+
+          options = []
+          options << "max-age=#{max_age}" if max_age
+          options << (control[:public] ? "public" : "private")
+          options << "must-revalidate" if control[:must_revalidate]
+          options.concat(extras) if extras
+
+          headers["Cache-Control"] = options.join(", ")
         end
 
-        public_cache, max_age, must_revalidate, extras =
-          cache_control.values_at(:public, :max_age, :must_revalidate, :extras)
-
-        options = []
-        options << "max-age=#{max_age}" if max_age
-        options << (public_cache ? "public" : "private")
-        options << "must-revalidate" if must_revalidate
-        options.concat(extras) if extras
-
-        headers["Cache-Control"] = options.join(", ")
       end
   end
 end

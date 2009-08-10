@@ -25,8 +25,9 @@ module ActionController
       cattr_accessor :relative_url_root
       self.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
 
-      cattr_accessor :default_charset
-      self.default_charset = "utf-8"
+      class << self
+        delegate :default_charset=, :to => "ActionDispatch::Response"
+      end
 
       # cattr_reader :protected_instance_variables
       cattr_accessor :protected_instance_variables

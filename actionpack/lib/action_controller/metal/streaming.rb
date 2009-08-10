@@ -145,7 +145,6 @@ module ActionController #:nodoc:
       def send_data(data, options = {}) #:doc:
         logger.info "Sending data #{options[:filename]}" if logger
         send_file_headers! options.merge(:length => data.bytesize)
-        @performed_render = false
         render :status => options[:status], :text => data
       end
 
@@ -174,6 +173,8 @@ module ActionController #:nodoc:
           'Content-Disposition'       => disposition,
           'Content-Transfer-Encoding' => 'binary'
         )
+
+        response.sending_file = true
 
         # Fix a problem with IE 6.0 on opening downloaded files:
         # If Cache-Control: no-cache is set (which Rails does by default),
