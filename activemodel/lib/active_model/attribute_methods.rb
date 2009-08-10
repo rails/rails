@@ -135,16 +135,19 @@ module ActiveModel
 
       def define_attribute_methods(attr_names)
         return if attribute_methods_generated?
-        attr_names.each do |name|
-          attribute_method_matchers.each do |method|
-            method_name = "#{method.prefix}#{name}#{method.suffix}"
-            unless instance_method_already_implemented?(method_name)
-              generate_method = "define_method_#{method.prefix}attribute#{method.suffix}"
+        attr_names.each do |attr_name|
+          attribute_method_matchers.each do |matcher|
+            unless instance_method_already_implemented?(matcher.method_name(attr_name))
+              generate_method = "define_method_#{matcher.prefix}attribute#{matcher.suffix}"
 
               if respond_to?(generate_method)
-                send(generate_method, name)
+                send(generate_method, attr_name)
               else
-                generated_attribute_methods.module_eval("def #{method_name}(*args); send(:#{method.prefix}attribute#{method.suffix}, '#{name}', *args); end", __FILE__, __LINE__)
+                generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__+1
+                  def #{matcher.method_name(attr_name)}(*args)
+                    send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
+                  end
+                STR
               end
             end
           end
@@ -180,7 +183,7 @@ module ActiveModel
         class AttributeMethodMatcher
           attr_reader :prefix, :suffix
 
-          AttributeMethodMatch = Struct.new(:prefix, :base, :suffix)
+          AttributeMethodMatch = Struct.new(:target, :attr_name)
 
           def initialize(options = {})
             options.symbolize_keys!
@@ -190,10 +193,18 @@ module ActiveModel
 
           def match(method_name)
             if matchdata = @regex.match(method_name)
-              AttributeMethodMatch.new(matchdata[1], matchdata[2], matchdata[3])
+              AttributeMethodMatch.new(method_missing_target, matchdata[2])
             else
               nil
             end
+          end
+
+          def method_name(attr_name)
+            "#{prefix}#{attr_name}#{suffix}"
+          end
+
+          def method_missing_target
+            :"#{prefix}attribute#{suffix}"
           end
         end
 
@@ -214,7 +225,7 @@ module ActiveModel
       method_name = method_id.to_s
       if match = match_attribute_method?(method_name)
         guard_private_attribute_method!(method_name, args)
-        return __send__("#{match.prefix}attribute#{match.suffix}", match.base, *args, &block)
+        return __send__(match.target, match.attr_name, *args, &block)
       end
       super
     end
@@ -246,7 +257,7 @@ module ActiveModel
       # The struct's attributes are prefix, base and suffix.
       def match_attribute_method?(method_name)
         self.class.send(:attribute_method_matchers).each do |method|
-          if (match = method.match(method_name)) && attribute_method?(match.base)
+          if (match = method.match(method_name)) && attribute_method?(match.attr_name)
             return match
           end
         end
