@@ -3,7 +3,7 @@ module Arel
     def relation
       nil
     end
-    
+
     def to_sql(formatter = nil)
       self
     end
@@ -28,7 +28,13 @@ module Arel
   end
 
   class Value
-    delegate :inclusion_predicate_sql, :equality_predicate_sql, :to => :value
+    def inclusion_predicate_sql
+      value.inclusion_predicate_sql
+    end
+
+    def equality_predicate_sql
+      value.equality_predicate_sql
+    end
 
     def to_sql(formatter = Sql::WhereCondition.new(relation))
       formatter.value value

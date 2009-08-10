@@ -7,7 +7,7 @@ ActiveRecord::Base.logger = Logger.new("debug.log")
 ActiveRecord::Base.configurations = {
   'unit' => {
     :adapter  => 'mysql',
-    :username => 'rails',
+    :username => 'root',
     :encoding => 'utf8',
     :database => 'arel_unit',
   }

@@ -41,6 +41,21 @@ module Arel
           end
         end
       end
+
+      describe "when relating to a nil Value" do
+        it "manufactures an IS NULL predicate" do
+          value = nil.bind(@relation1)
+          sql = Equality.new(@attribute1, value).to_sql
+
+          adapter_is :mysql do
+            sql.should be_like(%Q{`users`.`id` IS NULL})
+          end
+
+          adapter_is_not :mysql do
+            sql.should be_like(%Q{"users"."id" IS NULL})
+          end
+        end
+      end
     end
   end
 end
