@@ -307,6 +307,16 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_radio_button_with_booleans
+    assert_dom_equal('<input id="post_secret_true" name="post[secret]" type="radio" value="true" />',
+      radio_button("post", "secret", true)
+    )
+
+    assert_dom_equal('<input id="post_secret_false" name="post[secret]" type="radio" value="false" />',
+      radio_button("post", "secret", false)
+    )
+  end
+
   def test_text_area
     assert_dom_equal(
       '<textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea>',

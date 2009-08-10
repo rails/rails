@@ -169,6 +169,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal peeps + 1, posts(:thinking).people.count
   end
 
+  def test_create_on_new_record
+    p = Post.new
+
+    assert_raises(ActiveRecord::RecordNotSaved) { p.people.create(:first_name => "mew") }
+    assert_raises(ActiveRecord::RecordNotSaved) { p.people.create!(:first_name => "snow") }
+  end
+
   def test_clear_associations
     assert_queries(2) { posts(:welcome);posts(:welcome).people(true) }
 
