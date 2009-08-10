@@ -66,7 +66,7 @@ class ReloaderTests < ActiveSupport::TestCase
     assert lock.locked?
   end
 
-  def it_unlocks_upon_calling_close_on_body
+  def test_it_unlocks_upon_calling_close_on_body
     lock = MyLock.new
     Dispatcher.expects(:reload_application)
     reloader = Reloader.new(lambda { |env|
@@ -74,6 +74,18 @@ class ReloaderTests < ActiveSupport::TestCase
     }, lock)
     headers, status, body = reloader.call({ })
     body.close
+    assert !lock.locked?
+  end
+
+  def test_it_unlocks_if_app_object_raises_exception
+    lock = MyLock.new
+    Dispatcher.expects(:reload_application)
+    reloader = Reloader.new(lambda { |env|
+      raise "oh no!"
+    }, lock)
+    assert_raise(RuntimeError) do
+      reloader.call({ })
+    end
     assert !lock.locked?
   end
 
