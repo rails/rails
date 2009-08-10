@@ -250,7 +250,6 @@ module ActiveRecord
           [column_name || :all, options]
         end
 
-
       private
         def validate_calculation_options(operation, options = {})
           options.assert_valid_keys(CALCULATIONS_OPTIONS)

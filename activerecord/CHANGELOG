@@ -1,5 +1,7 @@
 *Edge*
 
+* PostgreSQL: XML datatype support.  #1874 [Leonardo Borges]
+
 * quoted_date converts time-like objects to ActiveRecord::Base.default_timezone before serialization. This allows you to use Time.now in find conditions and have it correctly be serialized as the current time in UTC when default_timezone == :utc. #2946 [Geoff Buesing]
 
 * SQLite: drop support for 'dbfile' option in favor of 'database.'  #2363 [Paul Hinze, Jeremy Kemper]

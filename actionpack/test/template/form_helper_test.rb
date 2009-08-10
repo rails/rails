@@ -157,6 +157,22 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal('<label for="my_for">Title</label>', label(:post, :title, nil, "for" => "my_for"))
   end
 
+  def test_label_with_id_attribute_as_symbol
+    assert_dom_equal('<label for="post_title" id="my_id">Title</label>', label(:post, :title, nil, :id => "my_id"))
+  end
+
+  def test_label_with_id_attribute_as_string
+    assert_dom_equal('<label for="post_title" id="my_id">Title</label>', label(:post, :title, nil, "id" => "my_id"))
+  end
+
+  def test_label_with_for_and_id_attributes_as_symbol
+    assert_dom_equal('<label for="my_for" id="my_id">Title</label>', label(:post, :title, nil, :for => "my_for", :id => "my_id"))
+  end
+
+  def test_label_with_for_and_id_attributes_as_string
+    assert_dom_equal('<label for="my_for" id="my_id">Title</label>', label(:post, :title, nil, "for" => "my_for", "id" => "my_id"))
+  end
+
   def test_label_for_radio_buttons_with_value
     assert_dom_equal('<label for="post_title_great_title">The title goes here</label>', label("post", "title", "The title goes here", :value => "great_title"))
     assert_dom_equal('<label for="post_title_great_title">The title goes here</label>', label("post", "title", "The title goes here", :value => "great title"))

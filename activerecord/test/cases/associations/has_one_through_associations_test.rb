@@ -28,6 +28,16 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_not_nil new_member.current_membership
     assert_not_nil new_member.club
   end
+
+  def test_creating_association_builds_through_record_for_new
+    new_member = Member.new(:name => "Jane")
+    new_member.club = clubs(:moustache_club)
+    assert new_member.current_membership
+    assert_equal clubs(:moustache_club), new_member.current_membership.club
+    assert_equal clubs(:moustache_club), new_member.club
+    assert new_member.save
+    assert_equal clubs(:moustache_club), new_member.club
+  end
   
   def test_replace_target_record
     new_club = Club.create(:name => "Marx Bros")

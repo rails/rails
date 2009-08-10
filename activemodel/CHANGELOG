@@ -1,0 +1,5 @@
+*Edge*
+
+* Introduce validates_with to encapsulate attribute validations in a class.  #2630 [Jeff Dean]
+
+* Extracted from Active Record and Active Resource.

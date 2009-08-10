@@ -1237,7 +1237,6 @@ class RenderTest < ActionController::TestCase
   def test_partial_collection_with_spacer
     get :partial_collection_with_spacer
     assert_equal "Hello: davidonly partialHello: mary", @response.body
-    assert_template :partial => 'test/_partial_only'
     assert_template :partial => '_customer'
   end
 

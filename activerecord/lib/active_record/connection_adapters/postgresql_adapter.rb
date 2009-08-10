@@ -40,6 +40,12 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
+    class TableDefinition
+      def xml(*args)
+        options = args.extract_options!
+        column(args[0], 'xml', options)
+      end
+    end
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
       # Instantiates a new PostgreSQL column definition in a table.
@@ -100,7 +106,7 @@ module ActiveRecord
               :string
             # XML type
             when /^xml$/
-              :string
+              :xml
             # Arrays
             when /^\D+\[\]$/
               :string
@@ -195,7 +201,8 @@ module ActiveRecord
         :time        => { :name => "time" },
         :date        => { :name => "date" },
         :binary      => { :name => "bytea" },
-        :boolean     => { :name => "boolean" }
+        :boolean     => { :name => "boolean" },
+        :xml         => { :name => "xml" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
@@ -247,6 +254,11 @@ module ActiveRecord
 
       # Does PostgreSQL support migrations?
       def supports_migrations?
+        true
+      end
+
+      # Does PostgreSQL support finding primary key on non-ActiveRecord tables?
+      def supports_primary_key? #:nodoc:
         true
       end
 
@@ -365,7 +377,7 @@ module ActiveRecord
         if value.kind_of?(String) && column && column.type == :binary
           "#{quoted_string_prefix}'#{escape_bytea(value)}'"
         elsif value.kind_of?(String) && column && column.sql_type =~ /^xml$/
-          "xml '#{quote_string(value)}'"
+          "xml E'#{quote_string(value)}'"
         elsif value.kind_of?(Numeric) && column && column.sql_type =~ /^money$/
           # Not truly string input, so doesn't require (or allow) escape string syntax.
           "'#{value.to_s}'"
@@ -812,6 +824,12 @@ module ActiveRecord
         nil
       end
 
+      # Returns just a table's primary key
+      def primary_key(table)
+        pk_and_sequence = pk_and_sequence_for(table)
+        pk_and_sequence && pk_and_sequence.first
+      end
+
       # Renames a table.
       def rename_table(name, new_name)
         execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
@@ -1091,3 +1109,4 @@ module ActiveRecord
     end
   end
 end
+

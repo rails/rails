@@ -93,7 +93,7 @@ module ActiveRecord
       # Construct attributes for :through pointing to owner and associate.
       def construct_join_attributes(associate)
         # TODO: revist this to allow it for deletion, supposing dependent option is supported
-        raise ActiveRecord::HasManyThroughCantAssociateThroughHasManyReflection.new(@owner, @reflection) if @reflection.source_reflection.macro == :has_many
+        raise ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(@owner, @reflection) if [:has_one, :has_many].include?(@reflection.source_reflection.macro)
 
         join_attributes = construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.primary_key_name => associate.id)
 

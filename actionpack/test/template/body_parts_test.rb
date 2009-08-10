@@ -4,7 +4,7 @@ class BodyPartsTest < ActionController::TestCase
   RENDERINGS = [Object.new, Object.new, Object.new]
 
   class TestController < ActionController::Base
-    def performed?() true end
+    def response_body() "" end
 
     def index
       RENDERINGS.each do |rendering|

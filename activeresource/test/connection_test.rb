@@ -56,6 +56,9 @@ class ConnectionTest < Test::Unit::TestCase
     # 409 is an optimistic locking error
     assert_response_raises ActiveResource::ResourceConflict, 409
 
+    # 410 is a removed resource
+    assert_response_raises ActiveResource::ResourceGone, 410
+
     # 422 is a validation error
     assert_response_raises ActiveResource::ResourceInvalid, 422
 
@@ -99,6 +102,16 @@ class ConnectionTest < Test::Unit::TestCase
 
     assert_nothing_raised { @conn.site = site }
     assert_equal site, @conn.site
+  end
+
+  def test_proxy_accessor_accepts_uri_or_string_argument
+    proxy = URI.parse("http://proxy_user:proxy_password@proxy.local:4242")
+
+    assert_nothing_raised { @conn.proxy = "http://proxy_user:proxy_password@proxy.local:4242" }
+    assert_equal proxy, @conn.proxy
+
+    assert_nothing_raised { @conn.proxy = proxy }
+    assert_equal proxy, @conn.proxy
   end
 
   def test_timeout_accessor
@@ -175,12 +188,41 @@ class ConnectionTest < Test::Unit::TestCase
     assert_raise(ActiveResource::TimeoutError) { @conn.get('/people_timeout.xml') }
   end
 
+  def test_setting_timeout
+    http = Net::HTTP.new('')
+
+    [10, 20].each do |timeout|
+      @conn.timeout = timeout
+      @conn.send(:configure_http, http)
+      assert_equal timeout, http.open_timeout
+      assert_equal timeout, http.read_timeout
+    end
+  end
+
   def test_accept_http_header
     @http = mock('new Net::HTTP')
     @conn.expects(:http).returns(@http)
     path = '/people/1.xml'
     @http.expects(:get).with(path,  {'Accept' => 'application/xhtml+xml'}).returns(ActiveResource::Response.new(@matz, 200, {'Content-Type' => 'text/xhtml'}))
     assert_nothing_raised(Mocha::ExpectationError) { @conn.get(path, {'Accept' => 'application/xhtml+xml'}) }
+  end
+
+  def test_ssl_options_get_applied_to_http
+    http = Net::HTTP.new('')
+    @conn.site="https://secure"
+    @conn.ssl_options={:verify_mode => OpenSSL::SSL::VERIFY_PEER}
+    @conn.timeout = 10 # prevent warning about uninitialized.
+    @conn.send(:configure_http, http)
+
+    assert http.use_ssl?
+    assert_equal http.verify_mode, OpenSSL::SSL::VERIFY_PEER
+  end
+
+  def test_ssl_error
+    http = Net::HTTP.new('')
+    @conn.expects(:http).returns(http)
+    http.expects(:get).raises(OpenSSL::SSL::SSLError, 'Expired certificate')
+    assert_raise(ActiveResource::SSLError) { @conn.get('/people/1.xml') }
   end
 
   protected

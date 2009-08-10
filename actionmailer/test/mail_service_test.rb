@@ -894,11 +894,11 @@ EOF
      tmp_location = ActionMailer::Base.file_settings[:location]
 
      TestMailer.deliver_cc_bcc(@recipient)
-     assert File.exists? tmp_location
-     assert File.directory? tmp_location
-     assert File.exists? File.join(tmp_location, @recipient)
-     assert File.exists? File.join(tmp_location, 'nobody@loudthinking.com')
-     assert File.exists? File.join(tmp_location, 'root@loudthinking.com')
+     assert File.exists?(tmp_location)
+     assert File.directory?(tmp_location)
+     assert File.exists?(File.join(tmp_location, @recipient))
+     assert File.exists?(File.join(tmp_location, 'nobody@loudthinking.com'))
+     assert File.exists?(File.join(tmp_location, 'root@loudthinking.com'))
    end
 
   def test_recursive_multipart_processing

@@ -4,6 +4,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
   class DummyController < ActionController::Base
     before_filter :authenticate, :only => :index
     before_filter :authenticate_with_request, :only => :display
+    before_filter :authenticate_long_credentials, :only => :show
 
     def index
       render :text => "Hello Secret"
@@ -11,6 +12,10 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
 
     def display
       render :text => 'Definitely Maybe'
+    end
+    
+    def show
+      render :text => 'Only for loooooong credentials'
     end
 
     private
@@ -28,6 +33,12 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
         request_http_basic_authentication("SuperSecret")
       end
     end
+    
+    def authenticate_long_credentials
+      authenticate_or_request_with_http_basic do |username, password|
+        username == '1234567890123456789012345678901234567890' && password == '1234567890123456789012345678901234567890'
+      end
+    end
   end
 
   AUTH_HEADERS = ['HTTP_AUTHORIZATION', 'X-HTTP_AUTHORIZATION', 'X_HTTP_AUTHORIZATION', 'REDIRECT_X_HTTP_AUTHORIZATION']
@@ -42,6 +53,13 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
       assert_response :success
       assert_equal 'Hello Secret', @response.body, "Authentication failed for request header #{header}"
     end
+    test "successful authentication with #{header.downcase} and long credentials" do
+      @request.env[header] = encode_credentials('1234567890123456789012345678901234567890', '1234567890123456789012345678901234567890')
+      get :show
+      
+      assert_response :success
+      assert_equal 'Only for loooooong credentials', @response.body, "Authentication failed for request header #{header} and long credentials"
+    end
   end
 
   AUTH_HEADERS.each do |header|
@@ -51,6 +69,13 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
 
       assert_response :unauthorized
       assert_equal "HTTP Basic: Access denied.\n", @response.body, "Authentication didn't fail for request header #{header}"
+    end
+    test "unsuccessful authentication with #{header.downcase} and long credentials" do
+      @request.env[header] = encode_credentials('h4x0rh4x0rh4x0rh4x0rh4x0rh4x0rh4x0rh4x0r', 'worldworldworldworldworldworldworldworld')
+      get :show
+
+      assert_response :unauthorized
+      assert_equal "HTTP Basic: Access denied.\n", @response.body, "Authentication didn't fail for request header #{header} and long credentials"
     end
   end
 

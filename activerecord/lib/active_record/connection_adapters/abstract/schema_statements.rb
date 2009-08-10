@@ -107,7 +107,7 @@ module ActiveRecord
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
         table_definition = TableDefinition.new(self)
-        table_definition.primary_key(options[:primary_key] || Base.get_primary_key(table_name)) unless options[:id] == false
+        table_definition.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
 
         yield table_definition if block_given?
 
@@ -329,7 +329,7 @@ module ActiveRecord
             schema_migrations_table.column :version, :string, :null => false
           end
           add_index sm_table, :version, :unique => true,
-            :name => 'unique_schema_migrations'
+            :name => "#{Base.table_name_prefix}unique_schema_migrations#{Base.table_name_suffix}"
 
           # Backwards-compatibility: if we find schema_info, assume we've
           # migrated up to that point:

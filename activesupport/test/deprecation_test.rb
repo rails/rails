@@ -25,6 +25,9 @@ class Deprecatee
   def e; end
   deprecate :a, :b, :c => :e, :d => "you now need to do something extra for this one"
 
+  def f=(v); end
+  deprecate :f=
+
   module B
     C = 1
   end
@@ -133,6 +136,7 @@ class DeprecationTest < ActiveSupport::TestCase
   def test_deprecation_without_explanation
     assert_deprecated { @dtc.a }
     assert_deprecated { @dtc.b }
+    assert_deprecated { @dtc.f = :foo }
   end
 
   def test_deprecation_with_alternate_method

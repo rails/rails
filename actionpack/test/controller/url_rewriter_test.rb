@@ -304,7 +304,7 @@ class UrlWriterTests < ActionController::TestCase
   def test_named_routes_with_nil_keys
     ActionController::Routing::Routes.clear!
     ActionController::Routing::Routes.draw do |map|
-      map.main '', :controller => 'posts'
+      map.main '', :controller => 'posts', :format => nil
       map.resources :posts
       map.connect ':controller/:action/:id'
     end
@@ -314,9 +314,9 @@ class UrlWriterTests < ActionController::TestCase
 
     controller = kls.new
     params = {:action => :index, :controller => :posts, :format => :xml}
-    assert_equal("http://www.basecamphq.com/posts.xml", controller.send(:url_for, params))    
+    assert_equal("http://www.basecamphq.com/posts.xml", controller.send(:url_for, params))
     params[:format] = nil
-    assert_equal("http://www.basecamphq.com/", controller.send(:url_for, params))    
+    assert_equal("http://www.basecamphq.com/", controller.send(:url_for, params))
   ensure
     ActionController::Routing::Routes.load!
   end

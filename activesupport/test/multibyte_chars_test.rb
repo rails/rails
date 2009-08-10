@@ -1,5 +1,4 @@
 # encoding: utf-8
-
 require 'abstract_unit'
 require 'multibyte_test_helpers'
 
@@ -184,7 +183,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   end
 
   def test_sortability
-    words = %w(builder armor zebra).map(&:mb_chars).sort
+    words = %w(builder armor zebra).sort_by { |s| s.mb_chars }
     assert_equal %w(armor builder zebra), words
   end
 
@@ -231,7 +230,19 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_nil @chars.index('u')
     assert_equal 0, @chars.index('こに')
     assert_equal 2, @chars.index('ち')
+    assert_equal 2, @chars.index('ち', -2)
+    assert_equal nil, @chars.index('ち', -1)
     assert_equal 3, @chars.index('わ')
+    assert_equal 5, 'ééxééx'.mb_chars.index('x', 4)
+  end
+
+  def test_rindex_should_return_character_offset
+    assert_nil @chars.rindex('u')
+    assert_equal 1, @chars.rindex('に')
+    assert_equal 2, @chars.rindex('ち', -2)
+    assert_nil @chars.rindex('ち', -3)
+    assert_equal 6, 'Café périferôl'.mb_chars.rindex('é')
+    assert_equal 13, 'Café périferôl'.mb_chars.rindex(/\w/u)
   end
 
   def test_indexed_insert_should_take_character_offsets

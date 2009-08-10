@@ -1,5 +1,7 @@
 *Edge*
 
+* Introduce grouped_collection_select helper.  #1249 [Dan Codeape, Erik Ostrom]
+
 * Make sure javascript_include_tag/stylesheet_link_tag does not append ".js" or ".css" onto external urls. #1664 [Matthew Rudy Jacobs]
 
 * Ruby 1.9: fix Content-Length for multibyte send_data streaming.  #2661 [Sava Chankov]

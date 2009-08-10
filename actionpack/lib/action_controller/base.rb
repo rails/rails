@@ -41,7 +41,7 @@ module ActionController
     module ImplicitRender
       def send_action(*)
         ret = super
-        default_render unless performed?
+        default_render unless response_body
         ret
       end
 

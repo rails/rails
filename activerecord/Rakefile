@@ -64,8 +64,8 @@ end
 namespace :mysql do
   desc 'Build the MySQL test databases'
   task :build_databases do
-    %x( mysqladmin --user=#{MYSQL_DB_USER} create activerecord_unittest )
-    %x( mysqladmin --user=#{MYSQL_DB_USER} create activerecord_unittest2 )
+    %x( echo "create DATABASE activerecord_unittest DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci " | mysql --user=#{MYSQL_DB_USER})
+    %x( echo "create DATABASE activerecord_unittest2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci " | mysql --user=#{MYSQL_DB_USER})
   end
 
   desc 'Drop the MySQL test databases'

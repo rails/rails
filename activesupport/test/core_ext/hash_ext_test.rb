@@ -265,6 +265,18 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal expected, hash_1
   end
 
+  def test_deep_merge_on_indifferent_access
+    hash_1 = HashWithIndifferentAccess.new({ :a => "a", :b => "b", :c => { :c1 => "c1", :c2 => "c2", :c3 => { :d1 => "d1" } } })
+    hash_2 = HashWithIndifferentAccess.new({ :a => 1, :c => { :c1 => 2, :c3 => { :d2 => "d2" } } })
+    hash_3 = { :a => 1, :c => { :c1 => 2, :c3 => { :d2 => "d2" } } }
+    expected = { "a" => 1, "b" => "b", "c" => { "c1" => 2, "c2" => "c2", "c3" => { "d1" => "d1", "d2" => "d2" } } }
+    assert_equal expected, hash_1.deep_merge(hash_2)
+    assert_equal expected, hash_1.deep_merge(hash_3)
+
+    hash_1.deep_merge!(hash_2)
+    assert_equal expected, hash_1
+  end
+
   def test_reverse_merge
     defaults = { :a => "x", :b => "y", :c => 10 }.freeze
     options  = { :a => 1, :b => 2 }
@@ -879,6 +891,13 @@ class HashToXmlTest < Test::Unit::TestCase
     assert_equal 15,    alert_at.hour
     assert_equal 30,    alert_at.min
     assert_equal 45,    alert_at.sec
+  end
+
+  def test_to_xml_dups_options
+    options = {:skip_instruct => true}
+    {}.to_xml(options)
+    # :builder, etc, shouldn't be added to options
+    assert_equal({:skip_instruct => true}, options)
   end
 end
 

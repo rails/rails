@@ -141,7 +141,7 @@ module ActionController
       end
 
       def decode_credentials(request)
-        ActiveSupport::Base64.decode64(authorization(request).split.last || '')
+        ActiveSupport::Base64.decode64(authorization(request).split(' ', 2).last || '')
       end
 
       def encode_credentials(user_name, password)
@@ -197,9 +197,10 @@ module ActionController
           return false unless password
 
           method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
+          uri    = credentials[:uri][0,1] == '/' ? request.request_uri : request.url
 
          [true, false].any? do |password_is_ha1|
-           expected = expected_response(method, request.env['REQUEST_URI'], credentials, password, password_is_ha1)
+           expected = expected_response(method, uri, credentials, password, password_is_ha1)
            expected == credentials[:response]
          end
         end

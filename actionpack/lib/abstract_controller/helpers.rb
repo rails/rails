@@ -4,8 +4,16 @@ module AbstractController
 
     include RenderingController
 
+    def self.next_serial
+      @helper_serial ||= 0
+      @helper_serial += 1
+    end
+
     included do
       extlib_inheritable_accessor(:_helpers) { Module.new }
+      extlib_inheritable_accessor(:_helper_serial) do
+        AbstractController::Helpers.next_serial
+      end
     end
 
     module ClassMethods
@@ -58,6 +66,8 @@ module AbstractController
       #   of the helper module. Any methods defined in the block
       #   will be helpers.
       def helper(*args, &block)
+        self._helper_serial = AbstractController::Helpers.next_serial + 1
+
         args.flatten.each do |arg|
           case arg
           when Module

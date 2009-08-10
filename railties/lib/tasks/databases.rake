@@ -292,7 +292,11 @@ namespace :db do
     desc "Load a schema.rb file into the database"
     task :load => :environment do
       file = ENV['SCHEMA'] || "#{RAILS_ROOT}/db/schema.rb"
-      load(file)
+      if File.exists?(file)
+        load(file)
+      else
+        abort %{#{file} doesn't exist yet. Run "rake db:migrate" to create it then try again. If you do not intend to use a database, you should instead alter #{RAILS_ROOT}/config/environment.rb to prevent active_record from loading: config.frameworks -= [ :active_record ]}
+      end
     end
   end
 
@@ -440,7 +444,11 @@ def drop_database(config)
     ActiveRecord::Base.establish_connection(config)
     ActiveRecord::Base.connection.drop_database config['database']
   when /^sqlite/
-    FileUtils.rm(File.join(RAILS_ROOT, config['database']))
+    require 'pathname'
+    path = Pathname.new(config['database'])
+    file = path.absolute? ? path.to_s : File.join(RAILS_ROOT, path)
+
+    FileUtils.rm(file)
   when 'postgresql'
     ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
     ActiveRecord::Base.connection.drop_database config['database']
@@ -448,7 +456,7 @@ def drop_database(config)
 end
 
 def session_table_name
-  ActiveRecord::Base.pluralize_table_names ? :sessions : :session
+  ActiveRecord::SessionStore::Session.table_name
 end
 
 def set_firebird_env(config)

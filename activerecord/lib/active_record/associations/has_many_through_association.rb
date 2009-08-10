@@ -20,7 +20,11 @@ module ActiveRecord
         ensure_owner_is_not_new
 
         transaction do
-          self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association } : @reflection.create_association)
+          object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association } : @reflection.create_association
+          raise_on_type_mismatch(object)
+          add_record_to_target_with_callbacks(object) do |r|
+            insert_record(object, false)
+          end
           object
         end
       end
@@ -54,7 +58,7 @@ module ActiveRecord
           options[:select]  = construct_select(options[:select])
           options[:from]  ||= construct_from
           options[:joins]   = construct_joins(options[:joins])
-          options[:include] = @reflection.source_reflection.options[:include] if options[:include].nil?
+          options[:include] = @reflection.source_reflection.options[:include] if options[:include].nil? && @reflection.source_reflection.options[:include]
         end
 
         def insert_record(record, force = true, validate = true)

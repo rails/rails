@@ -51,7 +51,9 @@ class BaseLoadTest < Test::Unit::TestCase
       :id => 1, :state => { :id => 1, :name => 'Oregon',
         :notable_rivers => [
           { :id => 1, :name => 'Willamette' },
-          { :id => 2, :name => 'Columbia', :rafted_by => @matz }] }}}
+          { :id => 2, :name => 'Columbia', :rafted_by => @matz }],
+        :postal_codes => [97018,1234567890],
+        :places => ["Columbia City", "Unknown"]}}}
 
     @person = Person.new
   end
@@ -127,6 +129,19 @@ class BaseLoadTest < Test::Unit::TestCase
     assert_kind_of Person::Street::State::NotableRiver, rivers.first
     assert_equal @deep[:street][:state][:notable_rivers].first[:id], rivers.first.id
     assert_equal @matz[:id], rivers.last.rafted_by.id
+
+    postal_codes = state.postal_codes
+    assert_kind_of Array, postal_codes
+    assert_equal 2, postal_codes.size
+    assert_kind_of Fixnum, postal_codes.first
+    assert_equal @deep[:street][:state][:postal_codes].first, postal_codes.first
+    assert_kind_of Bignum, postal_codes.last
+    assert_equal @deep[:street][:state][:postal_codes].last, postal_codes.last
+
+    places = state.places
+    assert_kind_of Array, places
+    assert_kind_of String, places.first
+    assert_equal @deep[:street][:state][:places].first, places.first
   end
   
   def test_nested_collections_within_the_same_namespace

@@ -11,9 +11,12 @@ require 'models/author'
 require 'models/owner'
 require 'models/pet'
 require 'models/toy'
+require 'models/contract'
+require 'models/company'
+require 'models/developer'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people, :comments, :authors, :owners, :pets, :toys, :jobs, :references
+  fixtures :posts, :readers, :people, :comments, :authors, :owners, :pets, :toys, :jobs, :references, :companies
 
   def test_associate_existing
     assert_queries(2) { posts(:thinking);people(:david) }
@@ -176,6 +179,30 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotSaved) { p.people.create!(:first_name => "snow") }
   end
 
+  def test_associate_with_create_and_invalid_options
+    peeps = companies(:first_firm).developers.count
+    assert_nothing_raised { companies(:first_firm).developers.create(:name => '0') }
+    assert_equal peeps, companies(:first_firm).developers.count
+  end
+
+  def test_associate_with_create_and_valid_options
+    peeps = companies(:first_firm).developers.count
+    assert_nothing_raised { companies(:first_firm).developers.create(:name => 'developer') }
+    assert_equal peeps + 1, companies(:first_firm).developers.count
+  end
+
+  def test_associate_with_create_bang_and_invalid_options
+    peeps = companies(:first_firm).developers.count
+    assert_raises(ActiveRecord::RecordInvalid) { companies(:first_firm).developers.create!(:name => '0') }
+    assert_equal peeps, companies(:first_firm).developers.count
+  end
+
+  def test_associate_with_create_bang_and_valid_options
+    peeps = companies(:first_firm).developers.count
+    assert_nothing_raised { companies(:first_firm).developers.create!(:name => 'developer') }
+    assert_equal peeps + 1, companies(:first_firm).developers.count
+  end
+
   def test_clear_associations
     assert_queries(2) { posts(:welcome);posts(:welcome).people(true) }
 
@@ -298,5 +325,22 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_association_through_a_has_many_association_with_nonstandard_primary_keys
     assert_equal 1, owners(:blackbeard).toys.count
+  end
+
+  def test_find_on_has_many_association_collection_with_include_and_conditions
+    post_with_no_comments = people(:michael).posts_with_no_comments.first
+    assert_equal post_with_no_comments, posts(:authorless)
+  end
+
+  def test_has_many_through_has_one_reflection
+    assert_equal [comments(:eager_sti_on_associations_vs_comment)], authors(:david).very_special_comments
+  end
+
+  def test_modifying_has_many_through_has_one_reflection_should_raise
+    [
+      lambda { authors(:david).very_special_comments = [VerySpecialComment.create!(:body => "Gorp!", :post_id => 1011), VerySpecialComment.create!(:body => "Eep!", :post_id => 1012)] },
+      lambda { authors(:david).very_special_comments << VerySpecialComment.create!(:body => "Hoohah!", :post_id => 1013) },
+      lambda { authors(:david).very_special_comments.delete(authors(:david).very_special_comments.first) },
+    ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
   end
 end
