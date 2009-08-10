@@ -6,17 +6,21 @@ module AbstractController
 
     included do
       extlib_inheritable_accessor(:_layout_conditions) { Hash.new }
+      extlib_inheritable_accessor(:_action_has_layout) { Hash.new }
       _write_layout_method
     end
 
     module ClassMethods
       def inherited(klass)
         super
-        klass._write_layout_method
+        klass.class_eval do
+          _write_layout_method
+          @found_layouts = {}
+        end
       end
 
       def cache_layout(details)
-        layout = @found_layouts ||= {}
+        layout = @found_layouts
         values = details.values_at(:formats, :locale)
 
         # Cache nil
@@ -24,6 +28,28 @@ module AbstractController
           return layout[values]
         else
           layout[values] = yield
+        end
+      end
+
+      # This module is mixed in if layout conditions are provided. This means
+      # that if no layout conditions are used, this method is not used
+      module LayoutConditions
+        # Determines whether the current action has a layout by checking the
+        # action name against the :only and :except conditions set on the
+        # layout.
+        #
+        # ==== Returns
+        # Boolean:: True if the action has a layout, false otherwise.
+        def _action_has_layout?
+          conditions = _layout_conditions
+
+          if only = conditions[:only]
+            only.include?(action_name)
+          elsif except = conditions[:except]
+            !except.include?(action_name)
+          else
+            true
+          end
         end
       end
 
@@ -43,6 +69,8 @@ module AbstractController
       # :only<#to_s, Array[#to_s]>:: A list of actions to apply this layout to.
       # :except<#to_s, Array[#to_s]>:: Apply this layout to all actions but this one
       def layout(layout, conditions = {})
+        include LayoutConditions unless conditions.empty?
+
         conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
         self._layout_conditions = conditions
 
@@ -150,7 +178,7 @@ module AbstractController
       view_paths.find(name, details, prefix)
     end
 
-    # Returns the default layout for this controller and a given set of details. 
+    # Returns the default layout for this controller and a given set of details.
     # Optionally raises an exception if the layout could not be found.
     #
     # ==== Parameters
@@ -176,21 +204,8 @@ module AbstractController
       end
     end
 
-    # Determines whether the current action has a layout by checking the
-    # action name against the :only and :except conditions set on the
-    # layout.
-    #
-    # ==== Returns
-    # Boolean:: True if the action has a layout, false otherwise.
     def _action_has_layout?
-      conditions = _layout_conditions
-      if only = conditions[:only]
-        only.include?(action_name)
-      elsif except = conditions[:except]
-        !except.include?(action_name)
-      else
-        true
-      end
+      true
     end
   end
 end

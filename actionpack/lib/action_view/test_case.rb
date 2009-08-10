@@ -72,7 +72,6 @@ module ActionView
         @response = ActionController::TestResponse.new
 
         @params = {}
-        send(:initialize_current_url)
       end
     end
 

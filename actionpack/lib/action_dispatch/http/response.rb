@@ -32,18 +32,7 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response < Rack::Response
-    class SimpleHeaderHash < Hash
-      def to_hash
-        result = {}
-        each do |k,v|
-          v = v.join("\n") if v.is_a?(Array)
-          result[k] = v
-        end
-        result
-      end
-    end
-
-    attr_accessor :request
+    attr_accessor :request, :blank
     attr_reader :cache_control
 
     attr_writer :header, :sending_file
@@ -51,17 +40,21 @@ module ActionDispatch # :nodoc:
 
     def initialize
       @status = 200
-      @header = SimpleHeaderHash.new
+      @header = {}
       @cache_control = {}
 
       @writer = lambda { |x| @body << x }
       @block = nil
       @length = 0
 
-      @body = []
+      @body, @cookie = [], []
       @sending_file = false
 
       yield self if block_given?
+    end
+
+    def cache_control
+      @cache_control ||= {}
     end
 
     def write(str)
@@ -95,7 +88,10 @@ module ActionDispatch # :nodoc:
       str
     end
 
+    EMPTY = " "
+
     def body=(body)
+      @blank = true if body == EMPTY
       @body = body.respond_to?(:to_str) ? [body] : body
     end
 
@@ -137,19 +133,16 @@ module ActionDispatch # :nodoc:
     end
 
     def etag
-      headers['ETag']
+      @etag
     end
 
     def etag?
-      headers.include?('ETag')
+      @etag
     end
 
     def etag=(etag)
-      if etag.blank?
-        headers.delete('ETag')
-      else
-        headers['ETag'] = %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(etag))}")
-      end
+      key = ActiveSupport::Cache.expand_cache_key(etag)
+      @etag = %("#{Digest::MD5.hexdigest(key)}")
     end
 
     CONTENT_TYPE    = "Content-Type"
@@ -157,7 +150,7 @@ module ActionDispatch # :nodoc:
     cattr_accessor(:default_charset) { "utf-8" }
 
     def assign_default_content_type_and_charset!
-      return if !headers[CONTENT_TYPE].blank?
+      return if headers[CONTENT_TYPE].present?
 
       @content_type ||= Mime::HTML
       @charset      ||= self.class.default_charset
@@ -171,7 +164,8 @@ module ActionDispatch # :nodoc:
     def prepare!
       assign_default_content_type_and_charset!
       handle_conditional_get!
-      self["Set-Cookie"] ||= ""
+      self["Set-Cookie"] = @cookie.join("\n")
+      self["ETag"]       = @etag if @etag
     end
 
     def each(&callback)
@@ -197,7 +191,7 @@ module ActionDispatch # :nodoc:
     #   assert_equal 'AuthorOfNewPage', r.cookies['author']
     def cookies
       cookies = {}
-      if header = headers['Set-Cookie']
+      if header = @cookie
         header = header.split("\n") if header.respond_to?(:to_str)
         header.each do |cookie|
           if pair = cookie.split(';').first
@@ -209,9 +203,40 @@ module ActionDispatch # :nodoc:
       cookies
     end
 
+    def set_cookie(key, value)
+      case value
+      when Hash
+        domain  = "; domain="  + value[:domain]    if value[:domain]
+        path    = "; path="    + value[:path]      if value[:path]
+        # According to RFC 2109, we need dashes here.
+        # N.B.: cgi.rb uses spaces...
+        expires = "; expires=" + value[:expires].clone.gmtime.
+          strftime("%a, %d-%b-%Y %H:%M:%S GMT")    if value[:expires]
+        secure = "; secure"  if value[:secure]
+        httponly = "; HttpOnly" if value[:httponly]
+        value = value[:value]
+      end
+      value = [value]  unless Array === value
+      cookie = Rack::Utils.escape(key) + "=" +
+        value.map { |v| Rack::Utils.escape v }.join("&") +
+        "#{domain}#{path}#{expires}#{secure}#{httponly}"
+
+      @cookie << cookie
+    end
+
+    def delete_cookie(key, value={})
+      @cookie.reject! { |cookie|
+        cookie =~ /\A#{Rack::Utils.escape(key)}=/
+      }
+
+      set_cookie(key,
+                 {:value => '', :path => nil, :domain => nil,
+                   :expires => Time.at(0) }.merge(value))
+    end
+
     private
       def handle_conditional_get!
-        if etag? || last_modified? || !cache_control.empty?
+        if etag? || last_modified? || !@cache_control.empty?
           set_conditional_cache_control!
         elsif nonempty_ok_response?
           self.etag = @body
@@ -227,21 +252,18 @@ module ActionDispatch # :nodoc:
         end
       end
 
-      EMPTY_RESPONSE = [" "]
-
       def nonempty_ok_response?
-        ok = !@status || @status == 200
-        ok && string_body? && @body != EMPTY_RESPONSE
+        @status == 200 && string_body?
       end
 
       def string_body?
-        !body_parts.respond_to?(:call) && body_parts.any? && body_parts.all? { |part| part.is_a?(String) }
+        !@blank && @body.respond_to?(:all?) && @body.all? { |part| part.is_a?(String) }
       end
 
       DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
 
       def set_conditional_cache_control!
-        control = cache_control
+        control = @cache_control
 
         if control.empty?
           headers["Cache-Control"] = DEFAULT_CACHE_CONTROL

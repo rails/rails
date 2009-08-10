@@ -52,7 +52,7 @@ module ActionController #:nodoc:
   class TestResponse < ActionDispatch::TestResponse
     def recycle!
       @status = 200
-      @header = ActionDispatch::Response::SimpleHeaderHash.new
+      @header = {}
       @writer = lambda { |x| @body << x }
       @block = nil
       @length = 0

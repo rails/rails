@@ -102,11 +102,10 @@ module ActionController
         options[:template].sub!(/^\//, '')
       end
 
-      options[:text] = nil if options[:nothing] == true
+      options[:text] = nil if options.delete(:nothing) == true
+      options[:text] = " " if options.key?(:text) && options[:text].nil?
 
-      body = super
-      body = [' '] if body.blank?
-      body
+      super || " "
     end
 
     def _handle_method_missing
