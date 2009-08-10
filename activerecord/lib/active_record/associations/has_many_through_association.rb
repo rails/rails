@@ -36,7 +36,7 @@ module ActiveRecord
           ensure_owner_is_not_new
 
           transaction do
-            object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association } : @reflection.create_association
+            object = @reflection.klass.new(attrs)
             add_record_to_target_with_callbacks(object) {|r| insert_record(object, force) }
             object
           end
