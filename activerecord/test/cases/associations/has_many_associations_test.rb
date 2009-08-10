@@ -10,11 +10,12 @@ require 'models/author'
 require 'models/comment'
 require 'models/person'
 require 'models/reader'
+require 'models/tagging'
 
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments, :author_addresses,
-           :people, :posts, :readers
+           :people, :posts, :readers, :taggings
 
   def setup
     Client.destroyed_client_ids.clear
