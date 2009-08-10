@@ -133,6 +133,16 @@ module ActiveModel
         undefine_attribute_methods
       end
 
+      def alias_attribute(new_name, old_name)
+        attribute_method_matchers.each do |matcher|
+          module_eval <<-STR, __FILE__, __LINE__+1
+            def #{matcher.method_name(new_name)}(*args)
+              send(:#{matcher.method_name(old_name)}, *args)
+            end
+          STR
+        end
+      end
+
       def define_attribute_methods(attr_names)
         return if attribute_methods_generated?
         attr_names.each do |attr_name|

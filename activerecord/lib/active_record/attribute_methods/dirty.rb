@@ -182,23 +182,6 @@ module ActiveRecord
 
           old != value
         end
-
-      module ClassMethods
-        def self.extended(base)
-          class << base
-            alias_method_chain :alias_attribute, :dirty
-          end
-        end
-
-        def alias_attribute_with_dirty(new_name, old_name)
-          alias_attribute_without_dirty(new_name, old_name)
-          DIRTY_AFFIXES.each do |affixes|
-            module_eval <<-STR, __FILE__, __LINE__+1
-              def #{affixes[:prefix]}#{new_name}#{affixes[:suffix]}; self.#{affixes[:prefix]}#{old_name}#{affixes[:suffix]}; end  # def reset_subject!; self.reset_title!; end
-            STR
-          end
-        end
-      end
     end
   end
 end
