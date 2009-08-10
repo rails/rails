@@ -4,6 +4,7 @@ require 'models/post'
 require 'models/author'
 require 'models/tagging'
 require 'models/comment'
+require 'models/company_in_module'
 
 class XmlSerializationTest < ActiveRecord::TestCase
   def test_should_serialize_default_root
@@ -126,6 +127,25 @@ class NilXmlSerializationTest < ActiveRecord::TestCase
     attributes = $1
     assert_match %r{type="yaml"}, attributes
     assert_match %r{nil="true"}, attributes
+  end
+end
+
+class DatabaseConnectedXmlModuleSerializationTest < ActiveRecord::TestCase
+
+  fixtures :projects, :developers, :developers_projects
+
+  def test_module
+    project = MyApplication::Business::Project.find :first
+    xml = project.to_xml
+    assert_match %r{<my-application-business-project>}, xml
+    assert_match %r{</my-application-business-project>}, xml
+  end
+
+  def test_module_with_include
+    project = MyApplication::Business::Project.find :first
+    xml = project.to_xml :include => :developers
+    assert_match %r{<developer type="MyApplication::Business::Developer">}, xml
+    assert_match %r{</developer>}, xml
   end
 end
 
