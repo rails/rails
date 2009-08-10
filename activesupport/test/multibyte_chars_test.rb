@@ -234,6 +234,13 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_equal 3, @chars.index('わ')
   end
 
+  def test_rindex_should_return_character_offset
+    assert_nil @chars.rindex('u')
+    assert_equal 1, @chars.rindex('に')
+    assert_equal 6, 'Café périferôl'.mb_chars.rindex('é')
+    assert_equal 12, 'Café périferôl'.mb_chars.rindex(/\w/u)
+  end
+
   def test_indexed_insert_should_take_character_offsets
     @chars[2] = 'a'
     assert_equal 'こにaわ', @chars

@@ -210,6 +210,19 @@ module ActiveSupport #:nodoc:
         index ? (self.class.u_unpack(@wrapped_string.slice(0...index)).size) : nil
       end
 
+      # Returns the position _needle_ in the string, counting in
+      # codepoints, searching backward from _offset_ or the end of the
+      # string. Returns +nil+ if _needle_ isn't found.
+      #
+      # Example:
+      #   'Café périferôl'.mb_chars.rindex('é') #=> 5
+      #   'Café périferôl'.mb_chars.rindex(/\w/u) #=> 13
+      def rindex(needle, offset=nil)
+        offset ||= length
+        index = @wrapped_string.rindex(needle, offset)
+        index ? (self.class.u_unpack(@wrapped_string.slice(0...index)).size) : nil
+      end
+
       # Like <tt>String#[]=</tt>, except instead of byte offsets you specify character offsets.
       #
       # Example:
