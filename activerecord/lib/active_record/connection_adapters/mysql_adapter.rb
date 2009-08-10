@@ -76,7 +76,7 @@ module ActiveRecord
   module ConnectionAdapters
     class MysqlColumn < Column #:nodoc:
       def extract_default(default)
-        if type == :binary || type == :text
+        if sql_type =~ /blob/i || type == :text
           if default.blank?
             return null ? nil : ''
           else
@@ -90,7 +90,7 @@ module ActiveRecord
       end
 
       def has_default?
-        return false if type == :binary || type == :text #mysql forbids defaults on blob and text columns
+        return false if sql_type =~ /blob/i || type == :text #mysql forbids defaults on blob and text columns
         super
       end
 
