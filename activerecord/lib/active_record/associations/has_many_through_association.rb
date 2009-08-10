@@ -65,9 +65,10 @@ module ActiveRecord
               return false unless record.save(validate)
             end
           end
-          through_reflection = @reflection.through_reflection
-          klass = through_reflection.klass
-          @owner.send(@reflection.through_reflection.name).proxy_target << klass.send(:with_scope, :create => construct_join_attributes(record)) { through_reflection.create_association! }
+
+          through_association = @owner.send(@reflection.through_reflection.name)
+          through_record = through_association.create!(construct_join_attributes(record))
+          through_association.proxy_target << through_record
         end
 
         # TODO - add dependent option support
