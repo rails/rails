@@ -82,7 +82,7 @@ class BasePostController < ActionController::Base
   end
 
   def large_collection
-    render :partial => "/collection", :collection => (1...100).to_a
+    render :partial => "/collection", :collection => (1...1000).to_a
   end
 
   def show_template
@@ -102,14 +102,14 @@ end
 ActionController::Base.use_accept_header = false
 
 unless ENV["PROFILE"]
-  Runner.run(BasePostController.action(:overhead), N, 'overhead', false)
-  Runner.run(BasePostController.action(:index), N, 'index', false)
-  Runner.run(BasePostController.action(:show_template), N, 'template', false)
-  Runner.run(BasePostController.action(:partial), N, 'partial', false)
-  Runner.run(BasePostController.action(:many_partials), N, 'many_partials', false)
-  Runner.run(BasePostController.action(:partial_collection), N, 'collection', false)
-  Runner.run(BasePostController.action(:hundred_partials), N, 'hundred_partials', false)
-  Runner.run(BasePostController.action(:large_collection), N, 'large_collection', false)
+  Runner.run(BasePostController.action(:overhead), 1, 'overhead', false)
+  Runner.run(BasePostController.action(:index), 1, 'index', false)
+  Runner.run(BasePostController.action(:show_template), 1, 'template', false)
+  Runner.run(BasePostController.action(:partial), 1, 'partial', false)
+  Runner.run(BasePostController.action(:many_partials), 1, 'many_partials', false)
+  Runner.run(BasePostController.action(:partial_collection), 1, 'collection', false)
+  Runner.run(BasePostController.action(:hundred_partials), 1, 'hundred_partials', false)
+  Runner.run(BasePostController.action(:large_collection), 1, 'large_collection', false)
 
   (ENV["M"] || 1).to_i.times do
     Runner.run(BasePostController.action(:overhead), N, 'overhead')
@@ -122,7 +122,7 @@ unless ENV["PROFILE"]
     Runner.run(BasePostController.action(:large_collection), N, 'large_collection')
   end
 else
-  Runner.run(BasePostController.action(ENV["PROFILE"].to_sym), N, ENV["PROFILE"])
+  Runner.run(BasePostController.action(ENV["PROFILE"].to_sym), 1, ENV["PROFILE"])
   require "ruby-prof"
   RubyProf.start
   Runner.run(BasePostController.action(ENV["PROFILE"].to_sym), N, ENV["PROFILE"])
