@@ -47,13 +47,13 @@ module ActiveModel
           raise ArgumentError, "A regular expression must be supplied as the :without option of the configuration hash"
         end
 
-        validates_each(attr_names, configuration) do |record, attr_name, value|
-          if configuration[:with] && value.to_s !~ configuration[:with]
-            record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value)
+        if configuration[:with]
+          validates_each(attr_names, configuration) do |record, attr_name, value|
+            record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value) if value.to_s !~ configuration[:with]
           end
-
-          if configuration[:without] && value.to_s =~ configuration[:without]
-            record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value)
+        elsif configuration[:without]
+          validates_each(attr_names, configuration) do |record, attr_name, value|
+            record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value) if value.to_s =~ configuration[:without]
           end
         end
       end
