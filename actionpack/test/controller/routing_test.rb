@@ -1610,7 +1610,7 @@ class RouteTest < Test::Unit::TestCase
     end
 end
 
-class RouteSetTest < Test::Unit::TestCase
+class RouteSetTest < ActiveSupport::TestCase
   def set
     @set ||= ROUTING::RouteSet.new
   end
@@ -2191,8 +2191,10 @@ class RouteSetTest < Test::Unit::TestCase
       map.connect "/ws/people", :controller => "people", :action => "index", :ws => true
     end
 
-    url = set.generate(:controller => "people", :action => "index", :ws => true)
-    assert_equal "/ws/people", url
+    assert_deprecated {
+      url = set.generate(:controller => "people", :action => "index", :ws => true)
+      assert_equal "/ws/people", url
+    }
   end
 
   def test_generate_changes_controller_module
