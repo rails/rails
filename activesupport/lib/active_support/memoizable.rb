@@ -43,7 +43,7 @@ module ActiveSupport
 
       def flush_cache(*syms, &block)
         syms.each do |sym|
-          methods.each do |m|
+          (methods + private_methods + protected_methods).each do |m|
             if m.to_s =~ /^_unmemoized_(#{sym})/
               ivar = ActiveSupport::Memoizable.memoized_ivar_for($1)
               instance_variable_get(ivar).clear if instance_variable_defined?(ivar)
