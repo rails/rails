@@ -1,5 +1,4 @@
 # encoding: utf-8
-
 require 'abstract_unit'
 require 'multibyte_test_helpers'
 
@@ -184,7 +183,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   end
 
   def test_sortability
-    words = %w(builder armor zebra).map(&:mb_chars).sort
+    words = %w(builder armor zebra).sort_by { |s| s.mb_chars }
     assert_equal %w(armor builder zebra), words
   end
 
