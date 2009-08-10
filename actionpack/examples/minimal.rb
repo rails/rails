@@ -104,22 +104,22 @@ ActionController::Base.use_accept_header = false
 unless ENV["PROFILE"]
   Runner.run(BasePostController.action(:overhead), N, 'overhead', false)
   Runner.run(BasePostController.action(:index), N, 'index', false)
+  Runner.run(BasePostController.action(:show_template), N, 'template', false)
   Runner.run(BasePostController.action(:partial), N, 'partial', false)
   Runner.run(BasePostController.action(:many_partials), N, 'many_partials', false)
   Runner.run(BasePostController.action(:partial_collection), N, 'collection', false)
   Runner.run(BasePostController.action(:hundred_partials), N, 'hundred_partials', false)
   Runner.run(BasePostController.action(:large_collection), N, 'large_collection', false)
-  Runner.run(BasePostController.action(:show_template), N, 'template', false)
 
   (ENV["M"] || 1).to_i.times do
     Runner.run(BasePostController.action(:overhead), N, 'overhead')
     Runner.run(BasePostController.action(:index), N, 'index')
+    Runner.run(BasePostController.action(:show_template), N, 'template')
     Runner.run(BasePostController.action(:partial), N, 'partial')
     Runner.run(BasePostController.action(:many_partials), N, 'many_partials')
     Runner.run(BasePostController.action(:partial_collection), N, 'collection')
     Runner.run(BasePostController.action(:hundred_partials), N, 'hundred_partials')
     Runner.run(BasePostController.action(:large_collection), N, 'large_collection')
-    Runner.run(BasePostController.action(:show_template), N, 'template')
   end
 else
   Runner.run(BasePostController.action(ENV["PROFILE"].to_sym), N, ENV["PROFILE"])
