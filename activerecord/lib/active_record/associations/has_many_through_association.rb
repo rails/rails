@@ -17,7 +17,17 @@ module ActiveRecord
 
       def create(attrs = nil)
         transaction do
-          self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association } : @reflection.create_association)
+          object = if attrs
+            @reflection.klass.send(:with_scope, :create => attrs) {
+              @reflection.create_association
+            }
+          else
+            @reflection.create_association
+          end
+          raise_on_type_mismatch(object)
+          add_record_to_target_with_callbacks(object) do |r|
+            insert_record(object, false)
+          end
           object
         end
       end

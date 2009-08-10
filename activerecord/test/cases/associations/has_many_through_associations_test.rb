@@ -11,9 +11,13 @@ require 'models/author'
 require 'models/owner'
 require 'models/pet'
 require 'models/toy'
+require 'models/contract'
+require 'models/company'
+require 'models/developer'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people, :comments, :authors, :owners, :pets, :toys
+  fixtures :posts, :readers, :people, :comments, :authors, :owners, :pets, :toys,
+           :companies
 
   def test_associate_existing
     assert_queries(2) { posts(:thinking);people(:david) }
@@ -155,6 +159,30 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     peeps = posts(:thinking).people.count
     posts(:thinking).people.create!(:first_name => 'foo')
     assert_equal peeps + 1, posts(:thinking).people.count
+  end
+
+  def test_associate_with_create_and_invalid_options
+    peeps = companies(:first_firm).developers.count
+    assert_nothing_raised { companies(:first_firm).developers.create(:name => '0') }
+    assert_equal peeps, companies(:first_firm).developers.count
+  end
+
+  def test_associate_with_create_and_valid_options
+    peeps = companies(:first_firm).developers.count
+    assert_nothing_raised { companies(:first_firm).developers.create(:name => 'developer') }
+    assert_equal peeps + 1, companies(:first_firm).developers.count
+  end
+
+  def test_associate_with_create_bang_and_invalid_options
+    peeps = companies(:first_firm).developers.count
+    assert_raises(ActiveRecord::RecordInvalid) { companies(:first_firm).developers.create!(:name => '0') }
+    assert_equal peeps, companies(:first_firm).developers.count
+  end
+
+  def test_associate_with_create_bang_and_valid_options
+    peeps = companies(:first_firm).developers.count
+    assert_nothing_raised { companies(:first_firm).developers.create!(:name => 'developer') }
+    assert_equal peeps + 1, companies(:first_firm).developers.count
   end
 
   def test_clear_associations
