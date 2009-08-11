@@ -2,13 +2,12 @@ module ActionController
   # Dispatches requests to the appropriate controller and takes care of
   # reloading the app after each request when Dependencies.load? is true.
   class Dispatcher
+    @@cache_classes = true
+
     class << self
       def define_dispatcher_callbacks(cache_classes)
+        @@cache_classes = cache_classes
         unless cache_classes
-          unless self.middleware.include?(Reloader)
-            self.middleware.insert_after(Failsafe, Reloader)
-          end
-
           ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
         end
 
@@ -79,7 +78,7 @@ module ActionController
     # DEPRECATE: Remove arguments, since they are only used by CGI
     def initialize(output = $stdout, request = nil, response = nil)
       @output = output
-      @app = @@middleware.build(lambda { |env| self.dup._call(env) })
+      build_middleware_stack if @@cache_classes
     end
 
     def dispatch
@@ -103,7 +102,18 @@ module ActionController
     end
 
     def call(env)
-      @app.call(env)
+      if @@cache_classes
+        @app.call(env)
+      else
+        Reloader.run do
+          # When class reloading is turned on, we will want to rebuild the
+          # middleware stack every time we process a request. If we don't
+          # rebuild the middleware stack, then the stack may contain references
+          # to old classes metal classes, which will b0rk class reloading.
+          build_middleware_stack
+          @app.call(env)
+        end
+      end
     end
 
     def _call(env)
@@ -114,5 +124,10 @@ module ActionController
     def flush_logger
       Base.logger.flush
     end
+
+    private
+      def build_middleware_stack
+        @app = @@middleware.build(lambda { |env| self.dup._call(env) })
+      end
   end
 end
