@@ -84,13 +84,17 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       # Orcl nds shrt indx nms.  Sybs 2.
       # OpenBase does not have named indexes.  You must specify a single column name
-      unless current_adapter?(:OracleAdapter, :SybaseAdapter, :OpenBaseAdapter)
+      unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.remove_index("people", :column => ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.remove_index("people", :name => "index_people_on_last_name_and_first_name") }
-        assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-        assert_nothing_raised { Person.connection.remove_index("people", "last_name_and_first_name") }
+        # Oracle adapter cannot have specified index name larger than 30 characters
+        # Oracle adapter is shortening index name when just column list is given
+        unless current_adapter?(:OracleAdapter)
+          assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
+          assert_nothing_raised { Person.connection.remove_index("people", :name => "index_people_on_last_name_and_first_name") }
+          assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
+          assert_nothing_raised { Person.connection.remove_index("people", "last_name_and_first_name") }
+        end
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :length => 10) }
@@ -737,13 +741,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         table.column :hat_size, :integer
         table.column :hat_style, :string, :limit => 100
       end
-      # Oracle index names should be 30 or less characters
-      if current_adapter?(:OracleAdapter)
-        ActiveRecord::Base.connection.add_index "hats", ["hat_style", "hat_size"], :unique => true,
-          :name => 'index_hats_on_hat_style_size'
-      else
-        ActiveRecord::Base.connection.add_index "hats", ["hat_style", "hat_size"], :unique => true
-      end
+      ActiveRecord::Base.connection.add_index "hats", ["hat_style", "hat_size"], :unique => true
 
       assert_nothing_raised { Person.connection.remove_column("hats", "hat_size") }
     ensure
