@@ -417,7 +417,7 @@ module ActionController
                   new_results = route2.__send__(method, options, merged, expire_on)
                   if new_results && (!new_results.is_a?(Array) || new_results.first)
                     ActiveSupport::Deprecation.warn "The URL you generated will use the first matching route in routes.rb rather than the \"best\" match. " +
-                      "In Rails 3.0 #{new_results} would of been generated instead of #{results}"
+                      "In Rails 3.0 #{new_results} will be generated instead of #{results}"
                     break
                   end
                 end
