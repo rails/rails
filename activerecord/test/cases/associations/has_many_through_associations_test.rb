@@ -199,6 +199,24 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_difference('firm.developers.count', 1) { firm.developers.create!(:name => 'developer') }
   end
 
+  def test_push_with_invalid_record
+    firm = companies(:first_firm)
+    assert_raises(ActiveRecord::RecordInvalid) { firm.developers << Developer.new(:name => '0') }
+  end
+
+  def test_push_with_invalid_join_record
+    repair_validations(Contract) do
+      Contract.validate {|r| r.errors[:base] << 'Invalid Contract' }
+
+      firm = companies(:first_firm)
+      lifo = Developer.new(:name => 'lifo')
+      assert_raises(ActiveRecord::RecordInvalid) { firm.developers << lifo }
+
+      lifo = Developer.create!(:name => 'lifo')
+      assert_raises(ActiveRecord::RecordInvalid) { firm.developers << lifo }
+    end
+  end
+
   def test_clear_associations
     assert_queries(2) { posts(:welcome);posts(:welcome).people(true) }
 
