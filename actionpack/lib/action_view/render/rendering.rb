@@ -12,8 +12,6 @@ module ActionView
     # as the locals hash.
     def render(options = {}, locals = {}, &block) #:nodoc:
       case options
-      when String, NilClass
-        _render_partial(:partial => options, :locals => locals || {})
       when Hash
         layout = options[:layout]
 
@@ -35,26 +33,8 @@ module ActionView
         end
       when :update
         update_page(&block)
-      end
-    end
-
-    def _render_content(content, layout, locals)
-      return content unless layout
-
-      locals ||= {}
-
-      if controller && layout
-        @_layout = layout.identifier
-        logger.info("Rendering template within #{layout.identifier}") if logger
-      end
-
-      begin
-        old_content, @_content_for[:layout] = @_content_for[:layout], content
-
-        @cached_content_for_layout = @_content_for[:layout]
-        _render_single_template(layout, locals)
-      ensure
-        @_content_for[:layout] = old_content
+      else
+        _render_partial(:partial => options, :locals => locals)
       end
     end
 
@@ -108,30 +88,17 @@ module ActionView
       end
     end
 
-    def _render_single_template(template, locals = {}, &block)
-      with_template(template) do
-        template.render(self, locals) do |*names|
-          _layout_for(names, &block)
-        end
-      end
-    rescue Exception => e
-      if e.is_a?(TemplateError)
-        e.sub_template_of(template)
-        raise e
-      else
-        raise TemplateError.new(template, assigns, e)
-      end
-    end
-
     def _render_inline(inline, layout, options)
       handler = Template.handler_class_for_extension(options[:type] || "erb")
       template = Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
-      content = _render_single_template(template, options[:locals] || {})
-      layout ? _render_content(content, layout, options[:locals]) : content
+      locals = options[:locals] || {}
+      content = template.render(self, locals)
+      content = layout.render(self, locals) { content } if layout
+      content
     end
 
     def _render_text(text, layout, options)
-      layout ? _render_content(text, layout, options[:locals]) : text
+      text = layout.render(self, options[:locals]) { text } if layout
     end
 
     # This is the API to render a ViewContext's template from a controller.
@@ -141,7 +108,7 @@ module ActionView
     # _layout::   The layout, if any, to wrap the Template in
     # _partial::  true if the template is a partial
     def render_template(options)
-      @assigns_added = nil
+      _evaluate_assigns_and_ivars
       template, layout, partial = options.values_at(:_template, :_layout, :_partial)
       _render_template(template, layout, options, partial)
     end
@@ -158,10 +125,18 @@ module ActionView
       content = if partial
         _render_partial_object(template, options)
       else
-        _render_single_template(template, locals)
+        template.render(self, locals)
       end
 
-      _render_content(content, layout, locals)
+      @cached_content_for_layout = content
+      @_content_for[:layout] = content
+
+      if layout
+        @_layout = layout.identifier
+        logger.info("Rendering template within #{layout.identifier}") if logger
+        content = layout.render(self, locals)
+      end
+      content
     end
   end
 end

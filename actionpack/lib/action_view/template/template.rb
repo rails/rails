@@ -26,9 +26,17 @@ module ActionView
       @details[:formats] = Array.wrap(format.to_sym)
     end
     
-    def render(view, locals, &blk)
+    def render(view, locals, &block)
       method_name = compile(locals, view)
-      view.send(method_name, locals, &blk)
+      block ||= proc {|*names| view._layout_for(names) }
+      view.send(method_name, locals, &block)
+    rescue Exception => e
+      if e.is_a?(TemplateError)
+        e.sub_template_of(self)
+        raise e
+      else
+        raise TemplateError.new(self, view.assigns, e)
+      end
     end
     
     # TODO: Figure out how to abstract this

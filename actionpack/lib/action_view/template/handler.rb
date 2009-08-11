@@ -26,7 +26,7 @@ module ActionView
     self.default_format = Mime::HTML
 
     def self.call(template)
-      "#{name}.new(self).render(template, local_assigns)"
+      raise "Need to implement #{self.class.name}#call(template)"
     end
 
     def initialize(view = nil)

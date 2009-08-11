@@ -255,15 +255,6 @@ module ActionView #:nodoc:
       @view_paths = self.class.process_view_paths(paths)
     end
 
-    def with_template(current_template)
-      _evaluate_assigns_and_ivars
-      last_template, self.template = template, current_template
-      last_formats, self.formats = formats, current_template.formats
-      yield
-    ensure
-      self.template, self.formats = last_template, last_formats
-    end
-
     def punctuate_body!(part)
       flush_output_buffer
       response.body_parts << part
@@ -272,18 +263,11 @@ module ActionView #:nodoc:
 
     # Evaluates the local assigns and controller ivars, pushes them to the view.
     def _evaluate_assigns_and_ivars #:nodoc:
-      @assigns_added ||= _copy_ivars_from_controller
-    end
-
-  private
-
-    def _copy_ivars_from_controller #:nodoc:
       if @controller
         variables = @controller.instance_variable_names
         variables -= @controller.protected_instance_variables if @controller.respond_to?(:protected_instance_variables)
         variables.each { |name| instance_variable_set(name, @controller.instance_variable_get(name)) }
       end
-      true
     end
 
   end

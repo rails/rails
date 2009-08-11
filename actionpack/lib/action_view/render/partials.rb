@@ -265,7 +265,9 @@ module ActionView
         @locals[:object] = @locals[template.variable_name] = object
         @locals[@options[:as]] = object if @options[:as]
 
-        content = @view._render_single_template(template, @locals, &@block)
+        content = template.render(@view, @locals) do |*names|
+          @view._layout_for(names, &@block)
+        end
         return content if @block || !@options[:layout]
         find_template(@options[:layout]).render(@view, @locals) { content }
       end
@@ -302,7 +304,7 @@ module ActionView
     end
 
     def render_partial(options)
-      @assigns_added = false
+      _evaluate_assigns_and_ivars
       # TODO: Handle other details here.
       self.formats = options[:_details][:formats] if options[:_details]
       _render_partial(options)
