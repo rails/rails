@@ -1,3 +1,0 @@
-[submodule "actionpack/examples"]
-	path = actionpack/examples
-	url = git://github.com/wycats/rails-simple-benches.git
