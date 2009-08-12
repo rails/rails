@@ -28,7 +28,6 @@ module ActionView
     
     def render(view, locals, &block)
       method_name = compile(locals, view)
-      block ||= proc {|*names| view._layout_for(names) }
       view.send(method_name, locals, &block)
     rescue Exception => e
       if e.is_a?(TemplateError)

@@ -70,21 +70,11 @@ module ActionView
     # In this case, the layout would receive the block passed into <tt>render :layout</tt>,
     # and the Struct specified in the layout would be passed into the block. The result
     # would be <html>Hello David</html>.
-    def _layout_for(names, &block)
+    def _layout_for(name = nil)
+      return @_content_for[name || :layout] if !block_given? || name
+
       with_output_buffer do
-        # This is due to the potentially ambiguous use of yield when
-        # a block is passed in to a template *and* there is a content_for()
-        # of the same name. Suggested solution: require explicit use of content_for
-        # in these ambiguous cases.
-        #
-        # We would be able to continue supporting yield in all non-ambiguous
-        # cases. Question: should we deprecate yield in favor of content_for
-        # and reserve yield for cases where there is a yield into a real block?
-        if @_content_for.key?(names.first) || !block_given?
-          return @_content_for[names.first || :layout]
-        else
-          return yield(names)
-        end
+        return yield
       end
     end
 
@@ -93,7 +83,7 @@ module ActionView
       template = Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
       locals = options[:locals] || {}
       content = template.render(self, locals)
-      content = layout.render(self, locals) { content } if layout
+      content = layout.render(self, locals) {|*name| _layout_for(*name) } if layout
       content
     end
 
@@ -134,7 +124,7 @@ module ActionView
       if layout
         @_layout = layout.identifier
         logger.info("Rendering template within #{layout.identifier}") if logger
-        content = layout.render(self, locals)
+        content = layout.render(self, locals) {|*name| _layout_for(*name) }
       end
       content
     end

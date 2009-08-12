@@ -29,10 +29,6 @@ module ActionView
       raise "Need to implement #{self.class.name}#call(template)"
     end
 
-    def initialize(view = nil)
-      @view = view
-    end
-
     def render(template, local_assigns)
       raise "Need to implement #{self.class.name}#render(template, local_assigns)"
     end

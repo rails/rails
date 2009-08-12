@@ -223,16 +223,14 @@ module ActionView
       def collection_with_template(template)
         options = @options
 
-        segments, locals, as = [], @locals, options[:as] || :object
+        segments, locals, as = [], @locals, options[:as] || template.variable_name
 
-        variable_name = template.variable_name
         counter_name  = template.counter_name
         locals[counter_name] = -1
 
         collection.each do |object|
           locals[counter_name] += 1
-          locals[variable_name] = object
-          locals[as] = object if as
+          locals[as] = object
 
           segments << template.render(@view, locals)
         end
@@ -242,14 +240,13 @@ module ActionView
       def collection_without_template
         options = @options
 
-        segments, locals, as = [], @locals, options[:as] || :object
+        segments, locals, as = [], @locals, options[:as]
         index, template = -1, nil
 
         collection.each do |object|
           template = find_template(partial_path(object))
           locals[template.counter_name] = (index += 1)
           locals[template.variable_name] = object
-          locals[as] = object if as
 
           segments << template.render(@view, locals)
         end
@@ -265,8 +262,8 @@ module ActionView
         @locals[:object] = @locals[template.variable_name] = object
         @locals[@options[:as]] = object if @options[:as]
 
-        content = template.render(@view, @locals) do |*names|
-          @view._layout_for(names, &@block)
+        content = template.render(@view, @locals) do |*name|
+          @view._layout_for(*name, &@block)
         end
         return content if @block || !@options[:layout]
         find_template(@options[:layout]).render(@view, @locals) { content }
