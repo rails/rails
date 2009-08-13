@@ -21,7 +21,7 @@ require 'models/categorization'
 require 'models/category'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people, :comments, :authors,
+  fixtures :posts, :readers, :people, :comments, :authors, :categories,
            :owners, :pets, :toys, :jobs, :references, :companies,
            :subscribers, :books, :subscriptions, :developers, :categorizations
 
@@ -395,6 +395,34 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     john = Person.create!(:first_name => 'John', :primary_contact_id => sarah.id, :gender => 'M', :number1_fan_id => 1)
     assert_equal sarah.agents, [john]
     assert_equal people(:susan).agents.map(&:agents).flatten, people(:susan).agents_of_agents
+  end
+
+  def test_associate_existing_with_nonstandard_primary_key_on_belongs_to
+    Categorization.create(:author => authors(:mary), :named_category_name => categories(:general).name)
+    assert_equal categories(:general), authors(:mary).named_categories.first
+  end
+
+  def test_collection_build_with_nonstandard_primary_key_on_belongs_to
+    author   = authors(:mary)
+    category = author.named_categories.build(:name => "Primary")
+    author.save
+    assert Categorization.exists?(:author_id => author.id, :named_category_name => category.name)
+    assert author.named_categories(true).include?(category)
+  end
+
+  def test_collection_create_with_nonstandard_primary_key_on_belongs_to
+    author   = authors(:mary)
+    category = author.named_categories.create(:name => "Primary")
+    assert Categorization.exists?(:author_id => author.id, :named_category_name => category.name)
+    assert author.named_categories(true).include?(category)
+  end
+
+  def test_collection_delete_with_nonstandard_primary_key_on_belongs_to
+    author   = authors(:mary)
+    category = author.named_categories.create(:name => "Primary")
+    author.named_categories.delete(category)
+    assert !Categorization.exists?(:author_id => author.id, :named_category_name => category.name)
+    assert author.named_categories(true).empty?
   end
 
   def test_collection_singular_ids_getter_with_string_primary_keys

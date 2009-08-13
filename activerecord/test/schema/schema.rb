@@ -110,6 +110,7 @@ ActiveRecord::Schema.define do
 
   create_table :categorizations, :force => true do |t|
     t.column :category_id, :integer
+    t.string :named_category_name
     t.column :post_id, :integer
     t.column :author_id, :integer
     t.column :special, :boolean
