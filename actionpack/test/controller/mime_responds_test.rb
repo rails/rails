@@ -497,8 +497,12 @@ class RespondWithController < ActionController::Base
     respond_with(Customer.new("david", 13))
   end
 
+  def using_resource_with_collection
+    respond_with([Customer.new("david", 13), Customer.new("jamis", 9)])
+  end
+
   def using_resource_with_parent
-    respond_with([Quiz::Store.new("developer?", 11), Customer.new("david", 13)])
+    respond_with(Quiz::Store.new("developer?", 11), Customer.new("david", 13))
   end
 
   def using_resource_with_status_and_location
@@ -506,7 +510,7 @@ class RespondWithController < ActionController::Base
   end
 
   def using_resource_with_responder
-    responder = proc { |c, r, o| c.render :text => "Resource name is #{r.name}" }
+    responder = proc { |c, r, o| c.render :text => "Resource name is #{r.first.name}" }
     respond_with(Customer.new("david", 13), :responder => responder)
   end
 
@@ -592,7 +596,7 @@ class RespondWithControllerTest < ActionController::TestCase
     @request.accept = "application/xml"
     get :using_resource
     assert_equal "application/xml", @response.content_type
-    assert_equal "XML", @response.body
+    assert_equal "<name>david</name>", @response.body
 
     @request.accept = "application/json"
     assert_raise ActionView::MissingTemplate do
@@ -622,7 +626,7 @@ class RespondWithControllerTest < ActionController::TestCase
     post :using_resource
     assert_equal "application/xml", @response.content_type
     assert_equal 201, @response.status
-    assert_equal "XML", @response.body
+    assert_equal "<name>david</name>", @response.body
     assert_equal "http://www.example.com/customers/13", @response.location
 
     errors = { :name => :invalid }
@@ -689,7 +693,7 @@ class RespondWithControllerTest < ActionController::TestCase
     get :using_resource_with_parent
     assert_equal "application/xml", @response.content_type
     assert_equal 200, @response.status
-    assert_equal "XML", @response.body
+    assert_equal "<name>david</name>", @response.body
   end
 
   def test_using_resource_with_parent_for_post
@@ -698,7 +702,7 @@ class RespondWithControllerTest < ActionController::TestCase
     post :using_resource_with_parent
     assert_equal "application/xml", @response.content_type
     assert_equal 201, @response.status
-    assert_equal "XML", @response.body
+    assert_equal "<name>david</name>", @response.body
     assert_equal "http://www.example.com/quiz_stores/11/customers/13", @response.location
 
     errors = { :name => :invalid }
@@ -708,6 +712,15 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal 422, @response.status
     assert_equal errors.to_xml, @response.body
     assert_nil @response.location
+  end
+
+  def test_using_resource_with_collection
+    @request.accept = "application/xml"
+    get :using_resource_with_collection
+    assert_equal "application/xml", @response.content_type
+    assert_equal 200, @response.status
+    assert_match /<name>david<\/name>/, @response.body
+    assert_match /<name>jamis<\/name>/, @response.body
   end
 
   def test_clear_respond_to
@@ -722,7 +735,7 @@ class RespondWithControllerTest < ActionController::TestCase
     @request.accept = "*/*"
     get :index
     assert_equal "application/xml", @response.content_type
-    assert_equal "XML", @response.body
+    assert_equal "<name>david</name>", @response.body
   end
 
   def test_no_double_render_is_raised
