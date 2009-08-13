@@ -120,10 +120,15 @@ class Module
         end
 
       module_eval(<<-EOS, file, line)
-        def #{prefix}#{method}(*args, &block)                           # def customer_name(*args, &block)
-          #{on_nil} if #{to}.nil?
-          #{to}.__send__(#{method.inspect}, *args, &block)  #   client && client.__send__(:name, *args, &block)
-        end                                                             # end
+        def #{prefix}#{method}(*args, &block)               # def customer_name(*args, &block)
+          #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
+        rescue NoMethodError                                # rescue NoMethodError
+          if #{to}.nil?                                     #   if client.nil?
+            #{on_nil}
+          else                                              #   else
+            raise                                           #     raise
+          end                                               #   end
+        end                                                 # end
       EOS
     end
   end

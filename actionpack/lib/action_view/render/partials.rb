@@ -184,6 +184,7 @@ module ActionView
       def initialize(view_context, options, block)
         partial = options[:partial]
 
+        @memo           = {}
         @view           = view_context
         @options        = options
         @locals         = options[:locals] || {}
@@ -207,9 +208,7 @@ module ActionView
       end
 
       def render_collection
-        # Even if no template is rendered, this will ensure that the MIME type
-        # for the empty response is the same as the provided template
-        @options[:_template] = default_template = find_template
+        @options[:_template] = template = find_template
 
         return nil if collection.blank?
 
@@ -217,15 +216,46 @@ module ActionView
           spacer = find_template(@options[:spacer_template]).render(@view, @locals)
         end
 
-        segments = []
+        result = template ? collection_with_template(template) : collection_without_template
+        result.join(spacer)
+      end
 
-        collection.each_with_index do |object, index|
-          template = default_template || find_template(partial_path(object))
-          @locals[template.counter_name] = index
-          segments << render_template(template, object)
+      def collection_with_template(template)
+        options = @options
+
+        segments, locals, as = [], @locals, options[:as] || :object
+
+        variable_name = template.variable_name
+        counter_name  = template.counter_name
+        locals[counter_name] = -1
+
+        collection.each do |object|
+          locals[counter_name] += 1
+          locals[variable_name] = object
+          locals[as] = object if as
+
+          segments << template.render(@view, locals)
+        end
+        segments
+      end
+
+      def collection_without_template
+        options = @options
+
+        segments, locals, as = [], @locals, options[:as] || :object
+        index, template = -1, nil
+
+        collection.each do |object|
+          template = find_template(partial_path(object))
+          locals[template.counter_name] = (index += 1)
+          locals[template.variable_name] = object
+          locals[as] = object if as
+
+          segments << template.render(@view, locals)
         end
 
-        segments.join(spacer)
+        @options[:_template] = template
+        segments
       end
 
       def render_template(template, object = @object)

@@ -59,7 +59,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t2.save, "Should now save t2 as unique"
   end
 
-  def test_validates_uniquness_with_newline_chars
+  def test_validates_uniqueness_with_newline_chars
     Topic.validates_uniqueness_of(:title, :case_sensitive => false)
 
     t = Topic.new("title" => "new\nline")

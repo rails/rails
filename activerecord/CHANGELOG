@@ -2199,7 +2199,7 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
 
 * Escape database name in MySQL adapter when creating and dropping databases. #3409 [anna@wota.jp]
 
-* Disambiguate table names for columns in validates_uniquness_of's WHERE clause. #3423 [alex.borovsky@gmail.com]
+* Disambiguate table names for columns in validates_uniqueness_of's WHERE clause. #3423 [alex.borovsky@gmail.com]
 
 * .with_scope imposed create parameters now bypass attr_protected [Tobias Lütke]
 
@@ -3714,7 +3714,7 @@ in effect.  Added :readonly finder constraint.  Calling an association collectio
 
 * Escape database name in MySQL adapter when creating and dropping databases. #3409 [anna@wota.jp]
 
-* Disambiguate table names for columns in validates_uniquness_of's WHERE clause. #3423 [alex.borovsky@gmail.com]
+* Disambiguate table names for columns in validates_uniqueness_of's WHERE clause. #3423 [alex.borovsky@gmail.com]
 
 * .with_scope imposed create parameters now bypass attr_protected [Tobias Lütke]
 

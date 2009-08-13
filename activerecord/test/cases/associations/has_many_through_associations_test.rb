@@ -180,27 +180,41 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_associate_with_create_and_invalid_options
-    peeps = companies(:first_firm).developers.count
-    assert_nothing_raised { companies(:first_firm).developers.create(:name => '0') }
-    assert_equal peeps, companies(:first_firm).developers.count
+    firm = companies(:first_firm)
+    assert_no_difference('firm.developers.count') { assert_nothing_raised { firm.developers.create(:name => '0') } }
   end
 
   def test_associate_with_create_and_valid_options
-    peeps = companies(:first_firm).developers.count
-    assert_nothing_raised { companies(:first_firm).developers.create(:name => 'developer') }
-    assert_equal peeps + 1, companies(:first_firm).developers.count
+    firm = companies(:first_firm)
+    assert_difference('firm.developers.count', 1) { firm.developers.create(:name => 'developer') }
   end
 
   def test_associate_with_create_bang_and_invalid_options
-    peeps = companies(:first_firm).developers.count
-    assert_raises(ActiveRecord::RecordInvalid) { companies(:first_firm).developers.create!(:name => '0') }
-    assert_equal peeps, companies(:first_firm).developers.count
+    firm = companies(:first_firm)
+    assert_no_difference('firm.developers.count') { assert_raises(ActiveRecord::RecordInvalid) { firm.developers.create!(:name => '0') } }
   end
 
   def test_associate_with_create_bang_and_valid_options
-    peeps = companies(:first_firm).developers.count
-    assert_nothing_raised { companies(:first_firm).developers.create!(:name => 'developer') }
-    assert_equal peeps + 1, companies(:first_firm).developers.count
+    firm = companies(:first_firm)
+    assert_difference('firm.developers.count', 1) { firm.developers.create!(:name => 'developer') }
+  end
+
+  def test_push_with_invalid_record
+    firm = companies(:first_firm)
+    assert_raises(ActiveRecord::RecordInvalid) { firm.developers << Developer.new(:name => '0') }
+  end
+
+  def test_push_with_invalid_join_record
+    repair_validations(Contract) do
+      Contract.validate {|r| r.errors[:base] << 'Invalid Contract' }
+
+      firm = companies(:first_firm)
+      lifo = Developer.new(:name => 'lifo')
+      assert_raises(ActiveRecord::RecordInvalid) { firm.developers << lifo }
+
+      lifo = Developer.create!(:name => 'lifo')
+      assert_raises(ActiveRecord::RecordInvalid) { firm.developers << lifo }
+    end
   end
 
   def test_clear_associations

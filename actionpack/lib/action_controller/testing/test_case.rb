@@ -179,7 +179,6 @@ module ActionController
       if @controller
         @controller.request = @request
         @controller.params = {}
-        @controller.send(:initialize_current_url)
       end
     end
 

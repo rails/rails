@@ -427,7 +427,7 @@ class RequestTest < ActiveSupport::TestCase
 
       request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8'
       request.expects(:parameters).at_least_once.returns({})
-      assert_equal with_set(Mime::XML, Mime::HTML), request.formats
+      assert_equal with_set(Mime::XML, Mime::HTML, Mime::ALL), request.formats
     end
 
     with_accept_header false do
@@ -460,7 +460,7 @@ protected
   end
 
   def with_set(*args)
-    args + Mime::SET
+    args
   end
 
   def with_accept_header(value)

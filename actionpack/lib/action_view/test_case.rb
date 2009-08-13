@@ -9,14 +9,16 @@ module ActionView
     end
 
     attr_internal :rendered
-    alias_method :_render_template_without_template_tracking, :_render_single_template
-    def _render_single_template(template, local_assigns, &block)
-      if template.respond_to?(:identifier) && template.present?
-        @_rendered[:partials][template] += 1 if template.partial?
-        @_rendered[:template] ||= []
-        @_rendered[:template] << template
-      end
-      _render_template_without_template_tracking(template, local_assigns, &block)
+  end
+
+  class Template
+    alias_method :render_without_tracking, :render
+    def render(view, locals, &blk)
+      rendered = view.rendered
+      rendered[:partials][self] += 1 if partial?
+      rendered[:template] ||= []
+      rendered[:template] << self
+      render_without_tracking(view, locals, &blk)
     end
   end
 
@@ -68,9 +70,8 @@ module ActionView
       def initialize
         @request = ActionController::TestRequest.new
         @response = ActionController::TestResponse.new
-        
+
         @params = {}
-        send(:initialize_current_url)
       end
     end
 

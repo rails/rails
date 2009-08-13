@@ -13,7 +13,9 @@ module ActionController
     # Overrides AbstractController::Base#action_method? to return false if the
     # action name is in the list of hidden actions.
     def action_method?(action_name)
-      !hidden_actions.include?(action_name) && super
+      self.class.visible_action?(action_name) do
+        !hidden_actions.include?(action_name) && super
+      end
     end
 
     module ClassMethods
@@ -23,6 +25,16 @@ module ActionController
       # *args<#to_s>:: A list of actions
       def hide_action(*args)
         hidden_actions.merge(args.map! {|a| a.to_s })
+      end
+
+      def inherited(klass)
+        klass.instance_variable_set("@visible_actions", {})
+        super
+      end
+
+      def visible_action?(action_name)
+        return @visible_actions[action_name] if @visible_actions.key?(action_name)
+        @visible_actions[action_name] = yield
       end
 
       # Overrides AbstractController::Base#action_methods to remove any methods
