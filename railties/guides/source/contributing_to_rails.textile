@@ -75,7 +75,12 @@ TIP: You may want to "put your git branch name in your shell prompt":http://gith
 
 h4. Set up and Run the Tests
 
-All of the Rails tests must pass with any code you submit, otherwise you have no chance of getting code accepted. This means you need to be able to run the tests. For the tests that touch the database, this means creating the databases. If you're using MySQL:
+All of the Rails tests must pass with any code you submit, otherwise you have no chance of getting code accepted. This means you need to be able to run the tests. Rails needs the +mocha+ gem for running some tests, so install it with:
+<shell>
+gem install mocha
+</shell>
+
+For the tests that touch the database, this means creating the databases. If you're using MySQL:
 
 <shell>
 mysql> create database activerecord_unittest;  
