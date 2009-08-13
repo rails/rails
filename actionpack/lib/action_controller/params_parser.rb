@@ -47,6 +47,8 @@ module ActionController
             false
         end
       rescue Exception => e # YAML, XML or Ruby code block errors
+        logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
+
         raise
           { "body" => request.raw_post,
             "content_type" => request.content_type,
@@ -66,6 +68,10 @@ module ActionController
         end
 
         nil
+      end
+
+      def logger
+        defined?(Rails.logger) ? Rails.logger : Logger.new($stderr)
       end
   end
 end
