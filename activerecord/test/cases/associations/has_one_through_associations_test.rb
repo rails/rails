@@ -84,6 +84,18 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_not_nil assert_no_queries {members[0].sponsor_club}
   end
 
+  def test_has_one_through_with_conditions_eager_loading
+    # conditions on the through table
+    assert_equal clubs(:moustache_club), Member.find(@member.id, :include => :favourite_club).favourite_club
+    memberships(:membership_of_favourite_club).update_attribute(:favourite, false)
+    assert_equal nil,                    Member.find(@member.id, :include => :favourite_club).favourite_club
+
+    # conditions on the source table
+    assert_equal clubs(:moustache_club), Member.find(@member.id, :include => :hairy_club).hairy_club
+    clubs(:moustache_club).update_attribute(:name, "Association of Clean-Shaven Persons")
+    assert_equal nil,                    Member.find(@member.id, :include => :hairy_club).hairy_club
+  end
+
   def test_has_one_through_polymorphic_with_source_type
     assert_equal members(:groucho), clubs(:moustache_club).sponsored_member
   end
