@@ -71,7 +71,7 @@ run ActionController::Dispatcher.new
 And start the server:
 
 <shell>
-[lifo@null application]$ rackup
+[lifo@null application]$ rackup config.ru
 </shell>
 
 To find out more about different +rackup+ options:
