@@ -6,6 +6,8 @@ $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
+ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
+
 ENV['new_base'] = "true"
 $stderr.puts "Running old tests on new_base"
 
