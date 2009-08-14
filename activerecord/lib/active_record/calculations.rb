@@ -146,7 +146,13 @@ module ActiveRecord
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, construct_join(options[:joins], scope))
             construct_finder_arel_with_included_associations(options, join_dependency)
           else
-            construct_finder_arel(options)
+            arel_table(options[:from]).
+              join(construct_join(options[:joins], scope)).
+              where(construct_conditions(options[:conditions], scope)).
+              group(construct_group(options[:group], options[:having], scope)).
+              order(options[:order]).
+              take(options[:limit]).
+              skip(options[:offset])
           end
           if options[:group]
             return execute_grouped_calculation(operation, column_name, options, relation)
