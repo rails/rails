@@ -52,8 +52,8 @@ class BaseLoadTest < Test::Unit::TestCase
         :notable_rivers => [
           { :id => 1, :name => 'Willamette' },
           { :id => 2, :name => 'Columbia', :rafted_by => @matz }],
-        :postal_codes => [97018,1234567890],
-        :places => ["Columbia City", "Unknown"]}}}
+        :postal_codes => [ 97018, 1234567890 ],
+        :places => [ "Columbia City", "Unknown" ]}}}
 
     @person = Person.new
   end
@@ -135,7 +135,7 @@ class BaseLoadTest < Test::Unit::TestCase
     assert_equal 2, postal_codes.size
     assert_kind_of Fixnum, postal_codes.first
     assert_equal @deep[:street][:state][:postal_codes].first, postal_codes.first
-    assert_kind_of Bignum, postal_codes.last
+    assert_kind_of Numeric, postal_codes.last
     assert_equal @deep[:street][:state][:postal_codes].last, postal_codes.last
 
     places = state.places
