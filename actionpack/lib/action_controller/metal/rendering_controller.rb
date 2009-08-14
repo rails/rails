@@ -1,11 +1,39 @@
 module ActionController
+  class HashKey
+    @hash_keys = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = {} } }
+
+    def self.get(klass, formats, locale)
+      @hash_keys[klass][formats][locale] ||= new(klass, formats, locale)
+    end
+
+    attr_accessor :hash
+    def initialize(klass, formats, locale)
+      @hash = [formats, locale].hash
+    end
+
+    alias_method :eql?, :equal?
+  end
+  
   module RenderingController
     extend ActiveSupport::Concern
 
     include AbstractController::RenderingController
 
+    module ClassMethods
+      def clear_template_caches!
+        ActionView::Partials::PartialRenderer::TEMPLATES.clear
+        template_cache.clear
+        super
+      end
+      
+      def template_cache
+        @template_cache ||= Hash.new {|h,k| h[k] = {} }
+      end
+    end
+
     def process_action(*)
       self.formats = request.formats.map {|x| x.to_sym}
+      Thread.current[:format_locale_key] = HashKey.get(self.class, formats, I18n.locale)
       super
     end
 
@@ -32,6 +60,10 @@ module ActionController
     private
       def _prefix
         controller_path
+      end
+
+      def with_template_cache(name)
+        self.class.template_cache[Thread.current[:format_locale_key]][name] ||= super
       end
 
       def _determine_template(options)

@@ -97,7 +97,22 @@ module ActionView
         raise ActionView::TemplateError.new(self, {}, e)
       end
     end
-  
+
+    class LocalsKey
+      @hash_keys = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = {} } }
+
+      def self.get(*locals)
+        @hash_keys[*locals] ||= new(klass, format, locale)
+      end
+
+      attr_accessor :hash
+      def initialize(klass, format, locale)
+        @hash = locals.hash
+      end
+
+      alias_method :eql?, :equal?
+    end
+
     def build_method_name(locals)
       # TODO: is locals.keys.hash reliably the same?
       @method_names[locals.keys.hash] ||=
