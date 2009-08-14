@@ -28,14 +28,14 @@ cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with MySQL"
   puts
-  build_results[:activerecord_mysql] = system 'rake test_mysql'
+  build_results[:activerecord_mysql] = system 'rake mysql:rebuild_databases && rake test_mysql'
 end
 
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with PostgreSQL"
   puts
-  build_results[:activerecord_postgresql8] = system 'rake test_postgresql'
+  build_results[:activerecord_postgresql8] = system 'rake postgresql:rebuild_databases && rake test_postgresql'
 end
 
 cd "#{root_dir}/activerecord" do

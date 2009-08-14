@@ -62,19 +62,27 @@ module ActiveSupport
       end
     end
 
+    RAILS_CACHE_ID   = ENV["RAILS_CACHE_ID"]
+    RAILS_APP_VERION = ENV["RAILS_APP_VERION"]
+    EXPANDED_CACHE   = RAILS_CACHE_ID || RAILS_APP_VERION
+
     def self.expand_cache_key(key, namespace = nil)
       expanded_cache_key = namespace ? "#{namespace}/" : ""
 
-      if ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
-        expanded_cache_key << "#{ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]}/"
+      if EXPANDED_CACHE
+        expanded_cache_key << "#{RAILS_CACHE_ID || RAILS_APP_VERION}/"
       end
 
-      expanded_cache_key << case
-        when key.respond_to?(:cache_key)
+      expanded_cache_key <<
+        if key.respond_to?(:cache_key)
           key.cache_key
-        when key.is_a?(Array)
-          key.collect { |element| expand_cache_key(element) }.to_param
-        when key
+        elsif key.is_a?(Array)
+          if key.size > 1
+            key.collect { |element| expand_cache_key(element) }.to_param
+          else
+            key.first.to_param
+          end
+        elsif key
           key.to_param
         end.to_s
 

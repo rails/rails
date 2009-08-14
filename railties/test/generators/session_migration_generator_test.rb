@@ -2,16 +2,6 @@ require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'generators/rails/session_migration/session_migration_generator'
 
-module ActiveRecord 
-  module SessionStore
-    class Session
-      class << self
-        attr_accessor :table_name
-      end
-    end
-  end
-end
-
 class SessionMigrationGeneratorTest < GeneratorsTestCase
 
   def test_session_migration_with_default_name
@@ -31,7 +21,10 @@ class SessionMigrationGeneratorTest < GeneratorsTestCase
       assert_match /class AddSessionsTable < ActiveRecord::Migration/, migration
       assert_match /create_table :custom_table_name/, migration
     end
+  ensure
+    ActiveRecord::SessionStore::Session.table_name = "sessions"
   end
+
   protected
 
     def run_generator(args=[])

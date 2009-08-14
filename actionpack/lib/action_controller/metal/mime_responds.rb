@@ -226,10 +226,11 @@ module ActionController #:nodoc:
     # is quite simple (it just needs to respond to call), you can even give
     # a proc to it.
     #
-    def respond_with(resource, options={}, &block)
+    def respond_with(*resources, &block)
       respond_to(&block)
     rescue ActionView::MissingTemplate
-      (options.delete(:responder) || responder).call(self, resource, options)
+      options = resources.extract_options!
+      (options.delete(:responder) || responder).call(self, resources, options)
     end
 
     def responder

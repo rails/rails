@@ -536,7 +536,6 @@ class FragmentCachingTest < ActionController::TestCase
     @controller.params = @params
     @controller.request = @request
     @controller.response = @response
-    @controller.send(:initialize_current_url)
     @controller.send(:initialize_template_class, @response)
     @controller.send(:assign_shortcuts, @request, @response)
   end

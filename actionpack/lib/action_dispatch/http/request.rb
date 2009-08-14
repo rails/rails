@@ -173,19 +173,15 @@ module ActionDispatch
         end
     end
 
-    # Expand raw_formats by converting Mime::ALL to the Mime::SET.
-    #
     def formats
       if ActionController::Base.use_accept_header
-        raw_formats.tap do |ret|
-          if ret == ONLY_ALL
-            ret.replace Mime::SET
-          elsif all = ret.index(Mime::ALL)
-            ret.delete_at(all) && ret.insert(all, *Mime::SET)
-          end
+        if param = parameters[:format]
+          Array.wrap(Mime[param])
+        else
+          accepts.dup
         end
       else
-        raw_formats + Mime::SET
+        [format]
       end
     end
 
@@ -487,7 +483,7 @@ EOM
     # matches the order array.
     #
     def negotiate_mime(order)
-      raw_formats.each do |priority|
+      formats.each do |priority|
         if priority == Mime::ALL
           return order.first
         elsif order.include?(priority)
@@ -499,18 +495,6 @@ EOM
     end
 
     private
-
-      def raw_formats
-        if ActionController::Base.use_accept_header
-          if param = parameters[:format]
-            Array.wrap(Mime[param])
-          else
-            accepts.dup
-          end
-        else
-          [format]
-        end
-      end
 
       def named_host?(host)
         !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))

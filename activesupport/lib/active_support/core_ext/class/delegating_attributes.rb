@@ -26,13 +26,14 @@ class Class
     end
   end
 
-  def superclass_delegating_writer(*names)
+  def superclass_delegating_writer(*names, &block)
     names.each do |name|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{name}=(value)     # def self.property=(value)
           @#{name} = value           #   @property = value
         end                          # end
       EOS
+      self.send("#{name}=", yield) if block_given?
     end
   end
 
@@ -42,8 +43,8 @@ class Class
   # delegate to their superclass unless they have been given a 
   # specific value.  This stops the strange situation where values 
   # set after class definition don't get applied to subclasses.
-  def superclass_delegating_accessor(*names)
+  def superclass_delegating_accessor(*names, &block)
     superclass_delegating_reader(*names)
-    superclass_delegating_writer(*names)
+    superclass_delegating_writer(*names, &block)
   end
 end

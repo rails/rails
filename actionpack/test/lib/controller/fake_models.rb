@@ -10,12 +10,16 @@ class Customer < Struct.new(:name, :id)
     id.to_s
   end
 
-  def to_xml
-    "XML"
+  def to_xml(options={})
+    if options[:builder]
+      options[:builder].name name
+    else
+      "<name>#{name}</name>"
+    end
   end
 
-  def to_js
-    "JS"
+  def to_js(options={})
+    "name: #{name.inspect}"
   end
 
   def errors

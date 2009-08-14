@@ -4,6 +4,11 @@ require 'generators/test_unit/model/model_generator'
 require 'mocha'
 
 class GeneratorsTest < GeneratorsTestCase
+  def setup
+    Rails::Generators.instance_variable_set(:@load_paths, nil)
+    Gem.stubs(:respond_to?).with(:loaded_specs).returns(false)
+  end
+
   def test_invoke_when_generator_is_not_found
     output = capture(:stdout){ Rails::Generators.invoke :unknown }
     assert_equal "Could not find generator unknown.\n", output
@@ -68,6 +73,20 @@ class GeneratorsTest < GeneratorsTestCase
     klass = Rails::Generators.find_by_namespace(:mspec)
     assert klass
     assert_equal "mspec", klass.namespace
+  end
+
+  def test_find_by_namespace_lookup_with_gem_specification
+    assert_nil Rails::Generators.find_by_namespace(:xspec)
+    Rails::Generators.instance_variable_set(:@load_paths, nil)
+
+    spec = Gem::Specification.new
+    spec.expects(:full_gem_path).returns(File.join(RAILS_ROOT, 'vendor', 'another_gem_path', 'xspec'))
+    Gem.expects(:respond_to?).with(:loaded_specs).returns(true)
+    Gem.expects(:loaded_specs).returns(:spec => spec)
+
+    klass = Rails::Generators.find_by_namespace(:xspec)
+    assert klass
+    assert_equal "xspec", klass.namespace
   end
 
   def test_builtin_generators

@@ -64,7 +64,7 @@ module ActionController #:nodoc:
   #     @project = Project.find(params[:project_id])
   #     @task = @project.comments.build(params[:task])
   #     flash[:notice] = 'Task was successfully created.' if @task.save
-  #     respond_with([@project, @task])
+  #     respond_with(@project, @task)
   #   end
   #
   # Giving an array of resources, you ensure that the responder will redirect to
@@ -74,19 +74,19 @@ module ActionController #:nodoc:
   # polymorphic urls. If a project has one manager which has many tasks, it
   # should be invoked as:
   #
-  #   respond_with([@project, :manager, @task])
+  #   respond_with(@project, :manager, @task)
   #
   # Check polymorphic_url documentation for more examples.
   #
   class Responder
     attr_reader :controller, :request, :format, :resource, :resource_location, :options
 
-    def initialize(controller, resource, options={})
+    def initialize(controller, resources, options={})
       @controller = controller
       @request = controller.request
       @format = controller.formats.first
-      @resource = resource.is_a?(Array) ? resource.last : resource
-      @resource_location = options[:location] || resource
+      @resource = resources.is_a?(Array) ? resources.last : resources
+      @resource_location = options[:location] || resources
       @options = options
     end
 

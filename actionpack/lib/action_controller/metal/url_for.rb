@@ -4,15 +4,6 @@ module ActionController
 
     include RackConvenience
 
-    def process_action(*)
-      initialize_current_url
-      super
-    end
-
-    def initialize_current_url
-      @url = UrlRewriter.new(request, params.clone)
-    end
-
     # Overwrite to implement a number of default options that all url_for-based methods will use. The default options should come in
     # the form of a hash, just like the one you would use for url_for directly. Example:
     #
@@ -40,6 +31,7 @@ module ActionController
         when String
           options
         when Hash
+          @url ||= UrlRewriter.new(request, params)
           @url.rewrite(rewrite_options(options))
         else
           polymorphic_url(options)
