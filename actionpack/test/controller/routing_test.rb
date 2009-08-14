@@ -9,7 +9,6 @@ class MilestonesController < ActionController::Base
   def rescue_action(e) raise e end
 end
 
-RunTimeTests = ARGV.include? 'time'
 ROUTING = ActionController::Routing
 
 class ROUTING::RouteBuilder
@@ -759,7 +758,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
 
     ActionController::Routing.use_controllers! %w(content admin/user admin/news_feed)
   end
-  
+
   def teardown
     @rs.clear!
   end
@@ -815,52 +814,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       map.resources :pages
       map.connect ':controller/:action/:id'
     }
-    n = 1000
-    if RunTimeTests
-      GC.start
-      rectime = Benchmark.realtime do
-        n.times do
-          rs.recognize_path("/videos/1234567", {:method => :get})
-          rs.recognize_path("/videos/1234567/abuse", {:method => :get})
-          rs.recognize_path("/users/1234567/settings", {:method => :get})
-          rs.recognize_path("/channels/1234567", {:method => :get})
-          rs.recognize_path("/session/new", {:method => :get})
-          rs.recognize_path("/admin/user/show/10", {:method => :get})
-        end
-      end
-      puts "\n\nRecognition (#{rs.routes.size} routes):"
-      per_url = rectime / (n * 6)
-      puts "#{per_url * 1000} ms/url"
-      puts "#{1 / per_url} url/s\n\n"
-    end
-  end
-
-  def test_time_generation
-    n = 5000
-    if RunTimeTests
-      GC.start
-      pairs = [
-        [{:controller => 'content', :action => 'index'}, {:controller => 'content', :action => 'show'}],
-        [{:controller => 'content'}, {:controller => 'content', :action => 'index'}],
-        [{:controller => 'content', :action => 'list'}, {:controller => 'content', :action => 'index'}],
-        [{:controller => 'content', :action => 'show', :id => '10'}, {:controller => 'content', :action => 'list'}],
-        [{:controller => 'admin/user', :action => 'index'}, {:controller => 'admin/user', :action => 'show'}],
-        [{:controller => 'admin/user'}, {:controller => 'admin/user', :action => 'index'}],
-        [{:controller => 'admin/user', :action => 'list'}, {:controller => 'admin/user', :action => 'index'}],
-        [{:controller => 'admin/user', :action => 'show', :id => '10'}, {:controller => 'admin/user', :action => 'list'}],
-      ]
-      p = nil
-      gentime = Benchmark.realtime do
-        n.times do
-        pairs.each {|(a, b)| rs.generate(a, b)}
-        end
-      end
-
-      puts "\n\nGeneration (RouteSet): (#{(n * 8)} urls)"
-      per_url = gentime / (n * 8)
-      puts "#{per_url * 1000} ms/url"
-      puts "#{1 / per_url} url/s\n\n"
-    end
   end
 
   def test_route_with_colon_first
@@ -2567,10 +2520,10 @@ class RouteLoadingTest < Test::Unit::TestCase
 
     routes.reload
   end
-  
+
   def test_load_multiple_configurations
     routes.add_configuration_file("engines.rb")
-    
+
     File.expects(:stat).at_least_once.returns(@stat)
 
     routes.expects(:load).with('./config/routes.rb')
