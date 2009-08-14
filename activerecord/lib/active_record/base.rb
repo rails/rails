@@ -1741,8 +1741,7 @@ module ActiveRecord #:nodoc:
             if array_of_strings?(merged_joins)
               merged_joins.join(' ') + " "
             else
-              join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, merged_joins, nil)
-              " #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} "
+              build_association_joins(merged_joins)
             end
           when String
             " #{merged_joins} "
@@ -1801,16 +1800,26 @@ module ActiveRecord #:nodoc:
           if joins.any?{|j| j.is_a?(String) || array_of_strings?(j) }
             joins = joins.collect do |join|
               join = [join] if join.is_a?(String)
-              unless array_of_strings?(join)
-                join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, join, nil)
-                join = join_dependency.join_associations.collect { |assoc| assoc.association_join }
-              end
+              join = build_association_joins(join) unless array_of_strings?(join)
               join
             end
             joins.flatten.map{|j| j.strip}.uniq
           else
             joins.collect{|j| safe_to_array(j)}.flatten.uniq
           end
+        end
+
+        def build_association_joins(joins)
+          join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, joins, nil)
+          relation = arel_table
+          join_dependency.join_associations.map { |association|
+            if association.relation.is_a?(Array)
+              [Arel::InnerJoin.new(relation, association.relation.first, association.association_join.first).joins(relation),
+              Arel::InnerJoin.new(relation, association.relation.last, association.association_join.last).joins(relation)].join()
+            else
+              Arel::InnerJoin.new(relation, association.relation, association.association_join).joins(relation)
+            end
+          }.join(" ")
         end
 
         # Object#to_a is deprecated, though it does have the desired behavior

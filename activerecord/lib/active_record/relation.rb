@@ -1,7 +1,7 @@
 module ActiveRecord
   class Relation
     delegate :delete, :to_sql, :to => :relation
-    CLAUSES_METHODS = ["project", "group", "order", "take", "skip"].freeze
+    CLAUSES_METHODS = ["project", "group", "order", "take", "skip", "on"].freeze
     attr_reader :relation, :klass
 
     def initialize(klass, table = nil)
@@ -31,8 +31,14 @@ module ActiveRecord
       }
     end
 
-    def join(joins)
-      @relation = @relation.join(@klass.send(:construct_join, joins, nil)) if !joins.blank?
+    def join(joins, join_type = nil)
+      if !joins.blank?
+        if [String, Hash, Array, Symbol].include?(joins.class)
+          @relation = @relation.join(@klass.send(:construct_join, joins, nil))
+        else
+          @relation = @relation.join(joins, join_type)
+        end
+      end
       self
     end
 

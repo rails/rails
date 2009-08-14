@@ -1673,14 +1673,20 @@ module ActiveRecord
           )
         end
 
-        def construct_finder_sql_with_included_associations(options, join_dependency)
+        def construct_finder_arel_with_included_associations(options, join_dependency)
           scope = scope(:find)
 
           relation = arel_table((scope && scope[:from]) || options[:from])
 
-          joins = join_dependency.join_associations.collect{|join| join.association_join }.join
-          joins << construct_join(options[:joins], scope)
-          relation.join(joins)
+          for association in join_dependency.join_associations
+            if association.relation.is_a?(Array)
+              relation.join(association.relation.first, association.join_type).on(association.association_join.first)
+              relation.join(association.relation.last, association.join_type).on(association.association_join.last)
+            else
+              relation.join(association.relation, association.join_type).on(association.association_join)
+            end
+          end
+          relation.join(construct_join(options[:joins], scope))
 
           relation.where(construct_conditions(options[:conditions], scope))
           relation.where(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
@@ -1690,7 +1696,11 @@ module ActiveRecord
           relation.order(construct_order(options[:order], scope))
           relation.take(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)
 
-          sanitize_sql(relation.to_sql)
+          relation
+        end
+
+        def construct_finder_sql_with_included_associations(options, join_dependency)
+          sanitize_sql(construct_finder_arel_with_included_associations(options, join_dependency).to_sql)
         end
 
         def construct_arel_limited_ids_condition(options, join_dependency)
@@ -1716,9 +1726,15 @@ module ActiveRecord
 
           relation = arel_table(options[:from])
 
-          joins = join_dependency.join_associations.collect{|join| join.association_join }.join
-          joins << construct_join(options[:joins], scope)
-          relation.join(joins)
+          for association in join_dependency.join_associations
+            if association.relation.is_a?(Array)
+              relation.join(association.relation.first, association.join_type).on(association.association_join.first)
+              relation.join(association.relation.last, association.join_type).on(association.association_join.last)
+            else
+              relation.join(association.relation, association.join_type).on(association.association_join)
+            end
+          end
+          relation.join(construct_join(options[:joins], scope))
 
           relation.where(construct_conditions(options[:conditions], scope))
           relation.project(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", construct_order(options[:order], scope(:find)).join(",")))
@@ -1907,12 +1923,6 @@ module ActiveRecord
             end
           end
 
-          def join_for_table_name(table_name)
-            join = (@joins.select{|j|j.aliased_table_name == table_name.gsub(/^\"(.*)\"$/){$1} }.first) rescue nil
-            return join unless join.nil?
-            @joins.select{|j|j.is_a?(JoinAssociation) && j.aliased_join_table_name == table_name.gsub(/^\"(.*)\"$/){$1} }.first rescue nil
-          end
-
           def joins_for_table_name(table_name)
             join = join_for_table_name(table_name)
             result = nil
@@ -2088,19 +2098,18 @@ module ActiveRecord
               connection = reflection.active_record.connection
               join = case reflection.macro
                 when :has_and_belongs_to_many
-                  " #{join_type} %s ON %s.%s = %s.%s " % [
-                     table_alias_for(options[:join_table], aliased_join_table_name),
+                  ["%s.%s = %s.%s " % [
                      connection.quote_table_name(aliased_join_table_name),
                      options[:foreign_key] || reflection.active_record.to_s.foreign_key,
                      connection.quote_table_name(parent.aliased_table_name),
-                     reflection.active_record.primary_key] +
-                  " #{join_type} %s ON %s.%s = %s.%s " % [
-                     table_name_and_alias,
+                     reflection.active_record.primary_key],
+                  "%s.%s = %s.%s " % [
                      connection.quote_table_name(aliased_table_name),
                      klass.primary_key,
                      connection.quote_table_name(aliased_join_table_name),
                      options[:association_foreign_key] || klass.to_s.foreign_key
                      ]
+                  ]
                 when :has_many, :has_one
                   if reflection.options[:through]
                     through_conditions = through_reflection.options[:conditions] ? "AND #{interpolate_sql(sanitize_sql(through_reflection.options[:conditions]))}" : ''
@@ -2154,26 +2163,22 @@ module ActiveRecord
                         end
                     end
 
-                    " #{join_type} %s ON (%s.%s = %s.%s%s%s%s) " % [
-                      table_alias_for(through_reflection.klass.table_name, aliased_join_table_name),
+                    ["(%s.%s = %s.%s%s%s%s) " % [
                       connection.quote_table_name(parent.aliased_table_name),
                       connection.quote_column_name(parent.primary_key),
                       connection.quote_table_name(aliased_join_table_name),
                       connection.quote_column_name(jt_foreign_key),
-                      jt_as_extra, jt_source_extra, jt_sti_extra
-                    ] +
-                    " #{join_type} %s ON (%s.%s = %s.%s%s) " % [
-                      table_name_and_alias,
+                      jt_as_extra, jt_source_extra, jt_sti_extra],
+                    "(%s.%s = %s.%s%s) " % [
                       connection.quote_table_name(aliased_table_name),
                       connection.quote_column_name(first_key),
                       connection.quote_table_name(aliased_join_table_name),
                       connection.quote_column_name(second_key),
-                      as_extra
+                      as_extra]
                     ]
 
                  elsif reflection.options[:as] && [:has_many, :has_one].include?(reflection.macro)
-                    " #{join_type} %s ON %s.%s = %s.%s AND %s.%s = %s" % [
-                      table_name_and_alias,
+                    "%s.%s = %s.%s AND %s.%s = %s" % [
                       connection.quote_table_name(aliased_table_name),
                       "#{reflection.options[:as]}_id",
                       connection.quote_table_name(parent.aliased_table_name),
@@ -2184,8 +2189,7 @@ module ActiveRecord
                     ]
                  else
                     foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
-                    " #{join_type} %s ON %s.%s = %s.%s " % [
-                      table_name_and_alias,
+                    "%s.%s = %s.%s " % [
                       aliased_table_name,
                       foreign_key,
                       parent.aliased_table_name,
@@ -2193,13 +2197,12 @@ module ActiveRecord
                     ]
                   end
                 when :belongs_to
-                  " #{join_type} %s ON %s.%s = %s.%s " % [
-                     table_name_and_alias,
-                     connection.quote_table_name(aliased_table_name),
-                     reflection.klass.primary_key,
-                     connection.quote_table_name(parent.aliased_table_name),
-                     options[:foreign_key] || reflection.primary_key_name
-                    ]
+                  "%s.%s = %s.%s " % [
+                   connection.quote_table_name(aliased_table_name),
+                   reflection.klass.primary_key,
+                   connection.quote_table_name(parent.aliased_table_name),
+                   options[:foreign_key] || reflection.primary_key_name
+                  ]
                 else
                   ""
               end
@@ -2211,6 +2214,20 @@ module ActiveRecord
               end
 
               join
+            end
+
+            def relation
+              if reflection.macro == :has_and_belongs_to_many
+                [Arel::Table.new(table_alias_for(options[:join_table], aliased_join_table_name)), Arel::Table.new(table_name_and_alias)]
+              elsif reflection.options[:through]
+                [Arel::Table.new(table_alias_for(through_reflection.klass.table_name, aliased_join_table_name)), Arel::Table.new(table_name_and_alias)]
+              else
+                Arel::Table.new(table_name_and_alias)
+              end
+            end
+
+            def join_type
+              Arel::OuterJoin
             end
 
             protected
@@ -2238,7 +2255,7 @@ module ActiveRecord
               end
 
               def table_alias_for(table_name, table_alias)
-                 "#{reflection.active_record.connection.quote_table_name(table_name)} #{table_alias if table_name != table_alias}".strip
+                 "#{table_name} #{table_alias if table_name != table_alias}".strip
               end
 
               def table_name_and_alias
@@ -2247,11 +2264,6 @@ module ActiveRecord
 
               def interpolate_sql(sql)
                 instance_eval("%@#{sql.gsub('@', '\@')}@")
-              end
-
-            private
-              def join_type
-                "LEFT OUTER JOIN"
               end
           end
         end
@@ -2263,13 +2275,11 @@ module ActiveRecord
             end
 
           class InnerJoinAssociation < JoinAssociation
-            private
-              def join_type
-                "INNER JOIN"
-              end
+            def join_type
+              Arel::InnerJoin
+            end
           end
         end
-
     end
   end
 end

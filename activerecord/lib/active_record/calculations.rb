@@ -128,12 +128,6 @@ module ActiveRecord
         scope = scope(:find)
 
         merged_includes = merge_includes(scope ? scope[:include] : [], options[:include])
-        joins = construct_join(options[:joins], scope)
-
-        if merged_includes.any?
-          join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, joins)
-          joins << join_dependency.join_associations.collect{|join| join.association_join }.join
-        end
 
         if operation == "count"
           if merged_includes.any?
@@ -148,17 +142,12 @@ module ActiveRecord
         end
 
         catch :invalid_query do
-          relation = arel_table((scope && scope[:from]) || options[:from])
-
-          relation.join(joins)
-
-          relation.where(construct_conditions(options[:conditions], scope))
-          relation.where(construct_arel_limited_ids_condition(options, join_dependency)) if join_dependency && !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
-
-          relation.order(options[:order])
-          relation.take(options[:limit])
-          relation.skip(options[:offset])
-
+          relation = if merged_includes.any?
+            join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, construct_join(options[:joins], scope))
+            construct_finder_arel_with_included_associations(options, join_dependency)
+          else
+            construct_finder_arel(options)
+          end
           if options[:group]
             return execute_grouped_calculation(operation, column_name, options, relation)
           else
