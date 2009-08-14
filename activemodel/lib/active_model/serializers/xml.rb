@@ -5,8 +5,9 @@ module ActiveModel
   module Serializers
     module Xml
       extend ActiveSupport::Concern
+      include ActiveModel::Serialization
 
-      class Serializer < ActiveModel::Serializer #:nodoc:
+      class Serializer #:nodoc:
         class Attribute #:nodoc:
           attr_reader :name, :value, :type
 
@@ -74,32 +75,32 @@ module ActiveModel
             end
         end
 
-        def builder
-          @builder ||= begin
-            require 'builder' unless defined? ::Builder
-            options[:indent] ||= 2
-            builder = options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
+        attr_reader :options
 
-            unless options[:skip_instruct]
-              builder.instruct!
-              options[:skip_instruct] = true
-            end
+        def initialize(serializable, options = nil)
+          @serializable = serializable
+          @options = options ? options.dup : {}
 
-            builder
+          @options[:only] = Array.wrap(@options[:only]).map { |n| n.to_s }
+          @options[:except] = Array.wrap(@options[:except]).map { |n| n.to_s }
+        end
+
+        # To replicate the behavior in ActiveRecord#attributes,
+        # <tt>:except</tt> takes precedence over <tt>:only</tt>.  If <tt>:only</tt> is not set
+        # for a N level model but is set for the N+1 level models,
+        # then because <tt>:except</tt> is set to a default value, the second
+        # level model can have both <tt>:except</tt> and <tt>:only</tt> set.  So if
+        # <tt>:only</tt> is set, always delete <tt>:except</tt>.
+        def serializable_attribute_names
+          attribute_names = @serializable.attributes.keys.sort
+
+          if options[:only].any?
+            attribute_names &= options[:only]
+          elsif options[:except].any?
+            attribute_names -= options[:except]
           end
-        end
 
-        def root
-          root = (options[:root] || @serializable.class.model_name.singular).to_s
-          reformat_name(root)
-        end
-
-        def dasherize?
-          !options.has_key?(:dasherize) || options[:dasherize]
-        end
-
-        def camelize?
-          options.has_key?(:camelize) && options[:camelize]
+          attribute_names
         end
 
         def serializable_attributes
@@ -134,6 +135,34 @@ module ActiveModel
         end
 
         private
+          def builder
+            @builder ||= begin
+              require 'builder' unless defined? ::Builder
+              options[:indent] ||= 2
+              builder = options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
+
+              unless options[:skip_instruct]
+                builder.instruct!
+                options[:skip_instruct] = true
+              end
+
+              builder
+            end
+          end
+
+          def root
+            root = (options[:root] || @serializable.class.model_name.singular).to_s
+            reformat_name(root)
+          end
+
+          def dasherize?
+            !options.has_key?(:dasherize) || options[:dasherize]
+          end
+
+          def camelize?
+            options.has_key?(:camelize) && options[:camelize]
+          end
+
           def reformat_name(name)
             name = name.camelize if camelize?
             dasherize? ? name.dasherize : name
@@ -163,8 +192,7 @@ module ActiveModel
       end
 
       def to_xml(options = {}, &block)
-        serializer = Serializer.new(self, options)
-        block_given? ? serializer.to_s(&block) : serializer.to_s
+        Serializer.new(self, options).serialize(&block)
       end
 
       def from_xml(xml)
