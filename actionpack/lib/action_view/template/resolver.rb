@@ -42,7 +42,7 @@ module ActionView
 
     def handler_glob
       @handler_glob ||= begin
-        e = TemplateHandlers.extensions.map{|h| ".#{h},"}.join
+        e = TemplateHandlers.extensions.map{|h| ".#{h}"}.join(",")
         "{#{e}}"
       end
     end

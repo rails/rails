@@ -106,16 +106,10 @@ module ActionDispatch
       @env["action_dispatch.request.accepts"] ||= begin
         header = @env['HTTP_ACCEPT'].to_s.strip
 
-        fallback = xhr? ? Mime::JS : Mime::HTML
-
         if header.empty?
-          [content_type, fallback, Mime::ALL].compact
+          [content_type]
         else
-          ret = Mime::Type.parse(header)
-          if ret.last == Mime::ALL
-            ret.insert(-2, fallback)
-          end
-          ret
+          Mime::Type.parse(header)
         end
       end
     end
@@ -163,26 +157,20 @@ module ActionDispatch
     #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first depending on the value of <tt>ActionController::Base.use_accept_header</tt>
     #
     def format(view_path = [])
-      @env["action_dispatch.request.format"] ||=
-        if parameters[:format]
-                        Mime[parameters[:format]]
-        elsif ActionController::Base.use_accept_header && !(accepts == ONLY_ALL)
-                        accepts.first
-        elsif xhr? then Mime::JS
-        else            Mime::HTML
-        end
+      formats.first
     end
 
     def formats
-      if ActionController::Base.use_accept_header
-        if param = parameters[:format]
-          Array.wrap(Mime[param])
+      accept = @env['HTTP_ACCEPT']
+
+      @env["action_dispatch.request.formats"] ||=
+        if parameters[:format]
+          [Mime[parameters[:format]]]
+        elsif xhr? || (accept && !accept.include?(?,))
+          accepts
         else
-          accepts.dup
+          [Mime::HTML]
         end
-      else
-        [format]
-      end
     end
 
     # Sets the \format by string extension, which can be used to force custom formats
@@ -198,7 +186,7 @@ module ActionDispatch
     #   end
     def format=(extension)
       parameters[:format] = extension.to_s
-      @env["action_dispatch.request.format"] = Mime::Type.lookup_by_extension(parameters[:format])
+      @env["action_dispatch.request.formats"] = [Mime::Type.lookup_by_extension(parameters[:format])]
     end
 
     # Returns a symbolized version of the <tt>:format</tt> parameter of the request.

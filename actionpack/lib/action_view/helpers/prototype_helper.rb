@@ -991,12 +991,13 @@ module ActionView
 
             def render(*options_for_render)
               old_formats = @context && @context.formats
-              @context.formats = [:html] if @context
+
+              @context.reset_formats([:html]) if @context
               Hash === options_for_render.first ?
                 @context.render(*options_for_render) :
                   options_for_render.first.to_s
             ensure
-              @context.formats = old_formats if @context
+              @context.reset_formats(old_formats) if @context
             end
 
             def javascript_object_for(object)

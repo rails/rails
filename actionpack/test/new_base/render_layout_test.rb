@@ -83,7 +83,7 @@ module ControllerLayouts
     testing ControllerLayouts::MismatchFormatController
 
     test "if JS is selected, an HTML template is not also selected" do
-      get :index
+      get :index, "format" => "js"
       assert_response "$(\"test\").omg();"
     end
 

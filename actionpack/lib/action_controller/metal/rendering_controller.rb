@@ -8,12 +8,17 @@ module ActionController
 
     attr_accessor :hash
     def initialize(klass, formats, locale)
+      @formats, @locale = formats, locale
       @hash = [formats, locale].hash
     end
 
     alias_method :eql?, :equal?
+
+    def inspect
+      "#<HashKey -- formats: #{@formats} locale: #{@locale}>"
+    end
   end
-  
+
   module RenderingController
     extend ActiveSupport::Concern
 
@@ -25,7 +30,7 @@ module ActionController
         template_cache.clear
         super
       end
-      
+
       def template_cache
         @template_cache ||= Hash.new {|h,k| h[k] = {} }
       end
@@ -33,16 +38,19 @@ module ActionController
 
     def process_action(*)
       self.formats = request.formats.map {|x| x.to_sym}
-      Thread.current[:format_locale_key] = HashKey.get(self.class, formats, I18n.locale)
+
+      super
+    end
+
+    def _determine_template(*)
       super
     end
 
     def render(options)
+      Thread.current[:format_locale_key] = HashKey.get(self.class, formats, I18n.locale)
+
       super
-      self.content_type ||= begin
-        mime = options[:_template].mime_type
-        formats.include?(mime && mime.to_sym) || formats.include?(:all) ? mime : Mime::Type.lookup_by_extension(formats.first)
-      end.to_s
+      self.content_type ||= options[:_template].mime_type.to_s
       response_body
     end
 

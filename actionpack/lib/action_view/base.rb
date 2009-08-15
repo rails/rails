@@ -175,6 +175,17 @@ module ActionView #:nodoc:
     attr_accessor :controller
     attr_internal :captures
 
+    def reset_formats(formats)
+      @formats = formats
+
+      if defined?(ActionController)
+        # This is expensive, but we need to reset this when the format is updated,
+        # which currently only happens
+        Thread.current[:format_locale_key] =
+          ActionController::HashKey.get(self.class, formats, I18n.locale)
+      end
+    end
+
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
       delegate :logger, :to => 'ActionController::Base', :allow_nil => true
@@ -240,7 +251,7 @@ module ActionView #:nodoc:
     end
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil, formats = nil)#:nodoc:
-      @formats = formats || [:html]
+      @formats = formats
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
       @controller = controller
       @helpers = self.class.helpers || Module.new

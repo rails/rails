@@ -190,6 +190,8 @@ module RenderTestCases
   def test_render_missing_xml_partial_and_raise_missing_template
     @view.formats = [:xml]
     assert_raise(ActionView::MissingTemplate) { @view.render(:partial => "test/layout_for_partial") }
+  ensure
+    @view.formats = nil
   end
 
   def test_render_inline

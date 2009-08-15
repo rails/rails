@@ -46,7 +46,7 @@ class ContentTypeController < ActionController::Base
   def render_default_content_types_for_respond_to
     respond_to do |format|
       format.html { render :text   => "hello world!" }
-      format.xml  { render :action => "render_default_content_types_for_respond_to.rhtml" }
+      format.xml  { render :action => "render_default_content_types_for_respond_to" }
       format.js   { render :text   => "hello world!" }
       format.rss  { render :text   => "hello world!", :content_type => Mime::XML }
     end

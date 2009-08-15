@@ -21,24 +21,23 @@ module RenderRjs
     def index_locale
       old_locale, I18n.locale = I18n.locale, :da
     end
-
   end
 
   class TestBasic < SimpleRouteCase
     testing BasicController
 
     test "rendering a partial in an RJS template should pick the JS template over the HTML one" do
-      get :index
+      get :index, "format" => "js"
       assert_response("$(\"customer\").update(\"JS Partial\");")
     end
 
     test "replacing an element with a partial in an RJS template should pick the HTML template over the JS one" do
-      get :index_html
+      get :index_html, "format" => "js"
       assert_response("$(\"customer\").update(\"HTML Partial\");")
     end
 
     test "replacing an element with a partial in an RJS template with a locale should pick the localed HTML template" do
-      get :index_locale, :format => :js
+      get :index_locale, "format" => "js"
       assert_response("$(\"customer\").update(\"Danish HTML Partial\");")
     end
 
