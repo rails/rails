@@ -1411,18 +1411,6 @@ class RouteSetTest < ActiveSupport::TestCase
     Object.send(:remove_const, :Api)
   end
 
-  def test_generate_finds_best_fit
-    set.draw do |map|
-      map.connect "/people", :controller => "people", :action => "index"
-      map.connect "/ws/people", :controller => "people", :action => "index", :ws => true
-    end
-
-    assert_deprecated {
-      url = set.generate(:controller => "people", :action => "index", :ws => true)
-      assert_equal "/ws/people", url
-    }
-  end
-
   def test_generate_changes_controller_module
     set.draw { |map| map.connect ':controller/:action/:id' }
     current = { :controller => "bling/bloop", :action => "bap", :id => 9 }
