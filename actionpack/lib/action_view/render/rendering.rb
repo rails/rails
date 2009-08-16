@@ -83,7 +83,7 @@ module ActionView
       template = Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
       locals = options[:locals] || {}
       content = template.render(self, locals)
-      content = layout.render(self, locals) {|*name| _layout_for(*name) } if layout
+      content = layout.render(self, locals) {|*name| _layout_for(*name) { content } } if layout
       content
     end
 
