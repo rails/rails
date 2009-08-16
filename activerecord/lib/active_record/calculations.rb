@@ -149,7 +149,6 @@ module ActiveRecord
             arel_table(options[:from]).
               join(construct_join(options[:joins], scope)).
               where(construct_conditions(options[:conditions], scope)).
-              group(construct_group(options[:group], options[:having], scope)).
               order(options[:order]).
               take(options[:limit]).
               skip(options[:offset])
