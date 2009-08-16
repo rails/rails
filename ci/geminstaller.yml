@@ -12,7 +12,7 @@ gems:
   #version: >= 2.7
   version: = 2.7
 - name: pg
-  version: >= 0.7.9.2008.10.13
+  version: >= 0.8.0
 - name: rack
   version: '~> 1.0.0'
 - name: rake
