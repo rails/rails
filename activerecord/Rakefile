@@ -86,8 +86,8 @@ task :rebuild_mysql_databases => 'mysql:rebuild_databases'
 namespace :postgresql do
   desc 'Build the PostgreSQL test databases'
   task :build_databases do
-    %x( createdb activerecord_unittest )
-    %x( createdb activerecord_unittest2 )
+    %x( createdb -E UTF8 activerecord_unittest )
+    %x( createdb -E UTF8 activerecord_unittest2 )
   end
 
   desc 'Drop the PostgreSQL test databases'
