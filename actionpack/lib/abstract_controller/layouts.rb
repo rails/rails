@@ -19,15 +19,20 @@ module AbstractController
         end
       end
 
+      def clear_template_caches!
+        @found_layouts.clear if @found_layouts
+        super
+      end
+
       def cache_layout(details)
         layout = @found_layouts
-        values = details.values_at(:formats, :locale)
+        key = Thread.current[:format_locale_key]
 
         # Cache nil
-        if layout.key?(values)
-          return layout[values]
+        if layout.key?(key)
+          return layout[key]
         else
-          layout[values] = yield
+          layout[key] = yield
         end
       end
 

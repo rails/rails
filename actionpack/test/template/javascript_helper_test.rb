@@ -7,6 +7,10 @@ class JavaScriptHelperTest < ActionView::TestCase
 
   attr_accessor :formats, :output_buffer
 
+  def reset_formats(format)
+    @format = format
+  end
+
   def setup
     super
     @template = self

@@ -1,7 +1,9 @@
 require 'abstract_unit'
 
 # Does awesome
-if ENV['CHILD']
+if defined?(MiniTest)
+  $stderr.puts "Umm, MiniTest not supported yet, mmkay?"
+elsif ENV['CHILD']
   class ChildIsolationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 

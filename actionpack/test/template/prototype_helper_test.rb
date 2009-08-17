@@ -36,6 +36,10 @@ class Author::Nested < Author; end
 class PrototypeHelperBaseTest < ActionView::TestCase
   attr_accessor :formats, :output_buffer
 
+  def reset_formats(format)
+    @format = format
+  end
+
   def setup
     super
     @template = self

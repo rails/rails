@@ -175,6 +175,17 @@ module ActionView #:nodoc:
     attr_accessor :controller
     attr_internal :captures
 
+    def reset_formats(formats)
+      @formats = formats
+
+      if defined?(ActionController)
+        # This is expensive, but we need to reset this when the format is updated,
+        # which currently only happens
+        Thread.current[:format_locale_key] =
+          ActionController::HashKey.get(self.class, formats, I18n.locale)
+      end
+    end
+
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
       delegate :logger, :to => 'ActionController::Base', :allow_nil => true
@@ -240,7 +251,7 @@ module ActionView #:nodoc:
     end
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil, formats = nil)#:nodoc:
-      @formats = formats || [:html]
+      @formats = formats
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
       @controller = controller
       @helpers = self.class.helpers || Module.new
@@ -255,15 +266,6 @@ module ActionView #:nodoc:
       @view_paths = self.class.process_view_paths(paths)
     end
 
-    def with_template(current_template)
-      _evaluate_assigns_and_ivars
-      last_template, self.template = template, current_template
-      last_formats, self.formats = formats, current_template.formats
-      yield
-    ensure
-      self.template, self.formats = last_template, last_formats
-    end
-
     def punctuate_body!(part)
       flush_output_buffer
       response.body_parts << part
@@ -272,18 +274,11 @@ module ActionView #:nodoc:
 
     # Evaluates the local assigns and controller ivars, pushes them to the view.
     def _evaluate_assigns_and_ivars #:nodoc:
-      @assigns_added ||= _copy_ivars_from_controller
-    end
-
-  private
-
-    def _copy_ivars_from_controller #:nodoc:
       if @controller
         variables = @controller.instance_variable_names
         variables -= @controller.protected_instance_variables if @controller.respond_to?(:protected_instance_variables)
         variables.each { |name| instance_variable_set(name, @controller.instance_variable_get(name)) }
       end
-      true
     end
 
   end

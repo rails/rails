@@ -73,7 +73,7 @@ module RenderTemplate
     end
     
     test "rendering a builder template" do
-      get :builder_template
+      get :builder_template, "format" => "xml"
       assert_response "<html>\n  <p>Hello</p>\n</html>\n"
     end
   end
