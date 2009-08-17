@@ -1679,12 +1679,7 @@ module ActiveRecord
           relation = arel_table((scope && scope[:from]) || options[:from])
 
           for association in join_dependency.join_associations
-            if association.relation.is_a?(Array)
-              relation.join(association.relation.first, association.join_type).on(association.association_join.first)
-              relation.join(association.relation.last, association.join_type).on(association.association_join.last)
-            else
-              relation.join(association.relation, association.join_type).on(association.association_join)
-            end
+            relation = association.join_relation(relation)
           end
           relation.join(construct_join(options[:joins], scope))
 
@@ -1727,12 +1722,7 @@ module ActiveRecord
           relation = arel_table(options[:from])
 
           for association in join_dependency.join_associations
-            if association.relation.is_a?(Array)
-              relation.join(association.relation.first, association.join_type).on(association.association_join.first)
-              relation.join(association.relation.last, association.join_type).on(association.association_join.last)
-            else
-              relation.join(association.relation, association.join_type).on(association.association_join)
-            end
+            relation = association.join_relation(relation)
           end
           relation.join(construct_join(options[:joins], scope))
 
@@ -2228,6 +2218,16 @@ module ActiveRecord
 
             def join_type
               Arel::OuterJoin
+            end
+
+            def join_relation(joining_relation, join = nil)
+              if relation.is_a?(Array)
+                joining_relation.join(relation.first, join_type).on(association_join.first)
+                joining_relation.join(relation.last, join_type).on(association_join.last)
+              else
+                joining_relation.join(relation, join_type).on(association_join)
+              end
+              joining_relation
             end
 
             protected
