@@ -55,13 +55,15 @@ class RenderTest < ActionController::TestCase
   end
   
   def test_rendering_with_object_location_should_set_header_with_url_for
-    ActionController::Routing::Routes.draw do |map|
-      map.resources :customers
-      map.connect ':controller/:action/:id'
-    end
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :customers
+        map.connect ':controller/:action/:id'
+      end
 
-    get :render_with_object_location
-    assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
+      get :render_with_object_location
+      assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
+    end
   end
   
   def test_should_render_formatted_xml_erb_template

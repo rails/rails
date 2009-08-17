@@ -24,11 +24,6 @@ module ActiveRecord
 
   module ConnectionAdapters #:nodoc:
     class SQLite3Adapter < SQLiteAdapter # :nodoc:
-      def table_structure(table_name)
-        structure = @connection.table_info(quote_table_name(table_name))
-        raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
-        structure
-      end
     end
   end
 end

@@ -70,12 +70,13 @@ module ActionController
   
   class TestCase
     include TestProcess
+
     setup do
       ActionController::Routing::Routes.draw do |map|
         map.connect ':controller/:action/:id'
       end
     end
-    
+
     def assert_template(options = {}, message = nil)
       validate_request!
 

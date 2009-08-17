@@ -1,10 +1,6 @@
 require 'abstract_unit'
 require 'digest/sha1'
 
-ActionController::Routing::Routes.draw do |map|
-  map.connect ':controller/:action/:id'
-end
-
 # common controller actions
 module RequestForgeryProtectionActions
   def index
@@ -50,7 +46,7 @@ module RequestForgeryProtectionTests
   def teardown
     ActionController::Base.request_forgery_protection_token = nil
   end
-  
+
 
   def test_should_render_form_with_token_tag
      get :index
