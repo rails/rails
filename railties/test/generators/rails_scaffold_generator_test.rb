@@ -116,6 +116,7 @@ class RailsScaffoldGeneratorTest < GeneratorTestCase
     assert_equal "product_lines", g.controller_plural_name
     assert_equal "product_lines", g.controller_file_name
     assert_equal "product_lines", g.controller_table_name
+    assert_equal "ProductLine", g.class_name
   end
 
   def test_scaffold_plural_model_name_without_force_plural_generates_singular_model
