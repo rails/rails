@@ -51,10 +51,6 @@ module ActionView
       ActionController::Routing::Routes.draw do |map|
         map.connect ':controller/:action/:id'
       end
-
-      teardown do
-        ActionController::Routing::Routes.reload!
-      end
     end
   end
 end
@@ -79,10 +75,6 @@ module ActionController
       ActionController::Routing::Routes.draw do |map|
         map.connect ':controller/:action/:id'
       end
-    end
-
-    teardown do
-      ActionController::Routing::Routes.reload!
     end
 
     def assert_template(options = {}, message = nil)
