@@ -1086,15 +1086,17 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_head_with_location_object
-    ActionController::Routing::Routes.draw do |map|
-      map.resources :customers
-      map.connect ':controller/:action/:id'
-    end
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :customers
+        map.connect ':controller/:action/:id'
+      end
 
-    get :head_with_location_object
-    assert @response.body.blank?
-    assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
-    assert_response :ok
+      get :head_with_location_object
+      assert @response.body.blank?
+      assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
+      assert_response :ok
+    end
   end
 
   def test_head_with_custom_header

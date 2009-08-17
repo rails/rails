@@ -48,8 +48,6 @@ class PageCachingTest < ActionController::TestCase
     super
     ActionController::Base.perform_caching = true
 
-    ActionController::Routing::Routes.clear!
-
     ActionController::Routing::Routes.draw do |map|
       map.main '', :controller => 'posts', :format => nil
       map.formatted_posts 'posts.:format', :controller => 'posts'
@@ -72,7 +70,6 @@ class PageCachingTest < ActionController::TestCase
 
   def teardown
     FileUtils.rm_rf(File.dirname(FILE_STORE_PATH))
-    ActionController::Routing::Routes.clear!
     ActionController::Base.perform_caching = false
   end
 

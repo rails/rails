@@ -195,61 +195,62 @@ class UrlWriterTests < ActionController::TestCase
   end
 
   def test_named_routes
-    ActionController::Routing::Routes.draw do |map|
-      map.no_args '/this/is/verbose', :controller => 'home', :action => 'index'
-      map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
-      map.connect ':controller/:action/:id'
+    with_routing do |set|
+      set.draw do |map|
+        map.no_args '/this/is/verbose', :controller => 'home', :action => 'index'
+        map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
+        map.connect ':controller/:action/:id'
+      end
+
+      # We need to create a new class in order to install the new named route.
+      kls = Class.new { include ActionController::UrlWriter }
+      controller = kls.new
+      assert controller.respond_to?(:home_url)
+      assert_equal 'http://www.basecamphq.com/home/sweet/home/again',
+        controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again')
+
+      assert_equal("/home/sweet/home/alabama", controller.send(:home_path, :user => 'alabama', :host => 'unused'))
+      assert_equal("http://www.basecamphq.com/home/sweet/home/alabama", controller.send(:home_url, :user => 'alabama', :host => 'www.basecamphq.com'))
+      assert_equal("http://www.basecamphq.com/this/is/verbose", controller.send(:no_args_url, :host=>'www.basecamphq.com'))
     end
-
-    # We need to create a new class in order to install the new named route.
-    kls = Class.new { include ActionController::UrlWriter }
-    controller = kls.new
-    assert controller.respond_to?(:home_url)
-    assert_equal 'http://www.basecamphq.com/home/sweet/home/again',
-      controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again')
-
-    assert_equal("/home/sweet/home/alabama", controller.send(:home_path, :user => 'alabama', :host => 'unused'))
-    assert_equal("http://www.basecamphq.com/home/sweet/home/alabama", controller.send(:home_url, :user => 'alabama', :host => 'www.basecamphq.com'))
-    assert_equal("http://www.basecamphq.com/this/is/verbose", controller.send(:no_args_url, :host=>'www.basecamphq.com'))
-  ensure
-    ActionController::Routing::Routes.load!
   end
 
   def test_relative_url_root_is_respected_for_named_routes
     orig_relative_url_root = ActionController::Base.relative_url_root
     ActionController::Base.relative_url_root = '/subdir'
 
-    ActionController::Routing::Routes.draw do |map|
-      map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
+    with_routing do |set|
+      set.draw do |map|
+        map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
+      end
+
+      kls = Class.new { include ActionController::UrlWriter }
+      controller = kls.new
+
+      assert_equal 'http://www.basecamphq.com/subdir/home/sweet/home/again',
+        controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again')
     end
-
-    kls = Class.new { include ActionController::UrlWriter }
-    controller = kls.new
-
-    assert_equal 'http://www.basecamphq.com/subdir/home/sweet/home/again',
-      controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again')
   ensure
-    ActionController::Routing::Routes.load!
     ActionController::Base.relative_url_root = orig_relative_url_root
   end
 
   def test_only_path
-    ActionController::Routing::Routes.draw do |map|
-      map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
-      map.connect ':controller/:action/:id'
+    with_routing do |set|
+      set.draw do |map|
+        map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
+        map.connect ':controller/:action/:id'
+      end
+
+      # We need to create a new class in order to install the new named route.
+      kls = Class.new { include ActionController::UrlWriter }
+      controller = kls.new
+      assert controller.respond_to?(:home_url)
+      assert_equal '/brave/new/world',
+        controller.send(:url_for, :controller => 'brave', :action => 'new', :id => 'world', :only_path => true)
+
+      assert_equal("/home/sweet/home/alabama", controller.send(:home_url, :user => 'alabama', :host => 'unused', :only_path => true))
+      assert_equal("/home/sweet/home/alabama", controller.send(:home_path, 'alabama'))
     end
-
-    # We need to create a new class in order to install the new named route.
-    kls = Class.new { include ActionController::UrlWriter }
-    controller = kls.new
-    assert controller.respond_to?(:home_url)
-    assert_equal '/brave/new/world',
-      controller.send(:url_for, :controller => 'brave', :action => 'new', :id => 'world', :only_path => true)
-
-    assert_equal("/home/sweet/home/alabama", controller.send(:home_url, :user => 'alabama', :host => 'unused', :only_path => true))
-    assert_equal("/home/sweet/home/alabama", controller.send(:home_path, 'alabama'))
-  ensure
-    ActionController::Routing::Routes.load!
   end
 
   def test_one_parameter
@@ -302,41 +303,41 @@ class UrlWriterTests < ActionController::TestCase
   end
 
   def test_named_routes_with_nil_keys
-    ActionController::Routing::Routes.clear!
-    ActionController::Routing::Routes.draw do |map|
-      map.main '', :controller => 'posts', :format => nil
-      map.resources :posts
-      map.connect ':controller/:action/:id'
-    end
-    # We need to create a new class in order to install the new named route.
-    kls = Class.new { include ActionController::UrlWriter }
-    kls.default_url_options[:host] = 'www.basecamphq.com'
+    with_routing do |set|
+      set.draw do |map|
+        map.main '', :controller => 'posts', :format => nil
+        map.resources :posts
+        map.connect ':controller/:action/:id'
+      end
 
-    controller = kls.new
-    params = {:action => :index, :controller => :posts, :format => :xml}
-    assert_equal("http://www.basecamphq.com/posts.xml", controller.send(:url_for, params))
-    params[:format] = nil
-    assert_equal("http://www.basecamphq.com/", controller.send(:url_for, params))
-  ensure
-    ActionController::Routing::Routes.load!
+      # We need to create a new class in order to install the new named route.
+      kls = Class.new { include ActionController::UrlWriter }
+      kls.default_url_options[:host] = 'www.basecamphq.com'
+
+      controller = kls.new
+      params = {:action => :index, :controller => :posts, :format => :xml}
+      assert_equal("http://www.basecamphq.com/posts.xml", controller.send(:url_for, params))
+      params[:format] = nil
+      assert_equal("http://www.basecamphq.com/", controller.send(:url_for, params))
+    end
   end
 
   def test_formatted_url_methods_are_deprecated
-    ActionController::Routing::Routes.draw do |map|
-      map.resources :posts
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :posts
+      end
+      # We need to create a new class in order to install the new named route.
+      kls = Class.new { include ActionController::UrlWriter }
+      controller = kls.new
+      params = {:id => 1, :format => :xml}
+      assert_deprecated do
+        assert_equal("/posts/1.xml", controller.send(:formatted_post_path, params))    
+      end
+      assert_deprecated do
+        assert_equal("/posts/1.xml", controller.send(:formatted_post_path, 1, :xml))    
+      end
     end
-    # We need to create a new class in order to install the new named route.
-    kls = Class.new { include ActionController::UrlWriter }
-    controller = kls.new
-    params = {:id => 1, :format => :xml}
-    assert_deprecated do
-      assert_equal("/posts/1.xml", controller.send(:formatted_post_path, params))    
-    end
-    assert_deprecated do
-      assert_equal("/posts/1.xml", controller.send(:formatted_post_path, 1, :xml))    
-    end
-  ensure
-    ActionController::Routing::Routes.load!
   end
 
   def test_multiple_includes_maintain_distinct_options

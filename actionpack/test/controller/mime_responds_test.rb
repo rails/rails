@@ -531,6 +531,7 @@ class RespondWithControllerTest < ActionController::TestCase
     ActionController::Routing::Routes.draw do |map|
       map.resources :customers
       map.resources :quiz_stores, :has_many => :customers
+      map.connect ":controller/:action/:id"
     end
   end
 

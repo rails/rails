@@ -102,8 +102,7 @@ class RoutingTest < Test::Unit::TestCase
     ActionController::Routing.use_controllers! true_possible_controllers
     Object.send(:remove_const, :RAILS_ROOT) rescue nil
 
-    ActionController::Routing::Routes.clear!
-    ActionController::Routing::Routes.load_routes!
+    ActionController::Routing::Routes.reload!
   end
 
   def test_with_controllers

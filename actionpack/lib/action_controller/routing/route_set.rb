@@ -213,7 +213,7 @@ module ActionController
         self.routes = []
         self.named_routes = NamedRouteCollection.new
 
-        clear_recognize_optimized!
+        clear!
       end
 
       # Subclasses and plugins may override this method to specify a different
@@ -223,6 +223,7 @@ module ActionController
       end
 
       def draw
+        clear!
         yield Mapper.new(self)
         install_helpers
       end
@@ -230,8 +231,10 @@ module ActionController
       def clear!
         routes.clear
         named_routes.clear
+
         @combined_regexp = nil
         @routes_by_controller = nil
+
         # This will force routing/recognition_optimization.rb
         # to refresh optimisations.
         clear_recognize_optimized!
@@ -262,7 +265,6 @@ module ActionController
 
       def load!
         Routing.use_controllers!(nil) # Clear the controller cache so we may discover new ones
-        clear!
         load_routes!
       end
 
@@ -286,10 +288,12 @@ module ActionController
           configuration_files.each { |config| load(config) }
           @routes_last_modified = routes_changed_at
         else
-          add_route ":controller/:action/:id"
+          draw do |map|
+            map.connect ":controller/:action/:id"
+          end
         end
       end
-      
+
       def routes_changed_at
         routes_changed_at = nil
         
