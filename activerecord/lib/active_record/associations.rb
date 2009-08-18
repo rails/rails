@@ -1682,14 +1682,14 @@ module ActiveRecord
             relation = association.join_relation(relation)
           end
 
-          relation.joins!(construct_join(options[:joins], scope)).
-            select!(column_aliases(join_dependency)).
-            group!(construct_group(options[:group], options[:having], scope)).
-            order!(construct_order(options[:order], scope)).
-            conditions!(construct_conditions(options[:conditions], scope))
+          relation = relation.joins(construct_join(options[:joins], scope)).
+            select(column_aliases(join_dependency)).
+            group(construct_group(options[:group], options[:having], scope)).
+            order(construct_order(options[:order], scope)).
+            conditions(construct_conditions(options[:conditions], scope))
 
-          relation.conditions!(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
-          relation.limit!(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)
+          relation = relation.conditions(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
+          relation = relation.limit(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)
 
           relation
         end
@@ -1725,14 +1725,13 @@ module ActiveRecord
             relation = association.join_relation(relation)
           end
 
-          relation.joins!(construct_join(options[:joins], scope)).
-            conditions!(construct_conditions(options[:conditions], scope)).
-            group!(construct_group(options[:group], options[:having], scope)).
-            order!(construct_order(options[:order], scope)).
-            limit!(construct_limit(options[:limit], scope)).
-            offset!(construct_limit(options[:offset], scope))
-
-          relation.select!(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", construct_order(options[:order], scope(:find)).join(",")))
+          relation = relation.joins(construct_join(options[:joins], scope)).
+            conditions(construct_conditions(options[:conditions], scope)).
+            group(construct_group(options[:group], options[:having], scope)).
+            order(construct_order(options[:order], scope)).
+            limit(construct_limit(options[:limit], scope)).
+            offset(construct_limit(options[:offset], scope)).
+            select(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", construct_order(options[:order], scope(:find)).join(",")))
 
           sanitize_sql(relation.to_sql)
         end
@@ -2222,12 +2221,12 @@ module ActiveRecord
 
             def join_relation(joining_relation, join = nil)
               if relation.is_a?(Array)
-                joining_relation.joins!(relation.first, join_type).on!(association_join.first)
-                joining_relation.joins!(relation.last, join_type).on!(association_join.last)
+                joining_relation.
+                  joins(relation.first, join_type).on(association_join.first).
+                  joins(relation.last, join_type).on(association_join.last)
               else
-                joining_relation.joins!(relation, join_type).on!(association_join)
+                joining_relation.joins(relation, join_type).on(association_join)
               end
-              joining_relation
             end
 
             protected

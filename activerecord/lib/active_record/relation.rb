@@ -3,9 +3,9 @@ module ActiveRecord
     delegate :to_sql, :to => :relation
     attr_reader :relation, :klass
 
-    def initialize(klass, table = nil)
+    def initialize(klass, relation)
       @klass = klass
-      @relation = Arel::Table.new(table || @klass.table_name)
+      @relation = relation
     end
 
     def to_a
@@ -21,60 +21,57 @@ module ActiveRecord
       to_a.first
     end
 
-    def select!(selection)
-      @relation = @relation.project(selection) if selection
-      self
+    def select(selects)
+      Relation.new(@klass, @relation.project(selects))
     end
 
-    def on!(on)
-      @relation = @relation.on(on) if on
-      self
+    def group(groups)
+      Relation.new(@klass, @relation.group(groups))
     end
 
-    def order!(order)
-      @relation = @relation.order(order) if order
-      self
+    def order(orders)
+      Relation.new(@klass, @relation.order(orders))
     end
 
-    def group!(group)
-      @relation = @relation.group(group) if group
-      self
+    def limit(limits)
+      Relation.new(@klass, @relation.take(limits))
     end
 
-    def limit!(limit)
-      @relation = @relation.take(limit) if limit
-      self
+    def offset(offsets)
+      Relation.new(@klass, @relation.skip(offsets))
     end
 
-    def offset!(offset)
-      @relation = @relation.skip(offset) if offset
-      self
+    def on(join)
+      Relation.new(@klass, @relation.on(join))
     end
 
-    def joins!(joins, join_type = nil)
-      if !joins.blank?
-        @relation = case joins
-        when String
-          @relation.join(joins)
-        when Hash, Array, Symbol
-          if @klass.send(:array_of_strings?, joins)
-            @relation.join(joins.join(' '))
+    def joins(join, join_type = nil)
+      if join.blank?
+        self
+      else
+        join = case join
+          when String
+            @relation.join(join)
+          when Hash, Array, Symbol
+            if @klass.send(:array_of_strings?, join)
+              @relation.join(join.join(' '))
+            else
+              @relation.join(@klass.send(:build_association_joins, join))
+            end
           else
-            @relation.join(@klass.send(:build_association_joins, joins))
-          end
-        else
-          @relation.join(joins, join_type)
+            @relation.join(join, join_type)
         end
+        Relation.new(@klass, join)
       end
-      self
     end
 
-    def conditions!(conditions)
-      if !conditions.blank?
+    def conditions(conditions)
+      if conditions.blank?
+        self
+      else
         conditions = @klass.send(:merge_conditions, conditions) if [String, Hash, Array].include?(conditions.class)
-        @relation = @relation.where(conditions)
+        Relation.new(@klass, @relation.where(conditions))
       end
-      self
     end
 
     private

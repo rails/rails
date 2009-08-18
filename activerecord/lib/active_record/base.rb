@@ -869,15 +869,15 @@ module ActiveRecord #:nodoc:
         relation = arel_table
 
         if conditions = construct_conditions(conditions, scope)
-          relation.conditions!(Arel::SqlLiteral.new(conditions))
+          relation = relation.conditions(Arel::SqlLiteral.new(conditions))
         end
 
-        if options.has_key?(:limit) || (scope && scope[:limit])
+        relation = if options.has_key?(:limit) || (scope && scope[:limit])
           # Only take order from scope if limit is also provided by scope, this
           # is useful for updating a has_many association with a limit.
-          relation.order!(construct_order(options[:order], scope)).limit!(construct_limit(options[:limit], scope))
+          relation.order(construct_order(options[:order], scope)).limit(construct_limit(options[:limit], scope))
         else
-          relation.order!(options[:order])
+          relation.order(options[:order])
         end
 
         relation.update(sanitize_sql_for_assignment(updates))
@@ -932,7 +932,7 @@ module ActiveRecord #:nodoc:
       # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
         if conditions
-          arel_table.conditions!(Arel::SqlLiteral.new(construct_conditions(conditions, scope(:find)))).delete
+          arel_table.conditions(Arel::SqlLiteral.new(construct_conditions(conditions, scope(:find)))).delete
         else
           arel_table.delete
         end
@@ -1535,7 +1535,7 @@ module ActiveRecord #:nodoc:
 
       def arel_table(table = nil)
         table = table_name if table.blank?
-        Relation.new(self, table)
+        Relation.new(self, Arel::Table.new(table))
       end
 
       private
@@ -1720,13 +1720,13 @@ module ActiveRecord #:nodoc:
         def construct_finder_arel(options = {}, scope = scope(:find))
           # TODO add lock to Arel
           relation = arel_table(options[:from]).
-            joins!(construct_join(options[:joins], scope)).
-            conditions!(construct_conditions(options[:conditions], scope)).
-            select!(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
-            group!(construct_group(options[:group], options[:having], scope)).
-            order!(construct_order(options[:order], scope)).
-            limit!(construct_limit(options[:limit], scope)).
-            offset!(construct_offset(options[:offset], scope))
+            joins(construct_join(options[:joins], scope)).
+            conditions(construct_conditions(options[:conditions], scope)).
+            select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
+            group(construct_group(options[:group], options[:having], scope)).
+            order(construct_order(options[:order], scope)).
+            limit(construct_limit(options[:limit], scope)).
+            offset(construct_offset(options[:offset], scope))
         end
 
         def construct_finder_sql(options, scope = scope(:find))
@@ -1810,7 +1810,7 @@ module ActiveRecord #:nodoc:
 
         def build_association_joins(joins)
           join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, joins, nil)
-          relation = arel_table
+          relation = arel_table.relation
           join_dependency.join_associations.map { |association|
             if association.relation.is_a?(Array)
               [Arel::InnerJoin.new(relation, association.relation.first, association.association_join.first).joins(relation),
@@ -2569,7 +2569,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          arel_table(true).conditions!(arel_table[self.class.primary_key].eq(id)).delete
+          arel_table(true).conditions(arel_table[self.class.primary_key].eq(id)).delete
         end
 
         @destroyed = true
@@ -2864,7 +2864,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        arel_table(true).conditions!(arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
+        arel_table(true).conditions(arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes
@@ -2952,7 +2952,7 @@ module ActiveRecord #:nodoc:
       end
 
       def arel_table(reload = nil)
-        @arel_table = Relation.new(self.class, self.class.table_name) if reload || @arel_table.nil?
+        @arel_table = Relation.new(self.class, Arel::Table.new(self.class.table_name)) if reload || @arel_table.nil?
         @arel_table
       end
 
