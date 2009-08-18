@@ -7,7 +7,7 @@ require 'models/entrant'
 require 'models/developer'
 require 'models/company'
 
-class RealtionTest < ActiveRecord::TestCase
+class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts
 
   def test_finding_with_conditions
