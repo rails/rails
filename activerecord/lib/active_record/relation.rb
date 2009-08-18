@@ -4,8 +4,7 @@ module ActiveRecord
     attr_reader :relation, :klass
 
     def initialize(klass, relation)
-      @klass = klass
-      @relation = relation
+      @klass, @relation = klass, relation
     end
 
     def to_a
