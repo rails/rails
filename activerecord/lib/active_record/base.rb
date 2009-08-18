@@ -1733,7 +1733,7 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_sql(options, scope = scope(:find))
-          construct_finder_arel(options, scope).relation.to_sql
+          construct_finder_arel(options, scope).to_sql
         end
 
         def construct_join(joins, scope)
