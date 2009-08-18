@@ -146,12 +146,12 @@ module ActiveRecord
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, construct_join(options[:joins], scope))
             construct_finder_arel_with_included_associations(options, join_dependency)
           else
-            arel_table(options[:from]).
-              join(construct_join(options[:joins], scope)).
-              where(construct_conditions(options[:conditions], scope)).
-              order(options[:order]).
-              take(options[:limit]).
-              skip(options[:offset])
+            relation = arel_table(options[:from]).
+              joins!(construct_join(options[:joins], scope)).
+              conditions!(construct_conditions(options[:conditions], scope)).
+              order!(options[:order]).
+              limit!(options[:limit]).
+              offset!(options[:offset])
           end
           if options[:group]
             return execute_grouped_calculation(operation, column_name, options, relation)
@@ -171,7 +171,7 @@ module ActiveRecord
                                (column_name == :all ? "*" : column_name.to_s))
         end
 
-        relation.project(operation == 'count' ? column.count(options[:distinct]) : column.send(operation))
+        relation.select!(operation == 'count' ? column.count(options[:distinct]) : column.send(operation))
 
         type_cast_calculated_value(connection.select_value(relation.to_sql), column_for(column_name), operation)
       end
@@ -194,8 +194,8 @@ module ActiveRecord
 
         options[:select] <<  ", #{group_field} AS #{group_alias}"
 
-        relation.project(options[:select])
-        relation.group(construct_group(options[:group], options[:having], nil))
+        relation.select!(options[:select])
+        relation.group!(construct_group(options[:group], options[:having], nil))
 
         calculated_data = connection.select_all(relation.to_sql)
 

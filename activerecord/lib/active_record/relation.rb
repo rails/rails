@@ -1,7 +1,7 @@
 module ActiveRecord
   class Relation
     delegate :delete, :to_sql, :to => :relation
-    CLAUSES_METHODS = ["project", "group", "order", "take", "skip", "on"].freeze
+    CLAUSES_METHODS = ["project", "where", "group", "order", "take", "skip", "on"].freeze
     attr_reader :relation, :klass
 
     def initialize(klass, table = nil)
@@ -24,25 +24,41 @@ module ActiveRecord
 
     for clause in CLAUSES_METHODS
       class_eval %{
-        def #{clause}(_#{clause})
+        def #{clause}!(_#{clause})
           @relation = @relation.#{clause}(_#{clause}) if _#{clause}
           self
         end
       }
     end
 
-    def join(joins, join_type = nil)
-      if !joins.blank?
-        if [String, Hash, Array, Symbol].include?(joins.class)
-          @relation = @relation.join(@klass.send(:construct_join, joins, nil))
+
+    def select!(selection)
+      @relation = @relation.project(selection) if selection
+      self
+    end
+
+    def limit!(limit)
+      @relation = @relation.take(limit) if limit
+      self
+    end
+
+    def offset!(offset)
+      @relation = @relation.skip(offset) if offset
+      self
+    end
+
+    def joins!(join, join_type = nil)
+      if !join.blank?
+        if [String, Hash, Array, Symbol].include?(join.class)
+          @relation = @relation.join(@klass.send(:construct_join, join, nil))
         else
-          @relation = @relation.join(joins, join_type)
+          @relation = @relation.join(join, join_type)
         end
       end
       self
     end
 
-    def where(conditions)
+    def conditions!(conditions)
       if !conditions.blank?
         conditions = @klass.send(:merge_conditions, conditions) if [String, Hash, Array].include?(conditions.class)
         @relation = @relation.where(conditions)
