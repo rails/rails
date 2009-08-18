@@ -1,7 +1,6 @@
 module ActiveRecord
   class Relation
-    delegate :delete, :to_sql, :to => :relation
-    CLAUSES_METHODS = ["group", "order", "on"].freeze
+    delegate :to_sql, :to => :relation
     attr_reader :relation, :klass
 
     def initialize(klass, table = nil)
@@ -22,17 +21,23 @@ module ActiveRecord
       to_a.first
     end
 
-    for clause in CLAUSES_METHODS
-      class_eval %{
-        def #{clause}!(_#{clause})
-          @relation = @relation.#{clause}(_#{clause}) if _#{clause}
-          self
-        end
-      }
-    end
-
     def select!(selection)
       @relation = @relation.project(selection) if selection
+      self
+    end
+
+    def on!(on)
+      @relation = @relation.on(on) if on
+      self
+    end
+
+    def order!(order)
+      @relation = @relation.order(order) if order
+      self
+    end
+
+    def group!(group)
+      @relation = @relation.group(group) if group
       self
     end
 
