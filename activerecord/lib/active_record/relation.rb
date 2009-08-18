@@ -1,7 +1,7 @@
 module ActiveRecord
   class Relation
     delegate :delete, :to_sql, :to => :relation
-    CLAUSES_METHODS = ["project", "where", "group", "order", "take", "skip", "on"].freeze
+    CLAUSES_METHODS = ["group", "order", "on"].freeze
     attr_reader :relation, :klass
 
     def initialize(klass, table = nil)
@@ -31,7 +31,6 @@ module ActiveRecord
       }
     end
 
-
     def select!(selection)
       @relation = @relation.project(selection) if selection
       self
@@ -47,12 +46,19 @@ module ActiveRecord
       self
     end
 
-    def joins!(join, join_type = nil)
-      if !join.blank?
-        if [String, Hash, Array, Symbol].include?(join.class)
-          @relation = @relation.join(@klass.send(:construct_join, join, nil))
+    def joins!(joins, join_type = nil)
+      if !joins.blank?
+        @relation = case joins
+        when String
+          @relation.join(joins)
+        when Hash, Array, Symbol
+          if @klass.send(:array_of_strings?, joins)
+            @relation.join(joins.join(' '))
+          else
+            @relation.join(@klass.send(:build_association_joins, joins))
+          end
         else
-          @relation = @relation.join(join, join_type)
+          @relation.join(joins, join_type)
         end
       end
       self
