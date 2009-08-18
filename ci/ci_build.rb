@@ -39,13 +39,6 @@ cd "#{root_dir}/activerecord" do
 end
 
 cd "#{root_dir}/activerecord" do
- puts
- puts "[CruiseControl] Building ActiveRecord with SQLite 2"
- puts
- build_results[:activerecord_sqlite] = system 'rake test_sqlite'
-end
-
-cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with SQLite 3"
   puts
@@ -96,7 +89,6 @@ puts "[CruiseControl]   #{`uname -a`}"
 puts "[CruiseControl]   #{`ruby -v`}"
 puts "[CruiseControl]   #{`mysql --version`}"
 puts "[CruiseControl]   #{`pg_config --version`}"
-puts "[CruiseControl]   SQLite2: #{`sqlite -version`}"
 puts "[CruiseControl]   SQLite3: #{`sqlite3 -version`}"
 `gem env`.each_line {|line| print "[CruiseControl]   #{line}"}
 puts "[CruiseControl]   Local gems:"
