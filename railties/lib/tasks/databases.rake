@@ -156,8 +156,8 @@ namespace :db do
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
-  desc 'Drops and recreates the database from db/schema.rb for the current environment.'
-  task :reset => ['db:drop', 'db:create', 'db:schema:load']
+  desc 'Drops and recreates the database from db/schema.rb for the current environment and loads the seeds.'
+  task :reset => [ 'db:drop', 'db:setup' ]
 
   desc "Retrieves the charset for the current environment's database"
   task :charset => :environment do
@@ -204,6 +204,15 @@ namespace :db do
         abort %{Run "rake db:migrate" to update your database then try again.}
       end
     end
+  end
+
+  desc 'Create the database, load the schema, and initialize with the seed data'
+  task :setup => [ 'db:create', 'db:schema:load', 'db:seed' ]
+
+  desc 'Load the seed data from db/seeds.rb'
+  task :seed => :environment do
+    seed_file = File.join(Rails.root, 'db', 'seeds.rb')
+    load(seed_file) if File.exist?(seed_file)
   end
 
   namespace :fixtures do
