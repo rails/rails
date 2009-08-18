@@ -71,5 +71,13 @@ class RelationTest < ActiveRecord::TestCase
     ).to_a
     assert_equal 1, person_with_reader_and_post.size
   end
+
+  def test_relation_responds_to_delegated_methods
+    relation = Topic.all
+
+    ["map", "uniq", "sort", "insert", "delete", "update"].each do |method|
+      assert relation.respond_to?(method)
+    end
+  end
 end
 

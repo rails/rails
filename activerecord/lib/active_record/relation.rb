@@ -73,6 +73,14 @@ module ActiveRecord
       end
     end
 
+    def respond_to?(method)
+      if @relation.respond_to?(method) || Array.instance_methods.include?(method.to_s)
+        true
+      else
+        super
+      end
+    end
+
     private
       def method_missing(method, *args, &block)
         if @relation.respond_to?(method)
