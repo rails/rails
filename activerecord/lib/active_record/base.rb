@@ -1533,9 +1533,12 @@ module ActiveRecord #:nodoc:
       end
 
 
-      def arel_table(table = nil)
+      def arel_table(table = nil, reload = nil)
         table = table_name if table.blank?
-        Relation.new(self, Arel::Table.new(table))
+        if reload || @arel_table.nil? || @arel_table.name != table
+          @arel_table = Relation.new(self, Arel::Table.new(table))
+        end
+        @arel_table
       end
 
       private
