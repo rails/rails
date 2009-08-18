@@ -3103,13 +3103,6 @@ module ActiveRecord #:nodoc:
         hash.inject([]) { |list, pair| list << "#{pair.first} = #{pair.last}" }.join(", ")
       end
 
-      def quoted_column_names(attributes = attributes_with_quotes)
-        connection = self.class.connection
-        attributes.keys.collect do |column_name|
-          connection.quote_column_name(column_name)
-        end
-      end
-
       def self.quoted_table_name
         self.connection.quote_table_name(self.table_name)
       end
