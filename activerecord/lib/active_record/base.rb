@@ -2572,7 +2572,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          arel_table(true).conditions(arel_table[self.class.primary_key].eq(id)).delete
+          self.class.arel_table(self.class.table_name, true).conditions(self.class.arel_table[self.class.primary_key].eq(id)).delete
         end
 
         @destroyed = true
@@ -2867,7 +2867,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        arel_table(true).conditions(arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
+        self.class.arel_table(self.class.table_name, true).conditions(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes
@@ -2877,12 +2877,14 @@ module ActiveRecord #:nodoc:
           self.id = connection.next_sequence_value(self.class.sequence_name)
         end
 
+        # Reload ARel relation cached table
+        self.class.arel_table(self.class.table_name, true)
         attributes_values = arel_attributes_values
 
         new_id = if attributes_values.empty?
-          arel_table.insert connection.empty_insert_statement_value
+          self.class.arel_table.insert connection.empty_insert_statement_value
         else
-          arel_table.insert attributes_values
+          self.class.arel_table.insert attributes_values
         end
 
         self.id ||= new_id
@@ -2954,11 +2956,6 @@ module ActiveRecord #:nodoc:
         default
       end
 
-      def arel_table(reload = nil)
-        @arel_table = Relation.new(self.class, Arel::Table.new(self.class.table_name)) if reload || @arel_table.nil?
-        @arel_table
-      end
-
       # Returns a copy of the attributes hash where all the values have been safely quoted for use in
       # an SQL statement.
       def attributes_with_quotes(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
@@ -2992,7 +2989,7 @@ module ActiveRecord #:nodoc:
               if value && ((self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))) || value.is_a?(Hash) || value.is_a?(Array))
                 value = value.to_yaml
               end
-              attrs[arel_table[name]] = value
+              attrs[self.class.arel_table[name]] = value
             end
           end
         end
