@@ -893,6 +893,23 @@ module ActiveResource
     def save
       new? ? create : update
     end
+    
+    # Saves the resource.
+    #
+    # If the resource is new, it is created via +POST+, otherwise the
+    # existing resource is updated via +PUT+.
+    #
+    # With <tt>save!</tt> validations always run. If any of them fail
+    # ActiveResource::ResourceInvalid gets raised, and nothing is POSTed to
+    # the remote system.
+    # See ActiveResource::Validations for more information. 
+    #
+    # There's a series of callbacks associated with <tt>save!</tt>. If any
+    # of the <tt>before_*</tt> callbacks return +false+ the action is
+    # cancelled and <tt>save!</tt> raises ActiveResource::ResourceInvalid.
+    def save!
+      save || raise(ResourceInvalid.new(self))
+    end
 
     # Deletes the resource from the remote service.
     #

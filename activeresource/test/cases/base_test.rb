@@ -654,7 +654,13 @@ class BaseTest < Test::Unit::TestCase
 
   def test_save
     rick = Person.new
-    assert_equal true, rick.save
+    assert rick.save
+    assert_equal '5', rick.id
+  end
+
+  def test_save!
+    rick = Person.new
+    assert rick.save!
     assert_equal '5', rick.id
   end
 
