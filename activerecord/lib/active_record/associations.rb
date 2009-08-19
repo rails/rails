@@ -2085,6 +2085,7 @@ module ActiveRecord
 
             def association_join
               connection = reflection.active_record.connection
+
               join = case reflection.macro
                 when :has_and_belongs_to_many
                   ["%s.%s = %s.%s " % [
