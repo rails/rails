@@ -2089,8 +2089,6 @@ module ActiveRecord
                   ]
                 when :has_many, :has_one
                   if reflection.options[:through]
-                    through_conditions = through_reflection.options[:conditions] ? "AND #{interpolate_sql(sanitize_sql(through_reflection.options[:conditions]))}" : ''
-
                     jt_foreign_key = jt_as_extra = jt_source_extra = jt_sti_extra = nil
                     first_key = second_key = as_extra = nil
 
@@ -2154,7 +2152,7 @@ module ActiveRecord
                       as_extra]
                     ]
 
-                 elsif reflection.options[:as] && [:has_many, :has_one].include?(reflection.macro)
+                 elsif reflection.options[:as]
                     "%s.%s = %s.%s AND %s.%s = %s" % [
                       connection.quote_table_name(aliased_table_name),
                       "#{reflection.options[:as]}_id",
@@ -2180,8 +2178,6 @@ module ActiveRecord
                    connection.quote_table_name(parent.aliased_table_name),
                    options[:foreign_key] || reflection.primary_key_name
                   ]
-                else
-                  ""
               end
               @join << %(AND %s) % [
                 klass.send(:type_condition, aliased_table_name)] unless klass.descends_from_active_record?
