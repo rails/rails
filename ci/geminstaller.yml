@@ -21,8 +21,6 @@ gems:
   version: >= 0.5.0
 - name: rake
   version: >= 0.8.1
-- name: sqlite-ruby
-  version: >= 2.2.3
 - name: sqlite3-ruby
   version: >= 1.2.2
 - name: rubygems-update
