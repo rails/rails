@@ -1912,19 +1912,6 @@ module ActiveRecord
             end
           end
 
-          def joins_for_table_name(table_name)
-            join = join_for_table_name(table_name)
-            result = nil
-            if join && join.is_a?(JoinAssociation)
-              result = [join]
-              if join.parent && join.parent.is_a?(JoinAssociation)
-                result = joins_for_table_name(join.parent.aliased_table_name) +
-                         result
-              end
-            end
-            result
-          end
-
           protected
             def build(associations, parent = nil)
               parent ||= @joins.last
@@ -1948,7 +1935,6 @@ module ActiveRecord
               end
             end
 
-            # overridden in InnerJoinDependency subclass
             def build_join_association(reflection, parent)
               JoinAssociation.new(reflection, self, parent)
             end
