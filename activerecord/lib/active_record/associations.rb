@@ -1695,7 +1695,7 @@ module ActiveRecord
         end
 
         def construct_finder_sql_with_included_associations(options, join_dependency)
-          sanitize_sql(construct_finder_arel_with_included_associations(options, join_dependency).to_sql)
+          construct_finder_arel_with_included_associations(options, join_dependency).to_sql
         end
 
         def construct_arel_limited_ids_condition(options, join_dependency)
@@ -1733,7 +1733,7 @@ module ActiveRecord
             offset(construct_limit(options[:offset], scope)).
             select(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", construct_order(options[:order], scope(:find)).join(",")))
 
-          sanitize_sql(relation.to_sql)
+          relation.to_sql
         end
 
         def tables_in_string(string)
