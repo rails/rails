@@ -585,6 +585,19 @@ module ActiveResource
       #
       #   StreetAddress.find(1, :params => { :person_id => 1 })
       #   # => GET /people/1/street_addresses/1.xml
+      #
+      # == Failure or missing data
+      #   A failure to find the requested object raises a ResourceNotFound
+      #   exception if the find was called with an id.
+      #   With any other scope, find returns nil when no data is returned.
+      #
+      #   Person.find(1)
+      #   # => raises ResourcenotFound
+      #
+      #   Person.find(:all)
+      #   Person.find(:first)
+      #   Person.find(:last)
+      #   # => nil
       def find(*arguments)
         scope   = arguments.slice!(0)
         options = arguments.slice!(0) || {}
@@ -638,16 +651,22 @@ module ActiveResource
       private
         # Find every resource
         def find_every(options)
-          case from = options[:from]
-          when Symbol
-            instantiate_collection(get(from, options[:params]))
-          when String
-            path = "#{from}#{query_string(options[:params])}"
-            instantiate_collection(connection.get(path, headers) || [])
-          else
-            prefix_options, query_options = split_options(options[:params])
-            path = collection_path(prefix_options, query_options)
-            instantiate_collection( (connection.get(path, headers) || []), prefix_options )
+          begin
+            case from = options[:from]
+            when Symbol
+              instantiate_collection(get(from, options[:params]))
+            when String
+              path = "#{from}#{query_string(options[:params])}"
+              instantiate_collection(connection.get(path, headers) || [])
+            else
+              prefix_options, query_options = split_options(options[:params])
+              path = collection_path(prefix_options, query_options)
+              instantiate_collection( (connection.get(path, headers) || []), prefix_options )
+            end
+          rescue ActiveResource::ResourceNotFound
+            # Swallowing ResourceNotFound exceptions and return nil - as per
+            # ActiveRecord.
+            nil
           end
         end
 
@@ -873,6 +892,23 @@ module ActiveResource
     #   my_company.save # sends PUT /companies/1 (update)
     def save
       new? ? create : update
+    end
+    
+    # Saves the resource.
+    #
+    # If the resource is new, it is created via +POST+, otherwise the
+    # existing resource is updated via +PUT+.
+    #
+    # With <tt>save!</tt> validations always run. If any of them fail
+    # ActiveResource::ResourceInvalid gets raised, and nothing is POSTed to
+    # the remote system.
+    # See ActiveResource::Validations for more information. 
+    #
+    # There's a series of callbacks associated with <tt>save!</tt>. If any
+    # of the <tt>before_*</tt> callbacks return +false+ the action is
+    # cancelled and <tt>save!</tt> raises ActiveResource::ResourceInvalid.
+    def save!
+      save || raise(ResourceInvalid.new(self))
     end
 
     # Deletes the resource from the remote service.

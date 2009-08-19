@@ -8,8 +8,10 @@ module ActiveResource
   # to determine whether the object in a valid state to be saved. See usage example in Validations.  
   class Errors < ActiveModel::Errors
     # Grabs errors from an array of messages (like ActiveRecord::Validations)
-    def from_array(messages)
-      clear
+    # The second parameter directs the errors cache to be cleared (default)
+    # or not (by passing true)
+    def from_array(messages, save_cache = false)
+      clear unless save_cache
       humanized_attributes = @base.attributes.keys.inject({}) { |h, attr_name| h.update(attr_name.humanize => attr_name) }
       messages.each do |message|
         attr_message = humanized_attributes.keys.detect do |attr_name|
@@ -22,16 +24,16 @@ module ActiveResource
       end
     end
 
-    # Grabs errors from the json response.
-    def from_json(json)
+    # Grabs errors from a json response.
+    def from_json(json, save_cache = false)
       array = ActiveSupport::JSON.decode(json)['errors'] rescue []
-      from_array array
+      from_array array, save_cache
     end
 
-    # Grabs errors from the XML response.
-    def from_xml(xml)
+    # Grabs errors from an XML response.
+    def from_xml(xml, save_cache = false)
       array = Array.wrap(Hash.from_xml(xml)['errors']['error']) rescue []
-      from_array array
+      from_array array, save_cache
     end
   end
   
@@ -57,26 +59,55 @@ module ActiveResource
   #
   module Validations
     extend ActiveSupport::Concern
+    include ActiveModel::Validations
+    extend ActiveModel::Validations::ClassMethods
 
     included do
       alias_method_chain :save, :validation
     end
 
     # Validate a resource and save (POST) it to the remote web service.
-    def save_with_validation
-      save_without_validation
-      true
-    rescue ResourceInvalid => error
-      case error.response['Content-Type']
-      when 'application/xml'
-        errors.from_xml(error.response.body)
-      when 'application/json'
-        errors.from_json(error.response.body)
+    # If any local validations fail - the save (POST) will not be attempted.
+    def save_with_validation(perform_validation = true)
+      # clear the remote validations so they don't interfere with the local
+      # ones. Otherwise we get an endless loop and can never change the
+      # fields so as to make the resource valid
+      @remote_errors = nil
+      if perform_validation && valid? || !perform_validation
+        save_without_validation
+        true
+      else
+        false
       end
+    rescue ResourceInvalid => error
+      # cache the remote errors because every call to <tt>valid?</tt> clears
+      # all errors. We must keep a copy to add these back after local
+      # validations
+      @remote_errors = error
+      load_remote_errors(@remote_errors, true)
       false
     end
 
+
+    # Loads the set of remote errors into the object's Errors based on the
+    # content-type of the error-block received
+    def load_remote_errors(remote_errors, save_cache = false ) #:nodoc:
+      case remote_errors.response['Content-Type']
+      when 'application/xml'
+        errors.from_xml(remote_errors.response.body, save_cache)
+      when 'application/json'
+        errors.from_json(remote_errors.response.body, save_cache)
+      end
+    end
+
     # Checks for errors on an object (i.e., is resource.errors empty?).
+    #
+    # Runs all the specified local validations and returns true if no errors
+    # were added, otherwise false.
+    # Runs local validations (eg those on your Active Resource model), and
+    # also any errors returned from the remote system the last time we
+    # saved.
+    # Remote errors can only be cleared by trying to re-save the resource.
     # 
     # ==== Examples
     #   my_person = Person.create(params[:person])
@@ -86,7 +117,10 @@ module ActiveResource
     #   my_person.errors.add('login', 'can not be empty') if my_person.login == ''
     #   my_person.valid?
     #   # => false
+    #
     def valid?
+      super
+      load_remote_errors(@remote_errors, true) if defined?(@remote_errors) && @remote_errors.present?
       errors.empty?
     end
 
