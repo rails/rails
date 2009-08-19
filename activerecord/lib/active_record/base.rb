@@ -1815,11 +1815,11 @@ module ActiveRecord #:nodoc:
           join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, joins, nil)
           relation = arel_table.relation
           join_dependency.join_associations.map { |association|
-            if association.relation.is_a?(Array)
-              [Arel::InnerJoin.new(relation, association.relation.first, association.association_join.first).joins(relation),
-              Arel::InnerJoin.new(relation, association.relation.last, association.association_join.last).joins(relation)].join()
+            if (association_relation = association.relation).is_a?(Array)
+              [Arel::InnerJoin.new(relation, association_relation.first, association.association_join.first).joins(relation),
+              Arel::InnerJoin.new(relation, association_relation.last, association.association_join.last).joins(relation)].join()
             else
-              Arel::InnerJoin.new(relation, association.relation, association.association_join).joins(relation)
+              Arel::InnerJoin.new(relation, association_relation, association.association_join).joins(relation)
             end
           }.join(" ")
         end
