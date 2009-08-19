@@ -637,13 +637,6 @@ class BaseTest < Test::Unit::TestCase
     assert_equal [:person_id].to_set, StreetAddress.__send__(:prefix_parameters)
   end
 
-  def test_find_by_id
-    matz = Person.find(1)
-    assert_kind_of Person, matz
-    assert_equal "Matz", matz.name
-    assert matz.name?
-  end
-
   def test_respond_to
     matz = Person.find(1)
     assert matz.respond_to?(:name)
@@ -652,80 +645,11 @@ class BaseTest < Test::Unit::TestCase
     assert !matz.respond_to?(:super_scalable_stuff)
   end
 
-  def test_find_by_id_with_custom_prefix
-    addy = StreetAddress.find(1, :params => { :person_id => 1 })
-    assert_kind_of StreetAddress, addy
-    assert_equal '12345 Street', addy.street
-  end
-
-  def test_find_all
-    all = Person.find(:all)
-    assert_equal 2, all.size
-    assert_kind_of Person, all.first
-    assert_equal "Matz", all.first.name
-    assert_equal "David", all.last.name
-  end
-
-  def test_find_first
-    matz = Person.find(:first)
-    assert_kind_of Person, matz
-    assert_equal "Matz", matz.name
-  end
-
-  def test_find_last
-    david = Person.find(:last)
-    assert_kind_of Person, david
-    assert_equal 'David', david.name
-  end
-
   def test_custom_header
     Person.headers['key'] = 'value'
     assert_raise(ActiveResource::ResourceNotFound) { Person.find(4) }
   ensure
     Person.headers.delete('key')
-  end
-
-  def test_find_by_id_not_found
-    assert_raise(ActiveResource::ResourceNotFound) { Person.find(99) }
-    assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1) }
-  end
-
-  def test_find_all_by_from
-    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.xml", {}, @people_david }
-
-    people = Person.find(:all, :from => "/companies/1/people.xml")
-    assert_equal 1, people.size
-    assert_equal "David", people.first.name
-  end
-
-  def test_find_all_by_from_with_options
-    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.xml", {}, @people_david }
-
-    people = Person.find(:all, :from => "/companies/1/people.xml")
-    assert_equal 1, people.size
-    assert_equal "David", people.first.name
-  end
-
-  def test_find_all_by_symbol_from
-    ActiveResource::HttpMock.respond_to { |m| m.get "/people/managers.xml", {}, @people_david }
-
-    people = Person.find(:all, :from => :managers)
-    assert_equal 1, people.size
-    assert_equal "David", people.first.name
-  end
-
-  def test_find_single_by_from
-    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/manager.xml", {}, @david }
-
-    david = Person.find(:one, :from => "/companies/1/manager.xml")
-    assert_equal "David", david.name
-  end
-
-  def test_find_single_by_symbol_from
-    ActiveResource::HttpMock.respond_to { |m| m.get "/people/leader.xml", {}, @david }
-
-    david = Person.find(:one, :from => :leader)
-    assert_equal "David", david.name
   end
 
   def test_save
