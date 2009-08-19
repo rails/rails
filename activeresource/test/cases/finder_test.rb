@@ -79,6 +79,7 @@ class FinderTest < Test::Unit::TestCase
       mock.get    "/people/1/addresses.xml",      {}, @addresses
       mock.get    "/people/1/addresses/1.xml",    {}, @addy
       mock.get    "/people/1/addresses/2.xml",    {}, nil, 404
+      mock.get    "/people/2/addresses.xml",      {}, nil, 404
       mock.get    "/people/2/addresses/1.xml",    {}, nil, 404
       mock.get    "/people/Greg/addresses/1.xml", {}, @addy
       mock.put    "/people/1/addresses/1.xml",    {}, nil, 204
@@ -140,6 +141,18 @@ class FinderTest < Test::Unit::TestCase
   def test_find_by_id_not_found
     assert_raise(ActiveResource::ResourceNotFound) { Person.find(99) }
     assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1) }
+  end
+
+  def test_find_all_sub_objects
+    all = StreetAddress.find(:all, :params => { :person_id => 1 })
+    assert_equal 1, all.size
+    assert_kind_of StreetAddress, all.first
+  end
+
+  def test_find_all_sub_objects_not_found
+    assert_nothing_raised do
+      addys = StreetAddress.find(:all, :params => { :person_id => 2 })
+    end
   end
 
   def test_find_all_by_from
