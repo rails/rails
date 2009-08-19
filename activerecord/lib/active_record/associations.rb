@@ -1787,7 +1787,7 @@ module ActiveRecord
             if array_of_strings?(merged_joins)
               tables_in_string(merged_joins.join(' '))
             else
-              join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, merged_joins, nil)
+              join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_joins, nil)
               join_dependency.join_associations.collect {|join_association| [join_association.aliased_join_table_name, join_association.aliased_table_name]}.flatten.compact
             end
           else
@@ -2216,17 +2216,13 @@ module ActiveRecord
               end
             end
 
-            def join_type
-              Arel::OuterJoin
-            end
-
             def join_relation(joining_relation, join = nil)
               if relation.is_a?(Array)
                 joining_relation.
-                  joins(relation.first, join_type).on(association_join.first).
-                  joins(relation.last, join_type).on(association_join.last)
+                  joins(relation.first, Arel::OuterJoin).on(association_join.first).
+                  joins(relation.last, Arel::OuterJoin).on(association_join.last)
               else
-                joining_relation.joins(relation, join_type).on(association_join)
+                joining_relation.joins(relation, Arel::OuterJoin).on(association_join)
               end
             end
 
@@ -2265,19 +2261,6 @@ module ActiveRecord
               def interpolate_sql(sql)
                 instance_eval("%@#{sql.gsub('@', '\@')}@")
               end
-          end
-        end
-
-        class InnerJoinDependency < JoinDependency # :nodoc:
-          protected
-            def build_join_association(reflection, parent)
-              InnerJoinAssociation.new(reflection, self, parent)
-            end
-
-          class InnerJoinAssociation < JoinAssociation
-            def join_type
-              Arel::InnerJoin
-            end
           end
         end
     end

@@ -1812,7 +1812,7 @@ module ActiveRecord #:nodoc:
         end
 
         def build_association_joins(joins)
-          join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, joins, nil)
+          join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, joins, nil)
           relation = arel_table.relation
           join_dependency.join_associations.map { |association|
             if association.relation.is_a?(Array)
