@@ -38,7 +38,7 @@ module ActionMailer #:nodoc:
   # * <tt>cc</tt> - Takes one or more email addresses. These addresses will receive a carbon copy of your email. Sets the <tt>Cc:</tt> header.
   # * <tt>bcc</tt> - Takes one or more email addresses. These addresses will receive a blind carbon copy of your email. Sets the <tt>Bcc:</tt> header.
   # * <tt>reply_to</tt> - Takes one or more email addresses. These addresses will be listed as the default recipients when replying to your email. Sets the <tt>Reply-To:</tt> header.
-  # * <tt>sent_on</tt> - The date on which the message was sent. If not set, the header wil be set by the delivery agent.
+  # * <tt>sent_on</tt> - The date on which the message was sent. If not set, the header will be set by the delivery agent.
   # * <tt>content_type</tt> - Specify the content type of the message. Defaults to <tt>text/plain</tt>.
   # * <tt>headers</tt> - Specify additional headers to be set for the message, e.g. <tt>headers 'X-Mail-Count' => 107370</tt>.
   #
