@@ -237,7 +237,7 @@ module Rails
     # ==== Example
     #
     #   inside('vendor') do
-    #     run('ln -s ~/edge rails)
+    #     run('ln -s ~/edge rails')
     #   end
     #
     def run(command, log_action = true)
