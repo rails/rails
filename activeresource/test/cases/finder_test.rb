@@ -126,16 +126,54 @@ class FinderTest < Test::Unit::TestCase
     assert_equal "David", all.last.name
   end
 
+  def test_all
+    all = Person.all
+    assert_equal 2, all.size
+    assert_kind_of Person, all.first
+    assert_equal "Matz", all.first.name
+    assert_equal "David", all.last.name
+  end
+
+  def test_all_with_params
+    all = StreetAddress.all(:params => { :person_id => 1 })
+    assert_equal 1, all.size
+    assert_kind_of StreetAddress, all.first
+  end
+
   def test_find_first
     matz = Person.find(:first)
     assert_kind_of Person, matz
     assert_equal "Matz", matz.name
   end
 
+  def test_first
+    matz = Person.first
+    assert_kind_of Person, matz
+    assert_equal "Matz", matz.name
+  end
+
+  def test_first_with_params
+    addy = StreetAddress.first(:params => { :person_id => 1 })
+    assert_kind_of StreetAddress, addy
+    assert_equal '12345 Street', addy.street
+  end
+
   def test_find_last
     david = Person.find(:last)
     assert_kind_of Person, david
     assert_equal 'David', david.name
+  end
+
+  def test_last
+    david = Person.last
+    assert_kind_of Person, david
+    assert_equal 'David', david.name
+  end
+
+  def test_last_with_params
+    addy = StreetAddress.last(:params => { :person_id => 1 })
+    assert_kind_of StreetAddress, addy
+    assert_equal '12345 Street', addy.street
   end
 
   def test_find_by_id_not_found
