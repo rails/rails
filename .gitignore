@@ -1,5 +1,4 @@
 debug.log
-performance.log
 doc/rdoc
 activeresource/doc
 activerecord/doc
@@ -8,7 +7,6 @@ actionmailer/doc
 activesupport/doc
 activeresource/pkg
 activerecord/pkg
-activerecord/scripts/tmp
 actionpack/pkg
 activemodel/test/fixtures/fixture_database.sqlite3
 actionmailer/pkg
