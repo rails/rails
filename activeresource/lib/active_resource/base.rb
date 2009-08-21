@@ -611,6 +611,28 @@ module ActiveResource
         end
       end
 
+
+      # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass
+      # in all the same arguments to this method as you can to
+      # <tt>find(:first)</tt>.
+      def first(*args)
+        find(:first, *args)
+      end
+
+      # A convenience wrapper for <tt>find(:last, *args)</tt>. You can pass
+      # in all the same arguments to this method as you can to
+      # <tt>find(:last)</tt>.
+      def last(*args)
+        find(:last, *args)
+      end
+
+      # This is an alias for find(:all).  You can pass in all the same
+      # arguments to this method as you can to <tt>find(:all)</tt>
+      def all(*args)
+        find(:all, *args)
+      end
+
+
       # Deletes the resources with the ID in the +id+ parameter.
       #
       # ==== Options
