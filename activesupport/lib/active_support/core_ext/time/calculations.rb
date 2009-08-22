@@ -172,7 +172,8 @@ class Time
 
   # Returns a new Time representing the start of the day (0:00)
   def beginning_of_day
-    (self - seconds_since_midnight).change(:usec => 0)
+    #(self - seconds_since_midnight).change(:usec => 0)
+    change(:hour => 0, :min => 0, :sec => 0, :usec => 0)
   end
   alias :midnight :beginning_of_day
   alias :at_midnight :beginning_of_day
