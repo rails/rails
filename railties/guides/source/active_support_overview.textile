@@ -486,12 +486,12 @@ Rails uses +alias_method_chain+ all over the code base. For example validations 
 
 h5. +alias_attribute+
 
-Model attributes have a reader, a writer, and a predicate. You can aliase an attribute like that and have the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (same order than in assigments is my mnemonic):
+Model attributes have a reader, a writer, and a predicate. You can aliase a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (same order than in assigments is my mnemonic):
 
 <ruby>
 class User < ActiveRecord::Base
   # let me refer to the email column as "login",
-  # much meaningful for authetication code
+  # much meaningful for authentication code
   alias_attribute :login, :email
 end
 </ruby>
