@@ -15,11 +15,117 @@ module ActiveRecord
     end
   end
 
+  class Error
+    attr_accessor :base, :attribute, :type, :message, :options
+
+    def initialize(base, attribute, type = nil, options = {})
+      self.base      = base
+      self.attribute = attribute
+      self.type      = type || :invalid
+      self.options   = options
+      self.message   = options.delete(:message) || self.type
+    end
+
+    def message
+      generate_message(@message, options.dup)
+    end
+
+    def full_message
+      attribute.to_s == 'base' ? message : generate_full_message(message, options.dup)
+    end
+
+    alias :to_s :message
+
+    def value
+      @base.respond_to?(attribute) ? @base.send(attribute) : nil
+    end
+
+    protected
+
+      # Translates an error message in it's default scope (<tt>activerecord.errrors.messages</tt>).
+      # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, if it's not there,
+      # it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not there it returns the translation of the
+      # default message (e.g. <tt>activerecord.errors.messages.MESSAGE</tt>). The translated model name,
+      # translated attribute name and the value are available for interpolation.
+      #
+      # When using inheritence in your models, it will check all the inherited models too, but only if the model itself
+      # hasn't been found. Say you have <tt>class Admin < User; end</tt> and you wanted the translation for the <tt>:blank</tt>
+      # error +message+ for the <tt>title</tt> +attribute+, it looks for these translations:
+      #
+      # <ol>
+      # <li><tt>activerecord.errors.models.admin.attributes.title.blank</tt></li>
+      # <li><tt>activerecord.errors.models.admin.blank</tt></li>
+      # <li><tt>activerecord.errors.models.user.attributes.title.blank</tt></li>
+      # <li><tt>activerecord.errors.models.user.blank</tt></li>
+      # <li><tt>activerecord.errors.messages.blank</tt></li>
+      # <li>any default you provided through the +options+ hash (in the activerecord.errors scope)</li>
+      # </ol>
+      def generate_message(message, options = {})
+        keys = @base.class.self_and_descendants_from_active_record.map do |klass|
+          [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}",
+            :"models.#{klass.name.underscore}.#{message}" ]
+        end.flatten
+
+        keys << options.delete(:default)
+        keys << :"messages.#{message}"
+        keys << message if message.is_a?(String)
+        keys << @type unless @type == message
+        keys.compact!
+
+        options.reverse_merge! :default => keys,
+                               :scope => [:activerecord, :errors],
+                               :model => @base.class.human_name,
+                               :attribute => @base.class.human_attribute_name(attribute.to_s),
+                               :value => value
+
+        I18n.translate(keys.shift, options)
+      end
+
+      # Wraps an error message into a full_message format.
+      #
+      # The default full_message format for any locale is <tt>"{{attribute}} {{message}}"</tt>.
+      # One can specify locale specific default full_message format by storing it as a
+      # translation for the key <tt>:"activerecord.errors.full_messages.format"</tt>.
+      #
+      # Additionally one can specify a validation specific error message format by
+      # storing a translation for <tt>:"activerecord.errors.full_messages.[message_key]"</tt>.
+      # E.g. the full_message format for any validation that uses :blank as a message
+      # key (such as validates_presence_of) can be stored to <tt>:"activerecord.errors.full_messages.blank".</tt>
+      #
+      # Because the message key used by a validation can be overwritten on the
+      # <tt>validates_*</tt> class macro level one can customize the full_message format for
+      # any particular validation:
+      #
+      #   # app/models/article.rb
+      #   class Article < ActiveRecord::Base
+      #     validates_presence_of :title, :message => :"title.blank"
+      #   end
+      #
+      #   # config/locales/en.yml
+      #   en:
+      #     activerecord:
+      #       errors:
+      #         full_messages:
+      #           title:
+      #             blank: This title is screwed!
+      def generate_full_message(message, options = {})
+        options.reverse_merge! :message => self.message,
+                               :model => @base.class.human_name,
+                               :attribute => @base.class.human_attribute_name(attribute.to_s),
+                               :value => value
+
+        key = :"full_messages.#{@message}"
+        defaults = [:'full_messages.format', '{{attribute}} {{message}}']
+
+        I18n.t(key, options.merge(:default => defaults, :scope => [:activerecord, :errors]))
+      end
+  end
+
   # Active Record validation is reported to and from this object, which is used by Base#save to
   # determine whether the object is in a valid state to be saved. See usage example in Validations.
   class Errors
     include Enumerable
-    
+
     class << self
       def default_error_messages
         ActiveSupport::Deprecation.warn("ActiveRecord::Errors.default_error_messages has been deprecated. Please use I18n.translate('activerecord.errors.messages').")
@@ -44,11 +150,19 @@ module ActiveRecord
     # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
     # If no +messsage+ is supplied, :invalid is assumed.
     # If +message+ is a Symbol, it will be translated, using the appropriate scope (see translate_error).
-    def add(attribute, message = nil, options = {})
-      message ||= :invalid
-      message = generate_message(attribute, message, options) if message.is_a?(Symbol)
+    # def add(attribute, message = nil, options = {})
+    #   message ||= :invalid
+    #   message = generate_message(attribute, message, options)) if message.is_a?(Symbol)
+    #   @errors[attribute.to_s] ||= []
+    #   @errors[attribute.to_s] << message
+    # end
+
+    def add(error_or_attr, message = nil, options = {})
+      error, attribute = error_or_attr.is_a?(Error) ? [error_or_attr, error_or_attr.attribute] : [nil, error_or_attr]
+      options[:message] = options.delete(:default) if options.has_key?(:default)
+
       @errors[attribute.to_s] ||= []
-      @errors[attribute.to_s] << message
+      @errors[attribute.to_s] << (error || Error.new(@base, attribute, message, options))
     end
 
     # Will add an error message to each of the attributes in +attributes+ that is empty.
@@ -66,49 +180,6 @@ module ActiveRecord
         value = @base.respond_to?(attr.to_s) ? @base.send(attr.to_s) : @base[attr.to_s]
         add(attr, :blank, :default => custom_message) if value.blank?
       end
-    end
-    
-    # Translates an error message in it's default scope (<tt>activerecord.errrors.messages</tt>).
-    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, if it's not there, 
-    # it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not there it returns the translation of the 
-    # default message (e.g. <tt>activerecord.errors.messages.MESSAGE</tt>). The translated model name, 
-    # translated attribute name and the value are available for interpolation.
-    #
-    # When using inheritence in your models, it will check all the inherited models too, but only if the model itself
-    # hasn't been found. Say you have <tt>class Admin < User; end</tt> and you wanted the translation for the <tt>:blank</tt>
-    # error +message+ for the <tt>title</tt> +attribute+, it looks for these translations:
-    # 
-    # <ol>
-    # <li><tt>activerecord.errors.models.admin.attributes.title.blank</tt></li>
-    # <li><tt>activerecord.errors.models.admin.blank</tt></li>
-    # <li><tt>activerecord.errors.models.user.attributes.title.blank</tt></li>
-    # <li><tt>activerecord.errors.models.user.blank</tt></li>
-    # <li><tt>activerecord.errors.messages.blank</tt></li>
-    # <li>any default you provided through the +options+ hash (in the activerecord.errors scope)</li>
-    # </ol>
-    def generate_message(attribute, message = :invalid, options = {})
-
-      message, options[:default] = options[:default], message if options[:default].is_a?(Symbol)
-
-      defaults = @base.class.self_and_descendants_from_active_record.map do |klass|
-        [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}", 
-          :"models.#{klass.name.underscore}.#{message}" ]
-      end
-      
-      defaults << options.delete(:default)
-      defaults = defaults.compact.flatten << :"messages.#{message}"
-
-      key = defaults.shift
-      value = @base.respond_to?(attribute) ? @base.send(attribute) : nil
-
-      options = { :default => defaults,
-        :model => @base.class.human_name,
-        :attribute => @base.class.human_attribute_name(attribute.to_s),
-        :value => value,
-        :scope => [:activerecord, :errors]
-      }.merge(options)
-
-      I18n.translate(key, options)
     end
 
     # Returns true if the specified +attribute+ has errors associated with it.
@@ -139,8 +210,9 @@ module ActiveRecord
     #   company.errors.on(:email)     # => "can't be blank"
     #   company.errors.on(:address)   # => nil
     def on(attribute)
-      errors = @errors[attribute.to_s]
-      return nil if errors.nil?
+      attribute = attribute.to_s
+      return nil unless @errors.has_key?(attribute)
+      errors = @errors[attribute].map(&:to_s)
       errors.size == 1 ? errors.first : errors
     end
 
@@ -164,7 +236,11 @@ module ActiveRecord
     #   #    name - can't be blank
     #   #    address - can't be blank
     def each
-      @errors.each_key { |attr| @errors[attr].each { |msg| yield attr, msg } }
+      @errors.each_key { |attr| @errors[attr].each { |error| yield attr, error.message } }
+    end
+
+    def each_error
+      @errors.each_key { |attr| @errors[attr].each { |error| yield attr, error } }
     end
 
     # Yields each full error message added. So <tt>Person.errors.add("first_name", "can't be empty")</tt> will be returned
@@ -195,22 +271,10 @@ module ActiveRecord
     #   company.errors.full_messages # =>
     #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
     def full_messages(options = {})
-      full_messages = []
-
-      @errors.each_key do |attr|
-        @errors[attr].each do |message|
-          next unless message
-
-          if attr == "base"
-            full_messages << message
-          else
-            attr_name = @base.class.human_attribute_name(attr)
-            full_messages << attr_name + I18n.t('activerecord.errors.format.separator', :default => ' ') + message
-          end
-        end
+      @errors.values.inject([]) do |full_messages, errors|
+        full_messages + errors.map { |error| error.full_message }
       end
-      full_messages
-    end 
+    end
 
     # Returns true if no errors have been added.
     def empty?
@@ -255,7 +319,11 @@ module ActiveRecord
         full_messages.each { |msg| e.error(msg) }
       end
     end
-    
+
+    def generate_message(attribute, message = :invalid, options = {})
+      ActiveSupport::Deprecation.warn("ActiveRecord::Errors#generate_message has been deprecated. Please use ActiveRecord::Error#generate_message.")
+      Error.new(@base, attribute, message, options).to_s
+    end
   end
 
 
@@ -438,7 +506,7 @@ module ActiveRecord
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           unless record.send("#{attr_name}_confirmation").nil? or value == record.send("#{attr_name}_confirmation")
-            record.errors.add(attr_name, :confirmation, :default => configuration[:message]) 
+            record.errors.add(attr_name, :confirmation, :default => configuration[:message])
           end
         end
       end
@@ -480,7 +548,7 @@ module ActiveRecord
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
           unless value == configuration[:accept]
-            record.errors.add(attr_name, :accepted, :default => configuration[:message]) 
+            record.errors.add(attr_name, :accepted, :default => configuration[:message])
           end
         end
       end
@@ -500,7 +568,7 @@ module ActiveRecord
       #
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "can't be blank").
-      # * <tt>on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, 
+      # * <tt>on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>,
       #   <tt>:update</tt>).
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).
@@ -600,7 +668,7 @@ module ActiveRecord
             validates_each(attrs, options) do |record, attr, value|
               value = options[:tokenizer].call(value) if value.kind_of?(String)
               unless !value.nil? and value.size.method(validity_checks[option])[option_value]
-                record.errors.add(attr, key, :default => custom_message, :count => option_value) 
+                record.errors.add(attr, key, :default => custom_message, :count => option_value)
               end
             end
         end
@@ -688,7 +756,7 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::SchemaStatements#add_index. In the
       #   rare case that a race condition occurs, the database will guarantee
       #   the field's uniqueness.
-      #   
+      #
       #   When the database catches such a duplicate insertion,
       #   ActiveRecord::Base#save will raise an ActiveRecord::StatementInvalid
       #   exception. You can either choose to let this error propagate (which
@@ -697,7 +765,7 @@ module ActiveRecord
       #   that the title already exists, and asking him to re-enter the title).
       #   This technique is also known as optimistic concurrency control:
       #   http://en.wikipedia.org/wiki/Optimistic_concurrency_control
-      #   
+      #
       #   Active Record currently provides no way to distinguish unique
       #   index constraint errors from other types of database errors, so you
       #   will have to parse the (database-specific) exception message to detect
@@ -795,7 +863,7 @@ module ActiveRecord
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           unless value.to_s =~ configuration[:with]
-            record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value) 
+            record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value)
           end
         end
       end
@@ -829,7 +897,7 @@ module ActiveRecord
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           unless enum.include?(value)
-            record.errors.add(attr_name, :inclusion, :default => configuration[:message], :value => value) 
+            record.errors.add(attr_name, :inclusion, :default => configuration[:message], :value => value)
           end
         end
       end
@@ -863,7 +931,7 @@ module ActiveRecord
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           if enum.include?(value)
-            record.errors.add(attr_name, :exclusion, :default => configuration[:message], :value => value) 
+            record.errors.add(attr_name, :exclusion, :default => configuration[:message], :value => value)
           end
         end
       end
@@ -971,7 +1039,7 @@ module ActiveRecord
             case option
               when :odd, :even
                 unless raw_value.to_i.method(ALL_NUMERICALITY_CHECKS[option])[]
-                  record.errors.add(attr_name, option, :value => raw_value, :default => configuration[:message]) 
+                  record.errors.add(attr_name, option, :value => raw_value, :default => configuration[:message])
                 end
               else
                 record.errors.add(attr_name, option, :default => configuration[:message], :value => raw_value, :count => configuration[option]) unless raw_value.method(ALL_NUMERICALITY_CHECKS[option])[configuration[option]]
