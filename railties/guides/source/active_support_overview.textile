@@ -725,7 +725,7 @@ If strings do not respond to those methods Active Support emulates them, and als
 "foo".ends_with?("o")   # => true
 </ruby>
 
-in case you feel more confortable spelling them that way.
+in case you feel more comfortable spelling them that way.
 
 WARNING. Active Support invokes +to_s+ on the argument, but Ruby does not. Since Active Support defines these methods only if strings do not respond to them, this corner of their behaviour depends on the interpreter that runs a given Rails application. You change the interpreter, and +start_with?(1)+ may change its return value. In consequence, it's more portable not to rely on that and pass always strings.
 
