@@ -37,6 +37,13 @@ module ActiveResource
   #     self.element_name = "person"
   #   end
   #
+  # If your Active Resource object is required to use an HTTP proxy you can set the +proxy+ value which holds a URI.
+  #
+  #   class PersonResource < ActiveResource::Base
+  #     self.site = "http://api.people.com:3000/"
+  #     self.proxy = "http://user:password@proxy.people.com:8080"
+  #   end
+  #
   #
   # == Lifecycle methods
   #
