@@ -441,7 +441,7 @@ h5. +alias_method_chain+
 
 Using plain Ruby you can wrap methods with other methods, that's called _alias chaining_.
 
-For example, let's say you'd like params to be strings in functional tests, as they are for real requests, but still want the convenience of assigning integers and other kind of values. To accomplish that you could wrap +process+ this way in +test/test_helper.rb+:
+For example, let's say you'd like params to be strings in functional tests, as they are in real requests, but still want the convenience of assigning integers and other kind of values. To accomplish that you could wrap +ActionController::TestCase#process+ this way in +test/test_helper.rb+:
 
 <ruby>
 ActionController::TestCase.class_eval do
@@ -450,35 +450,36 @@ ActionController::TestCase.class_eval do
 
   # now redefine process and delegate to original_process
   def process(action, params=nil, session=nil, flash=nil, http_method='GET')
-    params_str = {}
-    params.each {|k,v| params_str[k] = v.to_s}
-    original_process(action, params_str, session, flash, http_method)
+    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
+    original_process(action, params, session, flash, http_method)
   end
 end
 </ruby>
 
 That's the method +get+, +post+, etc., delegate the work to.
 
-That technique has a risk, it could be the case that +:original_process+ was taken. To try to avoid collisions people choose some label that characterizes what they are doing and use this pattern:
+That technique has a risk, it could be the case that +:original_process+ was taken. To try to avoid collisions people choose some label that characterizes what the chaining is about:
 
 <ruby>
 ActionController::TestCase.class_eval do
-  def process_with_stringfied_parameters(...)
-    ...
+  def process_with_stringified_params(...)
+    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
+    process_without_stringified_params(action, params, session, flash, http_method)
   end
-  alias_method :process_without_stringfied_parameters, :process
-  alias_method :process, :process_with_stringfied_parameters
+  alias_method :process_without_stringified_params, :process
+  alias_method :process, :process_with_stringified_params
 end
 </ruby>
 
-The method +alias_method_chain+ provides a shortcut for that idiom:
+The method +alias_method_chain+ provides a shortcut for that pattern:
 
 <ruby>
 ActionController::TestCase.class_eval do
-  def process_with_stringfied_parameters(...)
-    ...
+  def process_with_stringified_params(...)
+    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
+    process_without_stringified_params(action, params, session, flash, http_method)
   end
-  alias_method_chain :process, :stringfied_parameters
+  alias_method_chain :process, :stringified_params
 end
 </ruby>
 
@@ -486,7 +487,7 @@ Rails uses +alias_method_chain+ all over the code base. For example validations 
 
 h5. +alias_attribute+
 
-Model attributes have a reader, a writer, and a predicate. You can aliase a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (same order than in assigments is my mnemonic):
+Model attributes have a reader, a writer, and a predicate. You can aliase a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (my mnemonic is they go in the same order as if you did an assignment):
 
 <ruby>
 class User < ActiveRecord::Base
@@ -677,7 +678,19 @@ Symbols from Ruby 1.8.7 on respond to +to_proc+, and Active Support defines it f
 
 h3. Extensions to +String+
 
-...
+h4. +bytesize+
+
+Ruby 1.9 introduces +String#bytesize+ to obtain the length of a string in bytes. Ruby 1.8.7 defines this method as an alias for +String#size+ for forward compatibility, and Active Support does so for previous versions.
+
+h4. +squish+
+
+The method +String#squish+ strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each:
+
+<ruby>
+" \n  foo\n\r \t bar \n".squish # => "foo bar"
+</ruby>
+
+There's also the destructive version +String#squish!+.
 
 h3. Extensions to +Numeric+
 
