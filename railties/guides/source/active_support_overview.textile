@@ -692,6 +692,19 @@ The method +String#squish+ strips leading and trailing whitespace, and substitut
 
 There's also the destructive version +String#squish!+.
 
+h4. Key-based Interpolation
+
+In Ruby 1.9 the <tt>%</tt> string operator supports key-based interpolation, both formatted and unformatted:
+
+<ruby>
+"Total is %<total>.02f" % {:total => 43.1}  # => Total is 43.10
+"I say %{foo}" % {:foo => "wadus"}          # => "I say wadus"
+"I say %{woo}" % {:foo => "wadus"}          # => KeyError
+</ruby>
+
+Active Support adds that functionality to <tt>%</tt> in previous versions of Ruby.
+
+
 h3. Extensions to +Numeric+
 
 ...
