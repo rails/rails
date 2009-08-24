@@ -817,6 +817,18 @@ You can pick a random element with +rand+:
 shape_type = [Circle, Square, Triangle].rand
 </ruby>
 
+h4. Wrapping
+
+The class method +Array.wrap+ behaves like the function +Array()+ except that it does not try to call +to_a+ on its argument. That changes the behaviour for enumerables:
+
+<ruby>
+Array.wrap(:foo => :bar) # => [{:foo => :bar}]
+Array(:foo => :bar)      # => [[:foo, :bar]]
+
+Array("foo\nbar")        # => ["foo\n", "bar"], in Ruby 1.8
+Array.wrap("foo\nbar")   # => ["foo\nbar"]
+</ruby>
+
 h4. Grouping
 
 h5. +in_groups_of(number, fill_with = nil)+
