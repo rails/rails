@@ -825,8 +825,8 @@ The class method +Array.wrap+ behaves like the function +Array()+ except that it
 Array.wrap(:foo => :bar) # => [{:foo => :bar}]
 Array(:foo => :bar)      # => [[:foo, :bar]]
 
-Array("foo\nbar")        # => ["foo\n", "bar"], in Ruby 1.8
 Array.wrap("foo\nbar")   # => ["foo\nbar"]
+Array("foo\nbar")        # => ["foo\n", "bar"], in Ruby 1.8
 </ruby>
 
 h4. Grouping
