@@ -2,11 +2,13 @@ require 'active_support/json'
 
 module ActionDispatch
   class ParamsParser
-    ActionController::Base.param_parsers[Mime::XML] = :xml_simple
-    ActionController::Base.param_parsers[Mime::JSON] = :json
+    DEFAULT_PARSERS = {
+      Mime::XML => :xml_simple,
+      Mime::JSON => :json
+    }
 
-    def initialize(app)
-      @app = app
+    def initialize(app, parsers = {})
+      @app, @parsers = app, DEFAULT_PARSERS.merge(parsers)
     end
 
     def call(env)
@@ -24,7 +26,7 @@ module ActionDispatch
         return false if request.content_length.zero?
 
         mime_type = content_type_from_legacy_post_data_format_header(env) || request.content_type
-        strategy = ActionController::Base.param_parsers[mime_type]
+        strategy = @parsers[mime_type]
 
         return false unless strategy
 

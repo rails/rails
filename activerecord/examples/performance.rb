@@ -75,13 +75,13 @@ else
   puts 'Inserting 10,000 users and exhibits...'
   10_000.times do
     user = User.create(
-      :created_on => today,
+      :created_at => today,
       :name       => Faker::Name.name,
       :email      => Faker::Internet.email
     )
 
     Exhibit.create(
-      :created_on => today,
+      :created_at => today,
       :name       => Faker::Company.name,
       :user       => user,
       :notes      => notes
@@ -130,7 +130,7 @@ RBench.run(TIMES) do
   exhibit = {
     :name       => Faker::Company.name,
     :notes      => Faker::Lorem.paragraphs.join($/),
-    :created_on => Date.today
+    :created_at => Date.today
   }
 
   report 'Model.create' do

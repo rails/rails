@@ -16,12 +16,6 @@ module ActionController
       cattr_accessor :allow_concurrency
       self.allow_concurrency = false
 
-      cattr_accessor :param_parsers
-      self.param_parsers = { Mime::MULTIPART_FORM   => :multipart_form,
-                             Mime::URL_ENCODED_FORM => :url_encoded_form,
-                             Mime::XML              => :xml_simple,
-                             Mime::JSON             => :json }
-
       cattr_accessor :relative_url_root
       self.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
 
