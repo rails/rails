@@ -130,7 +130,7 @@ RBench.run(TIMES) do
   exhibit = {
     :name       => Faker::Company.name,
     :notes      => Faker::Lorem.paragraphs.join($/),
-    :created_on => Date.today
+    :created_at => Date.today
   }
 
   report 'Model.create' do
