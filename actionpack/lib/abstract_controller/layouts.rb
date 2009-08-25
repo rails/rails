@@ -145,6 +145,9 @@ module AbstractController
       # This is a little bit messy. We need to explicitly handle partial
       # layouts here since the core lookup logic is in the view, but
       # we need to determine the layout based on the controller
+      #
+      # TODO: An easier way to handle this would probably be to override
+      # render_template
       if layout
         layout = _layout_for_option(layout, options[:_template].details)
         response = layout.render(view_context, options[:locals] || {}) { response }
