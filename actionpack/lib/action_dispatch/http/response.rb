@@ -161,12 +161,15 @@ module ActionDispatch # :nodoc:
       headers[CONTENT_TYPE] = type
     end
 
-    def prepare!
+    def to_a
       assign_default_content_type_and_charset!
       handle_conditional_get!
       self["Set-Cookie"] = @cookie.join("\n")
       self["ETag"]       = @etag if @etag
+      super
     end
+
+    alias prepare! to_a
 
     def each(&callback)
       if @body.respond_to?(:call)

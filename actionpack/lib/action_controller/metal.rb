@@ -47,7 +47,7 @@ module ActionController
     # and response object available. You might wish to control the
     # environment and response manually for performance reasons.
 
-    attr_internal :status, :headers, :content_type
+    attr_internal :status, :headers, :content_type, :app, :response
 
     def initialize(*)
       @_headers = {}
@@ -75,7 +75,34 @@ module ActionController
 
     # :api: private
     def to_a
-      [status, headers, response_body]
+      response ? response.to_a : [status, headers, response_body]
+    end
+
+    class ActionEndpoint
+      def initialize(controller, action)
+        @controller, @action = controller, action
+      end
+
+      def call(env)
+        controller = @controller.new.call(@action, env)
+      end
+    end
+
+    class ActionMiddleware
+      def initialize(controller, action)
+        @controller, @action = controller, action
+      end
+
+      def call(env)
+        controller = @controller.new
+        controller.app = @app
+        controller.call(@action, env)
+      end
+
+      def new(app)
+        @app = app
+        self
+      end
     end
 
     # Return a rack endpoint for the given action. Memoize the endpoint, so
@@ -89,9 +116,12 @@ module ActionController
     # Proc:: A rack application
     def self.action(name)
       @actions ||= {}
-      @actions[name.to_s] ||= proc do |env|
-        new.call(name, env)
-      end
+      @actions[name.to_s] ||= ActionEndpoint.new(self, name)
+    end
+
+    def self.middleware(name)
+      @middlewares ||= {}
+      @middlewares[name.to_s] ||= ActionMiddleware.new(self, name)
     end
   end
 end
