@@ -21,27 +21,27 @@ module ActiveRecord
     end
 
     def select(selects)
-      Relation.new(@klass, @relation.project(selects))
+      selects.blank? ? self : Relation.new(@klass, @relation.project(selects))
     end
 
     def group(groups)
-      Relation.new(@klass, @relation.group(groups))
+      groups.blank? ? self : Relation.new(@klass, @relation.group(groups))
     end
 
     def order(orders)
-      Relation.new(@klass, @relation.order(orders))
+      orders.blank? ? self : Relation.new(@klass, @relation.order(orders))
     end
 
     def limit(limits)
-      Relation.new(@klass, @relation.take(limits))
+      limits.blank? ? self : Relation.new(@klass, @relation.take(limits))
     end
 
     def offset(offsets)
-      Relation.new(@klass, @relation.skip(offsets))
+      offsets.blank? ? self : Relation.new(@klass, @relation.skip(offsets))
     end
 
     def on(join)
-      Relation.new(@klass, @relation.on(join))
+      join.blank? ? self : Relation.new(@klass, @relation.on(join))
     end
 
     def joins(join, join_type = nil)
