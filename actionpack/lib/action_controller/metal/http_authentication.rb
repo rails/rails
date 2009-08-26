@@ -243,7 +243,8 @@ module ActionController
       def authentication_request(controller, realm, message = nil)
         message ||= "HTTP Digest: Access denied.\n"
         authentication_header(controller, realm)
-        controller.__send__ :render, :text => message, :status => :unauthorized
+        controller.response_body = message
+        controller.status = 401
       end
 
       # Uses an MD5 digest based on time to generate a value to be used only once.
