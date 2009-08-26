@@ -1,13 +1,12 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
 module MetalTest
-  class MetalMiddleware < ActionController::Metal
-    def index
+  class MetalMiddleware < ActionController::Middleware
+    def call(env)
       if env["PATH_INFO"] =~ /authed/
-        self.response = app.call(env)
+        app.call(env)
       else
-        self.response_body = "Not authed!"
-        self.status = 401
+        [401, headers, "Not authed!"]
       end
     end
   end
@@ -21,7 +20,7 @@ module MetalTest
   class TestMiddleware < ActiveSupport::TestCase
     def setup
       @app = Rack::Builder.new do
-        use MetalMiddleware.middleware(:index)
+        use MetalMiddleware
         run Endpoint.new
       end.to_app
     end

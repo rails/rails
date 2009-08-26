@@ -19,8 +19,9 @@ module AbstractController
     
     class TestBasic < ActiveSupport::TestCase
       test "dispatching works" do
-        result = Me.new.process(:index)
-        assert_equal "Hello world", result.response_body
+        controller = Me.new
+        controller.process(:index)
+        assert_equal "Hello world", controller.response_body
       end
     end
     
@@ -67,29 +68,33 @@ module AbstractController
     end
 
     class TestRenderingController < ActiveSupport::TestCase
+      def setup
+        @controller = Me2.new
+      end
+
       test "rendering templates works" do
-        result = Me2.new.process(:index)
-        assert_equal "Hello from index.erb", result.response_body
+        @controller.process(:index)
+        assert_equal "Hello from index.erb", @controller.response_body
       end
       
       test "rendering passes ivars to the view" do
-        result = Me2.new.process(:action_with_ivars)
-        assert_equal "Hello from index_with_ivars.erb", result.response_body
+        @controller.process(:action_with_ivars)
+        assert_equal "Hello from index_with_ivars.erb", @controller.response_body
       end
       
       test "rendering with no template name" do
-        result = Me2.new.process(:naked_render)
-        assert_equal "Hello from naked_render.erb", result.response_body
+        @controller.process(:naked_render)
+        assert_equal "Hello from naked_render.erb", @controller.response_body
       end
 
       test "rendering to a rack body" do
-        result = Me2.new.process(:rendering_to_body)
-        assert_equal "Hello from naked_render.erb", result.response_body
+        @controller.process(:rendering_to_body)
+        assert_equal "Hello from naked_render.erb", @controller.response_body
       end
 
       test "rendering to a string" do
-        result = Me2.new.process(:rendering_to_string)
-        assert_equal "Hello from naked_render.erb", result.response_body
+        @controller.process(:rendering_to_string)
+        assert_equal "Hello from naked_render.erb", @controller.response_body
       end
     end
     
@@ -119,14 +124,18 @@ module AbstractController
     end
     
     class TestPrefixedViews < ActiveSupport::TestCase
+      def setup
+        @controller = Me3.new
+      end
+
       test "templates are located inside their 'prefix' folder" do
-        result = Me3.new.process(:index)
-        assert_equal "Hello from me3/index.erb", result.response_body
+        @controller.process(:index)
+        assert_equal "Hello from me3/index.erb", @controller.response_body
       end
 
       test "templates included their format" do
-        result = Me3.new.process(:formatted)
-        assert_equal "Hello from me3/formatted.html.erb", result.response_body
+        @controller.process(:formatted)
+        assert_equal "Hello from me3/formatted.html.erb", @controller.response_body
       end
     end
     
@@ -168,8 +177,9 @@ module AbstractController
     
     class TestLayouts < ActiveSupport::TestCase
       test "layouts are included" do
-        result = Me4.new.process(:index)
-        assert_equal "Me4 Enter : Hello from me4/index.erb : Exit", result.response_body
+        controller = Me4.new
+        result = controller.process(:index)
+        assert_equal "Me4 Enter : Hello from me4/index.erb : Exit", controller.response_body
       end
     end
     
@@ -203,10 +213,11 @@ module AbstractController
     end
     
     class TestRespondToAction < ActiveSupport::TestCase
-      
+
       def assert_dispatch(klass, body = "success", action = :index)
-        response = klass.new.process(action).response_body
-        assert_equal body, response
+        controller = klass.new
+        controller.process(action)
+        assert_equal body, controller.response_body
       end
       
       test "an arbitrary method is available as an action by default" do

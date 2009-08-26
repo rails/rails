@@ -88,23 +88,6 @@ module ActionController
       end
     end
 
-    class ActionMiddleware
-      def initialize(controller, action)
-        @controller, @action = controller, action
-      end
-
-      def call(env)
-        controller = @controller.new
-        controller.app = @app
-        controller.call(@action, env)
-      end
-
-      def new(app)
-        @app = app
-        self
-      end
-    end
-
     # Return a rack endpoint for the given action. Memoize the endpoint, so
     # multiple calls into MyController.action will return the same object
     # for the same action.
@@ -117,11 +100,6 @@ module ActionController
     def self.action(name)
       @actions ||= {}
       @actions[name.to_s] ||= ActionEndpoint.new(self, name)
-    end
-
-    def self.middleware(name)
-      @middlewares ||= {}
-      @middlewares[name.to_s] ||= ActionMiddleware.new(self, name)
     end
   end
 end
