@@ -7,6 +7,7 @@ module ActionController
 
       def call(env)
         controller = @controller.allocate
+        controller.send(:initialize)
         controller.app = @app
         controller._call(env)
       end
@@ -24,6 +25,9 @@ module ActionController
     
     def _call(env)
       @_env = env
+      @_request = ActionDispatch::Request.new(env)
+      @_response = ActionDispatch::Response.new
+      @_response.request = request
       process(:index)
     end
     
