@@ -7,9 +7,9 @@ class RegexpExtAccessTests < Test::Unit::TestCase
   end
 
   def test_multiline
-    assert   //m.multiline?
-    assert ! //.multiline?
-    assert ! /(?m:)/.multiline?
+    assert_equal true, //m.multiline?
+    assert_equal false, //.multiline?
+    assert_equal false, /(?m:)/.multiline?
   end
 
   def test_optionalize
