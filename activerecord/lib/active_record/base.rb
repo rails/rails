@@ -1722,7 +1722,7 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_arel(options = {}, scope = scope(:find))
           # TODO add lock to Arel
-          relation = arel_table(options[:from]).
+          arel_table(options[:from]).
             joins(construct_join(options[:joins], scope)).
             conditions(construct_conditions(options[:conditions], scope)).
             select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
