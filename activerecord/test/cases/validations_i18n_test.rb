@@ -736,10 +736,9 @@ class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
     @topic.valid?
     assert_equal "I am a custom error", @topic.errors.on(:title)
   end
-
 end
 
-class ActiveRecordValidationsGenerateMessageI18nTests < Test::Unit::TestCase
+class ActiveRecordValidationsGenerateMessageI18nTests < ActiveSupport::TestCase
   def setup
     reset_callbacks Topic
     @topic = Topic.new
@@ -917,5 +916,12 @@ class ActiveRecordValidationsGenerateMessageI18nTests < Test::Unit::TestCase
   def test_generate_message_even_with_default_message
     assert_equal "must be even", @topic.errors.generate_message(:title, :even, :default => nil, :value => 'title', :count => 10)
   end
+  # ActiveRecord#RecordInvalid exception
 
+  test "RecordInvalid exception can be localized" do
+    topic = Topic.new
+    topic.errors.add(:title, :invalid)
+    topic.errors.add(:title, :blank)
+    assert_equal "Validation failed: Title is invalid, Title can't be blank", ActiveRecord::RecordInvalid.new(topic).message
+  end
 end
