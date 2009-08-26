@@ -150,7 +150,8 @@ module ActionController
 
       def authentication_request(controller, realm)
         controller.headers["WWW-Authenticate"] = %(Basic realm="#{realm.gsub(/"/, "")}")
-        controller.__send__ :render, :text => "HTTP Basic: Access denied.\n", :status => :unauthorized
+        controller.response_body = "HTTP Basic: Access denied.\n"
+        controller.status = 401
       end
     end
 
