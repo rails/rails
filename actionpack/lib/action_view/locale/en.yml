@@ -108,3 +108,7 @@
         # The variable :count is also available
         body: "There were problems with the following fields:"
 
+  support:
+    select:
+      # default value for :prompt => true in FormOptionsHelper
+      prompt: "Please select"
