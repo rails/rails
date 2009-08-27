@@ -27,10 +27,10 @@ module ActionDispatch
       end
 
       def klass
-        if @klass.respond_to?(:call)
-          @klass.call
-        elsif @klass.is_a?(Class)
+        if @klass.respond_to?(:new)
           @klass
+        elsif @klass.respond_to?(:call)
+          @klass.call
         else
           @klass.to_s.constantize
         end

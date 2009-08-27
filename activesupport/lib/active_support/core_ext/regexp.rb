@@ -9,6 +9,8 @@ class Regexp #:nodoc:
 
   class << self
     def optionalize(pattern)
+      return pattern if pattern == ""
+
       case unoptionalize(pattern)
         when /\A(.|\(.*\))\Z/ then "#{pattern}?"
         else "(?:#{pattern})?"

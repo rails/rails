@@ -29,7 +29,7 @@ module AbstractController
     # Override process_action in the AbstractController::Base
     # to log details about the method.
     def process_action(action)
-      super
+      retval = super
 
       if logger
         log = DelayedLog.new do
@@ -40,6 +40,8 @@ module AbstractController
 
         logger.info(log)
       end
+
+      retval
     end
 
   private

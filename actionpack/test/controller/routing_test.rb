@@ -44,11 +44,11 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   end
 
   def test_route_recognition_unescapes_path_components
-    options = { :controller => "controller",
+    options = { :controller => "content",
                 :action => "act#{@segment}ion",
                 :variable => "var#{@segment}iable",
                 :additional => ["add#{@segment}itional-1", "add#{@segment}itional-2"] }
-    assert_equal options, @set.recognize_path("/controller/act#{@escaped}ion/var#{@escaped}iable/add#{@escaped}itional-1/add#{@escaped}itional-2")
+    assert_equal options, @set.recognize_path("/content/act#{@escaped}ion/var#{@escaped}iable/add#{@escaped}itional-1/add#{@escaped}itional-2")
   end
 
   def test_route_generation_allows_passing_non_string_values_to_generated_helper
@@ -60,58 +60,6 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
 end
 
 class RoutingTest < Test::Unit::TestCase
-  def test_possible_controllers
-    true_controller_paths = ActionController::Routing.controller_paths
-
-    ActionController::Routing.use_controllers! nil
-
-    Object.send(:remove_const, :RAILS_ROOT) if defined?(::RAILS_ROOT)
-    Object.const_set(:RAILS_ROOT, File.dirname(__FILE__) + '/controller_fixtures')
-
-    ActionController::Routing.controller_paths = [
-      RAILS_ROOT, RAILS_ROOT + '/app/controllers', RAILS_ROOT + '/vendor/plugins/bad_plugin/lib'
-    ]
-
-    assert_equal ["admin/user", "plugin", "user"], ActionController::Routing.possible_controllers.sort
-  ensure
-    if true_controller_paths
-      ActionController::Routing.controller_paths = true_controller_paths
-    end
-    ActionController::Routing.use_controllers! nil
-    Object.send(:remove_const, :RAILS_ROOT) rescue nil
-  end
-
-  def test_possible_controllers_are_reset_on_each_load
-    true_possible_controllers = ActionController::Routing.possible_controllers
-    true_controller_paths = ActionController::Routing.controller_paths
-
-    ActionController::Routing.use_controllers! nil
-    root = File.dirname(__FILE__) + '/controller_fixtures'
-
-    ActionController::Routing.controller_paths = []
-    assert_equal [], ActionController::Routing.possible_controllers
-
-    ActionController::Routing.controller_paths = [
-      root, root + '/app/controllers', root + '/vendor/plugins/bad_plugin/lib'
-    ]
-    ActionController::Routing::Routes.load!
-
-    assert_equal ["admin/user", "plugin", "user"], ActionController::Routing.possible_controllers.sort
-  ensure
-    ActionController::Routing.controller_paths = true_controller_paths
-    ActionController::Routing.use_controllers! true_possible_controllers
-    Object.send(:remove_const, :RAILS_ROOT) rescue nil
-
-    ActionController::Routing::Routes.reload!
-  end
-
-  def test_with_controllers
-    c = %w(admin/accounts admin/users account pages)
-    ActionController::Routing.with_controllers c do
-      assert_equal c, ActionController::Routing.possible_controllers
-    end
-  end
-
   def test_normalize_unix_paths
     load_paths = %w(. config/../app/controllers config/../app//helpers script/../config/../vendor/rails/actionpack/lib vendor/rails/railties/builtin/rails_info app/models lib script/../config/../foo/bar/../../app/models .foo/../.bar foo.bar/../config)
     paths = ActionController::Routing.normalize_paths(load_paths)
@@ -1815,22 +1763,20 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_slashes_are_implied
-    ActionController::Routing.with_controllers(['foo']) do
-      ['/:controller/:action/:id/', '/:controller/:action/:id',
-        ':controller/:action/:id', '/:controller/:action/:id/'
-      ].each do |path|
-        @set = nil
-        set.draw { |map| map.connect(path) }
+    ['/:controller/:action/:id/', '/:controller/:action/:id',
+      ':controller/:action/:id', '/:controller/:action/:id/'
+    ].each do |path|
+      @set = nil
+      set.draw { |map| map.connect(path) }
 
-        assert_equal '/foo', set.generate(:controller => 'foo', :action => 'index')
-        assert_equal '/foo/list', set.generate(:controller => 'foo', :action => 'list')
-        assert_equal '/foo/show/1', set.generate(:controller => 'foo', :action => 'show', :id => '1')
+      assert_equal '/content', set.generate(:controller => 'content', :action => 'index')
+      assert_equal '/content/list', set.generate(:controller => 'content', :action => 'list')
+      assert_equal '/content/show/1', set.generate(:controller => 'content', :action => 'show', :id => '1')
 
-        assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/foo'))
-        assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/foo/index'))
-        assert_equal({:controller => "foo", :action => "list"}, set.recognize_path('/foo/list'))
-        assert_equal({:controller => "foo", :action => "show", :id => "1"}, set.recognize_path('/foo/show/1'))
-      end
+      assert_equal({:controller => "content", :action => "index"}, set.recognize_path('/content'))
+      assert_equal({:controller => "content", :action => "index"}, set.recognize_path('/content/index'))
+      assert_equal({:controller => "content", :action => "list"}, set.recognize_path('/content/list'))
+      assert_equal({:controller => "content", :action => "show", :id => "1"}, set.recognize_path('/content/show/1'))
     end
   end
 

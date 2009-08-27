@@ -46,6 +46,20 @@ class UrlRewriterTests < ActionController::TestCase
     )
   end
 
+  def test_anchor_should_call_to_param
+    assert_equal(
+      'http://test.host/c/a/i#anchor',
+      @rewriter.rewrite(:controller => 'c', :action => 'a', :id => 'i', :anchor => Struct.new(:to_param).new('anchor'))
+    )
+  end
+
+  def test_anchor_should_be_cgi_escaped
+    assert_equal(
+      'http://test.host/c/a/i#anc%2Fhor',
+      @rewriter.rewrite(:controller => 'c', :action => 'a', :id => 'i', :anchor => Struct.new(:to_param).new('anc/hor'))
+    )
+  end
+
   def test_overwrite_params
     @params[:controller] = 'hi'
     @params[:action] = 'bye'
@@ -107,6 +121,18 @@ class UrlWriterTests < ActionController::TestCase
   def test_anchor
     assert_equal('/c/a#anchor',
       W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :anchor => 'anchor')
+    )
+  end
+
+  def test_anchor_should_call_to_param
+    assert_equal('/c/a#anchor',
+      W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :anchor => Struct.new(:to_param).new('anchor'))
+    )
+  end
+
+  def test_anchor_should_be_cgi_escaped
+    assert_equal('/c/a#anc%2Fhor',
+      W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :anchor => Struct.new(:to_param).new('anc/hor'))
     )
   end
 

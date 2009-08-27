@@ -34,8 +34,9 @@ module AbstractController
     
     class TestHelpers < ActiveSupport::TestCase
       def test_helpers
-        result = MyHelpers1.new.process(:index)
-        assert_equal "Hello World : Included", result.response_body
+        controller = MyHelpers1.new
+        controller.process(:index)
+        assert_equal "Hello World : Included", controller.response_body
       end
     end
     

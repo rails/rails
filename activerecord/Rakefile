@@ -24,17 +24,37 @@ PKG_FILES = FileList[
     "lib/**/*", "test/**/*", "examples/**/*", "doc/**/*", "[A-Z]*", "install.rb", "Rakefile"
 ].exclude(/\bCVS\b|~$/)
 
+def run_without_aborting(*tasks)
+  errors = []
+
+  tasks.each do |task|
+    begin
+      Rake::Task[task].invoke
+    rescue Exception
+      errors << task
+    end
+  end
+
+  abort "Errors running #{errors.join(', ')}" if errors.any?
+end
 
 desc 'Run mysql, sqlite, and postgresql tests by default'
 task :default => :test
 
 desc 'Run mysql, sqlite, and postgresql tests'
-task :test => defined?(JRUBY_VERSION) ?
-  %w(test_jdbcmysql test_jdbcsqlite3 test_jdbcpostgresql) :
-  %w(test_mysql test_sqlite3 test_postgresql)
-task :isolated_test => defined?(JRUBY_VERSION) ?
-  %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
-  %w(isolated_test_mysql isolated_test_sqlite3 isolated_test_postgresql)
+task :test do
+  tasks = defined?(JRUBY_VERSION) ?
+    %w(test_jdbcmysql test_jdbcsqlite3 test_jdbcpostgresql) :
+    %w(test_mysql test_sqlite3 test_postgresql)
+  run_without_aborting(*tasks)
+end
+
+task :isolated_test do
+  tasks = defined?(JRUBY_VERSION) ?
+    %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
+    %w(isolated_test_mysql isolated_test_sqlite3 isolated_test_postgresql)
+  run_without_aborting(*tasks)
+end
 
 %w( mysql postgresql sqlite3 firebird db2 oracle sybase openbase frontbase jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   Rake::TestTask.new("test_#{adapter}") { |t|

@@ -259,6 +259,7 @@ class WebServiceTest < ActionController::IntegrationTest
             c.connect "/", :action => "assign_parameters"
           end
         end
+        reset!
         yield
       end
     end
