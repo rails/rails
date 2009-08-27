@@ -1365,9 +1365,7 @@ module ActiveRecord #:nodoc:
       #  end
       def reset_column_information
         undefine_attribute_methods
-        # Reload ARel relation cached table
-        arel_table(table_name, true)
-        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
+        @arel_table = @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -1535,9 +1533,9 @@ module ActiveRecord #:nodoc:
       end
 
 
-      def arel_table(table = nil, reload = nil)
+      def arel_table(table = nil)
         table = table_name if table.blank?
-        if reload || @arel_table.nil? || @arel_table.name != table
+        if @arel_table.nil? || @arel_table.name != table
           @arel_table = Relation.new(self, Arel::Table.new(table))
         end
         @arel_table
