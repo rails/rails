@@ -79,5 +79,11 @@ class RelationTest < ActiveRecord::TestCase
       assert relation.respond_to?(method)
     end
   end
+
+  def test_find_with_readonly_option
+    Developer.all.each { |d| assert !d.readonly? }
+    Developer.all.readonly.each { |d| assert d.readonly? }
+    Developer.all(:readonly => true).each { |d| assert d.readonly? }
+  end
 end
 
