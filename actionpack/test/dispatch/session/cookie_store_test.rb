@@ -8,10 +8,6 @@ class CookieStoreTest < ActionController::IntegrationTest
   # Make sure Session middleware doesnt get included in the middleware stack
   ActionController::Base.session_store = nil
 
-  DispatcherApp = ActionController::Dispatcher.new
-  CookieStoreApp = ActionDispatch::Session::CookieStore.new(DispatcherApp,
-                     :key => SessionKey, :secret => SessionSecret)
-
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, 'SHA1')
   SignedBar = Verifier.generate(:foo => "bar", :session_id => ActiveSupport::SecureRandom.hex(16))
 
@@ -51,7 +47,7 @@ class CookieStoreTest < ActionController::IntegrationTest
   end
 
   def setup
-    @integration_session = open_session(CookieStoreApp)
+    reset_app!
   end
 
   def test_raises_argument_error_if_missing_session_key
@@ -197,10 +193,10 @@ class CookieStoreTest < ActionController::IntegrationTest
   end
 
   def test_session_store_with_expire_after
-    app = ActionDispatch::Session::CookieStore.new(DispatcherApp, :key => SessionKey, :secret => SessionSecret, :expire_after => 5.hours)
-    @integration_session = open_session(app)
-
     with_test_route_set do
+      app = ActionDispatch::Session::CookieStore.new(ActionController::Dispatcher.new, :key => SessionKey, :secret => SessionSecret, :expire_after => 5.hours)
+      @integration_session = open_session(app)
+
       # First request accesses the session
       time = Time.local(2008, 4, 24)
       Time.stubs(:now).returns(time)
@@ -230,6 +226,12 @@ class CookieStoreTest < ActionController::IntegrationTest
   end
 
   private
+    def reset_app!
+      app = ActionDispatch::Session::CookieStore.new(ActionController::Dispatcher.new,
+        :key => SessionKey, :secret => SessionSecret)
+      @integration_session = open_session(app)
+    end
+
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
@@ -237,6 +239,7 @@ class CookieStoreTest < ActionController::IntegrationTest
             c.connect "/:action"
           end
         end
+        reset_app!
         yield
       end
     end

@@ -1,12 +1,6 @@
 require 'active_record_unit'
 
 class ActiveRecordStoreTest < ActionController::IntegrationTest
-  DispatcherApp = ActionController::Dispatcher.new
-  SessionApp = ActiveRecord::SessionStore.new(DispatcherApp,
-                :key => '_session_id')
-  SessionAppWithFixation = ActiveRecord::SessionStore.new(DispatcherApp,
-                            :key => '_session_id', :cookie_only => false)
-
   class TestController < ActionController::Base
     def no_session_access
       head :ok
@@ -39,7 +33,7 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
 
   def setup
     ActiveRecord::SessionStore.session_class.create_table!
-    @integration_session = open_session(SessionApp)
+    reset_app!
   end
 
   def teardown
@@ -138,9 +132,9 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
   end
 
   def test_allows_session_fixation
-    @integration_session = open_session(SessionAppWithFixation)
-
     with_test_route_set do
+      reset_with_fixation!
+
       get '/set_session_value'
       assert_response :success
       assert cookies['_session_id']
@@ -151,8 +145,7 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
       session_id = cookies['_session_id']
       assert session_id
 
-      reset!
-      @integration_session = open_session(SessionAppWithFixation)
+      reset_with_fixation!
 
       get '/set_session_value', :_session_id => session_id, :foo => "baz"
       assert_response :success
@@ -166,6 +159,16 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
   end
 
   private
+    def reset_app!
+      app = ActiveRecord::SessionStore.new(ActionController::Dispatcher.new, :key => '_session_id')
+      @integration_session = open_session(app)
+    end
+
+    def reset_with_fixation!
+      app = ActiveRecord::SessionStore.new(ActionController::Dispatcher.new, :key => '_session_id', :cookie_only => false)
+      @integration_session = open_session(app)
+    end
+
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
