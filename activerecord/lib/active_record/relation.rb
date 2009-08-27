@@ -5,10 +5,20 @@ module ActiveRecord
 
     def initialize(klass, relation)
       @klass, @relation = klass, relation
+      @readonly = false
+    end
+
+    def readonly
+      @readonly = true
+      self
     end
 
     def to_a
-      @klass.find_by_sql(@relation.to_sql)
+      records = @klass.find_by_sql(@relation.to_sql)
+
+      records.each { |record| record.readonly! } if @readonly
+
+      records
     end
 
     def each(&block)
