@@ -2869,7 +2869,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        self.class.arel_table(self.class.table_name, true).conditions(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
+        self.class.arel_table(self.class.table_name).conditions(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes
