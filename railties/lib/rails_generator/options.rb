@@ -137,10 +137,10 @@ module Rails
             end
           end
           opt.on('-g', '--git', 'Modify files with git. (Note: git must be in path)') do
-            options[:git] = `git status`.inject({:new => {}, :modified => {}}) do |opt, e|
-              opt[:new][e.chomp[14..-1]] = true if e =~ /new file:/
-              opt[:modified][e.chomp[14..-1]] = true if e =~ /modified:/
-              opt
+            options[:git] = {:new => {}, :modified => {}}
+            `git status`.each_line do |line|
+              options[:git][:new][line.chomp[14..-1]] = true if line =~ /new file:/
+              options[:git][:modified][line.chomp[14..-1]] = true if line =~ /modified:/
             end
           end
         end
