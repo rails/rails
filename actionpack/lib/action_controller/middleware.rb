@@ -27,7 +27,7 @@ module ActionController
       @_env = env
       @_request = ActionDispatch::Request.new(env)
       @_response = ActionDispatch::Response.new
-      @_response.request = request
+      @_response.request = @_request
       process(:index)
     end
     
