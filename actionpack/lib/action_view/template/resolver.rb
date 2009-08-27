@@ -4,7 +4,7 @@ require "action_view/template/template"
 module ActionView
   # Abstract superclass
   class Resolver
-    def initialize(options)
+    def initialize(options = {})
       @cache  = options[:cache]
       @cached = {}
     end
