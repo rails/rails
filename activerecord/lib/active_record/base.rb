@@ -1365,6 +1365,8 @@ module ActiveRecord #:nodoc:
       #  end
       def reset_column_information
         undefine_attribute_methods
+        # Reload ARel relation cached table
+        arel_table(table_name, true)
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
       end
 
@@ -2877,8 +2879,6 @@ module ActiveRecord #:nodoc:
           self.id = connection.next_sequence_value(self.class.sequence_name)
         end
 
-        # Reload ARel relation cached table
-        self.class.arel_table(self.class.table_name, true)
         attributes_values = arel_attributes_values
 
         new_id = if attributes_values.empty?
