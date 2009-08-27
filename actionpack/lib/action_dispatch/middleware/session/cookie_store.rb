@@ -1,3 +1,5 @@
+require "active_support/core_ext/hash/keys"
+
 module ActionDispatch
   module Session
     # This cookie-based session store is the Rails default. Sessions typically
