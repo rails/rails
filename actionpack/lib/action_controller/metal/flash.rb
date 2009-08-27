@@ -8,7 +8,7 @@ module ActionController #:nodoc:
   #     def create
   #       # save post
   #       flash[:notice] = "Successfully created post"
-  #       redirect_to posts_path(@post)
+  #       redirect_to @post
   #     end
   #
   #     def show
