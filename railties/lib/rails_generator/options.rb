@@ -131,9 +131,9 @@ module Rails
           opt.on('-q', '--quiet', 'Suppress normal output.') { |v| options[:quiet] = v }
           opt.on('-t', '--backtrace', 'Debugging: show backtrace on errors.') { |v| options[:backtrace] = v }
           opt.on('-c', '--svn', 'Modify files with subversion. (Note: svn must be in path)') do
-            options[:svn] = `svn status`.inject({}) do |opt, e|
-              opt[e.chomp[7..-1]] = true
-              opt
+            options[:svn] = {}
+            `svn status`.each_line do |line|
+              options[:svn][line.chomp[7..-1]] = true
             end
           end
           opt.on('-g', '--git', 'Modify files with git. (Note: git must be in path)') do
