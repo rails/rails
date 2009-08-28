@@ -27,6 +27,7 @@ task :install => :gem do
   (PROJECTS - ["railties"]).each do |project|
     system("gem install #{project}/pkg/#{project}-#{ActionPack::VERSION::STRING}.gem --no-ri --no-rdoc")
   end
+  system("gem install railties/pkg/rails-#{ActionPack::VERSION::STRING}.gem --no-ri --no-rdoc")
 end
 
 
