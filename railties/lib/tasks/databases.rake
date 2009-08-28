@@ -55,7 +55,7 @@ namespace :db do
       case config['adapter']
       when 'mysql'
         @charset   = ENV['CHARSET']   || 'utf8'
-        @collation = ENV['COLLATION'] || 'utf8_general_ci'
+        @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => nil))
           ActiveRecord::Base.connection.create_database(config['database'], :charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation))
