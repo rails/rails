@@ -1285,10 +1285,14 @@ module ActiveRecord #:nodoc:
           with_scope(method_scoping, :overwrite, &block)
         end
 
-        def subclasses #:nodoc:
+        # ActiveRecord::Base utilizes the inherited hook to know about new subclasses.
+        # You can access the list of currently loaded ActiveRecord::Base subclasses using this accessor.
+        def subclasses
           @@subclasses[self] ||= []
           @@subclasses[self] + extra = @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
         end
+
+        public :subclasses
 
         # Sets the default options for the model. The format of the
         # <tt>options</tt> argument is the same as in find.
