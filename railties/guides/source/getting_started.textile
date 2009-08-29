@@ -51,7 +51,7 @@ A model represents the information (data) of the application and the rules to ma
 
 h5. Views
 
-Views represent the user interface of your application. In Rails, views are often HTML files with embedded Ruby code that performs tasks related solely to the presentation of the data. Views handle the job of providing data to the web browser or other tool that is used to make requests from your application.
+Views represent the user interface of your application. In Rails, views are often HTML files with embedded Ruby code that perform tasks related solely to the presentation of the data. Views handle the job of providing data to the web browser or other tool that is used to make requests from your application.
 
 h5. Controllers
 
@@ -1052,7 +1052,7 @@ This creates a new +Comment+ object _and_ sets up the +post_id+ field to have th
 
 h4. Building Views
 
-Because you skipped scaffolding, you'll need to build views for comments "by hand." Invoking +script/generate controller+ will give you skeleton views, but they'll be devoid of actual content. Here's a first pass at fleshing out the comment views.
+Because you skipped scaffolding, you'll need to build views for comments "by hand". Invoking +script/generate controller+ will give you skeleton views, but they'll be devoid of actual content. Here's a first pass at fleshing out the comment views.
 
 The +views/comments/index.html.erb+ view:
 
