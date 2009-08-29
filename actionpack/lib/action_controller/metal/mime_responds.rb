@@ -178,23 +178,7 @@ module ActionController #:nodoc:
     #
     def respond_to(*mimes, &block)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
-
-      collector = Collector.new
-      mimes = collect_mimes_from_class_level if mimes.empty?
-      mimes.each { |mime| collector.send(mime) }
-      block.call(collector) if block_given?
-
-      if format = request.negotiate_mime(collector.order)
-        self.formats = [format.to_sym]
-
-        if response = collector.response_for(format)
-          response.call
-        else
-          default_render
-        end
-      else
-        head :not_acceptable
-      end
+      collect_mimes_for_render(mimes, block){ default_render }
     end
 
     # respond_with wraps a resource around a responder for default representation.
@@ -227,10 +211,10 @@ module ActionController #:nodoc:
     # a proc to it.
     #
     def respond_with(*resources, &block)
-      respond_to(&block)
-    rescue ActionView::MissingTemplate
-      options = resources.extract_options!
-      (options.delete(:responder) || responder).call(self, resources, options)
+      collect_mimes_for_render([], block) do
+        options = resources.extract_options!
+        (options.delete(:responder) || responder).call(self, resources, options)
+      end
     end
 
     def responder
@@ -255,6 +239,29 @@ module ActionController #:nodoc:
         else
           true
         end
+      end
+    end
+
+    # Receives a collection of mimes and a block with formats and initialize a
+    # collector. If a response was added to the collector, uses it to satisfy
+    # the request, otherwise yields the block given.
+    #
+    def collect_mimes_for_render(mimes, formats)
+      collector = Collector.new
+      mimes = collect_mimes_from_class_level if mimes.empty?
+      mimes.each { |mime| collector.send(mime) }
+      formats.call(collector) if formats
+
+      if format = request.negotiate_mime(collector.order)
+        self.formats = [format.to_sym]
+
+        if response = collector.response_for(format)
+          response.call
+        else
+          yield
+        end
+      else
+        head :not_acceptable
       end
     end
 

@@ -109,8 +109,10 @@ module ActionController #:nodoc:
     # template.
     #
     def to_html
+      render
+    rescue ActionView::MissingTemplate
       if get?
-        render
+        raise
       elsif has_errors?
         render :action => default_action
       else
@@ -118,12 +120,14 @@ module ActionController #:nodoc:
       end
     end
 
-    # All others formats try to render the resource given instead. For this
-    # purpose a helper called display as a shortcut to render a resource with
-    # the current format.
+    # All others formats follow the procedure below. First we try to render a
+    # template, if the template is not available, we verify if the resource
+    # responds to :to_format and display it.
     #
     def to_format
-      return render unless resourceful?
+      render
+    rescue ActionView::MissingTemplate
+      raise unless resourceful?
 
       if get?
         display resource
