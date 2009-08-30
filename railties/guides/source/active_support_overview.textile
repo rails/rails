@@ -821,7 +821,7 @@ h4. Conversions
 
 h5. +to_sentence+
 
-The method +to_sentence+ turns an array into a string containing a sentence the enumerates its items:
+The method +to_sentence+ turns an array into a string containing a sentence that enumerates its items:
 
 <ruby>
 %w().to_sentence                # => ""
