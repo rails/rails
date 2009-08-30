@@ -16,6 +16,10 @@ a { color: #000; }
 a:visited { color: #666; }
 a:hover { color: #fff; background-color:#000; }
 
+div.attribute, div.action {
+  margin-bottom: 10px;
+}
+
 .fieldWithErrors {
   padding: 2px;
   background-color: red;

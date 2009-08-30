@@ -1,0 +1,17 @@
+<%% form_for(@<%= singular_name %>) do |f| %>
+  <%%= f.error_messages %>
+
+<% for attribute in attributes -%>
+  <div class="attribute">
+    <%%= f.label :<%= attribute.name %> %><br />
+    <%%= f.<%= attribute.field_type %> :<%= attribute.name %> %>
+  </div>
+<% end -%>
+  <div class="action">
+    <%% if @<%= singular_name %>.new_record? %>
+      <%%= f.submit 'Create' %>
+    <%% else %>
+      <%%= f.submit 'Update' %>
+    <%% end %>
+  </div>
+<%% end %>

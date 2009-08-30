@@ -7,7 +7,6 @@ module Erb
 
       argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
 
-      class_option :form,      :type => :boolean
       class_option :layout,    :type => :boolean
       class_option :singleton, :type => :boolean, :desc => "Supply to skip index view"
 
@@ -33,7 +32,6 @@ module Erb
       end
 
       def copy_form_file
-        return unless options[:form]
         copy_view :_form
       end
 

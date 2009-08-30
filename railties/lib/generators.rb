@@ -45,7 +45,6 @@ module Rails
       },
 
       :erb => {
-        :form => false,
         :layout => true
       },
 
