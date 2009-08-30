@@ -8,23 +8,8 @@ class Thor
   module Actions
     attr_accessor :behavior
 
-    # On inclusion, add some options to base.
-    #
     def self.included(base) #:nodoc:
       base.extend ClassMethods
-      return unless base.respond_to?(:class_option)
-
-      base.class_option :pretend, :type => :boolean, :aliases => "-p", :group => :runtime,
-                                  :desc => "Run but do not make any changes"
-
-      base.class_option :force, :type => :boolean, :aliases => "-f", :group => :runtime,
-                                :desc => "Overwrite files that already exist"
-
-      base.class_option :skip, :type => :boolean, :aliases => "-s", :group => :runtime,
-                               :desc => "Skip files that already exist"
-
-      base.class_option :quiet, :type => :boolean, :aliases => "-q", :group => :runtime,
-                                :desc => "Supress status output"
     end
 
     module ClassMethods
@@ -48,6 +33,22 @@ class Thor
         paths << self.source_root if self.respond_to?(:source_root)
         paths += from_superclass(:source_paths, [])
         paths
+      end
+
+      # Add runtime options that help actions execution.
+      #
+      def add_runtime_options!
+        class_option :pretend, :type => :boolean, :aliases => "-p", :group => :runtime,
+                               :desc => "Run but do not make any changes"
+
+        class_option :force, :type => :boolean, :aliases => "-f", :group => :runtime,
+                             :desc => "Overwrite files that already exist"
+
+        class_option :skip, :type => :boolean, :aliases => "-s", :group => :runtime,
+                            :desc => "Skip files that already exist"
+
+        class_option :quiet, :type => :boolean, :aliases => "-q", :group => :runtime,
+                             :desc => "Supress status output"
       end
     end
 

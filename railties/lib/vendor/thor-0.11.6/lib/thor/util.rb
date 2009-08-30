@@ -22,7 +22,7 @@ class Thor
     # namespace<String>:: The namespace to search for.
     #
     def self.find_by_namespace(namespace)
-      namespace = 'default' if namespace.empty?
+      namespace = "default#{namespace}" if namespace.empty? || namespace =~ /^:/
 
       Thor::Base.subclasses.find do |klass|
         klass.namespace == namespace
@@ -137,17 +137,18 @@ class Thor
     #               inherit from Thor or Thor::Group.
     #
     def self.namespace_to_thor_class_and_task(namespace, raise_if_nil=true)
-      klass, task_name = Thor::Util.find_by_namespace(namespace), nil
+      if namespace.include?(?:)
+        pieces = namespace.split(":")
+        task   = pieces.pop
+        klass  = Thor::Util.find_by_namespace(pieces.join(":"))
+      end
 
-      if klass.nil? && namespace.include?(?:)
-        namespace = namespace.split(":")
-        task_name = namespace.pop
-        klass     = Thor::Util.find_by_namespace(namespace.join(":"))
+      unless klass
+        klass, task = Thor::Util.find_by_namespace(namespace), nil
       end
 
       raise Error, "could not find Thor class or task '#{namespace}'" if raise_if_nil && klass.nil?
-
-      return klass, task_name
+      return klass, task
     end
 
     # Receives a path and load the thor file in the path. The file is evaluated

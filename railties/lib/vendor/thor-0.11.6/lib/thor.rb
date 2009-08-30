@@ -135,7 +135,7 @@ class Thor
           args, opts = given_args, {}
         end
 
-        task ||= Task.dynamic(meth)
+        task ||= Thor::Task::Dynamic.new(meth)
         trailing = args[Range.new(arguments.size, -1)]
         new(args, opts, config).invoke(task, trailing || [])
       end

@@ -355,6 +355,7 @@ class Thor
         else
           config[:shell].error e.message
         end
+        exit(1) if exit_on_failure?
       end
 
       protected
@@ -489,6 +490,12 @@ class Thor
             value = superclass.send(method)
             value.dup if value
           end
+        end
+
+        # A flag that makes the process exit with status 1 if any error happens.
+        #
+        def exit_on_failure?
+          false
         end
 
         # SIGNATURE: Sets the baseclass. This is where the superclass lookup

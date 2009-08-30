@@ -153,7 +153,7 @@ class Thor
         raise "Expected Thor class, got #{klass}" unless klass <= Thor::Base
 
         task ||= klass.default_task if klass <= Thor
-        task = klass.all_tasks[task.to_s] || Task.dynamic(task) if task && !task.is_a?(Thor::Task)
+        task = klass.all_tasks[task.to_s] || Thor::Task::Dynamic.new(task) if task && !task.is_a?(Thor::Task)
         task
       end
 

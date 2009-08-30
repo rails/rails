@@ -175,6 +175,10 @@ class Thor::Runner < Thor #:nodoc:
       File.open(yaml_file, "w") { |f| f.puts yaml.to_yaml }
     end
 
+    def self.exit_on_failure?
+      true
+    end
+
     # Load the thorfiles. If relevant_to is supplied, looks for specific files
     # in the thor_root instead of loading them all.
     #

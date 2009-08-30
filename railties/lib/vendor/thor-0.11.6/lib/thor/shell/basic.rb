@@ -34,12 +34,11 @@ class Thor
       # ==== Example
       # say("I know you knew that.")
       #
-      def say(message="", color=nil, force_new_line=false)
+      def say(message="", color=nil, force_new_line=(message.to_s !~ /( |\t)$/))
         message  = message.to_s
-        new_line = force_new_line || !(message[-1, 1] == " " || message[-1, 1] == "\t")
         message  = set_color(message, color) if color
 
-        if new_line
+        if force_new_line
           $stdout.puts(message)
         else
           $stdout.print(message)

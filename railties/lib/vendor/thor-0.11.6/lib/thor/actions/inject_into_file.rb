@@ -3,10 +3,8 @@ require 'thor/actions/empty_directory'
 class Thor
   module Actions
 
-    # Injects the given content into a file. Different from append_file,
-    # prepend_file and gsub_file, this method is reversible. By this reason,
-    # the flag can only be strings. gsub_file is your friend if you need to
-    # deal with more complex cases.
+    # Injects the given content into a file. Different from gsub_file, this
+    # method is reversible.
     #
     # ==== Parameters
     # destination<String>:: Relative path to the destination root
@@ -16,11 +14,11 @@ class Thor
     # 
     # ==== Examples
     #
-    #   inject_into_file "config/environment.rb", "config.gem thor", :after => "Rails::Initializer.run do |config|\n"
+    #   inject_into_file "config/environment.rb", "config.gem :thor", :after => "Rails::Initializer.run do |config|\n"
     #
     #   inject_into_file "config/environment.rb", :after => "Rails::Initializer.run do |config|\n" do
     #     gems = ask "Which gems would you like to add?"
-    #     gems.split(" ").map{ |gem| "  config.gem #{gem}" }.join("\n")
+    #     gems.split(" ").map{ |gem| "  config.gem :#{gem}" }.join("\n")
     #   end
     #
     def inject_into_file(destination, *args, &block)
@@ -29,39 +27,64 @@ class Thor
       else
         data, config = args.shift, args.shift
       end
-
-      log_status = args.empty? || args.pop
       action InjectIntoFile.new(self, destination, data, config)
     end
 
     class InjectIntoFile < EmptyDirectory #:nodoc:
-      attr_reader :flag, :replacement
+      attr_reader :replacement, :flag, :behavior
 
       def initialize(base, destination, data, config)
         super(base, destination, { :verbose => true }.merge(config))
 
-        data = data.call if data.is_a?(Proc)
-
-        @replacement = if @config.key?(:after)
-          @flag = @config.delete(:after)
-          @flag + data
+        @behavior, @flag = if @config.key?(:after)
+          [:after, @config.delete(:after)]
         else
-          @flag = @config.delete(:before)
-          data + @flag
+          [:before, @config.delete(:before)]
         end
+
+        @replacement = data.is_a?(Proc) ? data.call : data
+        @flag = Regexp.escape(@flag) unless @flag.is_a?(Regexp)
       end
 
       def invoke!
-        say_status :inject, config[:verbose]
-        replace!(flag, replacement)
+        say_status :invoke
+
+        content = if @behavior == :after
+          '\0' + replacement
+        else
+          replacement + '\0'
+        end
+
+        replace!(/#{flag}/, content)
       end
 
       def revoke!
-        say_status :deinject, config[:verbose]
-        replace!(replacement, flag)
+        say_status :revoke
+
+        regexp = if @behavior == :after
+          content = '\1\2'
+          /(#{flag})(.*)(#{Regexp.escape(replacement)})/m
+        else
+          content = '\2\3'
+          /(#{Regexp.escape(replacement)})(.*)(#{flag})/m
+        end
+
+        replace!(regexp, content)
       end
 
       protected
+
+        def say_status(behavior)
+          status = if flag == /\A/
+            behavior == :invoke ? :prepend : :unprepend
+          elsif flag == /\z/
+            behavior == :invoke ? :append : :unappend
+          else
+            behavior == :invoke ? :inject : :deinject
+          end
+
+          super(status, config[:verbose])
+        end
 
         # Adds the content to the file.
         #

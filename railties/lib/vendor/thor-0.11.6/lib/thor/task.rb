@@ -1,11 +1,19 @@
 class Thor
   class Task < Struct.new(:name, :description, :usage, :options)
 
-    # Creates a dynamic task. Dynamic tasks are created on demand to allow method
-    # missing calls (since a method missing does not have a task object for it).
+    # A dynamic task that handles method missing scenarios.
     #
-    def self.dynamic(name)
-      new(name, "A dynamically-generated task", name.to_s)
+    class Dynamic < Task
+      def initialize(name)
+        super(name.to_s, "A dynamically-generated task", name.to_s)
+      end
+
+      def run(instance, args=[])
+        unless (instance.methods & [name.to_s, name.to_sym]).empty?
+          raise Error, "could not find Thor class or task '#{name}'"
+        end
+        super
+      end
     end
 
     def initialize(name, description, usage, options=nil)
@@ -37,8 +45,6 @@ class Thor
     # injected in the usage.
     #
     def formatted_usage(klass=nil, namespace=false, show_options=true)
-      formatted = ''
-
       formatted = if namespace.is_a?(String)
         "#{namespace}:"
       elsif klass && namespace
@@ -77,7 +83,7 @@ class Thor
       #
       def public_method?(instance) #:nodoc:
         collection = instance.private_methods + instance.protected_methods
-        !(collection).include?(name.to_s) && !(collection).include?(name.to_sym) # For Ruby 1.9
+        (collection & [name.to_s, name.to_sym]).empty?
       end
 
       # Clean everything that comes from the Thor gempath and remove the caller.
