@@ -86,8 +86,10 @@ module Rails
         end
 
         def add_engine_locales
+          localized_engines = engines.select { |engine| engine.localized? }
+
           # reverse it such that the last engine can overwrite translations from the first, like with routes
-          locale_files = engines.select(&:localized?).collect(&:locale_files).reverse.flatten
+          locale_files = localized_engines.collect { |engine| engine.locale_files }.reverse.flatten
           I18n.load_path += locale_files - I18n.load_path
         end
 
