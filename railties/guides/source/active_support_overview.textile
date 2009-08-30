@@ -817,6 +817,34 @@ You can pick a random element with +rand+:
 shape_type = [Circle, Square, Triangle].rand
 </ruby>
 
+h4. Conversions
+
+h5. +to_sentence+
+
+The method +to_sentence+ turns an array into a string containing a sentence the enumerates its items:
+
+<ruby>
+%w().to_sentence                # => ""
+%w(Earth).to_sentence           # => "Earth"
+%w(Earth Wind).to_sentence      # => "Earth and Wind"
+%w(Earth Wind Fire).to_sentence # => "Earth, Wind, and Fire"
+</ruby>
+
+This method accepts three options:
+
+* <tt>:two_words_connector</tt>: What is used for arrays of length 2. Default is " and ".
+* <tt>:words_connector</tt>: What is used to join the elements of arrays with 3 or more elements, except for the last two. Default is ", ".
+* <tt>:last_word_connector</tt>: What is used to join the last items of an array with 3 or more elements. Default is ", and ".
+
+The defaults for these options can be localised, their keys are:
+
+|_. Option                      |_. I18n key                                 |
+| <tt>:two_words_connector</tt> | <tt>support.array.two_words_connector</tt> |
+| <tt>:words_connector</tt>     | <tt>support.array.words_connector</tt>     |
+| <tt>:last_word_connector</tt> | <tt>support.array.last_word_connector</tt> |
+
+Options <tt>:connector</tt> and <tt>:skip_last_comma</tt> are deprecated.
+
 h4. Wrapping
 
 The class method +Array.wrap+ behaves like the function +Array()+ except that it does not try to call +to_a+ on its argument. That changes the behaviour for enumerables:
