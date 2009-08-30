@@ -845,6 +845,20 @@ The defaults for these options can be localised, their keys are:
 
 Options <tt>:connector</tt> and <tt>:skip_last_comma</tt> are deprecated.
 
+h5. +to_formatted_s+
+
+The method +to_formatted_s+ acts like +to_s+ by default.
+
+If the array contains items that respond to +id+, however, it may be passed the symbol <tt>:db</tt> as argument. That's typically used with collections of ARs, though technically any object in Ruby 1.8 responds to +id+ indeed. Returned strings are:
+
+<ruby>
+[].to_formatted_s(:db)            # => "null"
+[user].to_formatted_s(:db)        # => "8456"
+invoice.lines.to_formatted_s(:db) # => "23,567,556,12"
+</ruby>
+
+Integers in the example above are supposed to come from the respective calls to +id+.
+
 h4. Wrapping
 
 The class method +Array.wrap+ behaves like the function +Array()+ except that it does not try to call +to_a+ on its argument. That changes the behaviour for enumerables:
