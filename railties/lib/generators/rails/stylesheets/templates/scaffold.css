@@ -20,6 +20,10 @@ div.attribute, div.action {
   margin-bottom: 10px;
 }
 
+.notice {
+  color: green;
+}
+
 .fieldWithErrors {
   padding: 2px;
   background-color: red;
