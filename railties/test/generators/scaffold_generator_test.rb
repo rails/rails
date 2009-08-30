@@ -75,6 +75,7 @@ class ScaffoldGeneratorTest < GeneratorsTestCase
       edit
       new
       show
+      _form
     ).each { |view| assert_file "app/views/product_lines/#{view}.html.erb" }
     assert_file "app/views/layouts/product_lines.html.erb"
 

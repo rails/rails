@@ -2,12 +2,12 @@
   <%%= f.error_messages %>
 
 <% for attribute in attributes -%>
-  <div class="attribute">
+  <div class="field">
     <%%= f.label :<%= attribute.name %> %><br />
     <%%= f.<%= attribute.field_type %> :<%= attribute.name %> %>
   </div>
 <% end -%>
-  <div class="action">
+  <div class="actions">
     <%% if @<%= singular_name %>.new_record? %>
       <%%= f.submit 'Create' %>
     <%% else %>
