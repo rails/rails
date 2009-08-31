@@ -267,7 +267,8 @@ module ActionController
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
             "HTTP_ACCEPT"    => accept
           }
-          env = Rack::MockRequest.env_for(path, opts)
+
+          env = ActionDispatch::TestRequest.env_for(path, opts)
 
           (rack_environment || {}).each do |key, value|
             env[key] = value

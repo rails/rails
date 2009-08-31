@@ -25,12 +25,6 @@ activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
 $:.unshift activesupport_path if File.directory?(activesupport_path)
 require 'active_support'
 
-begin
-  gem 'rack', '~> 1.1.pre'
-rescue Gem::LoadError, ArgumentError
-  $:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack-1.1.pre"
-end
-
 require 'rack'
 
 module Rack
