@@ -116,6 +116,7 @@ spec = Gem::Specification.new do |s|
   s.requirements << 'none'
 
   s.add_dependency('activesupport', '= 3.0.pre' + PKG_BUILD)
+  s.add_dependency('rack-test', '~> 0.4.1')
 
   s.require_path = 'lib'
   s.autorequire = 'action_controller'
