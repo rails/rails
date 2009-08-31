@@ -115,7 +115,7 @@ module ActionController
         end
 
         def authenticate_with_http_basic(&login_procedure)
-          HttpAuthentication::Basic.authenticate(self, &login_procedure)
+          HttpAuthentication::Basic.authenticate(request, &login_procedure)
         end
 
         def request_http_basic_authentication(realm = "Application")
@@ -123,9 +123,9 @@ module ActionController
         end
       end
 
-      def authenticate(controller, &login_procedure)
-        unless authorization(controller.request).blank?
-          login_procedure.call(*user_name_and_password(controller.request))
+      def authenticate(request, &login_procedure)
+        unless authorization(request).blank?
+          login_procedure.call(*user_name_and_password(request))
         end
       end
 
@@ -150,7 +150,8 @@ module ActionController
 
       def authentication_request(controller, realm)
         controller.headers["WWW-Authenticate"] = %(Basic realm="#{realm.gsub(/"/, "")}")
-        controller.__send__ :render, :text => "HTTP Basic: Access denied.\n", :status => :unauthorized
+        controller.response_body = "HTTP Basic: Access denied.\n"
+        controller.status = 401
       end
     end
 
@@ -164,7 +165,7 @@ module ActionController
 
         # Authenticate with HTTP Digest, returns true or false
         def authenticate_with_http_digest(realm = "Application", &password_procedure)
-          HttpAuthentication::Digest.authenticate(self, realm, &password_procedure)
+          HttpAuthentication::Digest.authenticate(request, realm, &password_procedure)
         end
 
         # Render output including the HTTP Digest authentication header
@@ -174,8 +175,8 @@ module ActionController
       end
 
       # Returns false on a valid response, true otherwise
-      def authenticate(controller, realm, &password_procedure)
-        authorization(controller.request) && validate_digest_response(controller.request, realm, &password_procedure)
+      def authenticate(request, realm, &password_procedure)
+        authorization(request) && validate_digest_response(request, realm, &password_procedure)
       end
 
       def authorization(request)
@@ -243,7 +244,8 @@ module ActionController
       def authentication_request(controller, realm, message = nil)
         message ||= "HTTP Digest: Access denied.\n"
         authentication_header(controller, realm)
-        controller.__send__ :render, :text => message, :status => :unauthorized
+        controller.response_body = message
+        controller.status = 401
       end
 
       # Uses an MD5 digest based on time to generate a value to be used only once.

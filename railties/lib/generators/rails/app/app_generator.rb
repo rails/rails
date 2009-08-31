@@ -4,7 +4,7 @@ require 'rails/version' unless defined?(Rails::VERSION)
 
 module Rails::Generators
   class AppGenerator < Base
-    DATABASES = %w( mysql oracle postgresql sqlite2 sqlite3 frontbase ibm_db )
+    DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
     add_shebang_option!
 
     argument :app_path, :type => :string

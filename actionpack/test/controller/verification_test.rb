@@ -112,7 +112,10 @@ class VerificationTest < ActionController::TestCase
   tests TestController
 
   setup do
-    ActionController::Routing::Routes.add_named_route :foo, '/foo', :controller => 'test', :action => 'foo'
+    ActionController::Routing::Routes.draw do |map|
+      map.foo '/foo', :controller => 'test', :action => 'foo'
+      map.connect ":controller/:action/:id"
+    end
   end
 
   def test_using_symbol_back_with_no_referrer

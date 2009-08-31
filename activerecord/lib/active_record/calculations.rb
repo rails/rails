@@ -197,7 +197,7 @@ module ActiveRecord
           sql << ", #{options[:group_field]} AS #{options[:group_alias]}" if options[:group]
           if options[:from]
             sql << " FROM #{options[:from]} "
-          elsif scope && scope[:from]
+          elsif scope && scope[:from] && !use_workaround
             sql << " FROM #{scope[:from]} "
           else
             sql << " FROM (SELECT #{distinct}#{column_name}" if use_workaround

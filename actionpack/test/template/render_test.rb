@@ -2,10 +2,14 @@
 require 'abstract_unit'
 require 'controller/fake_models'
 
+class TestController < ActionController::Base
+end
+
 module RenderTestCases
   def setup_view(paths)
     @assigns = { :secret => 'in the sauce' }
     @view = ActionView::Base.new(paths, @assigns)
+    @controller_view = ActionView::Base.for_controller(TestController.new)
 
     # Reload and register danish language for testing
     I18n.reload!
@@ -138,7 +142,7 @@ module RenderTestCases
   end
 
   def test_render_partial_collection_without_as
-    assert_equal "local_inspector,local_inspector_counter,object",
+    assert_equal "local_inspector,local_inspector_counter",
       @view.render(:partial => "test/local_inspector", :collection => [ Customer.new("mary") ])
   end
 
@@ -158,6 +162,25 @@ module RenderTestCases
     assert_nil @view.render(:partial => [])
   end
 
+  def test_render_partial_using_string
+    assert_equal "Hello: Anonymous", @controller_view.render('customer')
+  end
+
+  def test_render_partial_with_locals_using_string
+    assert_equal "Hola: david", @controller_view.render('customer_greeting', :greeting => 'Hola', :customer_greeting => Customer.new("david"))
+  end
+
+  def test_render_partial_using_object
+    assert_equal "Hello: lifo",
+      @controller_view.render(Customer.new("lifo"), :greeting => "Hello")
+  end
+
+  def test_render_partial_using_collection
+    customers = [ Customer.new("Amazon"), Customer.new("Yahoo") ]
+    assert_equal "Hello: AmazonHello: Yahoo",
+      @controller_view.render(customers, :greeting => "Hello")
+  end
+
   # TODO: The reason for this test is unclear, improve documentation
   def test_render_partial_and_fallback_to_layout
     assert_equal "Before (Josh)\n\nAfter", @view.render(:partial => "test/layout_for_partial", :locals => { :name => "Josh" })
@@ -167,6 +190,8 @@ module RenderTestCases
   def test_render_missing_xml_partial_and_raise_missing_template
     @view.formats = [:xml]
     assert_raise(ActionView::MissingTemplate) { @view.render(:partial => "test/layout_for_partial") }
+  ensure
+    @view.formats = nil
   end
 
   def test_render_inline
@@ -194,17 +219,6 @@ module RenderTestCases
   def test_render_inline_with_locals_and_compilable_custom_type
     ActionView::Template.register_template_handler :foo, CustomHandler
     assert_equal 'source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
-  end
-
-  class LegacyHandler < ActionView::TemplateHandler
-    def render(template, local_assigns)
-      "source: #{template.source}; locals: #{local_assigns.inspect}"
-    end
-  end
-
-  def test_render_legacy_handler_with_custom_type
-    ActionView::Template.register_template_handler :foo, LegacyHandler
-    assert_equal 'source: Hello, <%= name %>!; locals: {:name=>"Josh"}', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
   end
 
   def test_render_ignores_templates_with_malformed_template_handlers

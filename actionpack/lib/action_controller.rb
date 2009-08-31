@@ -3,6 +3,7 @@ module ActionController
   autoload :ConditionalGet,       "action_controller/metal/conditional_get"
   autoload :HideActions,          "action_controller/metal/hide_actions"
   autoload :Metal,                "action_controller/metal"
+  autoload :Middleware,           "action_controller/middleware"
   autoload :Layouts,              "action_controller/metal/layouts"
   autoload :RackConvenience,      "action_controller/metal/rack_convenience"
   autoload :Rails2Compatibility,  "action_controller/metal/compatibility"
@@ -58,9 +59,8 @@ end
 autoload :HTML, 'action_controller/vendor/html-scanner'
 autoload :AbstractController, 'abstract_controller'
 
-autoload :Rack,                       'action_dispatch'
-autoload :ActionDispatch,             'action_dispatch'
-autoload :ActionView,                 'action_view'
+require 'action_dispatch'
+require 'action_view'
 
 # Common ActiveSupport usage in ActionController
 require "active_support/concern"

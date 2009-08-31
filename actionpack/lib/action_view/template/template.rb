@@ -26,9 +26,16 @@ module ActionView
       @details[:formats] = Array.wrap(format.to_sym)
     end
     
-    def render(view, locals, &blk)
+    def render(view, locals, &block)
       method_name = compile(locals, view)
-      view.send(method_name, locals, &blk)
+      view.send(method_name, locals, &block)
+    rescue Exception => e
+      if e.is_a?(TemplateError)
+        e.sub_template_of(self)
+        raise e
+      else
+        raise TemplateError.new(self, view.assigns, e)
+      end
     end
     
     # TODO: Figure out how to abstract this
@@ -90,7 +97,22 @@ module ActionView
         raise ActionView::TemplateError.new(self, {}, e)
       end
     end
-  
+
+    class LocalsKey
+      @hash_keys = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = {} } }
+
+      def self.get(*locals)
+        @hash_keys[*locals] ||= new(klass, format, locale)
+      end
+
+      attr_accessor :hash
+      def initialize(klass, format, locale)
+        @hash = locals.hash
+      end
+
+      alias_method :eql?, :equal?
+    end
+
     def build_method_name(locals)
       # TODO: is locals.keys.hash reliably the same?
       @method_names[locals.keys.hash] ||=

@@ -8,9 +8,12 @@ else
   RAILS_ROOT = fixtures
 end
 
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../activerecord/lib"
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../activerecord/lib"
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../actionpack/lib"
 require 'generators'
+require 'activerecord'
+require 'action_dispatch'
 
 CURRENT_PATH = File.expand_path(Dir.pwd)
 Rails::Generators.no_color!
@@ -19,7 +22,7 @@ class GeneratorsTestCase < Test::Unit::TestCase
   include FileUtils
 
   def destination_root
-    @destination_root ||= File.expand_path(File.join(File.dirname(__FILE__), 
+    @destination_root ||= File.expand_path(File.join(File.dirname(__FILE__),
                                             '..', 'fixtures', 'tmp'))
   end
 

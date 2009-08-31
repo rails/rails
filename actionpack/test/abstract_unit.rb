@@ -6,6 +6,8 @@ $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
+ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
+
 ENV['new_base'] = "true"
 $stderr.puts "Running old tests on new_base"
 
@@ -60,20 +62,33 @@ module ActionController
   }
   Base.session_store = nil
 
+  class << Routing
+    def possible_controllers
+      @@possible_controllers ||= []
+    end
+  end
+
   class Base
     include ActionController::Testing
+
+    def self.inherited(klass)
+      name = klass.name.underscore.sub(/_controller$/, '')
+      ActionController::Routing.possible_controllers << name unless name.blank?
+      super
+    end
   end
   
   Base.view_paths = FIXTURE_LOAD_PATH
   
   class TestCase
     include TestProcess
+
     setup do
       ActionController::Routing::Routes.draw do |map|
         map.connect ':controller/:action/:id'
       end
     end
-    
+
     def assert_template(options = {}, message = nil)
       validate_request!
 

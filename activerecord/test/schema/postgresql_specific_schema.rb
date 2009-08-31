@@ -1,7 +1,7 @@
 ActiveRecord::Schema.define do
 
   %w(postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings
-      postgresql_oids defaults geometrics).each do |table_name|
+      postgresql_oids postgresql_xml_data_type defaults geometrics).each do |table_name|
     execute "DROP TABLE  IF EXISTS #{quote_table_name table_name}"
   end
 
@@ -100,4 +100,15 @@ _SQL
     obj_id OID
   );
 _SQL
+
+  begin
+    execute <<_SQL
+    CREATE TABLE postgresql_xml_data_type (
+    id SERIAL PRIMARY KEY,
+    data xml
+    );
+_SQL
+rescue #This version of PostgreSQL either has no XML support or is was not compiled with XML support: skipping table
+  end
 end
+

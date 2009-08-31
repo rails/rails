@@ -7,20 +7,20 @@ class RegexpExtAccessTests < Test::Unit::TestCase
   end
 
   def test_multiline
-    assert   //m.multiline?
-    assert ! //.multiline?
-    assert ! /(?m:)/.multiline?
+    assert_equal true, //m.multiline?
+    assert_equal false, //.multiline?
+    assert_equal false, /(?m:)/.multiline?
   end
 
   def test_optionalize
-    assert "a?", Regexp.optionalize("a")
-    assert "(?:foo)?", Regexp.optionalize("foo")
-    assert "", Regexp.optionalize("")
+    assert_equal "a?", Regexp.optionalize("a")
+    assert_equal "(?:foo)?", Regexp.optionalize("foo")
+    assert_equal "", Regexp.optionalize("")
   end
 
   def test_unoptionalize
-    assert "a", Regexp.unoptionalize("a?")
-    assert "foo", Regexp.unoptionalize("(?:foo)")
-    assert "", Regexp.unoptionalize("")
+    assert_equal "a", Regexp.unoptionalize("a?")
+    assert_equal "foo", Regexp.unoptionalize("(?:foo)?")
+    assert_equal "", Regexp.unoptionalize("")
   end
 end

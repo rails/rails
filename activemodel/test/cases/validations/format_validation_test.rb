@@ -71,6 +71,35 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert_equal ["can't be Invalid title"], t.errors[:title]
   end
 
+  def test_validate_format_with_not_option
+    Topic.validates_format_of(:title, :without => /foo/, :message => "should not contain foo")
+    t = Topic.new
+
+    t.title = "foobar"
+    t.valid?
+    assert_equal ["should not contain foo"], t.errors[:title]
+
+    t.title = "something else"
+    t.valid?
+    assert_equal [], t.errors[:title]
+  end
+
+  def test_validate_format_of_without_any_regexp_should_raise_error
+    assert_raise(ArgumentError) { Topic.validates_format_of(:title) }
+  end
+
+  def test_validates_format_of_with_both_regexps_should_raise_error
+    assert_raise(ArgumentError) { Topic.validates_format_of(:title, :with => /this/, :without => /that/) }
+  end
+
+  def test_validates_format_of_when_with_isnt_a_regexp_should_raise_error
+    assert_raise(ArgumentError) { Topic.validates_format_of(:title, :with => "clearly not a regexp") }
+  end
+
+  def test_validates_format_of_when_not_isnt_a_regexp_should_raise_error
+    assert_raise(ArgumentError) { Topic.validates_format_of(:title, :without => "clearly not a regexp") }
+  end
+
   def test_validates_format_of_with_custom_error_using_quotes
     repair_validations(Developer) do
       Developer.validates_format_of :name, :with => /^(A-Z*)$/, :message=> "format 'single' and \"double\" quotes"

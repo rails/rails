@@ -1070,13 +1070,58 @@ class BasicsTest < ActiveRecord::TestCase
     assert_date_from_db Date.new(2004, 6, 24), topic.last_read.to_date
   end
 
-  def test_multiparameter_attributes_on_date_with_empty_date
+  def test_multiparameter_attributes_on_date_with_empty_year
+    attributes = { "last_read(1i)" => "", "last_read(2i)" => "6", "last_read(3i)" => "24" }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    # note that extra #to_date call allows test to pass for Oracle, which
+    # treats dates/times the same
+    assert_date_from_db Date.new(1, 6, 24), topic.last_read.to_date
+  end
+
+  def test_multiparameter_attributes_on_date_with_empty_month
+    attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "", "last_read(3i)" => "24" }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    # note that extra #to_date call allows test to pass for Oracle, which
+    # treats dates/times the same
+    assert_date_from_db Date.new(2004, 1, 24), topic.last_read.to_date
+  end
+
+  def test_multiparameter_attributes_on_date_with_empty_day
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "" }
     topic = Topic.find(1)
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
     assert_date_from_db Date.new(2004, 6, 1), topic.last_read.to_date
+  end
+
+  def test_multiparameter_attributes_on_date_with_empty_day_and_year
+    attributes = { "last_read(1i)" => "", "last_read(2i)" => "6", "last_read(3i)" => "" }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    # note that extra #to_date call allows test to pass for Oracle, which
+    # treats dates/times the same
+    assert_date_from_db Date.new(1, 6, 1), topic.last_read.to_date
+  end
+
+  def test_multiparameter_attributes_on_date_with_empty_day_and_month
+    attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "", "last_read(3i)" => "" }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    # note that extra #to_date call allows test to pass for Oracle, which
+    # treats dates/times the same
+    assert_date_from_db Date.new(2004, 1, 1), topic.last_read.to_date
+  end
+
+  def test_multiparameter_attributes_on_date_with_empty_year_and_month
+    attributes = { "last_read(1i)" => "", "last_read(2i)" => "", "last_read(3i)" => "24" }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    # note that extra #to_date call allows test to pass for Oracle, which
+    # treats dates/times the same
+    assert_date_from_db Date.new(1, 1, 24), topic.last_read.to_date
   end
 
   def test_multiparameter_attributes_on_date_with_all_empty
@@ -1730,17 +1775,15 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_equal res4, res5
 
-    unless current_adapter?(:SQLite2Adapter, :DeprecatedSQLiteAdapter)
-      res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
-      res7 = nil
-      assert_nothing_raised do
-        res7 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id",
-                          :joins => "p, comments co",
-                          :select => "p.id",
-                          :distinct => true)
-      end
-      assert_equal res6, res7
+    res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
+    res7 = nil
+    assert_nothing_raised do
+      res7 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id",
+                        :joins => "p, comments co",
+                        :select => "p.id",
+                        :distinct => true)
     end
+    assert_equal res6, res7
   end
 
   def test_clear_association_cache_stored

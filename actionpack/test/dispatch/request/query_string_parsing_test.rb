@@ -111,6 +111,7 @@ class QueryStringParsingTest < ActionController::IntegrationTest
         set.draw do |map|
           map.connect ':action', :controller => "query_string_parsing_test/test"
         end
+        reset!
 
         get "/parse", actual
         assert_response :ok

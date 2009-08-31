@@ -110,6 +110,8 @@ module ActiveResource
   #
   # Many REST APIs will require authentication, usually in the form of basic
   # HTTP authentication.  Authentication can be specified by:
+  #
+  # === HTTP Basic Authentication
   # * putting the credentials in the URL for the +site+ variable.
   #
   #    class Person < ActiveResource::Base
@@ -129,6 +131,19 @@ module ActiveResource
   #
   # Note: Some values cannot be provided in the URL passed to site.  e.g. email addresses
   # as usernames.  In those situations you should use the separate user and password option.
+  #
+  # === Certificate Authentication
+  #
+  # * End point uses an X509 certificate for authentication. <tt>See ssl_options=</tt> for all options.
+  #
+  #    class Person < ActiveResource::Base
+  #      self.site = "https://secure.api.people.com/"
+  #      self.ssl_options = {:cert         => OpenSSL::X509::Certificate.new(File.open(pem_file))
+  #                          :key          => OpenSSL::PKey::RSA.new(File.open(pem_file)),
+  #                          :ca_path      => "/path/to/OpenSSL/formatted/CA_Certs",
+  #                          :verify_mode  => OpenSSL::SSL::VERIFY_PEER}
+  #    end
+  #
   #
   # == Errors & Validation
   #
@@ -156,6 +171,7 @@ module ActiveResource
   # * 404 - ActiveResource::ResourceNotFound
   # * 405 - ActiveResource::MethodNotAllowed
   # * 409 - ActiveResource::ResourceConflict
+  # * 410 - ActiveResource::ResourceGone
   # * 422 - ActiveResource::ResourceInvalid (rescued by save as validation errors)
   # * 401..499 - ActiveResource::ClientError
   # * 500..599 - ActiveResource::ServerError
@@ -176,7 +192,7 @@ module ActiveResource
   #
   # Active Resource supports validations on resources and will return errors if any of these validations fail
   # (e.g., "First name can not be blank" and so on).  These types of errors are denoted in the response by
-  # a response code of <tt>422</tt> and an XML representation of the validation errors.  The save operation will
+  # a response code of <tt>422</tt> and an XML or JSON representation of the validation errors.  The save operation will
   # then fail (with a <tt>false</tt> return value) and the validation errors can be accessed on the resource in question.
   #
   #   ryan = Person.find(1)
@@ -185,10 +201,14 @@ module ActiveResource
   #
   #   # When
   #   # PUT http://api.people.com:3000/people/1.xml
+  #   # or
+  #   # PUT http://api.people.com:3000/people/1.json
   #   # is requested with invalid values, the response is:
   #   #
   #   # Response (422):
   #   # <errors type="array"><error>First cannot be empty</error></errors>
+  #   # or
+  #   # {"errors":["First cannot be empty"]}
   #   #
   #
   #   ryan.errors.invalid?(:first)  # => true
@@ -349,6 +369,31 @@ module ActiveResource
         end
       end
 
+      # Options that will get applied to an SSL connection.
+      #
+      # * <tt>:key</tt> - An OpenSSL::PKey::RSA or OpenSSL::PKey::DSA object.
+      # * <tt>:cert</tt> - An OpenSSL::X509::Certificate object as client certificate
+      # * <tt>:ca_file</tt> - Path to a CA certification file in PEM format. The file can contrain several CA certificates.
+      # * <tt>:ca_path</tt> - Path of a CA certification directory containing certifications in PEM format.
+      # * <tt>:verify_mode</tt> - Flags for server the certification verification at begining of SSL/TLS session. (OpenSSL::SSL::VERIFY_NONE or OpenSSL::SSL::VERIFY_PEER is acceptable)
+      # * <tt>:verify_callback</tt> - The verify callback for the server certification verification.
+      # * <tt>:verify_depth</tt> - The maximum depth for the certificate chain verification.
+      # * <tt>:cert_store</tt> - OpenSSL::X509::Store to verify peer certificate.
+      # * <tt>:ssl_timeout</tt> -The SSL timeout in seconds.
+      def ssl_options=(opts={})
+        @connection   = nil
+        @ssl_options  = opts
+      end
+
+      # Returns the SSL options hash.
+      def ssl_options
+        if defined?(@ssl_options)
+          @ssl_options
+        elsif superclass != Object && superclass.ssl_options
+          superclass.ssl_options
+        end
+      end
+
       # An instance of ActiveResource::Connection that is the base \connection to the remote service.
       # The +refresh+ parameter toggles whether or not the \connection is refreshed at every request
       # or not (defaults to <tt>false</tt>).
@@ -359,6 +404,7 @@ module ActiveResource
           @connection.user = user if user
           @connection.password = password if password
           @connection.timeout = timeout if timeout
+          @connection.ssl_options = ssl_options if ssl_options
           @connection
         else
           superclass.connection
@@ -546,6 +592,19 @@ module ActiveResource
       #
       #   StreetAddress.find(1, :params => { :person_id => 1 })
       #   # => GET /people/1/street_addresses/1.xml
+      #
+      # == Failure or missing data
+      #   A failure to find the requested object raises a ResourceNotFound
+      #   exception if the find was called with an id.
+      #   With any other scope, find returns nil when no data is returned.
+      #
+      #   Person.find(1)
+      #   # => raises ResourcenotFound
+      #
+      #   Person.find(:all)
+      #   Person.find(:first)
+      #   Person.find(:last)
+      #   # => nil
       def find(*arguments)
         scope   = arguments.slice!(0)
         options = arguments.slice!(0) || {}
@@ -558,6 +617,28 @@ module ActiveResource
           else             find_single(scope, options)
         end
       end
+
+
+      # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass
+      # in all the same arguments to this method as you can to
+      # <tt>find(:first)</tt>.
+      def first(*args)
+        find(:first, *args)
+      end
+
+      # A convenience wrapper for <tt>find(:last, *args)</tt>. You can pass
+      # in all the same arguments to this method as you can to
+      # <tt>find(:last)</tt>.
+      def last(*args)
+        find(:last, *args)
+      end
+
+      # This is an alias for find(:all).  You can pass in all the same
+      # arguments to this method as you can to <tt>find(:all)</tt>
+      def all(*args)
+        find(:all, *args)
+      end
+
 
       # Deletes the resources with the ID in the +id+ parameter.
       #
@@ -592,23 +673,29 @@ module ActiveResource
           response.code.to_i == 200
         end
         # id && !find_single(id, options).nil?
-      rescue ActiveResource::ResourceNotFound
+      rescue ActiveResource::ResourceNotFound, ActiveResource::ResourceGone
         false
       end
 
       private
         # Find every resource
         def find_every(options)
-          case from = options[:from]
-          when Symbol
-            instantiate_collection(get(from, options[:params]))
-          when String
-            path = "#{from}#{query_string(options[:params])}"
-            instantiate_collection(connection.get(path, headers) || [])
-          else
-            prefix_options, query_options = split_options(options[:params])
-            path = collection_path(prefix_options, query_options)
-            instantiate_collection( (connection.get(path, headers) || []), prefix_options )
+          begin
+            case from = options[:from]
+            when Symbol
+              instantiate_collection(get(from, options[:params]))
+            when String
+              path = "#{from}#{query_string(options[:params])}"
+              instantiate_collection(connection.get(path, headers) || [])
+            else
+              prefix_options, query_options = split_options(options[:params])
+              path = collection_path(prefix_options, query_options)
+              instantiate_collection( (connection.get(path, headers) || []), prefix_options )
+            end
+          rescue ActiveResource::ResourceNotFound
+            # Swallowing ResourceNotFound exceptions and return nil - as per
+            # ActiveRecord.
+            nil
           end
         end
 
@@ -835,6 +922,23 @@ module ActiveResource
     def save
       new? ? create : update
     end
+    
+    # Saves the resource.
+    #
+    # If the resource is new, it is created via +POST+, otherwise the
+    # existing resource is updated via +PUT+.
+    #
+    # With <tt>save!</tt> validations always run. If any of them fail
+    # ActiveResource::ResourceInvalid gets raised, and nothing is POSTed to
+    # the remote system.
+    # See ActiveResource::Validations for more information. 
+    #
+    # There's a series of callbacks associated with <tt>save!</tt>. If any
+    # of the <tt>before_*</tt> callbacks return +false+ the action is
+    # cancelled and <tt>save!</tt> raises ActiveResource::ResourceInvalid.
+    def save!
+      save || raise(ResourceInvalid.new(self))
+    end
 
     # Deletes the resource from the remote service.
     #
@@ -985,7 +1089,13 @@ module ActiveResource
           case value
             when Array
               resource = find_or_create_resource_for_collection(key)
-              value.map { |attrs| attrs.is_a?(String) ? attrs.dup : resource.new(attrs) }
+              value.map do |attrs|
+                if attrs.is_a?(String) || attrs.is_a?(Numeric)
+                  attrs.duplicable? ? attrs.dup : attrs
+                else
+                  resource.new(attrs)
+                end
+              end
             when Hash
               resource = find_or_create_resource_for(key)
               resource.new(value)

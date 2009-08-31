@@ -98,4 +98,22 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_instance_destroy_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find(1).destroy }
   end
+
+  def test_supports_primary_key
+    assert_nothing_raised NoMethodError do
+      ActiveRecord::Base.connection.supports_primary_key?
+    end
+  end
+
+  def test_primary_key_returns_value_if_it_exists
+    if ActiveRecord::Base.connection.supports_primary_key?
+      assert_equal 'id', ActiveRecord::Base.connection.primary_key('developers')
+    end
+  end
+
+  def test_primary_key_returns_nil_if_it_does_not_exist
+    if ActiveRecord::Base.connection.supports_primary_key?
+      assert_nil ActiveRecord::Base.connection.primary_key('developers_projects')
+    end
+  end
 end

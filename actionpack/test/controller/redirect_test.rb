@@ -231,18 +231,20 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_to_record
-    ActionController::Routing::Routes.draw do |map|
-      map.resources :workshops
-      map.connect ':controller/:action/:id'
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :workshops
+        map.connect ':controller/:action/:id'
+      end
+
+      get :redirect_to_existing_record
+      assert_equal "http://test.host/workshops/5", redirect_to_url
+      assert_redirected_to Workshop.new(5, false)
+
+      get :redirect_to_new_record
+      assert_equal "http://test.host/workshops", redirect_to_url
+      assert_redirected_to Workshop.new(5, true)
     end
-
-    get :redirect_to_existing_record
-    assert_equal "http://test.host/workshops/5", redirect_to_url
-    assert_redirected_to Workshop.new(5, false)
-
-    get :redirect_to_new_record
-    assert_equal "http://test.host/workshops", redirect_to_url
-    assert_redirected_to Workshop.new(5, true)
   end
 
   def test_redirect_to_nil

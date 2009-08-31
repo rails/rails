@@ -320,9 +320,10 @@ module ActionController
     #       notes.resources :attachments
     #     end
     #
-    # * <tt>:path_names</tt> - Specify different names for the 'new' and 'edit' actions. For example:
+    # * <tt>:path_names</tt> - Specify different path names for the actions. For example:
     #     # new_products_path == '/productos/nuevo'
-    #     map.resources :products, :as => 'productos', :path_names => { :new => 'nuevo', :edit => 'editar' }
+    #     # bids_product_path(1) == '/productos/1/licitacoes'
+    #     map.resources :products, :as => 'productos', :member => { :bids => :get }, :path_names => { :new => 'nuevo', :bids => 'licitacoes' }
     #
     #   You can also set default action names from an environment, like this:
     #     config.action_controller.resources_path_names = { :new => 'nuevo', :edit => 'editar' }
@@ -528,16 +529,16 @@ module ActionController
         resource = Resource.new(entities, options)
 
         with_options :controller => resource.controller do |map|
-          map_collection_actions(map, resource)
-          map_default_collection_actions(map, resource)
-          map_new_actions(map, resource)
-          map_member_actions(map, resource)
-
           map_associations(resource, options)
 
           if block_given?
             with_options(options.slice(*INHERITABLE_OPTIONS).merge(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix), &block)
           end
+
+          map_collection_actions(map, resource)
+          map_default_collection_actions(map, resource)
+          map_new_actions(map, resource)
+          map_member_actions(map, resource)
         end
       end
 
@@ -545,16 +546,16 @@ module ActionController
         resource = SingletonResource.new(entities, options)
 
         with_options :controller => resource.controller do |map|
-          map_collection_actions(map, resource)
-          map_new_actions(map, resource)
-          map_member_actions(map, resource)
-          map_default_singleton_actions(map, resource)
-
           map_associations(resource, options)
 
           if block_given?
             with_options(options.slice(*INHERITABLE_OPTIONS).merge(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix), &block)
           end
+
+          map_collection_actions(map, resource)
+          map_new_actions(map, resource)
+          map_member_actions(map, resource)
+          map_default_singleton_actions(map, resource)
         end
       end
 
@@ -589,7 +590,10 @@ module ActionController
         resource.collection_methods.each do |method, actions|
           actions.each do |action|
             [method].flatten.each do |m|
-              map_resource_routes(map, resource, action, "#{resource.path}#{resource.action_separator}#{action}", "#{action}_#{resource.name_prefix}#{resource.plural}", m)
+              action_path = resource.options[:path_names][action] if resource.options[:path_names].is_a?(Hash)
+              action_path ||= action
+
+              map_resource_routes(map, resource, action, "#{resource.path}#{resource.action_separator}#{action_path}", "#{action}_#{resource.name_prefix}#{resource.plural}", m)
             end
           end
         end

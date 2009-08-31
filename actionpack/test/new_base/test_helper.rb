@@ -35,12 +35,6 @@ class Rack::TestCase < ActionController::IntegrationTest
   setup do
     ActionController::Base.session_options[:key] = "abc"
     ActionController::Base.session_options[:secret] = ("*" * 30)
-
-    controllers = ActionController::Base.subclasses.map do |k| 
-      k.underscore.sub(/_controller$/, '')
-    end
-
-    ActionController::Routing.use_controllers!(controllers)
   end
 
   def app
@@ -89,6 +83,22 @@ class Rack::TestCase < ActionController::IntegrationTest
 end
 
 class ::ApplicationController < ActionController::Base
+end
+
+module ActionController
+  class << Routing
+    def possible_controllers
+      @@possible_controllers ||= []
+    end
+  end
+
+  class Base
+    def self.inherited(klass)
+      name = klass.name.underscore.sub(/_controller$/, '')
+      ActionController::Routing.possible_controllers << name unless name.blank?
+      super
+    end
+  end
 end
 
 class SimpleRouteCase < Rack::TestCase

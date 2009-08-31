@@ -55,7 +55,7 @@ namespace :db do
       case config['adapter']
       when 'mysql'
         @charset   = ENV['CHARSET']   || 'utf8'
-        @collation = ENV['COLLATION'] || 'utf8_general_ci'
+        @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
         creation_options = {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => nil))
@@ -292,7 +292,11 @@ namespace :db do
     desc "Load a schema.rb file into the database"
     task :load => :environment do
       file = ENV['SCHEMA'] || "#{RAILS_ROOT}/db/schema.rb"
-      load(file)
+      if File.exists?(file)
+        load(file)
+      else
+        abort %{#{file} doesn't exist yet. Run "rake db:migrate" to create it then try again. If you do not intend to use a database, you should instead alter #{RAILS_ROOT}/config/environment.rb to prevent active_record from loading: config.frameworks -= [ :active_record ]}
+      end
     end
   end
 

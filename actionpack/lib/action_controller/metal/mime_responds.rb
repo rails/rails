@@ -179,21 +179,8 @@ module ActionController #:nodoc:
     def respond_to(*mimes, &block)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
-      collector = Collector.new
-      mimes = collect_mimes_from_class_level if mimes.empty?
-      mimes.each { |mime| collector.send(mime) }
-      block.call(collector) if block_given?
-
-      if format = request.negotiate_mime(collector.order)
-        self.formats = [format.to_sym]
-
-        if response = collector.response_for(format)
-          response.call
-        else
-          default_render
-        end
-      else
-        head :not_acceptable
+      if response = retrieve_response_from_mimes(mimes, &block)
+        response.call
       end
     end
 
@@ -226,10 +213,12 @@ module ActionController #:nodoc:
     # is quite simple (it just needs to respond to call), you can even give
     # a proc to it.
     #
-    def respond_with(resource, options={}, &block)
-      respond_to(&block)
-    rescue ActionView::MissingTemplate
-      (options.delete(:responder) || responder).call(self, resource, options)
+    def respond_with(*resources, &block)
+      if response = retrieve_response_from_mimes([], &block)
+        options = resources.extract_options!
+        options.merge!(:default_response => response)
+        (options.delete(:responder) || responder).call(self, resources, options)
+      end
     end
 
     def responder
@@ -257,11 +246,29 @@ module ActionController #:nodoc:
       end
     end
 
+    # Collects mimes and return the response for the negotiated format. Returns
+    # nil if :not_acceptable was sent to the client.
+    #
+    def retrieve_response_from_mimes(mimes, &block)
+      collector = Collector.new { default_render }
+      mimes = collect_mimes_from_class_level if mimes.empty?
+      mimes.each { |mime| collector.send(mime) }
+      block.call(collector) if block_given?
+
+      if format = request.negotiate_mime(collector.order)
+        self.formats = [format.to_sym]
+        collector.response_for(format)
+      else
+        head :not_acceptable
+        nil
+      end
+    end
+
     class Collector #:nodoc:
       attr_accessor :order
 
-      def initialize
-        @order, @responses = [], {}
+      def initialize(&block)
+        @order, @responses, @default_response = [], {}, block
       end
 
       def any(*args, &block)
@@ -275,13 +282,12 @@ module ActionController #:nodoc:
 
       def custom(mime_type, &block)
         mime_type = mime_type.is_a?(Mime::Type) ? mime_type : Mime::Type.lookup(mime_type.to_s)
-
         @order << mime_type
         @responses[mime_type] ||= block
       end
 
       def response_for(mime)
-        @responses[mime] || @responses[Mime::ALL]
+        @responses[mime] || @responses[Mime::ALL] || @default_response
       end
 
       def self.generate_method_for_mime(mime)

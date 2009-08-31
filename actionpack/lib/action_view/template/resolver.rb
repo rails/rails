@@ -4,7 +4,7 @@ require "action_view/template/template"
 module ActionView
   # Abstract superclass
   class Resolver
-    def initialize(options)
+    def initialize(options = {})
       @cache  = options[:cache]
       @cached = {}
     end
@@ -41,8 +41,10 @@ module ActionView
     end
 
     def handler_glob
-      e = TemplateHandlers.extensions.map{|h| ".#{h},"}.join
-      "{#{e}}"
+      @handler_glob ||= begin
+        e = TemplateHandlers.extensions.map{|h| ".#{h}"}.join(",")
+        "{#{e}}"
+      end
     end
     
     def formats_glob
@@ -59,6 +61,10 @@ module ActionView
   end
 
   class FileSystemResolver < Resolver
+
+    def self.cached_glob
+      @@cached_glob ||= {}
+    end
 
     def initialize(path, options = {})
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
@@ -105,20 +111,22 @@ module ActionView
 
     # :api: plugin
     def details_to_glob(name, details, prefix, partial, root)
-      path = ""
-      path << "#{prefix}/" unless prefix.empty?
-      path << (partial ? "_#{name}" : name)
+      self.class.cached_glob[[name, prefix, partial, details, root]] ||= begin
+        path = ""
+        path << "#{prefix}/" unless prefix.empty?
+        path << (partial ? "_#{name}" : name)
 
-      extensions = ""
-      [:locales, :formats].each do |k|
-        extensions << if exts = details[k]
-          '{' + exts.map {|e| ".#{e},"}.join + '}'
-        else
-          k == :formats ? formats_glob : ''
+        extensions = ""
+        [:locales, :formats].each do |k|
+          extensions << if exts = details[k]
+            '{' + exts.map {|e| ".#{e},"}.join + '}'
+          else
+            k == :formats ? formats_glob : ''
+          end
         end
-      end
       
-      "#{root}#{path}#{extensions}#{handler_glob}"
+        "#{root}#{path}#{extensions}#{handler_glob}"
+      end
     end
 
     # TODO: fix me

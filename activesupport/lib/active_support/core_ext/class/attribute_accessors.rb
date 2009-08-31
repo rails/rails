@@ -46,11 +46,12 @@ class Class
         end                                            # end
         " unless options[:instance_writer] == false }  # # instance writer above is generated unless options[:instance_writer] == false
       EOS
+      self.send("#{sym}=", yield) if block_given?
     end
   end
 
-  def cattr_accessor(*syms)
+  def cattr_accessor(*syms, &blk)
     cattr_reader(*syms)
-    cattr_writer(*syms)
+    cattr_writer(*syms, &blk)
   end
 end

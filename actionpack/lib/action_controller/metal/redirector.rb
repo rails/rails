@@ -8,6 +8,9 @@ module ActionController
   end
 
   module Redirector
+    extend ActiveSupport::Concern
+    include AbstractController::Logger
+
     def redirect_to(url, status) #:doc:
       raise AbstractController::DoubleRenderError if response_body
       logger.info("Redirected to #{url}") if logger && logger.info?

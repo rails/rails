@@ -12,9 +12,11 @@ gems:
   #version: >= 2.7
   version: = 2.7
 - name: pg
-  version: >= 0.7.9.2008.10.13
+  version: >= 0.8.0
 - name: rack
   version: '~> 1.0.0'
+- name: josh-rack-test
+  version: >= 0.4.1
 - name: rake
   version: >= 0.8.1
 - name: sqlite-ruby

@@ -71,6 +71,10 @@ module Rails
       File.exist?(routing_file)
     end
 
+    # Returns true if there is any localization file in locale_path
+    def localized?
+      locale_files.any?
+    end
 
     def view_path
       File.join(directory, 'app', 'views')
@@ -86,6 +90,14 @@ module Rails
 
     def routing_file
       File.join(directory, 'config', 'routes.rb')
+    end
+
+    def locale_path
+      File.join(directory, 'config', 'locales')
+    end
+
+    def locale_files
+      Dir[ File.join(locale_path, '*.{rb,yml}') ]
     end
     
 

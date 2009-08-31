@@ -111,12 +111,21 @@ module AbstractController
     def _determine_template(options)
       name = (options[:_template_name] || action_name).to_s
 
-      options[:_template] ||= view_paths.find(
-        name, { :formats => formats }, options[:_prefix], options[:_partial]
-      )
+      options[:_template] ||= with_template_cache(name) do
+        view_paths.find(
+          name, { :formats => formats }, options[:_prefix], options[:_partial]
+        )
+      end
+    end
+    
+    def with_template_cache(name)
+      yield
     end
 
     module ClassMethods
+      def clear_template_caches!
+      end
+      
       # Append a path to the list of view paths for this controller.
       #
       # ==== Parameters
@@ -134,6 +143,7 @@ module AbstractController
       # the default view path. You may also provide a custom view path 
       # (see ActionView::ViewPathSet for more information)
       def prepend_view_path(path)
+        clear_template_caches!
         self.view_paths.unshift(path)
       end
 
@@ -148,6 +158,7 @@ module AbstractController
       # paths<ViewPathSet, Object>:: If a ViewPathSet is provided, use that;
       #   otherwise, process the parameter into a ViewPathSet.
       def view_paths=(paths)
+        clear_template_caches!
         self._view_paths = paths.is_a?(ActionView::PathSet) ?
                             paths : ActionView::Base.process_view_paths(paths)
       end

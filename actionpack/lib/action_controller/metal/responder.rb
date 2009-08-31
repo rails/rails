@@ -64,7 +64,7 @@ module ActionController #:nodoc:
   #     @project = Project.find(params[:project_id])
   #     @task = @project.comments.build(params[:task])
   #     flash[:notice] = 'Task was successfully created.' if @task.save
-  #     respond_with([@project, @task])
+  #     respond_with(@project, @task)
   #   end
   #
   # Giving an array of resources, you ensure that the responder will redirect to
@@ -74,20 +74,21 @@ module ActionController #:nodoc:
   # polymorphic urls. If a project has one manager which has many tasks, it
   # should be invoked as:
   #
-  #   respond_with([@project, :manager, @task])
+  #   respond_with(@project, :manager, @task)
   #
   # Check polymorphic_url documentation for more examples.
   #
   class Responder
-    attr_reader :controller, :request, :format, :resource, :resource_location, :options
+    attr_reader :controller, :request, :format, :resource, :resources, :options
 
-    def initialize(controller, resource, options={})
+    def initialize(controller, resources, options={})
       @controller = controller
       @request = controller.request
       @format = controller.formats.first
-      @resource = resource.is_a?(Array) ? resource.last : resource
-      @resource_location = options[:location] || resource
+      @resource = resources.is_a?(Array) ? resources.last : resources
+      @resources = resources
       @options = options
+      @default_response = options.delete(:default_response)
     end
 
     delegate :head, :render, :redirect_to,   :to => :controller
@@ -109,8 +110,10 @@ module ActionController #:nodoc:
     # template.
     #
     def to_html
+      default_render
+    rescue ActionView::MissingTemplate
       if get?
-        render
+        raise
       elsif has_errors?
         render :action => default_action
       else
@@ -118,12 +121,14 @@ module ActionController #:nodoc:
       end
     end
 
-    # All others formats try to render the resource given instead. For this
-    # purpose a helper called display as a shortcut to render a resource with
-    # the current format.
+    # All others formats follow the procedure below. First we try to render a
+    # template, if the template is not available, we verify if the resource
+    # responds to :to_format and display it.
     #
     def to_format
-      return render unless resourceful?
+      default_render
+    rescue ActionView::MissingTemplate
+      raise unless resourceful?
 
       if get?
         display resource
@@ -144,6 +149,20 @@ module ActionController #:nodoc:
       resource.respond_to?(:"to_#{format}")
     end
 
+    # Returns the resource location by retrieving it from the options or
+    # returning the resources array.
+    #
+    def resource_location
+      options[:location] || resources
+    end
+
+    # If a given response block was given, use it, otherwise call render on
+    # controller.
+    #
+    def default_render
+      @default_response.call
+    end
+
     # display is just a shortcut to render a resource with the current format.
     #
     #   display @user, :status => :ok
@@ -162,7 +181,7 @@ module ActionController #:nodoc:
     #   render :xml => @user, :status => :created
     #
     def display(resource, given_options={})
-      render given_options.merge!(options).merge!(format => resource)
+      controller.render given_options.merge!(options).merge!(format => resource)
     end
 
     # Check if the resource has errors or not.

@@ -1,7 +1,9 @@
 require 'abstract_unit'
 
 # Does awesome
-if ENV['CHILD']
+if defined?(MiniTest)
+  $stderr.puts "Umm, MiniTest not supported yet, mmkay?"
+elsif ENV['CHILD']
   class ChildIsolationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
@@ -73,7 +75,7 @@ else
     File.open(File.join(File.dirname(__FILE__), "fixtures", "isolation_test"), "w") {}
 
     ENV["CHILD"] = "1"
-    OUTPUT = `#{Gem.ruby} -I#{File.dirname(__FILE__)} #{File.expand_path(__FILE__)} -v`
+    OUTPUT = `#{Gem.ruby} -I#{File.dirname(__FILE__)} "#{File.expand_path(__FILE__)}" -v`
     ENV.delete("CHILD")
 
     def setup

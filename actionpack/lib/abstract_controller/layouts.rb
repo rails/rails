@@ -6,13 +6,56 @@ module AbstractController
 
     included do
       extlib_inheritable_accessor(:_layout_conditions) { Hash.new }
+      extlib_inheritable_accessor(:_action_has_layout) { Hash.new }
       _write_layout_method
     end
 
     module ClassMethods
       def inherited(klass)
         super
-        klass._write_layout_method
+        klass.class_eval do
+          _write_layout_method
+          @found_layouts = {}
+        end
+      end
+
+      def clear_template_caches!
+        @found_layouts.clear if @found_layouts
+        super
+      end
+
+      def cache_layout(details)
+        layout = @found_layouts
+        key = Thread.current[:format_locale_key]
+
+        # Cache nil
+        if layout.key?(key)
+          return layout[key]
+        else
+          layout[key] = yield
+        end
+      end
+
+      # This module is mixed in if layout conditions are provided. This means
+      # that if no layout conditions are used, this method is not used
+      module LayoutConditions
+        # Determines whether the current action has a layout by checking the
+        # action name against the :only and :except conditions set on the
+        # layout.
+        #
+        # ==== Returns
+        # Boolean:: True if the action has a layout, false otherwise.
+        def _action_has_layout?
+          conditions = _layout_conditions
+
+          if only = conditions[:only]
+            only.include?(action_name)
+          elsif except = conditions[:except]
+            !except.include?(action_name)
+          else
+            true
+          end
+        end
       end
 
       # Specify the layout to use for this class.
@@ -31,6 +74,8 @@ module AbstractController
       # :only<#to_s, Array[#to_s]>:: A list of actions to apply this layout to.
       # :except<#to_s, Array[#to_s]>:: Apply this layout to all actions but this one
       def layout(layout, conditions = {})
+        include LayoutConditions unless conditions.empty?
+
         conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
         self._layout_conditions = conditions
 
@@ -76,10 +121,12 @@ module AbstractController
         when nil
           self.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
             def _layout(details)
-              if view_paths.exists?("#{_implied_layout_name}", details, "layouts")
-                "#{_implied_layout_name}"
-              else
-                super
+              self.class.cache_layout(details) do
+                if view_paths.exists?("#{_implied_layout_name}", details, "layouts")
+                  "#{_implied_layout_name}"
+                else
+                  super
+                end
               end
             end
           ruby_eval
@@ -98,6 +145,9 @@ module AbstractController
       # This is a little bit messy. We need to explicitly handle partial
       # layouts here since the core lookup logic is in the view, but
       # we need to determine the layout based on the controller
+      #
+      # TODO: An easier way to handle this would probably be to override
+      # render_template
       if layout
         layout = _layout_for_option(layout, options[:_template].details)
         response = layout.render(view_context, options[:locals] || {}) { response }
@@ -136,7 +186,7 @@ module AbstractController
       view_paths.find(name, details, prefix)
     end
 
-    # Returns the default layout for this controller and a given set of details. 
+    # Returns the default layout for this controller and a given set of details.
     # Optionally raises an exception if the layout could not be found.
     #
     # ==== Parameters
@@ -162,21 +212,8 @@ module AbstractController
       end
     end
 
-    # Determines whether the current action has a layout by checking the
-    # action name against the :only and :except conditions set on the
-    # layout.
-    #
-    # ==== Returns
-    # Boolean:: True if the action has a layout, false otherwise.
     def _action_has_layout?
-      conditions = _layout_conditions
-      if only = conditions[:only]
-        only.include?(action_name)
-      elsif except = conditions[:except]
-        !except.include?(action_name)
-      else
-        true
-      end
+      true
     end
   end
 end

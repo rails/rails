@@ -8,21 +8,11 @@ module ActiveRecord
       alias_method :new, :build
 
       def create!(attrs = nil)
-        ensure_owner_is_not_new
-
-        transaction do
-          self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association! } : @reflection.create_association!)
-          object
-        end
+        create_record(attrs, true)
       end
 
       def create(attrs = nil)
-        ensure_owner_is_not_new
-
-        transaction do
-          self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association } : @reflection.create_association)
-          object
-        end
+        create_record(attrs, false)
       end
 
       def destroy(*records)
@@ -40,8 +30,18 @@ module ActiveRecord
         return @target.size if loaded?
         return count
       end
-      
+
       protected
+        def create_record(attrs, force = true)
+          ensure_owner_is_not_new
+
+          transaction do
+            object = @reflection.klass.new(attrs)
+            add_record_to_target_with_callbacks(object) {|r| insert_record(object, force) }
+            object
+          end
+        end
+
         def target_reflection_has_associated_record?
           if @reflection.through_reflection.macro == :belongs_to && @owner[@reflection.through_reflection.primary_key_name].blank?
             false
@@ -65,9 +65,10 @@ module ActiveRecord
               return false unless record.save(validate)
             end
           end
-          through_reflection = @reflection.through_reflection
-          klass = through_reflection.klass
-          @owner.send(@reflection.through_reflection.name).proxy_target << klass.send(:with_scope, :create => construct_join_attributes(record)) { through_reflection.create_association! }
+
+          through_association = @owner.send(@reflection.through_reflection.name)
+          through_record = through_association.create!(construct_join_attributes(record))
+          through_association.proxy_target << through_record
         end
 
         # TODO - add dependent option support

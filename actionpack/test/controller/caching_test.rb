@@ -48,10 +48,8 @@ class PageCachingTest < ActionController::TestCase
     super
     ActionController::Base.perform_caching = true
 
-    ActionController::Routing::Routes.clear!
-
     ActionController::Routing::Routes.draw do |map|
-      map.main '', :controller => 'posts'
+      map.main '', :controller => 'posts', :format => nil
       map.formatted_posts 'posts.:format', :controller => 'posts'
       map.resources :posts
       map.connect ':controller/:action/:id'
@@ -72,7 +70,6 @@ class PageCachingTest < ActionController::TestCase
 
   def teardown
     FileUtils.rm_rf(File.dirname(FILE_STORE_PATH))
-    ActionController::Routing::Routes.clear!
     ActionController::Base.perform_caching = false
   end
 
@@ -536,7 +533,6 @@ class FragmentCachingTest < ActionController::TestCase
     @controller.params = @params
     @controller.request = @request
     @controller.response = @response
-    @controller.send(:initialize_current_url)
     @controller.send(:initialize_template_class, @response)
     @controller.send(:assign_shortcuts, @request, @response)
   end

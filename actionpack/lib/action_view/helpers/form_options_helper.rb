@@ -162,6 +162,60 @@ module ActionView
         InstanceTag.new(object, method, self, options.delete(:object)).to_collection_select_tag(collection, value_method, text_method, options, html_options)
       end
 
+
+      # Returns <tt><select></tt>, <tt><optgroup></tt> and <tt><option></tt> tags for the collection of existing return values of
+      # +method+ for +object+'s class. The value returned from calling +method+ on the instance +object+ will
+      # be selected. If calling +method+ returns +nil+, no selection is made without including <tt>:prompt</tt>
+      # or <tt>:include_blank</tt> in the +options+ hash.
+      #
+      # Parameters:
+      # * +object+ - The instance of the class to be used for the select tag
+      # * +method+ - The attribute of +object+ corresponding to the select tag
+      # * +collection+ - An array of objects representing the <tt><optgroup></tt> tags.
+      # * +group_method+ - The name of a method which, when called on a member of +collection+, returns an
+      #   array of child objects representing the <tt><option></tt> tags.
+      # * +group_label_method+ - The name of a method which, when called on a member of +collection+, returns a
+      #   string to be used as the +label+ attribute for its <tt><optgroup></tt> tag.
+      # * +option_key_method+ - The name of a method which, when called on a child object of a member of
+      #   +collection+, returns a value to be used as the +value+ attribute for its <tt><option></tt> tag.
+      # * +option_value_method+ - The name of a method which, when called on a child object of a member of
+      #   +collection+, returns a value to be used as the contents of its <tt><option></tt> tag.
+      #
+      # Example object structure for use with this method:
+      #   class Continent < ActiveRecord::Base
+      #     has_many :countries
+      #     # attribs: id, name
+      #   end
+      #   class Country < ActiveRecord::Base
+      #     belongs_to :continent
+      #     # attribs: id, name, continent_id
+      #   end
+      #   class City < ActiveRecord::Base
+      #     belongs_to :country
+      #     # attribs: id, name, country_id
+      #   end
+      #
+      # Sample usage:
+      #   grouped_collection_select(:city, :country_id, @continents, :countries, :name, :id, :name)
+      #
+      # Possible output:
+      #   <select name="city[country_id]">
+      #     <optgroup label="Africa">
+      #       <option value="1">South Africa</option>
+      #       <option value="3">Somalia</option>
+      #     </optgroup>
+      #     <optgroup label="Europe">
+      #       <option value="7" selected="selected">Denmark</option>
+      #       <option value="2">Ireland</option>
+      #     </optgroup>
+      #   </select>
+      #
+      def grouped_collection_select(object, method, collection, group_method, group_label_method, option_key_method, option_value_method, options = {}, html_options = {})
+        InstanceTag.new(object, method, self, options.delete(:object)).to_grouped_collection_select_tag(collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options)
+      end
+
+
+
       # Return select and option tags for the given object and method, using
       # #time_zone_options_for_select to generate the list of option tags.
       #
@@ -490,6 +544,15 @@ module ActionView
         )
       end
 
+      def to_grouped_collection_select_tag(collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options)
+        html_options = html_options.stringify_keys
+        add_default_name_and_id(html_options)
+        value = value(object)
+        content_tag(
+          "select", add_options(option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, value), options, value), html_options
+        )
+      end
+
       def to_time_zone_select_tag(priority_zones, options, html_options)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
@@ -508,7 +571,8 @@ module ActionView
             option_tags = "<option value=\"\">#{options[:include_blank] if options[:include_blank].kind_of?(String)}</option>\n" + option_tags
           end
           if value.blank? && options[:prompt]
-            ("<option value=\"\">#{options[:prompt].kind_of?(String) ? options[:prompt] : 'Please select'}</option>\n") + option_tags
+            prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('support.select.prompt', :default => 'Please select')
+            "<option value=\"\">#{prompt}</option>\n" + option_tags
           else
             option_tags
           end
@@ -522,6 +586,10 @@ module ActionView
 
       def collection_select(method, collection, value_method, text_method, options = {}, html_options = {})
         @template.collection_select(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
+      end
+
+      def grouped_collection_select(method, collection, group_method, group_label_method, option_key_method, option_value_method, options = {}, html_options = {})
+        @template.grouped_collection_select(@object_name, method, collection, group_method, group_label_method, option_key_method, option_value_method, objectify_options(options), @default_options.merge(html_options))
       end
 
       def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})

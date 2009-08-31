@@ -17,9 +17,9 @@ root:*:14001:0:99999:7:::
 
 * Change Hostname:
 $ sudo vi /etc/hostname
-change to 'ci'
+change to correct hostname
 $ sudo vi /etc/hosts
-replace old hostname with 'ci'
+replace old hostname with the correct hostname
 # reboot to use new hostname (and test reboot)
 $ sudo shutdown -r now
 

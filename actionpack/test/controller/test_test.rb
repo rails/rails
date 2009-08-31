@@ -123,13 +123,6 @@ XML
     @controller = TestController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
-    ActionController::Routing.use_controllers! %w(content admin/user test_test/test)
-    ActionController::Routing::Routes.load_routes!
-  end
-
-  def teardown
-    super
-    ActionController::Routing::Routes.reload
   end
 
   def test_raw_post_handling

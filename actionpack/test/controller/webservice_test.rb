@@ -24,11 +24,6 @@ class WebServiceTest < ActionController::IntegrationTest
 
   def setup
     @controller = TestController.new
-    @default_param_parsers = ActionController::Base.param_parsers.dup
-  end
-
-  def teardown
-    ActionController::Base.param_parsers = @default_param_parsers
   end
 
   def test_check_parameters
@@ -110,58 +105,61 @@ class WebServiceTest < ActionController::IntegrationTest
 
   def test_post_xml_using_an_attributted_node_named_type
     with_test_route_set do
-      ActionController::Base.param_parsers[Mime::XML] = Proc.new { |data| Hash.from_xml(data)['request'].with_indifferent_access }
-      post "/", '<request><type type="string">Arial,12</type><z>3</z></request>',
-        {'CONTENT_TYPE' => 'application/xml'}
+      with_params_parsers Mime::XML => Proc.new { |data| Hash.from_xml(data)['request'].with_indifferent_access } do
+        post "/", '<request><type type="string">Arial,12</type><z>3</z></request>',
+          {'CONTENT_TYPE' => 'application/xml'}
 
-      assert_equal 'type, z', @controller.response.body
-      assert @controller.params.has_key?(:type)
-      assert_equal 'Arial,12', @controller.params['type'], @controller.params.inspect
-      assert_equal '3', @controller.params['z'], @controller.params.inspect
+        assert_equal 'type, z', @controller.response.body
+        assert @controller.params.has_key?(:type)
+        assert_equal 'Arial,12', @controller.params['type'], @controller.params.inspect
+        assert_equal '3', @controller.params['z'], @controller.params.inspect
+      end
     end
   end
 
   def test_register_and_use_yaml
     with_test_route_set do
-      ActionController::Base.param_parsers[Mime::YAML] = Proc.new { |d| YAML.load(d) }
-      post "/", {"entry" => "loaded from yaml"}.to_yaml,
-        {'CONTENT_TYPE' => 'application/x-yaml'}
+      with_params_parsers Mime::YAML => Proc.new { |d| YAML.load(d) } do
+        post "/", {"entry" => "loaded from yaml"}.to_yaml,
+          {'CONTENT_TYPE' => 'application/x-yaml'}
 
-      assert_equal 'entry', @controller.response.body
-      assert @controller.params.has_key?(:entry)
-      assert_equal 'loaded from yaml', @controller.params["entry"]
+        assert_equal 'entry', @controller.response.body
+        assert @controller.params.has_key?(:entry)
+        assert_equal 'loaded from yaml', @controller.params["entry"]
+      end
     end
   end
 
   def test_register_and_use_yaml_as_symbol
     with_test_route_set do
-      ActionController::Base.param_parsers[Mime::YAML] = :yaml
-      post "/", {"entry" => "loaded from yaml"}.to_yaml,
-        {'CONTENT_TYPE' => 'application/x-yaml'}
+      with_params_parsers Mime::YAML => :yaml do
+        post "/", {"entry" => "loaded from yaml"}.to_yaml,
+          {'CONTENT_TYPE' => 'application/x-yaml'}
 
-      assert_equal 'entry', @controller.response.body
-      assert @controller.params.has_key?(:entry)
-      assert_equal 'loaded from yaml', @controller.params["entry"]
+        assert_equal 'entry', @controller.response.body
+        assert @controller.params.has_key?(:entry)
+        assert_equal 'loaded from yaml', @controller.params["entry"]
+      end
     end
   end
 
   def test_register_and_use_xml_simple
     with_test_route_set do
-      ActionController::Base.param_parsers[Mime::XML] = Proc.new { |data| Hash.from_xml(data)['request'].with_indifferent_access }
-      post "/", '<request><summary>content...</summary><title>SimpleXml</title></request>',
-        {'CONTENT_TYPE' => 'application/xml'}
+      with_params_parsers Mime::XML => Proc.new { |data| Hash.from_xml(data)['request'].with_indifferent_access } do
+        post "/", '<request><summary>content...</summary><title>SimpleXml</title></request>',
+          {'CONTENT_TYPE' => 'application/xml'}
 
-      assert_equal 'summary, title', @controller.response.body
-      assert @controller.params.has_key?(:summary)
-      assert @controller.params.has_key?(:title)
-      assert_equal 'content...', @controller.params["summary"]
-      assert_equal 'SimpleXml', @controller.params["title"]
+        assert_equal 'summary, title', @controller.response.body
+        assert @controller.params.has_key?(:summary)
+        assert @controller.params.has_key?(:title)
+        assert_equal 'content...', @controller.params["summary"]
+        assert_equal 'SimpleXml', @controller.params["title"]
+      end
     end
   end
 
   def test_use_xml_ximple_with_empty_request
     with_test_route_set do
-      ActionController::Base.param_parsers[Mime::XML] = :xml_simple
       assert_nothing_raised { post "/", "", {'CONTENT_TYPE' => 'application/xml'} }
       assert @controller.response.body.blank?
     end
@@ -169,7 +167,6 @@ class WebServiceTest < ActionController::IntegrationTest
 
   def test_dasherized_keys_as_xml
     with_test_route_set do
-      ActionController::Base.param_parsers[Mime::XML] = :xml_simple
       post "/?full=1", "<first-key>\n<sub-key>...</sub-key>\n</first-key>",
         {'CONTENT_TYPE' => 'application/xml'}
       assert_equal 'action, controller, first_key(sub_key), full', @controller.response.body
@@ -179,7 +176,6 @@ class WebServiceTest < ActionController::IntegrationTest
 
   def test_typecast_as_xml
     with_test_route_set do
-      ActionController::Base.param_parsers[Mime::XML] = :xml_simple
       xml = <<-XML
         <data>
           <a type="integer">15</a>
@@ -208,7 +204,6 @@ class WebServiceTest < ActionController::IntegrationTest
 
   def test_entities_unescaped_as_xml_simple
     with_test_route_set do
-      ActionController::Base.param_parsers[Mime::XML] = :xml_simple
       xml = <<-XML
         <data>&lt;foo &quot;bar&apos;s&quot; &amp; friends&gt;</data>
       XML
@@ -219,34 +214,44 @@ class WebServiceTest < ActionController::IntegrationTest
 
   def test_typecast_as_yaml
     with_test_route_set do
-      ActionController::Base.param_parsers[Mime::YAML] = :yaml
-      yaml = <<-YAML
-        ---
-        data:
-          a: 15
-          b: false
-          c: true
-          d: 2005-03-17
-          e: 2005-03-17T21:41:07Z
-          f: unparsed
-          g:
-            - 1
-            - hello
-            - 1974-07-25
-      YAML
-      post "/", yaml, {'CONTENT_TYPE' => 'application/x-yaml'}
-      params = @controller.params
-      assert_equal 15, params[:data][:a]
-      assert_equal false, params[:data][:b]
-      assert_equal true, params[:data][:c]
-      assert_equal Date.new(2005,3,17), params[:data][:d]
-      assert_equal Time.utc(2005,3,17,21,41,7), params[:data][:e]
-      assert_equal "unparsed", params[:data][:f]
-      assert_equal [1, "hello", Date.new(1974,7,25)], params[:data][:g]
+      with_params_parsers Mime::YAML => :yaml do
+        yaml = <<-YAML
+          ---
+          data:
+            a: 15
+            b: false
+            c: true
+            d: 2005-03-17
+            e: 2005-03-17T21:41:07Z
+            f: unparsed
+            g:
+              - 1
+              - hello
+              - 1974-07-25
+        YAML
+        post "/", yaml, {'CONTENT_TYPE' => 'application/x-yaml'}
+        params = @controller.params
+        assert_equal 15, params[:data][:a]
+        assert_equal false, params[:data][:b]
+        assert_equal true, params[:data][:c]
+        assert_equal Date.new(2005,3,17), params[:data][:d]
+        assert_equal Time.utc(2005,3,17,21,41,7), params[:data][:e]
+        assert_equal "unparsed", params[:data][:f]
+        assert_equal [1, "hello", Date.new(1974,7,25)], params[:data][:g]
+      end
     end
   end
 
   private
+    def with_params_parsers(parsers = {})
+      old_session = @integration_session
+      app = ActionDispatch::ParamsParser.new(ActionController::Routing::Routes, parsers)
+      @integration_session = open_session(app)
+      yield
+    ensure
+      @integration_session = old_session
+    end
+
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
@@ -254,6 +259,7 @@ class WebServiceTest < ActionController::IntegrationTest
             c.connect "/", :action => "assign_parameters"
           end
         end
+        reset!
         yield
       end
     end

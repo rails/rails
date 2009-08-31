@@ -1,5 +1,11 @@
 *Edge*
 
+* Add support for errors in JSON format.  #1956 [Fabien Jakimowicz]
+
+* Recognizes 410 as Resource Gone. #2316 [Jordan Brough, Jatinder Singh]
+
+* More thorough SSL support.  #2370 [Roy Nicholson]
+
 * HTTP proxy support.  #2133 [Marshall Huss, Sébastien Dabet]
 
 

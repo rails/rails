@@ -159,6 +159,7 @@ class Array
     raise "Not all elements respond to to_xml" unless all? { |e| e.respond_to? :to_xml }
     require 'builder' unless defined?(Builder)
 
+    options = options.dup
     options[:root]     ||= all? { |e| e.is_a?(first.class) && first.class.to_s != "Hash" } ? ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(first.class.name)) : "records"
     options[:children] ||= options[:root].singularize
     options[:indent]   ||= 2

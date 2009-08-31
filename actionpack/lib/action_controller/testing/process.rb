@@ -52,7 +52,7 @@ module ActionController #:nodoc:
   class TestResponse < ActionDispatch::TestResponse
     def recycle!
       @status = 200
-      @header = Rack::Utils::HeaderHash.new
+      @header = {}
       @writer = lambda { |x| @body << x }
       @block = nil
       @length = 0
@@ -84,7 +84,7 @@ module ActionController #:nodoc:
   #
   # Pass a true third parameter to ensure the uploaded file is opened in binary mode (only required for Windows):
   #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(ActionController::TestCase.fixture_path + '/files/spongebob.png', 'image/png', :binary)
-  TestUploadedFile = Rack::Utils::Multipart::UploadedFile
+  TestUploadedFile = ActionDispatch::TestRequest::Multipart::UploadedFile
 
   module TestProcess
     def self.included(base)
@@ -148,7 +148,7 @@ module ActionController #:nodoc:
 
     def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
       @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-      @request.env['HTTP_ACCEPT'] =  [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+      @request.env['HTTP_ACCEPT'] ||=  [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
       returning __send__(request_method, action, parameters, session, flash) do
         @request.env.delete 'HTTP_X_REQUESTED_WITH'
         @request.env.delete 'HTTP_ACCEPT'
@@ -249,6 +249,7 @@ module ActionController #:nodoc:
 
       temporary_routes = ActionController::Routing::RouteSet.new
       ActionController::Routing.module_eval { const_set :Routes, temporary_routes }
+      ActionController::Dispatcher.router = temporary_routes
 
       yield temporary_routes
     ensure
@@ -256,6 +257,7 @@ module ActionController #:nodoc:
         ActionController::Routing.module_eval { remove_const :Routes }
       end
       ActionController::Routing.const_set(:Routes, real_routes) if real_routes
+      ActionController::Dispatcher.router = ActionController::Routing::Routes
     end
   end
 end

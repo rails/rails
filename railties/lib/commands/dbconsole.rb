@@ -33,11 +33,15 @@ end
 def find_cmd(*commands)
   dirs_on_path = ENV['PATH'].to_s.split(File::PATH_SEPARATOR)
   commands += commands.map{|cmd| "#{cmd}.exe"} if RUBY_PLATFORM =~ /win32/
-  commands.detect do |cmd|
-    dirs_on_path.detect do |path|
-      File.executable? File.join(path, cmd)
+
+  full_path_command = nil
+  found = commands.detect do |cmd|
+    dir = dirs_on_path.detect do |path|
+      full_path_command = File.join(path, cmd)
+      File.executable? full_path_command
     end
-  end || abort("Couldn't find database client: #{commands.join(', ')}. Check your $PATH and try again.")
+  end
+  found ? full_path_command : abort("Couldn't find database client: #{commands.join(', ')}. Check your $PATH and try again.")
 end
 
 case config["adapter"]

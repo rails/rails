@@ -20,6 +20,14 @@ module ActiveResource
     def to_s; @message ;end
   end
 
+  # Raised when a OpenSSL::SSL::SSLError occurs.
+  class SSLError < ConnectionError
+    def initialize(message)
+      @message = message
+    end
+    def to_s; @message ;end
+  end
+
   # 3xx Redirection
   class Redirection < ConnectionError # :nodoc:
     def to_s; response['Location'] ? "#{super} => #{response['Location']}" : super; end
@@ -42,6 +50,9 @@ module ActiveResource
 
   # 409 Conflict
   class ResourceConflict < ClientError; end # :nodoc:
+
+  # 410 Gone
+  class ResourceGone < ClientError; end # :nodoc:
 
   # 5xx Server Error
   class ServerError < ConnectionError; end # :nodoc:

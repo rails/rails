@@ -1,0 +1,11 @@
+*Edge*
+
+* Add validates_format_of :without => /regexp/ option. #430 [Elliot Winkler, Peer Allan]
+
+  Example :
+
+      validates_format_of :subdomain, :without => /www|admin|mail/
+
+* Introduce validates_with to encapsulate attribute validations in a class.  #2630 [Jeff Dean]
+
+* Extracted from Active Record and Active Resource.

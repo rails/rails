@@ -486,10 +486,6 @@ class TestController < ActionController::Base
     render :action => "using_layout_around_block"
   end
 
-  def render_using_layout_around_block_with_args
-    render :action => "using_layout_around_block_with_args"
-  end
-
   def render_using_layout_around_block_in_main_layout_and_within_content_for_layout
     render :action => "using_layout_around_block", :layout => "layouts/block_with_layout"
   end
@@ -1090,15 +1086,17 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_head_with_location_object
-    ActionController::Routing::Routes.draw do |map|
-      map.resources :customers
-      map.connect ':controller/:action/:id'
-    end
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :customers
+        map.connect ':controller/:action/:id'
+      end
 
-    get :head_with_location_object
-    assert @response.body.blank?
-    assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
-    assert_response :ok
+      get :head_with_location_object
+      assert @response.body.blank?
+      assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
+      assert_response :ok
+    end
   end
 
   def test_head_with_custom_header
@@ -1159,11 +1157,6 @@ class RenderTest < ActionController::TestCase
   def test_using_layout_around_block_in_main_layout_and_within_content_for_layout
     get :render_using_layout_around_block_in_main_layout_and_within_content_for_layout
     assert_equal "Before (Anthony)\nInside from first block in layout\nAfter\nBefore (David)\nInside from block\nAfter\nBefore (Ramm)\nInside from second block in layout\nAfter\n", @response.body
-  end
-
-  def test_using_layout_around_block_with_args
-    get :render_using_layout_around_block_with_args
-    assert_equal "Before\narg1arg2\nAfter", @response.body
   end
 
   def test_partial_only

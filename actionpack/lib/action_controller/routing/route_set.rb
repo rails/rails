@@ -213,7 +213,7 @@ module ActionController
         self.routes = []
         self.named_routes = NamedRouteCollection.new
 
-        clear_recognize_optimized!
+        clear!
       end
 
       # Subclasses and plugins may override this method to specify a different
@@ -223,6 +223,7 @@ module ActionController
       end
 
       def draw
+        clear!
         yield Mapper.new(self)
         install_helpers
       end
@@ -230,8 +231,10 @@ module ActionController
       def clear!
         routes.clear
         named_routes.clear
+
         @combined_regexp = nil
         @routes_by_controller = nil
+
         # This will force routing/recognition_optimization.rb
         # to refresh optimisations.
         clear_recognize_optimized!
@@ -262,7 +265,6 @@ module ActionController
 
       def load!
         Routing.use_controllers!(nil) # Clear the controller cache so we may discover new ones
-        clear!
         load_routes!
       end
 
@@ -286,10 +288,12 @@ module ActionController
           configuration_files.each { |config| load(config) }
           @routes_last_modified = routes_changed_at
         else
-          add_route ":controller/:action/:id"
+          draw do |map|
+            map.connect ":controller/:action/:id"
+          end
         end
       end
-      
+
       def routes_changed_at
         routes_changed_at = nil
         
@@ -407,9 +411,11 @@ module ActionController
           # don't use the recalled keys when determining which routes to check
           routes = routes_by_controller[controller][action][options.reject {|k,v| !v}.keys.sort_by { |x| x.object_id }]
 
-          routes.each do |route|
+          routes.each_with_index do |route, index|
             results = route.__send__(method, options, merged, expire_on)
-            return results if results && (!results.is_a?(Array) || results.first)
+            if results && (!results.is_a?(Array) || results.first)
+              return results
+            end
           end
         end
 
@@ -460,15 +466,12 @@ module ActionController
         merged = options if expire_on[:controller]
         action = merged[:action] || 'index'
 
-        routes_by_controller[controller][action][merged.keys]
+        routes_by_controller[controller][action][merged.keys][1]
       end
 
       def routes_for_controller_and_action_and_keys(controller, action, keys)
-        selected = routes.select do |route|
+        routes.select do |route|
           route.matches_controller_and_action? controller, action
-        end
-        selected.sort_by do |route|
-          (keys - route.significant_keys).length
         end
       end
 

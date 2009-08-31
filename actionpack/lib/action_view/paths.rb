@@ -34,7 +34,6 @@ module ActionView #:nodoc:
     end
 
     def find(path, details = {}, prefix = nil, partial = false)
-      # template_path = path.sub(/^\//, '')
       template_path = path
 
       each do |load_path|
@@ -43,8 +42,6 @@ module ActionView #:nodoc:
         end
       end
       
-      # TODO: Have a fallback absolute path?
-      extension = details[:formats] || []
       raise ActionView::MissingTemplate.new(self, "#{prefix}/#{path} - #{details.inspect} - partial: #{!!partial}")
     end
     

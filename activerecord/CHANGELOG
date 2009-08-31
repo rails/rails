@@ -1,5 +1,9 @@
 *Edge*
 
+* Remove support for SQLite 2. Please upgrade to SQLite 3+ or install the plugin from git://github.com/rails/sqlite2_adapter.git [Pratik Naik]
+
+* PostgreSQL: XML datatype support.  #1874 [Leonardo Borges]
+
 * quoted_date converts time-like objects to ActiveRecord::Base.default_timezone before serialization. This allows you to use Time.now in find conditions and have it correctly be serialized as the current time in UTC when default_timezone == :utc. #2946 [Geoff Buesing]
 
 * SQLite: drop support for 'dbfile' option in favor of 'database.'  #2363 [Paul Hinze, Jeremy Kemper]
@@ -2197,7 +2201,7 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
 
 * Escape database name in MySQL adapter when creating and dropping databases. #3409 [anna@wota.jp]
 
-* Disambiguate table names for columns in validates_uniquness_of's WHERE clause. #3423 [alex.borovsky@gmail.com]
+* Disambiguate table names for columns in validates_uniqueness_of's WHERE clause. #3423 [alex.borovsky@gmail.com]
 
 * .with_scope imposed create parameters now bypass attr_protected [Tobias Lütke]
 
@@ -3712,7 +3716,7 @@ in effect.  Added :readonly finder constraint.  Calling an association collectio
 
 * Escape database name in MySQL adapter when creating and dropping databases. #3409 [anna@wota.jp]
 
-* Disambiguate table names for columns in validates_uniquness_of's WHERE clause. #3423 [alex.borovsky@gmail.com]
+* Disambiguate table names for columns in validates_uniqueness_of's WHERE clause. #3423 [alex.borovsky@gmail.com]
 
 * .with_scope imposed create parameters now bypass attr_protected [Tobias Lütke]
 

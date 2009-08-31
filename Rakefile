@@ -3,7 +3,7 @@ require 'rake/rdoctask'
 
 env = %(PKG_BUILD="#{ENV['PKG_BUILD']}") if ENV['PKG_BUILD']
 
-PROJECTS = %w(activesupport actionpack actionmailer activemodel activeresource activerecord railties)
+PROJECTS = %w(activesupport actionpack actionmailer activeresource activerecord railties)
 
 Dir["#{File.dirname(__FILE__)}/*/lib/*/version.rb"].each do |version_path|
   require version_path
@@ -12,7 +12,7 @@ end
 desc 'Run all tests by default'
 task :default => :test
 
-%w(test isolated_test rdoc pgem package release).each do |task_name|
+%w(test isolated_test rdoc pgem package release gem).each do |task_name|
   desc "Run #{task_name} task for all projects"
   task task_name do
     errors = []
@@ -21,6 +21,13 @@ task :default => :test
     end
     fail("Errors in #{errors.join(', ')}") unless errors.empty?
   end
+end
+
+task :install => :gem do
+  (PROJECTS - ["railties"]).each do |project|
+    system("gem install #{project}/pkg/#{project}-#{ActionPack::VERSION::STRING}.gem --no-ri --no-rdoc")
+  end
+  system("gem install railties/pkg/rails-#{ActionPack::VERSION::STRING}.gem --no-ri --no-rdoc")
 end
 
 

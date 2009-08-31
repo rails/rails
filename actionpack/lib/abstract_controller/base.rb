@@ -89,7 +89,6 @@ module AbstractController
       end
 
       process_action(action_name)
-      self
     end
 
   private

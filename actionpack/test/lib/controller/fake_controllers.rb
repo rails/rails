@@ -1,14 +1,15 @@
 class << Object; alias_method :const_available?, :const_defined?; end
-  
-class ContentController < Class.new(ActionController::Base)
+
+class ContentController < ActionController::Base
 end
 class NotAController
 end
 module Admin
   class << self; alias_method :const_available?, :const_defined?; end
-  class UserController < Class.new(ActionController::Base); end
-  class NewsFeedController < Class.new(ActionController::Base); end
+  class UserController < ActionController::Base; end
+  class NewsFeedController < ActionController::Base; end
 end
+
 
 # For speed test
 class SpeedController < ActionController::Base;  end

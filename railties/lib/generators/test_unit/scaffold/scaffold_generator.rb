@@ -1,9 +1,10 @@
 require 'generators/test_unit'
+require 'generators/resource_helpers'
 
 module TestUnit
   module Generators
     class ScaffoldGenerator < Base
-      include Rails::Generators::ScaffoldBase
+      include Rails::Generators::ResourceHelpers
 
       class_option :singleton, :type => :boolean, :desc => "Supply to create a singleton controller"
       check_class_collision :suffix => "ControllerTest"

@@ -738,6 +738,7 @@ module ActionView
         options = options.stringify_keys
         tag_value = options.delete("value")
         name_and_id = options.dup
+        name_and_id["id"] = name_and_id["for"]
         add_default_name_and_id_for_value(tag_value, name_and_id)
         options.delete("index")
         options["for"] ||= name_and_id["id"]
