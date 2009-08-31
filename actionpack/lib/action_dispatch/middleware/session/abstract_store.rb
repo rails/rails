@@ -45,6 +45,7 @@ module ActionDispatch
             ActiveSupport::Deprecation.warn('use replace instead', caller)
             replace({})
           else
+            load! unless @loaded
             super(hash.stringify_keys)
           end
         end
@@ -54,6 +55,7 @@ module ActionDispatch
             ActiveSupport::Deprecation.warn('use clear instead', caller)
             clear
           else
+            load! unless @loaded
             super(key.to_s)
           end
         end
