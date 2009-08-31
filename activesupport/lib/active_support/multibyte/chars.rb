@@ -74,16 +74,7 @@ module ActiveSupport #:nodoc:
       UNICODE_TRAILERS_PAT = /(#{codepoints_to_pattern(UNICODE_LEADERS_AND_TRAILERS)})+\Z/
       UNICODE_LEADERS_PAT = /\A(#{codepoints_to_pattern(UNICODE_LEADERS_AND_TRAILERS)})+/
 
-      # Borrowed from the Kconv library by Shinji KONO - (also as seen on the W3C site)
-      UTF8_PAT = /\A(?:
-                     [\x00-\x7f]                                     |
-                     [\xc2-\xdf] [\x80-\xbf]                         |
-                     \xe0        [\xa0-\xbf] [\x80-\xbf]             |
-                     [\xe1-\xef] [\x80-\xbf] [\x80-\xbf]             |
-                     \xf0        [\x90-\xbf] [\x80-\xbf] [\x80-\xbf] |
-                     [\xf1-\xf3] [\x80-\xbf] [\x80-\xbf] [\x80-\xbf] |
-                     \xf4        [\x80-\x8f] [\x80-\xbf] [\x80-\xbf]
-                    )*\z/xn
+      UTF8_PAT = ActiveSupport::Multibyte::VALID_CHARACTER['UTF-8']
 
       attr_reader :wrapped_string
       alias to_s wrapped_string
@@ -308,23 +299,23 @@ module ActiveSupport #:nodoc:
       def rstrip
         chars(@wrapped_string.gsub(UNICODE_TRAILERS_PAT, ''))
       end
-      
+
       # Strips entire range of Unicode whitespace from the left of the string.
       def lstrip
         chars(@wrapped_string.gsub(UNICODE_LEADERS_PAT, ''))
       end
-      
+
       # Strips entire range of Unicode whitespace from the right and left of the string.
       def strip
         rstrip.lstrip
       end
-      
+
       # Returns the number of codepoints in the string
       def size
         self.class.u_unpack(@wrapped_string).size
       end
       alias_method :length, :size
-      
+
       # Reverses all characters in the string.
       #
       # Example:
@@ -332,7 +323,7 @@ module ActiveSupport #:nodoc:
       def reverse
         chars(self.class.u_unpack(@wrapped_string).reverse.pack('U*'))
       end
-      
+
       # Implements Unicode-aware slice with codepoints. Slicing on one point returns the codepoints for that
       # character.
       #
@@ -647,7 +638,7 @@ module ActiveSupport #:nodoc:
           string.split(//u).map do |c|
             c.force_encoding(Encoding::ASCII) if c.respond_to?(:force_encoding)
 
-            if !UTF8_PAT.match(c)
+            if !ActiveSupport::Multibyte::VALID_CHARACTER['UTF-8'].match(c)
               n = c.unpack('C')[0]
               n < 128 ? n.chr :
               n < 160 ? [UCD.cp1252[n] || n].pack('U') :
