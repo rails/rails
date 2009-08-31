@@ -396,8 +396,12 @@ module ActionDispatch
       # Delegate unhandled messages to the current session instance.
       def method_missing(sym, *args, &block)
         reset! unless @integration_session
-        returning @integration_session.__send__(sym, *args, &block) do
-          copy_session_variables!
+        if @integration_session.respond_to?(sym)
+          returning @integration_session.__send__(sym, *args, &block) do
+            copy_session_variables!
+          end
+        else
+          super
         end
       end
     end
