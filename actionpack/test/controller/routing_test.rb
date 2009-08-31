@@ -2191,10 +2191,8 @@ class RouteSetTest < ActiveSupport::TestCase
       map.connect "/ws/people", :controller => "people", :action => "index", :ws => true
     end
 
-    assert_deprecated {
-      url = set.generate(:controller => "people", :action => "index", :ws => true)
-      assert_equal "/ws/people", url
-    }
+    url = set.generate(:controller => "people", :action => "index", :ws => true)
+    assert_equal "/ws/people", url
   end
 
   def test_generate_changes_controller_module
