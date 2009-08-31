@@ -308,6 +308,84 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_previous_changes
+    # original values should be in previous_changes
+    pirate = Pirate.new
+  
+    assert_equal Hash.new, pirate.previous_changes
+    pirate.catchphrase = "arrr"
+    pirate.save!
+  
+    assert_equal 4, pirate.previous_changes.size
+    assert_equal [nil, "arrr"], pirate.previous_changes['catchphrase']
+    assert_equal [nil, pirate.id], pirate.previous_changes['id']
+    assert_nil pirate.previous_changes['updated_on'][0]
+    assert_not_nil pirate.previous_changes['updated_on'][1]
+    assert_nil pirate.previous_changes['created_on'][0]
+    assert_not_nil pirate.previous_changes['created_on'][1]
+    assert !pirate.previous_changes.key?('parrot_id')
+  
+    # original values should be in previous_changes
+    pirate = Pirate.new
+  
+    assert_equal Hash.new, pirate.previous_changes
+    pirate.catchphrase = "arrr"
+    pirate.save
+  
+    assert_equal 4, pirate.previous_changes.size
+    assert_equal [nil, "arrr"], pirate.previous_changes['catchphrase']
+    assert_equal [nil, pirate.id], pirate.previous_changes['id']
+    assert pirate.previous_changes.include?('updated_on')
+    assert pirate.previous_changes.include?('created_on')
+    assert !pirate.previous_changes.key?('parrot_id')
+  
+    pirate.catchphrase = "Yar!!"
+    pirate.reload
+    assert_equal Hash.new, pirate.previous_changes
+
+    pirate = Pirate.find_by_catchphrase("arrr")
+    pirate.catchphrase = "Me Maties!"
+    pirate.save!
+
+    assert_equal 2, pirate.previous_changes.size
+    assert_equal ["arrr", "Me Maties!"], pirate.previous_changes['catchphrase']
+    assert_not_nil pirate.previous_changes['updated_on'][0]
+    assert_not_nil pirate.previous_changes['updated_on'][1]
+    assert !pirate.previous_changes.key?('parrot_id')
+    assert !pirate.previous_changes.key?('created_on')
+
+    pirate = Pirate.find_by_catchphrase("Me Maties!")
+    pirate.catchphrase = "Thar She Blows!"
+    pirate.save
+
+    assert_equal 2, pirate.previous_changes.size
+    assert_equal ["Me Maties!", "Thar She Blows!"], pirate.previous_changes['catchphrase']
+    assert_not_nil pirate.previous_changes['updated_on'][0]
+    assert_not_nil pirate.previous_changes['updated_on'][1]
+    assert !pirate.previous_changes.key?('parrot_id')
+    assert !pirate.previous_changes.key?('created_on')
+
+    pirate = Pirate.find_by_catchphrase("Thar She Blows!")
+    pirate.update_attributes(:catchphrase => "Ahoy!")
+
+    assert_equal 2, pirate.previous_changes.size
+    assert_equal ["Thar She Blows!", "Ahoy!"], pirate.previous_changes['catchphrase']
+    assert_not_nil pirate.previous_changes['updated_on'][0]
+    assert_not_nil pirate.previous_changes['updated_on'][1]
+    assert !pirate.previous_changes.key?('parrot_id')
+    assert !pirate.previous_changes.key?('created_on')
+
+    pirate = Pirate.find_by_catchphrase("Ahoy!")
+    pirate.update_attribute(:catchphrase, "Ninjas suck!")
+
+    assert_equal 2, pirate.previous_changes.size
+    assert_equal ["Ahoy!", "Ninjas suck!"], pirate.previous_changes['catchphrase']
+    assert_not_nil pirate.previous_changes['updated_on'][0]
+    assert_not_nil pirate.previous_changes['updated_on'][1]
+    assert !pirate.previous_changes.key?('parrot_id')
+    assert !pirate.previous_changes.key?('created_on')    
+  end
+
   private
     def with_partial_updates(klass, on = true)
       old = klass.partial_updates?
