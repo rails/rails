@@ -14,6 +14,8 @@ $stderr.puts "Running old tests on new_base"
 require 'test/unit'
 require 'active_support'
 
+gem "rack-test"
+
 require 'active_support/test_case'
 require 'action_controller'
 require 'fixture_template'
