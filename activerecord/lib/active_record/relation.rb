@@ -6,6 +6,12 @@ module ActiveRecord
     def initialize(klass, relation)
       @klass, @relation = klass, relation
       @readonly = false
+      @associations_to_preload = []
+    end
+
+    def preload(association)
+      @associations_to_preload << association
+      @associations_to_preload.flatten!
     end
 
     def readonly
@@ -15,6 +21,8 @@ module ActiveRecord
 
     def to_a
       records = @klass.find_by_sql(@relation.to_sql)
+
+      @klass.send :preload_associations, records, @associations_to_preload unless @associations_to_preload.empty?
 
       records.each { |record| record.readonly! } if @readonly
 

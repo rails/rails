@@ -664,11 +664,28 @@ module ActiveRecord #:nodoc:
       # This is an alias for find(:all).  You can pass in all the same arguments to this method as you can
       # to find(:all)
       def all(*args)
-        if args.empty? && !scoped?(:find)
-          arel_table
+        options = args.extract_options!
+
+
+        if options.empty? #&& !scoped?(:find)
+          relation = arel_table
         else
-          construct_finder_arel(*args)
+          include_associations = merge_includes(scope(:find, :include), options[:include])
+
+          # if include_associations.any? && references_eager_loaded_tables?(options)
+          #   join_dependency = JoinDependency.new(self, include_associations, options[:joins])
+
+          #   relation = construct_finder_arel_with_included_associations(options, join_dependency)
+
+          #   relation.preload(include_associations)
+          # else
+            relation = construct_finder_arel(options)
+            if include_associations.any?
+              relation.preload(include_associations)
+            # end
+          end
         end
+        relation
       end
 
       # Executes a custom SQL query against your database and returns all the results.  The results will

@@ -1,6 +1,7 @@
 require "cases/helper"
 require 'models/post'
 require 'models/topic'
+require 'models/comment'
 require 'models/reply'
 require 'models/author'
 require 'models/entrant'
@@ -8,7 +9,7 @@ require 'models/developer'
 require 'models/company'
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts
+  fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments
 
   def test_finding_with_conditions
     assert_equal Author.find(:all, :conditions => "name = 'David'"), Author.all.conditions("name = 'David'").to_a
@@ -84,6 +85,34 @@ class RelationTest < ActiveRecord::TestCase
     Developer.all.each { |d| assert !d.readonly? }
     Developer.all.readonly.each { |d| assert d.readonly? }
     Developer.all(:readonly => true).each { |d| assert d.readonly? }
+  end
+
+  def test_eager_association_loading_of_stis_with_multiple_references
+    authors = Author.all(:include => { :posts => { :special_comments => { :post => [ :special_comments, :very_special_comment ] } } }, :order => 'comments.body, very_special_comments_posts.body', :conditions => 'posts.id = 4').to_a
+    assert_equal [authors(:david)], authors
+    assert_no_queries do
+      authors.first.posts.first.special_comments.first.post.special_comments
+      authors.first.posts.first.special_comments.first.post.very_special_comment
+    end
+  end
+
+  def test_find_with_included_associations
+    assert_queries(2) do
+      posts = Post.find(:all, :include => :comments)
+      posts.first.comments.first
+    end
+    assert_queries(2) do
+      posts = Post.all(:include => :comments).to_a
+      posts.first.comments.first
+    end
+    assert_queries(2) do
+      posts = Post.find(:all, :include => :author)
+      posts.first.author
+    end
+    assert_queries(2) do
+      posts = Post.all(:include => :author).to_a
+      posts.first.author
+    end
   end
 end
 
