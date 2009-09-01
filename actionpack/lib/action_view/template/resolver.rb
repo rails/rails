@@ -72,26 +72,10 @@ module ActionView
       @path = Pathname.new(path).expand_path
     end
 
-    # TODO: This is the currently needed API. Make this suck less
-    # ==== <suck>
-    attr_reader :path
-
     def to_s
-      path.to_s
+      @path.to_s
     end
-
-    def to_str
-      path.to_s
-    end
-
-    def ==(path)
-      to_str == path.to_str
-    end
-
-    def eql?(path)
-      to_str == path.to_str
-    end
-    # ==== </suck>
+    alias to_path to_s
 
     def find_templates(name, details, prefix, partial, root = "#{@path}/")
       if glob = details_to_glob(name, details, prefix, partial, root)
@@ -118,13 +102,16 @@ module ActionView
 
         extensions = ""
         [:locales, :formats].each do |k|
-          extensions << if exts = details[k]
-            '{' + exts.map {|e| ".#{e},"}.join + '}'
+          # TODO: OMG NO
+          if details[k] == [:"*/*"]
+            extensions << formats_glob if k == :formats
+          elsif exts = details[k]
+            extensions << '{' + exts.map {|e| ".#{e},"}.join + '}'
           else
-            k == :formats ? formats_glob : ''
+            extensions << formats_glob if k == :formats
           end
         end
-      
+
         "#{root}#{path}#{extensions}#{handler_glob}"
       end
     end

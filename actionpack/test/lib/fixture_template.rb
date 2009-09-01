@@ -38,10 +38,13 @@ module ActionView #:nodoc:
 
       extensions = ""
       [:locales, :formats].each do |k|
-        extensions << if exts = details[k]
-          '(?:' + exts.map {|e| "\\.#{Regexp.escape(e.to_s)}"}.join('|') + ')?'
+        # TODO: OMG NO
+        if details[k] == [:"*/*"]
+          extensions << formats_regexp if k == :formats
+        elsif exts = details[k]
+          extensions << '(?:' + exts.map {|e| "\\.#{Regexp.escape(e.to_s)}"}.join('|') + ')?'
         else
-          k == :formats ? formats_regexp : ''
+          extensions << formats_regexp if k == :formats
         end
       end
 
