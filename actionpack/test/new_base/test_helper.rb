@@ -2,6 +2,10 @@ $:.unshift(File.dirname(__FILE__) + '/../../lib')
 $:.unshift(File.dirname(__FILE__) + '/../../../activesupport/lib')
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 
+require 'rubygems'
+gem "rack", "~> 1.0.0"
+gem "rack-test", "~> 0.4.2"
+
 require 'test/unit'
 require 'active_support'
 require 'active_support/test_case'

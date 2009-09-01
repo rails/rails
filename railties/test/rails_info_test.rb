@@ -3,6 +3,9 @@ $:.unshift File.dirname(__FILE__) + "/../builtin/rails_info"
 $:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
 $:.unshift File.dirname(__FILE__) + "/../../actionpack/lib"
 
+require 'rubygems'
+gem 'rack', '~> 1.0.0'
+
 require 'test/unit'
 require 'active_support'
 require 'active_support/test_case'

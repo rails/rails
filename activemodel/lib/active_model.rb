@@ -31,6 +31,7 @@ module ActiveModel
   autoload :DeprecatedErrorMethods, 'active_model/deprecated_error_methods'
   autoload :Dirty, 'active_model/dirty'
   autoload :Errors, 'active_model/errors'
+  autoload :Lint, 'active_model/lint'
   autoload :Name, 'active_model/naming'
   autoload :Naming, 'active_model/naming'
   autoload :Observer, 'active_model/observing'
@@ -40,6 +41,7 @@ module ActiveModel
   autoload :TestCase, 'active_model/test_case'
   autoload :Validations, 'active_model/validations'
   autoload :ValidationsRepairHelper, 'active_model/validations_repair_helper'
+  autoload :VERSION, 'active_model/version'
 
   module Serializers
     autoload :JSON, 'active_model/serializers/json'

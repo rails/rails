@@ -31,6 +31,21 @@ module ActiveModel
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
+      #
+      # The following checks can also be supplied with a proc or a symbol which corresponds to a method:
+      # * <tt>:greater_than</tt>
+      # * <tt>:greater_than_or_equal_to</tt>
+      # * <tt>:equal_to</tt>
+      # * <tt>:less_than</tt>
+      # * <tt>:less_than_or_equal_to</tt>
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_numericality_of :width, :less_than => Proc.new { |person| person.height }
+      #     validates_numericality_of :width, :greater_than => :minimum_weight
+      #   end
+      #
+      #
+
       def validates_numericality_of(*attr_names)
         configuration = { :only_integer => false, :allow_nil => false }
         configuration.update(attr_names.extract_options!)
@@ -38,7 +53,8 @@ module ActiveModel
         numericality_options = ALL_NUMERICALITY_CHECKS.keys & configuration.keys
 
         (numericality_options - [ :odd, :even ]).each do |option|
-          raise ArgumentError, ":#{option} must be a number" unless configuration[option].is_a?(Numeric)
+          value = configuration[option]
+          raise ArgumentError, ":#{option} must be a number, a symbol or a proc" unless value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
         end
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
@@ -74,6 +90,9 @@ module ActiveModel
                 record.errors.add(attr_name, option, :value => raw_value, :default => configuration[:message])
               end
             else
+              configuration[option] = configuration[option].call(record)        if configuration[option].is_a? Proc
+              configuration[option] = record.method(configuration[option]).call if configuration[option].is_a? Symbol
+              
               unless raw_value.method(ALL_NUMERICALITY_CHECKS[option])[configuration[option]]
                 record.errors.add(attr_name, option, :default => configuration[:message], :value => raw_value, :count => configuration[option])
               end

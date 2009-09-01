@@ -11,7 +11,7 @@ end
 
 $:.unshift(File.dirname(__FILE__))
 
-require 'vendor/thor-0.11.5/lib/thor'
+require 'vendor/thor-0.11.6/lib/thor'
 require 'generators/base'
 require 'generators/named_base'
 
@@ -45,7 +45,6 @@ module Rails
       },
 
       :erb => {
-        :form => false,
         :layout => true
       },
 

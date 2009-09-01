@@ -726,6 +726,13 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal "<name>david</name>", @response.body
   end
 
+  def test_block_inside_respond_with_is_rendered
+    @controller = InheritedRespondWithController.new
+    @request.accept = "application/json"
+    get :index
+    assert_equal "JSON", @response.body
+  end
+
   def test_no_double_render_is_raised
     @request.accept = "text/html"
     assert_raise ActionView::MissingTemplate do

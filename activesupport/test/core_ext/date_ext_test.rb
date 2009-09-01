@@ -251,6 +251,12 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     Time.zone_default = nil
   end
 
+  def test_date_advance_should_not_change_passed_options_hash
+    options = { :years => 3, :months => 11, :days => 2 }
+    Date.new(2005,2,28).advance(options)
+    assert_equal({ :years => 3, :months => 11, :days => 2 }, options)
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

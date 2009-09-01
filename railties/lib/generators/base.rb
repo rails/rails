@@ -9,6 +9,8 @@ module Rails
       include Thor::Actions
       include Rails::Generators::Actions
 
+      add_runtime_options!
+
       # Automatically sets the source root based on the class name.
       #
       def self.source_root
@@ -45,8 +47,10 @@ module Rails
       #
       # ==== Examples
       #
-      #   class ControllerGenerator < Rails::Generators::Base
-      #     hook_for :test_framework, :aliases => "-t"
+      #   module Rails::Generators
+      #     class ControllerGenerator < Base
+      #       hook_for :test_framework, :aliases => "-t"
+      #     end
       #   end
       #
       # The example above will create a test framework option and will invoke
@@ -64,7 +68,49 @@ module Rails
       # invoked. This allows any test framework to hook into Rails as long as it
       # provides any of the hooks above.
       #
-      # Finally, if the user don't want to use any test framework, he can do:
+      # ==== Options
+      #
+      # This lookup can be customized with two options: :base and :as. The first
+      # is the root module value and in the example above defaults to "rails".
+      # The later defaults to the generator name, without the "Generator" ending.
+      #
+      # Let's suppose you are creating a generator that needs to invoke the 
+      # controller generator from test unit. Your first attempt is:
+      #
+      #   class AwesomeGenerator < Rails::Generators::Base
+      #     hook_for :test_framework
+      #   end
+      #
+      # The lookup in this case for test_unit as input is:
+      #
+      #   "test_unit:generators:awesome", "test_unit"
+      #
+      # Which is not the desired the lookup. You can change it by providing the
+      # :as option:
+      #
+      #   class AwesomeGenerator < Rails::Generators::Base
+      #     hook_for :test_framework, :as => :controller
+      #   end
+      #
+      # And now it will lookup at:
+      #
+      #   "test_unit:generators:awesome", "test_unit"
+      #
+      # Similarly, if you want it to also lookup in the rails namespace, you just
+      # need to provide the :base value:
+      #
+      #   class AwesomeGenerator < Rails::Generators::Base
+      #     hook_for :test_framework, :base => :rails, :as => :controller
+      #   end
+      #
+      # And the lookup is exactly the same as previously:
+      #
+      #   "rails:generators:test_unit", "test_unit:generators:controller", "test_unit"
+      #
+      # ==== Switches
+      #
+      # All hooks come with switches for user interface. If the user don't want
+      # to use any test framework, he can do:
       #
       #   ruby script/generate controller Account --skip-test-framework
       #
