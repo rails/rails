@@ -17,6 +17,7 @@ gems:
   version: '~> 1.0.0'
 - name: josh-rack-test
   version: >= 0.4.1
+  install_options: --source=http://gems.github.com
 - name: rake
   version: >= 0.8.1
 - name: sqlite-ruby
