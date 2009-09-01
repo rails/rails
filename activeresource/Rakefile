@@ -74,6 +74,7 @@ spec = Gem::Specification.new do |s|
   end
   
   s.add_dependency('activesupport', '= 3.0.pre' + PKG_BUILD)
+  s.add_dependency('activemodel',   '= 3.0.pre' + PKG_BUILD)
 
   s.require_path = 'lib'
   s.autorequire = 'active_resource'
