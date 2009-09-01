@@ -94,6 +94,12 @@ Rake::GemPackageTask.new(spec) do |p|
   p.need_zip = true
 end
 
+task :gemspec do
+  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
+    file.puts spec.to_ruby
+  end
+end
+
 task :lines do
   lines, codelines, total_lines, total_codelines = 0, 0, 0, 0
 
