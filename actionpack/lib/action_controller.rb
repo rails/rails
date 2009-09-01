@@ -59,9 +59,8 @@ end
 autoload :HTML, 'action_controller/vendor/html-scanner'
 autoload :AbstractController, 'abstract_controller'
 
-autoload :Rack,                       'action_dispatch'
-autoload :ActionDispatch,             'action_dispatch'
-autoload :ActionView,                 'action_view'
+require 'action_dispatch'
+require 'action_view'
 
 # Common ActiveSupport usage in ActionController
 require "active_support/concern"

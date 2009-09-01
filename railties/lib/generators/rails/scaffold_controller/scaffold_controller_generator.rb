@@ -1,8 +1,9 @@
+require 'generators/resource_helpers'
+
 module Rails
   module Generators
     class ScaffoldControllerGenerator < NamedBase
-      # Add controller methods and ActionORM settings.
-      include ScaffoldBase
+      include ResourceHelpers
 
       check_class_collision :suffix => "Controller"
 

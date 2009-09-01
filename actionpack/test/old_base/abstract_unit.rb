@@ -8,6 +8,9 @@ $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
 require 'rubygems'
+gem "rack", "~> 1.0.0"
+gem "rack-test", "~> 0.4.2"
+
 require 'yaml'
 require 'stringio'
 require 'test/unit'

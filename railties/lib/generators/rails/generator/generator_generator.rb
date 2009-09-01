@@ -6,7 +6,7 @@ module Rails
       class_option :namespace, :type => :boolean, :default => true,
                                :desc => "Namespace generator under lib/generators/name"
 
-      def craete_generator_files
+      def create_generator_files
         directory '.', generator_dir
       end
 

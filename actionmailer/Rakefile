@@ -78,6 +78,11 @@ Rake::GemPackageTask.new(spec) do |p|
   p.need_zip = true
 end
 
+task :gemspec do
+  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
+    file.puts spec.to_ruby
+  end
+end
 
 desc "Publish the API documentation"
 task :pgem => [:package] do 

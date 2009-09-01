@@ -116,6 +116,8 @@ spec = Gem::Specification.new do |s|
   s.requirements << 'none'
 
   s.add_dependency('activesupport', '= 3.0.pre' + PKG_BUILD)
+  s.add_dependency('rack', '~> 1.0.0')
+  s.add_dependency('rack-test', '~> 0.4.2')
 
   s.require_path = 'lib'
   s.autorequire = 'action_controller'
@@ -130,6 +132,12 @@ Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true
+end
+
+task :gemspec do
+  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
+    file.puts spec.to_ruby
+  end
 end
 
 task :lines do

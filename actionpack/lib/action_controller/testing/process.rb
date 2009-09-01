@@ -84,7 +84,7 @@ module ActionController #:nodoc:
   #
   # Pass a true third parameter to ensure the uploaded file is opened in binary mode (only required for Windows):
   #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(ActionController::TestCase.fixture_path + '/files/spongebob.png', 'image/png', :binary)
-  TestUploadedFile = Rack::Utils::Multipart::UploadedFile
+  TestUploadedFile = Rack::Test::UploadedFile
 
   module TestProcess
     def self.included(base)

@@ -72,10 +72,24 @@ module ActiveModel
       changed.inject({}) { |h, attr| h[attr] = attribute_change(attr); h }
     end
 
+    # Map of attributes that were changed when the model was saved.
+    #   person.name # => 'bob'
+    #   person.name = 'robert'
+    #   person.save
+    #   person.previous_changes # => {'name' => ['bob, 'robert']}
+    def previous_changes
+      previously_changed_attributes
+    end
+
     private
       # Map of change <tt>attr => original value</tt>.
       def changed_attributes
         @changed_attributes ||= {}
+      end
+
+      # Map of fields that were changed when the model was saved
+      def previously_changed_attributes
+        @previously_changed || {}
       end
 
       # Handle <tt>*_changed?</tt> for +method_missing+.

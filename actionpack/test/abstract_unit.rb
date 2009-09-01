@@ -11,9 +11,12 @@ ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 ENV['new_base'] = "true"
 $stderr.puts "Running old tests on new_base"
 
+require 'rubygems'
+gem "rack", "~> 1.0.0"
+gem "rack-test", "~> 0.4.2"
+
 require 'test/unit'
 require 'active_support'
-
 require 'active_support/test_case'
 require 'action_controller'
 require 'fixture_template'

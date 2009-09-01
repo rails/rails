@@ -19,6 +19,7 @@ module ActiveRecord
       # Attempts to +save+ the record and clears changed attributes if successful.
       def save_with_dirty(*args) #:nodoc:
         if status = save_without_dirty(*args)
+          @previously_changed = changes
           changed_attributes.clear
         end
         status
@@ -26,12 +27,18 @@ module ActiveRecord
 
       # Attempts to <tt>save!</tt> the record and clears changed attributes if successful.
       def save_with_dirty!(*args) #:nodoc:
-        save_without_dirty!(*args).tap { changed_attributes.clear }
+        save_without_dirty!(*args).tap do
+          @previously_changed = changes 
+          changed_attributes.clear 
+        end
       end
 
       # <tt>reload</tt> the record and clears changed attributes.
       def reload_with_dirty(*args) #:nodoc:
-        reload_without_dirty(*args).tap { changed_attributes.clear }
+        reload_without_dirty(*args).tap do
+          previously_changed_attributes.clear
+          changed_attributes.clear
+        end
       end
 
       private

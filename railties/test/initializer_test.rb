@@ -406,6 +406,7 @@ class InitializerSetupI18nTests < Test::Unit::TestCase
      File.expand_path(File.dirname(__FILE__) + "/../../actionpack/lib/action_view/locale/en.yml"),
      File.expand_path(File.dirname(__FILE__) + "/../../activemodel/lib/active_model/locale/en.yml"),
      File.expand_path(File.dirname(__FILE__) + "/../../activerecord/lib/active_record/locale/en.yml"),
+     File.expand_path(File.dirname(__FILE__) + "/../../railties/test/fixtures/plugins/engines/engine/config/locales/en.yml"),
      "my/test/locale.yml",
      "my/other/locale.yml" ], I18n.load_path.collect { |path| path =~ /\.\./ ? File.expand_path(path) : path }
   end
