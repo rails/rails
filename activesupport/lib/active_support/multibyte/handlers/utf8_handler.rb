@@ -100,16 +100,7 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
     # between little and big endian. This is not an issue in utf-8, so it must be ignored.
     UNICODE_LEADERS_AND_TRAILERS = UNICODE_WHITESPACE + [65279] # ZERO-WIDTH NO-BREAK SPACE aka BOM
     
-    # Borrowed from the Kconv library by Shinji KONO - (also as seen on the W3C site)
-     UTF8_PAT = /\A(?:
-                   [\x00-\x7f]                                     |
-                   [\xc2-\xdf] [\x80-\xbf]                         |
-                   \xe0        [\xa0-\xbf] [\x80-\xbf]             |
-                   [\xe1-\xef] [\x80-\xbf] [\x80-\xbf]             |
-                   \xf0        [\x90-\xbf] [\x80-\xbf] [\x80-\xbf] |
-                   [\xf1-\xf3] [\x80-\xbf] [\x80-\xbf] [\x80-\xbf] |
-                   \xf4        [\x80-\x8f] [\x80-\xbf] [\x80-\xbf]
-                  )*\z/xn
+    UTF8_PAT = ActiveSupport::Multibyte::VALID_CHARACTER['UTF-8']
     
     # Returns a regular expression pattern that matches the passed Unicode codepoints
     def self.codepoints_to_pattern(array_of_codepoints) #:nodoc:
@@ -357,7 +348,7 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
       # Replaces all the non-utf-8 bytes by their iso-8859-1 or cp1252 equivalent resulting in a valid utf-8 string
       def tidy_bytes(str)
         str.split(//u).map do |c|
-          if !UTF8_PAT.match(c)
+          if !ActiveSupport::Multibyte::VALID_CHARACTER['UTF-8'].match(c)
             n = c.unpack('C')[0]
             n < 128 ? n.chr :
             n < 160 ? [UCD.cp1252[n] || n].pack('U') :
