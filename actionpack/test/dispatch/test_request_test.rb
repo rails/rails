@@ -5,7 +5,7 @@ class TestRequestTest < ActiveSupport::TestCase
     env = ActionDispatch::TestRequest.new.env
 
     assert_equal "GET", env.delete("REQUEST_METHOD")
-    assert_equal "off", env.delete("HTTPS")
+    assert_equal nil, env.delete("HTTPS")
     assert_equal "http", env.delete("rack.url_scheme")
     assert_equal "example.org", env.delete("SERVER_NAME")
     assert_equal "80", env.delete("SERVER_PORT")
@@ -18,7 +18,7 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal "0.0.0.0", env.delete("REMOTE_ADDR")
     assert_equal "Rails Testing", env.delete("HTTP_USER_AGENT")
 
-    assert_equal [1, 0], env.delete("rack.version")
+    assert_equal [0, 1], env.delete("rack.version")
     assert_equal "", env.delete("rack.input").string
     assert_kind_of StringIO, env.delete("rack.errors")
     assert_equal true, env.delete("rack.multithread")

@@ -2,9 +2,7 @@ require 'stringio'
 require 'uri'
 require 'active_support/test_case'
 require 'active_support/core_ext/object/metaclass'
-
-require 'rack/mock_session'
-require 'rack/test/cookie_jar'
+require 'rack/test'
 
 module ActionController
   module Integration #:nodoc:
@@ -251,7 +249,7 @@ module ActionController
             end
           end
 
-          opts = {
+          env = {
             :method => method,
             :params => parameters,
 
@@ -268,18 +266,18 @@ module ActionController
             "HTTP_ACCEPT"    => accept
           }
 
-          env = ActionDispatch::TestRequest.env_for(path, opts)
-
           (rack_environment || {}).each do |key, value|
             env[key] = value
           end
 
+          session = Rack::Test::Session.new(@mock_session)
+
           @controller = ActionController::Base.capture_instantiation do
-            @mock_session.request(URI.parse(path), env)
+            session.request(path, env)
           end
 
           @request_count += 1
-          @request  = ActionDispatch::Request.new(env)
+          @request  = ActionDispatch::Request.new(session.last_request.env)
           @response = ActionDispatch::TestResponse.from_response(@mock_session.last_response)
           @html_document = nil
 
