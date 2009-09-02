@@ -18,7 +18,7 @@ module RailsGuides
     end
 
     def generate
-      guides = Dir.entries(view_path).find_all {|g| g =~ /textile$/ }
+      guides = Dir.entries(view_path).find_all {|g| g =~ /\.textile(?:\.erb)?$/ }
 
       if ENV["ONLY"]
         only = ENV["ONLY"].split(",").map{|x| x.strip }.map {|o| "#{o}.textile" }
@@ -36,7 +36,7 @@ module RailsGuides
     end
 
     def generate_guide(guide)
-      guide =~ /(.*?)(\.erb)?\.textile/
+      guide =~ /(.*?)\.textile(?:\.erb)?$/
       name = $1
 
       puts "Generating #{name}"
@@ -46,7 +46,7 @@ module RailsGuides
         @view = ActionView::Base.new(view_path)
         @view.extend(Helpers)
 
-        if guide =~ /\.erb\.textile/
+        if guide =~ /\.textile\.erb$/
           # Generate the erb pages with textile formatting - e.g. index/authors
           result = view.render(:layout => 'layout', :file => guide)
           f.write textile(result)
