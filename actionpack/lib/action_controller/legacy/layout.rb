@@ -200,7 +200,7 @@ module ActionController #:nodoc:
       end
 
       def layout_list #:nodoc:
-        Array(view_paths).sum([]) { |path| Dir["#{path.to_str}/layouts/**/*"] }
+        Array(view_paths).sum([]) { |path| Dir["#{path}/layouts/**/*"] }
       end
       memoize :layout_list
 
