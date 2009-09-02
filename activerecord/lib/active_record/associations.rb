@@ -60,12 +60,6 @@ module ActiveRecord
     end
   end
 
-  class HasAndBelongsToManyAssociationWithPrimaryKeyError < ActiveRecordError #:nodoc:
-    def initialize(reflection)
-      super("Primary key is not allowed in a has_and_belongs_to_many join table (#{reflection.options[:join_table]}).")
-    end
-  end
-
   class HasAndBelongsToManyAssociationForeignKeyNeeded < ActiveRecordError #:nodoc:
     def initialize(reflection)
       super("Cannot create self referential has_and_belongs_to_many association on '#{reflection.class_name rescue nil}##{reflection.name rescue nil}'. :association_foreign_key cannot be the same as the :foreign_key.")
@@ -1658,25 +1652,31 @@ module ActiveRecord
 
         def create_has_and_belongs_to_many_reflection(association_id, options, &extension)
           options.assert_valid_keys(valid_keys_for_has_and_belongs_to_many_association)
+
           options[:extend] = create_extension_modules(association_id, extension, options[:extend])
 
           reflection = create_reflection(:has_and_belongs_to_many, association_id, options, self)
-          reflection.options[:join_table] ||= join_table_name(undecorated_table_name(self.to_s), undecorated_table_name(reflection.class_name))
 
           if reflection.association_foreign_key == reflection.primary_key_name
             raise HasAndBelongsToManyAssociationForeignKeyNeeded.new(reflection)
           end
 
-          if connection.supports_primary_key? &&
-             (connection.primary_key(reflection.options[:join_table]) rescue false)
-             raise HasAndBelongsToManyAssociationWithPrimaryKeyError.new(reflection)
-          end
+          reflection.options[:join_table] ||= join_table_name(undecorated_table_name(self.to_s), undecorated_table_name(reflection.class_name))
 
           reflection
         end
 
         def reflect_on_included_associations(associations)
           [ associations ].flatten.collect { |association| reflect_on_association(association.to_s.intern) }
+        end
+
+        def guard_against_unlimitable_reflections(reflections, options)
+          if (options[:offset] || options[:limit]) && !using_limitable_reflections?(reflections)
+            raise(
+              ConfigurationError,
+              "You can not use offset and limit together with has_many or has_and_belongs_to_many associations"
+            )
+          end
         end
 
         def select_all_rows(options, join_dependency)
