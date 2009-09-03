@@ -2,13 +2,21 @@ h2. Action View Overview
 
 In this guide you will learn:
 
-* What Action View is, and how to use it
+* What Action View is, and how to use it with Rails
+* How to use Action View outside of Rails
+* How best to use templates, partials, and layouts
+* What helpers are provided by Action View, and how to make your own
+* How to use localized views
 
 endprologue.
 
 h3. What is Action View?
 
-TODO...
+Action View and Action Controller are the two major components of Action Pack. Typically, a web request will be routed to an Action Controller, which will then perform any necessary application logic before compiling a response to be served to the requestor. Action Pack splits this work into a controller part (performing the logic) and a view part (rendering a template). Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response. 
+
+Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves. 
+
+Note: Some features of Action View are tied to Active Record, but that doesn't mean that Action View depends on Active Record. Action View is an independent package that can be used with any sort of backend.
 
 h3. Using Action View with Rails
 
@@ -16,7 +24,69 @@ TODO...
 
 h3. Using Action View outside of Rails
 
-TODO...
+Action View works well with Action Record, but it can also be used with other Ruby tools. We can demonstrate this by creating a small "Rack":http://rack.rubyforge.org/ application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application. 
+
+Let's start by ensuring that you have the Action Pack and Rack gems installed:
+
+<shell>
+gem install actionpack
+gem install rack
+</shell>
+
+Now we'll create a simple "Hello World" application that uses the +titleize+ method provided by Action View.
+
+*hello_world.rb:*
+
+<ruby>
+require 'rubygems'
+require 'action_view'
+require 'rack'
+
+def hello_world(env)
+  [200, {"Content-Type" => "text/html"}, "hello world".titleize]
+end
+
+Rack::Handler::Mongrel.run method(:hello_world), :Port => 9292
+</ruby>
+
+We can see this all come together by starting up the application and then visiting +http://localhost:9292/+
+
+<shell>
+ruby hello_world.rb
+</shell>
+
+Notice how 'hello world' has been converted into 'Hello World' by the +titleize+ helper method. 
+
+Action View can also be used with "Sinatra":http://www.sinatrarb.com/ in the same way. 
+
+Let's start by ensuring that you have the Action Pack and Sinatra gems installed:
+
+<shell>
+gem install actionpack
+gem install sinatra
+</shell>
+
+Now we'll create the same "Hello World" application in Sinatra.
+
+*hello_world.rb:*
+
+<ruby>
+require 'rubygems'
+require 'action_view'
+require 'sinatra'
+
+get '/' do
+  erb 'hello world'.titleize
+end
+</ruby>
+
+Then, we can run the application:
+
+<shell>
+ruby hello_world.rb
+</shell>
+
+Once the application is running, you can see Sinatra and Action View working together by visiting +http://localhost:4567/+
 
 h3. Templates, Partials and Layouts
 
@@ -44,8 +114,6 @@ Action View has the ability render different templates depending on the current 
 
 For example, suppose you have a Posts controller with a show action. By default, calling this action will render +app/views/posts/show.html.erb+. But if you set +I18n.locale = :de+, then +app/views/posts/show.de.html.erb+ will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available. 
 
-TODO add full code example...
-
 You can use the same technique to localize the rescue files in your public directory. For example, setting +I18n.locale = :de+ and creating +public/500.de.html+ and +public/404.de.html+ would allow you to have localized rescue pages.
 
 Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to +app/controllers/application.rb+: 
@@ -58,7 +126,7 @@ def set_expert_locale
 end
 </ruby>
 
-Then you could create special views like +app/views/posts/show.expert.html.erb+, which would only be displayed to expert users.
+Then you could create special views like +app/views/posts/show.expert.html.erb+ that would only be displayed to expert users.
 
 You can read more about the Rails Internationalization (I18n) API "here":i18n.html. 
 
@@ -67,3 +135,4 @@ h3. Changelog
 "Lighthouse Ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/71
 
 * April 5, 2009: Starting work by Trevor Turk, leveraging Mike Gunderloy's docs
+* September 3, 2009: Continuing work by Trevor Turk
