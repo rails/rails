@@ -37,7 +37,7 @@ module ActionDispatch
     # "rake secret" and set the key in config/environment.rb.
     #
     # Note that changing digest or secret invalidates all existing sessions!
-    class CookieStore < Hash
+    class CookieStore
       # Cookies can typically store 4096 bytes.
       MAX = 4096
       SECRET_MIN_LENGTH = 30 # characters
