@@ -1,3 +1,9 @@
+*2.3.4 (September 4, 2009)*
+
+* Introduce ActiveSupport::Multibyte.clean to clean invalid multibyte strings.
+
+* Bug fixes
+
 *2.3.3 (July 12, 2009)*
 
 * JSON: +Object#to_json+ calls +as_json+ to coerce itself into something natively encodable like +Hash+, +Integer+, or +String+. Override +as_json+ instead of +to_json+ so you're JSON-library-agnostic.  [Jeremy Kemper]
