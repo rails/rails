@@ -1,10 +1,12 @@
 debug.log
 doc/rdoc
+activemodel/doc
 activeresource/doc
 activerecord/doc
 actionpack/doc
 actionmailer/doc
 activesupport/doc
+activemodel/pkg
 activeresource/pkg
 activerecord/pkg
 actionpack/pkg
