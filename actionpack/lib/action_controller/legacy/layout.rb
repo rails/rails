@@ -191,7 +191,7 @@ module ActionController #:nodoc:
       def memoized_find_layout(layout, formats) #:nodoc:
         return layout if layout.nil? || layout.respond_to?(:render)
         prefix = layout.to_s =~ /layouts\// ? nil : "layouts"
-        view_paths.find(layout.to_s, {:formats => formats}, prefix)
+        find_template(layout.to_s, {:formats => formats}, :_prefix => prefix)
       end
 
       def find_layout(*args)

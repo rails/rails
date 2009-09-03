@@ -119,7 +119,11 @@ module AbstractController
     def find_template(name, details, options)
       view_paths.find(name, details, options[:_prefix], options[:_partial])
     end
-    
+
+    def template_exists?(name, details, options)
+      view_paths.exists?(name, details, options[:_prefix], options[:_partial])
+    end
+
     def with_template_cache(name)
       yield
     end
