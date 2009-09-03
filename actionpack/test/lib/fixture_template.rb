@@ -7,10 +7,6 @@ module ActionView #:nodoc:
 
   private
 
-    def or_extensions(array)
-      "(?:" << array.map {|e| e && Regexp.escape(".#{e}")}.join("|") << ")"
-    end
-
     def query(path, exts)
       query = Regexp.escape(path)
       exts.each do |ext|
