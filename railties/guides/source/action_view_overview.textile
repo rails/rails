@@ -12,7 +12,7 @@ endprologue.
 
 h3. What is Action View?
 
-Action View and Action Controller are the two major components of Action Pack. Typically, a web request will be routed to an Action Controller, which will then perform any necessary application logic before compiling a response to be served to the requestor. Action Pack splits this work into a controller part (performing the logic) and a view part (rendering a template). Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response. 
+Action View and Action Controller are the two major components of Action Pack. In Rails, web requests are handled by Action Pack, which splits the work into a controller part (performing the logic) and a view part (rendering a template). Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response. 
 
 Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves. 
 
@@ -46,14 +46,16 @@ def hello_world(env)
   [200, {"Content-Type" => "text/html"}, "hello world".titleize]
 end
 
-Rack::Handler::Mongrel.run method(:hello_world), :Port => 9292
+Rack::Handler::Mongrel.run method(:hello_world), :Port => 4567
 </ruby>
 
-We can see this all come together by starting up the application and then visiting +http://localhost:9292/+
+We can see this all come together by starting up the application and then visiting +http://localhost:4567/+
 
 <shell>
 ruby hello_world.rb
 </shell>
+
+TODO needs a screenshot? I have one - not sure where to put it. 
 
 Notice how 'hello world' has been converted into 'Hello World' by the +titleize+ helper method. 
 
@@ -88,6 +90,8 @@ ruby hello_world.rb
 
 Once the application is running, you can see Sinatra and Action View working together by visiting +http://localhost:4567/+
 
+TODO needs a screenshot? I have one - not sure where to put it. 
+
 h3. Templates, Partials and Layouts
 
 TODO...
@@ -98,7 +102,67 @@ TODO...
 
 h3. Partial Layouts
 
-TODO...
+Partials can have their own layouts applied to them. These layouts are different than the ones that are specified globally for the entire action, but they work in a similar fashion.
+
+Let's say we're displaying a post on a page where it should be wrapped in a +div+ for display purposes. First, we'll create a new +Post+:
+
+<ruby>
+Post.create(:body => 'Partial Layouts are cool!')
+</ruby>
+
+In the +show+ template, we'll render the +post+ partial wrapped in the +box+ layout:
+
+*posts/show.html.erb*
+
+<ruby>
+<%= render :partial => 'post', :layout => 'box', :locals => {:post => @post} %>
+</ruby>
+
+The +box+ layout simply wraps the +post+ partial in a +div+:
+
+*posts/_box.html.erb*
+
+<ruby>
+<div class='box'>
+  <%= yield %>
+</div>
+</ruby>
+
+The +post+ partial wraps the post's +body+ in a +div+ with the +id+ of the post using the +div_for+ helper:
+
+*posts/_post.html.erb*
+
+<ruby>
+<% div_for(post) do %>
+  <p><%= post.body %></p>
+<% end %>
+</ruby>
+
+This example would output the following:
+
+<ruby>
+<div class='box'>
+  <div id='post_1'>
+    <p>Partial Layouts are cool!</p>
+  </div>
+</div>
+</ruby>
+
+Note that the partial layout has access to the local +post+ variable that was passed into the +render+ call. However, unlike application-wide layouts, partial layouts still have the underscore prefix.
+
+You can also render a block of code within a partial layout instead of calling +yield+. For example, if we didn't have the +post+ partial, we could do this instead:
+
+*posts/show.html.erb*
+
+<ruby>
+<% render(:layout => 'box', :locals => {:post => @post}) do %>
+  <% div_for(post) do %>
+    <p><%= post.body %></p>
+  <% end %>
+<% end %>
+</ruby>
+
+If we're using the same +box+ partial from above, his would produce the same output as the previous example.
 
 h3. View Paths
 
@@ -134,5 +198,5 @@ h3. Changelog
 
 "Lighthouse Ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/71
 
+* September 3, 2009: Continuing work by Trevor Turk, leveraging the "Action Pack docs":http://ap.rubyonrails.org/ and "What's new in Edge Rails":http://ryandaigle.com/articles/2007/8/3/what-s-new-in-edge-rails-partials-get-layouts
 * April 5, 2009: Starting work by Trevor Turk, leveraging Mike Gunderloy's docs
-* September 3, 2009: Continuing work by Trevor Turk
