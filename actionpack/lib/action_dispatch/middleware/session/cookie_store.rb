@@ -37,7 +37,7 @@ module ActionDispatch
     # "rake secret" and set the key in config/environment.rb.
     #
     # Note that changing digest or secret invalidates all existing sessions!
-    class CookieStore
+    class CookieStore < Hash
       # Cookies can typically store 4096 bytes.
       MAX = 4096
       SECRET_MIN_LENGTH = 30 # characters
@@ -49,7 +49,18 @@ module ActionDispatch
         :expire_after => nil,
         :httponly     => true
       }.freeze
+      
+      class OptionsHash < Hash
+        def initialize(by, env, default_options)
+          @session_data = env[CookieStore::ENV_SESSION_KEY]
+          default_options.each { |key, value| self[key] = value }
+        end
 
+        def [](key)
+          key == :id ? @session_data[:session_id] : super(key)
+        end
+      end
+      
       ENV_SESSION_KEY = "rack.session".freeze
       ENV_SESSION_OPTIONS_KEY = "rack.session.options".freeze
       HTTP_SET_COOKIE = "Set-Cookie".freeze
@@ -90,8 +101,8 @@ module ActionDispatch
 
       def call(env)
         env[ENV_SESSION_KEY] = AbstractStore::SessionHash.new(self, env)
-        env[ENV_SESSION_OPTIONS_KEY] = @default_options.dup
-
+        env[ENV_SESSION_OPTIONS_KEY] = OptionsHash.new(self, env, @default_options)
+        
         status, headers, body = @app.call(env)
 
         session_data = env[ENV_SESSION_KEY]
