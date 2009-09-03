@@ -53,6 +53,8 @@ module ActionView
 
     def normalize_details(details)
       details = details.dup
+      # TODO: Refactor this concern out of the resolver
+      details.delete(:formats) if details[:formats] == [:"*/*"]
       registered_details.each do |k, v|
         details[k] = v.call(details[k])
       end
