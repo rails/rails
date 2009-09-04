@@ -69,13 +69,14 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "2 months", distance_of_time_in_words(from, to + 59.days + 23.hours + 59.minutes + 30.seconds)
     assert_equal "12 months", distance_of_time_in_words(from, to + 1.years - 31.seconds)
 
-    # 525600..1051199
+    # > 525599
     assert_equal "about 1 year", distance_of_time_in_words(from, to + 1.years - 30.seconds)
-    assert_equal "about 1 year", distance_of_time_in_words(from, to + 2.years - 31.seconds)
-
-    # > 1051199
-    assert_equal "over 2 years", distance_of_time_in_words(from, to + 2.years + 30.seconds)
-    assert_equal "over 10 years", distance_of_time_in_words(from, to + 10.years)
+    assert_equal "about 1 year", distance_of_time_in_words(from, to + 1.years + 6.months - 1.day)
+    assert_equal "over 1 year", distance_of_time_in_words(from, to + 1.years + 6.months)
+    assert_equal "about 2 years", distance_of_time_in_words(from, to + 2.years + 30.seconds)
+    assert_equal "about 5 years", distance_of_time_in_words(from, to + 5.years + 5.months)
+    assert_equal "over 5 years", distance_of_time_in_words(from, to + 5.years + 6.months)
+    assert_equal "about 10 years", distance_of_time_in_words(from, to + 10.years)
 
     # test to < from
     assert_equal "about 4 hours", distance_of_time_in_words(from + 4.hours, to)
@@ -104,7 +105,7 @@ class DateHelperTest < ActionView::TestCase
   def test_distance_in_words_with_dates
     start_date = Date.new 1975, 1, 31
     end_date = Date.new 1977, 1, 31
-    assert_equal("over 2 years", distance_of_time_in_words(start_date, end_date))
+    assert_equal("about 2 years", distance_of_time_in_words(start_date, end_date))
   end
 
   def test_distance_in_words_with_integers

@@ -43,13 +43,14 @@ module ActionView
       #   distance_of_time_in_words(from_time, 50.minutes.from_now)           # => about 1 hour
       #   distance_of_time_in_words(from_time, from_time + 15.seconds)        # => less than a minute
       #   distance_of_time_in_words(from_time, from_time + 15.seconds, true)  # => less than 20 seconds
-      #   distance_of_time_in_words(from_time, 3.years.from_now)              # => over 3 years
+      #   distance_of_time_in_words(from_time, 3.years.from_now)              # => about 3 years
       #   distance_of_time_in_words(from_time, from_time + 60.hours)          # => about 3 days
       #   distance_of_time_in_words(from_time, from_time + 45.seconds, true)  # => less than a minute
       #   distance_of_time_in_words(from_time, from_time - 45.seconds, true)  # => less than a minute
       #   distance_of_time_in_words(from_time, 76.seconds.from_now)           # => 1 minute
       #   distance_of_time_in_words(from_time, from_time + 1.year + 3.days)   # => about 1 year
-      #   distance_of_time_in_words(from_time, from_time + 4.years + 9.days + 30.minutes + 5.seconds) # => over 4 years
+      #   distance_of_time_in_words(from_time, from_time + 3.years + 6.months) # => over 3 years
+      #   distance_of_time_in_words(from_time, from_time + 4.years + 9.days + 30.minutes + 5.seconds) # => about 4 years
       #
       #   to_time = Time.now + 6.years + 19.days
       #   distance_of_time_in_words(from_time, to_time, true)     # => over 6 years
@@ -85,8 +86,10 @@ module ActionView
             when 2880..43199     then locale.t :x_days,         :count => (distance_in_minutes / 1440).round
             when 43200..86399    then locale.t :about_x_months, :count => 1
             when 86400..525599   then locale.t :x_months,       :count => (distance_in_minutes / 43200).round
-            when 525600..1051199 then locale.t :about_x_years,  :count => 1
-            else                      locale.t :over_x_years,   :count => (distance_in_minutes / 525600).round
+            else
+              return distance_in_minutes % 525600 < 262800 ?
+                     locale.t(:about_x_years, :count => (distance_in_minutes / 525600).round) :
+                     locale.t(:over_x_years, :count => (distance_in_minutes / 525600).round)
           end
         end
       end
