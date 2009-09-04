@@ -4,12 +4,13 @@ class MemoizableTest < ActiveSupport::TestCase
   class Person
     extend ActiveSupport::Memoizable
 
-    attr_reader :name_calls, :age_calls, :is_developer_calls
+    attr_reader :name_calls, :age_calls, :is_developer_calls, :name_query_calls
 
     def initialize
       @name_calls = 0
       @age_calls = 0
       @is_developer_calls = 0
+      @name_query_calls = 0
     end
 
     def name
@@ -18,6 +19,7 @@ class MemoizableTest < ActiveSupport::TestCase
     end
 
     def name?
+      @name_query_calls += 1
       true
     end
     memoize :name?
@@ -114,6 +116,13 @@ class MemoizableTest < ActiveSupport::TestCase
       @person.memoize_all
       @person.unmemoize_all
     end
+  end
+
+  def test_memoization_flush_with_punctuation
+    assert_equal true, @person.name?
+    @person.flush_cache(:name?)
+    3.times { assert_equal true, @person.name? }
+    assert_equal 2, @person.name_query_calls
   end
 
   def test_memoization_with_nil_value
