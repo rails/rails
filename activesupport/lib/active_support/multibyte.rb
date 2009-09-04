@@ -1,9 +1,5 @@
 # encoding: utf-8
 
-require 'active_support/multibyte/chars'
-require 'active_support/multibyte/exceptions'
-require 'active_support/multibyte/unicode_database'
-
 require 'active_support/core_ext/module/attribute_accessors'
 
 module ActiveSupport #:nodoc:
