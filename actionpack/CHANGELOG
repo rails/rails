@@ -1,4 +1,6 @@
-*2.2.3 (pending release)*
+*2.2.3 (September 4th, 2009)*
+
+* Sanitize multibyte strings before escaping them with escape_once. CVE-2009-3009
 
 * Backwards Compatibility: bring back Request#relative_url_root but deprecate it.
 

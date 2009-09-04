@@ -1,4 +1,6 @@
-*2.2.3 (next release)*
+*2.2.3 (September 4th, 2009)*
+
+* Introduce ActiveSupport::Multibyte.clean to clean invalid multibyte strings.
 
 * Ruby 1.9.1p0 fix: URI.unescape can decode multibyte chars.  #2033 [MOROHASHI Kyosuke]
 

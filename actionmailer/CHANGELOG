@@ -1,3 +1,7 @@
+*2.2.3 (September 4th, 2009)*
+
+Version bump.
+
 *2.2 (November 21st, 2008)*
 
 * Turn on STARTTLS if it is available in Net::SMTP (added in Ruby 1.8.7) and the SMTP server supports it (This is required for Gmail's SMTP server) #1336 [Grant Hollingworth]
