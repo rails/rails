@@ -1,7 +1,9 @@
 require 'cases/helper'
 require 'models/contact'
+require 'active_support/core_ext/object/instance_variables'
 
 class Contact
+  extend ActiveModel::Naming
   include ActiveModel::Serializers::JSON
 
   def attributes
