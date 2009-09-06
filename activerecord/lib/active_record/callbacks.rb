@@ -227,7 +227,7 @@ module ActiveRecord
       end
 
       include ActiveSupport::Callbacks
-      define_callbacks *CALLBACKS
+      define_callbacks(*CALLBACKS)
     end
 
     # Is called when the object was instantiated by one of the finders, like <tt>Base.find</tt>.

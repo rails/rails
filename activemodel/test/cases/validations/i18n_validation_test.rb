@@ -107,32 +107,6 @@ class I18nValidationTest < ActiveModel::TestCase
     @person.valid?
   end
 
-  def test_validates_length_of_within_generates_message_with_title_too_short
-    Person.validates_length_of :title, :within => 3..5
-    @person.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => nil})
-    @person.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_short_and_custom_default_message
-    Person.validates_length_of :title, :within => 3..5, :too_short => 'custom'
-    @person.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => 'custom'})
-    @person.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_long
-    Person.validates_length_of :title, :within => 3..5
-    @person.title = 'this title is too long'
-    @person.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :default => nil})
-    @person.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_long_and_custom_default_message
-    Person.validates_length_of :title, :within => 3..5, :too_long => 'custom'
-    @person.title = 'this title is too long'
-    @person.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :default => 'custom'})
-    @person.valid?
-  end
-
   # validates_length_of :within w/ mocha
 
   def test_validates_length_of_within_generates_message_with_title_too_short
@@ -280,7 +254,7 @@ class I18nValidationTest < ActiveModel::TestCase
     @person.valid?
   end
 
-  def test_validates_numericality_of_odd_generates_message_with_custom_default_message
+  def test_validates_numericality_of_less_than_odd_generates_message_with_custom_default_message
     Person.validates_numericality_of :title, :only_integer => true, :less_than => 0, :message => 'custom'
     @person.title = 1
     @person.errors.expects(:generate_message).with(:title, :less_than, {:value => 1, :count => 0, :default => 'custom'})
@@ -383,24 +357,6 @@ class I18nValidationTest < ActiveModel::TestCase
     @person.valid?
     assert_equal ['global message'], @person.errors[:title]
   end
-
-  def test_validates_length_of_is_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:models => {:person => {:attributes => {:title => {:wrong_length => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:messages => {:wrong_length => 'global message'}}}
-
-    Person.validates_length_of :title, :is => 5
-    @person.valid?
-    assert_equal ['custom message'], @person.errors[:title]
-  end
-
-  def test_validates_length_of_is_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activemodel => {:errors => {:messages => {:wrong_length => 'global message'}}}
-
-    Person.validates_length_of :title, :is => 5
-    @person.valid?
-    assert_equal ['global message'], @person.errors[:title]
-  end
-
 
   # validates_format_of w/o mocha
 

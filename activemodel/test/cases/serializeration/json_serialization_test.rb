@@ -8,7 +8,7 @@ class Contact
 
   def attributes
     instance_values
-  end
+  end unless method_defined?(:attributes)
 end
 
 class JsonSerializationTest < ActiveModel::TestCase

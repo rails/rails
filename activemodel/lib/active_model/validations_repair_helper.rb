@@ -7,7 +7,8 @@ module ActiveModel
         model_classes.inject({}) do |repair, klass|
           repair[klass] ||= {}
           [:validate, :validate_on_create, :validate_on_update].each do |callback|
-            the_callback = klass.instance_variable_get("@#{callback.to_s}_callbacks")
+            ivar = "@#{callback.to_s}_callbacks"
+            the_callback = klass.instance_variable_get(ivar) if klass.instance_variable_defined?(ivar)
             repair[klass][callback] = (the_callback.nil? ? nil : the_callback.dup)
           end
           repair
