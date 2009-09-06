@@ -1781,23 +1781,23 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_default_route_recognition
-    expected = {:controller => 'accounts', :action => 'show', :id => '10'}
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/10')
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/10/')
+    expected = {:controller => 'pages', :action => 'show', :id => '10'}
+    assert_equal expected, default_route_set.recognize_path('/pages/show/10')
+    assert_equal expected, default_route_set.recognize_path('/pages/show/10/')
 
     expected[:id] = 'jamis'
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/jamis/')
+    assert_equal expected, default_route_set.recognize_path('/pages/show/jamis/')
 
     expected.delete :id
-    assert_equal expected, default_route_set.recognize_path('/accounts/show')
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/')
+    assert_equal expected, default_route_set.recognize_path('/pages/show')
+    assert_equal expected, default_route_set.recognize_path('/pages/show/')
 
     expected[:action] = 'index'
-    assert_equal expected, default_route_set.recognize_path('/accounts/')
-    assert_equal expected, default_route_set.recognize_path('/accounts')
+    assert_equal expected, default_route_set.recognize_path('/pages/')
+    assert_equal expected, default_route_set.recognize_path('/pages')
 
     assert_raise(ActionController::RoutingError) { default_route_set.recognize_path('/') }
-    assert_raise(ActionController::RoutingError) { default_route_set.recognize_path('/accounts/how/goood/it/is/to/be/free') }
+    assert_raise(ActionController::RoutingError) { default_route_set.recognize_path('/pages/how/goood/it/is/to/be/free') }
   end
 
   def test_default_route_should_omit_default_action
@@ -1813,15 +1813,15 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_default_route_should_uri_escape_pluses
-    expected = { :controller => 'accounts', :action => 'show', :id => 'hello world' }
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/hello world')
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/hello%20world')
-    assert_equal '/accounts/show/hello%20world', default_route_set.generate(expected, expected)
+    expected = { :controller => 'pages', :action => 'show', :id => 'hello world' }
+    assert_equal expected, default_route_set.recognize_path('/pages/show/hello world')
+    assert_equal expected, default_route_set.recognize_path('/pages/show/hello%20world')
+    assert_equal '/pages/show/hello%20world', default_route_set.generate(expected, expected)
 
     expected[:id] = 'hello+world'
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/hello+world')
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/hello%2Bworld')
-    assert_equal '/accounts/show/hello+world', default_route_set.generate(expected, expected)
+    assert_equal expected, default_route_set.recognize_path('/pages/show/hello+world')
+    assert_equal expected, default_route_set.recognize_path('/pages/show/hello%2Bworld')
+    assert_equal '/pages/show/hello+world', default_route_set.generate(expected, expected)
   end
 
   def test_parameter_shell
