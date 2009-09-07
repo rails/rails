@@ -11,6 +11,7 @@ module Admin
 end
 class ElsewhereController < ActionController::Base; end
 class AddressesController < ActionController::Base; end
+class SessionsController  < ActionController::Base; end
 
 # For speed test
 class SpeedController < ActionController::Base;  end
@@ -25,7 +26,6 @@ class UsersController         < SpeedController; end
 class SettingsController      < SpeedController; end
 class ChannelsController      < SpeedController; end
 class ChannelVideosController < SpeedController; end
-class SessionsController      < SpeedController; end
 class LostPasswordsController < SpeedController; end
 class PagesController         < SpeedController; end
 
