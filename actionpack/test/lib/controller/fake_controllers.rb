@@ -9,7 +9,7 @@ module Admin
   class UserController < ActionController::Base; end
   class NewsFeedController < ActionController::Base; end
 end
-
+class ElsewhereController < ActionController::Base; end
 
 # For speed test
 class SpeedController < ActionController::Base;  end

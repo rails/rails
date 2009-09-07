@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'action_controller/vendor/html-scanner'
+require 'controller/fake_controllers'
 
 # a controller class to facilitate the tests
 class ActionPackAssertionsController < ActionController::Base
