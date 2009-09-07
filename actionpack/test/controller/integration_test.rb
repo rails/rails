@@ -371,6 +371,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
             c.connect "/:action"
           end
         end
+        reset!
         yield
       end
     end
