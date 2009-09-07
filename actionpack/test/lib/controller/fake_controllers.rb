@@ -10,6 +10,7 @@ module Admin
   class NewsFeedController < ActionController::Base; end
 end
 class ElsewhereController < ActionController::Base; end
+class AddressesController < ActionController::Base; end
 
 # For speed test
 class SpeedController < ActionController::Base;  end
