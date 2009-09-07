@@ -176,6 +176,7 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
             c.connect "/:action"
           end
         end
+        reset_app!
         yield
       end
     end
