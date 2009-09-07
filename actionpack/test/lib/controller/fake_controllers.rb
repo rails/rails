@@ -12,6 +12,11 @@ end
 class ElsewhereController < ActionController::Base; end
 class AddressesController < ActionController::Base; end
 class SessionsController  < ActionController::Base; end
+class FooController < ActionController::Base; end
+class CController < ActionController::Base; end
+class HiController < ActionController::Base; end
+class BraveController < ActionController::Base; end
+class ImageController < ActionController::Base; end
 
 # For speed test
 class SpeedController < ActionController::Base;  end
