@@ -382,28 +382,28 @@ class TransactionTest < ActiveRecord::TestCase
 
   private
     def add_exception_raising_after_save_callback_to_topic
-        Topic.class_eval "def after_save; raise 'Make the transaction rollback' end"
+      Topic.class_eval "def after_save_for_transaction; raise 'Make the transaction rollback' end"
     end
 
     def remove_exception_raising_after_save_callback_to_topic
-      Topic.class_eval "def after_save; end"
+      Topic.class_eval "def after_save_for_transaction; end"
     end
 
     def add_exception_raising_after_create_callback_to_topic
-        Topic.class_eval "def after_create; raise 'Make the transaction rollback' end"
+      Topic.class_eval "def after_create_for_transaction; raise 'Make the transaction rollback' end"
     end
 
     def remove_exception_raising_after_create_callback_to_topic
-      Topic.class_eval "def after_create; end"
+      Topic.class_eval "def after_create_for_transaction; end"
     end
 
     %w(validation save destroy).each do |filter|
       define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do
-        Topic.class_eval "def before_#{filter}() Book.create; false end"
+        Topic.class_eval "def before_#{filter}_for_transaction() Book.create; false end"
       end
 
       define_method("remove_cancelling_before_#{filter}_with_db_side_effect_to_topic") do
-        Topic.class_eval "def before_#{filter}; end"
+        Topic.class_eval "def before_#{filter}_for_transaction; end"
       end
     end
 end

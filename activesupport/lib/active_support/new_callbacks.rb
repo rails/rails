@@ -83,18 +83,18 @@ module ActiveSupport
     def self.included(klass)
       klass.extend ClassMethods
     end
-        
+
     def run_callbacks(kind, options = {}, &blk)
       send("_run_#{kind}_callbacks", &blk)
     end
-    
+
     class Callback
       @@_callback_sequence = 0
-      
-      attr_accessor :filter, :kind, :name, :options, :per_key, :klass
-      def initialize(filter, kind, options, klass)
-        @kind, @klass = kind, klass
-        
+
+      attr_accessor :name, :filter, :kind, :options, :per_key, :klass
+
+      def initialize(name, filter, kind, options, klass)
+        @name, @kind, @klass = name, kind, klass
         normalize_options!(options)
 
         @per_key              = options.delete(:per_key)
@@ -105,9 +105,10 @@ module ActiveSupport
 
         _compile_per_key_options
       end
-      
+
       def clone(klass)
         obj                  = super()
+        obj.name             = name
         obj.klass            = klass
         obj.per_key          = @per_key.dup
         obj.options          = @options.dup
@@ -115,36 +116,39 @@ module ActiveSupport
         obj.per_key[:unless] = @per_key[:unless].dup
         obj.options[:if]     = @options[:if].dup
         obj.options[:unless] = @options[:unless].dup
+        obj.options[:scope]  = @options[:scope].dup
         obj
       end
-      
+
       def normalize_options!(options)
         options[:if] = Array.wrap(options[:if])
         options[:unless] = Array.wrap(options[:unless])
+
+        options[:scope] ||= [:kind]
+        options[:scope] = Array.wrap(options[:scope])
 
         options[:per_key] ||= {}
         options[:per_key][:if] = Array.wrap(options[:per_key][:if])
         options[:per_key][:unless] = Array.wrap(options[:per_key][:unless])
       end
-      
+
       def next_id
         @@_callback_sequence += 1
       end
-      
+
       def matches?(_kind, _filter)
-        @kind   == _kind &&
-        @filter == _filter
+        @kind == _kind && @filter == _filter
       end
 
       def _update_filter(filter_options, new_options)
         filter_options[:if].push(new_options[:unless]) if new_options.key?(:unless)
         filter_options[:unless].push(new_options[:if]) if new_options.key?(:if)
       end
-            
+
       def recompile!(_options, _per_key)
         _update_filter(self.options, _options)
         _update_filter(self.per_key, _per_key)
-        
+
         @callback_id      = next_id
         @filter           = _compile_filter(@raw_filter)
         @compiled_options = _compile_options(@options)
@@ -165,14 +169,13 @@ module ActiveSupport
       # contents for after filters (for the forward pass).
       def start(key = nil, options = {})
         object, terminator = (options || {}).values_at(:object, :terminator)
-        
         return if key && !object.send("_one_time_conditions_valid_#{@callback_id}?")
-        
+
         terminator ||= false
-        
+
         # options[0] is the compiled form of supplied conditions
         # options[1] is the "end" for the conditional
-                
+
         if @kind == :before || @kind == :around
           if @kind == :before
             # if condition    # before_save :filter_name, :if => :condition
@@ -184,7 +187,7 @@ module ActiveSupport
                 halted = (#{terminator})
               end
             RUBY_EVAL
-            
+
             [@compiled_options[0], filter, @compiled_options[1]].compact.join("\n")
           else
             # Compile around filters with conditions into proxy methods
@@ -201,7 +204,7 @@ module ActiveSupport
             #     yield self
             #   end
             # end
-            
+            #
             name = "_conditional_callback_#{@kind}_#{next_id}"
             txt, line = <<-RUBY_EVAL, __LINE__ + 1
               def #{name}(halted)
@@ -224,9 +227,8 @@ module ActiveSupport
       # before filters (for the backward pass).
       def end(key = nil, options = {})
         object = (options || {})[:object]
-        
         return if key && !object.send("_one_time_conditions_valid_#{@callback_id}?")
-        
+
         if @kind == :around || @kind == :after
           # if condition    # after_save :filter_name, :if => :condition
           #   filter_name
@@ -238,27 +240,28 @@ module ActiveSupport
           end
         end
       end
-      
+
       private
+
       # Options support the same options as filters themselves (and support
       # symbols, string, procs, and objects), so compile a conditional
       # expression based on the options
       def _compile_options(options)
         return [] if options[:if].empty? && options[:unless].empty?
-        
+
         conditions = []
-        
+
         unless options[:if].empty?
           conditions << Array.wrap(_compile_filter(options[:if]))
         end
-        
+
         unless options[:unless].empty?
           conditions << Array.wrap(_compile_filter(options[:unless])).map {|f| "!#{f}"}
         end
-        
+
         ["if #{conditions.flatten.join(" && ")}", "end"]
       end
-      
+
       # Filters support:
       #
       #   Arrays::  Used in conditions. This is used to specify
@@ -298,10 +301,11 @@ module ActiveSupport
           @klass.send(:define_method, "#{method_name}_object") { filter }
 
           _normalize_legacy_filter(kind, filter)
+          method_to_call = @options[:scope].map{ |s| s.is_a?(Symbol) ? send(s) : s }.join("_")
 
           @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{method_name}(&blk)
-              #{method_name}_object.send(:#{kind}, self, &blk)
+              #{method_name}_object.send(:#{method_to_call}, self, &blk)
             end
           RUBY_EVAL
 
@@ -322,34 +326,40 @@ module ActiveSupport
           end
         end
       end
-
     end
 
     # An Array with a compile method
     class CallbackChain < Array
-      def initialize(symbol)
+      attr_reader :symbol, :config
+
+      def initialize(symbol, config)
         @symbol = symbol
+        @config = config
       end
-      
-      def compile(key = nil, options = {})
+
+      def compile(key=nil, options={})
+        options = config.merge(options)
+
         method = []
         method << "value = nil"
         method << "halted = false"
+
         each do |callback|
           method << callback.start(key, options)
         end
+
         method << "value = yield if block_given? && !halted"
-        # TODO Make each and reverse each part of the callbacks definition.
-        # TODO Make halted on after part of the callbacks definition.
+
         reverse_each do |callback|
           method << callback.end(key, options)
         end
+
         method << "halted ? false : (block_given? ? value : true)"
         method.compact.join("\n")
       end
-      
+
       def clone(klass)
-        chain = CallbackChain.new(@symbol)
+        chain = CallbackChain.new(@symbol, @config.dup)
         chain.push(*map {|c| c.clone(klass)})
       end
     end
@@ -359,7 +369,7 @@ module ActiveSupport
       # a block that it'll yield to. It'll call the before and around filters
       # in order, yield the block, and then run the after filters.
       # 
-      # _run_set_callback :save,s do
+      # _run_set_callback :save do
       #   save
       # end
       #
@@ -368,14 +378,13 @@ module ActiveSupport
       # key. See #define_callbacks for more information.
       #
       def __define_runner(symbol) #:nodoc:
-        body = send("_#{symbol}_callbacks").
-          compile(nil, :terminator => send("_#{symbol}_terminator"))
+        body = send("_#{symbol}_callbacks").compile(nil)
 
         body, line = <<-RUBY_EVAL, __LINE__
           def _run_#{symbol}_callbacks(key = nil, &blk)
             if key
               name = "_run__\#{self.class.name.hash.abs}__#{symbol}__\#{key.hash.abs}__callbacks"
-              
+
               unless respond_to?(name)
                 self.class.__create_keyed_callback(name, :#{symbol}, self, &blk)
               end
@@ -386,7 +395,7 @@ module ActiveSupport
             end
           end
         RUBY_EVAL
-  
+
         undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
         class_eval body, __FILE__, line
       end
@@ -398,16 +407,13 @@ module ActiveSupport
       def __create_keyed_callback(name, kind, obj, &blk) #:nodoc:
         @_keyed_callbacks ||= {}
         @_keyed_callbacks[name] ||= begin
-          str = send("_#{kind}_callbacks").
-            compile(name, :object => obj, :terminator => send("_#{kind}_terminator"))
-
+          str = send("_#{kind}_callbacks").compile(name, :object => obj)
           class_eval "def #{name}() #{str} end", __FILE__, __LINE__
-
           true
         end
       end
 
-      def __update_callbacks(name, filters = CallbackChain.new(name), block = nil)
+      def __update_callbacks(name, filters = CallbackChain.new(name, {}), block = nil)
         type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
@@ -446,11 +452,10 @@ module ActiveSupport
       # is a speed improvement for ActionPack.
       #
       def set_callback(name, *filters, &block)
-        __update_callbacks(name, filters, block) do |callbacks, type, filters, options|        
+        __update_callbacks(name, filters, block) do |callbacks, type, filters, options|
           filters.map! do |filter|
-            # overrides parent class
             callbacks.delete_if {|c| c.matches?(type, filter) }
-            Callback.new(filter, type, options.dup, self)
+            Callback.new(name, filter, type, options.merge(callbacks.config), self)
           end
 
           options[:prepend] ? callbacks.unshift(*filters) : callbacks.push(*filters)
@@ -461,7 +466,6 @@ module ActiveSupport
         __update_callbacks(name, filters, block) do |callbacks, type, filters, options|
           filters.each do |filter|
             callbacks = send("_#{name}_callbacks=", callbacks.clone(self))
-
             filter = callbacks.find {|c| c.matches?(type, filter) }
 
             if filter && options.any?
@@ -479,12 +483,10 @@ module ActiveSupport
       end
 
       def define_callbacks(*symbols)
-        terminator = symbols.pop if symbols.last.is_a?(String)
+        config = symbols.last.is_a?(Hash) ? symbols.pop : {}
         symbols.each do |symbol|
-          extlib_inheritable_accessor("_#{symbol}_terminator") { terminator }
-
           extlib_inheritable_accessor("_#{symbol}_callbacks") do
-            CallbackChain.new(symbol)
+            CallbackChain.new(symbol, config)
           end
 
           __define_runner(symbol)

@@ -22,8 +22,9 @@ class Project < ActiveRecord::Base
   has_and_belongs_to_many :well_payed_salary_groups, :class_name => "Developer", :group => "developers.salary", :having => "SUM(salary) > 10000", :select => "SUM(salary) as salary"
 
   attr_accessor :developers_log
+  after_initialize :set_developers_log
 
-  def after_initialize
+  def set_developers_log
     @developers_log = []
   end
 

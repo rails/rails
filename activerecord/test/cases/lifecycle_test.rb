@@ -4,8 +4,6 @@ require 'models/developer'
 require 'models/reply'
 require 'models/minimalistic'
 
-class Topic; def after_find() end end
-class Developer; def after_find() end end
 class SpecialDeveloper < Developer; end
 
 class TopicManualObserver
@@ -162,22 +160,6 @@ class LifecycleTest < ActiveRecord::TestCase
 
     topic = Topic.find(1)
     assert_equal topic, observer.topic
-  end
-
-  def test_after_find_is_not_clobbered_if_it_already_exists
-    # use a fresh observer class so we can instantiate it (Observer is
-    # a Singleton)
-    model_class = Class.new(ActiveRecord::Base) do
-      def after_find; end
-    end
-    original_method = model_class.instance_method(:after_find)
-    observer_class = Class.new(ActiveRecord::Observer) do
-      def after_find; end
-    end
-    observer_class.observe(model_class)
-
-    observer = observer_class.instance
-    assert_equal original_method, model_class.instance_method(:after_find)
   end
 
   def test_invalid_observer

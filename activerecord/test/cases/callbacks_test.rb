@@ -18,11 +18,10 @@ class CallbackDeveloper < ActiveRecord::Base
       end
     end
 
-    def callback_object(callback_symbol)
+    def callback_object(callback_method)
       klass = Class.new
-      callback_method = callback_symbol.to_s.split('_').first.to_sym
       klass.send(:define_method, callback_method) do |model|
-        model.history << [callback_symbol, :object]
+        model.history << [callback_method, :object]
       end
       klass.new
     end
@@ -30,6 +29,7 @@ class CallbackDeveloper < ActiveRecord::Base
 
   ActiveSupport::Deprecation.silence do
     ActiveRecord::Callbacks::CALLBACKS.each do |callback_method|
+      next if callback_method.to_s =~ /^around_/
       define_callback_method(callback_method)
       send(callback_method, callback_string(callback_method))
       send(callback_method, callback_proc(callback_method))

@@ -214,8 +214,9 @@ module ActiveRecord
 
     CALLBACKS = [
       :after_initialize, :after_find, :before_validation, :after_validation,
-      :before_save, :after_save, :before_create, :after_create, :before_update,
-      :after_update, :before_destroy, :after_destroy
+      :before_save, :around_save, :after_save, :before_create, :around_create,
+      :after_create, :before_update, :around_update, :after_update,
+      :before_destroy, :around_destroy, :after_destroy
     ]
 
     included do
@@ -223,7 +224,8 @@ module ActiveRecord
         alias_method_chain method, :callbacks
       end
 
-      define_callbacks :initialize, :find, :save, :create, :update, :destroy, :validation, "result == false"
+      define_callbacks :initialize, :find, :save, :create, :update, :destroy,
+                       :validation, :terminator => "result == false", :scope => [:kind, :name]
     end
 
     module ClassMethods
@@ -239,64 +241,23 @@ module ActiveRecord
         set_callback(:find, :after, *(args << options), &block)
       end
 
-      def before_save(*args, &block)
-        set_callback(:save, :before, *args, &block)
-      end
+      [:save, :create, :update, :destroy].each do |callback|
+        module_eval <<-CALLBACKS, __FILE__, __LINE__
+          def before_#{callback}(*args, &block)
+            set_callback(:#{callback}, :before, *args, &block)
+          end
 
-      def around_save(*args, &block)
-        set_callback(:save, :around, *args, &block)
-      end
+          def around_#{callback}(*args, &block)
+            set_callback(:#{callback}, :around, *args, &block)
+          end
 
-      def after_save(*args, &block)
-        options = args.extract_options!
-        options[:prepend] = true
-        options[:if] = Array(options[:if]) << "!halted && value != false"
-        set_callback(:save, :after, *(args << options), &block)
-      end
-
-      def before_create(*args, &block)
-        set_callback(:create, :before, *args, &block)
-      end
-
-      def around_create(*args, &block)
-        set_callback(:create, :around, *args, &block)
-      end
-
-      def after_create(*args, &block)
-        options = args.extract_options!
-        options[:prepend] = true
-        options[:if] = Array(options[:if]) << "!halted && value != false"
-        set_callback(:create, :after, *(args << options), &block)
-      end
-
-      def before_update(*args, &block)
-        set_callback(:update, :before, *args, &block)
-      end
-
-      def around_update(*args, &block)
-        set_callback(:update, :around, *args, &block)
-      end
-
-      def after_update(*args, &block)
-        options = args.extract_options!
-        options[:prepend] = true
-        options[:if] = Array(options[:if]) << "!halted && value != false"
-        set_callback(:update, :after, *(args << options), &block)
-      end
-
-      def before_destroy(*args, &block)
-        set_callback(:destroy, :before, *args, &block)
-      end
-
-      def around_destroy(*args, &block)
-        set_callback(:destroy, :around, *args, &block)
-      end
-
-      def after_destroy(*args, &block)
-        options = args.extract_options!
-        options[:prepend] = true
-        options[:if] = Array(options[:if]) << "!halted && value != false"
-        set_callback(:destroy, :after, *(args << options), &block)
+          def after_#{callback}(*args, &block)
+            options = args.extract_options!
+            options[:prepend] = true
+            options[:if] = Array(options[:if]) << "!halted && value != false"
+            set_callback(:#{callback}, :after, *(args << options), &block)
+          end
+        CALLBACKS
       end
 
       def before_validation(*args, &block)

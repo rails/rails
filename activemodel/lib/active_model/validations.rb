@@ -9,7 +9,7 @@ module ActiveModel
     include ActiveSupport::NewCallbacks
 
     included do
-      define_callbacks :validate
+      define_callbacks :validate, :scope => :name
     end
 
     module ClassMethods
@@ -79,7 +79,7 @@ module ActiveModel
           options[:if] = Array(options[:if])
           options[:if] << "@_on_validate == :#{options[:on]}"
         end
-        set_callback(:validate, :before, *args, &block)
+        set_callback(:validate, *args, &block)
       end
     end
 

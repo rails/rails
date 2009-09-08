@@ -52,6 +52,15 @@ class Topic < ActiveRecord::Base
     id
   end
 
+  before_validation :before_validation_for_transaction
+  before_save :before_save_for_transaction
+  before_destroy :before_destroy_for_transaction
+
+  after_save :after_save_for_transaction
+  after_create :after_create_for_transaction
+
+  after_initialize :set_email_address
+
   protected
     def approved=(val)
       @custom_approved = val
@@ -66,11 +75,17 @@ class Topic < ActiveRecord::Base
       self.class.delete_all "parent_id = #{id}"
     end
 
-    def after_initialize
+    def set_email_address
       if self.new_record?
         self.author_email_address = 'test@test.com'
       end
     end
+
+    def before_validation_for_transaction; end
+    def before_save_for_transaction; end
+    def before_destroy_for_transaction; end
+    def after_save_for_transaction; end
+    def after_create_for_transaction; end
 end
 
 module Web
