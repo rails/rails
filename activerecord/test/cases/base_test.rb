@@ -1645,6 +1645,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal t1.title, t2.title
   end
 
+  def test_reload_with_exclusive_scope
+    dev = DeveloperCalledDavid.first
+    dev.update_attributes!( :name => "NotDavid" )
+    assert_equal dev, dev.reload
+  end
+
   def test_define_attr_method_with_value
     k = Class.new( ActiveRecord::Base )
     k.send(:define_attr_method, :table_name, "foo")
