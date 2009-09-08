@@ -180,6 +180,10 @@ module NewCallbacksTest
     end
   end
 
+  class CleanPerson < ConditionalPerson
+    reset_callbacks :save
+  end
+
   class MySuper
     include ActiveSupport::NewCallbacks
     define_callbacks :save
@@ -346,6 +350,14 @@ module NewCallbacksTest
         [:before_save, :string],
         [:before_save, :combined_symbol],
       ], person.history
+    end
+  end
+
+  class ResetCallbackTest < Test::Unit::TestCase
+    def test_save_conditional_person
+      person = CleanPerson.new
+      person.save
+      assert_equal [], person.history
     end
   end
 

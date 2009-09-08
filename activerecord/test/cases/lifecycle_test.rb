@@ -1,4 +1,4 @@
-require "cases/helper"
+require 'cases/helper'
 require 'models/topic'
 require 'models/developer'
 require 'models/reply'
@@ -42,6 +42,11 @@ class TopicObserver < ActiveRecord::Observer
 
   def after_find(topic)
     @topic = topic
+  end
+
+  # Create an after_save callback, so a notify_observer hook is created
+  # on :topic.
+  def after_save(nothing)
   end
 end
 
@@ -157,18 +162,6 @@ class LifecycleTest < ActiveRecord::TestCase
 
     topic = Topic.find(1)
     assert_equal topic, observer.topic
-  end
-
-  def test_after_find_is_not_created_if_its_not_used
-    # use a fresh class so an observer can't have defined an
-    # after_find on it
-    model_class = Class.new(ActiveRecord::Base)
-    observer_class = Class.new(ActiveRecord::Observer)
-    observer_class.observe(model_class)
-
-    observer = observer_class.instance
-
-    assert !model_class.method_defined?(:after_find)
   end
 
   def test_after_find_is_not_clobbered_if_it_already_exists

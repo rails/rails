@@ -12,8 +12,6 @@ require 'active_record/test_case'
 require 'active_record/fixtures'
 require 'connection'
 
-require 'cases/repair_helper'
-
 begin
   require 'ruby-debug'
 rescue LoadError

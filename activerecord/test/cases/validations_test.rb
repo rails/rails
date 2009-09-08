@@ -161,12 +161,9 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_validates_acceptance_of_as_database_column
-    repair_validations(Reply) do
-      Reply.validates_acceptance_of(:author_name)
-
-      reply = Reply.create("author_name" => "Dan Brown")
-      assert_equal "Dan Brown", reply["author_name"]
-    end
+    Topic.validates_acceptance_of(:author_name)
+    topic = Topic.create("author_name" => "Dan Brown")
+    assert_equal "Dan Brown", topic["author_name"]
   end
 
   def test_deprecated_validation_instance_methods

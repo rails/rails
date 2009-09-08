@@ -1679,13 +1679,8 @@ module ActiveRecord #:nodoc:
           object.instance_variable_set("@attributes", record)
           object.instance_variable_set("@attributes_cache", Hash.new)
 
-          if object.respond_to_without_attributes?(:after_find)
-            object.send(:callback, :after_find)
-          end
-
-          if object.respond_to_without_attributes?(:after_initialize)
-            object.send(:callback, :after_initialize)
-          end
+          object.send(:_run_find_callbacks)
+          object.send(:_run_initialize_callbacks)
 
           object
         end
@@ -2438,7 +2433,7 @@ module ActiveRecord #:nodoc:
         self.attributes = attributes unless attributes.nil?
         self.class.send(:scope, :create).each { |att,value| self.send("#{att}=", value) } if self.class.send(:scoped?, :create)
         result = yield self if block_given?
-        callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
+        _run_initialize_callbacks
         result
       end
 

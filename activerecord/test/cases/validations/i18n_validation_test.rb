@@ -4,7 +4,7 @@ require 'models/reply'
 
 class I18nValidationTest < ActiveRecord::TestCase
   def setup
-    reset_callbacks Topic
+    Topic.reset_callbacks(:validate)
     @topic = Topic.new
     @old_load_path, @old_backend = I18n.load_path, I18n.backend
     I18n.load_path.clear
@@ -13,7 +13,7 @@ class I18nValidationTest < ActiveRecord::TestCase
   end
 
   def teardown
-    reset_callbacks Topic
+    Topic.reset_callbacks(:validate)
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
   end
@@ -27,14 +27,6 @@ class I18nValidationTest < ActiveRecord::TestCase
       topic = Topic.create(:title => "topic")
       topic.replies << Reply.new
       topic
-    end
-  end
-
-  def reset_callbacks(*models)
-    models.each do |model|
-      model.instance_variable_set("@validate_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-      model.instance_variable_set("@validate_on_create_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-      model.instance_variable_set("@validate_on_update_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
     end
   end
 
@@ -710,9 +702,9 @@ class I18nValidationTest < ActiveRecord::TestCase
   end
 end
 
-class ActiveRecordValidationsGenerateMessageI18nTests < ActiveSupport::TestCase
+class ActiveRecordValidationsGenerateMessageI18nTests < ActiveRecord::TestCase
+
   def setup
-    reset_callbacks Topic
     @topic = Topic.new
     I18n.backend.store_translations :'en', {
       :activerecord => {
@@ -741,14 +733,6 @@ class ActiveRecordValidationsGenerateMessageI18nTests < ActiveSupport::TestCase
         }
       }
     }
-  end
-
-  def reset_callbacks(*models)
-    models.each do |model|
-      model.instance_variable_set("@validate_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-      model.instance_variable_set("@validate_on_create_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-      model.instance_variable_set("@validate_on_update_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-    end
   end
 
   # validates_inclusion_of: generate_message(attr_name, :inclusion, :default => configuration[:message], :value => value)

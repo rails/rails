@@ -121,8 +121,8 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_invalid_validator
-    Topic.validate 3
-    assert_raise(ArgumentError) { t = Topic.create }
+    Topic.validate :i_dont_exist
+    assert_raise(NameError) { t = Topic.create }
   end
 
   def test_errors_to_xml

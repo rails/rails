@@ -15,17 +15,17 @@ module ActiveSupport
   #   end
   #
   #   class ConfigStorage < Storage
-  #     save_callback :before, :saving_message
+  #     set_callback :save, :before, :saving_message
   #     def saving_message
   #       puts "saving..."
   #     end
   #
-  #     save_callback :after do |object|
+  #     set_callback :save, :after do |object|
   #       puts "saved"
   #     end
   #
   #     def save
-  #       _run_save_callbacks do
+  #       _run_set_callback :save,s do
   #         puts "- save"
   #       end
   #     end
@@ -47,24 +47,24 @@ module ActiveSupport
   #
   #     define_callbacks :save
   #
-  #     save_callback :before, :prepare
+  #     set_callback :save, :before, :prepare
   #     def prepare
   #       puts "preparing save"
   #     end
   #   end
   #
   #   class ConfigStorage < Storage
-  #     save_callback :before, :saving_message
+  #     set_callback :save, :before, :saving_message
   #     def saving_message
   #       puts "saving..."
   #     end
   #
-  #     save_callback :after do |object|
+  #     set_callback :save, :after do |object|
   #       puts "saved"
   #     end
   #
   #     def save
-  #       _run_save_callbacks do
+  #       _run_set_callback :save,s do
   #         puts "- save"
   #       end
   #     end
@@ -78,6 +78,7 @@ module ActiveSupport
   #   saving...
   #   - save
   #   saved
+  #
   module NewCallbacks
     def self.included(klass)
       klass.extend ClassMethods
@@ -242,7 +243,7 @@ module ActiveSupport
       # Options support the same options as filters themselves (and support
       # symbols, string, procs, and objects), so compile a conditional
       # expression based on the options
-      def _compile_options(options)        
+      def _compile_options(options)
         return [] if options[:if].empty? && options[:unless].empty?
         
         conditions = []
@@ -259,6 +260,7 @@ module ActiveSupport
       end
       
       # Filters support:
+      #
       #   Arrays::  Used in conditions. This is used to specify
       #             multiple conditions. Used internally to
       #             merge conditions from skip_* filters
@@ -269,6 +271,7 @@ module ActiveSupport
       #
       # All of these objects are compiled into methods and handled
       # the same after this point:
+      #
       #   Arrays::  Merged together into a single filter
       #   Symbols:: Already methods
       #   Strings:: class_eval'ed into methods
@@ -276,6 +279,7 @@ module ActiveSupport
       #   Objects:: 
       #     a method is created that calls the before_foo method
       #     on the object.
+      #
       def _compile_filter(filter)
         method_name = "_callback_#{@kind}_#{next_id}"
         case filter
@@ -329,14 +333,18 @@ module ActiveSupport
       
       def compile(key = nil, options = {})
         method = []
+        method << "value = nil"
         method << "halted = false"
         each do |callback|
           method << callback.start(key, options)
         end
-        method << "yield self if block_given? && !halted"
+        method << "value = yield if block_given? && !halted"
+        # TODO Make each and reverse each part of the callbacks definition.
+        # TODO Make halted on after part of the callbacks definition.
         reverse_each do |callback|
           method << callback.end(key, options)
         end
+        method << "halted ? false : (block_given? ? value : true)"
         method.compact.join("\n")
       end
       
@@ -345,22 +353,21 @@ module ActiveSupport
         chain.push(*map {|c| c.clone(klass)})
       end
     end
-        
+
     module ClassMethods
-      CHAINS = {:before => :before, :around => :before, :after => :after}
-      
-      # Make the _run_save_callbacks method. The generated method takes
+      # Make the _run_set_callback :save method. The generated method takes
       # a block that it'll yield to. It'll call the before and around filters
       # in order, yield the block, and then run the after filters.
       # 
-      # _run_save_callbacks do
+      # _run_set_callback :save,s do
       #   save
       # end
       #
-      # The _run_save_callbacks method can optionally take a key, which
+      # The _run_set_callback :save,s method can optionally take a key, which
       # will be used to compile an optimized callback method for each
       # key. See #define_callbacks for more information.
-      def _define_runner(symbol)
+      #
+      def __define_runner(symbol) #:nodoc:
         body = send("_#{symbol}_callbacks").
           compile(nil, :terminator => send("_#{symbol}_terminator"))
 
@@ -370,7 +377,7 @@ module ActiveSupport
               name = "_run__\#{self.class.name.hash.abs}__#{symbol}__\#{key.hash.abs}__callbacks"
               
               unless respond_to?(name)
-                self.class._create_keyed_callback(name, :#{symbol}, self, &blk)
+                self.class.__create_keyed_callback(name, :#{symbol}, self, &blk)
               end
 
               send(name, &blk)
@@ -387,32 +394,39 @@ module ActiveSupport
       # This is called the first time a callback is called with a particular
       # key. It creates a new callback method for the key, calculating
       # which callbacks can be omitted because of per_key conditions.
-      def _create_keyed_callback(name, kind, obj, &blk)
+      #
+      def __create_keyed_callback(name, kind, obj, &blk) #:nodoc:
         @_keyed_callbacks ||= {}
         @_keyed_callbacks[name] ||= begin
           str = send("_#{kind}_callbacks").
             compile(name, :object => obj, :terminator => send("_#{kind}_terminator"))
 
           class_eval "def #{name}() #{str} end", __FILE__, __LINE__
-                    
+
           true
         end
       end
-      
+
+      def __update_callbacks(name, filters = CallbackChain.new(name), block = nil)
+        type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
+        options = filters.last.is_a?(Hash) ? filters.pop : {}
+        filters.unshift(block) if block
+
+        callbacks = send("_#{name}_callbacks")
+        yield callbacks, type, filters, options if block_given?
+
+        __define_runner(name)
+      end
+
       # Define callbacks.
       #
-      # Creates a <name>_callback method that you can use to add callbacks.
-      #
       # Syntax:
-      #   save_callback :before, :before_meth
-      #   save_callback :after,  :after_meth, :if => :condition
-      #   save_callback :around {|r| stuff; yield; stuff }
+      #   set_callback :save, :before, :before_meth
+      #   set_callback :save, :after,  :after_meth, :if => :condition
+      #   set_callback :save, :around {|r| stuff; yield; stuff }
       #
-      # The <name>_callback method also updates the _run_<name>_callbacks
-      # method, which is the public API to run the callbacks.
-      #
-      # Also creates a skip_<name>_callback method that you can use to skip
-      # callbacks.
+      # It also updates the _run_<name>_callbacks method, which is the public
+      # API to run the callbacks. Use skip_callback to skip any defined one.
       #
       # When creating or skipping callbacks, you can specify conditions that
       # are always the same for a given key. For instance, in ActionPack,
@@ -430,21 +444,9 @@ module ActiveSupport
       # In that case, each action_name would get its own compiled callback
       # method that took into consideration the per_key conditions. This
       # is a speed improvement for ActionPack.
-      def _update_callbacks(name, filters = CallbackChain.new(name), block = nil)
-        type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
-        options = filters.last.is_a?(Hash) ? filters.pop : {}
-        filters.unshift(block) if block
-
-        callbacks = send("_#{name}_callbacks")
-        yield callbacks, type, filters, options if block_given?
-
-        _define_runner(name)
-      end
-
-      alias_method :_reset_callbacks, :_update_callbacks
-
+      #
       def set_callback(name, *filters, &block)
-        _update_callbacks(name, filters, block) do |callbacks, type, filters, options|        
+        __update_callbacks(name, filters, block) do |callbacks, type, filters, options|        
           filters.map! do |filter|
             # overrides parent class
             callbacks.delete_if {|c| c.matches?(type, filter) }
@@ -456,7 +458,7 @@ module ActiveSupport
       end
 
       def skip_callback(name, *filters, &block)
-        _update_callbacks(name, filters, block) do |callbacks, type, filters, options|
+        __update_callbacks(name, filters, block) do |callbacks, type, filters, options|
           filters.each do |filter|
             callbacks = send("_#{name}_callbacks=", callbacks.clone(self))
 
@@ -471,6 +473,11 @@ module ActiveSupport
         end
       end
 
+      def reset_callbacks(symbol)
+        send("_#{symbol}_callbacks").clear
+        __define_runner(symbol)
+      end
+
       def define_callbacks(*symbols)
         terminator = symbols.pop if symbols.last.is_a?(String)
         symbols.each do |symbol|
@@ -480,7 +487,7 @@ module ActiveSupport
             CallbackChain.new(symbol)
           end
 
-          _define_runner(symbol)
+          __define_runner(symbol)
         end
       end
     end

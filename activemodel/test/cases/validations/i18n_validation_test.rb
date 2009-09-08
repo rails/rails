@@ -7,8 +7,7 @@ class I18nValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
 
   def setup
-    reset_callbacks Person
-
+    Person.reset_callbacks(:validate)
     @person = Person.new
 
     @old_load_path, @old_backend = I18n.load_path, I18n.backend
@@ -18,15 +17,9 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def teardown
-    reset_callbacks Person
+    Person.reset_callbacks(:validate)
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
-  end
-
-  def reset_callbacks(*models)
-    models.each do |model|
-      model.instance_variable_set("@validate_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-    end
   end
 
   def test_percent_s_interpolation_syntax_in_error_messages_was_deprecated
