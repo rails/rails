@@ -180,6 +180,10 @@ module NewCallbacksTest
     end
   end
 
+  class CleanPerson < ConditionalPerson
+    reset_callbacks :save
+  end
+
   class MySuper
     include ActiveSupport::NewCallbacks
     define_callbacks :save
@@ -349,10 +353,18 @@ module NewCallbacksTest
     end
   end
 
+  class ResetCallbackTest < Test::Unit::TestCase
+    def test_save_conditional_person
+      person = CleanPerson.new
+      person.save
+      assert_equal [], person.history
+    end
+  end
+
   class CallbackTerminator
     include ActiveSupport::NewCallbacks
   
-    define_callbacks :save, "result == :halt"
+    define_callbacks :save, :terminator => "result == :halt"
   
     set_callback :save, :before, :first
     set_callback :save, :before, :second
@@ -400,7 +412,11 @@ module NewCallbacksTest
     def before(caller)
       caller.record << "before"
     end
-    
+
+    def before_save(caller)
+      caller.record << "before save"
+    end
+
     def around(caller)
       caller.record << "around before"
       yield
@@ -410,15 +426,15 @@ module NewCallbacksTest
 
   class UsingObjectBefore
     include ActiveSupport::NewCallbacks
-    
+
     define_callbacks :save
     set_callback :save, :before, CallbackObject.new
-    
+
     attr_accessor :record
     def initialize
       @record = []
     end
-    
+
     def save
       _run_save_callbacks do
         @record << "yielded"
@@ -443,19 +459,49 @@ module NewCallbacksTest
       end
     end 
   end
-  
+
+  class CustomScopeObject
+    include ActiveSupport::NewCallbacks
+
+    define_callbacks :save, :scope => [:kind, :name]
+    set_callback :save, :before, CallbackObject.new
+
+    attr_accessor :record
+    def initialize
+      @record = []
+    end
+
+    def save
+      _run_save_callbacks do
+        @record << "yielded"
+        "CallbackResult"
+      end
+    end 
+  end
+
   class UsingObjectTest < Test::Unit::TestCase
     def test_before_object
       u = UsingObjectBefore.new
       u.save
       assert_equal ["before", "yielded"], u.record
     end
-    
+
     def test_around_object
       u = UsingObjectAround.new
       u.save
       assert_equal ["around before", "yielded", "around after"], u.record
-    end    
+    end
+
+    def test_customized_object
+      u = CustomScopeObject.new
+      u.save
+      assert_equal ["before save", "yielded"], u.record
+    end
+
+    def test_block_result_is_returned
+      u = CustomScopeObject.new
+      assert_equal "CallbackResult", u.save
+    end
   end
 
   class CallbackTerminatorTest < Test::Unit::TestCase
@@ -469,7 +515,7 @@ module NewCallbacksTest
       obj = CallbackTerminator.new
       obj.save
       assert !obj.saved
-    end    
+    end
   end
   
   class HyphenatedKeyTest < Test::Unit::TestCase
@@ -477,6 +523,6 @@ module NewCallbacksTest
       obj = HyphenatedCallbacks.new
       obj.save
       assert_equal obj.stuff, "OMG"
-    end    
-  end  
+    end
+  end
 end

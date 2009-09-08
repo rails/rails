@@ -5,7 +5,7 @@ require 'models/person'
 
 class I18nGenerateMessageValidationTest < Test::Unit::TestCase
   def setup
-    reset_callbacks Person
+    Person.reset_callbacks(:validate)
     @person = Person.new
 
     @old_load_path, @old_backend = I18n.load_path, I18n.backend
@@ -43,12 +43,6 @@ class I18nGenerateMessageValidationTest < Test::Unit::TestCase
   def teardown
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
-  end
-
-  def reset_callbacks(*models)
-    models.each do |model|
-      model.instance_variable_set("@validate_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-    end
   end
 
   # validates_inclusion_of: generate_message(attr_name, :inclusion, :default => configuration[:message], :value => value)

@@ -2,9 +2,9 @@ require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 
-class I18nGenerateMessageValidationTest < Test::Unit::TestCase
+class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
   def setup
-    reset_callbacks Topic
+    Topic.reset_callbacks(:validate)
     @topic = Topic.new
     I18n.backend.store_translations :'en', {
       :activerecord => {
@@ -15,14 +15,6 @@ class I18nGenerateMessageValidationTest < Test::Unit::TestCase
         }
       }
     }
-  end
-
-  def reset_callbacks(*models)
-    models.each do |model|
-      model.instance_variable_set("@validate_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-      model.instance_variable_set("@validate_on_create_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-      model.instance_variable_set("@validate_on_update_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-    end
   end
 
   # validates_inclusion_of: generate_message(attr_name, :inclusion, :default => configuration[:message], :value => value)

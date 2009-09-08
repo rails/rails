@@ -1491,24 +1491,43 @@ module ActiveRecord
                 end
                 before_destroy method_name
               when :delete_all
-                module_eval %Q{
-                  before_destroy do |record|                  # before_destroy do |record|
-                    delete_all_has_many_dependencies(record,  #   delete_all_has_many_dependencies(record,
-                      "#{reflection.name}",                   #     "posts",
-                      #{reflection.class_name},               #     Post,
-                      %@#{dependent_conditions}@)             #     %@...@) # this is a string literal like %(...)
-                  end                                         # end
-                }
+                # before_destroy do |record|
+                #   self.class.send(:delete_all_has_many_dependencies,
+                #     record,
+                #     "posts",
+                #     Post,
+                #     %@...@) # this is a string literal like %(...)
+                #   end
+                # end
+                module_eval <<-CALLBACK
+                  before_destroy do |record|
+                    self.class.send(:delete_all_has_many_dependencies,
+                      record,
+                      "#{reflection.name}",
+                      #{reflection.class_name},
+                      %@#{dependent_conditions}@)
+                  end
+                CALLBACK
               when :nullify
-                module_eval %Q{
-                  before_destroy do |record|                  # before_destroy do |record|
-                    nullify_has_many_dependencies(record,     #   nullify_has_many_dependencies(record,
-                      "#{reflection.name}",                   #     "posts",
-                      #{reflection.class_name},               #     Post,
-                      "#{reflection.primary_key_name}",       #     "user_id",
-                      %@#{dependent_conditions}@)             #     %@...@) # this is a string literal like %(...)
-                  end                                         # end
-                }
+                # before_destroy do |record|
+                #   self.class.send(:nullify_has_many_dependencies,
+                #     record,
+                #     "posts",
+                #     Post,
+                #     "user_id",
+                #     %@...@) # this is a string literal like %(...)
+                #   end
+                # end
+                module_eval <<-CALLBACK
+                  before_destroy do |record|
+                    self.class.send(:nullify_has_many_dependencies,
+                      record,
+                      "#{reflection.name}",
+                      #{reflection.class_name},
+                      "#{reflection.primary_key_name}",
+                      %@#{dependent_conditions}@)
+                  end
+                CALLBACK
               else
                 raise ArgumentError, "The :dependent option expects either :destroy, :delete_all, or :nullify (#{reflection.options[:dependent].inspect})"
             end

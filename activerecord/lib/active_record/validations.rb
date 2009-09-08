@@ -110,8 +110,6 @@ module ActiveRecord
     included do
       alias_method_chain :save, :validation
       alias_method_chain :save!, :validation
-
-      define_callbacks :validate_on_create, :validate_on_update
     end
 
     module ClassMethods
@@ -125,17 +123,6 @@ module ActiveRecord
           yield(object) if block_given?
           object.save!
           object
-        end
-      end
-
-      def validation_method(on)
-        case on
-        when :create
-          :validate_on_create
-        when :update
-          :validate_on_update
-        else
-          :validate
         end
       end
     end
@@ -165,27 +152,15 @@ module ActiveRecord
       def valid?
         errors.clear
 
-        run_callbacks(:validate)
+        @_on_validate = new_record? ? :create : :update
+        _run_validate_callbacks
 
-        if respond_to?(:validate)
-          ActiveSupport::Deprecation.warn("Base#validate has been deprecated, please use Base.validate :method instead")
-          validate
-        end
+        deprecated_callback_method(:validate)
 
         if new_record?
-          run_callbacks(:validate_on_create)
-
-          if respond_to?(:validate_on_create)
-            ActiveSupport::Deprecation.warn("Base#validate_on_create has been deprecated, please use Base.validate_on_create :method instead")
-            validate_on_create
-          end
+          deprecated_callback_method(:validate_on_create)
         else
-          run_callbacks(:validate_on_update)
-
-          if respond_to?(:validate_on_update)
-            ActiveSupport::Deprecation.warn("Base#validate_on_update has been deprecated, please use Base.validate_on_update :method instead")
-            validate_on_update
-          end
+          deprecated_callback_method(:validate_on_update)
         end
 
         errors.empty?

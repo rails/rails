@@ -32,7 +32,7 @@ module ActiveModel
 
         # can't use validates_each here, because it cannot cope with nonexistent attributes,
         # while errors.add_on_empty can
-        send(validation_method(configuration[:on]), configuration) do |record|
+        validate configuration do |record|
           record.errors.add_on_blank(attr_names, configuration[:message])
         end
       end
