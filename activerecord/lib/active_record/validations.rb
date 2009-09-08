@@ -27,11 +27,11 @@ module ActiveRecord
     end
 
     def message
-      generate_message(@message, options.dup)
+      generate_message(@message, default_options)
     end
 
     def full_message
-      attribute.to_s == 'base' ? message : generate_full_message(message, options.dup)
+      attribute.to_s == 'base' ? message : generate_full_message(message, default_options)
     end
 
     alias :to_s :message
@@ -72,12 +72,7 @@ module ActiveRecord
         keys << @type unless @type == message
         keys.compact!
 
-        options.reverse_merge! :default => keys,
-                               :scope => [:activerecord, :errors],
-                               :model => @base.class.human_name,
-                               :attribute => @base.class.human_attribute_name(attribute.to_s),
-                               :value => value
-
+        options.merge!(:default => keys)
         I18n.translate(keys.shift, options)
       end
 
@@ -109,15 +104,23 @@ module ActiveRecord
       #           title:
       #             blank: This title is screwed!
       def generate_full_message(message, options = {})
-        options.reverse_merge! :message => self.message,
-                               :model => @base.class.human_name,
-                               :attribute => @base.class.human_attribute_name(attribute.to_s),
-                               :value => value
+        keys = [
+          :"full_messages.#{@message}",
+          :'full_messages.format',
+          '{{attribute}} {{message}}'
+        ]
 
-        key = :"full_messages.#{@message}"
-        defaults = [:'full_messages.format', '{{attribute}} {{message}}']
+        options.merge!(:default => keys, :message => self.message)
+        I18n.translate(keys.shift, options)
+      end
 
-        I18n.t(key, options.merge(:default => defaults, :scope => [:activerecord, :errors]))
+      # Return user options with default options.
+      #
+      def default_options
+        options.reverse_merge :scope => [:activerecord, :errors],
+                              :model => @base.class.human_name,
+                              :attribute => @base.class.human_attribute_name(attribute.to_s),
+                              :value => value
       end
   end
 
@@ -321,7 +324,7 @@ module ActiveRecord
     end
 
     def generate_message(attribute, message = :invalid, options = {})
-      ActiveSupport::Deprecation.warn("ActiveRecord::Errors#generate_message has been deprecated. Please use ActiveRecord::Error#generate_message.")
+      ActiveSupport::Deprecation.warn("ActiveRecord::Errors#generate_message has been deprecated. Please use ActiveRecord::Error.new().to_s.")
       Error.new(@base, attribute, message, options).to_s
     end
   end

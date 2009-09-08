@@ -651,6 +651,14 @@ class ActiveRecordErrorI18nTests < ActiveSupport::TestCase
     assert_full_message 'Title is kaputt?!', :title, :kaputt, :message => :broken
   end
 
+  test "#full_message with different scope" do
+    store_translations(:my_errors => { :messages => { :kaputt => 'is kaputt' } })
+    assert_full_message 'Title is kaputt', :title, :kaputt, :scope => [:activerecord, :my_errors]
+
+    store_translations(:my_errors => { :full_messages => { :kaputt => '{{attribute}} {{message}}!' } })
+    assert_full_message 'Title is kaputt!', :title, :kaputt, :scope => [:activerecord, :my_errors]
+  end
+
   # switch locales
 
   test "#message allows to switch locales" do
