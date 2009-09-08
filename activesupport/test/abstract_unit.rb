@@ -5,6 +5,7 @@ require 'test/unit'
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
 $:.unshift File.dirname(__FILE__)
 require 'active_support'
+require 'active_support/test_case'
 
 if RUBY_VERSION < '1.9'
   $KCODE = 'UTF8'
