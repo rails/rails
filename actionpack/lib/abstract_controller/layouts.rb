@@ -119,17 +119,17 @@ module AbstractController
         when true
           raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
         when nil
-          self.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
+          self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             def _layout(details)
               self.class.cache_layout(details) do
-                if view_paths.exists?("#{_implied_layout_name}", details, "layouts")
+                if template_exists?("#{_implied_layout_name}", details, :_prefix => "layouts")
                   "#{_implied_layout_name}"
                 else
                   super
                 end
               end
             end
-          ruby_eval
+          RUBY
         end
         self.class_eval { private :_layout }
       end
@@ -167,7 +167,7 @@ module AbstractController
     # details<Hash{Symbol => Object}>:: A list of details to restrict
     #   the lookup to. By default, layout lookup is limited to the
     #   formats specified for the current request.
-    def _layout_for_name(name, details = {:formats => formats})
+    def _layout_for_name(name, details)
       name && _find_layout(name, details)
     end
 
@@ -183,7 +183,7 @@ module AbstractController
     def _find_layout(name, details)
       # TODO: Make prefix actually part of details in ViewPath#find_by_parts
       prefix = details.key?(:prefix) ? details.delete(:prefix) : "layouts"
-      view_paths.find(name, details, prefix)
+      find_template(name, details, :_prefix => prefix)
     end
 
     # Returns the default layout for this controller and a given set of details.

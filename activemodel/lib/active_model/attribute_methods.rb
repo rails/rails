@@ -181,7 +181,7 @@ module ActiveModel
       end
 
       def attribute_methods_generated?
-        @attribute_methods_generated ? true : false
+        @attribute_methods_generated ||= nil
       end
 
       protected

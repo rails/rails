@@ -232,14 +232,18 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   end
 
   def test_basic_named_route
-    rs.add_named_route :home, '', :controller => 'content', :action => 'list'
+    rs.draw do |map|
+      map.home '', :controller => 'content', :action => 'list'
+    end
     x = setup_for_named_route
     assert_equal("http://test.host/",
                  x.send(:home_url))
   end
 
   def test_basic_named_route_with_relative_url_root
-    rs.add_named_route :home, '', :controller => 'content', :action => 'list'
+    rs.draw do |map|
+      map.home '', :controller => 'content', :action => 'list'
+    end
     x = setup_for_named_route
     ActionController::Base.relative_url_root = "/foo"
     assert_equal("http://test.host/foo/",
@@ -249,14 +253,18 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   end
 
   def test_named_route_with_option
-    rs.add_named_route :page, 'page/:title', :controller => 'content', :action => 'show_page'
+    rs.draw do |map|
+      map.page 'page/:title', :controller => 'content', :action => 'show_page'
+    end
     x = setup_for_named_route
     assert_equal("http://test.host/page/new%20stuff",
                  x.send(:page_url, :title => 'new stuff'))
   end
 
   def test_named_route_with_default
-    rs.add_named_route :page, 'page/:title', :controller => 'content', :action => 'show_page', :title => 'AboutPage'
+    rs.draw do |map|
+      map.page 'page/:title', :controller => 'content', :action => 'show_page', :title => 'AboutPage'
+    end
     x = setup_for_named_route
     assert_equal("http://test.host/page/AboutRails",
                  x.send(:page_url, :title => "AboutRails"))
@@ -264,36 +272,46 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   end
 
   def test_named_route_with_name_prefix
-    rs.add_named_route :page, 'page', :controller => 'content', :action => 'show_page', :name_prefix => 'my_'
+    rs.draw do |map|
+      map.page 'page', :controller => 'content', :action => 'show_page', :name_prefix => 'my_'
+    end
     x = setup_for_named_route
     assert_equal("http://test.host/page",
                  x.send(:my_page_url))
   end
 
   def test_named_route_with_path_prefix
-    rs.add_named_route :page, 'page', :controller => 'content', :action => 'show_page', :path_prefix => 'my'
+    rs.draw do |map|
+      map.page 'page', :controller => 'content', :action => 'show_page', :path_prefix => 'my'
+    end
     x = setup_for_named_route
     assert_equal("http://test.host/my/page",
                  x.send(:page_url))
   end
 
   def test_named_route_with_blank_path_prefix
-    rs.add_named_route :page, 'page', :controller => 'content', :action => 'show_page', :path_prefix => ''
+    rs.draw do |map|
+      map.page 'page', :controller => 'content', :action => 'show_page', :path_prefix => ''
+    end
     x = setup_for_named_route
     assert_equal("http://test.host/page",
                  x.send(:page_url))
   end
 
   def test_named_route_with_nested_controller
-    rs.add_named_route :users, 'admin/user', :controller => 'admin/user', :action => 'index'
+    rs.draw do |map|
+      map.users 'admin/user', :controller => 'admin/user', :action => 'index'
+    end
     x = setup_for_named_route
     assert_equal("http://test.host/admin/user",
                  x.send(:users_url))
   end
 
   def test_optimised_named_route_call_never_uses_url_for
-    rs.add_named_route :users, 'admin/user', :controller => '/admin/user', :action => 'index'
-    rs.add_named_route :user, 'admin/user/:id', :controller=>'/admin/user', :action=>'show'
+    rs.draw do |map|
+      map.users 'admin/user', :controller => '/admin/user', :action => 'index'
+      map.user 'admin/user/:id', :controller=>'/admin/user', :action=>'show'
+    end
     x = setup_for_named_route
     x.expects(:url_for).never
     x.send(:users_url)
@@ -303,7 +321,9 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   end
 
   def test_optimised_named_route_with_host
-    rs.add_named_route :pages, 'pages', :controller => 'content', :action => 'show_page', :host => 'foo.com'
+    rs.draw do |map|
+      map.pages 'pages', :controller => 'content', :action => 'show_page', :host => 'foo.com'
+    end
     x = setup_for_named_route
     x.expects(:url_for).with(:host => 'foo.com', :only_path => false, :controller => 'content', :action => 'show_page', :use_route => :pages).once
     x.send(:pages_url)
@@ -378,7 +398,9 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   end
 
   def test_paths_slashes_unescaped_with_ordered_parameters
-    rs.add_named_route :path, '/file/*path', :controller => 'content'
+    rs.draw do |map|
+      map.path '/file/*path', :controller => 'content'
+    end
 
     # No / to %2F in URI, only for query params.
     x = setup_for_named_route
@@ -1781,23 +1803,23 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_default_route_recognition
-    expected = {:controller => 'accounts', :action => 'show', :id => '10'}
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/10')
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/10/')
+    expected = {:controller => 'pages', :action => 'show', :id => '10'}
+    assert_equal expected, default_route_set.recognize_path('/pages/show/10')
+    assert_equal expected, default_route_set.recognize_path('/pages/show/10/')
 
     expected[:id] = 'jamis'
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/jamis/')
+    assert_equal expected, default_route_set.recognize_path('/pages/show/jamis/')
 
     expected.delete :id
-    assert_equal expected, default_route_set.recognize_path('/accounts/show')
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/')
+    assert_equal expected, default_route_set.recognize_path('/pages/show')
+    assert_equal expected, default_route_set.recognize_path('/pages/show/')
 
     expected[:action] = 'index'
-    assert_equal expected, default_route_set.recognize_path('/accounts/')
-    assert_equal expected, default_route_set.recognize_path('/accounts')
+    assert_equal expected, default_route_set.recognize_path('/pages/')
+    assert_equal expected, default_route_set.recognize_path('/pages')
 
     assert_raise(ActionController::RoutingError) { default_route_set.recognize_path('/') }
-    assert_raise(ActionController::RoutingError) { default_route_set.recognize_path('/accounts/how/goood/it/is/to/be/free') }
+    assert_raise(ActionController::RoutingError) { default_route_set.recognize_path('/pages/how/goood/it/is/to/be/free') }
   end
 
   def test_default_route_should_omit_default_action
@@ -1813,15 +1835,15 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_default_route_should_uri_escape_pluses
-    expected = { :controller => 'accounts', :action => 'show', :id => 'hello world' }
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/hello world')
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/hello%20world')
-    assert_equal '/accounts/show/hello%20world', default_route_set.generate(expected, expected)
+    expected = { :controller => 'pages', :action => 'show', :id => 'hello world' }
+    assert_equal expected, default_route_set.recognize_path('/pages/show/hello world')
+    assert_equal expected, default_route_set.recognize_path('/pages/show/hello%20world')
+    assert_equal '/pages/show/hello%20world', default_route_set.generate(expected, expected)
 
     expected[:id] = 'hello+world'
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/hello+world')
-    assert_equal expected, default_route_set.recognize_path('/accounts/show/hello%2Bworld')
-    assert_equal '/accounts/show/hello+world', default_route_set.generate(expected, expected)
+    assert_equal expected, default_route_set.recognize_path('/pages/show/hello+world')
+    assert_equal expected, default_route_set.recognize_path('/pages/show/hello%2Bworld')
+    assert_equal '/pages/show/hello+world', default_route_set.generate(expected, expected)
   end
 
   def test_parameter_shell

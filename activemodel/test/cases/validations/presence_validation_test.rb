@@ -5,6 +5,7 @@ require 'cases/tests_database'
 require 'models/topic'
 require 'models/developer'
 require 'models/person'
+require 'models/custom_reader'
 
 class PresenceValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase

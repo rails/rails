@@ -78,6 +78,7 @@ class ObserverTest < ActiveModel::TestCase
 
   def teardown
     FooObserver.instance_eval do
+      undef_method :observed_classes
       alias_method :observed_classes, :original_observed_classes
     end
   end

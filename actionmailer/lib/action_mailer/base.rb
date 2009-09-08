@@ -489,7 +489,7 @@ module ActionMailer #:nodoc:
         # "the_template_file.text.html.erb", etc.). Only do this if parts
         # have not already been specified manually.
         # if @parts.empty?
-          template_root.find_all_by_parts(@template, {}, template_path).each do |template|
+          template_root.find_all(@template, {}, template_path).each do |template|
             @parts << Part.new(
               :content_type => template.mime_type ? template.mime_type.to_s : "text/plain",
               :disposition => "inline",

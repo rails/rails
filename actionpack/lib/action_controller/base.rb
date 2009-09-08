@@ -51,7 +51,7 @@ module ActionController
 
       def method_for_action(action_name)
         super || begin
-          if view_paths.exists?(action_name.to_s, {:formats => formats, :locales => [I18n.locale]}, controller_path)
+          if template_exists?(action_name.to_s, {:formats => formats}, :_prefix => controller_path)
             "default_render"
           end
         end

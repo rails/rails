@@ -191,7 +191,7 @@ module ActionController #:nodoc:
       def memoized_find_layout(layout, formats) #:nodoc:
         return layout if layout.nil? || layout.respond_to?(:render)
         prefix = layout.to_s =~ /layouts\// ? nil : "layouts"
-        view_paths.find(layout.to_s, {:formats => formats}, prefix)
+        find_template(layout.to_s, {:formats => formats}, :_prefix => prefix)
       end
 
       def find_layout(*args)
@@ -200,7 +200,7 @@ module ActionController #:nodoc:
       end
 
       def layout_list #:nodoc:
-        Array(view_paths).sum([]) { |path| Dir["#{path.to_str}/layouts/**/*"] }
+        Array(view_paths).sum([]) { |path| Dir["#{path}/layouts/**/*"] }
       end
       memoize :layout_list
 

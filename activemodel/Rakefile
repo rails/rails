@@ -15,12 +15,13 @@ Rake::TestTask.new do |t|
   t.libs << "test"
   t.test_files = Dir.glob("test/cases/**/*_test.rb").sort
   t.verbose = true
+  t.warning = true
 end
 
 task :isolated_test do
   ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
   Dir.glob("test/**/*_test.rb").all? do |file|
-    system(ruby, '-Ilib:test', file)
+    system(ruby, '-w', '-Ilib:test', file)
   end or raise "Failures"
 end
 

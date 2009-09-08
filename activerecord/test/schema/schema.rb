@@ -159,7 +159,7 @@ ActiveRecord::Schema.define do
     t.integer :access_level, :default => 1
   end
 
-  create_table :edges, :force => true, :id => false do |t|
+  create_table :edges, :force => true do |t|
     t.column :source_id, :integer, :null => false
     t.column :sink_id,   :integer, :null => false
   end
