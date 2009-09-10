@@ -27,7 +27,7 @@ module ActiveSupport #:nodoc:
       def self.verify(string)
         if expression = valid_character
           for c in string.split(//)
-            return false unless valid_character.match(c)
+            return false unless expression.match(c)
           end
         end
         true
@@ -50,7 +50,7 @@ module ActiveSupport #:nodoc:
       def self.clean(string)
         if expression = valid_character
           stripped = []; for c in string.split(//)
-            stripped << c if valid_character.match(c)
+            stripped << c if expression.match(c)
           end; stripped.join
         else
           string
