@@ -174,7 +174,7 @@ h3. Overview of all the helpers provided by Action View
 
 The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the API Documentation, which covers all of the helpers in more detail, but this should serve as a good starting point. 
 
-h4. Active Record Helper
+h4. ActiveRecordHelper
 
 The Active Record Helper makes it easier to create forms for records kept in instance variables. You may also want to review the "Rails Form helpers guide":form_helpers.html.
 
@@ -229,7 +229,7 @@ input("post", "title") # =>
   <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
 </ruby>
 
-h4. Asset Tag Helper
+h4. AssetTagHelper
 
 This module provides methods for generating HTML that links views to assets such as images, javascripts, stylesheets, and feeds. 
 
@@ -361,7 +361,7 @@ Computes the path to a stylesheet asset in the public stylesheets directory. If 
 stylesheet_path "application" # => /stylesheets/application.css
 </ruby>
 
-h4. Atom Feed Helper
+h4. AtomFeedHelper
 
 h5. atom_feed
 
@@ -406,7 +406,7 @@ atom_feed do |feed|
 end
 </ruby>
 
-h4. Benchmark Helper
+h4. BenchmarkHelper
 
 h5. benchmark
 
@@ -420,7 +420,7 @@ Allows you to measure the execution time of a block in a template and records th
 
 This would add something like "Process data files (0.34523)" to the log, which you can then use to compare timings when optimizing your code.
 
-h4. Cache Helper
+h4. CacheHelper
 
 h5. cache
 
@@ -432,7 +432,7 @@ A method for caching fragments of a view rather than an entire action or page. T
 <% end %>
 </ruby>
 
-h4. Capture Helper
+h4. CaptureHelper
 
 h5. capture
 
@@ -487,7 +487,7 @@ For example, let's say we have a standard application layout, but also a special
 <% end %>  
 </ruby>
 
-h4. Date Helper
+h4. DateHelper
 
 h5. date_select
 
@@ -624,7 +624,7 @@ Returns a set of select tags (one for hour, minute and optionally second) pre-se
 time_select("order", "submitted")  
 </ruby>
 
-h4. Debug Helper
+h4. DebugHelper
 
 Returns a +pre+ tag that has object dumped by YAML. This creates a very readable way to inspect an object.
 
@@ -644,7 +644,7 @@ third:
 </pre>
 </html>
 
-h4. Form Helper
+h4. FormHelper
 
 Form helpers are designed to make working with models much easier compared to using just standard HTML elements by providing a set of methods for creating forms based on your models. This helper generates the HTML for forms, providing a method for each sort of input (e.g., text, password, select, and so on). When the form is submitted (i.e., when the user hits the submit button or form.submit is called via JavaScript), the form inputs will be bundled into the params object and passed back to the controller.
 
@@ -786,7 +786,7 @@ text_field(:post, :title)
 # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" />
 </ruby>
 
-h4. Form Options Helper
+h4. FormOptionsHelper
 
 Provides a number of methods for turning different kinds of containers into a set of option tags.
 
@@ -939,14 +939,516 @@ Return select and option tags for the given object and method, using +time_zone_
 time_zone_select( "user", "time_zone")
 </ruby>
 
+h4. FormTagHelper
+
+Provides a number of methods for creating form tags that doesn't rely on an Active Record object assigned to the template like FormHelper does. Instead, you provide the names and values manually.
+
+h5. check_box_tag
+
+Creates a check box form input tag.
+
+<ruby>
+check_box_tag 'accept'
+# => <input id="accept" name="accept" type="checkbox" value="1" />  
+</ruby>
+
+h5. field_set_tag
+
+Creates a field set for grouping HTML form elements.
+
+<ruby>
+<% field_set_tag do %>
+  <p><%= text_field_tag 'name' %></p>
+<% end %>
+# => <fieldset><p><input id="name" name="name" type="text" /></p></fieldset>
+</ruby>
+
+h5. file_field_tag
+
+Creates a file upload field. 
+
+If you are using file uploads then you will also need to set the multipart option for the form tag:
+
+<ruby>
+<%= form_tag { :action => "post" }, { :multipart => true } %>
+  <label for="file">File to Upload</label> <%= file_field_tag "file" %>
+  <%= submit_tag %>
+<%= end_form_tag %>
+</ruby>
+
+Example output:
+
+<ruby>
+file_field_tag 'attachment'
+# => <input id="attachment" name="attachment" type="file" />
+</ruby>
+
+h5. form_tag
+
+Starts a form tag that points the action to an url configured with +url_for_options+ just like +ActionController::Base#url_for+.
+
+<ruby>
+<% form_tag '/posts' do -%>
+  <div><%= submit_tag 'Save' %></div>
+<% end -%>
+# => <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
+</ruby>
+
+h5. hidden_field_tag
+
+Creates a hidden form input field used to transmit data that would be lost due to HTTP's statelessness or data that should be hidden from the user.
+
+<ruby>
+hidden_field_tag 'token', 'VUBJKB23UIVI1UU1VOBVI@'
+# => <input id="token" name="token" type="hidden" value="VUBJKB23UIVI1UU1VOBVI@" />
+</ruby>
+
+h5. image_submit_tag
+
+Displays an image which when clicked will submit the form.
+
+<ruby>
+image_submit_tag("login.png")
+# => <input src="/images/login.png" type="image" />
+</ruby>
+
+h5. label_tag
+
+Creates a label field.
+
+<ruby>
+label_tag 'name'
+# => <label for="name">Name</label>
+</ruby>
+
+h5. password_field_tag
+
+Creates a password field, a masked text field that will hide the users input behind a mask character.
+
+<ruby>
+password_field_tag 'pass'
+# => <input id="pass" name="pass" type="password" />
+</ruby>
+
+h5. radio_button_tag
+
+Creates a radio button; use groups of radio buttons named the same to allow users to select from a group of options.
+
+<ruby>
+radio_button_tag 'gender', 'male'
+# => <input id="gender_male" name="gender" type="radio" value="male" />
+</ruby>
+
+h5. select_tag
+
+Creates a dropdown selection box.
+
+<ruby>
+select_tag "people", "<option>David</option>"
+# => <select id="people" name="people"><option>David</option></select>
+</ruby>
+
+h5. submit_tag
+
+Creates a submit button with the text provided as the caption.
+
+<ruby>
+submit_tag "Publish this post"
+# => <input name="commit" type="submit" value="Publish this post" />
+</ruby>
+
+h5. text_area_tag
+
+Creates a text input area; use a textarea for longer text inputs such as blog posts or descriptions.
+
+<ruby>
+text_area_tag 'post'
+# => <textarea id="post" name="post"></textarea>
+</ruby>
+
+h5. text_field_tag
+
+Creates a standard text field; use these text fields to input smaller chunks of text like a username or a search query.
+
+<ruby>
+text_field_tag 'name'
+# => <input id="name" name="name" type="text" />
+</ruby>
+
+h4. JavaScriptHelper
+
+Provides functionality for working with JavaScript in your views.
+
+Rails includes the Prototype JavaScript framework and the Scriptaculous JavaScript controls and visual effects library. If you wish to use these libraries and their helpers, make sure +<%= javascript_include_tag :defaults, :cache => true %>+ is in the HEAD section of your page. This function will include the necessary JavaScript files Rails generated in the public/javascripts directory.
+
+h5. button_to_function
+
+Returns a button that'll trigger a JavaScript function using the onclick handler. Examples:
+
+<ruby>
+button_to_function "Greeting", "alert('Hello world!')"
+button_to_function "Delete", "if (confirm('Really?')) do_delete()"
+button_to_function "Details" do |page|
+  page[:details].visual_effect :toggle_slide
+end
+</ruby>
+
+h5. define_javascript_functions
+
+Includes the Action Pack JavaScript libraries inside a single +script+ tag.
+
+h5. escape_javascript
+
+Escape carrier returns and single and double quotes for JavaScript segments.
+
+h5. javascript_tag
+
+Returns a JavaScript tag wrapping the provided code.
+
+<ruby>
+javascript_tag "alert('All is good')"
+</ruby>
+
+<html>
+<script type="text/javascript">
+//<![CDATA[
+alert('All is good')
+//]]>
+</script>
+</html>
+
+h5. link_to_function
+
+Returns a link that will trigger a JavaScript function using the onclick handler and return false after the fact.
+
+<ruby>
+link_to_function "Greeting", "alert('Hello world!')"
+# => <a onclick="alert('Hello world!'); return false;" href="#">Greeting</a>
+</ruby>
+
+h4. NumberHelper
+
+Provides methods for converting numbers into formatted strings. Methods are provided for phone numbers, currency, percentage, precision, positional notation, and file size.
+
+h5. number_to_currency
+
+Formats a number into a currency string (e.g., $13.65).
+
+<ruby>
+number_to_currency(1234567890.50) # => $1,234,567,890.50
+</ruby>
+
+h5. number_to_human_size
+
+Formats the bytes in size into a more understandable representation; useful for reporting file sizes to users.
+
+<ruby>
+number_to_human_size(1234)          # => 1.2 KB
+number_to_human_size(1234567)       # => 1.2 MB
+</ruby>
+
+h5. number_to_percentage
+
+Formats a number as a percentage string.
+
+<ruby>
+number_to_percentage(100, :precision => 0)        # => 100%
+</ruby>
+
+h5. number_to_phone
+
+Formats a number into a US phone number.
+
+<ruby>
+number_to_phone(1235551234) # => 123-555-1234
+</ruby>
+
+h5. number_with_delimiter
+
+Formats a number with grouped thousands using a delimiter.
+
+<ruby>
+number_with_delimiter(12345678) # => 12,345,678
+</ruby>
+
+h5. number_with_precision
+
+Formats a number with the specified level of +precision+, which defaults to 3. 
+
+<ruby>
+number_with_precision(111.2345)     # => 111.235
+number_with_precision(111.2345, 2)  # => 111.23
+</ruby>
+
+h4. PrototypeHelper
+
+Prototype is a JavaScript library that provides DOM manipulation, Ajax functionality, and more traditional object-oriented facilities for JavaScript. This module provides a set of helpers to make it more convenient to call functions from Prototype using Rails, including functionality to call remote Rails methods (that is, making a background request to a Rails action) using Ajax.
+
+To be able to use these helpers, you must first include the Prototype JavaScript framework in the HEAD of the pages with Prototype functions.
+
+<ruby>
+javascript_include_tag 'prototype'
+</ruby>
+
+h5. evaluate_remote_response
+
+Returns +eval(request.responseText)+ which is the JavaScript function that form_remote_tag can call in +:complete+ to evaluate a multiple update return document using +update_element_function+ calls.
+
+h5. form_remote_tag
+
+Returns a form tag that will submit using XMLHttpRequest in the background instead of the regular reloading POST arrangement. Even though it‘s using JavaScript to serialize the form elements, the form submission will work just like a regular submission as viewed by the receiving side.
+
+For example, this:
+
+<ruby>
+form_remote_tag :html => { :action => url_for(:controller => "some", :action => "place") }
+</ruby>
+
+would generate the following:
+
+<html>
+<form action="/some/place" method="post" onsubmit="new Ajax.Request('', 
+  {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;">
+</html>
+
+h5. link_to_remote
+
+Returns a link to a remote action that's called in the background using XMLHttpRequest. You can generate a link that uses AJAX in the general case, while degrading gracefully to plain link behavior in the absence of JavaScript. For example:
+
+<ruby>
+link_to_remote "Delete this post",
+  { :update => "posts", :url => { :action => "destroy", :id => post.id } },
+  :href => url_for(:action => "destroy", :id => post.id)
+</ruby>
+
+h5. observe_field
+
+Observes the field specified and calls a callback when its contents have changed.
+
+<ruby>
+observe_field("my_field", :function => "alert('Field changed')")
+</ruby>
+
+h5. observe_form
+
+Observes the form specified and calls a callback when its contents have changed. The options for observe_form are the same as the options for observe_field.
+
+<ruby>
+observe_field("my_form", :function => "alert('Form changed')")
+</ruby>
+
+h5. periodically_call_remote
+
+Periodically calls the specified url as often as specified. Usually used to update a specified div with the results of the remote call. The following example will call update every 20 seconds and update the news_block div:
+
+<ruby>
+periodically_call_remote(:url => 'update', :frequency => '20', :update => 'news_block')
+# => PeriodicalExecuter(function() {new Ajax.Updater('news_block', 'update', {asynchronous:true, evalScripts:true})}, 20)
+</ruby>
+
+h5. remote_form_for
+
+Creates a form that will submit using XMLHttpRequest in the background instead of the regular reloading POST arrangement and a scope around a specific resource that is used as a base for questioning about values for the fields.
+
+<ruby>
+<% remote_form_for(@post) do |f| %>
+  ...
+<% end %>
+</ruby>
+
+h5. remote_function
+
+Returns the JavaScript needed for a remote function. Takes the same arguments as +link_to_remote+.
+
+<ruby>
+<select id="options" onchange="<%= remote_function(:update => "options", :url => { :action => :update_options }) %>">
+  <option value="0">Hello</option>
+  <option value="1">World</option>
+</select>
+# => <select id="options" onchange="new Ajax.Updater('options', '/testing/update_options', {asynchronous:true, evalScripts:true})">
+</ruby>
+
+h5. submit_to_remote
+
+Returns a button input tag that will submit form using XMLHttpRequest in the background instead of a regular POST request that reloads the page.
+
+For example, the following:
+
+<ruby>
+submit_to_remote 'create_btn', 'Create', :url => { :action => 'create' }
+</ruby>
+
+would generate:
+
+<html>
+<input name="create_btn" onclick="new Ajax.Request('/testing/create',
+  {asynchronous:true, evalScripts:true, parameters:Form.serialize(this.form)});
+  return false;" type="button" value="Create" />
+</html>
+
+h5. update_page
+
+Yields a JavaScriptGenerator and returns the generated JavaScript code. Use this to update multiple elements on a page in an Ajax response.
+
+<ruby>
+update_page do |page|
+  page.hide 'spinner'
+end  
+</ruby>
+
+h5. update_page_tag
+
+Works like update_page but wraps the generated JavaScript in a +script+ tag. Use this to include generated JavaScript in an ERb template.
+
+h4. PrototypeHelper::JavaScriptGenerator::GeneratorMethods
+
+JavaScriptGenerator generates blocks of JavaScript code that allow you to change the content and presentation of multiple DOM elements. Use this in your Ajax response bodies, either in a +script+ tag or as plain JavaScript sent with a Content-type of "text/javascript".
+
+h5. <<
+
+Writes raw JavaScript to the page.
+
+<ruby>
+page << "alert('JavaScript with Prototype.');"
+</ruby>
+
+h5. []
+
+Returns a element reference by finding it through it's id in the DOM.
+
+<ruby>
+page['blank_slate'].show # => $('blank_slate').show();
+</ruby>
+
+h5. alert
+
+Displays an alert dialog with the given message.
+
+<ruby>
+page.alert('This message is from Rails!')
+</ruby>
+
+h5. assign
+
+Assigns the JavaScript variable the given value.
+
+<ruby>
+page.assign 'tabulated_total', @total_from_cart
+</ruby>
+
+h5. call
+
+Calls the JavaScript function, optionally with the given arguments.
+
+<ruby>
+page.call 'Element.replace', 'my_element', "My content to replace with."
+</ruby>
+
+h5. delay
+
+Executes the content of the block after a delay of the number of seconds provided.
+
+<ruby>
+page.delay(20) do
+  page.visual_effect :fade, 'notice'
+end
+</ruby>
+
+h5. draggable
+
+Creates a script.aculo.us draggable element. See ActionView::Helpers::ScriptaculousHelper for more information.
+
+h5. drop_receiving
+
+Creates a script.aculo.us drop receiving element. See ActionView::Helpers::ScriptaculousHelper for more information.
+
+h5. hide
+
+Hides the visible DOM elements with the given ids.
+
+<ruby>
+page.hide 'person_29', 'person_9', 'person_0'
+</ruby>
+
+h5. insert_html
+
+Inserts HTML at the specified position relative to the DOM element identified by the given id.
+
+<ruby>
+page.insert_html :bottom, 'my_list', '<li>Last item</li>'
+</ruby>
+
+h5. literal
+
+Returns an object whose to_json evaluates to the code provided. Use this to pass a literal JavaScript expression as an argument to another JavaScriptGenerator method.
+
+h5. redirect_to
+
+Redirects the browser to the given location using JavaScript, in the same form as +url_for+.
+
+<ruby>
+page.redirect_to(:controller => 'accounts', :action => 'new')
+</ruby>
+
+h5. remove
+
+Removes the DOM elements with the given ids from the page.
+
+<ruby>
+page.remove 'person_23', 'person_9', 'person_2'  
+</ruby>
+
+h5. replace
+
+Replaces the "outer HTML" (i.e., the entire element, not just its contents) of the DOM element with the given id.
+
+<ruby>
+page.replace 'person-45', :partial => 'person', :object => @person
+</ruby>
+
+h5. replace_html
+
+Replaces the inner HTML of the DOM element with the given id.
+
+<ruby>
+page.replace_html 'person-45', :partial => 'person', :object => @person
+</ruby>
+
+h5. select
+
+Returns a collection reference by finding it through a CSS pattern in the DOM.
+
+<ruby>
+page.select('p.welcome b').first.hide # => $$('p.welcome b').first().hide();
+</ruby>  
+
+h5. show
+
+Shows hidden DOM elements with the given ids.
+
+<ruby>
+page.show 'person_6', 'person_13', 'person_223'
+</ruby>
+
+h5. sortable
+
+Creates a script.aculo.us sortable element. Useful to recreate sortable elements after items get added or deleted. See ActionView::Helpers::ScriptaculousHelper for more information.
+
+h5. toggle
+
+Toggles the visibility of the DOM elements with the given ids. Example:
+
+<ruby>
+page.toggle 'person_14', 'person_12', 'person_23'      # Hides the elements
+page.toggle 'person_14', 'person_12', 'person_23'      # Shows the previously hidden elements  
+</ruby>
+
+h5. visual_effect
+
+Starts a script.aculo.us visual effect. See ActionView::Helpers::ScriptaculousHelper for more information.
 
 
-TODO continue from FormTagHelper
-
-
-
-
-
+TODO start from RecordIdentificationHelper
 
 
 h3. Localized Views
