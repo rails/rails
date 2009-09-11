@@ -38,24 +38,21 @@ module ActiveSupport
     end
     
     private
-      if "foo".respond_to?(:force_encoding)
+      if "foo".respond_to?(:bytesize)
         # constant-time comparison algorithm to prevent timing attacks
+        # > 1.8.6 friendly version
         def secure_compare(a, b)
-          a = a.force_encoding(Encoding::BINARY)
-          b = b.force_encoding(Encoding::BINARY)
-
-          if a.length == b.length
+          if a.bytesize == b.bytesize
             result = 0
-            for i in 0..(a.length - 1)
-              result |= a[i].ord ^ b[i].ord
-            end
+            j = b.each_byte
+            a.each_byte { |i| result |= i ^ j.next }
             result == 0
           else
             false
           end
         end
       else
-        # For 1.8
+        # For <= 1.8.6
         def secure_compare(a, b)
           if a.length == b.length
             result = 0
