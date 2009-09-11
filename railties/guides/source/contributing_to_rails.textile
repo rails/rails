@@ -131,7 +131,7 @@ git checkout -b testing_branch
 Then you can apply their patch:
 
 <shell>
-git am < their-patch-file.diff
+git apply their-patch-file.diff
 </shell>
 
 After applying a patch, test it out! Here are some things to think about:
