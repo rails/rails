@@ -188,7 +188,7 @@ class ValidationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_single_error_per_attr_iteration
+  def test_single_error_string_per_attr_iteration
     r = Reply.new
     r.save
 
@@ -197,6 +197,17 @@ class ValidationsTest < ActiveRecord::TestCase
 
     assert errors.include?(["title", "Empty"])
     assert errors.include?(["content", "Empty"])
+  end
+
+  def test_single_error_object_per_attr_iteration
+    r = Reply.new
+    r.save
+
+    errors = []
+    r.errors.each_error { |attr, error| errors << [attr, error.attribute] }
+
+    assert errors.include?(["title", "title"])
+    assert errors.include?(["content", "content"])
   end
 
   def test_multiple_errors_per_attr_iteration_with_full_error_composition
