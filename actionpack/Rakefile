@@ -17,7 +17,17 @@ RUBY_FORGE_PROJECT = "actionpack"
 RUBY_FORGE_USER    = "webster132"
 
 desc "Default Task"
-task :default => [ :test ]
+task :default => [ :bundle, :test ]
+
+task :bundle do
+  puts "Checking if the bundled testing requirements are up to date..."
+  result = system "gem bundle"
+  unless result
+    puts "The gem bundler is not installed. Installing."
+    system "gem install bundler"
+    system "gem bundle"
+  end
+end
 
 # Run the unit tests
 

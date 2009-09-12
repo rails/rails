@@ -1,10 +1,7 @@
 $:.unshift(File.dirname(__FILE__) + '/../../lib')
-$:.unshift(File.dirname(__FILE__) + '/../../../activesupport/lib')
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 
-require 'rubygems'
-gem "rack", "~> 1.0.0"
-gem "rack-test", "~> 0.4.2"
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "vendor", "gems", "environment"))
 
 require 'test/unit'
 require 'active_support'
