@@ -1190,6 +1190,14 @@ params[:account] = params[:account].except(:plan_id) unless admin?
 
 There's also the bang variant +except!+ that removes keys in the very receiver.
 
+h4. Indifferent Access
+
+The method +with_indifferent_access+ returns an +ActiveSupport::HashWithIndifferentAccess+ out of its receiver:
+
+<ruby>
+{:a => 1}.with_indifferent_access["a"] # => 1
+</ruby>
+
 h3. Extensions to +Range+
 
 ...
