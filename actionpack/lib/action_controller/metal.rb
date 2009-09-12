@@ -88,6 +88,16 @@ module ActionController
       end
     end
 
+    extlib_inheritable_accessor(:middleware_stack) { ActionDispatch::MiddlewareStack.new }
+
+    def self.use(*args)
+      middleware_stack.use(*args)
+    end
+
+    def self.middleware
+      middleware_stack
+    end
+
     # Return a rack endpoint for the given action. Memoize the endpoint, so
     # multiple calls into MyController.action will return the same object
     # for the same action.
@@ -99,7 +109,10 @@ module ActionController
     # Proc:: A rack application
     def self.action(name)
       @actions ||= {}
-      @actions[name.to_s] ||= ActionEndpoint.new(self, name)
+      @actions[name.to_s] ||= begin
+        endpoint = ActionEndpoint.new(self, name)
+        middleware_stack.build(endpoint)
+      end
     end
   end
 end
