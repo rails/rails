@@ -231,10 +231,8 @@ module ActiveRecord
     # Validate the association if <tt>:validate</tt> or <tt>:autosave</tt> is
     # turned on for the association specified by +reflection+.
     def validate_single_association(reflection)
-      if reflection.options[:validate] == true || reflection.options[:autosave] == true
-        if (association = association_instance_get(reflection.name)) && !association.target.nil?
-          association_valid?(reflection, association)
-        end
+      if (association = association_instance_get(reflection.name)) && !association.target.nil?
+        association_valid?(reflection, association)
       end
     end
 
@@ -242,7 +240,7 @@ module ActiveRecord
     # <tt>:autosave</tt> is turned on for the association specified by
     # +reflection+.
     def validate_collection_association(reflection)
-      if reflection.options[:validate] != false && association = association_instance_get(reflection.name)
+      if association = association_instance_get(reflection.name)
         if records = associated_records_to_validate_or_save(association, new_record?, reflection.options[:autosave])
           records.each { |record| association_valid?(reflection, record) }
         end
