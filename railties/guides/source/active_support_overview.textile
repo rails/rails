@@ -1110,6 +1110,27 @@ By default the root node is "hash", but that's configurable via the <tt>:root</t
 
 The default XML builder is a fresh instance of <tt>Builder::XmlMarkup</tt>. You can configure your own builder with the <tt>:builder</tt> option. The method also accepts options like <tt>:dasherize</tt> and friends, they are forwarded to the builder.
 
+h4. Deep Merging
+
+Ruby has a builtin method +Hash#merge+ that merges two hashes:
+
+<ruby>
+{:a => 1, :b => 1}.merge(:a => 0, :c => 2)
+# => {:a => 0, :b => 1, :c => 2}
+</ruby>
+
+As you can see in the previous example if a key is found in both hashes the value in the one in the argument wins.
+
+Active Support defines +Hash#deep_merge+. In a deep merge, if a key is found in both hashes and their values are hashes in turn, then their _merge_ becomes the value in the resulting hash:
+
+<ruby>
+{:a => {:b => 1}}.deep_merge(:a => {:c => 2})
+# => {:a => {:b => 1, :c => 2}}
+</ruby>
+
+The method +deep_merge!+ performs a deep merge in place.
+
+
 h3. Extensions to +Range+
 
 ...
