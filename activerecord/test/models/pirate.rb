@@ -1,6 +1,8 @@
 class Pirate < ActiveRecord::Base
-  belongs_to :parrot
-  has_and_belongs_to_many :parrots
+  belongs_to :parrot, :validate => true
+  belongs_to :non_validated_parrot, :class_name => 'Parrot'
+  has_and_belongs_to_many :parrots, :validate => true
+  has_and_belongs_to_many :non_validated_parrots, :class_name => 'Parrot'
   has_and_belongs_to_many :parrots_with_method_callbacks, :class_name => "Parrot",
     :before_add    => :log_before_add,
     :after_add     => :log_after_add,
@@ -16,7 +18,8 @@ class Pirate < ActiveRecord::Base
   has_many :treasure_estimates, :through => :treasures, :source => :price_estimates
 
   # These both have :autosave enabled because accepts_nested_attributes_for is used on them.
-  has_one :ship
+  has_one :ship, :validate => true
+  has_one :non_validated_ship, :class_name => 'Ship'
   has_many :birds
   has_many :birds_with_method_callbacks, :class_name => "Bird",
     :before_add    => :log_before_add,
