@@ -41,8 +41,8 @@ module ActiveSupport
       if "foo".respond_to?(:force_encoding)
         # constant-time comparison algorithm to prevent timing attacks
         def secure_compare(a, b)
-          a = a.force_encoding(Encoding::BINARY)
-          b = b.force_encoding(Encoding::BINARY)
+          a = a.dup.force_encoding(Encoding::BINARY)
+          b = b.dup.force_encoding(Encoding::BINARY)
 
           if a.length == b.length
             result = 0
