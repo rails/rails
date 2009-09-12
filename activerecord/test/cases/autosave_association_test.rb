@@ -1056,3 +1056,118 @@ class TestAutosaveAssociationOnAHasAndBelongsToManyAssociation < ActiveRecord::T
 
   include AutosaveAssociationOnACollectionAssociationTests
 end
+
+class TestAutosaveAssociationValidationsOnAHasManyAssocication < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  def setup
+    @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    @pirate.birds.create(:name => 'cookoo')
+  end
+
+  test "should automatically validate associations" do
+    assert @pirate.valid?
+    @pirate.birds.each { |bird| bird.name = '' }
+
+    assert !@pirate.valid?
+  end
+end
+
+class TestAutosaveAssociationValidationsOnAHasOneAssocication < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  def setup
+    @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    @pirate.create_ship(:name => 'titanic')
+  end
+
+  test "should automatically validate associations with :validate => true" do
+    assert @pirate.valid?
+    @pirate.ship.name = ''
+    assert !@pirate.valid?
+  end
+
+  test "should not automatically validate associations without :validate => true" do
+    assert @pirate.valid?
+    @pirate.non_validated_ship.name = ''
+    assert @pirate.valid?
+  end
+end
+
+class TestAutosaveAssociationValidationsOnABelongsToAssocication < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  def setup
+    @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+  end
+
+  test "should automatically validate associations with :validate => true" do
+    assert @pirate.valid?
+    @pirate.parrot = Parrot.new(:name => '')
+    assert !@pirate.valid?
+  end
+
+  test "should not automatically validate associations without :validate => true" do
+    assert @pirate.valid?
+    @pirate.non_validated_parrot = Parrot.new(:name => '')
+    assert @pirate.valid?
+  end
+end
+
+class TestAutosaveAssociationValidationsOnAHABTMAssocication < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  def setup
+    @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+  end
+
+  test "should automatically validate associations with :validate => true" do
+    assert @pirate.valid?
+    @pirate.parrots = [ Parrot.new(:name => 'popuga') ]
+    @pirate.parrots.each { |parrot| parrot.name = '' }
+    assert !@pirate.valid?
+  end
+
+  test "should not automatically validate associations without :validate => true" do
+    assert @pirate.valid?
+    @pirate.non_validated_parrots = [ Parrot.new(:name => 'popuga') ]
+    @pirate.non_validated_parrots.each { |parrot| parrot.name = '' }
+    assert @pirate.valid?
+  end
+end
+
+class TestAutosaveAssociationValidationMethodsGeneration < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  def setup
+    @pirate = Pirate.new
+  end
+
+  test "should generate validation methods for has_many associations" do
+    assert @pirate.respond_to?(:validate_associated_records_for_birds)
+  end
+
+  test "should generate validation methods for has_one associations with :validate => true" do
+    assert @pirate.respond_to?(:validate_associated_records_for_ship)
+  end
+
+  test "should not generate validation methods for has_one associations without :validate => true" do
+    assert !@pirate.respond_to?(:validate_associated_records_for_non_validated_ship)
+  end
+
+  test "should generate validation methods for belongs_to associations with :validate => true" do
+    assert @pirate.respond_to?(:validate_associated_records_for_parrot)
+  end
+
+  test "should not generate validation methods for belongs_to associations without :validate => true" do
+    assert !@pirate.respond_to?(:validate_associated_records_for_non_validated_parrot)
+  end
+
+  test "should generate validation methods for HABTM associations with :validate => true" do
+    assert @pirate.respond_to?(:validate_associated_records_for_parrots)
+  end
+
+  test "should not generate validation methods for HABTM associations without :validate => true" do
+    assert !@pirate.respond_to?(:validate_associated_records_for_non_validated_parrots)
+  end
+end

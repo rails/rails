@@ -158,7 +158,7 @@ module ActiveRecord
       def add_autosave_association_callbacks(reflection)
         save_method = "autosave_associated_records_for_#{reflection.name}"
         validation_method = "validate_associated_records_for_#{reflection.name}"
-        validate validation_method
+        force_validation = (reflection.options[:validate] == true || reflection.options[:autosave] == true)
 
         case reflection.macro
         when :has_many, :has_and_belongs_to_many
@@ -169,7 +169,10 @@ module ActiveRecord
           after_create save_method
           after_update save_method
 
-          define_method(validation_method) { validate_collection_association(reflection) }
+          if force_validation || (reflection.macro == :has_many && reflection.options[:validate] != false)
+            define_method(validation_method) { validate_collection_association(reflection) }
+            validate validation_method
+          end
         else
           case reflection.macro
           when :has_one
@@ -179,7 +182,11 @@ module ActiveRecord
             define_method(save_method) { save_belongs_to_association(reflection) }
             before_save save_method
           end
-          define_method(validation_method) { validate_single_association(reflection) }
+
+          if force_validation
+            define_method(validation_method) { validate_single_association(reflection) }
+            validate validation_method
+          end
         end
       end
     end
