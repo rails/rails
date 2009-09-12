@@ -79,6 +79,15 @@ module ActionController
     end
 
     class ActionEndpoint
+      @@endpoints = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = {} } }
+
+      def self.for(controller, action, stack)
+        @@endpoints[controller][action][stack] ||= begin
+          endpoint = new(controller, action)
+          stack.build(endpoint)
+        end
+      end
+
       def initialize(controller, action)
         @controller, @action = controller, action
       end
@@ -108,11 +117,7 @@ module ActionController
     # ==== Returns
     # Proc:: A rack application
     def self.action(name)
-      @actions ||= {}
-      @actions[name.to_s] ||= begin
-        endpoint = ActionEndpoint.new(self, name)
-        middleware_stack.build(endpoint)
-      end
+      ActionEndpoint.for(self, name, middleware_stack)
     end
   end
 end
