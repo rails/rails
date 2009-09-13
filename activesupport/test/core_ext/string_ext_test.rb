@@ -316,8 +316,12 @@ class TestGetTextString < Test::Unit::TestCase
   end
 
   def test_no_placeholder
-    assert_equal("aaa", "aaa" % {:num => 1})
-    assert_equal("bbb", "bbb" % [1])
+    # Causes a "too many arguments for format string" warning
+    # on 1.8.7 and 1.9 but we still want to make sure the behavior works
+    silence_warnings do
+      assert_equal("aaa", "aaa" % {:num => 1})
+      assert_equal("bbb", "bbb" % [1])
+    end
   end
 
   def test_sprintf_ruby19_style
