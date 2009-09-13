@@ -45,7 +45,7 @@ module ActiveSupport
         l = a.unpack "C#{a.bytesize}"
 
         res = 0
-        b.each_byte { |b| res |= b ^ l.shift }
+        b.each_byte { |byte| res |= byte ^ l.shift }
         res == 0
       end
 
