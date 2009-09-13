@@ -120,20 +120,16 @@ class MultibyteUtilsTest < ActiveSupport::TestCase
   end
 
   if 'string'.respond_to?(:encoding)
+    KCODE_TO_ENCODING = Hash.new(Encoding::BINARY).
+      update('UTF8' => Encoding::UTF_8, 'SJIS' => Encoding::Shift_JIS)
+
     def with_encoding(enc)
       before = Encoding.default_external
+      silence_warnings { Encoding.default_external = KCODE_TO_ENCODING[enc] }
 
-      case enc
-      when 'UTF8'
-        Encoding.default_external = Encoding::UTF_8
-      when 'SJIS'
-        Encoding.default_external = Encoding::Shift_JIS
-      else
-        Encoding.default_external = Encoding::BINARY
-      end
       yield
 
-      Encoding.default_external = before
+      silence_warnings { Encoding.default_external = before }
     end
   else
     alias with_encoding with_kcode
