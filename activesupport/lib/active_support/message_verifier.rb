@@ -38,35 +38,15 @@ module ActiveSupport
     end
     
     private
-      if "foo".respond_to?(:force_encoding)
-        # constant-time comparison algorithm to prevent timing attacks
-        def secure_compare(a, b)
-          a = a.dup.force_encoding(Encoding::BINARY)
-          b = b.dup.force_encoding(Encoding::BINARY)
+      # constant-time comparison algorithm to prevent timing attacks
+      def secure_compare(a, b)
+        return false unless a.bytesize == b.bytesize
 
-          if a.length == b.length
-            result = 0
-            for i in 0..(a.length - 1)
-              result |= a[i].ord ^ b[i].ord
-            end
-            result == 0
-          else
-            false
-          end
-        end
-      else
-        # For 1.8
-        def secure_compare(a, b)
-          if a.length == b.length
-            result = 0
-            for i in 0..(a.length - 1)
-              result |= a[i] ^ b[i]
-            end
-            result == 0
-          else
-            false
-          end
-        end
+        l = a.unpack "C#{a.bytesize}"
+
+        res = 0
+        b.each_byte { |b| res |= b ^ l.shift }
+        res == 0
       end
 
       def generate_digest(data)
