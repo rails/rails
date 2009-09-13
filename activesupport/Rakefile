@@ -28,16 +28,6 @@ task :isolated_test do
   end or raise "Failures"
 end
 
-task :bundle do
-  puts "Checking if the bundled testing requirements are up to date..."
-  result = system "gem bundle"
-  unless result
-    puts "The gem bundler is not installed. Installing."
-    system "gem install bundler"
-    system "gem bundle"
-  end
-end
-
 # Create compressed packages
 dist_dirs = [ "lib", "test"]
 

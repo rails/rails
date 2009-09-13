@@ -1,7 +1,7 @@
 ORIG_ARGV = ARGV.dup
 
-bundler = File.join(File.dirname(__FILE__), '..', 'vendor', 'gems', 'environment')
-require bundler if File.exist?("#{bundler}.rb")
+require 'bundler_helper'
+ensure_requirable %w( builder memcache tzinfo mocha )
 
 require 'test/unit'
 
