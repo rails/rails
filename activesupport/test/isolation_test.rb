@@ -1,8 +1,9 @@
 require 'abstract_unit'
 
+if defined?(MiniTest) || defined?(Test::Unit::TestResultFailureSupport)
+  $stderr.puts "Isolation tests can test test-unit 1 only"
+
 # Does awesome
-if defined?(MiniTest)
-  $stderr.puts "Umm, MiniTest not supported yet, mmkay?"
 elsif ENV['CHILD']
   class ChildIsolationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
