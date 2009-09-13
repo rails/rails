@@ -396,8 +396,10 @@ module ActiveSupport
           end
         RUBY_EVAL
 
-        undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
-        class_eval body, __FILE__, line
+        silence_warnings do
+          undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
+          class_eval body, __FILE__, line
+        end
       end
       
       # This is called the first time a callback is called with a particular
