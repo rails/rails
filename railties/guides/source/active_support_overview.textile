@@ -1254,6 +1254,10 @@ The second line can safely access the +:params+ key, and let the user to pass ei
 
 There's also the bang variant +symbolize_keys!+ that symbolizes keys in the very receiver.
 
+h5. +to_options+ and +to_options!+
+
+The methods +to_options+ and +to_options!+ are respectively aliases of +symbolize_keys+ and +symbolize_keys!+.
+
 h4. Indifferent Access
 
 The method +with_indifferent_access+ returns an +ActiveSupport::HashWithIndifferentAccess+ out of its receiver:
