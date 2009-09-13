@@ -1166,7 +1166,9 @@ hash1.diff(hash2).diff(hash2) == hash1
 
 Diffing hashes may be useful for error messages related to expected option hashes for example.
 
-h4. Removing Keys
+h4. Working with Keys
+
+h5. +except+ and +except!+
 
 The method +except+ returns a hash with the keys in the argument list removed, if present:
 
@@ -1189,6 +1191,36 @@ params[:account] = params[:account].except(:plan_id) unless admin?
 </ruby>
 
 There's also the bang variant +except!+ that removes keys in the very receiver.
+
+h5. +stringify_keys+ and +stringify_keys!+
+
+The method +stringify_keys+ returns a hash that has a stringified version of the keys in the receiver. It does so by sending +to_s+ to them:
+
+<ruby>
+{nil => nil, 1 => 1, :a => :a}.stringify_keys
+# => {"" => nil, "a" => :a, "1" => 1}
+</ruby>
+
+The result in case of collision is undefined:
+
+<ruby>
+{"a" => 1, :a => 2}.stringify_keys
+# => {"a" => 2}, in my test, can't rely on this result though
+</ruby>
+
+This method may be useful for example to easily accept both symbols and strings as options. For instance +ActionView::Helpers::FormHelper+ defines:
+
+<ruby>
+def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
+  options = options.stringify_keys
+  options["type"] = "checkbox"
+  ...
+end
+</ruby>
+
+The second line can safely access the "type" key, and let the user to pass either +:type+ or "type".
+
+There's also the bang variant +stringify_keys!+ that stringifies keys in the very receiver.
 
 h4. Indifferent Access
 
