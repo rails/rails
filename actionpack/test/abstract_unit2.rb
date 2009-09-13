@@ -5,8 +5,8 @@ $:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 $:.unshift(File.dirname(__FILE__) + '/lib')
 
-bundler = File.join(File.dirname(__FILE__), '..', '..', 'vendor', 'gems', 'environment')
-require bundler if File.exist?("#{bundler}.rb")
+require 'bundler_helper'
+ensure_requirable %w( rack rack/test )
 
 require 'test/unit'
 require 'active_support'
