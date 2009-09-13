@@ -1222,6 +1222,38 @@ The second line can safely access the "type" key, and let the user to pass eithe
 
 There's also the bang variant +stringify_keys!+ that stringifies keys in the very receiver.
 
+h5. +symbolize_keys+ and +symbolize_keys!+
+
+The method +symbolize_keys+ returns a hash that has a symbolized version of the keys in the receiver, where possible. It does so by sending +to_sym+ to them:
+
+<ruby>
+{nil => nil, 1 => 1, "a" => "a"}.symbolize_keys
+# => {1 => 1, nil => nil, :a => "a"}
+</ruby>
+
+WARNING. Note in the previous example only one key was symbolized.
+
+The result in case of collision is undefined:
+
+<ruby>
+{"a" => 1, :a => 2}.symbolize_keys
+# => {:a => 2}, in my test, can't rely on this result though
+</ruby>
+
+This method may be useful for example to easily accept both symbols and strings as options. For instance +ActionController::UrlRewriter+ defines
+
+<ruby>
+def rewrite_path(options)
+  options = options.symbolize_keys
+  options.update(options[:params].symbolize_keys) if options[:params]
+  ...
+end
+</ruby>
+
+The second line can safely access the +:params+ key, and let the user to pass either +:params+ or "params".
+
+There's also the bang variant +symbolize_keys!+ that symbolizes keys in the very receiver.
+
 h4. Indifferent Access
 
 The method +with_indifferent_access+ returns an +ActiveSupport::HashWithIndifferentAccess+ out of its receiver:
