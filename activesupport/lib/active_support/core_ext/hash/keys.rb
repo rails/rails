@@ -15,7 +15,8 @@ class Hash
     self
   end
 
-  # Return a new hash with all keys converted to symbols.
+  # Return a new hash with all keys converted to symbols, as long as
+  # they respond to +to_sym+.
   def symbolize_keys
     inject({}) do |options, (key, value)|
       options[(key.to_sym rescue key) || key] = value
@@ -23,7 +24,8 @@ class Hash
     end
   end
 
-  # Destructively convert all keys to symbols.
+  # Destructively convert all keys to symbols, as long as they respond
+  # to +to_sym+.
   def symbolize_keys!
     self.replace(self.symbolize_keys)
   end
