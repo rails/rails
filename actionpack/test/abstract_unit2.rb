@@ -1,6 +1,9 @@
-$:.unshift(File.dirname(__FILE__) + '/../../lib')
-$:.unshift(File.dirname(__FILE__) + '/../../../activesupport/lib')
+# TODO: Unify with abstract_unit
+
 $:.unshift(File.dirname(__FILE__) + '/../lib')
+$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
+$:.unshift(File.dirname(__FILE__) + '/../lib')
+$:.unshift(File.dirname(__FILE__) + '/lib')
 
 bundler = File.join(File.dirname(__FILE__), '..', '..', 'vendor', 'gems', 'environment')
 require bundler if File.exist?("#{bundler}.rb")
@@ -8,7 +11,10 @@ require bundler if File.exist?("#{bundler}.rb")
 require 'test/unit'
 require 'active_support'
 require 'active_support/test_case'
+require 'abstract_controller'
 require 'action_view'
+require 'action_view/base'
+require 'action_dispatch'
 require 'fixture_template'
 
 begin
