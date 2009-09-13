@@ -17,7 +17,7 @@ RUBY_FORGE_PROJECT = "actionpack"
 RUBY_FORGE_USER    = "webster132"
 
 desc "Default Task"
-task :default => [ :bundle, :test ]
+task :default => :test
 
 task :bundle do
   puts "Checking if the bundled testing requirements are up to date..."
