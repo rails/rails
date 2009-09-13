@@ -2,10 +2,9 @@ require 'json' unless defined?(JSON)
 
 module ActiveSupport
   module JSON
-    ParseError = ::JSON::ParserError unless const_defined?(:ParseError)
-
     module Backends
       module JSONGem
+        ParseError = ::JSON::ParserError
         extend self
 
         # Parses a JSON string or IO and convert it into an object
