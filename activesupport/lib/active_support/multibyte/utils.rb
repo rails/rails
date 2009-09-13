@@ -5,7 +5,7 @@ module ActiveSupport #:nodoc:
     if Kernel.const_defined?(:Encoding)
       # Returns a regular expression that matches valid characters in the current encoding
       def self.valid_character
-        VALID_CHARACTER[Encoding.default_internal.to_s]
+        VALID_CHARACTER[Encoding.default_external.to_s]
       end
     else
       def self.valid_character
