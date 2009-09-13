@@ -259,7 +259,6 @@ module ActionController
             "rack.url_scheme" => https? ? "https" : "http",
 
             "REQUEST_URI"    => path,
-            "PATH_INFO"      => path,
             "HTTP_HOST"      => host,
             "REMOTE_ADDR"    => remote_addr,
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
