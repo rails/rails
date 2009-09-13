@@ -1,3 +1,5 @@
+require 'active_support/core_ext/kernel/reporting'
+
 # Fixes the rexml vulnerability disclosed at:
 # http://www.ruby-lang.org/en/news/2008/08/23/dos-vulnerability-in-rexml/
 # This fix is identical to rexml-expansion-fix version 1.0.1

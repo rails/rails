@@ -1,3 +1,4 @@
+require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/object/blank'
 
 # = XmlMini ReXML implementation
