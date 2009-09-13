@@ -36,5 +36,11 @@ end
 
 require 'active_support/autoload'
 
-require 'i18n'
+begin
+  require 'i18n'
+rescue LoadError
+  $: << File.expand_path(File.join(File.dirname(__FILE__), 'active_support/vendor/i18n-0.1.3/lib'))
+  retry
+end
+
 I18n.load_path << "#{File.dirname(__FILE__)}/active_support/locale/en.yml"
