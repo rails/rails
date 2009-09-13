@@ -1258,6 +1258,37 @@ h5. +to_options+ and +to_options!+
 
 The methods +to_options+ and +to_options!+ are respectively aliases of +symbolize_keys+ and +symbolize_keys!+.
 
+h5. +assert_valid_keys+
+
+The method +assert_valid_keys+ receives an arbitrary number of arguments, and checks whether the receiver has any key outside that white list. If it does +ArgumentError+ is raised.
+
+<ruby>
+{:a => 1}.assert_valid_keys(:a)  # passes
+{:a => 1}.assert_valid_keys("a") # ArgumentError
+</ruby>
+
+Active Record does not accept unknown options when building associations for example. It implements that control via +assert_valid_keys+:
+
+<ruby>
+mattr_accessor :valid_keys_for_has_many_association
+@@valid_keys_for_has_many_association = [
+  :class_name, :table_name, :foreign_key, :primary_key,
+  :dependent,
+  :select, :conditions, :include, :order, :group, :having, :limit, :offset,
+  :as, :through, :source, :source_type,
+  :uniq,
+  :finder_sql, :counter_sql,
+  :before_add, :after_add, :before_remove, :after_remove,
+  :extend, :readonly,
+  :validate, :inverse_of
+]
+
+def create_has_many_reflection(association_id, options, &extension)
+  options.assert_valid_keys(valid_keys_for_has_many_association)
+  ...
+end
+</ruby>
+
 h4. Indifferent Access
 
 The method +with_indifferent_access+ returns an +ActiveSupport::HashWithIndifferentAccess+ out of its receiver:
