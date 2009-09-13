@@ -1,6 +1,8 @@
 ORIG_ARGV = ARGV.dup
 
-require 'rubygems'
+bundler = File.join(File.dirname(__FILE__), '..', 'vendor', 'gems', 'environment')
+require bundler if File.exist?("#{bundler}.rb")
+
 require 'test/unit'
 
 ENV['NO_RELOAD'] = '1'

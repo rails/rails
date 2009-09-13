@@ -35,6 +35,6 @@ module ActiveSupport
 end
 
 require 'active_support/autoload'
-require 'active_support/vendor'
 
+require 'i18n'
 I18n.load_path << "#{File.dirname(__FILE__)}/active_support/locale/en.yml"
