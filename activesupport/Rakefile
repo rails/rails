@@ -88,7 +88,7 @@ task :release => [ :package ] do
 end
 
 
-require 'lib/active_support/values/time_zone'
+require "#{File.dirname(__FILE__)}/lib/active_support/values/time_zone"
 
 namespace :tzinfo do
   desc "Update bundled tzinfo gem. Only copies the subset of classes and definitions required to support Rails time zone features."
