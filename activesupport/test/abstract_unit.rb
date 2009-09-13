@@ -1,7 +1,7 @@
 ORIG_ARGV = ARGV.dup
 
 require 'bundler_helper'
-ensure_requirable %w( builder memcache tzinfo mocha )
+ensure_requirable %w( builder memcache tzinfo )
 
 require 'test/unit'
 
