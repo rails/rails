@@ -78,7 +78,7 @@ else
       File.open(File.join(File.dirname(__FILE__), "fixtures", "isolation_test"), "w") {}
 
       ENV["CHILD"] = "1"
-      OUTPUT = `#{RbConfig::CONFIG["bindir"]}/ruby -I#{File.dirname(__FILE__)} "#{File.expand_path(__FILE__)}" -v`
+      OUTPUT = `#{RbConfig::CONFIG["bindir"]}/#{RbConfig::CONFIG["ruby_install_name"]} -I#{File.dirname(__FILE__)} "#{File.expand_path(__FILE__)}" -v`
       ENV.delete("CHILD")
 
       def setup
