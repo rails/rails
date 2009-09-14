@@ -177,6 +177,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     s = "hello"
     assert s.starts_with?('h')
     assert s.starts_with?('hel')
+    assert !s.starts_with?(:hel)
     assert !s.starts_with?('el')
 
     assert s.start_with?('h')
@@ -185,6 +186,7 @@ class StringInflectionsTest < Test::Unit::TestCase
 
     assert s.ends_with?('o')
     assert s.ends_with?('lo')
+    assert !s.ends_with?(:lo)
     assert !s.ends_with?('el')
 
     assert s.end_with?('o')
