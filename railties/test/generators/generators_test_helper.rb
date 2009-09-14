@@ -12,7 +12,7 @@ $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../activerecord/lib"
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../actionpack/lib"
 require 'generators'
-require 'activerecord'
+require 'active_record'
 require 'action_dispatch'
 
 CURRENT_PATH = File.expand_path(Dir.pwd)
