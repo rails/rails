@@ -1,7 +1,14 @@
 ORIG_ARGV = ARGV.dup
 
-require 'rubygems'
 require 'test/unit'
+
+begin
+  require 'mocha'
+rescue LoadError
+  $stderr.puts 'Loading rubygems'
+  require 'rubygems'
+  require 'mocha'
+end
 
 ENV['NO_RELOAD'] = '1'
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
