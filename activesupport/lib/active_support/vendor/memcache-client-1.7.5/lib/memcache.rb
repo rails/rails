@@ -1131,4 +1131,3 @@ module Continuum
   end
 
 end
-require 'continuum_native'
