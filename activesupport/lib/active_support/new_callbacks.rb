@@ -1,5 +1,6 @@
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/kernel/reporting'
 
 module ActiveSupport
   # Callbacks are hooks into the lifecycle of an object that allow you to trigger logic
@@ -396,8 +397,10 @@ module ActiveSupport
           end
         RUBY_EVAL
 
-        undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
-        class_eval body, __FILE__, line
+        silence_warnings do
+          undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
+          class_eval body, __FILE__, line
+        end
       end
       
       # This is called the first time a callback is called with a particular

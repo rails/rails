@@ -1,7 +1,14 @@
 ORIG_ARGV = ARGV.dup
 
-require 'rubygems'
 require 'test/unit'
+
+begin
+  require 'mocha'
+rescue LoadError
+  $stderr.puts 'Loading rubygems'
+  require 'rubygems'
+  require 'mocha'
+end
 
 ENV['NO_RELOAD'] = '1'
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
@@ -12,7 +19,7 @@ require 'active_support/test_case'
 require 'active_support/ruby/shim'
 
 def uses_memcached(test_name)
-  require 'memcache'
+  require 'active_support/vendor/memcache'
   begin
     MemCache.new('localhost').stats
     yield

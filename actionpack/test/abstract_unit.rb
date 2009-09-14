@@ -1,19 +1,18 @@
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 $:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
 $:.unshift(File.dirname(__FILE__) + '/../../activemodel/lib')
-$:.unshift(File.dirname(__FILE__) + '/lib')
 
+$:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
+
+require 'bundler_helper'
+ensure_requirable %w( rack rack/test sqlite3 )
 
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
 ENV['new_base'] = "true"
 $stderr.puts "Running old tests on new_base"
-
-require 'rubygems'
-gem "rack", "~> 1.0.0"
-gem "rack-test", "~> 0.4.2"
 
 require 'test/unit'
 require 'active_support'

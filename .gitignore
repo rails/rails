@@ -27,3 +27,5 @@ railties/guides/output
 *.rbc
 *.swp
 *.swo
+actionpack/bin
+*/vendor/gems

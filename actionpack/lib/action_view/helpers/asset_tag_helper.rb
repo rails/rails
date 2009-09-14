@@ -1,3 +1,4 @@
+require 'thread'
 require 'cgi'
 require 'action_view/helpers/url_helper'
 require 'action_view/helpers/tag_helper'

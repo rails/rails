@@ -78,7 +78,12 @@ class Firm < Company
   # added order by id as in fixtures there are two accounts for Rails Core
   # Oracle tests were failing because of that as the second fixture was selected
   has_one :account_using_primary_key, :primary_key => "firm_id", :class_name => "Account", :order => "id"
+  has_one :account_using_foreign_and_primary_keys, :foreign_key => "firm_name", :primary_key => "name", :class_name => "Account"
   has_one :deletable_account, :foreign_key => "firm_id", :class_name => "Account", :dependent => :delete
+  
+  has_one :unautosaved_account, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
+  has_many :accounts
+  has_many :unautosaved_accounts, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
 end
 
 class DependentFirm < Company
@@ -149,6 +154,7 @@ end
 
 class Account < ActiveRecord::Base
   belongs_to :firm
+  belongs_to :unautosaved_firm, :foreign_key => "firm_id", :class_name => "Firm", :autosave => false
 
   def self.destroyed_account_ids
     @destroyed_account_ids ||= Hash.new { |h,k| h[k] = [] }

@@ -1,15 +1,20 @@
-$:.unshift(File.dirname(__FILE__) + '/../../lib')
-$:.unshift(File.dirname(__FILE__) + '/../../../activesupport/lib')
-$:.unshift(File.dirname(__FILE__) + '/../lib')
+# TODO: Unify with abstract_unit
 
-require 'rubygems'
-gem "rack", "~> 1.0.0"
-gem "rack-test", "~> 0.4.2"
+$:.unshift(File.dirname(__FILE__) + '/../lib')
+$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
+$:.unshift(File.dirname(__FILE__) + '/../lib')
+$:.unshift(File.dirname(__FILE__) + '/lib')
+
+require 'bundler_helper'
+ensure_requirable %w( rack rack/test )
 
 require 'test/unit'
 require 'active_support'
 require 'active_support/test_case'
+require 'abstract_controller'
 require 'action_view'
+require 'action_view/base'
+require 'action_dispatch'
 require 'fixture_template'
 
 begin

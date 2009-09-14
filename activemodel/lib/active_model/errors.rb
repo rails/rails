@@ -1,7 +1,8 @@
 require 'active_support/core_ext/string/inflections'
+require 'active_support/ordered_hash'
 
 module ActiveModel
-  class Errors < Hash
+  class Errors < ActiveSupport::OrderedHash
     include DeprecatedErrorMethods
 
     def initialize(base)

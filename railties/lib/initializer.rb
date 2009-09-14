@@ -148,15 +148,6 @@ module Rails
     $LOAD_PATH.uniq!
   end
 
-  Initializer.default.add :add_gem_load_paths do
-    require 'rails/gem_dependency'
-    Rails::GemDependency.add_frozen_gem_path
-    unless config.gems.empty?
-      require "rubygems"
-      config.gems.each { |gem| gem.add_load_paths }
-    end
-  end
-
   # Requires all frameworks specified by the Configuration#frameworks
   # list. By default, all frameworks (Active Record, Active Support,
   # Action Pack, Action Mailer, and Active Resource) are loaded.
@@ -218,6 +209,15 @@ module Rails
       (self.class.constants - constants).each do |const|
         Object.const_set(const, self.class.const_get(const))
       end
+    end
+  end
+
+  Initializer.default.add :add_gem_load_paths do
+    require 'rails/gem_dependency'
+    Rails::GemDependency.add_frozen_gem_path
+    unless config.gems.empty?
+      require "rubygems"
+      config.gems.each { |gem| gem.add_load_paths }
     end
   end
 

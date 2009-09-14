@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'controller/fake_controllers'
 
 RequestMock = Struct.new("Request", :request_uri, :protocol, :host_with_port, :env)
 

@@ -103,11 +103,11 @@ class MultibyteUtilsTest < ActiveSupport::TestCase
 
   if Kernel.const_defined?(:Encoding)
     def example(key)
-      STRINGS[key].force_encoding(Encoding.default_internal)
+      STRINGS[key].force_encoding(Encoding.default_external)
     end
 
     def examples
-      STRINGS.values.map { |s| s.force_encoding(Encoding.default_internal) }
+      STRINGS.values.map { |s| s.force_encoding(Encoding.default_external) }
     end
   else
     def example(key)
@@ -120,20 +120,16 @@ class MultibyteUtilsTest < ActiveSupport::TestCase
   end
 
   if 'string'.respond_to?(:encoding)
-    def with_encoding(enc)
-      before = Encoding.default_internal
+    KCODE_TO_ENCODING = Hash.new(Encoding::BINARY).
+      update('UTF8' => Encoding::UTF_8, 'SJIS' => Encoding::Shift_JIS)
 
-      case enc
-      when 'UTF8'
-        Encoding.default_internal = Encoding::UTF_8
-      when 'SJIS'
-        Encoding.default_internal = Encoding::Shift_JIS
-      else
-        Encoding.default_internal = Encoding::BINARY
-      end
+    def with_encoding(enc)
+      before = Encoding.default_external
+      silence_warnings { Encoding.default_external = KCODE_TO_ENCODING[enc] }
+
       yield
 
-      Encoding.default_internal = before
+      silence_warnings { Encoding.default_external = before }
     end
   else
     alias with_encoding with_kcode
