@@ -1,17 +1,15 @@
 activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-$:.unshift(activesupport_path) if File.directory?(activesupport_path)
+$LOAD_PATH.unshift(activesupport_path) if File.directory?(activesupport_path)
+require 'active_support'
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/object/metaclass'
+require 'active_support/core_ext/array'
+require 'active_support/core_ext/hash'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/string/inflections'
 
-begin
-  require 'active_support/mini'
-rescue LoadError
-  require 'rubygems'
-  gem 'activesupport'
-  require 'active_support/mini'
-end
-
-$:.unshift(File.dirname(__FILE__))
-
-require 'vendor/thor-0.11.6/lib/thor'
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/vendor/thor-0.11.6/lib")
 require 'generators/base'
 require 'generators/named_base'
 
