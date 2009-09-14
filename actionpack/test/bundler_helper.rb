@@ -5,7 +5,6 @@ def ensure_requirable(libs)
   begin
     libs.each { |lib| require lib }
   rescue LoadError => e
-    puts e.message
-    exit 1
+    abort e.message
   end
 end
