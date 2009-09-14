@@ -1110,7 +1110,7 @@ By default the root node is "hash", but that's configurable via the <tt>:root</t
 
 The default XML builder is a fresh instance of <tt>Builder::XmlMarkup</tt>. You can configure your own builder with the <tt>:builder</tt> option. The method also accepts options like <tt>:dasherize</tt> and friends, they are forwarded to the builder.
 
-h4. Deep Merging
+h4. Merging
 
 Ruby has a builtin method +Hash#merge+ that merges two hashes:
 
@@ -1118,6 +1118,33 @@ Ruby has a builtin method +Hash#merge+ that merges two hashes:
 {:a => 1, :b => 1}.merge(:a => 0, :c => 2)
 # => {:a => 0, :b => 1, :c => 2}
 </ruby>
+
+Active Support defines a few more ways of merging hashes that may be convenient.
+
+h5. +reverse_merge+ and +reverse_merge!+
+
+In case of collision the key in the hash of the argument wins in +merge+. You can support option hashes with default values in a compact way with this idiom:
+
+<ruby>
+options = {:length => 30, :omission => "..."}.merge(options)
+</ruby>
+
+Active Support defines +reverse_merge+ in case you prefer this alternative notation:
+
+<ruby>
+options = options.reverse_merge(:length => 30, :omission => "...")
+</ruby>
+
+And a bang version +reverse_merge!+ that performs the merge in place:
+
+<ruby>
+options.reverse_merge!(:length => 30, :omission => "...")
+</ruby>
+
+WARNING. Take into account that +reverse_merge!+ may change the hash in the caller, which may or may not be a good idea.
+
+
+h5. +deep_merge+ and +deep_merge!+
 
 As you can see in the previous example if a key is found in both hashes the value in the one in the argument wins.
 
