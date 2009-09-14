@@ -9,12 +9,6 @@ only :test do
   gem "mocha"
   gem "sqlite3-ruby"
   gem "RedCloth"
-
-  activesupport_vendor = rails_root.join('activesupport', 'lib', 'active_support', 'vendor')
-
-  gem 'builder', '2.1.2', :vendored_at => activesupport_vendor.join('builder-2.1.2')
-  gem 'memcache-client', '1.6.5', :vendored_at => activesupport_vendor.join('memcache-client-1.6.5')
-  gem 'tzinfo', '0.3.13', :vendored_at => activesupport_vendor.join('tzinfo-0.3.13')
 end
 
 disable_system_gems

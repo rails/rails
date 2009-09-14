@@ -84,7 +84,7 @@ class Hash
   alias_method :to_param, :to_query
 
   def to_xml(options = {})
-    require 'builder' unless defined?(Builder)
+    require 'active_support/vendor/builder' unless defined?(Builder)
 
     options = options.dup
     options[:indent] ||= 2

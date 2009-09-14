@@ -1,4 +1,4 @@
-require 'memcache'
+require 'active_support/vendor/memcache'
 
 module ActiveSupport
   module Cache

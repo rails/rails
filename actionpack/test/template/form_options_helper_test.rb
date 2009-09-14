@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'tzinfo'
+require 'active_support/vendor/tzinfo'
 
 TZInfo::Timezone.cattr_reader :loaded_zones
 

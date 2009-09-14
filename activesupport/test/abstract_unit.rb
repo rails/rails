@@ -1,8 +1,6 @@
 ORIG_ARGV = ARGV.dup
 
-require 'bundler_helper'
-ensure_requirable %w( builder memcache tzinfo )
-
+require 'rubygems'
 require 'test/unit'
 
 ENV['NO_RELOAD'] = '1'
@@ -14,7 +12,7 @@ require 'active_support/test_case'
 require 'active_support/ruby/shim'
 
 def uses_memcached(test_name)
-  require 'memcache'
+  require 'active_support/vendor/memcache'
   begin
     MemCache.new('localhost').stats
     yield

@@ -6,7 +6,7 @@ rescue LoadError
   # fast_xs extension unavailable
 else
   begin
-    require 'builder'
+    require 'active_support/vendor/builder'
   rescue LoadError
     # builder demands the first shot at defining String#to_xs
   end

@@ -7,7 +7,7 @@ $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
 require 'bundler_helper'
-ensure_requirable %w( rack rack/test sqlite3 builder memcache tzinfo )
+ensure_requirable %w( rack rack/test sqlite3 )
 
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
