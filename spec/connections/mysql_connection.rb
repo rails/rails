@@ -1,5 +1,6 @@
-require "activerecord"
 puts "Using native MySQL"
+require "active_record"
+require 'logger'
 
 ActiveRecord::Base.logger = Logger.new("debug.log")
 
