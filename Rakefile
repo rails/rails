@@ -21,6 +21,7 @@ namespace :spec do
     desc "Run specs with the #{adapter} database adapter"
     Spec::Rake::SpecTask.new(adapter) do |t|
       t.libs << "#{File.dirname(__FILE__)}/vendor/rails/activerecord/lib"
+      t.libs << "#{File.dirname(__FILE__)}/spec"
       t.spec_files =
         ["spec/connections/#{adapter}_connection.rb"] +
         ["spec/schemas/#{adapter}_schema.rb"] +
