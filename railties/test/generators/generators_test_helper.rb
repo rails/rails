@@ -9,9 +9,11 @@ else
 end
 
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
+require 'generators'
+
+require 'rubygems'
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../activerecord/lib"
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../actionpack/lib"
-require 'generators'
 require 'active_record'
 require 'action_dispatch'
 
