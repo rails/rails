@@ -1143,6 +1143,11 @@ options.reverse_merge!(:length => 30, :omission => "...")
 
 WARNING. Take into account that +reverse_merge!+ may change the hash in the caller, which may or may not be a good idea.
 
+h5. +reverse_update+
+
+The method +reverse_update+ is an alias for +reverse_merge!+, explained above.
+
+WARNING. Note that +reverse_update+ has no bang.
 
 h5. +deep_merge+ and +deep_merge!+
 
