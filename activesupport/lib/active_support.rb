@@ -35,6 +35,7 @@ module ActiveSupport
 end
 
 require 'active_support/autoload'
+require 'active_support/vendor'
 
 begin
   require 'i18n'
