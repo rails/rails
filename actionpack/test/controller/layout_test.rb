@@ -83,6 +83,11 @@ class AbsolutePathLayoutController < LayoutTest
   layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/layout_tests/layouts/layout_test.rhtml')
 end
 
+class AbsolutePathWithoutLayoutsController < LayoutTest
+  # Absolute layout path without 'layouts' in it.
+  layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/layout_tests/abs_path_layout.rhtml')
+end
+
 class HasOwnLayoutController < LayoutTest
   layout 'item'
 end
@@ -152,6 +157,12 @@ class LayoutSetInResponseTest < ActionController::TestCase
     @controller = AbsolutePathLayoutController.new
     get :hello
     assert_equal "layout_test.rhtml hello.rhtml", @response.body.strip
+  end
+
+  def test_absolute_pathed_layout_without_layouts_in_path
+    @controller = AbsolutePathWithoutLayoutsController.new
+    get :hello
+    assert_equal "abs_path_layout.rhtml hello.rhtml", @response.body.strip
   end
 end
 
