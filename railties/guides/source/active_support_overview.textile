@@ -796,7 +796,7 @@ This iterator takes a block and builds an ordered hash with its return values as
 
 <ruby>
 entries_by_surname_initial = address_book.group_by do |entry|
-  entry.surname[0, 1].upcase
+  entry.surname.at(0).upcase
 end
 </ruby>
 
