@@ -149,26 +149,24 @@ h4. Session Expiry
 
 -- _Sessions that never expire extend the time-frame for attacks such as cross-site reference forgery (CSRF), session hijacking and session fixation._
 
-One possibility is to set the expiry time-stamp of the cookie with the session id. However the client can edit cookies that are stored in the web browser so expiring sessions on the server is safer. Here is an example of how to _(highlight)expire sessions in a database table_. Call +Session.sweep("20m")+ to expire sessions that were used longer than 20 minutes ago.
+One possibility is to set the expiry time-stamp of the cookie with the session id. However the client can edit cookies that are stored in the web browser so expiring sessions on the server is safer. Here is an example of how to _(highlight)expire sessions in a database table_. Call +Session.sweep("20 minutes")+ to expire sessions that were used longer than 20 minutes ago.
 
 <ruby>
 class Session < ActiveRecord::Base
- def self.sweep(time_ago = nil)
-     time = case time_ago
-       when /^(\d+)m$/ then Time.now - $1.to_i.minute
-       when /^(\d+)h$/ then Time.now - $1.to_i.hour
-       when /^(\d+)d$/ then Time.now - $1.to_i.day
-       else Time.now - 1.hour
-     end
-     self.delete_all "updated_at < '#{time.to_s(:db)}'"
-   end
- end
+  def self.sweep(time = 1.hour)
+    time = time.split.inject { |count, unit|
+      count.to_i.send(unit)
+    } if time.is_a?(String)
+
+    delete_all "updated_at < '#{time.ago.to_s(:db)}'"
+  end
+end
 </ruby>
 
 The section about session fixation introduced the problem of maintained sessions. An attacker maintaining a session every five minutes can keep the session alive forever, although you are expiring sessions. A simple solution for this would be to add a created_at column to the sessions table. Now you can delete sessions that were created a long time ago. Use this line in the sweep method above:
 
 <ruby>
-self.delete_all "updated_at < '#{time.to_s(:db)}' OR
+delete_all "updated_at < '#{time.to_s(:db)}' OR
   created_at < '#{2.days.ago.to_s(:db)}'"
 </ruby>
 
