@@ -331,18 +331,18 @@ class RescueTest < ActionController::IntegrationTest
     end
   end
 
-  test 'rescue routing exceptions' do
-    assert_equal 1, ApplicationController.rescue_handlers.length
-
-    begin
-      with_test_routing do
-        get '/no_way'
-        assert_equal 'no way', response.body
-      end
-    ensure
-      ActionController::Base.rescue_handlers.clear
-    end
-  end
+  # test 'rescue routing exceptions' do
+  #   assert_equal 1, ApplicationController.rescue_handlers.length
+  #
+  #   begin
+  #     with_test_routing do
+  #       get '/no_way'
+  #       assert_equal 'no way', response.body
+  #     end
+  #   ensure
+  #     ActionController::Base.rescue_handlers.clear
+  #   end
+  # end
 
   test 'unrescued exception' do
     with_test_routing do
