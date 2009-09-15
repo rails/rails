@@ -402,8 +402,6 @@ Testing mailers normally involves two things: One is that the mail was queued, a
 
 <ruby>
 class UserMailerTest < ActionMailer::TestCase
-  tests UserMailer
-
   def test_welcome_email
     user = users(:some_user_in_your_fixtures)
 
