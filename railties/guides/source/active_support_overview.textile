@@ -829,6 +829,32 @@ You can pick a random element with +rand+:
 shape_type = [Circle, Square, Triangle].rand
 </ruby>
 
+h4. Options Extraction
+
+When the last argument in a method call is a hash, except perhaps for a +&block+ argument, Ruby allows you to omit the brackets:
+
+<ruby>
+User.exists?(:email => params[:email])
+</ruby>
+
+That syntactic sugar is used a lot in Rails to avoid positional arguments where there would be too many, offering instead interfaces that emulate named parameters. In particular it is very idiomatic to use a trailing hash for options.
+
+If a method expects a variable number of arguments and uses <tt>*</tt> in its declaration, however, such an options hash ends up being an item of the array of arguments, where kind of loses its role.
+
+In those cases, you may give an options hash a distinguished treatment with +extract_options!+. That method checks the type of the last item of an array. If it is a hash it pops it and returns it, otherwise returns an empty hash.
+
+Let's see for example the definition of the +caches_action+ controller macro:
+
+<ruby>
+def caches_action(*actions)
+  return unless cache_configured?
+  options = actions.extract_options!
+  ...
+end
+</ruby>
+
+This method receives an arbitrary number of action names, and an optional hash of options as last argument. With the call to +extract_options!+ you obtain the options hash and remove it from +actions+ in a simple and explicit way.
+
 h4. Conversions
 
 h5. +to_sentence+
