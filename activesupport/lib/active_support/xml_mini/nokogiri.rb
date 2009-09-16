@@ -44,7 +44,7 @@ module ActiveSupport
           walker = lambda { |memo, parent, child, callback|
             next if child.blank? && 'file' != parent['type']
 
-            if child.text?
+            if child.text? || child.cdata?
               (memo[CONTENT_ROOT] ||= '') << child.content
               next
             end
