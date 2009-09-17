@@ -11,15 +11,17 @@ module AbstractController
     # just discard the String if the log level is too low.
     #
     # TODO: Require that Rails loggers accept a block.
-    class DelayedLog
-      def initialize(&blk)
-        @blk = blk
+    class DelayedLog < ActiveSupport::BasicObject
+      def initialize(&block)
+        @str, @block = nil, block
       end
 
-      def to_s
-        @blk.call
+      def method_missing(*args, &block)
+        unless @str
+          @str, @block = @block.call, nil
+        end
+        @str.send(*args, &block)
       end
-      alias to_str to_s
     end
 
     included do
