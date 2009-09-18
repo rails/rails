@@ -31,19 +31,22 @@ module AbstractController
     # Override process_action in the AbstractController::Base
     # to log details about the method.
     def process_action(action)
-      retval = super
+      event = ActiveSupport::Orchestra.instrument(:process_action,
+                :request => request, :action => action) do
+        super
+      end
 
       if logger
         log = DelayedLog.new do
           "\n\nProcessing #{self.class.name}\##{action_name} " \
-          "to #{request.formats} " \
-          "(for #{request_origin}) [#{request.method.to_s.upcase}]"
+          "to #{request.formats} (for #{request_origin}) " \
+          "(%.1fms) [#{request.method.to_s.upcase}]" % event.duration
         end
 
         logger.info(log)
       end
 
-      retval
+      event.result
     end
 
   private

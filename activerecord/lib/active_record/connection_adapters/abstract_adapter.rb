@@ -201,16 +201,12 @@ module ActiveRecord
 
       protected
         def log(sql, name)
-          if block_given?
-            result = nil
-            ms = Benchmark.ms { result = yield }
-            @runtime += ms
-            log_info(sql, name, ms)
-            result
-          else
-            log_info(sql, name, 0)
-            nil
+          event = ActiveSupport::Orchestra.instrument(:sql, :sql => sql, :name => name) do
+            yield if block_given?
           end
+          @runtime += event.duration
+          log_info(sql, name, event.duration)
+          event.result
         rescue Exception => e
           # Log message and raise exception.
           # Set last_verification to 0, so that connection gets verified
@@ -221,10 +217,10 @@ module ActiveRecord
           raise translate_exception(e, message)
         end
 
-      def translate_exception(e, message)
-        # override in derived class
-        ActiveRecord::StatementInvalid.new(message)
-      end
+        def translate_exception(e, message)
+          # override in derived class
+          ActiveRecord::StatementInvalid.new(message)
+        end
 
         def format_log_entry(message, dump = nil)
           if ActiveRecord::Base.colorize_logging
