@@ -72,7 +72,7 @@ module ActiveRecord
     #   member.avatar_attributes = { :id => '2', :_delete => '1' }
     #   member.avatar.marked_for_destruction? # => true
     #   member.save
-    #   member.avatar #=> nil
+    #   member.reload.avatar #=> nil
     #
     # Note that the model will _not_ be destroyed until the parent is saved.
     #
@@ -160,7 +160,7 @@ module ActiveRecord
     #   member.posts.detect { |p| p.id == 2 }.marked_for_destruction? # => true
     #   member.posts.length #=> 2
     #   member.save
-    #   member.posts.length # => 1
+    #   member.reload.posts.length # => 1
     #
     # === Saving
     #
