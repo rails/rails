@@ -6,8 +6,14 @@ $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
-require 'bundler_helper'
-ensure_requirable %w( rack rack/test sqlite3 )
+bundler = File.join(File.dirname(__FILE__), '..', 'vendor', 'gems', 'environment')
+require bundler if File.exist?("#{bundler}.rb")
+
+begin
+  %w( rack rack/test sqlite3 ).each { |lib| require lib }
+rescue LoadError => e
+  abort e.message
+end
 
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
