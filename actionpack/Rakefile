@@ -62,7 +62,7 @@ end
 desc 'New Controller Tests'
 Rake::TestTask.new(:test_new_base) do |t|
   t.libs << 'test'
-  t.test_files = Dir.glob("test/{abstract_controller,new_base}/*_test.rb")
+  t.test_files = Dir.glob("test/{abstract,new_base}/*_test.rb")
   t.verbose = true
 end
 
