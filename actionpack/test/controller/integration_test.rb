@@ -377,7 +377,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     end
 end
 
-class MetalTest < ActionController::IntegrationTest
+class MetalIntegrationTest < ActionController::IntegrationTest
   class Poller
     def self.call(env)
       if env["PATH_INFO"] =~ /^\/success/
