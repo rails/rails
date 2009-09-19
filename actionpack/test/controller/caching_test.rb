@@ -441,8 +441,8 @@ class ActionCacheTest < ActionController::TestCase
 
   def test_correct_content_type_is_returned_for_cache_hit
     # run it twice to cache it the first time
-    get :index, :id => 'content-type.xml'
-    get :index, :id => 'content-type.xml'
+    get :index, :id => 'content-type', :format => 'xml'
+    get :index, :id => 'content-type', :format => 'xml'
     assert_equal 'application/xml', @response.content_type
   end
 
