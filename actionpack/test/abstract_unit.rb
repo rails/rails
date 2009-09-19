@@ -11,8 +11,6 @@ ensure_requirable %w( rack rack/test sqlite3 )
 
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
-ENV['new_base'] = "true"
-
 require 'test/unit'
 require 'active_support'
 require 'active_support/test_case'
@@ -191,7 +189,6 @@ module ActionController
     end
   end
 end
-
 
 class SimpleRouteCase < Rack::TestCase
   setup do
