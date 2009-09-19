@@ -53,11 +53,11 @@ module ActionController #:nodoc:
         return content unless cache_configured?
 
         key = fragment_cache_key(key)
-
-        self.class.benchmark "Cached fragment miss: #{key}" do
+        event = ActiveSupport::Orchestra.instrument(:write_fragment, :key => key) do
           cache_store.write(key, content, options)
         end
 
+        self.class.log_with_time("Cached fragment miss: #{key}", event.duration)
         content
       end
 
@@ -66,10 +66,12 @@ module ActionController #:nodoc:
         return unless cache_configured?
 
         key = fragment_cache_key(key)
-
-        self.class.benchmark "Cached fragment hit: #{key}" do
+        event = ActiveSupport::Orchestra.instrument(:read_fragment, :key => key) do
           cache_store.read(key, options)
         end
+
+        self.class.log_with_time("Cached fragment hit: #{key}", event.duration)
+        event.result
       end
 
       # Check if a cached fragment from the location signified by <tt>key</tt> exists (see <tt>expire_fragment</tt> for acceptable formats)
@@ -77,10 +79,12 @@ module ActionController #:nodoc:
         return unless cache_configured?
 
         key = fragment_cache_key(key)
-
-        self.class.benchmark "Cached fragment exists?: #{key}" do
+        event = ActiveSupport::Orchestra.instrument(:fragment_exist?, :key => key) do
           cache_store.exist?(key, options)
         end
+
+        self.class.log_with_time("Cached fragment exists?: #{key}", event.duration)
+        event.result
       end
 
       # Removes fragments from the cache.
@@ -103,17 +107,21 @@ module ActionController #:nodoc:
       def expire_fragment(key, options = nil)
         return unless cache_configured?
 
-        key = key.is_a?(Regexp) ? key : fragment_cache_key(key)
+        key = fragment_cache_key(key) unless key.is_a?(Regexp)
+        message = nil
 
-        if key.is_a?(Regexp)
-          self.class.benchmark "Expired fragments matching: #{key.source}" do
+        event = ActiveSupport::Orchestra.instrument(:expire_fragment, :key => key) do
+          if key.is_a?(Regexp)
+            message = "Expired fragments matching: #{key.source}"
             cache_store.delete_matched(key, options)
-          end
-        else
-          self.class.benchmark "Expired fragment: #{key}" do
+          else
+            message = "Expired fragment: #{key}"
             cache_store.delete(key, options)
           end
         end
+
+        self.class.log_with_time(message, event.duration)
+        event.result
       end
     end
   end
