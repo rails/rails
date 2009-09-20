@@ -14,7 +14,13 @@ else
     s.email     = "bryan" + "@" + "brynary.com"
     s.homepage  = "http://github.com/brynary/arel"
     s.summary   = "Arel is a relational algebra engine for Ruby"
-    # s.description  = "TODO"
+    s.description  = <<-EOS.strip
+Arel is a Relational Algebra for Ruby. It 1) simplifies the generation complex
+of SQL queries and it 2) adapts to various RDBMS systems. It is intended to be
+a framework framework; that is, you can build your own ORM with it, focusing on
+innovative object and collection modeling as opposed to database compatibility
+and query generation.
+EOS
     s.rubyforge_project = "arel"
     s.extra_rdoc_files = %w(README.markdown)
 
