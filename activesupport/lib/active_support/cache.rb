@@ -107,15 +107,13 @@ module ActiveSupport
     class Store
       cattr_accessor :logger
 
-      attr_reader :silence, :logger_off
+      attr_reader :silence
+      alias :silence? :silence
 
       def silence!
         @silence = true
         self
       end
-
-      alias silence? silence
-      alias logger_off? logger_off
 
       # Fetches data from the cache, using the given key. If there is data in
       # the cache with the given key, then that data is returned.
@@ -157,26 +155,13 @@ module ActiveSupport
       #   cache.fetch("foo")  # => "bar"
       #   sleep(6)
       #   cache.fetch("foo")  # => nil
-      def fetch(key, options = {})
-        @logger_off = true
+      def fetch(key, options = {}, &block)
         if !options[:force] && value = read(key, options)
-          @logger_off = false
-          log("hit", key, options)
           value
         elsif block_given?
-          @logger_off = false
-          log("miss", key, options)
-
-          value = nil
-          ms = Benchmark.ms { value = yield }
-
-          @logger_off = true
-          write(key, value, options)
-          @logger_off = false
-
-          log('write (will save %.2fms)' % ms, key, nil)
-
-          value
+          result = instrument(:generate, key, options, &block)
+          write(key, result, options)
+          result
         end
       end
 
@@ -191,8 +176,8 @@ module ActiveSupport
       # For example, FileStore supports the +:expires_in+ option, which
       # makes the method return nil for cache items older than the specified
       # period.
-      def read(key, options = nil)
-        log("read", key, options)
+      def read(key, options = nil, &block)
+        instrument(:read, key, options, &block)
       end
 
       # Writes the given value to the cache, with the given key.
@@ -210,20 +195,20 @@ module ActiveSupport
       #   cache.read("foo")  # => "bar"
       #   sleep(6)
       #   cache.read("foo")  # => nil
-      def write(key, value, options = nil)
-        log("write", key, options)
+      def write(key, value, options = nil, &block)
+        instrument(:write, key, options, &block)
       end
 
-      def delete(key, options = nil)
-        log("delete", key, options)
+      def delete(key, options = nil, &block)
+        instrument(:delete, key, options, &block)
       end
 
-      def delete_matched(matcher, options = nil)
-        log("delete matched", matcher.inspect, options)
+      def delete_matched(matcher, options = nil, &block)
+        instrument(:delete_matched, matcher.inspect, options, &block)
       end
 
-      def exist?(key, options = nil)
-        log("exist?", key, options)
+      def exist?(key, options = nil, &block)
+        instrument(:exist?, key, options, &block)
       end
 
       def increment(key, amount = 1)
@@ -247,14 +232,21 @@ module ActiveSupport
       private
         def expires_in(options)
           expires_in = options && options[:expires_in]
-
           raise ":expires_in must be a number" if expires_in && !expires_in.is_a?(Numeric)
-
           expires_in || 0
         end
 
+        def instrument(operation, key, options, &block)
+          payload = { :key => key }
+          payload.merge!(options) if options.is_a?(Hash)
+
+          event = ActiveSupport::Orchestra.instrument(:"cache_#{operation}", payload, &block)
+          log("#{operation} (%.1fms)" % event.duration, key, options)
+          event.result
+        end
+
         def log(operation, key, options)
-          logger.debug("Cache #{operation}: #{key}#{options ? " (#{options.inspect})" : ""}") if logger && !silence? && !logger_off?
+          logger.debug("Cache #{operation}: #{key}#{options ? " (#{options.inspect})" : ""}") if logger && !silence?
         end
     end
   end
