@@ -1,9 +1,6 @@
 require "rubygems"
 require "spec/rake/spectask"
 
-$LOAD_PATH.unshift "lib"
-require "arel"
-
 begin
   require 'jeweler'
 
