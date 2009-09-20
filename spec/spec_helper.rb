@@ -37,9 +37,17 @@ module AdapterGuards
   end
 end
 
+module Check
+  # This is used to eliminate Ruby warnings on some RSpec assertion lines
+  # See: https://rspec.lighthouseapp.com/projects/5645/tickets/504
+  def check(*args)
+  end
+end
+
 Spec::Runner.configure do |config|
   config.include BeLikeMatcher, HashTheSameAsMatcher, DisambiguateAttributesMatcher
   config.include AdapterGuards
+  config.include Check
   config.mock_with :rr
   config.before do
     Arel::Table.engine = Arel::Sql::Engine.new(ActiveRecord::Base)

@@ -2,7 +2,7 @@ module Arel
   module ClassExtensions
     def attributes(*attrs)
       @attributes = attrs
-      attr_reader *attrs
+      attr_reader(*attrs)
     end
 
     def deriving(*methods)

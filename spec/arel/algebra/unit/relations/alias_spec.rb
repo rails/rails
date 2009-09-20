@@ -8,7 +8,7 @@ module Arel
 
     describe '==' do
       it "obtains if the objects are the same" do
-        Alias.new(@relation).should_not == Alias.new(@relation)
+        check Alias.new(@relation).should_not == Alias.new(@relation)
         (aliaz = Alias.new(@relation)).should == aliaz
       end
     end

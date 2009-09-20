@@ -11,7 +11,7 @@ module Arel
 
     describe '==' do
       it "obtains if attribute1 and attribute2 are identical" do
-        Equality.new(@attribute1, @attribute2).should == Equality.new(@attribute1, @attribute2)
+        check Equality.new(@attribute1, @attribute2).should == Equality.new(@attribute1, @attribute2)
         Equality.new(@attribute1, @attribute2).should_not == Equality.new(@attribute1, @attribute1)
       end
 

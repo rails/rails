@@ -2,15 +2,16 @@ require 'spec_helper'
 
 module Arel
   describe Binary do
+    class ConcreteBinary < Binary
+      def predicate_sql
+        "<=>"
+      end
+    end
+
     before do
       @relation = Table.new(:users)
       @attribute1 = @relation[:id]
       @attribute2 = @relation[:name]
-      class ConcreteBinary < Binary
-        def predicate_sql
-          "<=>"
-        end
-      end
     end
 
     describe "with compound predicates" do

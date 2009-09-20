@@ -73,10 +73,8 @@ module Arel
 
         describe 'when dividing two matching attributes' do
           it 'returns a the highest score for the most similar attributes' do
-            (@aliased_relation[:id] / @relation[:id]) \
-              .should == (@aliased_relation[:id] / @relation[:id])
-            (@aliased_relation[:id] / @relation[:id]) \
-              .should < (@aliased_relation[:id] / @aliased_relation[:id])
+            check((@aliased_relation[:id] / @relation[:id]).should == (@aliased_relation[:id] / @relation[:id]))
+            (@aliased_relation[:id] / @relation[:id]).should < (@aliased_relation[:id] / @aliased_relation[:id])
           end
         end
       end

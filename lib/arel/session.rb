@@ -5,16 +5,22 @@ module Arel
       alias_method :manufacture, :new
 
       def start
-        if @started
+        if defined?(@started) && @started
           yield
         else
           begin
             @started = true
             @instance = manufacture
-            metaclass.send :alias_method, :new, :instance
+            metaclass.class_eval do
+              undef :new
+              alias_method :new, :instance
+            end
             yield
           ensure
-            metaclass.send :alias_method, :new, :manufacture
+            metaclass.class_eval do
+              undef :new
+              alias_method :new, :manufacture
+            end
             @started = false
           end
         end

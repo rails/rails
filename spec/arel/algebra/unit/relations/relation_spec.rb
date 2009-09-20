@@ -17,8 +17,8 @@ module Arel
 
       describe 'when given a', Symbol, String do
         it "returns the attribute with the same name, if it exists" do
-          @relation[:id].should == @attribute1
-          @relation['id'].should == @attribute1
+          check @relation[:id].should == @attribute1
+          check @relation['id'].should == @attribute1
           @relation[:does_not_exist].should be_nil
         end
       end
@@ -180,7 +180,7 @@ module Arel
 
     describe Relation::Enumerable do
       it "implements enumerable" do
-        @relation.collect.should == @relation.session.read(@relation).collect
+        check @relation.collect.should == @relation.session.read(@relation).collect
         @relation.first.should   == @relation.session.read(@relation).first
       end
     end
