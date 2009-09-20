@@ -8,7 +8,7 @@ module Arel
       def inclusion_predicate_sql
         "BETWEEN"
       end
-      
+
       Range.send(:include, self)
     end
   end

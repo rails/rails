@@ -8,7 +8,7 @@ module Arel
       def equality_predicate_sql
         '='
       end
-      
+
       Object.send(:include, self)
     end
   end

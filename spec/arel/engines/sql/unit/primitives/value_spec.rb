@@ -9,11 +9,11 @@ module Arel
     describe '#to_sql' do
       it "appropriately quotes the value" do
         Value.new(1, @relation).to_sql.should be_like('1')
-        
+
         adapter_is_not :postgresql do
           Value.new('asdf', @relation).to_sql.should be_like("'asdf'")
         end
-        
+
         adapter_is :postgresql do
           Value.new('asdf', @relation).to_sql.should be_like("E'asdf'")
         end

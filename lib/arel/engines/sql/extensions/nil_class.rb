@@ -4,7 +4,7 @@ module Arel
       def equality_predicate_sql
         'IS'
       end
-      
+
       NilClass.send(:include, self)
     end
   end

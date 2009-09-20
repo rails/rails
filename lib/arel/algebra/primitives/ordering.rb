@@ -15,7 +15,7 @@ module Arel
     attributes :attribute
     deriving :initialize, :==
   end
-  
+
   class Descending < Ordering
     attributes :attribute
     deriving :initialize, :==

@@ -6,7 +6,7 @@ module Arel
       @relation = Table.new(:users)
       @attribute = @relation[:id]
     end
-    
+
     describe "#==" do
       it "returns true when the Orders are for the same attribute and direction" do
         Ascending.new(@attribute).should == Ascending.new(@attribute)

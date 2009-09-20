@@ -8,7 +8,7 @@ module Arel
       def inclusion_predicate_sql
         "IN"
       end
-      
+
       Array.send(:include, self)
     end
   end

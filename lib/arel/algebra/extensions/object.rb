@@ -11,7 +11,7 @@ module Arel
     def let
       yield(self)
     end
-    
+
     Object.send(:include, self)
   end
 end

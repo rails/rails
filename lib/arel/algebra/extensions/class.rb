@@ -25,7 +25,7 @@ module Arel
       }
       class_eval methods[method_name], __FILE__, __LINE__
     end
-    
+
     Class.send(:include, self)
   end
 end

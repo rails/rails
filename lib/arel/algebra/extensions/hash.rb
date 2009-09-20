@@ -5,7 +5,7 @@ module Arel
         bound.merge(key.bind(relation) => value.bind(relation))
       end
     end
-    
+
     Hash.send(:include, self)
   end
 end
