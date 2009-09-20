@@ -1,4 +1,10 @@
-require File.join(File.dirname(__FILE__), '..', '..', '..', '..', '..', 'spec_helper')
+require 'spec_helper'
+
+class User
+  def self.primary_key
+    "id"
+  end
+end
 
 module Arel
   describe Update do
@@ -45,17 +51,17 @@ module Arel
 
         adapter_is :sqlite3 do
           sql.should be_like(%Q{
-            UPDATE "users"
-            SET "name" = 'nick'
-            LIMIT 1
+            UPDATE "users" SET
+            "name" = 'nick'
+            WHERE "id" IN (SELECT "id" FROM "users"  LIMIT 1)
           })
         end
 
         adapter_is :postgresql do
           sql.should be_like(%Q{
-            UPDATE "users"
-            SET "name" = E'nick'
-            LIMIT 1
+            UPDATE "users" SET
+            "name" = E'nick'
+            WHERE "id" IN (SELECT "id" FROM "users"  LIMIT 1)
           })
         end
       end

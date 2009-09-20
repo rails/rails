@@ -1,6 +1,6 @@
-require "rubygems"
-require "activerecord"
 puts "Using native PostgreSQL"
+require "active_record"
+require 'logger'
 
 ActiveRecord::Base.logger = Logger.new("debug.log")
 

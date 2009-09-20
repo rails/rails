@@ -110,7 +110,7 @@ module Arel
       private
       def matching_attributes(attribute)
         (@matching_attributes ||= attributes.inject({}) do |hash, a|
-          (hash[a.root] ||= []) << a
+          (hash[a.is_a?(Value) ? a.value : a.root] ||= []) << a
           hash
         end)[attribute.root] || []
       end

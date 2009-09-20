@@ -5,6 +5,26 @@ module Arel
     end
 
     def select_sql
+      if engine.adapter_name == "PostgreSQL" && !orders.blank? && using_distinct_on?
+        # PostgreSQL does not allow arbitrary ordering when using DISTINCT ON, so we work around this
+        # by wrapping the +sql+ string as a sub-select and ordering in that query.
+        order = order_clauses.join(', ').split(',').map { |s| s.strip }.reject(&:blank?)
+        order = order.zip((0...order.size).to_a).map { |s,i| "id_list.alias_#{i} #{'DESC' if s =~ /\bdesc$/i}" }.join(', ')
+
+        query = build_query \
+          "SELECT     #{select_clauses.to_s}",
+          "FROM       #{table_sql(Sql::TableReference.new(self))}",
+          (joins(self)                                   unless joins(self).blank? ),
+          ("WHERE     #{where_clauses.join("\n\tAND ")}" unless wheres.blank?      ),
+          ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   )
+
+        build_query \
+          "SELECT * FROM (#{query}) AS id_list",
+          "ORDER BY #{order}",
+          ("LIMIT     #{taken}"                          unless taken.blank?       ),
+          ("OFFSET    #{skipped}"                        unless skipped.blank?     )
+
+      else
       build_query \
         "SELECT     #{select_clauses.join(', ')}",
         "FROM       #{table_sql(Sql::TableReference.new(self))}",
@@ -14,6 +34,7 @@ module Arel
         ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      ),
         ("LIMIT     #{taken}"                          unless taken.blank?       ),
         ("OFFSET    #{skipped}"                        unless skipped.blank?     )
+      end
     end
 
     def inclusion_predicate_sql
@@ -46,5 +67,8 @@ module Arel
       orders.collect { |o| o.to_sql(Sql::OrderClause.new(self)) }
     end
 
+    def using_distinct_on?
+      select_clauses.any? { |x| x =~ /DISTINCT ON/ }
+    end
   end
 end

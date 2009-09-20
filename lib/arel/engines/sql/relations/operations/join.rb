@@ -26,8 +26,8 @@ module Arel
   end
 
   class StringJoin < Join
-    def joins(_, __ = nil)
-      relation2
+    def joins(environment, formatter = Sql::TableReference.new(environment))
+       [relation1.joins(environment), relation2].compact.join(" ")
     end
   end
 end

@@ -7,6 +7,8 @@ module Arel
     def to_sql(formatter = nil)
       self
     end
+
+    include Attribute::Expressions
   end
 
   class Attribute

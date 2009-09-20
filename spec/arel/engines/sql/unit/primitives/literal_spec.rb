@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', '..', '..', '..', '..', 'spec_helper')
+require 'spec_helper'
 
 module Arel
   describe SqlLiteral do
@@ -16,6 +16,18 @@ module Arel
 
         adapter_is_not :mysql do
           sql.should be_like(%Q{SELECT COUNT(*) AS count_id FROM "users"})
+        end
+      end
+
+      it "manufactures expressions on literal SQL fragment" do
+        sql = @relation.project(SqlLiteral.new("2 * credit_limit").sum).to_sql
+
+        adapter_is :mysql do
+          sql.should be_like(%Q{SELECT SUM(2 * credit_limit) AS sum_id FROM `users`})
+        end
+
+        adapter_is_not :mysql do
+          sql.should be_like(%Q{SELECT SUM(2 * credit_limit) AS sum_id FROM "users"})
         end
       end
     end
