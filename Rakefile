@@ -17,6 +17,9 @@ else
     # s.description  = "TODO"
     s.rubyforge_project = "arel"
     s.extra_rdoc_files = %w(README.markdown)
+
+    s.add_dependency "activerecord", ">= 3.0pre"
+    s.add_dependency "activesupport", ">= 3.0pre"
   end
 
   Jeweler::RubyforgeTasks.new
