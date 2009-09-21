@@ -847,6 +847,30 @@ def observed_subclasses
 end
 </ruby>
 
+h4. +each_with_object+
+
+The +inject+ method offers iteration with an accumulator:
+
+<ruby>
+[2, 3, 4].inject(1) {|acc, i| product*i } # => 24
+</ruby>
+
+The block is expected to return the value for the accumulator in the next iteration, and this makes building mutable objects a bit cumbersome:
+
+<ruby>
+[1, 2].inject({}) {|h, i| h[i] = i**2; h} # => {1 => 1, 2 => 4}
+</ruby>
+
+See that spurious "+; h+"?
+
+Active Support backports +each_with_object+ from Ruby 1.9, which addresses that use case. It iterates over the collection, passes the accumulator, and returns the accumulator when done. You normally modify the accumulator in place. The example above would be written this way:
+
+<ruby>
+[1, 2].each_with_object({}) {|i, h| h[i] = i**2} # => {1 => 1, 2 => 4}
+</ruby>
+
+WARNING. Note that the item of the collection and the accumulator come in different order in +inject+ and +each_with_object+.
+
 h3. Extensions to +Array+
 
 h4. Accessing
