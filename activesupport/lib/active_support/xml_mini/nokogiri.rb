@@ -12,7 +12,7 @@ module ActiveSupport
       if string.blank?
         {}
       else
-        doc = Nokogiri::XML(data) { |cfg| cfg.noblanks }
+        doc = Nokogiri::XML(string) { |cfg| cfg.noblanks }
         raise doc.errors.first if doc.errors.length > 0
         doc.to_hash
       end
