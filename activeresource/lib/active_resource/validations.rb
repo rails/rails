@@ -93,9 +93,9 @@ module ActiveResource
     # content-type of the error-block received
     def load_remote_errors(remote_errors, save_cache = false ) #:nodoc:
       case remote_errors.response['Content-Type']
-      when 'application/xml'
+      when /xml/
         errors.from_xml(remote_errors.response.body, save_cache)
-      when 'application/json'
+      when /json/
         errors.from_json(remote_errors.response.body, save_cache)
       end
     end

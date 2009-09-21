@@ -1,4 +1,4 @@
-require 'abstract_unit2'
+require 'abstract_unit'
 
 module Render
   class BlankRenderController < ActionController::Base

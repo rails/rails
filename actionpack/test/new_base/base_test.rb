@@ -1,4 +1,4 @@
-require 'abstract_unit2'
+require 'abstract_unit'
 
 # Tests the controller dispatching happy path
 module Dispatching

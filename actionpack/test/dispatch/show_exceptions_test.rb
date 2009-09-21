@@ -70,8 +70,7 @@ class ShowExceptionsTest < ActionController::IntegrationTest
 
   test "localize public rescue message" do
     # Change locale
-    old_locale = I18n.locale
-    I18n.locale = :da
+    old_locale, I18n.locale = I18n.locale, :da
 
     begin
       @integration_session = open_session(ProductionApp)

@@ -1,4 +1,4 @@
-require 'abstract_unit2'
+require 'abstract_unit'
 
 module RenderText
   class SimpleController < ActionController::Base

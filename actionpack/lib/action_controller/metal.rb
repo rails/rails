@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/inheritable_attributes'
+
 module ActionController
   # ActionController::Metal provides a way to get a valid Rack application from a controller.
   #

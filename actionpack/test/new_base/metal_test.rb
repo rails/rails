@@ -1,4 +1,4 @@
-require 'abstract_unit2'
+require 'abstract_unit'
 
 module MetalTest
   class MetalMiddleware < ActionController::Middleware

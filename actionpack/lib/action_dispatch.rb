@@ -21,10 +21,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-$:.unshift activesupport_path if File.directory?(activesupport_path)
-require 'active_support'
-
 require 'rack'
 
 module Rack
@@ -59,3 +55,7 @@ module ActionDispatch
 end
 
 autoload :Mime, 'action_dispatch/http/mime_type'
+
+activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+$:.unshift activesupport_path if File.directory?(activesupport_path)
+require 'active_support'

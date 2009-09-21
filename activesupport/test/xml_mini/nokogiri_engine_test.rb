@@ -159,6 +159,17 @@ class NokogiriEngineTest < Test::Unit::TestCase
     XmlMini.parse(io)
   end
 
+  def test_children_with_cdata
+    assert_equal_rexml(<<-eoxml)
+    <root>
+      <products>
+        hello <![CDATA[everyone]]>
+        morning
+      </products>
+    </root>
+    eoxml
+  end
+
   private
   def assert_equal_rexml(xml)
     hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
