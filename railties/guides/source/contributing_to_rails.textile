@@ -104,7 +104,7 @@ You can replace +sqlite3+ with +jdbcmysql+, +jdbcsqlite3+, +jdbcpostgresql+, +my
 
 
 
-NOTE: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, SQLite 2, and SQLite 3. Subtle differences between the various Active Record database adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
+NOTE: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite 3. Subtle differences between the various Active Record database adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
 
 h3. Helping to Resolve Existing Issues
 
