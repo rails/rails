@@ -62,21 +62,29 @@ module ActionController #:nodoc:
         #   expire_page "/lists/show"
         def expire_page(path)
           return unless perform_caching
+          path = page_cache_path(path)
 
-          benchmark "Expired page: #{page_cache_file(path)}" do
-            File.delete(page_cache_path(path)) if File.exist?(page_cache_path(path))
+          event = ActiveSupport::Orchestra.instrument(:expire_page, :path => path) do
+            File.delete(path) if File.exist?(path)
           end
+
+          log_with_time("Expired page: #{path}", event.duration)
+          event.result
         end
 
         # Manually cache the +content+ in the key determined by +path+. Example:
         #   cache_page "I'm the cached content", "/lists/show"
         def cache_page(content, path)
           return unless perform_caching
+          path = page_cache_path(path)
 
-          benchmark "Cached page: #{page_cache_file(path)}" do
-            FileUtils.makedirs(File.dirname(page_cache_path(path)))
-            File.open(page_cache_path(path), "wb+") { |f| f.write(content) }
+          event = ActiveSupport::Orchestra.instrument(:cache_page, :path => path) do
+            FileUtils.makedirs(File.dirname(path))
+            File.open(path, "wb+") { |f| f.write(content) }
           end
+
+          log_with_time("Cached page: #{path}", event.duration)
+          event.result
         end
 
         # Caches the +actions+ using the page-caching approach that'll store the cache in a path within the page_cache_directory that

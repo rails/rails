@@ -295,7 +295,7 @@ module ActiveSupport
           "(#{filter})"
         when Proc
           @klass.send(:define_method, method_name, &filter)
-          return method_name if filter.arity == 0
+          return method_name if filter.arity <= 0
 
           method_name << (filter.arity == 1 ? "(self)" : " self, Proc.new ")
         else
@@ -374,7 +374,7 @@ module ActiveSupport
       #   save
       # end
       #
-      # The _run_set_callback :save,s method can optionally take a key, which
+      # The _run_set_callback :save method can optionally take a key, which
       # will be used to compile an optimized callback method for each
       # key. See #define_callbacks for more information.
       #

@@ -2,7 +2,6 @@ module ActionController
   class Base < Metal
     abstract!
 
-    include AbstractController::Benchmarker
     include AbstractController::Callbacks
     include AbstractController::Logger
 
