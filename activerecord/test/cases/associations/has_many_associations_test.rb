@@ -813,7 +813,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     clients = firm.clients
     assert_equal 2, clients.length
-    clients.last.instance_eval { def before_destroy() raise "Trigger rollback" end }
+    clients.last.instance_eval { def overwrite_to_raise() raise "Trigger rollback" end }
 
     firm.destroy rescue "do nothing"
 

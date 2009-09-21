@@ -390,7 +390,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_equal 'ちわ', @chars.slice(2..10)
     assert_equal '', @chars.slice(4..10)
     assert_equal 'に', @chars.slice(/に/u)
-    assert_equal 'にち', @chars.slice(/に\w/u)
+    assert_equal 'にち', @chars.slice(/に./u)
     assert_equal nil, @chars.slice(/unknown/u)
     assert_equal 'にち', @chars.slice(/(にち)/u, 1)
     assert_equal nil, @chars.slice(/(にち)/u, 2)

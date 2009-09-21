@@ -2,13 +2,16 @@
 # boot from scratch in vendored mode. This file should really only be
 # required in test cases that use the isolation helper so that requires
 # can be reset correctly.
-RAILS_ROOT = File.join(File.dirname(__FILE__), "root")
-RAILS_FRAMEWORK_ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..'))
+RAILS_ROOT = "#{File.dirname(__FILE__)}/root"
+RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
+
+require 'rubygems'
+gem 'rack', '~> 1.0.0'
 
 require "test/unit"
 # We are purposely avoiding adding things to the load path to catch bugs that only happen in the genuine article
-require File.join(RAILS_FRAMEWORK_ROOT, 'activesupport', 'lib', 'active_support', 'testing', 'isolation')
-require File.join(RAILS_FRAMEWORK_ROOT, 'activesupport', 'lib', 'active_support', 'testing', 'declarative')
+require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/testing/isolation"
+require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/testing/declarative"
 
 class Test::Unit::TestCase
   extend ActiveSupport::Testing::Declarative
@@ -35,7 +38,7 @@ module Rails
 
     def boot!
       # Require the initializer
-      require File.join(RAILS_FRAMEWORK_ROOT, 'railties', 'lib', 'initializer')
+      require "#{RAILS_FRAMEWORK_ROOT}/railties/lib/initializer"
       # Run the initializer the same way boot.rb does it
       Rails::Initializer.run(:install_gem_spec_stubs)
       Rails::GemDependency.add_frozen_gem_path

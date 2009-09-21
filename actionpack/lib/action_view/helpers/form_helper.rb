@@ -449,6 +449,15 @@ module ActionView
       #     <% end %>
       #   <% end %>
       #
+      # Or a collection to be used:
+      #
+      #   <% form_for @person, :url => { :action => "update" } do |person_form| %>
+      #     ...
+      #     <% person_form.fields_for :projects, @active_projects do |project_fields| %>
+      #       Name: <%= project_fields.text_field :name %>
+      #     <% end %>
+      #   <% end %>
+      #
       # When projects is already an association on Person you can use
       # +accepts_nested_attributes_for+ to define the writer method for you:
       #
@@ -1037,18 +1046,21 @@ module ActionView
 
         def fields_for_with_nested_attributes(association_name, args, block)
           name = "#{object_name}[#{association_name}_attributes]"
-          association = @object.send(association_name)
-          explicit_object = args.first.to_model if args.first.respond_to?(:to_model)
+          association = args.first.to_model if args.first.respond_to?(:to_model)
+
+          if association.respond_to?(:new_record?)
+            association = [association] if @object.send(association_name).is_a?(Array)
+          elsif !association.is_a?(Array)
+            association = @object.send(association_name)
+          end
 
           if association.is_a?(Array)
-            children = explicit_object ? [explicit_object] : association
             explicit_child_index = args.last[:child_index] if args.last.is_a?(Hash)
-
-            children.map do |child|
+            association.map do |child|
               fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index(name)}]", child, args, block)
             end.join
-          else
-            fields_for_nested_model(name, explicit_object || association, args, block)
+          elsif association
+            fields_for_nested_model(name, association, args, block)
           end
         end
 

@@ -1,7 +1,13 @@
-#!/usr/bin/env ruby
-require 'rake'
+require File.join(File.dirname(__FILE__), 'lib', 'active_model', 'version')
+
+PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+PKG_NAME      = 'activemodel'
+PKG_VERSION   = ActiveModel::VERSION::STRING + PKG_BUILD
+PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
+RELEASE_NAME  = "REL #{PKG_VERSION}"
+
+
 require 'rake/testtask'
-require 'rake/rdoctask'
 
 task :default => :test
 
@@ -9,13 +15,18 @@ Rake::TestTask.new do |t|
   t.libs << "test"
   t.test_files = Dir.glob("test/cases/**/*_test.rb").sort
   t.verbose = true
+  t.warning = true
 end
+
 task :isolated_test do
   ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
   Dir.glob("test/**/*_test.rb").all? do |file|
-    system(ruby, '-Ilib:test', file)
+    system(ruby, '-w', '-Ilib:test', file)
   end or raise "Failures"
 end
+
+
+require 'rake/rdoctask'
 
 # Generate the RDoc documentation
 Rake::RDocTask.new do |rdoc|
@@ -26,4 +37,40 @@ Rake::RDocTask.new do |rdoc|
   rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
   rdoc.rdoc_files.include('README', 'CHANGES')
   rdoc.rdoc_files.include('lib/**/*.rb')
+end
+
+
+require 'rake/packagetask'
+require 'rake/gempackagetask'
+
+spec = Gem::Specification.new do |s|
+  s.platform = Gem::Platform::RUBY
+  s.name = PKG_NAME
+  s.version = PKG_VERSION
+  s.summary = "A toolkit for building other modeling frameworks like ActiveRecord"
+  s.description = %q{Extracts common modeling concerns from ActiveRecord to share between similar frameworks like ActiveResource.}
+
+  s.author = "David Heinemeier Hansson"
+  s.email = "david@loudthinking.com"
+  s.rubyforge_project = "activemodel"
+  s.homepage = "http://www.rubyonrails.org"
+
+  s.has_rdoc = true
+
+  s.add_dependency('activesupport', '= 3.0.pre' + PKG_BUILD)
+
+  s.require_path = 'lib'
+  s.files = Dir["CHANGELOG", "MIT-LICENSE", "README", "Rakefile", "lib/**/*", "test/**/*"]
+end
+  
+Rake::GemPackageTask.new(spec) do |p|
+  p.gem_spec = spec
+  p.need_tar = true
+  p.need_zip = true
+end
+
+task :gemspec do
+  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
+    file.puts spec.to_ruby
+  end
 end

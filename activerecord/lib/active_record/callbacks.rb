@@ -10,16 +10,14 @@ module ActiveRecord
   # * (-) <tt>save</tt>
   # * (-) <tt>valid</tt>
   # * (1) <tt>before_validation</tt>
-  # * (2) <tt>before_validation_on_create</tt>
   # * (-) <tt>validate</tt>
   # * (-) <tt>validate_on_create</tt>
-  # * (3) <tt>after_validation</tt>
-  # * (4) <tt>after_validation_on_create</tt>
-  # * (5) <tt>before_save</tt>
-  # * (6) <tt>before_create</tt>
+  # * (2) <tt>after_validation</tt>
+  # * (3) <tt>before_save</tt>
+  # * (4) <tt>before_create</tt>
   # * (-) <tt>create</tt>
-  # * (7) <tt>after_create</tt>
-  # * (8) <tt>after_save</tt>
+  # * (5) <tt>after_create</tt>
+  # * (6) <tt>after_save</tt>
   #
   # That's a total of eight callbacks, which gives you immense power to react and prepare for each state in the
   # Active Record lifecycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar, except that each 
@@ -212,162 +210,122 @@ module ActiveRecord
   # instead of quietly returning +false+.
   module Callbacks
     extend ActiveSupport::Concern
+    include ActiveSupport::NewCallbacks
 
-    CALLBACKS = %w(
-      after_find after_initialize before_save after_save before_create after_create before_update after_update before_validation
-      after_validation before_validation_on_create after_validation_on_create before_validation_on_update
-      after_validation_on_update before_destroy after_destroy
-    )
+    CALLBACKS = [
+      :after_initialize, :after_find, :before_validation, :after_validation,
+      :before_save, :around_save, :after_save, :before_create, :around_create,
+      :after_create, :before_update, :around_update, :after_update,
+      :before_destroy, :around_destroy, :after_destroy
+    ]
 
     included do
-      extend Observable
-
       [:create_or_update, :valid?, :create, :update, :destroy].each do |method|
         alias_method_chain method, :callbacks
       end
 
-      include ActiveSupport::Callbacks
-      define_callbacks *CALLBACKS
+      define_callbacks :initialize, :find, :save, :create, :update, :destroy,
+                       :validation, :terminator => "result == false", :scope => [:kind, :name]
     end
 
-    # Is called when the object was instantiated by one of the finders, like <tt>Base.find</tt>.
-    #def after_find() end
-
-    # Is called after the object has been instantiated by a call to <tt>Base.new</tt>.
-    #def after_initialize() end
-
-    # Is called _before_ <tt>Base.save</tt> (regardless of whether it's a +create+ or +update+ save).
-    def before_save() end
-
-    # Is called _after_ <tt>Base.save</tt> (regardless of whether it's a +create+ or +update+ save).
-    # Note that this callback is still wrapped in the transaction around +save+. For example, if you
-    # invoke an external indexer at this point it won't see the changes in the database.
-    #
-    #  class Contact < ActiveRecord::Base
-    #    after_save { logger.info( 'New contact saved!' ) }
-    #  end
-    def after_save()  end
-    def create_or_update_with_callbacks #:nodoc:
-      return false if callback(:before_save) == false
-      if result = create_or_update_without_callbacks
-        callback(:after_save)
+    module ClassMethods
+      def after_initialize(*args, &block)
+        options = args.extract_options!
+        options[:prepend] = true
+        set_callback(:initialize, :after, *(args << options), &block)
       end
-      result
+
+      def after_find(*args, &block)
+        options = args.extract_options!
+        options[:prepend] = true
+        set_callback(:find, :after, *(args << options), &block)
+      end
+
+      [:save, :create, :update, :destroy].each do |callback|
+        module_eval <<-CALLBACKS, __FILE__, __LINE__
+          def before_#{callback}(*args, &block)
+            set_callback(:#{callback}, :before, *args, &block)
+          end
+
+          def around_#{callback}(*args, &block)
+            set_callback(:#{callback}, :around, *args, &block)
+          end
+
+          def after_#{callback}(*args, &block)
+            options = args.extract_options!
+            options[:prepend] = true
+            options[:if] = Array(options[:if]) << "!halted && value != false"
+            set_callback(:#{callback}, :after, *(args << options), &block)
+          end
+        CALLBACKS
+      end
+
+      def before_validation(*args, &block)
+        options = args.extract_options!
+        if options[:on]
+          options[:if] = Array(options[:if])
+          options[:if] << "@_on_validate == :#{options[:on]}"
+        end
+        set_callback(:validation, :before, *(args << options), &block)
+      end
+
+      def after_validation(*args, &block)
+        options = args.extract_options!
+        options[:if] = Array(options[:if])
+        options[:if] << "!halted"
+        options[:if] << "@_on_validate == :#{options[:on]}" if options[:on]
+        options[:prepend] = true
+        set_callback(:validation, :after, *(args << options), &block)
+      end
+
+      def method_added(meth)
+        super
+        if CALLBACKS.include?(meth.to_sym)
+          ActiveSupport::Deprecation.warn("Base##{meth} has been deprecated, please use Base.#{meth} :method instead", caller[0,1])
+          send(meth.to_sym, meth.to_sym)
+        end
+      end
+    end
+
+    def create_or_update_with_callbacks #:nodoc:
+      _run_save_callbacks do
+        create_or_update_without_callbacks
+      end
     end
     private :create_or_update_with_callbacks
 
-    # Is called _before_ <tt>Base.save</tt> on new objects that haven't been saved yet (no record exists).
-    def before_create() end
-
-    # Is called _after_ <tt>Base.save</tt> on new objects that haven't been saved yet (no record exists).
-    # Note that this callback is still wrapped in the transaction around +save+. For example, if you
-    # invoke an external indexer at this point it won't see the changes in the database.
-    #
-    #  class Contact < ActiveRecord::Base
-    #    after_create { |record| logger.info( "Contact #{record.id} was created." ) }
-    #  end
-    def after_create() end
     def create_with_callbacks #:nodoc:
-      return false if callback(:before_create) == false
-      result = create_without_callbacks
-      callback(:after_create)
-      result
+      _run_create_callbacks do
+        create_without_callbacks
+      end
     end
     private :create_with_callbacks
 
-    # Is called _before_ <tt>Base.save</tt> on existing objects that have a record.
-    #
-    #  class Contact < ActiveRecord::Base
-    #    before_update { |record| logger.info( "Contact #{record.id} is about to be updated." ) }
-    #  end
-    def before_update() end
-
-    # Is called _after_ <tt>Base.save</tt> on existing objects that have a record.
-    # Note that this callback is still wrapped in the transaction around +save+. For example, if you
-    # invoke an external indexer at this point it won't see the changes in the database.
-    #
-    #  class Contact < ActiveRecord::Base
-    #    after_update { |record| logger.info( "Contact #{record.id} was updated." ) }
-    #  end
-    def after_update() end
-
     def update_with_callbacks(*args) #:nodoc:
-      return false if callback(:before_update) == false
-      result = update_without_callbacks(*args)
-      callback(:after_update)
-      result
+      _run_update_callbacks do
+        update_without_callbacks(*args)
+      end
     end
     private :update_with_callbacks
 
-    # Is called _before_ <tt>Validations.validate</tt> (which is part of the <tt>Base.save</tt> call).
-    def before_validation() end
-
-    # Is called _after_ <tt>Validations.validate</tt> (which is part of the <tt>Base.save</tt> call).
-    def after_validation() end
-
-    # Is called _before_ <tt>Validations.validate</tt> (which is part of the <tt>Base.save</tt> call) on new objects
-    # that haven't been saved yet (no record exists).
-    def before_validation_on_create() end
-
-    # Is called _after_ <tt>Validations.validate</tt> (which is part of the <tt>Base.save</tt> call) on new objects
-    # that haven't been saved yet (no record exists).
-    def after_validation_on_create()  end
-
-    # Is called _before_ <tt>Validations.validate</tt> (which is part of the <tt>Base.save</tt> call) on
-    # existing objects that have a record.
-    def before_validation_on_update() end
-
-    # Is called _after_ <tt>Validations.validate</tt> (which is part of the <tt>Base.save</tt> call) on
-    # existing objects that have a record.
-    def after_validation_on_update()  end
-
     def valid_with_callbacks? #:nodoc:
-      return false if callback(:before_validation) == false
-      if new_record? then result = callback(:before_validation_on_create) else result = callback(:before_validation_on_update) end
-      return false if false == result
-
-      result = valid_without_callbacks?
-
-      callback(:after_validation)
-      if new_record? then callback(:after_validation_on_create) else callback(:after_validation_on_update) end
-
-      return result
-    end
-
-    # Is called _before_ <tt>Base.destroy</tt>.
-    #
-    # Note: If you need to _destroy_ or _nullify_ associated records first,
-    # use the <tt>:dependent</tt> option on your associations.
-    #
-    #  class Contact < ActiveRecord::Base
-    #    after_destroy { |record| logger.info( "Contact #{record.id} is about to be destroyed." ) }
-    #  end
-    def before_destroy() end
-
-    # Is called _after_ <tt>Base.destroy</tt> (and all the attributes have been frozen).
-    #
-    #  class Contact < ActiveRecord::Base
-    #    after_destroy { |record| logger.info( "Contact #{record.id} was destroyed." ) }
-    #  end
-    def after_destroy()  end
-    def destroy_with_callbacks #:nodoc:
-      return false if callback(:before_destroy) == false
-      result = destroy_without_callbacks
-      callback(:after_destroy)
-      result
-    end
-
-    private
-      def callback(method)
-        result = run_callbacks(method) { |result, object| false == result }
-
-        if result != false && respond_to_without_attributes?(method)
-          result = send(method)
-        end
-
-        notify_observers(method)
-
-        return result
+      @_on_validate = new_record? ? :create : :update
+      _run_validation_callbacks do
+        valid_without_callbacks?
       end
+    end
+
+    def destroy_with_callbacks #:nodoc:
+      _run_destroy_callbacks do
+        destroy_without_callbacks
+      end
+    end
+
+    def deprecated_callback_method(symbol) #:nodoc:
+      if respond_to?(symbol)
+        ActiveSupport::Deprecation.warn("Base##{symbol} has been deprecated, please use Base.#{symbol} :method instead")
+        send(symbol)
+      end
+    end
   end
 end

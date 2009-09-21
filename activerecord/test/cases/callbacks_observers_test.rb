@@ -5,7 +5,7 @@ class Comment < ActiveRecord::Base
 
   before_validation :record_callers
 
-  def after_validation
+  after_validation do
     record_callers
   end
 
@@ -32,7 +32,6 @@ class CallbacksObserversTest < ActiveRecord::TestCase
     CommentObserver.instance.callers = callers
 
     comment.valid?
-
     assert_equal [Comment, Comment, CommentObserver], callers, "model callbacks did not fire before observers were notified"
   end
 end

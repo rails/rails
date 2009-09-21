@@ -1,24 +1,44 @@
+require "optparse"
+
 module Bundler
-  module CLI
-
-    def default_manifest
-      current = Pathname.new(Dir.pwd)
-
-      begin
-        manifest = current.join("Gemfile")
-        return manifest.to_s if File.exist?(manifest)
-        current = current.parent
-      end until current.root?
-      nil
+  class CLI
+    def self.run(command, options = {})
+      new(options).run(command)
+    rescue DefaultManifestNotFound => e
+      Bundler.logger.error "Could not find a Gemfile to use"
+      exit 2
+    rescue InvalidEnvironmentName => e
+      Bundler.logger.error "Gemfile error: #{e.message}"
+      exit
+    rescue InvalidRepository => e
+      Bundler.logger.error e.message
+      exit
+    rescue VersionConflict => e
+      Bundler.logger.error e.message
+      exit
+    rescue GemNotFound => e
+      Bundler.logger.error e.message
+      exit
     end
 
-    module_function :default_manifest
-
-    def default_path
-      Pathname.new(File.dirname(default_manifest)).join("vendor").join("gems").to_s
+    def initialize(options)
+      @options = options
+      @manifest = Bundler::Environment.load(@options[:manifest])
     end
 
-    module_function :default_path
+    def bundle
+      @manifest.install(@options[:update])
+    end
+
+    def exec
+      @manifest.setup_environment
+      # w0t?
+      super(*@options[:args])
+    end
+
+    def run(command)
+      send(command)
+    end
 
   end
 end

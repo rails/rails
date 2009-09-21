@@ -1,3 +1,4 @@
+require 'thor'
 require 'generators/actions'
 
 module Rails

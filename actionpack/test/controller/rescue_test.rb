@@ -227,12 +227,6 @@ class ControllerInheritanceRescueControllerTest < ActionController::TestCase
   end
 end
 
-class ApplicationController < ActionController::Base
-  rescue_from ActionController::RoutingError do
-    render :text => 'no way'
-  end
-end
-
 class RescueControllerTest < ActionController::TestCase
   def test_rescue_handler
     get :not_authorized
@@ -332,23 +326,20 @@ class RescueTest < ActionController::IntegrationTest
   end
 
   test 'rescue routing exceptions' do
-    assert_equal 1, ApplicationController.rescue_handlers.length
-
-    begin
-      with_test_routing do
-        get '/no_way'
-        assert_equal 'no way', response.body
-      end
-    ensure
-      ActionController::Base.rescue_handlers.clear
+    app = ActionDispatch::Rescue.new(ActionController::Routing::Routes) do
+      rescue_from ActionController::RoutingError, lambda { |env| [200, {"Content-Type" => "text/html"}, "Gotcha!"] }
     end
+    @integration_session = open_session(app)
+
+    get '/b00m'
+    assert_equal "Gotcha!", response.body
   end
 
   test 'unrescued exception' do
-    with_test_routing do
-      get '/b00m'
-      assert_match(/Action Controller: Exception caught/, response.body)
-    end
+    app = ActionDispatch::Rescue.new(ActionController::Routing::Routes)
+    @integration_session = open_session(app)
+
+    assert_raise(ActionController::RoutingError) { get '/b00m' }
   end
 
   private
@@ -359,6 +350,7 @@ class RescueTest < ActionController::IntegrationTest
           map.connect 'invalid', :controller => "rescue_test/test", :action => 'invalid'
           map.connect 'b00m', :controller => "rescue_test/test", :action => 'b00m'
         end
+        reset!
         yield
       end
     end

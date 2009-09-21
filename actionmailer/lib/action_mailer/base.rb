@@ -256,6 +256,8 @@ module ActionMailer #:nodoc:
   #   +implicit_parts_order+.
   class Base
     include AdvAttrAccessor, PartContainer, Quoting, Utils
+    extend AbstractController::RenderingController
+
     if Object.const_defined?(:ActionController)
       include ActionController::UrlWriter
       include ActionController::Layout
@@ -479,58 +481,62 @@ module ActionMailer #:nodoc:
     # Initialize the mailer via the given +method_name+. The body will be
     # rendered and a new TMail::Mail object created.
     def create!(method_name, *parameters) #:nodoc:
-      initialize_defaults(method_name)
-      __send__(method_name, *parameters)
-      
-      # If an explicit, textual body has not been set, we check assumptions.
-      unless String === @body
-        # First, we look to see if there are any likely templates that match,
-        # which include the content-type in their file name (i.e.,
-        # "the_template_file.text.html.erb", etc.). Only do this if parts
-        # have not already been specified manually.
-        # if @parts.empty?
-          template_root.find_all_by_parts(@template, {}, template_path).each do |template|
-            @parts << Part.new(
-              :content_type => template.mime_type ? template.mime_type.to_s : "text/plain",
-              :disposition => "inline",
-              :charset => charset,
-              :body => render_template(template, @body)
-            )
-          end
-          
-          if @parts.size > 1
-            @content_type = "multipart/alternative" if @content_type !~ /^multipart/
-            @parts = sort_parts(@parts, @implicit_parts_order)
-          end
-        # end
-        
-        # Then, if there were such templates, we check to see if we ought to
-        # also render a "normal" template (without the content type). If a
-        # normal template exists (or if there were no implicit parts) we render
-        # it.
-        # ====
-        # TODO: Revisit this
-        # template_exists = @parts.empty?
-        # template_exists ||= template_root.find("#{mailer_name}/#{@template}")
-        # @body = render_message(@template, @body) if template_exists
+      ActiveSupport::Orchestra.instrument(:create_mail, :name => method_name) do
+        initialize_defaults(method_name)
+        __send__(method_name, *parameters)
 
-        # Finally, if there are other message parts and a textual body exists,
-        # we shift it onto the front of the parts and set the body to nil (so
-        # that create_mail doesn't try to render it in addition to the parts).
-        # ====
-        # TODO: Revisit this
-        # if !@parts.empty? && String === @body
-        #   @parts.unshift Part.new(:charset => charset, :body => @body)
-        #   @body = nil
-        # end
+        # If an explicit, textual body has not been set, we check assumptions.
+        unless String === @body
+          # First, we look to see if there are any likely templates that match,
+          # which include the content-type in their file name (i.e.,
+          # "the_template_file.text.html.erb", etc.). Only do this if parts
+          # have not already been specified manually.
+          # if @parts.empty?
+            template_root.find_all(@template, {}, template_path).each do |template|
+              @parts << Part.new(
+                :content_type => template.mime_type ? template.mime_type.to_s : "text/plain",
+                :disposition => "inline",
+                :charset => charset,
+                :body => render_template(template, @body)
+              )
+            end
+
+            if @parts.size > 1
+              @content_type = "multipart/alternative" if @content_type !~ /^multipart/
+              @parts = sort_parts(@parts, @implicit_parts_order)
+            end
+          # end
+
+          # Then, if there were such templates, we check to see if we ought to
+          # also render a "normal" template (without the content type). If a
+          # normal template exists (or if there were no implicit parts) we render
+          # it.
+          # ====
+          # TODO: Revisit this
+          # template_exists = @parts.empty?
+          # template_exists ||= template_root.find("#{mailer_name}/#{@template}")
+          # @body = render_message(@template, @body) if template_exists
+
+          # Finally, if there are other message parts and a textual body exists,
+          # we shift it onto the front of the parts and set the body to nil (so
+          # that create_mail doesn't try to render it in addition to the parts).
+          # ====
+          # TODO: Revisit this
+          # if !@parts.empty? && String === @body
+          #   @parts.unshift Part.new(:charset => charset, :body => @body)
+          #   @body = nil
+          # end
+        end
+
+        # If this is a multipart e-mail add the mime_version if it is not
+        # already set.
+        @mime_version ||= "1.0" if !@parts.empty?
+
+        # build the mail object itself
+        @mail = create_mail
       end
 
-      # If this is a multipart e-mail add the mime_version if it is not
-      # already set.
-      @mime_version ||= "1.0" if !@parts.empty?
-
-      # build the mail object itself
-      @mail = create_mail
+      @mail
     end
 
     # Delivers a TMail::Mail object. By default, it delivers the cached mail
@@ -538,19 +544,21 @@ module ActionMailer #:nodoc:
     # no alternate has been given as the parameter, this will fail.
     def deliver!(mail = @mail)
       raise "no mail object available for delivery!" unless mail
-      
+
       unless logger.nil?
         logger.info  "Sent mail to #{Array(recipients).join(', ')}"
         logger.debug "\n#{mail.encoded}"
       end
 
-      begin
-        __send__("perform_delivery_#{delivery_method}", mail) if perform_deliveries
-      rescue Exception => e  # Net::SMTP errors or sendmail pipe errors
-        raise e if raise_delivery_errors
+      ActiveSupport::Orchestra.instrument(:deliver_mail, :mail => @mail) do
+        begin
+          __send__("perform_delivery_#{delivery_method}", mail) if perform_deliveries
+        rescue Exception => e # Net::SMTP errors or sendmail pipe errors
+          raise e if raise_delivery_errors
+        end
       end
 
-      return mail
+      mail
     end
 
     private

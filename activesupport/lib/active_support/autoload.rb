@@ -17,6 +17,7 @@ module ActiveSupport
   autoload :Multibyte, 'active_support/multibyte'
   autoload :NewCallbacks, 'active_support/new_callbacks'
   autoload :OptionMerger, 'active_support/option_merger'
+  autoload :Orchestra, 'active_support/orchestra'
   autoload :OrderedHash, 'active_support/ordered_hash'
   autoload :OrderedOptions, 'active_support/ordered_options'
   autoload :Rescuable, 'active_support/rescuable'

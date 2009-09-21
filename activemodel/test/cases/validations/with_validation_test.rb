@@ -1,9 +1,11 @@
 # encoding: utf-8
 require 'cases/helper'
+require 'cases/tests_database'
 
 require 'models/topic'
 
 class ValidatesWithTest < ActiveRecord::TestCase
+  include ActiveModel::TestsDatabase
   include ActiveModel::ValidationsRepairHelper
 
   repair_validations(Topic)

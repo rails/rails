@@ -21,6 +21,7 @@ cd "#{root_dir}/activesupport" do
   puts "[CruiseControl] Building ActiveSupport"
   puts
   build_results[:activesupport] = system 'rake'
+  build_results[:activesupport_isolated] = system 'rake isolated_test'
 end
 
 rm_f "#{root_dir}/activerecord/debug.log"
@@ -64,7 +65,7 @@ cd "#{root_dir}/actionpack" do
   puts
   puts "[CruiseControl] Building ActionPack"
   puts
-  build_results[:actionpack] = system 'rake'
+  build_results[:actionpack] = system 'gem bundle && rake'
 end
 
 cd "#{root_dir}/actionmailer" do

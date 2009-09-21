@@ -94,8 +94,9 @@ class Author < ActiveRecord::Base
   belongs_to :author_address_extra, :dependent => :delete, :class_name => "AuthorAddress"
 
   attr_accessor :post_log
+  after_initialize :set_post_log
 
-  def after_initialize
+  def set_post_log
     @post_log = []
   end
 

@@ -18,7 +18,7 @@ module ActiveSupport
         {}
       else
         data.ungetc(char)
-        doc = Nokogiri::XML(data)
+        doc = Nokogiri::XML(data) { |cfg| cfg.noblanks }
         raise doc.errors.first if doc.errors.length > 0
         doc.to_hash
       end
@@ -39,33 +39,25 @@ module ActiveSupport
         # hash::
         #   Hash to merge the converted element into.
         def to_hash(hash = {})
-          hash[name] ||= attributes_as_hash
+          attributes = attributes_as_hash
+          if hash[name]
+            hash[name] = [hash[name]].flatten
+            hash[name] << attributes
+          else
+            hash[name] ||= attributes
+          end
 
-          walker = lambda { |memo, parent, child, callback|
-            next if child.blank? && 'file' != parent['type']
+          children.each { |child|
+            next if child.blank? && 'file' != self['type']
 
-            if child.text?
-              (memo[CONTENT_ROOT] ||= '') << child.content
+            if child.text? || child.cdata?
+              (attributes[CONTENT_ROOT] ||= '') << child.content
               next
             end
 
-            name = child.name
-
-            child_hash = child.attributes_as_hash
-            if memo[name]
-              memo[name] = [memo[name]].flatten
-              memo[name] << child_hash
-            else
-              memo[name] = child_hash
-            end
-
-            # Recursively walk children
-            child.children.each { |c|
-              callback.call(child_hash, child, c, callback)
-            }
+            child.to_hash attributes
           }
 
-          children.each { |c| walker.call(hash[name], self, c, walker) }
           hash
         end
 

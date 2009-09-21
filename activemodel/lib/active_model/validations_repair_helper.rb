@@ -2,43 +2,34 @@ module ActiveModel
   module ValidationsRepairHelper
     extend ActiveSupport::Concern
 
-    module Toolbox
-      def self.record_validations(*model_classes)
-        model_classes.inject({}) do |repair, klass|
-          repair[klass] ||= {}
-          [:validate, :validate_on_create, :validate_on_update].each do |callback|
-            the_callback = klass.instance_variable_get("@#{callback.to_s}_callbacks")
-            repair[klass][callback] = (the_callback.nil? ? nil : the_callback.dup)
-          end
-          repair
-        end
-      end
-
-      def self.reset_validations(recorded)
-        recorded.each do |klass, repairs|
-          [:validate, :validate_on_create, :validate_on_update].each do |callback|
-            klass.instance_variable_set("@#{callback.to_s}_callbacks", repairs[callback])
-          end
-        end
-      end
-    end
-
     module ClassMethods
       def repair_validations(*model_classes)
         setup do
-          @validation_repairs = Toolbox.record_validations(*model_classes)
+          @_stored_callbacks = {}
+          model_classes.each do |k|
+            @_stored_callbacks[k] = k._validate_callbacks.dup
+          end
         end
         teardown do
-          Toolbox.reset_validations(@validation_repairs)
+          model_classes.each do |k|
+            k._validate_callbacks = @_stored_callbacks[k]
+            k.__update_callbacks(:validate)
+          end
         end
       end
     end
 
     def repair_validations(*model_classes, &block)
-      validation_repairs = Toolbox.record_validations(*model_classes)
+      @__stored_callbacks = {}
+      model_classes.each do |k|
+        @__stored_callbacks[k] = k._validate_callbacks.dup
+      end
       return block.call
     ensure
-      Toolbox.reset_validations(validation_repairs)
+      model_classes.each do |k|
+        k._validate_callbacks = @__stored_callbacks[k]
+        k.__update_callbacks(:validate)
+      end
     end
   end
 end

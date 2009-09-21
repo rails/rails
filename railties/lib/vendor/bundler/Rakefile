@@ -1,52 +1,57 @@
 require 'rubygems' unless ENV['NO_RUBYGEMS']
-require 'rake/gempackagetask'
 require 'rubygems/specification'
 require 'date'
-require 'spec/rake/spectask'
 
 spec = Gem::Specification.new do |s|
-  s.name = "bundler"
-  s.version = "0.0.1"
-  s.author = "Your Name"
-  s.email = "Your Email"
-  s.homepage = "http://example.com"
-  s.description = s.summary = "A gem that provides..."
+  s.name    = "bundler"
+  s.version = "0.5.0.pre"
+  s.author  = "Yehuda Katz"
+  s.email   = "wycats@gmail.com"
+  s.homepage = "http://github.com/wycats/bundler"
+  s.description = s.summary = "An easy way to vendor gem dependencies"
 
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true
-  s.extra_rdoc_files = ["README", "LICENSE"]
-  s.summary = ""
+  s.extra_rdoc_files = ["README.markdown", "LICENSE"]
 
-  # Uncomment this to add a dependency
-  # s.add_dependency "foo"
+  s.required_rubygems_version = ">= 1.3.5"
 
-  s.bindir       = "bin"
-  s.executables  = %w( gem_bundler )
   s.require_path = 'lib'
-  s.files = %w(LICENSE README Rakefile) + Dir.glob("{bin,lib,spec}/**/*")
+  s.files = %w(LICENSE README.markdown Rakefile) + Dir.glob("lib/**/*")
 end
 
 task :default => :spec
 
-desc "Run specs"
-Spec::Rake::SpecTask.new do |t|
-  t.spec_files = FileList['spec/**/*_spec.rb']
-  t.spec_opts = %w(-fs --color)
+begin
+  require 'spec/rake/spectask'
+rescue LoadError
+  task(:spec) { $stderr.puts '`gem install rspec` to run specs' }
+else
+  desc "Run specs"
+  Spec::Rake::SpecTask.new do |t|
+    t.spec_files = FileList['spec/**/*_spec.rb'] - FileList['spec/fixtures/**/*_spec.rb']
+    t.spec_opts = %w(-fs --color)
+  end
 end
 
-
-Rake::GemPackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
+begin
+  require 'rake/gempackagetask'
+rescue LoadError
+  task(:gem) { $stderr.puts '`gem install rake` to package gems' }
+else
+  Rake::GemPackageTask.new(spec) do |pkg|
+    pkg.gem_spec = spec
+  end
 end
 
 desc "install the gem locally"
 task :install => [:package] do
-  sh %{sudo gem install pkg/#{GEM}-#{GEM_VERSION}}
+  sh %{gem install pkg/#{spec.name}-#{spec.version}}
 end
 
 desc "create a gemspec file"
 task :make_spec do
-  File.open("#{GEM}.gemspec", "w") do |file|
+  File.open("#{spec.name}.gemspec", "w") do |file|
     file.puts spec.to_ruby
   end
 end

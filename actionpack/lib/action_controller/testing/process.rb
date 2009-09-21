@@ -84,7 +84,7 @@ module ActionController #:nodoc:
   #
   # Pass a true third parameter to ensure the uploaded file is opened in binary mode (only required for Windows):
   #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(ActionController::TestCase.fixture_path + '/files/spongebob.png', 'image/png', :binary)
-  TestUploadedFile = ActionDispatch::TestRequest::Multipart::UploadedFile
+  TestUploadedFile = Rack::Test::UploadedFile
 
   module TestProcess
     def self.included(base)
@@ -133,7 +133,7 @@ module ActionController #:nodoc:
       @request.env['REQUEST_METHOD'] = http_method
 
       parameters ||= {}
-      @request.assign_parameters(@controller.class.controller_path, action.to_s, parameters)
+      @request.assign_parameters(@controller.class.name.underscore.sub(/_controller$/, ''), action.to_s, parameters)
 
       @request.session = ActionController::TestSession.new(session) unless session.nil?
       @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash

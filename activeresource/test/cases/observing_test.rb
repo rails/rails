@@ -1,4 +1,6 @@
 require 'abstract_unit'
+require 'fixtures/person'
+require 'active_support/core_ext/hash/conversions'
 
 class ObservingTest < Test::Unit::TestCase
   cattr_accessor :history

@@ -24,7 +24,7 @@ Rake::TestTask.new { |t|
 task :isolated_test do 
   ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
   Dir['test/**/*_test.rb'].all? do |file|
-    system(ruby, '-Ilib:test', file)
+    system(ruby, '-w', '-Ilib:test', file)
   end or raise "Failures"
 end
 
@@ -66,6 +66,12 @@ Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true
+end
+
+task :gemspec do
+  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
+    file.puts spec.to_ruby
+  end
 end
 
 desc "Publish the beta gem"

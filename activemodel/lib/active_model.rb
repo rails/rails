@@ -41,6 +41,7 @@ module ActiveModel
   autoload :TestCase, 'active_model/test_case'
   autoload :Validations, 'active_model/validations'
   autoload :ValidationsRepairHelper, 'active_model/validations_repair_helper'
+  autoload :VERSION, 'active_model/version'
 
   module Serializers
     autoload :JSON, 'active_model/serializers/json'

@@ -9,4 +9,16 @@ ActiveRecord::Schema.define do
     t.text   :medium_text, :limit => 16777215
     t.text   :long_text,   :limit => 2147483647
   end
+
+  ActiveRecord::Base.connection.execute <<-SQL
+DROP PROCEDURE IF EXISTS ten;
+SQL
+
+  ActiveRecord::Base.connection.execute <<-SQL
+CREATE PROCEDURE ten() SQL SECURITY INVOKER
+BEGIN
+	select 10;
+END
+SQL
+
 end

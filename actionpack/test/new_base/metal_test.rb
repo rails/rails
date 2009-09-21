@@ -1,4 +1,4 @@
-require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
+require 'abstract_unit'
 
 module MetalTest
   class MetalMiddleware < ActionController::Middleware
@@ -41,4 +41,3 @@ module MetalTest
     end
   end
 end
-

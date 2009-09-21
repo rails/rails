@@ -7,7 +7,6 @@ require 'active_support/testing/pending'
 require 'active_support/testing/isolation'
 
 begin
-  gem 'mocha', ">= 0.9.7"
   require 'mocha'
 rescue LoadError
   # Fake Mocha::ExpectationError so we can rescue it in #run. Bleh.

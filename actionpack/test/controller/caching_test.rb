@@ -441,8 +441,8 @@ class ActionCacheTest < ActionController::TestCase
 
   def test_correct_content_type_is_returned_for_cache_hit
     # run it twice to cache it the first time
-    get :index, :id => 'content-type.xml'
-    get :index, :id => 'content-type.xml'
+    get :index, :id => 'content-type', :format => 'xml'
+    get :index, :id => 'content-type', :format => 'xml'
     assert_equal 'application/xml', @response.content_type
   end
 
@@ -625,15 +625,20 @@ class FragmentCachingTest < ActionController::TestCase
   def test_fragment_for_logging
     fragment_computed = false
 
-    @controller.class.expects(:benchmark).with('Cached fragment exists?: views/expensive')
-    @controller.class.expects(:benchmark).with('Cached fragment miss: views/expensive')
-    @controller.class.expects(:benchmark).with('Cached fragment hit: views/expensive').never
+    listener = []
+    ActiveSupport::Orchestra.register listener
 
     buffer = 'generated till now -> '
     @controller.fragment_for(buffer, 'expensive') { fragment_computed = true }
 
+    assert_equal 2, listener.size
+    assert_equal :fragment_exist?, listener[0].name
+    assert_equal :write_fragment, listener[1].name
+
     assert fragment_computed
     assert_equal 'generated till now -> ', buffer
+  ensure
+    ActiveSupport::Orchestra.unregister listener
   end
 
 end

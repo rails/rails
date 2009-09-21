@@ -1,3 +1,6 @@
+require 'abstract_unit'
+require 'active_support/core_ext/regexp'
+
 class RegexpExtAccessTests < Test::Unit::TestCase
   def test_number_of_captures
     assert_equal 0, //.number_of_captures

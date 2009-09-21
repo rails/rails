@@ -30,7 +30,7 @@ class CookieStoreTest < ActionController::IntegrationTest
     end
 
     def get_session_id
-      render :text => "foo: #{session[:foo].inspect}; id: #{request.session_options[:id]}"
+      render :text => "id: #{request.session_options[:id]}"
     end
 
     def call_reset_session
@@ -119,7 +119,7 @@ class CookieStoreTest < ActionController::IntegrationTest
 
       get '/get_session_id'
       assert_response :success
-      assert_equal "foo: \"bar\"; id: #{session_id}", response.body
+      assert_equal "id: #{session_id}", response.body
     end
   end
 

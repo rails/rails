@@ -17,66 +17,46 @@ RUBY_FORGE_PROJECT = "actionpack"
 RUBY_FORGE_USER    = "webster132"
 
 desc "Default Task"
-task :default => [ :test ]
+task :default => :test
+
+task :bundle do
+  puts "Checking if the bundled testing requirements are up to date..."
+  result = system "gem bundle"
+  unless result
+    puts "The gem bundler is not installed. Installing."
+    system "gem install bundler"
+    system "gem bundle"
+  end
+end
 
 # Run the unit tests
 
 desc "Run all unit tests"
-task :test => [:test_action_pack, :test_active_record_integration, :test_new_base]
+task :test => [:test_action_pack, :test_active_record_integration]
 
-test_lib_dirs = ENV["NEW"] ? ["test/new_base"] : []
-test_lib_dirs.push "test", "test/lib"
-# test_lib_dirs = [ENV["NEW"] ? "test/new_base" : "test", "test/lib"]
+TESTS_GLOB = "test/{abstract,controller,dispatch,new_base,template,html-scanner}/**/*_test.rb"
+
 Rake::TestTask.new(:test_action_pack) do |t|
-  t.libs.concat test_lib_dirs
+  t.libs << 'test'
 
   # make sure we include the tests in alphabetical order as on some systems
   # this will not happen automatically and the tests (as a whole) will error
-  t.test_files = Dir.glob( "test/{controller,dispatch,template,html-scanner}/**/*_test.rb" ).sort
+  t.test_files = Dir.glob(TESTS_GLOB).sort
 
   t.verbose = true
-  #t.warning = true
+  # t.warning = true
 end
 
 task :isolated_test do
   ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-  Dir.glob("test/{controller,dispatch,template}/**/*_test.rb").all? do |file|
-    system(ruby, "-Ilib:#{test_lib_dirs * ':'}", file)
-  end or raise "Failures"
+  Dir.glob(TESTS_GLOB).all? { |file| system(ruby, '-Ilib:test', file) } or raise "Failures"
 end
 
 desc 'ActiveRecord Integration Tests'
 Rake::TestTask.new(:test_active_record_integration) do |t|
-  t.libs.concat test_lib_dirs
+  t.libs << 'test'
   t.test_files = Dir.glob("test/activerecord/*_test.rb")
   t.verbose = true
-end
-
-desc 'New Controller Tests'
-Rake::TestTask.new(:test_new_base) do |t|
-  t.libs << "test/new_base" << "test/lib"
-  t.test_files = Dir.glob("test/{abstract_controller,new_base}/*_test.rb")
-  t.verbose = true
-end
-
-desc 'Old Controller Tests on New Base'
-Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
-  t.libs << "test/new_base" << "test/lib"
-
-  t.verbose = true
-  # ==== Not ported
-  # * filters
-
-  t.test_files = Dir.glob( "test/{dispatch,template}/**/*_test.rb" ).sort + %w(
-    action_pack_assertions addresses_render assert_select
-    base benchmark caching capture content_type cookie dispatcher
-    filter_params flash helper http_basic_authentication
-    http_digest_authentication integration layout logging mime_responds
-    record_identifier redirect render render_js render_json
-    render_other render_xml request_forgery_protection rescue
-    resources routing selector send_file test url_rewriter
-    verification view_paths webservice
-  ).map { |name| "test/controller/#{name}_test.rb" }
 end
 
 # Genereate the RDoc documentation
@@ -116,6 +96,7 @@ spec = Gem::Specification.new do |s|
   s.requirements << 'none'
 
   s.add_dependency('activesupport', '= 3.0.pre' + PKG_BUILD)
+  s.add_dependency('activemodel',   '= 3.0.pre' + PKG_BUILD)
   s.add_dependency('rack', '~> 1.0.0')
   s.add_dependency('rack-test', '~> 0.4.2')
 
@@ -132,6 +113,12 @@ Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true
+end
+
+task :gemspec do
+  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
+    file.puts spec.to_ruby
+  end
 end
 
 task :lines do

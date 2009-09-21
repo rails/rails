@@ -1,5 +1,3 @@
-require 'rubygems'
-gem 'ruby-prof', '>= 0.6.1'
 require 'ruby-prof'
 
 require 'fileutils'

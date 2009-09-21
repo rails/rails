@@ -109,6 +109,7 @@ module Rails
 
     # TODO: Fix this when there is an application object
     def middleware
+      require 'action_controller'
       ActionController::Dispatcher.middleware
     end
 

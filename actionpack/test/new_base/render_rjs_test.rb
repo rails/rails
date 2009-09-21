@@ -1,9 +1,7 @@
-require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
+require 'abstract_unit'
 
 module RenderRjs
-
   class BasicController < ActionController::Base
-
     self.view_paths = [ActionView::FixtureResolver.new(
       "render_rjs/basic/index.js.rjs"          => "page[:customer].replace_html render(:partial => 'customer')",
       "render_rjs/basic/index_html.js.rjs"     => "page[:customer].replace_html :partial => 'customer'",
@@ -26,6 +24,14 @@ module RenderRjs
   class TestBasic < SimpleRouteCase
     testing BasicController
 
+    def setup
+      @old_locale = I18n.locale
+    end
+
+    def teardown
+      I18n.locale = @old_locale
+    end
+
     test "rendering a partial in an RJS template should pick the JS template over the HTML one" do
       get :index, "format" => "js"
       assert_response("$(\"customer\").update(\"JS Partial\");")
@@ -40,6 +46,5 @@ module RenderRjs
       get :index_locale, "format" => "js"
       assert_response("$(\"customer\").update(\"Danish HTML Partial\");")
     end
-
   end
 end

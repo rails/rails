@@ -1648,46 +1648,31 @@ module ActiveRecord #:nodoc:
         # single-table inheritance model that makes it possible to create
         # objects of different types from the same table.
         def instantiate(record)
-          object =
-            if subclass_name = record[inheritance_column]
-              # No type given.
-              if subclass_name.empty?
-                allocate
+          object = find_sti_class(record[inheritance_column]).allocate
 
-              else
-                # Ignore type if no column is present since it was probably
-                # pulled in from a sloppy join.
-                unless columns_hash.include?(inheritance_column)
-                  allocate
+          object.instance_variable_set(:'@attributes', record)
+          object.instance_variable_set(:'@attributes_cache', {})
 
-                else
-                  begin
-                    compute_type(subclass_name).allocate
-                  rescue NameError
-                    raise SubclassNotFound,
-                      "The single-table inheritance mechanism failed to locate the subclass: '#{record[inheritance_column]}'. " +
-                      "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
-                      "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
-                      "or overwrite #{self.to_s}.inheritance_column to use another column for that information."
-                  end
-                end
-              end
-            else
-              allocate
-            end
-
-          object.instance_variable_set("@attributes", record)
-          object.instance_variable_set("@attributes_cache", Hash.new)
-
-          if object.respond_to_without_attributes?(:after_find)
-            object.send(:callback, :after_find)
-          end
-
-          if object.respond_to_without_attributes?(:after_initialize)
-            object.send(:callback, :after_initialize)
-          end
+          object.send(:_run_find_callbacks)
+          object.send(:_run_initialize_callbacks)
 
           object
+        end
+
+        def find_sti_class(type_name)
+          if type_name.blank? || !columns_hash.include?(inheritance_column)
+            self
+          else
+            begin
+              compute_type(type_name)
+            rescue NameError
+              raise SubclassNotFound,
+                "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " +
+                "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
+                "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
+                "or overwrite #{name}.inheritance_column to use another column for that information."
+            end
+          end
         end
 
         # Nest the type name in the same module as this class.
@@ -2438,7 +2423,7 @@ module ActiveRecord #:nodoc:
         self.attributes = attributes unless attributes.nil?
         self.class.send(:scope, :create).each { |att,value| self.send("#{att}=", value) } if self.class.send(:scoped?, :create)
         result = yield self if block_given?
-        callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
+        _run_initialize_callbacks
         result
       end
 
@@ -2943,7 +2928,9 @@ module ActiveRecord #:nodoc:
       end
 
       def log_protected_attribute_removal(*attributes)
-        logger.debug "WARNING: Can't mass-assign these protected attributes: #{attributes.join(', ')}"
+        if logger
+          logger.debug "WARNING: Can't mass-assign these protected attributes: #{attributes.join(', ')}"
+        end
       end
 
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.

@@ -208,6 +208,7 @@ spec = Gem::Specification.new do |s|
   end
 
   s.add_dependency('activesupport', '= 3.0.pre' + PKG_BUILD)
+  s.add_dependency('activemodel',   '= 3.0.pre' + PKG_BUILD)
 
   s.files.delete FIXTURES_ROOT + "/fixture_database.sqlite"
   s.files.delete FIXTURES_ROOT + "/fixture_database_2.sqlite"
@@ -230,6 +231,12 @@ Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true
+end
+
+task :gemspec do
+  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
+    file.puts spec.to_ruby
+  end
 end
 
 task :lines do

@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class ContentTypeController < ActionController::Base
+class OldContentTypeController < ActionController::Base
   # :ported:
   def render_content_type_from_body
     response.content_type = Mime::RSS
@@ -56,7 +56,7 @@ class ContentTypeController < ActionController::Base
 end
 
 class ContentTypeTest < ActionController::TestCase
-  tests ContentTypeController
+  tests OldContentTypeController
 
   def setup
     super
@@ -73,11 +73,11 @@ class ContentTypeTest < ActionController::TestCase
   end
 
   def test_render_changed_charset_default
-    ContentTypeController.default_charset = "utf-16"
+    OldContentTypeController.default_charset = "utf-16"
     get :render_defaults
     assert_equal "utf-16", @response.charset
     assert_equal Mime::HTML, @response.content_type
-    ContentTypeController.default_charset = "utf-8"
+    OldContentTypeController.default_charset = "utf-8"
   end
 
   # :ported:
@@ -109,12 +109,12 @@ class ContentTypeTest < ActionController::TestCase
   end
 
   def test_nil_default_for_rhtml
-    ContentTypeController.default_charset = nil
+    OldContentTypeController.default_charset = nil
     get :render_default_for_rhtml
     assert_equal Mime::HTML, @response.content_type
     assert_nil @response.charset, @response.headers.inspect
   ensure
-    ContentTypeController.default_charset = "utf-8"
+    OldContentTypeController.default_charset = "utf-8"
   end
 
   def test_default_for_rhtml
@@ -143,8 +143,7 @@ class ContentTypeTest < ActionController::TestCase
 end
 
 class AcceptBasedContentTypeTest < ActionController::TestCase
-
-  tests ContentTypeController
+  tests OldContentTypeController
 
   def setup
     super

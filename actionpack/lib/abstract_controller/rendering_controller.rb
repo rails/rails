@@ -112,12 +112,18 @@ module AbstractController
       name = (options[:_template_name] || action_name).to_s
 
       options[:_template] ||= with_template_cache(name) do
-        view_paths.find(
-          name, { :formats => formats }, options[:_prefix], options[:_partial]
-        )
+        find_template(name, { :formats => formats }, options)
       end
     end
-    
+
+    def find_template(name, details, options)
+      view_paths.find(name, details, options[:_prefix], options[:_partial])
+    end
+
+    def template_exists?(name, details, options)
+      view_paths.exists?(name, details, options[:_prefix], options[:_partial])
+    end
+
     def with_template_cache(name)
       yield
     end

@@ -213,11 +213,11 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_javascript_include_tag_with_missing_source
-    assert_raise(Errno::ENOENT) {
+    assert_nothing_raised {
       javascript_include_tag('missing_security_guard')
     }
 
-    assert_raise(Errno::ENOENT) {
+    assert_nothing_raised {
       javascript_include_tag(:defaults, 'missing_security_guard')
     }
 
@@ -276,7 +276,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag_with_missing_source
-    assert_raise(Errno::ENOENT) {
+    assert_nothing_raised {
       stylesheet_link_tag('missing_security_guard')
     }
 
@@ -639,6 +639,40 @@ class AssetTagHelperTest < ActionView::TestCase
     assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
   end
 
+  def test_caching_javascript_include_tag_when_caching_on_and_missing_javascript_file
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionController::Base.perform_caching = true
+
+    assert_raise(Errno::ENOENT) {
+      javascript_include_tag('bank', 'robber', 'missing_security_guard', :cache => true)
+    }
+
+    assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
+
+    assert_raise(Errno::ENOENT) {
+      javascript_include_tag('bank', 'robber', 'missing_security_guard', :cache => "money")
+    }
+
+    assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
+  end
+
+  def test_caching_javascript_include_tag_when_caching_off_and_missing_javascript_file
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionController::Base.perform_caching = false
+
+    assert_raise(Errno::ENOENT) {
+      javascript_include_tag('bank', 'robber', 'missing_security_guard', :cache => true)
+    }
+
+    assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
+
+    assert_raise(Errno::ENOENT) {
+      javascript_include_tag('bank', 'robber', 'missing_security_guard', :cache => "money")
+    }
+
+    assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
+  end
+
   def test_caching_stylesheet_link_tag_when_caching_on
     ENV["RAILS_ASSET_ID"] = ""
     ActionController::Base.asset_host = 'http://a0.example.com'
@@ -709,8 +743,28 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_stylesheet_link_tag_when_caching_on_and_missing_css_file
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = 'http://a0.example.com'
     ActionController::Base.perform_caching = true
+
+    assert_raise(Errno::ENOENT) {
+      stylesheet_link_tag('bank', 'robber', 'missing_security_guard', :cache => true)
+    }
+
+    assert ! File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
+
+    assert_raise(Errno::ENOENT) {
+      stylesheet_link_tag('bank', 'robber', 'missing_security_guard', :cache => "money")
+    }
+
+    assert ! File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
+
+  ensure
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
+  end
+
+  def test_caching_stylesheet_link_tag_when_caching_off_and_missing_css_file
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionController::Base.perform_caching = false
 
     assert_raise(Errno::ENOENT) {
       stylesheet_link_tag('bank', 'robber', 'missing_security_guard', :cache => true)

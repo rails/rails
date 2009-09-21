@@ -6,10 +6,10 @@ require 'active_support/callbacks'
 module ActiveModel
   module Validations
     extend ActiveSupport::Concern
-    include ActiveSupport::Callbacks
+    include ActiveSupport::NewCallbacks
 
     included do
-      define_callbacks :validate
+      define_callbacks :validate, :scope => :name
     end
 
     module ClassMethods
@@ -64,7 +64,7 @@ module ActiveModel
         attrs   = attrs.flatten
 
         # Declare the validation.
-        send(validation_method(options[:on]), options) do |record|
+        validate options do |record|
           attrs.each do |attr|
             value = record.send(:read_attribute_for_validation, attr)
             next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
@@ -73,10 +73,14 @@ module ActiveModel
         end
       end
 
-      private
-        def validation_method(on)
-          :validate
+      def validate(*args, &block)
+        options = args.last
+        if options.is_a?(Hash) && options.key?(:on)
+          options[:if] = Array(options[:if])
+          options[:if] << "@_on_validate == :#{options[:on]}"
         end
+        set_callback(:validate, *args, &block)
+      end
     end
 
     # Returns the Errors object that holds all information about attribute error messages.
@@ -87,7 +91,7 @@ module ActiveModel
     # Runs all the specified validations and returns true if no errors were added otherwise false.
     def valid?
       errors.clear
-      run_callbacks(:validate)
+      _run_validate_callbacks
       errors.empty?
     end
 

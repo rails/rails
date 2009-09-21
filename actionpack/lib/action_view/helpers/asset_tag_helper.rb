@@ -1,3 +1,4 @@
+require 'thread'
 require 'cgi'
 require 'action_view/helpers/url_helper'
 require 'action_view/helpers/tag_helper'
@@ -286,7 +287,9 @@ module ActionView
           end
           javascript_src_tag(joined_javascript_name, options)
         else
-          ensure_javascript_sources!(expand_javascript_sources(sources, recursive)).collect { |source| javascript_src_tag(source, options) }.join("\n")
+          sources = expand_javascript_sources(sources, recursive)
+          ensure_javascript_sources!(sources) if cache
+          sources.collect { |source| javascript_src_tag(source, options) }.join("\n")
         end
       end
 
@@ -435,7 +438,9 @@ module ActionView
           end
           stylesheet_tag(joined_stylesheet_name, options)
         else
-          ensure_stylesheet_sources!(expand_stylesheet_sources(sources, recursive)).collect { |source| stylesheet_tag(source, options) }.join("\n")
+          sources = expand_stylesheet_sources(sources, recursive)
+          ensure_stylesheet_sources!(sources) if cache
+          sources.collect { |source| stylesheet_tag(source, options) }.join("\n")
         end
       end
 

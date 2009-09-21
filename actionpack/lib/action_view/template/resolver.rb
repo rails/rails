@@ -1,9 +1,28 @@
 require "pathname"
+require "active_support/core_ext/class"
 require "action_view/template/template"
 
 module ActionView
   # Abstract superclass
   class Resolver
+
+    class_inheritable_accessor(:registered_details)
+    self.registered_details = {}
+
+    def self.register_detail(name, options = {})
+      registered_details[name] = lambda do |val|
+        val ||= yield
+        val |= [nil] unless options[:allow_nil] == false
+        val
+      end
+    end
+
+    register_detail(:locale)  { [I18n.locale] }
+    register_detail(:formats) { Mime::SET.symbols }
+    register_detail(:handlers, :allow_nil => false) do
+      TemplateHandlers.extensions
+    end
+
     def initialize(options = {})
       @cache  = options[:cache]
       @cached = {}
@@ -11,15 +30,18 @@ module ActionView
 
     # Normalizes the arguments and passes it on to find_template
     def find(*args)
-      find_all_by_parts(*args).first
+      find_all(*args).first
     end
-    
-    def find_all_by_parts(name, details = {}, prefix = nil, partial = nil)
-      details[:locales] = [I18n.locale]
-      name = name.to_s.gsub(handler_matcher, '').split("/")
-      find_templates(name.pop, details, [prefix, *name].compact.join("/"), partial)
+
+    def find_all(name, details = {}, prefix = nil, partial = nil)
+      details = normalize_details(details)
+      name, prefix = normalize_name(name, prefix)
+
+      cached([name, details, prefix, partial]) do
+        find_templates(name, details, prefix, partial)
+      end
     end
-  
+
   private
 
     # This is what child classes implement. No defaults are needed
@@ -28,29 +50,26 @@ module ActionView
     def find_templates(name, details, prefix, partial)
       raise NotImplementedError
     end
-    
-    def valid_handlers
-      @valid_handlers ||= TemplateHandlers.extensions
+
+    def normalize_details(details)
+      details = details.dup
+      # TODO: Refactor this concern out of the resolver
+      details.delete(:formats) if details[:formats] == [:"*/*"]
+      registered_details.each do |k, v|
+        details[k] = v.call(details[k])
+      end
+      details
     end
 
-    def handler_matcher
-      @handler_matcher ||= begin
-        e = valid_handlers.join('|')
-        /\.(?:#{e})$/
-      end
-    end
+    # Support legacy foo.erb names even though we now ignore .erb
+    # as well as incorrectly putting part of the path in the template
+    # name instead of the prefix.
+    def normalize_name(name, prefix)
+      handlers = TemplateHandlers.extensions.join('|')
+      name = name.to_s.gsub(/\.(?:#{handlers})$/, '')
 
-    def handler_glob
-      @handler_glob ||= begin
-        e = TemplateHandlers.extensions.map{|h| ".#{h}"}.join(",")
-        "{#{e}}"
-      end
-    end
-    
-    def formats_glob
-      @formats_glob ||= begin
-        '{' + Mime::SET.symbols.map { |l| ".#{l}," }.join + '}'
-      end
+      parts = name.split('/')
+      return parts.pop, [prefix, *parts].compact.join("/")
     end
 
     def cached(key)
@@ -60,80 +79,49 @@ module ActionView
     end
   end
 
-  class FileSystemResolver < Resolver
+  class PathResolver < Resolver
 
-    def self.cached_glob
-      @@cached_glob ||= {}
-    end
-
-    def initialize(path, options = {})
-      raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
-      super(options)
-      @path = Pathname.new(path).expand_path
-    end
-
-    # TODO: This is the currently needed API. Make this suck less
-    # ==== <suck>
-    attr_reader :path
+    EXTENSION_ORDER = [:locale, :formats, :handlers]
 
     def to_s
-      path.to_s
+      @path.to_s
+    end
+    alias to_path to_s
+
+    def find_templates(name, details, prefix, partial)
+      path = build_path(name, details, prefix, partial)
+      query(path, EXTENSION_ORDER.map { |ext| details[ext] })
     end
 
-    def to_str
-      path.to_s
-    end
-
-    def ==(path)
-      to_str == path.to_str
-    end
-
-    def eql?(path)
-      to_str == path.to_str
-    end
-    # ==== </suck>
-
-    def find_templates(name, details, prefix, partial, root = "#{@path}/")
-      if glob = details_to_glob(name, details, prefix, partial, root)
-        cached(glob) do
-          Dir[glob].map do |path|
-            next if File.directory?(path)
-            source = File.read(path)
-            identifier = Pathname.new(path).expand_path.to_s
-
-            Template.new(source, identifier, *path_to_details(path))
-          end.compact
-        end
-      end
-    end
-  
   private
 
-    # :api: plugin
-    def details_to_glob(name, details, prefix, partial, root)
-      self.class.cached_glob[[name, prefix, partial, details, root]] ||= begin
-        path = ""
-        path << "#{prefix}/" unless prefix.empty?
-        path << (partial ? "_#{name}" : name)
-
-        extensions = ""
-        [:locales, :formats].each do |k|
-          extensions << if exts = details[k]
-            '{' + exts.map {|e| ".#{e},"}.join + '}'
-          else
-            k == :formats ? formats_glob : ''
-          end
-        end
-      
-        "#{root}#{path}#{extensions}#{handler_glob}"
-      end
+    def build_path(name, details, prefix, partial)
+      path = ""
+      path << "#{prefix}/" unless prefix.empty?
+      path << (partial ? "_#{name}" : name)
+      path
     end
 
-    # TODO: fix me
-    # :api: plugin
+    def query(path, exts)
+      query = "#{@path}/#{path}"
+      exts.each do |ext|
+        query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << '}'
+      end
+
+      Dir[query].map do |path|
+        next if File.directory?(path)
+        source = File.read(path)
+        identifier = Pathname.new(path).expand_path.to_s
+
+        Template.new(source, identifier, *path_to_details(path))
+      end.compact
+    end
+
+    # # TODO: fix me
+    # # :api: plugin
     def path_to_details(path)
       # [:erb, :format => :html, :locale => :en, :partial => true/false]
-      if m = path.match(%r'/(_)?[\w-]+(\.[\w-]+)*\.(\w+)$')
+      if m = path.match(%r'(?:^|/)(_)?[\w-]+(\.[\w-]+)*\.(\w+)$')
         partial = m[1] == '_'
         details = (m[2]||"").split('.').reject { |e| e.empty? }
         handler = Template.handler_class_for_extension(m[3])
@@ -146,13 +134,32 @@ module ActionView
     end
   end
 
-  class FileSystemResolverWithFallback < FileSystemResolver
+  class FileSystemResolver < PathResolver
+    def initialize(path, options = {})
+      raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
+      super(options)
+      @path = Pathname.new(path).expand_path
+    end
+  end
 
-    def find_templates(name, details, prefix, partial)
-      templates = super
-      return super(name, details, prefix, partial, '') if templates.empty?
-      templates
+  # OMG HAX
+  # TODO: remove hax
+  class FileSystemResolverWithFallback < Resolver
+    def initialize(path, options = {})
+      super(options)
+      @paths = [FileSystemResolver.new(path, options), FileSystemResolver.new("", options), FileSystemResolver.new("/", options)]
     end
 
+    def find_templates(*args)
+      @paths.each do |p|
+        template = p.find_templates(*args)
+        return template unless template.empty?
+      end
+      []
+    end
+
+    def to_s
+      @paths.first.to_s
+    end
   end
 end

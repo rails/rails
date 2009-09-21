@@ -2,35 +2,39 @@ require 'abstract_unit'
 require 'controller/fake_models'
 require 'pathname'
 
-class TestController < ActionController::Base
-  protect_from_forgery
-  
-  def render_json_nil
-    render :json => nil
+class RenderJsonTest < ActionController::TestCase
+  class TestController < ActionController::Base
+    protect_from_forgery
+
+    def self.controller_path
+      'test'
+    end
+
+    def render_json_nil
+      render :json => nil
+    end
+
+    def render_json_hello_world
+      render :json => ActiveSupport::JSON.encode(:hello => 'world')
+    end
+
+    def render_json_hello_world_with_callback
+      render :json => ActiveSupport::JSON.encode(:hello => 'world'), :callback => 'alert'
+    end
+
+    def render_json_with_custom_content_type
+      render :json => ActiveSupport::JSON.encode(:hello => 'world'), :content_type => 'text/javascript'
+    end
+
+    def render_symbol_json
+      render :json => ActiveSupport::JSON.encode(:hello => 'world')
+    end
+
+    def render_json_with_render_to_string
+      render :json => {:hello => render_to_string(:partial => 'partial')}
+    end
   end
 
-  def render_json_hello_world
-    render :json => ActiveSupport::JSON.encode(:hello => 'world')
-  end
-
-  def render_json_hello_world_with_callback
-    render :json => ActiveSupport::JSON.encode(:hello => 'world'), :callback => 'alert'
-  end
-
-  def render_json_with_custom_content_type
-    render :json => ActiveSupport::JSON.encode(:hello => 'world'), :content_type => 'text/javascript'
-  end
-
-  def render_symbol_json
-    render :json => ActiveSupport::JSON.encode(:hello => 'world')
-  end
-
-  def render_json_with_render_to_string
-    render :json => {:hello => render_to_string(:partial => 'partial')}
-  end  
-end
-
-class RenderTest < ActionController::TestCase
   tests TestController
 
   def setup
@@ -40,8 +44,8 @@ class RenderTest < ActionController::TestCase
     @controller.logger = Logger.new(nil)
 
     @request.host = "www.nextangle.com"
-  end  
-  
+  end
+
   def test_render_json_nil
     get :render_json_nil
     assert_equal 'null', @response.body
@@ -76,5 +80,5 @@ class RenderTest < ActionController::TestCase
     get :render_json_with_render_to_string
     assert_equal '{"hello":"partial html"}', @response.body
     assert_equal 'application/json', @response.content_type
-  end  
+  end
 end

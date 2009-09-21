@@ -135,7 +135,7 @@ class ResourcesTest < ActionController::TestCase
 
   def test_with_custom_conditions
     with_restful_routing :messages, :conditions => { :subdomain => 'app' } do
-      assert_equal 'app', ActionController::Routing::Routes.named_routes.routes[:messages].conditions[:subdomain]
+      assert ActionController::Routing::Routes.recognize_path("/messages", :method => :get, :subdomain => 'app')
     end
   end
 
@@ -1130,7 +1130,8 @@ class ResourcesTest < ActionController::TestCase
         map.resource :product
       end
 
-      assert_equal :get, set.named_routes.routes[:product].conditions[:method]
+      assert_routing '/product', :controller => 'products', :action => 'show'
+      assert set.recognize_path("/product", :method => :get)
     end
   end
 

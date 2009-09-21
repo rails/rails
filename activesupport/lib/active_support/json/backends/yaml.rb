@@ -2,13 +2,9 @@ require 'active_support/core_ext/string/starts_ends_with'
 
 module ActiveSupport
   module JSON
-    unless const_defined?(:ParseError)
-      class ParseError < StandardError
-      end
-    end
-
     module Backends
       module Yaml
+        ParseError = ::StandardError
         extend self
 
         # Parses a JSON string or IO and converts it into an object

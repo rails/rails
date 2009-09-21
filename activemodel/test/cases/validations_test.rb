@@ -121,8 +121,8 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_invalid_validator
-    Topic.validate 3
-    assert_raise(ArgumentError) { t = Topic.create }
+    Topic.validate :i_dont_exist
+    assert_raise(NameError) { t = Topic.create }
   end
 
   def test_errors_to_xml
@@ -141,6 +141,22 @@ class ValidationsTest < ActiveModel::TestCase
      t = Topic.new("title" => "")
      assert !t.valid?
      assert_equal "can't be blank", t.errors["title"].first
+    Topic.validates_presence_of :title, :author_name
+    Topic.validate {|topic| topic.errors.add('author_email_address', 'will never be valid')}
+    Topic.validates_length_of :title, :content, :minimum => 2
+
+    t = Topic.new :title => ''
+    assert !t.valid?
+
+    assert_equal :title, key = t.errors.keys.first
+    assert_equal "can't be blank", t.errors[key].first
+    assert_equal 'is too short (minimum is 2 characters)', t.errors[key].second
+    assert_equal :author_name, key = t.errors.keys.second
+    assert_equal "can't be blank", t.errors[key].first
+    assert_equal :author_email_address, key = t.errors.keys.third
+    assert_equal 'will never be valid', t.errors[key].first
+    assert_equal :content, key = t.errors.keys.fourth
+    assert_equal 'is too short (minimum is 2 characters)', t.errors[key].first
   end
 
   def test_invalid_should_be_the_opposite_of_valid

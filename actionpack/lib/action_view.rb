@@ -21,11 +21,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-$:.unshift activesupport_path if File.directory?(activesupport_path)
-require 'active_support'
-require 'active_support/core_ext/class/attribute_accessors'
-
 require File.join(File.dirname(__FILE__), "action_pack")
 
 module ActionView
@@ -36,14 +31,12 @@ module ActionView
   autoload :Base,              'action_view/base'
   autoload :Context,           'action_view/context'
   autoload :Helpers,           'action_view/helpers'
-  autoload :InlineTemplate,    'action_view/template/inline'
   autoload :MissingTemplate,   'action_view/base'
   autoload :Partials,          'action_view/render/partials'
   autoload :Resolver,          'action_view/template/resolver'
+  autoload :PathResolver,      'action_view/template/resolver'
   autoload :PathSet,           'action_view/paths'
   autoload :Rendering,         'action_view/render/rendering'
-  autoload :Renderable,        'action_view/template/renderable'
-  autoload :RenderablePartial, 'action_view/template/partial'
   autoload :Template,          'action_view/template/template'
   autoload :TemplateError,     'action_view/template/error'
   autoload :TemplateHandler,   'action_view/template/handler'
@@ -58,3 +51,8 @@ class ERB
 end
 
 I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+
+activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+$:.unshift activesupport_path if File.directory?(activesupport_path)
+require 'active_support'
+require 'active_support/core_ext/class/attribute_accessors'

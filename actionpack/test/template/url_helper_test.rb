@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'controller/fake_controllers'
 
 RequestMock = Struct.new("Request", :request_uri, :protocol, :host_with_port, :env)
 
@@ -367,25 +368,25 @@ class UrlHelperTest < ActionView::TestCase
   end
 end
 
-class UrlHelperWithControllerTest < ActionView::TestCase
-  class UrlHelperController < ActionController::Base
-    def self.controller_path; 'url_helper_with_controller' end
+class UrlHelperController < ActionController::Base
+  def self.controller_path; 'url_helper_with_controller' end
 
-    def show_url_for
-      render :inline => "<%= url_for :controller => 'url_helper_with_controller', :action => 'show_url_for' %>"
-    end
-
-    def show_named_route
-      render :inline => "<%= show_named_route_#{params[:kind]} %>"
-    end
-
-    def nil_url_for
-      render :inline => '<%= url_for(nil) %>'
-    end
-
-    def rescue_action(e) raise e end
+  def show_url_for
+    render :inline => "<%= url_for :controller => 'url_helper_with_controller', :action => 'show_url_for' %>"
   end
 
+  def show_named_route
+    render :inline => "<%= show_named_route_#{params[:kind]} %>"
+  end
+
+  def nil_url_for
+    render :inline => '<%= url_for(nil) %>'
+  end
+
+  def rescue_action(e) raise e end
+end
+
+class UrlHelperWithControllerTest < ActionView::TestCase
   tests ActionView::Helpers::UrlHelper
 
   def setup
@@ -416,7 +417,7 @@ class UrlHelperWithControllerTest < ActionView::TestCase
 
   def test_url_for_nil_returns_current_path
     get :nil_url_for
-    assert_equal '/url_helper_with_controller/nil_url_for', @response.body
+    assert_equal '/url_helper/nil_url_for', @response.body
   end
 
   def test_named_route_should_show_host_and_path_using_controller_default_url_options
@@ -436,35 +437,33 @@ class UrlHelperWithControllerTest < ActionView::TestCase
     def with_url_helper_routing
       with_routing do |set|
         set.draw do |map|
-          map.show_named_route 'url_helper_with_controller/show_named_route', :controller => 'url_helper_with_controller', :action => 'show_named_route'
+          map.show_named_route 'url_helper_with_controller/show_named_route', :controller => 'url_helper', :action => 'show_named_route'
         end
         yield
       end
     end
 end
 
-class LinkToUnlessCurrentWithControllerTest < ActionView::TestCase
-  class TasksController < ActionController::Base
-    def self.controller_path; 'tasks' end
-
-    def index
-      render_default
-    end
-
-    def show
-      render_default
-    end
-
-    def rescue_action(e) raise e end
-
-    protected
-      def render_default
-        render :inline =>
-          "<%= link_to_unless_current(\"tasks\", tasks_path) %>\n" +
-          "<%= link_to_unless_current(\"tasks\", tasks_url) %>"
-      end
+class TasksController < ActionController::Base
+  def index
+    render_default
   end
 
+  def show
+    render_default
+  end
+
+  def rescue_action(e) raise e end
+
+  protected
+    def render_default
+      render :inline =>
+        "<%= link_to_unless_current(\"tasks\", tasks_path) %>\n" +
+        "<%= link_to_unless_current(\"tasks\", tasks_url) %>"
+    end
+end
+
+class LinkToUnlessCurrentWithControllerTest < ActionView::TestCase
   tests ActionView::Helpers::UrlHelper
 
   def setup
@@ -537,41 +536,37 @@ class Session
   end
 end
 
+class WorkshopsController < ActionController::Base
+  def index
+    @workshop = Workshop.new(1, true)
+    render :inline => "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
+  end
+
+  def show
+    @workshop = Workshop.new(params[:id], false)
+    render :inline => "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
+  end
+
+  def rescue_action(e) raise e end
+end
+
+class SessionsController < ActionController::Base
+  def index
+    @workshop = Workshop.new(params[:workshop_id], false)
+    @session = Session.new(1, true)
+    render :inline => "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
+  end
+
+  def show
+    @workshop = Workshop.new(params[:workshop_id], false)
+    @session = Session.new(params[:id], false)
+    render :inline => "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
+  end
+
+  def rescue_action(e) raise e end
+end
+
 class PolymorphicControllerTest < ActionView::TestCase
-  class WorkshopsController < ActionController::Base
-    def self.controller_path; 'workshops' end
-
-    def index
-      @workshop = Workshop.new(1, true)
-      render :inline => "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
-    end
-
-    def show
-      @workshop = Workshop.new(params[:id], false)
-      render :inline => "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
-    end
-
-    def rescue_action(e) raise e end
-  end
-
-  class SessionsController < ActionController::Base
-    def self.controller_path; 'sessions' end
-
-    def index
-      @workshop = Workshop.new(params[:workshop_id], false)
-      @session = Session.new(1, true)
-      render :inline => "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
-    end
-
-    def show
-      @workshop = Workshop.new(params[:workshop_id], false)
-      @session = Session.new(params[:id], false)
-      render :inline => "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
-    end
-
-    def rescue_action(e) raise e end
-  end
-
   tests ActionView::Helpers::UrlHelper
 
   def setup

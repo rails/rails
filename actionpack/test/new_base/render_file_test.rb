@@ -1,9 +1,9 @@
-require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
+require 'abstract_unit'
 
 module RenderFile
   
   class BasicController < ActionController::Base
-    self.view_paths = "."
+      self.view_paths = File.dirname(__FILE__)
     
     def index
       render :file => File.join(File.dirname(__FILE__), *%w[.. fixtures test hello_world])

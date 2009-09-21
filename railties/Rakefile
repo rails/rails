@@ -142,7 +142,7 @@ PKG_FILES = FileList[
   'bin/**/*', 
   'builtin/**/*',
   'guides/**/*',
-  'lib/**/*'
+  'lib/**/{*,.[a-z]*}'
 ] - [ 'test' ]
 
 spec = Gem::Specification.new do |s|
@@ -179,6 +179,12 @@ end
 
 Rake::GemPackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
+end
+
+task :gemspec do
+  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
+    file.puts spec.to_ruby
+  end
 end
 
 

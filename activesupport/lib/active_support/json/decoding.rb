@@ -7,6 +7,7 @@ module ActiveSupport
 
   module JSON
     class << self
+      attr_reader :parse_error
       delegate :decode, :to => :backend
 
       def backend
@@ -21,6 +22,7 @@ module ActiveSupport
           require "active_support/json/backends/#{name.to_s.downcase}.rb"
           @backend = ActiveSupport::JSON::Backends::const_get(name)
         end
+        @parse_error = @backend::ParseError
       end
 
       def with_backend(name)

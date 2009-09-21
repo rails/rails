@@ -1,21 +1,9 @@
 module Bundler
   class GemBundle < Array
-    def download(directory)
-      FileUtils.mkdir_p(directory)
-
-      current = Dir[File.join(directory, "cache", "*.gem*")]
-
-      each do |spec|
-        cached = File.join(directory, "cache", "#{spec.full_name}.gem")
-
-        unless File.file?(cached)
-          Gem::RemoteFetcher.fetcher.download(spec, spec.source, directory)
-        end
-
-        current.delete(cached)
+    def download(repository)
+      sort_by {|s| s.full_name.downcase }.each do |spec|
+        spec.source.download(spec, repository)
       end
-
-      current.each { |file| File.delete(file) }
 
       self
     end

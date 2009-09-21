@@ -1,5 +1,6 @@
 require 'abstract_unit'
-require "fixtures/project"
+require 'fixtures/project'
+require 'active_support/core_ext/hash/conversions'
 
 # The validations are tested thoroughly under ActiveModel::Validations
 # This test case simply makes sur that they are all accessible by

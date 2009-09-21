@@ -34,11 +34,12 @@ Rake::TestTask.new { |t|
   t.verbose = true
   t.warning = true
 }
+
 task :isolated_test do
   ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
   activesupport_path = "#{File.dirname(__FILE__)}/../activesupport/lib"
   Dir.glob("test/**/*_test.rb").all? do |file|
-    system(ruby, "-Ilib:test:#{activesupport_path}", file)
+    system(ruby, '-w', "-Ilib:test:#{activesupport_path}", file)
   end or raise "Failures"
 end
 
@@ -74,6 +75,7 @@ spec = Gem::Specification.new do |s|
   end
   
   s.add_dependency('activesupport', '= 3.0.pre' + PKG_BUILD)
+  s.add_dependency('activemodel',   '= 3.0.pre' + PKG_BUILD)
 
   s.require_path = 'lib'
   s.autorequire = 'active_resource'
@@ -92,6 +94,12 @@ Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true
+end
+
+task :gemspec do
+  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
+    file.puts spec.to_ruby
+  end
 end
 
 task :lines do

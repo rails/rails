@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/inheritable_attributes'
+
 module ActionController
   # ActionController::Metal provides a way to get a valid Rack application from a controller.
   #
@@ -79,6 +81,15 @@ module ActionController
     end
 
     class ActionEndpoint
+      @@endpoints = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = {} } }
+
+      def self.for(controller, action, stack)
+        @@endpoints[controller][action][stack] ||= begin
+          endpoint = new(controller, action)
+          stack.build(endpoint)
+        end
+      end
+
       def initialize(controller, action)
         @controller, @action = controller, action
       end
@@ -86,6 +97,16 @@ module ActionController
       def call(env)
         controller = @controller.new.call(@action, env)
       end
+    end
+
+    extlib_inheritable_accessor(:middleware_stack) { ActionDispatch::MiddlewareStack.new }
+
+    def self.use(*args)
+      middleware_stack.use(*args)
+    end
+
+    def self.middleware
+      middleware_stack
     end
 
     # Return a rack endpoint for the given action. Memoize the endpoint, so
@@ -98,8 +119,7 @@ module ActionController
     # ==== Returns
     # Proc:: A rack application
     def self.action(name)
-      @actions ||= {}
-      @actions[name.to_s] ||= ActionEndpoint.new(self, name)
+      ActionEndpoint.for(self, name, middleware_stack)
     end
   end
 end

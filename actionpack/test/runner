@@ -1,8 +1,0 @@
-#!/usr/bin/env ruby
-
-
-ARGV.each do |arg|
-  Dir["#{Dir.pwd}/#{arg}/**/*_test.rb"].each do |file|
-    require file
-  end
-end

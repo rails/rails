@@ -1,29 +1,36 @@
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 $:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
 $:.unshift(File.dirname(__FILE__) + '/../../activemodel/lib')
-$:.unshift(File.dirname(__FILE__) + '/lib')
 
+$:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
-ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
+bundler = File.join(File.dirname(__FILE__), '..', 'vendor', 'gems', 'environment')
+require bundler if File.exist?("#{bundler}.rb")
 
-ENV['new_base'] = "true"
-$stderr.puts "Running old tests on new_base"
+begin
+  %w( rack rack/test sqlite3 ).each { |lib| require lib }
+rescue LoadError => e
+  abort e.message
+end
+
+ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
 require 'test/unit'
 require 'active_support'
-
 require 'active_support/test_case'
+require 'abstract_controller'
 require 'action_controller'
+require 'action_view'
+require 'action_view/base'
+require 'action_dispatch'
+require 'active_model'
 require 'fixture_template'
 require 'action_controller/testing/process'
-require 'action_view/test_case'
 require 'action_controller/testing/integration'
+require 'action_view/test_case'
 require 'active_support/dependencies'
-require 'active_model'
-
-$tags[:new_base] = true
 
 begin
   require 'ruby-debug'
@@ -32,6 +39,8 @@ begin
 rescue LoadError
   # Debugging disabled. `gem install ruby-debug` to enable.
 end
+
+require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 ActiveSupport::Dependencies.hook!
 
@@ -53,6 +62,61 @@ module ActionView
       end
     end
   end
+end
+
+# Temporary base class
+class Rack::TestCase < ActionController::IntegrationTest
+  setup do
+    ActionController::Base.session_options[:key] = "abc"
+    ActionController::Base.session_options[:secret] = ("*" * 30)
+  end
+
+  def app
+    @app ||= ActionController::Dispatcher.new
+  end
+
+  def self.testing(klass = nil)
+    if klass
+      @testing = "/#{klass.name.underscore}".sub!(/_controller$/, '')
+    else
+      @testing
+    end
+  end
+
+  def get(thing, *args)
+    if thing.is_a?(Symbol)
+      super("#{self.class.testing}/#{thing}", *args)
+    else
+      super
+    end
+  end
+
+  def assert_body(body)
+    assert_equal body, Array.wrap(response.body).join
+  end
+
+  def assert_status(code)
+    assert_equal code, response.status
+  end
+
+  def assert_response(body, status = 200, headers = {})
+    assert_body   body
+    assert_status status
+    headers.each do |header, value|
+      assert_header header, value
+    end
+  end
+
+  def assert_content_type(type)
+    assert_equal type, response.headers["Content-Type"]
+  end
+
+  def assert_header(name, value)
+    assert_equal value, response.headers[name]
+  end
+end
+
+class ::ApplicationController < ActionController::Base
 end
 
 module ActionController
@@ -128,6 +192,14 @@ module ActionController
             "Expected no partials to be rendered"
         end
       end
+    end
+  end
+end
+
+class SimpleRouteCase < Rack::TestCase
+  setup do
+    ActionController::Routing::Routes.draw do |map|
+      map.connect ':controller/:action/:id'
     end
   end
 end

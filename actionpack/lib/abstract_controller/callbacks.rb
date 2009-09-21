@@ -10,7 +10,7 @@ module AbstractController
     include ActiveSupport::NewCallbacks
 
     included do
-      define_callbacks :process_action, "response_body"
+      define_callbacks :process_action, :terminator => "response_body"
     end
 
     # Override AbstractController::Base's process_action to run the
