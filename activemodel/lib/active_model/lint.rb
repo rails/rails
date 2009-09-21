@@ -2,7 +2,7 @@ require "test/unit"
 require "test/unit/ui/console/testrunner"
 
 # You can test whether an object is compliant with the ActiveModel API by
-# calling ActiveModel::Compliance.test(object). It will emit a Test::Unit
+# calling ActiveModel::Lint.test(object). It will emit a Test::Unit
 # output that tells you whether your object is fully compliant, or if not,
 # which aspects of the API are not implemented.
 #
@@ -13,7 +13,6 @@ require "test/unit/ui/console/testrunner"
 #
 # Objects you pass in are expected to return a compliant object from a
 # call to to_model. It is perfectly fine for to_model to return self.
-
 module ActiveModel
   module Lint
     def self.test(object, verbosity = 2, output = STDOUT)
@@ -59,7 +58,7 @@ module ActiveModel
       end
 
       def test_destroyed?
-        assert @object.respond_to?(:new_record?), "The model should respond to destroyed?"
+        assert @object.respond_to?(:destroyed?), "The model should respond to destroyed?"
         assert_boolean "destroyed?", @object.destroyed?
       end
 
