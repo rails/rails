@@ -371,6 +371,43 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal Mime::XML, request.content_type
   end
 
+  def test_internet_explorer_user_agent_check
+    assert([
+      "curl 7.16.1 (i386-portbld-freebsd6.2) libcurl/7.16.1 OpenSSL/0.9.7m zlib/1.2.3",
+      "Opera/9.80 (Macintosh; Intel Mac OS X; U; en) Presto/2.2.15 Version/10.00",
+      "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_1; en-us) AppleWebKit/531.9 (KHTML, like Gecko) Version/4.0.3 Safari/531.9",
+      "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en; rv:1.8.1.23) Gecko/20090815 Camino/1.6.9 (like Firefox/2.0.0.23)",
+      "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.1) Gecko/20090624 Firefox/3.5"
+    ].all? do |user_agent| 
+      !stub_request('HTTP_USER_AGENT' => user_agent).internet_explorer?
+    end)
+
+    assert([
+      "Mozilla/4.0 (Windows; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 2.0.50727)",
+      "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; )",
+      "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Win64; x64; Trident/4.0)"
+    ].all? do |user_agent|
+      stub_request('HTTP_USER_AGENT' => user_agent).internet_explorer?
+    end)
+  end
+
+  def test_accepts_without_user_agent
+    request = stub_request 'HTTP_ACCEPT' => 'text/html, text/csv, */*'
+    assert_equal [Mime::HTML, Mime::CSV, Mime::ALL], request.accepts
+  end
+
+  def test_accepts_for_regular_user_agent
+    request = stub_request 'HTTP_USER_AGENT' => "curl 7.16.1 (i386-portbld-freebsd6.2) libcurl/7.16.1 OpenSSL/0.9.7m zlib/1.2.3", 'HTTP_ACCEPT' => 'text/html, text/csv, */*'
+    assert_equal [Mime::HTML, Mime::CSV, Mime::ALL], request.accepts
+  end
+
+  def test_accepts_for_internet_explorer
+    request = stub_request 'HTTP_USER_AGENT' => 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Win64; x64)',
+      'HTTP_ACCEPT' => "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword, application/xaml+xml, application/vnd.ms-xpsdocument, application/x-ms-xbap, application/x-ms-application, application/x-shockwave-flash, application/x-silverlight, */*"
+    assert_equal 16, request.accepts.length
+    assert_equal [Mime::HTML, Mime::XML], request.accepts[0..1]
+  end
+
   def test_user_agent
     request = stub_request 'HTTP_USER_AGENT' => 'TestAgent'
     assert_equal 'TestAgent', request.user_agent

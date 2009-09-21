@@ -99,7 +99,15 @@ module ActionController
       content_type.to_s
     end
 
-    # Returns the accepted MIME type for the request.
+    # Regular expression to match the Internet Explorer user agent string.
+    INTERNET_EXPLORER = /MSIE\s[\d\.]+;/
+
+    # Returns true if the user agent is Internet Explorer.
+    def internet_explorer?
+      user_agent =~ INTERNET_EXPLORER
+    end
+
+    # Returns the accepted MIME types for the request.
     def accepts
       @accepts ||= begin
         header = @env['HTTP_ACCEPT'].to_s.strip
@@ -107,7 +115,9 @@ module ActionController
         if header.empty?
           [content_type, Mime::ALL].compact
         else
-          Mime::Type.parse(header)
+          accepts = Mime::Type.parse(header)
+          accepts.unshift(Mime::HTML, Mime::XML) if internet_explorer?
+          accepts
         end
       end
     end
@@ -163,7 +173,6 @@ module ActionController
           Mime::Type.lookup_by_extension("html")
         end
     end
-
 
     # Sets the \format by string extension, which can be used to force custom formats
     # that are not controlled by the extension.
