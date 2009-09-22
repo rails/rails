@@ -884,6 +884,22 @@ invoices.index_by(&:number)
 
 WARNING. Keys should normally be unique. If the block returns the same value for different elements no collection is built for that key. The last item will win.
 
+h4. +many?+
+
+The method +many?+ is shorthand for +collection.size > 1+:
+
+<erb>
+<% if pages.many? %>
+  <%= pagination_links %>
+<% end %>
+</erb>
+
+If an optional block is given +many?+ only takes into account those elements that return true:
+
+<ruby>
+@see_more = videos.many? {|video| video.category == params[:category]}
+</ruby>
+
 h3. Extensions to +Array+
 
 h4. Accessing
