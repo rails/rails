@@ -871,6 +871,19 @@ Active Support backports +each_with_object+ from Ruby 1.9, which addresses that 
 
 WARNING. Note that the item of the collection and the accumulator come in different order in +inject+ and +each_with_object+.
 
+h4. +index_by+
+
+The method +index_by+ generates a hash with the elements of an enumerable indexed by some key.
+
+It iterates through the collection and passes each element to a block. The element will be keyed by the value returned by the block:
+
+<ruby>
+invoices.index_by(&:number)
+# => {'2009-032' => <Invoice ...>, '2009-008' => <Invoice ...>, ...}
+</ruby>
+
+WARNING. Keys should normally be unique. If the block returns the same value for different elements no collection is built for that key. The last item will win.
+
 h3. Extensions to +Array+
 
 h4. Accessing
