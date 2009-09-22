@@ -26,17 +26,17 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<activesupport>, ["= 3.0.pre"])
       s.add_runtime_dependency(%q<activemodel>, ["= 3.0.pre"])
       s.add_runtime_dependency(%q<rack>, ["~> 1.0.0"])
-      s.add_runtime_dependency(%q<rack-test>, ["~> 0.4.2"])
+      s.add_runtime_dependency(%q<rack-test>, ["~> 0.5.0"])
     else
       s.add_dependency(%q<activesupport>, ["= 3.0.pre"])
       s.add_dependency(%q<activemodel>, ["= 3.0.pre"])
       s.add_dependency(%q<rack>, ["~> 1.0.0"])
-      s.add_dependency(%q<rack-test>, ["~> 0.4.2"])
+      s.add_dependency(%q<rack-test>, ["~> 0.5.0"])
     end
   else
     s.add_dependency(%q<activesupport>, ["= 3.0.pre"])
     s.add_dependency(%q<activemodel>, ["= 3.0.pre"])
     s.add_dependency(%q<rack>, ["~> 1.0.0"])
-    s.add_dependency(%q<rack-test>, ["~> 0.4.2"])
+    s.add_dependency(%q<rack-test>, ["~> 0.5.0"])
   end
 end
