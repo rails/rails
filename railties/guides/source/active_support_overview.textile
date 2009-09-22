@@ -747,7 +747,29 @@ Returns the character of the string at position +position+:
 "hello".at(0)  # => "h"
 "hello".at(4)  # => "o"
 "hello".at(-1) # => "o"
-"hello".at(10) # => nil
+"hello".at(10) # => ERROR
+</ruby>
+
+h5. +from(position)+
+
+Returns the substring of the string starting at position +position+:
+
+<ruby>
+"hello".from(0)  # => "hello"
+"hello".from(2)  # => "llo"
+"hello".from(-2) # => "lo"
+"hello".from(10) # => ""
+</ruby>
+
+h5. +to(position)+
+
+Returns the substring of the string up to position +position+:
+
+<ruby>
+"hello".to(0)  # => "h"
+"hello".to(2)  # => "hel"
+"hello".to(-2) # => "hell"
+"hello".to(10) # => "hello"
 </ruby>
 
 h3. Extensions to +Numeric+
