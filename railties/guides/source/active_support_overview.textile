@@ -747,7 +747,7 @@ Returns the character of the string at position +position+:
 "hello".at(0)  # => "h"
 "hello".at(4)  # => "o"
 "hello".at(-1) # => "o"
-"hello".at(10) # => ERROR
+"hello".at(10) # => ERROR if < 1.9, nil in 1.9
 </ruby>
 
 h5. +from(position)+
@@ -758,7 +758,7 @@ Returns the substring of the string starting at position +position+:
 "hello".from(0)  # => "hello"
 "hello".from(2)  # => "llo"
 "hello".from(-2) # => "lo"
-"hello".from(10) # => ""
+"hello".from(10) # => "" if < 1.9, nil in 1.9
 </ruby>
 
 h5. +to(position)+
