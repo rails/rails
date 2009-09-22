@@ -3,13 +3,16 @@ require 'abstract_unit'
 class DispatcherTest < Test::Unit::TestCase
   Dispatcher = ActionController::Dispatcher
 
+  class Foo
+    cattr_accessor :a, :b
+  end
+
   def setup
     ENV['REQUEST_METHOD'] = 'GET'
 
     # Clear callbacks as they are redefined by Dispatcher#define_dispatcher_callbacks
-    ActionDispatch::Callbacks.instance_variable_set("@prepare_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-    ActionDispatch::Callbacks.instance_variable_set("@before_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-    ActionDispatch::Callbacks.instance_variable_set("@after_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+    ActionDispatch::Callbacks.reset_callbacks(:prepare)
+    ActionDispatch::Callbacks.reset_callbacks(:call)
 
     @old_router, Dispatcher.router = Dispatcher.router, mock()
     Dispatcher.router.stubs(:call).returns([200, {}, 'response'])
@@ -68,13 +71,12 @@ class DispatcherTest < Test::Unit::TestCase
   end
 
   def test_to_prepare_with_identifier_replaces
-    a = b = nil
-    Dispatcher.to_prepare(:unique_id) { |*args| a = b = 1 }
-    Dispatcher.to_prepare(:unique_id) { |*args| a = 2 }
+    Dispatcher.to_prepare(:unique_id) { |*args| Foo.a, Foo.b = 1, 1 }
+    Dispatcher.to_prepare(:unique_id) { |*args| Foo.a = 2 }
 
     dispatch
-    assert_equal 2, a
-    assert_equal nil, b
+    assert_equal 2, Foo.a
+    assert_equal nil, Foo.b
   end
 
   private

@@ -27,8 +27,10 @@ module ActionView
     end
     
     def render(view, locals, &block)
-      method_name = compile(locals, view)
-      view.send(method_name, locals, &block)
+      ActiveSupport::Orchestra.instrument(:render_template, :identifier => identifier) do
+        method_name = compile(locals, view)
+        view.send(method_name, locals, &block)
+      end.result
     rescue Exception => e
       if e.is_a?(TemplateError)
         e.sub_template_of(self)

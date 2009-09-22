@@ -54,7 +54,7 @@ module ActionController
         end
       end
 
-      delegate :to_prepare, :prepare_dispatch, :before_dispatch, :after_dispatch,
+      delegate :to_prepare, :before_dispatch, :around_dispatch, :after_dispatch,
         :to => ActionDispatch::Callbacks
 
       def new

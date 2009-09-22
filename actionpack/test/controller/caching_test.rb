@@ -625,15 +625,19 @@ class FragmentCachingTest < ActionController::TestCase
   def test_fragment_for_logging
     fragment_computed = false
 
-    @controller.class.expects(:benchmark).with('Cached fragment exists?: views/expensive')
-    @controller.class.expects(:benchmark).with('Cached fragment miss: views/expensive')
-    @controller.class.expects(:benchmark).with('Cached fragment hit: views/expensive').never
+    listener = []
+    ActiveSupport::Orchestra.register listener
 
     buffer = 'generated till now -> '
     @controller.fragment_for(buffer, 'expensive') { fragment_computed = true }
 
+    assert_equal 1, listener.count { |e| e.name == :fragment_exist? }
+    assert_equal 1, listener.count { |e| e.name == :write_fragment }
+
     assert fragment_computed
     assert_equal 'generated till now -> ', buffer
+  ensure
+    ActiveSupport::Orchestra.unregister listener
   end
 
 end

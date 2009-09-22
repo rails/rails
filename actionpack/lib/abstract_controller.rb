@@ -3,7 +3,6 @@ require "active_support/core_ext/module/delegation"
 
 module AbstractController
   autoload :Base,                "abstract_controller/base"
-  autoload :Benchmarker,         "abstract_controller/benchmarker"
   autoload :Callbacks,           "abstract_controller/callbacks"
   autoload :Helpers,             "abstract_controller/helpers"
   autoload :Layouts,             "abstract_controller/layouts"
