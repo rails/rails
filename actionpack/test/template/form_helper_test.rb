@@ -1220,6 +1220,22 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
 
   end
+  
+  def test_default_form_builder_without_object
+
+    form_for(:post) do |f|
+       concat f.error_message_on('author_name')
+       concat f.error_messages
+    end
+
+    expected = %(<form action='http://www.example.com' method='post'>) +
+               %(<div class='formError'>can't be empty</div>) +
+               %(<div class="errorExplanation" id="errorExplanation"><h2>1 error prohibited this post from being saved</h2><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li></ul></div>) +
+               %(</form>)
+
+    assert_dom_equal expected, output_buffer
+
+  end
 
   # Perhaps this test should be moved to prototype helper tests.
   def test_remote_form_for_with_labelled_builder
