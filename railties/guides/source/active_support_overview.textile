@@ -772,6 +772,14 @@ Returns the substring of the string up to position +position+:
 "hello".to(10) # => "hello"
 </ruby>
 
+h5. +first(limit = 1)+
+
+The call +str.first(n)+ is equivalent to +str.to(n-1)+ if +n+ > 0, and returns an empty string for +n+ == 0.
+
+h5. +last(limit = 1)+
+
+The call +str.last(n)+ is equivalent to +str.from(-n)+ if +n+ > 0, and returns an empty string for +n+ == 0.
+
 h3. Extensions to +Numeric+
 
 ...
