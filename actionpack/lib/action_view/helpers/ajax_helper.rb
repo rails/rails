@@ -74,21 +74,18 @@ module ActionView
         script_decorator(attributes)
       end
 
-      def observe_form(name, options = {})
-        options[:observed] = name
-        attributes = extract_observer_attributes!(options)
-        attributes["data-js-type"] = "form_observer"
+      def observe_field(name, options = {}, html_options = {})
+        url = options.delete(:url)
+        url = url_for(url) if url.is_a?(Hash)
 
-        script_decorator(attributes)
+        if frequency = options.delete(:frequency)
+          html_options[:"data-frequency"] = frequency
+        end
+
+        html_options.merge!(:"data-observe" => true, :"data-url" => url)
+        tag(:input, html_options)
       end
 
-      def script_decorator(options)
-        attributes = %w(type="application/json")
-        attributes += options.map{|k, v| k + '="' + v.to_s + '"'}
-        "<script " + attributes.join(" ") + "></script>"
-      end
-
-      # TODO: All evaled goes here per wycats
       module Rails2Compatibility
         def set_callbacks(options, html)
           [:complete, :failure, :success, :interactive, :loaded, :loading].each do |type|
