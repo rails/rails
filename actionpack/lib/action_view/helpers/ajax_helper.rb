@@ -38,12 +38,17 @@ module ActionView
         url = options.delete(:url)
         url = url_for(url) if url.is_a?(Hash)
 
-        if frequency = options.delete(:frequency)
+        frequency = options.delete(:frequency)
+        if frequency && frequency > 0
           html_options[:"data-frequency"] = frequency
         end
 
-        html_options.merge!(:"data-observe" => true, :"data-url" => url)
-        tag(:input, html_options)
+        html_options.merge!(:style => "display:none",
+                            :"data-observe-field" => name,
+                            :"data-observe" => true,
+                            :"data-url" => url)
+
+        tag(:div, html_options)
       end
 
       module Rails2Compatibility

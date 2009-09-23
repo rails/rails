@@ -123,22 +123,26 @@ class ObserveFieldTest < AjaxTestCase
 
   test "basic" do
     assert_html field,
-      %w(data-observe="true")
-  end
-
-  test "with a :frequency option" do
-    assert_html field(:frequency => 5.minutes),
-      %w(data-observe="true" data-frequency="300")
+      %w(div style="display:none" data-observe="true" data-observe-field="title")
   end
 
   test "using a url string" do
     assert_html field(:url => "/some/other/url"),
-      %w(data-observe="true" data-url="/some/other/url")
+      %w(data-url="/some/other/url")
   end
 
   test "using a url hash" do
     assert_html field(:url => {:controller => :blog, :action => :update}),
-      %w(data-observe="true" data-url="/url/hash")
+      %w(data-url="/url/hash")
+  end
+
+  test "with a :frequency option" do
+    assert_html field(:frequency => 5.minutes),
+      %w(data-frequency="300")
+  end
+
+  test "with a :frequency option of 0" do
+    assert_no_match /data-frequency/, field(:frequency => 0)    
   end
 
 #  def test_observe_field
