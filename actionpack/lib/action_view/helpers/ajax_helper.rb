@@ -19,7 +19,7 @@ module ActionView
         html["data-remote"]          = "true"
         
         html.merge!(options)
-        
+
         url = url_for(url) if url.is_a?(Hash)
         link_to(name, url, html)
       end
