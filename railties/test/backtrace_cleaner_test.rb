@@ -35,7 +35,7 @@ class BacktraceCleanerVendorGemTest < ActiveSupport::TestCase
   end
 
   test "should format installed gems correctly" do
-    @backtrace = [ "#{Gem.default_dir}/gems/nosuchgem-1.2.3/lib/foo.rb" ]
+    @backtrace = [ "#{Gem.path[0]}/gems/nosuchgem-1.2.3/lib/foo.rb" ]
     @result = @cleaner.clean(@backtrace)
     assert_equal "nosuchgem (1.2.3) lib/foo.rb", @result[0]
   end
