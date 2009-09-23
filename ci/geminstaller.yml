@@ -16,7 +16,7 @@ gems:
 - name: rack
   version: '~> 1.0.0'
 - name: rack-test
-  version: >= 0.4.2
+  version: >= 0.5.0
 - name: rake
   version: >= 0.8.1
 - name: sqlite-ruby

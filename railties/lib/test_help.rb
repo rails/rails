@@ -4,7 +4,7 @@ silence_warnings { RAILS_ENV = "test" }
 
 require 'rubygems'
 gem "rack", "~> 1.0.0"
-gem "rack-test", "~> 0.4.2"
+gem "rack-test", "~> 0.5.0"
 
 require 'test/unit'
 require 'active_support/core_ext/kernel/requires'
