@@ -54,7 +54,7 @@ class LinkToRemoteTest < AjaxTestCase
   end
 
   test "with no update" do
-    assert_html link, %w(href="/blog/destroy/3" Delete\ this\ post data-remote="true")
+    assert_html link, %w(href="/blog/destroy/4" Delete\ this\ post data-remote="true")
   end
 
   test "with :html options" do
@@ -102,10 +102,17 @@ class ButtonToRemoteTest < AjaxTestCase
     button_to_remote("Remote outpost", options, html)
   end
 
+  def url_for(*)
+    "/whatnot"
+  end
+
   class StandardTest < ButtonToRemoteTest
     test "basic" do
-      assert_html button({:url => {:action => "whatnot"}}, {:class => "fine"}),
-        %w(input class="fine" type="button" value="Remote outpost" data-url="/url/hash")
+      button = button({:url => {:action => "whatnot"}}, {:class => "fine"})
+      [/input/, /class="fine"/, /type="button"/, /value="Remote outpost"/,
+       /data-url="\/whatnot"/].each do |match|
+         assert_match(match, button)
+      end
     end
   end
 

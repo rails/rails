@@ -37,6 +37,12 @@ module ActionView
         attributes.merge!(extract_remote_attributes!(options))
         attributes.merge!(options)
 
+        html["data-update-position"] = options.delete(:position)
+        html["data-method"]          = options.delete(:method)
+        html["data-remote"]          = "true"
+        
+        html.merge!(options)
+
         url = url_for(url) if url.is_a?(Hash)
         link_to(name, url, attributes)
       end
