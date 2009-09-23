@@ -33,7 +33,19 @@ module ActionView
         
         tag(:input, html_options)
       end
-      
+
+      def observe_field(name, options = {}, html_options = {})
+        url = options.delete(:url)
+        url = url_for(url) if url.is_a?(Hash)
+
+        if frequency = options.delete(:frequency)
+          html_options[:"data-frequency"] = frequency
+        end
+
+        html_options.merge!(:"data-observe" => true, :"data-url" => url)
+        tag(:input, html_options)
+      end
+
       module Rails2Compatibility
         def set_callbacks(options, html)
           [:complete, :failure, :success, :interactive, :loaded, :loading].each do |type|
