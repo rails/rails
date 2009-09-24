@@ -8,9 +8,7 @@ gem "rack-test", "~> 0.5.0"
 
 require 'test/unit'
 require 'active_support/core_ext/kernel/requires'
-require 'action_controller/testing/test_case'
 require 'action_view/test_case'
-require 'action_controller/testing/integration'
 require 'action_mailer/test_case' if defined?(ActionMailer)
 
 if defined?(ActiveRecord)
