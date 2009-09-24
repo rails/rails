@@ -27,8 +27,6 @@ require 'action_view/base'
 require 'action_dispatch'
 require 'active_model'
 require 'fixture_template'
-require 'action_controller/testing/process'
-require 'action_controller/testing/integration'
 require 'action_view/test_case'
 require 'active_support/dependencies'
 

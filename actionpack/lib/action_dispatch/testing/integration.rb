@@ -2,9 +2,11 @@ require 'stringio'
 require 'uri'
 require 'active_support/test_case'
 require 'active_support/core_ext/object/metaclass'
-require 'rack/test'
 
-module ActionController
+# TODO: Remove circular dependency on ActionController
+require 'action_controller/testing/process'
+
+module ActionDispatch
   module Integration #:nodoc:
     module RequestHelpers
       # Performs a GET request with the given parameters.
@@ -21,7 +23,7 @@ module ActionController
       #
       # This method returns an Response object, which one can use to
       # inspect the details of the response. Furthermore, if this method was
-      # called from an ActionController::IntegrationTest object, then that
+      # called from an ActionDispatch::IntegrationTest object, then that
       # object's <tt>@response</tt> instance variable will point to the same
       # response object.
       #
@@ -191,11 +193,11 @@ module ActionController
         unless defined? @named_routes_configured
           # install the named routes in this session instance.
           klass = metaclass
-          Routing::Routes.install_helpers(klass)
+          ActionController::Routing::Routes.install_helpers(klass)
 
           # the helpers are made protected by default--we make them public for
           # easier access during testing and troubleshooting.
-          klass.module_eval { public *Routing::Routes.named_routes.helpers }
+          klass.module_eval { public *ActionController::Routing::Routes.named_routes.helpers }
           @named_routes_configured = true
         end
       end
