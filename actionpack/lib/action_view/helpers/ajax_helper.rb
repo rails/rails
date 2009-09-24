@@ -80,21 +80,51 @@ module ActionView
         script_decorator(attributes)
       end
 
-      def observe_field(name, options = {}, html_options = {})
-        url = options.delete(:url)
-        url = url_for(url) if url.is_a?(Hash)
-
-        frequency = options.delete(:frequency)
-        if frequency && frequency > 0
-          html_options[:"data-frequency"] = frequency
+      def observe_field(name, options = {})
+        if options[:url]
+          options[:url] = options[:url].is_a?(Hash) ? url_for(options[:url]) : options[:url]
+        end
+        
+        if options[:frequency]
+          case options[:frequency]
+            when 0
+              options.delete(:frequency)
+            else
+              options[:frequency] = options[:frequency].to_i
+          end
         end
 
-        html_options.merge!(:style => "display:none",
-                            :"data-observe-field" => name,
-                            :"data-observe" => true,
-                            :"data-url" => url)
+        if options[:with] && (options[:with] !~ /[\{=(.]/)
+          options[:with] = "'#{options[:with]}=' + encodeURIComponent(value)"
+        else
+          options[:with] ||= 'value' unless options[:function]
+        end
 
-        tag(:div, html_options)
+        if options[:function]
+          statements = options[:function] # || remote_function(options) # TODO: Need to implement remote function - BR
+          options[:function] = JSFunction.new(statements, "element", "value")
+        end
+
+        options[:name] = name
+
+        <<-SCRIPT
+        <script type="application/json" data-rails-type="observe_field">
+        //<![CDATA[
+          #{options.to_json}
+        // ]]>
+        </script>
+        SCRIPT
+      end
+
+      # TODO: Move to javascript helpers - BR
+      class JSFunction
+        def initialize(statements, *arguments)
+          @statements, @arguments = statements, arguments
+        end
+
+        def as_json(options = nil)
+          "function(#{@arguments.join(", ")}) {#{@statements}}"
+        end
       end
 
       module Rails2Compatibility

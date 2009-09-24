@@ -112,6 +112,8 @@ class ButtonToRemoteTest < AjaxTestCase
   end
 end
 
+# TODO: We need a better way to test JSON being returned from data only helpers - BR
+# TODO: We might also need a lower level data only helper method??? - BR
 class ObserveFieldTest < AjaxTestCase
   def protect_against_forgery?
     false
@@ -123,46 +125,49 @@ class ObserveFieldTest < AjaxTestCase
 
   test "basic" do
     assert_html field,
-      %w(div style="display:none" data-observe="true" data-observe-field="title")
+      %w(script type="application/json" data-rails-type="observe_field")
   end
 
   test "using a url string" do
     assert_html field(:url => "/some/other/url"),
-      %w(data-url="/some/other/url")
+      %w("url":"/some/other/url")
   end
 
   test "using a url hash" do
     assert_html field(:url => {:controller => :blog, :action => :update}),
-      %w(data-url="/url/hash")
+      %w("url":"/url/hash")
   end
 
-  test "with a :frequency option" do
+  test "using a :frequency option" do
     assert_html field(:frequency => 5.minutes),
-      %w(data-frequency="300")
+      %w("frequency":300)
   end
 
-  test "with a :frequency option of 0" do
-    assert_no_match /data-frequency/, field(:frequency => 0)    
+  test "using a :frequency option of 0" do
+    assert_no_match /frequency/, field(:frequency => 0)
   end
 
+  # TODO: Finish when remote_function or some equivilent is finished -BR
 #  def test_observe_field
 #    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Form.Element.Observer('glass', 300, function(element, value) {new Ajax.Request('http://www.example.com/reorder_if_empty', {asynchronous:true, evalScripts:true, parameters:value})})\n//]]>\n</script>),
 #      observe_field("glass", :frequency => 5.minutes, :url => { :action => "reorder_if_empty" })
 #  end
-#
-#  def test_observe_field_using_with_option
-#    expected = %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Form.Element.Observer('glass', 300, function(element, value) {new Ajax.Request('http://www.example.com/check_value', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(value)})})\n//]]>\n</script>)
-#    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :with => 'id')
-#    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :with => "'id=' + encodeURIComponent(value)")
-#  end
-#
-#  def test_observe_field_using_json_in_with_option
-#    expected = %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Form.Element.Observer('glass', 300, function(element, value) {new Ajax.Request('http://www.example.com/check_value', {asynchronous:true, evalScripts:true, parameters:{'id':value}})})\n//]]>\n</script>)
-#    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :with => "{'id':value}")
-#  end
-#
-#  def test_observe_field_using_function_for_callback
-#    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Form.Element.Observer('glass', 300, function(element, value) {alert('Element changed')})\n//]]>\n</script>),
-#      observe_field("glass", :frequency => 5.minutes, :function => "alert('Element changed')")
-#  end
+
+  # TODO: Consider using JSON instead of strings.  Is using 'value' as a magical reference to the value of the observed field weird? (Rails2 does this) - BR
+  test "using a :with option" do
+    assert_html field(:with => "foo"),
+      %w("with":"'foo=' + encodeURIComponent(value)")
+    assert_html field(:with => "'foo=' + encodeURIComponent(value)"),
+      %w("with":"'foo=' + encodeURIComponent(value)")
+  end
+
+  test "using json in a :with option" do
+    assert_html field(:with => "{'id':value}"),
+      %w("with":"{'id':value}")
+  end
+
+  test "using :function for callback" do
+    assert_html field(:function => "alert('Element changed')"),
+      %w("function":"function(element, value) {alert('Element changed')}")
+  end
 end
