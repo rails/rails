@@ -1,4 +1,0 @@
-<%= shebang %>
-require File.expand_path('../../config/boot',  __FILE__)
-$LOAD_PATH.unshift "#{RAILTIES_PATH}/builtin/rails_info"
-require 'commands/about'

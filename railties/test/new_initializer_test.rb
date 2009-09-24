@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'active_support/ruby/shim'
-require 'initializer'
+require 'rails/initializer'
 
 class InitializerRunnerTest < ActiveSupport::TestCase
 

@@ -1,7 +1,17 @@
-require File.dirname(__FILE__) + '/../lib/ruby_version_check'
+begin
+  require 'rails/ruby_version_check'
+rescue LoadError
+  # If people are not using gems, the load path must still
+  # be correct.
+  # TODO: Remove the begin / rescue block somehow
+  $:.unshift File.dirname(__FILE__) + '/../lib'
+  $:.unshift File.dirname(__FILE__) + '/../../activesupport/lib'
+  retry
+end
+
 Signal.trap("INT") { puts; exit }
 
-require File.dirname(__FILE__) + '/../lib/rails/version'
+require 'rails/version'
 if %w(--version -v).include? ARGV.first
   puts "Rails #{Rails::VERSION::STRING}"
   exit(0)
@@ -9,7 +19,7 @@ end
 
 ARGV << "--help" if ARGV.empty?
 
-require File.dirname(__FILE__) + '/../lib/generators'
-require 'generators/rails/app/app_generator'
+require 'rails/generators'
+require 'rails/generators/rails/app/app_generator'
 
 Rails::Generators::AppGenerator.start

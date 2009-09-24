@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/rails/model/model_generator'
+require 'rails/generators/rails/model/model_generator'
 
 class ModelGeneratorTest < GeneratorsTestCase
 

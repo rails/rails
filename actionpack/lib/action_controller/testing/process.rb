@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/conversions'
+require "rack/test"
 
 module ActionController #:nodoc:
   # Essentially generates a modified Tempfile object similar to the object

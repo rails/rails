@@ -1,6 +1,6 @@
 require 'abstract_unit'
-require 'initializer'
-require 'generators'
+require 'rails/initializer'
+require 'rails/generators'
 
 require 'action_view'
 require 'action_mailer'

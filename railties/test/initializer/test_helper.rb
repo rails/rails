@@ -38,7 +38,8 @@ module Rails
 
     def boot!
       # Require the initializer
-      require "#{RAILS_FRAMEWORK_ROOT}/railties/lib/initializer"
+      $:.unshift "#{RAILS_FRAMEWORK_ROOT}/railties/lib"
+      require "rails/initializer"
       # Run the initializer the same way boot.rb does it
       Rails::Initializer.run(:install_gem_spec_stubs)
       Rails::GemDependency.add_frozen_gem_path

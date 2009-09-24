@@ -7,8 +7,8 @@ unless defined? ApplicationController
   ActionController::Base.session_store = nil
 end
 
-require 'dispatcher'
-require 'console_app'
+require 'rails/dispatcher'
+require 'rails/console_app'
 
 # console_app sets Test::Unit.run to work around the at_exit hook in test/unit, which kills IRB
 if Test::Unit.respond_to?(:run=)
