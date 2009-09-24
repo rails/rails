@@ -1,10 +1,12 @@
 module ActionController
   autoload :Base,                 "action_controller/base"
+  autoload :Benchmarking,         "action_controller/metal/benchmarking"
   autoload :ConditionalGet,       "action_controller/metal/conditional_get"
+  autoload :Helpers,              "action_controller/metal/helpers"
   autoload :HideActions,          "action_controller/metal/hide_actions"
+  autoload :Layouts,              "action_controller/metal/layouts"
   autoload :Metal,                "action_controller/metal"
   autoload :Middleware,           "action_controller/middleware"
-  autoload :Layouts,              "action_controller/metal/layouts"
   autoload :RackConvenience,      "action_controller/metal/rack_convenience"
   autoload :Rails2Compatibility,  "action_controller/metal/compatibility"
   autoload :Redirector,           "action_controller/metal/redirector"
@@ -12,10 +14,9 @@ module ActionController
   autoload :RenderOptions,        "action_controller/metal/render_options"
   autoload :Rescue,               "action_controller/metal/rescuable"
   autoload :Responder,            "action_controller/metal/responder"
+  autoload :Session,              "action_controller/metal/session"
   autoload :Testing,              "action_controller/metal/testing"
   autoload :UrlFor,               "action_controller/metal/url_for"
-  autoload :Session,              "action_controller/metal/session"
-  autoload :Helpers,              "action_controller/metal/helpers"
 
   # Ported modules
   # require 'action_controller/routing'
