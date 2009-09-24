@@ -44,7 +44,6 @@ module ActionController
   autoload :Cookies,                  'action_controller/metal/cookies'
 
   autoload :ActionControllerError,    'action_controller/metal/exceptions'
-  autoload :SessionRestoreError,      'action_controller/metal/exceptions'
   autoload :RenderError,              'action_controller/metal/exceptions'
   autoload :RoutingError,             'action_controller/metal/exceptions'
   autoload :MethodNotAllowed,         'action_controller/metal/exceptions'
