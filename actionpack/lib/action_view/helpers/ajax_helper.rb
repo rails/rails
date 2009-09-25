@@ -48,10 +48,12 @@ module ActionView
           end
         end
 
-        if options[:with] && (options[:with] !~ /[\{=(.]/)
-          options[:with] = "'#{options[:with]}=' + encodeURIComponent(value)"
-        else
-          options[:with] ||= 'value' unless options[:function]
+        if options[:with]
+          if options[:with] !~ /[\{=(.]/
+            options[:with] = "'#{options[:with]}=' + encodeURIComponent(value)"
+          else
+            options[:with] ||= 'value' unless options[:function]
+          end
         end
 
         if options[:function]
