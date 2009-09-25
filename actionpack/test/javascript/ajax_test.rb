@@ -10,6 +10,20 @@ class AjaxTestCase < ActiveSupport::TestCase
     end
   end
 
+  def extract_json_from_data_element(data_element)
+    root = HTML::Document.new(data_element).root
+    script = root.find(:tag => "script")
+    cdata = script.children.detect {|child| child.to_s =~ /<!\[CDATA\[/ }
+    js = cdata.content.split("\n").map {|line| line.gsub(Regexp.new("//.*"), "")}.join("\n").strip!
+
+    ActiveSupport::JSON.decode(js)
+  end
+
+  def assert_data_element_json(actual, expected)
+    json = extract_json_from_data_element(actual)
+    assert_equal expected, json
+  end
+
   def self.assert_callbacks_work(&blk)
     define_method(:assert_callbacks_work, &blk)
 
@@ -112,8 +126,6 @@ class ButtonToRemoteTest < AjaxTestCase
   end
 end
 
-# TODO: We need a better way to test JSON being returned from data only helpers - BR
-# TODO: We might also need a lower level data only helper method??? - BR
 class ObserveFieldTest < AjaxTestCase
   def protect_against_forgery?
     false
@@ -129,18 +141,18 @@ class ObserveFieldTest < AjaxTestCase
   end
 
   test "using a url string" do
-    assert_html field(:url => "/some/other/url"),
-      %w("url":"/some/other/url")
+    assert_data_element_json field(:url => "/some/other/url"),
+      "url" => "/some/other/url", "name" => "title"
   end
 
   test "using a url hash" do
-    assert_html field(:url => {:controller => :blog, :action => :update}),
-      %w("url":"/url/hash")
+    assert_data_element_json field(:url => {:controller => :blog, :action => :update}),
+      "url" => "/url/hash", "name" => "title"
   end
 
   test "using a :frequency option" do
-    assert_html field(:frequency => 5.minutes),
-      %w("frequency":300)
+    assert_data_element_json field(:url => { :controller => :blog }, :frequency => 5.minutes),
+      "url" => "/url/hash", "name" => "title", "frequency" => 300
   end
 
   test "using a :frequency option of 0" do
@@ -155,19 +167,19 @@ class ObserveFieldTest < AjaxTestCase
 
   # TODO: Consider using JSON instead of strings.  Is using 'value' as a magical reference to the value of the observed field weird? (Rails2 does this) - BR
   test "using a :with option" do
-    assert_html field(:with => "foo"),
-      %w("with":"'foo=' + encodeURIComponent(value)")
-    assert_html field(:with => "'foo=' + encodeURIComponent(value)"),
-      %w("with":"'foo=' + encodeURIComponent(value)")
+    assert_data_element_json field(:with => "foo"),
+      "name" => "title", "with" => "'foo=' + encodeURIComponent(value)"
+    assert_data_element_json field(:with => "'foo=' + encodeURIComponent(value)"),
+      "name" => "title", "with" => "'foo=' + encodeURIComponent(value)"
   end
 
   test "using json in a :with option" do
-    assert_html field(:with => "{'id':value}"),
-      %w("with":"{'id':value}")
+    assert_data_element_json field(:with => "{'id':value}"),
+      "name" => "title", "with" => "{'id':value}"
   end
 
   test "using :function for callback" do
-    assert_html field(:function => "alert('Element changed')"),
-      %w("function":"function(element, value) {alert('Element changed')}")
+    assert_data_element_json field(:function => "alert('Element changed')"),
+      "name" => "title", "function" => "function(element, value) {alert('Element changed')}"
   end
 end
