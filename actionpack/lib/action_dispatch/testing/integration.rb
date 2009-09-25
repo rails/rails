@@ -295,7 +295,7 @@ module ActionDispatch
             "SERVER_PORT"    => https? ? "443" : "80",
             "HTTPS"          => https? ? "on" : "off"
           }
-          UrlRewriter.new(ActionDispatch::Request.new(env), {})
+          ActionController::UrlRewriter.new(ActionDispatch::Request.new(env), {})
         end
     end
 
