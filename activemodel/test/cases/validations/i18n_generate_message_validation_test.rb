@@ -3,7 +3,7 @@ require 'cases/tests_database'
 
 require 'models/person'
 
-class I18nGenerateMessageValidationTest < Test::Unit::TestCase
+class I18nGenerateMessageValidationTest < ActiveModel::TestCase
   def setup
     Person.reset_callbacks(:validate)
     @person = Person.new
