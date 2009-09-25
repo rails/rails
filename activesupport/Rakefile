@@ -45,33 +45,12 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_files.exclude('lib/active_support/vendor/*')
 }
 
-spec = Gem::Specification.new do |s|
-  s.platform = Gem::Platform::RUBY
-  s.name = PKG_NAME
-  s.version = PKG_VERSION
-  s.summary = "Support and utility classes used by the Rails framework."
-  s.description = %q{Utility library which carries commonly used classes and goodies from the Rails framework}
-
-  s.files = [ "CHANGELOG", "README" ] + Dir.glob( "lib/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
-  s.require_path = 'lib'
-  s.has_rdoc = true
-
-  s.author = "David Heinemeier Hansson"
-  s.email = "david@loudthinking.com"
-  s.homepage = "http://www.rubyonrails.org"
-  s.rubyforge_project = "activesupport"
-end
+spec = eval(File.read('activesupport.gemspec'))
 
 Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true
-end
-
-task :gemspec do
-  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
-    file.puts spec.to_ruby
-  end
 end
 
 desc "Publish the beta gem"
