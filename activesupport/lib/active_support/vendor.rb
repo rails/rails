@@ -12,11 +12,6 @@ if defined? Gem
   end
 
   begin
-    gem 'tzinfo', '~> 0.3.13'
-  rescue Gem::LoadError
-  end
-
-  begin
     gem 'i18n', '~> 0.1.3'
   rescue Gem::LoadError
   end
