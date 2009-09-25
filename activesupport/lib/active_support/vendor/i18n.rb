@@ -1,6 +1,7 @@
 begin
-  require 'i18n'
-rescue LoadError
-  $:.unshift File.expand_path(File.join(File.dirname(__FILE__), 'i18n-0.1.3', 'lib'))
-  retry
+  gem 'i18n', '~> 0.1.3'
+rescue LoadError, NoMethodError
+  $LOAD_PATH.unshift File.expand_path("#{File.dirname(__FILE__)}/i18n-0.1.3/lib")
 end
+
+require 'i18n'
