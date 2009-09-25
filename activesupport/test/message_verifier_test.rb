@@ -2,7 +2,7 @@ require 'abstract_unit'
 
 class MessageVerifierTest < Test::Unit::TestCase
   def setup
-    @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!")
+    @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", 'MD5')
     @data = {:some=>"data", :now=>Time.now}
   end
   
