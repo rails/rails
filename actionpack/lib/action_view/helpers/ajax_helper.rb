@@ -2,26 +2,41 @@ module ActionView
   module Helpers
     module AjaxHelper
       include UrlHelper
-      
-      def link_to_remote(name, url, options = {})
-        html = options.delete(:html) || {}
+
+      def form_remote_tag(options = {}, &block)
+        attributes = {}
+        attributes.merge!(extract_remote_attributes!(options))
+        attributes.merge!(options)
+
+        url = attributes.delete(:url)
+        form_tag(attributes.delete(:action) || url_for(url), attributes, &block)
+      end
+
+      def extract_remote_attributes!(options)
+        attributes = options.delete(:html) || {}
         
         update = options.delete(:update)
         if update.is_a?(Hash)
-          html["data-update-success"] = update[:success]
-          html["data-update-failure"] = update[:failure]
+          attributes["data-update-success"] = update[:success]
+          attributes["data-update-failure"] = update[:failure]
         else
-          html["data-update-success"] = update
+          attributes["data-update-success"] = update
         end
 
-        html["data-update-position"] = options.delete(:position)
-        html["data-method"]          = options.delete(:method)
-        html["data-remote"]          = "true"
-        
-        html.merge!(options)
+        attributes["data-update-position"] = options.delete(:position)
+        attributes["data-method"]          = options.delete(:method)
+        attributes["data-remote"]          = true
+
+        attributes
+      end
+
+      def link_to_remote(name, url, options = {})
+        attributes = {}
+        attributes.merge!(extract_remote_attributes!(options))
+        attributes.merge!(options)
 
         url = url_for(url) if url.is_a?(Hash)
-        link_to(name, url, html)
+        link_to(name, url, attributes)
       end
       
       def button_to_remote(name, options = {}, html_options = {})
@@ -72,17 +87,6 @@ module ActionView
         SCRIPT
       end
 
-      # TODO: Move to javascript helpers - BR
-      class JSFunction
-        def initialize(statements, *arguments)
-          @statements, @arguments = statements, arguments
-        end
-
-        def as_json(options = nil)
-          "function(#{@arguments.join(", ")}) {#{@statements}}"
-        end
-      end
-
       module Rails2Compatibility
         def set_callbacks(options, html)
           [:complete, :failure, :success, :interactive, :loaded, :loading].each do |type|
@@ -111,7 +115,20 @@ module ActionView
           super
         end
       end
-      
+
+      private
+
+      # TODO: Move to javascript helpers - BR
+      class JSFunction
+        def initialize(statements, *arguments)
+          @statements, @arguments = statements, arguments
+        end
+
+        def as_json(options = nil)
+          "function(#{@arguments.join(", ")}) {#{@statements}}"
+        end
+      end
+
     end
   end
 end
