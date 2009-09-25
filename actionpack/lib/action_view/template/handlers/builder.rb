@@ -6,7 +6,7 @@ module ActionView
       self.default_format = Mime::XML
 
       def compile(template)
-        require 'active_support/vendor/builder'
+        require 'builder'
         "xml = ::Builder::XmlMarkup.new(:indent => 2);" +
           "self.output_buffer = xml.target!;" +
           template.source +
