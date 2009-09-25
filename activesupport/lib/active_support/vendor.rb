@@ -4,7 +4,10 @@
     gem lib, "~> #{version}"
   # Use the vendored lib if the gem's missing or we aren't using RubyGems.
   rescue LoadError, NoMethodError
-    # Push, not unshift, so the vendored lib is lowest priority.
-    $LOAD_PATH << File.expand_path("#{File.dirname(__FILE__)}/vendor/#{lib}-#{version}/lib")
+    # Skip if there's already a vendored lib already provided.
+    if $LOAD_PATH.grep(Regexp.new(lib)).empty?
+      # Push, not unshift, so the vendored lib is lowest priority.
+      $LOAD_PATH << File.expand_path("#{File.dirname(__FILE__)}/vendor/#{lib}-#{version}/lib")
+    end
   end
 end
