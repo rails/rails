@@ -4,7 +4,8 @@ module ActionController
       def self.strip_whitespace!(nodes)
         nodes.reject! do |node|
           if node.is_a?(HTML::Text)
-            node.to_s.strip.empty?
+            node.content.strip!
+            node.content.empty?
           else
             strip_whitespace! node.children
             false

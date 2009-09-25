@@ -6,8 +6,10 @@ class DomAssertionsTest < ActionView::TestCase
     @html_only = '<ul><li>foo</li><li>bar</li></ul>'
     @html_with_meaningless_whitespace = %{
       <ul>
-        <li>foo</li>
-        <li>bar</li>
+        <li>\tfoo  </li>
+        <li>
+        bar
+        </li>
       </ul>
     }
     @more_html_with_meaningless_whitespace = %{<ul>
@@ -15,7 +17,6 @@ class DomAssertionsTest < ActionView::TestCase
       <li>foo</li>
 
 <li>bar</li></ul>}
-    @html_with_meaningful_whitespace = '<ul><li>    foo     </li><li>    bar    </li></ul>'
   end
   
   test "assert_dom_equal strips meaningless whitespace from expected string" do
@@ -30,12 +31,6 @@ class DomAssertionsTest < ActionView::TestCase
     assert_dom_equal @more_html_with_meaningless_whitespace, @html_with_meaningless_whitespace
   end
   
-  test "assert_dom_equal does not strip important whitespace" do
-    assert_assertion_fails do
-      assert_dom_equal @html_with_meaningful_whitespace, @html_only
-    end
-  end
-  
   test "assert_dom_not_equal strips meaningless whitespace from expected string" do
     assert_assertion_fails { assert_dom_not_equal @html_with_meaningless_whitespace, @html_only }
   end
@@ -48,10 +43,6 @@ class DomAssertionsTest < ActionView::TestCase
     assert_assertion_fails do
       assert_dom_not_equal @more_html_with_meaningless_whitespace, @html_with_meaningless_whitespace
     end
-  end
-  
-  test "assert_dom_not_equal does not strip important whitespace" do
-    assert_dom_not_equal @html_with_meaningful_whitespace, @html_only
   end
   
   private
