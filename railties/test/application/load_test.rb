@@ -15,7 +15,13 @@ module ApplicationTests
     end
 
     test "running Rails::Application.load on the path returns a (vaguely) useful application" do
-      @app = Rails::Application.load app_path
+      app_file "config.ru", <<-CONFIG
+        require File.dirname(__FILE__) + '/config/environment'
+        use Rails::Rack::Static
+        run ActionController::Dispatcher.new
+      CONFIG
+
+      @app = ActionDispatch::Utils.parse_config("#{app_path}/config.ru")
       assert_welcome get("/")
     end
 
@@ -37,7 +43,7 @@ module ApplicationTests
         run proc {|env| [200, {"Content-Type" => "text/html"}, ["VICTORY"]] }
       CONFIG
 
-      @app = Rails::Application.load app_path, :config => "config.ru"
+      @app = ActionDispatch::Utils.parse_config("#{app_path}/config.ru")
 
       assert_body    "VICTORY", get("/omg")
       assert_header  "Config-Ru-Test", "TESTING", get("/omg")
@@ -48,7 +54,7 @@ module ApplicationTests
         Myapp = proc {|env| [200, {"Content-Type" => "text/html"}, ["OMG ROBOTS"]] }
       CONFIG
 
-      @app = Rails::Application.load app_path, :config => "myapp.rb"
+      @app = ActionDispatch::Utils.parse_config("#{app_path}/myapp.rb")
 
       assert_body "OMG ROBOTS", get("/omg")
     end

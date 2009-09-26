@@ -58,23 +58,11 @@ end
 ENV["RAILS_ENV"] = options[:environment]
 RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
 
-config = options[:config]
-if config =~ /\.ru$/
-  cfgfile = File.read(config)
-  if cfgfile[/^#\\(.*)/]
-    opts.parse!($1.split(/\s+/))
-  end
-  inner_app = eval("Rack::Builder.new {( " + cfgfile + "\n )}.to_app", nil, config)
-else
-  require config
-  inner_app = Object.const_get(File.basename(config, '.rb').capitalize)
-end
-
 app = Rack::Builder.new {
   use Rails::Rack::LogTailer unless options[:detach]
   use Rails::Rack::Debugger if options[:debugger]
   use Rails::Rack::Static
-  run inner_app
+  run ActionDispatch::Utils.parse_config(options[:config])
 }.to_app
 
 puts "=> Call with -d to detach"

@@ -31,6 +31,7 @@ module ActionDispatch
   autoload :Request, 'action_dispatch/http/request'
   autoload :Response, 'action_dispatch/http/response'
   autoload :StatusCodes, 'action_dispatch/http/status_codes'
+  autoload :Utils, 'action_dispatch/http/utils'
 
   autoload :Callbacks, 'action_dispatch/middleware/callbacks'
   autoload :ParamsParser, 'action_dispatch/middleware/params_parser'
