@@ -11,10 +11,7 @@ module ActionController
     self.router = Routing::Routes
 
     cattr_accessor :middleware
-    self.middleware = ActionDispatch::MiddlewareStack.new do |middleware|
-      middlewares = File.join(File.dirname(__FILE__), "middlewares.rb")
-      middleware.instance_eval(File.read(middlewares), middlewares, 1)
-    end
+    self.middleware = ActionDispatch::MiddlewareStack.new
 
     class << self
       def define_dispatcher_callbacks(cache_classes)

@@ -83,10 +83,6 @@ class DispatcherTest < Test::Unit::TestCase
     def dispatch(cache_classes = true)
       ActionController::Dispatcher.prepare_each_request = false
       Dispatcher.define_dispatcher_callbacks(cache_classes)
-      Dispatcher.middleware = ActionDispatch::MiddlewareStack.new do |middleware|
-        middlewares = File.expand_path(File.join(File.dirname(__FILE__), "../../lib/action_controller/dispatch/middlewares.rb"))
-        middleware.instance_eval(File.read(middlewares))
-      end
 
       @dispatcher ||= Dispatcher.new
       @dispatcher.call({'rack.input' => StringIO.new(''), 'action_dispatch.show_exceptions' => false})

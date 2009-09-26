@@ -25,7 +25,7 @@ end
 #reloads the environment
 def reload!
   puts "Reloading..."
-  ActionController::Dispatcher.new
+  ActionDispatch::Callbacks.new(lambda {}, true)
   ActionController::Dispatcher.router.reload
   true
 end

@@ -272,7 +272,19 @@ module Rails
   # Include middleware to serve up static assets
   Initializer.default.add :initialize_static_server do
     if configuration.frameworks.include?(:action_controller) && configuration.serve_static_assets
-      configuration.middleware.insert(0, ActionDispatch::Static, Rails.public_path)
+      configuration.middleware.use(ActionDispatch::Static, Rails.public_path)
+    end
+  end
+
+  Initializer.default.add :initialize_middleware_stack do
+    if configuration.frameworks.include?(:action_controller)
+      configuration.middleware.use(::Rack::Lock) unless ActionController::Base.allow_concurrency
+      configuration.middleware.use(ActionDispatch::ShowExceptions, ActionController::Base.consider_all_requests_local)
+      configuration.middleware.use(ActionDispatch::Callbacks, ActionController::Dispatcher.prepare_each_request)
+      configuration.middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
+      configuration.middleware.use(ActionDispatch::ParamsParser)
+      configuration.middleware.use(::Rack::MethodOverride)
+      configuration.middleware.use(::Rack::Head)
     end
   end
 

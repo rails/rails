@@ -52,6 +52,13 @@ ORIGINAL_LOCALES = I18n.available_locales.map {|locale| locale.to_s }.sort
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
+ActionController::Dispatcher.middleware = ActionDispatch::MiddlewareStack.new do |middleware|
+  middleware.use "ActionDispatch::ShowExceptions"
+  middleware.use "ActionDispatch::Callbacks"
+  middleware.use "ActionDispatch::ParamsParser"
+  middleware.use "Rack::Head"
+end
+
 module ActionView
   class TestCase
     setup do
@@ -114,12 +121,6 @@ class ::ApplicationController < ActionController::Base
 end
 
 module ActionController
-  Base.session = {
-    :key         => '_testing_session',
-    :secret      => '8273f16463985e2b3747dc25e30f2528'
-  }
-  Base.session_store = nil
-
   class << Routing
     def possible_controllers
       @@possible_controllers ||= []
