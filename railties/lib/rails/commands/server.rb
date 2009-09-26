@@ -1,6 +1,7 @@
+require 'action_controller'
+
 require 'fileutils'
 require 'optparse'
-require 'rails'
 
 options = {
   :Port        => 3000,
@@ -45,6 +46,10 @@ end
 puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
 puts "=> Rails #{Rails.version} application starting on http://#{options[:Host]}:#{options[:Port]}#{options[:path]}"
 
+%w(cache pids sessions sockets).each do |dir_to_make|
+  FileUtils.mkdir_p(File.join(RAILS_ROOT, 'tmp', dir_to_make))
+end
+
 if options[:detach]
   Process.daemon
   pid = "#{RAILS_ROOT}/tmp/pids/server.pid"
@@ -55,7 +60,38 @@ end
 ENV["RAILS_ENV"] = options[:environment]
 RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
 
-app = Rails::Application.load(RAILS_ROOT, options)
+if File.exist?(options[:config])
+  config = options[:config]
+  if config =~ /\.ru$/
+    cfgfile = File.read(config)
+    if cfgfile[/^#\\(.*)/]
+      opts.parse!($1.split(/\s+/))
+    end
+    inner_app = eval("Rack::Builder.new {( " + cfgfile + "\n )}.to_app", nil, config)
+  else
+    require config
+    inner_app = Object.const_get(File.basename(config, '.rb').capitalize)
+  end
+else
+  require RAILS_ROOT + "/config/environment"
+  inner_app = ActionController::Dispatcher.new
+end
+
+if options[:path].nil?
+  map_path = "/"
+else
+  ActionController::Base.relative_url_root = options[:path]
+  map_path = options[:path]
+end
+
+app = Rack::Builder.new {
+  use Rails::Rack::LogTailer unless options[:detach]
+  use Rails::Rack::Debugger if options[:debugger]
+  map map_path do
+    use Rails::Rack::Static 
+    run inner_app
+  end
+}.to_app
 
 puts "=> Call with -d to detach"
 
