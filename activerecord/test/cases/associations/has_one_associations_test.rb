@@ -315,4 +315,22 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       Firm.find(@firm.id, :include => :account).save!
     end
   end
+
+  def test_build_respects_hash_condition
+    account = companies(:first_firm).build_account_limit_500_with_hash_conditions
+    assert account.save
+    assert_equal 500, account.credit_limit
+  end
+
+  def test_create_respects_hash_condition
+    account = companies(:first_firm).create_account_limit_500_with_hash_conditions
+    assert       !account.new_record?
+    assert_equal 500, account.credit_limit
+  end
+
+  def test_create!_respects_hash_condition
+    account = companies(:first_firm).create_account_limit_500_with_hash_conditions!
+    assert       !account.new_record?
+    assert_equal 500, account.credit_limit
+  end
 end
