@@ -272,7 +272,7 @@ module Rails
   # Include middleware to serve up static assets
   Initializer.default.add :initialize_static_server do
     if configuration.frameworks.include?(:action_controller) && configuration.serve_static_assets
-      configuration.middleware.insert(0, Rails::Rack::Static, Rails.public_path)
+      configuration.middleware.insert(0, ActionDispatch::Static, Rails.public_path)
     end
   end
 

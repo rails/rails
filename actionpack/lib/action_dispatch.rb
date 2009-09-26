@@ -34,10 +34,11 @@ module ActionDispatch
   autoload :Utils, 'action_dispatch/http/utils'
 
   autoload :Callbacks, 'action_dispatch/middleware/callbacks'
+  autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
   autoload :ParamsParser, 'action_dispatch/middleware/params_parser'
   autoload :Rescue, 'action_dispatch/middleware/rescue'
   autoload :ShowExceptions, 'action_dispatch/middleware/show_exceptions'
-  autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
+  autoload :Static, 'action_dispatch/middleware/static'
 
   autoload :Assertions, 'action_dispatch/testing/assertions'
   autoload :Integration, 'action_dispatch/testing/integration'

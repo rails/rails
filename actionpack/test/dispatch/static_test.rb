@@ -1,21 +1,10 @@
 require 'abstract_unit'
 
-require 'action_controller'
-require 'rails/rack'
-
-class RackStaticTest < ActiveSupport::TestCase
-  def setup
-    FileUtils.cp_r "#{RAILS_ROOT}/fixtures/public", "#{RAILS_ROOT}/public"
-  end
-
-  def teardown
-    FileUtils.rm_rf "#{RAILS_ROOT}/public"
-  end
-
+class StaticTest < ActiveSupport::TestCase
   DummyApp = lambda { |env|
     [200, {"Content-Type" => "text/plain"}, ["Hello, World!"]]
   }
-  App = Rails::Rack::Static.new(DummyApp, "#{RAILS_ROOT}/public")
+  App = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/public")
 
   test "serves dynamic content" do
     assert_equal "Hello, World!", get("/nofile")
