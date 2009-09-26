@@ -14,6 +14,14 @@ module Rails
       @@configuration = configuration
     end
 
+    def application
+      @@application
+    end
+
+    def application=(application)
+      @@application = application
+    end
+
     def initialized?
       @initialized || false
     end

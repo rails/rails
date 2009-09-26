@@ -1,5 +1,6 @@
 require "pathname"
 
+require 'rails/application'
 require 'rails/railties_path'
 require 'rails/version'
 require 'rails/gem_dependency'
@@ -89,12 +90,15 @@ module Rails
 
       def run(initializer = nil)
         Rails.configuration = Base.config = @config
+        Rails.application = nil
 
         if initializer
           run_initializer(initializer)
         else
           @initializers.each {|block| run_initializer(block) }
         end
+
+        Rails.application
       end
     end
 
@@ -574,5 +578,9 @@ Run `rake gems:install` to install the missing gems.
       Rails::Generators.aliases.deep_merge! config.generators.aliases
       Rails::Generators.options.deep_merge! config.generators.options
     end
+  end
+
+  Initializer.default.add :build_application do
+    Rails.application = Rails::Application.new
   end
 end

@@ -1,5 +1,3 @@
-require 'action_controller'
-
 module Rails
   class Application
     def initialize
