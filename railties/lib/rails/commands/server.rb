@@ -44,10 +44,6 @@ end
 puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
 puts "=> Rails #{Rails.version} application starting on http://#{options[:Host]}:#{options[:Port]}}"
 
-%w(cache pids sessions sockets).each do |dir_to_make|
-  FileUtils.mkdir_p(File.join(RAILS_ROOT, 'tmp', dir_to_make))
-end
-
 if options[:detach]
   Process.daemon
   pid = "#{RAILS_ROOT}/tmp/pids/server.pid"

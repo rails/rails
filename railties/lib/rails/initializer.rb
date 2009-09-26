@@ -195,6 +195,13 @@ module Rails
     plugin_loader.add_plugin_load_paths
   end
 
+  # Create tmp directories
+  Initializer.default.add :ensure_tmp_directories_exist do
+    %w(cache pids sessions sockets).each do |dir_to_make|
+      FileUtils.mkdir_p(File.join(configuration.root_path, 'tmp', dir_to_make))
+    end
+  end
+
   # Loads the environment specified by Configuration#environment_path, which
   # is typically one of development, test, or production.
   Initializer.default.add :load_environment do
