@@ -1382,7 +1382,7 @@ The method +diff+ returns a hash that represents a diff of the receiver and the 
 An important property of this diff hash is that you can retrieve the original hash by applying +diff+ twice:
 
 <ruby>
-hash1.diff(hash2).diff(hash2) == hash1
+hash.diff(hash2).diff(hash2) == hash1
 </ruby>
 
 Diffing hashes may be useful for error messages related to expected option hashes for example.
