@@ -15,7 +15,7 @@ class RackStaticTest < ActiveSupport::TestCase
   DummyApp = lambda { |env|
     [200, {"Content-Type" => "text/plain"}, ["Hello, World!"]]
   }
-  App = Rails::Rack::Static.new(DummyApp)
+  App = Rails::Rack::Static.new(DummyApp, "#{RAILS_ROOT}/public")
 
   test "serves dynamic content" do
     assert_equal "Hello, World!", get("/nofile")

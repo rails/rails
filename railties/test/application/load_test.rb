@@ -17,7 +17,6 @@ module ApplicationTests
     test "running Rails::Application.load on the path returns a (vaguely) useful application" do
       app_file "config.ru", <<-CONFIG
         require File.dirname(__FILE__) + '/config/environment'
-        use Rails::Rack::Static
         run ActionController::Dispatcher.new
       CONFIG
 

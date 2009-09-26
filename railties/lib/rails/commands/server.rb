@@ -57,7 +57,6 @@ RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
 app = Rack::Builder.new {
   use Rails::Rack::LogTailer unless options[:detach]
   use Rails::Rack::Debugger if options[:debugger]
-  use Rails::Rack::Static
   run ActionDispatch::Utils.parse_config(options[:config])
 }.to_app
 

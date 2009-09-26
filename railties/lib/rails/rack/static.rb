@@ -5,9 +5,9 @@ module Rails
     class Static
       FILE_METHODS = %w(GET HEAD).freeze
 
-      def initialize(app)
+      def initialize(app, root)
         @app = app
-        @file_server = ::Rack::File.new(File.join(RAILS_ROOT, "public"))
+        @file_server = ::Rack::File.new(root)
       end
 
       def call(env)

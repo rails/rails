@@ -269,6 +269,13 @@ module Rails
     end
   end
 
+  # Include middleware to serve up static assets
+  Initializer.default.add :initialize_static_server do
+    if configuration.frameworks.include?(:action_controller) && configuration.serve_static_assets
+      configuration.middleware.insert(0, Rails::Rack::Static, Rails.public_path)
+    end
+  end
+
   Initializer.default.add :initialize_cache do
     unless defined?(RAILS_CACHE)
       silence_warnings { Object.const_set "RAILS_CACHE", ActiveSupport::Cache.lookup_store(configuration.cache_store) }
