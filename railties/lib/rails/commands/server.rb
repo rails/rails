@@ -60,21 +60,16 @@ end
 ENV["RAILS_ENV"] = options[:environment]
 RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
 
-if File.exist?(options[:config])
-  config = options[:config]
-  if config =~ /\.ru$/
-    cfgfile = File.read(config)
-    if cfgfile[/^#\\(.*)/]
-      opts.parse!($1.split(/\s+/))
-    end
-    inner_app = eval("Rack::Builder.new {( " + cfgfile + "\n )}.to_app", nil, config)
-  else
-    require config
-    inner_app = Object.const_get(File.basename(config, '.rb').capitalize)
+config = options[:config]
+if config =~ /\.ru$/
+  cfgfile = File.read(config)
+  if cfgfile[/^#\\(.*)/]
+    opts.parse!($1.split(/\s+/))
   end
+  inner_app = eval("Rack::Builder.new {( " + cfgfile + "\n )}.to_app", nil, config)
 else
-  require RAILS_ROOT + "/config/environment"
-  inner_app = ActionController::Dispatcher.new
+  require config
+  inner_app = Object.const_get(File.basename(config, '.rb').capitalize)
 end
 
 if options[:path].nil?
