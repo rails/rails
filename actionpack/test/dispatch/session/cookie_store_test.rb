@@ -46,10 +46,6 @@ class CookieStoreTest < ActionController::IntegrationTest
     def rescue_action(e) raise end
   end
 
-  def setup
-    reset_app!
-  end
-
   def test_raises_argument_error_if_missing_session_key
     assert_raise(ArgumentError, nil.inspect) {
       ActionDispatch::Session::CookieStore.new(nil,
@@ -193,10 +189,7 @@ class CookieStoreTest < ActionController::IntegrationTest
   end
 
   def test_session_store_with_expire_after
-    with_test_route_set do
-      app = ActionDispatch::Session::CookieStore.new(ActionController::Dispatcher.new, :key => SessionKey, :secret => SessionSecret, :expire_after => 5.hours)
-      @integration_session = open_session(app)
-
+    with_test_route_set(:expire_after => 5.hours) do
       # First request accesses the session
       time = Time.local(2008, 4, 24)
       Time.stubs(:now).returns(time)
@@ -226,20 +219,14 @@ class CookieStoreTest < ActionController::IntegrationTest
   end
 
   private
-    def reset_app!
-      app = ActionDispatch::Session::CookieStore.new(ActionController::Dispatcher.new,
-        :key => SessionKey, :secret => SessionSecret)
-      @integration_session = open_session(app)
-    end
-
-    def with_test_route_set
+    def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do |map|
-          map.with_options :controller => "cookie_store_test/test" do |c|
-            c.connect "/:action"
-          end
+          map.connect "/:action", :controller => "cookie_store_test/test"
         end
-        reset_app!
+        options = {:key => SessionKey, :secret => SessionSecret}.merge(options)
+        app = ActionDispatch::Session::CookieStore.new(set, options)
+        @integration_session = open_session(app)
         yield
       end
     end
