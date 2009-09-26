@@ -80,11 +80,11 @@ EOS
     end
   end
 
-  def test_middleware_property
-    assert property_defined?('Middleware')
-  end
-
   def test_html_includes_middleware
+    Rails::Info.module_eval do
+      property 'Middleware', ['Rack::Lock', 'Rack::Static']
+    end
+
     html = Rails::Info.to_html
     assert html.include?('<tr><td class="name">Middleware</td>')
     properties.value_for('Middleware').each do |value|
