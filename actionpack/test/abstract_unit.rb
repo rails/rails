@@ -69,10 +69,6 @@ class Rack::TestCase < ActionController::IntegrationTest
     ActionController::Base.session_options[:secret] = ("*" * 30)
   end
 
-  def app
-    @app ||= ActionController::Dispatcher.new
-  end
-
   def self.testing(klass = nil)
     if klass
       @testing = "/#{klass.name.underscore}".sub!(/_controller$/, '')
