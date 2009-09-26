@@ -1597,6 +1597,17 @@ def assign_route_options(segments, defaults, requirements)
 end
 </ruby>
 
+h4. +optionalize(pattern)+
+
+The class method +optionalize+ builds a regexp where the pattern argument is optional. That roughly means it gets a question mark appended with a non-capturing group if needed:
+
+<ruby>
+Regexp.optionalize('')    # => ''
+Regexp.optionalize('.')   # => '.?'
+Regexp.optionalize('...') # => '(?:...)?'
+</ruby>
+
+This method is also used by the routing system, it helps in building optional regexp segments.
 
 h3. Extensions to +Range+
 
