@@ -510,7 +510,7 @@ Run `rake gems:install` to install the missing gems.
   # # Setup database middleware after initializers have run
   Initializer.default.add :initialize_database_middleware do
     if configuration.frameworks.include?(:active_record)
-      if configuration.frameworks.include?(:action_controller) &&
+      if configuration.frameworks.include?(:action_controller) && ActionController::Base.session_store &&
           ActionController::Base.session_store.name == 'ActiveRecord::SessionStore'
         configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
         configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::QueryCache
@@ -581,6 +581,8 @@ Run `rake gems:install` to install the missing gems.
   end
 
   Initializer.default.add :build_application do
-    Rails.application = Rails::Application.new
+    if configuration.frameworks.include?(:action_controller)
+      Rails.application = Rails::Application.new
+    end
   end
 end

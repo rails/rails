@@ -1,6 +1,6 @@
 require "isolation/abstract_unit"
 require "rails"
-require "rack"
+require 'action_dispatch'
 
 module ApplicationTests
   class LoadTest < Test::Unit::TestCase
