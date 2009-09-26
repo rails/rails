@@ -53,13 +53,14 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "about 2 hours", distance_of_time_in_words(from, to + 89.minutes + 30.seconds)
     assert_equal "about 24 hours", distance_of_time_in_words(from, to + 23.hours + 59.minutes + 29.seconds)
 
-    # 1440..2879
+    # 1440..2529
     assert_equal "1 day", distance_of_time_in_words(from, to + 23.hours + 59.minutes + 30.seconds)
-    assert_equal "1 day", distance_of_time_in_words(from, to + 47.hours + 59.minutes + 29.seconds)
+    assert_equal "1 day", distance_of_time_in_words(from, to + 41.hours + 59.minutes + 29.seconds)
 
-    # 2880..43199
-    assert_equal "2 days", distance_of_time_in_words(from, to + 47.hours + 59.minutes + 30.seconds)
-    assert_equal "29 days", distance_of_time_in_words(from, to + 29.days + 23.hours + 59.minutes + 29.seconds)
+    # 2530..43199
+    assert_equal "2 days", distance_of_time_in_words(from, to + 42.hours + 59.minutes + 30.seconds)
+    assert_equal "3 days", distance_of_time_in_words(from, to + 2.days + 12.hours)
+    assert_equal "30 days", distance_of_time_in_words(from, to + 29.days + 23.hours + 59.minutes + 29.seconds)
 
     # 43200..86399
     assert_equal "about 1 month", distance_of_time_in_words(from, to + 29.days + 23.hours + 59.minutes + 30.seconds)
@@ -70,13 +71,27 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "12 months", distance_of_time_in_words(from, to + 1.years - 31.seconds)
 
     # > 525599
-    assert_equal "about 1 year", distance_of_time_in_words(from, to + 1.years - 30.seconds)
-    assert_equal "about 1 year", distance_of_time_in_words(from, to + 1.years + 6.months - 1.day)
-    assert_equal "over 1 year", distance_of_time_in_words(from, to + 1.years + 6.months)
-    assert_equal "about 2 years", distance_of_time_in_words(from, to + 2.years + 30.seconds)
-    assert_equal "about 5 years", distance_of_time_in_words(from, to + 5.years + 5.months)
-    assert_equal "over 5 years", distance_of_time_in_words(from, to + 5.years + 6.months)
-    assert_equal "about 10 years", distance_of_time_in_words(from, to + 10.years)
+    assert_equal "about 1 year",    distance_of_time_in_words(from, to + 1.years - 30.seconds)
+    assert_equal "about 1 year",    distance_of_time_in_words(from, to + 1.years + 3.months - 1.day)
+    assert_equal "over 1 year",     distance_of_time_in_words(from, to + 1.years + 6.months)
+
+    assert_equal "almost 2 years",  distance_of_time_in_words(from, to + 2.years - 3.months + 1.day)
+    assert_equal "about 2 years",   distance_of_time_in_words(from, to + 2.years + 3.months - 1.day)
+    assert_equal "over 2 years",    distance_of_time_in_words(from, to + 2.years + 3.months + 1.day)
+    assert_equal "over 2 years",    distance_of_time_in_words(from, to + 2.years + 9.months - 1.day)
+    assert_equal "almost 3 years",  distance_of_time_in_words(from, to + 2.years + 9.months + 1.day)
+
+    assert_equal "almost 5 years",  distance_of_time_in_words(from, to + 5.years - 3.months + 1.day)
+    assert_equal "about 5 years",   distance_of_time_in_words(from, to + 5.years + 3.months - 1.day)
+    assert_equal "over 5 years",    distance_of_time_in_words(from, to + 5.years + 3.months + 1.day)
+    assert_equal "over 5 years",    distance_of_time_in_words(from, to + 5.years + 9.months - 1.day)
+    assert_equal "almost 6 years",  distance_of_time_in_words(from, to + 5.years + 9.months + 1.day)
+
+    assert_equal "almost 10 years", distance_of_time_in_words(from, to + 10.years - 3.months + 1.day)
+    assert_equal "about 10 years",  distance_of_time_in_words(from, to + 10.years + 3.months - 1.day)
+    assert_equal "over 10 years",   distance_of_time_in_words(from, to + 10.years + 3.months + 1.day)
+    assert_equal "over 10 years",   distance_of_time_in_words(from, to + 10.years + 9.months - 1.day)
+    assert_equal "almost 11 years", distance_of_time_in_words(from, to + 10.years + 9.months + 1.day)
 
     # test to < from
     assert_equal "about 4 hours", distance_of_time_in_words(from + 4.hours, to)
