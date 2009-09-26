@@ -1609,6 +1609,19 @@ Regexp.optionalize('...') # => '(?:...)?'
 
 This method is also used by the routing system, it helps in building optional regexp segments.
 
+h4. +unoptionalize(pattern)+
+
+The class method +unoptionalize+ is the inverse of +optionalize+ for optional regexps, and the identity for the rest:
+
+<ruby>
+Regexp.unoptionalize('')         # => ''
+Regexp.unoptionalize('.?')       # => '.'
+Regexp.unoptionalize('(?:...)?') # => '...'
+Regexp.unoptionalize('\A\w+\z')  # => '\A\w+\z'
+</ruby>
+
+This method is also used in the routes code for building regexps.
+
 h3. Extensions to +Range+
 
 ...
