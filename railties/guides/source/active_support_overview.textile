@@ -1573,6 +1573,31 @@ def recognition_extraction
 end
 </ruby>
 
+h4. +multiline?+
+
+The method +multiline?+ says whether a regexp has the +/m+ flag set, that is, whether the dot matches newlines.
+
+<ruby>
+%r{.}.multiline?  # => false
+%r{.}m.multiline? # => true
+
+Regexp.new('.').multiline?                    # => false
+Regexp.new('.', Regexp::MULTILINE).multiline? # => true
+</ruby>
+
+Rails uses this method in a single place, also in the routing code. Multiline regexps are disallowed for route requirements and this flag eases enforcing that constraint.
+
+<ruby>
+def assign_route_options(segments, defaults, requirements)
+  ...
+  if requirement.multiline?
+    raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
+  end
+  ...
+end
+</ruby>
+
+
 h3. Extensions to +Range+
 
 ...
