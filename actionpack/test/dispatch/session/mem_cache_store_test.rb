@@ -32,6 +32,10 @@ class MemCacheStoreTest < ActionController::IntegrationTest
   end
 
   begin
+    require 'memcache'
+    memcache = MemCache.new('localhost:11211')
+    memcache.set('ping', '')
+
     def test_setting_and_getting_session_value
       with_test_route_set do
         get '/set_session_value'
