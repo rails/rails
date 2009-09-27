@@ -168,8 +168,8 @@ module ActionDispatch
       attr_accessor :request_count
 
       # Create and initialize a new Session instance.
-      def initialize(app = nil)
-        @app = app || ActionController::Dispatcher.new
+      def initialize(app)
+        @app = app
         reset!
       end
 
@@ -354,6 +354,7 @@ module ActionDispatch
       # can use this method to open multiple sessions that ought to be tested
       # simultaneously.
       def open_session(app = nil)
+        app ||= @app ||= ActionController::Dispatcher.new
         session = Integration::Session.new(app)
 
         # delegate the fixture accessors back to the test instance

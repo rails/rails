@@ -394,7 +394,7 @@ class MetalIntegrationTest < ActionController::IntegrationTest
   end
 
   def setup
-    @integration_session = ActionController::Integration::Session.new(Poller)
+    @app = Poller
   end
 
   def test_successful_get

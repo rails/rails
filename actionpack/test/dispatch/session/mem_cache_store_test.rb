@@ -101,7 +101,7 @@ class MemCacheStoreTest < ActionController::IntegrationTest
 
         get '/set_session_value', :_session_id => session_id
         assert_response :success
-        assert_equal nil, cookies['_session_id']
+        assert_not_equal session_id, cookies['_session_id']
       end
     end
   rescue LoadError, RuntimeError
@@ -114,8 +114,8 @@ class MemCacheStoreTest < ActionController::IntegrationTest
         set.draw do |map|
           map.connect "/:action", :controller => "mem_cache_store_test/test"
         end
-        app = ActionDispatch::Session::MemCacheStore.new(set, :key => '_session_id')
-        @integration_session = open_session(app)
+        @app = ActionDispatch::Session::MemCacheStore.new(set, :key => '_session_id')
+        reset!
         yield
       end
     end

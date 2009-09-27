@@ -119,14 +119,10 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
 
       reset!
 
-      get '/set_session_value', :_session_id => session_id, :foo => "baz"
-      assert_response :success
-      assert_equal nil, cookies['_session_id']
-
       get '/get_session_value', :_session_id => session_id
       assert_response :success
       assert_equal 'foo: nil', response.body
-      assert_equal nil, cookies['_session_id']
+      assert_not_equal session_id, cookies['_session_id']
     end
   end
 
@@ -141,6 +137,8 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
       assert_equal 'foo: "bar"', response.body
       session_id = cookies['_session_id']
       assert session_id
+
+      reset!
 
       get '/set_session_value', :_session_id => session_id, :foo => "baz"
       assert_response :success
@@ -159,9 +157,8 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
         set.draw do |map|
           map.connect "/:action", :controller => "active_record_store_test/test"
         end
-        options = {:key => '_session_id'}.merge(options)
-        app = ActiveRecord::SessionStore.new(set, options)
-        @integration_session = open_session(app)
+        @app = ActiveRecord::SessionStore.new(set, options.reverse_merge(:key => '_session_id'))
+        reset!
         yield
       end
     end

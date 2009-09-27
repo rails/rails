@@ -222,8 +222,8 @@ class CookieStoreTest < ActionController::IntegrationTest
           map.connect "/:action", :controller => "cookie_store_test/test"
         end
         options = {:key => SessionKey, :secret => SessionSecret}.merge(options)
-        app = ActionDispatch::Session::CookieStore.new(set, options)
-        @integration_session = open_session(app)
+        @app = ActionDispatch::Session::CookieStore.new(set, options)
+        reset!
         yield
       end
     end
