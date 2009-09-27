@@ -860,6 +860,16 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal "Tester", Person.new.first_name
     end
 
+    def test_change_column_type_default_should_change
+      old_columns = Person.connection.columns(Person.table_name, "#{name} Columns")
+      assert !old_columns.find { |c| c.name == 'data' }
+
+      assert_nothing_raised do
+        Person.connection.add_column "people", "data", :string, :default => ''
+        Person.connection.change_column "people", "data", :binary
+      end
+    end
+
     def test_change_column_quotes_column_names
       Person.connection.create_table :testings do |t|
         t.column :select, :string
