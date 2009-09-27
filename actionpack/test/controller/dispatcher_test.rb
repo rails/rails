@@ -43,16 +43,11 @@ class DispatcherTest < Test::Unit::TestCase
     dispatch
   end
 
-  # Stub out dispatch error logger
-  class << Dispatcher
-    def log_failsafe_exception(status, exception); end
-  end
-
   def test_prepare_callbacks
     a = b = c = nil
-    Dispatcher.to_prepare { |*args| a = b = c = 1 }
-    Dispatcher.to_prepare { |*args| b = c = 2 }
-    Dispatcher.to_prepare { |*args| c = 3 }
+    ActionDispatch::Callbacks.to_prepare { |*args| a = b = c = 1 }
+    ActionDispatch::Callbacks.to_prepare { |*args| b = c = 2 }
+    ActionDispatch::Callbacks.to_prepare { |*args| c = 3 }
 
     # Ensure to_prepare callbacks are not run when defined
     assert_nil a || b || c
@@ -71,8 +66,8 @@ class DispatcherTest < Test::Unit::TestCase
   end
 
   def test_to_prepare_with_identifier_replaces
-    Dispatcher.to_prepare(:unique_id) { |*args| Foo.a, Foo.b = 1, 1 }
-    Dispatcher.to_prepare(:unique_id) { |*args| Foo.a = 2 }
+    ActionDispatch::Callbacks.to_prepare(:unique_id) { |*args| Foo.a, Foo.b = 1, 1 }
+    ActionDispatch::Callbacks.to_prepare(:unique_id) { |*args| Foo.a = 2 }
 
     dispatch
     assert_equal 2, Foo.a
