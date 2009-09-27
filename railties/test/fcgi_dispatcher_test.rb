@@ -5,8 +5,6 @@ uses_gem "fcgi", "0.8.7" do
 require 'action_controller'
 require 'rails/fcgi_handler'
 
-Dispatcher.middleware.clear
-
 class RailsFCGIHandlerTest < Test::Unit::TestCase
   def setup
     @log = StringIO.new

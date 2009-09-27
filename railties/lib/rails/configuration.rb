@@ -108,10 +108,9 @@ module Rails
       defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root_path}/vendor/rails"
     end
 
-    # TODO: Fix this when there is an application object
     def middleware
-      require 'action_controller'
-      ActionController::Dispatcher.middleware
+      require 'action_dispatch'
+      @middleware ||= ActionDispatch::MiddlewareStack.new
     end
 
     # Loads and returns the contents of the #database_configuration_file. The

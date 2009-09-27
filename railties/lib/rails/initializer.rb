@@ -608,6 +608,7 @@ Run `rake gems:install` to install the missing gems.
 
   Initializer.default.add :build_application do
     if configuration.frameworks.include?(:action_controller)
+      ActionController::Dispatcher.middleware = configuration.middleware
       Rails.application = Rails::Application.new
     end
   end
