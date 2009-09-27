@@ -14,14 +14,12 @@ class DispatcherTest < Test::Unit::TestCase
     ActionDispatch::Callbacks.reset_callbacks(:prepare)
     ActionDispatch::Callbacks.reset_callbacks(:call)
 
-    @old_router, Dispatcher.router = Dispatcher.router, mock()
-    Dispatcher.router.stubs(:call).returns([200, {}, 'response'])
-    Dispatcher.router.stubs(:reload)
+    ActionController::Routing::Routes.stubs(:call).returns([200, {}, 'response'])
+    ActionController::Routing::Routes.stubs(:reload)
     Dispatcher.stubs(:require_dependency)
   end
 
   def teardown
-    Dispatcher.router = @old_router
     ENV.delete 'REQUEST_METHOD'
   end
 
@@ -31,12 +29,12 @@ class DispatcherTest < Test::Unit::TestCase
   end
 
   def test_reloads_routes_before_dispatch_if_in_loading_mode
-    Dispatcher.router.expects(:reload).once
+    ActionController::Routing::Routes.expects(:reload).once
     dispatch(false)
   end
 
   def test_leaves_dependencies_after_dispatch_if_not_in_loading_mode
-    Dispatcher.router.expects(:reload).never
+    ActionController::Routing::Routes.expects(:reload).never
     ActiveSupport::Dependencies.expects(:clear).never
 
     dispatch
@@ -78,7 +76,7 @@ class DispatcherTest < Test::Unit::TestCase
       ActionController::Dispatcher.prepare_each_request = false
       Dispatcher.define_dispatcher_callbacks(cache_classes)
 
-      @dispatcher ||= ActionDispatch::Callbacks.new(Dispatcher.router)
+      @dispatcher ||= ActionDispatch::Callbacks.new(ActionController::Routing::Routes)
       @dispatcher.call({'rack.input' => StringIO.new(''), 'action_dispatch.show_exceptions' => false})
     end
 

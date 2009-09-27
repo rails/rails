@@ -5,6 +5,12 @@ uses_gem "fcgi", "0.8.7" do
 require 'action_controller'
 require 'rails/fcgi_handler'
 
+module Rails
+  def self.application
+    ActionController::Routing::Routes
+  end
+end
+
 class RailsFCGIHandlerTest < Test::Unit::TestCase
   def setup
     @log = StringIO.new

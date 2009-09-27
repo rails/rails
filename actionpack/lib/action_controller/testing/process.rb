@@ -99,7 +99,6 @@ module ActionController #:nodoc:
 
       temporary_routes = ActionController::Routing::RouteSet.new
       ActionController::Routing.module_eval { const_set :Routes, temporary_routes }
-      ActionController::Dispatcher.router = temporary_routes
 
       yield temporary_routes
     ensure
@@ -107,7 +106,6 @@ module ActionController #:nodoc:
         ActionController::Routing.module_eval { remove_const :Routes }
       end
       ActionController::Routing.const_set(:Routes, real_routes) if real_routes
-      ActionController::Dispatcher.router = ActionController::Routing::Routes
     end
   end
 end

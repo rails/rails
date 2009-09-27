@@ -5,6 +5,12 @@ require 'action_controller' # console_app uses 'action_controller/integration'
 require 'rails/dispatcher'
 require 'rails/console_app'
 
+module Rails
+  def self.application
+    ActionController::Routing::Routes
+  end
+end
+
 # console_app sets Test::Unit.run to work around the at_exit hook in test/unit, which kills IRB
 if Test::Unit.respond_to?(:run=)
   Test::Unit.run = false

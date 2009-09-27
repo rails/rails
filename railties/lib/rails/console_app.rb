@@ -27,6 +27,6 @@ end
 def reload!
   puts "Reloading..."
   ActionDispatch::Callbacks.new(lambda {}, true)
-  ActionController::Dispatcher.router.reload
+  ActionController::Routing::Routes.reload
   true
 end
