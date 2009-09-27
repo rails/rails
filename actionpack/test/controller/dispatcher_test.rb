@@ -22,7 +22,6 @@ class DispatcherTest < Test::Unit::TestCase
 
   def teardown
     Dispatcher.router = @old_router
-    @dispatcher = nil
     ENV.delete 'REQUEST_METHOD'
   end
 
@@ -79,7 +78,7 @@ class DispatcherTest < Test::Unit::TestCase
       ActionController::Dispatcher.prepare_each_request = false
       Dispatcher.define_dispatcher_callbacks(cache_classes)
 
-      @dispatcher ||= Dispatcher.new
+      @dispatcher ||= ActionDispatch::Callbacks.new(Dispatcher.router)
       @dispatcher.call({'rack.input' => StringIO.new(''), 'action_dispatch.show_exceptions' => false})
     end
 

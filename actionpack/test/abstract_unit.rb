@@ -52,11 +52,13 @@ ORIGINAL_LOCALES = I18n.available_locales.map {|locale| locale.to_s }.sort
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
-ActionController::Dispatcher.middleware = ActionDispatch::MiddlewareStack.new do |middleware|
-  middleware.use "ActionDispatch::ShowExceptions"
-  middleware.use "ActionDispatch::Callbacks"
-  middleware.use "ActionDispatch::ParamsParser"
-  middleware.use "Rack::Head"
+class ActionController::IntegrationTest < ActiveSupport::TestCase
+  @@app = ActionDispatch::MiddlewareStack.new { |middleware|
+    middleware.use "ActionDispatch::ShowExceptions"
+    middleware.use "ActionDispatch::Callbacks"
+    middleware.use "ActionDispatch::ParamsParser"
+    middleware.use "Rack::Head"
+  }.build(ActionController::Routing::Routes)
 end
 
 module ActionView

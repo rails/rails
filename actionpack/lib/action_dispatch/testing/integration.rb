@@ -325,6 +325,10 @@ module ActionDispatch
     end
 
     module Runner
+      def app
+        @app
+      end
+
       # Reset the current session. This is useful for testing multiple sessions
       # in a single test case.
       def reset!
@@ -354,8 +358,7 @@ module ActionDispatch
       # can use this method to open multiple sessions that ought to be tested
       # simultaneously.
       def open_session(app = nil)
-        app ||= @app ||= ActionController::Dispatcher.new
-        session = Integration::Session.new(app)
+        session = Integration::Session.new(app || self.app)
 
         # delegate the fixture accessors back to the test instance
         extras = Module.new { attr_accessor :delegate, :test_result }
@@ -477,5 +480,20 @@ module ActionDispatch
   #   end
   class IntegrationTest < ActiveSupport::TestCase
     include Integration::Runner
+
+    @@app = nil
+
+    def self.app
+      # DEPRECATE AC::Dispatcher fallback
+      @@app || ActionController::Dispatcher.new
+    end
+
+    def self.app=(app)
+      @@app = app
+    end
+
+    def app
+      super || self.class.app
+    end
   end
 end
