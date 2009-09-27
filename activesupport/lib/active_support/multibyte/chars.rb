@@ -320,7 +320,7 @@ module ActiveSupport #:nodoc:
       # Example:
       #   'Café'.mb_chars.reverse.to_s #=> 'éfaC'
       def reverse
-        chars(self.class.u_unpack(@wrapped_string).reverse.pack('U*'))
+        chars(self.class.g_unpack(@wrapped_string).reverse.flatten.pack('U*'))
       end
 
       # Implements Unicode-aware slice with codepoints. Slicing on one point returns the codepoints for that
