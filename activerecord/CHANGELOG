@@ -1,5 +1,7 @@
 *2.3.6 (pending)*
 
+* MySQL: add_ and change_column support positioning.  #3286 [Ben Marini]
+
 * Reset your Active Record counter caches with the reset_counter_cache class method.  #1211 [Mike Breen]
 
 
