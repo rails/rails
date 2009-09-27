@@ -384,6 +384,17 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_equal 'わちにこ', @chars.reverse
   end
 
+  def test_reverse_should_work_with_normalized_strings
+    str = 'bös'
+    reversed_str = 'söb'
+    assert_equal chars(reversed_str).normalize(:kc), chars(str).normalize(:kc).reverse
+    assert_equal chars(reversed_str).normalize(:c), chars(str).normalize(:c).reverse
+    assert_equal chars(reversed_str).normalize(:d), chars(str).normalize(:d).reverse
+    assert_equal chars(reversed_str).normalize(:kd), chars(str).normalize(:kd).reverse
+    assert_equal chars(reversed_str).decompose, chars(str).decompose.reverse
+    assert_equal chars(reversed_str).compose, chars(str).compose.reverse
+  end
+
   def test_slice_should_take_character_offsets
     assert_equal nil, ''.mb_chars.slice(0)
     assert_equal 'こ', @chars.slice(0)
