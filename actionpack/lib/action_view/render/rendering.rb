@@ -89,6 +89,7 @@ module ActionView
 
     def _render_text(text, layout, options)
       text = layout.render(self, options[:locals]) { text } if layout
+      text
     end
 
     # This is the API to render a ViewContext's template from a controller.

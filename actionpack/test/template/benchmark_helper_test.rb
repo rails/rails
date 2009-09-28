@@ -4,14 +4,14 @@ require 'action_view/helpers/benchmark_helper'
 class BenchmarkHelperTest < ActionView::TestCase
   tests ActionView::Helpers::BenchmarkHelper
 
-  def teardown
-    controller.logger.send(:clear_buffer)
+  def setup
+    super
+    controller.logger = ActiveSupport::BufferedLogger.new(StringIO.new)
+    controller.logger.auto_flushing = false
   end
 
-  def controller
-    logger = ActiveSupport::BufferedLogger.new(StringIO.new)
-    logger.auto_flushing = false
-    @controller ||= Struct.new(:logger).new(logger)
+  def teardown
+    controller.logger.send(:clear_buffer)
   end
 
   def test_without_block

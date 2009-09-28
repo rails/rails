@@ -34,7 +34,7 @@ end
 desc "Run all unit tests"
 task :test => [:test_action_pack, :test_active_record_integration]
 
-TESTS_GLOB = "test/{abstract,controller,dispatch,new_base,template,html-scanner}/**/*_test.rb"
+TESTS_GLOB = "test/{abstract,controller,dispatch,new_base,template,html-scanner,view}/**/*_test.rb"
 
 Rake::TestTask.new(:test_action_pack) do |t|
   t.libs << 'test'
