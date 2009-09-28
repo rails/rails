@@ -474,6 +474,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(1)
     assert_equal topic, topic.delete, 'topic.delete did not return self'
     assert topic.frozen?, 'topic not frozen after delete'
+    assert topic.destroyed?, 'topic not marked as being destroyed'
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
@@ -486,6 +487,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(1)
     assert_equal topic, topic.destroy, 'topic.destroy did not return self'
     assert topic.frozen?, 'topic not frozen after destroy'
+    assert topic.destroyed?, 'topic not marked as being destroyed'
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 

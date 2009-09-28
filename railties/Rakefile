@@ -199,11 +199,14 @@ task :copy_configs do
 
   cp "configs/locales/en.yml", "#{PKG_DESTINATION}/config/locales/en.yml"
 
+  cp "configs/seeds.rb", "#{PKG_DESTINATION}/db/seeds.rb"
+
   cp "environments/boot.rb",        "#{PKG_DESTINATION}/config/boot.rb"
   cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
   cp "environments/production.rb",  "#{PKG_DESTINATION}/config/environments/production.rb"
   cp "environments/development.rb", "#{PKG_DESTINATION}/config/environments/development.rb"
   cp "environments/test.rb",        "#{PKG_DESTINATION}/config/environments/test.rb"
+
 end
 
 task :copy_binfiles do
@@ -311,11 +314,11 @@ spec = Gem::Specification.new do |s|
   EOF
 
   s.add_dependency('rake', '>= 0.8.3')
-  s.add_dependency('activesupport',    '= 2.3.3' + PKG_BUILD)
-  s.add_dependency('activerecord',     '= 2.3.3' + PKG_BUILD)
-  s.add_dependency('actionpack',       '= 2.3.3' + PKG_BUILD)
-  s.add_dependency('actionmailer',     '= 2.3.3' + PKG_BUILD)
-  s.add_dependency('activeresource',   '= 2.3.3' + PKG_BUILD)
+  s.add_dependency('activesupport',    '= 2.3.4' + PKG_BUILD)
+  s.add_dependency('activerecord',     '= 2.3.4' + PKG_BUILD)
+  s.add_dependency('actionpack',       '= 2.3.4' + PKG_BUILD)
+  s.add_dependency('actionmailer',     '= 2.3.4' + PKG_BUILD)
+  s.add_dependency('activeresource',   '= 2.3.4' + PKG_BUILD)
 
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false

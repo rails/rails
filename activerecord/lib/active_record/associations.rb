@@ -275,9 +275,10 @@ module ActiveRecord
     # You can manipulate objects and associations before they are saved to the database, but there is some special behavior you should be
     # aware of, mostly involving the saving of associated objects.
     #
-    # Unless you enable the :autosave option on a <tt>has_one</tt>, <tt>belongs_to</tt>,
-    # <tt>has_many</tt>, or <tt>has_and_belongs_to_many</tt> association,
-    # in which case the members are always saved.
+    # Unless you set the :autosave option on a <tt>has_one</tt>, <tt>belongs_to</tt>,
+    # <tt>has_many</tt>, or <tt>has_and_belongs_to_many</tt> association. Setting it
+    # to +true+ will _always_ save the members, whereas setting it to +false+ will
+    # _never_ save the members.
     #
     # === One-to-one associations
     #
@@ -874,7 +875,9 @@ module ActiveRecord
       #   if the real class name is Person, you'll have to specify it with this option.
       # [:conditions]
       #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
-      #   SQL fragment, such as <tt>rank = 5</tt>.
+      #   SQL fragment, such as <tt>rank = 5</tt>. Record creation from the association is scoped if a hash
+      #   is used. <tt>has_one :account, :conditions => {:enabled => true}</tt> will create an enabled account with <tt>@company.create_account</tt>
+      #   or <tt>@company.build_account</tt>.
       # [:order]
       #   Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
       #   such as <tt>last_name, first_name DESC</tt>.

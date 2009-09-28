@@ -23,6 +23,7 @@ ActiveRecord::Schema.define do
   # unless the ordering matters.  In which case, define them below
   create_table :accounts, :force => true do |t|
     t.integer :firm_id
+    t.string  :firm_name
     t.integer :credit_limit
   end
 

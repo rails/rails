@@ -16,6 +16,10 @@ module ActiveRecord
           db.results_as_hash  = true if defined? SQLite::Version
           db.type_translation = false
 
+          message = "Support for SQLite2Adapter and DeprecatedSQLiteAdapter has been removed from Rails 3. "
+          message << "You should migrate to SQLite 3+ or use the plugin from git://github.com/rails/sqlite2_adapter.git with Rails 3."
+          ActiveSupport::Deprecation.warn(message)
+
           # "Downgrade" deprecated sqlite API
           if SQLite.const_defined?(:Version)
             ConnectionAdapters::SQLite2Adapter.new(db, logger, config)

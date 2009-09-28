@@ -1,4 +1,6 @@
-*2.3.4 (pending)*
+*2.3.4 (September 4, 2009)*
+
+* Sanitize multibyte strings before escaping them with escape_once. CVE-2009-3009
 
 * Introduce grouped_collection_select helper.  #1249 [Dan Codeape, Erik Ostrom]
 

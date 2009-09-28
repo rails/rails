@@ -62,10 +62,10 @@ module ActiveRecord
     #     accepts_nested_attributes_for :avatar, :allow_destroy => true
     #   end
     #
-    # Now, when you add the <tt>_delete</tt> key to the attributes hash, with a
+    # Now, when you add the <tt>_destroy</tt> key to the attributes hash, with a
     # value that evaluates to +true+, you will destroy the associated model:
     #
-    #   member.avatar_attributes = { :id => '2', :_delete => '1' }
+    #   member.avatar_attributes = { :id => '2', :_destroy => '1' }
     #   member.avatar.marked_for_destruction? # => true
     #   member.save
     #   member.avatar #=> nil
@@ -85,14 +85,14 @@ module ActiveRecord
     # the attribute hash.
     #
     # For each hash that does _not_ have an <tt>id</tt> key a new record will
-    # be instantiated, unless the hash also contains a <tt>_delete</tt> key
+    # be instantiated, unless the hash also contains a <tt>_destroy</tt> key
     # that evaluates to +true+.
     #
     #   params = { :member => {
     #     :name => 'joe', :posts_attributes => [
     #       { :title => 'Kari, the awesome Ruby documentation browser!' },
     #       { :title => 'The egalitarian assumption of the modern citizen' },
-    #       { :title => '', :_delete => '1' } # this will be ignored
+    #       { :title => '', :_destroy => '1' } # this will be ignored
     #     ]
     #   }}
     #
@@ -140,7 +140,7 @@ module ActiveRecord
     # By default the associated records are protected from being destroyed. If
     # you want to destroy any of the associated records through the attributes
     # hash, you have to enable it first using the <tt>:allow_destroy</tt>
-    # option. This will allow you to also use the <tt>_delete</tt> key to
+    # option. This will allow you to also use the <tt>_destroy</tt> key to
     # destroy existing records:
     #
     #   class Member < ActiveRecord::Base
@@ -149,7 +149,7 @@ module ActiveRecord
     #   end
     #
     #   params = { :member => {
-    #     :posts_attributes => [{ :id => '2', :_delete => '1' }]
+    #     :posts_attributes => [{ :id => '2', :_destroy => '1' }]
     #   }}
     #
     #   member.attributes = params['member']
@@ -172,14 +172,14 @@ module ActiveRecord
       # Supported options:
       # [:allow_destroy]
       #   If true, destroys any members from the attributes hash with a
-      #   <tt>_delete</tt> key and a value that evaluates to +true+
+      #   <tt>_destroy</tt> key and a value that evaluates to +true+
       #   (eg. 1, '1', true, or 'true'). This option is off by default.
       # [:reject_if]
       #   Allows you to specify a Proc that checks whether a record should be
       #   built for a certain attribute hash. The hash is passed to the Proc
       #   and the Proc should return either +true+ or +false+. When no Proc
-      #   is specified a record will be built for all attribute hashes that
-      #   do not have a <tt>_delete</tt> that evaluates to true.
+      #   is specified, a record will be built for all attribute hashes that
+      #   do not have a <tt>_destroy</tt> value that evaluates to true.
       #
       # Examples:
       #   # creates avatar_attributes=
@@ -223,15 +223,25 @@ module ActiveRecord
     # destruction of this association.
     #
     # See ActionView::Helpers::FormHelper::fields_for for more info.
-    def _delete
+    def _destroy
       marked_for_destruction?
+    end
+
+    # Deal with deprecated _delete.
+    #
+    def _delete #:nodoc:
+      ActiveSupport::Deprecation.warn "_delete is deprecated in nested attributes. Use _destroy instead."
+      _destroy
     end
 
     private
 
     # Attribute hash keys that should not be assigned as normal attributes.
     # These hash keys are nested attributes implementation details.
-    UNASSIGNABLE_KEYS = %w{ id _delete }
+    #
+    # TODO Remove _delete from UNASSIGNABLE_KEYS when deprecation warning are
+    # removed.
+    UNASSIGNABLE_KEYS = %w( id _destroy _delete )
 
     # Assigns the given attributes to the association.
     #
@@ -240,14 +250,19 @@ module ActiveRecord
     # record will be built.
     #
     # If the given attributes include a matching <tt>:id</tt> attribute _and_ a
-    # <tt>:_delete</tt> key set to a truthy value, then the existing record
+    # <tt>:_destroy</tt> key set to a truthy value, then the existing record
     # will be marked for destruction.
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes, allow_destroy)
       attributes = attributes.stringify_keys
 
       if attributes['id'].blank?
         unless reject_new_record?(association_name, attributes)
-          send("build_#{association_name}", attributes.except(*UNASSIGNABLE_KEYS))
+          method = "build_#{association_name}"
+          if respond_to?(method)
+            send(method, attributes.except(*UNASSIGNABLE_KEYS))
+          else
+            raise ArgumentError, "Cannot build association #{association_name}. Are you trying to build a polymorphic one-to-one association?"
+          end
         end
       elsif (existing_record = send(association_name)) && existing_record.id.to_s == attributes['id'].to_s
         assign_to_or_mark_for_destruction(existing_record, attributes, allow_destroy)
@@ -259,7 +274,7 @@ module ActiveRecord
     # Hashes with an <tt>:id</tt> value matching an existing associated record
     # will update that record. Hashes without an <tt>:id</tt> value will build
     # a new record for the association. Hashes with a matching <tt>:id</tt>
-    # value and a <tt>:_delete</tt> key set to a truthy value will mark the
+    # value and a <tt>:_destroy</tt> key set to a truthy value will mark the
     # matched record for destruction.
     #
     # For example:
@@ -267,7 +282,7 @@ module ActiveRecord
     #   assign_nested_attributes_for_collection_association(:people, {
     #     '1' => { :id => '1', :name => 'Peter' },
     #     '2' => { :name => 'John' },
-    #     '3' => { :id => '2', :_delete => true }
+    #     '3' => { :id => '2', :_destroy => true }
     #   })
     #
     # Will update the name of the Person with ID 1, build a new associated
@@ -279,7 +294,7 @@ module ActiveRecord
     #   assign_nested_attributes_for_collection_association(:people, [
     #     { :id => '1', :name => 'Peter' },
     #     { :name => 'John' },
-    #     { :id => '2', :_delete => true }
+    #     { :id => '2', :_destroy => true }
     #   ])
     def assign_nested_attributes_for_collection_association(association_name, attributes_collection, allow_destroy)
       unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
@@ -304,25 +319,26 @@ module ActiveRecord
     end
 
     # Updates a record with the +attributes+ or marks it for destruction if
-    # +allow_destroy+ is +true+ and has_delete_flag? returns +true+.
+    # +allow_destroy+ is +true+ and has_destroy_flag? returns +true+.
     def assign_to_or_mark_for_destruction(record, attributes, allow_destroy)
-      if has_delete_flag?(attributes) && allow_destroy
+      if has_destroy_flag?(attributes) && allow_destroy
         record.mark_for_destruction
       else
         record.attributes = attributes.except(*UNASSIGNABLE_KEYS)
       end
     end
 
-    # Determines if a hash contains a truthy _delete key.
-    def has_delete_flag?(hash)
-      ConnectionAdapters::Column.value_to_boolean hash['_delete']
+    # Determines if a hash contains a truthy _destroy key.
+    def has_destroy_flag?(hash)
+      ConnectionAdapters::Column.value_to_boolean(hash['_destroy']) ||
+      ConnectionAdapters::Column.value_to_boolean(hash['_delete']) # TODO Remove after deprecation.
     end
 
     # Determines if a new record should be build by checking for
-    # has_delete_flag? or if a <tt>:reject_if</tt> proc exists for this
+    # has_destroy_flag? or if a <tt>:reject_if</tt> proc exists for this
     # association and evaluates to +true+.
     def reject_new_record?(association_name, attributes)
-      has_delete_flag?(attributes) ||
+      has_destroy_flag?(attributes) ||
         self.class.reject_new_nested_attributes_procs[association_name].try(:call, attributes)
     end
   end

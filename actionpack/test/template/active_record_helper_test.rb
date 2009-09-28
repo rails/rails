@@ -183,7 +183,7 @@ class ActiveRecordHelperTest < ActionView::TestCase
   end
 
   def test_form_with_action_option
-    @response.body = form("post", :action => "sign")
+    output_buffer << form("post", :action => "sign")
     assert_select "form[action=sign]" do |form|
       assert_select "input[type=submit][value=Sign]"
     end

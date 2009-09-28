@@ -271,6 +271,9 @@ module ActionController
 
     ALLOWED_REQUIREMENTS_FOR_OPTIMISATION = [:controller, :action].to_set
 
+    mattr_accessor :generate_best_match
+    self.generate_best_match = true
+
     # The root paths which may contain controller files
     mattr_accessor :controller_paths
     self.controller_paths = []

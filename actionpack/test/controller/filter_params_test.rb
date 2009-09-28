@@ -18,6 +18,7 @@ class FilterParamTest < Test::Unit::TestCase
     test_hashes = [[{},{},[]],
     [{'foo'=>nil},{'foo'=>nil},[]],
     [{'foo'=>'bar'},{'foo'=>'bar'},[]],
+    [{'foo'=>1},{'foo'=>1},[]],
     [{'foo'=>'bar'},{'foo'=>'bar'},%w'food'],
     [{'foo'=>'bar'},{'foo'=>'[FILTERED]'},%w'foo'],
     [{'foo'=>'bar', 'bar'=>'foo'},{'foo'=>'[FILTERED]', 'bar'=>'foo'},%w'foo baz'],

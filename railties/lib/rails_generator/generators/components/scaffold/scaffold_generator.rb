@@ -19,6 +19,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
     if @name == @name.pluralize && !options[:force_plural]
       logger.warning "Plural version of the model detected, using singularized version.  Override with --force-plural."
       @name = @name.singularize
+      assign_names!(@name)
     end
 
     @controller_name = @name.pluralize

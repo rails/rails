@@ -23,7 +23,11 @@ en:
         less_than_or_equal_to: "must be less than or equal to {{count}}"
         odd: "must be odd"
         even: "must be even"
+        record_invalid: "Validation failed: {{errors}}"
         # Append your own errors here or at the model/attributes scope.
+
+      full_messages:
+        format: "{{attribute}} {{message}}"
 
       # You can define own errors for models or model attributes.
       # The values :model, :attribute and :value are always available for interpolation.

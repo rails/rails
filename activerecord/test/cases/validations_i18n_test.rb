@@ -1,11 +1,83 @@
 require "cases/helper"
 require 'models/topic'
 require 'models/reply'
+require 'models/person'
+
+module ActiveRecordValidationsI18nTestHelper
+  def store_translations(*args)
+    data = args.extract_options!
+    locale = args.shift || 'en'
+    I18n.backend.send(:init_translations)
+    I18n.backend.store_translations(locale, :activerecord => data)
+  end
+
+  def delete_translation(key)
+    I18n.backend.instance_eval do
+      keys = I18n.send(:normalize_translation_keys, 'en', key, nil)
+      keys.inject(translations) { |result, k| keys.last == k ? result.delete(k.to_sym) : result[k.to_sym] }
+    end
+  end
+
+  def reset_callbacks(*models)
+    models.each do |model|
+      model.instance_variable_set("@validate_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+      model.instance_variable_set("@validate_on_create_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+      model.instance_variable_set("@validate_on_update_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+    end
+  end
+end
+
+# DEPRECATIONS
+
+class ActiveRecordValidationsI18nDeprecationsTests < ActiveSupport::TestCase
+  test "default_error_messages is deprecated and can be removed in Rails 3 / ActiveModel" do
+    assert_deprecated('ActiveRecord::Errors.default_error_messages') do
+      ActiveRecord::Errors.default_error_messages
+    end
+  end
+
+  test "%s interpolation syntax in error messages still works" do
+    ActiveSupport::Deprecation.silence do
+      result = I18n.t :does_not_exist, :default => "%s interpolation syntax is deprecated", :value => 'this'
+      assert_equal result, "this interpolation syntax is deprecated"
+    end
+  end
+
+  test "%s interpolation syntax in error messages is deprecated" do
+    assert_deprecated('using %s in messages') do
+      I18n.t :does_not_exist, :default => "%s interpolation syntax is deprected", :value => 'this'
+    end
+  end
+
+  test "%d interpolation syntax in error messages still works" do
+    ActiveSupport::Deprecation.silence do
+      result = I18n.t :does_not_exist, :default => "%d interpolation syntaxes are deprecated", :count => 2
+      assert_equal result, "2 interpolation syntaxes are deprecated"
+    end
+  end
+
+  test "%d interpolation syntax in error messages is deprecated" do
+    assert_deprecated('using %d in messages') do
+      I18n.t :does_not_exist, :default => "%d interpolation syntaxes are deprected", :count => 2
+    end
+  end
+end
+
+
+# ACTIVERECORD VALIDATIONS
+#
+# For each validation:
+#
+# * test expect that it adds an error with the appropriate arguments
+# * test that it looks up the correct default message
 
 class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
+  include ActiveRecordValidationsI18nTestHelper
+
   def setup
-    reset_callbacks Topic
+    reset_callbacks(Topic)
     @topic = Topic.new
+    @reply = Reply.new
     @old_load_path, @old_backend = I18n.load_path, I18n.backend
     I18n.load_path.clear
     I18n.backend = I18n::Backend::Simple.new
@@ -13,13 +85,40 @@ class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
   end
 
   def teardown
-    reset_callbacks Topic
-    I18n.load_path.replace @old_load_path
+    reset_callbacks(Topic)
+    I18n.load_path.replace(@old_load_path)
     I18n.backend = @old_backend
   end
 
+  def expect_error_added(model, attribute, type, options)
+    model.errors.expects(:add).with(attribute, type, options)
+    yield
+    model.valid?
+  end
+
+  def assert_message_translations(model, attribute, type, &block)
+    assert_default_message_translation(model, attribute, type, &block)
+    reset_callbacks(model.class)
+    model.errors.clear
+    assert_custom_message_translation(model, attribute, type, &block)
+  end
+
+  def assert_custom_message_translation(model, attribute, type)
+    store_translations(:errors => { :models => { model.class.name.underscore => { :attributes => { attribute => { type => 'custom message' } } } } })
+    yield
+    model.valid?
+    assert_equal 'custom message', model.errors.on(attribute)
+  end
+
+  def assert_default_message_translation(model, attribute, type)
+    store_translations(:errors => { :messages => { type => 'default message' } })
+    yield
+    model.valid?
+    assert_equal 'default message', model.errors.on(attribute)
+  end
+
   def unique_topic
-    @unique ||= Topic.create :title => 'unique!'
+    @unique ||= Topic.create(:title => 'unique!')
   end
 
   def replied_topic
@@ -30,892 +129,827 @@ class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
     end
   end
 
-  def reset_callbacks(*models)
-    models.each do |model|
-      model.instance_variable_set("@validate_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-      model.instance_variable_set("@validate_on_create_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-      model.instance_variable_set("@validate_on_update_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+  # validates_confirmation_of
+
+  test "#validates_confirmation_of given no custom message" do
+    expect_error_added(@topic, :title, :confirmation, :default => nil) do
+      Topic.validates_confirmation_of :title
+      @topic.title = 'title'
+      @topic.title_confirmation = 'foo'
     end
   end
 
-  def test_default_error_messages_is_deprecated
-    assert_deprecated('ActiveRecord::Errors.default_error_messages') do
-      ActiveRecord::Errors.default_error_messages
+  test "#validates_confirmation_of given a custom message" do
+    expect_error_added(@topic, :title, :confirmation, :default => 'custom') do
+      Topic.validates_confirmation_of :title, :message => 'custom'
+      @topic.title_confirmation = 'foo'
     end
   end
 
-  def test_percent_s_interpolation_syntax_in_error_messages_still_works
-    ActiveSupport::Deprecation.silence do
-      result = I18n.t :does_not_exist, :default => "%s interpolation syntax is deprecated", :value => 'this'
-      assert_equal result, "this interpolation syntax is deprecated"
+  test "#validates_confirmation_of finds the correct message translations" do
+    assert_message_translations(@topic, :title, :confirmation) do
+      Topic.validates_confirmation_of :title
+      @topic.title_confirmation = 'foo'
     end
   end
 
-  def test_percent_s_interpolation_syntax_in_error_messages_is_deprecated
-    assert_deprecated('using %s in messages') do
-      I18n.t :does_not_exist, :default => "%s interpolation syntax is deprecated", :value => 'this'
+  # validates_acceptance_of
+
+  test "#validates_acceptance_of given no custom message" do
+    expect_error_added(@topic, :title, :accepted, :default => nil) do
+      Topic.validates_acceptance_of :title, :allow_nil => false
     end
   end
 
-  def test_percent_d_interpolation_syntax_in_error_messages_still_works
-    ActiveSupport::Deprecation.silence do
-      result = I18n.t :does_not_exist, :default => "%d interpolation syntaxes are deprecated", :count => 2
-      assert_equal result, "2 interpolation syntaxes are deprecated"
+  test "#validates_acceptance_of given a custom message" do
+    expect_error_added(@topic, :title, :accepted, :default => 'custom') do
+      Topic.validates_acceptance_of :title, :message => 'custom', :allow_nil => false
     end
   end
 
-  def test_percent_d_interpolation_syntax_in_error_messages_is_deprecated
-    assert_deprecated('using %d in messages') do
-      I18n.t :does_not_exist, :default => "%d interpolation syntaxes are deprected", :count => 2
+  test "#validates_acceptance_of finds the correct message translations" do
+    assert_message_translations(@topic, :title, :accepted) do
+      Topic.validates_acceptance_of :title, :allow_nil => false
     end
   end
 
-  def test_percent_s_interpolation_syntax_not_changed_when_no_values_were_passed
-    assert_not_deprecated do
-      I18n.t :does_not_exist, :default => "%d interpolation syntaxes are deprected"
+  # validates_presence_of
+
+  test "#validates_presence_of given no custom message" do
+    expect_error_added(@topic, :title, :blank, :default => nil) do
+      Topic.validates_presence_of :title
     end
   end
 
-  # ActiveRecord::Errors
-  def test_errors_generate_message_translates_custom_model_attribute_key
-
-    I18n.expects(:translate).with(
-      :topic,
-      { :count => 1,
-        :default => ['Topic'],
-        :scope => [:activerecord, :models]
-      }
-    ).returns('Topic')
-
-    I18n.expects(:translate).with(
-      :"topic.title",
-      { :count => 1,
-        :default => ['Title'],
-        :scope => [:activerecord, :attributes]
-      }
-    ).returns('Title')
-
-    I18n.expects(:translate).with(
-      :"models.topic.attributes.title.invalid",
-      :value => nil,
-      :scope => [:activerecord, :errors],
-      :default => [
-        :"models.topic.invalid",
-        'default from class def error 1',
-        :"messages.invalid"],
-      :attribute => "Title",
-      :model => "Topic"
-    ).returns('default from class def error 1')
-
-    @topic.errors.generate_message :title, :invalid, :default => 'default from class def error 1'
-  end
-
-  def test_errors_generate_message_translates_custom_model_attribute_keys_with_sti
-
-    I18n.expects(:translate).with(
-      :reply,
-      { :count => 1,
-        :default => [:topic, 'Reply'],
-        :scope => [:activerecord, :models]
-      }
-    ).returns('Reply')
-
-    I18n.expects(:translate).with(
-      :"reply.title",
-      { :count => 1,
-        :default => [:'topic.title', 'Title'],
-        :scope => [:activerecord, :attributes]
-      }
-    ).returns('Title')
-
-    I18n.expects(:translate).with(
-      :"models.reply.attributes.title.invalid",
-      :value => nil,
-      :scope => [:activerecord, :errors],
-      :default => [
-        :"models.reply.invalid",
-        :"models.topic.attributes.title.invalid",
-        :"models.topic.invalid",
-        'default from class def',
-        :"messages.invalid"],
-      :model => 'Reply',
-      :attribute => 'Title'
-    ).returns("default from class def")
-
-    Reply.new.errors.generate_message :title, :invalid, :default => 'default from class def'
-
-  end
-
-  def test_errors_add_on_empty_generates_message
-    @topic.errors.expects(:generate_message).with(:title, :empty, {:default => nil})
-    @topic.errors.add_on_empty :title
-  end
-
-  def test_errors_add_on_empty_generates_message_with_custom_default_message
-    @topic.errors.expects(:generate_message).with(:title, :empty, {:default => 'custom'})
-    @topic.errors.add_on_empty :title, 'custom'
-  end
-
-  def test_errors_add_on_blank_generates_message
-    @topic.errors.expects(:generate_message).with(:title, :blank, {:default => nil})
-    @topic.errors.add_on_blank :title
-  end
-
-  def test_errors_add_on_blank_generates_message_with_custom_default_message
-    @topic.errors.expects(:generate_message).with(:title, :blank, {:default => 'custom'})
-    @topic.errors.add_on_blank :title, 'custom'
-  end
-
-  def test_errors_full_messages_translates_human_attribute_name_for_model_attributes
-    @topic.errors.instance_variable_set :@errors, { 'title' => ['empty'] }
-    I18n.expects(:translate).with(:"topic.title", :default => ['Title'], :scope => [:activerecord, :attributes], :count => 1).returns('Title')
-    @topic.errors.full_messages :locale => 'en'
-  end
-
-  # ActiveRecord::Validations
-  # validates_confirmation_of w/ mocha
-  def test_validates_confirmation_of_generates_message
-    Topic.validates_confirmation_of :title
-    @topic.title_confirmation = 'foo'
-    @topic.errors.expects(:generate_message).with(:title, :confirmation, {:default => nil})
-    @topic.valid?
-  end
-
-  def test_validates_confirmation_of_generates_message_with_custom_default_message
-    Topic.validates_confirmation_of :title, :message => 'custom'
-    @topic.title_confirmation = 'foo'
-    @topic.errors.expects(:generate_message).with(:title, :confirmation, {:default => 'custom'})
-    @topic.valid?
-  end
-
-  # validates_acceptance_of w/ mocha
-
-  def test_validates_acceptance_of_generates_message
-    Topic.validates_acceptance_of :title, :allow_nil => false
-    @topic.errors.expects(:generate_message).with(:title, :accepted, {:default => nil})
-    @topic.valid?
-  end
-
-  def test_validates_acceptance_of_generates_message_with_custom_default_message
-    Topic.validates_acceptance_of :title, :message => 'custom', :allow_nil => false
-    @topic.errors.expects(:generate_message).with(:title, :accepted, {:default => 'custom'})
-    @topic.valid?
-  end
-
-  # validates_presence_of w/ mocha
-
-  def test_validates_presence_of_generates_message
-    Topic.validates_presence_of :title
-    @topic.errors.expects(:generate_message).with(:title, :blank, {:default => nil})
-    @topic.valid?
-  end
-
-  def test_validates_presence_of_generates_message_with_custom_default_message
-    Topic.validates_presence_of :title, :message => 'custom'
-    @topic.errors.expects(:generate_message).with(:title, :blank, {:default => 'custom'})
-    @topic.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_short
-    Topic.validates_length_of :title, :within => 3..5
-    @topic.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => nil})
-    @topic.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_short_and_custom_default_message
-    Topic.validates_length_of :title, :within => 3..5, :too_short => 'custom'
-    @topic.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => 'custom'})
-    @topic.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_long
-    Topic.validates_length_of :title, :within => 3..5
-    @topic.title = 'this title is too long'
-    @topic.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :default => nil})
-    @topic.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_long_and_custom_default_message
-    Topic.validates_length_of :title, :within => 3..5, :too_long => 'custom'
-    @topic.title = 'this title is too long'
-    @topic.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :default => 'custom'})
-    @topic.valid?
-  end
-
-  # validates_length_of :within w/ mocha
-
-  def test_validates_length_of_within_generates_message_with_title_too_short
-    Topic.validates_length_of :title, :within => 3..5
-    @topic.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => nil})
-    @topic.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_short_and_custom_default_message
-    Topic.validates_length_of :title, :within => 3..5, :too_short => 'custom'
-    @topic.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => 'custom'})
-    @topic.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_long
-    Topic.validates_length_of :title, :within => 3..5
-    @topic.title = 'this title is too long'
-    @topic.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :default => nil})
-    @topic.valid?
-  end
-
-  def test_validates_length_of_within_generates_message_with_title_too_long_and_custom_default_message
-    Topic.validates_length_of :title, :within => 3..5, :too_long => 'custom'
-    @topic.title = 'this title is too long'
-    @topic.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :default => 'custom'})
-    @topic.valid?
-  end
-
-  # validates_length_of :is w/ mocha
-
-  def test_validates_length_of_is_generates_message
-    Topic.validates_length_of :title, :is => 5
-    @topic.errors.expects(:generate_message).with(:title, :wrong_length, {:count => 5, :default => nil})
-    @topic.valid?
-  end
-
-  def test_validates_length_of_is_generates_message_with_custom_default_message
-    Topic.validates_length_of :title, :is => 5, :message => 'custom'
-    @topic.errors.expects(:generate_message).with(:title, :wrong_length, {:count => 5, :default => 'custom'})
-    @topic.valid?
-  end
-
-  # validates_uniqueness_of w/ mocha
-
-  def test_validates_uniqueness_of_generates_message
-    Topic.validates_uniqueness_of :title
-    @topic.title = unique_topic.title
-    @topic.errors.expects(:generate_message).with(:title, :taken, {:default => nil, :value => 'unique!'})
-    @topic.valid?
+  test "#validates_presence_of given a custom message" do
+    expect_error_added(@topic, :title, :blank, :default => 'custom') do
+      Topic.validates_presence_of :title, :message => 'custom'
+    end
   end
 
-  def test_validates_uniqueness_of_generates_message_with_custom_default_message
-    Topic.validates_uniqueness_of :title, :message => 'custom'
-    @topic.title = unique_topic.title
-    @topic.errors.expects(:generate_message).with(:title, :taken, {:default => 'custom', :value => 'unique!'})
-    @topic.valid?
+  test "#validates_presence_of finds the correct message translations" do
+    assert_message_translations(@topic, :title, :blank) do
+      Topic.validates_presence_of :title
+    end
   end
 
-  # validates_format_of w/ mocha
+  # validates_length_of :too_short
 
-  def test_validates_format_of_generates_message
-    Topic.validates_format_of :title, :with => /^[1-9][0-9]*$/
-    @topic.title = '72x'
-    @topic.errors.expects(:generate_message).with(:title, :invalid, {:value => '72x', :default => nil})
-    @topic.valid?
+  test "#validates_length_of (:too_short) and no custom message" do
+    expect_error_added(@topic, :title, :too_short, :default => nil, :count => 3) do
+      Topic.validates_length_of :title, :within => 3..5
+    end
   end
 
-  def test_validates_format_of_generates_message_with_custom_default_message
-    Topic.validates_format_of :title, :with => /^[1-9][0-9]*$/, :message => 'custom'
-    @topic.title = '72x'
-    @topic.errors.expects(:generate_message).with(:title, :invalid, {:value => '72x', :default => 'custom'})
-    @topic.valid?
+  test "#validates_length_of (:too_short) and a custom message" do
+    expect_error_added(@topic, :title, :too_short, :default => 'custom', :count => 3) do
+      Topic.validates_length_of :title, :within => 3..5, :too_short => 'custom'
+    end
   end
 
-  # validates_inclusion_of w/ mocha
-
-  def test_validates_inclusion_of_generates_message
-    Topic.validates_inclusion_of :title, :in => %w(a b c)
-    @topic.title = 'z'
-    @topic.errors.expects(:generate_message).with(:title, :inclusion, {:value => 'z', :default => nil})
-    @topic.valid?
-  end
-
-  def test_validates_inclusion_of_generates_message_with_custom_default_message
-    Topic.validates_inclusion_of :title, :in => %w(a b c), :message => 'custom'
-    @topic.title = 'z'
-    @topic.errors.expects(:generate_message).with(:title, :inclusion, {:value => 'z', :default => 'custom'})
-    @topic.valid?
-  end
-
-  # validates_exclusion_of w/ mocha
-
-  def test_validates_exclusion_of_generates_message
-    Topic.validates_exclusion_of :title, :in => %w(a b c)
-    @topic.title = 'a'
-    @topic.errors.expects(:generate_message).with(:title, :exclusion, {:value => 'a', :default => nil})
-    @topic.valid?
-  end
-
-  def test_validates_exclusion_of_generates_message_with_custom_default_message
-    Topic.validates_exclusion_of :title, :in => %w(a b c), :message => 'custom'
-    @topic.title = 'a'
-    @topic.errors.expects(:generate_message).with(:title, :exclusion, {:value => 'a', :default => 'custom'})
-    @topic.valid?
-  end
-
-  # validates_numericality_of without :only_integer w/ mocha
-
-  def test_validates_numericality_of_generates_message
-    Topic.validates_numericality_of :title
-    @topic.title = 'a'
-    @topic.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :default => nil})
-    @topic.valid?
-  end
-
-  def test_validates_numericality_of_generates_message_with_custom_default_message
-    Topic.validates_numericality_of :title, :message => 'custom'
-    @topic.title = 'a'
-    @topic.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :default => 'custom'})
-    @topic.valid?
-  end
-
-  # validates_numericality_of with :only_integer w/ mocha
-
-  def test_validates_numericality_of_only_integer_generates_message
-    Topic.validates_numericality_of :title, :only_integer => true
-    @topic.title = 'a'
-    @topic.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :default => nil})
-    @topic.valid?
-  end
-
-  def test_validates_numericality_of_only_integer_generates_message_with_custom_default_message
-    Topic.validates_numericality_of :title, :only_integer => true, :message => 'custom'
-    @topic.title = 'a'
-    @topic.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :default => 'custom'})
-    @topic.valid?
+  test "#validates_length_of (:too_short) finds the correct message translations" do
+    assert_message_translations(@topic, :title, :too_short) do
+      Topic.validates_length_of :title, :within => 3..5
+    end
   end
-
-  # validates_numericality_of :odd w/ mocha
 
-  def test_validates_numericality_of_odd_generates_message
-    Topic.validates_numericality_of :title, :only_integer => true, :odd => true
-    @topic.title = 0
-    @topic.errors.expects(:generate_message).with(:title, :odd, {:value => 0, :default => nil})
-    @topic.valid?
-  end
+  # validates_length_of :too_long
 
-  def test_validates_numericality_of_odd_generates_message_with_custom_default_message
-    Topic.validates_numericality_of :title, :only_integer => true, :odd => true, :message => 'custom'
-    @topic.title = 0
-    @topic.errors.expects(:generate_message).with(:title, :odd, {:value => 0, :default => 'custom'})
-    @topic.valid?
+  test "#validates_length_of (:too_long) and no custom message" do
+    expect_error_added(@topic, :title, :too_long, :default => nil, :count => 5) do
+      Topic.validates_length_of :title, :within => 3..5
+      @topic.title = 'this title is too long'
+    end
   end
-
-  # validates_numericality_of :less_than w/ mocha
 
-  def test_validates_numericality_of_less_than_generates_message
-    Topic.validates_numericality_of :title, :only_integer => true, :less_than => 0
-    @topic.title = 1
-    @topic.errors.expects(:generate_message).with(:title, :less_than, {:value => 1, :count => 0, :default => nil})
-    @topic.valid?
+  test "#validates_length_of (:too_long) and a custom message" do
+    expect_error_added(@topic, :title, :too_long, :default => 'custom', :count => 5) do
+      Topic.validates_length_of :title, :within => 3..5, :too_long => 'custom'
+      @topic.title = 'this title is too long'
+    end
   end
 
-  def test_validates_numericality_of_odd_generates_message_with_custom_default_message
-    Topic.validates_numericality_of :title, :only_integer => true, :less_than => 0, :message => 'custom'
-    @topic.title = 1
-    @topic.errors.expects(:generate_message).with(:title, :less_than, {:value => 1, :count => 0, :default => 'custom'})
-    @topic.valid?
+  test "#validates_length_of (:too_long) finds the correct message translations" do
+    assert_message_translations(@topic, :title, :too_long) do
+      Topic.validates_length_of :title, :within => 3..5
+      @topic.title = 'this title is too long'
+    end
   end
 
-  # validates_associated w/ mocha
+  # validates_length_of :is
 
-  def test_validates_associated_generates_message
-    Topic.validates_associated :replies
-    replied_topic.errors.expects(:generate_message).with(:replies, :invalid, {:value => replied_topic.replies, :default => nil})
-    replied_topic.valid?
+  test "#validates_length_of (:is) and no custom message" do
+    expect_error_added(@topic, :title, :wrong_length, :default => nil, :count => 5) do
+      Topic.validates_length_of :title, :is => 5
+      @topic.title = 'this title has the wrong length'
+    end
   end
 
-  def test_validates_associated_generates_message_with_custom_default_message
-    Topic.validates_associated :replies
-    replied_topic.errors.expects(:generate_message).with(:replies, :invalid, {:value => replied_topic.replies, :default => nil})
-    replied_topic.valid?
+  test "#validates_length_of (:is) and a custom message" do
+    expect_error_added(@topic, :title, :wrong_length, :default => 'custom', :count => 5) do
+      Topic.validates_length_of :title, :is => 5, :wrong_length => 'custom'
+      @topic.title = 'this title has the wrong length'
+    end
   end
 
-  # validates_confirmation_of w/o mocha
-
-  def test_validates_confirmation_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:confirmation => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:confirmation => 'global message'}}}
-
-    Topic.validates_confirmation_of :title
-    @topic.title_confirmation = 'foo'
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_length_of (:is) finds the correct message translations" do
+    assert_message_translations(@topic, :title, :wrong_length) do
+      Topic.validates_length_of :title, :is => 5
+      @topic.title = 'this title has the wrong length'
+    end
   end
 
-  def test_validates_confirmation_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:confirmation => 'global message'}}}
+  # validates_uniqueness_of
 
-    Topic.validates_confirmation_of :title
-    @topic.title_confirmation = 'foo'
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_uniqueness_of and no custom message" do
+    expect_error_added(@topic, :title, :taken, :default => nil, :value => 'unique!') do
+      Topic.validates_uniqueness_of :title
+      @topic.title = unique_topic.title
+    end
   end
-
-  # validates_acceptance_of w/o mocha
-
-  def test_validates_acceptance_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:accepted => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:accepted => 'global message'}}}
 
-    Topic.validates_acceptance_of :title, :allow_nil => false
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_uniqueness_of and a custom message" do
+    expect_error_added(@topic, :title, :taken, :default => 'custom', :value => 'unique!') do
+      Topic.validates_uniqueness_of :title, :message => 'custom'
+      @topic.title = unique_topic.title
+    end
   end
 
-  def test_validates_acceptance_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:accepted => 'global message'}}}
-
-    Topic.validates_acceptance_of :title, :allow_nil => false
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_uniqueness_of finds the correct message translations" do
+    assert_message_translations(@topic, :title, :taken) do
+      Topic.validates_uniqueness_of :title
+      @topic.title = unique_topic.title
+    end
   end
-
-  # validates_presence_of w/o mocha
 
-  def test_validates_presence_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:blank => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:blank => 'global message'}}}
+  # validates_format_of
 
-    Topic.validates_presence_of :title
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_format_of and no custom message" do
+    expect_error_added(@topic, :title, :invalid, :default => nil, :value => '72x') do
+      Topic.validates_format_of :title, :with => /^[1-9][0-9]*$/
+      @topic.title = '72x'
+    end
   end
 
-  def test_validates_presence_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:blank => 'global message'}}}
-
-    Topic.validates_presence_of :title
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_format_of and a custom message" do
+    expect_error_added(@topic, :title, :invalid, :default => 'custom', :value => '72x') do
+      Topic.validates_format_of :title, :with => /^[1-9][0-9]*$/, :message => 'custom'
+      @topic.title = '72x'
+    end
   end
-
-  # validates_length_of :within w/o mocha
 
-  def test_validates_length_of_within_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:too_short => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:too_short => 'global message'}}}
-
-    Topic.validates_length_of :title, :within => 3..5
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_format_of finds the correct message translations" do
+    assert_message_translations(@topic, :title, :invalid) do
+      Topic.validates_format_of :title, :with => /^[1-9][0-9]*$/
+      @topic.title = '72x'
+    end
   end
 
-  def test_validates_length_of_within_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:too_short => 'global message'}}}
+  # validates_inclusion_of
 
-    Topic.validates_length_of :title, :within => 3..5
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_inclusion_of and no custom message" do
+    list = %w(a b c)
+    expect_error_added(@topic, :title, :inclusion, :default => nil, :value => 'z') do
+      Topic.validates_inclusion_of :title, :in => list
+      @topic.title = 'z'
+    end
   end
-
-  # validates_length_of :is w/o mocha
-
-  def test_validates_length_of_is_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:wrong_length => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:wrong_length => 'global message'}}}
 
-    Topic.validates_length_of :title, :is => 5
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_inclusion_of and a custom message" do
+    list = %w(a b c)
+    expect_error_added(@topic, :title, :inclusion, :default => 'custom', :value => 'z') do
+      Topic.validates_inclusion_of :title, :in => list, :message => 'custom'
+      @topic.title = 'z'
+    end
   end
 
-  def test_validates_length_of_is_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:wrong_length => 'global message'}}}
-
-    Topic.validates_length_of :title, :is => 5
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_inclusion_of finds the correct message translations" do
+    list = %w(a b c)
+    assert_message_translations(@topic, :title, :inclusion) do
+      Topic.validates_inclusion_of :title, :in => list
+      @topic.title = 'z'
+    end
   end
-
-  # validates_uniqueness_of w/o mocha
 
-  def test_validates_length_of_is_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:wrong_length => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:wrong_length => 'global message'}}}
+  # validates_exclusion_of
 
-    Topic.validates_length_of :title, :is => 5
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_exclusion_of and no custom message" do
+    list = %w(a b c)
+    expect_error_added(@topic, :title, :exclusion, :default => nil, :value => 'a') do
+      Topic.validates_exclusion_of :title, :in => list
+      @topic.title = 'a'
+    end
   end
 
-  def test_validates_length_of_is_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:wrong_length => 'global message'}}}
-
-    Topic.validates_length_of :title, :is => 5
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_exclusion_of and a custom message" do
+    list = %w(a b c)
+    expect_error_added(@topic, :title, :exclusion, :default => 'custom', :value => 'a') do
+      Topic.validates_exclusion_of :title, :in => list, :message => 'custom'
+      @topic.title = 'a'
+    end
   end
-
 
-  # validates_format_of w/o mocha
-
-  def test_validates_format_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:invalid => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:invalid => 'global message'}}}
-
-    Topic.validates_format_of :title, :with => /^[1-9][0-9]*$/
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_exclusion_of finds the correct message translations" do
+    list = %w(a b c)
+    assert_message_translations(@topic, :title, :exclusion) do
+      Topic.validates_exclusion_of :title, :in => list
+      @topic.title = 'a'
+    end
   end
 
-  def test_validates_format_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:invalid => 'global message'}}}
+  # validates_numericality_of :not_a_number, without :only_integer
 
-    Topic.validates_format_of :title, :with => /^[1-9][0-9]*$/
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:not_a_number, w/o :only_integer) no custom message" do
+    expect_error_added(@topic, :title, :not_a_number, :default => nil, :value => 'a') do
+      Topic.validates_numericality_of :title
+      @topic.title = 'a'
+    end
   end
-
-  # validates_inclusion_of w/o mocha
 
-  def test_validates_inclusion_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:inclusion => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:inclusion => 'global message'}}}
-
-    Topic.validates_inclusion_of :title, :in => %w(a b c)
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:not_a_number, w/o :only_integer) and a custom message" do
+    expect_error_added(@topic, :title, :not_a_number, :default => 'custom', :value => 'a') do
+      Topic.validates_numericality_of :title, :message => 'custom'
+      @topic.title = 'a'
+    end
   end
-
-  def test_validates_inclusion_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:inclusion => 'global message'}}}
 
-    Topic.validates_inclusion_of :title, :in => %w(a b c)
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:not_a_number, w/o :only_integer) finds the correct message translations" do
+    assert_message_translations(@topic, :title, :not_a_number) do
+      Topic.validates_numericality_of :title
+      @topic.title = 'a'
+    end
   end
 
-  # validates_exclusion_of w/o mocha
+  # validates_numericality_of :not_a_number, with :only_integer
 
-  def test_validates_exclusion_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:exclusion => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:exclusion => 'global message'}}}
-
-    Topic.validates_exclusion_of :title, :in => %w(a b c)
-    @topic.title = 'a'
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:not_a_number, with :only_integer) no custom message" do
+    expect_error_added(@topic, :title, :not_a_number, :default => nil, :value => 'a') do
+      Topic.validates_numericality_of :title, :only_integer => true
+      @topic.title = 'a'
+    end
   end
-
-  def test_validates_exclusion_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:exclusion => 'global message'}}}
 
-    Topic.validates_exclusion_of :title, :in => %w(a b c)
-    @topic.title = 'a'
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:not_a_number, with :only_integer) and a custom message" do
+    expect_error_added(@topic, :title, :not_a_number, :default => 'custom', :value => 'a') do
+      Topic.validates_numericality_of :title, :only_integer => true, :message => 'custom'
+      @topic.title = 'a'
+    end
   end
 
-  # validates_numericality_of without :only_integer w/o mocha
-
-  def test_validates_numericality_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:not_a_number => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:not_a_number => 'global message'}}}
-
-    Topic.validates_numericality_of :title
-    @topic.title = 'a'
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:not_a_number, with :only_integer) finds the correct message translations" do
+    assert_message_translations(@topic, :title, :not_a_number) do
+      Topic.validates_numericality_of :title, :only_integer => true
+      @topic.title = 'a'
+    end
   end
 
-  def test_validates_numericality_of_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:not_a_number => 'global message'}}}
+  # validates_numericality_of :odd
 
-    Topic.validates_numericality_of :title, :only_integer => true
-    @topic.title = 'a'
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:odd) no custom message" do
+    expect_error_added(@topic, :title, :odd, :default => nil, :value => 0) do
+      Topic.validates_numericality_of :title, :only_integer => true, :odd => true
+      @topic.title = 0
+    end
   end
-
-  # validates_numericality_of with :only_integer w/o mocha
 
-  def test_validates_numericality_of_only_integer_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:not_a_number => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:not_a_number => 'global message'}}}
-
-    Topic.validates_numericality_of :title, :only_integer => true
-    @topic.title = 'a'
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:odd) and a custom message" do
+    expect_error_added(@topic, :title, :odd, :default => 'custom', :value => 0) do
+      Topic.validates_numericality_of :title, :only_integer => true, :odd => true, :message => 'custom'
+      @topic.title = 0
+    end
   end
-
-  def test_validates_numericality_of_only_integer_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:not_a_number => 'global message'}}}
 
-    Topic.validates_numericality_of :title, :only_integer => true
-    @topic.title = 'a'
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:odd) finds the correct message translations" do
+    assert_message_translations(@topic, :title, :odd) do
+      Topic.validates_numericality_of :title, :only_integer => true, :odd => true
+      @topic.title = 0
+    end
   end
 
-  # validates_numericality_of :odd w/o mocha
+  # validates_numericality_of :even
 
-  def test_validates_numericality_of_odd_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:odd => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:odd => 'global message'}}}
-
-    Topic.validates_numericality_of :title, :only_integer => true, :odd => true
-    @topic.title = 0
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:even) no custom message" do
+    expect_error_added(@topic, :title, :even, :default => nil, :value => 1) do
+      Topic.validates_numericality_of :title, :only_integer => true, :even => true
+      @topic.title = 1
+    end
   end
-
-  def test_validates_numericality_of_odd_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:odd => 'global message'}}}
 
-    Topic.validates_numericality_of :title, :only_integer => true, :odd => true
-    @topic.title = 0
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:even) and a custom message" do
+    expect_error_added(@topic, :title, :even, :default => 'custom', :value => 1) do
+      Topic.validates_numericality_of :title, :only_integer => true, :even => true, :message => 'custom'
+      @topic.title = 1
+    end
   end
 
-  # validates_numericality_of :less_than w/o mocha
-
-  def test_validates_numericality_of_less_than_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:less_than => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:less_than => 'global message'}}}
-
-    Topic.validates_numericality_of :title, :only_integer => true, :less_than => 0
-    @topic.title = 1
-    @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:even) finds the correct message translations" do
+    assert_message_translations(@topic, :title, :even) do
+      Topic.validates_numericality_of :title, :only_integer => true, :even => true
+      @topic.title = 1
+    end
   end
 
-  def test_validates_numericality_of_less_than_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:less_than => 'global message'}}}
+  # validates_numericality_of :less_than
 
-    Topic.validates_numericality_of :title, :only_integer => true, :less_than => 0
-    @topic.title = 1
-    @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+  test "#validates_numericality_of (:less_than) no custom message" do
+    expect_error_added(@topic, :title, :less_than, :default => nil, :value => 1, :count => 0) do
+      Topic.validates_numericality_of :title, :only_integer => true, :less_than => 0
+      @topic.title = 1
+    end
   end
-
-
-  # validates_associated w/o mocha
 
-  def test_validates_associated_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:replies => {:invalid => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:invalid => 'global message'}}}
-
-    Topic.validates_associated :replies
-    replied_topic.valid?
-    assert_equal 'custom message', replied_topic.errors.on(:replies)
+  test "#validates_numericality_of (:less_than) and a custom message" do
+    expect_error_added(@topic, :title, :less_than, :default => 'custom', :value => 1, :count => 0) do
+      Topic.validates_numericality_of :title, :only_integer => true, :less_than => 0, :message => 'custom'
+      @topic.title = 1
+    end
   end
-
-  def test_validates_associated_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:invalid => 'global message'}}}
 
-    Topic.validates_associated :replies
-    replied_topic.valid?
-    assert_equal 'global message', replied_topic.errors.on(:replies)
+  test "#validates_numericality_of (:less_than) finds the correct message translations" do
+    assert_message_translations(@topic, :title, :less_than) do
+      Topic.validates_numericality_of :title, :only_integer => true, :less_than => 0
+      @topic.title = 1
+    end
   end
 
-  def test_validations_with_message_symbol_must_translate
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:custom_error => "I am a custom error"}}}
-    Topic.validates_presence_of :title, :message => :custom_error
-    @topic.title = nil
-    @topic.valid?
-    assert_equal "I am a custom error", @topic.errors.on(:title)
-  end
+  # validates_associated
 
-  def test_validates_with_message_symbol_must_translate_per_attribute
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:custom_error => "I am a custom error"}}}}}}
-    Topic.validates_presence_of :title, :message => :custom_error
-    @topic.title = nil
-    @topic.valid?
-    assert_equal "I am a custom error", @topic.errors.on(:title)
+  test "#validates_associated no custom message" do
+    expect_error_added(replied_topic, :replies, :invalid, :default => nil, :value => replied_topic.replies) do
+      Topic.validates_associated :replies
+    end
   end
 
-  def test_validates_with_message_symbol_must_translate_per_model
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:custom_error => "I am a custom error"}}}}
-    Topic.validates_presence_of :title, :message => :custom_error
-    @topic.title = nil
-    @topic.valid?
-    assert_equal "I am a custom error", @topic.errors.on(:title)
+  test "#validates_associated and a custom message" do
+    expect_error_added(replied_topic, :replies, :invalid, :default => 'custom', :value => replied_topic.replies) do
+      Topic.validates_associated :replies, :message => 'custom'
+    end
   end
 
-  def test_validates_with_message_string
-    Topic.validates_presence_of :title, :message => "I am a custom error"
-    @topic.title = nil
-    @topic.valid?
-    assert_equal "I am a custom error", @topic.errors.on(:title)
+  test "#validates_associated finds the correct message translations" do
+    assert_message_translations(replied_topic, :replies, :invalid) do
+      Topic.validates_associated :replies
+    end
   end
-
 end
 
-class ActiveRecordValidationsGenerateMessageI18nTests < Test::Unit::TestCase
+
+# ACTIVERECORD ERROR
+#
+# * test that it passes given interpolation arguments, the human model name and human attribute name
+# * test that it looks messages up with the the correct keys
+# * test that it looks up the correct default messages
+
+class ActiveRecordErrorI18nTests < ActiveSupport::TestCase
+  include ActiveRecordValidationsI18nTestHelper
+
   def setup
-    reset_callbacks Topic
-    @topic = Topic.new
-    I18n.backend.store_translations :'en', {
-      :activerecord => {
-        :errors => {
-          :messages => {
-            :inclusion => "is not included in the list",
-            :exclusion => "is reserved",
-            :invalid => "is invalid",
-            :confirmation => "doesn't match confirmation",
-            :accepted  => "must be accepted",
-            :empty => "can't be empty",
-            :blank => "can't be blank",
-            :too_long => "is too long (maximum is {{count}} characters)",
-            :too_short => "is too short (minimum is {{count}} characters)",
-            :wrong_length => "is the wrong length (should be {{count}} characters)",
-            :taken => "has already been taken",
-            :not_a_number => "is not a number",
-            :greater_than => "must be greater than {{count}}",
-            :greater_than_or_equal_to => "must be greater than or equal to {{count}}",
-            :equal_to => "must be equal to {{count}}",
-            :less_than => "must be less than {{count}}",
-            :less_than_or_equal_to => "must be less than or equal to {{count}}",
-            :odd => "must be odd",
-            :even => "must be even"
-          }
-        }
-      }
-    }
+    @reply = Reply.new
+    @old_backend, I18n.backend = I18n.backend, I18n::Backend::Simple.new
   end
 
-  def reset_callbacks(*models)
-    models.each do |model|
-      model.instance_variable_set("@validate_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-      model.instance_variable_set("@validate_on_create_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-      model.instance_variable_set("@validate_on_update_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+  def teardown
+    I18n.backend = @old_backend
+    I18n.locale = nil
+  end
+
+  def assert_error_message(message, *args)
+    assert_equal message, ActiveRecord::Error.new(@reply, *args).message
+  end
+
+  def assert_full_message(message, *args)
+    assert_equal message, ActiveRecord::Error.new(@reply, *args).full_message
+  end
+
+  test "#generate_message passes the model attribute value for interpolation" do
+    store_translations(:errors => { :messages => { :foo => "You fooed: {{value}}." } })
+    @reply.title = "da title"
+    assert_error_message 'You fooed: da title.', :title, :foo
+  end
+
+  test "#generate_message passes the human_name of the model for interpolation" do
+    store_translations(
+      :errors => { :messages => { :foo => "You fooed: {{model}}." } },
+      :models => { :topic => 'da topic' }
+    )
+    assert_error_message 'You fooed: da topic.', :title, :foo
+  end
+
+  test "#generate_message passes the human_name of the attribute for interpolation" do
+    store_translations(
+      :errors => { :messages => { :foo => "You fooed: {{attribute}}." } },
+      :attributes => { :topic => { :title => 'da topic title' } }
+    )
+    assert_error_message 'You fooed: da topic title.', :title, :foo
+  end
+
+  # generate_message will look up the key for the error message (e.g. :blank) in these namespaces:
+  #
+  #   activerecord.errors.models.reply.attributes.title
+  #   activerecord.errors.models.reply
+  #   activerecord.errors.models.topic.attributes.title
+  #   activerecord.errors.models.topic
+  #   [default from class level :validates_foo statement if this is a String]
+  #   activerecord.errors.messages
+
+  test "#generate_message key fallbacks (given a String as key)" do
+    store_translations(
+      :errors => {
+        :models => {
+          :reply => {
+            :attributes => { :title => { :custom => 'activerecord.errors.models.reply.attributes.title.custom' } },
+            :custom => 'activerecord.errors.models.reply.custom'
+          },
+          :topic => {
+            :attributes => { :title => { :custom => 'activerecord.errors.models.topic.attributes.title.custom' } },
+            :custom => 'activerecord.errors.models.topic.custom'
+          }
+        },
+        :messages => {
+          :custom => 'activerecord.errors.messages.custom',
+          :kaputt => 'activerecord.errors.messages.kaputt'
+        }
+      }
+    )
+
+    assert_error_message 'activerecord.errors.models.reply.attributes.title.custom', :title, :kaputt, :message => 'custom'
+    delete_translation  :'activerecord.errors.models.reply.attributes.title.custom'
+
+    assert_error_message 'activerecord.errors.models.reply.custom', :title, :kaputt, :message => 'custom'
+    delete_translation  :'activerecord.errors.models.reply.custom'
+
+    assert_error_message 'activerecord.errors.models.topic.attributes.title.custom', :title, :kaputt, :message => 'custom'
+    delete_translation  :'activerecord.errors.models.topic.attributes.title.custom'
+
+    assert_error_message 'activerecord.errors.models.topic.custom', :title, :kaputt, :message => 'custom'
+    delete_translation  :'activerecord.errors.models.topic.custom'
+
+    assert_error_message 'activerecord.errors.messages.custom', :title, :kaputt, :message => 'custom'
+    delete_translation  :'activerecord.errors.messages.custom'
+
+    # Implementing this would clash with the AR default behaviour of using validates_foo :message => 'foo'
+    # as an untranslated string. I.e. at this point we can either fall back to the given string from the
+    # class-level macro (validates_*) or fall back to the default message for this validation type.
+    # assert_error_message 'activerecord.errors.messages.kaputt', :title, :kaputt, :message => 'custom'
+
+    assert_error_message 'custom', :title, :kaputt, :message => 'custom'
+  end
+
+  test "#generate_message key fallbacks (given a Symbol as key)" do
+    store_translations(
+      :errors => {
+        :models => {
+          :reply => {
+            :attributes => { :title => { :kaputt => 'activerecord.errors.models.reply.attributes.title.kaputt' } },
+            :kaputt => 'activerecord.errors.models.reply.kaputt'
+          },
+          :topic => {
+            :attributes => { :title => { :kaputt => 'activerecord.errors.models.topic.attributes.title.kaputt' } },
+            :kaputt => 'activerecord.errors.models.topic.kaputt'
+          }
+        },
+        :messages => {
+          :kaputt => 'activerecord.errors.messages.kaputt'
+        }
+      }
+    )
+
+    assert_error_message 'activerecord.errors.models.reply.attributes.title.kaputt', :title, :kaputt
+    delete_translation  :'activerecord.errors.models.reply.attributes.title.kaputt'
+
+    assert_error_message 'activerecord.errors.models.reply.kaputt', :title, :kaputt
+    delete_translation  :'activerecord.errors.models.reply.kaputt'
+
+    assert_error_message 'activerecord.errors.models.topic.attributes.title.kaputt', :title, :kaputt
+    delete_translation  :'activerecord.errors.models.topic.attributes.title.kaputt'
+
+    assert_error_message 'activerecord.errors.models.topic.kaputt', :title, :kaputt
+    delete_translation  :'activerecord.errors.models.topic.kaputt'
+
+    assert_error_message 'activerecord.errors.messages.kaputt', :title, :kaputt
+  end
+
+  # full_messages
+
+  test "#full_message with no format present" do
+    store_translations(:errors => { :messages => { :kaputt => 'is kaputt' } })
+    assert_full_message 'Title is kaputt', :title, :kaputt
+  end
+
+  test "#full_message with a format present" do
+    store_translations(:errors => { :messages => { :kaputt => 'is kaputt' }, :full_messages => { :format => '{{attribute}}: {{message}}' } })
+    assert_full_message 'Title: is kaputt', :title, :kaputt
+  end
+
+  test "#full_message with a type specific format present" do
+    store_translations(:errors => { :messages => { :kaputt => 'is kaputt' }, :full_messages => { :kaputt => '{{attribute}} {{message}}!' } })
+    assert_full_message 'Title is kaputt!', :title, :kaputt
+  end
+
+  test "#full_message with class-level specified custom message" do
+    store_translations(:errors => { :messages => { :broken => 'is kaputt' }, :full_messages => { :broken => '{{attribute}} {{message}}?!' } })
+    assert_full_message 'Title is kaputt?!', :title, :kaputt, :message => :broken
+  end
+
+  test "#full_message with different scope" do
+    store_translations(:my_errors => { :messages => { :kaputt => 'is kaputt' } })
+    assert_full_message 'Title is kaputt', :title, :kaputt, :scope => [:activerecord, :my_errors]
+
+    store_translations(:my_errors => { :full_messages => { :kaputt => '{{attribute}} {{message}}!' } })
+    assert_full_message 'Title is kaputt!', :title, :kaputt, :scope => [:activerecord, :my_errors]
+  end
+
+  # switch locales
+
+  test "#message allows to switch locales" do
+    store_translations(:en, :errors => { :messages => { :kaputt => 'is kaputt' } })
+    store_translations(:de, :errors => { :messages => { :kaputt => 'ist kaputt' } })
+
+    assert_error_message 'is kaputt', :title, :kaputt
+    I18n.locale = :de
+    assert_error_message 'ist kaputt', :title, :kaputt
+    I18n.locale = :en
+    assert_error_message 'is kaputt', :title, :kaputt
+  end
+
+  test "#full_message allows to switch locales" do
+    store_translations(:en, :errors => { :messages => { :kaputt => 'is kaputt' } }, :attributes => { :topic => { :title => 'The title' } })
+    store_translations(:de, :errors => { :messages => { :kaputt => 'ist kaputt' } }, :attributes => { :topic => { :title => 'Der Titel' } })
+
+    assert_full_message 'The title is kaputt', :title, :kaputt
+    I18n.locale = :de
+    assert_full_message 'Der Titel ist kaputt', :title, :kaputt
+    I18n.locale = :en
+    assert_full_message 'The title is kaputt', :title, :kaputt
+  end
+end
+
+# ACTIVERECORD DEFAULT ERROR MESSAGES
+#
+# * test that Error generates the default error messages
+
+class ActiveRecordDefaultErrorMessagesI18nTests < ActiveSupport::TestCase
+  def assert_default_error_message(message, *args)
+    assert_equal message, error_message(*args)
+  end
+
+  def error_message(*args)
+    ActiveRecord::Error.new(Topic.new, :title, *args).message
+  end
+
+  # used by: validates_inclusion_of
+  test "default error message: inclusion" do
+    assert_default_error_message 'is not included in the list', :inclusion, :value => 'title'
+  end
+
+  # used by: validates_exclusion_of
+  test "default error message: exclusion" do
+    assert_default_error_message 'is reserved', :exclusion, :value => 'title'
+  end
+
+  # used by: validates_associated and validates_format_of
+  test "default error message: invalid" do
+    assert_default_error_message 'is invalid', :invalid, :value => 'title'
+  end
+
+  # used by: validates_confirmation_of
+  test "default error message: confirmation" do
+    assert_default_error_message "doesn't match confirmation", :confirmation, :default => nil
+  end
+
+  # used by: validates_acceptance_of
+  test "default error message: accepted" do
+    assert_default_error_message "must be accepted", :accepted
+  end
+
+  # used by: add_on_empty
+  test "default error message: empty" do
+    assert_default_error_message "can't be empty", :empty
+  end
+
+  # used by: add_on_blank
+  test "default error message: blank" do
+    assert_default_error_message "can't be blank", :blank
+  end
+
+  # used by: validates_length_of
+  test "default error message: too_long" do
+    assert_default_error_message "is too long (maximum is 10 characters)", :too_long, :count => 10
+  end
+
+  # used by: validates_length_of
+  test "default error message: too_short" do
+    assert_default_error_message "is too short (minimum is 10 characters)", :too_short, :count => 10
+  end
+
+  # used by: validates_length_of
+  test "default error message: wrong_length" do
+    assert_default_error_message "is the wrong length (should be 10 characters)", :wrong_length, :count => 10
+  end
+
+  # used by: validates_uniqueness_of
+  test "default error message: taken" do
+    assert_default_error_message "has already been taken", :taken, :value => 'title'
+  end
+
+  # used by: validates_numericality_of
+  test "default error message: not_a_number" do
+    assert_default_error_message "is not a number", :not_a_number, :value => 'title'
+  end
+
+  # used by: validates_numericality_of
+  test "default error message: greater_than" do
+    assert_default_error_message "must be greater than 10", :greater_than, :value => 'title', :count => 10
+  end
+
+  # used by: validates_numericality_of
+  test "default error message: greater_than_or_equal_to" do
+    assert_default_error_message "must be greater than or equal to 10", :greater_than_or_equal_to, :value => 'title', :count => 10
+  end
+
+  # used by: validates_numericality_of
+  test "default error message: equal_to" do
+    assert_default_error_message "must be equal to 10", :equal_to, :value => 'title', :count => 10
+  end
+
+  # used by: validates_numericality_of
+  test "default error message: less_than" do
+    assert_default_error_message "must be less than 10", :less_than, :value => 'title', :count => 10
+  end
+
+  # used by: validates_numericality_of
+  test "default error message: less_than_or_equal_to" do
+    assert_default_error_message "must be less than or equal to 10", :less_than_or_equal_to, :value => 'title', :count => 10
+  end
+
+  # used by: validates_numericality_of
+  test "default error message: odd" do
+    assert_default_error_message "must be odd", :odd, :value => 'title', :count => 10
+  end
+
+  # used by: validates_numericality_of
+  test "default error message: even" do
+    assert_default_error_message "must be even", :even, :value => 'title', :count => 10
+  end
+
+  test "custom message string interpolation" do
+    assert_equal 'custom message title', error_message(:invalid, :default => 'custom message {{value}}', :value => 'title')
+  end
+end
+
+# ACTIVERECORD VALIDATION ERROR MESSAGES - FULL STACK
+#
+# * test a few combinations full stack to ensure the tests above are correct
+
+class I18nPerson < Person
+end
+
+class ActiveRecordValidationsI18nFullStackTests < ActiveSupport::TestCase
+  include ActiveRecordValidationsI18nTestHelper
+
+  def setup
+    reset_callbacks(I18nPerson)
+    @old_backend, I18n.backend = I18n.backend, I18n::Backend::Simple.new
+    @person = I18nPerson.new
+  end
+
+  def teardown
+    reset_callbacks(I18nPerson)
+    I18n.backend = @old_backend
+  end
+
+  def assert_name_invalid(message)
+    yield
+    @person.valid?
+    assert_equal message, @person.errors.on(:name)
+  end
+
+  # Symbols as class-level validation messages
+
+  test "Symbol as class level validation message translated per attribute (translation on child class)" do
+    assert_name_invalid("is broken") do
+      store_translations :errors => {:models => {:i18n_person => {:attributes => {:name => {:broken => "is broken"}}}}}
+      I18nPerson.validates_presence_of :name, :message => :broken
     end
   end
 
-  # validates_inclusion_of: generate_message(attr_name, :inclusion, :default => configuration[:message], :value => value)
-  def test_generate_message_inclusion_with_default_message
-    assert_equal 'is not included in the list', @topic.errors.generate_message(:title, :inclusion, :default => nil, :value => 'title')
+  test "Symbol as class level validation message translated per attribute (translation on base class)" do
+    assert_name_invalid("is broken") do
+      store_translations :errors => {:models => {:person => {:attributes => {:name => {:broken => "is broken"}}}}}
+      I18nPerson.validates_presence_of :name, :message => :broken
+    end
   end
 
-  def test_generate_message_inclusion_with_custom_message
-    assert_equal 'custom message title', @topic.errors.generate_message(:title, :inclusion, :default => 'custom message {{value}}', :value => 'title')
+  test "Symbol as class level validation message translated per model (translation on child class)" do
+    assert_name_invalid("is broken") do
+      store_translations :errors => {:models => {:i18n_person => {:broken => "is broken"}}}
+      I18nPerson.validates_presence_of :name, :message => :broken
+    end
   end
 
-  # validates_exclusion_of: generate_message(attr_name, :exclusion, :default => configuration[:message], :value => value)
-  def test_generate_message_exclusion_with_default_message
-    assert_equal 'is reserved', @topic.errors.generate_message(:title, :exclusion, :default => nil, :value => 'title')
+  test "Symbol as class level validation message translated per model (translation on base class)" do
+    assert_name_invalid("is broken") do
+      store_translations :errors => {:models => {:person => {:broken => "is broken"}}}
+      I18nPerson.validates_presence_of :name, :message => :broken
+    end
   end
 
-  def test_generate_message_exclusion_with_custom_message
-    assert_equal 'custom message title', @topic.errors.generate_message(:title, :exclusion, :default => 'custom message {{value}}', :value => 'title')
+  test "Symbol as class level validation message translated as error message" do
+    assert_name_invalid("is broken") do
+      store_translations :errors => {:messages => {:broken => "is broken"}}
+      I18nPerson.validates_presence_of :name, :message => :broken
+    end
   end
 
-  # validates_associated: generate_message(attr_name, :invalid, :default => configuration[:message], :value => value)
-  # validates_format_of:  generate_message(attr_name, :invalid, :default => configuration[:message], :value => value)
-  def test_generate_message_invalid_with_default_message
-    assert_equal 'is invalid', @topic.errors.generate_message(:title, :invalid, :default => nil, :value => 'title')
+  # Strings as class-level validation messages
+
+  test "String as class level validation message translated per attribute (translation on child class)" do
+    assert_name_invalid("is broken") do
+      store_translations :errors => {:models => {:i18n_person => {:attributes => {:name => {"is broken" => "is broken"}}}}}
+      I18nPerson.validates_presence_of :name, :message => "is broken"
+    end
   end
 
-  def test_generate_message_invalid_with_custom_message
-    assert_equal 'custom message title', @topic.errors.generate_message(:title, :invalid, :default => 'custom message {{value}}', :value => 'title')
+  test "String as class level validation message translated per attribute (translation on base class)" do
+    assert_name_invalid("is broken") do
+      store_translations :errors => {:models => {:person => {:attributes => {:name => {"is broken" => "is broken"}}}}}
+      I18nPerson.validates_presence_of :name, :message => "is broken"
+    end
   end
 
-  # validates_confirmation_of: generate_message(attr_name, :confirmation, :default => configuration[:message])
-  def test_generate_message_confirmation_with_default_message
-    assert_equal "doesn't match confirmation", @topic.errors.generate_message(:title, :confirmation, :default => nil)
+  test "String as class level validation message translated per model (translation on child class)" do
+    assert_name_invalid("is broken") do
+      store_translations :errors => {:models => {:i18n_person => {"is broken" => "is broken"}}}
+      I18nPerson.validates_presence_of :name, :message => "is broken"
+    end
   end
 
-  def test_generate_message_confirmation_with_custom_message
-    assert_equal 'custom message', @topic.errors.generate_message(:title, :confirmation, :default => 'custom message')
+  test "String as class level validation message translated per model (translation on base class)" do
+    assert_name_invalid("is broken") do
+      store_translations :errors => {:models => {:person => {"is broken" => "is broken"}}}
+      I18nPerson.validates_presence_of :name, :message => "is broken"
+    end
   end
 
-  # validates_acceptance_of: generate_message(attr_name, :accepted, :default => configuration[:message])
-  def test_generate_message_accepted_with_default_message
-    assert_equal "must be accepted", @topic.errors.generate_message(:title, :accepted, :default => nil)
+  test "String as class level validation message translated as error message" do
+    assert_name_invalid("is broken") do
+      store_translations :errors => {:messages => {"is broken" => "is broken"}}
+      I18nPerson.validates_presence_of :name, :message => "is broken"
+    end
   end
 
-  def test_generate_message_accepted_with_custom_message
-    assert_equal 'custom message', @topic.errors.generate_message(:title, :accepted, :default => 'custom message')
+  test "String as class level validation message not translated (uses message as default)" do
+    assert_name_invalid("is broken!") do
+      I18nPerson.validates_presence_of :name, :message => "is broken!"
+    end
+  end
+end
+
+class ActiveRecordValidationsI18nFullMessagesFullStackTests < ActiveSupport::TestCase
+  include ActiveRecordValidationsI18nTestHelper
+
+  def setup
+    reset_callbacks(I18nPerson)
+    @old_backend, I18n.backend = I18n.backend, I18n::Backend::Simple.new
+    @person = I18nPerson.new
   end
 
-  # add_on_empty: generate_message(attr, :empty, :default => custom_message)
-  def test_generate_message_empty_with_default_message
-    assert_equal "can't be empty", @topic.errors.generate_message(:title, :empty, :default => nil)
+  def teardown
+    reset_callbacks(I18nPerson)
+    I18n.backend = @old_backend
   end
 
-  def test_generate_message_empty_with_custom_message
-    assert_equal 'custom message', @topic.errors.generate_message(:title, :empty, :default => 'custom message')
+  def assert_full_message(message)
+    yield
+    @person.valid?
+    assert_equal message, @person.errors.full_messages.join
   end
 
-  # add_on_blank: generate_message(attr, :blank, :default => custom_message)
-  def test_generate_message_blank_with_default_message
-    assert_equal "can't be blank", @topic.errors.generate_message(:title, :blank, :default => nil)
+  test "full_message format stored per custom error message key" do
+    assert_full_message("Name is broken!") do
+      store_translations :errors => { :messages => { :broken => 'is broken' }, :full_messages => { :broken => '{{attribute}} {{message}}!' } }
+      I18nPerson.validates_presence_of :name, :message => :broken
+    end
   end
 
-  def test_generate_message_blank_with_custom_message
-    assert_equal 'custom message', @topic.errors.generate_message(:title, :blank, :default => 'custom message')
+  test "full_message format stored per error type" do
+    assert_full_message("Name can't be blank!") do
+      store_translations :errors => { :full_messages => { :blank => '{{attribute}} {{message}}!' } }
+      I18nPerson.validates_presence_of :name
+    end
   end
+  # ActiveRecord#RecordInvalid exception
 
-  # validates_length_of: generate_message(attr, :too_long, :default => options[:too_long], :count => option_value.end)
-  def test_generate_message_too_long_with_default_message
-    assert_equal "is too long (maximum is 10 characters)", @topic.errors.generate_message(:title, :too_long, :default => nil, :count => 10)
+  test "full_message format stored as default" do
+    assert_full_message("Name: can't be blank") do
+      store_translations :errors => { :full_messages => { :format => '{{attribute}}: {{message}}' } }
+      I18nPerson.validates_presence_of :name
+    end
   end
-
-  def test_generate_message_too_long_with_custom_message
-    assert_equal 'custom message 10', @topic.errors.generate_message(:title, :too_long, :default => 'custom message {{count}}', :count => 10)
+  test "RecordInvalid exception can be localized" do
+    topic = Topic.new
+    topic.errors.add(:title, :invalid)
+    topic.errors.add(:title, :blank)
+    assert_equal "Validation failed: Title is invalid, Title can't be blank", ActiveRecord::RecordInvalid.new(topic).message
   end
-
-  # validates_length_of: generate_message(attr, :too_short, :default => options[:too_short], :count => option_value.begin)
-  def test_generate_message_too_short_with_default_message
-    assert_equal "is too short (minimum is 10 characters)", @topic.errors.generate_message(:title, :too_short, :default => nil, :count => 10)
-  end
-
-  def test_generate_message_too_short_with_custom_message
-    assert_equal 'custom message 10', @topic.errors.generate_message(:title, :too_short, :default => 'custom message {{count}}', :count => 10)
-  end
-
-  # validates_length_of: generate_message(attr, key, :default => custom_message, :count => option_value)
-  def test_generate_message_wrong_length_with_default_message
-    assert_equal "is the wrong length (should be 10 characters)", @topic.errors.generate_message(:title, :wrong_length, :default => nil, :count => 10)
-  end
-
-  def test_generate_message_wrong_length_with_custom_message
-    assert_equal 'custom message 10', @topic.errors.generate_message(:title, :wrong_length, :default => 'custom message {{count}}', :count => 10)
-  end
-
-  # validates_uniqueness_of: generate_message(attr_name, :taken, :default => configuration[:message])
-  def test_generate_message_taken_with_default_message
-    assert_equal "has already been taken", @topic.errors.generate_message(:title, :taken, :default => nil, :value => 'title')
-  end
-
-  def test_generate_message_taken_with_custom_message
-    assert_equal 'custom message title', @topic.errors.generate_message(:title, :taken, :default => 'custom message {{value}}', :value => 'title')
-  end
-
-  # validates_numericality_of: generate_message(attr_name, :not_a_number, :value => raw_value, :default => configuration[:message])
-  def test_generate_message_not_a_number_with_default_message
-    assert_equal "is not a number", @topic.errors.generate_message(:title, :not_a_number, :default => nil, :value => 'title')
-  end
-
-  def test_generate_message_not_a_number_with_custom_message
-    assert_equal 'custom message title', @topic.errors.generate_message(:title, :not_a_number, :default => 'custom message {{value}}', :value => 'title')
-  end
-
-  # validates_numericality_of: generate_message(attr_name, option, :value => raw_value, :default => configuration[:message])
-  def test_generate_message_greater_than_with_default_message
-    assert_equal "must be greater than 10", @topic.errors.generate_message(:title, :greater_than, :default => nil, :value => 'title', :count => 10)
-  end
-
-  def test_generate_message_greater_than_or_equal_to_with_default_message
-    assert_equal "must be greater than or equal to 10", @topic.errors.generate_message(:title, :greater_than_or_equal_to, :default => nil, :value => 'title', :count => 10)
-  end
-
-  def test_generate_message_equal_to_with_default_message
-    assert_equal "must be equal to 10", @topic.errors.generate_message(:title, :equal_to, :default => nil, :value => 'title', :count => 10)
-  end
-
-  def test_generate_message_less_than_with_default_message
-    assert_equal "must be less than 10", @topic.errors.generate_message(:title, :less_than, :default => nil, :value => 'title', :count => 10)
-  end
-
-  def test_generate_message_less_than_or_equal_to_with_default_message
-    assert_equal "must be less than or equal to 10", @topic.errors.generate_message(:title, :less_than_or_equal_to, :default => nil, :value => 'title', :count => 10)
-  end
-
-  def test_generate_message_odd_with_default_message
-    assert_equal "must be odd", @topic.errors.generate_message(:title, :odd, :default => nil, :value => 'title', :count => 10)
-  end
-
-  def test_generate_message_even_with_default_message
-    assert_equal "must be even", @topic.errors.generate_message(:title, :even, :default => nil, :value => 'title', :count => 10)
-  end
-
 end

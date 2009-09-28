@@ -39,13 +39,7 @@ class TestJSONDecoding < ActiveSupport::TestCase
   ActiveSupport::JSON.backend
 
   backends = %w(Yaml)
-  begin
-    gem 'json', '>= 1.1'
-    require 'json'
-    backends << "JSONGem"
-  rescue Gem::LoadError
-    # Skip JSON gem tests
-  end
+  backends << "JSONGem" if defined?(::JSON)
 
   backends.each do |backend|
     TESTS.each do |json, expected|
@@ -73,7 +67,7 @@ class TestJSONDecoding < ActiveSupport::TestCase
   end
 
   def test_failed_json_decoding
-    assert_raise(ActiveSupport::JSON::ParseError) { ActiveSupport::JSON.decode(%({: 1})) }
+    assert_raise(ActiveSupport::JSON.parse_error) { ActiveSupport::JSON.decode(%({: 1})) }
   end
 end
 

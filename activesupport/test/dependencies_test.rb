@@ -20,14 +20,20 @@ class DependenciesTest < Test::Unit::TestCase
 
   def with_loading(*from)
     old_mechanism, ActiveSupport::Dependencies.mechanism = ActiveSupport::Dependencies.mechanism, :load
-    dir = File.dirname(__FILE__)
+    this_dir = File.dirname(__FILE__)
+    parent_dir = File.dirname(this_dir)
+    $LOAD_PATH.unshift(parent_dir) unless $LOAD_PATH.include?(parent_dir)
     prior_load_paths = ActiveSupport::Dependencies.load_paths
-    ActiveSupport::Dependencies.load_paths = from.collect { |f| "#{dir}/#{f}" }
+    ActiveSupport::Dependencies.load_paths = from.collect { |f| "#{this_dir}/#{f}" }
     yield
   ensure
     ActiveSupport::Dependencies.load_paths = prior_load_paths
     ActiveSupport::Dependencies.mechanism = old_mechanism
     ActiveSupport::Dependencies.explicitly_unloadable_constants = []
+  end
+
+  def with_autoloading_fixtures(&block)
+    with_loading 'autoloading_fixtures', &block
   end
 
   def test_tracking_loaded_files
@@ -126,7 +132,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_module_loading
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert_kind_of Module, A
       assert_kind_of Class, A::B
       assert_kind_of Class, A::C::D
@@ -135,7 +141,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_non_existing_const_raises_name_error
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert_raise(NameError) { DoesNotExist }
       assert_raise(NameError) { NoModule::DoesNotExist }
       assert_raise(NameError) { A::DoesNotExist }
@@ -144,49 +150,49 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_directories_manifest_as_modules_unless_const_defined
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert_kind_of Module, ModuleFolder
       Object.__send__ :remove_const, :ModuleFolder
     end
   end
 
   def test_module_with_nested_class
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert_kind_of Class, ModuleFolder::NestedClass
       Object.__send__ :remove_const, :ModuleFolder
     end
   end
 
   def test_module_with_nested_inline_class
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert_kind_of Class, ModuleFolder::InlineClass
       Object.__send__ :remove_const, :ModuleFolder
     end
   end
 
   def test_directories_may_manifest_as_nested_classes
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert_kind_of Class, ClassFolder
       Object.__send__ :remove_const, :ClassFolder
     end
   end
 
   def test_class_with_nested_class
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert_kind_of Class, ClassFolder::NestedClass
       Object.__send__ :remove_const, :ClassFolder
     end
   end
 
   def test_class_with_nested_inline_class
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert_kind_of Class, ClassFolder::InlineClass
       Object.__send__ :remove_const, :ClassFolder
     end
   end
 
   def test_class_with_nested_inline_subclass_of_parent
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert_kind_of Class, ClassFolder::ClassFolderSubclass
       assert_kind_of Class, ClassFolder
       assert_equal 'indeed', ClassFolder::ClassFolderSubclass::ConstantInClassFolder
@@ -195,7 +201,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_nested_class_can_access_sibling
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       sibling = ModuleFolder::NestedClass.class_eval "NestedSibling"
       assert defined?(ModuleFolder::NestedSibling)
       assert_equal ModuleFolder::NestedSibling, sibling
@@ -204,7 +210,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def failing_test_access_thru_and_upwards_fails
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert ! defined?(ModuleFolder)
       assert_raise(NameError) { ModuleFolder::Object }
       assert_raise(NameError) { ModuleFolder::NestedClass::Object }
@@ -213,7 +219,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_non_existing_const_raises_name_error_with_fully_qualified_name
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       begin
         A::DoesNotExist.nil?
         flunk "No raise!!"
@@ -291,7 +297,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_autoloaded?
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
       assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
 
@@ -370,7 +376,7 @@ class DependenciesTest < Test::Unit::TestCase
       end
     end_eval
 
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert_kind_of Integer, ::ModuleWithCustomConstMissing::B
       assert_kind_of Module, ::ModuleWithCustomConstMissing::A
       assert_kind_of String, ::ModuleWithCustomConstMissing::A::B
@@ -379,7 +385,7 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_const_missing_should_not_double_load
     $counting_loaded_times = 0
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       require_dependency '././counting_loader'
       assert_equal 1, $counting_loaded_times
       assert_raise(ArgumentError) { ActiveSupport::Dependencies.load_missing_constant Object, :CountingLoader }
@@ -393,7 +399,7 @@ class DependenciesTest < Test::Unit::TestCase
     m.module_eval "def a() CountingLoader; end"
     extend m
     kls = nil
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       kls = nil
       assert_nothing_raised { kls = a }
       assert_equal "CountingLoader", kls.name
@@ -428,7 +434,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_load_once_paths_do_not_add_to_autoloaded_constants
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       ActiveSupport::Dependencies.load_once_paths = ActiveSupport::Dependencies.load_paths.dup
 
       assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
@@ -444,7 +450,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_application_should_special_case_application_controller
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       require_dependency 'application'
       assert_equal 10, ApplicationController
       assert ActiveSupport::Dependencies.autoloaded?(:ApplicationController)
@@ -452,7 +458,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_const_missing_on_kernel_should_fallback_to_object
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       kls = Kernel::E
       assert_equal "E", kls.name
       assert_equal kls.object_id, Kernel::E.object_id
@@ -460,14 +466,14 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_preexisting_constants_are_not_marked_as_autoloaded
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       require_dependency 'e'
       assert ActiveSupport::Dependencies.autoloaded?(:E)
       ActiveSupport::Dependencies.clear
     end
 
     Object.const_set :E, Class.new
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       require_dependency 'e'
       assert ! ActiveSupport::Dependencies.autoloaded?(:E), "E shouldn't be marked autoloaded!"
       ActiveSupport::Dependencies.clear
@@ -478,7 +484,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_unloadable
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       Object.const_set :M, Module.new
       M.unloadable
 
@@ -492,14 +498,14 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_unloadable_should_fail_with_anonymous_modules
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       m = Module.new
       assert_raise(ArgumentError) { m.unloadable }
     end
   end
 
   def test_unloadable_should_return_change_flag
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       Object.const_set :M, Module.new
       assert_equal true, M.unloadable
       assert_equal false, M.unloadable
@@ -590,7 +596,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_file_with_multiple_constants_and_require_dependency
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert ! defined?(MultipleConstantFile)
       assert ! defined?(SiblingConstant)
 
@@ -608,7 +614,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_file_with_multiple_constants_and_auto_loading
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert ! defined?(MultipleConstantFile)
       assert ! defined?(SiblingConstant)
 
@@ -627,7 +633,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_nested_file_with_multiple_constants_and_require_dependency
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert ! defined?(ClassFolder::NestedClass)
       assert ! defined?(ClassFolder::SiblingClass)
 
@@ -646,7 +652,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_nested_file_with_multiple_constants_and_auto_loading
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert ! defined?(ClassFolder::NestedClass)
       assert ! defined?(ClassFolder::SiblingClass)
 
@@ -665,7 +671,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_autoload_doesnt_shadow_no_method_error_with_relative_constant
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
       2.times do
         assert_raise(NoMethodError) { RaisesNoMethodError }
@@ -678,7 +684,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_autoload_doesnt_shadow_no_method_error_with_absolute_constant
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
       2.times do
         assert_raise(NoMethodError) { ::RaisesNoMethodError }
@@ -691,7 +697,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_autoload_doesnt_shadow_error_when_mechanism_not_set_to_load
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       ActiveSupport::Dependencies.mechanism = :require
       2.times do
         assert_raise(NameError) { assert_equal 123, ::RaisesNameError::FooBarBaz }
@@ -700,7 +706,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_autoload_doesnt_shadow_name_error
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       Object.send(:remove_const, :RaisesNameError) if defined?(::RaisesNameError)
       2.times do
         begin
@@ -734,7 +740,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_load_once_constants_should_not_be_unloaded
-    with_loading 'autoloading_fixtures' do
+    with_autoloading_fixtures do
       ActiveSupport::Dependencies.load_once_paths = ActiveSupport::Dependencies.load_paths
       ::A.to_s
       assert defined?(A)

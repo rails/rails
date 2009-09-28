@@ -405,24 +405,12 @@ module ActionController
           end
 
           # don't use the recalled keys when determining which routes to check
-          routes = routes_by_controller[controller][action][options.reject {|k,v| !v}.keys.sort_by { |x| x.object_id }]
+          future_routes, deprecated_routes = routes_by_controller[controller][action][options.reject {|k,v| !v}.keys.sort_by { |x| x.object_id }]
+          routes = Routing.generate_best_match ? deprecated_routes : future_routes
 
-          routes[1].each_with_index do |route, index|
+          routes.each_with_index do |route, index|
             results = route.__send__(method, options, merged, expire_on)
             if results && (!results.is_a?(Array) || results.first)
-
-              # Compare results with Rails 3.0 behavior
-              if routes[0][index] != route
-                routes[0].each do |route2|
-                  new_results = route2.__send__(method, options, merged, expire_on)
-                  if new_results && (!new_results.is_a?(Array) || new_results.first)
-                    ActiveSupport::Deprecation.warn "The URL you generated will use the first matching route in routes.rb rather than the \"best\" match. " +
-                      "In Rails 3.0 #{new_results} will be generated instead of #{results}"
-                    break
-                  end
-                end
-              end
-
               return results
             end
           end

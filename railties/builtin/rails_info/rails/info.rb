@@ -25,8 +25,10 @@ module Rails
       end
 
       def framework_version(framework)
-        require "#{framework}/version"
-        "#{framework.classify}::VERSION::STRING".constantize
+        if Object.const_defined?(framework.classify)
+          require "#{framework}/version"
+          "#{framework.classify}::VERSION::STRING".constantize
+        end
       end
 
       def edge_rails_revision(info = git_info)

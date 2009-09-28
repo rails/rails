@@ -1,6 +1,12 @@
+*2.3.4 (September 4, 2009)*
+
+* I18n support for plugins.  #2325 [Antonio Tapiador, Sven Fuchs]
+
+
 *2.3.3 (July 12 2009)
 
 * Version bump
+
 
 *2.3.2 [Final] (March 15, 2009)*
 

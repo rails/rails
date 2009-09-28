@@ -36,6 +36,15 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal accounts(:rails_core_account), firm.account_using_primary_key
   end
 
+  def test_update_with_foreign_and_primary_keys
+    firm = companies(:first_firm)
+    account = firm.account_using_foreign_and_primary_keys
+    assert_equal Account.find_by_firm_name(firm.name), account
+    firm.save
+    firm.reload
+    assert_equal account, firm.account_using_foreign_and_primary_keys
+  end
+
   def test_can_marshal_has_one_association_with_nil_target
     firm = Firm.new
     assert_nothing_raised do
@@ -305,5 +314,23 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       Firm.find(@firm.id).save!
       Firm.find(@firm.id, :include => :account).save!
     end
+  end
+
+  def test_build_respects_hash_condition
+    account = companies(:first_firm).build_account_limit_500_with_hash_conditions
+    assert account.save
+    assert_equal 500, account.credit_limit
+  end
+
+  def test_create_respects_hash_condition
+    account = companies(:first_firm).create_account_limit_500_with_hash_conditions
+    assert       !account.new_record?
+    assert_equal 500, account.credit_limit
+  end
+
+  def test_create!_respects_hash_condition
+    account = companies(:first_firm).create_account_limit_500_with_hash_conditions!
+    assert       !account.new_record?
+    assert_equal 500, account.credit_limit
   end
 end

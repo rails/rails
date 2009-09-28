@@ -49,22 +49,36 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     ship = pirate.create_ship(:name => 'Nights Dirty Lightning')
 
     assert_no_difference('Ship.count') do
-      pirate.update_attributes(:ship_attributes => { '_delete' => true })
+      pirate.update_attributes(:ship_attributes => { '_destroy' => true })
     end
   end
 
-  def test_a_model_should_respond_to_underscore_delete_and_return_if_it_is_marked_for_destruction
+  def test_a_model_should_respond_to_underscore_destroy_and_return_if_it_is_marked_for_destruction
     ship = Ship.create!(:name => 'Nights Dirty Lightning')
-    assert !ship._delete
+    assert !ship._destroy
     ship.mark_for_destruction
-    assert ship._delete
+    assert ship._destroy
+  end
+
+  def test_underscore_delete_is_deprecated
+    ActiveSupport::Deprecation.expects(:warn)
+    ship = Ship.create!(:name => 'Nights Dirty Lightning')
+    ship._delete
   end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
+  include AssertRaiseWithMessage
+
   def setup
     @pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     @ship = @pirate.create_ship(:name => 'Nights Dirty Lightning')
+  end
+
+  def test_should_raise_argument_error_if_trying_to_build_polymorphic_belongs_to
+    assert_raise_with_message ArgumentError, "Cannot build association looter. Are you trying to build a polymorphic one-to-one association?" do
+      Treasure.new(:name => 'pearl', :looter_attributes => {:catchphrase => "Arrr"})
+    end
   end
 
   def test_should_define_an_attribute_writer_method_for_the_association
@@ -79,9 +93,9 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
   end
 
-  def test_should_not_build_a_new_record_if_there_is_no_id_and_delete_is_truthy
+  def test_should_not_build_a_new_record_if_there_is_no_id_and_destroy_is_truthy
     @ship.destroy
-    @pirate.reload.ship_attributes = { :name => 'Davy Jones Gold Dagger', :_delete => '1' }
+    @pirate.reload.ship_attributes = { :name => 'Davy Jones Gold Dagger', :_destroy => '1' }
 
     assert_nil @pirate.ship
   end
@@ -101,8 +115,8 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_equal 'Nights Dirty Lightning', @ship.name
   end
 
-  def test_should_not_replace_an_existing_record_if_there_is_no_id_and_delete_is_truthy
-    @pirate.reload.ship_attributes = { :name => 'Davy Jones Gold Dagger', :_delete => '1' }
+  def test_should_not_replace_an_existing_record_if_there_is_no_id_and_destroy_is_truthy
+    @pirate.reload.ship_attributes = { :name => 'Davy Jones Gold Dagger', :_destroy => '1' }
 
     assert_equal @ship, @pirate.ship
     assert_equal 'Nights Dirty Lightning', @pirate.ship.name
@@ -129,29 +143,29 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
   end
 
-  def test_should_delete_an_existing_record_if_there_is_a_matching_id_and_delete_is_truthy
+  def test_should_destroy_an_existing_record_if_there_is_a_matching_id_and_destroy_is_truthy
     @pirate.ship.destroy
     [1, '1', true, 'true'].each do |truth|
       @pirate.reload.create_ship(:name => 'Mister Pablo')
       assert_difference('Ship.count', -1) do
-        @pirate.update_attribute(:ship_attributes, { :id => @pirate.ship.id, :_delete => truth })
+        @pirate.update_attribute(:ship_attributes, { :id => @pirate.ship.id, :_destroy => truth })
       end
     end
   end
 
-  def test_should_not_delete_an_existing_record_if_delete_is_not_truthy
+  def test_should_not_destroy_an_existing_record_if_destroy_is_not_truthy
     [nil, '0', 0, 'false', false].each do |not_truth|
       assert_no_difference('Ship.count') do
-        @pirate.update_attribute(:ship_attributes, { :id => @pirate.ship.id, :_delete => not_truth })
+        @pirate.update_attribute(:ship_attributes, { :id => @pirate.ship.id, :_destroy => not_truth })
       end
     end
   end
 
-  def test_should_not_delete_an_existing_record_if_allow_destroy_is_false
+  def test_should_not_destroy_an_existing_record_if_allow_destroy_is_false
     Pirate.accepts_nested_attributes_for :ship, :allow_destroy => false, :reject_if => proc { |attributes| attributes.empty? }
 
     assert_no_difference('Ship.count') do
-      @pirate.update_attribute(:ship_attributes, { :id => @pirate.ship.id, :_delete => '1' })
+      @pirate.update_attribute(:ship_attributes, { :id => @pirate.ship.id, :_destroy => '1' })
     end
 
     Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
@@ -174,7 +188,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
   def test_should_not_destroy_the_associated_model_until_the_parent_is_saved
     assert_no_difference('Ship.count') do
-      @pirate.attributes = { :ship_attributes => { :id => @ship.id, :_delete => '1' } }
+      @pirate.attributes = { :ship_attributes => { :id => @ship.id, :_destroy => '1' } }
     end
     assert_difference('Ship.count', -1) do
       @pirate.save
@@ -205,9 +219,9 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     assert_equal 'Arr', @ship.pirate.catchphrase
   end
 
-  def test_should_not_build_a_new_record_if_there_is_no_id_and_delete_is_truthy
+  def test_should_not_build_a_new_record_if_there_is_no_id_and_destroy_is_truthy
     @pirate.destroy
-    @ship.reload.pirate_attributes = { :catchphrase => 'Arr', :_delete => '1' }
+    @ship.reload.pirate_attributes = { :catchphrase => 'Arr', :_destroy => '1' }
 
     assert_nil @ship.pirate
   end
@@ -227,8 +241,8 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     assert_equal 'Aye', @pirate.catchphrase
   end
 
-  def test_should_not_replace_an_existing_record_if_there_is_no_id_and_delete_is_truthy
-    @ship.reload.pirate_attributes = { :catchphrase => 'Arr', :_delete => '1' }
+  def test_should_not_replace_an_existing_record_if_there_is_no_id_and_destroy_is_truthy
+    @ship.reload.pirate_attributes = { :catchphrase => 'Arr', :_destroy => '1' }
 
     assert_equal @pirate, @ship.pirate
     assert_equal 'Aye', @ship.pirate.catchphrase
@@ -255,29 +269,29 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     assert_equal 'Arr', @ship.pirate.catchphrase
   end
 
-  def test_should_delete_an_existing_record_if_there_is_a_matching_id_and_delete_is_truthy
+  def test_should_destroy_an_existing_record_if_there_is_a_matching_id_and_destroy_is_truthy
     @ship.pirate.destroy
     [1, '1', true, 'true'].each do |truth|
       @ship.reload.create_pirate(:catchphrase => 'Arr')
       assert_difference('Pirate.count', -1) do
-        @ship.update_attribute(:pirate_attributes, { :id => @ship.pirate.id, :_delete => truth })
+        @ship.update_attribute(:pirate_attributes, { :id => @ship.pirate.id, :_destroy => truth })
       end
     end
   end
 
-  def test_should_not_delete_an_existing_record_if_delete_is_not_truthy
+  def test_should_not_destroy_an_existing_record_if_destroy_is_not_truthy
     [nil, '0', 0, 'false', false].each do |not_truth|
       assert_no_difference('Pirate.count') do
-        @ship.update_attribute(:pirate_attributes, { :id => @ship.pirate.id, :_delete => not_truth })
+        @ship.update_attribute(:pirate_attributes, { :id => @ship.pirate.id, :_destroy => not_truth })
       end
     end
   end
 
-  def test_should_not_delete_an_existing_record_if_allow_destroy_is_false
+  def test_should_not_destroy_an_existing_record_if_allow_destroy_is_false
     Ship.accepts_nested_attributes_for :pirate, :allow_destroy => false, :reject_if => proc { |attributes| attributes.empty? }
 
     assert_no_difference('Pirate.count') do
-      @ship.update_attribute(:pirate_attributes, { :id => @ship.pirate.id, :_delete => '1' })
+      @ship.update_attribute(:pirate_attributes, { :id => @ship.pirate.id, :_destroy => '1' })
     end
 
     Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
@@ -293,7 +307,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_not_destroy_the_associated_model_until_the_parent_is_saved
     assert_no_difference('Pirate.count') do
-      @ship.attributes = { :pirate_attributes => { :id => @ship.pirate.id, '_delete' => true } }
+      @ship.attributes = { :pirate_attributes => { :id => @ship.pirate.id, '_destroy' => true } }
     end
     assert_difference('Pirate.count', -1) { @ship.save }
   end
@@ -361,18 +375,18 @@ module NestedAttributesOnACollectionAssociationTests
     assert_equal 'Privateers Greed', @pirate.send(@association_name).last.name
   end
 
-  def test_should_not_assign_delete_key_to_a_record
+  def test_should_not_assign_destroy_key_to_a_record
     assert_nothing_raised ActiveRecord::UnknownAttributeError do
-      @pirate.send(association_setter, { 'foo' => { '_delete' => '0' }})
+      @pirate.send(association_setter, { 'foo' => { '_destroy' => '0' }})
     end
   end
 
-  def test_should_ignore_new_associated_records_with_truthy_delete_attribute
+  def test_should_ignore_new_associated_records_with_truthy_destroy_attribute
     @pirate.send(@association_name).destroy_all
     @pirate.reload.attributes = {
       association_getter => {
         'foo' => { :name => 'Grace OMalley' },
-        'bar' => { :name => 'Privateers Greed', '_delete' => '1' }
+        'bar' => { :name => 'Privateers Greed', '_destroy' => '1' }
       }
     }
 
@@ -424,7 +438,7 @@ module NestedAttributesOnACollectionAssociationTests
     ['1', 1, 'true', true].each do |true_variable|
       record = @pirate.reload.send(@association_name).create!(:name => 'Grace OMalley')
       @pirate.send(association_setter,
-        @alternate_params[association_getter].merge('baz' => { :id => record.id, '_delete' => true_variable })
+        @alternate_params[association_getter].merge('baz' => { :id => record.id, '_destroy' => true_variable })
       )
 
       assert_difference('@pirate.send(@association_name).count', -1) do
@@ -435,7 +449,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_not_destroy_the_associated_model_with_a_non_truthy_argument
     [nil, '', '0', 0, 'false', false].each do |false_variable|
-      @alternate_params[association_getter]['foo']['_delete'] = false_variable
+      @alternate_params[association_getter]['foo']['_destroy'] = false_variable
       assert_no_difference('@pirate.send(@association_name).count') do
         @pirate.update_attributes(@alternate_params)
       end
@@ -444,7 +458,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_not_destroy_the_associated_model_until_the_parent_is_saved
     assert_no_difference('@pirate.send(@association_name).count') do
-      @pirate.send(association_setter, @alternate_params[association_getter].merge('baz' => { :id => @child_1.id, '_delete' => true }))
+      @pirate.send(association_setter, @alternate_params[association_getter].merge('baz' => { :id => @child_1.id, '_destroy' => true }))
     end
     assert_difference('@pirate.send(@association_name).count', -1) { @pirate.save }
   end

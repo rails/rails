@@ -20,15 +20,16 @@ class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
       [60.seconds, true]  => [:'x_minutes',           1],
 
       # without include_seconds
-      [29.seconds, false] => [:'less_than_x_minutes', 1],
-      [60.seconds, false] => [:'x_minutes',           1],
-      [44.minutes, false] => [:'x_minutes',           44],
-      [61.minutes, false] => [:'about_x_hours',       1],
-      [24.hours,   false] => [:'x_days',              1],
-      [30.days,    false] => [:'about_x_months',      1],
-      [60.days,    false] => [:'x_months',            2],
-      [1.year,     false] => [:'about_x_years',       1],
-      [3.years,    false] => [:'over_x_years',        3]
+      [29.seconds,          false] => [:'less_than_x_minutes', 1],
+      [60.seconds,          false] => [:'x_minutes',           1],
+      [44.minutes,          false] => [:'x_minutes',           44],
+      [61.minutes,          false] => [:'about_x_hours',       1],
+      [24.hours,            false] => [:'x_days',              1],
+      [30.days,             false] => [:'about_x_months',      1],
+      [60.days,             false] => [:'x_months',            2],
+      [1.year,              false] => [:'about_x_years',       1],
+      [3.years + 6.months,  false] => [:'over_x_years',        3],
+      [3.years + 10.months, false] => [:'almost_x_years',      4]
 
       }.each do |passed, expected|
       assert_distance_of_time_in_words_translates_key passed, expected

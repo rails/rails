@@ -155,6 +155,14 @@ class TestPluginLoader < Test::Unit::TestCase
     plugin_load_paths.each { |path| assert $LOAD_PATH.include?(path) }
   end
 
+  def test_should_add_locale_files_to_I18n_load_path
+    only_load_the_following_plugins! [:engine]
+
+    @loader.send :add_engine_locales
+
+    assert I18n.load_path.include?(File.join(plugin_fixture_path('engines/engine'), 'config', 'locales', 'en.yml'))
+  end
+
 
   private
     def reset_load_path!
