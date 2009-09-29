@@ -1,7 +1,8 @@
 # Rack Dispatcher
 
+# Bootstrap rails
+require ::File.dirname(__FILE__) + '/config/boot'
 # Require your environment file to bootstrap Rails
-require ::File.dirname(__FILE__) + '/config/environment'
 
 # Dispatch the request
-run ActionController::Dispatcher.new
+run Rails::Application.load(::File.dirname(__FILE__) + '/config/environment.rb')

@@ -90,7 +90,6 @@ module Rails
 
       def run(initializer = nil)
         Rails.configuration = Base.config = @config
-        Rails.application = nil
 
         if initializer
           run_initializer(initializer)
@@ -98,7 +97,14 @@ module Rails
           @initializers.each {|block| run_initializer(block) }
         end
 
-        Rails.application
+        # HAX
+        # TODO: remove hax
+        unless initializer
+          app = Rails::Application.new
+          app.config = @config
+
+          Rails.application = app
+        end
       end
     end
 
@@ -603,13 +609,6 @@ Run `rake gems:install` to install the missing gems.
       Rails::Generators.no_color! unless config.generators.colorize_logging
       Rails::Generators.aliases.deep_merge! config.generators.aliases
       Rails::Generators.options.deep_merge! config.generators.options
-    end
-  end
-
-  Initializer.default.add :build_application do
-    if configuration.frameworks.include?(:action_controller)
-      Rails.application = Rails::Application.new
-      Rails.application.middleware = configuration.middleware
     end
   end
 end

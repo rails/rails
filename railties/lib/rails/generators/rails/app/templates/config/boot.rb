@@ -46,7 +46,7 @@ module Rails
       %w(railties/lib).each do |path|
         $:.unshift("#{RAILS_ROOT}/vendor/rails/#{path}")
       end
-      require "rails/initializer"
+      require "rails"
       Rails::Initializer.run(:install_gem_spec_stubs)
       Rails::GemDependency.add_frozen_gem_path
     end
@@ -56,7 +56,7 @@ module Rails
     def load_initializer
       self.class.load_rubygems
       load_rails_gem
-      require 'rails/initializer'
+      require 'rails'
     end
 
     def load_rails_gem
