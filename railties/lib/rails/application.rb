@@ -1,14 +1,14 @@
 module Rails
   class Application
-    attr_accessor :routes, :config
+    attr_accessor :config
 
     def self.load(environment_file)
       environment = File.read(environment_file)
       Object.class_eval(environment, environment_file)
     end
 
-    def initialize
-      @routes = ActionController::Routing::Routes
+    def routes
+      ActionController::Routing::Routes
     end
 
     def middleware

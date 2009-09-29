@@ -1,8 +1,13 @@
-require "initializer/test_helper"
+require "isolation/abstract_unit"
 
 module InitializerTests
   class PathsTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
+
+    def setup
+      build_app
+      boot_rails
+    end
 
     test "rails does not initialize with ruby version 1.8.1" do
       assert_rails_does_not_boot "1.8.1"

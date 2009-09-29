@@ -62,7 +62,7 @@ class VendorBootTest < Test::Unit::TestCase
 
   def test_load_initializer_requires_from_vendor_rails
     boot = VendorBoot.new
-    boot.expects(:require).with("rails/initializer")
+    boot.expects(:require).with("rails")
     Rails::Initializer.expects(:run).with(:install_gem_spec_stubs)
     Rails::GemDependency.expects(:add_frozen_gem_path)
     boot.load_initializer
@@ -76,7 +76,7 @@ class GemBootTest < Test::Unit::TestCase
     boot = GemBoot.new
     GemBoot.expects(:load_rubygems)
     boot.expects(:load_rails_gem)
-    boot.expects(:require).with('rails/initializer')
+    boot.expects(:require).with('rails')
     boot.load_initializer
   end
 

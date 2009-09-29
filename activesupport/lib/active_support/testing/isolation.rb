@@ -31,10 +31,15 @@ module ActiveSupport
 
         @_result = result
 
-        proxy = run_in_isolation do |proxy|
-          super(proxy) { }
+        serialized = run_in_isolation do |proxy|
+          begin
+            super(proxy) { }
+          rescue Exception => e
+            proxy.add_error(Test::Unit::Error.new(name, e))
+          end
         end
 
+        proxy = Marshal.load(serialized)
         proxy.__replay__(@_result)
 
         yield(Test::Unit::TestCase::FINISHED, name)
@@ -55,7 +60,7 @@ module ActiveSupport
           write.close
           result = read.read
           Process.wait2(pid)
-          Marshal.load(result.unpack("m")[0])
+          return result.unpack("m")[0]
         end
       end
 
@@ -83,7 +88,7 @@ module ActiveSupport
               ENV.delete("ISOLATION_TEST")
               ENV.delete("ISOLATION_OUTPUT")
 
-              return Marshal.load(tmpfile.read.unpack("m")[0])
+              return tmpfile.read.unpack("m")[0]
             end
           end
         end
