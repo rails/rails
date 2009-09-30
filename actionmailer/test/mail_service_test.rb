@@ -570,7 +570,9 @@ class ActionMailerTest < Test::Unit::TestCase
     mail = TestMailer.create_signed_up(@recipient)
     logger = mock()
     logger.expects(:info).with("Sent mail to #{@recipient}")
-    logger.expects(:debug).with("\n#{mail.encoded}")
+    logger.expects(:debug).with() do |logged_text|
+      logged_text =~ /\[Signed up\] Welcome/
+    end
     TestMailer.logger = logger
     TestMailer.deliver_signed_up(@recipient)
   end
