@@ -30,7 +30,7 @@ module Rails
         end
 
         def config
-          @@config
+          @@config || Configuration.new
         end
         alias configuration config
 
@@ -96,15 +96,6 @@ module Rails
         else
           @initializers.each {|block| run_initializer(block) }
         end
-
-        # HAX
-        # TODO: remove hax
-        unless initializer
-          app = Rails::Application.new
-          app.config = @config
-
-          Rails.application = app
-        end
       end
     end
 
@@ -113,10 +104,16 @@ module Rails
     end
 
     def self.run(initializer = nil, config = nil)
-      default.config = config if config
-      default.config ||= Configuration.new
-      yield default.config if block_given?
-      default.run(initializer)
+      # TODO: Clean this all up
+      if initializer
+        default.config = config
+        default.run(initializer)
+      else
+        Rails.application = Class.new(Application)
+        yield Rails.application.config if block_given?
+        default.config = Rails.application.config
+        default.run
+      end
     end
   end
 

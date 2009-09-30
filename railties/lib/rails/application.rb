@@ -1,10 +1,16 @@
 module Rails
   class Application
-    attr_accessor :config
 
-    def self.load(environment_file)
-      environment = File.read(environment_file)
-      Object.class_eval(environment, environment_file)
+    def self.config
+      @config ||= Configuration.new
+    end
+
+    def self.config=(config)
+      @config = config
+    end
+
+    def config
+      self.class.config
     end
 
     def routes
@@ -16,7 +22,7 @@ module Rails
     end
 
     def call(env)
-      @app ||= middleware.build(@routes)
+      @app ||= middleware.build(routes)
       @app.call(env)
     end
   end

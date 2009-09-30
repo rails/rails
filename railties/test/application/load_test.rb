@@ -40,11 +40,7 @@ module ApplicationTests
 
     test "Rails.application is available after config.ru has been racked up" do
       rackup
-      assert Rails.application.is_a?(Rails::Application)
-    end
-
-    test "class_evaling config/environment.rb returns the application object" do
-      assert Rails::Application.load("#{app_path}/config/environment.rb").is_a?(Rails::Application)
+      assert Rails.application.new.is_a?(Rails::Application)
     end
 
     test "the config object is available on the application object" do
