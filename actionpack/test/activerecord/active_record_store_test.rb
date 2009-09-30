@@ -33,7 +33,6 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
 
   def setup
     ActiveRecord::SessionStore.session_class.create_table!
-    reset_app!
   end
 
   def teardown
@@ -120,21 +119,15 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
 
       reset!
 
-      get '/set_session_value', :_session_id => session_id, :foo => "baz"
-      assert_response :success
-      assert_equal nil, cookies['_session_id']
-
       get '/get_session_value', :_session_id => session_id
       assert_response :success
       assert_equal 'foo: nil', response.body
-      assert_equal nil, cookies['_session_id']
+      assert_not_equal session_id, cookies['_session_id']
     end
   end
 
   def test_allows_session_fixation
-    with_test_route_set do
-      reset_with_fixation!
-
+    with_test_route_set(:cookie_only => false) do
       get '/set_session_value'
       assert_response :success
       assert cookies['_session_id']
@@ -145,7 +138,7 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
       session_id = cookies['_session_id']
       assert session_id
 
-      reset_with_fixation!
+      reset!
 
       get '/set_session_value', :_session_id => session_id, :foo => "baz"
       assert_response :success
@@ -159,24 +152,13 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
   end
 
   private
-    def reset_app!
-      app = ActiveRecord::SessionStore.new(ActionController::Dispatcher.new, :key => '_session_id')
-      @integration_session = open_session(app)
-    end
-
-    def reset_with_fixation!
-      app = ActiveRecord::SessionStore.new(ActionController::Dispatcher.new, :key => '_session_id', :cookie_only => false)
-      @integration_session = open_session(app)
-    end
-
-    def with_test_route_set
+    def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do |map|
-          map.with_options :controller => "active_record_store_test/test" do |c|
-            c.connect "/:action"
-          end
+          map.connect "/:action", :controller => "active_record_store_test/test"
         end
-        reset_app!
+        @app = ActiveRecord::SessionStore.new(set, options.reverse_merge(:key => '_session_id'))
+        reset!
         yield
       end
     end

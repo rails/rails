@@ -7,15 +7,6 @@ module ActionController
     cattr_accessor :prepare_each_request
     self.prepare_each_request = false
 
-    cattr_accessor :router
-    self.router = Routing::Routes
-
-    cattr_accessor :middleware
-    self.middleware = ActionDispatch::MiddlewareStack.new do |middleware|
-      middlewares = File.join(File.dirname(__FILE__), "middlewares.rb")
-      middleware.instance_eval(File.read(middlewares), middlewares, 1)
-    end
-
     class << self
       def define_dispatcher_callbacks(cache_classes)
         unless cache_classes
@@ -24,7 +15,7 @@ module ActionController
 
           # Development mode callbacks
           ActionDispatch::Callbacks.before_dispatch do |app|
-            ActionController::Dispatcher.router.reload
+            ActionController::Routing::Routes.reload
           end
 
           ActionDispatch::Callbacks.after_dispatch do
@@ -58,7 +49,8 @@ module ActionController
         :to => ActionDispatch::Callbacks
 
       def new
-        @@middleware.build(@@router)
+        # DEPRECATE Rails application fallback
+        Rails.application
       end
     end
   end

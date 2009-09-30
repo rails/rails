@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/rails/metal/metal_generator'
+require 'rails/generators/rails/metal/metal_generator'
 
 class MetalGeneratorTest < GeneratorsTestCase
 

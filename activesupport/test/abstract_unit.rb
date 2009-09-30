@@ -19,7 +19,7 @@ require 'active_support/test_case'
 require 'active_support/ruby/shim'
 
 def uses_memcached(test_name)
-  require 'active_support/vendor/memcache'
+  require 'memcache'
   begin
     MemCache.new('localhost').stats
     yield

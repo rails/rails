@@ -2,7 +2,7 @@ module ActionDispatch
   class Callbacks
     include ActiveSupport::NewCallbacks
 
-    define_callbacks :call, :terminator => "result == false", :scope => :kind
+    define_callbacks :call, :terminator => "result == false", :rescuable => true
     define_callbacks :prepare, :scope => :name
 
     # Add a preparation callback. Preparation callbacks are run before every
@@ -25,10 +25,6 @@ module ActionDispatch
       set_callback(:call, :before, *args, &block)
     end
 
-    def self.around(*args, &block)
-      set_callback(:call, :around, *args, &block)
-    end
-
     def self.after(*args, &block)
       set_callback(:call, :after, *args, &block)
     end
@@ -36,7 +32,6 @@ module ActionDispatch
     class << self
       # DEPRECATED
       alias_method :before_dispatch, :before
-      alias_method :around_dispatch, :around
       alias_method :after_dispatch, :after
     end
 

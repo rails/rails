@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class TestLint < Test::Unit::TestCase
+class TestLint < ActiveModel::TestCase
   class CompliantObject
     def to_model
       self

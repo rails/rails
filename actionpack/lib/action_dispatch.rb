@@ -31,17 +31,23 @@ module ActionDispatch
   autoload :Request, 'action_dispatch/http/request'
   autoload :Response, 'action_dispatch/http/response'
   autoload :StatusCodes, 'action_dispatch/http/status_codes'
+  autoload :Utils, 'action_dispatch/http/utils'
 
   autoload :Callbacks, 'action_dispatch/middleware/callbacks'
+  autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
   autoload :ParamsParser, 'action_dispatch/middleware/params_parser'
   autoload :Rescue, 'action_dispatch/middleware/rescue'
   autoload :ShowExceptions, 'action_dispatch/middleware/show_exceptions'
-  autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
+  autoload :Static, 'action_dispatch/middleware/static'
 
-  autoload :HTML, 'action_controller/vendor/html-scanner'
   autoload :Assertions, 'action_dispatch/testing/assertions'
+  autoload :Integration, 'action_dispatch/testing/integration'
+  autoload :IntegrationTest, 'action_dispatch/testing/integration'
+  autoload :PerformanceTest, 'action_dispatch/testing/performance_test'
   autoload :TestRequest, 'action_dispatch/testing/test_request'
   autoload :TestResponse, 'action_dispatch/testing/test_response'
+
+  autoload :HTML, 'action_controller/vendor/html-scanner'
 
   module Http
     autoload :Headers, 'action_dispatch/http/headers'

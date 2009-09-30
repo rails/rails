@@ -32,7 +32,7 @@ module ActionView
     def sub_template_message
       if @sub_templates
         "Trace of template inclusion: " +
-        @sub_templates.collect { |template| template.identifier }.join(", ")
+        @sub_templates.collect { |template| template.inspect }.join(", ")
       else
         ""
       end

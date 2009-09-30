@@ -1,6 +1,6 @@
 module ActionDispatch
-  # Integration test methods such as ActionController::Integration::Session#get
-  # and ActionController::Integration::Session#post return objects of class
+  # Integration test methods such as ActionDispatch::Integration::Session#get
+  # and ActionDispatch::Integration::Session#post return objects of class
   # TestResponse, which represent the HTTP response results of the requested
   # controller actions.
   #

@@ -3,7 +3,7 @@ $:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
 
 require 'test/unit'
 require 'active_support'
-require 'initializer'
+require 'rails/initializer'
 require 'abstract_unit'
 
 # We need to set RAILS_ROOT if it isn't already set

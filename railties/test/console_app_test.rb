@@ -2,13 +2,14 @@ require 'abstract_unit'
 
 require 'action_controller' # console_app uses 'action_controller/integration'
 
-unless defined? ApplicationController
-  class ApplicationController < ActionController::Base; end
-  ActionController::Base.session_store = nil
-end
+require 'rails/dispatcher'
+require 'rails/console_app'
 
-require 'dispatcher'
-require 'console_app'
+module Rails
+  def self.application
+    ActionController::Routing::Routes
+  end
+end
 
 # console_app sets Test::Unit.run to work around the at_exit hook in test/unit, which kills IRB
 if Test::Unit.respond_to?(:run=)
@@ -27,9 +28,9 @@ if Test::Unit.respond_to?(:run=)
     def test_reload_should_fire_preparation_callbacks
       a = b = c = nil
 
-      Dispatcher.to_prepare { a = b = c = 1 }
-      Dispatcher.to_prepare { b = c = 2 }
-      Dispatcher.to_prepare { c = 3 }
+      ActionDispatch::Callbacks.to_prepare { a = b = c = 1 }
+      ActionDispatch::Callbacks.to_prepare { b = c = 2 }
+      ActionDispatch::Callbacks.to_prepare { c = 3 }
       ActionController::Routing::Routes.expects(:reload)
 
       reload!

@@ -81,6 +81,8 @@ class Firm < Company
   has_one :account_using_foreign_and_primary_keys, :foreign_key => "firm_name", :primary_key => "name", :class_name => "Account"
   has_one :deletable_account, :foreign_key => "firm_id", :class_name => "Account", :dependent => :delete
   
+  has_one :account_limit_500_with_hash_conditions, :foreign_key => "firm_id", :class_name => "Account", :conditions => { :credit_limit => 500 }
+
   has_one :unautosaved_account, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
   has_many :accounts
   has_many :unautosaved_accounts, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false

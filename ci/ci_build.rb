@@ -21,7 +21,7 @@ cd "#{root_dir}/activesupport" do
   puts "[CruiseControl] Building ActiveSupport"
   puts
   build_results[:activesupport] = system 'rake'
-  build_results[:activesupport_isolated] = system 'rake isolated_test'
+  build_results[:activesupport_isolated] = system 'rake test:isolated'
 end
 
 rm_f "#{root_dir}/activerecord/debug.log"

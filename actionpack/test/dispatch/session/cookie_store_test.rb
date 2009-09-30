@@ -5,9 +5,6 @@ class CookieStoreTest < ActionController::IntegrationTest
   SessionKey = '_myapp_session'
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
-  # Make sure Session middleware doesnt get included in the middleware stack
-  ActionController::Base.session_store = nil
-
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, 'SHA1')
   SignedBar = Verifier.generate(:foo => "bar", :session_id => ActiveSupport::SecureRandom.hex(16))
 
@@ -44,10 +41,6 @@ class CookieStoreTest < ActionController::IntegrationTest
     end
 
     def rescue_action(e) raise end
-  end
-
-  def setup
-    reset_app!
   end
 
   def test_raises_argument_error_if_missing_session_key
@@ -193,10 +186,7 @@ class CookieStoreTest < ActionController::IntegrationTest
   end
 
   def test_session_store_with_expire_after
-    with_test_route_set do
-      app = ActionDispatch::Session::CookieStore.new(ActionController::Dispatcher.new, :key => SessionKey, :secret => SessionSecret, :expire_after => 5.hours)
-      @integration_session = open_session(app)
-
+    with_test_route_set(:expire_after => 5.hours) do
       # First request accesses the session
       time = Time.local(2008, 4, 24)
       Time.stubs(:now).returns(time)
@@ -226,20 +216,14 @@ class CookieStoreTest < ActionController::IntegrationTest
   end
 
   private
-    def reset_app!
-      app = ActionDispatch::Session::CookieStore.new(ActionController::Dispatcher.new,
-        :key => SessionKey, :secret => SessionSecret)
-      @integration_session = open_session(app)
-    end
-
-    def with_test_route_set
+    def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do |map|
-          map.with_options :controller => "cookie_store_test/test" do |c|
-            c.connect "/:action"
-          end
+          map.connect "/:action", :controller => "cookie_store_test/test"
         end
-        reset_app!
+        options = {:key => SessionKey, :secret => SessionSecret}.merge(options)
+        @app = ActionDispatch::Session::CookieStore.new(set, options)
+        reset!
         yield
       end
     end

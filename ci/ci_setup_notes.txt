@@ -104,8 +104,8 @@ end
 $ sudo aptitude install mysql-server-5.0 libmysqlclient-dev
 # no password for mysql root user
 
-* setup sqlite
-$ sudo aptitude install sqlite sqlite3 libsqlite-dev libsqlite3-dev
+* setup sqlite 3
+$ sudo aptitude install sqlite3 libsqlite3-dev
 # Note: there's some installation bugs with sqlite3-ruby 1.2.2 gem file permissions:
 #   http://www.icoretech.org/2008/07/06/no-such-file-to-load-sqlite3-database
 #   cd /usr/local/lib/ruby/gems/1.8/gems/sqlite3-ruby-1.2.2 && sudo find . -perm 0662 -exec chmod 664 {} \;

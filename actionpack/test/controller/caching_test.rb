@@ -631,9 +631,8 @@ class FragmentCachingTest < ActionController::TestCase
     buffer = 'generated till now -> '
     @controller.fragment_for(buffer, 'expensive') { fragment_computed = true }
 
-    assert_equal 2, listener.size
-    assert_equal :fragment_exist?, listener[0].name
-    assert_equal :write_fragment, listener[1].name
+    assert_equal 1, listener.count { |e| e.name == :fragment_exist? }
+    assert_equal 1, listener.count { |e| e.name == :write_fragment }
 
     assert fragment_computed
     assert_equal 'generated till now -> ', buffer

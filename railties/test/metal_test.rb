@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'initializer'
+require 'rails/initializer'
 
 class MetalTest < Test::Unit::TestCase
   def test_metals_should_return_list_of_found_metal_apps

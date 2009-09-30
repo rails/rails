@@ -1,6 +1,6 @@
 require 'abstract_unit'
-require 'initializer'
-require "#{File.dirname(__FILE__)}/../lib/generators/rails/app/templates/config/boot"
+require 'rails/initializer'
+require "#{File.dirname(__FILE__)}/../lib/rails/generators/rails/app/templates/config/boot"
 require 'rails/gem_dependency'
 
 class BootTest < Test::Unit::TestCase
@@ -48,13 +48,6 @@ class BootTest < Test::Unit::TestCase
     Rails::GemBoot.any_instance.expects(:run).returns('result')
     assert_equal 'result', Rails.boot!
   end
-
-  def test_run_loads_initializer_and_sets_load_path
-    boot = Rails::Boot.new
-    boot.expects(:load_initializer)
-    Rails::Initializer.expects(:run).with(:set_load_path)
-    boot.run
-  end
 end
 
 class VendorBootTest < Test::Unit::TestCase
@@ -62,8 +55,8 @@ class VendorBootTest < Test::Unit::TestCase
 
   def test_load_initializer_requires_from_vendor_rails
     boot = VendorBoot.new
-    boot.expects(:require).with("#{RAILS_ROOT}/vendor/rails/railties/lib/initializer")
-    Rails::Initializer.expects(:run).with(:install_gem_spec_stubs)
+    boot.expects(:require).with("rails")
+    boot.expects(:install_gem_spec_stubs)
     Rails::GemDependency.expects(:add_frozen_gem_path)
     boot.load_initializer
   end
@@ -76,7 +69,7 @@ class GemBootTest < Test::Unit::TestCase
     boot = GemBoot.new
     GemBoot.expects(:load_rubygems)
     boot.expects(:load_rails_gem)
-    boot.expects(:require).with('initializer')
+    boot.expects(:require).with('rails')
     boot.load_initializer
   end
 

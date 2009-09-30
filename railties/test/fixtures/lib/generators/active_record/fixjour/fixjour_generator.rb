@@ -1,4 +1,4 @@
-require 'generators/active_record'
+require 'rails/generators/active_record'
 
 module ActiveRecord
   module Generators

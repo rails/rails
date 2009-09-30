@@ -89,6 +89,7 @@ module ActionView
 
     def _render_text(text, layout, options)
       text = layout.render(self, options[:locals]) { text } if layout
+      text
     end
 
     # This is the API to render a ViewContext's template from a controller.
@@ -105,7 +106,7 @@ module ActionView
 
     def _render_template(template, layout = nil, options = {}, partial = nil)
       logger && logger.info do
-        msg = "Rendering #{template.identifier}"
+        msg = "Rendering #{template.inspect}"
         msg << " (#{options[:status]})" if options[:status]
         msg
       end
@@ -123,7 +124,7 @@ module ActionView
 
       if layout
         @_layout = layout.identifier
-        logger.info("Rendering template within #{layout.identifier}") if logger
+        logger.info("Rendering template within #{layout.inspect}") if logger
         content = layout.render(self, locals) {|*name| _layout_for(*name) }
       end
       content

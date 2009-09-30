@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/bytesize'
+
 module ActiveSupport
   # MessageVerifier makes it easy to generate and verify messages which are signed
   # to prevent tampering.
@@ -51,7 +53,7 @@ module ActiveSupport
 
       def generate_digest(data)
         require 'openssl' unless defined?(OpenSSL)
-        OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new(@digest), @secret, data)
+        OpenSSL::HMAC.hexdigest(OpenSSL::Digest.const_get(@digest).new, @secret, data)
       end
   end
 end

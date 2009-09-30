@@ -10,7 +10,7 @@ module Rails
                   :log_path, :log_level, :logger, :preload_frameworks,
                   :database_configuration_file, :cache_store, :time_zone,
                   :view_path, :metals, :controller_paths, :routes_configuration_file,
-                  :eager_load_paths, :dependency_loading, :paths
+                  :eager_load_paths, :dependency_loading, :paths, :serve_static_assets
 
     def initialize
       set_root_path!
@@ -35,6 +35,7 @@ module Rails
       @controller_paths             = default_controller_paths
       @routes_configuration_file    = default_routes_configuration_file
       @database_configuration_file  = default_database_configuration_file
+      @serve_static_assets          = default_serve_static_assets
 
       for framework in default_frameworks
         self.send("#{framework}=", Rails::OrderedOptions.new)
@@ -107,10 +108,9 @@ module Rails
       defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root_path}/vendor/rails"
     end
 
-    # TODO: Fix this when there is an application object
     def middleware
-      require 'action_controller'
-      ActionController::Dispatcher.middleware
+      require 'action_dispatch'
+      @middleware ||= ActionDispatch::MiddlewareStack.new
     end
 
     # Loads and returns the contents of the #database_configuration_file. The
@@ -223,6 +223,10 @@ module Rails
       end
 
       i18n
+    end
+
+    def default_serve_static_assets
+      true
     end
 
     # Adds a single Gem dependency to the rails application. By default, it will require

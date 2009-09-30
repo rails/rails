@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/rails/observer/observer_generator'
+require 'rails/generators/rails/observer/observer_generator'
 
 class ObserverGeneratorTest < GeneratorsTestCase
 

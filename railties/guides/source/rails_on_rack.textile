@@ -40,11 +40,8 @@ Here's how +script/server+ creates an instance of +Rack::Builder+
 app = Rack::Builder.new {
   use Rails::Rack::LogTailer unless options[:detach]
   use Rails::Rack::Debugger if options[:debugger]
-
-  map "/" do
-    use Rails::Rack::Static
-    run ActionController::Dispatcher.new
-  end
+  use ActionDispatch::Static
+  run ActionController::Dispatcher.new
 }.to_app
 </ruby>
 
@@ -52,7 +49,7 @@ Middlewares used in the code above are primarily useful only in the development 
 
 |_.Middleware|_.Purpose|
 |+Rails::Rack::LogTailer+|Appends log file output to console|
-|+Rails::Rack::Static+|Serves static files inside +RAILS_ROOT/public+ directory|
+|+ActionDispatch::Static+|Serves static files inside +RAILS_ROOT/public+ directory|
 |+Rails::Rack::Debugger+|Starts Debugger|
 
 h4. +rackup+
@@ -64,7 +61,7 @@ To use +rackup+ instead of Rails' +script/server+, you can put the following ins
 require "config/environment"
 
 use Rails::Rack::LogTailer
-use Rails::Rack::Static
+use ActionDispatch::Static
 run ActionController::Dispatcher.new
 </ruby>
 

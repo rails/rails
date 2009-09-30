@@ -2,9 +2,6 @@ module ActionController
   class ActionControllerError < StandardError #:nodoc:
   end
 
-  class SessionRestoreError < ActionControllerError #:nodoc:
-  end
-
   class RenderError < ActionControllerError #:nodoc:
   end
 

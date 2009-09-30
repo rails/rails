@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/rails/integration_test/integration_test_generator'
+require 'rails/generators/rails/integration_test/integration_test_generator'
 
 class IntegrationTestGeneratorTest < GeneratorsTestCase
 

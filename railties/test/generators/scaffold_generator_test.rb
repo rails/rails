@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/rails/scaffold/scaffold_generator'
+require 'rails/generators/rails/scaffold/scaffold_generator'
 
 class ScaffoldGeneratorTest < GeneratorsTestCase
 

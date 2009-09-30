@@ -28,4 +28,7 @@ railties/guides/output
 *.swp
 *.swo
 actionpack/bin
-*/vendor/gems
+vendor/gems/
+*/vendor/gems/
+bin/
+railties/tmp
