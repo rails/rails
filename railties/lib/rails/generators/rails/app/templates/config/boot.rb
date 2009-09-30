@@ -4,6 +4,11 @@
 RAILS_ROOT = "#{File.dirname(__FILE__)}/.." unless defined?(RAILS_ROOT)
 
 module Rails
+  # Mark the version of Rails that generated the boot.rb file. This is
+  # a temporary solution and will most likely be removed as Rails 3.0
+  # comes closer.
+  BOOTSTRAP_VERSION = "3.0"
+
   class << self
     def boot!
       unless booted?
@@ -36,19 +41,49 @@ module Rails
   class Boot
     def run
       load_initializer
-      Rails::Initializer.run(:set_load_path)
+      set_load_paths
+    end
+
+    def set_load_paths
+      %w(
+        railties
+        railties/lib
+        activesupport/lib
+        actionpack/lib
+        activerecord/lib
+        actionmailer/lib
+        activeresource/lib
+        actionwebservice/lib
+      ).reverse_each do |path|
+        path = "#{framework_root_path}/#{path}"
+        $LOAD_PATH.unshift(path) if File.directory?(path)
+        $LOAD_PATH.uniq!
+      end
+    end
+
+    def framework_root_path
+      defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{RAILS_ROOT}/vendor/rails"
     end
   end
 
   class VendorBoot < Boot
     def load_initializer
-      # activesupport/lib
-      %w(railties/lib).each do |path|
-        $:.unshift("#{RAILS_ROOT}/vendor/rails/#{path}")
-      end
+      $:.unshift("#{framework_root_path}/railties/lib")
       require "rails"
-      Rails::Initializer.run(:install_gem_spec_stubs)
+      install_gem_spec_stubs
       Rails::GemDependency.add_frozen_gem_path
+    end
+
+    def install_gem_spec_stubs
+      begin; require "rubygems"; rescue LoadError; return; end
+
+      %w(rails activesupport activerecord actionpack actionmailer activeresource).each do |stub|
+        Gem.loaded_specs[stub] ||= Gem::Specification.new do |s|
+          s.name = stub
+          s.version = Rails::VERSION::STRING
+          s.loaded_from = ""
+        end
+      end
     end
   end
 

@@ -123,33 +123,16 @@ module Rails
     require 'rails/ruby_version_check'
   end
 
-  # If Rails is vendored and RubyGems is available, install stub GemSpecs
-  # for Rails, Active Support, Active Record, Action Pack, Action Mailer, and
-  # Active Resource. This allows Gem plugins to depend on Rails even when
-  # the Gem version of Rails shouldn't be loaded.
-  Initializer.default.add :install_gem_spec_stubs do
-    unless Rails.respond_to?(:vendor_rails?)
+  # Bail if boot.rb is outdated
+  Initializer.default.add :freak_out_if_boot_rb_is_outdated do
+    unless defined?(Rails::BOOTSTRAP_VERSION)
       abort %{Your config/boot.rb is outdated: Run "rake rails:update".}
-    end
-
-    if Rails.vendor_rails?
-      begin; require "rubygems"; rescue LoadError; return; end
-
-      %w(rails activesupport activerecord actionpack actionmailer activeresource).each do |stub|
-        Gem.loaded_specs[stub] ||= Gem::Specification.new do |s|
-          s.name = stub
-          s.version = Rails::VERSION::STRING
-          s.loaded_from = ""
-        end
-      end
     end
   end
 
   # Set the <tt>$LOAD_PATH</tt> based on the value of
   # Configuration#load_paths. Duplicates are removed.
   Initializer.default.add :set_load_path do
-    # TODO: Think about unifying this with the general Rails paths
-    configuration.framework_paths.reverse_each { |dir| $LOAD_PATH.unshift(dir) if File.directory?(dir) }
     configuration.paths.add_to_load_path
     $LOAD_PATH.uniq!
   end

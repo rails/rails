@@ -97,20 +97,16 @@ module TestHelpers
     end
 
     def boot_rails
-      # return if defined?(RAILS)
-      # TODO: Get this working with boot.rb
-      $:.unshift "#{RAILS_FRAMEWORK_ROOT}/railties/lib"
-      Object.class_eval <<-RUBY
-        RAILS_ROOT = "#{app_path}"
-        module ::Rails
-          def self.vendor_rails?
-            true
-          end
+      # TMP mega hax to prevent boot.rb from actually booting
+      Object.class_eval <<-RUBY, __FILE__, __LINE__+1
+        module Rails
+          Initializer = 'lol'
+          require "#{app_path}/config/boot"
+          remove_const(:Initializer)
+          booter = VendorBoot.new
+          booter.run
         end
       RUBY
-      require "rails"
-      Rails::Initializer.run(:install_gem_spec_stubs)
-      Rails::GemDependency.add_frozen_gem_path
     end
   end
 end
