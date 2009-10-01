@@ -82,31 +82,31 @@ module Arel
 
     module Predications
       def eq(other)
-        Equality.new(self, other)
+        Predicates::Equality.new(self, other)
       end
 
       def lt(other)
-        LessThan.new(self, other)
+        Predicates::LessThan.new(self, other)
       end
 
       def lteq(other)
-        LessThanOrEqualTo.new(self, other)
+        Predicates::LessThanOrEqualTo.new(self, other)
       end
 
       def gt(other)
-        GreaterThan.new(self, other)
+        Predicates::GreaterThan.new(self, other)
       end
 
       def gteq(other)
-        GreaterThanOrEqualTo.new(self, other)
+        Predicates::GreaterThanOrEqualTo.new(self, other)
       end
 
       def matches(regexp)
-        Match.new(self, regexp)
+        Predicates::Match.new(self, regexp)
       end
 
       def in(array)
-        In.new(self, array)
+        Predicates::In.new(self, array)
       end
     end
     include Predications

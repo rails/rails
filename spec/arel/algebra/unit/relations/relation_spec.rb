@@ -80,7 +80,7 @@ module Arel
 
       describe '#where' do
         before do
-          @predicate = Equality.new(@attribute1, @attribute2)
+          @predicate = Predicates::Equality.new(@attribute1, @attribute2)
         end
 
         it "manufactures a where relation" do
