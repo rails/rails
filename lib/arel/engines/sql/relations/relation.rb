@@ -25,15 +25,15 @@ module Arel
           ("OFFSET    #{skipped}"                        unless skipped.blank?     )
 
       else
-      build_query \
-        "SELECT     #{select_clauses.join(', ')}",
-        "FROM       #{table_sql(Sql::TableReference.new(self))}",
-        (joins(self)                                   unless joins(self).blank? ),
-        ("WHERE     #{where_clauses.join("\n\tAND ")}" unless wheres.blank?      ),
-        ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
-        ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      ),
-        ("LIMIT     #{taken}"                          unless taken.blank?       ),
-        ("OFFSET    #{skipped}"                        unless skipped.blank?     )
+        build_query \
+          "SELECT     #{select_clauses.join(', ')}",
+          "FROM       #{table_sql(Sql::TableReference.new(self))}",
+          (joins(self)                                   unless joins(self).blank? ),
+          ("WHERE     #{where_clauses.join("\n\tAND ")}" unless wheres.blank?      ),
+          ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
+          ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      ),
+          ("LIMIT     #{taken}"                          unless taken.blank?       ),
+          ("OFFSET    #{skipped}"                        unless skipped.blank?     )
       end
     end
 
