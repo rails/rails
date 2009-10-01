@@ -1,6 +1,6 @@
 module Arel
   class Deletion < Compound
-    def to_sql(formatter = nil)
+    def to_sql
       build_query \
         "DELETE",
         "FROM #{table_sql}",
@@ -10,7 +10,7 @@ module Arel
   end
 
   class Insert < Compound
-    def to_sql(formatter = nil)
+    def to_sql
       insertion_attributes_values_sql = if record.is_a?(Value)
         record.value
       else
@@ -26,7 +26,7 @@ module Arel
   end
 
   class Update < Compound
-    def to_sql(formatter = nil)
+    def to_sql
       build_query \
         "UPDATE #{table_sql} SET",
         assignment_sql,
@@ -34,6 +34,7 @@ module Arel
     end
 
   protected
+
     def assignment_sql
       if assignments.respond_to?(:collect)
         assignments.collect do |attribute, value|
