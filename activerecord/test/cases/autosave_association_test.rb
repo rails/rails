@@ -3,6 +3,8 @@ require 'models/bird'
 require 'models/company'
 require 'models/customer'
 require 'models/developer'
+require 'models/invoice'
+require 'models/line_item'
 require 'models/order'
 require 'models/parrot'
 require 'models/person'
@@ -1213,5 +1215,12 @@ class TestAutosaveAssociationValidationMethodsGeneration < ActiveRecord::TestCas
 
   test "should not generate validation methods for HABTM associations without :validate => true" do
     assert !@pirate.respond_to?(:validate_associated_records_for_non_validated_parrots)
+  end
+end
+
+class TestAutosaveAssociationWithTouch < ActiveRecord::TestCase
+  def test_autosave_with_touch_should_not_raise_system_stack_error
+    invoice = Invoice.create
+    assert_nothing_raised { invoice.line_items.create(:amount => 10) }
   end
 end
