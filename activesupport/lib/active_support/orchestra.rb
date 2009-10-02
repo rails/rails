@@ -51,18 +51,15 @@ module ActiveSupport
     class Instrumenter
       def initialize(publisher)
         @publisher = publisher
-        @stack = []
       end
 
-      def instrument(name, payload=nil)
-        event = Event.new(name, @stack.last, payload)
-        @stack << event
-        event.result = yield
-        event
+      def instrument(name, payload={})
+        payload[:time]      = Time.now
+        payload[:thread_id] = Thread.current.object_id
+        payload[:result]    = yield
       ensure
-        event.finish!
-        @stack.pop
-        @publisher.publish(event)
+        payload[:duration] = 1000 * (Time.now.to_f - payload[:time].to_f)
+        @publisher.publish(name, payload)
       end
     end
 
@@ -71,8 +68,8 @@ module ActiveSupport
         @queue = queue
       end
 
-      def publish(event)
-        @queue.publish(event)
+      def publish(name, payload)
+        @queue.publish(name, payload)
       end
     end
 
@@ -87,26 +84,22 @@ module ActiveSupport
       end
 
       def subscribe
-        @queue.subscribe(@pattern) do |event|
-          yield event
+        @queue.subscribe(@pattern) do |name, payload|
+          yield Event.new(name, payload)
         end
       end
     end
 
     class Event
-      attr_reader :name, :time, :duration, :parent, :thread_id, :payload
-      attr_accessor :result
+      attr_reader :name, :time, :duration, :thread_id, :result, :payload
 
-      def initialize(name, parent=nil, payload=nil)
+      def initialize(name, payload)
         @name      = name
-        @time      = Time.now
-        @thread_id = Thread.current.object_id
-        @parent    = parent
-        @payload   = payload
-      end
-
-      def finish!
-        @duration = 1000 * (Time.now.to_f - @time.to_f)
+        @payload   = payload.dup
+        @time      = @payload.delete(:time)
+        @thread_id = @payload.delete(:thread_id)
+        @result    = @payload.delete(:result)
+        @duration  = @payload.delete(:duration)
       end
     end
 
@@ -124,7 +117,7 @@ module ActiveSupport
         end
       end
 
-      def publish(event)
+      def publish(*event)
         @stream.push(event)
         @thread.run
       end
@@ -134,7 +127,7 @@ module ActiveSupport
       end
 
       def consume(event)
-        @listeners.each { |l| l.publish(event) }
+        @listeners.each { |l| l.publish(*event) }
       end
 
       class Listener
@@ -143,9 +136,9 @@ module ActiveSupport
           @subscriber = block
         end
 
-        def publish(event)
-          unless @pattern && event.name.to_s !~ @pattern
-            @subscriber.call(event)
+        def publish(name, payload)
+          unless @pattern && name.to_s !~ @pattern
+            @subscriber.call(name, payload)
           end
         end
       end
