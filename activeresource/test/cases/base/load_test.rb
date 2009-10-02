@@ -15,26 +15,21 @@ module Highrise
 
   module Deeply
     module Nested
-
       class Note < ActiveResource::Base
         self.site = "http://37s.sunrise.i:3000"
       end
 
-       class Comment < ActiveResource::Base
-         self.site = "http://37s.sunrise.i:3000"
-       end
+      class Comment < ActiveResource::Base
+        self.site = "http://37s.sunrise.i:3000"
+      end
 
-       module TestDifferentLevels
-
-         class Note < ActiveResource::Base
-           self.site = "http://37s.sunrise.i:3000"
-         end
-
-       end
-
+      module TestDifferentLevels
+        class Note < ActiveResource::Base
+          self.site = "http://37s.sunrise.i:3000"
+        end
+      end
     end
   end
-
 end
 
 
@@ -156,7 +151,7 @@ class BaseLoadTest < Test::Unit::TestCase
     assert_kind_of String, places.first
     assert_equal @deep[:street][:state][:places].first, places.first
   end
-  
+
   def test_nested_collections_within_the_same_namespace
     n = Highrise::Note.new(:comments => [{ :name => "1" }])
     assert_kind_of Highrise::Comment, n.comments.first
@@ -171,6 +166,4 @@ class BaseLoadTest < Test::Unit::TestCase
     n = Highrise::Deeply::Nested::TestDifferentLevels::Note.new(:comments => [{ :name => "1" }])
     assert_kind_of Highrise::Deeply::Nested::Comment, n.comments.first
   end
-
-
 end

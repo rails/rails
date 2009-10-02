@@ -828,7 +828,7 @@ class BaseTest < Test::Unit::TestCase
 
   ######
   # update_attribute(s)(!)
-   
+
   def test_update_attribute_as_symbol
     matz = Person.first
     matz.expects(:save).returns(true)
@@ -837,7 +837,7 @@ class BaseTest < Test::Unit::TestCase
     assert matz.update_attribute(:name, "David")
     assert_equal "David", matz.name
   end
- 
+
   def test_update_attribute_as_string
     matz = Person.first
     matz.expects(:save).returns(true)
@@ -847,7 +847,7 @@ class BaseTest < Test::Unit::TestCase
     assert_equal "David", matz.name
   end
 
-  
+
   def test_update_attributes_as_symbols
     addy = StreetAddress.first(:params => {:person_id => 1})
     addy.expects(:save).returns(true)
@@ -913,7 +913,7 @@ class BaseTest < Test::Unit::TestCase
     end
     assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
   end
-  
+
   def test_delete_with_410_gone
     assert Person.delete(1)
     ActiveResource::HttpMock.respond_to do |mock|
