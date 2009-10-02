@@ -11,12 +11,12 @@ class BaseTest < Test::Unit::TestCase
     @matz  = { :id => 1, :name => 'Matz' }.to_xml(:root => 'person')
     @david = { :id => 2, :name => 'David' }.to_xml(:root => 'person')
     @greg  = { :id => 3, :name => 'Greg' }.to_xml(:root => 'person')
-    @addy  = { :id => 1, :street => '12345 Street' }.to_xml(:root => 'address')
+    @addy  = { :id => 1, :street => '12345 Street', :country => 'Australia' }.to_xml(:root => 'address')
     @default_request_headers = { 'Content-Type' => 'application/xml' }
     @rick = { :name => "Rick", :age => 25 }.to_xml(:root => "person")
     @people = [{ :id => 1, :name => 'Matz' }, { :id => 2, :name => 'David' }].to_xml(:root => 'people')
     @people_david = [{ :id => 2, :name => 'David' }].to_xml(:root => 'people')
-    @addresses = [{ :id => 1, :street => '12345 Street' }].to_xml(:root => 'addresses')
+    @addresses = [{ :id => 1, :street => '12345 Street', :country => 'Australia' }].to_xml(:root => 'addresses')
 
     # - deep nested resource -
     # - Luis (Customer)
@@ -812,6 +812,55 @@ class BaseTest < Test::Unit::TestCase
     end
     assert_raise(ActiveResource::ResourceConflict) { Person.find(2).save }
   end
+
+
+  ######
+  # update_attribute(s)(!)
+   
+  def test_update_attribute_as_symbol
+    matz = Person.first
+    matz.expects(:save).returns(true)
+
+    assert_equal "Matz", matz.name
+    assert matz.update_attribute(:name, "David")
+    assert_equal "David", matz.name
+  end
+ 
+  def test_update_attribute_as_string
+    matz = Person.first
+    matz.expects(:save).returns(true)
+
+    assert_equal "Matz", matz.name
+    assert matz.update_attribute('name', "David")
+    assert_equal "David", matz.name
+  end
+
+  
+  def test_update_attributes_as_symbols
+    addy = StreetAddress.first(:params => {:person_id => 1})
+    addy.expects(:save).returns(true)
+
+    assert_equal "12345 Street", addy.street
+    assert_equal "Australia", addy.country
+    assert addy.update_attributes(:street => '54321 Street', :country => 'USA')
+    assert_equal "54321 Street", addy.street
+    assert_equal "USA", addy.country
+  end
+
+  def test_update_attributes_as_strings
+    addy = StreetAddress.first(:params => {:person_id => 1})
+    addy.expects(:save).returns(true)
+
+    assert_equal "12345 Street", addy.street
+    assert_equal "Australia", addy.country
+    assert addy.update_attributes('street' => '54321 Street', 'country' => 'USA')
+    assert_equal "54321 Street", addy.street
+    assert_equal "USA", addy.country
+  end
+
+
+  #####
+  # Mayhem and destruction
 
   def test_destroy
     assert Person.find(1).destroy

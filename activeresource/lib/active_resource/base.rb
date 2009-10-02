@@ -1099,6 +1099,36 @@ module ActiveResource
       self
     end
 
+  # Updates a single attribute and then saves the object.
+  # 
+  # Note: Unlike ActiveRecord::Base.update_attribute, this method <b>is</b>
+  # subject to normal validation routines as an update sends the whole body
+  # of the resource in the request.  (See Validations). 
+  # 
+  # As such, this method is equivalent to calling update_attributes with a single attribute/value pair. 
+  # 
+  # If the saving fails because of a connection or remote service error, an
+  # exception will be raised.  If saving fails because the resource is
+  # invalid then <tt>false</tt> will be returned. 
+  def update_attribute(name, value) 
+    self.send("#{name}=".to_sym, value)
+    self.save
+  end 
+    
+ 
+  # Updates this resource with all the attributes from the passed-in Hash
+  # and requests that the record be saved. 
+  # 
+  # If the saving fails because of a connection or remote service error, an
+  # exception will be raised.  If saving fails because the resource is
+  # invalid then <tt>false</tt> will be returned. 
+  # 
+  # Note: Though this request can be made with a partial set of the
+  # resource's attributes, the full body of the request will still be sent
+  # in the save request to the remote service. 
+  def update_attributes(attributes) 
+    load(attributes) && save 
+  end  
     # For checking <tt>respond_to?</tt> without searching the attributes (which is faster).
     alias_method :respond_to_without_attributes?, :respond_to?
 
