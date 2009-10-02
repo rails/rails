@@ -43,34 +43,10 @@ end
 require 'rake/packagetask'
 require 'rake/gempackagetask'
 
-spec = Gem::Specification.new do |s|
-  s.platform = Gem::Platform::RUBY
-  s.name = PKG_NAME
-  s.version = PKG_VERSION
-  s.summary = "A toolkit for building other modeling frameworks like ActiveRecord"
-  s.description = %q{Extracts common modeling concerns from ActiveRecord to share between similar frameworks like ActiveResource.}
+spec = eval(File.read('activemodel.gemspec'))
 
-  s.author = "David Heinemeier Hansson"
-  s.email = "david@loudthinking.com"
-  s.rubyforge_project = "activemodel"
-  s.homepage = "http://www.rubyonrails.org"
-
-  s.has_rdoc = true
-
-  s.add_dependency('activesupport', '= 3.0.pre' + PKG_BUILD)
-
-  s.require_path = 'lib'
-  s.files = Dir["CHANGELOG", "MIT-LICENSE", "README", "Rakefile", "lib/**/*", "test/**/*"]
-end
-  
 Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true
-end
-
-task :gemspec do
-  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
-    file.puts spec.to_ruby
-  end
 end

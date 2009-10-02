@@ -1,4 +1,0 @@
-development:
-  adapter: sqlite3
-  database: db/railties.db
-  timeout: 5000

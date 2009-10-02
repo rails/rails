@@ -91,6 +91,9 @@
       over_x_years:
         one:   "over 1 year"
         other: "over {{count}} years"
+      almost_x_years:
+        one:   "almost 1 year"
+        other: "almost {{count}} years"
     prompts:
       year:   "Year"
       month:  "Month"

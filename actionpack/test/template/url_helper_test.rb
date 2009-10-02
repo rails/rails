@@ -5,8 +5,6 @@ require 'controller/fake_controllers'
 RequestMock = Struct.new("Request", :request_uri, :protocol, :host_with_port, :env)
 
 class UrlHelperTest < ActionView::TestCase
-  tests ActionView::Helpers::UrlHelper
-
   def setup
     super
     @controller = Class.new do
@@ -386,9 +384,7 @@ class UrlHelperController < ActionController::Base
   def rescue_action(e) raise e end
 end
 
-class UrlHelperWithControllerTest < ActionView::TestCase
-  tests ActionView::Helpers::UrlHelper
-
+class UrlHelperWithControllerTest < ActionController::TestCase
   def setup
     super
     @request    = ActionController::TestRequest.new
@@ -463,9 +459,7 @@ class TasksController < ActionController::Base
     end
 end
 
-class LinkToUnlessCurrentWithControllerTest < ActionView::TestCase
-  tests ActionView::Helpers::UrlHelper
-
+class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
   def setup
     super
     @request    = ActionController::TestRequest.new
@@ -566,9 +560,7 @@ class SessionsController < ActionController::Base
   def rescue_action(e) raise e end
 end
 
-class PolymorphicControllerTest < ActionView::TestCase
-  tests ActionView::Helpers::UrlHelper
-
+class PolymorphicControllerTest < ActionController::TestCase
   def setup
     super
     @request    = ActionController::TestRequest.new

@@ -1,6 +1,6 @@
 require File.join(File.dirname(__FILE__), 'generators', 'generators_test_helper')
-require 'generators/rails/model/model_generator'
-require 'generators/test_unit/model/model_generator'
+require 'rails/generators/rails/model/model_generator'
+require 'rails/generators/test_unit/model/model_generator'
 require 'mocha'
 
 class GeneratorsTest < GeneratorsTestCase

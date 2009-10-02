@@ -2,7 +2,7 @@ ORIG_ARGV = ARGV.dup
 
 require 'rubygems'
 gem 'rack', '~> 1.0.0'
-gem 'rack-test', '~> 0.4.2'
+gem 'rack-test', '~> 0.5.0'
 
 $:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
 $:.unshift File.dirname(__FILE__) + "/../../activerecord/lib"
@@ -17,6 +17,8 @@ require 'test/unit'
 
 require 'active_support'
 require 'active_support/test_case'
+
+require 'action_controller'
 
 if defined?(RAILS_ROOT)
   RAILS_ROOT.replace File.dirname(__FILE__)

@@ -245,8 +245,8 @@ class WebServiceTest < ActionController::IntegrationTest
   private
     def with_params_parsers(parsers = {})
       old_session = @integration_session
-      app = ActionDispatch::ParamsParser.new(ActionController::Routing::Routes, parsers)
-      @integration_session = open_session(app)
+      @app = ActionDispatch::ParamsParser.new(ActionController::Routing::Routes, parsers)
+      reset!
       yield
     ensure
       @integration_session = old_session

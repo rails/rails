@@ -938,7 +938,9 @@ module ActiveRecord
       #   if the real class name is Person, you'll have to specify it with this option.
       # [:conditions]
       #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
-      #   SQL fragment, such as <tt>rank = 5</tt>.
+      #   SQL fragment, such as <tt>rank = 5</tt>. Record creation from the association is scoped if a hash
+      #   is used. <tt>has_one :account, :conditions => {:enabled => true}</tt> will create an enabled account with <tt>@company.create_account</tt>
+      #   or <tt>@company.build_account</tt>.
       # [:order]
       #   Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
       #   such as <tt>last_name, first_name DESC</tt>.

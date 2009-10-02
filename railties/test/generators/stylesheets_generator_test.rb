@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/rails/stylesheets/stylesheets_generator'
+require 'rails/generators/rails/stylesheets/stylesheets_generator'
 
 class StylesheetsGeneratorTest < GeneratorsTestCase
 

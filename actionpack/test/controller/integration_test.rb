@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'controller/fake_controllers'
 require 'action_controller/vendor/html-scanner'
 
 class SessionTest < Test::Unit::TestCase
@@ -363,6 +364,10 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     end
   end
 
+  def test_generate_url_with_controller
+    assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
+  end
+
   private
     def with_test_route_set
       with_routing do |set|
@@ -389,7 +394,7 @@ class MetalIntegrationTest < ActionController::IntegrationTest
   end
 
   def setup
-    @integration_session = ActionController::Integration::Session.new(Poller)
+    @app = Poller
   end
 
   def test_successful_get
@@ -405,5 +410,9 @@ class MetalIntegrationTest < ActionController::IntegrationTest
     assert_response 404
     assert_response :not_found
     assert_equal '', response.body
+  end
+
+  def test_generate_url_without_controller
+    assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
   end
 end

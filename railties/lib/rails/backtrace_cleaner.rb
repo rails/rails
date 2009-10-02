@@ -32,7 +32,7 @@ module Rails
     
     private
       def add_gem_filters
-        Gem.path.each do |path|
+        (Gem.path + [Gem.default_dir]).uniq.each do |path|
           # http://gist.github.com/30430
           add_filter { |line| line.sub(/(#{path})\/gems\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) \4')}
         end

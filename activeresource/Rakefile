@@ -58,48 +58,12 @@ Rake::RDocTask.new { |rdoc|
 }
 
 
-# Create compressed packages
+spec = eval(File.read('activeresource.gemspec'))
 
-dist_dirs = [ "lib", "test", "examples", "dev-utils" ]
-
-spec = Gem::Specification.new do |s|
-  s.platform = Gem::Platform::RUBY
-  s.name = PKG_NAME
-  s.version = PKG_VERSION
-  s.summary = "Think Active Record for web resources."
-  s.description = %q{Wraps web resources in model classes that can be manipulated through XML over REST.}
-
-  s.files = [ "Rakefile", "README", "CHANGELOG" ]
-  dist_dirs.each do |dir|
-    s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
-  end
-  
-  s.add_dependency('activesupport', '= 3.0.pre' + PKG_BUILD)
-  s.add_dependency('activemodel',   '= 3.0.pre' + PKG_BUILD)
-
-  s.require_path = 'lib'
-  s.autorequire = 'active_resource'
-
-  s.has_rdoc = true
-  s.extra_rdoc_files = %w( README )
-  s.rdoc_options.concat ['--main',  'README']
-  
-  s.author = "David Heinemeier Hansson"
-  s.email = "david@loudthinking.com"
-  s.homepage = "http://www.rubyonrails.org"
-  s.rubyforge_project = "activeresource"
-end
-  
 Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true
-end
-
-task :gemspec do
-  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
-    file.puts spec.to_ruby
-  end
 end
 
 task :lines do

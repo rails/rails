@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/rails/resource/resource_generator'
+require 'rails/generators/rails/resource/resource_generator'
 
 class ResourceGeneratorTest < GeneratorsTestCase
 

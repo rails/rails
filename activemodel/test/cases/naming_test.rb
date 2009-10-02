@@ -1,6 +1,6 @@
 require 'cases/helper'
 
-class NamingTest < Test::Unit::TestCase
+class NamingTest < ActiveModel::TestCase
   def setup
     @model_name = ActiveModel::Name.new('Post::TrackBack')
   end

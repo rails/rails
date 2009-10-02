@@ -5,6 +5,14 @@ module Rails
   # ---
   # TODO: w0t?
   class << self
+    def application
+      @@application
+    end
+
+    def application=(application)
+      @@application = application
+    end
+
     # The Configuration instance used to configure the Rails environment
     def configuration
       @@configuration

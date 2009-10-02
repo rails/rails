@@ -1,6 +1,3 @@
-require "test/unit"
-require "test/unit/ui/console/testrunner"
-
 # You can test whether an object is compliant with the ActiveModel API by
 # calling ActiveModel::Lint.test(object). It will emit a Test::Unit
 # output that tells you whether your object is fully compliant, or if not,
@@ -16,6 +13,9 @@ require "test/unit/ui/console/testrunner"
 module ActiveModel
   module Lint
     def self.test(object, verbosity = 2, output = STDOUT)
+      require "test/unit"
+      require "test/unit/ui/console/testrunner"
+
       test_class = Class.new(::Test::Unit::TestCase) do
         include Test
 

@@ -9,7 +9,7 @@ else
 end
 
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
-require 'generators'
+require 'rails/generators'
 
 require 'rubygems'
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../activerecord/lib"

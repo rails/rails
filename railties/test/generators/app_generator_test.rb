@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'generators/rails/app/app_generator'
+require 'rails/generators/rails/app/app_generator'
 
 class AppGeneratorTest < GeneratorsTestCase
 
@@ -55,14 +55,12 @@ class AppGeneratorTest < GeneratorsTestCase
 
   def test_dispatchers_are_not_added_by_default
     run_generator
-    assert_no_file "config.ru"
     assert_no_file "public/dispatch.cgi"
     assert_no_file "public/dispatch.fcgi"
   end
 
   def test_dispatchers_are_added_if_required
     run_generator ["--with-dispatchers"]
-    assert_file "config.ru"
     assert_file "public/dispatch.cgi"
     assert_file "public/dispatch.fcgi"
   end

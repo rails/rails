@@ -3,9 +3,13 @@ require 'abstract_unit'
 uses_gem "fcgi", "0.8.7" do
 
 require 'action_controller'
-require 'fcgi_handler'
+require 'rails/fcgi_handler'
 
-Dispatcher.middleware.clear
+module Rails
+  def self.application
+    ActionController::Routing::Routes
+  end
+end
 
 class RailsFCGIHandlerTest < Test::Unit::TestCase
   def setup

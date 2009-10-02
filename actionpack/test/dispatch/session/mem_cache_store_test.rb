@@ -32,7 +32,9 @@ class MemCacheStoreTest < ActionController::IntegrationTest
   end
 
   begin
-    App = ActionDispatch::Session::MemCacheStore.new(ActionController::Dispatcher.new, :key => '_session_id')
+    require 'memcache'
+    memcache = MemCache.new('localhost:11211')
+    memcache.set('ping', '')
 
     def test_setting_and_getting_session_value
       with_test_route_set do
@@ -99,7 +101,7 @@ class MemCacheStoreTest < ActionController::IntegrationTest
 
         get '/set_session_value', :_session_id => session_id
         assert_response :success
-        assert_equal nil, cookies['_session_id']
+        assert_not_equal session_id, cookies['_session_id']
       end
     end
   rescue LoadError, RuntimeError
@@ -107,20 +109,13 @@ class MemCacheStoreTest < ActionController::IntegrationTest
   end
 
   private
-    def reset_app!
-      app = ActionDispatch::Session::MemCacheStore.new(
-        ActionController::Dispatcher.new, :key => '_session_id')
-      @integration_session = open_session(app)
-    end
-
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
-          map.with_options :controller => "mem_cache_store_test/test" do |c|
-            c.connect "/:action"
-          end
+          map.connect "/:action", :controller => "mem_cache_store_test/test"
         end
-        reset_app!
+        @app = ActionDispatch::Session::MemCacheStore.new(set, :key => '_session_id')
+        reset!
         yield
       end
     end

@@ -26,8 +26,10 @@ module ActionView
       #   47 hrs, 59 mins, 29 secs <-> 29 days, 23 hrs, 59 mins, 29 secs            # => [2..29] days
       #   29 days, 23 hrs, 59 mins, 30 secs <-> 59 days, 23 hrs, 59 mins, 29 secs   # => about 1 month
       #   59 days, 23 hrs, 59 mins, 30 secs <-> 1 yr minus 1 sec                    # => [2..12] months
-      #   1 yr <-> 2 yrs minus 1 secs                                               # => about 1 year
-      #   2 yrs <-> max time or date                                                # => over [2..X] years
+      #   1 yr <-> 1 yr, 3 months                                                   # => about 1 year
+      #   1 yr, 3 months <-> 1 yr, 9 months                                         # => over 1 year
+      #   1 yr, 9 months <-> 2 yr minus 1 sec                                       # => almost 2 years
+      #   2 yrs <-> max time or date                                                # => (same rules as 1 yr)
       #
       # With <tt>include_seconds</tt> = true and the difference < 1 minute 29 seconds:
       #   0-4   secs      # => less than 5 seconds
@@ -43,17 +45,18 @@ module ActionView
       #   distance_of_time_in_words(from_time, 50.minutes.from_now)           # => about 1 hour
       #   distance_of_time_in_words(from_time, from_time + 15.seconds)        # => less than a minute
       #   distance_of_time_in_words(from_time, from_time + 15.seconds, true)  # => less than 20 seconds
-      #   distance_of_time_in_words(from_time, 3.years.from_now)              # => over 3 years
+      #   distance_of_time_in_words(from_time, 3.years.from_now)              # => about 3 years
       #   distance_of_time_in_words(from_time, from_time + 60.hours)          # => about 3 days
       #   distance_of_time_in_words(from_time, from_time + 45.seconds, true)  # => less than a minute
       #   distance_of_time_in_words(from_time, from_time - 45.seconds, true)  # => less than a minute
       #   distance_of_time_in_words(from_time, 76.seconds.from_now)           # => 1 minute
       #   distance_of_time_in_words(from_time, from_time + 1.year + 3.days)   # => about 1 year
-      #   distance_of_time_in_words(from_time, from_time + 4.years + 9.days + 30.minutes + 5.seconds) # => over 4 years
+      #   distance_of_time_in_words(from_time, from_time + 3.years + 6.months) # => over 3 years
+      #   distance_of_time_in_words(from_time, from_time + 4.years + 9.days + 30.minutes + 5.seconds) # => about 4 years
       #
       #   to_time = Time.now + 6.years + 19.days
-      #   distance_of_time_in_words(from_time, to_time, true)     # => over 6 years
-      #   distance_of_time_in_words(to_time, from_time, true)     # => over 6 years
+      #   distance_of_time_in_words(from_time, to_time, true)     # => about 6 years
+      #   distance_of_time_in_words(to_time, from_time, true)     # => about 6 years
       #   distance_of_time_in_words(Time.now, Time.now)           # => less than a minute
       #
       def distance_of_time_in_words(from_time, to_time = 0, include_seconds = false, options = {})
@@ -81,12 +84,21 @@ module ActionView
             when 2..44           then locale.t :x_minutes,      :count => distance_in_minutes
             when 45..89          then locale.t :about_x_hours,  :count => 1
             when 90..1439        then locale.t :about_x_hours,  :count => (distance_in_minutes.to_f / 60.0).round
-            when 1440..2879      then locale.t :x_days,         :count => 1
-            when 2880..43199     then locale.t :x_days,         :count => (distance_in_minutes / 1440).round
+            when 1440..2529      then locale.t :x_days,         :count => 1
+            when 2530..43199     then locale.t :x_days,         :count => (distance_in_minutes.to_f / 1440.0).round
             when 43200..86399    then locale.t :about_x_months, :count => 1
-            when 86400..525599   then locale.t :x_months,       :count => (distance_in_minutes / 43200).round
-            when 525600..1051199 then locale.t :about_x_years,  :count => 1
-            else                      locale.t :over_x_years,   :count => (distance_in_minutes / 525600).round
+            when 86400..525599   then locale.t :x_months,       :count => (distance_in_minutes.to_f / 43200.0).round
+            else
+              distance_in_years           = distance_in_minutes / 525600
+              minute_offset_for_leap_year = (distance_in_years / 4) * 1440
+              remainder                   = ((distance_in_minutes - minute_offset_for_leap_year) % 525600)
+              if remainder < 131400
+                locale.t(:about_x_years,  :count => distance_in_years)
+              elsif remainder < 394200
+                locale.t(:over_x_years,   :count => distance_in_years)
+              else
+                locale.t(:almost_x_years, :count => distance_in_years + 1)
+              end
           end
         end
       end

@@ -35,7 +35,7 @@ class ShowExceptionsTest < ActionController::IntegrationTest
   DevelopmentApp = ActionDispatch::ShowExceptions.new(Boomer, true)
 
   test "rescue in public from a remote ip" do
-    @integration_session = open_session(ProductionApp)
+    @app = ProductionApp
     self.remote_addr = '208.77.188.166'
 
     get "/"
@@ -52,7 +52,7 @@ class ShowExceptionsTest < ActionController::IntegrationTest
   end
 
   test "rescue locally from a local request" do
-    @integration_session = open_session(ProductionApp)
+    @app = ProductionApp
     self.remote_addr = '127.0.0.1'
 
     get "/"
@@ -73,7 +73,7 @@ class ShowExceptionsTest < ActionController::IntegrationTest
     old_locale, I18n.locale = I18n.locale, :da
 
     begin
-      @integration_session = open_session(ProductionApp)
+      @app = ProductionApp
       self.remote_addr = '208.77.188.166'
 
       get "/"
@@ -89,7 +89,7 @@ class ShowExceptionsTest < ActionController::IntegrationTest
   end
 
   test "always rescue locally in development mode" do
-    @integration_session = open_session(DevelopmentApp)
+    @app = DevelopmentApp
     self.remote_addr = '208.77.188.166'
 
     get "/"

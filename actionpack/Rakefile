@@ -34,7 +34,7 @@ end
 desc "Run all unit tests"
 task :test => [:test_action_pack, :test_active_record_integration]
 
-TESTS_GLOB = "test/{abstract,controller,dispatch,new_base,template,html-scanner}/**/*_test.rb"
+TESTS_GLOB = "test/{abstract,controller,dispatch,new_base,template,html-scanner,view}/**/*_test.rb"
 
 Rake::TestTask.new(:test_action_pack) do |t|
   t.libs << 'test'
@@ -77,48 +77,12 @@ Rake::RDocTask.new { |rdoc|
   end
 }
 
-# Create compressed packages
-dist_dirs = [ "lib", "test" ]
+spec = eval(File.read('actionpack.gemspec'))
 
-spec = Gem::Specification.new do |s|
-  s.platform = Gem::Platform::RUBY
-  s.name = PKG_NAME
-  s.version = PKG_VERSION
-  s.summary = "Web-flow and rendering framework putting the VC in MVC."
-  s.description = %q{Eases web-request routing, handling, and response as a half-way front, half-way page controller. Implemented with specific emphasis on enabling easy unit/integration testing that doesn't require a browser.} #'
-
-  s.author = "David Heinemeier Hansson"
-  s.email = "david@loudthinking.com"
-  s.rubyforge_project = "actionpack"
-  s.homepage = "http://www.rubyonrails.org"
-
-  s.has_rdoc = true
-  s.requirements << 'none'
-
-  s.add_dependency('activesupport', '= 3.0.pre' + PKG_BUILD)
-  s.add_dependency('activemodel',   '= 3.0.pre' + PKG_BUILD)
-  s.add_dependency('rack', '~> 1.0.0')
-  s.add_dependency('rack-test', '~> 0.4.2')
-
-  s.require_path = 'lib'
-  s.autorequire = 'action_controller'
-
-  s.files = [ "Rakefile", "install.rb", "README", "RUNNING_UNIT_TESTS", "CHANGELOG", "MIT-LICENSE" ]
-  dist_dirs.each do |dir|
-    s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
-  end
-end
-  
 Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
   p.need_zip = true
-end
-
-task :gemspec do
-  File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w") do |file|
-    file.puts spec.to_ruby
-  end
 end
 
 task :lines do
