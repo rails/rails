@@ -68,6 +68,19 @@ class BaseLoadTest < Test::Unit::TestCase
     assert_equal @matz.stringify_keys, @person.load(@matz).attributes
   end
 
+  def test_after_load_attributes_are_accessible
+    assert_equal Hash.new, @person.attributes
+    assert_equal @matz.stringify_keys, @person.load(@matz).attributes
+    assert_equal @matz[:name], @person.attributes['name']
+  end
+
+  def test_after_load_attributes_are_accessible_via_indifferent_access
+    assert_equal Hash.new, @person.attributes
+    assert_equal @matz.stringify_keys, @person.load(@matz).attributes
+    assert_equal @matz[:name], @person.attributes['name']
+    assert_equal @matz[:name], @person.attributes[:name]
+  end
+
   def test_load_one_with_existing_resource
     address = @person.load(:street_address => @first_address).street_address
     assert_kind_of StreetAddress, address

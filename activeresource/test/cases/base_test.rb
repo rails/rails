@@ -102,6 +102,9 @@ class BaseTest < Test::Unit::TestCase
     Person.password = nil
   end
 
+  ########################################################################
+  # Tests relating to setting up the API-connection configuration
+  ########################################################################
 
   def test_site_accessor_accepts_uri_or_string_argument
     site = URI.parse('http://localhost')
@@ -509,6 +512,11 @@ class BaseTest < Test::Unit::TestCase
     assert_not_equal(first_connection, second_connection, 'Connection should be re-created')
   end
 
+
+  ########################################################################
+  # Tests for setting up remote URLs for a given model (including adding
+  # parameters appropriately)
+  ########################################################################
   def test_collection_name
     assert_equal "people", Person.collection_name
   end
@@ -637,6 +645,10 @@ class BaseTest < Test::Unit::TestCase
     assert_equal [:person_id].to_set, StreetAddress.__send__(:prefix_parameters)
   end
 
+
+  ########################################################################
+  # Tests basic CRUD functions (find/save/create etc)
+  ########################################################################
   def test_respond_to
     matz = Person.find(1)
     assert matz.respond_to?(:name)
@@ -910,6 +922,9 @@ class BaseTest < Test::Unit::TestCase
     assert_raise(ActiveResource::ResourceGone) { Person.find(1) }
   end
 
+  ########################################################################
+  # Tests the more miscelaneous helper methods
+  ########################################################################
   def test_exists
     # Class method.
     assert !Person.exists?(nil)
