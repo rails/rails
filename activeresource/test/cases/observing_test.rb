@@ -10,7 +10,7 @@ class ObservingTest < Test::Unit::TestCase
 
     %w( after_create after_destroy after_save after_update
         before_create before_destroy before_save before_update).each do |method|
-          define_method(method) { log method }
+          define_method(method) { |*| log method }
     end
 
     private
