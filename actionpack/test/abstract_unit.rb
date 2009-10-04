@@ -53,6 +53,43 @@ ORIGINAL_LOCALES = I18n.available_locales.map {|locale| locale.to_s }.sort
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 FIXTURES = Pathname.new(FIXTURE_LOAD_PATH)
 
+module SetupOnce
+  extend ActiveSupport::Concern
+
+  included do
+    cattr_accessor :setup_once_block
+    self.setup_once_block = nil
+
+    setup :run_setup_once
+  end
+
+  module ClassMethods
+    def setup_once(&block)
+      self.setup_once_block = block
+    end
+  end
+
+  private
+    def run_setup_once
+      if self.setup_once_block
+        self.setup_once_block.call
+        self.setup_once_block = nil
+      end
+    end
+end
+
+class ActiveSupport::TestCase
+  include SetupOnce
+
+  # Hold off drawing routes until all the possible controller classes
+  # have been loaded.
+  setup_once do
+    ActionController::Routing::Routes.draw do |map|
+      map.connect ':controller/:action/:id'
+    end
+  end
+end
+
 class ActionController::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
     ActionDispatch::MiddlewareStack.new { |middleware|
@@ -80,22 +117,6 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
     end
     ActionController::Routing.const_set(:Routes, real_routes) if real_routes
     self.class.app = self.class.build_app
-  end
-
-  setup do
-    ActionController::Routing::Routes.draw do |map|
-      map.connect ':controller/:action/:id'
-    end
-  end
-end
-
-module ActionView
-  class TestCase
-    setup do
-      ActionController::Routing::Routes.draw do |map|
-        map.connect ':controller/:action/:id'
-      end
-    end
   end
 end
 
@@ -171,12 +192,6 @@ module ActionController
 
   class TestCase
     include TestProcess
-
-    setup do
-      ActionController::Routing::Routes.draw do |map|
-        map.connect ':controller/:action/:id'
-      end
-    end
 
     def assert_template(options = {}, message = nil)
       validate_request!
