@@ -1,7 +1,8 @@
+$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
+
 require 'test/unit'
 require 'rbconfig'
-require 'rubygems'
-require 'active_support'
+require 'active_support/core_ext/kernel/reporting'
 
 class TestIsolated < Test::Unit::TestCase
   ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
