@@ -48,7 +48,7 @@ module RenderFile
     end
   end
 
-  class TestBasic < SimpleRouteCase
+  class TestBasic < Rack::TestCase
     testing RenderFile::BasicController
 
     test "rendering simple template" do

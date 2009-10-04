@@ -39,7 +39,7 @@ module RenderTemplate
     end
   end
   
-  class TestWithoutLayout < SimpleRouteCase
+  class TestWithoutLayout < Rack::TestCase
     testing RenderTemplate::WithoutLayoutController
     
     test "rendering a normal template with full path without layout" do
@@ -107,7 +107,7 @@ module RenderTemplate
     end
   end
   
-  class TestWithLayout < SimpleRouteCase
+  class TestWithLayout < Rack::TestCase
     describe "Rendering with :template using implicit or explicit layout"
 
     test "rendering with implicit layout" do
@@ -158,7 +158,7 @@ module RenderTemplate
       end
     end
 
-    class TestTemplateRenderWithForwardSlash < SimpleRouteCase
+    class TestTemplateRenderWithForwardSlash < Rack::TestCase
       test "rendering a normal template with full path starting with a leading slash" do
         get "/render_template/compatibility/without_layout/with_forward_slash"
 

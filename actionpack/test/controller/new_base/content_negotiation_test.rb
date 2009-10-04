@@ -9,7 +9,7 @@ module ContentNegotiation
     )]
   end
 
-  class TestContentNegotiation < SimpleRouteCase
+  class TestContentNegotiation < Rack::TestCase
     test "A */* Accept header will return HTML" do
       get "/content_negotiation/basic/hello", {}, "HTTP_ACCEPT" => "*/*"
       assert_body "Hello world */*!"

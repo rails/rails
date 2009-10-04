@@ -81,6 +81,12 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
     ActionController::Routing.const_set(:Routes, real_routes) if real_routes
     self.class.app = self.class.build_app
   end
+
+  setup do
+    ActionController::Routing::Routes.draw do |map|
+      map.connect ':controller/:action/:id'
+    end
+  end
 end
 
 module ActionView
@@ -160,9 +166,9 @@ module ActionController
       super
     end
   end
-  
+
   Base.view_paths = FIXTURE_LOAD_PATH
-  
+
   class TestCase
     include TestProcess
 
@@ -211,14 +217,6 @@ module ActionController
             "Expected no partials to be rendered"
         end
       end
-    end
-  end
-end
-
-class SimpleRouteCase < Rack::TestCase
-  setup do
-    ActionController::Routing::Routes.draw do |map|
-      map.connect ':controller/:action/:id'
     end
   end
 end

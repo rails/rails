@@ -62,7 +62,7 @@ module RenderText
     end
   end
 
-  class RenderTextTest < SimpleRouteCase
+  class RenderTextTest < Rack::TestCase
     describe "Rendering text using render :text"
 
     test "rendering text from a action with default options renders the text with the layout" do

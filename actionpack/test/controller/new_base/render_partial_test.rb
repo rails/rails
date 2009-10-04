@@ -15,7 +15,7 @@ module RenderPartial
     end    
   end
   
-  class TestPartial < SimpleRouteCase
+  class TestPartial < Rack::TestCase
     testing BasicController
     
     test "rendering a partial in ActionView doesn't pull the ivars again from the controller" do

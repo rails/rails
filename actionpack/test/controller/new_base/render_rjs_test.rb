@@ -21,7 +21,7 @@ module RenderRjs
     end
   end
 
-  class TestBasic < SimpleRouteCase
+  class TestBasic < Rack::TestCase
     testing BasicController
 
     def setup

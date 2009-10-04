@@ -44,7 +44,7 @@ module ContentType
     end
   end
 
-  class ExplicitContentTypeTest < SimpleRouteCase
+  class ExplicitContentTypeTest < Rack::TestCase
     test "default response is HTML and UTF8" do
       get "/content_type/base"
 
@@ -67,7 +67,7 @@ module ContentType
     end
   end
 
-  class ImpliedContentTypeTest < SimpleRouteCase
+  class ImpliedContentTypeTest < Rack::TestCase
     test "sets Content-Type as text/html when rendering *.html.erb" do
       get "/content_type/implied/i_am_html_erb"
 
@@ -93,7 +93,7 @@ module ContentType
     end
   end
 
-  class ExplicitCharsetTest < SimpleRouteCase
+  class ExplicitCharsetTest < Rack::TestCase
     test "setting the charset of the response directly on the response object" do
       get "/content_type/charset/set_on_response_obj"
 
