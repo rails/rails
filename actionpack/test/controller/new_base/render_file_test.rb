@@ -6,45 +6,45 @@ module RenderFile
       self.view_paths = File.dirname(__FILE__)
     
     def index
-      render :file => File.join(File.dirname(__FILE__), *%w[.. fixtures test hello_world])
+      render :file => File.join(File.dirname(__FILE__), *%w[.. .. fixtures test hello_world])
     end
     
     def with_instance_variables
       @secret = 'in the sauce'
-      render :file => File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb')
+      render :file => File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar.erb')
     end
     
     def without_file_key
-      render File.join(File.dirname(__FILE__), *%w[.. fixtures test hello_world])
+      render File.join(File.dirname(__FILE__), *%w[.. .. fixtures test hello_world])
     end
     
     def without_file_key_with_instance_variable
       @secret = 'in the sauce'
-      render File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb')
+      render File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar.erb')
     end
     
     def relative_path
       @secret = 'in the sauce'
-      render :file => '../fixtures/test/render_file_with_ivar'
+      render :file => '../../fixtures/test/render_file_with_ivar'
     end
     
     def relative_path_with_dot
       @secret = 'in the sauce'
-      render :file => '../fixtures/test/dot.directory/render_file_with_ivar'
+      render :file => '../../fixtures/test/dot.directory/render_file_with_ivar'
     end
     
     def pathname
       @secret = 'in the sauce'
-      render :file => Pathname.new(File.dirname(__FILE__)).join(*%w[.. fixtures test dot.directory render_file_with_ivar.erb])
+      render :file => Pathname.new(File.dirname(__FILE__)).join(*%w[.. .. fixtures test dot.directory render_file_with_ivar.erb])
     end
     
     def with_locals
-      path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.erb')
+      path = File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_locals.erb')
       render :file => path, :locals => {:secret => 'in the sauce'}
     end
     
     def without_file_key_with_locals
-      path = File.expand_path('../fixtures/test/render_file_with_locals.erb')
+      path = File.expand_path('../../fixtures/test/render_file_with_locals.erb')
       render path, :locals => {:secret => 'in the sauce'}
     end
   end
