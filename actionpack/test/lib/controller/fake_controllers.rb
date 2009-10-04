@@ -18,6 +18,7 @@ class HiController < ActionController::Base; end
 class BraveController < ActionController::Base; end
 class ImageController < ActionController::Base; end
 class WeblogController < ActionController::Base; end
+class BarController < ActionController::Base; end
 
 # For speed test
 class SpeedController < ActionController::Base;  end

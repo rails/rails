@@ -53,12 +53,33 @@ ORIGINAL_LOCALES = I18n.available_locales.map {|locale| locale.to_s }.sort
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
 class ActionController::IntegrationTest < ActiveSupport::TestCase
-  @@app = ActionDispatch::MiddlewareStack.new { |middleware|
-    middleware.use "ActionDispatch::ShowExceptions"
-    middleware.use "ActionDispatch::Callbacks"
-    middleware.use "ActionDispatch::ParamsParser"
-    middleware.use "Rack::Head"
-  }.build(ActionController::Routing::Routes)
+  def self.build_app(routes = nil)
+    ActionDispatch::MiddlewareStack.new { |middleware|
+      middleware.use "ActionDispatch::ShowExceptions"
+      middleware.use "ActionDispatch::Callbacks"
+      middleware.use "ActionDispatch::ParamsParser"
+      middleware.use "Rack::Head"
+    }.build(routes || ActionController::Routing::Routes)
+  end
+
+  self.app = build_app
+
+  def with_routing(&block)
+    real_routes = ActionController::Routing::Routes
+    ActionController::Routing.module_eval { remove_const :Routes }
+
+    temporary_routes = ActionController::Routing::RouteSet.new
+    self.class.app = self.class.build_app(temporary_routes)
+    ActionController::Routing.module_eval { const_set :Routes, temporary_routes }
+
+    yield temporary_routes
+  ensure
+    if ActionController::Routing.const_defined? :Routes
+      ActionController::Routing.module_eval { remove_const :Routes }
+    end
+    ActionController::Routing.const_set(:Routes, real_routes) if real_routes
+    self.class.app = self.class.build_app
+  end
 end
 
 module ActionView

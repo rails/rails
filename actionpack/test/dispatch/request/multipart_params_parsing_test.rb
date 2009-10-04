@@ -153,7 +153,6 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
         set.draw do |map|
           map.connect ':action', :controller => "multipart_params_parsing_test/test"
         end
-        reset!
         yield
       end
     end

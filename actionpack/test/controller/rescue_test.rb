@@ -347,7 +347,6 @@ class RescueTest < ActionController::IntegrationTest
           map.connect 'invalid', :controller => "rescue_test/test", :action => 'invalid'
           map.connect 'b00m', :controller => "rescue_test/test", :action => 'b00m'
         end
-        reset!
         yield
       end
     end
