@@ -83,7 +83,7 @@ class ConnectionTest < Test::Unit::TestCase
     begin
       handle_response ResponseHeaderStub.new(405, "HTTP Failed...", "GET, POST")
     rescue ActiveResource::MethodNotAllowed => e
-      assert_equal "Failed with 405 HTTP Failed...", e.message
+      assert_equal "Failed.  Response code = 405.  Response message = HTTP Failed....", e.message
       assert_equal [:get, :post], e.allowed_methods
     end
   end
