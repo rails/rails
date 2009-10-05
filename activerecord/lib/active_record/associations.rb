@@ -1458,9 +1458,9 @@ module ActiveRecord
           after_destroy(method_name)
         end
 
-        def find_with_associations(options = {})
+        def find_with_associations(options = {}, join_dependency = nil)
           catch :invalid_query do
-            join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
+            join_dependency ||= JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
             rows = select_all_rows(options, join_dependency)
             return join_dependency.instantiate(rows)
           end
