@@ -1,18 +1,25 @@
-require 'abstract_unit'
+require 'isolation/abstract_unit'
+require 'mocha'
 
-uses_gem "fcgi", "0.8.7" do
+begin
 
-require 'action_controller'
-require 'rails/fcgi_handler'
-
-module Rails
-  def self.application
-    ActionController::Routing::Routes
-  end
+begin
+  require 'fcgi'
+rescue LoadError
+  gem 'fcgi', '0.8.7'
+  require 'fcgi'
 end
 
 class RailsFCGIHandlerTest < Test::Unit::TestCase
+  include ActiveSupport::Testing::Isolation
+
   def setup
+    build_app
+    boot_rails
+
+    require "#{rails_root}/config/environment"
+    require 'rails/fcgi_handler'
+
     @log = StringIO.new
     @handler = RailsFCGIHandler.new(@log)
   end
@@ -87,7 +94,6 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     assert_nil @handler.when_ready
   end
 
-
   def test_reload_runs_gc_when_gc_request_period_set
     @handler.expects(:run_gc!)
     @handler.expects(:restore!)
@@ -111,7 +117,6 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
 
   def test_restore!
     $".expects(:replace)
-    Dispatcher.expects(:reset_application!)
     ActionController::Routing::Routes.expects(:reload)
     @handler.send(:restore!)
   end
@@ -127,17 +132,24 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
   end
 end
 
-
 class RailsFCGIHandlerSignalsTest < Test::Unit::TestCase
-  class ::RailsFCGIHandler
-    attr_accessor :signal
-    alias_method :old_gc_countdown, :gc_countdown
-    def gc_countdown
-      signal ? Process.kill(signal, $$) : old_gc_countdown
-    end
-  end
+  include ActiveSupport::Testing::Isolation
 
   def setup
+    build_app
+    boot_rails
+
+    require "#{rails_root}/config/environment"
+    require 'rails/fcgi_handler'
+
+    ::RailsFCGIHandler.class_eval do
+      attr_accessor :signal
+      alias_method :old_gc_countdown, :gc_countdown
+      def gc_countdown
+        signal ? Process.kill(signal, $$) : old_gc_countdown
+      end
+    end
+
     @log = StringIO.new
     @handler = RailsFCGIHandler.new(@log)
     @dispatcher = mock
@@ -232,9 +244,16 @@ class RailsFCGIHandlerSignalsTest < Test::Unit::TestCase
   end
 end
 
-
 class RailsFCGIHandlerPeriodicGCTest < Test::Unit::TestCase
+  include ActiveSupport::Testing::Isolation
+
   def setup
+    build_app
+    boot_rails
+
+    require "#{rails_root}/config/environment"
+    require 'rails/fcgi_handler'
+
     @log = StringIO.new
   end
 
@@ -265,4 +284,7 @@ class RailsFCGIHandlerPeriodicGCTest < Test::Unit::TestCase
     assert_nil @handler.when_ready
   end
 end
-end # uses_gem "fcgi"
+
+rescue LoadError
+  $stderr.puts 'Skipping fcgi tests. `gem install fcgi` and try again.'
+end

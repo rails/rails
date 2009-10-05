@@ -25,15 +25,3 @@ if defined?(RAILS_ROOT)
 else
   RAILS_ROOT = File.dirname(__FILE__)
 end
-
-def uses_gem(gem_name, test_name, version = '> 0')
-  begin
-    require gem_name.to_s
-  rescue LoadError
-    gem gem_name.to_s, version
-    require gem_name.to_s
-  end
-  yield
-rescue LoadError
-  $stderr.puts "Skipping #{test_name} tests. `gem install #{gem_name}` and try again."
-end

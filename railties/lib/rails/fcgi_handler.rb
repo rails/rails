@@ -216,7 +216,9 @@ class RailsFCGIHandler
 
     def restore!
       $".replace @features
-      Dispatcher.reset_application!
+      # TODO: Reloading the application should be the "Application"s
+      # responsibility
+      ActionDispatch::Callbacks.new(lambda {}, true)
       ActionController::Routing::Routes.reload
     end
 
