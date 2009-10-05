@@ -10,3 +10,5 @@ use lambda { ActionController::Base.session_store },
 use "ActionController::ParamsParser"
 use "Rack::MethodOverride"
 use "Rack::Head"
+
+use "ActionController::StringCoercion"
