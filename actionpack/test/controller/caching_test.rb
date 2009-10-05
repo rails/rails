@@ -46,14 +46,8 @@ end
 class PageCachingTest < ActionController::TestCase
   def setup
     super
-    ActionController::Base.perform_caching = true
 
-    ActionController::Routing::Routes.draw do |map|
-      map.main '', :controller => 'posts', :format => nil
-      map.formatted_posts 'posts.:format', :controller => 'posts'
-      map.resources :posts
-      map.connect ':controller/:action/:id'
-    end
+    ActionController::Base.perform_caching = true
 
     @request = ActionController::TestRequest.new
     @request.host = 'hostname.com'
@@ -74,10 +68,16 @@ class PageCachingTest < ActionController::TestCase
   end
 
   def test_page_caching_resources_saves_to_correct_path_with_extension_even_if_default_route
-    @params[:format] = 'rss'
-    assert_equal '/posts.rss', @rewriter.rewrite(@params)
-    @params[:format] = nil
-    assert_equal '/', @rewriter.rewrite(@params)
+    with_routing do |set|
+      set.draw do |map|
+        map.main '', :controller => 'posts', :format => nil
+        map.formatted_posts 'posts.:format', :controller => 'posts'
+      end
+      @params[:format] = 'rss'
+      assert_equal '/posts.rss', @rewriter.rewrite(@params)
+      @params[:format] = nil
+      assert_equal '/', @rewriter.rewrite(@params)
+    end
   end
 
   def test_should_cache_get_with_ok_status

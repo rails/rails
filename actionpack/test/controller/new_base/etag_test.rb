@@ -16,7 +16,7 @@ module Etags
     end
   end
 
-  class EtagTest < SimpleRouteCase
+  class EtagTest < Rack::TestCase
     describe "Rendering without any special etag options returns an etag that is an MD5 hash of its text"
 
     test "an action without a layout" do

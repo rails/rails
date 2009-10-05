@@ -158,7 +158,6 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
           map.connect "/:action", :controller => "active_record_store_test/test"
         end
         @app = ActiveRecord::SessionStore.new(set, options.reverse_merge(:key => '_session_id'))
-        reset!
         yield
       end
     end

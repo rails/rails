@@ -115,7 +115,6 @@ class MemCacheStoreTest < ActionController::IntegrationTest
           map.connect "/:action", :controller => "mem_cache_store_test/test"
         end
         @app = ActionDispatch::Session::MemCacheStore.new(set, :key => '_session_id')
-        reset!
         yield
       end
     end

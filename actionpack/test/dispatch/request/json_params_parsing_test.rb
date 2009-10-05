@@ -59,7 +59,6 @@ class JsonParamsParsingTest < ActionController::IntegrationTest
         set.draw do |map|
           map.connect ':action', :controller => "json_params_parsing_test/test"
         end
-        reset!
         yield
       end
     end

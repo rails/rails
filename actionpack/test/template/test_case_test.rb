@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'controller/fake_controllers'
 
 module ActionView
   class TestCase

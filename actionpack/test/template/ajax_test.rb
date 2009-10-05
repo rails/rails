@@ -32,7 +32,7 @@ class LinkToRemoteTest < AjaxTestCase
   end
 
   test "with no update" do
-    assert_html link, %w(href="/blog/destroy/3" Delete\ this\ post data-remote="true")
+    assert_html link, %w(href="/blog/destroy/4" Delete\ this\ post data-remote="true")
   end
 
   test "basic" do
@@ -46,7 +46,7 @@ class LinkToRemoteTest < AjaxTestCase
   end
 
   test "with :html options" do
-    expected = %{<a href="/blog/destroy/3" data-custom="me" data-update-success="#posts">Delete this post</a>}
+    expected = %{<a href="/blog/destroy/4" data-custom="me" data-remote="true" data-update-success="#posts">Delete this post</a>}
     assert_equal expected, link(:update => "#posts", :html => {"data-custom" => "me"})
   end
 
@@ -74,7 +74,7 @@ class LinkToRemoteTest < AjaxTestCase
     end
 
     test "basic link_to_remote with :url =>" do
-      expected = %{<a href="/blog/destroy/3" data-update-success="#posts">Delete this post</a>}
+      expected = %{<a href="/blog/destroy/3" data-remote="true" data-update-success="#posts">Delete this post</a>}
       assert_equal expected,
         link_to_remote("Delete this post", :url => "/blog/destroy/3", :update => "#posts")
     end
@@ -93,7 +93,7 @@ class ButtonToRemoteTest < AjaxTestCase
   def url_for(*)
     "/whatnot"
   end
-  
+
   class StandardTest < ButtonToRemoteTest
     test "basic" do
       button = button({:url => {:action => "whatnot"}}, {:class => "fine"})
@@ -103,13 +103,12 @@ class ButtonToRemoteTest < AjaxTestCase
       end
     end
   end
-  
+
   class LegacyButtonToRemoteTest < ButtonToRemoteTest
     include ActionView::Helpers::AjaxHelper::Rails2Compatibility
-    
+
     assert_callbacks_work do |callback|
       button(callback => "undoRequestCompleted(request)")
     end
   end
-
 end

@@ -45,7 +45,7 @@ module RenderAction
 
   end
 
-  class RenderActionTest < SimpleRouteCase
+  class RenderActionTest < Rack::TestCase
     test "rendering an action using :action => <String>" do
       get "/render_action/basic/hello_world"
 
@@ -82,7 +82,7 @@ module RenderAction
     end
   end
 
-  class RenderLayoutTest < SimpleRouteCase
+  class RenderLayoutTest < Rack::TestCase
     describe "Both <controller_path>.html.erb and application.html.erb are missing"
 
     test "rendering with layout => true" do
@@ -150,7 +150,7 @@ module RenderActionWithApplicationLayout
     end
   end
 
-  class LayoutTest < SimpleRouteCase
+  class LayoutTest < Rack::TestCase
     describe "Only application.html.erb is present and <controller_path>.html.erb is missing"
 
     test "rendering implicit application.html.erb as layout" do
@@ -189,7 +189,7 @@ module RenderActionWithApplicationLayout
     end
   end
 
-  class TestLayout < SimpleRouteCase
+  class TestLayout < Rack::TestCase
     testing BasicController
 
     test "builder works with layouts" do
@@ -228,7 +228,7 @@ module RenderActionWithControllerLayout
     end
   end
 
-  class ControllerLayoutTest < SimpleRouteCase
+  class ControllerLayoutTest < Rack::TestCase
     describe "Only <controller_path>.html.erb is present and application.html.erb is missing"
 
     test "render hello_world and implicitly use <controller_path>.html.erb as a layout." do
@@ -286,7 +286,7 @@ module RenderActionWithBothLayouts
     end
   end
 
-  class ControllerLayoutTest < SimpleRouteCase
+  class ControllerLayoutTest < Rack::TestCase
     describe "Both <controller_path>.html.erb and application.html.erb are present"
 
     test "rendering implicitly use <controller_path>.html.erb over application.html.erb as a layout" do

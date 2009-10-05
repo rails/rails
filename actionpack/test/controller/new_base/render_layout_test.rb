@@ -36,7 +36,7 @@ module ControllerLayouts
     end
   end
 
-  class RenderLayoutTest < SimpleRouteCase
+  class RenderLayoutTest < Rack::TestCase
     test "rendering a normal template, but using the implicit layout" do
       get "/controller_layouts/implicit/index"
 
@@ -58,7 +58,7 @@ module ControllerLayouts
 
   end
 
-  class LayoutOptionsTest < SimpleRouteCase
+  class LayoutOptionsTest < Rack::TestCase
     testing ControllerLayouts::ImplicitController
 
     test "rendering with :layout => false leaves out the implicit layout" do
@@ -79,7 +79,7 @@ module ControllerLayouts
     end
   end
 
-  class MismatchFormatTest < SimpleRouteCase
+  class MismatchFormatTest < Rack::TestCase
     testing ControllerLayouts::MismatchFormatController
 
     test "if JS is selected, an HTML template is not also selected" do

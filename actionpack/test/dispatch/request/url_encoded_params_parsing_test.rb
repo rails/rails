@@ -132,7 +132,6 @@ class UrlEncodedParamsParsingTest < ActionController::IntegrationTest
         set.draw do |map|
           map.connect ':action', :controller => "url_encoded_params_parsing_test/test"
         end
-        reset!
         yield
       end
     end

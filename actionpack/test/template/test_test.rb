@@ -19,32 +19,41 @@ module PeopleHelper
 end
 
 class PeopleHelperTest < ActionView::TestCase
-  def setup
-    super
-    ActionController::Routing::Routes.draw do |map|
-      map.people 'people', :controller => 'people', :action => 'index'
-      map.connect ':controller/:action/:id'
-    end
-  end
-
   def test_title
     assert_equal "<h1>Ruby on Rails</h1>", title("Ruby on Rails")
   end
 
   def test_homepage_path
-    assert_equal "/people", homepage_path
+    with_test_route_set do
+      assert_equal "/people", homepage_path
+    end
   end
 
   def test_homepage_url
-    assert_equal "http://test.host/people", homepage_url
+    with_test_route_set do
+      assert_equal "http://test.host/people", homepage_url
+    end
   end
 
   def test_link_to_person
-    person = mock(:name => "David")
-    person.class.extend ActiveModel::Naming
-    expects(:mocha_mock_path).with(person).returns("/people/1")
-    assert_equal '<a href="/people/1">David</a>', link_to_person(person)
+    with_test_route_set do
+      person = mock(:name => "David")
+      person.class.extend ActiveModel::Naming
+      expects(:mocha_mock_path).with(person).returns("/people/1")
+      assert_equal '<a href="/people/1">David</a>', link_to_person(person)
+    end
   end
+
+  private
+    def with_test_route_set
+      with_routing do |set|
+        set.draw do |map|
+          map.people 'people', :controller => 'people', :action => 'index'
+          map.connect ':controller/:action/:id'
+        end
+        yield
+      end
+    end
 end
 
 class CrazyHelperTest < ActionView::TestCase

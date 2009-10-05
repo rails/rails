@@ -66,6 +66,7 @@ cd "#{root_dir}/actionpack" do
   puts "[CruiseControl] Building ActionPack"
   puts
   build_results[:actionpack] = system 'gem bundle && rake'
+  build_results[:actionpack_isolated] = system 'rake test:isolated'
 end
 
 cd "#{root_dir}/actionmailer" do

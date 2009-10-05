@@ -35,7 +35,7 @@ module Render
     end
   end
 
-  class RenderTest < SimpleRouteCase
+  class RenderTest < Rack::TestCase
     test "render with blank" do
       get "/render/blank_render"
 
@@ -50,7 +50,7 @@ module Render
     end
   end
 
-  class TestOnlyRenderPublicActions < SimpleRouteCase
+  class TestOnlyRenderPublicActions < Rack::TestCase
     describe "Only public methods on actual controllers are callable actions"
 
     test "raises an exception when a method of Object is called" do
@@ -66,7 +66,7 @@ module Render
     end
   end
   
-  class TestVariousObjectsAvailableInView < SimpleRouteCase
+  class TestVariousObjectsAvailableInView < Rack::TestCase
     test "The request object is accessible in the view" do
       get "/render/blank_render/access_request"
       assert_body "The request: GET"
