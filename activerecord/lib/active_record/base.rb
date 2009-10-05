@@ -661,8 +661,8 @@ module ActiveRecord #:nodoc:
         find(:last, *args)
       end
 
-      # This is an alias for find(:all).  You can pass in all the same arguments to this method as you can
-      # to find(:all)
+      # Returns an ActiveRecord::Relation object. You can pass in all the same arguments to this method as you can
+      # to find(:all).
       def all(*args)
         options = args.extract_options!
 
