@@ -667,7 +667,7 @@ module ActiveRecord #:nodoc:
         options = args.extract_options!
 
 
-        if options.empty? #&& !scoped?(:find)
+        if options.empty? && !scoped?(:find)
           relation = arel_table
         else
           include_associations = merge_includes(scope(:find, :include), options[:include])
@@ -1751,7 +1751,6 @@ module ActiveRecord #:nodoc:
           relation = relation.readonly if options[:readonly]
 
           relation
-
         end
 
         def construct_finder_sql(options, scope = scope(:find))
