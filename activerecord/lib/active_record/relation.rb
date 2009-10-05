@@ -7,11 +7,17 @@ module ActiveRecord
       @klass, @relation = klass, relation
       @readonly = false
       @associations_to_preload = []
+      @eager_load_associations = []
     end
 
     def preload(association)
-      @associations_to_preload << association
-      @associations_to_preload.flatten!
+      @associations_to_preload += association
+      self
+    end
+
+    def eager_load(association)
+      @eager_load_associations += association
+      self
     end
 
     def readonly
@@ -20,11 +26,23 @@ module ActiveRecord
     end
 
     def to_a
-      records = @klass.find_by_sql(@relation.to_sql)
-
-      @klass.send :preload_associations, records, @associations_to_preload unless @associations_to_preload.empty?
-
-      records.each { |record| record.readonly! } if @readonly
+      if @eager_load_associations.any?
+        records = catch :invalid_query do
+          @klass.send(:find_with_associations, {
+            :select => @relation.send(:select_clauses).join(', '),
+            :joins => @relation.joins(relation),
+            :group => @relation.send(:group_clauses).join(', '),
+            :order => @relation.send(:order_clauses).join(', '),
+            :conditions => @relation.send(:where_clauses).join("\n\tAND "),
+            :limit => @relation.taken
+            },
+            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
+        end
+      else
+        records = @klass.find_by_sql(@relation.to_sql)
+        @klass.send(:preload_associations, records, @associations_to_preload) unless @associations_to_preload.empty?
+        records.each { |record| record.readonly! } if @readonly
+      end
 
       records
     end

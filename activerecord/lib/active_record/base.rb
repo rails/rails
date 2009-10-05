@@ -666,23 +666,18 @@ module ActiveRecord #:nodoc:
       def all(*args)
         options = args.extract_options!
 
-
         if options.empty? && !scoped?(:find)
           relation = arel_table
         else
+          relation = construct_finder_arel(options)
           include_associations = merge_includes(scope(:find, :include), options[:include])
 
-          # if include_associations.any? && references_eager_loaded_tables?(options)
-          #   join_dependency = JoinDependency.new(self, include_associations, options[:joins])
-
-          #   relation = construct_finder_arel_with_included_associations(options, join_dependency)
-
-          #   relation.preload(include_associations)
-          # else
-            relation = construct_finder_arel(options)
-            if include_associations.any?
+          if include_associations.any?
+            if references_eager_loaded_tables?(options)
+              relation.eager_load(include_associations)
+            else
               relation.preload(include_associations)
-            # end
+            end
           end
         end
         relation
