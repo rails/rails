@@ -43,6 +43,13 @@ module ApplicationTests
       assert Rails.application.new.is_a?(Rails::Application)
     end
 
+    # Passenger still uses AC::Dispatcher, so we need to
+    # keep it working for now
+    test "deprecated ActionController::Dispatcher still works" do
+      rackup
+      assert ActionController::Dispatcher.new.is_a?(Rails::Application)
+    end
+
     test "the config object is available on the application object" do
       rackup
       assert_equal 'UTC', Rails.application.config.time_zone

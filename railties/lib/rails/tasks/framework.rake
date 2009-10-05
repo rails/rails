@@ -110,11 +110,6 @@ namespace :rails do
       invoke_from_app_generator :create_prototype_files
     end
 
-    desc "Generate dispatcher files in RAILS_ROOT/public"
-    task :generate_dispatchers do
-      invoke_from_app_generator :create_dispatch_files
-    end
-
     desc "Add new scripts to the application script/ directory"
     task :scripts do
       invoke_from_app_generator :create_script_files
