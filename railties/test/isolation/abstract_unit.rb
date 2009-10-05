@@ -30,6 +30,10 @@ module TestHelpers
     def app_path(*args)
       tmp_path(*%w[app] + args)
     end
+
+    def rails_root
+      app_path
+    end
   end
 
   module Rack
