@@ -443,3 +443,23 @@ class MetalTest < ActionController::IntegrationTest
     assert_equal '', response.body
   end
 end
+
+class StringSubclassBodyTest < ActionController::IntegrationTest
+  class SafeString < String
+  end
+
+  class SafeStringMiddleware
+    def self.call(env)
+      [200, {"Content-Type" => "text/plain", "Content-Length" => "12"}, [SafeString.new("Hello World!")]]
+    end
+  end
+
+  def setup
+    @integration_session = ActionController::Integration::Session.new(SafeStringMiddleware)
+  end
+
+  def test_string_subclass_body
+    get '/'
+    assert_equal 'Hello World!', response.body
+  end
+end
