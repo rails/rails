@@ -50,6 +50,8 @@ class OrchestraMainTest < Test::Unit::TestCase
       1 + 1
     end
 
+    sleep(0.1)
+
     assert_equal 1, @events.size
     assert_equal :awesome, @events.last.name
     assert_equal Hash[:payload => "orchestra"], @events.last.payload
@@ -58,24 +60,30 @@ class OrchestraMainTest < Test::Unit::TestCase
   def test_nested_events_can_be_instrumented
     ActiveSupport::Orchestra.instrument(:awesome, :payload => "orchestra") do
       ActiveSupport::Orchestra.instrument(:wot, :payload => "child") do
-        sleep(0.1)
+        1 + 1
       end
+
+      sleep(0.1)
 
       assert_equal 1, @events.size
       assert_equal :wot, @events.first.name
       assert_equal Hash[:payload => "child"], @events.first.payload
-      assert_in_delta 100, @events.first.duration, 30
     end
+
+    sleep(0.1)
 
     assert_equal 2, @events.size
     assert_equal :awesome, @events.last.name
     assert_equal Hash[:payload => "orchestra"], @events.last.payload
+    assert_in_delta 100, @events.last.duration, 70
   end
 
   def test_event_is_pushed_even_if_block_fails
     ActiveSupport::Orchestra.instrument(:awesome, :payload => "orchestra") do
       raise "OMG"
     end rescue RuntimeError
+
+    sleep(0.1)
 
     assert_equal 1, @events.size
     assert_equal :awesome, @events.last.name
@@ -89,7 +97,7 @@ class OrchestraMainTest < Test::Unit::TestCase
     ActiveSupport::Orchestra.instrument(:something){ 0 }
     ActiveSupport::Orchestra.instrument(:cache){ 10 }
 
-    sleep 0.1
+    sleep(0.1)
 
     assert_equal 1, @another.size
     assert_equal :cache, @another.first.name
