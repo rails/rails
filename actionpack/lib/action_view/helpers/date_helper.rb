@@ -916,15 +916,15 @@ module ActionView
 
     class InstanceTag #:nodoc:
       def to_date_select_tag(options = {}, html_options = {})
-        datetime_selector(options, html_options).select_date
+        datetime_selector(options, html_options).select_date.html_safe!
       end
 
       def to_time_select_tag(options = {}, html_options = {})
-        datetime_selector(options, html_options).select_time
+        datetime_selector(options, html_options).select_time.html_safe!
       end
 
       def to_datetime_select_tag(options = {}, html_options = {})
-        datetime_selector(options, html_options).select_datetime
+        datetime_selector(options, html_options).select_datetime.html_safe!
       end
 
       private

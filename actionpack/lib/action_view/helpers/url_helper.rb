@@ -219,7 +219,7 @@ module ActionView
         if block_given?
           options      = args.first || {}
           html_options = args.second
-          concat(link_to(capture(&block), options, html_options))
+          concat(link_to(capture(&block), options, html_options).html_safe!)
         else
           name         = args.first
           options      = args.second || {}
@@ -237,7 +237,7 @@ module ActionView
           end
 
           href_attr = "href=\"#{url}\"" unless href
-          "<a #{href_attr}#{tag_options}>#{name || url}</a>"
+          "<a #{href_attr}#{tag_options}>#{name || url}</a>".html_safe!
         end
       end
 
@@ -309,7 +309,7 @@ module ActionView
         html_options.merge!("type" => "submit", "value" => name)
 
         "<form method=\"#{form_method}\" action=\"#{escape_once url}\" class=\"button-to\"><div>" +
-          method_tag + tag("input", html_options) + request_token_tag + "</div></form>"
+          method_tag + tag("input", html_options) + request_token_tag + "</div></form>".html_safe!
       end
 
 

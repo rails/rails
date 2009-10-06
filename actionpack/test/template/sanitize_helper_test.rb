@@ -39,7 +39,16 @@ class SanitizeHelperTest < ActionView::TestCase
     %{This is a test.\n\n\nIt no longer contains any HTML.\n}, strip_tags(
     %{<title>This is <b>a <a href="" target="_blank">test</a></b>.</title>\n\n<!-- it has a comment -->\n\n<p>It no <b>longer <strong>contains <em>any <strike>HTML</strike></em>.</strong></b></p>\n}))
     assert_equal "This has a  here.", strip_tags("This has a <!-- comment --> here.")
-    [nil, '', '   '].each { |blank| assert_equal blank, strip_tags(blank) }
+    [nil, '', '   '].each do |blank|
+      stripped = strip_tags(blank)
+      assert_equal blank, stripped
+      assert stripped.html_safe? unless blank.nil?
+    end
+    assert strip_tags("<script>").html_safe?
+  end
+
+  def test_sanitize_is_marked_safe
+    assert sanitize("<html><script></script></html>").html_safe?
   end
 
   def assert_sanitized(text, expected = nil)

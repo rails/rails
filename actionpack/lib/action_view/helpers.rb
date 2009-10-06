@@ -14,6 +14,7 @@ module ActionView #:nodoc:
     autoload :JavaScriptHelper, 'action_view/helpers/javascript_helper'
     autoload :NumberHelper, 'action_view/helpers/number_helper'
     autoload :PrototypeHelper, 'action_view/helpers/prototype_helper'
+    autoload :RawOutputHelper, 'action_view/helpers/raw_output_helper'
     autoload :RecordIdentificationHelper, 'action_view/helpers/record_identification_helper'
     autoload :RecordTagHelper, 'action_view/helpers/record_tag_helper'
     autoload :SanitizeHelper, 'action_view/helpers/sanitize_helper'
@@ -45,6 +46,7 @@ module ActionView #:nodoc:
     include JavaScriptHelper
     include NumberHelper
     include PrototypeHelper
+    include RawOutputHelper
     include RecordIdentificationHelper
     include RecordTagHelper
     include SanitizeHelper

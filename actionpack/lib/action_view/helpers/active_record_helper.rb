@@ -290,7 +290,7 @@ module ActionView
       end
 
       def error_wrapping(html_tag, has_error)
-        has_error ? Base.field_error_proc.call(html_tag, self) : html_tag
+        has_error ? Base.field_error_proc.call(html_tag, self).html_safe! : html_tag
       end
 
       def error_message
