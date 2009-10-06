@@ -2427,6 +2427,29 @@ module ActiveRecord #:nodoc:
         result
       end
 
+      # Cloned objects have no id assigned and are treated as new records. Note that this is a "shallow" clone
+      # as it copies the object's attributes only, not its associations. The extent of a "deep" clone is
+      # application specific and is therefore left to the application to implement according to its need.
+      def initialize_copy(other)
+        # Think the assertion which fails if the after_initialize callback goes at the end of the method is wrong. The
+        # deleted clone method called new which therefore called the after_initialize callback. It then went on to copy
+        # over the attributes. But if it's copying the attributes afterwards then it hasn't finished initializing right?
+        # For example in the test suite the topic model's after_initialize method sets the author_email_address to
+        # test@test.com. I would have thought this would mean that all cloned models would have an author email address
+        # of test@test.com. However the test_clone test method seems to test that this is not the case. As a result the
+        # after_initialize callback has to be run *before* the copying of the atrributes rather than afterwards in order
+        # for all tests to pass. This makes no sense to me.
+        callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
+        cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
+        cloned_attributes.delete(self.class.primary_key)
+        @attributes = cloned_attributes
+        clear_aggregation_cache
+        @attributes_cache = {}
+        @new_record = true
+        ensure_proper_type
+        self.class.send(:scope, :create).each { |att, value| self.send("#{att}=", value) } if self.class.send(:scoped?, :create)
+      end
+
       # Returns a String, which Action Pack uses for constructing an URL to this
       # object. The default implementation returns this record's id as a String,
       # or nil if this record's unsaved.
@@ -2553,19 +2576,6 @@ module ActiveRecord #:nodoc:
 
         @destroyed = true
         freeze
-      end
-
-      # Returns a clone of the record that hasn't been assigned an id yet and
-      # is treated as a new record.  Note that this is a "shallow" clone:
-      # it copies the object's attributes only, not its associations.
-      # The extent of a "deep" clone is application-specific and is therefore
-      # left to the application to implement according to its need.
-      def clone
-        attrs = clone_attributes(:read_attribute_before_type_cast)
-        attrs.delete(self.class.primary_key)
-        record = self.class.new
-        record.send :instance_variable_set, '@attributes', attrs
-        record
       end
 
       # Returns an instance of the specified +klass+ with the attributes of the current record. This is mostly useful in relation to
@@ -2831,6 +2841,21 @@ module ActiveRecord #:nodoc:
         "#<#{self.class} #{attributes_as_nice_string}>"
       end
 
+    protected
+      def clone_attributes(reader_method = :read_attribute, attributes = {})
+        self.attribute_names.inject(attributes) do |attrs, name|
+          attrs[name] = clone_attribute_value(reader_method, name)
+          attrs
+        end
+      end
+
+      def clone_attribute_value(reader_method, attribute_name)
+        value = send(reader_method, attribute_name)
+        value.duplicable? ? value.clone : value
+      rescue TypeError, NoMethodError
+        value
+      end
+
     private
       def create_or_update
         raise ReadOnlyRecord if readonly?
@@ -3092,20 +3117,6 @@ module ActiveRecord #:nodoc:
       def object_from_yaml(string)
         return string unless string.is_a?(String) && string =~ /^---/
         YAML::load(string) rescue string
-      end
-
-      def clone_attributes(reader_method = :read_attribute, attributes = {})
-        self.attribute_names.inject(attributes) do |attrs, name|
-          attrs[name] = clone_attribute_value(reader_method, name)
-          attrs
-        end
-      end
-
-      def clone_attribute_value(reader_method, attribute_name)
-        value = send(reader_method, attribute_name)
-        value.duplicable? ? value.clone : value
-      rescue TypeError, NoMethodError
-        value
       end
   end
 
