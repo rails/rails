@@ -93,6 +93,7 @@ end
 class ActionController::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
     ActionDispatch::MiddlewareStack.new { |middleware|
+      middleware.use "ActionDispatch::StringCoercion"
       middleware.use "ActionDispatch::ShowExceptions"
       middleware.use "ActionDispatch::Callbacks"
       middleware.use "ActionDispatch::ParamsParser"

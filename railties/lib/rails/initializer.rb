@@ -271,6 +271,7 @@ module Rails
       configuration.middleware.use(ActionDispatch::ParamsParser)
       configuration.middleware.use(::Rack::MethodOverride)
       configuration.middleware.use(::Rack::Head)
+      configuration.middleware.use(ActionDispatch::StringCoercion)
     end
   end
 
