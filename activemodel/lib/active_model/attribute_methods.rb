@@ -1,3 +1,6 @@
+require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/class/inheritable_attributes'
+
 module ActiveModel
   class MissingAttributeError < NoMethodError
   end
@@ -162,6 +165,7 @@ module ActiveModel
             end
           end
         end
+        @attribute_methods_generated = true
       end
 
       def undefine_attribute_methods
@@ -173,7 +177,6 @@ module ActiveModel
 
       def generated_attribute_methods #:nodoc:
         @generated_attribute_methods ||= begin
-          @attribute_methods_generated = true
           mod = Module.new
           include mod
           mod
@@ -219,7 +222,7 @@ module ActiveModel
         end
 
         def attribute_method_matchers #:nodoc:
-          @@attribute_method_matchers ||= []
+          read_inheritable_attribute(:attribute_method_matchers) || write_inheritable_attribute(:attribute_method_matchers, [])
         end
     end
 
