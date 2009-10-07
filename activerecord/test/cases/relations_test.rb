@@ -4,6 +4,7 @@ require 'models/topic'
 require 'models/comment'
 require 'models/reply'
 require 'models/author'
+require 'models/comment'
 require 'models/entrant'
 require 'models/developer'
 require 'models/company'
@@ -123,6 +124,27 @@ class RelationTest < ActiveRecord::TestCase
   def test_default_scope_with_conditions_hash
     assert_equal Developer.find_all_by_name('Jamis').map(&:id).sort, DeveloperCalledJamis.all.to_a.map(&:id).sort
     assert_equal 'Jamis', DeveloperCalledJamis.create!.name
+  end
+
+    def test_loading_with_one_association
+    posts = Post.all(:include => :comments).to_a
+    post = posts.find { |p| p.id == 1 }
+    assert_equal 2, post.comments.size
+    assert post.comments.include?(comments(:greetings))
+
+    post = Post.find(:first, :include => :comments, :conditions => "posts.title = 'Welcome to the weblog'")
+    assert_equal 2, post.comments.size
+    assert post.comments.include?(comments(:greetings))
+
+    posts = Post.all(:include => :last_comment).to_a
+    post = posts.find { |p| p.id == 1 }
+    assert_equal Post.find(1).last_comment, post.last_comment
+  end
+
+  def test_loading_with_one_association_with_non_preload
+    posts = Post.all(:include => :last_comment, :order => 'comments.id DESC').to_a
+    post = posts.find { |p| p.id == 1 }
+    assert_equal Post.find(1).last_comment, post.last_comment
   end
 
 end

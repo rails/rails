@@ -26,9 +26,9 @@ module ActiveRecord
     end
 
     def to_a
-      if @eager_load_associations.any?
-        records = catch :invalid_query do
-          @klass.send(:find_with_associations, {
+      records = if @eager_load_associations.any?
+        catch :invalid_query do
+          return @klass.send(:find_with_associations, {
             :select => @relation.send(:select_clauses).join(', '),
             :joins => @relation.joins(relation),
             :group => @relation.send(:group_clauses).join(', '),
@@ -38,11 +38,13 @@ module ActiveRecord
             },
             ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
         end
+        []
       else
-        records = @klass.find_by_sql(@relation.to_sql)
-        @klass.send(:preload_associations, records, @associations_to_preload) unless @associations_to_preload.empty?
-        records.each { |record| record.readonly! } if @readonly
+        @klass.find_by_sql(@relation.to_sql)
       end
+
+      @klass.send(:preload_associations, records, @associations_to_preload) unless @associations_to_preload.empty?
+      records.each { |record| record.readonly! } if @readonly
 
       records
     end
