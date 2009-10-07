@@ -91,6 +91,7 @@ module ActionView
         yield contents if block_given?
         contents << submit_tag(submit_value)
         contents << '</form>'
+        contents.html_safe!
       end
 
       # Returns a string containing the error message attached to the +method+ on the +object+ if one exists.

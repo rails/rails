@@ -139,7 +139,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_with_img
-    assert_dom_equal "<a href=\"http://www.example.com\"><img src='/favicon.jpg' /></a>", link_to("<img src='/favicon.jpg' />", "http://www.example.com")
+    assert_dom_equal "<a href=\"http://www.example.com\"><img src='/favicon.jpg' alt=\"Favicon\"  /></a>", link_to(image_tag("/favicon.jpg"), "http://www.example.com")
   end
 
   def test_link_with_nil_html_options

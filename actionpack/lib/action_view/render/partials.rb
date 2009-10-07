@@ -223,7 +223,7 @@ module ActionView
         end
 
         result = template ? collection_with_template(template) : collection_without_template
-        result.join(spacer)
+        result.join(spacer).html_safe!
       end
 
       def collection_with_template(template)
