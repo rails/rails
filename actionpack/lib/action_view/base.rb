@@ -237,8 +237,11 @@ module ActionView #:nodoc:
       if controller.class.respond_to?(:_helper_serial)
         klass = @views[controller.class._helper_serial] ||= Class.new(self) do
           name = controller.class.name.gsub(/::/, '__')
-          Subclasses.remove_const(name) if Subclasses.const_defined?(name)
-          Subclasses.const_set(name, self)
+
+          Subclasses.class_eval do
+            remove_const(name) if const_defined?(name)
+            const_set(name, self)
+          end
 
           if controller.respond_to?(:_helpers)
             include controller._helpers
