@@ -165,6 +165,7 @@ module ActiveModel
             end
           end
         end
+        @attribute_methods_generated = true
       end
 
       def undefine_attribute_methods
@@ -176,7 +177,6 @@ module ActiveModel
 
       def generated_attribute_methods #:nodoc:
         @generated_attribute_methods ||= begin
-          @attribute_methods_generated = true
           mod = Module.new
           include mod
           mod
