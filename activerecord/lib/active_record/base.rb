@@ -2573,7 +2573,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          self.class.arel_table(self.class.table_name).conditions(self.class.arel_table[self.class.primary_key].eq(id)).delete
+          self.class.arel_table.conditions(self.class.arel_table[self.class.primary_key].eq(id)).delete
         end
 
         @destroyed = true
