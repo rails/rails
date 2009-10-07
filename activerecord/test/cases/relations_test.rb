@@ -122,12 +122,12 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_with_conditions_hash
-    assert_equal Developer.find_all_by_name('Jamis').map(&:id).sort, DeveloperCalledJamis.all.to_a.map(&:id).sort
+    assert_equal Developer.find_all_by_name('Jamis').map(&:id).sort, DeveloperCalledJamis.all.map(&:id).sort
     assert_equal 'Jamis', DeveloperCalledJamis.create!.name
   end
 
     def test_loading_with_one_association
-    posts = Post.all(:include => :comments).to_a
+    posts = Post.all(:include => :comments)
     post = posts.find { |p| p.id == 1 }
     assert_equal 2, post.comments.size
     assert post.comments.include?(comments(:greetings))
@@ -136,16 +136,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 2, post.comments.size
     assert post.comments.include?(comments(:greetings))
 
-    posts = Post.all(:include => :last_comment).to_a
+    posts = Post.all(:include => :last_comment)
     post = posts.find { |p| p.id == 1 }
     assert_equal Post.find(1).last_comment, post.last_comment
   end
 
   def test_loading_with_one_association_with_non_preload
-    posts = Post.all(:include => :last_comment, :order => 'comments.id DESC').to_a
+    posts = Post.all(:include => :last_comment, :order => 'comments.id DESC')
     post = posts.find { |p| p.id == 1 }
     assert_equal Post.find(1).last_comment, post.last_comment
   end
-
 end
 

@@ -1,6 +1,7 @@
 module ActiveRecord
   class Relation
     delegate :to_sql, :to => :relation
+    delegate :length, :collect, :find, :map, :each, :to => :to_a
     attr_reader :relation, :klass
 
     def initialize(klass, relation)
@@ -34,7 +35,8 @@ module ActiveRecord
             :group => @relation.send(:group_clauses).join(', '),
             :order => @relation.send(:order_clauses).join(', '),
             :conditions => @relation.send(:where_clauses).join("\n\tAND "),
-            :limit => @relation.taken
+            :limit => @relation.taken,
+            :offset => @relation.skipped
             },
             ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
         end
@@ -47,10 +49,6 @@ module ActiveRecord
       records.each { |record| record.readonly! } if @readonly
 
       records
-    end
-
-    def each(&block)
-      to_a.each(&block)
     end
 
     def first
