@@ -270,7 +270,7 @@ module ActiveRecord
     # <tt>:_destroy</tt> key set to a truthy value, then the existing record
     # will be marked for destruction.
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes, allow_destroy)
-      attributes = attributes.stringify_keys
+      attributes = attributes.with_indifferent_access
 
       if attributes['id'].blank?
         unless reject_new_record?(association_name, attributes)
@@ -323,7 +323,7 @@ module ActiveRecord
       end
 
       attributes_collection.each do |attributes|
-        attributes = attributes.stringify_keys
+        attributes = attributes.with_indifferent_access
 
         if attributes['id'].blank?
           unless reject_new_record?(association_name, attributes)
