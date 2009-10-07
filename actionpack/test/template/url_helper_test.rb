@@ -22,7 +22,7 @@ class UrlHelperTest < ActionView::TestCase
 
   def test_url_for_escapes_urls
     @controller.url = "http://www.example.com?a=b&c=d"
-    assert_equal "http://www.example.com?a=b&amp;c=d", url_for(:a => 'b', :c => 'd')
+    assert_equal "http://www.example.com?a=b&c=d", url_for(:a => 'b', :c => 'd')
     assert_equal "http://www.example.com?a=b&amp;c=d", url_for(:a => 'b', :c => 'd', :escape => true)
     assert_equal "http://www.example.com?a=b&c=d", url_for(:a => 'b', :c => 'd', :escape => false)
   end
@@ -40,6 +40,16 @@ class UrlHelperTest < ActionView::TestCase
   def test_url_for_with_back_and_no_referer
     @controller.request = RequestMock.new("http://www.example.com/weblog/show", nil, nil, {})
     assert_equal 'javascript:history.back()', url_for(:back)
+  end
+
+  def test_url_for_from_hash_doesnt_escape_ampersand
+    @controller = TestController.new
+    @view = ActionView::Base.new
+    @view.controller = @controller
+
+    path = @view.url_for(:controller => :cheeses, :foo => :bar, :baz => :quux)
+
+    assert_equal '/cheeses?baz=quux&foo=bar', path
   end
 
   # todo: missing test cases
@@ -298,7 +308,7 @@ class UrlHelperTest < ActionView::TestCase
     @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
     @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
     assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog", :order=>'desc', :page=>'1' })
-    assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&amp;page=1")
+    assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&page=1")
     assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&page=1")
 
     @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc")
@@ -308,7 +318,7 @@ class UrlHelperTest < ActionView::TestCase
 
     @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
     @controller.url = "http://www.example.com/weblog/show?order=desc&page=2"
-    assert_equal "<a href=\"http://www.example.com/weblog/show?order=desc&amp;page=2\">Showing</a>", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
+    assert_equal "<a href=\"http://www.example.com/weblog/show?order=desc&page=2\">Showing</a>", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
     assert_equal "<a href=\"http://www.example.com/weblog/show?order=desc&amp;page=2\">Showing</a>", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&page=2")
 
 

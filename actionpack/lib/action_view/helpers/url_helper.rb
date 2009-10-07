@@ -83,7 +83,7 @@ module ActionView
           options
         when Hash
           options = { :only_path => options[:host].nil? }.update(options.symbolize_keys)
-          escape  = options.key?(:escape) ? options.delete(:escape) : true
+          escape  = options.key?(:escape) ? options.delete(:escape) : false
           @controller.send(:url_for, options)
         when :back
           escape = false
