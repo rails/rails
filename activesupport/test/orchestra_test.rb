@@ -90,18 +90,39 @@ class OrchestraMainTest < Test::Unit::TestCase
     assert_equal Hash[:payload => "orchestra"], @events.last.payload
   end
 
+  def test_event_is_pushed_even_without_block
+    ActiveSupport::Orchestra.instrument(:awesome, :payload => "orchestra")
+    sleep(0.1)
+
+    assert_equal 1, @events.size
+    assert_equal :awesome, @events.last.name
+    assert_equal Hash[:payload => "orchestra"], @events.last.payload
+  end
+
   def test_subscriber_with_pattern
     @another = []
-    ActiveSupport::Orchestra.subscribe(/cache/) { |event| @another << event }
-
-    ActiveSupport::Orchestra.instrument(:something){ 0 }
-    ActiveSupport::Orchestra.instrument(:cache){ 10 }
+    ActiveSupport::Orchestra.subscribe("cache"){ |event| @another << event }
+    ActiveSupport::Orchestra.instrument(:cache){ 1 }
 
     sleep(0.1)
 
     assert_equal 1, @another.size
     assert_equal :cache, @another.first.name
-    assert_equal 10, @another.first.result
+    assert_equal 1, @another.first.result
+  end
+
+  def test_subscriber_with_pattern_as_regexp
+    @another = []
+    ActiveSupport::Orchestra.subscribe(/cache/){ |event| @another << event }
+
+    ActiveSupport::Orchestra.instrument(:something){ 0 }
+    ActiveSupport::Orchestra.instrument(:cache){ 1 }
+
+    sleep(0.1)
+
+    assert_equal 1, @another.size
+    assert_equal :cache, @another.first.name
+    assert_equal 1, @another.first.result
   end
 
   def test_with_several_consumers_and_several_events

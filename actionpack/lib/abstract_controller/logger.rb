@@ -10,14 +10,14 @@ module AbstractController
 
     module ClassMethods #:nodoc:
       # Logs a message appending the value measured.
-      def log_with_time(message, time, log_level=::Logger::DEBUG)
+      def log(message, log_level=::Logger::DEBUG)
         return unless logger && logger.level >= log_level
-        logger.add(log_level, "#{message} (%.1fms)" % time)
+        logger.add(log_level, message)
       end
 
       # Silences the logger for the duration of the block.
       def silence
-        old_logger_level, logger.level = logger.level, ::Logger::ERROR if logge
+        old_logger_level, logger.level = logger.level, ::Logger::ERROR if logger
         yield
       ensure
         logger.level = old_logger_level if logger
@@ -47,7 +47,7 @@ module AbstractController
     # Override process_action in the AbstractController::Base
     # to log details about the method.
     def process_action(action)
-      event = ActiveSupport::Orchestra.instrument(:process_action,
+      result = ActiveSupport::Orchestra.instrument(:process_action,
                 :controller => self, :action => action) do
         super
       end
@@ -56,13 +56,13 @@ module AbstractController
         log = DelayedLog.new do
           "\n\nProcessing #{self.class.name}\##{action_name} " \
           "to #{request.formats} (for #{request_origin}) " \
-          "(%.1fms) [#{request.method.to_s.upcase}]" % event.duration
+          "[#{request.method.to_s.upcase}]"
         end
 
         logger.info(log)
       end
 
-      event.result
+      result
     end
 
   private

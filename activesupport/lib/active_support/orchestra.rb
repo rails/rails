@@ -66,7 +66,7 @@ module ActiveSupport
       def instrument(name, payload={})
         payload[:time]      = Time.now
         payload[:thread_id] = Thread.current.object_id
-        payload[:result]    = yield
+        payload[:result]    = yield if block_given?
       ensure
         payload[:duration] = 1000 * (Time.now.to_f - payload[:time].to_f)
         @publisher.publish(name, payload)
@@ -147,7 +147,7 @@ module ActiveSupport
         end
 
         def publish(name, payload)
-          unless @pattern && name.to_s !~ @pattern
+          unless @pattern && !(@pattern === name.to_s)
             @queue << [name, payload]
           end
         end

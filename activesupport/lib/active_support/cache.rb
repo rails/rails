@@ -219,7 +219,6 @@ module ActiveSupport
       end
 
       def increment(key, amount = 1)
-        log("incrementing", key, amount)
         if num = read(key)
           write(key, num + amount)
         else
@@ -228,7 +227,6 @@ module ActiveSupport
       end
 
       def decrement(key, amount = 1)
-        log("decrementing", key, amount)
         if num = read(key)
           write(key, num - amount)
         else
@@ -247,13 +245,14 @@ module ActiveSupport
           payload = { :key => key }
           payload.merge!(options) if options.is_a?(Hash)
 
-          event = ActiveSupport::Orchestra.instrument(:"cache_#{operation}", payload, &block)
-          log("#{operation} (%.1fms)" % event.duration, key, options)
-          event.result
+          # Cache events should be logged or not?
+          # log(operation, key, options)
+          ActiveSupport::Orchestra.instrument(:"cache_#{operation}", payload, &block)
         end
 
         def log(operation, key, options)
-          logger.debug("Cache #{operation}: #{key}#{options ? " (#{options.inspect})" : ""}") if logger && !silence?
+          return unless logger && !silence?
+          logger.debug("Cache #{operation}: #{key}#{options ? " (#{options.inspect})" : ""}")
         end
     end
   end
