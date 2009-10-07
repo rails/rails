@@ -91,7 +91,8 @@ module TestHelpers
     end
 
     def app_file(path, contents)
-      File.open(app_path(path), 'w') do |f|
+      FileUtils.mkdir_p File.dirname("#{app_path}/#{path}")
+      File.open("#{app_path}/#{path}", 'w') do |f|
         f.puts contents
       end
     end

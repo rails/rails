@@ -1,5 +1,7 @@
 require "pathname"
 
+require 'active_support/ordered_hash'
+require 'rails/initializable'
 require 'rails/application'
 require 'rails/railties_path'
 require 'rails/version'
@@ -12,10 +14,6 @@ require 'rails/configuration'
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 
 module Rails
-  # Sanity check to make sure this file is only loaded once
-  # TODO: Get to the point where this can be removed.
-  raise "It looks like initializer.rb was required twice" if defined?(Initializer)
-
   class Initializer
     class Error < StandardError ; end
 
@@ -110,31 +108,13 @@ module Rails
         default.run(initializer)
       else
         Rails.application = Class.new(Application)
+        # Trigger the initializer
+        Rails.application.new
         yield Rails.application.config if block_given?
         default.config = Rails.application.config
         default.run
       end
     end
-  end
-
-  # Check for valid Ruby version (1.8.2 or 1.8.4 or higher). This is done in an
-  # external file, so we can use it from the `rails` program as well without duplication.
-  Initializer.default.add :check_ruby_version do
-    require 'rails/ruby_version_check'
-  end
-
-  # Bail if boot.rb is outdated
-  Initializer.default.add :freak_out_if_boot_rb_is_outdated do
-    unless defined?(Rails::BOOTSTRAP_VERSION)
-      abort %{Your config/boot.rb is outdated: Run "rake rails:update".}
-    end
-  end
-
-  # Set the <tt>$LOAD_PATH</tt> based on the value of
-  # Configuration#load_paths. Duplicates are removed.
-  Initializer.default.add :set_load_path do
-    configuration.paths.add_to_load_path
-    $LOAD_PATH.uniq!
   end
 
   # Requires all frameworks specified by the Configuration#frameworks
@@ -227,20 +207,6 @@ module Rails
         toplevel = Object.const_get(framework.to_s.gsub(/(?:^|_)(.)/) { $1.upcase })
         toplevel.load_all! if toplevel.respond_to?(:load_all!)
       end
-    end
-  end
-
-  # For Ruby 1.8, this initialization sets $KCODE to 'u' to enable the
-  # multibyte safe operations. Plugin authors supporting other encodings
-  # should override this behaviour and set the relevant +default_charset+
-  # on ActionController::Base.
-  #
-  # For Ruby 1.9, UTF-8 is the default internal and external encoding.
-  Initializer.default.add :initialize_encoding do
-    if RUBY_VERSION < '1.9'
-      $KCODE='u'
-    else
-      Encoding.default_external = Encoding::UTF_8
     end
   end
 

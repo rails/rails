@@ -393,24 +393,6 @@ class InitializerSetupI18nTests < Test::Unit::TestCase
     assert_equal [ "my/test/locale.yml", "my/other/locale.yml" ], config.i18n.load_path
   end
 
-  def test_config_defaults_and_settings_should_be_added_to_i18n_defaults
-    File.stubs(:exist?).returns(true)
-    Dir.stubs(:[]).returns([ "my/test/locale.yml" ])
-
-    config = Rails::Configuration.new
-    config.i18n.load_path << "my/other/locale.yml"
-
-    Rails::Initializer.run(:initialize_i18n, config)
-    assert_equal [
-     File.expand_path(File.dirname(__FILE__) + "/../../activesupport/lib/active_support/locale/en.yml"),
-     File.expand_path(File.dirname(__FILE__) + "/../../actionpack/lib/action_view/locale/en.yml"),
-     File.expand_path(File.dirname(__FILE__) + "/../../activemodel/lib/active_model/locale/en.yml"),
-     File.expand_path(File.dirname(__FILE__) + "/../../activerecord/lib/active_record/locale/en.yml"),
-     File.expand_path(File.dirname(__FILE__) + "/../../railties/test/fixtures/plugins/engines/engine/config/locales/en.yml"),
-     "my/test/locale.yml",
-     "my/other/locale.yml" ], I18n.load_path.collect { |path| path =~ /\.\./ ? File.expand_path(path) : path }
-  end
-
   def test_setting_another_default_locale
     config = Rails::Configuration.new
     config.i18n.default_locale = :de
