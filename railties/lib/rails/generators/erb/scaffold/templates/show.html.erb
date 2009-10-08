@@ -1,7 +1,7 @@
 <% for attribute in attributes -%>
 <p>
   <b><%= attribute.human_name %>:</b>
-  <%%=h @<%= singular_name %>.<%= attribute.name %> %>
+  <%%= @<%= singular_name %>.<%= attribute.name %> %>
 </p>
 
 <% end -%>
