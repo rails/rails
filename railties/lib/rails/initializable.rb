@@ -2,20 +2,58 @@ module Rails
   module Initializable
 
     # A collection of initializers
-    class Collection < ActiveSupport::OrderedHash
-      # def initialize_copy(other)
-      #   super
-      #   each do |key, value|
-      #     self[key] = value.dup
-      #   end
-      # end
+    class Collection
+      def initialize(context)
+        @context = context
+        @keys    = []
+        @values  = {}
+        @ran     = false
+      end
 
       def run
+        return self if @ran
         each do |key, initializer|
-          initializer.run
+          @context.class_eval(&initializer.block)
         end
+        @ran = true
         self
       end
+
+      def [](key)
+        keys, values = merge_with_parent
+        values[key.to_sym]
+      end
+
+      def []=(key, value)
+        key = key.to_sym
+        @keys |= [key]
+        @values[key] = value
+      end
+
+      def each
+        keys, values = merge_with_parent
+        keys.each { |k| yield k, values[k] }
+        self
+      end
+
+    protected
+
+      attr_reader :keys, :values
+
+    private
+
+      def merge_with_parent
+        keys, values = [], {}
+
+        if @context.is_a?(Class) && @context.superclass.is_a?(Initializable)
+          parent = @context.superclass.initializers
+          keys, values = parent.keys, parent.values
+        end
+
+        values = values.merge(@values)
+        return keys | @keys, values
+      end
+
     end
 
     class Initializer
@@ -24,24 +62,15 @@ module Rails
       def initialize(name, options = {}, &block)
         @name, @options, @block = name, options, block
       end
-
-      def run
-        return if @already_ran
-        @block.call
-        @already_ran = true
-      end
     end
 
     def initializer(name, options = {}, &block)
-      initializers[name] = Initializer.new(name, options, &block)
+      @initializers ||= Collection.new(self)
+      @initializers[name] = Initializer.new(name, options, &block)
     end
 
     def initializers
-      @initializers ||= Collection.new
-    end
-
-    def initializers=(initializers)
-      @initializers = initializers
+      @initializers ||= Collection.new(self)
     end
 
   end

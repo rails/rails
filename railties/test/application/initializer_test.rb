@@ -29,5 +29,30 @@ module ApplicationTests
       MyApp.new
       assert $:.include?("#{app_path}/app/models")
     end
+
+    test "adding an unknown framework raises an error" do
+      class MyApp < Rails::Application
+        config.frameworks << :action_foo
+      end
+
+      assert_raises RuntimeError do
+        MyApp.new
+      end
+    end
+
+    test "eager loading loads parent classes before children" do
+      app_file "lib/zoo.rb", <<-ZOO
+        class Zoo ; include ReptileHouse ; end
+      ZOO
+      app_file "lib/zoo/reptile_house.rb", <<-ZOO
+        module Zoo::ReptileHouse ; end
+      ZOO
+
+      Rails::Initializer.run do |config|
+        config.eager_load_paths = "#{app_path}/lib"
+      end
+
+      assert Zoo
+    end
   end
 end

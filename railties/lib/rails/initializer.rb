@@ -1,6 +1,5 @@
 require "pathname"
 
-require 'active_support/ordered_hash'
 require 'rails/initializable'
 require 'rails/application'
 require 'rails/railties_path'
@@ -115,50 +114,6 @@ module Rails
         default.run
       end
     end
-  end
-
-  # Requires all frameworks specified by the Configuration#frameworks
-  # list. By default, all frameworks (Active Record, Active Support,
-  # Action Pack, Action Mailer, and Active Resource) are loaded.
-  Initializer.default.add :require_frameworks do
-    begin
-      require 'active_support'
-      require 'active_support/core_ext/kernel/reporting'
-      require 'active_support/core_ext/logger'
-
-      # TODO: This is here to make Sam Ruby's tests pass. Needs discussion.
-      require 'active_support/core_ext/numeric/bytes'
-      configuration.frameworks.each { |framework| require(framework.to_s) }
-    rescue LoadError => e
-      # Re-raise as RuntimeError because Mongrel would swallow LoadError.
-      raise e.to_s
-    end
-  end
-
-  # Set the paths from which Rails will automatically load source files, and
-  # the load_once paths.
-  Initializer.default.add :set_autoload_paths do
-    require 'active_support/dependencies'
-    ActiveSupport::Dependencies.load_paths = configuration.load_paths.uniq
-    ActiveSupport::Dependencies.load_once_paths = configuration.load_once_paths.uniq
-
-    extra = ActiveSupport::Dependencies.load_once_paths - ActiveSupport::Dependencies.load_paths
-    unless extra.empty?
-      abort <<-end_error
-        load_once_paths must be a subset of the load_paths.
-        Extra items in load_once_paths: #{extra * ','}
-      end_error
-    end
-
-    # Freeze the arrays so future modifications will fail rather than do nothing mysteriously
-    configuration.load_once_paths.freeze
-  end
-
-  # Adds all load paths from plugins to the global set of load paths, so that
-  # code from plugins can be required (explicitly or automatically via ActiveSupport::Dependencies).
-  Initializer.default.add :add_plugin_load_paths do
-    require 'active_support/dependencies'
-    plugin_loader.add_plugin_load_paths
   end
 
   # Create tmp directories
@@ -373,7 +328,7 @@ module Rails
 
   Initializer.default.add :initialize_metal do
     # TODO: Make Rails and metal work without ActionController
-    if defined?(ActionController)
+    if configuration.frameworks.include?(:action_controller)
       Rails::Rack::Metal.requested_metals = configuration.metals
       Rails::Rack::Metal.metal_paths += plugin_loader.engine_metal_paths
 

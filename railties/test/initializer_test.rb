@@ -44,25 +44,6 @@ class Initializer_load_environment_Test < Test::Unit::TestCase
   end
 end
 
-class Initializer_eager_loading_Test < Test::Unit::TestCase
-  def setup
-    @config = ConfigurationMock.new("")
-    @config.cache_classes = true
-    @config.load_paths = [File.expand_path(File.dirname(__FILE__) + "/fixtures/eager")]
-    @config.eager_load_paths = [File.expand_path(File.dirname(__FILE__) + "/fixtures/eager")]
-    @initializer = Rails::Initializer.default
-    @initializer.config = @config
-    @initializer.run(:set_load_path)
-    @initializer.run(:set_autoload_paths)
-  end
-
-  def test_eager_loading_loads_parent_classes_before_children
-    assert_nothing_raised do
-      @initializer.run(:load_application_classes)
-    end
-  end
-end
-
 class Initializer_after_initialize_with_blocks_environment_Test < Test::Unit::TestCase
   def setup
     config = ConfigurationMock.new("")
@@ -154,16 +135,6 @@ class ConfigurationFrameworkPathsTests < Test::Unit::TestCase
     end
   end
 
-  def test_unknown_framework_raises_error
-    @config.frameworks << :action_foo
-
-    Class.any_instance.expects(:require).raises(LoadError)
-
-    assert_raise RuntimeError do
-      @initializer.run(:require_frameworks)
-    end
-  end
-
   def test_action_mailer_load_paths_set_only_if_action_mailer_in_use
     @config.frameworks = [:action_controller]
     @initializer.config = @config
@@ -214,72 +185,6 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
     only_load_the_following_plugins! plugin_names
     load_plugins!
     assert_plugins plugin_names, @configuration.loaded_plugins
-  end
-
-  def test_all_plugins_are_loaded_when_registered_plugin_list_is_untouched
-    failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-    load_plugins!
-    assert_plugins [:a, :acts_as_chunky_bacon, :engine, :gemlike, :plugin_with_no_lib_dir, :stubby], @configuration.loaded_plugins, failure_tip
-  end
-
-  def test_all_plugins_loaded_when_all_is_used
-    plugin_names = [:stubby, :acts_as_chunky_bacon, :all]
-    only_load_the_following_plugins! plugin_names
-    load_plugins!
-    failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-    assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :engine, :gemlike, :plugin_with_no_lib_dir], @configuration.loaded_plugins, failure_tip
-  end
-
-  def test_all_plugins_loaded_after_all
-    plugin_names = [:stubby, :all, :acts_as_chunky_bacon]
-    only_load_the_following_plugins! plugin_names
-    load_plugins!
-    failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-    assert_plugins [:stubby, :a, :engine, :gemlike, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @configuration.loaded_plugins, failure_tip
-  end
-
-  def test_plugin_names_may_be_strings
-    plugin_names = ['stubby', 'acts_as_chunky_bacon', :a, :plugin_with_no_lib_dir]
-    only_load_the_following_plugins! plugin_names
-    load_plugins!
-    failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-    assert_plugins plugin_names, @configuration.loaded_plugins, failure_tip
-  end
-
-  def test_registering_a_plugin_name_that_does_not_exist_raises_a_load_error
-    only_load_the_following_plugins! [:stubby, :acts_as_a_non_existant_plugin]
-    assert_raise(LoadError) do
-      load_plugins!
-    end
-  end
-
-  def test_load_error_messages_mention_missing_plugins_and_no_others
-    valid_plugin_names = [:stubby, :acts_as_chunky_bacon]
-    invalid_plugin_names = [:non_existant_plugin1, :non_existant_plugin2]
-    only_load_the_following_plugins!( valid_plugin_names + invalid_plugin_names )
-    begin
-      load_plugins!
-      flunk "Expected a LoadError but did not get one"
-    rescue LoadError => e
-      failure_tip = "It's likely someone renamed or deleted plugin fixtures without updating this test"
-      assert_plugins valid_plugin_names, @configuration.loaded_plugins, failure_tip
-      invalid_plugin_names.each do |plugin|
-        assert_match(/#{plugin.to_s}/, e.message, "LoadError message should mention plugin '#{plugin}'")
-      end
-      valid_plugin_names.each do |plugin|
-        assert_no_match(/#{plugin.to_s}/, e.message, "LoadError message should not mention '#{plugin}'")
-      end
-
-    end
-  end
-
-  def test_should_ensure_all_loaded_plugins_load_paths_are_added_to_the_load_path
-    only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon]
-
-    @initializer.run(:add_plugin_load_paths)
-
-    assert $LOAD_PATH.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
-    assert $LOAD_PATH.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
   end
 
   private
