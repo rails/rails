@@ -239,7 +239,11 @@ module ActionView #:nodoc:
           name = controller.class.name.gsub(/::/, '__')
 
           Subclasses.class_eval do
-            remove_const(name) if const_defined?(name)
+            if method(:const_defined?).arity == 1
+              remove_const(name) if const_defined?(name)        # Ruby 1.8.x
+            else
+              remove_const(name) if const_defined?(name, false) # Ruby 1.9.x
+            end
             const_set(name, self)
           end
 
