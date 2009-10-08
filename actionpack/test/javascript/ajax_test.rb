@@ -74,17 +74,21 @@ class LinkToRemoteTest < AjaxTestCase
 
   test "using a url hash" do
     link = link_to_remote("Delete this post", {:controller => :blog}, :update => "#posts")
-    assert_html link, %w(href="/blog/destroy/4" data-update-success="#posts")
+    assert_html link, %w(href="/url/hash" data-update-success="#posts")
+  end
+
+  test "with no update" do
+    assert_html link, %w(href="/blog/destroy/4" Delete\ this\ post data-js-type="remote")
   end
 
   test "with :html options" do
-    expected = %{<a href="/blog/destroy/4" data-custom="me" data-remote="true" data-update-success="#posts">Delete this post</a>}
+    expected = %{<a href="/blog/destroy/4" data-custom="me" data-js-type="remote" data-update-success="#posts">Delete this post</a>}
     assert_equal expected, link(:update => "#posts", :html => {"data-custom" => "me"})
   end
 
   test "with a hash for :update" do
     link = link(:update => {:success => "#posts", :failure => "#error"})
-    assert_html link, %w(data-remote="true" data-update-success="#posts" data-update-failure="#error")
+    assert_html link, %w(data-js-type="remote" data-update-success="#posts" data-update-failure="#error")
   end
 
   test "with positional parameters" do
@@ -105,7 +109,7 @@ class LinkToRemoteTest < AjaxTestCase
     end
 
     test "basic link_to_remote with :url =>" do
-      expected = %{<a href="/blog/destroy/4" data-remote="true" data-update-success="#posts">Delete this post</a>}
+      expected = %{<a href="/blog/destroy/4" data-js-type="remote" data-update-success="#posts">Delete this post</a>}
       assert_equal expected,
         link_to_remote("Delete this post", :url => "/blog/destroy/4", :update => "#posts")
     end
@@ -137,7 +141,7 @@ class FormRemoteTagTest < AjaxTestCase
   # TODO: Play with using assert_dom_equal
   test "basic" do
     assert_html form_remote_tag(:update => "#glass_of_beer", :url => { :action => :fast  }),
-      %w(form action="/url/hash" method="post" data-remote="true" data-update-success="#glass_of_beer")
+      %w(form action="/url/hash" method="post" data-js-type="remote" data-update-success="#glass_of_beer")
   end
 
   test "when protect_against_forgery? is true" do
@@ -145,7 +149,7 @@ class FormRemoteTagTest < AjaxTestCase
       true
     end
 
-    expected_form_attributes = %w(form action="/url/hash" method="post" data-remote="true" data-update-success="#glass_of_beer")
+    expected_form_attributes = %w(form action="/url/hash" method="post" data-js-type="remote" data-update-success="#glass_of_beer")
     expected_patterns = expected_form_attributes + authenticity_input_attributes
 
     assert_equal true, protect_against_forgery?    
@@ -155,14 +159,14 @@ class FormRemoteTagTest < AjaxTestCase
   test ":action is used when it is present" do
     html = form_remote_tag(:update => "#glass_of_beer", :action => "foo")
 
-    assert_html html, %w(form action="foo" method="post" data-remote="true" data-update-success="#glass_of_beer")
+    assert_html html, %w(form action="foo" method="post" data-js-type="remote" data-update-success="#glass_of_beer")
     assert_no_match /url="foo"/, html
   end
 
   test ":url is used when :action is not present" do
     html = form_remote_tag(:update => "#glass_of_beer", :url => "bar")
 
-    assert_html html, %w(form action="bar" method="post" data-remote="true" data-update-success="#glass_of_beer")
+    assert_html html, %w(form action="bar" method="post" data-js-type="remote" data-update-success="#glass_of_beer")
     assert_no_match /url="bar"/, html
   end
 
@@ -174,18 +178,25 @@ class FormRemoteTagTest < AjaxTestCase
 
   test "update callbacks" do
     assert_html form_remote_tag(:update => { :success => "#glass_of_beer" }, :url => { :action => :fast  }),
-      %w(form action="/url/hash" method="post" data-remote="true" data-update-success="#glass_of_beer")
+      %w(form action="/url/hash" method="post" data-js-type="remote" data-update-success="#glass_of_beer")
 
     assert_html form_remote_tag(:update => { :failure => "#glass_of_water" }, :url => { :action => :fast  }),
-      %w(form action="/url/hash" method="post" data-remote="true" data-update-failure="#glass_of_water")
+      %w(form action="/url/hash" method="post" data-js-type="remote" data-update-failure="#glass_of_water")
 
     assert_html form_remote_tag(:update => { :success => "#glass_of_beer", :failure => "#glass_of_water" }, :url => { :action => :fast  }),
-      %w(form action="/url/hash" method="post" data-remote="true" data-update-success="#glass_of_beer" data-update-failure="#glass_of_water")
+      %w(form action="/url/hash" method="post" data-js-type="remote" data-update-success="#glass_of_beer" data-update-failure="#glass_of_water")
   end
 
   test "using a :method option" do
+<<<<<<< HEAD
     expected_form_attributes = %w(form action="/url/hash" method="post" data-remote="true" data-update-success="#glass_of_beer")
     # TODO: Ask Katz: Why does rails do this?  Some web servers don't allow PUT or DELETE from what I remember... - BR
+=======
+    expected_form_attributes = %w(form action="/url/hash" method="post" data-js-type="remote" data-update-success="#glass_of_beer")
+    # TODO: Experiment with not using this _method param.  Apparently this is done to address browser incompatibilities, but since
+    # we have a layer between the HTML and the JS libs now, we can probably get away with letting JS the JS libs handle the requirement
+    # for an extra field if needed.
+>>>>>>> 6af9c2f... Changed data-remote='true' to data-js-type='remote'
     expected_input_attributes = %w(input name="_method" type="hidden" value="put")
 
     assert_html form_remote_tag(:update => "#glass_of_beer", :url => { :action => :fast  }, :html => { :method => :put }),
@@ -207,7 +218,7 @@ class FormRemoteTagTest < AjaxTestCase
       @buffer << str
     end
 
-    expected_form_attributes = %w(form action="/url/hash" method="post" data-remote="true" data-update-success="#glass_of_beer" /form)
+    expected_form_attributes = %w(form action="/url/hash" method="post" data-js-type="remote" data-update-success="#glass_of_beer" /form)
     expected_inner_html = %w(w00t!)
 
     form_remote_tag(:update => "#glass_of_beer", :url => { :action => :fast  }) { concat expected_inner_html }
@@ -251,14 +262,14 @@ class RemoteFormForTest < AjaxTestCase
   test "remote_form_for with record identification with new record" do
     remote_form_for(@record, {:html => { :id => 'create-author' }}) {}
 
-    expected = %(<form action="/authors" data-remote="true" class="new_author" id="create-author" method="post"></form>)
+    expected = %(<form action="/authors" data-js-type="remote" class="new_author" id="create-author" method="post"></form>)
     assert_dom_equal expected, output_buffer
   end
 
   test "remote_form_for with record identification without html options" do
     remote_form_for(@record) {}
 
-    expected = %(<form action="/authors" data-remote="true" class="new_author" id="new_author" method="post"></form>)
+    expected = %(<form action="/authors" data-js-type="remote" class="new_author" id="new_author" method="post"></form>)
     assert_dom_equal expected, output_buffer
   end
 
@@ -266,14 +277,14 @@ class RemoteFormForTest < AjaxTestCase
     @record.save
     remote_form_for(@record) {}
 
-    expected = %(<form action="/authors/1" data-remote="true" class="edit_author" id="edit_author_1" method="post"><div style="margin:0;padding:0;display:inline"><input name="_method" type="hidden" value="put" /></div></form>)
+    expected = %(<form action="/authors/1" data-js-type="remote" class="edit_author" id="edit_author_1" method="post"><div style="margin:0;padding:0;display:inline"><input name="_method" type="hidden" value="put" /></div></form>)
     assert_dom_equal expected, output_buffer
   end
 
   test "remote_form_for with new object in list" do
     remote_form_for([@author, @article]) {}
 
-    expected = %(<form action="#{author_articles_path(@author)}" class="new_article" method="post" id="new_article" data-remote="true"></form>)
+    expected = %(<form action="#{author_articles_path(@author)}" class="new_article" method="post" id="new_article" data-js-type="remote"></form>)
     assert_dom_equal expected, output_buffer
   end
 
@@ -282,7 +293,7 @@ class RemoteFormForTest < AjaxTestCase
     @article.save
     remote_form_for([@author, @article]) {}
 
-    expected = %(<form action='#{author_article_path(@author, @article)}' id='edit_article_1' method='post' class='edit_article' data-remote="true"><div style='margin:0;padding:0;display:inline'><input name='_method' type='hidden' value='put' /></div></form>)
+    expected = %(<form action='#{author_article_path(@author, @article)}' id='edit_article_1' method='post' class='edit_article' data-js-type="remote"><div style='margin:0;padding:0;display:inline'><input name='_method' type='hidden' value='put' /></div></form>)
     assert_dom_equal expected, output_buffer
   end
 

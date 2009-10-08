@@ -25,7 +25,7 @@ module ActionView
 
         attributes["data-update-position"] = options.delete(:position)
         attributes["data-method"]          = options.delete(:method)
-        attributes["data-remote"]          = true
+        attributes["data-js-type"]         = "remote"
 
         attributes
       end
