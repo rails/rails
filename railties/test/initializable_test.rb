@@ -23,6 +23,14 @@ module InitializableTests
     end
   end
 
+  module Word
+    extend Rails::Initializable
+
+    initializer :word do
+      $word = "bird"
+    end
+  end
+
   class Basic < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
@@ -52,5 +60,9 @@ module InitializableTests
       assert Foo.initializers[:foo].eql?(Bar.initializers[:foo])
     end
 
+    test "initializing with modules" do
+      Word.initializers.run
+      assert_equal "bird", $word
+    end
   end
 end
