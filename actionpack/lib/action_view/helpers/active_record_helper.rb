@@ -3,7 +3,7 @@ require 'action_view/helpers/form_helper'
 
 module ActionView
   class Base
-    @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>" }
+    @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>".html_safe! }
     cattr_accessor :field_error_proc
   end
 
