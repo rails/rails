@@ -354,7 +354,7 @@ class ObserveFieldTest < AjaxTestCase
 
   test "basic" do
     assert_html field,
-      %w(script type="application/json" data-rails-type="observe_field")
+      %w(script type="application/json" data-js-type="observe_field")
   end
 
   test "using a url string" do
