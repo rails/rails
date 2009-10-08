@@ -54,5 +54,12 @@ module ApplicationTests
 
       assert Zoo
     end
+
+    test "load environment with global" do
+      app_file "config/environments/development.rb", "$initialize_test_set_from_env = 'success'"
+      assert_nil $initialize_test_set_from_env
+      Rails::Initializer.run { }
+      assert_equal "success", $initialize_test_set_from_env
+    end
   end
 end

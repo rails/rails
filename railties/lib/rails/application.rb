@@ -102,7 +102,47 @@ module Rails
     # Create tmp directories
     initializer :ensure_tmp_directories_exist do
       %w(cache pids sessions sockets).each do |dir_to_make|
-        FileUtils.mkdir_p(File.join(configuration.root_path, 'tmp', dir_to_make))
+        FileUtils.mkdir_p(File.join(config.root_path, 'tmp', dir_to_make))
+      end
+    end
+
+    # Loads the environment specified by Configuration#environment_path, which
+    # is typically one of development, test, or production.
+    initializer :load_environment do
+      silence_warnings do
+        next if @environment_loaded
+        next unless File.file?(config.environment_path)
+
+        @environment_loaded = true
+        constants = self.class.constants
+
+        eval(IO.read(configuration.environment_path), binding, configuration.environment_path)
+
+        (self.class.constants - constants).each do |const|
+          Object.const_set(const, self.class.const_get(const))
+        end
+      end
+    end
+
+    initializer :add_gem_load_paths do
+      require 'rails/gem_dependency'
+      Rails::GemDependency.add_frozen_gem_path
+      unless config.gems.empty?
+        require "rubygems"
+        config.gems.each { |gem| gem.add_load_paths }
+      end
+    end
+
+    # Preload all frameworks specified by the Configuration#frameworks.
+    # Used by Passenger to ensure everything's loaded before forking and
+    # to avoid autoload race conditions in JRuby.
+    initializer :preload_frameworks do
+      if config.preload_frameworks
+        config.frameworks.each do |framework|
+          # String#classify and #constantize aren't available yet.
+          toplevel = Object.const_get(framework.to_s.gsub(/(?:^|_)(.)/) { $1.upcase })
+          toplevel.load_all! if toplevel.respond_to?(:load_all!)
+        end
       end
     end
   end

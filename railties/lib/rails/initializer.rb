@@ -116,48 +116,6 @@ module Rails
     end
   end
 
-  # Loads the environment specified by Configuration#environment_path, which
-  # is typically one of development, test, or production.
-  Initializer.default.add :load_environment do
-    silence_warnings do
-      next if @environment_loaded
-      next unless File.file?(configuration.environment_path)
-
-      @environment_loaded = true
-
-      config = configuration
-      constants = self.class.constants
-
-      eval(IO.read(configuration.environment_path), binding, configuration.environment_path)
-
-      (self.class.constants - constants).each do |const|
-        Object.const_set(const, self.class.const_get(const))
-      end
-    end
-  end
-
-  Initializer.default.add :add_gem_load_paths do
-    require 'rails/gem_dependency'
-    Rails::GemDependency.add_frozen_gem_path
-    unless config.gems.empty?
-      require "rubygems"
-      config.gems.each { |gem| gem.add_load_paths }
-    end
-  end
-
-  # Preload all frameworks specified by the Configuration#frameworks.
-  # Used by Passenger to ensure everything's loaded before forking and
-  # to avoid autoload race conditions in JRuby.
-  Initializer.default.add :preload_frameworks do
-    if configuration.preload_frameworks
-      configuration.frameworks.each do |framework|
-        # String#classify and #constantize aren't available yet.
-        toplevel = Object.const_get(framework.to_s.gsub(/(?:^|_)(.)/) { $1.upcase })
-        toplevel.load_all! if toplevel.respond_to?(:load_all!)
-      end
-    end
-  end
-
   # This initialization routine does nothing unless <tt>:active_record</tt>
   # is one of the frameworks to load (Configuration#frameworks). If it is,
   # this sets the database configuration from Configuration#database_configuration

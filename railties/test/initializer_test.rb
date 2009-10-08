@@ -33,17 +33,6 @@ class ConfigurationMock < Rails::Configuration
   end
 end
 
-class Initializer_load_environment_Test < Test::Unit::TestCase
-  def test_load_environment_with_constant
-    config = ConfigurationMock.new("#{File.dirname(__FILE__)}/fixtures/environment_with_constant.rb")
-    assert_nil $initialize_test_set_from_env
-    Rails::Initializer.run(:load_environment, config)
-    assert_equal "success", $initialize_test_set_from_env
-  ensure
-    $initialize_test_set_from_env = nil
-  end
-end
-
 class Initializer_after_initialize_with_blocks_environment_Test < Test::Unit::TestCase
   def setup
     config = ConfigurationMock.new("")
