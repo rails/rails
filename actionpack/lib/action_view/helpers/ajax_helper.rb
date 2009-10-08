@@ -79,7 +79,7 @@ module ActionView
         options[:name] = name
 
         <<-SCRIPT
-        <script type="application/json" data-rails-type="observe_field">
+        <script type="application/json" data-js-type="observe_field">
         //<![CDATA[
           #{options.to_json}
         // ]]>
