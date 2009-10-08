@@ -55,6 +55,13 @@ module ApplicationTests
       assert Zoo
     end
 
+    test "setting another default locale" do
+      Rails::Initializer.run do |config|
+        config.i18n.default_locale = :de
+      end
+      assert_equal :de, I18n.default_locale
+    end
+
     test "load environment with global" do
       app_file "config/environments/development.rb", "$initialize_test_set_from_env = 'success'"
       assert_nil $initialize_test_set_from_env

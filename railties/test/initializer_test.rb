@@ -286,13 +286,6 @@ class InitializerSetupI18nTests < Test::Unit::TestCase
 
     assert_equal [ "my/test/locale.yml", "my/other/locale.yml" ], config.i18n.load_path
   end
-
-  def test_setting_another_default_locale
-    config = Rails::Configuration.new
-    config.i18n.default_locale = :de
-    Rails::Initializer.run(:initialize_i18n, config)
-    assert_equal :de, I18n.default_locale
-  end
 end
 
 class InitializerDatabaseMiddlewareTest < Test::Unit::TestCase

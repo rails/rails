@@ -116,7 +116,7 @@ module Rails
         @environment_loaded = true
         constants = self.class.constants
 
-        eval(IO.read(configuration.environment_path), binding, configuration.environment_path)
+        eval(IO.read(config.environment_path), binding, config.environment_path)
 
         (self.class.constants - constants).each do |const|
           Object.const_set(const, self.class.const_get(const))
@@ -142,6 +142,138 @@ module Rails
           # String#classify and #constantize aren't available yet.
           toplevel = Object.const_get(framework.to_s.gsub(/(?:^|_)(.)/) { $1.upcase })
           toplevel.load_all! if toplevel.respond_to?(:load_all!)
+        end
+      end
+    end
+
+    # This initialization routine does nothing unless <tt>:active_record</tt>
+    # is one of the frameworks to load (Configuration#frameworks). If it is,
+    # this sets the database configuration from Configuration#database_configuration
+    # and then establishes the connection.
+    initializer :initialize_database do
+      if config.frameworks.include?(:active_record)
+        ActiveRecord::Base.configurations = config.database_configuration
+        ActiveRecord::Base.establish_connection
+      end
+    end
+
+    # Include middleware to serve up static assets
+    initializer :initialize_static_server do
+      if config.frameworks.include?(:action_controller) && config.serve_static_assets
+        config.middleware.use(ActionDispatch::Static, Rails.public_path)
+      end
+    end
+
+    initializer :initialize_middleware_stack do
+      if config.frameworks.include?(:action_controller)
+        config.middleware.use(::Rack::Lock) unless ActionController::Base.allow_concurrency
+        config.middleware.use(ActionDispatch::ShowExceptions, ActionController::Base.consider_all_requests_local)
+        config.middleware.use(ActionDispatch::Callbacks, ActionController::Dispatcher.prepare_each_request)
+        config.middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
+        config.middleware.use(ActionDispatch::ParamsParser)
+        config.middleware.use(::Rack::MethodOverride)
+        config.middleware.use(::Rack::Head)
+        config.middleware.use(ActionDispatch::StringCoercion)
+      end
+    end
+
+    initializer :initialize_cache do
+      unless defined?(RAILS_CACHE)
+        silence_warnings { Object.const_set "RAILS_CACHE", ActiveSupport::Cache.lookup_store(config.cache_store) }
+
+        if RAILS_CACHE.respond_to?(:middleware)
+          # Insert middleware to setup and teardown local cache for each request
+          config.middleware.insert_after(:"Rack::Lock", RAILS_CACHE.middleware)
+        end
+      end
+    end
+
+    initializer :initialize_framework_caches do
+      if config.frameworks.include?(:action_controller)
+        ActionController::Base.cache_store ||= RAILS_CACHE
+      end
+    end
+
+    initializer :initialize_logger do
+      # if the environment has explicitly defined a logger, use it
+      next if Rails.logger
+
+      unless logger = config.logger
+        begin
+          logger = ActiveSupport::BufferedLogger.new(config.log_path)
+          logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
+          if RAILS_ENV == "production"
+            logger.auto_flushing = false
+          end
+        rescue StandardError => e
+          logger = ActiveSupport::BufferedLogger.new(STDERR)
+          logger.level = ActiveSupport::BufferedLogger::WARN
+          logger.warn(
+            "Rails Error: Unable to access log file. Please ensure that #{config.log_path} exists and is chmod 0666. " +
+            "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
+          )
+        end
+      end
+
+      # TODO: Why are we silencing warning here?
+      silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
+    end
+
+    # Sets the logger for Active Record, Action Controller, and Action Mailer
+    # (but only for those frameworks that are to be loaded). If the framework's
+    # logger is already set, it is not changed, otherwise it is set to use
+    # RAILS_DEFAULT_LOGGER.
+    initializer :initialize_framework_logging do
+      for framework in ([ :active_record, :action_controller, :action_mailer ] & config.frameworks)
+        framework.to_s.camelize.constantize.const_get("Base").logger ||= Rails.logger
+      end
+
+      ActiveSupport::Dependencies.logger ||= Rails.logger
+      Rails.cache.logger ||= Rails.logger
+    end
+
+    # Sets the dependency loading mechanism based on the value of
+    # Configuration#cache_classes.
+    initializer :initialize_dependency_mechanism do
+      # TODO: Remove files from the $" and always use require
+      ActiveSupport::Dependencies.mechanism = config.cache_classes ? :require : :load
+    end
+
+    # Loads support for "whiny nil" (noisy warnings when methods are invoked
+    # on +nil+ values) if Configuration#whiny_nils is true.
+    initializer :initialize_whiny_nils do
+      require('active_support/whiny_nil') if config.whiny_nils
+    end
+
+    # Sets the default value for Time.zone, and turns on ActiveRecord::Base#time_zone_aware_attributes.
+    # If assigned value cannot be matched to a TimeZone, an exception will be raised.
+    initializer :initialize_time_zone do
+      if config.time_zone
+        zone_default = Time.__send__(:get_zone, config.time_zone)
+
+        unless zone_default
+          raise \
+            'Value assigned to config.time_zone not recognized.' +
+            'Run "rake -D time" for a list of tasks for finding appropriate time zone names.'
+        end
+
+        Time.zone_default = zone_default
+
+        if config.frameworks.include?(:active_record)
+          ActiveRecord::Base.time_zone_aware_attributes = true
+          ActiveRecord::Base.default_timezone = :utc
+        end
+      end
+    end
+
+    # Set the i18n configuration from config.i18n but special-case for the load_path which should be
+    # appended to what's already set instead of overwritten.
+    initializer :initialize_i18n do
+      config.i18n.each do |setting, value|
+        if setting == :load_path
+          I18n.load_path += value
+        else
+          I18n.send("#{setting}=", value)
         end
       end
     end
