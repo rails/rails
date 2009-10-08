@@ -55,7 +55,7 @@ module ActionView
     setup :setup_with_controller
     def setup_with_controller
       @controller = TestController.new
-      @output_buffer = ''
+      @output_buffer = ActionView::SafeBuffer.new
       @rendered = ''
 
       self.class.send(:include_helper_modules!)

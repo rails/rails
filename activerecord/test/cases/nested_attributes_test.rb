@@ -84,6 +84,34 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     ship = Ship.create!(:name => 'Nights Dirty Lightning')
     ship._delete
   end
+
+  def test_reject_if_method_without_arguments
+    Pirate.accepts_nested_attributes_for :ship, :reject_if => :new_record?
+
+    pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
+    pirate.ship_attributes = { :name => 'Black Pearl' }
+    assert_no_difference('Ship.count') { pirate.save! }
+  end
+
+  def test_reject_if_method_with_arguments
+    Pirate.accepts_nested_attributes_for :ship, :reject_if => :reject_empty_ships_on_create
+
+    pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
+    pirate.ship_attributes = { :name => 'Red Pearl', :_reject_me_if_new => true }
+    assert_no_difference('Ship.count') { pirate.save! }
+
+    # pirate.reject_empty_ships_on_create returns false for saved records
+    pirate.ship_attributes = { :name => 'Red Pearl', :_reject_me_if_new => true }
+    assert_difference('Ship.count') { pirate.save! }
+  end
+
+  def test_reject_if_with_indifferent_keys
+    Pirate.accepts_nested_attributes_for :ship, :reject_if => proc {|attributes| attributes[:name].blank? }
+
+    pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
+    pirate.ship_attributes = { :name => 'Hello Pearl' }
+    assert_difference('Ship.count') { pirate.save! }
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase

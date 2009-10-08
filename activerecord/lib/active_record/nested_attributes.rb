@@ -127,6 +127,22 @@ module ActiveRecord
     #   member.posts.first.title # => 'Kari, the awesome Ruby documentation browser!'
     #   member.posts.second.title # => 'The egalitarian assumption of the modern citizen'
     #
+    #  Alternatively, :reject_if also accepts a symbol for using methods:
+    #
+    #    class Member < ActiveRecord::Base
+    #      has_many :posts
+    #      accepts_nested_attributes_for :posts, :reject_if => :new_record?
+    #    end
+    #
+    #    class Member < ActiveRecord::Base
+    #      has_many :posts
+    #      accepts_nested_attributes_for :posts, :reject_if => :reject_posts
+    #
+    #      def reject_posts(attributed)
+    #        attributed['title].blank?
+    #      end
+    #    end
+    #
     # If the hash contains an <tt>id</tt> key that matches an already
     # associated record, the matching record will be modified:
     #
@@ -179,10 +195,11 @@ module ActiveRecord
       #   <tt>_destroy</tt> key and a value that evaluates to +true+
       #   (eg. 1, '1', true, or 'true'). This option is off by default.
       # [:reject_if]
-      #   Allows you to specify a Proc that checks whether a record should be
-      #   built for a certain attribute hash. The hash is passed to the Proc
-      #   and the Proc should return either +true+ or +false+. When no Proc
-      #   is specified a record will be built for all attribute hashes that
+      #   Allows you to specify a Proc or a Symbol pointing to a method
+      #   that checks whether a record should be built for a certain attribute
+      #   hash. The hash is passed to the supplied Proc or the method
+      #   and it should return either +true+ or +false+. When no :reject_if
+      #   is specified, a record will be built for all attribute hashes that
       #   do not have a <tt>_destroy</tt> value that evaluates to true.
       #   Passing <tt>:all_blank</tt> instead of a Proc will create a proc
       #   that will reject a record where all the attributes are blank.
@@ -266,7 +283,7 @@ module ActiveRecord
     # <tt>:_destroy</tt> key set to a truthy value, then the existing record
     # will be marked for destruction.
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes, allow_destroy)
-      attributes = attributes.stringify_keys
+      attributes = attributes.with_indifferent_access
 
       if attributes['id'].blank?
         unless reject_new_record?(association_name, attributes)
@@ -319,7 +336,7 @@ module ActiveRecord
       end
 
       attributes_collection.each do |attributes|
-        attributes = attributes.stringify_keys
+        attributes = attributes.with_indifferent_access
 
         if attributes['id'].blank?
           unless reject_new_record?(association_name, attributes)
@@ -351,8 +368,18 @@ module ActiveRecord
     # has_destroy_flag? or if a <tt>:reject_if</tt> proc exists for this
     # association and evaluates to +true+.
     def reject_new_record?(association_name, attributes)
-      has_destroy_flag?(attributes) ||
-        self.class.reject_new_nested_attributes_procs[association_name].try(:call, attributes)
+      has_destroy_flag?(attributes) || call_reject_if(association_name, attributes)
+    end
+
+    def call_reject_if(association_name, attributes)
+      callback = self.class.reject_new_nested_attributes_procs[association_name]
+
+      case callback
+      when Symbol
+        method(callback).arity == 0 ? send(callback) : send(callback, attributes)
+      when Proc
+        callback.try(:call, attributes)
+      end
     end
   end
 end

@@ -239,7 +239,11 @@ module ActionView #:nodoc:
           name = controller.class.name.gsub(/::/, '__')
 
           Subclasses.class_eval do
-            remove_const(name) if const_defined?(name)
+            if method(:const_defined?).arity == 1
+              remove_const(name) if const_defined?(name)        # Ruby 1.8.x
+            else
+              remove_const(name) if const_defined?(name, false) # Ruby 1.9.x
+            end
             const_set(name, self)
           end
 
@@ -260,7 +264,7 @@ module ActionView #:nodoc:
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
       @controller = controller
       @helpers = self.class.helpers || Module.new
-      @_content_for = Hash.new {|h,k| h[k] = "" }
+      @_content_for = Hash.new {|h,k| h[k] = ActionView::SafeBuffer.new }
       self.view_paths = view_paths
     end
 
