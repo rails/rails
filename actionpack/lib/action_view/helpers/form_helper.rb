@@ -939,7 +939,7 @@ module ActionView
         end
       end
 
-      (field_helpers - %w(label check_box radio_button fields_for)).each do |selector|
+      (field_helpers - %w(label check_box radio_button fields_for hidden_field)).each do |selector|
         src = <<-end_src
           def #{selector}(method, options = {})  # def text_field(method, options = {})
             @template.send(                      #   @template.send(
@@ -998,6 +998,11 @@ module ActionView
       def radio_button(method, tag_value, options = {})
         @template.radio_button(@object_name, method, tag_value, objectify_options(options))
       end
+      
+      def hidden_field(method, options = {})
+        @emitted_hidden_id = true if method == :id
+        @template.hidden_field(@object_name, method, objectify_options(options))
+      end
 
       def error_message_on(method, *args)
         @template.error_message_on(@object, method, *args)
@@ -1009,6 +1014,10 @@ module ActionView
 
       def submit(value = "Save changes", options = {})
         @template.submit_tag(value, options.reverse_merge(:id => "#{object_name}_submit"))
+      end
+
+      def emitted_hidden_id?
+        @emitted_hidden_id
       end
 
       private
@@ -1045,8 +1054,8 @@ module ActionView
             @template.fields_for(name, object, *args, &block)
           else
             @template.fields_for(name, object, *args) do |builder|
-              @template.concat builder.hidden_field(:id)
               block.call(builder)
+              @template.concat builder.hidden_field(:id) unless builder.emitted_hidden_id?
             end
           end
         end
