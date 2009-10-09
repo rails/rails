@@ -487,5 +487,16 @@ module Rails
         Rails::Generators.options.deep_merge! config.generators.options
       end
     end
+
+    # For each framework, search for instrument file with Orchestra hooks.
+    #
+    initializer :load_orchestra_instrumentation do
+      config.frameworks.each do |framework|
+        begin
+          require "#{framework}/instrument"
+        rescue LoadError => e
+        end
+      end
+    end
   end
 end

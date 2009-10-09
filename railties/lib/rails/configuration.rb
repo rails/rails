@@ -290,6 +290,14 @@ module Rails
       end
     end
 
+    # Allows Orchestra queue to be modified.
+    #
+    #   config.orchestra.queue = MyNewQueue.new
+    #
+    def orchestra
+      ActiveSupport::Orchestra
+    end
+
     class Generators #:nodoc:
       attr_accessor :aliases, :options, :colorize_logging
 
