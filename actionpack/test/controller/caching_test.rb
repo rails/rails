@@ -628,7 +628,7 @@ class FragmentCachingTest < ActionController::TestCase
 
   def test_fragment_for_logging
     fragment_computed = false
-    ActiveSupport::Orchestra.queue.expects(:publish).times(4)
+    ActiveSupport::Orchestra.queue.expects(:publish).times(2)
 
     buffer = 'generated till now -> '
     @controller.fragment_for(buffer, 'expensive') { fragment_computed = true }

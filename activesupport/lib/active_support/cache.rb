@@ -105,7 +105,7 @@ module ActiveSupport
     #   cache.write("city", "Duckburgh")
     #   cache.read("city")   # => "Duckburgh"
     class Store
-      cattr_accessor :logger
+      cattr_accessor :logger, :instance_writter => false
 
       attr_reader :silence
       alias :silence? :silence
@@ -120,6 +120,15 @@ module ActiveSupport
         yield
       ensure
         @silence = previous_silence
+      end
+
+      # Set to true if cache stores should be instrumented. By default is false.
+      def self.instrument=(boolean)
+        Thread.current[:instrument_cache_store] = boolean
+      end
+
+      def self.instrument
+        Thread.current[:instrument_cache_store] || false
       end
 
       # Fetches data from the cache, using the given key. If there is data in
@@ -242,12 +251,15 @@ module ActiveSupport
         end
 
         def instrument(operation, key, options, &block)
-          payload = { :key => key }
-          payload.merge!(options) if options.is_a?(Hash)
+          log(operation, key, options)
 
-          # Cache events should be logged or not?
-          # log(operation, key, options)
-          ActiveSupport::Orchestra.instrument(:"cache_#{operation}", payload, &block)
+          if self.class.instrument
+            payload = { :key => key }
+            payload.merge!(options) if options.is_a?(Hash)
+            ActiveSupport::Orchestra.instrument(:"cache_#{operation}", payload, &block)
+          else
+            yield
+          end
         end
 
         def log(operation, key, options)
