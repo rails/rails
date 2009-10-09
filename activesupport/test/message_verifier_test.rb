@@ -27,6 +27,7 @@ class MessageVerifierTest < Test::Unit::TestCase
     data, hash = @verifier.generate(@data).split("--")
     assert_not_verified("#{data.reverse}--#{hash}")
     assert_not_verified("#{data}--#{hash.reverse}")
+    assert_not_verified("purejunk")
   end
 
   def assert_not_verified(message)
