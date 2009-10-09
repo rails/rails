@@ -26,13 +26,13 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   end
 
-  def test_base_should_have_an_empty_reject_new_nested_attributes_procs
-    assert_equal Hash.new, ActiveRecord::Base.reject_new_nested_attributes_procs
+  def test_base_should_have_an_empty_nested_attributes_options
+    assert_equal Hash.new, ActiveRecord::Base.nested_attributes_options
   end
 
-  def test_should_add_a_proc_to_reject_new_nested_attributes_procs
+  def test_should_add_a_proc_to_nested_attributes_options
     [:parrots, :birds].each do |name|
-      assert_instance_of Proc, Pirate.reject_new_nested_attributes_procs[name]
+      assert_instance_of Proc, Pirate.nested_attributes_options[name][:reject_if]
     end
   end
 
