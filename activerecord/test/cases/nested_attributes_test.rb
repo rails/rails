@@ -603,3 +603,33 @@ class TestNestedAttributesOnAHasAndBelongsToManyAssociation < ActiveRecord::Test
 
   include NestedAttributesOnACollectionAssociationTests
 end
+
+class TestNestedAttributesLimit < ActiveRecord::TestCase
+  def setup
+    Pirate.accepts_nested_attributes_for :parrots, :limit => 2
+
+    @pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+  end
+
+  def teardown
+    Pirate.accepts_nested_attributes_for :parrots, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+  end
+
+  def test_limit_with_less_records
+    @pirate.attributes = { :parrots_attributes => { 'foo' => { :name => 'Big Big Love' } } }
+    assert_difference('Parrot.count') { @pirate.save! }
+  end
+
+  def test_limit_with_number_exact_records
+    @pirate.attributes = { :parrots_attributes => { 'foo' => { :name => 'Lovely Day' }, 'bar' => { :name => 'Blown Away' } } }
+    assert_difference('Parrot.count', 2) { @pirate.save! }
+  end
+
+  def test_limit_with_exceeding_records
+    assert_raises(ActiveRecord::NestedAttributes::TooManyRecords) do
+      @pirate.attributes = { :parrots_attributes => { 'foo' => { :name => 'Lovely Day' },
+                                                      'bar' => { :name => 'Blown Away' },
+                                                      'car' => { :name => 'The Happening' }} }
+    end
+  end
+end

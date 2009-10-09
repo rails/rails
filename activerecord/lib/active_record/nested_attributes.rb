@@ -3,6 +3,9 @@ require 'active_support/core_ext/object/try'
 
 module ActiveRecord
   module NestedAttributes #:nodoc:
+    class TooManyRecords < ActiveRecordError
+    end
+
     extend ActiveSupport::Concern
 
     included do
@@ -203,6 +206,12 @@ module ActiveRecord
       #   do not have a <tt>_destroy</tt> value that evaluates to true.
       #   Passing <tt>:all_blank</tt> instead of a Proc will create a proc
       #   that will reject a record where all the attributes are blank.
+      # [:limit]
+      #   Allows you to specify the maximum number of the associated records that
+      #   can be processes with the nested attributes. If the size of the
+      #   nested attributes array exceeds the specified limit, NestedAttributes::TooManyRecords
+      #   exception is raised. If omitted, any number associations can be processed.
+      #   Note that the :limit option is only applicable to one-to-many associations.
       #
       # Examples:
       #   # creates avatar_attributes=
@@ -214,7 +223,7 @@ module ActiveRecord
       def accepts_nested_attributes_for(*attr_names)
         options = { :allow_destroy => false }
         options.update(attr_names.extract_options!)
-        options.assert_valid_keys(:allow_destroy, :reject_if)
+        options.assert_valid_keys(:allow_destroy, :reject_if, :limit)
 
         attr_names.each do |association_name|
           if reflection = reflect_on_association(association_name)
@@ -332,6 +341,10 @@ module ActiveRecord
 
       unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
         raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
+      end
+
+      if options[:limit] && attributes_collection.size > options[:limit]
+        raise TooManyRecords, "Maximum #{options[:limit]} records are allowed. Got #{attributes_collection.size} records instead."
       end
 
       if attributes_collection.is_a? Hash
