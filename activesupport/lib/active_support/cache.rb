@@ -101,6 +101,13 @@ module ActiveSupport
       alias silence? silence
       alias logger_off? logger_off
 
+      def mute
+        previous_silence, @silence = defined?(@silence) && @silence, true
+        yield
+      ensure
+        @silence = previous_silence
+      end
+
       # Fetches data from the cache, using the given key. If there is data in
       # the cache with the given key, then that data is returned.
       #
