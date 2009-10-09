@@ -1,17 +1,11 @@
 require 'abstract_unit'
 require 'action_view/helpers/benchmark_helper'
 
-class BenchmarkHelperTest < ActionView::TestCase
-  tests ActionView::Helpers::BenchmarkHelper
-
-  def setup
-    super
-    controller.logger = ActiveSupport::BufferedLogger.new(StringIO.new)
-    controller.logger.auto_flushing = false
-  end
+class BenchmarkableTest < ActiveSupport::TestCase
+  include ActiveSupport::Benchmarkable
 
   def teardown
-    controller.logger.send(:clear_buffer)
+    logger.send(:clear_buffer)
   end
 
   def test_without_block
@@ -45,22 +39,22 @@ class BenchmarkHelperTest < ActionView::TestCase
   end
 
   def test_within_level
-    controller.logger.level = ActiveSupport::BufferedLogger::DEBUG
+    logger.level = ActiveSupport::BufferedLogger::DEBUG
     benchmark('included_debug_run', :level => :debug) { }
     assert_last_logged 'included_debug_run'
   end
 
   def test_outside_level
-    controller.logger.level = ActiveSupport::BufferedLogger::ERROR
+    logger.level = ActiveSupport::BufferedLogger::ERROR
     benchmark('skipped_debug_run', :level => :debug) { }
     assert_no_match(/skipped_debug_run/, buffer.last)
   ensure
-    controller.logger.level = ActiveSupport::BufferedLogger::DEBUG
+    logger.level = ActiveSupport::BufferedLogger::DEBUG
   end
 
   def test_without_silencing
     benchmark('debug_run', :silence => false) do
-      controller.logger.info "not silenced!"
+      logger.info "not silenced!"
     end
 
     assert_equal 2, buffer.size
@@ -68,18 +62,25 @@ class BenchmarkHelperTest < ActionView::TestCase
 
   def test_with_silencing
     benchmark('debug_run', :silence => true) do
-      controller.logger.info "silenced!"
+      logger.info "silenced!"
     end
 
     assert_equal 1, buffer.size
   end
 
-
   private
-    def buffer
-      controller.logger.send(:buffer)
+    def logger
+      @logger ||= begin
+        logger = ActiveSupport::BufferedLogger.new(StringIO.new)
+        logger.auto_flushing = false
+        logger
+      end
     end
-  
+
+    def buffer
+      logger.send(:buffer)
+    end
+
     def assert_last_logged(message = 'Benchmarking')
       assert_match(/^#{message} \(.*\)$/, buffer.last)
     end

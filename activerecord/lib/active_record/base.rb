@@ -1,6 +1,7 @@
 require 'benchmark'
 require 'yaml'
 require 'set'
+require 'active_support/benchmarkable'
 require 'active_support/dependencies'
 require 'active_support/time'
 require 'active_support/core_ext/class/attribute_accessors'
@@ -12,7 +13,6 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/symbol'
-require 'active_support/core_ext/benchmark'
 require 'active_support/core_ext/object/metaclass'
 
 module ActiveRecord #:nodoc:
@@ -1463,38 +1463,6 @@ module ActiveRecord #:nodoc:
       # Used to sanitize objects before they're used in an SQL SELECT statement. Delegates to <tt>connection.quote</tt>.
       def sanitize(object) #:nodoc:
         connection.quote(object)
-      end
-
-      # Log and benchmark multiple statements in a single block. Example:
-      #
-      #   Project.benchmark("Creating project") do
-      #     project = Project.create("name" => "stuff")
-      #     project.create_manager("name" => "David")
-      #     project.milestones << Milestone.find(:all)
-      #   end
-      #
-      # The benchmark is only recorded if the current level of the logger is less than or equal to the <tt>log_level</tt>,
-      # which makes it easy to include benchmarking statements in production software that will remain inexpensive because
-      # the benchmark will only be conducted if the log level is low enough.
-      #
-      # The logging of the multiple statements is turned off unless <tt>use_silence</tt> is set to false.
-      def benchmark(title, log_level = Logger::DEBUG, use_silence = true)
-        if logger && logger.level <= log_level
-          result = nil
-          ms = Benchmark.ms { result = use_silence ? silence { yield } : yield }
-          logger.add(log_level, '%s (%.1fms)' % [title, ms])
-          result
-        else
-          yield
-        end
-      end
-
-      # Silences the logger for the duration of the block.
-      def silence
-        old_logger_level, logger.level = logger.level, Logger::ERROR if logger
-        yield
-      ensure
-        logger.level = old_logger_level if logger
       end
 
       # Overwrite the default class equality method to provide support for association proxies.
@@ -3155,6 +3123,8 @@ module ActiveRecord #:nodoc:
   Base.class_eval do
     extend ActiveModel::Naming
     extend QueryCache::ClassMethods
+    extend ActiveSupport::Benchmarkable
+
     include Validations
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods

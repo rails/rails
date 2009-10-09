@@ -1,6 +1,8 @@
 require 'active_support/orchestra'
 
 ActiveSupport::Orchestra.subscribe(/(read|write|cache|expire|exist)_(fragment|page)\??/) do |event|
-  human_name = event.name.to_s.humanize
-  ActionController::Base.log("#{human_name} (%.1fms)" % event.duration)
+  if logger = ActionController::Base.logger
+    human_name = event.name.to_s.humanize
+    logger.info("#{human_name} (%.1fms)" % event.duration)
+  end
 end

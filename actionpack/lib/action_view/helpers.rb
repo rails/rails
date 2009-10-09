@@ -1,10 +1,11 @@
+require 'active_support/benchmarkable'
+
 module ActionView #:nodoc:
   module Helpers #:nodoc:
     autoload :ActiveModelHelper, 'action_view/helpers/active_model_helper'
     autoload :AjaxHelper, 'action_view/helpers/ajax_helper'
     autoload :AssetTagHelper, 'action_view/helpers/asset_tag_helper'
     autoload :AtomFeedHelper, 'action_view/helpers/atom_feed_helper'
-    autoload :BenchmarkHelper, 'action_view/helpers/benchmark_helper'
     autoload :CacheHelper, 'action_view/helpers/cache_helper'
     autoload :CaptureHelper, 'action_view/helpers/capture_helper'
     autoload :DateHelper, 'action_view/helpers/date_helper'
@@ -33,10 +34,11 @@ module ActionView #:nodoc:
       include SanitizeHelper::ClassMethods
     end
 
+    include ActiveSupport::Benchmarkable
+
     include ActiveModelHelper
     include AssetTagHelper
     include AtomFeedHelper
-    include BenchmarkHelper
     include CacheHelper
     include CaptureHelper
     include DateHelper

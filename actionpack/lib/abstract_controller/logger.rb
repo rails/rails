@@ -1,4 +1,5 @@
 require 'active_support/core_ext/logger'
+require 'active_support/benchmarkable'
 
 module AbstractController
   module Logger
@@ -6,22 +7,7 @@ module AbstractController
 
     included do
       cattr_accessor :logger
-    end
-
-    module ClassMethods #:nodoc:
-      # Logs a message appending the value measured.
-      def log(message, log_level=::Logger::DEBUG)
-        return unless logger && logger.level >= log_level
-        logger.add(log_level, message)
-      end
-
-      # Silences the logger for the duration of the block.
-      def silence
-        old_logger_level, logger.level = logger.level, ::Logger::ERROR if logger
-        yield
-      ensure
-        logger.level = old_logger_level if logger
-      end
+      extend ActiveSupport::Benchmarkable
     end
 
     # A class that allows you to defer expensive processing

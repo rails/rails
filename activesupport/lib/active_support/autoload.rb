@@ -2,6 +2,7 @@ module ActiveSupport
   autoload :BacktraceCleaner, 'active_support/backtrace_cleaner'
   autoload :Base64, 'active_support/base64'
   autoload :BasicObject, 'active_support/basic_object'
+  autoload :Benchmarkable, 'active_support/benchmarkable'
   autoload :BufferedLogger, 'active_support/buffered_logger'
   autoload :Cache, 'active_support/cache'
   autoload :Callbacks, 'active_support/callbacks'
