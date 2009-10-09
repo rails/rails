@@ -296,7 +296,10 @@ module ActionView
       end
       
       def _find_template(path)
-        prefix = @view.controller.controller_path unless path.include?(?/)
+        if controller = @view.controller
+          prefix = controller.controller_path unless path.include?(?/)
+        end
+
         @view.find(path, {:formats => @view.formats}, prefix, true)
       end
 
