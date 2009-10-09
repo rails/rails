@@ -31,6 +31,10 @@ module TestHelpers
       tmp_path(*%w[app] + args)
     end
 
+    def framework_path
+      RAILS_FRAMEWORK_ROOT
+    end
+
     def rails_root
       app_path
     end

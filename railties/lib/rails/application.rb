@@ -277,5 +277,211 @@ module Rails
         end
       end
     end
+
+    # Initializes framework-specific settings for each of the loaded frameworks
+    # (Configuration#frameworks). The available settings map to the accessors
+    # on each of the corresponding Base classes.
+    initializer :initialize_framework_settings do
+      config.frameworks.each do |framework|
+        base_class = framework.to_s.camelize.constantize.const_get("Base")
+
+        config.send(framework).each do |setting, value|
+          base_class.send("#{setting}=", value)
+        end
+      end
+      config.active_support.each do |setting, value|
+        ActiveSupport.send("#{setting}=", value)
+      end
+    end
+
+    # Sets +ActionController::Base#view_paths+ and +ActionMailer::Base#template_root+
+    # (but only for those frameworks that are to be loaded). If the framework's
+    # paths have already been set, it is not changed, otherwise it is
+    # set to use Configuration#view_path.
+    initializer :initialize_framework_views do
+      if config.frameworks.include?(:action_view)
+        view_path = ActionView::PathSet.type_cast(config.view_path, config.cache_classes)
+        ActionMailer::Base.template_root  = view_path if config.frameworks.include?(:action_mailer) && ActionMailer::Base.view_paths.blank?
+        ActionController::Base.view_paths = view_path if config.frameworks.include?(:action_controller) && ActionController::Base.view_paths.blank?
+      end
+    end
+
+    initializer :initialize_metal do
+      # TODO: Make Rails and metal work without ActionController
+      if config.frameworks.include?(:action_controller)
+        Rails::Rack::Metal.requested_metals = config.metals
+        Rails::Rack::Metal.metal_paths += plugin_loader.engine_metal_paths
+
+        config.middleware.insert_before(
+          :"ActionDispatch::ParamsParser",
+          Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
+      end
+    end
+
+    initializer :check_for_unbuilt_gems do
+      unbuilt_gems = config.gems.select {|gem| gem.frozen? && !gem.built? }
+      if unbuilt_gems.size > 0
+        # don't print if the gems:build rake tasks are being run
+        unless $gems_build_rake_task
+          abort <<-end_error
+  The following gems have native components that need to be built
+  #{unbuilt_gems.map { |gemm| "#{gemm.name}  #{gemm.requirement}" } * "\n  "}
+
+  You're running:
+  ruby #{Gem.ruby_version} at #{Gem.ruby}
+  rubygems #{Gem::RubyGemsVersion} at #{Gem.path * ', '}
+
+  Run `rake gems:build` to build the unbuilt gems.
+          end_error
+        end
+      end
+    end
+
+    initializer :load_gems do
+      unless $gems_rake_task
+        config.gems.each { |gem| gem.load }
+      end
+    end
+
+    # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
+    # defaults to <tt>vendor/plugins</tt> but may also be set to a list of
+    # paths, such as
+    #   config.plugin_paths = ["#{RAILS_ROOT}/lib/plugins", "#{RAILS_ROOT}/vendor/plugins"]
+    #
+    # In the default implementation, as each plugin discovered in <tt>plugin_paths</tt> is initialized:
+    # * its +lib+ directory, if present, is added to the load path (immediately after the applications lib directory)
+    # * <tt>init.rb</tt> is evaluated, if present
+    #
+    # After all plugins are loaded, duplicates are removed from the load path.
+    # If an array of plugin names is specified in config.plugins, only those plugins will be loaded
+    # and they plugins will be loaded in that order. Otherwise, plugins are loaded in alphabetical
+    # order.
+    #
+    # if config.plugins ends contains :all then the named plugins will be loaded in the given order and all other
+    # plugins will be loaded in alphabetical order
+    initializer :load_plugins do
+      plugin_loader.load_plugins
+    end
+
+    # TODO: Figure out if this needs to run a second time
+    # load_gems
+
+    initializer :check_gem_dependencies do
+      unloaded_gems = config.gems.reject { |g| g.loaded? }
+      if unloaded_gems.size > 0
+        configuration.gems_dependencies_loaded = false
+        # don't print if the gems rake tasks are being run
+        unless $gems_rake_task
+          abort <<-end_error
+  Missing these required gems:
+  #{unloaded_gems.map { |gemm| "#{gemm.name}  #{gemm.requirement}" } * "\n  "}
+
+  You're running:
+  ruby #{Gem.ruby_version} at #{Gem.ruby}
+  rubygems #{Gem::RubyGemsVersion} at #{Gem.path * ', '}
+
+  Run `rake gems:install` to install the missing gems.
+          end_error
+        end
+      else
+        configuration.gems_dependencies_loaded = true
+      end
+    end
+
+    # # bail out if gems are missing - note that check_gem_dependencies will have
+    # # already called abort() unless $gems_rake_task is set
+    # return unless gems_dependencies_loaded
+
+    initializer :load_application_initializers do
+      if config.gems_dependencies_loaded
+        Dir["#{configuration.root_path}/config/initializers/**/*.rb"].sort.each do |initializer|
+          load(initializer)
+        end
+      end
+    end
+
+    # Fires the user-supplied after_initialize block (Configuration#after_initialize)
+    initializer :after_initialize do
+      if config.gems_dependencies_loaded
+        configuration.after_initialize_blocks.each do |block|
+          block.call
+        end
+      end
+    end
+
+    # # Setup database middleware after initializers have run
+    initializer :initialize_database_middleware do
+      if configuration.frameworks.include?(:active_record)
+        if configuration.frameworks.include?(:action_controller) && ActionController::Base.session_store &&
+            ActionController::Base.session_store.name == 'ActiveRecord::SessionStore'
+          configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
+          configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::QueryCache
+        else
+          configuration.middleware.use ActiveRecord::ConnectionAdapters::ConnectionManagement
+          configuration.middleware.use ActiveRecord::QueryCache
+        end
+      end
+    end
+
+    # TODO: Make a DSL way to limit an initializer to a particular framework
+
+    # # Prepare dispatcher callbacks and run 'prepare' callbacks
+    initializer :prepare_dispatcher do
+      next unless configuration.frameworks.include?(:action_controller)
+      require 'rails/dispatcher' unless defined?(::Dispatcher)
+      Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
+    end
+
+    # Routing must be initialized after plugins to allow the former to extend the routes
+    # ---
+    # If Action Controller is not one of the loaded frameworks (Configuration#frameworks)
+    # this does nothing. Otherwise, it loads the routing definitions and sets up
+    # loading module used to lazily load controllers (Configuration#controller_paths).
+    initializer :initialize_routing do
+      next unless configuration.frameworks.include?(:action_controller)
+
+      ActionController::Routing.controller_paths += configuration.controller_paths
+      ActionController::Routing::Routes.add_configuration_file(configuration.routes_configuration_file)
+      ActionController::Routing::Routes.reload!
+    end
+    #
+    # # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
+    initializer :load_observers do
+      if config.gems_dependencies_loaded && configuration.frameworks.include?(:active_record)
+        ActiveRecord::Base.instantiate_observers
+      end
+    end
+
+    # Eager load application classes
+    initializer :load_application_classes do
+      next if $rails_rake_task
+
+      if configuration.cache_classes
+        configuration.eager_load_paths.each do |load_path|
+          matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
+          Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
+            require_dependency file.sub(matcher, '\1')
+          end
+        end
+      end
+    end
+
+    # Disable dependency loading during request cycle
+    initializer :disable_dependency_loading do
+      if configuration.cache_classes && !configuration.dependency_loading
+        ActiveSupport::Dependencies.unhook!
+      end
+    end
+
+    # Configure generators if they were already loaded
+    # ===
+    # TODO: Does this need to be an initializer here?
+    initializer :initialize_generators do
+      if defined?(Rails::Generators)
+        Rails::Generators.no_color! unless config.generators.colorize_logging
+        Rails::Generators.aliases.deep_merge! config.generators.aliases
+        Rails::Generators.options.deep_merge! config.generators.options
+      end
+    end
   end
 end

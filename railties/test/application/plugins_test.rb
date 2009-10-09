@@ -23,6 +23,17 @@ module ApplicationTests
       ], Rails.application.config.loaded_plugins, @failure_tip
     end
 
+    test "no plugins are loaded if the configuration has an empty plugin list" do
+      Rails::Initializer.run { |c| c.plugins = [] }
+      assert_plugins [], Rails.application.config.loaded_plugins
+    end
+
+    test "only the specified plugins are located in the order listed" do
+      plugin_names = [:plugin_with_no_lib_dir, :acts_as_chunky_bacon]
+      Rails::Initializer.run { |c| c.plugins = plugin_names }
+      assert_plugins plugin_names, Rails.application.config.loaded_plugins
+    end
+
     test "all plugins loaded after all" do
       Rails::Initializer.run do |config|
         config.plugins = [:stubby, :all, :acts_as_chunky_bacon]

@@ -16,7 +16,7 @@ module ActionController #:nodoc:
           self.session_store = ActiveRecord::SessionStore
         else
           @@session_store = store.is_a?(Symbol) ?
-            Session.const_get(store.to_s.camelize) :
+            ActionDispatch::Session.const_get(store.to_s.camelize) :
             store
         end
       end
