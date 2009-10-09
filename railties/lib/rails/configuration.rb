@@ -1,6 +1,9 @@
+require 'rails/plugin/loader'
+require 'rails/plugin/locator'
+
 module Rails
   class Configuration
-    attr_accessor :cache_classes, :load_paths, :eager_load_paths, :framework_paths,
+    attr_accessor :cache_classes, :load_paths,
                   :load_once_paths, :gems_dependencies_loaded, :after_initialize_blocks,
                   :frameworks, :framework_root_path, :root_path, :plugin_paths, :plugins,
                   :plugin_loader, :plugin_locators, :gems, :loaded_plugins, :reload_plugins,
@@ -15,29 +18,13 @@ module Rails
     def initialize
       set_root_path!
 
-      @framework_paths              = []
       @load_once_paths              = []
       @after_initialize_blocks      = []
       @loaded_plugins               = []
       @dependency_loading           = true
-      @eager_load_paths             = default_eager_load_paths
-      @load_paths                   = default_load_paths
-      @plugin_paths                 = default_plugin_paths
-      @frameworks                   = default_frameworks
-      @plugin_loader                = default_plugin_loader
-      @plugin_locators              = default_plugin_locators
-      @gems                         = default_gems
-      @i18n                         = default_i18n
-      @log_path                     = default_log_path
-      @log_level                    = default_log_level
-      @cache_store                  = default_cache_store
-      @view_path                    = default_view_path
-      @controller_paths             = default_controller_paths
-      @routes_configuration_file    = default_routes_configuration_file
-      @database_configuration_file  = default_database_configuration_file
-      @serve_static_assets          = default_serve_static_assets
+      @serve_static_assets          = true
 
-      for framework in default_frameworks
+      for framework in frameworks
         self.send("#{framework}=", Rails::OrderedOptions.new)
       end
       self.active_support = Rails::OrderedOptions.new
@@ -121,34 +108,38 @@ module Rails
       YAML::load(ERB.new(IO.read(database_configuration_file)).result)
     end
 
-    def default_routes_configuration_file
-      File.join(root_path, 'config', 'routes.rb')
+    def routes_configuration_file
+      @routes_configuration_file ||= File.join(root_path, 'config', 'routes.rb')
     end
 
-    def default_controller_paths
-      paths = [File.join(root_path, 'app', 'controllers')]
-      paths.concat builtin_directories
-      paths
-    end
-
-    def default_cache_store
-      if File.exist?("#{root_path}/tmp/cache/")
-        [ :file_store, "#{root_path}/tmp/cache/" ]
-      else
-        :memory_store
+    def controller_paths
+      @controller_paths ||= begin
+        paths = [File.join(root_path, 'app', 'controllers')]
+        paths.concat builtin_directories
+        paths
       end
     end
 
-    def default_database_configuration_file
-      File.join(root_path, 'config', 'database.yml')
+    def cache_store
+      @cache_store ||= begin
+        if File.exist?("#{root_path}/tmp/cache/")
+          [ :file_store, "#{root_path}/tmp/cache/" ]
+        else
+          :memory_store
+        end
+      end
     end
 
-    def default_view_path
-      File.join(root_path, 'app', 'views')
+    def database_configuration_file
+      @database_configuration_file ||= File.join(root_path, 'config', 'database.yml')
     end
 
-    def default_eager_load_paths
-      %w(
+    def view_path
+      @view_path ||= File.join(root_path, 'app', 'views')
+    end
+
+    def eager_load_paths
+      @eager_load_paths ||= %w(
         app/metal
         app/models
         app/controllers
@@ -156,28 +147,30 @@ module Rails
       ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
     end
 
-    def default_load_paths
-      paths = []
+    def load_paths
+      @load_paths ||= begin
+        paths = []
 
-      # Add the old mock paths only if the directories exists
-      paths.concat(Dir["#{root_path}/test/mocks/#{RAILS_ENV}"]) if File.exists?("#{root_path}/test/mocks/#{RAILS_ENV}")
+        # Add the old mock paths only if the directories exists
+        paths.concat(Dir["#{root_path}/test/mocks/#{RAILS_ENV}"]) if File.exists?("#{root_path}/test/mocks/#{RAILS_ENV}")
 
-      # Add the app's controller directory
-      paths.concat(Dir["#{root_path}/app/controllers/"])
+        # Add the app's controller directory
+        paths.concat(Dir["#{root_path}/app/controllers/"])
 
-      # Followed by the standard includes.
-      paths.concat %w(
-        app
-        app/metal
-        app/models
-        app/controllers
-        app/helpers
-        app/services
-        lib
-        vendor
-      ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+        # Followed by the standard includes.
+        paths.concat %w(
+          app
+          app/metal
+          app/models
+          app/controllers
+          app/helpers
+          app/services
+          lib
+          vendor
+        ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
 
-      paths.concat builtin_directories
+        paths.concat builtin_directories
+      end
     end
 
     def builtin_directories
@@ -185,48 +178,48 @@ module Rails
       (RAILS_ENV == 'development') ? Dir["#{RAILTIES_PATH}/builtin/*/"] : []
     end
 
-    def default_log_path
-      File.join(root_path, 'log', "#{RAILS_ENV}.log")
+    def log_path
+      @log_path ||= File.join(root_path, 'log', "#{RAILS_ENV}.log")
     end
 
-    def default_log_level
-      RAILS_ENV == 'production' ? :info : :debug
+    def log_level
+      @log_level ||= RAILS_ENV == 'production' ? :info : :debug
     end
 
-    def default_frameworks
-      [ :active_record, :action_controller, :action_view, :action_mailer, :active_resource ]
+    def frameworks
+      @frameworks ||= [ :active_record, :action_controller, :action_view, :action_mailer, :active_resource ]
     end
 
-    def default_plugin_paths
-      ["#{root_path}/vendor/plugins"]
+    def plugin_paths
+      @plugin_paths ||= ["#{root_path}/vendor/plugins"]
     end
 
-    def default_plugin_loader
-      require 'rails/plugin/loader'
-      Plugin::Loader
-    end
-
-    def default_plugin_locators
-      require 'rails/plugin/locator'
-      locators = []
-      locators << Plugin::GemLocator if defined? Gem
-      locators << Plugin::FileSystemLocator
-    end
-
-    def default_i18n
-      i18n = Rails::OrderedOptions.new
-      i18n.load_path = []
-
-      if File.exist?(File.join(RAILS_ROOT, 'config', 'locales'))
-        i18n.load_path << Dir[File.join(RAILS_ROOT, 'config', 'locales', '*.{rb,yml}')]
-        i18n.load_path.flatten!
+    def plugin_loader
+      @plugin_loader ||= begin
+        Plugin::Loader
       end
-
-      i18n
     end
 
-    def default_serve_static_assets
-      true
+    def plugin_locators
+      @plugin_locators ||= begin
+        locators = []
+        locators << Plugin::GemLocator if defined? Gem
+        locators << Plugin::FileSystemLocator
+      end
+    end
+
+    def i18n
+      @i18n ||= begin
+        i18n = Rails::OrderedOptions.new
+        i18n.load_path = []
+
+        if File.exist?(File.join(RAILS_ROOT, 'config', 'locales'))
+          i18n.load_path << Dir[File.join(RAILS_ROOT, 'config', 'locales', '*.{rb,yml}')]
+          i18n.load_path.flatten!
+        end
+
+        i18n
+      end
     end
 
     # Adds a single Gem dependency to the rails application. By default, it will require
@@ -241,11 +234,11 @@ module Rails
     #
     #   config.gem 'qrp', :version => '0.4.1', :lib => false
     def gem(name, options = {})
-      @gems << Rails::GemDependency.new(name, options)
+      gems << Rails::GemDependency.new(name, options)
     end
 
-    def default_gems
-      []
+    def gems
+      @gems ||= []
     end
 
     def environment_path

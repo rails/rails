@@ -28,6 +28,7 @@ task :default => :test
 task :test do 
   dir = ENV["TEST_DIR"] || "**"
   Dir["test/#{dir}/*_test.rb"].all? do |file|
+    next true if file.include?("fixtures")
     ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
     system(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
   end or raise "Failures"
