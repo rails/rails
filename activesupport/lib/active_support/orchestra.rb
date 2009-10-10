@@ -1,5 +1,6 @@
 require 'thread'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActiveSupport
   # Orchestra provides an instrumentation API for Ruby. To instrument an action

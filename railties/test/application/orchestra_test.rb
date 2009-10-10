@@ -1,8 +1,8 @@
 require "isolation/abstract_unit"
-require "active_support/orchestra"
 
 module ApplicationTests
   class OrchestraTest < Test::Unit::TestCase
+    include ActiveSupport::Testing::Isolation
 
     class MyQueue
       attr_reader :events, :subscribers
@@ -25,6 +25,7 @@ module ApplicationTests
       build_app
       boot_rails
 
+      require "active_support/orchestra"
       Rails::Initializer.run do |c|
         c.orchestra.queue = MyQueue.new
         c.orchestra.subscribe(/listening/) do
