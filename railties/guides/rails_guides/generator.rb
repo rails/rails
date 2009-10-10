@@ -1,5 +1,11 @@
 require 'set'
 
+class String
+  def html_safe!
+    self
+  end unless "post 9415935902f120a9bac0bfce7129725a0db38ed3".respond_to?(:html_safe!)
+end
+
 module RailsGuides
   class Generator
     attr_reader :output, :view_path, :view, :guides_dir
@@ -55,7 +61,7 @@ module RailsGuides
           body = set_header_section(body, @view)
           body = set_index(body, @view)
 
-          result = view.render(:layout => 'layout', :text => textile(body))
+          result = view.render(:layout => 'layout', :text => textile(body).html_safe!)
           f.write result
           warn_about_broken_links(result) if ENV.key?("WARN_BROKEN_LINKS")
         end
@@ -71,8 +77,8 @@ module RailsGuides
 
       header = textile(header)
 
-      view.content_for(:page_title) { page_title }
-      view.content_for(:header_section) { header }
+      view.content_for(:page_title) { page_title.html_safe! }
+      view.content_for(:header_section) { header.html_safe! }
       new_body
     end
 
@@ -103,7 +109,7 @@ module RailsGuides
       index << '</ol>'
       index << '</div>'
 
-      view.content_for(:index_section) { index }
+      view.content_for(:index_section) { index.html_safe! }
 
       i.result
     end
