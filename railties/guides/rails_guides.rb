@@ -1,5 +1,8 @@
 pwd = File.dirname(__FILE__)
-$: << pwd
+$:.unshift pwd
+
+# Loading Action Pack requires rack and erubis.
+require 'rubygems'
 
 begin
   as_lib = File.join(pwd, "../../activesupport/lib")
@@ -11,7 +14,6 @@ begin
   require "action_controller"
   require "action_view"
 rescue LoadError
-  require 'rubygems'
   gem "actionpack", '>= 2.3'
 
   require "action_controller"
@@ -19,7 +21,6 @@ rescue LoadError
 end
 
 begin
-  require 'rubygems'
   gem 'RedCloth', '>= 4.1.1'
 rescue Gem::LoadError
   $stderr.puts %(Generating Guides requires RedCloth 4.1.1+)
@@ -29,11 +30,11 @@ end
 require 'redcloth'
 
 module RailsGuides
-  autoload :Generator, "rails_guides/generator"
-  autoload :Indexer, "rails_guides/indexer"
-  autoload :Helpers, "rails_guides/helpers"
+  autoload :Generator,         "rails_guides/generator"
+  autoload :Indexer,           "rails_guides/indexer"
+  autoload :Helpers,           "rails_guides/helpers"
   autoload :TextileExtensions, "rails_guides/textile_extensions"
-  autoload :Levenshtein, "rails_guides/levenshtein"
+  autoload :Levenshtein,       "rails_guides/levenshtein"
 end
 
 RedCloth.send(:include, RailsGuides::TextileExtensions)
