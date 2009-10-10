@@ -1,3 +1,5 @@
+require 'active_support/core_ext/load_error'
+
 module ActiveSupport
   module Testing
     class ProxyTestResult

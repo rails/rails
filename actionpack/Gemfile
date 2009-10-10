@@ -4,6 +4,7 @@ gem "rack", "~> 1.0.0"
 gem "rack-test", "~> 0.5.0"
 gem "activesupport", "3.0.pre", :vendored_at => rails_root.join("activesupport")
 gem "activemodel", "3.0.pre", :vendored_at => rails_root.join("activemodel")
+gem "erubis", "~> 2.6.0"
 
 only :test do
   gem "mocha"

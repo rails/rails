@@ -34,6 +34,7 @@ class TagHelperTest < ActionView::TestCase
 
   def test_content_tag
     assert_equal "<a href=\"create\">Create</a>", content_tag("a", "Create", "href" => "create")
+    assert content_tag("a", "Create", "href" => "create").html_safe?
     assert_equal content_tag("a", "Create", "href" => "create"),
                  content_tag("a", "Create", :href => "create")
   end

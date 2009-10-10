@@ -1,22 +1,32 @@
 class << Object; alias_method :const_available?, :const_defined?; end
 
-class ContentController < ActionController::Base
-end
-class NotAController
-end
+class ContentController < ActionController::Base; end
+class NotAController; end
+
 module Admin
   class << self; alias_method :const_available?, :const_defined?; end
   class UserController < ActionController::Base; end
   class NewsFeedController < ActionController::Base; end
 end
-class ElsewhereController < ActionController::Base; end
+
+module Api
+  class ProductsController < ActionController::Base; end
+end
+
+# TODO: Reduce the number of test controllers we use
 class AddressesController < ActionController::Base; end
-class SessionsController  < ActionController::Base; end
-class FooController < ActionController::Base; end
-class CController < ActionController::Base; end
-class HiController < ActionController::Base; end
+class ArticlesController < ActionController::Base; end
+class BarController < ActionController::Base; end
+class BooksController < ActionController::Base; end
 class BraveController < ActionController::Base; end
+class CController < ActionController::Base; end
+class ElsewhereController < ActionController::Base; end
+class FooController < ActionController::Base; end
+class HiController < ActionController::Base; end
 class ImageController < ActionController::Base; end
+class PeopleController < ActionController::Base; end
+class SessionsController  < ActionController::Base; end
+class SubpathBooksController < ActionController::Base; end
 class WeblogController < ActionController::Base; end
 
 # For speed test
@@ -34,8 +44,3 @@ class ChannelsController      < SpeedController; end
 class ChannelVideosController < SpeedController; end
 class LostPasswordsController < SpeedController; end
 class PagesController         < SpeedController; end
-
-ActionController::Routing::Routes.draw do |map|
-  map.route_one 'route_one', :controller => 'elsewhere', :action => 'flash_me'
-  map.connect ':controller/:action/:id'
-end

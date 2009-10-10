@@ -669,21 +669,13 @@ class LegacyRouteSetTests < Test::Unit::TestCase
 
   %w(GET POST PUT DELETE).each do |request_method|
     define_method("test_request_method_recognized_with_#{request_method}") do
-      begin
-        Object.const_set(:BooksController, Class.new(ActionController::Base))
-
-        setup_request_method_routes_for(request_method)
-
-        assert_nothing_raised { rs.recognize(@request) }
-        assert_equal request_method.downcase, @request.path_parameters[:action]
-      ensure
-        Object.send(:remove_const, :BooksController) rescue nil
-      end
+      setup_request_method_routes_for(request_method)
+      assert_nothing_raised { rs.recognize(@request) }
+      assert_equal request_method.downcase, @request.path_parameters[:action]
     end
   end
 
   def test_recognize_array_of_methods
-    Object.const_set(:BooksController, Class.new(ActionController::Base))
     rs.draw do |r|
       r.connect '/match', :controller => 'books', :action => 'get_or_post', :conditions => { :method => [:get, :post] }
       r.connect '/match', :controller => 'books', :action => 'not_get_or_post'
@@ -701,13 +693,9 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     @request.request_uri = "/match"
     assert_nothing_raised { rs.recognize(@request) }
     assert_equal 'not_get_or_post', @request.path_parameters[:action]
-  ensure
-    Object.send(:remove_const, :BooksController) rescue nil
   end
 
   def test_subpath_recognized
-    Object.const_set(:SubpathBooksController, Class.new(ActionController::Base))
-
     rs.draw do |r|
       r.connect '/books/:id/edit', :controller => 'subpath_books', :action => 'edit'
       r.connect '/items/:id/:action', :controller => 'subpath_books'
@@ -730,13 +718,9 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     hash = rs.recognize_path "/posts/7"
     assert_not_nil hash
     assert_equal %w(subpath_books show 7), [hash[:controller], hash[:action], hash[:id]]
-  ensure
-    Object.send(:remove_const, :SubpathBooksController) rescue nil
   end
 
   def test_subpath_generated
-    Object.const_set(:SubpathBooksController, Class.new(ActionController::Base))
-
     rs.draw do |r|
       r.connect '/books/:id/edit', :controller => 'subpath_books', :action => 'edit'
       r.connect '/items/:id/:action', :controller => 'subpath_books'
@@ -746,8 +730,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal "/books/7/edit", rs.generate(:controller => "subpath_books", :id => 7, :action => "edit")
     assert_equal "/items/15/complete", rs.generate(:controller => "subpath_books", :id => 15, :action => "complete")
     assert_equal "/posts/new/preview", rs.generate(:controller => "subpath_books", :action => "preview")
-  ensure
-    Object.send(:remove_const, :SubpathBooksController) rescue nil
   end
 
   def test_failed_requirements_raises_exception_with_violated_requirements
@@ -1122,8 +1104,6 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_recognize_with_conditions
-    Object.const_set(:PeopleController, Class.new)
-
     set.draw do |map|
       map.with_options(:controller => "people") do |people|
         people.people  "/people",     :action => "index",   :conditions => { :method => :get }
@@ -1183,14 +1163,9 @@ class RouteSetTest < ActiveSupport::TestCase
       assert_equal [:get, :put, :delete], e.allowed_methods
     end
     request.recycle!
-
-  ensure
-    Object.send(:remove_const, :PeopleController)
   end
 
   def test_recognize_with_alias_in_conditions
-    Object.const_set(:PeopleController, Class.new)
-
     set.draw do |map|
       map.people "/people", :controller => 'people', :action => "index",
         :conditions => { :method => :get }
@@ -1208,13 +1183,9 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_nothing_raised { set.recognize(request) }
     assert_equal("people", request.path_parameters[:controller])
     assert_equal("index", request.path_parameters[:action])
-  ensure
-    Object.send(:remove_const, :PeopleController)
   end
 
   def test_typo_recognition
-    Object.const_set(:ArticlesController, Class.new)
-
     set.draw do |map|
       map.connect 'articles/:year/:month/:day/:title',
              :controller => 'articles', :action => 'permalink',
@@ -1229,9 +1200,6 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal("11", request.path_parameters[:month])
     assert_equal("05", request.path_parameters[:day])
     assert_equal("a-very-interesting-article", request.path_parameters[:title])
-
-  ensure
-    Object.send(:remove_const, :ArticlesController)
   end
 
   def test_routing_traversal_does_not_load_extra_classes
@@ -1248,8 +1216,6 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_recognize_with_conditions_and_format
-    Object.const_set(:PeopleController, Class.new)
-
     set.draw do |map|
       map.with_options(:controller => "people") do |people|
         people.person  "/people/:id", :action => "show",    :conditions => { :method => :get }
@@ -1276,8 +1242,6 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal("show", request.path_parameters[:action])
     assert_equal("5", request.path_parameters[:id])
     assert_equal("png", request.path_parameters[:_format])
-  ensure
-    Object.send(:remove_const, :PeopleController)
   end
 
   def test_generate_with_default_action
@@ -1291,8 +1255,6 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_root_map
-    Object.const_set(:PeopleController, Class.new)
-
     set.draw { |map| map.root :controller => "people" }
 
     request.path = ""
@@ -1300,13 +1262,9 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_nothing_raised { set.recognize(request) }
     assert_equal("people", request.path_parameters[:controller])
     assert_equal("index", request.path_parameters[:action])
-  ensure
-    Object.send(:remove_const, :PeopleController)
   end
 
   def test_namespace
-    Object.const_set(:Api, Module.new { |m| m.const_set(:ProductsController, Class.new) })
-
     set.draw do |map|
 
       map.namespace 'api' do |api|
@@ -1320,13 +1278,9 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_nothing_raised { set.recognize(request) }
     assert_equal("api/products", request.path_parameters[:controller])
     assert_equal("inventory", request.path_parameters[:action])
-  ensure
-    Object.send(:remove_const, :Api)
   end
 
   def test_namespaced_root_map
-    Object.const_set(:Api, Module.new { |m| m.const_set(:ProductsController, Class.new) })
-
     set.draw do |map|
 
       map.namespace 'api' do |api|
@@ -1340,13 +1294,9 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_nothing_raised { set.recognize(request) }
     assert_equal("api/products", request.path_parameters[:controller])
     assert_equal("index", request.path_parameters[:action])
-  ensure
-    Object.send(:remove_const, :Api)
   end
 
   def test_namespace_with_path_prefix
-    Object.const_set(:Api, Module.new { |m| m.const_set(:ProductsController, Class.new) })
-
     set.draw do |map|
       map.namespace 'api', :path_prefix => 'prefix' do |api|
         api.route 'inventory', :controller => "products", :action => 'inventory'
@@ -1358,13 +1308,9 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_nothing_raised { set.recognize(request) }
     assert_equal("api/products", request.path_parameters[:controller])
     assert_equal("inventory", request.path_parameters[:action])
-  ensure
-    Object.send(:remove_const, :Api)
   end
 
   def test_namespace_with_blank_path_prefix
-    Object.const_set(:Api, Module.new { |m| m.const_set(:ProductsController, Class.new) })
-
     set.draw do |map|
       map.namespace 'api', :path_prefix => '' do |api|
         api.route 'inventory', :controller => "products", :action => 'inventory'
@@ -1376,8 +1322,6 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_nothing_raised { set.recognize(request) }
     assert_equal("api/products", request.path_parameters[:controller])
     assert_equal("inventory", request.path_parameters[:action])
-  ensure
-    Object.send(:remove_const, :Api)
   end
 
   def test_generate_changes_controller_module

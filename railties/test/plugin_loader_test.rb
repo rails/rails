@@ -5,10 +5,13 @@ $:.unshift File.dirname(__FILE__) + "/../../actionmailer/lib"
 require 'action_controller'
 require 'action_mailer'
 
-# Mocks out the configuration
-module Rails
-  def self.configuration
-    Rails::Configuration.new
+# TODO: Rewrite all these tests
+class FakeInitializerSlashApplication
+  attr_reader :config
+  alias configuration config
+
+  def initialize
+    @config = Rails::Configuration.new
   end
 end
 
@@ -18,10 +21,10 @@ class TestPluginLoader < Test::Unit::TestCase
   def setup
     reset_load_path!
 
-    @configuration     = Rails::Configuration.new
+    @initializer      = FakeInitializerSlashApplication.new
+    @configuration    = @initializer.config
+    Rails.application = @initializer
     @configuration.plugin_paths << plugin_fixture_root_path
-    @initializer       = Rails::Initializer.default
-    @initializer.config = @configuration
     @valid_plugin_path = plugin_fixture_path('default/stubby')
     @empty_plugin_path = plugin_fixture_path('default/empty')
 

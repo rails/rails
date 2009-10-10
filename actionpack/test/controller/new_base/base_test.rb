@@ -26,7 +26,7 @@ module Dispatching
     class ContainedEmptyController < ActionController::Base ; end
   end
 
-  class BaseTest < SimpleRouteCase
+  class BaseTest < Rack::TestCase
     # :api: plugin
     test "simple dispatching" do
       get "/dispatching/simple/index"

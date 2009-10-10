@@ -12,7 +12,7 @@ class PathsTest < Test::Unit::TestCase
         ActionController::Base.session_store = nil
       end
     end
-    @paths = Rails::Initializer.default.config.paths
+    @paths = Rails.application.config.paths
   end
 
   def root(*path)

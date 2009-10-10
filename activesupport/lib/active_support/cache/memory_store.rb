@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/duplicable'
+
 module ActiveSupport
   module Cache
     # A cache store implementation which stores everything into memory in the

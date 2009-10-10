@@ -7,6 +7,8 @@
 # It is also good to know what is the bare minimum to get
 # Rails booted up.
 
+require 'fileutils'
+
 # TODO: Remove rubygems when possible
 require 'rubygems'
 require 'test/unit'
@@ -29,6 +31,14 @@ module TestHelpers
 
     def app_path(*args)
       tmp_path(*%w[app] + args)
+    end
+
+    def framework_path
+      RAILS_FRAMEWORK_ROOT
+    end
+
+    def rails_root
+      app_path
     end
   end
 
@@ -87,7 +97,8 @@ module TestHelpers
     end
 
     def app_file(path, contents)
-      File.open(app_path(path), 'w') do |f|
+      FileUtils.mkdir_p File.dirname("#{app_path}/#{path}")
+      File.open("#{app_path}/#{path}", 'w') do |f|
         f.puts contents
       end
     end

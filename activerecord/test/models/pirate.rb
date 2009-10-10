@@ -45,6 +45,10 @@ class Pirate < ActiveRecord::Base
     @ship_log ||= []
   end
 
+  def reject_empty_ships_on_create(attributes)
+    attributes.delete('_reject_me_if_new').present? && new_record?
+  end
+
   private
     def log_before_add(record)
       log(record, "before_adding_method")

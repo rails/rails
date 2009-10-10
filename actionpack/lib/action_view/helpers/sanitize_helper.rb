@@ -49,7 +49,11 @@ module ActionView
       # confuse browsers.
       #
       def sanitize(html, options = {})
-        self.class.white_list_sanitizer.sanitize(html, options)
+        returning self.class.white_list_sanitizer.sanitize(html, options) do |sanitized|
+          if sanitized
+            sanitized.html_safe!
+          end
+        end
       end
 
       # Sanitizes a block of CSS code. Used by +sanitize+ when it comes across a style attribute.
@@ -72,7 +76,11 @@ module ActionView
       #   strip_tags("<div id='top-bar'>Welcome to my website!</div>")
       #   # => Welcome to my website!
       def strip_tags(html)
-        self.class.full_sanitizer.sanitize(html)
+        returning self.class.full_sanitizer.sanitize(html) do |sanitized|
+          if sanitized
+            sanitized.html_safe!
+          end
+        end
       end
 
       # Strips all link tags from +text+ leaving just the link text.

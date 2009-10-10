@@ -527,12 +527,6 @@ class RespondWithControllerTest < ActionController::TestCase
     super
     ActionController::Base.use_accept_header = true
     @request.host = "www.example.com"
-
-    ActionController::Routing::Routes.draw do |map|
-      map.resources :customers
-      map.resources :quiz_stores, :has_many => :customers
-      map.connect ":controller/:action/:id"
-    end
   end
 
   def teardown
@@ -593,53 +587,59 @@ class RespondWithControllerTest < ActionController::TestCase
   end
 
   def test_using_resource_for_post_with_html
-    post :using_resource
-    assert_equal "text/html", @response.content_type
-    assert_equal 302, @response.status
-    assert_equal "http://www.example.com/customers/13", @response.location
-    assert @response.redirect?
+    with_test_route_set do
+      post :using_resource
+      assert_equal "text/html", @response.content_type
+      assert_equal 302, @response.status
+      assert_equal "http://www.example.com/customers/13", @response.location
+      assert @response.redirect?
 
-    errors = { :name => :invalid }
-    Customer.any_instance.stubs(:errors).returns(errors)
-    post :using_resource
-    assert_equal "text/html", @response.content_type
-    assert_equal 200, @response.status
-    assert_equal "New world!\n", @response.body
-    assert_nil @response.location
+      errors = { :name => :invalid }
+      Customer.any_instance.stubs(:errors).returns(errors)
+      post :using_resource
+      assert_equal "text/html", @response.content_type
+      assert_equal 200, @response.status
+      assert_equal "New world!\n", @response.body
+      assert_nil @response.location
+    end
   end
 
   def test_using_resource_for_post_with_xml
-    @request.accept = "application/xml"
+    with_test_route_set do
+      @request.accept = "application/xml"
 
-    post :using_resource
-    assert_equal "application/xml", @response.content_type
-    assert_equal 201, @response.status
-    assert_equal "<name>david</name>", @response.body
-    assert_equal "http://www.example.com/customers/13", @response.location
+      post :using_resource
+      assert_equal "application/xml", @response.content_type
+      assert_equal 201, @response.status
+      assert_equal "<name>david</name>", @response.body
+      assert_equal "http://www.example.com/customers/13", @response.location
 
-    errors = { :name => :invalid }
-    Customer.any_instance.stubs(:errors).returns(errors)
-    post :using_resource
-    assert_equal "application/xml", @response.content_type
-    assert_equal 422, @response.status
-    assert_equal errors.to_xml, @response.body
-    assert_nil @response.location
+      errors = { :name => :invalid }
+      Customer.any_instance.stubs(:errors).returns(errors)
+      post :using_resource
+      assert_equal "application/xml", @response.content_type
+      assert_equal 422, @response.status
+      assert_equal errors.to_xml, @response.body
+      assert_nil @response.location
+    end
   end
 
   def test_using_resource_for_put_with_html
-    put :using_resource
-    assert_equal "text/html", @response.content_type
-    assert_equal 302, @response.status
-    assert_equal "http://www.example.com/customers/13", @response.location
-    assert @response.redirect?
+    with_test_route_set do
+      put :using_resource
+      assert_equal "text/html", @response.content_type
+      assert_equal 302, @response.status
+      assert_equal "http://www.example.com/customers/13", @response.location
+      assert @response.redirect?
 
-    errors = { :name => :invalid }
-    Customer.any_instance.stubs(:errors).returns(errors)
-    put :using_resource
-    assert_equal "text/html", @response.content_type
-    assert_equal 200, @response.status
-    assert_equal "Edit world!\n", @response.body
-    assert_nil @response.location
+      errors = { :name => :invalid }
+      Customer.any_instance.stubs(:errors).returns(errors)
+      put :using_resource
+      assert_equal "text/html", @response.content_type
+      assert_equal 200, @response.status
+      assert_equal "Edit world!\n", @response.body
+      assert_nil @response.location
+    end
   end
 
   def test_using_resource_for_put_with_xml
@@ -660,11 +660,13 @@ class RespondWithControllerTest < ActionController::TestCase
   end
 
   def test_using_resource_for_delete_with_html
-    Customer.any_instance.stubs(:destroyed?).returns(true)
-    delete :using_resource
-    assert_equal "text/html", @response.content_type
-    assert_equal 302, @response.status
-    assert_equal "http://www.example.com/customers", @response.location
+    with_test_route_set do
+      Customer.any_instance.stubs(:destroyed?).returns(true)
+      delete :using_resource
+      assert_equal "text/html", @response.content_type
+      assert_equal 302, @response.status
+      assert_equal "http://www.example.com/customers", @response.location
+    end
   end
 
   def test_using_resource_for_delete_with_xml
@@ -685,21 +687,23 @@ class RespondWithControllerTest < ActionController::TestCase
   end
 
   def test_using_resource_with_parent_for_post
-    @request.accept = "application/xml"
+    with_test_route_set do
+      @request.accept = "application/xml"
 
-    post :using_resource_with_parent
-    assert_equal "application/xml", @response.content_type
-    assert_equal 201, @response.status
-    assert_equal "<name>david</name>", @response.body
-    assert_equal "http://www.example.com/quiz_stores/11/customers/13", @response.location
+      post :using_resource_with_parent
+      assert_equal "application/xml", @response.content_type
+      assert_equal 201, @response.status
+      assert_equal "<name>david</name>", @response.body
+      assert_equal "http://www.example.com/quiz_stores/11/customers/13", @response.location
 
-    errors = { :name => :invalid }
-    Customer.any_instance.stubs(:errors).returns(errors)
-    post :using_resource
-    assert_equal "application/xml", @response.content_type
-    assert_equal 422, @response.status
-    assert_equal errors.to_xml, @response.body
-    assert_nil @response.location
+      errors = { :name => :invalid }
+      Customer.any_instance.stubs(:errors).returns(errors)
+      post :using_resource
+      assert_equal "application/xml", @response.content_type
+      assert_equal 422, @response.status
+      assert_equal errors.to_xml, @response.body
+      assert_nil @response.location
+    end
   end
 
   def test_using_resource_with_collection
@@ -773,6 +777,18 @@ class RespondWithControllerTest < ActionController::TestCase
     get :default_overwritten
     assert_equal 406, @response.status
   end
+
+  private
+    def with_test_route_set
+      with_routing do |set|
+        set.draw do |map|
+          map.resources :customers
+          map.resources :quiz_stores, :has_many => :customers
+          map.connect ":controller/:action/:id"
+        end
+        yield
+      end
+    end
 end
 
 class AbstractPostController < ActionController::Base

@@ -15,11 +15,7 @@ module Rails
 
     # The Configuration instance used to configure the Rails environment
     def configuration
-      @@configuration
-    end
-
-    def configuration=(configuration)
-      @@configuration = configuration
+      application.configuration
     end
 
     def initialized?

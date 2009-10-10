@@ -1,6 +1,7 @@
 require 'active_support'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/module/attr_accessor_with_default'
 require 'active_support/core_ext/module/delegation'
@@ -162,7 +163,7 @@ module ActiveResource
   #
   # <tt>404</tt> is just one of the HTTP error response codes that Active Resource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
-  # 
+  #
   # * 200..399 - Valid response, no exception (other than 301, 302)
   # * 301, 302 - ActiveResource::Redirection
   # * 400 - ActiveResource::BadRequest
@@ -421,7 +422,7 @@ module ActiveResource
 
       attr_accessor_with_default(:collection_name) { ActiveSupport::Inflector.pluralize(element_name) } #:nodoc:
       attr_accessor_with_default(:primary_key, 'id') #:nodoc:
-      
+
       # Gets the \prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.xml</tt>)
       # This method is regenerated at runtime based on what the \prefix is set to.
       def prefix(options={})
@@ -777,7 +778,7 @@ module ActiveResource
     #   my_other_course = Course.new(:name => "Philosophy: Reason and Being", :lecturer => "Ralph Cling")
     #   my_other_course.save
     def initialize(attributes = {})
-      @attributes     = {}
+      @attributes     = {}.with_indifferent_access
       @prefix_options = {}
       load(attributes)
     end
@@ -922,7 +923,7 @@ module ActiveResource
     def save
       new? ? create : update
     end
-    
+
     # Saves the resource.
     #
     # If the resource is new, it is created via +POST+, otherwise the
@@ -931,7 +932,7 @@ module ActiveResource
     # With <tt>save!</tt> validations always run. If any of them fail
     # ActiveResource::ResourceInvalid gets raised, and nothing is POSTed to
     # the remote system.
-    # See ActiveResource::Validations for more information. 
+    # See ActiveResource::Validations for more information.
     #
     # There's a series of callbacks associated with <tt>save!</tt>. If any
     # of the <tt>before_*</tt> callbacks return +false+ the action is
@@ -1106,6 +1107,36 @@ module ActiveResource
       self
     end
 
+    # Updates a single attribute and then saves the object.
+    #
+    # Note: Unlike ActiveRecord::Base.update_attribute, this method <b>is</b>
+    # subject to normal validation routines as an update sends the whole body
+    # of the resource in the request.  (See Validations).
+    #
+    # As such, this method is equivalent to calling update_attributes with a single attribute/value pair.
+    #
+    # If the saving fails because of a connection or remote service error, an
+    # exception will be raised.  If saving fails because the resource is
+    # invalid then <tt>false</tt> will be returned.
+    def update_attribute(name, value)
+      self.send("#{name}=".to_sym, value)
+      self.save
+    end
+
+    # Updates this resource with all the attributes from the passed-in Hash
+    # and requests that the record be saved.
+    #
+    # If the saving fails because of a connection or remote service error, an
+    # exception will be raised.  If saving fails because the resource is
+    # invalid then <tt>false</tt> will be returned.
+    #
+    # Note: Though this request can be made with a partial set of the
+    # resource's attributes, the full body of the request will still be sent
+    # in the save request to the remote service.
+    def update_attributes(attributes)
+      load(attributes) && save
+    end
+
     # For checking <tt>respond_to?</tt> without searching the attributes (which is faster).
     alias_method :respond_to_without_attributes?, :respond_to?
 
@@ -1125,7 +1156,6 @@ module ActiveResource
       # would return true for generated readers, even if the attribute wasn't present
       super
     end
-
 
     protected
       def connection(refresh = false)

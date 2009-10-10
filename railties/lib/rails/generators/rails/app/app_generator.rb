@@ -18,9 +18,6 @@ module Rails::Generators
     class_option :template, :type => :string, :aliases => "-m",
                             :desc => "Path to an application template (can be a filesystem path or URL)."
 
-    class_option :with_dispatchers, :type => :boolean, :aliases => "-D", :default => false,
-                                    :desc => "Add CGI/FastCGI/mod_ruby dispatchers code"
-
     class_option :skip_activerecord, :type => :boolean, :aliases => "-O", :default => false,
                                    :desc => "Skip ActiveRecord files"
 
@@ -111,19 +108,6 @@ module Rails::Generators
 
     def create_public_files
       directory "public", "public", :recursive => false # Do small steps, so anyone can overwrite it.
-    end
-
-    def create_dispatch_files
-      return unless options[:with_dispatchers]
-
-      template "dispatchers/dispatch.rb", "public/dispatch.rb"
-      chmod "public/dispatch.rb", 0755, :verbose => false
-
-      template "dispatchers/dispatch.rb", "public/dispatch.cgi"
-      chmod "public/dispatch.cgi", 0755, :verbose => false
-
-      template "dispatchers/dispatch.fcgi", "public/dispatch.fcgi"
-      chmod "public/dispatch.fcgi", 0755, :verbose => false
     end
 
     def create_public_image_files

@@ -51,23 +51,73 @@ I18n.backend.store_translations 'pt-BR', {}
 ORIGINAL_LOCALES = I18n.available_locales.map {|locale| locale.to_s }.sort
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
+FIXTURES = Pathname.new(FIXTURE_LOAD_PATH)
 
-class ActionController::IntegrationTest < ActiveSupport::TestCase
-  @@app = ActionDispatch::MiddlewareStack.new { |middleware|
-    middleware.use "ActionDispatch::ShowExceptions"
-    middleware.use "ActionDispatch::Callbacks"
-    middleware.use "ActionDispatch::ParamsParser"
-    middleware.use "Rack::Head"
-  }.build(ActionController::Routing::Routes)
-end
+module SetupOnce
+  extend ActiveSupport::Concern
 
-module ActionView
-  class TestCase
-    setup do
-      ActionController::Routing::Routes.draw do |map|
-        map.connect ':controller/:action/:id'
+  included do
+    cattr_accessor :setup_once_block
+    self.setup_once_block = nil
+
+    setup :run_setup_once
+  end
+
+  module ClassMethods
+    def setup_once(&block)
+      self.setup_once_block = block
+    end
+  end
+
+  private
+    def run_setup_once
+      if self.setup_once_block
+        self.setup_once_block.call
+        self.setup_once_block = nil
       end
     end
+end
+
+class ActiveSupport::TestCase
+  include SetupOnce
+
+  # Hold off drawing routes until all the possible controller classes
+  # have been loaded.
+  setup_once do
+    ActionController::Routing::Routes.draw do |map|
+      map.connect ':controller/:action/:id'
+    end
+  end
+end
+
+class ActionController::IntegrationTest < ActiveSupport::TestCase
+  def self.build_app(routes = nil)
+    ActionDispatch::MiddlewareStack.new { |middleware|
+      middleware.use "ActionDispatch::StringCoercion"
+      middleware.use "ActionDispatch::ShowExceptions"
+      middleware.use "ActionDispatch::Callbacks"
+      middleware.use "ActionDispatch::ParamsParser"
+      middleware.use "Rack::Head"
+    }.build(routes || ActionController::Routing::Routes)
+  end
+
+  self.app = build_app
+
+  def with_routing(&block)
+    real_routes = ActionController::Routing::Routes
+    ActionController::Routing.module_eval { remove_const :Routes }
+
+    temporary_routes = ActionController::Routing::RouteSet.new
+    self.class.app = self.class.build_app(temporary_routes)
+    ActionController::Routing.module_eval { const_set :Routes, temporary_routes }
+
+    yield temporary_routes
+  ensure
+    if ActionController::Routing.const_defined? :Routes
+      ActionController::Routing.module_eval { remove_const :Routes }
+    end
+    ActionController::Routing.const_set(:Routes, real_routes) if real_routes
+    self.class.app = self.class.build_app
   end
 end
 
@@ -138,17 +188,11 @@ module ActionController
       super
     end
   end
-  
+
   Base.view_paths = FIXTURE_LOAD_PATH
-  
+
   class TestCase
     include TestProcess
-
-    setup do
-      ActionController::Routing::Routes.draw do |map|
-        map.connect ':controller/:action/:id'
-      end
-    end
 
     def assert_template(options = {}, message = nil)
       validate_request!
@@ -189,14 +233,6 @@ module ActionController
             "Expected no partials to be rendered"
         end
       end
-    end
-  end
-end
-
-class SimpleRouteCase < Rack::TestCase
-  setup do
-    ActionController::Routing::Routes.draw do |map|
-      map.connect ':controller/:action/:id'
     end
   end
 end

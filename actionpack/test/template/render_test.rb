@@ -229,7 +229,7 @@ module RenderTestCases
   end
 
   def test_render_with_nested_layout
-    assert_equal %(<title>title</title>\n<div id="column">column</div>\n<div id="content">content</div>\n),
+    assert_equal %(<title>title</title>\n\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
       @view.render(:file => "test/nested_layout.erb", :layout => "layouts/yield")
   end
 

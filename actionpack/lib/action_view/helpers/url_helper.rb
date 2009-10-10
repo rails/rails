@@ -93,7 +93,7 @@ module ActionView
           polymorphic_path(options)
         end
 
-        escape ? escape_once(url) : url
+        (escape ? escape_once(url) : url).html_safe!
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set
@@ -220,7 +220,7 @@ module ActionView
         if block_given?
           options      = args.first || {}
           html_options = args.second
-          concat(link_to(capture(&block), options, html_options))
+          concat(link_to(capture(&block), options, html_options).html_safe!)
         else
           name         = args[0]
           options      = args[1] || {}
@@ -238,7 +238,7 @@ module ActionView
           end
 
           href_attr = "href=\"#{url}\"" unless href
-          "<a #{href_attr}#{tag_options}>#{name || url}</a>"
+          "<a #{href_attr}#{tag_options}>#{ERB::Util.h(name || url)}</a>".html_safe!
         end
       end
 
@@ -309,8 +309,8 @@ module ActionView
 
         html_options.merge!("type" => "submit", "value" => name)
 
-        "<form method=\"#{form_method}\" action=\"#{escape_once url}\" class=\"button-to\"><div>" +
-          method_tag + tag("input", html_options) + request_token_tag + "</div></form>"
+        ("<form method=\"#{form_method}\" action=\"#{escape_once url}\" class=\"button-to\"><div>" +
+          method_tag + tag("input", html_options) + request_token_tag + "</div></form>").html_safe!
       end
 
 

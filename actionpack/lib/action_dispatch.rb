@@ -39,6 +39,7 @@ module ActionDispatch
   autoload :Rescue, 'action_dispatch/middleware/rescue'
   autoload :ShowExceptions, 'action_dispatch/middleware/show_exceptions'
   autoload :Static, 'action_dispatch/middleware/static'
+  autoload :StringCoercion, 'action_dispatch/middleware/string_coercion'
 
   autoload :Assertions, 'action_dispatch/testing/assertions'
   autoload :Integration, 'action_dispatch/testing/integration'

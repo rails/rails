@@ -1,8 +1,11 @@
 module ActionView #:nodoc:
   class PathSet < Array #:nodoc:
-    def self.type_cast(obj)
+    def self.type_cast(obj, cache = nil)
+      # TODO: Clean this up
       if obj.is_a?(String)
-        cache = !defined?(Rails) || !Rails.respond_to?(:configuration) || Rails.configuration.cache_classes
+        if cache.nil?
+          cache = !defined?(Rails) || Rails.application.config.cache_classes
+        end
         FileSystemResolverWithFallback.new(obj, :cache => cache)
       else
         obj

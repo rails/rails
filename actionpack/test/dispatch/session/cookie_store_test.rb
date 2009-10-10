@@ -223,7 +223,6 @@ class CookieStoreTest < ActionController::IntegrationTest
         end
         options = {:key => SessionKey, :secret => SessionSecret}.merge(options)
         @app = ActionDispatch::Session::CookieStore.new(set, options)
-        reset!
         yield
       end
     end

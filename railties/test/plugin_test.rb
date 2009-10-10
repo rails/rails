@@ -1,9 +1,20 @@
 require 'plugin_test_helper'
 
+# TODO: Rewrite all these tests
+class FakeInitializerSlashApplication
+  attr_reader :config
+  alias configuration config
+
+  def initialize
+    @config = Rails::Configuration.new
+  end
+end
+
 class PluginTest < Test::Unit::TestCase
   def setup
-    @initializer         = Rails::Initializer.default
-    @initializer.config  = Rails::Configuration.new
+    @initializer      = FakeInitializerSlashApplication.new
+    @configuration    = @initializer.config
+    Rails.application = @initializer
     @valid_plugin_path   = plugin_fixture_path('default/stubby')
     @empty_plugin_path   = plugin_fixture_path('default/empty')
     @gemlike_plugin_path = plugin_fixture_path('default/gemlike')

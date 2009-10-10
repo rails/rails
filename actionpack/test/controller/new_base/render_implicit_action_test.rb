@@ -10,7 +10,7 @@ module RenderImplicitAction
     def hello_world() end
   end
   
-  class RenderImplicitActionTest < SimpleRouteCase
+  class RenderImplicitActionTest < Rack::TestCase
     test "render a simple action with new explicit call to render" do
       get "/render_implicit_action/simple/hello_world"
 

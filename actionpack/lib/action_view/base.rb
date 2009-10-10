@@ -236,7 +236,16 @@ module ActionView #:nodoc:
       # they are in AC.
       if controller.class.respond_to?(:_helper_serial)
         klass = @views[controller.class._helper_serial] ||= Class.new(self) do
-          Subclasses.const_set(controller.class.name.gsub(/::/, '__'), self)
+          const_set(:CONTROLLER_CLASS, controller.class)
+
+          # Try to make stack traces clearer
+          def self.name
+            "ActionView for #{CONTROLLER_CLASS}"
+          end
+
+          def inspect
+            "#<#{self.class.name}>"
+          end
 
           if controller.respond_to?(:_helpers)
             include controller._helpers
@@ -255,7 +264,7 @@ module ActionView #:nodoc:
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
       @controller = controller
       @helpers = self.class.helpers || Module.new
-      @_content_for = Hash.new {|h,k| h[k] = "" }
+      @_content_for = Hash.new {|h,k| h[k] = ActionView::SafeBuffer.new }
       self.view_paths = view_paths
     end
 

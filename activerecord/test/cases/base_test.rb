@@ -1352,7 +1352,7 @@ class BasicsTest < ActiveRecord::TestCase
     cloned_topic.title["a"] = "c"
     assert_equal "b", topic.title["a"]
 
-    #test if attributes set as part of after_initialize are cloned correctly
+    # test if attributes set as part of after_initialize are cloned correctly
     assert_equal topic.author_email_address, cloned_topic.author_email_address
 
     # test if saved clone object differs from original

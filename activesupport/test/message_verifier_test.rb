@@ -18,10 +18,16 @@ class MessageVerifierTest < Test::Unit::TestCase
     assert_equal @data, @verifier.verify(message)
   end
 
+  def test_missing_signature_raises
+    assert_not_verified(nil)
+    assert_not_verified("")
+  end
+
   def test_tampered_data_raises
     data, hash = @verifier.generate(@data).split("--")
     assert_not_verified("#{data.reverse}--#{hash}")
     assert_not_verified("#{data}--#{hash.reverse}")
+    assert_not_verified("purejunk")
   end
 
   def assert_not_verified(message)

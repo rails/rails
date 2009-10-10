@@ -223,7 +223,7 @@ module ActionView
         end
 
         result = template ? collection_with_template(template) : collection_without_template
-        result.join(spacer)
+        result.join(spacer).html_safe!
       end
 
       def collection_with_template(template)
@@ -296,7 +296,10 @@ module ActionView
       end
       
       def _find_template(path)
-        prefix = @view.controller.controller_path unless path.include?(?/)
+        if controller = @view.controller
+          prefix = controller.controller_path unless path.include?(?/)
+        end
+
         @view.find(path, {:formats => @view.formats}, prefix, true)
       end
 
