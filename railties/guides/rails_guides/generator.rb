@@ -55,7 +55,7 @@ module RailsGuides
           body = set_header_section(body, @view)
           body = set_index(body, @view)
 
-          result = view.render(:layout => 'layout', :text => textile(body), :locals => {})
+          result = view.render(:layout => 'layout', :text => textile(body))
           f.write result
           warn_about_broken_links(result) if ENV.key?("WARN_BROKEN_LINKS")
         end
