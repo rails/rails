@@ -7,6 +7,7 @@ module Admin
   class << self; alias_method :const_available?, :const_defined?; end
   class UserController < ActionController::Base; end
   class NewsFeedController < ActionController::Base; end
+  class StuffController < ActionController::Base; end
 end
 
 module Api
