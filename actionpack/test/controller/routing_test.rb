@@ -984,9 +984,6 @@ class RouteSetTest < ActiveSupport::TestCase
       end
 
       assert_equal 1, set.routes.size
-      route = set.routes.first
-
-      assert route.segments.last.optional?
 
       assert_equal '/users/show/10', set.generate(:controller => 'users', :action => 'show', :id => 10)
       assert_equal '/users/index/10', set.generate(:controller => 'users', :id => 10)
