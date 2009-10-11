@@ -295,19 +295,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
                  x.send(:users_url))
   end
 
-  def test_optimised_named_route_call_never_uses_url_for
-    rs.draw do |map|
-      map.users 'admin/user', :controller => '/admin/user', :action => 'index'
-      map.user 'admin/user/:id', :controller=>'/admin/user', :action=>'show'
-    end
-    x = setup_for_named_route
-    x.expects(:url_for).never
-    x.send(:users_url)
-    x.send(:users_path)
-    x.send(:user_url, 2, :foo=>"bar")
-    x.send(:user_path, 3, :bar=>"foo")
-  end
-
   def test_optimised_named_route_with_host
     rs.draw do |map|
       map.pages 'pages', :controller => 'content', :action => 'show_page', :host => 'foo.com'
