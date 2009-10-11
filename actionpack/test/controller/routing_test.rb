@@ -240,18 +240,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
                  x.send(:home_url))
   end
 
-  def test_basic_named_route_with_relative_url_root
-    rs.draw do |map|
-      map.home '', :controller => 'content', :action => 'list'
-    end
-    x = setup_for_named_route
-    ActionController::Base.relative_url_root = "/foo"
-    assert_equal("http://test.host/foo/",
-                 x.send(:home_url))
-    assert_equal "/foo/", x.send(:home_path)
-    ActionController::Base.relative_url_root = nil
-  end
-
   def test_named_route_with_option
     rs.draw do |map|
       map.page 'page/:title', :controller => 'content', :action => 'show_page'
