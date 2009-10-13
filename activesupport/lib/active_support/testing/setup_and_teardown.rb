@@ -6,7 +6,7 @@ module ActiveSupport
           extend ClassMethods
 
           include ActiveSupport::Callbacks
-          define_callbacks :setup, :teardown
+          define_callbacks :test
 
           if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
             include ForMiniTest
@@ -18,11 +18,15 @@ module ActiveSupport
 
       module ClassMethods
         def setup(*args, &block)
-          set_callback(:setup, *args, &block)
+          set_callback(:test, :before, *args, &block)
         end
 
         def teardown(*args, &block)
-          set_callback(:teardown, *args, &block)
+          set_callback(:test, :after, *args, &block)
+        end
+
+        def wrap(*args, &block)
+          set_callback(:test, :around, *args, &block)
         end
       end
 
@@ -30,16 +34,15 @@ module ActiveSupport
         def run(runner)
           result = '.'
           begin
-            run_callbacks :setup
-            result = super
+            run_callbacks :test do
+              begin
+                result = super
+              rescue Exception => e
+                result = runner.puke(self.class, self.name, e)
+              end
+            end
           rescue Exception => e
             result = runner.puke(self.class, self.name, e)
-          ensure
-            begin
-              run_callbacks :teardown, :enumerator => :reverse_each
-            rescue Exception => e
-              result = runner.puke(self.class, self.name, e)
-            end
           end
           result
         end
@@ -67,27 +70,27 @@ module ActiveSupport
           @_result = result
           begin
             begin
-              run_callbacks :setup
-              setup
-              __send__(@method_name)
-              mocha_verify(assertion_counter) if using_mocha
-            rescue Mocha::ExpectationError => e
-              add_failure(e.message, e.backtrace)
+              run_callbacks :test do
+                begin
+                  setup
+                  __send__(@method_name)
+                  mocha_verify(assertion_counter) if using_mocha
+                rescue Mocha::ExpectationError => e
+                  add_failure(e.message, e.backtrace)
+                rescue Test::Unit::AssertionFailedError => e
+                  add_failure(e.message, e.backtrace)
+                rescue Exception => e
+                  raise if PASSTHROUGH_EXCEPTIONS.include?(e.class)
+                  add_error(e)
+                ensure
+                  teardown
+                end
+              end
             rescue Test::Unit::AssertionFailedError => e
               add_failure(e.message, e.backtrace)
             rescue Exception => e
               raise if PASSTHROUGH_EXCEPTIONS.include?(e.class)
               add_error(e)
-            ensure
-              begin
-                teardown
-                run_callbacks :teardown, :enumerator => :reverse_each
-              rescue Test::Unit::AssertionFailedError => e
-                add_failure(e.message, e.backtrace)
-              rescue Exception => e
-                raise if PASSTHROUGH_EXCEPTIONS.include?(e.class)
-                add_error(e)
-              end
             end
           ensure
             mocha_teardown if using_mocha
