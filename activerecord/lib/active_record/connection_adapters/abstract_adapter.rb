@@ -32,7 +32,7 @@ module ActiveRecord
     class AbstractAdapter
       include Quoting, DatabaseStatements, SchemaStatements
       include QueryCache
-      include ActiveSupport::DeprecatedCallbacks
+      include ActiveSupport::Callbacks
       define_callbacks :checkout, :checkin
 
       @@row_even = true
