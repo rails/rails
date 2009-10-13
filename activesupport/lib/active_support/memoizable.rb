@@ -2,19 +2,6 @@ require 'active_support/core_ext/object/metaclass'
 require 'active_support/core_ext/module/aliasing'
 
 module ActiveSupport
-  module SafelyMemoizable
-    def safely_memoize(*symbols)
-      symbols.each do |symbol|
-        class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{symbol}(*args)
-            memoized = @_memoized_#{symbol} || ::ActiveSupport::ConcurrentHash.new
-            memoized[args] ||= memoized_#{symbol}(*args)
-          end
-        RUBY
-      end
-    end
-  end
-  
   module Memoizable
     def self.memoized_ivar_for(symbol)
       "@_memoized_#{symbol.to_s.sub(/\?\Z/, '_query').sub(/!\Z/, '_bang')}".to_sym
