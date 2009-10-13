@@ -16,7 +16,7 @@ module AbstractController
     # Override AbstractController::Base's process_action to run the
     # process_action callbacks around the normal behavior.
     def process_action(method_name)
-      _run_process_action_callbacks(method_name) do
+      run_callbacks(:process_action, method_name) do
         super
       end
     end

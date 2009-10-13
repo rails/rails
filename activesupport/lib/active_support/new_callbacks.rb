@@ -26,7 +26,7 @@ module ActiveSupport
   #     end
   #
   #     def save
-  #       _run_set_callback :save,s do
+  #       run_callbacks :save do
   #         puts "- save"
   #       end
   #     end
@@ -65,7 +65,7 @@ module ActiveSupport
   #     end
   #
   #     def save
-  #       _run_set_callback :save,s do
+  #       run_callbacks :save do
   #         puts "- save"
   #       end
   #     end
@@ -85,8 +85,8 @@ module ActiveSupport
       klass.extend ClassMethods
     end
 
-    def run_callbacks(kind, options = {}, &blk)
-      send("_run_#{kind}_callbacks", &blk)
+    def run_callbacks(kind, *args, &block)
+      send("_run_#{kind}_callbacks", *args, &block)
     end
 
     class Callback
@@ -165,7 +165,7 @@ module ActiveSupport
           end
         RUBY_EVAL
       end
-      
+
       # This will supply contents for before and around filters, and no
       # contents for after filters (for the forward pass).
       def start(key=nil, object=nil)
@@ -220,7 +220,7 @@ module ActiveSupport
           end
         end
       end
-      
+
       # This will supply contents for around and after filters, but not
       # before filters (for the backward pass).
       def end(key=nil, object=nil)
@@ -276,7 +276,7 @@ module ActiveSupport
       #   Symbols:: Already methods
       #   Strings:: class_eval'ed into methods
       #   Procs::   define_method'ed into methods
-      #   Objects:: 
+      #   Objects::
       #     a method is created that calls the before_foo method
       #     on the object.
       #
@@ -378,15 +378,15 @@ module ActiveSupport
     end
 
     module ClassMethods
-      # Make the _run_set_callback :save method. The generated method takes
+      # Make the run_callbacks :save method. The generated method takes
       # a block that it'll yield to. It'll call the before and around filters
       # in order, yield the block, and then run the after filters.
-      # 
-      # _run_set_callback :save do
+      #
+      # run_callbacks :save do
       #   save
       # end
       #
-      # The _run_set_callback :save method can optionally take a key, which
+      # The run_callbacks :save method can optionally take a key, which
       # will be used to compile an optimized callback method for each
       # key. See #define_callbacks for more information.
       #
@@ -407,6 +407,7 @@ module ActiveSupport
               #{body}
             end
           end
+          private :_run_#{symbol}_callbacks
         RUBY_EVAL
 
         silence_warnings do
@@ -414,7 +415,7 @@ module ActiveSupport
           class_eval body, __FILE__, line
         end
       end
-      
+
       # This is called the first time a callback is called with a particular
       # key. It creates a new callback method for the key, calculating
       # which callbacks can be omitted because of per_key conditions.
@@ -449,8 +450,7 @@ module ActiveSupport
       #   set_callback :save, :after,  :after_meth, :if => :condition
       #   set_callback :save, :around, lambda { |r| stuff; yield; stuff }
       #
-      # It also updates the _run_<name>_callbacks method, which is the public
-      # API to run the callbacks. Use skip_callback to skip any defined one.
+      # Use skip_callback to skip any defined one.
       #
       # When creating or skipping callbacks, you can specify conditions that
       # are always the same for a given key. For instance, in ActionPack,
@@ -463,7 +463,7 @@ module ActiveSupport
       # Per-Key conditions are evaluated only once per use of a given key.
       # In the case of the above example, you would do:
       #
-      #   _run_dispatch_callbacks(action_name) { ... dispatch stuff ... }
+      #   run_callbacks(:dispatch, action_name) { ... dispatch stuff ... }
       #
       # In that case, each action_name would get its own compiled callback
       # method that took into consideration the per_key conditions. This
