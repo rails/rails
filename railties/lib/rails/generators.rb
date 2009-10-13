@@ -1,4 +1,4 @@
-activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+activesupport_path = "#{File.dirname(__FILE__)}/../../../activesupport/lib"
 $LOAD_PATH.unshift(activesupport_path) if File.directory?(activesupport_path)
 require 'active_support'
 require 'active_support/core_ext/object/blank'

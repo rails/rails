@@ -342,3 +342,22 @@ uses_memcached 'memcached backed store' do
     include CacheStoreBehavior
   end
 end
+
+class CacheStoreLoggerTest < ActiveSupport::TestCase
+  def setup
+    @cache = ActiveSupport::Cache.lookup_store(:memory_store)
+
+    @buffer = StringIO.new
+    @cache.logger = Logger.new(@buffer)
+  end
+
+  def test_logging
+    @cache.fetch('foo') { 'bar' }
+    assert @buffer.string.present?
+  end
+
+  def test_mute_logging
+    @cache.mute { @cache.fetch('foo') { 'bar' } }
+    assert @buffer.string.blank?
+  end
+end

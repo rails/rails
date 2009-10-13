@@ -240,18 +240,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
                  x.send(:home_url))
   end
 
-  def test_basic_named_route_with_relative_url_root
-    rs.draw do |map|
-      map.home '', :controller => 'content', :action => 'list'
-    end
-    x = setup_for_named_route
-    ActionController::Base.relative_url_root = "/foo"
-    assert_equal("http://test.host/foo/",
-                 x.send(:home_url))
-    assert_equal "/foo/", x.send(:home_path)
-    ActionController::Base.relative_url_root = nil
-  end
-
   def test_named_route_with_option
     rs.draw do |map|
       map.page 'page/:title', :controller => 'content', :action => 'show_page'
@@ -305,19 +293,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     x = setup_for_named_route
     assert_equal("http://test.host/admin/user",
                  x.send(:users_url))
-  end
-
-  def test_optimised_named_route_call_never_uses_url_for
-    rs.draw do |map|
-      map.users 'admin/user', :controller => '/admin/user', :action => 'index'
-      map.user 'admin/user/:id', :controller=>'/admin/user', :action=>'show'
-    end
-    x = setup_for_named_route
-    x.expects(:url_for).never
-    x.send(:users_url)
-    x.send(:users_path)
-    x.send(:user_url, 2, :foo=>"bar")
-    x.send(:user_path, 3, :bar=>"foo")
   end
 
   def test_optimised_named_route_with_host
@@ -984,9 +959,6 @@ class RouteSetTest < ActiveSupport::TestCase
       end
 
       assert_equal 1, set.routes.size
-      route = set.routes.first
-
-      assert route.segments.last.optional?
 
       assert_equal '/users/show/10', set.generate(:controller => 'users', :action => 'show', :id => 10)
       assert_equal '/users/index/10', set.generate(:controller => 'users', :id => 10)

@@ -1,5 +1,7 @@
 ---
 gems:
+- name: erubis
+  version: >= 2.6.5
 - name: geminstaller
   version: >= 0.4.3
 - name: fcgi

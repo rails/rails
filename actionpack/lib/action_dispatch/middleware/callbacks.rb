@@ -1,6 +1,6 @@
 module ActionDispatch
   class Callbacks
-    include ActiveSupport::NewCallbacks
+    include ActiveSupport::Callbacks
 
     define_callbacks :call, :terminator => "result == false", :rescuable => true
     define_callbacks :prepare, :scope => :name
@@ -37,12 +37,12 @@ module ActionDispatch
 
     def initialize(app, prepare_each_request = false)
       @app, @prepare_each_request = app, prepare_each_request
-      _run_prepare_callbacks
+      run_callbacks(:prepare)
     end
 
     def call(env)
-      _run_call_callbacks do
-        _run_prepare_callbacks if @prepare_each_request
+      run_callbacks(:call) do
+        run_callbacks(:prepare) if @prepare_each_request
         @app.call(env)
       end
     end

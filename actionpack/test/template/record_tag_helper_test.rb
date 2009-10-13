@@ -27,7 +27,7 @@ class RecordTagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_for_prefix
-    expected = %(<ul class="post" id="archived_post_45"></ul>)
+    expected = %(<ul class="archived_post" id="archived_post_45"></ul>)
     actual = content_tag_for(:ul, @post, :archived) { }
     assert_dom_equal expected, actual
   end

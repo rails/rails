@@ -26,7 +26,7 @@ class SafeBufferTest < ActionView::TestCase
   end
 
   test "Should not mess with a previously escape test" do
-    @buffer << CGI.escapeHTML("<script>")
+    @buffer << ERB::Util.html_escape("<script>")
     assert_equal "&lt;script&gt;", @buffer
   end
 

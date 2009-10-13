@@ -1,13 +1,11 @@
-require "active_support/new_callbacks"
-
 module AbstractController
   module Callbacks
     extend ActiveSupport::Concern
 
-    # Uses ActiveSupport::NewCallbacks as the base functionality. For
+    # Uses ActiveSupport::Callbacks as the base functionality. For
     # more details on the whole callback system, read the documentation
-    # for ActiveSupport::NewCallbacks.
-    include ActiveSupport::NewCallbacks
+    # for ActiveSupport::Callbacks.
+    include ActiveSupport::Callbacks
 
     included do
       define_callbacks :process_action, :terminator => "response_body"
@@ -16,7 +14,7 @@ module AbstractController
     # Override AbstractController::Base's process_action to run the
     # process_action callbacks around the normal behavior.
     def process_action(method_name)
-      _run_process_action_callbacks(method_name) do
+      run_callbacks(:process_action, method_name) do
         super
       end
     end

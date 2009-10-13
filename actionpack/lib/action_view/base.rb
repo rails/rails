@@ -236,15 +236,15 @@ module ActionView #:nodoc:
       # they are in AC.
       if controller.class.respond_to?(:_helper_serial)
         klass = @views[controller.class._helper_serial] ||= Class.new(self) do
-          name = controller.class.name.gsub(/::/, '__')
+          const_set(:CONTROLLER_CLASS, controller.class)
 
-          Subclasses.class_eval do
-            if method(:const_defined?).arity == 1
-              remove_const(name) if const_defined?(name)        # Ruby 1.8.x
-            else
-              remove_const(name) if const_defined?(name, false) # Ruby 1.9.x
-            end
-            const_set(name, self)
+          # Try to make stack traces clearer
+          def self.name
+            "ActionView for #{CONTROLLER_CLASS}"
+          end
+
+          def inspect
+            "#<#{self.class.name}>"
           end
 
           if controller.respond_to?(:_helpers)

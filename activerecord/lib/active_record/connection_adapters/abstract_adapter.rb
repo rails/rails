@@ -32,7 +32,7 @@ module ActiveRecord
     class AbstractAdapter
       include Quoting, DatabaseStatements, SchemaStatements
       include QueryCache
-      include ActiveSupport::Callbacks
+      include ActiveSupport::DeprecatedCallbacks
       define_callbacks :checkout, :checkin
 
       @@row_even = true
@@ -75,7 +75,7 @@ module ActiveRecord
       def supports_ddl_transactions?
         false
       end
-      
+
       # Does this adapter support savepoints? PostgreSQL and MySQL do, SQLite
       # does not.
       def supports_savepoints?

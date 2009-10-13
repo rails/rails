@@ -29,13 +29,13 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   end
 
-  def test_base_should_have_an_empty_reject_new_nested_attributes_procs
-    assert_equal Hash.new, ActiveRecord::Base.reject_new_nested_attributes_procs
+  def test_base_should_have_an_empty_nested_attributes_options
+    assert_equal Hash.new, ActiveRecord::Base.nested_attributes_options
   end
 
-  def test_should_add_a_proc_to_reject_new_nested_attributes_procs
+  def test_should_add_a_proc_to_nested_attributes_options
     [:parrots, :birds, :birds_with_reject_all_blank].each do |name|
-      assert_instance_of Proc, Pirate.reject_new_nested_attributes_procs[name]
+      assert_instance_of Proc, Pirate.nested_attributes_options[name][:reject_if]
     end
   end
 
@@ -602,4 +602,34 @@ class TestNestedAttributesOnAHasAndBelongsToManyAssociation < ActiveRecord::Test
   end
 
   include NestedAttributesOnACollectionAssociationTests
+end
+
+class TestNestedAttributesLimit < ActiveRecord::TestCase
+  def setup
+    Pirate.accepts_nested_attributes_for :parrots, :limit => 2
+
+    @pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+  end
+
+  def teardown
+    Pirate.accepts_nested_attributes_for :parrots, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+  end
+
+  def test_limit_with_less_records
+    @pirate.attributes = { :parrots_attributes => { 'foo' => { :name => 'Big Big Love' } } }
+    assert_difference('Parrot.count') { @pirate.save! }
+  end
+
+  def test_limit_with_number_exact_records
+    @pirate.attributes = { :parrots_attributes => { 'foo' => { :name => 'Lovely Day' }, 'bar' => { :name => 'Blown Away' } } }
+    assert_difference('Parrot.count', 2) { @pirate.save! }
+  end
+
+  def test_limit_with_exceeding_records
+    assert_raises(ActiveRecord::NestedAttributes::TooManyRecords) do
+      @pirate.attributes = { :parrots_attributes => { 'foo' => { :name => 'Lovely Day' },
+                                                      'bar' => { :name => 'Blown Away' },
+                                                      'car' => { :name => 'The Happening' }} }
+    end
+  end
 end

@@ -80,7 +80,8 @@ end
 # Run application generator -------------------------------------------------------------
 
 task :create_rails do
-  require File.join(File.dirname(__FILE__), 'lib', 'generators')
+  $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/lib"
+  require 'rails/generators'
   require 'rails/generators/rails/app/app_generator'
   Rails::Generators::AppGenerator.start [ File.basename(PKG_DESTINATION), "--quiet" ],
                                         :destination_root => File.expand_path(File.dirname(PKG_DESTINATION))

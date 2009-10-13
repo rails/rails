@@ -40,20 +40,20 @@ module Rails
 
   class Boot
     def run
-      load_initializer
       set_load_paths
+      load_initializer
     end
 
     def set_load_paths
       %w(
-        railties
-        railties/lib
-        activesupport/lib
-        actionpack/lib
-        activerecord/lib
         actionmailer/lib
+        actionpack/lib
+        activemodel/lib
+        activerecord/lib
         activeresource/lib
-        actionwebservice/lib
+        activesupport/lib
+        railties/lib
+        railties
       ).reverse_each do |path|
         path = "#{framework_root_path}/#{path}"
         $LOAD_PATH.unshift(path) if File.directory?(path)
@@ -68,7 +68,6 @@ module Rails
 
   class VendorBoot < Boot
     def load_initializer
-      $:.unshift("#{framework_root_path}/railties/lib")
       require "rails"
       install_gem_spec_stubs
       Rails::GemDependency.add_frozen_gem_path

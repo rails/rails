@@ -59,15 +59,15 @@ module ActiveRecord
     end
 
     # Translates an error message in it's default scope (<tt>activerecord.errrors.messages</tt>).
-    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, if it's not there, 
-    # it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not there it returns the translation of the 
-    # default message (e.g. <tt>activerecord.errors.messages.MESSAGE</tt>). The translated model name, 
+    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, if it's not there,
+    # it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not there it returns the translation of the
+    # default message (e.g. <tt>activerecord.errors.messages.MESSAGE</tt>). The translated model name,
     # translated attribute name and the value are available for interpolation.
     #
     # When using inheritance in your models, it will check all the inherited models too, but only if the model itself
     # hasn't been found. Say you have <tt>class Admin < User; end</tt> and you wanted the translation for the <tt>:blank</tt>
     # error +message+ for the <tt>title</tt> +attribute+, it looks for these translations:
-    # 
+    #
     # <ol>
     # <li><tt>activerecord.errors.models.admin.attributes.title.blank</tt></li>
     # <li><tt>activerecord.errors.models.admin.blank</tt></li>
@@ -80,10 +80,10 @@ module ActiveRecord
       message, options[:default] = options[:default], message if options[:default].is_a?(Symbol)
 
       defaults = @base.class.self_and_descendants_from_active_record.map do |klass|
-        [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}", 
+        [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}",
           :"models.#{klass.name.underscore}.#{message}" ]
       end
-      
+
       defaults << options.delete(:default)
       defaults = defaults.compact.flatten << :"messages.#{message}"
 
@@ -104,7 +104,7 @@ module ActiveRecord
   module Validations
     extend ActiveSupport::Concern
 
-    include ActiveSupport::Callbacks
+    include ActiveSupport::DeprecatedCallbacks
     include ActiveModel::Validations
 
     included do
