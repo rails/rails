@@ -205,6 +205,8 @@ module ActiveSupport
 
     module ClassMethods
       def define_callbacks(*callbacks)
+        ActiveSupport::Deprecation.warn('ActiveSupport::DeprecatedCallbacks has been deprecated in favor of ActiveSupport::Callbacks', caller)
+
         callbacks.each do |callback|
           class_eval <<-"end_eval", __FILE__, __LINE__ + 1
             def self.#{callback}(*methods, &block)                             # def self.before_save(*methods, &block)
