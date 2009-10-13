@@ -1,6 +1,6 @@
 module ActionDispatch
   class Callbacks
-    include ActiveSupport::NewCallbacks
+    include ActiveSupport::Callbacks
 
     define_callbacks :call, :terminator => "result == false", :rescuable => true
     define_callbacks :prepare, :scope => :name
