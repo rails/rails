@@ -4,7 +4,7 @@ require 'active_support/core_ext/kernel/reporting'
 class AssertDifferenceTest < ActiveSupport::TestCase
   def setup
     @object = Class.new do
-      attr_accessor :num 
+      attr_accessor :num
       def increment
         self.num += 1
       end
@@ -12,7 +12,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
       def decrement
         self.num -= 1
       end
-    end.new    
+    end.new
     @object.num = 0
   end
 
@@ -94,56 +94,4 @@ if ActiveSupport::Testing.const_defined?(:Default)
 end
 
 class AlsoDoingNothingTest < ActiveSupport::TestCase
-end
-
-# Setup and teardown callbacks.
-class SetupAndTeardownTest < ActiveSupport::TestCase
-  setup :reset_callback_record, :foo
-  teardown :foo, :sentinel, :foo
-
-  def test_inherited_setup_callbacks
-    assert_equal [:reset_callback_record, :foo], self.class.setup_callback_chain.map(&:method)
-    assert_equal [:foo], @called_back
-    assert_equal [:foo, :sentinel, :foo], self.class.teardown_callback_chain.map(&:method)
-  end
-
-  def setup
-  end
-
-  def teardown
-  end
-
-  protected
-    def reset_callback_record
-      @called_back = []
-    end
-
-    def foo
-      @called_back << :foo
-    end
-
-    def sentinel
-      assert_equal [:foo, :foo], @called_back
-    end
-end
-
-
-class SubclassSetupAndTeardownTest < SetupAndTeardownTest
-  setup :bar
-  teardown :bar
-
-  def test_inherited_setup_callbacks
-    assert_equal [:reset_callback_record, :foo, :bar], self.class.setup_callback_chain.map(&:method)
-    assert_equal [:foo, :bar], @called_back
-    assert_equal [:foo, :sentinel, :foo, :bar], self.class.teardown_callback_chain.map(&:method)
-  end
-
-  protected
-    def bar
-      @called_back << :bar
-    end
-
-    def sentinel
-      assert_equal [:foo, :bar, :bar, :foo], @called_back
-    end
 end

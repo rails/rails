@@ -3,7 +3,9 @@ module ActiveSupport
     module SetupAndTeardown
       def self.included(base)
         base.class_eval do
-          include ActiveSupport::DeprecatedCallbacks
+          extend ClassMethods
+
+          include ActiveSupport::Callbacks
           define_callbacks :setup, :teardown
 
           if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
@@ -11,6 +13,16 @@ module ActiveSupport
           else
             include ForClassicTestUnit
           end
+        end
+      end
+
+      module ClassMethods
+        def setup(*args, &block)
+          set_callback(:setup, *args, &block)
+        end
+
+        def teardown(*args, &block)
+          set_callback(:teardown, *args, &block)
         end
       end
 
