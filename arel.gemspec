@@ -23,7 +23,6 @@ Gem::Specification.new do |s|
      "doc/CONVENTIONS",
      "doc/TODO",
      "lib/arel.rb",
-     "lib/arel/.DS_Store",
      "lib/arel/algebra.rb",
      "lib/arel/algebra/extensions.rb",
      "lib/arel/algebra/extensions/class.rb",
