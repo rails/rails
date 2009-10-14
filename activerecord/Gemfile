@@ -1,0 +1,10 @@
+Gem.sources.each { |uri| source uri }
+sibling = "#{File.dirname(__FILE__)}/.."
+
+gem "activesupport", "3.0.pre", :vendored_at => "#{sibling}/activesupport"
+gem "activemodel", "3.0.pre", :vendored_at => "#{sibling}/activemodel"
+gem "arel", :git => "git://github.com/rails/arel.git", :branch => 'master'
+
+only :test do
+  gem "mocha"
+end
