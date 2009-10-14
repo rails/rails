@@ -1,6 +1,7 @@
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/inheritable_attributes'
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/concern'
 
 module ActiveSupport
   # Callbacks are hooks into the lifecycle of an object that allow you to trigger logic
