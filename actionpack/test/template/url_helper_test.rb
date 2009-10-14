@@ -5,6 +5,9 @@ require 'controller/fake_controllers'
 RequestMock = Struct.new("Request", :request_uri, :protocol, :host_with_port, :env)
 
 class UrlHelperTest < ActionView::TestCase
+  include ActiveSupport::Configurable
+  DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG
+
   def setup
     super
     @controller = Class.new do
