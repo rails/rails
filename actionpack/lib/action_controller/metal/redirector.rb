@@ -16,7 +16,7 @@ module ActionController
       logger.info("Redirected to #{url}") if logger && logger.info?
       self.status = status
       self.location = url.gsub(/[\r\n]/, '')
-      self.response_body = "<html><body>You are being <a href=\"#{CGI.escapeHTML(url)}\">redirected</a>.</body></html>"
+      self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.h(url)}\">redirected</a>.</body></html>"
     end
   end
 end
