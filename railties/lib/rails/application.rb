@@ -18,6 +18,10 @@ module Rails
         @plugin_loader ||= config.plugin_loader.new(self)
       end
 
+      def root
+        config.root
+      end
+
       def routes
         ActionController::Routing::Routes
       end
@@ -102,7 +106,7 @@ module Rails
     # Create tmp directories
     initializer :ensure_tmp_directories_exist do
       %w(cache pids sessions sockets).each do |dir_to_make|
-        FileUtils.mkdir_p(File.join(config.root_path, 'tmp', dir_to_make))
+        FileUtils.mkdir_p(File.join(config.root, 'tmp', dir_to_make))
       end
     end
 
@@ -346,7 +350,7 @@ module Rails
     # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
     # defaults to <tt>vendor/plugins</tt> but may also be set to a list of
     # paths, such as
-    #   config.plugin_paths = ["#{RAILS_ROOT}/lib/plugins", "#{RAILS_ROOT}/vendor/plugins"]
+    #   config.plugin_paths = ["#{config.root}/lib/plugins", "#{config.root}/vendor/plugins"]
     #
     # In the default implementation, as each plugin discovered in <tt>plugin_paths</tt> is initialized:
     # * its +lib+ directory, if present, is added to the load path (immediately after the applications lib directory)
@@ -394,7 +398,7 @@ module Rails
 
     initializer :load_application_initializers do
       if config.gems_dependencies_loaded
-        Dir["#{configuration.root_path}/config/initializers/**/*.rb"].sort.each do |initializer|
+        Dir["#{configuration.root}/config/initializers/**/*.rb"].sort.each do |initializer|
           load(initializer)
         end
       end

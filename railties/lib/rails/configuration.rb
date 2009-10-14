@@ -5,7 +5,7 @@ module Rails
   class Configuration
     attr_accessor :cache_classes, :load_paths,
                   :load_once_paths, :gems_dependencies_loaded, :after_initialize_blocks,
-                  :frameworks, :framework_root_path, :root_path, :plugin_paths, :plugins,
+                  :frameworks, :framework_root_path, :root, :plugin_paths, :plugins,
                   :plugin_loader, :plugin_locators, :gems, :loaded_plugins, :reload_plugins,
                   :i18n, :gems, :whiny_nils, :consider_all_requests_local,
                   :action_controller, :active_record, :action_view, :active_support,
@@ -16,8 +16,6 @@ module Rails
                   :eager_load_paths, :dependency_loading, :paths, :serve_static_assets
 
     def initialize
-      set_root_path!
-
       @load_once_paths              = []
       @after_initialize_blocks      = []
       @loaded_plugins               = []
@@ -34,38 +32,60 @@ module Rails
       @after_initialize_blocks << blk if blk
     end
 
-    def set_root_path!
-      raise 'RAILS_ROOT is not set' unless defined?(RAILS_ROOT)
-      raise 'RAILS_ROOT is not a directory' unless File.directory?(RAILS_ROOT)
-
-      self.root_path =
-        # Pathname is incompatible with Windows, but Windows doesn't have
-        # real symlinks so File.expand_path is safe.
-        if RUBY_PLATFORM =~ /(:?mswin|mingw)/
-          File.expand_path(RAILS_ROOT)
-
-        # Otherwise use Pathname#realpath which respects symlinks.
+    def root
+      @root ||= begin
+        if defined?(RAILS_ROOT)
+          root = RAILS_ROOT
         else
-          Pathname.new(RAILS_ROOT).realpath.to_s
+          call_stack = caller.map { |p| p.split(':').first }
+          root_path  = call_stack.detect { |p| p !~ %r[railties/lib/rails] }
+          root_path  = File.dirname(root_path)
+
+          while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/config.ru")
+            parent = File.dirname(root_path)
+            root_path = parent != root_path && parent
+          end
+
+          Object.class_eval("RAILS_ROOT = ''")
+
+          root = File.exist?("#{root_path}/config.ru") ? root_path : Dir.pwd
         end
 
-      @paths = Rails::Application::Root.new(root_path)
-      @paths.app                 "app",             :load_path => true
-      @paths.app.metals          "app/metal",       :eager_load => true
-      @paths.app.models          "app/models",      :eager_load => true
-      @paths.app.controllers     "app/controllers", builtin_directories, :eager_load => true
-      @paths.app.helpers         "app/helpers",     :eager_load => true
-      @paths.app.services        "app/services",    :load_path => true
-      @paths.lib                 "lib",             :load_path => true
-      @paths.vendor              "vendor",          :load_path => true
-      @paths.vendor.plugins      "vendor/plugins"
-      @paths.tmp                 "tmp"
-      @paths.tmp.cache           "tmp/cache"
-      @paths.config              "config"
-      @paths.config.locales      "config/locales"
-      @paths.config.environments "config/environments", :glob => "#{RAILS_ENV}.rb"
+        root = RUBY_PLATFORM =~ /(:?mswin|mingw)/ ?
+          Pathname.new(root).expand_path.to_s :
+          Pathname.new(root).realpath.to_s
 
-      RAILS_ROOT.replace root_path
+        # TODO: Remove RAILS_ROOT
+        RAILS_ROOT.replace(root)
+        root
+      end
+    end
+
+    def root=(root)
+      Object.class_eval("RAILS_ROOT = ''") unless defined?(RAILS_ROOT)
+      RAILS_ROOT.replace(root)
+      @root = root
+    end
+
+    def paths
+      @paths ||= begin
+        paths = Rails::Application::Root.new(root)
+        paths.app                 "app",             :load_path => true
+        paths.app.metals          "app/metal",       :eager_load => true
+        paths.app.models          "app/models",      :eager_load => true
+        paths.app.controllers     "app/controllers", builtin_directories, :eager_load => true
+        paths.app.helpers         "app/helpers",     :eager_load => true
+        paths.app.services        "app/services",    :load_path => true
+        paths.lib                 "lib",             :load_path => true
+        paths.vendor              "vendor",          :load_path => true
+        paths.vendor.plugins      "vendor/plugins"
+        paths.tmp                 "tmp"
+        paths.tmp.cache           "tmp/cache"
+        paths.config              "config"
+        paths.config.locales      "config/locales"
+        paths.config.environments "config/environments", :glob => "#{RAILS_ENV}.rb"
+        paths
+      end
     end
 
     # Enable threaded mode. Allows concurrent requests to controller actions and
@@ -92,7 +112,7 @@ module Rails
     end
 
     def framework_root_path
-      defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root_path}/vendor/rails"
+      defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root}/vendor/rails"
     end
 
     def middleware
@@ -109,12 +129,12 @@ module Rails
     end
 
     def routes_configuration_file
-      @routes_configuration_file ||= File.join(root_path, 'config', 'routes.rb')
+      @routes_configuration_file ||= File.join(root, 'config', 'routes.rb')
     end
 
     def controller_paths
       @controller_paths ||= begin
-        paths = [File.join(root_path, 'app', 'controllers')]
+        paths = [File.join(root, 'app', 'controllers')]
         paths.concat builtin_directories
         paths
       end
@@ -122,8 +142,8 @@ module Rails
 
     def cache_store
       @cache_store ||= begin
-        if File.exist?("#{root_path}/tmp/cache/")
-          [ :file_store, "#{root_path}/tmp/cache/" ]
+        if File.exist?("#{root}/tmp/cache/")
+          [ :file_store, "#{root}/tmp/cache/" ]
         else
           :memory_store
         end
@@ -131,11 +151,11 @@ module Rails
     end
 
     def database_configuration_file
-      @database_configuration_file ||= File.join(root_path, 'config', 'database.yml')
+      @database_configuration_file ||= File.join(root, 'config', 'database.yml')
     end
 
     def view_path
-      @view_path ||= File.join(root_path, 'app', 'views')
+      @view_path ||= File.join(root, 'app', 'views')
     end
 
     def eager_load_paths
@@ -144,7 +164,7 @@ module Rails
         app/models
         app/controllers
         app/helpers
-      ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+      ).map { |dir| "#{root}/#{dir}" }.select { |dir| File.directory?(dir) }
     end
 
     def load_paths
@@ -152,10 +172,10 @@ module Rails
         paths = []
 
         # Add the old mock paths only if the directories exists
-        paths.concat(Dir["#{root_path}/test/mocks/#{RAILS_ENV}"]) if File.exists?("#{root_path}/test/mocks/#{RAILS_ENV}")
+        paths.concat(Dir["#{root}/test/mocks/#{RAILS_ENV}"]) if File.exists?("#{root}/test/mocks/#{RAILS_ENV}")
 
         # Add the app's controller directory
-        paths.concat(Dir["#{root_path}/app/controllers/"])
+        paths.concat(Dir["#{root}/app/controllers/"])
 
         # Followed by the standard includes.
         paths.concat %w(
@@ -167,7 +187,7 @@ module Rails
           app/services
           lib
           vendor
-        ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+        ).map { |dir| "#{root}/#{dir}" }.select { |dir| File.directory?(dir) }
 
         paths.concat builtin_directories
       end
@@ -179,7 +199,7 @@ module Rails
     end
 
     def log_path
-      @log_path ||= File.join(root_path, 'log', "#{RAILS_ENV}.log")
+      @log_path ||= File.join(root, 'log', "#{RAILS_ENV}.log")
     end
 
     def log_level
@@ -191,7 +211,7 @@ module Rails
     end
 
     def plugin_paths
-      @plugin_paths ||= ["#{root_path}/vendor/plugins"]
+      @plugin_paths ||= ["#{root}/vendor/plugins"]
     end
 
     def plugin_loader
@@ -213,8 +233,8 @@ module Rails
         i18n = Rails::OrderedOptions.new
         i18n.load_path = []
 
-        if File.exist?(File.join(RAILS_ROOT, 'config', 'locales'))
-          i18n.load_path << Dir[File.join(RAILS_ROOT, 'config', 'locales', '*.{rb,yml}')]
+        if File.exist?(File.join(root, 'config', 'locales'))
+          i18n.load_path << Dir[File.join(root, 'config', 'locales', '*.{rb,yml}')]
           i18n.load_path.flatten!
         end
 
@@ -242,7 +262,7 @@ module Rails
     end
 
     def environment_path
-      "#{root_path}/config/environments/#{RAILS_ENV}.rb"
+      "#{root}/config/environments/#{RAILS_ENV}.rb"
     end
 
     def reload_plugins?

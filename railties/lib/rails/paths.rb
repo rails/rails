@@ -26,7 +26,6 @@ module Rails
 
         @children = {}
 
-        # TODO: Move logic from set_root_path initializer
         @path = path
         @root = self
         @all_paths = []
