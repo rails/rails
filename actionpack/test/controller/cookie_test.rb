@@ -114,6 +114,13 @@ class CookieTest < ActionController::TestCase
     assert_equal %w{1 2 3}, jar["pages"]
   end
 
+  def test_cookiejar_delete_removes_item_and_returns_its_value
+    @request.cookies["user_name"] = "david"
+    @controller.response = @response
+    jar = ActionController::CookieJar.new(@controller)
+    assert_equal "david", jar.delete("user_name")
+  end
+
   def test_delete_cookie_with_path
     get :delete_cookie_with_path
     assert_equal ["user_name=; path=/beaten; expires=Thu, 01-Jan-1970 00:00:00 GMT"], @response.headers["Set-Cookie"]
