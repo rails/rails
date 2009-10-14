@@ -81,9 +81,7 @@ module ActiveSupport
   #   saved
   #
   module Callbacks
-    def self.included(klass)
-      klass.extend ClassMethods
-    end
+    extend Concern
 
     def run_callbacks(kind, *args, &block)
       send("_run_#{kind}_callbacks", *args, &block)
