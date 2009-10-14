@@ -26,6 +26,11 @@ class UrlHelperTest < ActionView::TestCase
     assert_equal "http://www.example.com?a=b&amp;c=d", url_for(:a => 'b', :c => 'd', :escape => true)
     assert_equal "http://www.example.com?a=b&c=d", url_for(:a => 'b', :c => 'd', :escape => false)
   end
+  
+  def test_url_for_escaping_is_safety_aware
+    assert url_for(:a => 'b', :c => 'd', :escape => true).html_safe?, "escaped urls should be html_safe?"
+    assert !url_for(:a => 'b', :c => 'd', :escape => false).html_safe?, "non-escaped urls shouldn't be safe"
+  end
 
   def test_url_for_escapes_url_once
     @controller.url = "http://www.example.com?a=b&amp;c=d"
