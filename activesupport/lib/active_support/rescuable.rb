@@ -4,11 +4,11 @@ require 'active_support/core_ext/proc'
 module ActiveSupport
   # Rescuable module adds support for easier exception handling.
   module Rescuable
-    def self.included(base) # :nodoc:
-      base.class_inheritable_accessor :rescue_handlers
-      base.rescue_handlers = []
+    extend Concern
 
-      base.extend(ClassMethods)
+    included do
+      class_inheritable_accessor :rescue_handlers
+      self.rescue_handlers = []
     end
 
     module ClassMethods
