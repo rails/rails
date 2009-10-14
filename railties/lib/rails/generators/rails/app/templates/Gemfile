@@ -1,0 +1,10 @@
+# Gemfile is where you list all of your application's dependencies
+#
+gem "rails", "<%= Rails::VERSION::STRING %>"
+#
+# Bundling edge rails:
+# gem "rails", "<%= Rails::VERSION::STRING %>", :git => "git://github.com/rails/rails.git"
+
+# You can list more dependencies here
+# gem "nokogiri"
+# gem "merb" # ;)
