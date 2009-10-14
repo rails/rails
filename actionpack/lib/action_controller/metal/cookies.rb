@@ -87,8 +87,9 @@ module ActionController #:nodoc:
     def delete(key, options = {})
       options.symbolize_keys!
       options[:path] = "/" unless options.has_key?(:path)
-      super(key.to_s)
+      value = super(key.to_s)
       @controller.response.delete_cookie(key, options)
+      value
     end
   end
 end
