@@ -599,6 +599,7 @@ module ActionMailer #:nodoc:
       end
 
       def render(opts)
+        opts[:locals] ||= {}
         layout, file = opts.delete(:layout), opts[:file]
 
         begin
