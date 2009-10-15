@@ -241,16 +241,16 @@ module ActionView #:nodoc:
       # they are in AC.
       if controller.class.respond_to?(:_helper_serial)
         klass = @views[controller.class._helper_serial] ||= Class.new(self) do
-          const_set(:CONTROLLER_CLASS, controller.class)
-
           # Try to make stack traces clearer
-          def self.name
-            "ActionView for #{CONTROLLER_CLASS}"
-          end
+          class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
+            def self.name
+              "ActionView for #{controller.class}"
+            end
 
-          def inspect
-            "#<#{self.class.name}>"
-          end
+            def inspect
+              "#<#{self.class.name}>"
+            end
+          ruby_eval
 
           if controller.respond_to?(:_helpers)
             include controller._helpers
