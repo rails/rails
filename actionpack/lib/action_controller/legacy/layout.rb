@@ -184,7 +184,7 @@ module ActionController #:nodoc:
 
       def default_layout(*args)
         memoized_default_layout(*args)
-        @_memoized_default_layout ||= ::ActiveSupport::ConcurrentHash.new
+        @_memoized_default_layout ||= {}
         @_memoized_default_layout[args] ||= memoized_default_layout(*args)
       end
 
@@ -195,7 +195,7 @@ module ActionController #:nodoc:
       end
 
       def find_layout(*args)
-        @_memoized_find_layout ||= ::ActiveSupport::ConcurrentHash.new
+        @_memoized_find_layout ||= {}
         @_memoized_find_layout[args] ||= memoized_find_layout(*args)
       end
 
@@ -221,10 +221,10 @@ module ActionController #:nodoc:
           write_inheritable_hash(:layout_conditions, conditions)
         end
     end
-    
+
     def active_layout(name)
       name = self.class.default_layout(formats) if name == true
-      
+
       layout_name = case name
         when Symbol     then __send__(name)
         when Proc       then name.call(self)
@@ -246,7 +246,7 @@ module ActionController #:nodoc:
           if only = conditions[:only]
             return only.include?(action_name)
           elsif except = conditions[:except]
-            return !except.include?(action_name) 
+            return !except.include?(action_name)
           end
         end
         true

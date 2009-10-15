@@ -6,7 +6,6 @@ module ActiveSupport
   autoload :Cache, 'active_support/cache'
   autoload :Callbacks, 'active_support/callbacks'
   autoload :Concern, 'active_support/concern'
-  autoload :ConcurrentHash, 'active_support/concurrent_hash'
   autoload :Configurable, 'active_support/configurable'
   autoload :DependencyModule, 'active_support/dependency_module'
   autoload :DeprecatedCallbacks, 'active_support/deprecated_callbacks'
