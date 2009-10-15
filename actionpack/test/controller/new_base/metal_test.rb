@@ -20,8 +20,8 @@ module MetalTest
   class TestMiddleware < ActiveSupport::TestCase
     def setup
       @app = Rack::Builder.new do
-        use MetalMiddleware
-        run Endpoint.new
+        use MetalTest::MetalMiddleware
+        run MetalTest::Endpoint.new
       end.to_app
     end
 
