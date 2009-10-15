@@ -167,7 +167,16 @@ module ActionView #:nodoc:
     module Subclasses
     end
 
-    include Helpers, Rendering, Partials, ::ERB::Util, ActiveSupport::Configurable
+    include Helpers, Rendering, Partials, ::ERB::Util
+
+    def config
+      self.config = DEFAULT_CONFIG unless @config
+      @config
+    end
+
+    def config=(config)
+      @config = ActiveSupport::OrderedOptions.new.merge(config)
+    end
 
     extend ActiveSupport::Memoizable
 
