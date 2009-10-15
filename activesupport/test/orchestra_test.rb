@@ -9,20 +9,36 @@ end
 
 class OrchestraEventTest < Test::Unit::TestCase
   def test_events_are_initialized_with_name_and_payload
-    event = ActiveSupport::Orchestra::Event.new(:foo, :payload => :bar)
+    event = event(:foo, :payload => :bar)
     assert_equal :foo, event.name
     assert_equal Hash[:payload => :bar], event.payload
   end
 
   def test_events_consumes_information_given_as_payload
-    event = ActiveSupport::Orchestra::Event.new(:foo,
-      :time => (time = Time.now), :result => 1, :duration => 10)
+    event = event(:foo, :time => (time = Time.now), :result => 1, :duration => 10)
 
     assert_equal Hash.new, event.payload
     assert_equal time, event.time
     assert_equal 1, event.result
     assert_equal 10, event.duration
   end
+
+  def test_event_is_parent_based_on_time_frame
+    parent    = event(:foo, :time => Time.utc(2009), :duration => 10000)
+    child     = event(:foo, :time => Time.utc(2009, 01, 01, 0, 0, 1), :duration => 1000)
+    not_child = event(:foo, :time => Time.utc(2009, 01, 01, 0, 0, 1), :duration => 10000)
+
+    assert parent.parent_of?(child)
+    assert !child.parent_of?(parent)
+    assert !parent.parent_of?(not_child)
+    assert !not_child.parent_of?(parent)
+  end
+
+  protected
+
+    def event(*args)
+      ActiveSupport::Orchestra::Event.new(*args)
+    end
 end
 
 class OrchestraMainTest < Test::Unit::TestCase

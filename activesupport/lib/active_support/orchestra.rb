@@ -112,6 +112,11 @@ module ActiveSupport
         @result    = @payload.delete(:result)
         @duration  = @payload.delete(:duration)
       end
+
+      def parent_of?(event)
+        start = (self.time - event.time) * 1000
+        start <= 0 && (start + self.duration >= event.duration)
+      end
     end
 
     # This is a default queue implementation that ships with Orchestra. It
