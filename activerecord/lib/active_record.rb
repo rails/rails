@@ -21,16 +21,20 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-$:.unshift(activesupport_path) if File.directory?(activesupport_path)
-require 'active_support'
+bundled = "#{File.dirname(__FILE__)}/../vendor/gems/environment"
+if File.exist?("#{bundled}.rb")
+  require bundled
+else
+  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+  $:.unshift(activesupport_path) if File.directory?(activesupport_path)
 
-begin
-  require 'active_model'
-rescue LoadError
-  $:.unshift "#{File.dirname(__FILE__)}/../../activemodel/lib"
-  require 'active_model'  
+  activemodel_path = "#{File.dirname(__FILE__)}/../../activemodel/lib"
+  $:.unshift(activemodel_path) if File.directory?(activemodel_path)
 end
+
+require 'active_support'
+require 'active_model'
+require 'arel'
 
 module ActiveRecord
   # TODO: Review explicit loads to see if they will automatically be handled by the initializer.
@@ -48,6 +52,7 @@ module ActiveRecord
   autoload :Associations, 'active_record/associations'
   autoload :AttributeMethods, 'active_record/attribute_methods'
   autoload :AutosaveAssociation, 'active_record/autosave_association'
+  autoload :Relation, 'active_record/relation'
   autoload :Base, 'active_record/base'
   autoload :Batches, 'active_record/batches'
   autoload :Calculations, 'active_record/calculations'
@@ -92,4 +97,5 @@ module ActiveRecord
   end
 end
 
+Arel::Table.engine = Arel::Sql::Engine.new(ActiveRecord::Base)
 I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'

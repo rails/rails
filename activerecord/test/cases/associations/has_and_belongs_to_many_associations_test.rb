@@ -732,7 +732,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [projects(:active_record), projects(:action_controller)].map(&:id).sort, developer.project_ids.sort
   end
 
-  def test_select_limited_ids_list
+  def test_select_limited_ids_array
     # Set timestamps
     Developer.transaction do
       Developer.find(:all, :order => 'id').each_with_index do |record, i|
@@ -742,9 +742,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     join_base = ActiveRecord::Associations::ClassMethods::JoinDependency::JoinBase.new(Project)
     join_dep  = ActiveRecord::Associations::ClassMethods::JoinDependency.new(join_base, :developers, nil)
-    projects  = Project.send(:select_limited_ids_list, {:order => 'developers.created_at'}, join_dep)
+    projects  = Project.send(:select_limited_ids_array, {:order => 'developers.created_at'}, join_dep)
     assert !projects.include?("'"), projects
-    assert_equal %w(1 2), projects.scan(/\d/).sort
+    assert_equal ["1", "2"], projects.sort
   end
 
   def test_scoped_find_on_through_association_doesnt_return_read_only_records
@@ -770,7 +770,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal developer, project.developers.find(:first)
     assert_equal project, developer.projects.find(:first)
   end
-  
+
   def test_self_referential_habtm_without_foreign_key_set_should_raise_exception
     assert_raise(ActiveRecord::HasAndBelongsToManyAssociationForeignKeyNeeded) {
       Member.class_eval do

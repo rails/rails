@@ -156,15 +156,6 @@ module ActiveRecord
           @reflection.options[:dependent]
         end
 
-        # Returns a string with the IDs of +records+ joined with a comma, quoted
-        # if needed. The result is ready to be inserted into a SQL IN clause.
-        #
-        #   quoted_record_ids(records) # => "23,56,58,67"
-        #
-        def quoted_record_ids(records)
-          records.map { |record| record.quoted_id }.join(',')
-        end
-
         def interpolate_sql(sql, record = nil)
           @owner.send(:interpolate_sql, sql, record)
         end

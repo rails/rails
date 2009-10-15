@@ -89,12 +89,14 @@ module ActiveRecord
           attribute_names.uniq!
 
           begin
-            affected_rows = connection.update(<<-end_sql, "#{self.class.name} Update with optimistic locking")
-              UPDATE #{self.class.quoted_table_name}
-              SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false, false, attribute_names))}
-              WHERE #{self.class.primary_key} = #{quote_value(id)}
-              AND #{self.class.quoted_locking_column} = #{quote_value(previous_value)}
-            end_sql
+            arel_table = self.class.arel_table(self.class.table_name)
+
+            affected_rows = arel_table.where(
+              arel_table[self.class.primary_key].eq(quoted_id).and(
+                arel_table[self.class.locking_column].eq(quote_value(previous_value))
+              )
+            ).update(arel_attributes_values(false, false, attribute_names))
+
 
             unless affected_rows == 1
               raise ActiveRecord::StaleObjectError, "Attempted to update a stale object"
@@ -116,12 +118,13 @@ module ActiveRecord
       lock_col = self.class.locking_column
       previous_value = send(lock_col).to_i
 
-      affected_rows = connection.delete(
-        "DELETE FROM #{self.class.quoted_table_name} " +
-        "WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quoted_id} " +
-              "AND #{self.class.quoted_locking_column} = #{quote_value(previous_value)}",
-        "#{self.class.name} Destroy"
-      )
+      arel_table = self.class.arel_table(self.class.table_name)
+
+      affected_rows = arel_table.where(
+          arel_table[self.class.primary_key].eq(quoted_id).and(
+          arel_table[self.class.locking_column].eq(quote_value(previous_value))
+        )
+      ).delete
 
       unless affected_rows == 1
         raise ActiveRecord::StaleObjectError, "Attempted to delete a stale object"

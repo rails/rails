@@ -211,7 +211,7 @@ module ActiveRecord
       def supports_migrations? #:nodoc:
         true
       end
-      
+
       def supports_primary_key? #:nodoc:
         true
       end
@@ -334,6 +334,7 @@ module ActiveRecord
         super sql, name
         id_value || @connection.insert_id
       end
+      alias :create :insert_sql
 
       def update_sql(sql, name = nil) #:nodoc:
         super
@@ -369,18 +370,6 @@ module ActiveRecord
       def release_savepoint
         execute("RELEASE SAVEPOINT #{current_savepoint_name}")
       end
-
-      def add_limit_offset!(sql, options) #:nodoc:
-        if limit = options[:limit]
-          limit = sanitize_limit(limit)
-          unless offset = options[:offset]
-            sql << " LIMIT #{limit}"
-          else
-            sql << " LIMIT #{offset.to_i}, #{limit}"
-          end
-        end
-      end
-
 
       # SCHEMA STATEMENTS ========================================
 

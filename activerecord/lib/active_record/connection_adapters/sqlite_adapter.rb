@@ -91,7 +91,7 @@ module ActiveRecord
       def supports_add_column?
         sqlite_version >= '3.1.6'
       end
- 
+
       def disconnect!
         super
         @connection.close rescue nil
@@ -163,6 +163,7 @@ module ActiveRecord
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
         super || @connection.last_insert_row_id
       end
+      alias :create :insert_sql
 
       def select_rows(sql, name = nil)
         execute(sql, name).map do |row|
@@ -289,8 +290,8 @@ module ActiveRecord
         alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
       end
 
-      def empty_insert_statement(table_name)
-        "INSERT INTO #{table_name} VALUES(NULL)"
+      def empty_insert_statement_value
+        "VALUES(NULL)"
       end
 
       protected
@@ -337,7 +338,7 @@ module ActiveRecord
                 (options[:rename][column.name] ||
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
-              
+
               @definition.column(column_name, column.type,
                 :limit => column.limit, :default => column.default,
                 :null => column.null)

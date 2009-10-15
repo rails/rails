@@ -1893,7 +1893,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_all_with_conditions
-    assert_equal Developer.find(:all, :order => 'id desc'), Developer.all(:order => 'id desc')
+    assert_equal Developer.find(:all, :order => 'id desc'), Developer.all.order('id desc').to_a
   end
 
   def test_find_ordered_last
