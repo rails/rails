@@ -176,8 +176,8 @@ class ::ApplicationController < ActionController::Base
 end
 
 module ActionController
-  class << Routing
-    def possible_controllers
+  module Routing
+    def self.possible_controllers
       @@possible_controllers ||= []
     end
   end
