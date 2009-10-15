@@ -201,7 +201,7 @@ module ActiveRecord
 
       protected
         def log(sql, name)
-          event = ActiveSupport::Orchestra.instrument(:sql, :sql => sql, :name => name) do
+          event = ActiveSupport::Notifications.instrument(:sql, :sql => sql, :name => name) do
             yield if block_given?
           end
           @runtime += event.duration

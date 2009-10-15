@@ -394,7 +394,7 @@ module ActionMailer #:nodoc:
     def controller_path
       self.class.controller_path
     end
-    
+
     def formats
       @template.formats
     end
@@ -481,7 +481,7 @@ module ActionMailer #:nodoc:
     # Initialize the mailer via the given +method_name+. The body will be
     # rendered and a new TMail::Mail object created.
     def create!(method_name, *parameters) #:nodoc:
-      ActiveSupport::Orchestra.instrument(:create_mail, :name => method_name) do
+      ActiveSupport::Notifications.instrument(:create_mail, :name => method_name) do
         initialize_defaults(method_name)
         __send__(method_name, *parameters)
 
@@ -550,7 +550,7 @@ module ActionMailer #:nodoc:
         logger.debug "\n#{mail.encoded}"
       end
 
-      ActiveSupport::Orchestra.instrument(:deliver_mail, :mail => @mail) do
+      ActiveSupport::Notifications.instrument(:deliver_mail, :mail => @mail) do
         begin
           __send__("perform_delivery_#{delivery_method}", mail) if perform_deliveries
         rescue Exception => e # Net::SMTP errors or sendmail pipe errors
@@ -583,9 +583,9 @@ module ActionMailer #:nodoc:
         if template.respond_to?(:mime_type)
           @current_template_content_type = template.mime_type && template.mime_type.to_sym.to_s
         end
-        
+
         @template = initialize_template_class(body)
-        layout = _pick_layout(layout, true) unless 
+        layout = _pick_layout(layout, true) unless
           ActionController::Base.exempt_from_layout.include?(template.handler)
         @template._render_template(template, layout, {})
       ensure
@@ -600,16 +600,16 @@ module ActionMailer #:nodoc:
 
       def render(opts)
         layout, file = opts.delete(:layout), opts[:file]
-        
+
         begin
           @template = initialize_template_class(opts.delete(:body))
-          
+
           if file
             prefix = mailer_name unless file =~ /\//
             template = view_paths.find(file, {:formats => formats}, prefix)
           end
 
-          layout = _pick_layout(layout, 
+          layout = _pick_layout(layout,
             !template || ActionController::Base.exempt_from_layout.include?(template.handler))
 
           if template
@@ -648,7 +648,7 @@ module ActionMailer #:nodoc:
 
       def sort_parts(parts, order = [])
         order = order.collect { |s| s.downcase }
-        
+
         parts = parts.sort do |a, b|
           a_ct = a.content_type.downcase
           b_ct = b.content_type.downcase
@@ -689,7 +689,7 @@ module ActionMailer #:nodoc:
         headers.each { |k, v| m[k] = v }
 
         real_content_type, ctype_attrs = parse_content_type
-        
+
         if @parts.empty?
           m.set_content_type(real_content_type, nil, ctype_attrs)
           m.body = normalize_new_lines(body)

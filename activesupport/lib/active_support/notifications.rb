@@ -1,10 +1,10 @@
 require 'thread'
 
 module ActiveSupport
-  # Orchestra provides an instrumentation API for Ruby. To instrument an action
+  # Notifications provides an instrumentation API for Ruby. To instrument an action
   # in Ruby you just need to:
   #
-  #   ActiveSupport::Orchestra.instrument(:render, :extra => :information) do
+  #   ActiveSupport::Notifications.instrument(:render, :extra => :information) do
   #     render :text => "Foo"
   #   end
   #
@@ -12,23 +12,23 @@ module ActiveSupport
   # to push. You can even register an array:
   #
   #   @listener = []
-  #   ActiveSupport::Orchestra.register @listener
+  #   ActiveSupport::Notifications.register @listener
   #
-  #   ActiveSupport::Orchestra.instrument(:render, :extra => :information) do
+  #   ActiveSupport::Notifications.instrument(:render, :extra => :information) do
   #     render :text => "Foo"
   #   end
   #
-  #   event           #=> ActiveSupport::Orchestra::Event
+  #   event           #=> ActiveSupport::Notifications::Event
   #   event.name      #=> :render
   #   event.duration  #=> 10 (in miliseconds)
   #   event.result    #=> "Foo"
   #   event.payload   #=> { :extra => :information }
   #
-  # Orchestra ships with a default listener implementation which puts events in
+  # Notifications ships with a default listener implementation which puts events in
   # a stream and consume them in a Thread. This implementation is thread safe
-  # and is available at ActiveSupport::Orchestra::Listener.
+  # and is available at ActiveSupport::Notifications::Listener.
   #
-  module Orchestra
+  module Notifications
     @stacked_events = Hash.new { |h,k| h[k] = [] }
     @listeners = []
 

@@ -626,7 +626,7 @@ class FragmentCachingTest < ActionController::TestCase
     fragment_computed = false
 
     listener = []
-    ActiveSupport::Orchestra.register listener
+    ActiveSupport::Notifications.register listener
 
     buffer = 'generated till now -> '
     @controller.fragment_for(buffer, 'expensive') { fragment_computed = true }
@@ -637,7 +637,7 @@ class FragmentCachingTest < ActionController::TestCase
     assert fragment_computed
     assert_equal 'generated till now -> ', buffer
   ensure
-    ActiveSupport::Orchestra.unregister listener
+    ActiveSupport::Notifications.unregister listener
   end
 
 end

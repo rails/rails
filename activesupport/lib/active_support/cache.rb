@@ -247,7 +247,7 @@ module ActiveSupport
           payload = { :key => key }
           payload.merge!(options) if options.is_a?(Hash)
 
-          event = ActiveSupport::Orchestra.instrument(:"cache_#{operation}", payload, &block)
+          event = ActiveSupport::Notifications.instrument(:"cache_#{operation}", payload, &block)
           log("#{operation} (%.1fms)" % event.duration, key, options)
           event.result
         end

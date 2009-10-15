@@ -27,7 +27,7 @@ module ActionView
     end
 
     def render(view, locals, &block)
-      ActiveSupport::Orchestra.instrument(:render_template, :identifier => identifier) do
+      ActiveSupport::Notifications.instrument(:render_template, :identifier => identifier) do
         method_name = compile(locals, view)
         view.send(method_name, locals, &block)
       end.result

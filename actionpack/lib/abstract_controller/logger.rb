@@ -47,7 +47,7 @@ module AbstractController
     # Override process_action in the AbstractController::Base
     # to log details about the method.
     def process_action(action)
-      event = ActiveSupport::Orchestra.instrument(:process_action,
+      event = ActiveSupport::Notifications.instrument(:process_action,
                 :controller => self, :action => action) do
         super
       end
