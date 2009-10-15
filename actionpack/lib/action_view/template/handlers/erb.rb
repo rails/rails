@@ -37,11 +37,14 @@ module ActionView
       self.erb_trim_mode = '-'
 
       self.default_format = Mime::HTML
+      
+      cattr_accessor :erubis_implementation
+      self.erubis_implementation = Erubis
 
       def compile(template)
         magic = $1 if template.source =~ /\A(<%#.*coding[:=]\s*(\S+)\s*-?%>)/
         erb = "#{magic}<% __in_erb_template=true %>#{template.source}"
-        Erubis.new(erb, :trim=>(self.class.erb_trim_mode == "-")).src
+        self.class.erubis_implementation.new(erb, :trim=>(self.class.erb_trim_mode == "-")).src
       end
     end
   end
