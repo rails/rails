@@ -1,13 +1,16 @@
+bundled = "#{File.dirname(__FILE__)}/../vendor/gems/environment"
+if File.exist?("#{bundled}.rb")
+  require bundled
+else
+  $:.unshift "#{File.dirname(__FILE__)}/../../activesupport/lib"
+  $:.unshift "#{File.dirname(__FILE__)}/../../activemodel/lib"
+end
+
 $:.unshift(File.dirname(__FILE__) + '/../lib')
-$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
-$:.unshift(File.dirname(__FILE__) + '/../../activemodel/lib')
 
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
-
-bundler = File.join(File.dirname(__FILE__), '..', 'vendor', 'gems', 'environment')
-require bundler if File.exist?("#{bundler}.rb")
 
 begin
   %w( rack rack/test sqlite3 ).each { |lib| require lib }
