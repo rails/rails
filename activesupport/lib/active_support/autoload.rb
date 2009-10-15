@@ -17,7 +17,7 @@ module ActiveSupport
   autoload :MessageVerifier, 'active_support/message_verifier'
   autoload :Multibyte, 'active_support/multibyte'
   autoload :OptionMerger, 'active_support/option_merger'
-  autoload :Notifications, 'active_support/notifications'
+  autoload :Orchestra, 'active_support/orchestra'
   autoload :OrderedHash, 'active_support/ordered_hash'
   autoload :OrderedOptions, 'active_support/ordered_options'
   autoload :Rescuable, 'active_support/rescuable'
