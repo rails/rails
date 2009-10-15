@@ -149,7 +149,9 @@ end
 
 class ActionCachingTestController < ActionController::Base
   rescue_from(Exception) { head 500 }
-  rescue_from(ActiveRecord::RecordNotFound) { head :not_found }
+  if defined? ActiveRecord
+    rescue_from(ActiveRecord::RecordNotFound) { head :not_found }
+  end
 
   caches_action :index, :redirected, :forbidden, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
   caches_action :show, :cache_path => 'http://test.host/custom/show'
@@ -474,11 +476,13 @@ class ActionCacheTest < ActionController::TestCase
     assert_response :success
   end
 
-  def test_record_not_found_returns_404_for_multiple_requests
-    get :record_not_found
-    assert_response 404
-    get :record_not_found
-    assert_response 404
+  if defined? ActiveRecord
+    def test_record_not_found_returns_404_for_multiple_requests
+      get :record_not_found
+      assert_response 404
+      get :record_not_found
+      assert_response 404
+    end
   end
 
   def test_four_oh_four_returns_404_for_multiple_requests
