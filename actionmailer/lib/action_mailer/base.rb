@@ -481,7 +481,7 @@ module ActionMailer #:nodoc:
     # Initialize the mailer via the given +method_name+. The body will be
     # rendered and a new TMail::Mail object created.
     def create!(method_name, *parameters) #:nodoc:
-      ActiveSupport::Orchestra.instrument(:create_mail, :name => method_name) do
+      ActiveSupport::Notifications.instrument(:create_mail, :name => method_name) do
         initialize_defaults(method_name)
         __send__(method_name, *parameters)
 
@@ -550,7 +550,7 @@ module ActionMailer #:nodoc:
         logger.debug "\n#{mail.encoded}"
       end
 
-      ActiveSupport::Orchestra.instrument(:deliver_mail, :mail => @mail) do
+      ActiveSupport::Notifications.instrument(:deliver_mail, :mail => @mail) do
         begin
           __send__("perform_delivery_#{delivery_method}", mail) if perform_deliveries
         rescue Exception => e # Net::SMTP errors or sendmail pipe errors

@@ -290,12 +290,12 @@ module Rails
       end
     end
 
-    # Allows Orchestra queue to be modified.
+    # Allows Notifications queue to be modified.
     #
-    #   config.orchestra.queue = MyNewQueue.new
+    #   config.notifications.queue = MyNewQueue.new
     #
-    def orchestra
-      ActiveSupport::Orchestra
+    def notifications
+      ActiveSupport::Notifications
     end
 
     class Generators #:nodoc:

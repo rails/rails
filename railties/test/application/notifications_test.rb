@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class OrchestraTest < Test::Unit::TestCase
+  class NotificationsTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
 
     class MyQueue
@@ -25,26 +25,26 @@ module ApplicationTests
       build_app
       boot_rails
 
-      require "active_support/orchestra"
+      require "active_support/notifications"
       Rails::Initializer.run do |c|
-        c.orchestra.queue = MyQueue.new
-        c.orchestra.subscribe(/listening/) do
+        c.notifications.queue = MyQueue.new
+        c.notifications.subscribe(/listening/) do
           puts "Cool"
         end
       end
     end
 
     test "new queue is set" do
-      ActiveSupport::Orchestra.instrument(:foo)
-      assert_equal :foo, ActiveSupport::Orchestra.queue.events.first
+      ActiveSupport::Notifications.instrument(:foo)
+      assert_equal :foo, ActiveSupport::Notifications.queue.events.first
     end
 
     test "frameworks subscribers are loaded" do
-      assert_equal 1, ActiveSupport::Orchestra.queue.subscribers.count { |s| s == "sql" }
+      assert_equal 1, ActiveSupport::Notifications.queue.subscribers.count { |s| s == "sql" }
     end
 
     test "configuration subscribers are loaded" do
-      assert_equal 1, ActiveSupport::Orchestra.queue.subscribers.count { |s| s == /listening/ }
+      assert_equal 1, ActiveSupport::Notifications.queue.subscribers.count { |s| s == /listening/ }
     end
   end
 end

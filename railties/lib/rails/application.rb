@@ -488,12 +488,12 @@ module Rails
       end
     end
 
-    # For each framework, search for instrument file with Orchestra hooks.
+    # For each framework, search for instrument file with Notifications hooks.
     #
-    initializer :load_orchestra_instrumentation do
+    initializer :load_notifications_hooks do
       config.frameworks.each do |framework|
         begin
-          require "#{framework}/instrument"
+          require "#{framework}/notifications"
         rescue LoadError => e
         end
       end

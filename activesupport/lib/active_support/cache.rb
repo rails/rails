@@ -256,7 +256,7 @@ module ActiveSupport
           if self.class.instrument
             payload = { :key => key }
             payload.merge!(options) if options.is_a?(Hash)
-            ActiveSupport::Orchestra.instrument(:"cache_#{operation}", payload, &block)
+            ActiveSupport::Notifications.instrument(:"cache_#{operation}", payload, &block)
           else
             yield
           end

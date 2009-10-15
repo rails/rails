@@ -200,7 +200,7 @@ module ActiveRecord
 
       protected
         def log(sql, name, &block)
-          ActiveSupport::Orchestra.instrument(:sql, :sql => sql, :name => name, &block)
+          ActiveSupport::Notifications.instrument(:sql, :sql => sql, :name => name, &block)
         rescue Exception => e
           # Log message and raise exception.
           # Set last_verification to 0, so that connection gets verified

@@ -53,7 +53,7 @@ module ActionController #:nodoc:
         return content unless cache_configured?
         key = fragment_cache_key(key)
 
-        ActiveSupport::Orchestra.instrument(:write_fragment, :key => key) do
+        ActiveSupport::Notifications.instrument(:write_fragment, :key => key) do
           cache_store.write(key, content, options)
         end
         content
@@ -64,7 +64,7 @@ module ActionController #:nodoc:
         return unless cache_configured?
         key = fragment_cache_key(key)
 
-        ActiveSupport::Orchestra.instrument(:read_fragment, :key => key) do
+        ActiveSupport::Notifications.instrument(:read_fragment, :key => key) do
           cache_store.read(key, options)
         end
       end
@@ -74,7 +74,7 @@ module ActionController #:nodoc:
         return unless cache_configured?
         key = fragment_cache_key(key)
 
-        ActiveSupport::Orchestra.instrument(:fragment_exist?, :key => key) do
+        ActiveSupport::Notifications.instrument(:fragment_exist?, :key => key) do
           cache_store.exist?(key, options)
         end
       end
@@ -101,7 +101,7 @@ module ActionController #:nodoc:
         key = fragment_cache_key(key) unless key.is_a?(Regexp)
         message = nil
 
-        ActiveSupport::Orchestra.instrument(:expire_fragment, :key => key) do
+        ActiveSupport::Notifications.instrument(:expire_fragment, :key => key) do
           if key.is_a?(Regexp)
             message = "Expired fragments matching: #{key.source}"
             cache_store.delete_matched(key, options)

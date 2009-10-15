@@ -3,10 +3,10 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/attribute_accessors'
 
 module ActiveSupport
-  # Orchestra provides an instrumentation API for Ruby. To instrument an action
-  # in Ruby you just need to do:
+  # Notifications provides an instrumentation API for Ruby. To instrument an
+  # action in Ruby you just need to do:
   #
-  #   ActiveSupport::Orchestra.instrument(:render, :extra => :information) do
+  #   ActiveSupport::Notifications.instrument(:render, :extra => :information) do
   #     render :text => "Foo"
   #   end
   #
@@ -15,39 +15,39 @@ module ActiveSupport
   #
   #   @events = []
   #
-  #   ActiveSupport::Orchestra.subscribe do |event|
+  #   ActiveSupport::Notifications.subscribe do |event|
   #     @events << event
   #   end
   #
-  #   ActiveSupport::Orchestra.instrument(:render, :extra => :information) do
+  #   ActiveSupport::Notifications.instrument(:render, :extra => :information) do
   #     render :text => "Foo"
   #   end
   #
   #   event = @events.first
-  #   event.class     #=> ActiveSupport::Orchestra::Event
+  #   event.class     #=> ActiveSupport::Notifications::Event
   #   event.name      #=> :render
   #   event.duration  #=> 10 (in miliseconds)
   #   event.result    #=> "Foo"
   #   event.payload   #=> { :extra => :information }
   #
-  # When subscribing to Orchestra, you can pass a pattern, to only consume
+  # When subscribing to Notifications, you can pass a pattern, to only consume
   # events that match the pattern:
   #
-  #   ActiveSupport::Orchestra.subscribe(/render/) do |event|
+  #   ActiveSupport::Notifications.subscribe(/render/) do |event|
   #     @render_events << event
   #   end
   #
-  # Orchestra ships with a queue implementation that consumes and publish events
+  # Notifications ships with a queue implementation that consumes and publish events
   # to subscribers in a thread. You can use any queue implementation you want.
   #
-  module Orchestra
+  module Notifications
     mattr_accessor :queue
 
     class << self
       delegate :instrument, :to => :instrumenter
 
       def instrumenter
-        Thread.current[:orchestra_instrumeter] ||= Instrumenter.new(publisher)
+        Thread.current[:notifications_instrumeter] ||= Instrumenter.new(publisher)
       end
 
       def publisher
@@ -119,7 +119,7 @@ module ActiveSupport
       end
     end
 
-    # This is a default queue implementation that ships with Orchestra. It
+    # This is a default queue implementation that ships with Notifications. It
     # consumes events in a thread and publish them to all registered subscribers.
     #
     class LittleFanout
@@ -167,5 +167,5 @@ module ActiveSupport
     end
   end
 
-  Orchestra.queue = Orchestra::LittleFanout.new
+  Notifications.queue = Notifications::LittleFanout.new
 end

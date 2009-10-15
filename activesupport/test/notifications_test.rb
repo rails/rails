@@ -1,13 +1,13 @@
 require 'abstract_unit'
 
 # Allow LittleFanout to be cleaned.
-class ActiveSupport::Orchestra::LittleFanout
+class ActiveSupport::Notifications::LittleFanout
   def clear
     @listeners.clear
   end
 end
 
-class OrchestraEventTest < Test::Unit::TestCase
+class NotificationsEventTest < Test::Unit::TestCase
   def test_events_are_initialized_with_name_and_payload
     event = event(:foo, :payload => :bar)
     assert_equal :foo, event.name
@@ -37,24 +37,24 @@ class OrchestraEventTest < Test::Unit::TestCase
   protected
 
     def event(*args)
-      ActiveSupport::Orchestra::Event.new(*args)
+      ActiveSupport::Notifications::Event.new(*args)
     end
 end
 
-class OrchestraMainTest < Test::Unit::TestCase
+class NotificationsMainTest < Test::Unit::TestCase
   def setup
     @events = []
     Thread.abort_on_exception = true
-    ActiveSupport::Orchestra.subscribe { |event| @events << event }
+    ActiveSupport::Notifications.subscribe { |event| @events << event }
   end
 
   def teardown
     Thread.abort_on_exception = false
-    ActiveSupport::Orchestra.queue.clear
+    ActiveSupport::Notifications.queue.clear
   end
 
-  def test_orchestra_returns_action_result
-    result = ActiveSupport::Orchestra.instrument(:awesome, :payload => "orchestra") do
+  def test_notifications_returns_action_result
+    result = ActiveSupport::Notifications.instrument(:awesome, :payload => "notifications") do
       1 + 1
     end
 
@@ -62,7 +62,7 @@ class OrchestraMainTest < Test::Unit::TestCase
   end
 
   def test_events_are_published_to_a_listener
-    ActiveSupport::Orchestra.instrument(:awesome, :payload => "orchestra") do
+    ActiveSupport::Notifications.instrument(:awesome, :payload => "notifications") do
       1 + 1
     end
 
@@ -70,12 +70,12 @@ class OrchestraMainTest < Test::Unit::TestCase
 
     assert_equal 1, @events.size
     assert_equal :awesome, @events.last.name
-    assert_equal Hash[:payload => "orchestra"], @events.last.payload
+    assert_equal Hash[:payload => "notifications"], @events.last.payload
   end
 
   def test_nested_events_can_be_instrumented
-    ActiveSupport::Orchestra.instrument(:awesome, :payload => "orchestra") do
-      ActiveSupport::Orchestra.instrument(:wot, :payload => "child") do
+    ActiveSupport::Notifications.instrument(:awesome, :payload => "notifications") do
+      ActiveSupport::Notifications.instrument(:wot, :payload => "child") do
         1 + 1
       end
 
@@ -90,12 +90,12 @@ class OrchestraMainTest < Test::Unit::TestCase
 
     assert_equal 2, @events.size
     assert_equal :awesome, @events.last.name
-    assert_equal Hash[:payload => "orchestra"], @events.last.payload
+    assert_equal Hash[:payload => "notifications"], @events.last.payload
     assert_in_delta 100, @events.last.duration, 70
   end
 
   def test_event_is_pushed_even_if_block_fails
-    ActiveSupport::Orchestra.instrument(:awesome, :payload => "orchestra") do
+    ActiveSupport::Notifications.instrument(:awesome, :payload => "notifications") do
       raise "OMG"
     end rescue RuntimeError
 
@@ -103,22 +103,22 @@ class OrchestraMainTest < Test::Unit::TestCase
 
     assert_equal 1, @events.size
     assert_equal :awesome, @events.last.name
-    assert_equal Hash[:payload => "orchestra"], @events.last.payload
+    assert_equal Hash[:payload => "notifications"], @events.last.payload
   end
 
   def test_event_is_pushed_even_without_block
-    ActiveSupport::Orchestra.instrument(:awesome, :payload => "orchestra")
+    ActiveSupport::Notifications.instrument(:awesome, :payload => "notifications")
     sleep(0.1)
 
     assert_equal 1, @events.size
     assert_equal :awesome, @events.last.name
-    assert_equal Hash[:payload => "orchestra"], @events.last.payload
+    assert_equal Hash[:payload => "notifications"], @events.last.payload
   end
 
   def test_subscriber_with_pattern
     @another = []
-    ActiveSupport::Orchestra.subscribe("cache"){ |event| @another << event }
-    ActiveSupport::Orchestra.instrument(:cache){ 1 }
+    ActiveSupport::Notifications.subscribe("cache"){ |event| @another << event }
+    ActiveSupport::Notifications.instrument(:cache){ 1 }
 
     sleep(0.1)
 
@@ -129,10 +129,10 @@ class OrchestraMainTest < Test::Unit::TestCase
 
   def test_subscriber_with_pattern_as_regexp
     @another = []
-    ActiveSupport::Orchestra.subscribe(/cache/){ |event| @another << event }
+    ActiveSupport::Notifications.subscribe(/cache/){ |event| @another << event }
 
-    ActiveSupport::Orchestra.instrument(:something){ 0 }
-    ActiveSupport::Orchestra.instrument(:cache){ 1 }
+    ActiveSupport::Notifications.instrument(:something){ 0 }
+    ActiveSupport::Notifications.instrument(:cache){ 1 }
 
     sleep(0.1)
 
@@ -143,10 +143,10 @@ class OrchestraMainTest < Test::Unit::TestCase
 
   def test_with_several_consumers_and_several_events
     @another = []
-    ActiveSupport::Orchestra.subscribe { |event| @another << event }
+    ActiveSupport::Notifications.subscribe { |event| @another << event }
 
     1.upto(100) do |i|
-      ActiveSupport::Orchestra.instrument(:value){ i }
+      ActiveSupport::Notifications.instrument(:value){ i }
     end
 
     sleep 0.1
