@@ -29,21 +29,21 @@ cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with MySQL"
   puts
-  build_results[:activerecord_mysql] = system 'rake mysql:rebuild_databases && rake test_mysql'
+  build_results[:activerecord_mysql] = system 'gem bundle && rake mysql:rebuild_databases && rake test_mysql'
 end
 
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with PostgreSQL"
   puts
-  build_results[:activerecord_postgresql8] = system 'rake postgresql:rebuild_databases && rake test_postgresql'
+  build_results[:activerecord_postgresql8] = system 'gem bundle && rake postgresql:rebuild_databases && rake test_postgresql'
 end
 
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with SQLite 3"
   puts
-  build_results[:activerecord_sqlite3] = system 'rake test_sqlite3'
+  build_results[:activerecord_sqlite3] = system 'gem bundle && rake test_sqlite3'
 end
 
 cd "#{root_dir}/activemodel" do
