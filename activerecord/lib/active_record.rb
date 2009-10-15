@@ -25,16 +25,14 @@ activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
 $:.unshift(activesupport_path) if File.directory?(activesupport_path)
 require 'active_support'
 
-arel_path = "#{File.dirname(__FILE__)}/../../arel/lib"
-$:.unshift(arel_path) if File.directory?(arel_path)
-require 'arel'
-
 begin
   require 'active_model'
 rescue LoadError
   $:.unshift "#{File.dirname(__FILE__)}/../../activemodel/lib"
   require 'active_model'
 end
+
+require 'arel'
 
 module ActiveRecord
   # TODO: Review explicit loads to see if they will automatically be handled by the initializer.
