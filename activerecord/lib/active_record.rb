@@ -21,7 +21,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-bundled = "#{File.dirname(__FILE__)}/../../vendor/gems/environment"
+bundled = "#{File.dirname(__FILE__)}/../vendor/gems/environment"
 if File.exist?("#{bundled}.rb")
   require bundled
 else
