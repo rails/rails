@@ -66,6 +66,7 @@ module Rails::Generators
 
       inside "config" do
         copy_file "routes.rb"
+        template  "application.rb"
         template  "environment.rb"
 
         directory "environments"

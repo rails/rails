@@ -94,9 +94,9 @@ module TestHelpers
     end
 
     def add_to_config(str)
-      environment = File.read("#{app_path}/config/environment.rb")
+      environment = File.read("#{app_path}/config/application.rb")
       if environment =~ /(\n\s*end\s*)\Z/
-        File.open("#{app_path}/config/environment.rb", 'w') do |f|
+        File.open("#{app_path}/config/application.rb", 'w') do |f|
           f.puts $` + "\n#{str}\n" + $1
         end
       end
