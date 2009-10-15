@@ -54,6 +54,7 @@ module Rails::Generators
       copy_file "Rakefile"
       copy_file "README"
       copy_file "config.ru"
+      template "Gemfile"
     end
 
     def create_app_files

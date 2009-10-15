@@ -163,6 +163,12 @@ class BaseTest < Test::Unit::TestCase
     assert_equal('test123', Forum.connection.password)
   end
 
+  def test_should_accept_setting_auth_type
+    Forum.auth_type = :digest
+    assert_equal(:digest, Forum.auth_type)
+    assert_equal(:digest, Forum.connection.auth_type)
+  end
+
   def test_should_accept_setting_timeout
     Forum.timeout = 5
     assert_equal(5, Forum.timeout)

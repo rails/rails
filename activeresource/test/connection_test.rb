@@ -225,6 +225,21 @@ class ConnectionTest < Test::Unit::TestCase
     assert_raise(ActiveResource::SSLError) { @conn.get('/people/1.xml') }
   end
 
+  def test_auth_type_can_be_string
+    @conn.auth_type = 'digest'
+    assert_equal(:digest, @conn.auth_type)
+  end
+
+  def test_auth_type_defaults_to_basic
+    @conn.auth_type = nil
+    assert_equal(:basic, @conn.auth_type)
+  end
+
+  def test_auth_type_ignores_nonsensical_values
+    @conn.auth_type = :wibble
+    assert_equal(:basic, @conn.auth_type)
+  end
+
   protected
     def assert_response_raises(klass, code)
       assert_raise(klass, "Expected response code #{code} to raise #{klass}") do

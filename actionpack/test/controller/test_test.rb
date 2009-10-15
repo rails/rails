@@ -108,6 +108,11 @@ XML
       head :created, :location => 'created resource'
     end
 
+    def delete_cookie
+      cookies.delete("foo")
+      render :nothing => true
+    end
+
     private
       def rescue_action(e)
         raise e
@@ -510,6 +515,18 @@ XML
     @request.recycle!
     post :no_op
     assert @request.params[:foo].blank?
+  end
+
+  def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set
+    @request.cookies['foo'] = 'bar'
+    get :no_op
+    assert_equal 'bar', cookies['foo']
+  end
+
+  def test_should_detect_if_cookie_is_deleted
+    @request.cookies['foo'] = 'bar'
+    get :delete_cookie
+    assert_nil cookies['foo']
   end
 
   %w(controller response request).each do |variable|

@@ -13,8 +13,6 @@ module ActiveSupport
         data = StringIO.new(data || '')
       end
       
-      LibXML::XML.default_keep_blanks = false
-      
       char = data.getc
       if char.nil?
         {}
@@ -44,9 +42,9 @@ module LibXML #:nodoc:
       # hash::
       #   Hash to merge the converted element into.
       def to_hash(hash={})
-        if text?
-          raise LibXML::XML::Error if content.length >= LIB_XML_LIMIT
-          hash[CONTENT_ROOT] = content
+        if text? || cdata?
+          raise LibXML::XML::Error if hash[CONTENT_ROOT].to_s.length + content.length >= LIB_XML_LIMIT
+          hash[CONTENT_ROOT] = hash[CONTENT_ROOT].to_s + content
         else
           sub_hash = insert_name_into_hash(hash, name)
           attributes_to_hash(sub_hash)
@@ -88,6 +86,11 @@ module LibXML #:nodoc:
         #   Hash to merge the children into.
         def children_to_hash(hash={})
           each { |child| child.to_hash(hash) }
+
+          if hash.length > 1 && hash[CONTENT_ROOT].blank?
+            hash.delete(CONTENT_ROOT)
+          end
+
           attributes_to_hash(hash)
           hash
         end

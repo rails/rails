@@ -5,9 +5,9 @@ module ApplicationTests
     include ActiveSupport::Testing::Isolation
 
     def setup
-      require "rails/generators"
       build_app
       boot_rails
+      require "rails/generators"
     end
 
     test "generators default values" do

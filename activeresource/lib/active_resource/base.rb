@@ -326,6 +326,17 @@ module ActiveResource
         @password = password
       end
 
+      def auth_type
+        if defined?(@auth_type)
+          @auth_type
+        end
+      end
+
+      def auth_type=(auth_type)
+        @connection = nil
+        @auth_type = auth_type
+      end
+
       # Sets the format that attributes are sent and received in from a mime type reference:
       #
       #   Person.format = :json
@@ -397,6 +408,7 @@ module ActiveResource
           @connection.proxy = proxy if proxy
           @connection.user = user if user
           @connection.password = password if password
+          @connection.auth_type = auth_type if auth_type
           @connection.timeout = timeout if timeout
           @connection.ssl_options = ssl_options if ssl_options
           @connection

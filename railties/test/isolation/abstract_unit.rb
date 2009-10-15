@@ -25,8 +25,10 @@ module TestHelpers
   module Paths
     module_function
 
+    TMP_PATH = File.expand_path(File.join(File.dirname(__FILE__), *%w[.. .. tmp]))
+
     def tmp_path(*args)
-      File.expand_path(File.join(File.dirname(__FILE__), *%w[.. .. tmp] + args))
+      File.join(TMP_PATH, *args)
     end
 
     def app_path(*args)
@@ -88,10 +90,14 @@ module TestHelpers
         end
       end
 
+      add_to_config 'config.action_controller.session = { :key => "_myapp_session", :secret => "bac838a849c1d5c4de2e6a50af826079" }'
+    end
+
+    def add_to_config(str)
       environment = File.read("#{app_path}/config/environment.rb")
       if environment =~ /(\n\s*end\s*)\Z/
         File.open("#{app_path}/config/environment.rb", 'w') do |f|
-          f.puts $` + %'\nconfig.action_controller.session = { :key => "_myapp_session", :secret => "bac838a849c1d5c4de2e6a50af826079" }\n' + $1
+          f.puts $` + "\n#{str}\n" + $1
         end
       end
     end

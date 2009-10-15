@@ -8,12 +8,17 @@ else
   RAILS_ROOT = fixtures
 end
 
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../activemodel/lib"
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../activerecord/lib"
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../actionpack/lib"
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
+# TODO: Fix this RAILS_ENV stuff
+RAILS_ENV = 'test'
+require "rails/core"
 require 'rails/generators'
 
 require 'rubygems'
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../activerecord/lib"
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../actionpack/lib"
+
 require 'active_record'
 require 'action_dispatch'
 

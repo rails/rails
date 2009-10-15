@@ -83,7 +83,7 @@ module ActionView
           options
         when Hash
           options = { :only_path => options[:host].nil? }.update(options.symbolize_keys)
-          escape  = options.key?(:escape) ? options.delete(:escape) : true
+          escape  = options.key?(:escape) ? options.delete(:escape) : false
           @controller.send(:url_for, options)
         when :back
           escape = false
@@ -93,7 +93,7 @@ module ActionView
           polymorphic_path(options)
         end
 
-        (escape ? escape_once(url) : url).html_safe!
+        escape ? escape_once(url).html_safe! : url
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set
