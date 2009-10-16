@@ -21,7 +21,6 @@ module Rails
       else
         Rails.application = Class.new(Application)
         yield Rails.application.config if block_given?
-        Rails.application.new
       end
     end
   end

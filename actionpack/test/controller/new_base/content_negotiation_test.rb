@@ -5,7 +5,7 @@ module ContentNegotiation
   # This has no layout and it works
   class BasicController < ActionController::Base
     self.view_paths = [ActionView::FixtureResolver.new(
-      "content_negotiation/basic/hello.html.erb" => "Hello world <%= request.formats %>!"
+      "content_negotiation/basic/hello.html.erb" => "Hello world <%= request.formats.first.to_s %>!"
     )]
   end
 

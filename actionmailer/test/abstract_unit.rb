@@ -20,7 +20,7 @@ ActiveSupport::Deprecation.debug = true
 ActionView::Template.register_template_handler :haml, lambda { |template| "Look its HAML!".inspect }
 ActionView::Template.register_template_handler :bak, lambda { |template| "Lame backup".inspect }
 
-ActionView::Base.config = { :assets_dir => '/nowhere' }
+ActionView::Base::DEFAULT_CONFIG = { :assets_dir => '/nowhere' }
 
 $:.unshift "#{File.dirname(__FILE__)}/fixtures/helpers"
 
