@@ -25,7 +25,7 @@ module InitializerTests
         #{RAILS_FRAMEWORK_ROOT}/actionpack/lib/action_view/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/railties/tmp/app/config/locales/en.yml
         my/other/locale.yml
-      ), I18n.load_path
+      ).map { |path| File.expand_path(path) }, I18n.load_path.map { |path| File.expand_path(path) }
     end
 
     test "i18n finds locale files in engines" do
@@ -49,7 +49,7 @@ module InitializerTests
         #{app_path}/config/locales/en.yml
         my/other/locale.yml
         #{app_path}/vendor/plugins/engine/config/locales/en.yml
-      ), I18n.load_path
+      ).map { |path| File.expand_path(path) }, I18n.load_path.map { |path| File.expand_path(path) }
     end
   end
 end
