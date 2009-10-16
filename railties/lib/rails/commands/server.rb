@@ -7,7 +7,7 @@ options = {
   :Port        => 3000,
   :Host        => "0.0.0.0",
   :environment => (ENV['RAILS_ENV'] || "development").dup,
-  :config      => Rails.root + "/config.ru",
+  :config      => "#{Rails.root}/config.ru",
   :detach      => false,
   :debugger    => false
 }
