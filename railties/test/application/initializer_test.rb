@@ -52,6 +52,8 @@ module ApplicationTests
         config.eager_load_paths = "#{app_path}/lib"
       end
 
+      Rails.application.new
+
       assert Zoo
     end
 
@@ -59,6 +61,7 @@ module ApplicationTests
       app_file "config/environments/development.rb", "$initialize_test_set_from_env = 'success'"
       assert_nil $initialize_test_set_from_env
       Rails::Initializer.run { }
+      Rails.application.new
       assert_equal "success", $initialize_test_set_from_env
     end
 
@@ -67,6 +70,7 @@ module ApplicationTests
         Rails::Initializer.run do |config|
           config.frameworks = []
         end
+        Rails.application.new
       end
     end
 
@@ -74,6 +78,7 @@ module ApplicationTests
       Rails::Initializer.run do |config|
         config.frameworks = [:action_controller]
       end
+      Rails.application.new
 
       assert $:.include?("#{framework_path}/actionpack/lib")
     end
@@ -82,6 +87,7 @@ module ApplicationTests
       Rails::Initializer.run do |config|
         config.frameworks = [:action_view]
       end
+      Rails.application.new
 
       assert $:.include?("#{framework_path}/actionpack/lib")
     end
@@ -91,6 +97,7 @@ module ApplicationTests
         config.after_initialize { $test_after_initialize_block1 = "success" }
         config.after_initialize { $test_after_initialize_block2 = "congratulations" }
       end
+      Rails.application.new
 
       assert_equal "success", $test_after_initialize_block1
       assert_equal "congratulations", $test_after_initialize_block2
@@ -102,6 +109,7 @@ module ApplicationTests
         config.after_initialize # don't pass a block, this is what we're testing!
         config.after_initialize { $test_after_initialize_block2 = "congratulations" }
       end
+      Rails.application.new
 
       assert_equal "success", $test_after_initialize_block1
       assert_equal "congratulations", $test_after_initialize_block2
@@ -112,6 +120,8 @@ module ApplicationTests
       Rails::Initializer.run do |config|
         config.i18n.default_locale = :de
       end
+      Rails.application.new
+
       assert_equal :de, I18n.default_locale
     end
 
@@ -143,6 +153,7 @@ module ApplicationTests
       Rails::Initializer.run do |config|
         config.action_controller.session_store = :cookie_store
       end
+      Rails.application.new
 
       assert !Rails.application.config.middleware.include?(ActiveRecord::SessionStore)
     end
@@ -158,6 +169,7 @@ module ApplicationTests
       Rails::Initializer.run do |c|
         c.action_controller.session_store = :active_record_store
       end
+      Rails.application.new
 
       expects = [ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
       middleware = Rails.application.config.middleware.map { |m| m.klass }
@@ -169,6 +181,7 @@ module ApplicationTests
         c.frameworks -= [:action_controller]
         c.action_controller.session_store = :active_record_store
       end
+      Rails.application.new
 
       assert !Rails.application.config.middleware.include?(ActiveRecord::SessionStore)
     end
@@ -178,6 +191,8 @@ module ApplicationTests
       Rails::Initializer.run do |c|
         c.frameworks -= [:action_view]
       end
+      Rails.application.new
+
       assert_equal nil, ActionMailer::Base.template_root
       assert_equal [], ActionController::Base.view_paths
     end

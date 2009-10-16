@@ -327,7 +327,7 @@ class RescueTest < ActionController::IntegrationTest
 
   test 'rescue routing exceptions' do
     @app = ActionDispatch::Rescue.new(ActionController::Routing::Routes) do
-      rescue_from ActionController::RoutingError, lambda { |env| [200, {"Content-Type" => "text/html"}, "Gotcha!"] }
+      rescue_from ActionController::RoutingError, lambda { |env| [200, {"Content-Type" => "text/html"}, ["Gotcha!"]] }
     end
 
     get '/b00m'

@@ -14,6 +14,7 @@ module InitializerTests
       Rails::Initializer.run do |c|
         c.i18n.load_path << "my/other/locale.yml"
       end
+      Rails.application.new
 
       #{RAILS_FRAMEWORK_ROOT}/railties/test/fixtures/plugins/engines/engine/config/locales/en.yml
       assert_equal %W(
@@ -35,6 +36,7 @@ module InitializerTests
       Rails::Initializer.run do |c|
         c.i18n.load_path << "my/other/locale.yml"
       end
+      Rails.application.new
 
       #{RAILS_FRAMEWORK_ROOT}/railties/test/fixtures/plugins/engines/engine/config/locales/en.yml
       assert_equal %W(

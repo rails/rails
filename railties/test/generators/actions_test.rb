@@ -57,7 +57,7 @@ class ActionsTest < GeneratorsTestCase
   def test_gem_should_put_gem_dependency_in_enviroment
     run_generator
     action :gem, 'will-paginate'
-    assert_file 'config/environment.rb', /config\.gem 'will\-paginate'/
+    assert_file 'config/application.rb', /config\.gem 'will\-paginate'/
   end
 
   def test_gem_with_options_should_include_options_in_gem_dependency_in_environment
@@ -65,7 +65,7 @@ class ActionsTest < GeneratorsTestCase
     action :gem, 'mislav-will-paginate', :lib => 'will-paginate', :source => 'http://gems.github.com'
 
     regexp = /#{Regexp.escape("config.gem 'mislav-will-paginate', :lib => 'will-paginate', :source => 'http://gems.github.com'")}/
-    assert_file 'config/environment.rb', regexp
+    assert_file 'config/application.rb', regexp
   end
 
   def test_gem_with_env_string_should_put_gem_dependency_in_specified_environment
@@ -84,14 +84,14 @@ class ActionsTest < GeneratorsTestCase
   def test_gem_with_lib_option_set_to_false_should_put_gem_dependency_in_enviroment_correctly
     run_generator
     action :gem, 'mislav-will-paginate', :lib => false
-    assert_file 'config/environment.rb', /config\.gem 'mislav\-will\-paginate'\, :lib => false/
+    assert_file 'config/application.rb', /config\.gem 'mislav\-will\-paginate'\, :lib => false/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block
     run_generator
     load_paths = 'config.load_paths += %w["#{RAILS_ROOT}/app/extras"]'
     action :environment, load_paths
-    assert_file 'config/environment.rb', /#{Regexp.escape(load_paths)}/
+    assert_file 'config/application.rb', /#{Regexp.escape(load_paths)}/
   end
 
   def test_environment_with_block_should_include_block_contents_in_environment_initializer_block
@@ -102,7 +102,7 @@ class ActionsTest < GeneratorsTestCase
       '# This will be added'
     end
 
-    assert_file 'config/environment.rb' do |content|
+    assert_file 'config/application.rb' do |content|
       assert_match /# This will be added/, content
       assert_no_match /# This wont be added/, content
     end

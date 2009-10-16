@@ -10,9 +10,9 @@ rescue ArgumentError
   N = 1
 end
 
-require RAILS_ROOT + '/config/environment'
 require 'benchmark'
 include Benchmark
+Rails.application.new
 
 # Don't include compilation in the benchmark
 ARGV.each { |expression| eval(expression) }
