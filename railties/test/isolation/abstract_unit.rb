@@ -120,7 +120,7 @@ module TestHelpers
           Initializer = 'lol'
           require "#{app_path}/config/boot"
           remove_const(:Initializer)
-          booter = VendorBoot.new
+          booter = VendorBoot.new('#{app_path}')
           booter.run
         end
       RUBY
