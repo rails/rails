@@ -12,7 +12,7 @@ OptionParser.new do |opt|
 end
 
 libs =  " -r irb/completion"
-libs << %( -r "#{RAILS_ROOT}/config/environment")
+libs << %( -r "#{Rails.root}/config/environment")
 libs << " -r rails/console_app"
 libs << " -r rails/console_sandbox" if options[:sandbox]
 libs << " -r rails/console_with_helpers"

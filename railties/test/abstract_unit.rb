@@ -14,15 +14,15 @@ $:.unshift File.dirname(__FILE__) + "/../builtin/rails_info"
 
 require 'stringio'
 require 'test/unit'
+require 'fileutils'
 
 require 'active_support'
 require 'active_support/core_ext/logger'
 require 'active_support/test_case'
 
 require 'action_controller'
+require 'rails'
 
-if defined?(RAILS_ROOT)
-  RAILS_ROOT.replace File.dirname(__FILE__)
-else
-  RAILS_ROOT = File.dirname(__FILE__)
+Rails::Initializer.run do |config|
+  config.root = File.dirname(__FILE__)
 end

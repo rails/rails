@@ -11,7 +11,7 @@ module Rails
     attr_accessor :lib, :source, :dep
 
     def self.unpacked_path
-      @unpacked_path ||= File.join(RAILS_ROOT, 'vendor', 'gems')
+      @unpacked_path ||= File.join(Rails.root, 'vendor', 'gems')
     end
 
     @@framework_gems = {}

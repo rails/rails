@@ -1,8 +1,6 @@
 # Don't change this file!
 # Configure your app in config/environment.rb and config/environments/*.rb
 
-RAILS_ROOT = "#{File.dirname(__FILE__)}/.." unless defined?(RAILS_ROOT)
-
 module Rails
   # Mark the version of Rails that generated the boot.rb file. This is
   # a temporary solution and will most likely be removed as Rails 3.0
@@ -70,7 +68,6 @@ module Rails
     def load_initializer
       require "rails"
       install_gem_spec_stubs
-      Rails::GemDependency.add_frozen_gem_path
     end
 
     def install_gem_spec_stubs

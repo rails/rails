@@ -6,7 +6,7 @@ module Rails
   # TODO: w0t?
   class << self
     def application
-      @@application
+      @@application ||= nil
     end
 
     def application=(application)
@@ -43,7 +43,7 @@ module Rails
     end
 
     def root
-      Pathname.new(RAILS_ROOT) if defined?(RAILS_ROOT)
+      application && application.config.root
     end
 
     def env

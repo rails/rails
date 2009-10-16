@@ -1,6 +1,4 @@
 require 'abstract_unit'
-
-require 'rails/initializer'
 require 'rails/backtrace_cleaner'
 
 if defined? Test::Unit::Util::BacktraceFilter

@@ -1,24 +1,10 @@
-require 'test/unit'
-require 'fileutils'
-
-fixtures = File.expand_path(File.join(File.dirname(__FILE__), '..', 'fixtures'))
-if defined?(RAILS_ROOT)
-  RAILS_ROOT.replace fixtures
-else
-  RAILS_ROOT = fixtures
-end
-
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../activemodel/lib"
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../activerecord/lib"
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../actionpack/lib"
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
 # TODO: Fix this RAILS_ENV stuff
 RAILS_ENV = 'test'
-require "rails/core"
+
+require 'abstract_unit'
+Rails.application.config.root = File.expand_path(File.join(File.dirname(__FILE__), '..', 'fixtures'))
 require 'rails/generators'
-
 require 'rubygems'
-
 require 'active_record'
 require 'action_dispatch'
 

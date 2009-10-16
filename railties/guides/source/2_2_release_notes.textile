@@ -51,7 +51,7 @@ If you want to generate these guides locally, inside your application:
 rake doc:guides
 </ruby>
 
-This will put the guides inside +RAILS_ROOT/doc/guides+ and you may start surfing straight away by opening +RAILS_ROOT/doc/guides/index.html+ in your favourite browser.
+This will put the guides inside +Rails.root/doc/guides+ and you may start surfing straight away by opening +Rails.root/doc/guides/index.html+ in your favourite browser.
 
 * Lead Contributors: "Rails Documentation Team":http://guides.rails.info/credits.html
 * Major contributions from "Xavier Noria":http://advogato.org/person/fxn/diary.html and "Hongli Lai":http://izumi.plan99.net/blog/.

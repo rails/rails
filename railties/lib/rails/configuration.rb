@@ -34,37 +34,25 @@ module Rails
 
     def root
       @root ||= begin
-        if defined?(RAILS_ROOT)
-          root = RAILS_ROOT
-        else
-          call_stack = caller.map { |p| p.split(':').first }
-          root_path  = call_stack.detect { |p| p !~ %r[railties/lib/rails] }
-          root_path  = File.dirname(root_path)
+        call_stack = caller.map { |p| p.split(':').first }
+        root_path  = call_stack.detect { |p| p !~ %r[railties/lib/rails] }
+        root_path  = File.dirname(root_path)
 
-          while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/config.ru")
-            parent = File.dirname(root_path)
-            root_path = parent != root_path && parent
-          end
-
-          Object.class_eval("RAILS_ROOT = ''")
-
-          root = File.exist?("#{root_path}/config.ru") ? root_path : Dir.pwd
+        while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/config.ru")
+          parent = File.dirname(root_path)
+          root_path = parent != root_path && parent
         end
 
-        root = RUBY_PLATFORM =~ /(:?mswin|mingw)/ ?
-          Pathname.new(root).expand_path.to_s :
-          Pathname.new(root).realpath.to_s
+        root = File.exist?("#{root_path}/config.ru") ? root_path : Dir.pwd
 
-        # TODO: Remove RAILS_ROOT
-        RAILS_ROOT.replace(root)
-        root
+        RUBY_PLATFORM =~ /(:?mswin|mingw)/ ?
+          Pathname.new(root).expand_path :
+          Pathname.new(root).realpath
       end
     end
 
     def root=(root)
-      Object.class_eval("RAILS_ROOT = ''") unless defined?(RAILS_ROOT)
-      RAILS_ROOT.replace(root)
-      @root = root
+      @root = Pathname.new(root).expand_path
     end
 
     def paths

@@ -61,7 +61,7 @@ def current_gems
 end
 
 def frozen_gems(load_specs=true)
-  Dir[File.join(RAILS_ROOT, 'vendor', 'gems', '*-*')].map do |gem_dir|
+  Dir[File.join(Rails.root, 'vendor', 'gems', '*-*')].map do |gem_dir|
     Rails::GemDependency.from_directory_name(gem_dir, load_specs)
   end
 end

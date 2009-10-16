@@ -37,6 +37,7 @@ module ApplicationTests
 
     test "generators aliases and options on initialization" do
       Rails::Initializer.run do |c|
+        c.frameworks = []
         c.generators.rails :aliases => { :test_framework => "-w" }
         c.generators.orm :datamapper
         c.generators.test_framework :rspec
@@ -50,6 +51,7 @@ module ApplicationTests
 
     test "generators no color on initialization" do
       Rails::Initializer.run do |c|
+        c.frameworks = []
         c.generators.colorize_logging = false
       end
       # Initialize the application

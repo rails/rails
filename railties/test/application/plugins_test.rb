@@ -17,7 +17,7 @@ module ApplicationTests
     end
 
     test "all plugins are loaded when registered plugin list is untouched" do
-      Rails::Initializer.run { }
+      Rails::Initializer.run { |c| c.root = app_path }
       Rails.application.new
       assert_plugins [
         :a, :acts_as_chunky_bacon, :engine, :gemlike, :plugin_with_no_lib_dir, :stubby
@@ -25,19 +25,20 @@ module ApplicationTests
     end
 
     test "no plugins are loaded if the configuration has an empty plugin list" do
-      Rails::Initializer.run { |c| c.plugins = [] }
+      Rails::Initializer.run { |c| c.root = app_path; c.plugins = [] }
       assert_plugins [], Rails.application.config.loaded_plugins
     end
 
     test "only the specified plugins are located in the order listed" do
       plugin_names = [:plugin_with_no_lib_dir, :acts_as_chunky_bacon]
-      Rails::Initializer.run { |c| c.plugins = plugin_names }
+      Rails::Initializer.run { |c| c.root = app_path; c.plugins = plugin_names }
       Rails.application.new
       assert_plugins plugin_names, Rails.application.config.loaded_plugins
     end
 
     test "all plugins loaded after all" do
       Rails::Initializer.run do |config|
+        config.root = app_path
         config.plugins = [:stubby, :all, :acts_as_chunky_bacon]
       end
       Rails.application.new
@@ -47,6 +48,7 @@ module ApplicationTests
     test "plugin names may be strings" do
       plugin_names = ['stubby', 'acts_as_chunky_bacon', :a, :plugin_with_no_lib_dir]
       Rails::Initializer.run do |config|
+        config.root = app_path
         config.plugins = ['stubby', 'acts_as_chunky_bacon', :a, :plugin_with_no_lib_dir]
       end
       Rails.application.new
@@ -56,6 +58,7 @@ module ApplicationTests
 
     test "all plugins loaded when all is used" do
       Rails::Initializer.run do |config|
+        config.root = app_path
         config.plugins = [:stubby, :acts_as_chunky_bacon, :all]
       end
       Rails.application.new
@@ -65,6 +68,7 @@ module ApplicationTests
 
     test "all loaded plugins are added to the load paths" do
       Rails::Initializer.run do |config|
+        config.root = app_path
         config.plugins = [:stubby, :acts_as_chunky_bacon]
       end
       Rails.application.new
@@ -75,6 +79,7 @@ module ApplicationTests
 
     test "registering a plugin name that does not exist raises a load error" do
       Rails::Initializer.run do |config|
+        config.root = app_path
         config.plugins = [:stubby, :acts_as_a_non_existant_plugin]
       end
 
@@ -89,6 +94,7 @@ module ApplicationTests
 
       begin
         Rails::Initializer.run do |config|
+          config.root = app_path
           config.plugins = [:stubby, :acts_as_chunky_bacon, :non_existant_plugin1, :non_existant_plugin2]
         end
         Rails.application.new

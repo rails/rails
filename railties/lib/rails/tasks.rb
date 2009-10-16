@@ -20,5 +20,5 @@ end
 
 # Load any custom rakefile extensions
 # TODO: Don't hardcode these paths.
-Dir["#{RAILS_ROOT}/vendor/plugins/*/**/tasks/**/*.rake"].sort.each { |ext| load ext }
-Dir["#{RAILS_ROOT}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }
+Dir["#{Rails.root}/vendor/plugins/*/**/tasks/**/*.rake"].sort.each { |ext| load ext }
+Dir["#{Rails.root}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }

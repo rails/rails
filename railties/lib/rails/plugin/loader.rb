@@ -147,7 +147,7 @@ module Rails
         end
 
         def application_lib_index
-          $LOAD_PATH.index(File.join(RAILS_ROOT, 'lib')) || 0
+          $LOAD_PATH.index(File.join(Rails.root, 'lib')) || 0
         end
 
         def enabled?(plugin)

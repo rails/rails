@@ -7,6 +7,7 @@ class PathsTest < Test::Unit::TestCase
     build_app
     boot_rails
     Rails::Initializer.run do |config|
+      config.root = app_path
       config.frameworks = [:action_controller, :action_view, :action_mailer, :active_record]
       config.after_initialize do
         ActionController::Base.session_store = nil

@@ -12,6 +12,7 @@ module InitializerTests
     # test_config_defaults_and_settings_should_be_added_to_i18n_defaults
     test "i18n config defaults and settings should be added to i18n defaults" do
       Rails::Initializer.run do |c|
+        c.root = app_path
         c.i18n.load_path << "my/other/locale.yml"
       end
       Rails.application.new
@@ -34,6 +35,7 @@ module InitializerTests
       app_file "vendor/plugins/engine/config/locales/en.yml", "hello:"
 
       Rails::Initializer.run do |c|
+        c.root = app_path
         c.i18n.load_path << "my/other/locale.yml"
       end
       Rails.application.new

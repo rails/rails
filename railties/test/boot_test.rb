@@ -57,7 +57,6 @@ class VendorBootTest < Test::Unit::TestCase
     boot = VendorBoot.new
     boot.expects(:require).with("rails")
     boot.expects(:install_gem_spec_stubs)
-    Rails::GemDependency.expects(:add_frozen_gem_path)
     boot.load_initializer
   end
 end
