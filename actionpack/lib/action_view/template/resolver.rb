@@ -121,7 +121,7 @@ module ActionView
     # # :api: plugin
     def path_to_details(path)
       # [:erb, :format => :html, :locale => :en, :partial => true/false]
-      if m = path.match(%r'(?:^|/)(_)?[\w-]+(\.[\w-]+)*\.(\w+)$')
+      if m = path.match(%r'(?:^|/)(_)?[\w-]+((?:\.[\w-]+)*)\.(\w+)$')
         partial = m[1] == '_'
         details = (m[2]||"").split('.').reject { |e| e.empty? }
         handler = Template.handler_class_for_extension(m[3])
