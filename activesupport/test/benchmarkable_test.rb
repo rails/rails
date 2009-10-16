@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'action_view/helpers/benchmark_helper'
 
 class BenchmarkableTest < ActiveSupport::TestCase
   include ActiveSupport::Benchmarkable
