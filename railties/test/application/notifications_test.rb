@@ -39,10 +39,6 @@ module ApplicationTests
       assert_equal :foo, ActiveSupport::Notifications.queue.events.first
     end
 
-    test "frameworks subscribers are loaded" do
-      assert_equal 1, ActiveSupport::Notifications.queue.subscribers.count { |s| s == "sql" }
-    end
-
     test "configuration subscribers are loaded" do
       assert_equal 1, ActiveSupport::Notifications.queue.subscribers.count { |s| s == /listening/ }
     end
