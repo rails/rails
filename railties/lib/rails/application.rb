@@ -3,6 +3,11 @@ module Rails
     extend Initializable
 
     class << self
+      # Stub out App initialize
+      def initialize!
+        new
+      end
+
       def config
         @config ||= Configuration.new
       end

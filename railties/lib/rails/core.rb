@@ -18,6 +18,10 @@ module Rails
       application.configuration
     end
 
+    def initialize!
+      application.initialize!
+    end
+
     def initialized?
       @initialized || false
     end

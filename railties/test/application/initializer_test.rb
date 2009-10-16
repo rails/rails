@@ -16,11 +16,11 @@ module ApplicationTests
 
       if RUBY_VERSION < '1.9'
         $KCODE = ''
-        Rails.application.new
+        Rails.initialize!
         assert_equal 'UTF8', $KCODE
       else
         Encoding.default_external = Encoding::US_ASCII
-        Rails.application.new
+        Rails.initialize!
         assert_equal Encoding::UTF_8, Encoding.default_external
       end
     end
@@ -30,7 +30,7 @@ module ApplicationTests
         config.root = app_path
       end
 
-      Rails.application.new
+      Rails.initialize!
       assert $:.include?("#{app_path}/app/models")
     end
 
@@ -41,7 +41,7 @@ module ApplicationTests
       end
 
       assert_raises RuntimeError do
-        Rails.application.new
+        Rails.initialize!
       end
     end
 
@@ -58,7 +58,7 @@ module ApplicationTests
         config.eager_load_paths = "#{app_path}/lib"
       end
 
-      Rails.application.new
+      Rails.initialize!
 
       assert Zoo
     end
@@ -67,7 +67,7 @@ module ApplicationTests
       app_file "config/environments/development.rb", "$initialize_test_set_from_env = 'success'"
       assert_nil $initialize_test_set_from_env
       Rails::Initializer.run { |config| config.root = app_path }
-      Rails.application.new
+      Rails.initialize!
       assert_equal "success", $initialize_test_set_from_env
     end
 
@@ -77,7 +77,7 @@ module ApplicationTests
           config.root = app_path
           config.frameworks = []
         end
-        Rails.application.new
+        Rails.initialize!
       end
     end
 
@@ -86,7 +86,7 @@ module ApplicationTests
         config.root = app_path
         config.frameworks = [:action_controller]
       end
-      Rails.application.new
+      Rails.initialize!
 
       assert $:.include?("#{framework_path}/actionpack/lib")
     end
@@ -96,7 +96,7 @@ module ApplicationTests
         config.root = app_path
         config.frameworks = [:action_view]
       end
-      Rails.application.new
+      Rails.initialize!
 
       assert $:.include?("#{framework_path}/actionpack/lib")
     end
@@ -107,7 +107,7 @@ module ApplicationTests
         config.after_initialize { $test_after_initialize_block1 = "success" }
         config.after_initialize { $test_after_initialize_block2 = "congratulations" }
       end
-      Rails.application.new
+      Rails.initialize!
 
       assert_equal "success", $test_after_initialize_block1
       assert_equal "congratulations", $test_after_initialize_block2
@@ -120,7 +120,7 @@ module ApplicationTests
         config.after_initialize # don't pass a block, this is what we're testing!
         config.after_initialize { $test_after_initialize_block2 = "congratulations" }
       end
-      Rails.application.new
+      Rails.initialize!
 
       assert_equal "success", $test_after_initialize_block1
       assert_equal "congratulations", $test_after_initialize_block2
@@ -132,7 +132,7 @@ module ApplicationTests
         config.root = app_path
         config.i18n.default_locale = :de
       end
-      Rails.application.new
+      Rails.initialize!
 
       assert_equal :de, I18n.default_locale
     end
@@ -169,7 +169,7 @@ module ApplicationTests
         config.root = app_path
         config.action_controller.session_store = :cookie_store
       end
-      Rails.application.new
+      Rails.initialize!
 
       assert !Rails.application.config.middleware.include?(ActiveRecord::SessionStore)
     end
@@ -187,7 +187,7 @@ module ApplicationTests
         c.root = app_path
         c.action_controller.session_store = :active_record_store
       end
-      Rails.application.new
+      Rails.initialize!
 
       expects = [ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
       middleware = Rails.application.config.middleware.map { |m| m.klass }
@@ -200,7 +200,7 @@ module ApplicationTests
         c.frameworks -= [:action_controller]
         c.action_controller.session_store = :active_record_store
       end
-      Rails.application.new
+      Rails.initialize!
 
       assert !Rails.application.config.middleware.include?(ActiveRecord::SessionStore)
     end
@@ -211,7 +211,7 @@ module ApplicationTests
         c.root = app_path
         c.frameworks -= [:action_view]
       end
-      Rails.application.new
+      Rails.initialize!
 
       assert_equal nil, ActionMailer::Base.template_root
       assert_equal [], ActionController::Base.view_paths
@@ -221,7 +221,7 @@ module ApplicationTests
       Rails::Initializer.run do |c|
         c.root = app_path
       end
-      Rails.application.new
+      Rails.initialize!
       assert_instance_of Pathname, Rails.root
     end
   end

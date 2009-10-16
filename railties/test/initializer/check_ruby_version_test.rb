@@ -42,7 +42,7 @@ module InitializerTests
       set_ruby_version(version)
       assert_nothing_raised "It appears that rails does not boot" do
         Rails::Initializer.run { |c| c.frameworks = [] }
-        Rails.application.new
+        Rails.initialize!
       end
     end
 
@@ -51,7 +51,7 @@ module InitializerTests
       $stderr = File.open("/dev/null", "w")
       assert_raises(SystemExit) do
         Rails::Initializer.run { |c| c.frameworks = [] }
-        Rails.application.new
+        Rails.initialize!
       end
     end
   end

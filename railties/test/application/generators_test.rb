@@ -43,7 +43,7 @@ module ApplicationTests
         c.generators.test_framework :rspec
       end
       # Initialize the application
-      Rails.application.new
+      Rails.initialize!
 
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
       assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]
@@ -55,7 +55,7 @@ module ApplicationTests
         c.generators.colorize_logging = false
       end
       # Initialize the application
-      Rails.application.new
+      Rails.initialize!
 
       assert_equal Thor::Base.shell, Thor::Shell::Basic
     end

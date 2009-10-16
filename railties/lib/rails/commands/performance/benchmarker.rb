@@ -12,7 +12,7 @@ end
 
 require 'benchmark'
 include Benchmark
-Rails.application.new
+Rails.initialize!
 
 # Don't include compilation in the benchmark
 ARGV.each { |expression| eval(expression) }

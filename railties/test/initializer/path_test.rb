@@ -13,7 +13,7 @@ class PathsTest < Test::Unit::TestCase
         ActionController::Base.session_store = nil
       end
     end
-    Rails.application.new
+    Rails.initialize!
     @paths = Rails.application.config.paths
   end
 

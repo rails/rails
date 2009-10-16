@@ -18,7 +18,7 @@ module ApplicationTests
 
     test "all plugins are loaded when registered plugin list is untouched" do
       Rails::Initializer.run { |c| c.root = app_path }
-      Rails.application.new
+      Rails.initialize!
       assert_plugins [
         :a, :acts_as_chunky_bacon, :engine, :gemlike, :plugin_with_no_lib_dir, :stubby
       ], Rails.application.config.loaded_plugins, @failure_tip
@@ -32,7 +32,7 @@ module ApplicationTests
     test "only the specified plugins are located in the order listed" do
       plugin_names = [:plugin_with_no_lib_dir, :acts_as_chunky_bacon]
       Rails::Initializer.run { |c| c.root = app_path; c.plugins = plugin_names }
-      Rails.application.new
+      Rails.initialize!
       assert_plugins plugin_names, Rails.application.config.loaded_plugins
     end
 
@@ -41,7 +41,7 @@ module ApplicationTests
         config.root = app_path
         config.plugins = [:stubby, :all, :acts_as_chunky_bacon]
       end
-      Rails.application.new
+      Rails.initialize!
       assert_plugins [:stubby, :a, :engine, :gemlike, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], Rails.application.config.loaded_plugins, @failure_tip
     end
 
@@ -51,7 +51,7 @@ module ApplicationTests
         config.root = app_path
         config.plugins = ['stubby', 'acts_as_chunky_bacon', :a, :plugin_with_no_lib_dir]
       end
-      Rails.application.new
+      Rails.initialize!
 
       assert_plugins plugin_names, Rails.application.config.loaded_plugins, @failure_tip
     end
@@ -61,8 +61,8 @@ module ApplicationTests
         config.root = app_path
         config.plugins = [:stubby, :acts_as_chunky_bacon, :all]
       end
-      Rails.application.new
-      
+      Rails.initialize!
+
       assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :engine, :gemlike, :plugin_with_no_lib_dir], Rails.application.config.loaded_plugins, @failure_tip
     end
 
@@ -71,7 +71,7 @@ module ApplicationTests
         config.root = app_path
         config.plugins = [:stubby, :acts_as_chunky_bacon]
       end
-      Rails.application.new
+      Rails.initialize!
 
       assert $LOAD_PATH.include?("#{app_path}/vendor/plugins/default/stubby/lib")
       assert $LOAD_PATH.include?("#{app_path}/vendor/plugins/default/acts/acts_as_chunky_bacon/lib")
@@ -84,7 +84,7 @@ module ApplicationTests
       end
 
       assert_raise(LoadError) do
-        Rails.application.new
+        Rails.initialize!
       end
     end
 
@@ -97,7 +97,7 @@ module ApplicationTests
           config.root = app_path
           config.plugins = [:stubby, :acts_as_chunky_bacon, :non_existant_plugin1, :non_existant_plugin2]
         end
-        Rails.application.new
+        Rails.initialize!
         flunk "Expected a LoadError but did not get one"
       rescue LoadError => e
         assert_plugins valid_plugins, Rails.application.config.loaded_plugins, @failure_tip

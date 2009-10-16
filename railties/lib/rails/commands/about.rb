@@ -1,3 +1,3 @@
-Rails.application.new
+Rails.initialize!
 require 'rails/info'
 puts Rails::Info
