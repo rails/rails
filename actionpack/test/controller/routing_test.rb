@@ -1407,20 +1407,6 @@ class RouteSetTest < ActiveSupport::TestCase
       {:controller => 'post', :action => 'show', :project_id => '1'})
   end
 
-  def test_generate_all
-    set.draw do |map|
-      map.connect 'show_post/:id', :controller => 'post', :action => 'show'
-      map.connect ':controller/:action/:id'
-    end
-    all = set.generate(
-      {:action => 'show', :id => 10, :generate_all => true},
-      {:controller => 'post', :action => 'show'}
-    )
-    assert_equal 2, all.length
-    assert_equal '/show_post/10', all.first
-    assert_equal '/post/show/10', all.last
-  end
-
   def test_named_route_in_nested_resource
     set.draw do |map|
       map.resources :projects do |project|
