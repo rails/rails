@@ -747,12 +747,9 @@ class RouteSetTest < ActiveSupport::TestCase
 
   def default_route_set
     @default_route_set ||= begin
-      set = nil
-      ActionController::Routing.with_controllers(['accounts']) do
-        set = ROUTING::RouteSet.new
-        set.draw do |map|
-          map.connect '/:controller/:action/:id/'
-        end
+      set = ROUTING::RouteSet.new
+      set.draw do |map|
+        map.connect '/:controller/:action/:id/'
       end
       set
     end
@@ -940,44 +937,38 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_draw_default_route
-    ActionController::Routing.with_controllers(['users']) do
-      set.draw do |map|
-        map.connect '/:controller/:action/:id'
-      end
-
-      assert_equal 1, set.routes.size
-
-      assert_equal '/users/show/10', set.generate(:controller => 'users', :action => 'show', :id => 10)
-      assert_equal '/users/index/10', set.generate(:controller => 'users', :id => 10)
-
-      assert_equal({:controller => 'users', :action => 'index', :id => '10'}, set.recognize_path('/users/index/10'))
-      assert_equal({:controller => 'users', :action => 'index', :id => '10'}, set.recognize_path('/users/index/10/'))
+    set.draw do |map|
+      map.connect '/:controller/:action/:id'
     end
+
+    assert_equal 1, set.routes.size
+
+    assert_equal '/users/show/10', set.generate(:controller => 'users', :action => 'show', :id => 10)
+    assert_equal '/users/index/10', set.generate(:controller => 'users', :id => 10)
+
+    assert_equal({:controller => 'users', :action => 'index', :id => '10'}, set.recognize_path('/users/index/10'))
+    assert_equal({:controller => 'users', :action => 'index', :id => '10'}, set.recognize_path('/users/index/10/'))
   end
 
   def test_draw_default_route_with_default_controller
-    ActionController::Routing.with_controllers(['users']) do
-      set.draw do |map|
-        map.connect '/:controller/:action/:id', :controller => 'users'
-      end
-      assert_equal({:controller => 'users', :action => 'index'}, set.recognize_path('/'))
+    set.draw do |map|
+      map.connect '/:controller/:action/:id', :controller => 'users'
     end
+    assert_equal({:controller => 'users', :action => 'index'}, set.recognize_path('/'))
   end
 
   def test_route_with_parameter_shell
-    ActionController::Routing.with_controllers(['users', 'pages']) do
-      set.draw do |map|
-        map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+/
-        map.connect '/:controller/:action/:id'
-      end
-
-      assert_equal({:controller => 'pages', :action => 'index'}, set.recognize_path('/pages'))
-      assert_equal({:controller => 'pages', :action => 'index'}, set.recognize_path('/pages/index'))
-      assert_equal({:controller => 'pages', :action => 'list'}, set.recognize_path('/pages/list'))
-
-      assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/pages/show/10'))
-      assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/page/10'))
+    set.draw do |map|
+      map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+/
+      map.connect '/:controller/:action/:id'
     end
+
+    assert_equal({:controller => 'pages', :action => 'index'}, set.recognize_path('/pages'))
+    assert_equal({:controller => 'pages', :action => 'index'}, set.recognize_path('/pages/index'))
+    assert_equal({:controller => 'pages', :action => 'list'}, set.recognize_path('/pages/list'))
+
+    assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/pages/show/10'))
+    assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/page/10'))
   end
 
   def test_route_requirements_with_anchor_chars_are_invalid
@@ -1568,101 +1559,86 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal({:controller => 'pages', :action => 'show', :name => :as_symbol}, set.recognize_path('/named'))
   end
 
-
   def test_interpolation_chunk_should_respect_raw
-    ActionController::Routing.with_controllers(['hello']) do
-      set.draw do |map|
-        map.connect '/Hello World', :controller => 'hello'
-      end
-
-      assert_equal '/Hello%20World', set.generate(:controller => 'hello')
-      assert_equal({:controller => "hello", :action => "index"}, set.recognize_path('/Hello World'))
-      assert_raise(ActionController::RoutingError) { set.recognize_path('/Hello%20World') }
+    set.draw do |map|
+      map.connect '/Hello World', :controller => 'hello'
     end
+
+    assert_equal '/Hello%20World', set.generate(:controller => 'hello')
+    assert_equal({:controller => "hello", :action => "index"}, set.recognize_path('/Hello World'))
+    assert_raise(ActionController::RoutingError) { set.recognize_path('/Hello%20World') }
   end
 
   def test_value_should_not_be_double_unescaped
-    ActionController::Routing.with_controllers(['foo']) do
-      set.draw do |map|
-        map.connect '/Карта', :controller => 'foo'
-      end
-
-      assert_equal '/%D0%9A%D0%B0%D1%80%D1%82%D0%B0', set.generate(:controller => 'foo')
-      assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/Карта'))
-      assert_raise(ActionController::RoutingError) { set.recognize_path('/%D0%9A%D0%B0%D1%80%D1%82%D0%B0') }
+    set.draw do |map|
+      map.connect '/Карта', :controller => 'foo'
     end
+
+    assert_equal '/%D0%9A%D0%B0%D1%80%D1%82%D0%B0', set.generate(:controller => 'foo')
+    assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/Карта'))
+    assert_raise(ActionController::RoutingError) { set.recognize_path('/%D0%9A%D0%B0%D1%80%D1%82%D0%B0') }
   end
 
   def test_regexp_chunk_should_escape_specials
-    ActionController::Routing.with_controllers(['foo', 'bar']) do
-      set.draw do |map|
-        map.connect '/Hello*World', :controller => 'foo'
-        map.connect '/HelloWorld', :controller => 'bar'
-      end
-
-      assert_equal '/Hello*World', set.generate(:controller => 'foo')
-      assert_equal '/HelloWorld', set.generate(:controller => 'bar')
-
-      assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/Hello*World'))
-      assert_equal({:controller => "bar", :action => "index"}, set.recognize_path('/HelloWorld'))
+    set.draw do |map|
+      map.connect '/Hello*World', :controller => 'foo'
+      map.connect '/HelloWorld', :controller => 'bar'
     end
+
+    assert_equal '/Hello*World', set.generate(:controller => 'foo')
+    assert_equal '/HelloWorld', set.generate(:controller => 'bar')
+
+    assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/Hello*World'))
+    assert_equal({:controller => "bar", :action => "index"}, set.recognize_path('/HelloWorld'))
   end
 
   def test_regexp_chunk_should_add_question_mark_for_optionals
-    ActionController::Routing.with_controllers(['foo', 'bar']) do
-      set.draw do |map|
-        map.connect '/', :controller => 'foo'
-        map.connect '/hello', :controller => 'bar'
-      end
-
-      assert_equal '/', set.generate(:controller => 'foo')
-      assert_equal '/hello', set.generate(:controller => 'bar')
-
-      assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/'))
-      assert_equal({:controller => "bar", :action => "index"}, set.recognize_path('/hello'))
+    set.draw do |map|
+      map.connect '/', :controller => 'foo'
+      map.connect '/hello', :controller => 'bar'
     end
+
+    assert_equal '/', set.generate(:controller => 'foo')
+    assert_equal '/hello', set.generate(:controller => 'bar')
+
+    assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/'))
+    assert_equal({:controller => "bar", :action => "index"}, set.recognize_path('/hello'))
   end
 
   def test_assign_route_options_with_anchor_chars
-    ActionController::Routing.with_controllers(['cars']) do
-      set.draw do |map|
-        map.connect '/cars/:action/:person/:car/', :controller => 'cars'
-      end
-
-      assert_equal '/cars/buy/1/2', set.generate(:controller => 'cars', :action => 'buy', :person => '1', :car => '2')
-
-      assert_equal({:controller => "cars", :action => "buy", :person => "1", :car => "2"}, set.recognize_path('/cars/buy/1/2'))
+    set.draw do |map|
+      map.connect '/cars/:action/:person/:car/', :controller => 'cars'
     end
+
+    assert_equal '/cars/buy/1/2', set.generate(:controller => 'cars', :action => 'buy', :person => '1', :car => '2')
+
+    assert_equal({:controller => "cars", :action => "buy", :person => "1", :car => "2"}, set.recognize_path('/cars/buy/1/2'))
   end
 
   def test_segmentation_of_dot_path
-    ActionController::Routing.with_controllers(['books']) do
-      set.draw do |map|
-        map.connect '/books/:action.rss', :controller => 'books'
-      end
-
-      assert_equal '/books/list.rss', set.generate(:controller => 'books', :action => 'list')
-
-      assert_equal({:controller => "books", :action => "list"}, set.recognize_path('/books/list.rss'))
+    set.draw do |map|
+      map.connect '/books/:action.rss', :controller => 'books'
     end
+
+    assert_equal '/books/list.rss', set.generate(:controller => 'books', :action => 'list')
+
+    assert_equal({:controller => "books", :action => "list"}, set.recognize_path('/books/list.rss'))
   end
 
   def test_segmentation_of_dynamic_dot_path
-    ActionController::Routing.with_controllers(['books']) do
-      set.draw do |map|
-        map.connect '/books/:action.:format', :controller => 'books'
-      end
-
-      assert_equal '/books/list.rss', set.generate(:controller => 'books', :action => 'list', :format => 'rss')
-      assert_equal '/books/list.xml', set.generate(:controller => 'books', :action => 'list', :format => 'xml')
-      assert_equal '/books/list', set.generate(:controller => 'books', :action => 'list')
-      assert_equal '/books', set.generate(:controller => 'books', :action => 'index')
-
-      assert_equal({:controller => "books", :action => "list", :format => "rss"}, set.recognize_path('/books/list.rss'))
-      assert_equal({:controller => "books", :action => "list", :format => "xml"}, set.recognize_path('/books/list.xml'))
-      assert_equal({:controller => "books", :action => "list"}, set.recognize_path('/books/list'))
-      assert_equal({:controller => "books", :action => "index"}, set.recognize_path('/books'))
+    set.draw do |map|
+      map.connect '/books/:action.:format', :controller => 'books'
     end
+
+    assert_equal '/books/list.rss', set.generate(:controller => 'books', :action => 'list', :format => 'rss')
+    assert_equal '/books/list.xml', set.generate(:controller => 'books', :action => 'list', :format => 'xml')
+    assert_equal '/books/list', set.generate(:controller => 'books', :action => 'list')
+    assert_equal '/books', set.generate(:controller => 'books', :action => 'index')
+
+    assert_equal({:controller => "books", :action => "list", :format => "rss"}, set.recognize_path('/books/list.rss'))
+    assert_equal({:controller => "books", :action => "list", :format => "xml"}, set.recognize_path('/books/list.xml'))
+    assert_equal({:controller => "books", :action => "list"}, set.recognize_path('/books/list'))
+    assert_equal({:controller => "books", :action => "index"}, set.recognize_path('/books'))
   end
 
   def test_slashes_are_implied
