@@ -12,7 +12,6 @@ end
 
 require 'benchmark'
 include Benchmark
-Rails.initialize!
 
 # Don't include compilation in the benchmark
 ARGV.each { |expression| eval(expression) }
@@ -21,4 +20,4 @@ bm(6) do |x|
   ARGV.each_with_index do |expression, idx|
     x.report("##{idx + 1}") { N.times { eval(expression) } }
   end
-end 
+end
