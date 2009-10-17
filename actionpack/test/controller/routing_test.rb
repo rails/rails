@@ -1345,20 +1345,20 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do |map|
       map.connect ':controller/:action/:id'
     end
-    assert_equal '/post', set.generate(
-      {:controller => 'post', :action => 'index'},
-      {:controller => 'post', :action => 'show', :id => '10'}
+    assert_equal '/books', set.generate(
+      {:controller => 'books', :action => 'index'},
+      {:controller => 'books', :action => 'show', :id => '10'}
     )
   end
 
   def test_query_params_will_be_shown_when_recalled
     set.draw do |map|
-      map.connect 'show_post/:parameter', :controller => 'post', :action => 'show'
+      map.connect 'show_weblog/:parameter', :controller => 'weblog', :action => 'show'
       map.connect ':controller/:action/:id'
     end
-    assert_equal '/post/edit?parameter=1', set.generate(
+    assert_equal '/weblog/edit?parameter=1', set.generate(
       {:action => 'edit', :parameter => 1},
-      {:controller => 'post', :action => 'show', :parameter => 1}
+      {:controller => 'weblog', :action => 'show', :parameter => 1}
     )
   end
 
@@ -1380,9 +1380,9 @@ class RouteSetTest < ActiveSupport::TestCase
 
   def test_expiry_determination_should_consider_values_with_to_param
     set.draw { |map| map.connect 'projects/:project_id/:controller/:action' }
-    assert_equal '/projects/1/post/show', set.generate(
+    assert_equal '/projects/1/weblog/show', set.generate(
       {:action => 'show', :project_id => 1},
-      {:controller => 'post', :action => 'show', :project_id => '1'})
+      {:controller => 'weblog', :action => 'show', :project_id => '1'})
   end
 
   def test_named_route_in_nested_resource
