@@ -17,14 +17,9 @@ module ActiveRecord
       # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+. Empty strings for fixnum and float
       # columns are turned into +nil+.
       def write_attribute(attr_name, value)
-        attr_name = attr_name.to_s
-        attr_name = self.class.primary_key if attr_name == 'id'
+        attr_name = _attributes.unalias(attr_name)
         @attributes_cache.delete(attr_name)
-        if (column = column_for_attribute(attr_name)) && column.number?
-          @attributes[attr_name] = convert_number_column_value(value)
-        else
-          @attributes[attr_name] = value
-        end
+        _attributes[attr_name] = value
       end
 
       private
