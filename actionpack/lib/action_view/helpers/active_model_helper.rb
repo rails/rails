@@ -202,8 +202,8 @@ module ActionView
         end
 
         objects.compact!
-
         count = objects.inject(0) {|sum, object| sum + object.errors.count }
+
         unless count.zero?
           html = {}
           [:id, :class].each do |key|
@@ -216,16 +216,20 @@ module ActionView
           end
           options[:object_name] ||= params.first
 
-          I18n.with_options :locale => options[:locale], :scope => [:activerecord, :errors, :template] do |locale|
+          I18n.with_options :locale => options[:locale], :scope => [:activemodel, :errors, :template] do |locale|
             header_message = if options.include?(:header_message)
               options[:header_message]
             else
-              object_name = options[:object_name].to_s.gsub('_', ' ')
-              object_name = I18n.t(options[:object_name].to_s, :default => object_name, :scope => [:activerecord, :models], :count => 1)
-              locale.t :header, :count => count, :model => object_name
+              locale.t :header, :count => count, :model => options[:object_name].to_s.gsub('_', ' ')
             end
+
             message = options.include?(:message) ? options[:message] : locale.t(:body)
-            error_messages = objects.sum {|object| object.errors.full_messages.map {|msg| content_tag(:li, ERB::Util.html_escape(msg)) } }.join
+
+            error_messages = objects.sum do |object|
+              object.errors.full_messages.map do |msg|
+                content_tag(:li, ERB::Util.html_escape(msg))
+              end
+            end.join
 
             contents = ''
             contents << content_tag(options[:header_tag] || :h2, header_message) unless header_message.blank?
