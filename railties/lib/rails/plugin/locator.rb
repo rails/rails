@@ -78,7 +78,7 @@ module Rails
     # a <tt>rails/init.rb</tt> file.
     class GemLocator < Locator
       def plugins
-        gem_index = initializer.configuration.gems.inject({}) { |memo, gem| memo.update gem.specification => gem }
+        gem_index = {}
         specs     = gem_index.keys
         specs    += Gem.loaded_specs.values.select do |spec|
           spec.loaded_from && # prune stubs

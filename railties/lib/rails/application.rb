@@ -311,31 +311,6 @@ module Rails
       end
     end
 
-    initializer :check_for_unbuilt_gems do
-      unbuilt_gems = config.gems.select {|gem| gem.frozen? && !gem.built? }
-      if unbuilt_gems.size > 0
-        # don't print if the gems:build rake tasks are being run
-        unless $gems_build_rake_task
-          abort <<-end_error
-  The following gems have native components that need to be built
-  #{unbuilt_gems.map { |gemm| "#{gemm.name}  #{gemm.requirement}" } * "\n  "}
-
-  You're running:
-  ruby #{Gem.ruby_version} at #{Gem.ruby}
-  rubygems #{Gem::RubyGemsVersion} at #{Gem.path * ', '}
-
-  Run `rake gems:build` to build the unbuilt gems.
-          end_error
-        end
-      end
-    end
-
-    initializer :load_gems do
-      unless $gems_rake_task
-        config.gems.each { |gem| gem.load }
-      end
-    end
-
     # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
     # defaults to <tt>vendor/plugins</tt> but may also be set to a list of
     # paths, such as
@@ -356,49 +331,19 @@ module Rails
       plugin_loader.load_plugins
     end
 
-    # TODO: Figure out if this needs to run a second time
-    # load_gems
-
-    initializer :check_gem_dependencies do
-      unloaded_gems = config.gems.reject { |g| g.loaded? }
-      if unloaded_gems.size > 0
-        configuration.gems_dependencies_loaded = false
-        # don't print if the gems rake tasks are being run
-        unless $gems_rake_task
-          abort <<-end_error
-  Missing these required gems:
-  #{unloaded_gems.map { |gemm| "#{gemm.name}  #{gemm.requirement}" } * "\n  "}
-
-  You're running:
-  ruby #{Gem.ruby_version} at #{Gem.ruby}
-  rubygems #{Gem::RubyGemsVersion} at #{Gem.path * ', '}
-
-  Run `rake gems:install` to install the missing gems.
-          end_error
-        end
-      else
-        configuration.gems_dependencies_loaded = true
-      end
-    end
-
     # # bail out if gems are missing - note that check_gem_dependencies will have
     # # already called abort() unless $gems_rake_task is set
     # return unless gems_dependencies_loaded
-
     initializer :load_application_initializers do
-      if config.gems_dependencies_loaded
-        Dir["#{configuration.root}/config/initializers/**/*.rb"].sort.each do |initializer|
-          load(initializer)
-        end
+      Dir["#{configuration.root}/config/initializers/**/*.rb"].sort.each do |initializer|
+        load(initializer)
       end
     end
 
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)
     initializer :after_initialize do
-      if config.gems_dependencies_loaded
-        configuration.after_initialize_blocks.each do |block|
-          block.call
-        end
+      configuration.after_initialize_blocks.each do |block|
+        block.call
       end
     end
 
@@ -440,7 +385,7 @@ module Rails
     #
     # # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
     initializer :load_observers do
-      if config.gems_dependencies_loaded && configuration.frameworks.include?(:active_record)
+      if configuration.frameworks.include?(:active_record)
         ActiveRecord::Base.instantiate_observers
       end
     end
