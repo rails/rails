@@ -1,4 +1,4 @@
-require 'digest/md5' 
+require 'digest/md5'
 require 'active_support/secure_random'
 require 'rails/version' unless defined?(Rails::VERSION)
 
@@ -73,6 +73,10 @@ module Rails::Generators
         directory "initializers"
         directory "locales"
       end
+    end
+
+    def create_boot_file
+      copy_file "config/boot.rb"
     end
 
     def create_activerecord_files
