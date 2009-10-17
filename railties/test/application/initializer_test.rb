@@ -7,6 +7,7 @@ module ApplicationTests
     def setup
       build_app
       boot_rails
+      require "rails"
     end
 
     test "initializing an application initializes rails" do

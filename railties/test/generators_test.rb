@@ -101,10 +101,11 @@ class GeneratorsTest < GeneratorsTestCase
 
   def test_rails_generators_with_others_information
     output = capture(:stdout){ Rails::Generators.help }.split("\n").last
-    assert_equal "Others: active_record:fixjour, fixjour, mspec, rails:javascripts, wrong.", output
+    assert_equal "Others: active_record:fixjour, fixjour, mspec, rails:javascripts.", output
   end
 
   def test_warning_is_shown_if_generator_cant_be_loaded
+    Rails::Generators.load_paths << File.expand_path("../fixtures/vendor/gems/gems/wrong", __FILE__)
     output = capture(:stderr){ Rails::Generators.find_by_namespace(:wrong) }
     assert_match /\[WARNING\] Could not load generator at/, output
     assert_match /Error: uninitialized constant Rails::Generator/, output

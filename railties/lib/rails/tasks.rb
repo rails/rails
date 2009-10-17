@@ -6,7 +6,6 @@ $VERBOSE = nil
   databases
   documentation
   framework
-  gems
   log
   middleware
   misc

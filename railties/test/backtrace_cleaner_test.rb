@@ -50,10 +50,4 @@ class BacktraceCleanerVendorGemTest < ActiveSupport::TestCase
     end
   end
 
-  test "should format vendor gems correctly" do
-    @backtrace = [ "#{Rails::GemDependency.unpacked_path}/nosuchgem-1.2.3/lib/foo.rb" ]
-    @result = @cleaner.clean(@backtrace)
-    assert_equal "nosuchgem (1.2.3) [v] lib/foo.rb", @result[0]
-  end
-
 end

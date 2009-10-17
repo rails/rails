@@ -7,7 +7,6 @@ module ApplicationTests
     def setup
       build_app
       boot_rails
-      Object.send(:remove_const, :RAILS_ROOT)
     end
 
     test "the application root is set correctly" do

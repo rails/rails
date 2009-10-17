@@ -75,10 +75,6 @@ module Rails::Generators
       end
     end
 
-    def create_boot_file
-      copy_file "config/boot.rb"
-    end
-
     def create_activerecord_files
       return if options[:skip_activerecord]
       template "config/databases/#{options[:database]}.yml", "config/database.yml"

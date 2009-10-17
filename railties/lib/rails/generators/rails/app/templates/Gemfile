@@ -5,6 +5,17 @@ gem "rails", "<%= Rails::VERSION::STRING %>"
 # Bundling edge rails:
 # gem "rails", "<%= Rails::VERSION::STRING %>", :git => "git://github.com/rails/rails.git"
 
-# You can list more dependencies here
-# gem "nokogiri"
-# gem "merb" # ;)
+# Specify gemcutter as a gem source
+# source "http://gemcutter.org"
+
+# Specify gems that this application depends on and have them installed with rake gems:install
+# gem "bj"
+# gem "hpricot", "0.6"
+# gem "sqlite3-ruby", :require_as => "sqlite3"
+# gem "aws-s3", :require_as => "aws/s3"
+
+# Specify gems that should only be required in certain environments
+# gem "rspec", :only => :test
+# only :test do
+#   gem "webrat"
+# end

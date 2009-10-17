@@ -1,5 +1,4 @@
 require 'active_support/backtrace_cleaner'
-require 'rails/gem_dependency'
 
 module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner
@@ -36,9 +35,6 @@ module Rails
           # http://gist.github.com/30430
           add_filter { |line| line.sub(/(#{path})\/gems\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) \4')}
         end
-
-        vendor_gems_path = Rails::GemDependency.unpacked_path.sub("#{Rails.root}/",'')
-        add_filter { |line| line.sub(/(#{vendor_gems_path})\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) [v] \4')}
       end
   end
 

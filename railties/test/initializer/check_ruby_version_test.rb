@@ -7,6 +7,7 @@ module InitializerTests
     def setup
       build_app
       boot_rails
+      require "rails"
     end
 
     test "rails does not initialize with ruby version 1.8.1" do

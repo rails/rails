@@ -1,5 +1,12 @@
-# Bootstrap the Rails environment, frameworks, and default configuration
-require File.expand_path(File.join(File.dirname(__FILE__), 'boot'))
+begin
+  # Use Bundler
+  require File.expand_path("../../vendor/gems/environment", __FILE__)
+rescue LoadError
+  # Use Rubygems
+  require 'rubygems'
+end
+
+require 'rails'
 
 Rails::Initializer.run do |config|
   # Settings in config/environments/* take precedence over those specified here.
