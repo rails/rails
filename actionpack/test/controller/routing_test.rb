@@ -425,19 +425,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_no_match /:controller=>"post"/, diff_match
   end
 
-  # this specifies the case where your formerly would get a very confusing error message with an empty diff
-  def test_should_have_better_error_message_when_options_diff_is_empty
-    rs.draw do |map|
-      map.content '/content/:query', :controller => 'content', :action => 'show'
-    end
-
-    exception = assert_raise(ActionController::RoutingError) { rs.generate(:controller => 'content', :action => 'show', :use_route => "content") }
-    assert_match %r[:action=>"show"], exception.message
-    assert_match %r[:controller=>"content"], exception.message
-    assert_match %r[you may have ambiguous routes, or you may need to supply additional parameters for this route], exception.message
-    assert_match %r[content_url has the following required parameters: \["content", :query\] - are they all satisfied?], exception.message
-  end
-
   def test_dynamic_path_allowed
     rs.draw do |map|
       map.connect '*path', :controller => 'content', :action => 'show_file'
