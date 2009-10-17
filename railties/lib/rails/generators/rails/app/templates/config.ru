@@ -2,4 +2,4 @@
 require ::File.expand_path('../config/environment',  __FILE__)
 
 # Dispatch the request
-run Rails.application.new
+run Rails.application

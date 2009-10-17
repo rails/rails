@@ -40,7 +40,7 @@ module ApplicationTests
 
     test "Rails.application is available after config.ru has been racked up" do
       rackup
-      assert Rails.application.new < Rails::Application
+      assert Rails.application < Rails::Application
     end
 
     # Passenger still uses AC::Dispatcher, so we need to

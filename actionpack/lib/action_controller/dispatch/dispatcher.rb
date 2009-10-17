@@ -50,7 +50,7 @@ module ActionController
 
       def new
         # DEPRECATE Rails application fallback
-        Rails.application.new
+        Rails.application
       end
     end
   end
