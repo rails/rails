@@ -11,11 +11,11 @@ module ActiveRecord
             raise ArgumentError, "No database file specified. Missing argument: database"
           end
 
-          # Allow database path relative to RAILS_ROOT, but only if
+          # Allow database path relative to Rails.root, but only if
           # the database path is not the special path that tells
           # Sqlite to build a database only in memory.
-          if Object.const_defined?(:RAILS_ROOT) && ':memory:' != config[:database]
-            config[:database] = File.expand_path(config[:database], RAILS_ROOT)
+          if Object.const_defined?(:Rails) && ':memory:' != config[:database]
+            config[:database] = File.expand_path(config[:database], Rails.root)
           end
         end
     end
