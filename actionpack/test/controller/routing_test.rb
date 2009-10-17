@@ -1019,14 +1019,6 @@ class RouteSetTest < ActiveSupport::TestCase
         map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+\z/
       end
     end
-    assert_nothing_raised do
-      set.draw do |map|
-        map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+/, :name => /^(david|jamis)/
-      end
-      assert_raise ActionController::RoutingError do
-        set.generate :controller => 'pages', :action => 'show', :id => 10
-      end
-    end
   end
 
   def test_route_requirements_with_invalid_http_method_is_invalid
