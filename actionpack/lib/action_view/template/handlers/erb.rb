@@ -42,9 +42,11 @@ module ActionView
       self.erubis_implementation = Erubis
 
       def compile(template)
-        magic = $1 if template.source =~ /\A(<%#.*coding[:=]\s*(\S+)\s*-?%>)/
-        erb = "#{magic}<% __in_erb_template=true %>#{template.source}"
-        self.class.erubis_implementation.new(erb, :trim=>(self.class.erb_trim_mode == "-")).src
+        source = template.source.gsub(/\A(<%(#.*coding[:=]\s*(\S+)\s*)-?%>)\s*\n?/, '')
+        erb = "<% __in_erb_template=true %>#{source}"
+        result = self.class.erubis_implementation.new(erb, :trim=>(self.class.erb_trim_mode == "-")).src
+        result = "#{$2}\n#{result}" if $2
+        result
       end
     end
   end
