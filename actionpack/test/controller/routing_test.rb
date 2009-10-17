@@ -1723,32 +1723,43 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_build_empty_query_string
-    assert_equal '/foo', default_route_set.generate({:controller => 'foo'})
+    assert_uri_equal '/foo', default_route_set.generate({:controller => 'foo'})
   end
 
   def test_build_query_string_with_nil_value
-    assert_equal '/foo', default_route_set.generate({:controller => 'foo', :x => nil})
+    assert_uri_equal '/foo', default_route_set.generate({:controller => 'foo', :x => nil})
   end
 
   def test_simple_build_query_string
-    assert_equal '/foo?x=1&y=2', default_route_set.generate({:controller => 'foo', :x => '1', :y => '2'})
+    assert_uri_equal '/foo?x=1&y=2', default_route_set.generate({:controller => 'foo', :x => '1', :y => '2'})
   end
 
   def test_convert_ints_build_query_string
-    assert_equal '/foo?x=1&y=2', default_route_set.generate({:controller => 'foo', :x => 1, :y => 2})
+    assert_uri_equal '/foo?x=1&y=2', default_route_set.generate({:controller => 'foo', :x => 1, :y => 2})
   end
 
   def test_escape_spaces_build_query_string
-    assert_equal '/foo?x=hello+world&y=goodbye+world', default_route_set.generate({:controller => 'foo', :x => 'hello world', :y => 'goodbye world'})
+    assert_uri_equal '/foo?x=hello+world&y=goodbye+world', default_route_set.generate({:controller => 'foo', :x => 'hello world', :y => 'goodbye world'})
   end
 
   def test_expand_array_build_query_string
-    assert_equal '/foo?x%5B%5D=1&x%5B%5D=2', default_route_set.generate({:controller => 'foo', :x => [1, 2]})
+    assert_uri_equal '/foo?x%5B%5D=1&x%5B%5D=2', default_route_set.generate({:controller => 'foo', :x => [1, 2]})
   end
 
   def test_escape_spaces_build_query_string_selected_keys
-    assert_equal '/foo?x=hello+world', default_route_set.generate({:controller => 'foo', :x => 'hello world'})
+    assert_uri_equal '/foo?x=hello+world', default_route_set.generate({:controller => 'foo', :x => 'hello world'})
   end
+
+  private
+    def assert_uri_equal(expected, actual)
+      assert_equal(sort_query_string_params(expected), sort_query_string_params(actual))
+    end
+
+    def sort_query_string_params(uri)
+      path, qs = uri.split('?')
+      qs = qs.split('&').sort.join('&') if qs
+      qs ? "#{path}?#{qs}" : path
+    end
 end
 
 class RouteLoadingTest < Test::Unit::TestCase
