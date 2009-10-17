@@ -1,6 +1,6 @@
 class Object
   # Can you safely .dup this object?
-  # False for nil, false, true, symbols, numbers, and class objects; true otherwise.
+  # False for nil, false, true, symbols, numbers, class and module objects; true otherwise.
   def duplicable?
     true
   end
@@ -37,6 +37,12 @@ class Numeric #:nodoc:
 end
 
 class Class #:nodoc:
+  def duplicable?
+    false
+  end
+end
+
+class Module #:nodoc:
   def duplicable?
     false
   end

@@ -760,6 +760,14 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal "Resource name is david", @response.body
   end
 
+  def test_using_resource_with_responder
+    RespondWithController.responder = proc { |c, r, o| c.render :text => "Resource name is #{r.first.name}" }
+    get :using_resource
+    assert_equal "Resource name is david", @response.body
+  ensure
+    RespondWithController.responder = ActionController::Responder
+  end
+
   def test_not_acceptable
     @request.accept = "application/xml"
     get :using_defaults
