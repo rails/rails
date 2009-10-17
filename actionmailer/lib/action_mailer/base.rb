@@ -1,6 +1,4 @@
-require "active_support/core_ext/class"
-# Use the old layouts until actionmailer gets refactored
-require "action_controller/legacy/layout"
+require 'active_support/core_ext/class'
 
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -254,11 +252,12 @@ module ActionMailer #:nodoc:
   #   +implicit_parts_order+.
   class Base
     include AdvAttrAccessor, PartContainer, Quoting, Utils
-    extend AbstractController::RenderingController
+
+    include AbstractController::RenderingController
+    include AbstractController::Layouts
 
     if Object.const_defined?(:ActionController)
       include ActionController::UrlWriter
-      include ActionController::Layout
     end
 
     private_class_method :new #:nodoc:
@@ -569,8 +568,7 @@ module ActionMailer #:nodoc:
         end
         
         @template = initialize_template_class(body)
-        layout = _pick_layout(layout, true) unless 
-          ActionController::Base.exempt_from_layout.include?(template.handler)
+        layout = _layout_for_option(:default, :formats => formats)
         @template._render_template(template, layout, {})
       ensure
         @current_template_content_type = nil
@@ -583,25 +581,23 @@ module ActionMailer #:nodoc:
       end
 
       def render(opts)
+        file = opts[:file]
         opts[:locals] ||= {}
-        layout, file = opts.delete(:layout), opts[:file]
-        
-        begin
-          @template = initialize_template_class(opts.delete(:body))
-          
-          if file
-            prefix = mailer_name unless file =~ /\//
-            template = view_paths.find(file, {:formats => formats}, prefix)
-          end
 
-          layout = _pick_layout(layout, 
-            !template || ActionController::Base.exempt_from_layout.include?(template.handler))
+        @template = initialize_template_class(opts.delete(:body))
 
-          if template
-            @template._render_template(template, layout, opts)
-          elsif inline = opts[:inline]
-            @template._render_inline(inline, layout, opts)
-          end
+        if file
+          prefix = mailer_name unless file =~ /\//
+          template = view_paths.find(file, {:formats => formats}, prefix)
+        end
+
+        layout = opts.key?(:layout) ? opts.delete(:layout) : :default
+        layout = _layout_for_option(layout, :formats => formats)
+
+        if template
+          @template._render_template(template, layout, opts)
+        elsif inline = opts[:inline]
+          @template._render_inline(inline, layout, opts)
         end
       end
 

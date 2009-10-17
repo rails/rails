@@ -1,6 +1,5 @@
 module ActionMailer
   module DeliveryMethod
-    
     # A delivery method implementation which sends via smtp.
     class Smtp < Method
 
@@ -27,5 +26,6 @@ module ActionMailer
         end
       end
     end
+
   end
 end

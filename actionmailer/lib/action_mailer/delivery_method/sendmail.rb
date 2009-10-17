@@ -3,7 +3,6 @@ module ActionMailer
 
     # A delivery method implementation which sends via sendmail.
     class Sendmail < Method
-
       self.settings = {
         :location       => '/usr/sbin/sendmail',
         :arguments      => '-i -t'
@@ -18,5 +17,6 @@ module ActionMailer
         end
       end
     end
+
   end
 end
