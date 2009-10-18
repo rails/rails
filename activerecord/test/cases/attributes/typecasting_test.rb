@@ -86,11 +86,13 @@ class TypecastingTest < ActiveRecord::TestCase
   end
 
   test "without typecasting" do
+    @attributes.merge!('comments_count' => '5')
     attributes = @attributes.without_typecast
-    attributes['comments_count'] = '5'
-
+    
     assert_equal '5', attributes['comments_count']
+    assert_equal  5,  @attributes['comments_count'], "Original attributes should typecast"
   end
+
 
   test "typecast all attributes" do
     attributes = @attributes.merge('title' => 'I love sandwiches', 'comments_count' => '5')

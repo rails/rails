@@ -37,6 +37,12 @@ module ActiveRecord
         hash.merge!(self)
         hash
       end
+      
+      def dup # :nodoc:
+        copy = super
+        copy.types = types.dup
+        copy
+      end
 
       # Provides a duplicate with typecasting disabled.
       #
