@@ -118,7 +118,7 @@ class AppGeneratorTest < GeneratorsTestCase
   end
 
   def test_template_from_dir_pwd
-    FileUtils.cd(RAILS_ROOT)
+    FileUtils.cd(Rails.root)
     assert_match /It works from file!/, run_generator(["-m", "lib/template.rb"])
   end
 
