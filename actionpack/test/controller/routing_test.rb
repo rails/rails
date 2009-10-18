@@ -490,17 +490,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal '/content', rs.generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
   end
 
-  def test_recognition_with_uppercase_controller_name
-    @rs.draw {|m| m.connect ':controller/:action/:id' }
-    assert_equal({:controller => "content", :action => 'index'}, rs.recognize_path("/Content"))
-    assert_equal({:controller => "content", :action => 'list'}, rs.recognize_path("/ConTent/list"))
-    assert_equal({:controller => "content", :action => 'show', :id => '10'}, rs.recognize_path("/CONTENT/show/10"))
-
-    # these used to work, before the routes rewrite, but support for this was pulled in the new version...
-    #assert_equal({'controller' => "admin/news_feed", 'action' => 'index'}, rs.recognize_path("Admin/NewsFeed"))
-    #assert_equal({'controller' => "admin/news_feed", 'action' => 'index'}, rs.recognize_path("Admin/News_Feed"))
-  end
-
   def test_requirement_should_prevent_optional_id
     rs.draw do |map|
       map.post 'post/:id', :controller=> 'post', :action=> 'show', :requirements => {:id => /\d+/}
