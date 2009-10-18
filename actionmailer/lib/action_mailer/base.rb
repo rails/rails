@@ -256,6 +256,9 @@ module ActionMailer #:nodoc:
     include AbstractController::RenderingController
     include AbstractController::Layouts
 
+    include AbstractController::Helpers
+    helper MailHelper
+
     if Object.const_defined?(:ActionController)
       include ActionController::UrlWriter
     end
@@ -442,6 +445,7 @@ module ActionMailer #:nodoc:
         self.view_paths && self.view_paths.first
       end
 
+      # Should template root overwrite the whole view_paths?
       def template_root=(root)
         self.view_paths = ActionView::Base.process_view_paths(root)
       end
@@ -470,6 +474,11 @@ module ActionMailer #:nodoc:
 
         # If an explicit, textual body has not been set, we check assumptions.
         unless String === @body
+          # TODO Hax
+          @body.each do |k, v|
+            instance_variable_set(:"@#{k}", v)
+          end
+
           # First, we look to see if there are any likely templates that match,
           # which include the content-type in their file name (i.e.,
           # "the_template_file.text.html.erb", etc.). Only do this if parts
@@ -480,7 +489,7 @@ module ActionMailer #:nodoc:
                 :content_type => template.mime_type ? template.mime_type.to_s : "text/plain",
                 :disposition => "inline",
                 :charset => charset,
-                :body => render_template(template, @body)
+                :body => render_to_string(:_template => template)
               )
             end
 
@@ -562,16 +571,10 @@ module ActionMailer #:nodoc:
         @sent_on ||= Time.now
       end
 
-      def render_template(template, body)
-        if template.respond_to?(:mime_type)
-          @current_template_content_type = template.mime_type && template.mime_type.to_sym.to_s
-        end
-        
-        @template = initialize_template_class(body)
-        layout = _layout_for_option(:default, :formats => formats)
-        @template._render_template(template, layout, {})
-      ensure
-        @current_template_content_type = nil
+      def _determine_template(options)
+        super
+        layout = options.key?(:layout) ? options[:layout] : :default
+        options[:_layout] = _layout_for_option(layout, options[:_template].details)
       end
 
       def render_message(method_name, body)
@@ -700,10 +703,5 @@ module ActionMailer #:nodoc:
         @mail = m
       end
 
-  end
-
-  Base.class_eval do
-    include Helpers
-    helper MailHelper
   end
 end

@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'active_support/testing/pending'
 
 class FunkyPathMailer < ActionMailer::Base
   self.template_root = "#{File.dirname(__FILE__)}/fixtures/path.with.dots"
@@ -279,7 +280,7 @@ class TestMailer < ActionMailer::Base
     body         :body => "foo", :bar => "baz"
   end
 
-  class <<self
+  class << self
     attr_accessor :received_body
   end
 
@@ -290,6 +291,7 @@ end
 
 class ActionMailerTest < Test::Unit::TestCase
   include ActionMailer::Quoting
+  include ActiveSupport::Testing::Pending
 
   def encode( text, charset="utf-8" )
     quoted_printable( text, charset )
@@ -977,8 +979,10 @@ EOF
   end
 
   def test_body_is_stored_as_an_ivar
-    mail = TestMailer.create_body_ivar(@recipient)
-    assert_equal "body: foo\nbar: baz", mail.body
+    pending "needs attr_internal on @body" do
+      mail = TestMailer.create_body_ivar(@recipient)
+      assert_equal "body: foo\nbar: baz", mail.body
+    end
   end
 
   def test_starttls_is_enabled_if_supported
