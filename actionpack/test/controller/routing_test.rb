@@ -997,19 +997,6 @@ class RouteSetTest < ActiveSupport::TestCase
     end
   end
 
-  def test_non_path_route_requirements_match_all
-    set.draw do |map|
-      map.connect 'page/37s', :controller => 'pages', :action => 'show', :name => /(jamis|david)/
-    end
-    assert_equal '/page/37s', set.generate(:controller => 'pages', :action => 'show', :name => 'jamis')
-    assert_raise ActionController::RoutingError do
-      set.generate(:controller => 'pages', :action => 'show', :name => 'not_jamis')
-    end
-    assert_raise ActionController::RoutingError do
-      set.generate(:controller => 'pages', :action => 'show', :name => 'nor_jamis_and_david')
-    end
-  end
-
   def test_recognize_with_encoded_id_and_regex
     set.draw do |map|
       map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /[a-zA-Z0-9\+]+/
