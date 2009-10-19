@@ -7,6 +7,7 @@ module ApplicationTests
     def setup
       build_app
       boot_rails
+      require "rails"
       require "rails/generators"
     end
 

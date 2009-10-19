@@ -114,16 +114,19 @@ module TestHelpers
     end
 
     def boot_rails
-      # TMP mega hax to prevent boot.rb from actually booting
-      Object.class_eval <<-RUBY, __FILE__, __LINE__+1
-        module Rails
-          Initializer = 'lol'
-          require "#{app_path}/config/boot"
-          remove_const(:Initializer)
-          booter = VendorBoot.new('#{app_path}')
-          booter.run
-        end
-      RUBY
+      %w(
+        actionmailer/lib
+        actionpack/lib
+        activemodel/lib
+        activerecord/lib
+        activeresource/lib
+        activesupport/lib
+        railties/lib
+        railties
+      ).reverse_each do |path|
+        path = File.expand_path("../../../../#{path}", __FILE__)
+        $:.unshift(path)
+      end
     end
   end
 end

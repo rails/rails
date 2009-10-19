@@ -4,7 +4,7 @@ require 'rails/plugin/locator'
 module Rails
   class Configuration
     attr_accessor :cache_classes, :load_paths,
-                  :load_once_paths, :gems_dependencies_loaded, :after_initialize_blocks,
+                  :load_once_paths, :after_initialize_blocks,
                   :frameworks, :framework_root_path, :root, :plugin_paths, :plugins,
                   :plugin_loader, :plugin_locators, :gems, :loaded_plugins, :reload_plugins,
                   :i18n, :gems, :whiny_nils, :consider_all_requests_local,
@@ -228,25 +228,6 @@ module Rails
 
         i18n
       end
-    end
-
-    # Adds a single Gem dependency to the rails application. By default, it will require
-    # the library with the same name as the gem. Use :lib to specify a different name.
-    #
-    #   # gem 'aws-s3', '>= 0.4.0'
-    #   # require 'aws/s3'
-    #   config.gem 'aws-s3', :lib => 'aws/s3', :version => '>= 0.4.0', \
-    #     :source => "http://code.whytheluckystiff.net"
-    #
-    # To require a library be installed, but not attempt to load it, pass :lib => false
-    #
-    #   config.gem 'qrp', :version => '0.4.1', :lib => false
-    def gem(name, options = {})
-      gems << Rails::GemDependency.new(name, options)
-    end
-
-    def gems
-      @gems ||= []
     end
 
     def environment_path

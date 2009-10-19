@@ -11,6 +11,7 @@ module ApplicationTests
     def setup
       build_app
       boot_rails
+      require "rails"
       @failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
       # Tmp hax to get tests working
       FileUtils.cp_r "#{File.dirname(__FILE__)}/../fixtures/plugins", "#{app_path}/vendor"

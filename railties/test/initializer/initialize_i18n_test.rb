@@ -7,6 +7,7 @@ module InitializerTests
     def setup
       build_app
       boot_rails
+      require "rails"
     end
 
     # test_config_defaults_and_settings_should_be_added_to_i18n_defaults

@@ -1,138 +1,18 @@
-# Don't change this file!
-# Configure your app in config/environment.rb and config/environments/*.rb
+# Package management
+# Choose one
 
-module Rails
-  # Mark the version of Rails that generated the boot.rb file. This is
-  # a temporary solution and will most likely be removed as Rails 3.0
-  # comes closer.
-  BOOTSTRAP_VERSION = "3.0"
+environment = File.expand_path('../../vendor/gems/environment', __FILE__)
+vendor_rails = File.expand_path('../../vendor/rails', __FILE__)
 
-  class << self
-    def boot!
-      unless booted?
-        root = File.expand_path('../..', __FILE__)
-        booter = File.exist?("#{root}/vendor/rails") ? VendorBoot : GemBoot
-        booter.new(root).run
-      end
-    end
-
-    def booted?
-      defined? Rails::Initializer
-    end
-  end
-
-  class Boot
-    def initialize(root)
-      @root = root
-    end
-
-    def run
-      preinitialize
-      set_load_paths
-      load_initializer
-    end
-
-    def preinitialize
-      path = "#{@root}/config/preinitializer.rb"
-      load(path) if File.exist?(path)
-    end
-
-    def set_load_paths
-      %w(
-        actionmailer/lib
-        actionpack/lib
-        activemodel/lib
-        activerecord/lib
-        activeresource/lib
-        activesupport/lib
-        railties/lib
-        railties
-      ).reverse_each do |path|
-        path = "#{framework_root_path}/#{path}"
-        $LOAD_PATH.unshift(path) if File.directory?(path)
-        $LOAD_PATH.uniq!
-      end
-    end
-
-    def framework_root_path
-      defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{@root}/vendor/rails"
-    end
-  end
-
-  class VendorBoot < Boot
-    def load_initializer
-      require "rails"
-      install_gem_spec_stubs
-    end
-
-    def install_gem_spec_stubs
-      begin; require "rubygems"; rescue LoadError; return; end
-
-      %w(rails activesupport activerecord actionpack actionmailer activeresource).each do |stub|
-        Gem.loaded_specs[stub] ||= Gem::Specification.new do |s|
-          s.name = stub
-          s.version = Rails::VERSION::STRING
-          s.loaded_from = ""
-        end
-      end
-    end
-  end
-
-  class GemBoot < Boot
-    def load_initializer
-      load_rubygems
-      load_rails_gem
-      require 'rails'
-    end
-
-    def load_rails_gem
-      if version = gem_version
-        gem 'rails', version
-      else
-        gem 'rails'
-      end
-    rescue Gem::LoadError => load_error
-      $stderr.puts %(Missing the Rails #{version} gem. Please `gem install -v=#{version} rails`, update your RAILS_GEM_VERSION setting in config/environment.rb for the Rails version you do have installed, or comment out RAILS_GEM_VERSION to use the latest version installed.)
-      exit 1
-    end
-
-    def rubygems_version
-      Gem::RubyGemsVersion rescue nil
-    end
-
-    def gem_version
-      if defined? RAILS_GEM_VERSION
-        RAILS_GEM_VERSION
-      elsif ENV.include?('RAILS_GEM_VERSION')
-        ENV['RAILS_GEM_VERSION']
-      else
-        parse_gem_version(read_environment_rb)
-      end
-    end
-
-    def load_rubygems
-      min_version = '1.3.2'
-      require 'rubygems'
-      unless rubygems_version >= min_version
-        $stderr.puts %Q(Rails requires RubyGems >= #{min_version} (you have #{rubygems_version}). Please `gem update --system` and try again.)
-        exit 1
-      end
-
-    rescue LoadError
-      $stderr.puts %Q(Rails requires RubyGems >= #{min_version}. Please install RubyGems and try again: http://rubygems.rubyforge.org)
-      exit 1
-    end
-
-    def parse_gem_version(text)
-      $1 if text =~ /^[^#]*RAILS_GEM_VERSION\s*=\s*["']([!~<>=]*\s*[\d.]+)["']/
-    end
-
-    private
-      def read_environment_rb
-        File.read("#{@root}/config/environment.rb")
-      end
-  end
+if File.exist?(environment)
+  # Use Bundler (preferred)
+  require environment
+elsif File.exist?(vendor_rails)
+  # Use 2.x style vendor/rails directory
+  Dir["#{vendor_rails}/*/lib"].each { |path| $:.unshift(path) }
+else
+  # Load Rails from traditional RubyGems
+  require 'rubygems'
 end
 
-# All that for this:
-Rails.boot!
+require 'rails'

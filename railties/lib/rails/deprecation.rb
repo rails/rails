@@ -15,3 +15,11 @@ RAILS_ROOT = (Class.new(ActiveSupport::Deprecation::DeprecationProxy) do
     ActiveSupport::Deprecation.warn(msg, callstack)
   end
 end).new
+
+module Rails
+  class Configuration
+    def gem(*args)
+      ActiveSupport::Deprecation.warn("config.gem has been deprecated in favor of the Gemfile.")
+    end
+  end
+end

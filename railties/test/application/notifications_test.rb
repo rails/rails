@@ -24,7 +24,7 @@ module ApplicationTests
     def setup
       build_app
       boot_rails
-
+      require "rails"
       require "active_support/notifications"
       Rails::Initializer.run do |c|
         c.notifications.queue = MyQueue.new

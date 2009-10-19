@@ -22,7 +22,6 @@ end
 # See RFC 3986, section 3.3 for allowed path characters.
 class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   def setup
-    ActionController::Routing.use_controllers! ['controller']
     @set = ActionController::Routing::RouteSet.new
     @set.draw do |map|
       map.connect ':controller/:action/:variable/*additional'
@@ -36,8 +35,9 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   end
 
   def test_route_generation_escapes_unsafe_path_characters
-    assert_equal "/contr#{@segment}oller/act#{@escaped}ion/var#{@escaped}iable/add#{@escaped}itional-1/add#{@escaped}itional-2",
-      @set.generate(:controller => "contr#{@segment}oller",
+    @set.generate(:controller => "content", :action => "act#{@segment}ion", :variable => "variable", :additional => "foo")
+    assert_equal "/content/act#{@escaped}ion/var#{@escaped}iable/add#{@escaped}itional-1/add#{@escaped}itional-2",
+      @set.generate(:controller => "content",
                     :action => "act#{@segment}ion",
                     :variable => "var#{@segment}iable",
                     :additional => ["add#{@segment}itional-1", "add#{@segment}itional-2"])
@@ -52,7 +52,7 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   end
 
   def test_route_generation_allows_passing_non_string_values_to_generated_helper
-    assert_equal "/controller/action/variable/1/2", @set.generate(:controller => "controller",
+    assert_equal "/content/action/variable/1/2", @set.generate(:controller => "content",
                                                                   :action => "action",
                                                                   :variable => "variable",
                                                                   :additional => [1, 2])
@@ -407,35 +407,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     rs.draw do |map|
       map.post 'post/:id', :controller=> 'post', :action=> 'show', :requirements => {:id => /\d+/}
     end
-    exception = assert_raise(ActionController::RoutingError) { rs.generate(:controller => 'post', :action => 'show', :bad_param => "foo", :use_route => "post") }
-    assert_match /^post_url failed to generate/, exception.message
-    from_match = exception.message.match(/from \{[^\}]+\}/).to_s
-    assert_match /:bad_param=>"foo"/,   from_match
-    assert_match /:action=>"show"/,     from_match
-    assert_match /:controller=>"post"/, from_match
-
-    expected_match = exception.message.match(/expected: \{[^\}]+\}/).to_s
-    assert_no_match /:bad_param=>"foo"/,   expected_match
-    assert_match    /:action=>"show"/,     expected_match
-    assert_match    /:controller=>"post"/, expected_match
-
-    diff_match = exception.message.match(/diff: \{[^\}]+\}/).to_s
-    assert_match    /:bad_param=>"foo"/,   diff_match
-    assert_no_match /:action=>"show"/,     diff_match
-    assert_no_match /:controller=>"post"/, diff_match
-  end
-
-  # this specifies the case where your formerly would get a very confusing error message with an empty diff
-  def test_should_have_better_error_message_when_options_diff_is_empty
-    rs.draw do |map|
-      map.content '/content/:query', :controller => 'content', :action => 'show'
-    end
-
-    exception = assert_raise(ActionController::RoutingError) { rs.generate(:controller => 'content', :action => 'show', :use_route => "content") }
-    assert_match %r[:action=>"show"], exception.message
-    assert_match %r[:controller=>"content"], exception.message
-    assert_match %r[you may have ambiguous routes, or you may need to supply additional parameters for this route], exception.message
-    assert_match %r[content_url has the following required parameters: \["content", :query\] - are they all satisfied?], exception.message
+    assert_raise(ActionController::RoutingError) { rs.generate(:controller => 'post', :action => 'show', :bad_param => "foo", :use_route => "post") }
   end
 
   def test_dynamic_path_allowed
@@ -501,17 +473,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   def test_action_expiry
     @rs.draw {|m| m.connect ':controller/:action/:id' }
     assert_equal '/content', rs.generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
-  end
-
-  def test_recognition_with_uppercase_controller_name
-    @rs.draw {|m| m.connect ':controller/:action/:id' }
-    assert_equal({:controller => "content", :action => 'index'}, rs.recognize_path("/Content"))
-    assert_equal({:controller => "content", :action => 'list'}, rs.recognize_path("/ConTent/list"))
-    assert_equal({:controller => "content", :action => 'show', :id => '10'}, rs.recognize_path("/CONTENT/show/10"))
-
-    # these used to work, before the routes rewrite, but support for this was pulled in the new version...
-    #assert_equal({'controller' => "admin/news_feed", 'action' => 'index'}, rs.recognize_path("Admin/NewsFeed"))
-    #assert_equal({'controller' => "admin/news_feed", 'action' => 'index'}, rs.recognize_path("Admin/News_Feed"))
   end
 
   def test_requirement_should_prevent_optional_id
@@ -760,12 +721,9 @@ class RouteSetTest < ActiveSupport::TestCase
 
   def default_route_set
     @default_route_set ||= begin
-      set = nil
-      ActionController::Routing.with_controllers(['accounts']) do
-        set = ROUTING::RouteSet.new
-        set.draw do |map|
-          map.connect '/:controller/:action/:id/'
-        end
+      set = ROUTING::RouteSet.new
+      set.draw do |map|
+        map.connect '/:controller/:action/:id/'
       end
       set
     end
@@ -953,44 +911,38 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_draw_default_route
-    ActionController::Routing.with_controllers(['users']) do
-      set.draw do |map|
-        map.connect '/:controller/:action/:id'
-      end
-
-      assert_equal 1, set.routes.size
-
-      assert_equal '/users/show/10', set.generate(:controller => 'users', :action => 'show', :id => 10)
-      assert_equal '/users/index/10', set.generate(:controller => 'users', :id => 10)
-
-      assert_equal({:controller => 'users', :action => 'index', :id => '10'}, set.recognize_path('/users/index/10'))
-      assert_equal({:controller => 'users', :action => 'index', :id => '10'}, set.recognize_path('/users/index/10/'))
+    set.draw do |map|
+      map.connect '/:controller/:action/:id'
     end
+
+    assert_equal 1, set.routes.size
+
+    assert_equal '/users/show/10', set.generate(:controller => 'users', :action => 'show', :id => 10)
+    assert_equal '/users/index/10', set.generate(:controller => 'users', :id => 10)
+
+    assert_equal({:controller => 'users', :action => 'index', :id => '10'}, set.recognize_path('/users/index/10'))
+    assert_equal({:controller => 'users', :action => 'index', :id => '10'}, set.recognize_path('/users/index/10/'))
   end
 
   def test_draw_default_route_with_default_controller
-    ActionController::Routing.with_controllers(['users']) do
-      set.draw do |map|
-        map.connect '/:controller/:action/:id', :controller => 'users'
-      end
-      assert_equal({:controller => 'users', :action => 'index'}, set.recognize_path('/'))
+    set.draw do |map|
+      map.connect '/:controller/:action/:id', :controller => 'users'
     end
+    assert_equal({:controller => 'users', :action => 'index'}, set.recognize_path('/'))
   end
 
   def test_route_with_parameter_shell
-    ActionController::Routing.with_controllers(['users', 'pages']) do
-      set.draw do |map|
-        map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+/
-        map.connect '/:controller/:action/:id'
-      end
-
-      assert_equal({:controller => 'pages', :action => 'index'}, set.recognize_path('/pages'))
-      assert_equal({:controller => 'pages', :action => 'index'}, set.recognize_path('/pages/index'))
-      assert_equal({:controller => 'pages', :action => 'list'}, set.recognize_path('/pages/list'))
-
-      assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/pages/show/10'))
-      assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/page/10'))
+    set.draw do |map|
+      map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+/
+      map.connect '/:controller/:action/:id'
     end
+
+    assert_equal({:controller => 'pages', :action => 'index'}, set.recognize_path('/pages'))
+    assert_equal({:controller => 'pages', :action => 'index'}, set.recognize_path('/pages/index'))
+    assert_equal({:controller => 'pages', :action => 'list'}, set.recognize_path('/pages/list'))
+
+    assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/pages/show/10'))
+    assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/page/10'))
   end
 
   def test_route_requirements_with_anchor_chars_are_invalid
@@ -1019,14 +971,6 @@ class RouteSetTest < ActiveSupport::TestCase
         map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+\z/
       end
     end
-    assert_nothing_raised do
-      set.draw do |map|
-        map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+/, :name => /^(david|jamis)/
-      end
-      assert_raise ActionController::RoutingError do
-        set.generate :controller => 'pages', :action => 'show', :id => 10
-      end
-    end
   end
 
   def test_route_requirements_with_invalid_http_method_is_invalid
@@ -1050,19 +994,6 @@ class RouteSetTest < ActiveSupport::TestCase
       set.draw do |map|
         map.connect 'valid/route', :controller => 'pages', :action => 'show', :conditions => {:method => :head}
       end
-    end
-  end
-
-  def test_non_path_route_requirements_match_all
-    set.draw do |map|
-      map.connect 'page/37s', :controller => 'pages', :action => 'show', :name => /(jamis|david)/
-    end
-    assert_equal '/page/37s', set.generate(:controller => 'pages', :action => 'show', :name => 'jamis')
-    assert_raise ActionController::RoutingError do
-      set.generate(:controller => 'pages', :action => 'show', :name => 'not_jamis')
-    end
-    assert_raise ActionController::RoutingError do
-      set.generate(:controller => 'pages', :action => 'show', :name => 'nor_jamis_and_david')
     end
   end
 
@@ -1375,20 +1306,20 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do |map|
       map.connect ':controller/:action/:id'
     end
-    assert_equal '/post', set.generate(
-      {:controller => 'post', :action => 'index'},
-      {:controller => 'post', :action => 'show', :id => '10'}
+    assert_equal '/books', set.generate(
+      {:controller => 'books', :action => 'index'},
+      {:controller => 'books', :action => 'show', :id => '10'}
     )
   end
 
   def test_query_params_will_be_shown_when_recalled
     set.draw do |map|
-      map.connect 'show_post/:parameter', :controller => 'post', :action => 'show'
+      map.connect 'show_weblog/:parameter', :controller => 'weblog', :action => 'show'
       map.connect ':controller/:action/:id'
     end
-    assert_equal '/post/edit?parameter=1', set.generate(
+    assert_equal '/weblog/edit?parameter=1', set.generate(
       {:action => 'edit', :parameter => 1},
-      {:controller => 'post', :action => 'show', :parameter => 1}
+      {:controller => 'weblog', :action => 'show', :parameter => 1}
     )
   end
 
@@ -1410,23 +1341,9 @@ class RouteSetTest < ActiveSupport::TestCase
 
   def test_expiry_determination_should_consider_values_with_to_param
     set.draw { |map| map.connect 'projects/:project_id/:controller/:action' }
-    assert_equal '/projects/1/post/show', set.generate(
+    assert_equal '/projects/1/weblog/show', set.generate(
       {:action => 'show', :project_id => 1},
-      {:controller => 'post', :action => 'show', :project_id => '1'})
-  end
-
-  def test_generate_all
-    set.draw do |map|
-      map.connect 'show_post/:id', :controller => 'post', :action => 'show'
-      map.connect ':controller/:action/:id'
-    end
-    all = set.generate(
-      {:action => 'show', :id => 10, :generate_all => true},
-      {:controller => 'post', :action => 'show'}
-    )
-    assert_equal 2, all.length
-    assert_equal '/show_post/10', all.first
-    assert_equal '/post/show/10', all.last
+      {:controller => 'weblog', :action => 'show', :project_id => '1'})
   end
 
   def test_named_route_in_nested_resource
@@ -1603,101 +1520,86 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal({:controller => 'pages', :action => 'show', :name => :as_symbol}, set.recognize_path('/named'))
   end
 
-
   def test_interpolation_chunk_should_respect_raw
-    ActionController::Routing.with_controllers(['hello']) do
-      set.draw do |map|
-        map.connect '/Hello World', :controller => 'hello'
-      end
-
-      assert_equal '/Hello%20World', set.generate(:controller => 'hello')
-      assert_equal({:controller => "hello", :action => "index"}, set.recognize_path('/Hello World'))
-      assert_raise(ActionController::RoutingError) { set.recognize_path('/Hello%20World') }
+    set.draw do |map|
+      map.connect '/Hello World', :controller => 'hello'
     end
+
+    assert_equal '/Hello%20World', set.generate(:controller => 'hello')
+    assert_equal({:controller => "hello", :action => "index"}, set.recognize_path('/Hello World'))
+    assert_raise(ActionController::RoutingError) { set.recognize_path('/Hello%20World') }
   end
 
   def test_value_should_not_be_double_unescaped
-    ActionController::Routing.with_controllers(['foo']) do
-      set.draw do |map|
-        map.connect '/Карта', :controller => 'foo'
-      end
-
-      assert_equal '/%D0%9A%D0%B0%D1%80%D1%82%D0%B0', set.generate(:controller => 'foo')
-      assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/Карта'))
-      assert_raise(ActionController::RoutingError) { set.recognize_path('/%D0%9A%D0%B0%D1%80%D1%82%D0%B0') }
+    set.draw do |map|
+      map.connect '/Карта', :controller => 'foo'
     end
+
+    assert_equal '/%D0%9A%D0%B0%D1%80%D1%82%D0%B0', set.generate(:controller => 'foo')
+    assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/Карта'))
+    assert_raise(ActionController::RoutingError) { set.recognize_path('/%D0%9A%D0%B0%D1%80%D1%82%D0%B0') }
   end
 
   def test_regexp_chunk_should_escape_specials
-    ActionController::Routing.with_controllers(['foo', 'bar']) do
-      set.draw do |map|
-        map.connect '/Hello*World', :controller => 'foo'
-        map.connect '/HelloWorld', :controller => 'bar'
-      end
-
-      assert_equal '/Hello*World', set.generate(:controller => 'foo')
-      assert_equal '/HelloWorld', set.generate(:controller => 'bar')
-
-      assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/Hello*World'))
-      assert_equal({:controller => "bar", :action => "index"}, set.recognize_path('/HelloWorld'))
+    set.draw do |map|
+      map.connect '/Hello*World', :controller => 'foo'
+      map.connect '/HelloWorld', :controller => 'bar'
     end
+
+    assert_equal '/Hello*World', set.generate(:controller => 'foo')
+    assert_equal '/HelloWorld', set.generate(:controller => 'bar')
+
+    assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/Hello*World'))
+    assert_equal({:controller => "bar", :action => "index"}, set.recognize_path('/HelloWorld'))
   end
 
   def test_regexp_chunk_should_add_question_mark_for_optionals
-    ActionController::Routing.with_controllers(['foo', 'bar']) do
-      set.draw do |map|
-        map.connect '/', :controller => 'foo'
-        map.connect '/hello', :controller => 'bar'
-      end
-
-      assert_equal '/', set.generate(:controller => 'foo')
-      assert_equal '/hello', set.generate(:controller => 'bar')
-
-      assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/'))
-      assert_equal({:controller => "bar", :action => "index"}, set.recognize_path('/hello'))
+    set.draw do |map|
+      map.connect '/', :controller => 'foo'
+      map.connect '/hello', :controller => 'bar'
     end
+
+    assert_equal '/', set.generate(:controller => 'foo')
+    assert_equal '/hello', set.generate(:controller => 'bar')
+
+    assert_equal({:controller => "foo", :action => "index"}, set.recognize_path('/'))
+    assert_equal({:controller => "bar", :action => "index"}, set.recognize_path('/hello'))
   end
 
   def test_assign_route_options_with_anchor_chars
-    ActionController::Routing.with_controllers(['cars']) do
-      set.draw do |map|
-        map.connect '/cars/:action/:person/:car/', :controller => 'cars'
-      end
-
-      assert_equal '/cars/buy/1/2', set.generate(:controller => 'cars', :action => 'buy', :person => '1', :car => '2')
-
-      assert_equal({:controller => "cars", :action => "buy", :person => "1", :car => "2"}, set.recognize_path('/cars/buy/1/2'))
+    set.draw do |map|
+      map.connect '/cars/:action/:person/:car/', :controller => 'cars'
     end
+
+    assert_equal '/cars/buy/1/2', set.generate(:controller => 'cars', :action => 'buy', :person => '1', :car => '2')
+
+    assert_equal({:controller => "cars", :action => "buy", :person => "1", :car => "2"}, set.recognize_path('/cars/buy/1/2'))
   end
 
   def test_segmentation_of_dot_path
-    ActionController::Routing.with_controllers(['books']) do
-      set.draw do |map|
-        map.connect '/books/:action.rss', :controller => 'books'
-      end
-
-      assert_equal '/books/list.rss', set.generate(:controller => 'books', :action => 'list')
-
-      assert_equal({:controller => "books", :action => "list"}, set.recognize_path('/books/list.rss'))
+    set.draw do |map|
+      map.connect '/books/:action.rss', :controller => 'books'
     end
+
+    assert_equal '/books/list.rss', set.generate(:controller => 'books', :action => 'list')
+
+    assert_equal({:controller => "books", :action => "list"}, set.recognize_path('/books/list.rss'))
   end
 
   def test_segmentation_of_dynamic_dot_path
-    ActionController::Routing.with_controllers(['books']) do
-      set.draw do |map|
-        map.connect '/books/:action.:format', :controller => 'books'
-      end
-
-      assert_equal '/books/list.rss', set.generate(:controller => 'books', :action => 'list', :format => 'rss')
-      assert_equal '/books/list.xml', set.generate(:controller => 'books', :action => 'list', :format => 'xml')
-      assert_equal '/books/list', set.generate(:controller => 'books', :action => 'list')
-      assert_equal '/books', set.generate(:controller => 'books', :action => 'index')
-
-      assert_equal({:controller => "books", :action => "list", :format => "rss"}, set.recognize_path('/books/list.rss'))
-      assert_equal({:controller => "books", :action => "list", :format => "xml"}, set.recognize_path('/books/list.xml'))
-      assert_equal({:controller => "books", :action => "list"}, set.recognize_path('/books/list'))
-      assert_equal({:controller => "books", :action => "index"}, set.recognize_path('/books'))
+    set.draw do |map|
+      map.connect '/books/:action.:format', :controller => 'books'
     end
+
+    assert_equal '/books/list.rss', set.generate(:controller => 'books', :action => 'list', :format => 'rss')
+    assert_equal '/books/list.xml', set.generate(:controller => 'books', :action => 'list', :format => 'xml')
+    assert_equal '/books/list', set.generate(:controller => 'books', :action => 'list')
+    assert_equal '/books', set.generate(:controller => 'books', :action => 'index')
+
+    assert_equal({:controller => "books", :action => "list", :format => "rss"}, set.recognize_path('/books/list.rss'))
+    assert_equal({:controller => "books", :action => "list", :format => "xml"}, set.recognize_path('/books/list.xml'))
+    assert_equal({:controller => "books", :action => "list"}, set.recognize_path('/books/list'))
+    assert_equal({:controller => "books", :action => "index"}, set.recognize_path('/books'))
   end
 
   def test_slashes_are_implied
@@ -1782,32 +1684,43 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_build_empty_query_string
-    assert_equal '/foo', default_route_set.generate({:controller => 'foo'})
+    assert_uri_equal '/foo', default_route_set.generate({:controller => 'foo'})
   end
 
   def test_build_query_string_with_nil_value
-    assert_equal '/foo', default_route_set.generate({:controller => 'foo', :x => nil})
+    assert_uri_equal '/foo', default_route_set.generate({:controller => 'foo', :x => nil})
   end
 
   def test_simple_build_query_string
-    assert_equal '/foo?x=1&y=2', default_route_set.generate({:controller => 'foo', :x => '1', :y => '2'})
+    assert_uri_equal '/foo?x=1&y=2', default_route_set.generate({:controller => 'foo', :x => '1', :y => '2'})
   end
 
   def test_convert_ints_build_query_string
-    assert_equal '/foo?x=1&y=2', default_route_set.generate({:controller => 'foo', :x => 1, :y => 2})
+    assert_uri_equal '/foo?x=1&y=2', default_route_set.generate({:controller => 'foo', :x => 1, :y => 2})
   end
 
   def test_escape_spaces_build_query_string
-    assert_equal '/foo?x=hello+world&y=goodbye+world', default_route_set.generate({:controller => 'foo', :x => 'hello world', :y => 'goodbye world'})
+    assert_uri_equal '/foo?x=hello+world&y=goodbye+world', default_route_set.generate({:controller => 'foo', :x => 'hello world', :y => 'goodbye world'})
   end
 
   def test_expand_array_build_query_string
-    assert_equal '/foo?x%5B%5D=1&x%5B%5D=2', default_route_set.generate({:controller => 'foo', :x => [1, 2]})
+    assert_uri_equal '/foo?x%5B%5D=1&x%5B%5D=2', default_route_set.generate({:controller => 'foo', :x => [1, 2]})
   end
 
   def test_escape_spaces_build_query_string_selected_keys
-    assert_equal '/foo?x=hello+world', default_route_set.generate({:controller => 'foo', :x => 'hello world'})
+    assert_uri_equal '/foo?x=hello+world', default_route_set.generate({:controller => 'foo', :x => 'hello world'})
   end
+
+  private
+    def assert_uri_equal(expected, actual)
+      assert_equal(sort_query_string_params(expected), sort_query_string_params(actual))
+    end
+
+    def sort_query_string_params(uri)
+      path, qs = uri.split('?')
+      qs = qs.split('&').sort.join('&') if qs
+      qs ? "#{path}?#{qs}" : path
+    end
 end
 
 class RouteLoadingTest < Test::Unit::TestCase

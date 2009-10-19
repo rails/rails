@@ -92,8 +92,6 @@ module Rails
           generator_path = File.join(spec.full_gem_path, "lib/generators")
           paths << generator_path if File.exist?(generator_path)
         end
-      elsif defined?(Rails.root)
-        paths += Dir[File.join(Rails.root, "vendor", "gems", "gems", "*", "lib", "generators")]
       end
 
       paths

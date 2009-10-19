@@ -6,6 +6,7 @@ class PathsTest < Test::Unit::TestCase
   def setup
     build_app
     boot_rails
+    require "rails"
     Rails::Initializer.run do |config|
       config.root = app_path
       config.frameworks = [:action_controller, :action_view, :action_mailer, :active_record]

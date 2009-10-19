@@ -100,11 +100,6 @@ namespace :rails do
       generator.invoke(method)
     end
 
-    desc "Update config/boot.rb from your current rails install"
-    task :configs do
-      invoke_from_app_generator :create_boot_file
-    end
-
     desc "Update Prototype javascripts from your current rails install"
     task :javascripts do
       invoke_from_app_generator :create_prototype_files
