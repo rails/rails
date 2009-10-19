@@ -157,6 +157,7 @@ module AbstractController
     end
 
   private
+
     # This will be overwritten by _write_layout_method
     def _layout(details) end
 
@@ -189,6 +190,14 @@ module AbstractController
         raise ArgumentError,
           "String, true, or false, expected for `layout'; you passed #{name.inspect}"
       end
+    end
+
+    def _determine_template(options)
+      super
+
+      return if (options.key?(:text) || options.key?(:inline) || options.key?(:partial)) && !options.key?(:layout)
+      layout = options.key?(:layout) ? options[:layout] : :default
+      options[:_layout] = _layout_for_option(layout, options[:_template].details)
     end
 
     # Take in the name and details and find a Template.

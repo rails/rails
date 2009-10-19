@@ -12,7 +12,15 @@ class RenderMailer < ActionMailer::Base
     recipients recipient
     subject    "using helpers"
     from       "tester@example.com"
-    body       render(:file => "signed_up", :body => { :recipient => recipient })
+    body       render(:file => "templates/signed_up", :body => { :recipient => recipient })
+  end
+
+  def implicit_body(recipient)
+    recipients recipient
+    subject    "using helpers"
+    from       "tester@example.com"
+
+    render(:template => "templates/signed_up", :body => { :recipient => recipient })
   end
 
   def rxml_template(recipient)
@@ -67,6 +75,11 @@ class RenderHelperTest < Test::Unit::TestCase
 
   def teardown
     restore_delivery_method
+  end
+
+  def test_implicit_body
+    mail = RenderMailer.create_implicit_body(@recipient)
+    assert_equal "Hello there, \n\nMr. test@localhost", mail.body.strip
   end
 
   def test_inline_template

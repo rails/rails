@@ -109,6 +109,21 @@ module AbstractController
     #   to a directory.
     # _partial<TrueClass, FalseClass>:: Whether or not the file to look up is a partial
     def _determine_template(options)
+      if options.key?(:text)
+        options[:_template] = ActionView::TextTemplate.new(options[:text], formats.first)
+      elsif options.key?(:inline)
+        handler = ActionView::Template.handler_class_for_extension(options[:type] || "erb")
+        template = ActionView::Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
+        options[:_template] = template
+      elsif options.key?(:template)
+        options[:_template_name] = options[:template]
+      elsif options.key?(:file)
+        options[:_template_name] = options[:file]
+      elsif !options.key?(:partial)
+        options[:_template_name] ||= options[:action]
+        options[:_prefix] = _prefix
+      end
+
       name = (options[:_template_name] || action_name).to_s
 
       options[:_template] ||= with_template_cache(name) do
@@ -122,6 +137,10 @@ module AbstractController
 
     def template_exists?(name, details, options)
       view_paths.exists?(name, details, options[:_prefix], options[:_partial])
+    end
+
+    def _prefix
+      self.class.name.underscore
     end
 
     def with_template_cache(name)

@@ -38,11 +38,6 @@ module ActionController
 
     def process_action(*)
       self.formats = request.formats.map {|x| x.to_sym}
-
-      super
-    end
-
-    def _determine_template(*)
       super
     end
 
@@ -72,25 +67,6 @@ module ActionController
 
       def with_template_cache(name)
         self.class.template_cache[Thread.current[:format_locale_key]][name] ||= super
-      end
-
-      def _determine_template(options)
-        if options.key?(:text)
-          options[:_template] = ActionView::TextTemplate.new(options[:text], formats.first)
-        elsif options.key?(:inline)
-          handler = ActionView::Template.handler_class_for_extension(options[:type] || "erb")
-          template = ActionView::Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
-          options[:_template] = template
-        elsif options.key?(:template)
-          options[:_template_name] = options[:template]
-        elsif options.key?(:file)
-          options[:_template_name] = options[:file]
-        elsif !options.key?(:partial)
-          options[:_template_name] = (options[:action] || action_name).to_s
-          options[:_prefix] = _prefix
-        end
-
-        super
       end
 
       def _process_options(options)
