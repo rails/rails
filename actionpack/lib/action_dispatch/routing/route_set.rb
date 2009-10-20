@@ -1,11 +1,11 @@
 require 'rack/mount'
 require 'forwardable'
 
-module ActionController
+module ActionDispatch
   module Routing
     class RouteSet #:nodoc:
       NotFound = lambda { |env|
-        raise RoutingError, "No route matches #{env[::Rack::Mount::Const::PATH_INFO].inspect} with #{env.inspect}"
+        raise ActionController::RoutingError, "No route matches #{env[::Rack::Mount::Const::PATH_INFO].inspect} with #{env.inspect}"
       }
 
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
@@ -59,14 +59,14 @@ module ActionController
       # Mapper instances have relatively few instance methods, in order to avoid
       # clashes with named routes.
       class Mapper #:doc:
-        include ActionController::Resources
+        include Routing::Resources
 
         def initialize(set) #:nodoc:
           @set = set
         end
 
         # Create an unnamed route with the provided +path+ and +options+. See
-        # ActionController::Routing for an introduction to routes.
+        # ActionDispatch::Routing for an introduction to routes.
         def connect(path, options = {})
           @set.add_route(path, options)
         end
@@ -427,7 +427,7 @@ module ActionController
           path = ::Rack::Mount::Strexp.compile(path, requirements, %w( / . ? ))
 
           if glob && !defaults[glob].blank?
-            raise RoutingError, "paths cannot have non-empty default values"
+            raise ActionController::RoutingError, "paths cannot have non-empty default values"
           end
         end
 
@@ -534,10 +534,10 @@ module ActionController
         elsif path
           path
         else
-          raise RoutingError, "No route matches #{options.inspect}"
+          raise ActionController::RoutingError, "No route matches #{options.inspect}"
         end
       rescue Rack::Mount::RoutingError
-        raise RoutingError, "No route matches #{options.inspect}"
+        raise ActionController::RoutingError, "No route matches #{options.inspect}"
       end
 
       def call(env)
@@ -557,9 +557,9 @@ module ActionController
         }
 
         if !HTTP_METHODS.include?(method)
-          raise NotImplemented.new(*allows)
+          raise ActionController::NotImplemented.new(*allows)
         elsif !allows.empty?
-          raise MethodNotAllowed.new(*allows)
+          raise ActionController::MethodNotAllowed.new(*allows)
         else
           raise e
         end
@@ -577,7 +577,7 @@ module ActionController
         begin
           env = Rack::MockRequest.env_for(path, {:method => method})
         rescue URI::InvalidURIError => e
-          raise RoutingError, e.message
+          raise ActionController::RoutingError, e.message
         end
 
         env['action_controller.recognize'] = true

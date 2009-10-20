@@ -18,22 +18,21 @@ module ActionController
   autoload :Testing,              "action_controller/metal/testing"
   autoload :UrlFor,               "action_controller/metal/url_for"
 
-  # Ported modules
-  # require 'action_controller/routing'
   autoload :Caching,           'action_controller/caching'
   autoload :Dispatcher,        'action_controller/dispatch/dispatcher'
   autoload :Integration,       'action_controller/deprecated/integration_test'
   autoload :IntegrationTest,   'action_controller/deprecated/integration_test'
   autoload :MimeResponds,      'action_controller/metal/mime_responds'
   autoload :PerformanceTest,   'action_controller/deprecated/performance_test'
-  autoload :PolymorphicRoutes, 'action_controller/routing/polymorphic_routes'
+  autoload :PolymorphicRoutes, 'action_controller/polymorphic_routes'
   autoload :RecordIdentifier,  'action_controller/record_identifier'
-  autoload :Resources,         'action_controller/routing/resources'
+  autoload :Resources,         'action_controller/deprecated'
+  autoload :Routing,           'action_controller/deprecated'
   autoload :SessionManagement, 'action_controller/metal/session_management'
   autoload :TestCase,          'action_controller/testing/test_case'
   autoload :TestProcess,       'action_controller/testing/process'
-  autoload :UrlRewriter,       'action_controller/routing/url_rewriter'
-  autoload :UrlWriter,         'action_controller/routing/url_rewriter'
+  autoload :UrlRewriter,       'action_controller/url_rewriter'
+  autoload :UrlWriter,         'action_controller/url_rewriter'
 
   autoload :Verification,             'action_controller/metal/verification'
   autoload :Flash,                    'action_controller/metal/flash'
@@ -54,8 +53,6 @@ module ActionController
   autoload :RenderError,              'action_controller/metal/exceptions'
   autoload :SessionOverflowError,     'action_controller/metal/exceptions'
   autoload :UnknownHttpMethod,        'action_controller/metal/exceptions'
-
-  autoload :Routing,                  'action_controller/routing'
 end
 
 autoload :HTML, 'action_controller/vendor/html-scanner'

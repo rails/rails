@@ -2,9 +2,8 @@ require 'active_support/core_ext/object/conversions'
 require 'active_support/core_ext/boolean/conversions'
 require 'active_support/core_ext/nil/conversions'
 require 'active_support/core_ext/regexp'
-require 'action_controller/routing/route_set'
 
-module ActionController
+module ActionDispatch
   # == Routing
   #
   # The routing module provides URL rewriting in native Ruby. It's a way to
@@ -261,6 +260,9 @@ module ActionController
   # Run <tt>rake routes</tt>.
   #
   module Routing
+    autoload :Resources, 'action_dispatch/routing/resources'
+    autoload :RouteSet, 'action_dispatch/routing/route_set'
+
     SEPARATORS = %w( / . ? )
 
     HTTP_METHODS = [:get, :head, :post, :put, :delete, :options]
@@ -273,7 +275,7 @@ module ActionController
 
     # A helper module to hold URL related helpers.
     module Helpers
-      include PolymorphicRoutes
+      include ActionController::PolymorphicRoutes
     end
 
     class << self
@@ -365,13 +367,11 @@ module ActionController
       end
     end
 
-    Routes = RouteSet.new
-
     ActiveSupport::Inflector.module_eval do
       # Ensures that routes are reloaded when Rails inflections are updated.
       def inflections_with_route_reloading(&block)
         returning(inflections_without_route_reloading(&block)) {
-          ActionController::Routing::Routes.reload! if block_given?
+          ActionDispatch::Routing::Routes.reload! if block_given?
         }
       end
 
