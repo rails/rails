@@ -1,16 +1,8 @@
-require 'cgi'
-require 'uri'
-require 'set'
-
-require 'active_support/core_ext/module/aliasing'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'action_controller/routing/optimisations'
-require 'action_controller/routing/routing_ext'
-require 'action_controller/routing/route'
-require 'action_controller/routing/segments'
-require 'action_controller/routing/builder'
+require 'active_support/core_ext/object/conversions'
+require 'active_support/core_ext/boolean/conversions'
+require 'active_support/core_ext/nil/conversions'
+require 'active_support/core_ext/regexp'
 require 'action_controller/routing/route_set'
-require 'action_controller/routing/recognition_optimisation'
 
 module ActionController
   # == Routing
@@ -197,7 +189,7 @@ module ActionController
   #
   #   map.connect '*path' , :controller => 'blog' , :action => 'unrecognized?'
   #
-  # will glob all remaining parts of the route that were not recognized earlier. 
+  # will glob all remaining parts of the route that were not recognized earlier.
   # The globbed values are in <tt>params[:path]</tt> as an array of path segments.
   #
   # == Route conditions

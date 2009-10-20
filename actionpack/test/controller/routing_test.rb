@@ -11,14 +11,6 @@ end
 
 ROUTING = ActionController::Routing
 
-class ROUTING::RouteBuilder
-  attr_reader :warn_output
-
-  def warn(msg)
-    (@warn_output ||= []) << msg
-  end
-end
-
 # See RFC 3986, section 3.3 for allowed path characters.
 class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   def setup
@@ -1624,25 +1616,6 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal expected, default_route_set.recognize_path('/pages/show/hello+world')
     assert_equal expected, default_route_set.recognize_path('/pages/show/hello%2Bworld')
     assert_equal '/pages/show/hello+world', default_route_set.generate(expected, expected)
-  end
-
-  def test_parameter_shell
-    page_url = ROUTING::Route.new
-    page_url.requirements = {:controller => 'pages', :action => 'show', :id => /\d+/}
-    assert_equal({:controller => 'pages', :action => 'show'}, page_url.parameter_shell)
-  end
-
-  def test_defaults
-    route = ROUTING::RouteBuilder.new.build '/users/:id.:format', :controller => "users", :action => "show", :format => "html"
-    assert_equal(
-      { :controller => "users", :action => "show", :format => "html" },
-      route.defaults)
-  end
-
-  def test_builder_complains_without_controller
-    assert_raise(ArgumentError) do
-      ROUTING::RouteBuilder.new.build '/contact', :contoller => "contact", :action => "index"
-    end
   end
 
   def test_build_empty_query_string
