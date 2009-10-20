@@ -80,7 +80,7 @@ cd "#{root_dir}/railties" do
   puts
   puts "[CruiseControl] Building RailTies"
   puts
-  build_results[:railties] = system 'rake'
+  build_results[:railties] = system 'gem bundle && rake'
 end
 
 

@@ -114,18 +114,26 @@ module TestHelpers
     end
 
     def boot_rails
-      %w(
-        actionmailer/lib
-        actionpack/lib
-        activemodel/lib
-        activerecord/lib
-        activeresource/lib
-        activesupport/lib
-        railties/lib
-        railties
-      ).reverse_each do |path|
-        path = File.expand_path("../../../../#{path}", __FILE__)
-        $:.unshift(path)
+      bundled = "#{File.dirname(__FILE__)}/../../vendor/gems/environment"
+      if File.exist?("#{bundled}.rb")
+        require bundled
+        %w(railties railties/lib).each do |path|
+          $LOAD_PATH.unshift File.expand_path("../../../../#{path}", __FILE__)
+        end
+      else
+        %w(
+          actionmailer/lib
+          actionpack/lib
+          activemodel/lib
+          activerecord/lib
+          activeresource/lib
+          activesupport/lib
+          railties/lib
+          railties
+        ).reverse_each do |path|
+          path = File.expand_path("../../../../#{path}", __FILE__)
+          $:.unshift(path)
+        end
       end
     end
   end
