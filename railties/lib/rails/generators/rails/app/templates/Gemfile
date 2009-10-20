@@ -1,9 +1,9 @@
 # Gemfile is where you list all of your application's dependencies
 #
-gem "rails", "<%= Rails::VERSION::STRING %>"
+<%= "# " if options.freeze? %>gem "rails", "<%= Rails::VERSION::STRING %>"
 #
 # Bundling edge rails:
-# gem "rails", "<%= Rails::VERSION::STRING %>", :git => "git://github.com/rails/rails.git"
+<%= "# " unless options.freeze? %>gem "rails", "<%= Rails::VERSION::STRING %>", :git => "git://github.com/rails/rails.git"
 
 # Specify gemcutter as a gem source
 # source "http://gemcutter.org"

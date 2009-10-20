@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class ActiveRecordHelperTest < ActionView::TestCase
+class ActiveModelHelperTest < ActionView::TestCase
   tests ActionView::Helpers::ActiveModelHelper
 
   silence_warnings do

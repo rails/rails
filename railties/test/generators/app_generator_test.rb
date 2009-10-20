@@ -114,7 +114,14 @@ class AppGeneratorTest < GeneratorsTestCase
     generator(:freeze => true, :database => "sqlite3").expects(:run).
               with("rake rails:freeze:edge", :verbose => false)
     silence(:stdout){ generator.invoke }
-    assert_file 'config/environment.rb'
+
+    assert_file 'Gemfile' do |content|
+      flag = %(gem "rails", "#{Rails::VERSION::STRING}", :git => "git://github.com/rails/rails.git")
+      assert_match /^#{Regexp.escape(flag)}$/, content
+
+      flag = %(# gem "rails", "#{Rails::VERSION::STRING}")
+      assert_match /^#{Regexp.escape(flag)}$/, content
+    end
   end
 
   def test_template_from_dir_pwd
