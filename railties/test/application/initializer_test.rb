@@ -82,26 +82,6 @@ module ApplicationTests
       end
     end
 
-    test "action_pack is added to the load path if action_controller is required" do
-      Rails::Initializer.run do |config|
-        config.root = app_path
-        config.frameworks = [:action_controller]
-      end
-      Rails.initialize!
-
-      assert $:.include?("#{framework_path}/actionpack/lib")
-    end
-
-    test "action_pack is added to the load path if action_view is required" do
-      Rails::Initializer.run do |config|
-        config.root = app_path
-        config.frameworks = [:action_view]
-      end
-      Rails.initialize!
-
-      assert $:.include?("#{framework_path}/actionpack/lib")
-    end
-
     test "after_initialize block works correctly" do
       Rails::Initializer.run do |config|
         config.root = app_path

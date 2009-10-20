@@ -1,10 +1,9 @@
-$:.unshift(File.dirname(__FILE__) + '/../../lib')
-
-bundled = "#{File.dirname(__FILE__)}/../../vendor/gems/environment"
-if File.exist?("#{bundled}.rb")
-  require bundled
-else
-  $:.unshift(File.dirname(__FILE__) + '/../../../activesupport/lib')
+root = File.expand_path('../../../..', __FILE__)
+begin
+  require "#{root}/vendor/gems/environment"
+rescue LoadError
+  $:.unshift("#{root}/activesupport/lib")
+  $:.unshift("#{root}/activerecord/lib")
 end
 
 require 'config'

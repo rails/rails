@@ -6,7 +6,6 @@
 #
 # It is also good to know what is the bare minimum to get
 # Rails booted up.
-
 require 'fileutils'
 
 # TODO: Remove rubygems when possible
@@ -82,6 +81,7 @@ module TestHelpers
     def build_app(options = {})
       FileUtils.rm_rf(app_path)
       FileUtils.cp_r(tmp_path('app_template'), app_path)
+      FileUtils.ln_s(RAILS_FRAMEWORK_ROOT, app_path('vendor/rails'))
 
       # Delete the initializers unless requested
       unless options[:initializers]
@@ -114,13 +114,10 @@ module TestHelpers
     end
 
     def boot_rails
-      bundled = "#{File.dirname(__FILE__)}/../../vendor/gems/environment"
-      if File.exist?("#{bundled}.rb")
-        require bundled
-        %w(railties railties/lib).each do |path|
-          $LOAD_PATH.unshift File.expand_path("../../../../#{path}", __FILE__)
-        end
-      else
+      root = File.expand_path('../../../..', __FILE__)
+      begin
+        require "#{root}/vendor/gems/environment"
+      rescue LoadError
         %w(
           actionmailer/lib
           actionpack/lib
@@ -131,8 +128,7 @@ module TestHelpers
           railties/lib
           railties
         ).reverse_each do |path|
-          path = File.expand_path("../../../../#{path}", __FILE__)
-          $:.unshift(path)
+          $:.unshift "#{root}/#{path}"
         end
       end
     end
@@ -155,5 +151,6 @@ Module.new do
   end
 
   FileUtils.mkdir(tmp_path)
-  `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{tmp_path('app_template')}`
+  root = File.expand_path('../../../..', __FILE__)
+  `#{Gem.ruby} -r #{root}/vendor/gems/environment #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{tmp_path('app_template')}`
 end

@@ -1,3 +1,5 @@
+require 'pathname'
+
 def ActiveSupport.requirable?(file)
   $LOAD_PATH.any? { |p| Dir.glob("#{p}/#{file}.*").any? }
 end
@@ -10,7 +12,8 @@ end
       gem lib, "~> #{version}"
       # Use the vendored lib if the gem's missing or we aren't using RubyGems.
     rescue LoadError, NoMethodError
-      $LOAD_PATH.unshift File.expand_path("#{File.dirname(__FILE__)}/vendor/#{lib}-#{version}/lib")
+      # There could be symlinks
+      $LOAD_PATH.unshift Pathname.new(__FILE__).dirname.join("vendor/#{lib}-#{version}/lib").realpath.to_s
     end
   end
 end

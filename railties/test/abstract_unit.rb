@@ -1,16 +1,15 @@
 ORIG_ARGV = ARGV.dup
 
-bundled = "#{File.dirname(__FILE__)}/../vendor/gems/environment"
-if File.exist?("#{bundled}.rb")
-  require bundled
-else
-  %w(activesupport activemodel activerecord actionpack actionmailer activeresource).each do |lib|
-    $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../#{lib}/lib"
+root = File.expand_path('../../..', __FILE__)
+begin
+  require "#{root}/vendor/gems/environment"
+rescue LoadError
+  %w(activesupport activemodel activerecord actionpack actionmailer activeresource railties).each do |lib|
+    $:.unshift "#{root}/#{lib}/lib"
   end
 end
 
-$:.unshift File.dirname(__FILE__) + "/../lib"
-$:.unshift File.dirname(__FILE__) + "/../builtin/rails_info"
+$:.unshift "#{root}/railties/builtin/rails_info"
 
 require 'stringio'
 require 'test/unit'
