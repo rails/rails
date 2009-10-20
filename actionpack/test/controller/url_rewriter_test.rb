@@ -224,9 +224,8 @@ class UrlWriterTests < ActionController::TestCase
   def test_named_routes
     with_routing do |set|
       set.draw do |map|
-        map.no_args '/this/is/verbose', :controller => 'home', :action => 'index'
-        map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
-        map.connect ':controller/:action/:id'
+        match 'this/is/verbose', :to => 'home#index', :as => :no_args
+        match 'home/sweet/home/:user', :to => 'home#index', :as => :home
       end
 
       # We need to create a new class in order to install the new named route.
@@ -264,7 +263,7 @@ class UrlWriterTests < ActionController::TestCase
   def test_only_path
     with_routing do |set|
       set.draw do |map|
-        map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
+        match 'home/sweet/home/:user', :to => 'home#index', :as => :home
         map.connect ':controller/:action/:id'
       end
 
@@ -334,7 +333,6 @@ class UrlWriterTests < ActionController::TestCase
       set.draw do |map|
         map.main '', :controller => 'posts', :format => nil
         map.resources :posts
-        map.connect ':controller/:action/:id'
       end
 
       # We need to create a new class in order to install the new named route.

@@ -343,9 +343,9 @@ class RescueTest < ActionController::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do |map|
-          map.connect 'foo', :controller => "rescue_test/test", :action => 'foo'
-          map.connect 'invalid', :controller => "rescue_test/test", :action => 'invalid'
-          map.connect 'b00m', :controller => "rescue_test/test", :action => 'b00m'
+          match 'foo', :to => TestController.action(:foo)
+          match 'invalid', :to => TestController.action(:invalid)
+          match 'b00m', :to => TestController.action(:b00m)
         end
         yield
       end
