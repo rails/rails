@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/duplicable'
+require 'active_support/core_ext/array/extract_options'
 
 # Retain for backward compatibility.  Methods are now included in Class.
 module ClassInheritableAttributes # :nodoc:
