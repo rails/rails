@@ -50,7 +50,7 @@ cd "#{root_dir}/activemodel" do
   puts
   puts "[CruiseControl] Building ActiveModel"
   puts
-  build_results[:activemodel] = system 'rake'
+  build_results[:activemodel] = system 'gem bundle && rake'
 end
 
 rm_f "#{root_dir}/activeresource/debug.log"
@@ -73,7 +73,7 @@ cd "#{root_dir}/actionmailer" do
   puts
   puts "[CruiseControl] Building ActionMailer"
   puts
-  build_results[:actionmailer] = system 'rake'
+  build_results[:actionmailer] = system 'gem bundle && rake'
 end
 
 cd "#{root_dir}/railties" do
