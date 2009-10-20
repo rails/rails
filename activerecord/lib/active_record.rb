@@ -21,16 +21,11 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-bundled = "#{File.dirname(__FILE__)}/../vendor/gems/environment"
-if File.exist?("#{bundled}.rb")
-  require bundled
-else
-  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-  $:.unshift(activesupport_path) if File.directory?(activesupport_path)
+activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+$:.unshift(activesupport_path) if File.directory?(activesupport_path)
 
-  activemodel_path = "#{File.dirname(__FILE__)}/../../activemodel/lib"
-  $:.unshift(activemodel_path) if File.directory?(activemodel_path)
-end
+activemodel_path = "#{File.dirname(__FILE__)}/../../activemodel/lib"
+$:.unshift(activemodel_path) if File.directory?(activemodel_path)
 
 require 'active_support'
 require 'active_model'
