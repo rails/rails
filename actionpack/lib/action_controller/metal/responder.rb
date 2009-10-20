@@ -95,7 +95,7 @@ module ActionController #:nodoc:
     delegate :get?, :post?, :put?, :delete?, :to => :request
 
     # Undefine :to_json since it's defined on Object
-    undef_method :to_json
+    undef_method(:to_json) if method_defined?(:to_json)
 
     # Initializes a new responder an invoke the proper format. If the format is
     # not defined, call to_format.
