@@ -295,7 +295,7 @@ namespace :db do
       if File.exists?(file)
         load(file)
       else
-        abort %{#{file} doesn't exist yet. Run "rake db:migrate" to create it then try again. If you do not intend to use a database, you should instead alter #{Rails.root}/config/environment.rb to prevent active_record from loading: config.frameworks -= [ :active_record ]}
+        abort %{#{file} doesn't exist yet. Run "rake db:migrate" to create it then try again. If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to prevent active_record from loading: config.frameworks -= [ :active_record ]}
       end
     end
   end
