@@ -26,7 +26,6 @@ module ActionController
   autoload :PerformanceTest,   'action_controller/deprecated/performance_test'
   autoload :PolymorphicRoutes, 'action_controller/polymorphic_routes'
   autoload :RecordIdentifier,  'action_controller/record_identifier'
-  autoload :Resources,         'action_controller/deprecated'
   autoload :Routing,           'action_controller/deprecated'
   autoload :SessionManagement, 'action_controller/metal/session_management'
   autoload :TestCase,          'action_controller/testing/test_case'

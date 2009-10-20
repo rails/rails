@@ -1,8 +1,11 @@
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/object/try'
-
 module ActionDispatch
   module Routing
+    # Mapper instances are used to build routes. The object passed to the draw
+    # block in config/routes.rb is a Mapper instance.
+    #
+    # Mapper instances have relatively few instance methods, in order to avoid
+    # clashes with named routes.
+    #
     # == Overview
     #
     # ActionController::Resources are a way of defining RESTful \resources.  A RESTful \resource, in basic terms,
@@ -45,7 +48,196 @@ module ActionDispatch
     # supplying you with methods to create them in your routes.rb file.
     #
     # Read more about REST at http://en.wikipedia.org/wiki/Representational_State_Transfer
-    module Resources
+    class Mapper #:doc:
+      def initialize(set) #:nodoc:
+        @set = set
+      end
+
+      # Create an unnamed route with the provided +path+ and +options+. See
+      # ActionDispatch::Routing for an introduction to routes.
+      def connect(path, options = {})
+        options = options.dup
+
+        if conditions = options.delete(:conditions)
+          conditions = conditions.dup
+          method = [conditions.delete(:method)].flatten.compact
+          method.map! { |m|
+            m = m.to_s.upcase
+
+            if m == "HEAD"
+              raise ArgumentError, "HTTP method HEAD is invalid in route conditions. Rails processes HEAD requests the same as GETs, returning just the response headers"
+            end
+
+            unless HTTP_METHODS.include?(m.downcase.to_sym)
+              raise ArgumentError, "Invalid HTTP method specified in route conditions"
+            end
+
+            m
+          }
+
+          if method.length > 1
+            method = Regexp.union(*method)
+          elsif method.length == 1
+            method = method.first
+          else
+            method = nil
+          end
+        end
+
+        path_prefix = options.delete(:path_prefix)
+        name_prefix = options.delete(:name_prefix)
+        namespace  = options.delete(:namespace)
+
+        name = options.delete(:_name)
+        name = "#{name_prefix}#{name}" if name_prefix
+
+        requirements = options.delete(:requirements) || {}
+        defaults = options.delete(:defaults) || {}
+        options.each do |k, v|
+          if v.is_a?(Regexp)
+            if value = options.delete(k)
+              requirements[k.to_sym] = value
+            end
+          else
+            value = options.delete(k)
+            defaults[k.to_sym] = value.is_a?(Symbol) ? value : value.to_param
+          end
+        end
+
+        requirements.each do |_, requirement|
+          if requirement.source =~ %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
+            raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
+          end
+          if requirement.multiline?
+            raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
+          end
+        end
+
+        possible_names = Routing.possible_controllers.collect { |n| Regexp.escape(n) }
+        requirements[:controller] ||= Regexp.union(*possible_names)
+
+        if defaults[:controller]
+          defaults[:action] ||= 'index'
+          defaults[:controller] = defaults[:controller].to_s
+          defaults[:controller] = "#{namespace}#{defaults[:controller]}" if namespace
+        end
+
+        if defaults[:action]
+          defaults[:action] = defaults[:action].to_s
+        end
+
+        if path.is_a?(String)
+          path = "#{path_prefix}/#{path}" if path_prefix
+          path = path.gsub('.:format', '(.:format)')
+          path = optionalize_trailing_dynamic_segments(path, requirements, defaults)
+          glob = $1.to_sym if path =~ /\/\*(\w+)$/
+          path = ::Rack::Mount::Utils.normalize_path(path)
+          path = ::Rack::Mount::Strexp.compile(path, requirements, %w( / . ? ))
+
+          if glob && !defaults[glob].blank?
+            raise ActionController::RoutingError, "paths cannot have non-empty default values"
+          end
+        end
+
+        app = Routing::RouteSet::Dispatcher.new(:defaults => defaults, :glob => glob)
+
+        conditions = {}
+        conditions[:request_method] = method if method
+        conditions[:path_info] = path if path
+
+        @set.add_route(app, conditions, defaults, name)
+      end
+
+      def optionalize_trailing_dynamic_segments(path, requirements, defaults) #:nodoc:
+        path = (path =~ /^\//) ? path.dup : "/#{path}"
+        optional, segments = true, []
+
+        required_segments = requirements.keys
+        required_segments -= defaults.keys.compact
+
+        old_segments = path.split('/')
+        old_segments.shift
+        length = old_segments.length
+
+        old_segments.reverse.each_with_index do |segment, index|
+          required_segments.each do |required|
+            if segment =~ /#{required}/
+              optional = false
+              break
+            end
+          end
+
+          if optional
+            if segment == ":id" && segments.include?(":action")
+              optional = false
+            elsif segment == ":controller" || segment == ":action" || segment == ":id"
+              # Ignore
+            elsif !(segment =~ /^:\w+$/) &&
+                !(segment =~ /^:\w+\(\.:format\)$/)
+              optional = false
+            elsif segment =~ /^:(\w+)$/
+              if defaults.has_key?($1.to_sym)
+                defaults.delete($1.to_sym)
+              else
+                optional = false
+              end
+            end
+          end
+
+          if optional && index < length - 1
+            segments.unshift('(/', segment)
+            segments.push(')')
+          elsif optional
+            segments.unshift('/(', segment)
+            segments.push(')')
+          else
+            segments.unshift('/', segment)
+          end
+        end
+
+        segments.join
+      end
+      private :optionalize_trailing_dynamic_segments
+
+      # Creates a named route called "root" for matching the root level request.
+      def root(options = {})
+        if options.is_a?(Symbol)
+          if source_route = @set.named_routes.routes[options]
+            options = source_route.defaults.merge({ :conditions => source_route.conditions })
+          end
+        end
+        named_route("root", '', options)
+      end
+
+      def named_route(name, path, options = {}) #:nodoc:
+        options[:_name] = name
+        connect(path, options)
+      end
+
+      # Enables the use of resources in a module by setting the name_prefix, path_prefix, and namespace for the model.
+      # Example:
+      #
+      #   map.namespace(:admin) do |admin|
+      #     admin.resources :products,
+      #       :has_many => [ :tags, :images, :variants ]
+      #   end
+      #
+      # This will create +admin_products_url+ pointing to "admin/products", which will look for an Admin::ProductsController.
+      # It'll also create +admin_product_tags_url+ pointing to "admin/products/#{product_id}/tags", which will look for
+      # Admin::TagsController.
+      def namespace(name, options = {}, &block)
+        if options[:namespace]
+          with_options({:path_prefix => "#{options.delete(:path_prefix)}/#{name}", :name_prefix => "#{options.delete(:name_prefix)}#{name}_", :namespace => "#{options.delete(:namespace)}#{name}/" }.merge(options), &block)
+        else
+          with_options({:path_prefix => name, :name_prefix => "#{name}_", :namespace => "#{name}/" }.merge(options), &block)
+        end
+      end
+
+      def method_missing(route_name, *args, &proc) #:nodoc:
+        super unless args.length >= 1 && proc.nil?
+        named_route(route_name, *args)
+      end
+
       INHERITABLE_OPTIONS = :namespace, :shallow
 
       class Resource #:nodoc:

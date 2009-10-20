@@ -260,7 +260,7 @@ module ActionDispatch
   # Run <tt>rake routes</tt>.
   #
   module Routing
-    autoload :Resources, 'action_dispatch/routing/resources'
+    autoload :Mapper, 'action_dispatch/routing/mapper'
     autoload :RouteSet, 'action_dispatch/routing/route_set'
 
     SEPARATORS = %w( / . ? )
