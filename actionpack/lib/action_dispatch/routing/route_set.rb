@@ -208,9 +208,9 @@ module ActionDispatch
         clear!
       end
 
-      def draw
+      def draw(&block)
         clear!
-        yield Mapper.new(self)
+        Mapper.new(self).instance_exec(DeprecatedMapper.new(self), &block)
         @set.add_route(NotFound)
         install_helpers
         @set.freeze

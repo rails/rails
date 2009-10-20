@@ -2046,3 +2046,335 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
       assert true
     end
 end
+
+class TestRoutingMapper < ActiveSupport::TestCase
+  include Rack::Test::Methods
+
+  SprocketsApp = lambda { |env|
+    [200, {"Content-Type" => "text/html"}, ["javascripts"]]
+  }
+
+  class IpRestrictor
+    def self.matches?(request)
+      request.ip =~ /192\.168\.1\.1\d\d/
+    end
+  end
+
+  class Dispatcher
+    def self.new(*args)
+      lambda { |env|
+        params = env['action_dispatch.request.path_parameters']
+        controller, action = params[:controller], params[:action]
+        [200, {'Content-Type' => 'text/html'}, ["#{controller}##{action}"]]
+      }
+    end
+  end
+  old_dispatcher = ActionDispatch::Routing::RouteSet::Dispatcher
+  ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
+  ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, Dispatcher }
+
+  Routes = ActionDispatch::Routing::RouteSet.new
+  Routes.draw do
+    controller :sessions do
+      get  'login', :to => :new, :as => :login
+      post 'login', :to => :create
+
+      delete 'logout', :to => :destroy, :as => :logout
+    end
+
+    match 'account/login', :to => redirect("/login")
+
+    match 'openid/login', :via => [:get, :post], :to => "openid#login"
+
+    controller(:global) do
+      match 'global/:action'
+      match 'global/export',      :to => :export, :as => :export_request
+      match 'global/hide_notice', :to => :hide_notice, :as => :hide_notice
+      match '/export/:id/:file',  :to => :export, :as => :export_download, :constraints => { :file => /.*/ }
+    end
+
+    constraints(:ip => /192\.168\.1\.\d\d\d/) do
+      get 'admin', :to => "queenbee#index"
+    end
+
+    constraints IpRestrictor do
+      get 'admin/accounts', :to => "queenbee#accounts"
+    end
+
+    resources :projects, :controller => :project do
+      resources :involvements, :attachments
+
+      resources :participants do
+        put :update_all, :on => :collection
+      end
+
+      resources :companies do
+        resources :people
+        resource  :avatar
+      end
+
+      resources :images do
+        post :revise, :on => :member
+      end
+
+      resources :people do
+        namespace ":access_token" do
+          resource :avatar
+        end
+
+        member do
+          put  :accessible_projects
+          post :resend, :generate_new_password
+        end
+      end
+
+      resources :posts do
+        get  :archive, :toggle_view, :on => :collection
+        post :preview, :on => :member
+
+        resource :subscription
+
+        resources :comments do
+          post :preview, :on => :collection
+        end
+      end
+    end
+
+    match 'sprockets.js', :to => SprocketsApp
+
+    match 'people/:id/update', :to => 'people#update', :as => :update_person
+    match '/projects/:project_id/people/:id/update', :to => 'people#update', :as => :update_project_person
+
+    # misc
+    match 'articles/:year/:month/:day/:title', :to => "articles#show", :as => :article
+
+    namespace :account do
+      resource :subscription, :credit, :credit_card
+    end
+
+    controller :articles do
+      scope 'articles' do
+        scope ':title', :title => /[a-z]+/, :as => :with_title do
+          match ':id', :to => :with_id
+        end
+      end
+    end
+
+    scope ':access_token', :constraints => { :access_token => /\w{5,5}/ } do
+      resources :rooms
+    end
+  end
+  ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
+  ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, old_dispatcher }
+
+  def app
+    Routes
+  end
+
+  def test_logout
+    delete '/logout'
+    assert_equal 'sessions#destroy', last_response.body
+
+    # assert_equal '/logout', app.logout_path
+  end
+
+  def test_login
+    get '/login'
+    assert_equal 'sessions#new', last_response.body
+
+    post '/login'
+    assert_equal 'sessions#create', last_response.body
+
+    # assert_equal '/login', app.login_path
+  end
+
+  def test_login_redirect
+    get '/account/login'
+    assert_equal 301, last_response.status
+    assert_equal 'http://example.org/login', last_response.headers['Location']
+    assert_equal 'Moved Permanently', last_response.body
+  end
+
+  def test_openid
+    get '/openid/login'
+    assert_equal 'openid#login', last_response.body
+
+    post '/openid/login'
+    assert_equal 'openid#login', last_response.body
+  end
+
+  # def test_admin
+  #   get '/admin', {}, {'REMOTE_ADDR' => '192.168.1.100'}
+  #   assert_equal 'queenbee#index', last_response.body
+  #
+  #   assert_raise(ActionController::RoutingError) { get '/admin', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+  #
+  #   get '/admin/accounts', {}, {'REMOTE_ADDR' => '192.168.1.100'}
+  #   assert_equal 'queenbee#accounts', last_response.body
+  #
+  #   assert_raise(ActionController::RoutingError) { get '/admin/accounts', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+  # end
+
+  def test_global
+    get '/global/dashboard'
+    assert_equal 'global#dashboard', last_response.body
+
+    get '/global/export'
+    assert_equal 'global#export', last_response.body
+
+    get '/global/hide_notice'
+    assert_equal 'global#hide_notice', last_response.body
+
+    get '/export/123/foo.txt'
+    assert_equal 'global#export', last_response.body
+
+    # assert_equal '/global/export', app.export_request_path
+    # assert_equal '/global/hide_notice', app.hide_notice_path
+    # assert_equal '/export/123/foo.txt', app.export_download_path(:id => 123, :file => 'foo.txt')
+  end
+
+  def test_projects
+    get '/projects/1'
+    assert_equal 'projects#show', last_response.body
+  end
+
+  def test_projects_involvements
+    get '/projects/1/involvements'
+    assert_equal 'involvements#index', last_response.body
+
+    get '/projects/1/involvements/1'
+    assert_equal 'involvements#show', last_response.body
+  end
+
+  def test_projects_attachments
+    get '/projects/1/attachments'
+    assert_equal 'attachments#index', last_response.body
+  end
+
+  def test_projects_participants
+    get '/projects/1/participants'
+    assert_equal 'participants#index', last_response.body
+
+    put '/projects/1/participants/update_all'
+    assert_equal 'participants#update_all', last_response.body
+  end
+
+  def test_projects_companies
+    get '/projects/1/companies'
+    assert_equal 'companies#index', last_response.body
+
+    get '/projects/1/companies/1/people'
+    assert_equal 'people#index', last_response.body
+
+    get '/projects/1/companies/1/avatar'
+    assert_equal 'avatar#show', last_response.body
+  end
+
+  def test_project_images
+    get '/projects/1/images'
+    assert_equal 'images#index', last_response.body
+
+    post '/projects/1/images/1/revise'
+    assert_equal 'images#revise', last_response.body
+  end
+
+  def test_projects_people
+    get '/projects/1/people'
+    assert_equal 'people#index', last_response.body
+
+    get '/projects/1/people/1'
+    assert_equal 'people#show', last_response.body
+
+    get '/projects/1/people/1/7a2dec8/avatar'
+    assert_equal 'avatar#show', last_response.body
+
+    put '/projects/1/people/1/accessible_projects'
+    assert_equal 'people#accessible_projects', last_response.body
+
+    post '/projects/1/people/1/resend'
+    assert_equal 'people#resend', last_response.body
+
+    post '/projects/1/people/1/generate_new_password'
+    assert_equal 'people#generate_new_password', last_response.body
+  end
+
+  def test_projects_posts
+    get '/projects/1/posts'
+    assert_equal 'posts#index', last_response.body
+
+    get '/projects/1/posts/archive'
+    assert_equal 'posts#archive', last_response.body
+
+    get '/projects/1/posts/toggle_view'
+    assert_equal 'posts#toggle_view', last_response.body
+
+    post '/projects/1/posts/1/preview'
+    assert_equal 'posts#preview', last_response.body
+
+    get '/projects/1/posts/1/subscription'
+    assert_equal 'subscription#show', last_response.body
+
+    get '/projects/1/posts/1/comments'
+    assert_equal 'comments#index', last_response.body
+
+    post '/projects/1/posts/1/comments/preview'
+    assert_equal 'comments#preview', last_response.body
+  end
+
+  def test_sprockets
+    get '/sprockets.js'
+    assert_equal 'javascripts', last_response.body
+  end
+
+  def test_update_person_route
+    get '/people/1/update'
+    assert_equal 'people#update', last_response.body
+
+    # assert_equal '/people/1/update', app.update_person_path(:id => 1)
+  end
+
+  def test_update_project_person
+    get '/projects/1/people/2/update'
+    assert_equal 'people#update', last_response.body
+
+    # assert_equal '/projects/1/people/2/update', app.update_project_person_path(:project_id => 1, :id => 2)
+  end
+
+  def test_articles_perma
+    get '/articles/2009/08/18/rails-3'
+    assert_equal 'articles#show', last_response.body
+
+    # assert_equal '/articles/2009/8/18/rails-3', app.article_path(:year => 2009, :month => 8, :day => 18, :title => 'rails-3')
+  end
+
+  def test_account_namespace
+    get '/account/subscription'
+    assert_equal 'subscription#show', last_response.body
+
+    get '/account/credit'
+    assert_equal 'credit#show', last_response.body
+
+    get '/account/credit_card'
+    assert_equal 'credit_card#show', last_response.body
+  end
+
+  def test_articles_with_id
+    get '/articles/rails/1'
+    assert_equal 'articles#with_id', last_response.body
+
+    assert_raise(ActionController::RoutingError) { get '/articles/123/1' }
+
+    # assert_equal '/articles/rails/1', app.with_title_path(:title => 'rails', :id => 1)
+  end
+
+  def test_access_token_rooms
+    get '/12345/rooms'
+    assert_equal 'rooms#index', last_response.body
+
+    get '/12345/rooms/1'
+    assert_equal 'rooms#show', last_response.body
+
+    get '/12345/rooms/1/edit'
+    assert_equal 'rooms#edit', last_response.body
+  end
+end
