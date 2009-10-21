@@ -81,7 +81,6 @@ module TestHelpers
     def build_app(options = {})
       FileUtils.rm_rf(app_path)
       FileUtils.cp_r(tmp_path('app_template'), app_path)
-      FileUtils.ln_s(RAILS_FRAMEWORK_ROOT, app_path('vendor/rails'))
 
       # Delete the initializers unless requested
       unless options[:initializers]
@@ -91,6 +90,12 @@ module TestHelpers
       end
 
       add_to_config 'config.action_controller.session = { :key => "_myapp_session", :secret => "bac838a849c1d5c4de2e6a50af826079" }'
+    end
+
+    def script(script)
+      Dir.chdir(app_path) do
+        `#{Gem.ruby} #{app_path}/script/#{script}`
+      end
     end
 
     def add_to_config(str)
@@ -149,8 +154,12 @@ Module.new do
   if File.exist?(tmp_path)
     FileUtils.rm_rf(tmp_path)
   end
-
   FileUtils.mkdir(tmp_path)
-  root = File.expand_path('../../../..', __FILE__)
-  `#{Gem.ruby} -r #{root}/vendor/gems/environment #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{tmp_path('app_template')}`
+
+  environment = File.expand_path('../../../../vendor/gems/environment', __FILE__)
+
+  `#{Gem.ruby} -r #{environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{tmp_path('app_template')}`
+  File.open("#{tmp_path}/app_template/config/boot.rb", 'w') do |f|
+    f.puts "require '#{environment}' ; require 'rails'"
+  end
 end
