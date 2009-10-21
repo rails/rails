@@ -1,7 +1,0 @@
-#!/usr/bin/env ruby
-# -*- mode: ruby -*-
-
-require File.join(File.dirname(__FILE__), '..', 'lib', 'thor')
-require 'thor/runner'
-
-Thor::Runner.start

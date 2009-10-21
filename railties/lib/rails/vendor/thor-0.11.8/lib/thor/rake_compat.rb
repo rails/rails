@@ -22,7 +22,8 @@ class Thor
 
     def self.included(base)
       # Hack. Make rakefile point to invoker, so rdoc task is generated properly.
-      Rake.application.instance_variable_set(:@rakefile, caller[0].match(/(.*):\d+/)[1])
+      rakefile = File.basename(caller[0].match(/(.*):\d+/)[1])
+      Rake.application.instance_variable_set(:@rakefile, rakefile)
       self.rake_classes << base
     end
   end
@@ -43,11 +44,9 @@ class Object #:nodoc:
       description.strip!
 
       klass.desc description, task.comment || non_namespaced_name
-      klass.class_eval <<-METHOD
-        def #{non_namespaced_name}(#{task.arg_names.join(', ')})
-          Rake::Task[#{task.name.to_sym.inspect}].invoke(#{task.arg_names.join(', ')})
-        end
-      METHOD
+      klass.send :define_method, non_namespaced_name do |*args|
+        Rake::Task[task.name.to_sym].invoke(*args)
+      end
     end
 
     task

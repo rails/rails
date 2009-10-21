@@ -73,7 +73,9 @@ class Thor
 
             case file_source
               when /\.empty_directory$/
-                base.empty_directory(File.dirname(file_destination), config)
+                dirname = File.dirname(file_destination).gsub(/\/\.$/, '')
+                next if dirname == given_destination
+                base.empty_directory(dirname, config)
               when /\.tt$/
                 base.template(file_source, file_destination[0..-4], config)
               else

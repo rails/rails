@@ -215,7 +215,7 @@ class Thor::Runner < Thor #:nodoc:
     # 5. c:\ <-- no Thorfiles found!
     #
     def thorfiles(relevant_to=nil, skip_lookup=false)
-      # Deal with deprecated thor when :namespaces: is available as constants
+      # TODO Remove this dealing with deprecated thor when :namespaces: is available as constants
       save_yaml(thor_yaml) if Thor::Util.convert_constants_to_namespaces(thor_yaml)
 
       thorfiles = []

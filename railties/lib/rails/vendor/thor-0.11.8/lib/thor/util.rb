@@ -209,7 +209,7 @@ class Thor
     # Returns the root where thor files are located, dependending on the OS.
     #
     def self.thor_root
-      File.join(user_home, ".thor")
+      File.join(user_home, ".thor").gsub(/\\/, '/')
     end
 
     # Returns the files in the thor root. On Windows thor_root will be something
@@ -220,7 +220,7 @@ class Thor
     # If we don't #gsub the \ character, Dir.glob will fail.
     #
     def self.thor_root_glob
-      files = Dir["#{thor_root.gsub(/\\/, '/')}/*"]
+      files = Dir["#{thor_root}/*"]
 
       files.map! do |file|
         File.directory?(file) ? File.join(file, "main.thor") : file

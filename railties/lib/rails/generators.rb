@@ -9,7 +9,7 @@ require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/inflections'
 
 # TODO: Do not always push on vendored thor
-$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/vendor/thor-0.11.6/lib")
+$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/vendor/thor-0.11.8/lib")
 require 'rails/generators/base'
 require 'rails/generators/named_base'
 
