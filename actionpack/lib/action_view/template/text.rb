@@ -16,11 +16,11 @@ module ActionView #:nodoc:
     end
 
     def inspect
-      'inline template'
+      'text template'
     end
 
     def render(*args)
-      self
+      to_s
     end
 
     def mime_type

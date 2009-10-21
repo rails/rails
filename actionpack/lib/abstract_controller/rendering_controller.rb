@@ -8,9 +8,7 @@ module AbstractController
 
     included do
       attr_internal :formats
-
       extlib_inheritable_accessor :_view_paths
-
       self._view_paths ||= ActionView::PathSet.new
     end
 
@@ -99,6 +97,7 @@ module AbstractController
     end
 
   private
+
     # Take in a set of options and determine the template to render
     #
     # ==== Options
@@ -110,7 +109,7 @@ module AbstractController
     # _partial<TrueClass, FalseClass>:: Whether or not the file to look up is a partial
     def _determine_template(options)
       if options.key?(:text)
-        options[:_template] = ActionView::TextTemplate.new(options[:text], formats.first)
+        options[:_template] = ActionView::TextTemplate.new(options[:text], format_for_text)
       elsif options.key?(:inline)
         handler = ActionView::Template.handler_class_for_extension(options[:type] || "erb")
         template = ActionView::Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
@@ -145,6 +144,10 @@ module AbstractController
 
     def with_template_cache(name)
       yield
+    end
+
+    def format_for_text
+      Mime[:text]
     end
 
     module ClassMethods

@@ -65,6 +65,10 @@ module ActionController
         controller_path
       end
 
+      def format_for_text
+        formats.first
+      end
+
       def with_template_cache(name)
         self.class.template_cache[Thread.current[:format_locale_key]][name] ||= super
       end
