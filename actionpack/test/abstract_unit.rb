@@ -4,9 +4,9 @@ begin
 rescue LoadError
   $:.unshift "#{root}/activesupport/lib"
   $:.unshift "#{root}/activemodel/lib"
-  $:.unshift "#{root}/lib"
 end
 
+$:.unshift(File.dirname(__FILE__) + '/../lib')
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
