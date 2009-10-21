@@ -92,6 +92,23 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     assert_equal "Authentication Failed", @response.body
   end
 
+  test "authentication request with missing nonce should return 401" do
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please', :remove_nonce => true)
+    get :display
+
+    assert_response :unauthorized
+    assert_equal "Authentication Failed", @response.body
+  end
+
+  test "authentication request with Basic auth credentials should return 401" do
+    ActionController::Base.session_options[:secret] = "session_options_secret"
+    @request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials('pretty', 'please')
+    get :display
+
+    assert_response :unauthorized
+    assert_equal "Authentication Failed", @response.body
+  end
+
   test "authentication request with invalid opaque" do
     @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'foo', :opaque => "xxyyzz")
     get :display
@@ -220,9 +237,14 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
     assert_response :unauthorized
 
+    remove_nonce = options.delete(:remove_nonce)
+
     credentials = decode_credentials(@response.headers['WWW-Authenticate'])
     credentials.merge!(options)
     credentials.merge!(:uri => @request.env['REQUEST_URI'].to_s)
+
+    credentials.delete(:nonce) if remove_nonce
+
     ActionController::HttpAuthentication::Digest.encode_credentials(method, credentials, password, options[:password_is_ha1])
   end
 

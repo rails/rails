@@ -289,6 +289,7 @@ module ActionController
       # allow a user to use new nonce without prompting user again for their
       # username and password.
       def validate_nonce(request, value, seconds_to_timeout=5*60)
+        return false if value.nil?
         t = Base64.decode64(value).split(":").first.to_i
         nonce(t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout
       end
