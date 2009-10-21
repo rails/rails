@@ -93,7 +93,7 @@ module ActiveModel
     #   company = Company.create(:address => '123 First St.')
     #   company.errors.full_messages # =>
     #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
-    def full_messages(options = {})
+    def full_messages
       full_messages = []
 
       each do |attribute, messages|
@@ -103,8 +103,10 @@ module ActiveModel
         if attribute == :base
           messages.each {|m| full_messages << m }
         else
-          attr_name = attribute.to_s.humanize
-          prefix = attr_name + I18n.t('activemodel.errors.format.separator', :default => ' ')
+          attr_name = @base.class.human_attribute_name(attribute)
+          options = { :default => ' ', :scope => @base.class.i18n_scope }
+          prefix = attr_name + I18n.t(:"errors.format.separator", options)
+
           messages.each do |m|
             full_messages <<  "#{prefix}#{m}"
           end
@@ -135,10 +137,7 @@ module ActiveModel
     def generate_message(attribute, message = :invalid, options = {})
       message, options[:default] = options[:default], message if options[:default].is_a?(Symbol)
 
-      klass_ancestors = [@base.class]
-      klass_ancestors += @base.class.ancestors.reject {|x| x.is_a?(Module)}
-
-      defaults = klass_ancestors.map do |klass|
+      defaults = @base.class.lookup_ancestors.map do |klass|
         [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}",
           :"models.#{klass.name.underscore}.#{message}" ]
       end
@@ -150,10 +149,10 @@ module ActiveModel
       value = @base.send(:read_attribute_for_validation, attribute)
 
       options = { :default => defaults,
-        :model => @base.class.name.humanize,
-        :attribute => attribute.to_s.humanize,
+        :model => @base.class.model_name.human,
+        :attribute => @base.class.human_attribute_name(attribute),
         :value => value,
-        :scope => [:activemodel, :errors]
+        :scope => [@base.class.i18n_scope, :errors]
       }.merge(options)
 
       I18n.translate(key, options)

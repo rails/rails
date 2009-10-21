@@ -71,7 +71,6 @@ module ActiveRecord
   autoload :Timestamp, 'active_record/timestamp'
   autoload :Transactions, 'active_record/transactions'
   autoload :Types, 'active_record/types'
-  autoload :Validator, 'active_record/validator'
   autoload :Validations, 'active_record/validations'
 
   module AttributeMethods

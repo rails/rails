@@ -15,8 +15,8 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_human_name
-    assert_equal "Price estimate", PriceEstimate.human_name
-    assert_equal "Subscriber", Subscriber.human_name
+    assert_equal "Price estimate", PriceEstimate.model_name.human
+    assert_equal "Subscriber", Subscriber.model_name.human
   end
 
   def test_column_null_not_null

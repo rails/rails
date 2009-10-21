@@ -1386,7 +1386,8 @@ module ActiveRecord #:nodoc:
         subclasses.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
       end
 
-      def self_and_descendants_from_active_record#nodoc:
+      # Set the lookup ancestors for ActiveModel.
+      def lookup_ancestors #:nodoc:
         klass = self
         classes = [klass]
         while klass != klass.base_class
@@ -1400,32 +1401,9 @@ module ActiveRecord #:nodoc:
         [self]
       end
 
-      # Transforms attribute key names into a more humane format, such as "First name" instead of "first_name". Example:
-      #   Person.human_attribute_name("first_name") # => "First name"
-      # This used to be deprecated in favor of humanize, but is now preferred, because it automatically uses the I18n
-      # module now.
-      # Specify +options+ with additional translating options.
-      def human_attribute_name(attribute_key_name, options = {})
-        defaults = self_and_descendants_from_active_record.map do |klass|
-          :"#{klass.name.underscore}.#{attribute_key_name}"
-        end
-        defaults << options[:default] if options[:default]
-        defaults.flatten!
-        defaults << attribute_key_name.to_s.humanize
-        options[:count] ||= 1
-        I18n.translate(defaults.shift, options.merge(:default => defaults, :scope => [:activerecord, :attributes]))
-      end
-
-      # Transform the modelname into a more humane format, using I18n.
-      # By default, it will underscore then humanize the class name (BlogPost.human_name #=> "Blog post").
-      # Default scope of the translation is activerecord.models
-      # Specify +options+ with additional translating options.
-      def human_name(options = {})
-        defaults = self_and_descendants_from_active_record.map do |klass|
-          :"#{klass.name.underscore}"
-        end
-        defaults << self.name.underscore.humanize
-        I18n.translate(defaults.shift, {:scope => [:activerecord, :models], :count => 1, :default => defaults}.merge(options))
+      # Set the i18n scope to overwrite ActiveModel.
+      def i18n_scope #:nodoc:
+        :activerecord
       end
 
       # True if this isn't a concrete subclass needing a STI type condition.
