@@ -4,7 +4,9 @@ class TestHelperMailer < ActionMailer::Base
   def test
     recipients "test@example.com"
     from       "tester@example.com"
-    body       render(:inline => "Hello, <%= @world %>", :body => { :world => "Earth" })
+
+    @world = "Earth"
+    render(:inline => "Hello, <%= @world %>")
   end
 end
 

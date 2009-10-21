@@ -18,11 +18,11 @@ module ActionMailer
     def create_parts
       if String === @body
         ActiveSupport::Deprecation.warn('body is deprecated. To set the body with a text ' <<
-                                        'call render(:text => "body").', caller[7,1])
+                                        'call render(:text => "body").', caller[0,10])
         self.response_body = @body
       elsif @body.is_a?(Hash) && !@body.empty?
         ActiveSupport::Deprecation.warn('body is deprecated. To set assigns simply ' << 
-                                        'use instance variables', caller[7,1])
+                                        'use instance variables', caller[0,10])
         @body.each { |k, v| instance_variable_set(:"@#{k}", v) }
       end
     end

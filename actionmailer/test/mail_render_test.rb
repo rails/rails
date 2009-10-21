@@ -5,14 +5,18 @@ class RenderMailer < ActionMailer::Base
     recipients recipient
     subject    "using helpers"
     from       "tester@example.com"
-    body       render(:inline => "Hello, <%= @world %>", :body => { :world => "Earth" })
+
+    @world = "Earth"
+    render :inline => "Hello, <%= @world %>"
   end
 
   def file_template(recipient)
     recipients recipient
     subject    "using helpers"
     from       "tester@example.com"
-    body       render(:file => "templates/signed_up", :body => { :recipient => recipient })
+
+    @recipient = recipient
+    render :file => "templates/signed_up"
   end
 
   def implicit_body(recipient)
@@ -20,7 +24,8 @@ class RenderMailer < ActionMailer::Base
     subject    "using helpers"
     from       "tester@example.com"
 
-    render(:template => "templates/signed_up", :body => { :recipient => recipient })
+    @recipient = recipient
+    render :template => "templates/signed_up"
   end
 
   def rxml_template(recipient)
@@ -39,7 +44,9 @@ class RenderMailer < ActionMailer::Base
     recipients recipient
     subject    "Including another template in the one being rendered"
     from       "tester@example.com"
-    body       render(:inline => "Hello, <%= render \"subtemplate\" %>", :body => { :world => "Earth" })
+
+    @world = "Earth"
+    render :inline => "Hello, <%= render \"subtemplate\" %>"
   end
 
   def initialize_defaults(method_name)

@@ -11,14 +11,18 @@ class AutoLayoutMailer < ActionMailer::Base
     recipients recipient
     subject    "You have a mail"
     from       "tester@example.com"
-    body       render(:inline => "Hello, <%= @world %>", :layout => 'spam', :body => { :world => "Earth" })
+
+    @world = "Earth"
+    render(:inline => "Hello, <%= @world %>", :layout => 'spam')
   end
 
   def nolayout(recipient)
     recipients recipient
     subject    "You have a mail"
     from       "tester@example.com"
-    body       render(:inline => "Hello, <%= @world %>", :layout => false, :body => { :world => "Earth" })
+
+    @world = "Earth"
+    render(:inline => "Hello, <%= @world %>", :layout => false)
   end
 
   def multipart(recipient, type = nil)
