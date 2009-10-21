@@ -195,7 +195,7 @@ module AbstractController
     def _determine_template(options)
       super
 
-      return if (options.key?(:text) || options.key?(:inline) || options.key?(:partial)) && !options.key?(:layout)
+      return unless (options.keys & [:text, :inline, :partial]).empty? || options.key?(:layout)
       layout = options.key?(:layout) ? options[:layout] : :default
       options[:_layout] = _layout_for_option(layout, options[:_template].details)
     end

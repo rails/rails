@@ -386,11 +386,6 @@ module ActionMailer #:nodoc:
       [:"*/*"]
     end
 
-    # Refactor out all mailer_name
-    def _prefix
-      mailer_name
-    end
-
     class << self
       attr_writer :mailer_name
 

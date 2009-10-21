@@ -65,6 +65,15 @@ module ActionController
         controller_path
       end
 
+      def _determine_template(options)
+        if (options.keys & [:partial, :file, :template, :text, :inline]).empty?
+          options[:_template_name] ||= options[:action]
+          options[:_prefix] = _prefix
+        end
+
+        super
+      end
+
       def format_for_text
         formats.first
       end
