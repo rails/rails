@@ -45,6 +45,9 @@ module ActiveModel
     # it will underscore then humanize the class name (BlogPost.human_name #=> "Blog post").
     # Specify +options+ with additional translating options.
     def human(options={})
+      return @human unless @klass.respond_to?(:lookup_ancestors) &&
+                           @klass.respond_to?(:i18n_scope)
+
       defaults = @klass.lookup_ancestors.map do |klass|
         klass.model_name.underscore.to_sym
       end
