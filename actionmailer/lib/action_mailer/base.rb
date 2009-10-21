@@ -263,6 +263,8 @@ module ActionMailer #:nodoc:
       include ActionController::UrlWriter
     end
 
+    include ActionMailer::DeprecatedBody
+
     private_class_method :new #:nodoc:
 
     class_inheritable_accessor :view_paths
@@ -304,15 +306,10 @@ module ActionMailer #:nodoc:
     cattr_accessor :default_implicit_parts_order
 
     cattr_reader :protected_instance_variables
-    @@protected_instance_variables = %w(@body)
+    @@protected_instance_variables = []
 
     # Specify the BCC addresses for the message
     adv_attr_accessor :bcc
-
-    # Define the body of the message. This is either a Hash (in which case it
-    # specifies the variables to pass to the template when it is rendered),
-    # or a string, in which case it specifies the actual text of the message.
-    adv_attr_accessor :body
 
     # Specify the CC addresses for the message.
     adv_attr_accessor :cc
@@ -358,33 +355,27 @@ module ActionMailer #:nodoc:
     # have multiple mailer methods share the same template.
     adv_attr_accessor :template
 
+    # The mail and action_name instances referenced by this mailer.
+    attr_reader :mail, :action_name
+
+    # Where the response body is stored.
+    attr_internal :response_body
+
     # Override the mailer name, which defaults to an inflected version of the
     # mailer's class name. If you want to use a template in a non-standard
     # location, you can use this to specify that location.
+    attr_writer :mailer_name
+
     def mailer_name(value = nil)
       if value
-        self.mailer_name = value
+        @mailer_name = value
       else
-        self.class.mailer_name
+        @mailer_name || self.class.mailer_name
       end
     end
 
-    def mailer_name=(value)
-      self.class.mailer_name = value
-    end
-
-    # The mail object instance referenced by this mailer.
-    attr_reader :mail
-    attr_reader :template_name, :default_template_name, :action_name
-    attr_internal :response_body
-
-    def controller_path
-      self.class.controller_path
-    end
-
-    def formats
-      [:"*/*"]
-    end
+    # Alias controller_path to mailer_name so render :partial in views work.
+    alias :controller_path :mailer_name
 
     class << self
       attr_writer :mailer_name
@@ -392,10 +383,6 @@ module ActionMailer #:nodoc:
       def mailer_name
         @mailer_name ||= name.underscore
       end
-
-      # for ActionView compatibility
-      alias_method :controller_name, :mailer_name
-      alias_method :controller_path, :mailer_name
 
       def respond_to?(method_symbol, include_private = false) #:nodoc:
         matches_dynamic_method?(method_symbol) || super
@@ -472,58 +459,8 @@ module ActionMailer #:nodoc:
       initialize_defaults(method_name)
       __send__(method_name, *parameters)
 
-      # Check if render was called.
-      @body = self.response_body if @body.is_a?(Hash) && @body.empty?
-
-      # If an explicit, textual body has not been set, we check assumptions.
-      unless String === @body
-        # TODO Fix me. Deprecate assigns to be given as a :body hash
-        if @body.is_a?(Hash)
-          @body.each do |k, v|
-            instance_variable_set(:"@#{k}", v)
-          end
-        end
-
-        # First, we look to see if there are any likely templates that match,
-        # which include the content-type in their file name (i.e.,
-        # "the_template_file.text.html.erb", etc.). Only do this if parts
-        # have not already been specified manually.
-        # if @parts.empty?
-          template_root.find_all(@template, {}, template_path).each do |template|
-            @parts << Part.new(
-              :content_type => template.mime_type ? template.mime_type.to_s : "text/plain",
-              :disposition => "inline",
-              :charset => charset,
-              :body => render_to_body(:_template => template)
-            )
-          end
-
-          if @parts.size > 1
-            @content_type = "multipart/alternative" if @content_type !~ /^multipart/
-            @parts = sort_parts(@parts, @implicit_parts_order)
-          end
-        # end
-
-        # Then, if there were such templates, we check to see if we ought to
-        # also render a "normal" template (without the content type). If a
-        # normal template exists (or if there were no implicit parts) we render
-        # it.
-        # ====
-        # TODO: Revisit this
-        # template_exists = @parts.empty?
-        # template_exists ||= template_root.find("#{mailer_name}/#{@template}")
-        # @body = render_message(@template, @body) if template_exists
-
-        # Finally, if there are other message parts and a textual body exists,
-        # we shift it onto the front of the parts and set the body to nil (so
-        # that create_mail doesn't try to render it in addition to the parts).
-        # ====
-        # TODO: Revisit this
-        # if !@parts.empty? && String === @body
-        #   @parts.unshift Part.new(:charset => charset, :body => @body)
-        #   @body = nil
-        # end
-      end
+      # Create e-mail parts
+      create_parts
 
       # If this is a multipart e-mail add the mime_version if it is not
       # already set.
@@ -556,6 +493,7 @@ module ActionMailer #:nodoc:
     end
 
     private
+
       # Set up the default values for the various instance variables of this
       # mailer. Subclasses may override this method to provide different
       # defaults.
@@ -568,38 +506,42 @@ module ActionMailer #:nodoc:
         @mailer_name ||= self.class.name.underscore
         @parts ||= []
         @headers ||= {}
-        @body ||= {}
         @mime_version = @@default_mime_version.dup if @@default_mime_version
         @sent_on ||= Time.now
+
+        super # Run deprecation hooks
       end
 
-      def render(*args)
-        # TODO Fix me. Deprecate assigns to be given as a :body hash
-        options = args.last.is_a?(Hash) ? args.last : {}
-        if options[:body]
-          options.delete(:body).each do |k, v|
-            instance_variable_set(:"@#{k}", v)
+      def create_parts
+        super # Run deprecation hooks
+
+        if String === response_body
+          @parts.unshift Part.new(
+            :content_type => "text/plain",
+            :disposition => "inline",
+            :charset => charset,
+            :body => response_body
+          )
+        else
+          self.class.template_root.find_all(@template, {}, mailer_name).each do |template|
+            @parts << Part.new(
+              :content_type => template.mime_type ? template.mime_type.to_s : "text/plain",
+              :disposition => "inline",
+              :charset => charset,
+              :body => render_to_body(:_template => template)
+            )
+          end
+
+          if @parts.size > 1
+            @content_type = "multipart/alternative" if @content_type !~ /^multipart/
+            @parts = sort_parts(@parts, @implicit_parts_order)
           end
         end
-
-        super
-      end
-
-      def template_root
-        self.class.template_root
-      end
-
-      def template_root=(root)
-        self.class.template_root = root
-      end
-
-      def template_path
-        "#{mailer_name}"
       end
 
       def sort_parts(parts, order = [])
         order = order.collect { |s| s.downcase }
-        
+
         parts = parts.sort do |a, b|
           a_ct = a.content_type.downcase
           b_ct = b.content_type.downcase
@@ -648,14 +590,6 @@ module ActionMailer #:nodoc:
           m.set_content_type(real_content_type, nil, ctype_attrs)
           m.body = normalize_new_lines(@parts.first.body)
         else
-          if String === body
-            part = TMail::Mail.new
-            part.body = normalize_new_lines(body)
-            part.set_content_type(real_content_type, nil, ctype_attrs)
-            part.set_content_disposition "inline"
-            m.parts << part
-          end
-
           @parts.each do |p|
             part = (TMail::Mail === p ? p : p.to_mail(self))
             m.parts << part
