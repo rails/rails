@@ -208,14 +208,10 @@ module ActiveRecord
 
       private
         # Forwards any missing method call to the \target.
-        def method_missing(method, *args)
+        def method_missing(method, *args, &block)
           if load_target
             if @target.respond_to?(method)
-              if block_given?
-                @target.send(method, *args)  { |*block_args| yield(*block_args) }
-              else
-                @target.send(method, *args)
-              end
+              @target.send(method, *args, &block)
             else
               super
             end
