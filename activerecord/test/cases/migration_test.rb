@@ -1374,8 +1374,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       return unless current_adapter? :OracleAdapter
 
       # table name is 29 chars, the standard sequence name will
-      # be 33 chars and fail
-      assert_raise(ActiveRecord::StatementInvalid) do
+      # be 33 chars and should be shortened
+      assert_nothing_raised do
         begin
           Person.connection.create_table :table_with_name_thats_just_ok do |t|
             t.column :foo, :string, :null => false
