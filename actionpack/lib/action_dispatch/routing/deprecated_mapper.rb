@@ -132,7 +132,6 @@ module ActionDispatch
           path = optionalize_trailing_dynamic_segments(path, requirements, defaults)
           glob = $1.to_sym if path =~ /\/\*(\w+)$/
           path = ::Rack::Mount::Utils.normalize_path(path)
-          path = ::Rack::Mount::Strexp.compile(path, requirements, %w( / . ? ))
 
           if glob && !defaults[glob].blank?
             raise ActionController::RoutingError, "paths cannot have non-empty default values"
@@ -145,7 +144,7 @@ module ActionDispatch
         conditions[:request_method] = method if method
         conditions[:path_info] = path if path
 
-        @set.add_route(app, conditions, defaults, name)
+        @set.add_route(app, conditions, requirements, defaults, name)
       end
 
       def optionalize_trailing_dynamic_segments(path, requirements, defaults) #:nodoc:

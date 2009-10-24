@@ -252,9 +252,11 @@ module ActionDispatch
         constraints = (@scope[:constraints] || {}).merge(constraints)
         options.each { |k, v| constraints[k] = v if v.is_a?(Regexp) }
 
-        conditions[:path_info] = Rack::Mount::Strexp.compile(path, constraints, %w( / . ? ))
+        conditions[:path_info] = path
+        requirements = constraints.dup
 
-        segment_keys = Rack::Mount::RegexpWithNamedGroups.new(conditions[:path_info]).names
+        path_regexp = Rack::Mount::Strexp.compile(path, constraints, SEPARATORS)
+        segment_keys = Rack::Mount::RegexpWithNamedGroups.new(path_regexp).names
         constraints.reject! { |k, v| segment_keys.include?(k.to_s) }
         conditions.merge!(constraints)
 
@@ -286,7 +288,7 @@ module ActionDispatch
         end
 
         app = Constraints.new(app, blocks) if blocks.any?
-        @set.add_route(app, conditions, defaults, options[:as])
+        @set.add_route(app, conditions, requirements, defaults, options[:as])
 
         self
       end

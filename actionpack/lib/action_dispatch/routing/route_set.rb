@@ -47,11 +47,6 @@ module ActionDispatch
           end
       end
 
-      module RouteExtensions
-        def segment_keys
-          conditions[:path_info].names.compact.map { |key| key.to_sym }
-        end
-      end
 
       # A NamedRouteCollection instance is a collection of named routes, and also
       # maintains an anonymous module that can be used to install helpers for the
@@ -290,9 +285,9 @@ module ActionDispatch
         routes_changed_at
       end
 
-      def add_route(app, conditions = {}, defaults = {}, name = nil)
-        route = @set.add_route(app, conditions, defaults, name)
-        route.extend(RouteExtensions)
+      def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil)
+        route = Route.new(app, conditions, requirements, defaults, name)
+        @set.add_route(*route)
         named_routes[name] = route if name
         routes << route
         route
