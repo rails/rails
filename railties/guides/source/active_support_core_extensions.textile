@@ -1724,10 +1724,6 @@ rescue NameError => e
 end
 </ruby>
 
-h3. Extensions to +Benchmark+
-
-...
-
 h3. Changelog
 
 "Lighthouse ticket":https://rails.lighthouseapp.com/projects/16213/tickets/67
