@@ -1673,10 +1673,6 @@ WARNING. Note you can't append with +atomic_write+.
 
 The auxiliary file is written in a standard directory for temporary files, but you can pass a directory of your choice as second argument.
 
-h3. Extensions to +Exception+
-
-...
-
 h3. Extensions to +NameError+
 
 Active Support adds +missing_name?+ to +NameError+, which tests whether the exception was raised because of the name passed as argument.
