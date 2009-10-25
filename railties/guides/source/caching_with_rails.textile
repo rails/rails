@@ -67,6 +67,8 @@ If you want a more complicated expiration scheme, you can use cache sweepers to 
 
 Note: Page caching ignores all parameters. For example +/products?page=1+ will be written out to the filesystem as +products.html+ with no reference to the +page+ parameter. Thus, if someone requests +/products?page=2+ later, they will get the cached first page. Be careful when page caching GET parameters in the URL!
 
+INFO: Page caching runs in an after filter. Thus, invalid requests won't generate spurious cache entries as long as you halt them. Tipically, a redirection in some before filter that checks request preconditions does the job.
+
 h4. Action Caching
 
 One of the issues with Page Caching is that you cannot use it for pages that require to restrict access somehow. This is where Action Caching comes in. Action Caching works like Page Caching except for the fact that the incoming web request does go from the webserver to the Rails stack and Action Pack so that before filters can be run on it before the cache is served. This allows authentication and other restriction to be run while still serving the result of the output from a cached copy.
@@ -97,6 +99,8 @@ You can also use +:if+ (or +:unless+) to pass a Proc that specifies when the act
 You can modify the default action cache path by passing a +:cache_path+ option. This will be passed directly to +ActionCachePath.path_for+. This is handy for actions with multiple possible routes that should be cached differently. If a block is given, it is called with the current controller instance.
 
 Finally, if you are using memcached, you can also pass +:expires_in+. In fact, all parameters not used by +caches_action+ are sent to the underlying cache store. 
+
+INFO: Action caching runs in an after filter. Thus, invalid requests won't generate spurious cache entries as long as you halt them. Tipically, a redirection in some before filter that checks request preconditions does the job.
 
 h4. Fragment Caching
 
