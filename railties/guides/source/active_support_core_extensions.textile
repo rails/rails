@@ -1625,7 +1625,15 @@ This method is also used in the routes code for building regexps.
 
 h3. Extensions to +Range+
 
-...
+h4. +step+
+
+Active Support extends the method +Range#step+ so that it can be invoked without a block:
+
+<ruby>
+(1..10).step(2) # => [1, 3, 5, 7, 9]
+</ruby>
+
+As the example shows, in that case the method returns and array with the corresponding elements.
 
 h3. Extensions to +Proc+
 
