@@ -1625,6 +1625,20 @@ This method is also used in the routes code for building regexps.
 
 h3. Extensions to +Range+
 
+h4. +to_s+
+
+Active Support extends the method +Range#to_s+ so that it understands an optional format argument. As of this writing the only supported non-default format is +:db+:
+
+<ruby>
+(Date.today..Date.tomorrow).to_s
+# => "2009-10-25..2009-10-26"
+
+(Date.today..Date.tomorrow).to_s(:db)
+# => "BETWEEN '2009-10-25' AND '2009-10-26'"
+</ruby>
+
+As the example depicts, the +:db+ format generates a +BETWEEN+ SQL clause. That is used by Active Record in its support for range values in conditions.
+
 h4. +step+
 
 Active Support extends the method +Range#step+ so that it can be invoked without a block:
