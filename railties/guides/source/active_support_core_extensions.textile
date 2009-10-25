@@ -1728,10 +1728,6 @@ rescue NameError => e
 end
 </ruby>
 
-h3. Extensions to +CGI+
-
-...
-
 h3. Extensions to +Benchmark+
 
 ...
