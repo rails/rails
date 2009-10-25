@@ -1649,6 +1649,25 @@ Active Support extends the method +Range#step+ so that it can be invoked without
 
 As the example shows, in that case the method returns and array with the corresponding elements.
 
+h4. +include?+
+
+The method +Range#include?+ says whether some value falls between the ends of a given instance:
+
+<ruby>
+(2..3).include?(Math::E) # => true
+</ruby>
+
+Active Support extends this method so that the argument may be another range in turn. In that case we test whether the ends of the argument range belong to the receiver themselves:
+
+<ruby>
+(1..10).include?(3..7)  # => true
+(1..10).include?(0..7)  # => false
+(1..10).include?(3..11) # => false
+(1...9).include?(3..9)  # => false
+</ruby>
+
+WARNING: The orginal +Range#include?+ is still the one aliased to +Range#===+.
+
 h3. Extensions to +Proc+
 
 ...
