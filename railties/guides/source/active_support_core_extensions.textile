@@ -1668,6 +1668,16 @@ Active Support extends this method so that the argument may be another range in 
 
 WARNING: The orginal +Range#include?+ is still the one aliased to +Range#===+.
 
+h4. +overlaps?+
+
+The method +Range#overlaps?+ says whether any two given ranges have non-void intersection:
+
+<ruby>
+(1..10).overlaps?(7..11)  # => true
+(1..10).overlaps?(0..7)   # => true
+(1..10).overlaps?(11..27) # => false
+</ruby>
+
 h3. Extensions to +Proc+
 
 ...
