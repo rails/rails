@@ -36,7 +36,7 @@ module ActionDispatch
         @segment_keys ||= conditions[:path_info].names.compact.map { |key| key.to_sym }
       end
 
-      def to_ary
+      def to_a
         [@app, @conditions, @defaults, @name]
       end
     end
