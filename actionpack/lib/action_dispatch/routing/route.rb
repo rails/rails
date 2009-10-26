@@ -27,8 +27,13 @@ module ActionDispatch
       end
 
       def verb
-        if verb = conditions[:verb]
-          verb.to_s.upcase
+        if method = conditions[:request_method]
+          case method
+          when Regexp
+            method.source.upcase
+          else
+            method.to_s.upcase
+          end
         end
       end
 
