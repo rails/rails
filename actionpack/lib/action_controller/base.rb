@@ -15,6 +15,7 @@ module ActionController
     include ActionController::ConditionalGet
     include ActionController::RackConvenience
     include ActionController::Benchmarking
+    include ActionController::Configuration
 
     # Legacy modules
     include SessionManagement
