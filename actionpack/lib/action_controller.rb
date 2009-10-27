@@ -3,6 +3,7 @@ module ActionController
   autoload :Benchmarking,         "action_controller/metal/benchmarking"
   autoload :ConditionalGet,       "action_controller/metal/conditional_get"
   autoload :Configuration,        "action_controller/metal/configuration"
+  autoload :Head,                 "action_controller/metal/head"
   autoload :Helpers,              "action_controller/metal/helpers"
   autoload :HideActions,          "action_controller/metal/hide_actions"
   autoload :Layouts,              "action_controller/metal/layouts"
