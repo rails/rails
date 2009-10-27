@@ -488,7 +488,7 @@ module ActiveRecord
       runnable.pop if down? && !target.nil?
 
       runnable.each do |migration|
-        Base.logger.info "Migrating to #{migration.name} (#{migration.version})"
+        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         # On our way up, we skip migrating the ones we've already migrated
         next if up? && migrated.include?(migration.version.to_i)
