@@ -62,15 +62,14 @@ module ActiveSupport
     class Instrumenter
       def initialize(publisher)
         @publisher = publisher
+        @id        = SecureRandom.hex(10)
       end
 
       def instrument(name, payload={})
-        payload[:time]      = Time.now
-        payload[:thread_id] = Thread.current.object_id
-        payload[:result]    = yield if block_given?
+        time   = Time.now
+        result = yield if block_given?
       ensure
-        payload[:duration] = 1000 * (Time.now.to_f - payload[:time].to_f)
-        @publisher.publish(name, payload)
+        @publisher.publish(name, time, Time.now, result, @id, payload)
       end
     end
 
@@ -79,8 +78,8 @@ module ActiveSupport
         @queue = queue
       end
 
-      def publish(name, payload)
-        @queue.publish(name, payload)
+      def publish(*args)
+        @queue.publish(*args)
       end
     end
 
@@ -95,27 +94,31 @@ module ActiveSupport
       end
 
       def subscribe
-        @queue.subscribe(@pattern) do |name, payload|
-          yield Event.new(name, payload)
+        @queue.subscribe(@pattern) do |*args|
+          yield Event.new(*args)
         end
       end
     end
 
     class Event
-      attr_reader :name, :time, :duration, :thread_id, :result, :payload
+      attr_reader :name, :time, :end, :thread_id, :result, :payload
 
-      def initialize(name, payload)
+      def initialize(name, start, ending, result, thread_id, payload)
         @name      = name
         @payload   = payload.dup
-        @time      = @payload.delete(:time)
-        @thread_id = @payload.delete(:thread_id)
-        @result    = @payload.delete(:result)
-        @duration  = @payload.delete(:duration)
+        @time      = start
+        @thread_id = thread_id
+        @end       = ending
+        @result    = result
+      end
+
+      def duration
+        @duration ||= 1000.0 * (@end - @time)
       end
 
       def parent_of?(event)
         start = (self.time - event.time) * 1000
-        start <= 0 && (start + self.duration >= event.duration)
+        start <= 0 && (start + duration >= event.duration)
       end
     end
 
@@ -124,12 +127,13 @@ module ActiveSupport
     #
     class LittleFanout
       def initialize
-        @listeners, @stream = [], Queue.new
-        @thread = Thread.new { consume }
+        @listeners = []
+        @stream    = Queue.new
+        Thread.new { consume }
       end
 
-      def publish(*event)
-        @stream.push(event)
+      def publish(*args)
+        @stream.push(args)
       end
 
       def subscribe(pattern=nil, &block)
@@ -137,30 +141,30 @@ module ActiveSupport
       end
 
       def consume
-        while event = @stream.shift
-          @listeners.each { |l| l.publish(*event) }
+        while args = @stream.shift
+          @listeners.each { |l| l.publish(*args) }
         end
       end
 
       class Listener
-        attr_reader :thread
+        # attr_reader :thread
 
         def initialize(pattern, &block)
           @pattern = pattern
           @subscriber = block
           @queue = Queue.new
-          @thread = Thread.new { consume }
+          Thread.new { consume }
         end
 
-        def publish(name, payload)
-          unless @pattern && !(@pattern === name.to_s)
-            @queue << [name, payload]
+        def publish(name, *args)
+          if !@pattern || @pattern === name.to_s
+            @queue << args.unshift(name)
           end
         end
 
         def consume
-          while event = @queue.shift
-            @subscriber.call(*event)
+          while args = @queue.shift
+            @subscriber.call(*args)
           end
         end
       end

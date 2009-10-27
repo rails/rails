@@ -8,25 +8,28 @@ class ActiveSupport::Notifications::LittleFanout
 end
 
 class NotificationsEventTest < Test::Unit::TestCase
-  def test_events_are_initialized_with_name_and_payload
-    event = event(:foo, :payload => :bar)
+  def test_events_are_initialized_with_details
+    event = event(:foo, Time.now, Time.now + 1, 1, random_id, :payload => :bar)
     assert_equal :foo, event.name
     assert_equal Hash[:payload => :bar], event.payload
   end
 
   def test_events_consumes_information_given_as_payload
-    event = event(:foo, :time => (time = Time.now), :result => 1, :duration => 10)
+    time = Time.now
+    event = event(:foo, time, time + 0.01, 1, random_id, {})
 
     assert_equal Hash.new, event.payload
     assert_equal time, event.time
     assert_equal 1, event.result
-    assert_equal 10, event.duration
+    assert_equal 10.0, event.duration
   end
 
   def test_event_is_parent_based_on_time_frame
-    parent    = event(:foo, :time => Time.utc(2009), :duration => 10000)
-    child     = event(:foo, :time => Time.utc(2009, 01, 01, 0, 0, 1), :duration => 1000)
-    not_child = event(:foo, :time => Time.utc(2009, 01, 01, 0, 0, 1), :duration => 10000)
+    time = Time.utc(2009, 01, 01, 0, 0, 1)
+
+    parent    = event(:foo, Time.utc(2009), Time.utc(2009) + 100, nil, random_id, {})
+    child     = event(:foo, time, time + 10, nil, random_id, {})
+    not_child = event(:foo, time, time + 100, nil, random_id, {})
 
     assert parent.parent_of?(child)
     assert !child.parent_of?(parent)
@@ -34,11 +37,15 @@ class NotificationsEventTest < Test::Unit::TestCase
     assert !not_child.parent_of?(parent)
   end
 
-  protected
+protected
 
-    def event(*args)
-      ActiveSupport::Notifications::Event.new(*args)
-    end
+  def random_id
+    @random_id ||= ActiveSupport::SecureRandom.hex(10)
+  end
+
+  def event(*args)
+    ActiveSupport::Notifications::Event.new(*args)
+  end
 end
 
 class NotificationsMainTest < Test::Unit::TestCase
