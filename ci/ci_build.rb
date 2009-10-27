@@ -17,6 +17,7 @@ root_dir = File.expand_path(File.dirname(__FILE__) + "/..")
 build_results[:geminstaller] = system "sudo geminstaller --config=#{root_dir}/ci/geminstaller.yml --exceptions"
 
 rm_f "#{root_dir}/vendor"
+system "rm -rf #{root_dir}/*/vendor"
 cd root_dir do
   puts
   puts "[CruiseControl] Bundling RubyGems"
