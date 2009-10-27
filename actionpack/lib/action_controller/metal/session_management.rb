@@ -1,6 +1,6 @@
 module ActionController #:nodoc:
   module SessionManagement #:nodoc:
-    include ActiveSupport::Concern
+    extend ActiveSupport::Concern
 
     include ActionController::Configuration
 
