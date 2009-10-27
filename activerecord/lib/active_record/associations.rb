@@ -1033,7 +1033,6 @@ module ActiveRecord
       # A Post class declares <tt>belongs_to :author</tt>, which will add:
       # * <tt>Post#author</tt> (similar to <tt>Author.find(author_id)</tt>)
       # * <tt>Post#author=(author)</tt> (similar to <tt>post.author_id = author.id</tt>)
-      # * <tt>Post#author?</tt> (similar to <tt>post.author == some_author</tt>)
       # * <tt>Post#build_author</tt> (similar to <tt>post.author = Author.new</tt>)
       # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
