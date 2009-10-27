@@ -151,7 +151,7 @@ module ActionController #:nodoc:
     # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
     # to put a new one.
     def flash #:doc:
-      if !@_flash
+      unless @_flash
         @_flash = session["flash"] || FlashHash.new
         @_flash.sweep
       end
