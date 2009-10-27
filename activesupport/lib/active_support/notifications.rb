@@ -1,6 +1,7 @@
 require 'thread'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/secure_random'
 
 module ActiveSupport
   # Notifications provides an instrumentation API for Ruby. To instrument an

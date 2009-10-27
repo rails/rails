@@ -12,7 +12,7 @@ module ApplicationTests
         @subscribers = []
       end
 
-      def publish(name, payload=nil)
+      def publish(name, *args)
         @events << name
       end
 
