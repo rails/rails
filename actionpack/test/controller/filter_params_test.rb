@@ -19,23 +19,23 @@ class FilterParamTest < ActionController::TestCase
     
     def method_missing(method, *args)
       @logged ||= []
-      @logged << args.first
+      @logged << args.first unless block_given?
+      @logged << yield if block_given?
     end
   end
 
   setup :set_logger
 
+  def test_filter_parameters_must_have_one_word
+    assert_raises RuntimeError do
+      FilterParamController.filter_parameter_logging
+    end
+  end
+
   def test_filter_parameters
     assert FilterParamController.respond_to?(:filter_parameter_logging)
-    assert !@controller.respond_to?(:filter_parameters)
 
-    FilterParamController.filter_parameter_logging
-    assert @controller.respond_to?(:filter_parameters)
-
-    test_hashes = [[{},{},[]],
-    [{'foo'=>nil},{'foo'=>nil},[]],
-    [{'foo'=>'bar'},{'foo'=>'bar'},[]],
-    [{'foo'=>1},{'foo'=>1},[]],
+    test_hashes = [
     [{'foo'=>'bar'},{'foo'=>'bar'},%w'food'],
     [{'foo'=>'bar'},{'foo'=>'[FILTERED]'},%w'foo'],
     [{'foo'=>'bar', 'bar'=>'foo'},{'foo'=>'[FILTERED]', 'bar'=>'foo'},%w'foo baz'],
