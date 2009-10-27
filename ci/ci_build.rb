@@ -16,6 +16,14 @@ root_dir = File.expand_path(File.dirname(__FILE__) + "/..")
 # A security hole, but there is nothing valuable on rails CI box anyway.
 build_results[:geminstaller] = system "sudo geminstaller --config=#{root_dir}/ci/geminstaller.yml --exceptions"
 
+rm_f "#{root_dir}/vendor"
+cd root_dir do
+  puts
+  puts "[CruiseControl] Bundling RubyGems"
+  puts
+  build_results[:bundle] = system 'gem bundle'
+end
+
 cd "#{root_dir}/activesupport" do
   puts
   puts "[CruiseControl] Building ActiveSupport"
@@ -29,28 +37,28 @@ cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with MySQL"
   puts
-  build_results[:activerecord_mysql] = system 'gem bundle && rake mysql:rebuild_databases && rake test_mysql'
+  build_results[:activerecord_mysql] = system 'rake mysql:rebuild_databases && rake test_mysql'
 end
 
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with PostgreSQL"
   puts
-  build_results[:activerecord_postgresql8] = system 'gem bundle && rake postgresql:rebuild_databases && rake test_postgresql'
+  build_results[:activerecord_postgresql8] = system 'rake postgresql:rebuild_databases && rake test_postgresql'
 end
 
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with SQLite 3"
   puts
-  build_results[:activerecord_sqlite3] = system 'gem bundle && rake test_sqlite3'
+  build_results[:activerecord_sqlite3] = system 'rake test_sqlite3'
 end
 
 cd "#{root_dir}/activemodel" do
   puts
   puts "[CruiseControl] Building ActiveModel"
   puts
-  build_results[:activemodel] = system 'gem bundle && rake'
+  build_results[:activemodel] = system 'rake'
 end
 
 rm_f "#{root_dir}/activeresource/debug.log"
@@ -65,7 +73,7 @@ cd "#{root_dir}/actionpack" do
   puts
   puts "[CruiseControl] Building ActionPack"
   puts
-  build_results[:actionpack] = system 'gem bundle && rake'
+  build_results[:actionpack] = system 'rake'
   build_results[:actionpack_isolated] = system 'rake test:isolated'
 end
 
@@ -73,14 +81,14 @@ cd "#{root_dir}/actionmailer" do
   puts
   puts "[CruiseControl] Building ActionMailer"
   puts
-  build_results[:actionmailer] = system 'gem bundle && rake'
+  build_results[:actionmailer] = system 'rake'
 end
 
 cd "#{root_dir}/railties" do
   puts
   puts "[CruiseControl] Building RailTies"
   puts
-  build_results[:railties] = system 'gem bundle && rake'
+  build_results[:railties] = system 'rake'
 end
 
 
