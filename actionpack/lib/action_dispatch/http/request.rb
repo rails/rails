@@ -136,19 +136,16 @@ module ActionDispatch
     # If-Modified-Since and If-None-Match conditions. If both headers are
     # supplied, both must match, or the request is not considered fresh.
     def fresh?(response)
-      case
-      when if_modified_since && if_none_match
-        not_modified?(response.last_modified) && etag_matches?(response.etag)
-      when if_modified_since
-        not_modified?(response.last_modified)
-      when if_none_match
-        etag_matches?(response.etag)
-      else
-        false
-      end
-    end
+      last_modified = if_modified_since
+      etag          = if_none_match
 
-    ONLY_ALL = [Mime::ALL].freeze
+      return false unless last_modified || etag
+
+      success = true
+      success &&= not_modified?(response.last_modified) if last_modified
+      success &&= etag_matches?(response.etag) if etag
+      success
+    end
 
     # Returns the Mime type for the \format used in the request.
     #

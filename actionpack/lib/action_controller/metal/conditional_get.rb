@@ -80,7 +80,7 @@ module ActionController
     # Sets a HTTP 1.1 Cache-Control header of "no-cache" so no caching should occur by the browser or
     # intermediate caches (like caching proxy servers).
     def expires_now #:doc:
-      response.headers["Cache-Control"] = "no-cache"
+      response.cache_control.replace(:no_cache => true)
     end
   end
 end
