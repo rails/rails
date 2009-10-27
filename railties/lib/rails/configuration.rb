@@ -1,5 +1,6 @@
 require 'rails/plugin/loader'
 require 'rails/plugin/locator'
+require 'active_support/ordered_options'
 
 module Rails
   class Configuration
@@ -23,9 +24,9 @@ module Rails
       @serve_static_assets          = true
 
       for framework in frameworks
-        self.send("#{framework}=", Rails::OrderedOptions.new)
+        self.send("#{framework}=", ActiveSupport::OrderedOptions.new)
       end
-      self.active_support = Rails::OrderedOptions.new
+      self.active_support = ActiveSupport::OrderedOptions.new
     end
 
     def after_initialize(&blk)
@@ -218,7 +219,7 @@ module Rails
 
     def i18n
       @i18n ||= begin
-        i18n = Rails::OrderedOptions.new
+        i18n = ActiveSupport::OrderedOptions.new
         i18n.load_path = []
 
         if File.exist?(File.join(root, 'config', 'locales'))
