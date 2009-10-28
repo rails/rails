@@ -79,8 +79,8 @@ module ActionController #:nodoc:
       #   do not apply this verification to the actions specified in the associated 
       #   array (may also be a single value).
       def verify(options={})
-        before_filter :only => options[:only], :except => options[:except] do |c|
-          c.__send__ :verify_action, options
+        before_filter :only => options[:only], :except => options[:except] do
+          verify_action options
         end
       end
     end
