@@ -296,6 +296,12 @@ class TestMailer < ActionMailer::Base
     body         :body => "foo", :bar => "baz"
   end
 
+  def subject_with_i18n(recipient)
+    recipients recipient
+    from       "system@loudthinking.com"
+    render :text => "testing"
+  end
+
   class << self
     attr_accessor :received_body
   end
@@ -390,6 +396,15 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_nothing_raised { TestMailer.deliver_signed_up(@recipient) }
     assert_not_nil ActionMailer::Base.deliveries.first
     assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
+  end
+
+  def test_subject_with_i18n
+    assert_nothing_raised { TestMailer.deliver_subject_with_i18n(@recipient) }
+    assert_equal "Subject with i18n", ActionMailer::Base.deliveries.first.subject
+
+    I18n.backend.store_translations('en', :actionmailer => {:subjects => {:test_mailer => {:subject_with_i18n => "New Subject!"}}})
+    assert_nothing_raised { TestMailer.deliver_subject_with_i18n(@recipient) }
+    assert_equal "New Subject!", ActionMailer::Base.deliveries.last.subject
   end
 
   def test_custom_template

@@ -463,9 +463,9 @@ module ActionMailer #:nodoc:
       # Create e-mail parts
       create_parts
 
-      # If this is a multipart e-mail add the mime_version if it is not
-      # already set.
-      @mime_version ||= "1.0" if !@parts.empty?
+      # Set the subject if not set yet
+      @subject ||= I18n.t(method_name, :scope => [:actionmailer, :subjects, mailer_name],
+                                       :default => method_name.humanize)
 
       # build the mail object itself
       @mail = create_mail
@@ -539,6 +539,10 @@ module ActionMailer #:nodoc:
             @content_type = "multipart/alternative" if @content_type !~ /^multipart/
             @parts = sort_parts(@parts, @implicit_parts_order)
           end
+
+          # If this is a multipart e-mail add the mime_version if it is not
+          # already set.
+          @mime_version ||= "1.0" if !@parts.empty?
         end
       end
 
