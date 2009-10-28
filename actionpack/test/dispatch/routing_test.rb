@@ -116,6 +116,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'sessions#destroy', @response.body
 
       assert_equal '/logout', logout_path
+      assert_equal '/logout', url_for(:controller => 'sessions', :action => 'destroy', :only_path => true)
     end
   end
 
@@ -123,11 +124,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/login'
       assert_equal 'sessions#new', @response.body
+      assert_equal '/login', login_path
 
       post '/login'
       assert_equal 'sessions#create', @response.body
 
-      assert_equal '/login', login_path
+      assert_equal '/login', url_for(:controller => 'sessions', :action => 'create', :only_path => true)
+      assert_equal '/login', url_for(:controller => 'sessions', :action => 'new', :only_path => true)
     end
   end
 
