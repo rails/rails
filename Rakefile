@@ -1,37 +1,6 @@
 require "rubygems"
 
 begin
-  require 'jeweler'
-rescue LoadError
-  desc "Install gem using sudo"
-  task(:install) do
-    $stderr.puts "Jeweler not available. `gem install jeweler` to install this gem"
-  end
-else
-  Jeweler::Tasks.new do |s|
-    s.name      = "arel"
-    s.authors   = ["Bryan Helmkamp", "Nick Kallen"]
-    s.email     = "bryan" + "@" + "brynary.com"
-    s.homepage  = "http://github.com/brynary/arel"
-    s.summary   = "Arel is a relational algebra engine for Ruby"
-    s.description  = <<-EOS.strip
-Arel is a Relational Algebra for Ruby. It 1) simplifies the generation complex
-of SQL queries and it 2) adapts to various RDBMS systems. It is intended to be
-a framework framework; that is, you can build your own ORM with it, focusing on
-innovative object and collection modeling as opposed to database compatibility
-and query generation.
-EOS
-    s.rubyforge_project = "arel"
-    s.extra_rdoc_files = %w(README.markdown)
-
-    s.add_dependency "activerecord", ">= 3.0pre"
-    s.add_dependency "activesupport", ">= 3.0pre"
-  end
-
-  Jeweler::RubyforgeTasks.new
-end
-
-begin
   require "spec/rake/spectask"
 rescue LoadError
   desc "Run specs"

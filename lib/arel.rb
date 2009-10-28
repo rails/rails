@@ -9,4 +9,6 @@ module Arel
   require 'arel/algebra'
   require 'arel/engines'
   autoload :Session, 'arel/session'
+
+  VERSION = "0.1.2"
 end
