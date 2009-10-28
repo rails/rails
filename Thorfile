@@ -1,6 +1,9 @@
 module GemHelpers
 
   def generate_gemspec
+    $LOAD_PATH << "#{File.dirname(__FILE__)}/vendor/rails/activerecord/lib"
+    $LOAD_PATH << "#{File.dirname(__FILE__)}/vendor/rails/activesupport/lib"
+
     $LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), "lib")))
     require "arel"
 
