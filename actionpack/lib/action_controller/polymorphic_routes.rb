@@ -80,9 +80,8 @@ module ActionController
         record_or_hash_or_array = record_or_hash_or_array[0] if record_or_hash_or_array.size == 1
       end
 
-      record    = extract_record(record_or_hash_or_array)
-      record    = record.to_model if record.respond_to?(:to_model)
-      namespace = extract_namespace(record_or_hash_or_array)
+      record = extract_record(record_or_hash_or_array)
+      record = record.to_model if record.respond_to?(:to_model)
 
       args = case record_or_hash_or_array
         when Hash;  [ record_or_hash_or_array ]
@@ -105,8 +104,7 @@ module ActionController
       end
 
       args.delete_if {|arg| arg.is_a?(Symbol) || arg.is_a?(String)}
-
-      named_route = build_named_route_call(record_or_hash_or_array, namespace, inflection, options)
+      named_route = build_named_route_call(record_or_hash_or_array, inflection, options)
 
       url_options = options.except(:action, :routing_type)
       unless url_options.empty?
@@ -138,18 +136,6 @@ module ActionController
       EOT
     end
 
-    def formatted_polymorphic_url(record_or_hash, options = {})
-      ActiveSupport::Deprecation.warn("formatted_polymorphic_url has been deprecated. Please pass :format to the polymorphic_url method instead", caller)
-      options[:format] = record_or_hash.pop if Array === record_or_hash
-      polymorphic_url(record_or_hash, options)
-    end
-
-    def formatted_polymorphic_path(record_or_hash, options = {})
-      ActiveSupport::Deprecation.warn("formatted_polymorphic_path has been deprecated. Please pass :format to the polymorphic_path method instead", caller)
-      options[:format] = record_or_hash.pop if record_or_hash === Array
-      polymorphic_url(record_or_hash, options.merge(:routing_type => :path))
-    end
-
     private
       def action_prefix(options)
         options[:action] ? "#{options[:action]}_" : ''
@@ -159,7 +145,7 @@ module ActionController
         options[:routing_type] || :url
       end
 
-      def build_named_route_call(records, namespace, inflection, options = {})
+      def build_named_route_call(records, inflection, options = {})
         unless records.is_a?(Array)
           record = extract_record(records)
           route  = ''
@@ -169,7 +155,7 @@ module ActionController
             if parent.is_a?(Symbol) || parent.is_a?(String)
               string << "#{parent}_"
             else
-              string << "#{RecordIdentifier.__send__("plural_class_name", parent)}".singularize
+              string << RecordIdentifier.__send__("plural_class_name", parent).singularize
               string << "_"
             end
           end
@@ -178,12 +164,12 @@ module ActionController
         if record.is_a?(Symbol) || record.is_a?(String)
           route << "#{record}_"
         else
-          route << "#{RecordIdentifier.__send__("plural_class_name", record)}"
+          route << RecordIdentifier.__send__("plural_class_name", record)
           route = route.singularize if inflection == :singular
           route << "_"
         end
 
-        action_prefix(options) + namespace + route + routing_type(options).to_s
+        action_prefix(options) + route + routing_type(options).to_s
       end
 
       def extract_record(record_or_hash_or_array)
@@ -192,19 +178,6 @@ module ActionController
           when Hash;  record_or_hash_or_array[:id]
           else        record_or_hash_or_array
         end
-      end
-
-      # Remove the first symbols from the array and return the url prefix
-      # implied by those symbols.
-      def extract_namespace(record_or_hash_or_array)
-        return "" unless record_or_hash_or_array.is_a?(Array)
-
-        namespace_keys = []
-        while (key = record_or_hash_or_array.first) && key.is_a?(String) || key.is_a?(Symbol)
-          namespace_keys << record_or_hash_or_array.shift
-        end
-
-        namespace_keys.map {|k| "#{k}_"}.join
       end
   end
 end
