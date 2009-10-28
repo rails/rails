@@ -290,4 +290,8 @@ class PolymorphicRoutesTest < ActiveSupport::TestCase
     polymorphic_url([:taxes])
   end
 
+  def test_with_array_containing_symbols
+    expects(:new_article_url).with()
+    polymorphic_url([:new, :article])
+  end
 end
