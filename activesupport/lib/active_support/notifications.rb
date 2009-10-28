@@ -96,7 +96,7 @@ module ActiveSupport
 
       def subscribe
         @queue.subscribe(@pattern) do |*args|
-          yield Event.new(*args)
+          yield *args
         end
       end
     end

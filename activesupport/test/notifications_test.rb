@@ -52,7 +52,9 @@ class NotificationsMainTest < Test::Unit::TestCase
   def setup
     @events = []
     Thread.abort_on_exception = true
-    ActiveSupport::Notifications.subscribe { |event| @events << event }
+    ActiveSupport::Notifications.subscribe do |*args|
+      @events << ActiveSupport::Notifications::Event.new(*args)
+    end
   end
 
   def teardown
@@ -124,7 +126,11 @@ class NotificationsMainTest < Test::Unit::TestCase
 
   def test_subscriber_with_pattern
     @another = []
-    ActiveSupport::Notifications.subscribe("cache"){ |event| @another << event }
+
+    ActiveSupport::Notifications.subscribe("cache") do |*args|
+      @another << ActiveSupport::Notifications::Event.new(*args)
+    end
+
     ActiveSupport::Notifications.instrument(:cache){ 1 }
 
     sleep(0.1)
@@ -136,7 +142,9 @@ class NotificationsMainTest < Test::Unit::TestCase
 
   def test_subscriber_with_pattern_as_regexp
     @another = []
-    ActiveSupport::Notifications.subscribe(/cache/){ |event| @another << event }
+    ActiveSupport::Notifications.subscribe(/cache/) do |*args|
+      @another << ActiveSupport::Notifications::Event.new(*args)
+    end
 
     ActiveSupport::Notifications.instrument(:something){ 0 }
     ActiveSupport::Notifications.instrument(:cache){ 1 }
@@ -150,7 +158,9 @@ class NotificationsMainTest < Test::Unit::TestCase
 
   def test_with_several_consumers_and_several_events
     @another = []
-    ActiveSupport::Notifications.subscribe { |event| @another << event }
+    ActiveSupport::Notifications.subscribe do |*args|
+      @another << ActiveSupport::Notifications::Event.new(*args)
+    end
 
     1.upto(100) do |i|
       ActiveSupport::Notifications.instrument(:value){ i }
