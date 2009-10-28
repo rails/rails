@@ -12,112 +12,99 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  class Dispatcher
-    def self.new(*args)
-      lambda { |env|
-        params = env['action_dispatch.request.path_parameters']
-        controller, action = params[:controller], params[:action]
-        [200, {'Content-Type' => 'text/html'}, ["#{controller}##{action}"]]
-      }
+  stub_controllers do |routes|
+    Routes = routes
+    Routes.draw do |map|
+      controller :sessions do
+        get  'login', :to => :new, :as => :login
+        post 'login', :to => :create
+
+        delete 'logout', :to => :destroy, :as => :logout
+      end
+
+      match 'account/login', :to => redirect("/login")
+
+      match 'openid/login', :via => [:get, :post], :to => "openid#login"
+
+      controller(:global) do
+        match 'global/:action'
+        match 'global/export',      :to => :export, :as => :export_request
+        match 'global/hide_notice', :to => :hide_notice, :as => :hide_notice
+        match '/export/:id/:file',  :to => :export, :as => :export_download, :constraints => { :file => /.*/ }
+      end
+
+      constraints(:ip => /192\.168\.1\.\d\d\d/) do
+        get 'admin', :to => "queenbee#index"
+      end
+
+      constraints IpRestrictor do
+        get 'admin/accounts', :to => "queenbee#accounts"
+      end
+
+      resources :projects, :controller => :project do
+        resources :involvements, :attachments
+
+        resources :participants do
+          put :update_all, :on => :collection
+        end
+
+        resources :companies do
+          resources :people
+          resource  :avatar
+        end
+
+        resources :images do
+          post :revise, :on => :member
+        end
+
+        resources :people do
+          namespace ":access_token" do
+            resource :avatar
+          end
+
+          member do
+            put  :accessible_projects
+            post :resend, :generate_new_password
+          end
+        end
+
+        resources :posts do
+          get  :archive, :toggle_view, :on => :collection
+          post :preview, :on => :member
+
+          resource :subscription
+
+          resources :comments do
+            post :preview, :on => :collection
+          end
+        end
+      end
+
+      match 'sprockets.js', :to => SprocketsApp
+
+      match 'people/:id/update', :to => 'people#update', :as => :update_person
+      match '/projects/:project_id/people/:id/update', :to => 'people#update', :as => :update_project_person
+
+      # misc
+      match 'articles/:year/:month/:day/:title', :to => "articles#show", :as => :article
+
+      namespace :account do
+        resource :subscription, :credit, :credit_card
+      end
+
+      controller :articles do
+        scope 'articles' do
+          scope ':title', :title => /[a-z]+/, :as => :with_title do
+            match ':id', :to => :with_id
+          end
+        end
+      end
+
+      scope ':access_token', :constraints => { :access_token => /\w{5,5}/ } do
+        resources :rooms
+      end
     end
   end
-
-  old_dispatcher = ActionDispatch::Routing::RouteSet::Dispatcher
-  ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
-  ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, Dispatcher }
-  Routes = ActionDispatch::Routing::RouteSet.new
-  Routes.draw do |map|
-    controller :sessions do
-      get  'login', :to => :new, :as => :login
-      post 'login', :to => :create
-
-      delete 'logout', :to => :destroy, :as => :logout
-    end
-
-    match 'account/login', :to => redirect("/login")
-
-    match 'openid/login', :via => [:get, :post], :to => "openid#login"
-
-    controller(:global) do
-      match 'global/:action'
-      match 'global/export',      :to => :export, :as => :export_request
-      match 'global/hide_notice', :to => :hide_notice, :as => :hide_notice
-      match '/export/:id/:file',  :to => :export, :as => :export_download, :constraints => { :file => /.*/ }
-    end
-
-    constraints(:ip => /192\.168\.1\.\d\d\d/) do
-      get 'admin', :to => "queenbee#index"
-    end
-
-    constraints IpRestrictor do
-      get 'admin/accounts', :to => "queenbee#accounts"
-    end
-
-    resources :projects, :controller => :project do
-      resources :involvements, :attachments
-
-      resources :participants do
-        put :update_all, :on => :collection
-      end
-
-      resources :companies do
-        resources :people
-        resource  :avatar
-      end
-
-      resources :images do
-        post :revise, :on => :member
-      end
-
-      resources :people do
-        namespace ":access_token" do
-          resource :avatar
-        end
-
-        member do
-          put  :accessible_projects
-          post :resend, :generate_new_password
-        end
-      end
-
-      resources :posts do
-        get  :archive, :toggle_view, :on => :collection
-        post :preview, :on => :member
-
-        resource :subscription
-
-        resources :comments do
-          post :preview, :on => :collection
-        end
-      end
-    end
-
-    match 'sprockets.js', :to => SprocketsApp
-
-    match 'people/:id/update', :to => 'people#update', :as => :update_person
-    match '/projects/:project_id/people/:id/update', :to => 'people#update', :as => :update_project_person
-
-    # misc
-    match 'articles/:year/:month/:day/:title', :to => "articles#show", :as => :article
-
-    namespace :account do
-      resource :subscription, :credit, :credit_card
-    end
-
-    controller :articles do
-      scope 'articles' do
-        scope ':title', :title => /[a-z]+/, :as => :with_title do
-          match ':id', :to => :with_id
-        end
-      end
-    end
-
-    scope ':access_token', :constraints => { :access_token => /\w{5,5}/ } do
-      resources :rooms
-    end
-  end
-  ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
-  ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, old_dispatcher }
 
   def app
     Routes
