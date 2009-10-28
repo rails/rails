@@ -45,7 +45,7 @@ module ActiveSupport
     mattr_accessor :queue
 
     class << self
-      delegate :instrument, :to => :instrumenter
+      delegate :instrument, :transaction_id, :generate_id, :to => :instrumenter
 
       def instrumenter
         Thread.current[:notifications_instrumeter] ||= Instrumenter.new(publisher)
@@ -63,7 +63,18 @@ module ActiveSupport
     class Instrumenter
       def initialize(publisher)
         @publisher = publisher
-        @id        = SecureRandom.hex(10)
+        @id        = random_id
+      end
+
+      def transaction
+        @id, old_id = random_id, @id
+        yield
+      ensure
+        @id = old_id
+      end
+
+      def transaction_id
+        @id
       end
 
       def instrument(name, payload={})
@@ -71,6 +82,11 @@ module ActiveSupport
         result = yield if block_given?
       ensure
         @publisher.publish(name, time, Time.now, result, @id, payload)
+      end
+
+    private
+      def random_id
+        SecureRandom.hex(10)
       end
     end
 
