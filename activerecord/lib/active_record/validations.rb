@@ -22,16 +22,21 @@ module ActiveRecord
       self.base      = base
       self.attribute = attribute
       self.type      = type || :invalid
-      self.options   = options
       self.message   = options.delete(:message) || self.type
+      self.options   = {
+        :scope => [:activerecord, :errors],
+        :model => @base.class.human_name,
+        :attribute => @base.class.human_attribute_name(attribute.to_s),
+        :value => value
+      }.merge!(options)
     end
 
     def message
-      generate_message(@message, default_options)
+      generate_message(@message, options.dup)
     end
 
     def full_message
-      attribute.to_s == 'base' ? message : generate_full_message(message, default_options)
+      attribute.to_s == 'base' ? message : generate_full_message(message, options.dup)
     end
 
     alias :to_s :message
@@ -113,15 +118,6 @@ module ActiveRecord
         options.merge!(:default => keys, :message => self.message)
         I18n.translate(keys.shift, options)
       end
-
-      # Return user options with default options.
-      #
-      def default_options
-        options.reverse_merge :scope => [:activerecord, :errors],
-                              :model => @base.class.human_name,
-                              :attribute => @base.class.human_attribute_name(attribute.to_s),
-                              :value => value
-      end
   end
 
   # Active Record validation is reported to and from this object, which is used by Base#save to
@@ -154,16 +150,10 @@ module ActiveRecord
     # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
     # If no +messsage+ is supplied, :invalid is assumed.
     # If +message+ is a Symbol, it will be translated, using the appropriate scope (see translate_error).
-    # def add(attribute, message = nil, options = {})
-    #   message ||= :invalid
-    #   message = generate_message(attribute, message, options)) if message.is_a?(Symbol)
-    #   @errors[attribute.to_s] ||= []
-    #   @errors[attribute.to_s] << message
-    # end
-
-    def add(error_or_attr, message = nil, options = {})
-      error, attribute = error_or_attr.is_a?(Error) ? [error_or_attr, error_or_attr.attribute] : [nil, error_or_attr]
+    #
+    def add(attribute, message = nil, options = {})
       options[:message] = options.delete(:default) if options.has_key?(:default)
+      error, message = message, nil if message.is_a?(Error)
 
       @errors[attribute.to_s] ||= []
       @errors[attribute.to_s] << (error || Error.new(@base, attribute, message, options))

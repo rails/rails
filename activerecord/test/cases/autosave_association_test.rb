@@ -750,15 +750,15 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_automatically_validate_the_associated_model
     @pirate.ship.name = ''
     assert !@pirate.valid?
-    assert !@pirate.errors.on(:ship_name).blank?
+    assert_equal "can't be blank", @pirate.errors.on(:"ship.name")
   end
 
   def test_should_merge_errors_on_the_associated_models_onto_the_parent_even_if_it_is_not_valid
     @pirate.ship.name   = nil
     @pirate.catchphrase = nil
     assert !@pirate.valid?
-    assert !@pirate.errors.on(:ship_name).blank?
-    assert !@pirate.errors.on(:catchphrase).blank?
+    assert @pirate.errors.full_messages.include?("Name can't be blank")
+    assert @pirate.errors.full_messages.include?("Catchphrase can't be blank")
   end
 
   def test_should_still_allow_to_bypass_validations_on_the_associated_model
@@ -840,15 +840,15 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_automatically_validate_the_associated_model
     @ship.pirate.catchphrase = ''
     assert !@ship.valid?
-    assert !@ship.errors.on(:pirate_catchphrase).blank?
+    assert_equal "can't be blank", @ship.errors.on(:"pirate.catchphrase")
   end
 
   def test_should_merge_errors_on_the_associated_model_onto_the_parent_even_if_it_is_not_valid
     @ship.name = nil
     @ship.pirate.catchphrase = nil
     assert !@ship.valid?
-    assert !@ship.errors.on(:name).blank?
-    assert !@ship.errors.on(:pirate_catchphrase).blank?
+    assert @ship.errors.full_messages.include?("Name can't be blank")
+    assert @ship.errors.full_messages.include?("Catchphrase can't be blank")
   end
 
   def test_should_still_allow_to_bypass_validations_on_the_associated_model
@@ -910,7 +910,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).each { |child| child.name = '' }
 
     assert !@pirate.valid?
-    assert_equal "can't be blank", @pirate.errors.on("#{@association_name}_name")
+    assert @pirate.errors.full_messages.include?("Name can't be blank")
     assert @pirate.errors.on(@association_name).blank?
   end
 
@@ -918,7 +918,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).build(:name => '')
 
     assert !@pirate.valid?
-    assert_equal "can't be blank", @pirate.errors.on("#{@association_name}_name")
+    assert_equal "can't be blank", @pirate.errors.on("#{@association_name}.name")
     assert @pirate.errors.on(@association_name).blank?
   end
 
@@ -927,7 +927,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.catchphrase = nil
 
     assert !@pirate.valid?
-    assert_equal "can't be blank", @pirate.errors.on("#{@association_name}_name")
+    assert_equal "can't be blank", @pirate.errors.on("#{@association_name}.name")
     assert !@pirate.errors.on(:catchphrase).blank?
   end
 
