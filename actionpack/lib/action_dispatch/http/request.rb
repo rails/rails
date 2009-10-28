@@ -97,6 +97,10 @@ module ActionDispatch
       end
     end
 
+    def forgery_whitelisted?
+      method == :get || xhr? || !(!content_type.nil? && content_type.verify_request?)
+    end
+
     def media_type
       content_type.to_s
     end
