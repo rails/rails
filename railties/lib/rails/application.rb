@@ -41,13 +41,13 @@ module Rails
       end
 
       def new
-        initializers.run
+        run_initializers
         self
       end
     end
 
     initializer :initialize_rails do
-      Rails.initializers.run
+      Rails.run_initializers
     end
 
     # Set the <tt>$LOAD_PATH</tt> based on the value of

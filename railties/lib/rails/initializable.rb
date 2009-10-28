@@ -15,7 +15,7 @@ module Rails
     class Collection < Array
       def initialize(klasses)
         klasses.each do |klass|
-          klass.added_initializers.each do |initializer|
+          (klass.added_initializers || []).each do |initializer|
             index = if initializer.before
               index_for(initializer.before)
             elsif initializer.after
@@ -44,7 +44,7 @@ module Rails
     #
     # The #initializers method is set up to return the right list of
     # initializers for the context in question.
-    def initialize!
+    def run_initializers
       return if @_initialized
 
       initializers.each {|initializer| instance_eval(&initializer.block) }

@@ -85,29 +85,29 @@ module InitializableTests
     include ActiveSupport::Testing::Isolation
 
     test "initializers run" do
-      Foo.initialize!
+      Foo.run_initializers
       assert_equal 1, Foo.foo
     end
 
     test "initializers are inherited" do
-      Bar.initialize!
+      Bar.run_initializers
       assert_equal [1, 1], [Bar.foo, Bar.bar]
     end
 
     test "initializers only get run once" do
-      Foo.initialize!
-      Foo.initialize!
+      Foo.run_initializers
+      Foo.run_initializers
       assert_equal 1, Foo.foo
     end
 
     test "running initializers on children does not effect the parent" do
-      Bar.initialize!
+      Bar.run_initializers
       assert_nil Foo.foo
       assert_nil Foo.bar
     end
 
     test "initializing with modules" do
-      Word.initialize!
+      Word.run_initializers
       assert_equal "bird", $word
     end
   end
@@ -115,13 +115,13 @@ module InitializableTests
   class BeforeAfter < ActiveSupport::TestCase
     test "running on parent" do
       $arr = []
-      Parent.initialize!
+      Parent.run_initializers
       assert_equal [5, 1, 2], $arr
     end
 
     test "running on child" do
       $arr = []
-      Child.initialize!
+      Child.run_initializers
       assert_equal [5, 3, 1, 4, 2], $arr
     end
   end
@@ -130,13 +130,13 @@ module InitializableTests
     test "running locals" do
       $arr = []
       instance = Instance.new
-      instance.initialize!
+      instance.run_initializers
       assert_equal [1, 2], $arr
     end
 
     test "running globals" do
       $arr = []
-      Instance.initialize!
+      Instance.run_initializers
       assert_equal [3, 4], $arr
     end
   end
