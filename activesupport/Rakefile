@@ -104,21 +104,21 @@ namespace :tzinfo do
   end
 
   task :copy_classes => :unpack_gem do
-    mkdir_p "#{destination_path}/tzinfo"
-    cp "#{tmp_path}/lib/tzinfo.rb", destination_path
-    comment_requires_for_excluded_classes!('tzinfo.rb')
+    mkdir_p "#{destination_path}/lib/tzinfo"
+    cp "#{tmp_path}/lib/tzinfo.rb", "#{destination_path}/lib"
+    comment_requires_for_excluded_classes!('lib/tzinfo.rb')
     files = FileList["#{tmp_path}/lib/tzinfo/*.rb"]
     files.each do |file|
       filename = File.basename(file)
       unless excluded_classes.include? filename.sub(/.rb$/, '')
-        cp "#{tmp_path}/lib/tzinfo/#{filename}", "#{destination_path}/tzinfo"
-        comment_requires_for_excluded_classes!("tzinfo/#{filename}")
+        cp "#{tmp_path}/lib/tzinfo/#{filename}", "#{destination_path}/lib/tzinfo"
+        comment_requires_for_excluded_classes!("lib/tzinfo/#{filename}")
       end
     end
   end
 
   task :copy_definitions => :unpack_gem do
-    definitions_path = "#{destination_path}/tzinfo/definitions/"
+    definitions_path = "#{destination_path}/lib/tzinfo/definitions/"
     mkdir_p definitions_path
     ActiveSupport::TimeZone::MAPPING.values.each do |zone|
       subdir = nil
