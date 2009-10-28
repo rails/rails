@@ -1,19 +1,14 @@
 class Array
   # Wraps the object in an Array unless it's an Array.  Converts the
   # object to an Array using #to_ary if it implements that.
-  array = Array("foo\nbar")
-
-  if array.size == 1
-    def self.wrap(object)
+  def self.wrap(object)
+    if object.nil?
+      []
+    # to_a doesn't work correctly with Array() but to_ary always does
+    elsif object.respond_to?(:to_a) && !object.respond_to?(:to_ary)
+      [object]
+    else
       Array(object)
-    end
-  else
-    def self.wrap(object)
-      if object.is_a?(String)
-        [object]
-      else
-        Array(object)
-      end
     end
   end
 end
