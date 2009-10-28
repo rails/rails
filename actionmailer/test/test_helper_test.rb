@@ -10,7 +10,7 @@ end
 
 class TestHelperMailerTest < ActionMailer::TestCase
   def test_setup_sets_right_action_mailer_options
-    assert_equal :test, ActionMailer::Base.delivery_method
+    assert_instance_of ActionMailer::DeliveryMethod::Test, ActionMailer::Base.delivery_method
     assert ActionMailer::Base.perform_deliveries
     assert_equal [], ActionMailer::Base.deliveries
   end

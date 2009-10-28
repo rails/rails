@@ -44,6 +44,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/action_mailer.rb')
   rdoc.rdoc_files.include('lib/action_mailer/*.rb')
+  rdoc.rdoc_files.include('lib/action_mailer/delivery_method/*.rb')
 }
 
 spec = eval(File.read('actionmailer.gemspec'))

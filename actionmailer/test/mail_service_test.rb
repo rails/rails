@@ -554,7 +554,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def test_doesnt_raise_errors_when_raise_delivery_errors_is_false
     ActionMailer::Base.raise_delivery_errors = false
-    TestMailer.any_instance.expects(:perform_delivery_test).raises(Exception)
+    TestMailer.delivery_method.expects(:perform_delivery).raises(Exception)
     assert_nothing_raised { TestMailer.deliver_signed_up(@recipient) }
   end
 

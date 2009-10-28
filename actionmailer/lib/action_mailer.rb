@@ -33,6 +33,7 @@ module ActionMailer
 
   autoload :AdvAttrAccessor, 'action_mailer/adv_attr_accessor'
   autoload :Base, 'action_mailer/base'
+  autoload :DeliveryMethod, 'action_mailer/delivery_method'
   autoload :Helpers, 'action_mailer/helpers'
   autoload :Part, 'action_mailer/part'
   autoload :PartContainer, 'action_mailer/part_container'

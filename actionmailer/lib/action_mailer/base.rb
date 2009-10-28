@@ -1,5 +1,3 @@
-require 'tmpdir'
-
 require "active_support/core_ext/class"
 # Use the old layouts until actionmailer gets refactored
 require "action_controller/legacy/layout"
@@ -232,7 +230,7 @@ module ActionMailer #:nodoc:
   # * <tt>raise_delivery_errors</tt> - Whether or not errors should be raised if the email fails to be delivered.
   #
   # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default), <tt>:sendmail</tt>, <tt>:test</tt>,
-  #   and <tt>:file</tt>.
+  #   and <tt>:file</tt>. Or you may provide a custom delivery method object eg. MyOwnDeliveryMethodClass.new
   #
   # * <tt>perform_deliveries</tt> - Determines whether <tt>deliver_*</tt> methods are actually carried out. By default they are,
   #   but this can be turned off to help functional testing.
@@ -270,34 +268,20 @@ module ActionMailer #:nodoc:
 
     cattr_accessor :logger
 
-    @@smtp_settings = {
-      :address              => "localhost",
-      :port                 => 25,
-      :domain               => 'localhost.localdomain',
-      :user_name            => nil,
-      :password             => nil,
-      :authentication       => nil,
-      :enable_starttls_auto => true,
-    }
-    cattr_accessor :smtp_settings
+    class << self
+      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::File, :prefix => :file
+      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::Sendmail, :prefix => :sendmail
+      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::Smtp, :prefix => :smtp
 
-    @@sendmail_settings = {
-      :location       => '/usr/sbin/sendmail',
-      :arguments      => '-i -t'
-    }
-    cattr_accessor :sendmail_settings
-
-    @@file_settings = {
-      :location       => defined?(Rails) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"
-    }
-
-    cattr_accessor :file_settings
+      def delivery_method=(method_name)
+        @delivery_method = ActionMailer::DeliveryMethod.lookup_method(method_name)
+      end
+    end
+    self.delivery_method = :smtp
+    superclass_delegating_reader :delivery_method
 
     @@raise_delivery_errors = true
     cattr_accessor :raise_delivery_errors
-
-    superclass_delegating_accessor :delivery_method
-    self.delivery_method = :smtp
 
     @@perform_deliveries = true
     cattr_accessor :perform_deliveries
@@ -552,7 +536,7 @@ module ActionMailer #:nodoc:
 
       ActiveSupport::Notifications.instrument(:deliver_mail, :mail => @mail) do
         begin
-          __send__("perform_delivery_#{delivery_method}", mail) if perform_deliveries
+          self.delivery_method.perform_delivery(mail) if perform_deliveries
         rescue Exception => e # Net::SMTP errors or sendmail pipe errors
           raise e if raise_delivery_errors
         end
@@ -720,39 +704,6 @@ module ActionMailer #:nodoc:
         @mail = m
       end
 
-      def perform_delivery_smtp(mail)
-        destinations = mail.destinations
-        mail.ready_to_send
-        sender = (mail['return-path'] && mail['return-path'].spec) || mail['from']
-
-        smtp = Net::SMTP.new(smtp_settings[:address], smtp_settings[:port])
-        smtp.enable_starttls_auto if smtp_settings[:enable_starttls_auto] && smtp.respond_to?(:enable_starttls_auto)
-        smtp.start(smtp_settings[:domain], smtp_settings[:user_name], smtp_settings[:password],
-                   smtp_settings[:authentication]) do |smtp|
-          smtp.sendmail(mail.encoded, sender, destinations)
-        end
-      end
-
-      def perform_delivery_sendmail(mail)
-        sendmail_args = sendmail_settings[:arguments]
-        sendmail_args += " -f \"#{mail['return-path']}\"" if mail['return-path']
-        IO.popen("#{sendmail_settings[:location]} #{sendmail_args}","w+") do |sm|
-          sm.print(mail.encoded.gsub(/\r/, ''))
-          sm.flush
-        end
-      end
-
-      def perform_delivery_test(mail)
-        deliveries << mail
-      end
-
-      def perform_delivery_file(mail)
-        FileUtils.mkdir_p file_settings[:location]
-
-        (mail.to + mail.cc + mail.bcc).uniq.each do |to|
-          File.open(File.join(file_settings[:location], to), 'a') { |f| f.write(mail) }
-        end
-      end
   end
 
   Base.class_eval do
