@@ -50,7 +50,7 @@ class PluginGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=["plugin_fu"], config={})
-      silence(:stdout) { Rails::Generators::PluginGenerator.start args, config.merge(:destination_root => destination_root) }
+       silence(:stdout){ Rails::Generators::PluginGenerator.start args, config }
     end
 
 end

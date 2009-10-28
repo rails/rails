@@ -12,7 +12,7 @@ class PerformanceTestGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=["performance"])
-      silence(:stdout) { Rails::Generators::PerformanceTestGenerator.start args, :destination_root => destination_root }
+      silence(:stdout) { Rails::Generators::PerformanceTestGenerator.start args }
     end
 
 end

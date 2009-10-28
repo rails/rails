@@ -53,7 +53,7 @@ class MigrationGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=[@migration])
-      silence(:stdout) { Rails::Generators::MigrationGenerator.start args, :destination_root => destination_root }
+      silence(:stdout) { Rails::Generators::MigrationGenerator.start args }
     end
 
 end

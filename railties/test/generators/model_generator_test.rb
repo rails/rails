@@ -175,7 +175,7 @@ class ModelGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=["Account", "name:string", "age:integer"], config={})
-      silence(:stdout) { Rails::Generators::ModelGenerator.start args, config.merge(:destination_root => destination_root) }
+      silence(:stdout) { Rails::Generators::ModelGenerator.start args, config }
     end
 
 end

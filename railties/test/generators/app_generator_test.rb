@@ -126,7 +126,7 @@ class AppGeneratorTest < GeneratorsTestCase
 
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
-    assert_match /It works from file!/, run_generator(["-m", "lib/template.rb"])
+    assert_match /It works from file!/, run_generator(["-m", "../lib/template.rb"])
   end
 
   def test_template_raises_an_error_with_invalid_path
@@ -170,7 +170,7 @@ class AppGeneratorTest < GeneratorsTestCase
     end
 
     def generator(options={})
-      @generator ||= Rails::Generators::AppGenerator.new([destination_root], options, :destination_root => destination_root)
+      @generator ||= Rails::Generators::AppGenerator.new([destination_root], options)
     end
 
     def action(*args, &block)

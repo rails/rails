@@ -12,6 +12,16 @@ module Rails
 
       add_runtime_options!
 
+      # Always move to rails source root.
+      #
+      def initialize(*args) #:nodoc:
+        if !invoked?(args) && defined?(Rails.root) && Rails.root
+          self.destination_root = Rails.root
+          FileUtils.cd(destination_root)
+        end
+        super
+      end
+
       # Automatically sets the source root based on the class name.
       #
       def self.source_root
@@ -245,6 +255,13 @@ module Rails
                            "this generator again."
             end
           end
+        end
+
+        # Check if this generator was invoked from another one by inspecting
+        # parameters.
+        #
+        def invoked?(args)
+          args.last.is_a?(Hash) && args.last.key?(:invocations)
         end
 
         # Use Rails default banner.

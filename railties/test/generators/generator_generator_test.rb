@@ -20,7 +20,7 @@ class GeneratorGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=["awesome"], config={})
-      silence(:stdout) { Rails::Generators::GeneratorGenerator.start args, config.merge(:destination_root => destination_root) }
+      silence(:stdout) { Rails::Generators::GeneratorGenerator.start args, config }
     end
 
 end

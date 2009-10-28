@@ -100,7 +100,7 @@ class ResourceGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=["account"], config={})
-      silence(:stdout) { Rails::Generators::ResourceGenerator.start args, config.merge(:destination_root => destination_root) }
+      silence(:stdout) { Rails::Generators::ResourceGenerator.start args, config }
     end
 
 end

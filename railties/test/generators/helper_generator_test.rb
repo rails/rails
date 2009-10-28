@@ -54,7 +54,7 @@ class HelperGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=["admin"])
-      silence(:stdout) { Rails::Generators::HelperGenerator.start args, :destination_root => destination_root }
+      silence(:stdout) { Rails::Generators::HelperGenerator.start args }
     end
 
 end
