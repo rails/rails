@@ -16,8 +16,8 @@ module ActiveSupport
   #
   #   @events = []
   #
-  #   ActiveSupport::Notifications.subscribe do |event|
-  #     @events << event
+  #   ActiveSupport::Notifications.subscribe do |*args|
+  #     @events << ActiveSupport::Notifications::Event.new(*args)
   #   end
   #
   #   ActiveSupport::Notifications.instrument(:render, :extra => :information) do
@@ -25,7 +25,6 @@ module ActiveSupport
   #   end
   #
   #   event = @events.first
-  #   event.class     #=> ActiveSupport::Notifications::Event
   #   event.name      #=> :render
   #   event.duration  #=> 10 (in miliseconds)
   #   event.result    #=> "Foo"
@@ -45,7 +44,7 @@ module ActiveSupport
     mattr_accessor :queue
 
     class << self
-      delegate :instrument, :transaction_id, :generate_id, :to => :instrumenter
+      delegate :instrument, :transaction_id, :transaction, :to => :instrumenter
 
       def instrumenter
         Thread.current[:notifications_instrumeter] ||= Instrumenter.new(publisher)
@@ -118,15 +117,15 @@ module ActiveSupport
     end
 
     class Event
-      attr_reader :name, :time, :end, :thread_id, :result, :payload
+      attr_reader :name, :time, :end, :transaction_id, :result, :payload
 
-      def initialize(name, start, ending, result, thread_id, payload)
-        @name      = name
-        @payload   = payload.dup
-        @time      = start
-        @thread_id = thread_id
-        @end       = ending
-        @result    = result
+      def initialize(name, start, ending, result, transaction_id, payload)
+        @name           = name
+        @payload        = payload.dup
+        @time           = start
+        @transaction_id = transaction_id
+        @end            = ending
+        @result         = result
       end
 
       def duration

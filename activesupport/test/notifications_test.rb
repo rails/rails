@@ -124,6 +124,26 @@ class NotificationsMainTest < Test::Unit::TestCase
     assert_equal Hash[:payload => "notifications"], @events.last.payload
   end
 
+  def test_subscribed_in_a_transaction
+    @another = []
+
+    ActiveSupport::Notifications.subscribe("cache") do |*args|
+      @another << ActiveSupport::Notifications::Event.new(*args)
+    end
+
+    ActiveSupport::Notifications.instrument(:cache){ 1 }
+    ActiveSupport::Notifications.transaction do
+      ActiveSupport::Notifications.instrument(:cache){ 1 }
+    end
+    ActiveSupport::Notifications.instrument(:cache){ 1 }
+
+    sleep 0.1
+
+    before, during, after = @another.map {|e| e.transaction_id }
+    assert_equal before, after
+    assert_not_equal before, during
+  end
+
   def test_subscriber_with_pattern
     @another = []
 
