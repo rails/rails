@@ -21,12 +21,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       }
     end
   end
+
   old_dispatcher = ActionDispatch::Routing::RouteSet::Dispatcher
   ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
   ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, Dispatcher }
-
   Routes = ActionDispatch::Routing::RouteSet.new
-  Routes.draw do
+  Routes.draw do |map|
     controller :sessions do
       get  'login', :to => :new, :as => :login
       post 'login', :to => :create
@@ -123,214 +123,266 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     Routes
   end
 
-  def setup
-    Routes.install_helpers(metaclass)
-  end
-
   def test_logout
-    delete '/logout'
-    assert_equal 'sessions#destroy', @response.body
+    with_test_routes do
+      delete '/logout'
+      assert_equal 'sessions#destroy', @response.body
 
-    # assert_equal '/logout', logout_path
+      assert_equal '/logout', logout_path
+    end
   end
 
   def test_login
-    get '/login'
-    assert_equal 'sessions#new', @response.body
+    with_test_routes do
+      get '/login'
+      assert_equal 'sessions#new', @response.body
 
-    post '/login'
-    assert_equal 'sessions#create', @response.body
+      post '/login'
+      assert_equal 'sessions#create', @response.body
 
-    # assert_equal '/login', app.login_path
+      assert_equal '/login', login_path
+    end
   end
 
   def test_login_redirect
-    get '/account/login'
-    assert_equal 301, @response.status
-    assert_equal 'http://www.example.com/login', @response.headers['Location']
-    assert_equal 'Moved Permanently', @response.body
+    with_test_routes do
+      get '/account/login'
+      assert_equal 301, @response.status
+      assert_equal 'http://www.example.com/login', @response.headers['Location']
+      assert_equal 'Moved Permanently', @response.body
+    end
   end
 
   def test_openid
-    get '/openid/login'
-    assert_equal 'openid#login', @response.body
+    with_test_routes do
+      get '/openid/login'
+      assert_equal 'openid#login', @response.body
 
-    post '/openid/login'
-    assert_equal 'openid#login', @response.body
+      post '/openid/login'
+      assert_equal 'openid#login', @response.body
+    end
   end
 
+  # TODO: rackmount is broken
   # def test_admin
-  #   get '/admin', {}, {'REMOTE_ADDR' => '192.168.1.100'}
-  #   assert_equal 'queenbee#index', @response.body
+  #   with_test_routes do
+  #     get '/admin', {}, {'REMOTE_ADDR' => '192.168.1.100'}
+  #     assert_equal 'queenbee#index', @response.body
   #
-  #   assert_raise(ActionController::RoutingError) { get '/admin', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+  #     assert_raise(ActionController::RoutingError) { get '/admin', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
   #
-  #   get '/admin/accounts', {}, {'REMOTE_ADDR' => '192.168.1.100'}
-  #   assert_equal 'queenbee#accounts', @response.body
+  #     get '/admin/accounts', {}, {'REMOTE_ADDR' => '192.168.1.100'}
+  #     assert_equal 'queenbee#accounts', @response.body
   #
-  #   assert_raise(ActionController::RoutingError) { get '/admin/accounts', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+  #     assert_raise(ActionController::RoutingError) { get '/admin/accounts', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+  #   end
   # end
 
   def test_global
-    get '/global/dashboard'
-    assert_equal 'global#dashboard', @response.body
+    with_test_routes do
+      get '/global/dashboard'
+      assert_equal 'global#dashboard', @response.body
 
-    get '/global/export'
-    assert_equal 'global#export', @response.body
+      get '/global/export'
+      assert_equal 'global#export', @response.body
 
-    get '/global/hide_notice'
-    assert_equal 'global#hide_notice', @response.body
+      get '/global/hide_notice'
+      assert_equal 'global#hide_notice', @response.body
 
-    get '/export/123/foo.txt'
-    assert_equal 'global#export', @response.body
+      get '/export/123/foo.txt'
+      assert_equal 'global#export', @response.body
 
-    # assert_equal '/global/export', app.export_request_path
-    # assert_equal '/global/hide_notice', app.hide_notice_path
-    # assert_equal '/export/123/foo.txt', app.export_download_path(:id => 123, :file => 'foo.txt')
+      assert_equal '/global/export', export_request_path
+      assert_equal '/global/hide_notice', hide_notice_path
+      assert_equal '/export/123/foo.txt', export_download_path(:id => 123, :file => 'foo.txt')
+    end
   end
 
   def test_projects
-    get '/projects/1'
-    assert_equal 'projects#show', @response.body
+    with_test_routes do
+      get '/projects/1'
+      assert_equal 'projects#show', @response.body
+    end
   end
 
   def test_projects_involvements
-    get '/projects/1/involvements'
-    assert_equal 'involvements#index', @response.body
+    with_test_routes do
+      get '/projects/1/involvements'
+      assert_equal 'involvements#index', @response.body
 
-    get '/projects/1/involvements/1'
-    assert_equal 'involvements#show', @response.body
+      get '/projects/1/involvements/1'
+      assert_equal 'involvements#show', @response.body
+    end
   end
 
   def test_projects_attachments
-    get '/projects/1/attachments'
-    assert_equal 'attachments#index', @response.body
+    with_test_routes do
+      get '/projects/1/attachments'
+      assert_equal 'attachments#index', @response.body
+    end
   end
 
   def test_projects_participants
-    get '/projects/1/participants'
-    assert_equal 'participants#index', @response.body
+    with_test_routes do
+      get '/projects/1/participants'
+      assert_equal 'participants#index', @response.body
 
-    put '/projects/1/participants/update_all'
-    assert_equal 'participants#update_all', @response.body
+      put '/projects/1/participants/update_all'
+      assert_equal 'participants#update_all', @response.body
+    end
   end
 
   def test_projects_companies
-    get '/projects/1/companies'
-    assert_equal 'companies#index', @response.body
+    with_test_routes do
+      get '/projects/1/companies'
+      assert_equal 'companies#index', @response.body
 
-    get '/projects/1/companies/1/people'
-    assert_equal 'people#index', @response.body
+      get '/projects/1/companies/1/people'
+      assert_equal 'people#index', @response.body
 
-    get '/projects/1/companies/1/avatar'
-    assert_equal 'avatar#show', @response.body
+      get '/projects/1/companies/1/avatar'
+      assert_equal 'avatar#show', @response.body
+    end
   end
 
   def test_project_images
-    get '/projects/1/images'
-    assert_equal 'images#index', @response.body
+    with_test_routes do
+      get '/projects/1/images'
+      assert_equal 'images#index', @response.body
 
-    post '/projects/1/images/1/revise'
-    assert_equal 'images#revise', @response.body
+      post '/projects/1/images/1/revise'
+      assert_equal 'images#revise', @response.body
+    end
   end
 
   def test_projects_people
-    get '/projects/1/people'
-    assert_equal 'people#index', @response.body
+    with_test_routes do
+      get '/projects/1/people'
+      assert_equal 'people#index', @response.body
 
-    get '/projects/1/people/1'
-    assert_equal 'people#show', @response.body
+      get '/projects/1/people/1'
+      assert_equal 'people#show', @response.body
 
-    get '/projects/1/people/1/7a2dec8/avatar'
-    assert_equal 'avatar#show', @response.body
+      get '/projects/1/people/1/7a2dec8/avatar'
+      assert_equal 'avatar#show', @response.body
 
-    put '/projects/1/people/1/accessible_projects'
-    assert_equal 'people#accessible_projects', @response.body
+      put '/projects/1/people/1/accessible_projects'
+      assert_equal 'people#accessible_projects', @response.body
 
-    post '/projects/1/people/1/resend'
-    assert_equal 'people#resend', @response.body
+      post '/projects/1/people/1/resend'
+      assert_equal 'people#resend', @response.body
 
-    post '/projects/1/people/1/generate_new_password'
-    assert_equal 'people#generate_new_password', @response.body
+      post '/projects/1/people/1/generate_new_password'
+      assert_equal 'people#generate_new_password', @response.body
+    end
   end
 
   def test_projects_posts
-    get '/projects/1/posts'
-    assert_equal 'posts#index', @response.body
+    with_test_routes do
+      get '/projects/1/posts'
+      assert_equal 'posts#index', @response.body
 
-    get '/projects/1/posts/archive'
-    assert_equal 'posts#archive', @response.body
+      get '/projects/1/posts/archive'
+      assert_equal 'posts#archive', @response.body
 
-    get '/projects/1/posts/toggle_view'
-    assert_equal 'posts#toggle_view', @response.body
+      get '/projects/1/posts/toggle_view'
+      assert_equal 'posts#toggle_view', @response.body
 
-    post '/projects/1/posts/1/preview'
-    assert_equal 'posts#preview', @response.body
+      post '/projects/1/posts/1/preview'
+      assert_equal 'posts#preview', @response.body
 
-    get '/projects/1/posts/1/subscription'
-    assert_equal 'subscription#show', @response.body
+      get '/projects/1/posts/1/subscription'
+      assert_equal 'subscription#show', @response.body
 
-    get '/projects/1/posts/1/comments'
-    assert_equal 'comments#index', @response.body
+      get '/projects/1/posts/1/comments'
+      assert_equal 'comments#index', @response.body
 
-    post '/projects/1/posts/1/comments/preview'
-    assert_equal 'comments#preview', @response.body
+      post '/projects/1/posts/1/comments/preview'
+      assert_equal 'comments#preview', @response.body
+    end
   end
 
   def test_sprockets
-    get '/sprockets.js'
-    assert_equal 'javascripts', @response.body
+    with_test_routes do
+      get '/sprockets.js'
+      assert_equal 'javascripts', @response.body
+    end
   end
 
   def test_update_person_route
-    get '/people/1/update'
-    assert_equal 'people#update', @response.body
+    with_test_routes do
+      get '/people/1/update'
+      assert_equal 'people#update', @response.body
 
-    # assert_equal '/people/1/update', app.update_person_path(:id => 1)
+      assert_equal '/people/1/update', update_person_path(:id => 1)
+    end
   end
 
   def test_update_project_person
-    get '/projects/1/people/2/update'
-    assert_equal 'people#update', @response.body
+    with_test_routes do
+      get '/projects/1/people/2/update'
+      assert_equal 'people#update', @response.body
 
-    # assert_equal '/projects/1/people/2/update', app.update_project_person_path(:project_id => 1, :id => 2)
+      assert_equal '/projects/1/people/2/update', update_project_person_path(:project_id => 1, :id => 2)
+    end
   end
 
   def test_articles_perma
-    get '/articles/2009/08/18/rails-3'
-    assert_equal 'articles#show', @response.body
+    with_test_routes do
+      get '/articles/2009/08/18/rails-3'
+      assert_equal 'articles#show', @response.body
 
-    # assert_equal '/articles/2009/8/18/rails-3', app.article_path(:year => 2009, :month => 8, :day => 18, :title => 'rails-3')
+      assert_equal '/articles/2009/8/18/rails-3', article_path(:year => 2009, :month => 8, :day => 18, :title => 'rails-3')
+    end
   end
 
   def test_account_namespace
-    get '/account/subscription'
-    assert_equal 'subscription#show', @response.body
+    with_test_routes do
+      get '/account/subscription'
+      assert_equal 'subscription#show', @response.body
 
-    get '/account/credit'
-    assert_equal 'credit#show', @response.body
+      get '/account/credit'
+      assert_equal 'credit#show', @response.body
 
-    get '/account/credit_card'
-    assert_equal 'credit_card#show', @response.body
+      get '/account/credit_card'
+      assert_equal 'credit_card#show', @response.body
+    end
   end
 
   def test_articles_with_id
-    get '/articles/rails/1'
-    assert_equal 'articles#with_id', @response.body
+    with_test_routes do
+      get '/articles/rails/1'
+      assert_equal 'articles#with_id', @response.body
 
-    assert_raise(ActionController::RoutingError) { get '/articles/123/1' }
+      assert_raise(ActionController::RoutingError) { get '/articles/123/1' }
 
-    # assert_equal '/articles/rails/1', app.with_title_path(:title => 'rails', :id => 1)
+      assert_equal '/articles/rails/1', with_title_path(:title => 'rails', :id => 1)
+    end
   end
 
   def test_access_token_rooms
-    get '/12345/rooms'
-    assert_equal 'rooms#index', @response.body
+    with_test_routes do
+      get '/12345/rooms'
+      assert_equal 'rooms#index', @response.body
 
-    get '/12345/rooms/1'
-    assert_equal 'rooms#show', @response.body
+      get '/12345/rooms/1'
+      assert_equal 'rooms#show', @response.body
 
-    get '/12345/rooms/1/edit'
-    assert_equal 'rooms#edit', @response.body
+      get '/12345/rooms/1/edit'
+      assert_equal 'rooms#edit', @response.body
+    end
   end
+
+  private
+    def with_test_routes
+      real_routes, temp_routes = ActionController::Routing::Routes, Routes
+
+      ActionController::Routing.module_eval { remove_const :Routes }
+      ActionController::Routing.module_eval { const_set :Routes, temp_routes }
+
+      yield
+    ensure
+      ActionController::Routing.module_eval { remove_const :Routes }
+      ActionController::Routing.const_set(:Routes, real_routes)
+    end
 end
