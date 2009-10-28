@@ -272,18 +272,6 @@ module ActionMailer #:nodoc:
 
     cattr_accessor :logger
 
-    class << self
-      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::File, :prefix => :file
-      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::Sendmail, :prefix => :sendmail
-      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::Smtp, :prefix => :smtp
-
-      def delivery_method=(method_name)
-        @delivery_method = ActionMailer::DeliveryMethod.lookup_method(method_name)
-      end
-    end
-    self.delivery_method = :smtp
-    superclass_delegating_reader :delivery_method
-
     @@raise_delivery_errors = true
     cattr_accessor :raise_delivery_errors
 
@@ -305,8 +293,8 @@ module ActionMailer #:nodoc:
     @@default_implicit_parts_order = [ "text/html", "text/enriched", "text/plain" ]
     cattr_accessor :default_implicit_parts_order
 
-    cattr_reader :protected_instance_variables
     @@protected_instance_variables = []
+    cattr_reader :protected_instance_variables
 
     # Specify the BCC addresses for the message
     adv_attr_accessor :bcc
@@ -380,8 +368,16 @@ module ActionMailer #:nodoc:
     class << self
       attr_writer :mailer_name
 
+      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::File, :prefix => :file
+      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::Sendmail, :prefix => :sendmail
+      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::Smtp, :prefix => :smtp
+
       def mailer_name
         @mailer_name ||= name.underscore
+      end
+
+      def delivery_method=(method_name)
+        @delivery_method = ActionMailer::DeliveryMethod.lookup_method(method_name)
       end
 
       def respond_to?(method_symbol, include_private = false) #:nodoc:
@@ -445,6 +441,11 @@ module ActionMailer #:nodoc:
         end
     end
 
+    # Configure delivery method. Check ActionMailer::DeliveryMethod for more
+    # instructions.
+    superclass_delegating_reader :delivery_method
+    self.delivery_method = :smtp
+
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
@@ -498,15 +499,17 @@ module ActionMailer #:nodoc:
       # mailer. Subclasses may override this method to provide different
       # defaults.
       def initialize_defaults(method_name)
-        @charset ||= @@default_charset.dup
-        @content_type ||= @@default_content_type.dup
+        @charset              ||= @@default_charset.dup
+        @content_type         ||= @@default_content_type.dup
         @implicit_parts_order ||= @@default_implicit_parts_order.dup
-        @template ||= method_name
-        @default_template_name = @action_name = @template
-        @mailer_name ||= self.class.name.underscore
-        @parts ||= []
+        @mime_version         ||= @@default_mime_version.dup if @@default_mime_version
+
+        @mailer_name ||= self.class.mailer_name
+        @template    ||= method_name
+        @action_name = @template
+
+        @parts   ||= []
         @headers ||= {}
-        @mime_version = @@default_mime_version.dup if @@default_mime_version
         @sent_on ||= Time.now
 
         super # Run deprecation hooks
