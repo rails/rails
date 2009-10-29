@@ -57,6 +57,11 @@ module ActionView #:nodoc:
     end
 
     class EagerPath < Path
+      def initialize(path)
+        super
+        @loaded = false
+      end
+
       def load!
         return if @loaded
         
