@@ -228,12 +228,16 @@ class ActionCachingMockController
     @mock_url_for
   end
 
+  def params
+    request.parameters
+  end
+
   def request
     mocked_path = @mock_path
     Object.new.instance_eval(<<-EVAL)
       def path; '#{@mock_path}' end
       def format; 'all' end
-      def cache_format; nil end
+      def parameters; {:format => nil}; end
       self
     EVAL
   end
@@ -466,7 +470,7 @@ class ActionCacheTest < ActionController::TestCase
     @mock_controller.mock_url_for = 'http://example.org/'
     @mock_controller.mock_path    = '/'
 
-    assert_equal 'example.org/index', @path_class.path_for(@mock_controller, {})
+    assert_equal 'example.org/index', @path_class.new(@mock_controller, {}).path
   end
 
   def test_file_extensions

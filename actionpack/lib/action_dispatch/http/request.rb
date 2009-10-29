@@ -98,7 +98,7 @@ module ActionDispatch
     end
 
     def forgery_whitelisted?
-      method == :get || xhr? || !(!content_type.nil? && content_type.verify_request?)
+      method == :get || xhr? || content_type.nil? || !content_type.verify_request?
     end
 
     def media_type
@@ -203,10 +203,6 @@ module ActionDispatch
       else
         :html
       end
-    end
-
-    def cache_format
-      parameters[:format]
     end
 
     # Returns true if the request's "X-Requested-With" header contains

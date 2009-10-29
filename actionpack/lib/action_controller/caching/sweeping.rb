@@ -70,7 +70,7 @@ module ActionController #:nodoc:
         protected
           # gets the action cache path for the given options.
           def action_path_for(options)
-            ActionController::Caching::Actions::ActionCachePath.path_for(controller, options)
+            Actions::ActionCachePath.new(controller, options).path
           end
 
           # Retrieve instance variables set in the controller.
