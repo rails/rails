@@ -105,7 +105,7 @@ module ActionDispatch
       #  assert_routing '/home', :controller => 'home', :action => 'index'
       #
       #  # Test a route generated with a specific controller, action, and parameter (id)
-      #  assert_routing '/entries/show/23', :controller => 'entries', :action => 'show', id => 23
+      #  assert_routing '/entries/show/23', :controller => 'entries', :action => 'show', :id => 23
       #
       #  # Assert a basic route (controller + default action), with an error message if it fails
       #  assert_routing '/store', { :controller => 'store', :action => 'index' }, {}, {}, 'Route for store index not generated properly'
