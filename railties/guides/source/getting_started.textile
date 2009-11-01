@@ -381,7 +381,7 @@ $ rake db:migrate
 
 Remember, you can't run migrations before running +rake db:create+ to create your database, as we covered earlier.
 
-NOTE: Because you're working in the development environment by default, this command will apply to the database defined in the +development+ section of your +config/database.yml+ file.
+NOTE. Because you're working in the development environment by default, this command will apply to the database defined in the +development+ section of your +config/database.yml+ file.
 
 h4. Adding a Link
 
