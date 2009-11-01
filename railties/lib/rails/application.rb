@@ -242,6 +242,7 @@ module Rails
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     initializer :initialize_time_zone do
       if config.time_zone
+        require 'active_support/core_ext/time/zones'
         zone_default = Time.__send__(:get_zone, config.time_zone)
 
         unless zone_default
