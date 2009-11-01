@@ -809,7 +809,7 @@ They return the corresponding amount of bytes, using a conversion factor of 1024
 Singular forms are aliased so you are able to say:
 
 <ruby>
-1.megabyte # => 1024
+1.megabyte # => 1048576
 </ruby>
 
 h3. Extensions to +Integer+
