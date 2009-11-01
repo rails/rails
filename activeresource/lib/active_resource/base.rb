@@ -8,6 +8,7 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/misc'
+require 'active_support/core_ext/object/to_query'
 require 'set'
 require 'uri'
 

@@ -1,6 +1,4 @@
 require 'active_support/time'
-require 'active_support/core_ext/object/conversions'
-require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/hash/reverse_merge'
 
 class Hash
@@ -67,21 +65,6 @@ class Hash
       "dateTime" => XML_PARSING["datetime"]
     )
   end
-
-  # Converts a hash into a string suitable for use as a URL query string. An optional <tt>namespace</tt> can be
-  # passed to enclose the param names (see example below).
-  #
-  # ==== Examples
-  #   { :name => 'David', :nationality => 'Danish' }.to_query # => "name=David&nationality=Danish"
-  #
-  #   { :name => 'David', :nationality => 'Danish' }.to_query('user') # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
-  def to_query(namespace = nil)
-    collect do |key, value|
-      value.to_query(namespace ? "#{namespace}[#{key}]" : key)
-    end.sort * '&'
-  end
-  
-  alias_method :to_param, :to_query
 
   def to_xml(options = {})
     require 'builder' unless defined?(Builder)
