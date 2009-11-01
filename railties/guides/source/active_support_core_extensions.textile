@@ -783,7 +783,34 @@ The call +str.last(n)+ is equivalent to +str.from(-n)+ if +n+ > 0, and returns a
 
 h3. Extensions to +Numeric+
 
-...
+h4. Bytes
+
+All numbers respond to these methods:
+
+<ruby>
+bytes
+kilobytes
+megabytes
+gigabytes
+terabytes
+petabytes
+exabytes
+</ruby>
+
+They return the corresponding amount of bytes, using a conversion factor of 1024:
+
+<ruby>
+2.kilobytes   # => 2048
+3.megabytes   # => 3145728
+3.5.gigabytes # => 3758096384
+-4.exabytes   # => -4611686018427387904
+</ruby>
+
+Singular forms are aliased so you are able to say:
+
+<ruby>
+1.megabyte # => 1024
+</ruby>
 
 h3. Extensions to +Integer+
 
