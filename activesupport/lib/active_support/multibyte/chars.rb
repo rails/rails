@@ -363,6 +363,16 @@ module ActiveSupport #:nodoc:
         slice
       end
 
+      # Limit the byte size of the string to a number of bytes without breaking characters. Usable
+      # when the storage for a string is limited for some reason.
+      #
+      # Example:
+      #   s = 'こんにちは'
+      #   s.mb_chars.limit(7) #=> "こに"
+      def limit(limit)
+        slice(0...translate_offset(limit))
+      end
+
       # Returns the codepoint of the first character in the string.
       #
       # Example:
@@ -651,24 +661,15 @@ module ActiveSupport #:nodoc:
       end
 
       protected
-
+        
         def translate_offset(byte_offset) #:nodoc:
           return nil if byte_offset.nil?
           return 0   if @wrapped_string == ''
-          chunk = @wrapped_string[0..byte_offset]
           begin
-            begin
-              chunk.unpack('U*').length - 1
-            rescue ArgumentError => e
-              chunk = @wrapped_string[0..(byte_offset+=1)]
-              # Stop retrying at the end of the string
-              raise e unless byte_offset < chunk.length 
-              # We damaged a character, retry
-              retry
-            end
-          # Catch the ArgumentError so we can throw our own
-          rescue ArgumentError 
-            raise EncodingError, 'malformed UTF-8 character'
+            @wrapped_string[0...byte_offset].unpack('U*').length
+          rescue ArgumentError => e
+            byte_offset -= 1
+            retry
           end
         end
 

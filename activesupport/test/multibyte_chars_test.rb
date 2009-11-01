@@ -169,6 +169,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert chars('').strip.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars('').reverse.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars(' ').slice(0).kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').limit(0).kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars('').upcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars('').downcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars('').capitalize.kind_of?(ActiveSupport::Multibyte.proxy_class)
@@ -196,7 +197,9 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   def test_should_return_character_offset_for_regexp_matches
     assert_nil(@chars =~ /wrong/u)
     assert_equal 0, (@chars =~ /こ/u)
+    assert_equal 0, (@chars =~ /こに/u)
     assert_equal 1, (@chars =~ /に/u)
+    assert_equal 2, (@chars =~ /ち/u)
     assert_equal 3, (@chars =~ /わ/u)
   end
 
@@ -493,6 +496,44 @@ class MultibyteCharsExtrasTest < Test::Unit::TestCase
     end
   end
 
+  def test_limit_should_not_break_on_blank_strings
+    chars = ''.mb_chars
+    
+    assert_equal '', chars.limit(0)
+    assert_equal '', chars.limit(1)
+  end
+
+  def test_limit_should_work_on_a_multibyte_string
+    chars = UNICODE_STRING.mb_chars
+    
+    assert_equal UNICODE_STRING, chars.limit(UNICODE_STRING.length)
+    assert_equal '', chars.limit(0)
+    assert_equal '', chars.limit(1)
+    assert_equal 'こ', chars.limit(3)
+    assert_equal 'こに', chars.limit(6)
+    assert_equal 'こに', chars.limit(8)
+    assert_equal 'こにち', chars.limit(9)
+    assert_equal 'こにちわ', chars.limit(50)
+  end
+
+  def test_limit_should_work_on_an_ascii_string
+    ascii = ASCII_STRING.mb_chars
+    
+    assert_equal ASCII_STRING, ascii.limit(ASCII_STRING.length)
+    assert_equal '', ascii.limit(0)
+    assert_equal 'o', ascii.limit(1)
+    assert_equal 'oh', ascii.limit(2)
+    assert_equal 'ohay', ascii.limit(4)
+    assert_equal 'ohayo', ascii.limit(50)
+  end
+
+  def test_limit_should_keep_under_the_specified_byte_limit
+    chars = UNICODE_STRING.mb_chars
+    (1..UNICODE_STRING.length).each do |limit|
+      assert chars.limit(limit).to_s.length <= limit
+    end
+  end
+
   def test_composition_exclusion_is_set_up_properly
     # Normalization of DEVANAGARI LETTER QA breaks when composition exclusion isn't used correctly
     qa = [0x915, 0x93c].pack('U*')
@@ -601,5 +642,23 @@ class MultibyteCharsExtrasTest < Test::Unit::TestCase
     classes.collect do |k|
       character_from_class[k.intern]
     end.pack('U*')
+  end
+end
+
+class MultibyteInternalsTest < ActiveSupport::TestCase
+  include MultibyteTestHelpers
+  
+  test "Chars translates a character offset to a byte offset" do
+    chars = "Puisque c'était son erreur, il m'a aidé".mb_chars
+    [
+      [0, 0],
+      [3, 3],
+      [12, 11],
+      [14, 13],
+      [41, 39]
+    ].each do |byte_offset, character_offset|
+      assert_equal character_offset, chars.send(:translate_offset, byte_offset),
+        "Expected byte offset #{byte_offset} to translate to #{character_offset}"
+    end
   end
 end
