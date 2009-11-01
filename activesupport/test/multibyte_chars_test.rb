@@ -102,7 +102,13 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
 
     # NEWLINE, SPACE, EM SPACE
     @whitespace = "\n#{[32, 8195].pack('U*')}"
-    @whitespace.force_encoding(Encoding::UTF_8) if @whitespace.respond_to?(:force_encoding)
+
+    # Ruby 1.9 doesn't recognize EM SPACE as whitespace!
+    if @whitespace.respond_to?(:force_encoding)
+      @whitespace.slice!(2)
+      @whitespace.force_encoding(Encoding::UTF_8)
+    end
+
     @byte_order_mark = [65279].pack('U')
   end
 
