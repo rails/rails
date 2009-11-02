@@ -665,6 +665,11 @@ module ActiveSupport #:nodoc:
         def translate_offset(byte_offset) #:nodoc:
           return nil if byte_offset.nil?
           return 0   if @wrapped_string == ''
+          
+          if @wrapped_string.respond_to?(:force_encoding)
+            @wrapped_string = @wrapped_string.dup.force_encoding(Encoding::ASCII_8BIT)
+          end
+          
           begin
             @wrapped_string[0...byte_offset].unpack('U*').length
           rescue ArgumentError => e
