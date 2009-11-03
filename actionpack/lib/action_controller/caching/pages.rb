@@ -64,12 +64,9 @@ module ActionController #:nodoc:
           return unless perform_caching
           path = page_cache_path(path)
 
-          event = ActiveSupport::Orchestra.instrument(:expire_page, :path => path) do
+          ActiveSupport::Notifications.instrument(:expire_page, :path => path) do
             File.delete(path) if File.exist?(path)
           end
-
-          log_with_time("Expired page: #{path}", event.duration)
-          event.result
         end
 
         # Manually cache the +content+ in the key determined by +path+. Example:
@@ -78,13 +75,10 @@ module ActionController #:nodoc:
           return unless perform_caching
           path = page_cache_path(path)
 
-          event = ActiveSupport::Orchestra.instrument(:cache_page, :path => path) do
+          ActiveSupport::Notifications.instrument(:cache_page, :path => path) do
             FileUtils.makedirs(File.dirname(path))
             File.open(path, "wb+") { |f| f.write(content) }
           end
-
-          log_with_time("Cached page: #{path}", event.duration)
-          event.result
         end
 
         # Caches the +actions+ using the page-caching approach that'll store the cache in a path within the page_cache_directory that

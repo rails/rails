@@ -211,9 +211,10 @@ module ActiveRecord
       # calling +checkout+ on this pool.
       def checkin(conn)
         @connection_mutex.synchronize do
-          conn.run_callbacks :checkin
-          @checked_out.delete conn
-          @queue.signal
+          conn.run_callbacks :checkin do
+            @checked_out.delete conn
+            @queue.signal
+          end
         end
       end
 
@@ -255,9 +256,10 @@ module ActiveRecord
       end
 
       def checkout_and_verify(c)
-        c.verify!
-        c.run_callbacks :checkout
-        @checked_out << c
+        c.run_callbacks :checkout do
+          c.verify!
+          @checked_out << c
+        end
         c
       end
     end

@@ -4,14 +4,14 @@ require "timeout"
 
 class PooledConnectionsTest < ActiveRecord::TestCase
   def setup
-    super
+    @per_test_teardown = []
     @connection = ActiveRecord::Base.remove_connection
   end
 
   def teardown
     ActiveRecord::Base.clear_all_connections!
     ActiveRecord::Base.establish_connection(@connection)
-    super
+    @per_test_teardown.each {|td| td.call }
   end
 
   def checkout_connections
@@ -111,6 +111,23 @@ class PooledConnectionsTest < ActiveRecord::TestCase
 
     after_count = Project.count
     assert_equal 3, after_count - before_count
+  end
+
+  def test_connection_pool_callbacks
+    checked_out, checked_in = false, false
+    ActiveRecord::ConnectionAdapters::AbstractAdapter.class_eval do
+      set_callback(:checkout, :after) { checked_out = true }
+      set_callback(:checkin, :before) { checked_in = true }
+    end
+    @per_test_teardown << proc do
+      ActiveRecord::ConnectionAdapters::AbstractAdapter.class_eval do
+        reset_callbacks :checkout
+        reset_callbacks :checkin
+      end
+    end
+    checkout_checkin_connections 1, 1
+    assert checked_out
+    assert checked_in
   end
 
   private

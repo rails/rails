@@ -13,24 +13,24 @@ class ValidatesWithTest < ActiveRecord::TestCase
   ERROR_MESSAGE = "Validation error from validator"
   OTHER_ERROR_MESSAGE = "Validation error from other validator"
 
-  class ValidatorThatAddsErrors < ActiveRecord::Validator
+  class ValidatorThatAddsErrors < ActiveModel::Validator
     def validate()
       record.errors[:base] << ERROR_MESSAGE
     end
   end
 
-  class OtherValidatorThatAddsErrors < ActiveRecord::Validator
+  class OtherValidatorThatAddsErrors < ActiveModel::Validator
     def validate()
       record.errors[:base] << OTHER_ERROR_MESSAGE
     end
   end
 
-  class ValidatorThatDoesNotAddErrors < ActiveRecord::Validator
+  class ValidatorThatDoesNotAddErrors < ActiveModel::Validator
     def validate()
     end
   end
 
-  class ValidatorThatValidatesOptions < ActiveRecord::Validator
+  class ValidatorThatValidatesOptions < ActiveModel::Validator
     def validate()
       if options[:field] == :first_name
         record.errors[:base] << ERROR_MESSAGE

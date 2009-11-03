@@ -1,3 +1,5 @@
+require 'active_support/dependencies'
+
 module AbstractController
   module Helpers
     extend ActiveSupport::Concern
@@ -57,23 +59,48 @@ module AbstractController
         end
       end
 
-      # Make a number of helper modules part of this class' default
-      # helpers.
+      # The +helper+ class method can take a series of helper module names, a block, or both.
       #
       # ==== Parameters
-      # *args<Array[Module]>:: Modules to be included
-      # block<Block>:: Evalulate the block in the context
-      #   of the helper module. Any methods defined in the block
-      #   will be helpers.
+      # *args<Array[Module, Symbol, String, :all]>
+      # block<Block>:: A block defining helper methods
+      #
+      # ==== Examples
+      # When the argument is a module it will be included directly in the template class.
+      #   helper FooHelper # => includes FooHelper
+      #
+      # When the argument is a string or symbol, the method will provide the "_helper" suffix, require the file
+      # and include the module in the template class.  The second form illustrates how to include custom helpers
+      # when working with namespaced controllers, or other cases where the file containing the helper definition is not
+      # in one of Rails' standard load paths:
+      #   helper :foo             # => requires 'foo_helper' and includes FooHelper
+      #   helper 'resources/foo'  # => requires 'resources/foo_helper' and includes Resources::FooHelper
+      #
+      # Additionally, the +helper+ class method can receive and evaluate a block, making the methods defined available
+      # to the template.
+      #
+      #   # One line
+      #   helper { def hello() "Hello, world!" end }
+      #
+      #   # Multi-line
+      #   helper do
+      #     def foo(bar)
+      #       "#{bar} is the very best"
+      #     end
+      #   end
+      #
+      # Finally, all the above styles can be mixed together, and the +helper+ method can be invoked with a mix of
+      # +symbols+, +strings+, +modules+ and blocks.
+      #
+      #   helper(:three, BlindHelper) { def mice() 'mice' end }
+      #
       def helper(*args, &block)
         self._helper_serial = AbstractController::Helpers.next_serial + 1
 
-        args.flatten.each do |arg|
-          case arg
-          when Module
-            add_template_helper(arg)
-          end
+        _modules_for_helpers(args).each do |mod|
+          add_template_helper(mod)
         end
+
         _helpers.module_eval(&block) if block_given?
       end
 
@@ -86,6 +113,38 @@ module AbstractController
       #   for the class
       def add_template_helper(mod)
         _helpers.module_eval { include mod }
+      end
+
+      # Returns a list of modules, normalized from the acceptable kinds of
+      # helpers with the following behavior:
+      #
+      # String or Symbol:: :FooBar or "FooBar" becomes "foo_bar_helper",
+      #   and "foo_bar_helper.rb" is loaded using require_dependency.
+      #
+      # Module:: No further processing
+      #
+      # After loading the appropriate files, the corresponding modules
+      # are returned.
+      #
+      # ==== Parameters
+      # args<Array[String, Symbol, Module]>:: A list of helpers
+      #
+      # ==== Returns
+      # Array[Module]:: A normalized list of modules for the list of
+      #   helpers provided.
+      def _modules_for_helpers(args)
+        args.flatten.map! do |arg|
+          case arg
+          when String, Symbol
+            file_name = "#{arg.to_s.underscore}_helper"
+            require_dependency(file_name, "Missing helper file helpers/%s.rb")
+            file_name.camelize.constantize
+          when Module
+            arg
+          else
+            raise ArgumentError, "helper must be a String, Symbol, or Module"
+          end
+        end
       end
     end
   end

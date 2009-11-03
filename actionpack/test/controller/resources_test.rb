@@ -41,7 +41,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_should_arrange_actions
-    resource = ActionController::Resources::Resource.new(:messages,
+    resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages,
       :collection => { :rss => :get, :reorder => :post, :csv => :post },
       :member     => { :rss => :get, :atom => :get, :upload => :post, :fix => :post },
       :new        => { :preview => :get, :draft => :get })
@@ -54,18 +54,18 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_should_resource_controller_name_equal_resource_name_by_default
-    resource = ActionController::Resources::Resource.new(:messages, {})
+    resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages, {})
     assert_equal 'messages', resource.controller
   end
 
   def test_should_resource_controller_name_equal_controller_option
-    resource = ActionController::Resources::Resource.new(:messages, :controller => 'posts')
+    resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages, :controller => 'posts')
     assert_equal 'posts', resource.controller
   end
 
   def test_should_all_singleton_paths_be_the_same
     [ :path, :nesting_path_prefix, :member_path ].each do |method|
-      resource = ActionController::Resources::SingletonResource.new(:messages, :path_prefix => 'admin')
+      resource = ActionDispatch::Routing::DeprecatedMapper::SingletonResource.new(:messages, :path_prefix => 'admin')
       assert_equal 'admin/messages', resource.send(method)
     end
   end
@@ -121,7 +121,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_override_paths_for_default_restful_actions
-    resource = ActionController::Resources::Resource.new(:messages,
+    resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages,
       :path_names => {:new => 'nuevo', :edit => 'editar'})
     assert_equal resource.new_path, "#{resource.path}/nuevo"
   end
@@ -135,7 +135,7 @@ class ResourcesTest < ActionController::TestCase
 
   def test_with_custom_conditions
     with_restful_routing :messages, :conditions => { :subdomain => 'app' } do
-      assert ActionController::Routing::Routes.recognize_path("/messages", :method => :get, :subdomain => 'app')
+      assert ActionDispatch::Routing::Routes.recognize_path("/messages", :method => :get, :subdomain => 'app')
     end
   end
 
@@ -281,7 +281,7 @@ class ResourcesTest < ActionController::TestCase
 
   def test_with_member_action_and_requirement
     expected_options = {:controller => 'messages', :action => 'mark', :id => '1.1.1'}
-  
+
     with_restful_routing(:messages, :requirements => {:id => /[0-9]\.[0-9]\.[0-9]/}, :member => { :mark => :get }) do
       assert_recognizes(expected_options, :path => 'messages/1.1.1/mark', :method => :get)
     end
@@ -701,8 +701,8 @@ class ResourcesTest < ActionController::TestCase
 
   def test_should_not_allow_invalid_head_method_for_member_routes
     with_routing do |set|
-      set.draw do |map|
-        assert_raise(ArgumentError) do
+      assert_raise(ArgumentError) do
+        set.draw do |map|
           map.resources :messages, :member => {:something => :head}
         end
       end
@@ -711,8 +711,8 @@ class ResourcesTest < ActionController::TestCase
 
   def test_should_not_allow_invalid_http_methods_for_member_routes
     with_routing do |set|
-      set.draw do |map|
-        assert_raise(ArgumentError) do
+      assert_raise(ArgumentError) do
+        set.draw do |map|
           map.resources :messages, :member => {:something => :invalid}
         end
       end

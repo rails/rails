@@ -195,8 +195,6 @@ spec = eval(File.read('activerecord.gemspec'))
 
 Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
-  p.need_tar = true
-  p.need_zip = true
 end
 
 task :lines do

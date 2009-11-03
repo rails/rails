@@ -390,7 +390,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
-          map.connect "/:action", :controller => "integration_process_test/integration"
+          match ':action', :to => IntegrationController
         end
         yield
       end

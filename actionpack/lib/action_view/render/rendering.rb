@@ -123,7 +123,6 @@ module ActionView
         template.render(self, locals)
       end
 
-      @cached_content_for_layout = content
       @_content_for[:layout] = content
 
       if layout

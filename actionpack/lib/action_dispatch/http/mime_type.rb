@@ -24,6 +24,7 @@ module Mime
   LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
 
   def self.[](type)
+    return type if type.is_a?(Type)
     Type.lookup_by_extension(type.to_s)
   end
 

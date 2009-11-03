@@ -10,6 +10,13 @@ module ActionController
       self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => ActiveSupport::SecureRandom.hex(16))
     end
 
+    class Result < ::Array #:nodoc:
+      def to_s() join '/' end
+      def self.new_escaped(strings)
+        new strings.collect {|str| URI.unescape str}
+      end
+    end
+
     def assign_parameters(controller_path, action, parameters = {})
       parameters = parameters.symbolize_keys.merge(:controller => controller_path, :action => action)
       extra_keys = ActionController::Routing::Routes.extra_keys(parameters)
@@ -18,7 +25,7 @@ module ActionController
         if value.is_a? Fixnum
           value = value.to_s
         elsif value.is_a? Array
-          value = ActionController::Routing::PathSegment::Result.new(value)
+          value = Result.new(value)
         end
 
         if extra_keys.include?(key.to_sym)

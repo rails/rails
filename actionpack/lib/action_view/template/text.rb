@@ -1,6 +1,8 @@
 module ActionView #:nodoc:
   class TextTemplate < String #:nodoc:
-    def initialize(string, content_type = Mime[:html])
+    HTML = Mime[:html]
+
+    def initialize(string, content_type = HTML)
       super(string.to_s)
       @content_type = Mime[content_type] || content_type
     end
@@ -14,11 +16,11 @@ module ActionView #:nodoc:
     end
 
     def inspect
-      'inline template'
+      'text template'
     end
 
     def render(*args)
-      self
+      to_s
     end
 
     def mime_type

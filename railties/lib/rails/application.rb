@@ -3,6 +3,11 @@ module Rails
     extend Initializable
 
     class << self
+      # Stub out App initialize
+      def initialize!
+        new
+      end
+
       def config
         @config ||= Configuration.new
       end
@@ -36,13 +41,13 @@ module Rails
       end
 
       def new
-        initializers.run
+        run_initializers
         self
       end
     end
 
     initializer :initialize_rails do
-      Rails.initializers.run
+      Rails.run_initializers
     end
 
     # Set the <tt>$LOAD_PATH</tt> based on the value of
@@ -50,13 +55,6 @@ module Rails
     initializer :set_load_path do
       config.paths.add_to_load_path
       $LOAD_PATH.uniq!
-    end
-
-    # Bail if boot.rb is outdated
-    initializer :freak_out_if_boot_rb_is_outdated do
-      unless defined?(Rails::BOOTSTRAP_VERSION)
-        abort %{Your config/boot.rb is outdated: Run "rake rails:update".}
-      end
     end
 
     # Requires all frameworks specified by the Configuration#frameworks
@@ -125,15 +123,6 @@ module Rails
         (self.class.constants - constants).each do |const|
           Object.const_set(const, self.class.const_get(const))
         end
-      end
-    end
-
-    initializer :add_gem_load_paths do
-      require 'rails/gem_dependency'
-      Rails::GemDependency.add_frozen_gem_path
-      unless config.gems.empty?
-        require "rubygems"
-        config.gems.each { |gem| gem.add_load_paths }
       end
     end
 
@@ -322,31 +311,6 @@ module Rails
       end
     end
 
-    initializer :check_for_unbuilt_gems do
-      unbuilt_gems = config.gems.select {|gem| gem.frozen? && !gem.built? }
-      if unbuilt_gems.size > 0
-        # don't print if the gems:build rake tasks are being run
-        unless $gems_build_rake_task
-          abort <<-end_error
-  The following gems have native components that need to be built
-  #{unbuilt_gems.map { |gemm| "#{gemm.name}  #{gemm.requirement}" } * "\n  "}
-
-  You're running:
-  ruby #{Gem.ruby_version} at #{Gem.ruby}
-  rubygems #{Gem::RubyGemsVersion} at #{Gem.path * ', '}
-
-  Run `rake gems:build` to build the unbuilt gems.
-          end_error
-        end
-      end
-    end
-
-    initializer :load_gems do
-      unless $gems_rake_task
-        config.gems.each { |gem| gem.load }
-      end
-    end
-
     # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
     # defaults to <tt>vendor/plugins</tt> but may also be set to a list of
     # paths, such as
@@ -367,49 +331,19 @@ module Rails
       plugin_loader.load_plugins
     end
 
-    # TODO: Figure out if this needs to run a second time
-    # load_gems
-
-    initializer :check_gem_dependencies do
-      unloaded_gems = config.gems.reject { |g| g.loaded? }
-      if unloaded_gems.size > 0
-        configuration.gems_dependencies_loaded = false
-        # don't print if the gems rake tasks are being run
-        unless $gems_rake_task
-          abort <<-end_error
-  Missing these required gems:
-  #{unloaded_gems.map { |gemm| "#{gemm.name}  #{gemm.requirement}" } * "\n  "}
-
-  You're running:
-  ruby #{Gem.ruby_version} at #{Gem.ruby}
-  rubygems #{Gem::RubyGemsVersion} at #{Gem.path * ', '}
-
-  Run `rake gems:install` to install the missing gems.
-          end_error
-        end
-      else
-        configuration.gems_dependencies_loaded = true
-      end
-    end
-
     # # bail out if gems are missing - note that check_gem_dependencies will have
     # # already called abort() unless $gems_rake_task is set
     # return unless gems_dependencies_loaded
-
     initializer :load_application_initializers do
-      if config.gems_dependencies_loaded
-        Dir["#{configuration.root}/config/initializers/**/*.rb"].sort.each do |initializer|
-          load(initializer)
-        end
+      Dir["#{configuration.root}/config/initializers/**/*.rb"].sort.each do |initializer|
+        load(initializer)
       end
     end
 
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)
     initializer :after_initialize do
-      if config.gems_dependencies_loaded
-        configuration.after_initialize_blocks.each do |block|
-          block.call
-        end
+      configuration.after_initialize_blocks.each do |block|
+        block.call
       end
     end
 
@@ -451,7 +385,7 @@ module Rails
     #
     # # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
     initializer :load_observers do
-      if config.gems_dependencies_loaded && configuration.frameworks.include?(:active_record)
+      if configuration.frameworks.include?(:active_record)
         ActiveRecord::Base.instantiate_observers
       end
     end
@@ -485,6 +419,17 @@ module Rails
         Rails::Generators.no_color! unless config.generators.colorize_logging
         Rails::Generators.aliases.deep_merge! config.generators.aliases
         Rails::Generators.options.deep_merge! config.generators.options
+      end
+    end
+
+    # For each framework, search for instrument file with Notifications hooks.
+    #
+    initializer :load_notifications_hooks do
+      config.frameworks.each do |framework|
+        begin
+          require "#{framework}/notifications"
+        rescue LoadError => e
+        end
       end
     end
   end

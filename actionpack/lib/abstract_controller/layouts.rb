@@ -157,6 +157,7 @@ module AbstractController
     end
 
   private
+
     # This will be overwritten by _write_layout_method
     def _layout(details) end
 
@@ -169,6 +170,34 @@ module AbstractController
     #   formats specified for the current request.
     def _layout_for_name(name, details)
       name && _find_layout(name, details)
+    end
+
+    # Determine the layout for a given name and details, taking into account
+    # the name type.
+    #
+    # ==== Parameters
+    # name<String|TrueClass|FalseClass|Symbol>:: The name of the template
+    # details<Hash{Symbol => Object}>:: A list of details to restrict
+    #   the lookup to. By default, layout lookup is limited to the
+    #   formats specified for the current request.
+    def _layout_for_option(name, details)
+      case name
+      when String     then _layout_for_name(name, details)
+      when true       then _default_layout(details, true)
+      when :default   then _default_layout(details, false)
+      when false, nil then nil
+      else
+        raise ArgumentError,
+          "String, true, or false, expected for `layout'; you passed #{name.inspect}"
+      end
+    end
+
+    def _determine_template(options)
+      super
+
+      return unless (options.keys & [:text, :inline, :partial]).empty? || options.key?(:layout)
+      layout = options.key?(:layout) ? options[:layout] : :default
+      options[:_layout] = _layout_for_option(layout, options[:_template].details)
     end
 
     # Take in the name and details and find a Template.

@@ -424,10 +424,10 @@ INFO: For a good rundown on generators, see "Understanding Generators":http://wi
 
 Generators are code that generates code. Let's experiment by building one. Our generator will generate a text file.
 
-The Rails generator by default looks in these places for available generators, where RAILS_ROOT is the root of your Rails application, like /home/foobar/commandsapp:
+The Rails generator by default looks in these places for available generators, where Rails.root is the root of your Rails application, like /home/foobar/commandsapp:
 
-* RAILS_ROOT/lib/generators
-* RAILS_ROOT/vendor/generators
+* Rails.root/lib/generators
+* Rails.root/vendor/generators
 * Inside any plugin with a directory like "generators" or "rails_generators"
 * ~/.rails/generators
 * Inside any Gem you have installed with a name ending in "_generator"
@@ -465,7 +465,7 @@ We take whatever args are supplied, save them to an instance variable, and liter
 
 * Check there's a *public* directory. You bet there is.
 * Run the ERb template called "tutorial.erb".
-* Save it into "RAILS_ROOT/public/tutorial.txt".
+* Save it into "Rails.root/public/tutorial.txt".
 * Pass in the arguments we saved through the +:assign+ parameter.
 
 Next we'll build the template:

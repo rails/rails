@@ -9,7 +9,7 @@ require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/inflections'
 
 # TODO: Do not always push on vendored thor
-$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/vendor/thor-0.11.6/lib")
+$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/vendor/thor-0.11.8/lib")
 require 'rails/generators/base'
 require 'rails/generators/named_base'
 
@@ -92,8 +92,6 @@ module Rails
           generator_path = File.join(spec.full_gem_path, "lib/generators")
           paths << generator_path if File.exist?(generator_path)
         end
-      elsif defined?(RAILS_ROOT)
-        paths += Dir[File.join(RAILS_ROOT, "vendor", "gems", "gems", "*", "lib", "generators")]
       end
 
       paths
@@ -102,8 +100,8 @@ module Rails
     # Load paths from plugin.
     #
     def self.plugins_generators_paths
-      return [] unless defined?(RAILS_ROOT)
-      Dir[File.join(RAILS_ROOT, "vendor", "plugins", "*", "lib", "generators")]
+      return [] unless Rails.root
+      Dir[File.join(Rails.root, "vendor", "plugins", "*", "lib", "generators")]
     end
 
     # Hold configured generators fallbacks. If a plugin developer wants a
@@ -143,7 +141,7 @@ module Rails
     def self.load_paths
       @load_paths ||= begin
         paths = []
-        paths << File.join(RAILS_ROOT, "lib", "generators") if defined?(RAILS_ROOT)
+        paths << File.join(Rails.root, "lib", "generators") if Rails.root
         paths << File.join(Thor::Util.user_home, ".rails", "generators")
         paths += self.plugins_generators_paths
         paths += self.gems_generators_paths

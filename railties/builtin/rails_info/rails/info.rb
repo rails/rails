@@ -75,7 +75,7 @@ module Rails
 
       protected
         def rails_vendor_root
-          @rails_vendor_root ||= "#{RAILS_ROOT}/vendor/rails"
+          @rails_vendor_root ||= "#{Rails.root}/vendor/rails"
         end
 
         def git_info
@@ -124,7 +124,7 @@ module Rails
 
     # The application's location on the filesystem.
     property 'Application root' do
-      File.expand_path(RAILS_ROOT)
+      File.expand_path(Rails.root)
     end
 
     # The current Rails environment (development, test, or production).

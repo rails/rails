@@ -7,6 +7,7 @@ module ActiveModel
     include ActiveSupport::Callbacks
 
     included do
+      extend ActiveModel::Translation
       define_callbacks :validate, :scope => :name
     end
 

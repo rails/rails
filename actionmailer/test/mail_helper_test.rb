@@ -20,28 +20,29 @@ class HelperMailer < ActionMailer::Base
     recipients recipient
     subject    "using helpers"
     from       "tester@example.com"
-    self.body = { :text => "emphasize me!" }
+
+    @text = "emphasize me!"
   end
 
   def use_mail_helper(recipient)
     recipients recipient
     subject    "using mailing helpers"
     from       "tester@example.com"
-    self.body = { :text => 
-      "But soft! What light through yonder window breaks? It is the east, " +
-      "and Juliet is the sun. Arise, fair sun, and kill the envious moon, " +
-      "which is sick and pale with grief that thou, her maid, art far more " +
-      "fair than she. Be not her maid, for she is envious! Her vestal " +
-      "livery is but sick and green, and none but fools do wear it. Cast " +
-      "it off!"
-    }
+
+    @text = "But soft! What light through yonder window breaks? It is the east, " +
+            "and Juliet is the sun. Arise, fair sun, and kill the envious moon, " +
+            "which is sick and pale with grief that thou, her maid, art far more " +
+            "fair than she. Be not her maid, for she is envious! Her vestal " +
+            "livery is but sick and green, and none but fools do wear it. Cast " +
+            "it off!"
   end
 
   def use_helper_method(recipient)
     recipients recipient
     subject    "using helpers"
     from       "tester@example.com"
-    self.body = { :text => "emphasize me!" }
+
+    @text = "emphasize me!"
   end
 
   private

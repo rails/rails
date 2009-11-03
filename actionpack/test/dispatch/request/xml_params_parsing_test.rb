@@ -84,7 +84,7 @@ class XmlParamsParsingTest < ActionController::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do |map|
-          map.connect ':action', :controller => "xml_params_parsing_test/test"
+          match ':action', :to => TestController
         end
         yield
       end

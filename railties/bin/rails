@@ -19,6 +19,7 @@ end
 
 ARGV << "--help" if ARGV.empty?
 
+require 'rails'
 require 'rails/generators'
 require 'rails/generators/rails/app/app_generator'
 

@@ -2,6 +2,11 @@ require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/scaffold_controller/scaffold_controller_generator'
 
+module Unknown
+  module Generators
+  end
+end
+
 class ScaffoldControllerGeneratorTest < GeneratorsTestCase
 
   def test_controller_skeleton_is_created
@@ -97,10 +102,38 @@ class ScaffoldControllerGeneratorTest < GeneratorsTestCase
     assert_no_file "app/views/layouts/users.html.erb"
   end
 
-  def test_error_is_shown_if_orm_does_not_provide_interface
-    error = capture(:stderr){ run_generator ["User", "--orm=unknown"] }
-    assert_equal "Could not load Unknown::Generators::ActiveModel, skipping controller. " <<
-                 "Error: no such file to load -- rails/generators/unknown.\n", error
+  def test_default_orm_is_used
+    run_generator ["User", "--orm=unknown"]
+
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_match /class UsersController < ApplicationController/, content
+
+      assert_instance_method content, :index do |m|
+        assert_match /@users = User\.all/, m
+      end
+    end
+  end
+
+  def test_customized_orm_is_used
+    klass = Class.new(Rails::Generators::ActiveModel) do
+      def self.all(klass)
+        "#{klass}.find(:all)"
+      end
+    end
+
+    Unknown::Generators.const_set(:ActiveModel, klass)
+    run_generator ["User", "--orm=unknown"]
+
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_match /class UsersController < ApplicationController/, content
+
+      assert_instance_method content, :index do |m|
+        assert_match /@users = User\.find\(:all\)/, m
+        assert_no_match /@users = User\.all/, m
+      end
+    end
+  ensure
+    Unknown::Generators.send :remove_const, :ActiveModel
   end
 
   protected

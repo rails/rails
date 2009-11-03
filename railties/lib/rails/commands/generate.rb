@@ -1,5 +1,4 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'generators'))
-Rails.application.new
 
 if ARGV.size == 0
   Rails::Generators.help

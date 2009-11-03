@@ -4,11 +4,11 @@ require 'rails/initializable'
 require 'rails/application'
 require 'rails/railties_path'
 require 'rails/version'
-require 'rails/gem_dependency'
 require 'rails/rack'
 require 'rails/paths'
 require 'rails/core'
 require 'rails/configuration'
+require 'rails/deprecation'
 
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 

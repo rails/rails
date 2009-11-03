@@ -63,7 +63,6 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message title', @person.errors.generate_message(:title, :exclusion, :default => 'custom message {{value}}', :value => 'title')
   end
 
-  # validates_associated: generate_message(attr_name, :invalid, :default => configuration[:message], :value => value)
   # validates_format_of:  generate_message(attr_name, :invalid, :default => configuration[:message], :value => value)
   def test_generate_message_invalid_with_default_message
     assert_equal 'is invalid', @person.errors.generate_message(:title, :invalid, :default => nil, :value => 'title')

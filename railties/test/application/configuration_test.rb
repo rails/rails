@@ -7,12 +7,11 @@ module ApplicationTests
     def setup
       build_app
       boot_rails
-      Object.send(:remove_const, :RAILS_ROOT)
     end
 
     test "the application root is set correctly" do
       require "#{app_path}/config/environment"
-      assert_equal app_path, Rails.application.root
+      assert_equal Pathname.new(app_path), Rails.application.root
     end
 
     test "the application root can be set" do
@@ -22,7 +21,7 @@ module ApplicationTests
         config.root = '#{app_path}/hello'
       RUBY
       require "#{app_path}/config/environment"
-      assert_equal "#{app_path}/hello", Rails.application.root
+      assert_equal Pathname.new("#{app_path}/hello"), Rails.application.root
     end
 
     test "the application root is detected as where config.ru is located" do
@@ -31,7 +30,7 @@ module ApplicationTests
       RUBY
       FileUtils.mv "#{app_path}/config.ru", "#{app_path}/config/config.ru"
       require "#{app_path}/config/environment"
-      assert_equal "#{app_path}/config", Rails.application.root
+      assert_equal Pathname.new("#{app_path}/config"), Rails.application.root
     end
 
     test "the application root is Dir.pwd if there is no config.ru" do
@@ -42,7 +41,7 @@ module ApplicationTests
 
       Dir.chdir("#{app_path}/app") do
         require "#{app_path}/config/environment"
-        assert_equal "#{app_path}/app", Rails.application.root
+        assert_equal Pathname.new("#{app_path}/app"), Rails.application.root
       end
     end
   end

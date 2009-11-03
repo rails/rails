@@ -25,7 +25,7 @@ OptionParser.new do |opt|
 end
 
 env = ARGV.first || ENV['RAILS_ENV'] || 'development'
-unless config = YAML::load(ERB.new(IO.read(RAILS_ROOT + "/config/database.yml")).result)[env]
+unless config = YAML::load(ERB.new(IO.read(Rails.root + "/config/database.yml")).result)[env]
   abort "No database is configured for the environment '#{env}'"
 end
 

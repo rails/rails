@@ -203,8 +203,8 @@ module Rails
         super
         base.source_root # Cache source root
 
-        if defined?(RAILS_ROOT) && base.name !~ /Base$/
-          path = File.expand_path(File.join(RAILS_ROOT, 'lib', 'templates'))
+        if Rails.root && base.name !~ /Base$/
+          path = File.expand_path(File.join(Rails.root, 'lib', 'templates'))
           if base.name.include?('::')
             base.source_paths << File.join(path, base.base_name, base.generator_name)
           else

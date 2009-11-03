@@ -30,17 +30,17 @@ class ActiveRecordI18nTests < Test::Unit::TestCase
 
   def test_translated_model_names
     I18n.backend.store_translations 'en', :activerecord => {:models => {:topic => 'topic model'} }
-    assert_equal 'topic model', Topic.human_name
+    assert_equal 'topic model', Topic.model_name.human
   end
 
   def test_translated_model_names_with_sti
     I18n.backend.store_translations 'en', :activerecord => {:models => {:reply => 'reply model'} }
-    assert_equal 'reply model', Reply.human_name
+    assert_equal 'reply model', Reply.model_name.human
   end
 
   def test_translated_model_names_with_sti_fallback
     I18n.backend.store_translations 'en', :activerecord => {:models => {:topic => 'topic model'} }
-    assert_equal 'topic model', Reply.human_name
+    assert_equal 'topic model', Reply.model_name.human
   end
 end
 

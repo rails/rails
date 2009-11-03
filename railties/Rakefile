@@ -6,7 +6,12 @@ require 'rake/gempackagetask'
 require 'date'
 require 'rbconfig'
 
-require File.join(File.dirname(__FILE__), 'lib/rails', 'version')
+begin
+  require File.expand_path('../../vendor/gems/environment', __FILE__)
+rescue LoadError
+end
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/lib"
+require 'rails'
 
 PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME        = ENV['PKG_NAME'] || 'rails'
@@ -81,7 +86,6 @@ end
 # Run application generator -------------------------------------------------------------
 
 task :create_rails do
-  $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/lib"
   require 'rails/generators'
   require 'rails/generators/rails/app/app_generator'
   Rails::Generators::AppGenerator.start [ File.basename(PKG_DESTINATION), "--quiet" ],

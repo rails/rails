@@ -1,5 +1,7 @@
+require 'benchmark'
 require 'yaml'
 require 'set'
+require 'active_support/benchmarkable'
 require 'active_support/dependencies'
 require 'active_support/time'
 require 'active_support/core_ext/class/attribute_accessors'
@@ -1384,7 +1386,8 @@ module ActiveRecord #:nodoc:
         subclasses.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
       end
 
-      def self_and_descendants_from_active_record#nodoc:
+      # Set the lookup ancestors for ActiveModel.
+      def lookup_ancestors #:nodoc:
         klass = self
         classes = [klass]
         while klass != klass.base_class
@@ -1398,32 +1401,9 @@ module ActiveRecord #:nodoc:
         [self]
       end
 
-      # Transforms attribute key names into a more humane format, such as "First name" instead of "first_name". Example:
-      #   Person.human_attribute_name("first_name") # => "First name"
-      # This used to be deprecated in favor of humanize, but is now preferred, because it automatically uses the I18n
-      # module now.
-      # Specify +options+ with additional translating options.
-      def human_attribute_name(attribute_key_name, options = {})
-        defaults = self_and_descendants_from_active_record.map do |klass|
-          :"#{klass.name.underscore}.#{attribute_key_name}"
-        end
-        defaults << options[:default] if options[:default]
-        defaults.flatten!
-        defaults << attribute_key_name.to_s.humanize
-        options[:count] ||= 1
-        I18n.translate(defaults.shift, options.merge(:default => defaults, :scope => [:activerecord, :attributes]))
-      end
-
-      # Transform the modelname into a more humane format, using I18n.
-      # By default, it will underscore then humanize the class name (BlogPost.human_name #=> "Blog post").
-      # Default scope of the translation is activerecord.models
-      # Specify +options+ with additional translating options.
-      def human_name(options = {})
-        defaults = self_and_descendants_from_active_record.map do |klass|
-          :"#{klass.name.underscore}"
-        end
-        defaults << self.name.underscore.humanize
-        I18n.translate(defaults.shift, {:scope => [:activerecord, :models], :count => 1, :default => defaults}.merge(options))
+      # Set the i18n scope to overwrite ActiveModel.
+      def i18n_scope #:nodoc:
+        :activerecord
       end
 
       # True if this isn't a concrete subclass needing a STI type condition.
@@ -1461,38 +1441,6 @@ module ActiveRecord #:nodoc:
       # Used to sanitize objects before they're used in an SQL SELECT statement. Delegates to <tt>connection.quote</tt>.
       def sanitize(object) #:nodoc:
         connection.quote(object)
-      end
-
-      # Log and benchmark multiple statements in a single block. Example:
-      #
-      #   Project.benchmark("Creating project") do
-      #     project = Project.create("name" => "stuff")
-      #     project.create_manager("name" => "David")
-      #     project.milestones << Milestone.find(:all)
-      #   end
-      #
-      # The benchmark is only recorded if the current level of the logger is less than or equal to the <tt>log_level</tt>,
-      # which makes it easy to include benchmarking statements in production software that will remain inexpensive because
-      # the benchmark will only be conducted if the log level is low enough.
-      #
-      # The logging of the multiple statements is turned off unless <tt>use_silence</tt> is set to false.
-      def benchmark(title, log_level = Logger::DEBUG, use_silence = true)
-        if logger && logger.level <= log_level
-          result = nil
-          ms = Benchmark.ms { result = use_silence ? silence { yield } : yield }
-          logger.add(log_level, '%s (%.1fms)' % [title, ms])
-          result
-        else
-          yield
-        end
-      end
-
-      # Silences the logger for the duration of the block.
-      def silence
-        old_logger_level, logger.level = logger.level, Logger::ERROR if logger
-        yield
-      ensure
-        logger.level = old_logger_level if logger
       end
 
       # Overwrite the default class equality method to provide support for association proxies.
@@ -1674,7 +1622,7 @@ module ActiveRecord #:nodoc:
         def instantiate(record)
           object = find_sti_class(record[inheritance_column]).allocate
 
-          object.instance_variable_set(:'@attributes', record)
+          object.send(:initialize_attribute_store, record)
           object.instance_variable_set(:'@attributes_cache', {})
 
           object.send(:_run_find_callbacks)
@@ -2445,7 +2393,7 @@ module ActiveRecord #:nodoc:
       # In both instances, valid attribute keys are determined by the column names of the associated table --
       # hence you can't have attributes that aren't part of the table columns.
       def initialize(attributes = nil)
-        @attributes = attributes_from_column_definition
+        initialize_attribute_store(attributes_from_column_definition)
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
@@ -2471,7 +2419,7 @@ module ActiveRecord #:nodoc:
         callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
-        @attributes = cloned_attributes
+        initialize_attribute_store(cloned_attributes)
         clear_aggregation_cache
         @attributes_cache = {}
         @new_record = true
@@ -2697,7 +2645,7 @@ module ActiveRecord #:nodoc:
       def reload(options = nil)
         clear_aggregation_cache
         clear_association_cache
-        @attributes.update(self.class.find(self.id, options).instance_variable_get('@attributes'))
+        _attributes.update(self.class.find(self.id, options).instance_variable_get('@attributes'))
         @attributes_cache = {}
         self
       end
@@ -2792,16 +2740,6 @@ module ActiveRecord #:nodoc:
       def attribute_present?(attribute)
         value = read_attribute(attribute)
         !value.blank?
-      end
-
-      # Returns true if the given attribute is in the attributes hash
-      def has_attribute?(attr_name)
-        @attributes.has_key?(attr_name.to_s)
-      end
-
-      # Returns an array of names for the attributes available on this object sorted alphabetically.
-      def attribute_names
-        @attributes.keys.sort
       end
 
       # Returns the column object for the named attribute.
@@ -2927,18 +2865,6 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      def convert_number_column_value(value)
-        if value == false
-          0
-        elsif value == true
-          1
-        elsif value.is_a?(String) && value.blank?
-          nil
-        else
-          value
-        end
-      end
-
       def remove_attributes_protected_from_mass_assignment(attributes)
         safe_attributes =
           if self.class.accessible_attributes.nil? && self.class.protected_attributes.nil?
@@ -3057,7 +2983,7 @@ module ActiveRecord #:nodoc:
       end
 
       def instantiate_time_object(name, values)
-        if self.class.send(:create_time_zone_conversion_attribute?, name, column_for_attribute(name))
+        if self.class.send(:time_zone_aware?, name)
           Time.zone.local(*values)
         else
           Time.time_with_datetime_fallback(@@default_timezone, *values)
@@ -3144,15 +3070,13 @@ module ActiveRecord #:nodoc:
         comma_pair_list(quote_columns(quoter, hash))
       end
 
-      def object_from_yaml(string)
-        return string unless string.is_a?(String) && string =~ /^---/
-        YAML::load(string) rescue string
-      end
   end
 
   Base.class_eval do
     extend ActiveModel::Naming
     extend QueryCache::ClassMethods
+    extend ActiveSupport::Benchmarkable
+
     include Validations
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
@@ -3160,6 +3084,7 @@ module ActiveRecord #:nodoc:
     include AttributeMethods::PrimaryKey
     include AttributeMethods::TimeZoneConversion
     include AttributeMethods::Dirty
+    include Attributes, Types
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
     include ActiveModel::Conversion
@@ -3169,6 +3094,7 @@ module ActiveRecord #:nodoc:
     include AutosaveAssociation, NestedAttributes
 
     include Aggregations, Transactions, Reflection, Batches, Calculations, Serialization
+
   end
 end
 

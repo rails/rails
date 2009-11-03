@@ -80,7 +80,7 @@ class GeneratorsTest < GeneratorsTestCase
     Rails::Generators.instance_variable_set(:@load_paths, nil)
 
     spec = Gem::Specification.new
-    spec.expects(:full_gem_path).returns(File.join(RAILS_ROOT, 'vendor', 'another_gem_path', 'xspec'))
+    spec.expects(:full_gem_path).returns(File.join(Rails.root, 'vendor', 'another_gem_path', 'xspec'))
     Gem.expects(:respond_to?).with(:loaded_specs).returns(true)
     Gem.expects(:loaded_specs).returns(:spec => spec)
 
@@ -101,10 +101,11 @@ class GeneratorsTest < GeneratorsTestCase
 
   def test_rails_generators_with_others_information
     output = capture(:stdout){ Rails::Generators.help }.split("\n").last
-    assert_equal "Others: active_record:fixjour, fixjour, mspec, rails:javascripts, wrong.", output
+    assert_equal "Others: active_record:fixjour, fixjour, mspec, rails:javascripts.", output
   end
 
   def test_warning_is_shown_if_generator_cant_be_loaded
+    Rails::Generators.load_paths << File.expand_path("../fixtures/vendor/gems/gems/wrong", __FILE__)
     output = capture(:stderr){ Rails::Generators.find_by_namespace(:wrong) }
     assert_match /\[WARNING\] Could not load generator at/, output
     assert_match /Error: uninitialized constant Rails::Generator/, output
@@ -118,7 +119,7 @@ class GeneratorsTest < GeneratorsTestCase
   end
 
   def test_rails_root_templates
-    template = File.join(RAILS_ROOT, "lib", "templates", "active_record", "model", "model.rb")
+    template = File.join(Rails.root, "lib", "templates", "active_record", "model", "model.rb")
 
     # Create template
     mkdir_p(File.dirname(template))
@@ -170,6 +171,6 @@ class GeneratorsTest < GeneratorsTestCase
 
   def test_source_paths_for_not_namespaced_generators
     mspec = Rails::Generators.find_by_namespace :mspec
-    assert mspec.source_paths.include?(File.join(RAILS_ROOT, "lib", "templates", "mspec"))
+    assert mspec.source_paths.include?(File.join(Rails.root, "lib", "templates", "mspec"))
   end
 end

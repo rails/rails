@@ -57,40 +57,6 @@ class HelperTest < Test::Unit::TestCase
     assert_equal [], missing_methods
   end
 
-  def test_declare_helper
-    require 'abc_helper'
-    self.test_helper = AbcHelper
-    assert_equal expected_helper_methods, missing_methods
-    assert_nothing_raised { @controller_class.helper :abc }
-    assert_equal [], missing_methods
-  end
-
-  def test_declare_missing_helper
-    assert_equal expected_helper_methods, missing_methods
-    assert_raise(MissingSourceFile) { @controller_class.helper :missing }
-  end
-
-  def test_declare_missing_file_from_helper
-    require 'broken_helper'
-  rescue LoadError => e
-    assert_nil(/\bbroken_helper\b/.match(e.to_s)[1])
-  end
-
-  def test_helper_block
-    assert_nothing_raised {
-      @controller_class.helper { def block_helper_method; end }
-    }
-    assert master_helper_methods.include?('block_helper_method')
-  end
-
-  def test_helper_block_include
-    assert_equal expected_helper_methods, missing_methods
-    assert_nothing_raised {
-      @controller_class.helper { include HelperTest::TestHelper }
-    }
-    assert [], missing_methods
-  end
-
   def test_helper_method
     assert_nothing_raised { @controller_class.helper_method :delegate_method }
     assert master_helper_methods.include?('delegate_method')

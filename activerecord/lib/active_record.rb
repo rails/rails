@@ -21,16 +21,11 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-bundled = "#{File.dirname(__FILE__)}/../vendor/gems/environment"
-if File.exist?("#{bundled}.rb")
-  require bundled
-else
-  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-  $:.unshift(activesupport_path) if File.directory?(activesupport_path)
+activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+$:.unshift(activesupport_path) if File.directory?(activesupport_path)
 
-  activemodel_path = "#{File.dirname(__FILE__)}/../../activemodel/lib"
-  $:.unshift(activemodel_path) if File.directory?(activemodel_path)
-end
+activemodel_path = "#{File.dirname(__FILE__)}/../../activemodel/lib"
+$:.unshift(activemodel_path) if File.directory?(activemodel_path)
 
 require 'active_support'
 require 'active_model'
@@ -51,6 +46,7 @@ module ActiveRecord
   autoload :AssociationPreload, 'active_record/association_preload'
   autoload :Associations, 'active_record/associations'
   autoload :AttributeMethods, 'active_record/attribute_methods'
+  autoload :Attributes, 'active_record/attributes'
   autoload :AutosaveAssociation, 'active_record/autosave_association'
   autoload :Relation, 'active_record/relation'
   autoload :Base, 'active_record/base'
@@ -74,7 +70,7 @@ module ActiveRecord
   autoload :TestCase, 'active_record/test_case'
   autoload :Timestamp, 'active_record/timestamp'
   autoload :Transactions, 'active_record/transactions'
-  autoload :Validator, 'active_record/validator'
+  autoload :Types, 'active_record/types'
   autoload :Validations, 'active_record/validations'
 
   module AttributeMethods
@@ -85,6 +81,20 @@ module ActiveRecord
     autoload :Read, 'active_record/attribute_methods/read'
     autoload :TimeZoneConversion, 'active_record/attribute_methods/time_zone_conversion'
     autoload :Write, 'active_record/attribute_methods/write'
+  end
+
+  module Attributes
+    autoload :Aliasing, 'active_record/attributes/aliasing'
+    autoload :Store, 'active_record/attributes/store'
+    autoload :Typecasting, 'active_record/attributes/typecasting'
+  end
+
+  module Type
+    autoload :Number, 'active_record/types/number'
+    autoload :Object, 'active_record/types/object'
+    autoload :Serialize, 'active_record/types/serialize'
+    autoload :TimeWithZone, 'active_record/types/time_with_zone'
+    autoload :Unknown, 'active_record/types/unknown'
   end
 
   module Locking

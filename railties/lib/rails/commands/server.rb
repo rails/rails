@@ -7,7 +7,7 @@ options = {
   :Port        => 3000,
   :Host        => "0.0.0.0",
   :environment => (ENV['RAILS_ENV'] || "development").dup,
-  :config      => RAILS_ROOT + "/config.ru",
+  :config      => "#{Rails.root}/config.ru",
   :detach      => false,
   :debugger    => false
 }
@@ -46,7 +46,7 @@ puts "=> Rails #{Rails.version} application starting on http://#{options[:Host]}
 
 if options[:detach]
   Process.daemon
-  pid = "#{RAILS_ROOT}/tmp/pids/server.pid"
+  pid = "#{Rails.root}/tmp/pids/server.pid"
   File.open(pid, 'w'){ |f| f.write(Process.pid) }
   at_exit { File.delete(pid) if File.exist?(pid) }
 end

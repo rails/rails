@@ -1,5 +1,9 @@
 *Edge*
 
+* Update Edinburgh TimeZone to use "Europe/London" instead of "Europe/Dublin" #3310 [Phil Ross]
+
+* Update bundled TZInfo to v0.3.15 [Geoff Buesing]
+
 * JSON: +Object#to_json+ calls +as_json+ to coerce itself into something natively encodable like +Hash+, +Integer+, or +String+. Override +as_json+ instead of +to_json+ so you're JSON library agnostic.  [Jeremy Kemper]
 
 * String #to_time and #to_datetime: handle fractional seconds #864 [Jason Frey]

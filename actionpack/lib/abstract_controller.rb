@@ -6,6 +6,7 @@ module AbstractController
   autoload :Callbacks,           "abstract_controller/callbacks"
   autoload :Helpers,             "abstract_controller/helpers"
   autoload :Layouts,             "abstract_controller/layouts"
+  autoload :LocalizedCache,      "abstract_controller/localized_cache"
   autoload :Logger,              "abstract_controller/logger"
   autoload :RenderingController, "abstract_controller/rendering_controller"
   # === Exceptions

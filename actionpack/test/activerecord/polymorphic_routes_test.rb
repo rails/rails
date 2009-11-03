@@ -98,14 +98,6 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
-  def test_formatted_url_helper_is_deprecated
-    with_test_routes do
-      assert_deprecated do
-        formatted_polymorphic_url([@project, :pdf])
-      end
-    end
-  end
-  
   def test_format_option
     with_test_routes do 
       @project.save
@@ -248,6 +240,12 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_test_routes do 
       @project.save
       assert_equal "http://example.com/projects", polymorphic_url([:projects])
+    end
+  end
+  
+  def test_with_array_containing_symbols
+    with_test_routes do
+      assert_equal "http://example.com/series/new", polymorphic_url([:new, :series])
     end
   end
   

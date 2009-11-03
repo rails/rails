@@ -6,7 +6,7 @@ module Rails
   # TODO: w0t?
   class << self
     def application
-      @@application
+      @@application ||= nil
     end
 
     def application=(application)
@@ -16,6 +16,10 @@ module Rails
     # The Configuration instance used to configure the Rails environment
     def configuration
       application.configuration
+    end
+
+    def initialize!
+      application.initialize!
     end
 
     def initialized?
@@ -43,7 +47,7 @@ module Rails
     end
 
     def root
-      Pathname.new(RAILS_ROOT) if defined?(RAILS_ROOT)
+      application && application.config.root
     end
 
     def env
@@ -64,38 +68,6 @@ module Rails
 
     def public_path=(path)
       @@public_path = path
-    end
-  end
-
-  class OrderedOptions < Array #:nodoc:
-    def []=(key, value)
-      key = key.to_sym
-
-      if pair = find_pair(key)
-        pair.pop
-        pair << value
-      else
-        self << [key, value]
-      end
-    end
-
-    def [](key)
-      pair = find_pair(key.to_sym)
-      pair ? pair.last : nil
-    end
-
-    def method_missing(name, *args)
-      if name.to_s =~ /(.*)=$/
-        self[$1.to_sym] = args.first
-      else
-        self[name]
-      end
-    end
-
-  private
-    def find_pair(key)
-      self.each { |i| return i if i.first == key }
-      return false
     end
   end
 end

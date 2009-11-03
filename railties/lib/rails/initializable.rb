@@ -1,78 +1,86 @@
 module Rails
   module Initializable
-
-    # A collection of initializers
-    class Collection
-      def initialize(context)
-        @context = context
-        @keys    = []
-        @values  = {}
-        @ran     = false
+    def self.included(klass)
+      klass.instance_eval do
+        extend Rails::Initializable
+        extend Rails::Initializable::ClassMethodsWhenIncluded
+        include Rails::Initializable::InstanceMethodsWhenIncluded
       end
+    end
 
-      def run
-        return self if @ran
-        each do |key, initializer|
-          @context.class_eval(&initializer.block)
+    def self.extended(klass)
+      klass.extend Initializer
+    end
+
+    class Collection < Array
+      def initialize(klasses)
+        klasses.each do |klass|
+          (klass.added_initializers || []).each do |initializer|
+            index = if initializer.before
+              index_for(initializer.before)
+            elsif initializer.after
+              index_for(initializer.after) + 1
+            else
+              length
+            end
+
+            insert(index, initializer)
+          end
         end
-        @ran = true
-        self
       end
 
-      def [](key)
-        keys, values = merge_with_parent
-        values[key.to_sym]
-      end
-
-      def []=(key, value)
-        key = key.to_sym
-        @keys |= [key]
-        @values[key] = value
-      end
-
-      def each
-        keys, values = merge_with_parent
-        keys.each { |k| yield k, values[k] }
-        self
-      end
-
-    protected
-
-      attr_reader :keys, :values
-
-    private
-
-      def merge_with_parent
-        keys, values = [], {}
-
-        if @context.is_a?(Class) && @context.superclass.is_a?(Initializable)
-          parent = @context.superclass.initializers
-          keys, values = parent.keys, parent.values
-        end
-
-        values = values.merge(@values)
-        return keys | @keys, values
+      def index_for(name)
+        inst = find {|i| i.name == name }
+        inst && index(inst)
       end
 
     end
 
-    class Initializer
-      attr_reader :name, :options, :block
+    attr_reader :added_initializers
 
-      def initialize(name, options = {}, &block)
-        @name, @options, @block = name, options, block
+    # When you include Rails::Initializable, this method will be on instances
+    # of the class included into. When you extend it, it will be on the
+    # class or module itself.
+    #
+    # The #initializers method is set up to return the right list of
+    # initializers for the context in question.
+    def run_initializers
+      return if @_initialized
+
+      initializers.each {|initializer| instance_eval(&initializer.block) }
+
+      @_initialized = true
+    end
+
+    module Initializer
+      Initializer = Struct.new(:name, :before, :after, :block, :global)
+
+      def all_initializers
+        klasses = ancestors.select {|klass| klass.is_a?(Initializable) }.reverse
+        initializers = Collection.new(klasses)
+      end
+
+      alias initializers all_initializers
+
+      def initializer(name, options = {}, &block)
+        @added_initializers ||= []
+        @added_initializers <<
+          Initializer.new(name, options[:before], options[:after], block, options[:global])
       end
     end
 
-    def initializer(name, options = {}, &block)
-      @initializers ||= Collection.new(self)
-      @initializers[name] = Initializer.new(name, options, &block)
+    module ClassMethodsWhenIncluded
+      def initializers
+        all_initializers.select {|i| i.global == true }
+      end
+
     end
 
-    def initializers
-      @initializers ||= Collection.new(self)
+    module InstanceMethodsWhenIncluded
+      def initializers
+        self.class.all_initializers.reject {|i| i.global == true }
+      end
     end
-
   end
 
   extend Initializable

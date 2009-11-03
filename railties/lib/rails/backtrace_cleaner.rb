@@ -1,5 +1,4 @@
 require 'active_support/backtrace_cleaner'
-require 'rails/gem_dependency'
 
 module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner
@@ -18,7 +17,7 @@ module Rails
 
     def initialize
       super
-      add_filter   { |line| line.sub("#{RAILS_ROOT}/", '') }
+      add_filter   { |line| line.sub("#{Rails.root}/", '') }
       add_filter   { |line| line.sub(ERB_METHOD_SIG, '') }
       add_filter   { |line| line.sub('./', '/') } # for tests
 
@@ -28,17 +27,14 @@ module Rails
       add_silencer { |line| RAILS_GEMS.any? { |gem| line =~ /^#{gem} / } }
       add_silencer { |line| line =~ %r(vendor/plugins/[^\/]+/lib) }
     end
-    
-    
+
     private
       def add_gem_filters
+        return unless defined? Gem
         (Gem.path + [Gem.default_dir]).uniq.each do |path|
           # http://gist.github.com/30430
           add_filter { |line| line.sub(/(#{path})\/gems\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) \4')}
         end
-
-        vendor_gems_path = Rails::GemDependency.unpacked_path.sub("#{RAILS_ROOT}/",'')
-        add_filter { |line| line.sub(/(#{vendor_gems_path})\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) [v] \4')}
       end
   end
 

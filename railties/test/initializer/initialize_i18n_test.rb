@@ -7,14 +7,16 @@ module InitializerTests
     def setup
       build_app
       boot_rails
+      require "rails"
     end
 
     # test_config_defaults_and_settings_should_be_added_to_i18n_defaults
     test "i18n config defaults and settings should be added to i18n defaults" do
       Rails::Initializer.run do |c|
+        c.root = app_path
         c.i18n.load_path << "my/other/locale.yml"
       end
-      Rails.application.new
+      Rails.initialize!
 
       #{RAILS_FRAMEWORK_ROOT}/railties/test/fixtures/plugins/engines/engine/config/locales/en.yml
       assert_equal %W(
@@ -24,7 +26,7 @@ module InitializerTests
         #{RAILS_FRAMEWORK_ROOT}/actionpack/lib/action_view/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/railties/tmp/app/config/locales/en.yml
         my/other/locale.yml
-      ), I18n.load_path
+      ).map { |path| File.expand_path(path) }, I18n.load_path.map { |path| File.expand_path(path) }
     end
 
     test "i18n finds locale files in engines" do
@@ -34,9 +36,10 @@ module InitializerTests
       app_file "vendor/plugins/engine/config/locales/en.yml", "hello:"
 
       Rails::Initializer.run do |c|
+        c.root = app_path
         c.i18n.load_path << "my/other/locale.yml"
       end
-      Rails.application.new
+      Rails.initialize!
 
       #{RAILS_FRAMEWORK_ROOT}/railties/test/fixtures/plugins/engines/engine/config/locales/en.yml
       assert_equal %W(
@@ -47,7 +50,7 @@ module InitializerTests
         #{app_path}/config/locales/en.yml
         my/other/locale.yml
         #{app_path}/vendor/plugins/engine/config/locales/en.yml
-      ), I18n.load_path
+      ).map { |path| File.expand_path(path) }, I18n.load_path.map { |path| File.expand_path(path) }
     end
   end
 end

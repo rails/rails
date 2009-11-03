@@ -32,8 +32,9 @@ module ActionMailer
   end
 
   autoload :AdvAttrAccessor, 'action_mailer/adv_attr_accessor'
+  autoload :DeprecatedBody, 'action_mailer/deprecated_body'
   autoload :Base, 'action_mailer/base'
-  autoload :Helpers, 'action_mailer/helpers'
+  autoload :DeliveryMethod, 'action_mailer/delivery_method'
   autoload :Part, 'action_mailer/part'
   autoload :PartContainer, 'action_mailer/part_container'
   autoload :Quoting, 'action_mailer/quoting'

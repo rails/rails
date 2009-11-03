@@ -86,7 +86,7 @@ namespace :rails do
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
 
     require 'generators'
-    generator = Rails::Generators::App.new [ RAILS_ROOT ], {}, :destination_root => RAILS_ROOT
+    generator = Rails::Generators::App.new [ Rails.root ], {}, :destination_root => Rails.root
     generator.apply template, :verbose => false
   end
 
@@ -96,13 +96,8 @@ namespace :rails do
       require 'rails/generators/rails/app/app_generator'
 
       generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
-                                                      :destination_root => RAILS_ROOT
+                                                      :destination_root => Rails.root
       generator.invoke(method)
-    end
-
-    desc "Update config/boot.rb from your current rails install"
-    task :configs do
-      invoke_from_app_generator :create_boot_file
     end
 
     desc "Update Prototype javascripts from your current rails install"
@@ -117,8 +112,8 @@ namespace :rails do
 
     desc "Rename application.rb to application_controller.rb"
     task :application_controller do
-      old_style = RAILS_ROOT + '/app/controllers/application.rb'
-      new_style = RAILS_ROOT + '/app/controllers/application_controller.rb'
+      old_style = Rails.root + '/app/controllers/application.rb'
+      new_style = Rails.root + '/app/controllers/application_controller.rb'
       if File.exists?(old_style) && !File.exists?(new_style)
         FileUtils.mv(old_style, new_style)
         puts "#{old_style} has been renamed to #{new_style}, update your SCM as necessary"

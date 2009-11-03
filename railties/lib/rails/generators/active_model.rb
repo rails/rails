@@ -32,7 +32,7 @@ module Rails
 
       # GET index
       def self.all(klass)
-        raise NotImplementedError
+        "#{klass}.all"
       end
 
       # GET show
@@ -40,34 +40,38 @@ module Rails
       # PUT update
       # DELETE destroy
       def self.find(klass, params=nil)
-        raise NotImplementedError
+        "#{klass}.find(#{params})"
       end
 
       # GET new
       # POST create
       def self.build(klass, params=nil)
-        raise NotImplementedError
+        if params
+          "#{klass}.new(#{params})"
+        else
+          "#{klass}.new"
+        end
       end
 
       # POST create
       def save
-        raise NotImplementedError
+        "#{name}.save"
       end
 
       # PUT update
       def update_attributes(params=nil)
-        raise NotImplementedError
+        "#{name}.update_attributes(#{params})"
       end
 
       # POST create
       # PUT update
       def errors
-        raise NotImplementedError
+        "#{name}.errors"
       end
 
       # DELETE destroy
       def destroy
-        raise NotImplementedError
+        "#{name}.destroy"
       end
     end
   end

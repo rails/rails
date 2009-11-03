@@ -109,6 +109,10 @@ module ActionController
       middleware_stack
     end
 
+    def self.call(env)
+      action(env['action_dispatch.request.path_parameters'][:action]).call(env)
+    end
+
     # Return a rack endpoint for the given action. Memoize the endpoint, so
     # multiple calls into MyController.action will return the same object
     # for the same action.

@@ -52,6 +52,13 @@ class DelegatingAttributesTest < Test::Unit::TestCase
     assert !single_class.public_instance_methods.map(&:to_s).include?("both=")
   end
 
+  def test_simple_accessor_declaration_with_instance_reader_false
+    single_class.superclass_delegating_accessor :no_instance_reader, :instance_reader => false
+    assert single_class.respond_to?(:no_instance_reader)
+    assert single_class.respond_to?(:no_instance_reader=)
+    assert !single_class.public_instance_methods.map(&:to_s).include?("no_instance_reader")
+  end
+
   def test_working_with_simple_attributes
     single_class.superclass_delegating_accessor :both
 

@@ -1,4 +1,12 @@
 ORIG_ARGV = ARGV.dup
+root = File.expand_path('../../..', __FILE__)
+begin
+  require "#{root}/vendor/gems/environment"
+rescue LoadError
+  $:.unshift("#{root}/activesupport/lib")
+  $:.unshift("#{root}/activerecord/lib")
+end
+
 
 require 'test/unit'
 
@@ -11,7 +19,6 @@ rescue LoadError
 end
 
 ENV['NO_RELOAD'] = '1'
-$:.unshift "#{File.dirname(__FILE__)}/../lib"
 require 'active_support'
 require 'active_support/test_case'
 

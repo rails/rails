@@ -4,10 +4,6 @@ require 'action_controller'
 require 'rails/info'
 require 'rails/info_controller'
 
-ActionController::Routing::Routes.draw do |map|
-  map.connect ':controller/:action/:id'
-end
-
 module ActionController
   class Base
     include ActionController::Testing
@@ -18,7 +14,15 @@ class InfoControllerTest < ActionController::TestCase
   tests Rails::InfoController
 
   def setup
+    ActionController::Routing.use_controllers!(['rails/info'])
+    ActionController::Routing::Routes.draw do |map|
+      map.connect ':controller/:action/:id'
+    end
     @controller.stubs(:consider_all_requests_local => false, :local_request? => true)
+  end
+
+  def teardown
+    ActionController::Routing.use_controllers! nil
   end
 
   test "info controller does not allow remote requests" do

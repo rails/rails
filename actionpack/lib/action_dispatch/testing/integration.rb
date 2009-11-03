@@ -490,7 +490,7 @@ module ActionDispatch
     def self.app
       # DEPRECATE Rails application fallback
       # This should be set by the initializer
-      @@app || (defined?(Rails.application) && Rails.application.new) || nil
+      @@app || (defined?(Rails.application) && Rails.application) || nil
     end
 
     def self.app=(app)

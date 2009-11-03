@@ -63,7 +63,7 @@ module ActiveSupport
         "Azores"                       => "Atlantic/Azores",
         "Cape Verde Is."               => "Atlantic/Cape_Verde",
         "Dublin"                       => "Europe/Dublin",
-        "Edinburgh"                    => "Europe/Dublin",
+        "Edinburgh"                    => "Europe/London",
         "Lisbon"                       => "Europe/Lisbon",
         "London"                       => "Europe/London",
         "Casablanca"                   => "Africa/Casablanca",

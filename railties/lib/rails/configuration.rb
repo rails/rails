@@ -1,10 +1,11 @@
 require 'rails/plugin/loader'
 require 'rails/plugin/locator'
+require 'active_support/ordered_options'
 
 module Rails
   class Configuration
     attr_accessor :cache_classes, :load_paths,
-                  :load_once_paths, :gems_dependencies_loaded, :after_initialize_blocks,
+                  :load_once_paths, :after_initialize_blocks,
                   :frameworks, :framework_root_path, :root, :plugin_paths, :plugins,
                   :plugin_loader, :plugin_locators, :gems, :loaded_plugins, :reload_plugins,
                   :i18n, :gems, :whiny_nils, :consider_all_requests_local,
@@ -23,9 +24,9 @@ module Rails
       @serve_static_assets          = true
 
       for framework in frameworks
-        self.send("#{framework}=", Rails::OrderedOptions.new)
+        self.send("#{framework}=", ActiveSupport::OrderedOptions.new)
       end
-      self.active_support = Rails::OrderedOptions.new
+      self.active_support = ActiveSupport::OrderedOptions.new
     end
 
     def after_initialize(&blk)
@@ -34,37 +35,25 @@ module Rails
 
     def root
       @root ||= begin
-        if defined?(RAILS_ROOT)
-          root = RAILS_ROOT
-        else
-          call_stack = caller.map { |p| p.split(':').first }
-          root_path  = call_stack.detect { |p| p !~ %r[railties/lib/rails] }
-          root_path  = File.dirname(root_path)
+        call_stack = caller.map { |p| p.split(':').first }
+        root_path  = call_stack.detect { |p| p !~ %r[railties/lib/rails] }
+        root_path  = File.dirname(root_path)
 
-          while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/config.ru")
-            parent = File.dirname(root_path)
-            root_path = parent != root_path && parent
-          end
-
-          Object.class_eval("RAILS_ROOT = ''")
-
-          root = File.exist?("#{root_path}/config.ru") ? root_path : Dir.pwd
+        while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/config.ru")
+          parent = File.dirname(root_path)
+          root_path = parent != root_path && parent
         end
 
-        root = RUBY_PLATFORM =~ /(:?mswin|mingw)/ ?
-          Pathname.new(root).expand_path.to_s :
-          Pathname.new(root).realpath.to_s
+        root = File.exist?("#{root_path}/config.ru") ? root_path : Dir.pwd
 
-        # TODO: Remove RAILS_ROOT
-        RAILS_ROOT.replace(root)
-        root
+        RUBY_PLATFORM =~ /(:?mswin|mingw)/ ?
+          Pathname.new(root).expand_path :
+          Pathname.new(root).realpath
       end
     end
 
     def root=(root)
-      Object.class_eval("RAILS_ROOT = ''") unless defined?(RAILS_ROOT)
-      RAILS_ROOT.replace(root)
-      @root = root
+      @root = Pathname.new(root).expand_path
     end
 
     def paths
@@ -230,7 +219,7 @@ module Rails
 
     def i18n
       @i18n ||= begin
-        i18n = Rails::OrderedOptions.new
+        i18n = ActiveSupport::OrderedOptions.new
         i18n.load_path = []
 
         if File.exist?(File.join(root, 'config', 'locales'))
@@ -240,25 +229,6 @@ module Rails
 
         i18n
       end
-    end
-
-    # Adds a single Gem dependency to the rails application. By default, it will require
-    # the library with the same name as the gem. Use :lib to specify a different name.
-    #
-    #   # gem 'aws-s3', '>= 0.4.0'
-    #   # require 'aws/s3'
-    #   config.gem 'aws-s3', :lib => 'aws/s3', :version => '>= 0.4.0', \
-    #     :source => "http://code.whytheluckystiff.net"
-    #
-    # To require a library be installed, but not attempt to load it, pass :lib => false
-    #
-    #   config.gem 'qrp', :version => '0.4.1', :lib => false
-    def gem(name, options = {})
-      gems << Rails::GemDependency.new(name, options)
-    end
-
-    def gems
-      @gems ||= []
     end
 
     def environment_path
@@ -288,6 +258,14 @@ module Rails
       else
         @generators
       end
+    end
+
+    # Allows Notifications queue to be modified.
+    #
+    #   config.notifications.queue = MyNewQueue.new
+    #
+    def notifications
+      ActiveSupport::Notifications
     end
 
     class Generators #:nodoc:
