@@ -45,6 +45,12 @@ class GeneratorsTest < GeneratorsTestCase
     assert_equal "test_unit:generators:model", klass.namespace
   end
 
+  def test_find_by_namespace_with_duplicated_name
+    klass = Rails::Generators.find_by_namespace(:foobar)
+    assert klass
+    assert_equal "foobar:foobar", klass.namespace
+  end
+
   def test_find_by_namespace_add_generators_to_raw_lookups
     klass = Rails::Generators.find_by_namespace("test_unit:model")
     assert klass
@@ -101,14 +107,15 @@ class GeneratorsTest < GeneratorsTestCase
 
   def test_rails_generators_with_others_information
     output = capture(:stdout){ Rails::Generators.help }.split("\n").last
-    assert_equal "Others: active_record:fixjour, fixjour, mspec, rails:javascripts.", output
+    assert_equal "Others: active_record:fixjour, fixjour, foobar, mspec, rails:javascripts.", output
   end
 
   def test_warning_is_shown_if_generator_cant_be_loaded
     Rails::Generators.load_paths << File.join(Rails.root, "vendor", "gems", "gems", "wrong")
     output = capture(:stderr){ Rails::Generators.find_by_namespace(:wrong) }
+
     assert_match /\[WARNING\] Could not load generator at/, output
-    assert_match /Error: uninitialized constant Rails::Generator/, output
+    assert_match /Rails 2\.x generator/, output
   end
 
   def test_no_color_sets_proper_shell
