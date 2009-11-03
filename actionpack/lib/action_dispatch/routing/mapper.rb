@@ -20,15 +20,20 @@ module ActionDispatch
             return self
           end
 
-          controller(resource) do
+          singular = resource.to_s
+          plural   = singular.pluralize
+
+          controller(plural) do
             namespace(resource) do
               with_scope_level(:resource) do
                 yield if block_given?
 
-                get "", :to => :show
+                get "", :to => :show, :as => "#{singular}"
                 post "", :to => :create
                 put "", :to => :update
-                delete "", :to => :destory
+                delete "", :to => :destroy
+                get "new", :to => :new, :as => "new_#{singular}"
+                get "edit", :to => :edit, :as => "edit_#{singular}"
               end
             end
           end
@@ -54,22 +59,25 @@ module ActionDispatch
             return self
           end
 
+          plural   = resource.to_s
+          singular = plural.singularize
+
           controller(resource) do
             namespace(resource) do
               with_scope_level(:resources) do
                 yield if block_given?
 
                 member do
-                  get "", :to => :show
+                  get "", :to => :show, :as => "#{singular}"
                   put "", :to => :update
-                  delete "", :to => :destory
-                  get "edit", :to => :edit
+                  delete "", :to => :destroy
+                  get "edit", :to => :edit, :as => "edit_#{singular}"
                 end
 
                 collection do
-                  get "", :to => :index
+                  get "", :to => :index, :as => "#{plural}"
                   post "", :to => :create
-                  get "new", :to => :new
+                  get "new", :to => :new, :as => "new_#{singular}"
                 end
               end
             end
@@ -219,6 +227,10 @@ module ActionDispatch
 
       def delete(*args, &block)
         map_method(:delete, *args, &block)
+      end
+
+      def root(options = {})
+        match '/', options.merge(:as => :root)
       end
 
       def match(*args)
