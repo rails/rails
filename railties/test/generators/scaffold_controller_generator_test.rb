@@ -139,7 +139,7 @@ class ScaffoldControllerGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=["User", "name:string", "age:integer"])
-      silence(:stdout) { Rails::Generators::ScaffoldControllerGenerator.start args }
+      silence(:stdout) { Rails::Generators::ScaffoldControllerGenerator.start args, :destination_root => destination_root }
     end
 
 end

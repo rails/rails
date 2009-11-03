@@ -1,5 +1,5 @@
 # TODO: Fix this RAILS_ENV stuff
-RAILS_ENV = 'test' unless defined?(RAILS_ENV)
+RAILS_ENV = 'test'
 
 require 'abstract_unit'
 Rails.application.config.root = File.expand_path(File.join(File.dirname(__FILE__), '..', 'fixtures'))
@@ -11,17 +11,12 @@ require 'action_dispatch'
 CURRENT_PATH = File.expand_path(Dir.pwd)
 Rails::Generators.no_color!
 
-module Rails
-  def self.root
-    @root ||= File.expand_path(File.join(File.dirname(__FILE__), '..', 'fixtures', 'tmp'))
-  end
-end
-
 class GeneratorsTestCase < Test::Unit::TestCase
   include FileUtils
 
   def destination_root
-    Rails.root
+    @destination_root ||= File.expand_path(File.join(File.dirname(__FILE__),
+                                            '..', 'fixtures', 'tmp'))
   end
 
   def setup

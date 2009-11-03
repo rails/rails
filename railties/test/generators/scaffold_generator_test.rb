@@ -122,7 +122,8 @@ class ScaffoldGeneratorTest < GeneratorsTestCase
 
     def run_generator(config={})
       silence(:stdout) do
-        Rails::Generators::ScaffoldGenerator.start ["product_line", "title:string", "price:integer"], config
+        Rails::Generators::ScaffoldGenerator.start ["product_line", "title:string", "price:integer"],
+                                                   config.merge(:destination_root => destination_root)
       end
     end
 

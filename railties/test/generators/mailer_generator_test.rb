@@ -46,7 +46,7 @@ class MailerGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=["notifier", "foo", "bar"])
-      silence(:stdout) { Rails::Generators::MailerGenerator.start args }
+      silence(:stdout) { Rails::Generators::MailerGenerator.start args, :destination_root => destination_root }
     end
 
 end

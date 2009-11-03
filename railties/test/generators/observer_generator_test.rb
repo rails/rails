@@ -27,7 +27,7 @@ class ObserverGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(args=["account"])
-      silence(:stdout) { Rails::Generators::ObserverGenerator.start args }
+      silence(:stdout) { Rails::Generators::ObserverGenerator.start args, :destination_root => destination_root }
     end
 
 end

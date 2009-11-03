@@ -182,7 +182,7 @@ class ActionsTest < GeneratorsTestCase
     end
 
     def generator(config={})
-      @generator ||= Rails::Generators::Base.new([], {}, config)
+      @generator ||= Rails::Generators::Base.new([], {}, { :destination_root => destination_root }.merge!(config))
     end
 
     def action(*args, &block)

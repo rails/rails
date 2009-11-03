@@ -18,7 +18,7 @@ class StylesheetsGeneratorTest < GeneratorsTestCase
   protected
 
     def run_generator(config={})
-      silence(:stdout) { Rails::Generators::StylesheetsGenerator.start [], config }
+      silence(:stdout) { Rails::Generators::StylesheetsGenerator.start [], config.merge(:destination_root => destination_root) }
     end
 
 end
