@@ -105,7 +105,7 @@ class GeneratorsTest < GeneratorsTestCase
   end
 
   def test_warning_is_shown_if_generator_cant_be_loaded
-    Rails::Generators.load_paths << File.expand_path("../fixtures/vendor/gems/gems/wrong", __FILE__)
+    Rails::Generators.load_paths << File.join(Rails.root, "vendor", "gems", "gems", "wrong")
     output = capture(:stderr){ Rails::Generators.find_by_namespace(:wrong) }
     assert_match /\[WARNING\] Could not load generator at/, output
     assert_match /Error: uninitialized constant Rails::Generator/, output
