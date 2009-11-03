@@ -1724,7 +1724,7 @@ module ActiveRecord
           if (ids_array = select_limited_ids_array(options, join_dependency)).empty?
             throw :invalid_query
           else
-            Arel::In.new(
+            Arel::Predicates::In.new(
               Arel::SqlLiteral.new("#{connection.quote_table_name table_name}.#{primary_key}"),
               ids_array
             )

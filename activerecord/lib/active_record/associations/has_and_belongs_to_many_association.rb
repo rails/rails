@@ -84,7 +84,7 @@ module ActiveRecord
           else
             relation = arel_table(@reflection.options[:join_table])
             relation.conditions(relation[@reflection.primary_key_name].eq(@owner.id).
-              and(Arel::In.new(relation[@reflection.association_foreign_key], records.map(&:id)))
+              and(Arel::Predicates::In.new(relation[@reflection.association_foreign_key], records.map(&:id)))
             ).delete
           end
         end
