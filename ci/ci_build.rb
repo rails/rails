@@ -16,13 +16,11 @@ root_dir = File.expand_path(File.dirname(__FILE__) + "/..")
 # A security hole, but there is nothing valuable on rails CI box anyway.
 build_results[:geminstaller] = system "sudo geminstaller --config=#{root_dir}/ci/geminstaller.yml --exceptions"
 
-rm_f "#{root_dir}/vendor"
-system "rm -rf #{root_dir}/*/vendor"
 cd root_dir do
   puts
   puts "[CruiseControl] Bundling RubyGems"
   puts
-  build_results[:bundle] = system 'gem bundle'
+  build_results[:bundle] = system 'rm -rf vendor && gem bundle'
 end
 
 cd "#{root_dir}/activesupport" do
