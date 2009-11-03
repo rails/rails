@@ -1,11 +1,15 @@
 module Rails
   class Application
-    extend Initializable
+    include Initializable
 
     class << self
       # Stub out App initialize
       def initialize!
         new
+      end
+
+      def new
+        @instance ||= super
       end
 
       def config
@@ -27,23 +31,36 @@ module Rails
         config.root
       end
 
-      def routes
-        ActionController::Routing::Routes
-      end
-
-      def middleware
-        config.middleware
-      end
-
       def call(env)
-        @app ||= middleware.build(routes)
-        @app.call(env)
+        new.call(env)
       end
+    end
 
-      def new
-        run_initializers
-        self
-      end
+    def initialize
+      run_initializers
+    end
+
+    def config
+      self.class.config
+    end
+
+    alias configuration config
+
+    def plugin_loader
+      self.class.plugin_loader
+    end
+
+    def middleware
+      config.middleware
+    end
+
+    def routes
+      ActionController::Routing::Routes
+    end
+
+    def call(env)
+      @app ||= middleware.build(routes)
+      @app.call(env)
     end
 
     initializer :initialize_rails do

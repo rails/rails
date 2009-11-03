@@ -18,6 +18,7 @@ module Rails
   #   plugin.about["url"] # => "http://interblah.net"
   class Plugin
     include Comparable
+    include Initializable
     
     attr_reader :directory, :name
     
@@ -99,67 +100,69 @@ module Rails
     def locale_files
       Dir[ File.join(locale_path, '*.{rb,yml}') ]
     end
-    
 
-    private
-      def load_about_information
-        about_yml_path = File.join(@directory, "about.yml")
-        parsed_yml = File.exist?(about_yml_path) ? YAML.load(File.read(about_yml_path)) : {}
-        parsed_yml || {}
-      rescue Exception
-        {}
-      end
+  private
+    def load_about_information
+      about_yml_path = File.join(@directory, "about.yml")
+      parsed_yml = File.exist?(about_yml_path) ? YAML.load(File.read(about_yml_path)) : {}
+      parsed_yml || {}
+    rescue Exception
+      {}
+    end
 
-      def report_nonexistant_or_empty_plugin!
-        raise LoadError, "Can not find the plugin named: #{name}"
-      end
+    def report_nonexistant_or_empty_plugin!
+      raise LoadError, "Can not find the plugin named: #{name}"
+    end
 
-      
-      def app_paths
-        [ File.join(directory, 'app', 'models'), File.join(directory, 'app', 'helpers'), controller_path, metal_path ]
-      end
-      
-      def lib_path
-        File.join(directory, 'lib')
-      end
+    def app_paths
+      [ File.join(directory, 'app', 'models'), File.join(directory, 'app', 'helpers'), controller_path, metal_path ]
+    end
 
-      def classic_init_path
-        File.join(directory, 'init.rb')
-      end
+    def lib_path
+      File.join(directory, 'lib')
+    end
 
-      def gem_init_path
-        File.join(directory, 'rails', 'init.rb')
-      end
+    def classic_init_path
+      File.join(directory, 'init.rb')
+    end
 
-      def init_path
-        File.file?(gem_init_path) ? gem_init_path : classic_init_path
-      end
+    def gem_init_path
+      File.join(directory, 'rails', 'init.rb')
+    end
 
+    def init_path
+      File.file?(gem_init_path) ? gem_init_path : classic_init_path
+    end
 
-      def has_app_directory?
-        File.directory?(File.join(directory, 'app'))
-      end
+    def has_app_directory?
+      File.directory?(File.join(directory, 'app'))
+    end
 
-      def has_lib_directory?
-        File.directory?(lib_path)
-      end
+    def has_lib_directory?
+      File.directory?(lib_path)
+    end
 
-      def has_init_file?
-        File.file?(init_path)
-      end
+    def has_init_file?
+      File.file?(init_path)
+    end
 
+    def evaluate_init_rb(initializer)
+      if has_init_file?
+        require 'active_support/core_ext/kernel/reporting'
+        silence_warnings do
+          # Allow plugins to reference the current configuration object
+          config = initializer.configuration
 
-      def evaluate_init_rb(initializer)
-        if has_init_file?
-          require 'active_support/core_ext/kernel/reporting'
-          silence_warnings do
-            # Allow plugins to reference the current configuration object
-            config = initializer.configuration
-            
-            eval(IO.read(init_path), binding, init_path)
-          end
+          eval(IO.read(init_path), binding, init_path)
         end
-      end               
+      end
+    end
+
+    class Vendored < Plugin
+      initializer :init_rb do |application|
+        evaluate_init_rb(application)
+      end
+    end
   end
 
   # This Plugin subclass represents a Gem plugin. Although RubyGems has already

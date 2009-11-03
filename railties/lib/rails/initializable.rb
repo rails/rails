@@ -1,93 +1,82 @@
 module Rails
   module Initializable
-    def self.included(klass)
-      klass.instance_eval do
-        extend Rails::Initializable
-        extend Rails::Initializable::ClassMethodsWhenIncluded
-        include Rails::Initializable::InstanceMethodsWhenIncluded
-      end
+    def self.included(base)
+      base.extend ClassMethods
     end
 
-    def self.extended(klass)
-      klass.extend Initializer
+    Initializer = Struct.new(:name, :before, :after, :global, :block) do
+      alias global? global
     end
 
     class Collection < Array
-      def initialize(klasses)
-        klasses.each do |klass|
-          (klass.added_initializers || []).each do |initializer|
-            index = if initializer.before
-              index_for(initializer.before)
-            elsif initializer.after
-              index_for(initializer.after) + 1
-            else
-              length
-            end
-
-            insert(index, initializer)
+      def initialize(initializers = [])
+        super()
+        initializers.each do |initializer|
+          if initializer.before
+            index = index_for(initializer.before)
+          elsif initializer.after
+            index = index_for(initializer.after) + 1
+          else
+            index = length
           end
+          insert(index || -1, initializer)
         end
       end
 
+      def +(other)
+        Collection.new(to_a + other.to_a)
+      end
+
       def index_for(name)
-        inst = find {|i| i.name == name }
-        inst && index(inst)
-      end
-
-    end
-
-    attr_reader :added_initializers
-
-    # When you include Rails::Initializable, this method will be on instances
-    # of the class included into. When you extend it, it will be on the
-    # class or module itself.
-    #
-    # The #initializers method is set up to return the right list of
-    # initializers for the context in question.
-    def run_initializers
-      return if @_initialized
-
-      initializers.each {|initializer| instance_eval(&initializer.block) }
-
-      @_initialized = true
-    end
-
-    module Initializer
-      Initializer = Struct.new(:name, :before, :after, :block, :global)
-
-      def all_initializers
-        klasses = ancestors.select {|klass| klass.is_a?(Initializable) }.reverse
-        initializers = Collection.new(klasses)
-      end
-
-      alias initializers all_initializers
-
-      def initializer(name, options = {}, &block)
-        @added_initializers ||= []
-        @added_initializers <<
-          Initializer.new(name, options[:before], options[:after], block, options[:global])
+        initializer = find { |i| i.name == name }
+        initializer && index(initializer)
       end
     end
 
-    module ClassMethodsWhenIncluded
+    def run_initializers(*args)
+      return if @ran
+      self.class.initializers_for(:instance).each do |initializer|
+        instance_exec(*args, &initializer.block)
+      end
+      @ran = true
+    end
+
+    module ClassMethods
       def initializers
-        all_initializers.select {|i| i.global == true }
+        @initializers ||= []
       end
 
-    end
+      def initializers_for(scope = :global)
+        initializers = Collection.new
+        ancestors.reverse_each do |klass|
+          next unless klass.respond_to?(:initializers)
+          initializers = initializers + klass.initializers.select { |i|
+            (scope == :global) == !!i.global?
+          }
+        end
+        initializers
+      end
 
-    module InstanceMethodsWhenIncluded
-      def initializers
-        self.class.all_initializers.reject {|i| i.global == true }
+      def initializer(name, opts = {}, &blk)
+        @initializers ||= []
+        @initializers << Initializer.new(name, opts[:before], opts[:after], opts[:global], blk)
+      end
+
+      def run_initializers(*args)
+        return if @ran
+        initializers_for(:global).each do |initializer|
+          instance_exec(*args, &initializer.block)
+        end
+        @ran = true
       end
     end
   end
 
-  extend Initializable
+  include Initializable
 
   # Check for valid Ruby version (1.8.2 or 1.8.4 or higher). This is done in an
   # external file, so we can use it from the `rails` program as well without duplication.
-  initializer :check_ruby_version do
+  initializer :check_ruby_version, :global => true do
     require 'rails/ruby_version_check'
   end
 
@@ -97,7 +86,7 @@ module Rails
   # on ActionController::Base.
   #
   # For Ruby 1.9, UTF-8 is the default internal and external encoding.
-  initializer :initialize_encoding do
+  initializer :initialize_encoding, :global => true do
     if RUBY_VERSION < '1.9'
       $KCODE='u'
     else
