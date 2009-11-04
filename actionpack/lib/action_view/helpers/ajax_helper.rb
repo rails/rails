@@ -3,6 +3,16 @@ module ActionView
     module AjaxHelper
       include UrlHelper
 
+      def remote_form_for(record_or_name_or_array, *args, &proc)
+        options = args.extract_options!
+        object_name = extract_object_name_for_form!(args, options, record_or_name_or_array)
+
+        concat(form_remote_tag(options))
+        fields_for(object_name, *(args << options), &proc)
+        concat('</form>'.html_safe!)
+      end
+      alias_method :form_remote_for, :remote_form_for
+
       def form_remote_tag(options = {}, &block)
         attributes = {}
         attributes.merge!(extract_remote_attributes!(options))
@@ -50,41 +60,35 @@ module ActionView
       end
 
       def observe_field(name, options = {})
-        if options[:url]
-          options[:url] = options[:url].is_a?(Hash) ? url_for(options[:url]) : options[:url]
-        end
+        url = options[:url]
+        options[:url] = url_for(url) if url && url.is_a?(Hash)
         
-        if options[:frequency]
-          case options[:frequency]
-            when 0
-              options.delete(:frequency)
-            else
-              options[:frequency] = options[:frequency].to_i
-          end
+        frequency = options.delete(:frequency)
+        if frequency && frequency != 0
+          options[:frequency] = frequency.to_i
         end
 
-        if options[:with]
-          if options[:with] !~ /[\{=(.]/
+        if with = options[:with]
+          if with !~ /[\{=(.]/
             options[:with] = "'#{options[:with]}=' + encodeURIComponent(value)"
           else
             options[:with] ||= 'value' unless options[:function]
           end
         end
 
-        if options[:function]
-          statements = options[:function] # || remote_function(options) # TODO: Need to implement remote function - BR
+        if function = options[:function]
+          statements = function # || remote_function(options) # TODO: Need to implement remote function - BR
           options[:function] = JSFunction.new(statements, "element", "value")
         end
-
         options[:name] = name
 
-        <<-SCRIPT
-        <script type="application/json" data-js-type="field_observer">
-        //<![CDATA[
-          #{options.to_json}
-        // ]]>
-        </script>
-        SCRIPT
+        script_decorator("field_observer", options)
+      end
+
+      def script_decorator(js_type, options)
+        attributes = [%(type="application/json"), %(data-js-type="#{js_type}")]
+        attributes += options.map{|k, v| %(data-#{k}="#{v}")}
+        "<script " + attributes.join(" ") + "></script>"
       end
 
       module Rails2Compatibility
@@ -124,7 +128,7 @@ module ActionView
           @statements, @arguments = statements, arguments
         end
 
-        def as_json(options = nil)
+        def to_s(options = nil)
           "function(#{@arguments.join(", ")}) {#{@statements}}"
         end
       end
