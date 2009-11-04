@@ -75,7 +75,7 @@ class ResourceGeneratorTest < GeneratorsTestCase
   end
 
   def test_plural_names_are_singularized
-    content = run_generator ["accounts"]
+    content = run_generator ["accounts".freeze]
     assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
     assert_file "test/unit/account_test.rb", /class AccountTest/
     assert_match /Plural version of the model detected, using singularized version. Override with --force-plural./, content

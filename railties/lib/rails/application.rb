@@ -416,7 +416,8 @@ module Rails
     # ===
     # TODO: Does this need to be an initializer here?
     initializer :initialize_generators do
-      if defined?(Rails::Generators)
+      if defined?(RAILS_GENERATORS) && RAILS_GENERATORS
+        require 'rails/generators'
         Rails::Generators.no_color! unless config.generators.colorize_logging
         Rails::Generators.aliases.deep_merge! config.generators.aliases
         Rails::Generators.options.deep_merge! config.generators.options

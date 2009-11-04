@@ -1,3 +1,4 @@
 <%= shebang %>
-require File.expand_path('../../config/application',  __FILE__)
+RAILS_GENERATORS = true
+require File.expand_path('../../config/environment',  __FILE__)
 require 'rails/commands/destroy'

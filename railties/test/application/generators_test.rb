@@ -1,4 +1,5 @@
 require "isolation/abstract_unit"
+RAILS_GENERATORS = true
 
 module ApplicationTests
   class GeneratorsTest < Test::Unit::TestCase
@@ -23,7 +24,8 @@ module ApplicationTests
       Rails::Initializer.run do |c|
         c.generators.orm            = :datamapper
         c.generators.test_framework = :rspec
-        expected = { :rails => { :orm => :datamapper, :test_framework => :rspec } }
+        c.generators.helper         = false
+        expected = { :rails => { :orm => :datamapper, :test_framework => :rspec, :helper => false } }
         assert_equal(expected, c.generators.options)
       end
     end
