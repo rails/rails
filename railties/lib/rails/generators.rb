@@ -72,6 +72,12 @@ module Rails
       }
     }
 
+    def self.configure!(config = Rails.application.config.generators) #:nodoc:
+      no_color! unless config.colorize_logging
+      aliases.deep_merge! config.aliases
+      options.deep_merge! config.options
+    end
+
     def self.aliases #:nodoc:
       @aliases ||= DEFAULT_ALIASES.dup
     end

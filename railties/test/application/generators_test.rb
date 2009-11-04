@@ -1,5 +1,4 @@
 require "isolation/abstract_unit"
-RAILS_GENERATORS = true
 
 module ApplicationTests
   class GeneratorsTest < Test::Unit::TestCase
@@ -47,6 +46,7 @@ module ApplicationTests
       end
       # Initialize the application
       Rails.initialize!
+      Rails::Generators.configure!
 
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
       assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]
@@ -59,6 +59,7 @@ module ApplicationTests
       end
       # Initialize the application
       Rails.initialize!
+      Rails::Generators.configure!
 
       assert_equal Thor::Base.shell, Thor::Shell::Basic
     end
