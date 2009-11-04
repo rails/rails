@@ -382,17 +382,17 @@ class ObserveFieldTest < AjaxTestCase
 
   test "using a url string" do
     assert_html field(:url => "/some/other/url"),
-      %w(script data-url="/some/other/url" data-name="title")
+      %w(script data-url="/some/other/url" data-observed="title")
   end
 
   test "using a url hash" do
     assert_html field(:url => {:controller => :blog, :action => :update}),
-      %w(script data-url="/url/hash" data-name="title")
+      %w(script data-url="/url/hash" data-observed="title")
   end
 
   test "using a :frequency option" do
     assert_html field(:url => { :controller => :blog }, :frequency => 5.minutes),
-      %w(script data-url="/url/hash" data-name="title" data-frequency="300")
+      %w(script data-url="/url/hash" data-observed="title" data-frequency="300")
   end
 
   test "using a :frequency option of 0" do
@@ -401,21 +401,21 @@ class ObserveFieldTest < AjaxTestCase
 
   test "observe field with common options" do
     assert_html observe_field("glass", :frequency => 5.minutes, :url => { :action => "reorder_if_empty" }),
-      %w(script data-name="glass" data-frequency="300" data-url="/url/hash")
+      %w(script data-observed="glass" data-frequency="300" data-url="/url/hash")
   end
 
   # TODO: Consider using JSON instead of strings.  Is using 'value' as a magical reference to the value of the observed field weird? (Rails2 does this) - BR
   test "using a :with option" do
     assert_html field(:with => "foo"),
-      %w(script data-name="title" data-with="'foo=' + encodeURIComponent(value)")
+      %w(script data-observed="title" data-with="'foo=' + encodeURIComponent(value)")
 
     assert_html field(:with => "'foo=' + encodeURIComponent(value)"),
-      %w(script data-name="title" data-with="'foo=' + encodeURIComponent(value)")
+      %w(script data-observed="title" data-with="'foo=' + encodeURIComponent(value)")
   end
 
   test "using json in a :with option" do
     assert_html field(:with => "{'id':value}"),
-      %w(script data-name="title" data-with="{'id':value}")
+      %w(script data-observed="title" data-with="{'id':value}")
   end
 
   test "using :function for callback" do

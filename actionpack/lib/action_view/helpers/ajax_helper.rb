@@ -55,19 +55,11 @@ module ActionView
       end
 
       def observe_field(name, options = {})
+        options[:observed] = name
+
         attributes = extract_remote_attributes!(options)
-        callback = options.delete(:function)
-        frequency = options.delete(:frequency)
-
-        attributes["data-name"] = name
+        attributes.merge!(extract_observer_attributes!(options))
         attributes["data-js-type"] = "field_observer"
-
-        if callback
-          attributes["data-observer-code"] = create_js_function(callback, "element", "value")
-        end
-        if frequency && frequency != 0
-          attributes["data-frequency"] = frequency.to_i
-        end
 
         script_decorator(attributes)
       end
@@ -144,6 +136,22 @@ module ActionView
         attributes["data-update-position"] = options.delete(:position)
 
         purge_unused_attributes!(attributes)
+      end
+
+      def extract_observer_attributes!(options)
+        attributes = {}
+        attributes["data-observed"] = options.delete(:observed)
+
+        callback = options.delete(:function)
+        frequency = options.delete(:frequency)
+        if callback
+          attributes["data-observer-code"] = create_js_function(callback, "element", "value")
+        end
+        if frequency && frequency != 0
+          attributes["data-frequency"] = frequency.to_i
+        end
+
+        attributes
       end
 
       def purge_unused_attributes!(attributes)
