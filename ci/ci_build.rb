@@ -20,7 +20,7 @@ cd root_dir do
   puts
   puts "[CruiseControl] Bundling RubyGems"
   puts
-  build_results[:bundle] = system 'rm -rf vendor && gem --debug bundle'
+  build_results[:bundle] = system 'rm -rf vendor && gem bundle --update'
 end
 
 cd "#{root_dir}/activesupport" do
