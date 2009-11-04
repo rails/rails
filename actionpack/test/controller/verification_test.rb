@@ -126,7 +126,7 @@ class VerificationTest < ActionController::TestCase
       with_routing do |set|
         set.draw do |map|
           match 'foo', :to => 'test#foo', :as => :foo
-          match 'verification_test/:action', :to => TestController
+          match 'verification_test/:action', :to => ::VerificationTest::TestController
         end
         get :guarded_one_for_named_route_test, :two => "not one"
         assert_redirected_to '/foo'

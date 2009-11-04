@@ -3,12 +3,6 @@ require 'active_support/core_ext/kernel/reporting'
 
 ActionController::Base.helpers_dir = File.dirname(__FILE__) + '/../fixtures/helpers'
 
-class TestController < ActionController::Base
-  attr_accessor :delegate_attr
-  def delegate_method() end
-  def rescue_action(e) raise end
-end
-
 module Fun
   class GamesController < ActionController::Base
     def render_hello_world
@@ -38,6 +32,12 @@ module LocalAbcHelper
 end
 
 class HelperTest < Test::Unit::TestCase
+  class TestController < ActionController::Base
+    attr_accessor :delegate_attr
+    def delegate_method() end
+    def rescue_action(e) raise end
+  end
+
   def setup
     # Increment symbol counter.
     @symbol = (@@counter ||= 'A0').succ!.dup

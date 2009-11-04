@@ -860,7 +860,7 @@ class RenderTest < ActionController::TestCase
   # :ported:
   def test_access_to_controller_name_in_view
     get :accessing_controller_name_in_template
-    assert_equal "test", @response.body # name is explicitly set to 'test' inside the controller.
+    assert_equal "test", @response.body # name is explicitly set in the controller.
   end
 
   # :ported:
