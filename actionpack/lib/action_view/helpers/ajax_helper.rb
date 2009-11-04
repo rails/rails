@@ -3,6 +3,16 @@ module ActionView
     module AjaxHelper
       include UrlHelper
 
+      def extract_remote_attributes!(options)
+        attributes = options.delete(:html) || {}
+
+        attributes.merge!(extract_update_attributes!(options))
+        attributes.merge!(extract_request_attributes!(options))
+        attributes["data-js-type"] = options.delete(:js_type) || "remote"
+
+        attributes
+      end
+
       def remote_form_for(record_or_name_or_array, *args, &proc)
         options = args.extract_options!
         object_name = extract_object_name_for_form!(args, options, record_or_name_or_array)
@@ -18,26 +28,8 @@ module ActionView
         attributes.merge!(extract_remote_attributes!(options))
         attributes.merge!(options)
 
-        url = attributes.delete(:url)
-        form_tag(attributes.delete(:action) || url_for(url), attributes, &block)
-      end
-
-      def extract_remote_attributes!(options)
-        attributes = options.delete(:html) || {}
-        
-        update = options.delete(:update)
-        if update.is_a?(Hash)
-          attributes["data-update-success"] = update[:success]
-          attributes["data-update-failure"] = update[:failure]
-        else
-          attributes["data-update-success"] = update
-        end
-
-        attributes["data-update-position"] = options.delete(:position)
-        attributes["data-method"]          = options.delete(:method)
-        attributes["data-js-type"]         = "remote"
-
-        attributes
+        url = attributes.delete("data-url")
+        form_tag(attributes.delete(:action) || url, attributes, &block)
       end
 
       def link_to_remote(name, url, options = {})
@@ -56,64 +48,37 @@ module ActionView
         tag(:input, attributes)
       end
 
-      def submit_to_remote(name, value, options = {})
-        html_options = options.delete(:html) || {}
-        html_options.merge!(:name => name, :value => value, :type => "submit")
-
-        attributes = extract_remote_attributes!(options)
-        attributes.merge!(html_options)
-
-        tag(:input, attributes)
-      end
-
       def periodically_call_remote(options = {})
-        attributes = extract_observer_attributes!(options)
-        attributes["data-js-type"] = "periodical_executer"
-
-        script_decorator(attributes)
+#         frequency = options[:frequency] || 10 # every ten seconds by default
+#         code = "new PeriodicalExecuter(function() {#{remote_function(options)}}, #{frequency})"
+#         javascript_tag(code)
       end
 
-      #TODO: Should name change to a css query? - BR
       def observe_field(name, options = {})
-        options[:observed] = name
-        attributes = extract_observer_attributes!(options)
+        attributes = extract_remote_attributes!(options)
+        callback = options.delete(:function)
+        frequency = options.delete(:frequency)
+
+        attributes["data-name"] = name
         attributes["data-js-type"] = "field_observer"
 
+        if callback
+          attributes["data-observer-code"] = create_js_function(callback, "element", "value")
+        end
+        if frequency && frequency != 0
+          attributes["data-frequency"] = frequency.to_i
+        end
+
         script_decorator(attributes)
       end
 
-      def observe_field(name, options = {})
-        url = options[:url]
-        options[:url] = url_for(url) if url && url.is_a?(Hash)
-        
-        frequency = options.delete(:frequency)
-        if frequency && frequency != 0
-          options[:frequency] = frequency.to_i
-        end
-
-        if with = options[:with]
-          if with !~ /[\{=(.]/
-            options[:with] = "'#{options[:with]}=' + encodeURIComponent(value)"
-          else
-            options[:with] ||= 'value' unless options[:function]
-          end
-        end
-
-        if function = options[:function]
-          statements = function # || remote_function(options) # TODO: Need to implement remote function - BR
-          options[:function] = JSFunction.new(statements, "element", "value")
-        end
-        options[:name] = name
-
-        script_decorator("field_observer", options)
-      end
-
-      def script_decorator(js_type, options)
-        attributes = [%(type="application/json"), %(data-js-type="#{js_type}")]
-        attributes += options.map{|k, v| %(data-#{k}="#{v}")}
+      def script_decorator(options)
+        attributes = %w(type="application/json")
+        attributes += options.map{|k, v| k + '="' + v.to_s + '"'}
         "<script " + attributes.join(" ") + "></script>"
       end
 
+      # TODO: All evaled goes here per wycats
       module Rails2Compatibility
         def set_callbacks(options, html)
           [:complete, :failure, :success, :interactive, :loaded, :loading].each do |type|
@@ -144,15 +109,50 @@ module ActionView
 
       private
 
-      # TODO: Move to javascript helpers - BR
-      class JSFunction
-        def initialize(statements, *arguments)
-          @statements, @arguments = statements, arguments
+      def extract_request_attributes!(options)
+        attributes = {}
+        attributes["data-method"] = options.delete(:method)
+
+        url = options.delete(:url)
+        attributes["data-url"] = url.is_a?(Hash) ? url_for(url) : url
+
+        #TODO: Remove all references to prototype - BR
+        if options.delete(:form)
+          attributes["data-parameters"] = 'Form.serialize(this)'
+        elsif submit = options.delete(:submit)
+          attributes["data-parameters"] = "Form.serialize('#{submit}')"
+        elsif with = options.delete(:with)
+          if with !~ /[\{=(.]/
+            attributes["data-with"] = "'#{with}=' + encodeURIComponent(value)"
+          else
+            attributes["data-with"] = with
+          end
         end
 
-        def to_s(options = nil)
-          "function(#{@arguments.join(", ")}) {#{@statements}}"
+        purge_unused_attributes!(attributes)
+      end
+
+      def extract_update_attributes!(options)
+        attributes = {}
+        update = options.delete(:update)
+        if update.is_a?(Hash)
+          attributes["data-update-success"] = update[:success]
+          attributes["data-update-failure"] = update[:failure]
+        else
+          attributes["data-update-success"] = update
         end
+        attributes["data-update-position"] = options.delete(:position)
+
+        purge_unused_attributes!(attributes)
+      end
+
+      def purge_unused_attributes!(attributes)
+        attributes.delete_if {|key, value| value.nil? }
+        attributes
+      end
+
+      def create_js_function(statements, *arguments)
+        "function(#{arguments.join(", ")}) {#{statements}}"
       end
 
     end
