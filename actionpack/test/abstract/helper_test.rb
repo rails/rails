@@ -40,7 +40,7 @@ module AbstractController
 
     class AbstractHelpersBlock < ControllerWithHelpers
       helper do
-        include HelperyTest
+        include ::AbstractController::Testing::HelperyTest
       end
     end
 

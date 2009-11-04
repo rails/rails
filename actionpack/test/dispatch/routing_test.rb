@@ -37,7 +37,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get 'admin', :to => "queenbee#index"
       end
 
-      constraints IpRestrictor do
+      constraints ::TestRoutingMapper::IpRestrictor do
         get 'admin/accounts', :to => "queenbee#accounts"
       end
 
@@ -80,7 +80,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      match 'sprockets.js', :to => SprocketsApp
+      match 'sprockets.js', :to => ::TestRoutingMapper::SprocketsApp
 
       match 'people/:id/update', :to => 'people#update', :as => :update_person
       match '/projects/:project_id/people/:id/update', :to => 'people#update', :as => :update_project_person
