@@ -49,16 +49,16 @@ module ActionView
       end
 
       def periodically_call_remote(options = {})
-#         frequency = options[:frequency] || 10 # every ten seconds by default
-#         code = "new PeriodicalExecuter(function() {#{remote_function(options)}}, #{frequency})"
-#         javascript_tag(code)
+        attributes = extract_observer_attributes!(options)
+        attributes["data-js-type"] = "periodical_executer"
+
+        script_decorator(attributes)
       end
 
+      #TODO: Should name change to a css query? - BR
       def observe_field(name, options = {})
         options[:observed] = name
-
-        attributes = extract_remote_attributes!(options)
-        attributes.merge!(extract_observer_attributes!(options))
+        attributes = extract_observer_attributes!(options)
         attributes["data-js-type"] = "field_observer"
 
         script_decorator(attributes)
@@ -139,7 +139,7 @@ module ActionView
       end
 
       def extract_observer_attributes!(options)
-        attributes = {}
+        attributes = extract_remote_attributes!(options)
         attributes["data-observed"] = options.delete(:observed)
 
         callback = options.delete(:function)
@@ -151,7 +151,7 @@ module ActionView
           attributes["data-frequency"] = frequency.to_i
         end
 
-        attributes
+        purge_unused_attributes!(attributes)
       end
 
       def purge_unused_attributes!(attributes)
