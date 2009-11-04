@@ -6,7 +6,7 @@ include FileUtils
 puts "[CruiseControl] Rails build"
 
 build_results = {}
-root_dir = File.expand_path(File.dirname(__FILE__) + "/..")
+root_dir = File.expand_path('../..', __FILE__)
 
 # Requires gem home and path to be writeable and/or overridden to be ~/.gem,
 # Will enable when RubyGems supports this properly (in a coming release)
@@ -20,7 +20,7 @@ cd root_dir do
   puts
   puts "[CruiseControl] Bundling RubyGems"
   puts
-  build_results[:bundle] = system 'rm -rf vendor && gem bundle'
+  build_results[:bundle] = system 'rm -rf vendor && gem --debug bundle'
 end
 
 cd "#{root_dir}/activesupport" do
