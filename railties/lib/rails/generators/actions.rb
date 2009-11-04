@@ -1,4 +1,5 @@
 require 'open-uri'
+require 'active_support/deprecation'
 
 module Rails
   module Generators
@@ -45,19 +46,56 @@ module Rails
       #
       #   gem "rspec", :env => :test
       #   gem "technoweenie-restful-authentication", :lib => "restful-authentication", :source => "http://gems.github.com/"
+      #   gem "rails", "3.0", :git => "git://github.com/rails/rails"
       #
-      def gem(name, options={})
-        log :gem, name
-        env = options.delete(:env)
+      def gem(*args)
+        options = args.extract_options!
+        name, version = args
 
-        gems_code = "config.gem '#{name}'"
-
-        if options.any?
-          opts = options.inject([]) {|result, h| result << [":#{h[0]} => #{h[1].inspect.gsub('"',"'")}"] }.sort.join(", ")
-          gems_code << ", #{opts}"
+        # Deal with deprecated options
+        { :env => :only, :lib => :require_as }.each do |old, new|
+          next unless options[old]
+          options[new] = options.delete(old)
+          ActiveSupport::Deprecation.warn "#{old.inspect} option in gem is deprecated, use #{new.inspect} instead"
         end
 
-        environment gems_code, :env => env
+        # Deal with deprecated source
+        if source = options.delete(:source)
+          ActiveSupport::Deprecation.warn ":source option in gem is deprecated, use add_source method instead"
+          add_source(source)
+        end
+
+        # Set the message to be shown in logs. Uses the git repo if one is given,
+        # otherwise use name (version).
+        parts, message = [ name.inspect ], name
+        if version ||= options.delete(:version)
+          parts   << version
+          message << " (#{version})"
+        end
+        message = options[:git] if options[:git]
+
+        log :gemfile, message
+
+        options.each do |option, value|
+          parts << ":#{option} => #{value.inspect}"
+        end
+
+        in_root do
+          append_file "Gemfile", "gem #{parts.join(", ")}", :verbose => false
+        end
+      end
+
+      # Add the given source to Gemfile
+      #
+      # ==== Example
+      #
+      #   source "http://gems.github.com/"
+      def add_source(source, options={})
+        log :source, source
+
+        in_root do
+          prepend_file "Gemfile", "source #{source.inspect}", :verbose => false
+        end
       end
 
       # Adds a line inside the Initializer block for config/environment.rb.
@@ -79,6 +117,7 @@ module Rails
           end
         end
       end
+      alias :application :environment
 
       # Run a command in git.
       #
@@ -222,9 +261,8 @@ module Rails
       #
       #   freeze!
       #
-      def freeze!(args = {})
-        log :vendor, "rails"
-        in_root { run("#{extify(:rake)} rails:freeze:edge", :verbose => false) }
+      def freeze!(args={})
+        ActiveSupport::Deprecation.warn "freeze! is deprecated since your rails app now comes bundled with Rails by default, please check your Gemfile"
       end
 
       # Make an entry in Rails routing file conifg/routes.rb

@@ -17,7 +17,7 @@ require 'action_dispatch'
 CURRENT_PATH = File.expand_path(Dir.pwd)
 Rails::Generators.no_color!
 
-class GeneratorsTestCase < Test::Unit::TestCase
+class GeneratorsTestCase < ActiveSupport::TestCase
   include FileUtils
 
   def destination_root
