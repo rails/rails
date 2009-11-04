@@ -423,3 +423,15 @@ class ObserveFieldTest < AjaxTestCase
       %w(script data-observer-code="function(element, value) {alert('Element changed')}")
   end
 end
+
+class PeriodicallyCallRemoteTest < AjaxTestCase
+  test "basic" do
+    assert_html periodically_call_remote(:update => "#schremser_bier", :url => { :action => "mehr_bier" }),
+      %w(script data-url="/url/hash" data-update-success="#schremser_bier")
+  end
+
+  test "periodically call remote with :frequency" do
+    assert_html periodically_call_remote(:frequency => 2, :url => "/url/string"),
+      %w(script data-url="/url/string" data-frequency="2")
+  end
+end
