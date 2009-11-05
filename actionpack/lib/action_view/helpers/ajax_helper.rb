@@ -74,6 +74,14 @@ module ActionView
         script_decorator(attributes)
       end
 
+      def observe_form(name, options = {})
+        options[:observed] = name
+        attributes = extract_observer_attributes!(options)
+        attributes["data-js-type"] = "form_observer"
+
+        script_decorator(attributes)
+      end
+
       def script_decorator(options)
         attributes = %w(type="application/json")
         attributes += options.map{|k, v| k + '="' + v.to_s + '"'}
