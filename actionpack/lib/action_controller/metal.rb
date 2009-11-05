@@ -49,7 +49,7 @@ module ActionController
     # and response object available. You might wish to control the
     # environment and response manually for performance reasons.
 
-    attr_internal :status, :headers, :content_type, :app, :response
+    attr_internal :status, :headers, :content_type, :response
 
     def initialize(*)
       @_headers = {}
@@ -69,7 +69,7 @@ module ActionController
     end
 
     # :api: private
-    def call(name, env)
+    def dispatch(name, env)
       @_env = env
       process(name)
       to_a
@@ -95,7 +95,7 @@ module ActionController
       end
 
       def call(env)
-        controller = @controller.new.call(@action, env)
+        @controller.new.dispatch(@action, env)
       end
     end
 
