@@ -94,7 +94,11 @@ module InitializableTests
       include Rails::Initializable
 
       initializer :startup, :before => :last do
-        $arr << 2
+        $arr << two
+      end
+
+      def two
+        2
       end
     end
 
@@ -109,7 +113,7 @@ module InitializableTests
     end
 
     def self.initializers
-      super + MoreInitializers.initializers
+      super + MoreInitializers.new.initializers
     end
   end
 

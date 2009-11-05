@@ -4,8 +4,35 @@ module Rails
       base.extend ClassMethods
     end
 
-    Initializer = Struct.new(:name, :before, :after, :global, :block) do
+    class Initializer
+      attr_reader :name, :before, :after, :global, :block
+
+      def initialize(name, context, options, &block)
+        @name, @context, @options, @block = name, context, options, block
+      end
+
+      def before
+        @options[:before]
+      end
+
+      def after
+        @options[:after]
+      end
+
+      def global
+        @options[:global]
+      end
+
       alias global? global
+
+      def run(*args)
+        @context.instance_exec(*args, &block)
+      end
+
+      def bind(context)
+        return self if @context
+        Initializer.new(@name, context, @options, &block)
+      end
     end
 
     class Collection < Array
@@ -35,10 +62,17 @@ module Rails
 
     def run_initializers(*args)
       return if @ran
-      self.class.initializers_for(:instance).each do |initializer|
-        instance_exec(*args, &initializer.block)
+      initializers.each do |initializer|
+        initializer.run(*args)
       end
       @ran = true
+    end
+
+    def initializers
+      @initializers ||= begin
+        initializers = self.class.initializers_for(:instance)
+        Collection.new(initializers.map { |i| i.bind(self) })
+      end
     end
 
     module ClassMethods
@@ -59,7 +93,7 @@ module Rails
 
       def initializer(name, opts = {}, &blk)
         @initializers ||= []
-        @initializers << Initializer.new(name, opts[:before], opts[:after], opts[:global], blk)
+        @initializers << Initializer.new(name, nil, opts, &blk)
       end
 
       def run_initializers(*args)
