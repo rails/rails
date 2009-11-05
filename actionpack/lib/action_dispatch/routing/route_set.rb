@@ -20,7 +20,12 @@ module ActionDispatch
           params = env[PARAMETERS_KEY]
           merge_default_action!(params)
           split_glob_param!(params) if @glob_param
-          params.each { |key, value| params[key] = URI.unescape(value) if value.is_a?(String) }
+          params.each do |key, value|
+            if value.is_a?(String)
+              value = value.dup.force_encoding(Encoding::BINARY) if value.respond_to?(:force_encoding)
+              params[key] = URI.unescape(value)
+            end
+          end
 
           if env['action_controller.recognize']
             [200, {}, params]
