@@ -332,7 +332,7 @@ end
 
 class ButtonToRemoteTest < AjaxTestCase
   def button(options, html = {})
-    button_to_remote("Remote outpost", options, html)
+    button_to_remote("RemoteOutpost", options, html)
   end
 
   def url_for(*)
@@ -352,6 +352,16 @@ class ButtonToRemoteTest < AjaxTestCase
     assert_callbacks_work do |callback|
       button(callback => "undoRequestCompleted(request)")
     end
+  end
+end
+
+class SubmitToRemoteTest < AjaxTestCase
+  test "basic" do
+    expected = %(<input class="fine" type="submit" name="foo" value="bar" data-url="/url/hash" data-js-type="remote" data-update-success=".klass" />)
+    options = { :url => {:action => "whatnot"}, :update => ".klass", :html => { :class => "fine" } }
+
+    assert_dom_equal expected,
+      submit_to_remote("foo", "bar", options)
   end
 end
 

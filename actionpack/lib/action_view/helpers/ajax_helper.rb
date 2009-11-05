@@ -48,6 +48,16 @@ module ActionView
         tag(:input, attributes)
       end
 
+      def submit_to_remote(name, value, options = {})
+        html_options = options.delete(:html) || {}
+        html_options.merge!(:name => name, :value => value, :type => "submit")
+
+        attributes = extract_remote_attributes!(options)
+        attributes.merge!(html_options)
+
+        tag(:input, attributes)
+      end
+
       def periodically_call_remote(options = {})
         attributes = extract_observer_attributes!(options)
         attributes["data-js-type"] = "periodical_executer"
