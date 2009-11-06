@@ -211,9 +211,8 @@ module Rails
       #
       def self.inherited(base) #:nodoc:
         super
-        base.source_root # Cache source root
 
-        if Rails.root && base.name !~ /Base$/
+        if base.name && base.name !~ /Base$/ && defined?(Rails.root) && Rails.root
           path = File.expand_path(File.join(Rails.root, 'lib', 'templates'))
           if base.name.include?('::')
             base.source_paths << File.join(path, base.base_name, base.generator_name)
@@ -273,17 +272,21 @@ module Rails
         # Sets the base_name taking into account the current class namespace.
         #
         def self.base_name
-          @base_name ||= self.name.split('::').first.underscore
+          if name
+            @base_name ||= name.split('::').first.underscore
+          end
         end
 
         # Removes the namespaces and get the generator name. For example,
         # Rails::Generators::MetalGenerator will return "metal" as generator name.
         #
         def self.generator_name
-          @generator_name ||= begin
-            klass_name = self.name.split('::').last
-            klass_name.sub!(/Generator$/, '')
-            klass_name.underscore
+          if name
+            @generator_name ||= begin
+              klass_name = name.to_s.split('::').last
+              klass_name.sub!(/Generator$/, '')
+              klass_name.underscore
+            end
           end
         end
 
