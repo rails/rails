@@ -85,7 +85,7 @@ class MetalTest < Test::Unit::TestCase
   private
   
   def app
-    lambda{[402,{},["End of the Line"]]}
+    lambda{|env|[402,{},["End of the Line"]]}
   end
 
   def use_appdir(root)
