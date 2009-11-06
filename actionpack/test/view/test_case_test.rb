@@ -37,6 +37,11 @@ module ActionView
         assert_equal 'Eloy', render('developers/developer', :developer => stub(:name => 'Eloy'))
       end
 
+      test "can render a layout with block" do
+        assert_equal "Before (ChrisCruft)\n!\nAfter",
+                      render(:layout => "test/layout_for_partial", :locals => {:name => "ChrisCruft"}) {"!"}
+      end
+
       helper AnotherTestHelper
       test "additional helper classes can be specified as in a controller" do
         assert test_case.ancestors.include?(AnotherTestHelper)
