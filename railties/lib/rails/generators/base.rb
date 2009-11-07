@@ -212,6 +212,10 @@ module Rails
       def self.inherited(base) #:nodoc:
         super
 
+        # Cache source root, we need to do this, since __FILE__ is a relative value
+        # and can point to wrong directions when inside an specified directory.
+        base.source_root
+
         if base.name && base.name !~ /Base$/ && defined?(Rails.root) && Rails.root
           path = File.expand_path(File.join(Rails.root, 'lib', 'templates'))
           if base.name.include?('::')

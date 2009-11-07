@@ -55,6 +55,7 @@ class Thor
       def revoke!
         say_status :remove, :red
         ::FileUtils.rm_rf(destination) if !pretend? && exists?
+        given_destination
       end
 
       protected

@@ -60,6 +60,7 @@ class Thor
           FileUtils.mkdir_p(File.dirname(destination))
           File.open(destination, 'w'){ |f| f.write render }
         end
+        given_destination
       end
 
       protected
