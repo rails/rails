@@ -23,10 +23,6 @@ module Rails
         @config = config
       end
 
-      def plugin_loader
-        @plugin_loader ||= config.plugin_loader.new(self)
-      end
-
       def root
         config.root
       end
@@ -37,7 +33,7 @@ module Rails
     end
 
     def initialize
-      run_initializers
+      run_initializers(self)
     end
 
     def config
@@ -46,16 +42,24 @@ module Rails
 
     alias configuration config
 
-    def plugin_loader
-      self.class.plugin_loader
-    end
-
     def middleware
       config.middleware
     end
 
     def routes
       ActionController::Routing::Routes
+    end
+
+    def initializers
+      initializers = super
+      plugins.each { |p| initializers += p.initializers }
+      initializers
+    end
+
+    def plugins
+      @plugins ||= begin
+        Plugin::Vendored.all(config.plugins || [:all], config.paths.vendor.plugins)
+      end
     end
 
     def call(env)
@@ -109,13 +113,6 @@ module Rails
 
       # Freeze the arrays so future modifications will fail rather than do nothing mysteriously
       config.load_once_paths.freeze
-    end
-
-    # Adds all load paths from plugins to the global set of load paths, so that
-    # code from plugins can be required (explicitly or automatically via ActiveSupport::Dependencies).
-    initializer :add_plugin_load_paths do
-      require 'active_support/dependencies'
-      plugin_loader.add_plugin_load_paths
     end
 
     # Create tmp directories
@@ -321,32 +318,11 @@ module Rails
       # TODO: Make Rails and metal work without ActionController
       if config.frameworks.include?(:action_controller)
         Rails::Rack::Metal.requested_metals = config.metals
-        Rails::Rack::Metal.metal_paths += plugin_loader.engine_metal_paths
 
         config.middleware.insert_before(
           :"ActionDispatch::ParamsParser",
           Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
       end
-    end
-
-    # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
-    # defaults to <tt>vendor/plugins</tt> but may also be set to a list of
-    # paths, such as
-    #   config.plugin_paths = ["#{config.root}/lib/plugins", "#{config.root}/vendor/plugins"]
-    #
-    # In the default implementation, as each plugin discovered in <tt>plugin_paths</tt> is initialized:
-    # * its +lib+ directory, if present, is added to the load path (immediately after the applications lib directory)
-    # * <tt>init.rb</tt> is evaluated, if present
-    #
-    # After all plugins are loaded, duplicates are removed from the load path.
-    # If an array of plugin names is specified in config.plugins, only those plugins will be loaded
-    # and they plugins will be loaded in that order. Otherwise, plugins are loaded in alphabetical
-    # order.
-    #
-    # if config.plugins ends contains :all then the named plugins will be loaded in the given order and all other
-    # plugins will be loaded in alphabetical order
-    initializer :load_plugins do
-      plugin_loader.load_plugins
     end
 
     # # bail out if gems are missing - note that check_gem_dependencies will have

@@ -1,17 +1,13 @@
-require 'rails/plugin/loader'
-require 'rails/plugin/locator'
 require 'active_support/ordered_options'
 
 module Rails
   class Configuration
-    attr_accessor :cache_classes, :load_paths,
-                  :load_once_paths, :after_initialize_blocks,
-                  :frameworks, :framework_root_path, :root, :plugin_paths, :plugins,
-                  :plugin_loader, :plugin_locators, :gems, :loaded_plugins, :reload_plugins,
+    attr_accessor :cache_classes, :load_paths, :load_once_paths, :after_initialize_blocks,
+                  :frameworks, :framework_root_path, :root, :gems, :plugins,
                   :i18n, :gems, :whiny_nils, :consider_all_requests_local,
                   :action_controller, :active_record, :action_view, :active_support,
                   :action_mailer, :active_resource,
-                  :log_path, :log_level, :logger, :preload_frameworks,
+                  :reload_plugins, :log_path, :log_level, :logger, :preload_frameworks,
                   :database_configuration_file, :cache_store, :time_zone,
                   :view_path, :metals, :controller_paths, :routes_configuration_file,
                   :eager_load_paths, :dependency_loading, :paths, :serve_static_assets
@@ -19,7 +15,6 @@ module Rails
     def initialize
       @load_once_paths              = []
       @after_initialize_blocks      = []
-      @loaded_plugins               = []
       @dependency_loading           = true
       @serve_static_assets          = true
 
@@ -199,24 +194,6 @@ module Rails
       @frameworks ||= [ :active_record, :action_controller, :action_view, :action_mailer, :active_resource ]
     end
 
-    def plugin_paths
-      @plugin_paths ||= ["#{root}/vendor/plugins"]
-    end
-
-    def plugin_loader
-      @plugin_loader ||= begin
-        Plugin::Loader
-      end
-    end
-
-    def plugin_locators
-      @plugin_locators ||= begin
-        locators = []
-        locators << Plugin::GemLocator if defined? Gem
-        locators << Plugin::FileSystemLocator
-      end
-    end
-
     def i18n
       @i18n ||= begin
         i18n = ActiveSupport::OrderedOptions.new
@@ -233,10 +210,6 @@ module Rails
 
     def environment_path
       "#{root}/config/environments/#{RAILS_ENV}.rb"
-    end
-
-    def reload_plugins?
-      @reload_plugins
     end
 
     # Holds generators configuration:
