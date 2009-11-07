@@ -123,8 +123,10 @@ module Rails::Generators
     end
 
     def create_script_files
-      directory "script"
-      chmod "script", 0755, :verbose => false
+      directory "script" do |file|
+        prepend_file file, "#{shebang}\n", :verbose => false
+        chmod file, 0755, :verbose => false
+      end
     end
 
     def create_test_files

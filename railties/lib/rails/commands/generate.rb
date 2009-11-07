@@ -1,3 +1,6 @@
+require 'rails/generators'
+Rails::Generators.configure!
+
 if ARGV.size == 0
   Rails::Generators.help
   exit
