@@ -6,6 +6,7 @@ require 'active_support/memoizable'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/object/tap'
+require 'active_support/core_ext/string/access'
 
 module ActionDispatch
   class Request < Rack::Request
