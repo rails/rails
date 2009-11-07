@@ -64,6 +64,8 @@ class Firm < Company
   has_many :readonly_clients, :class_name => 'Client', :readonly => true
   has_many :clients_using_primary_key, :class_name => 'Client',
            :primary_key => 'name', :foreign_key => 'firm_name'
+  has_many :clients_using_primary_key_with_delete_all, :class_name => 'Client',
+           :primary_key => 'name', :foreign_key => 'firm_name', :dependent => :delete_all
   has_many :clients_grouped_by_firm_id, :class_name => "Client", :group => "firm_id", :select => "firm_id"
   has_many :clients_grouped_by_name, :class_name => "Client", :group => "name", :select => "name"
 

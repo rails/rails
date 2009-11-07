@@ -651,6 +651,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Client.find_all_by_client_of(firm.id).size
   end
 
+  def test_delete_all_association_with_primary_key_deletes_correct_records
+    firm = Firm.find(:first)
+    # break the vanilla firm_id foreign key
+    assert_equal 2, firm.clients.count
+    firm.clients.first.update_attribute(:firm_id, nil)
+    assert_equal 1, firm.clients(true).count
+    assert_equal 1, firm.clients_using_primary_key_with_delete_all.count
+    old_record = firm.clients_using_primary_key_with_delete_all.first
+    firm = Firm.find(:first)
+    firm.destroy
+    assert Client.find_by_id(old_record.id).nil?
+  end
 
   def test_creation_respects_hash_condition
     ms_client = companies(:first_firm).clients_like_ms_with_hash_conditions.build
