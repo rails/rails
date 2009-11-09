@@ -47,7 +47,8 @@ module ActionController # :nodoc:
       @block = nil
 
       @body = "",
-      @session, @assigns = [], []
+      @session = []
+      @assigns = []
     end
 
     def location; headers['Location'] end
