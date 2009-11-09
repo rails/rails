@@ -465,8 +465,8 @@ module ActionMailer #:nodoc:
       create_parts
 
       # Set the subject if not set yet
-      @subject ||= I18n.t(method_name, :scope => [:actionmailer, :subjects, mailer_name],
-                                       :default => method_name.humanize)
+      @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
+                                    :default => method_name.humanize)
 
       # build the mail object itself
       @mail = create_mail
