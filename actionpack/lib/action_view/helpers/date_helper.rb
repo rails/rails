@@ -935,7 +935,7 @@ module ActionView
           options[:field_name]           = @method_name
           options[:include_position]     = true
           options[:prefix]             ||= @object_name
-          options[:index]                = @auto_index if @auto_index && !options.has_key?(:index)
+          options[:index]                = @auto_index if defined?(@auto_index) && @auto_index && !options.has_key?(:index)
           options[:datetime_separator] ||= ' &mdash; '
           options[:time_separator]     ||= ' : '
 
