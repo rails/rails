@@ -206,17 +206,6 @@ class StringInflectionsTest < Test::Unit::TestCase
     # And changes the original string:
     assert_equal original, expected
   end
-
-  if RUBY_VERSION < '1.9'
-    def test_each_char_with_utf8_string_when_kcode_is_utf8
-      with_kcode('UTF8') do
-        '€2.99'.each_char do |char|
-          assert_not_equal 1, char.length
-          break
-        end
-      end
-    end
-  end
 end
 
 class StringBehaviourTest < Test::Unit::TestCase
