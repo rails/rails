@@ -9,7 +9,6 @@
 # Process     Process.daemon
 # REXML       security fix
 # String      ord
-# Symbol      to_proc
 # Time        to_date, to_time, to_datetime
 require 'active_support'
 require 'active_support/core_ext/date/calculations'
@@ -20,5 +19,4 @@ require 'active_support/core_ext/object/tap'
 require 'active_support/core_ext/process/daemon'
 require 'active_support/core_ext/string/conversions'
 require 'active_support/core_ext/rexml'
-require 'active_support/core_ext/symbol/to_proc'
 require 'active_support/core_ext/time/conversions'

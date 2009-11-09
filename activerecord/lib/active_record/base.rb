@@ -12,7 +12,6 @@ require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
-require 'active_support/core_ext/symbol'
 require 'active_support/core_ext/object/metaclass'
 
 module ActiveRecord #:nodoc:
