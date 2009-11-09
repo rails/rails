@@ -1,7 +1,7 @@
 clear_sources
 source 'http://gemcutter.org'
 
-gem "rails", "3.0.pre", :path => "railties"
+gem "rails", "3.0.pre", :vendored_at => "railties"
 %w(
   activesupport
   activemodel
@@ -10,9 +10,8 @@ gem "rails", "3.0.pre", :path => "railties"
   activerecord
   activeresource
 ).each do |lib|
-  gem lib, '3.0.pre', :path => lib
+  gem lib, '3.0.pre', :vendored_at => lib
 end
-gem "i18n",          "0.2.0"
 gem "rack",          "1.0.1"
 gem "rack-mount",    :git => "git://github.com/rails/rack-mount.git"
 gem "rack-test",     "~> 0.5.0"
