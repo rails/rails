@@ -5,7 +5,7 @@
   You may redistribute it and/or modify it under the same license terms as Ruby.
 =end
 
-if RUBY_VERSION < '1.9'
+if RUBY_VERSION < '1.9' && !"".respond_to?(:interpolate_without_ruby_19_syntax)
   require 'active_support/core_ext/string/bytesize'
 
   # KeyError is raised by String#% when the string contains a named placeholder

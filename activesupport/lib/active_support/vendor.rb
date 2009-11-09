@@ -4,7 +4,7 @@ def ActiveSupport.requirable?(file)
   $LOAD_PATH.any? { |p| Dir.glob("#{p}/#{file}.*").any? }
 end
 
-[%w(builder 2.1.2), %w(i18n 0.1.3), %w(memcache-client 1.7.5), %w(tzinfo 0.3.15)].each do |lib, version|
+[%w(builder 2.1.2), %w(memcache-client 1.7.5), %w(tzinfo 0.3.15)].each do |lib, version|
   # If the lib is not already requirable
   unless ActiveSupport.requirable? lib
     # Try to activate a gem ~> satisfying the requested version first.
