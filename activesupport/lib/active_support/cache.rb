@@ -1,4 +1,5 @@
 require 'benchmark'
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/benchmark'
 require 'active_support/core_ext/exception'
 require 'active_support/core_ext/class/attribute_accessors'
@@ -43,8 +44,7 @@ module ActiveSupport
     #   ActiveSupport::Cache.lookup_store(MyOwnCacheStore.new)
     #   # => returns MyOwnCacheStore.new
     def self.lookup_store(*store_option)
-      store = store_option.shift
-      parameters = store_option
+      store, *parameters = *Array.wrap(store_option).flatten
 
       case store
       when Symbol
