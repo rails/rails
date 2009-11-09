@@ -105,6 +105,11 @@ module ActionController
   class TestCase < ActiveSupport::TestCase
     include TestProcess
 
+    def initialize(*args)
+      super
+      @controller = nil
+    end
+
     module Assertions
       %w(response selector tag dom routing model).each do |kind|
         include ActionController::Assertions.const_get("#{kind.camelize}Assertions")
@@ -195,7 +200,7 @@ module ActionController
         @controller.send(:initialize_current_url)
       end
     end
-    
+
     # Cause the action to be rescued according to the regular rules for rescue_action when the visitor is not local
     def rescue_action_in_public!
       @request.remote_addr = '208.77.188.166' # example.com
