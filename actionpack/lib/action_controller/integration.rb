@@ -479,6 +479,11 @@ EOF
     end
 
     module Runner
+      def initialize(*args)
+        super
+        @integration_session = nil
+      end
+
       # Reset the current session. This is useful for testing multiple sessions
       # in a single test case.
       def reset!
