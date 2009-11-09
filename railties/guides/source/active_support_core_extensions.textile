@@ -94,26 +94,6 @@ def html_options_for_form(url_for_options, options, *parameters_for_url)
 end
 </ruby>
 
-See also "+Object#tap+":#tap.
-
-h4. +tap+
-
-+Object#tap+ exists in Ruby 1.8.7 and 1.9, and it is defined by Active Support for previous versions. This method yields its receiver to a block and returns it.
-
-For example, the following class method from +ActionDispatch::TestResponse+ creates, initializes, and returns a new test response using +tap+:
-
-<ruby>
-def self.from_response(response)
-  new.tap do |resp|
-    resp.status  = response.status
-    resp.headers = response.headers
-    resp.body    = response.body
-  end
-end
-</ruby>
-
-See also "+Object#returning+":#returning.
-
 h4. +try+
 
 Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first.
