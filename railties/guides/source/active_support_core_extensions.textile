@@ -637,26 +637,6 @@ C                   # => NameError: uninitialized constant C
 
 See also +Object#remove_subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
 
-h3. Extensions to +Symbol+
-
-h4. +to_proc+
-
-The method +to_proc+ turns a symbol into a Proc object so that for example
-
-<ruby>
-emails = users.map {|u| u.email}
-</ruby>
-
-can be written as
-
-<ruby>
-emails = users.map(&:email)
-</ruby>
-
-TIP: If the method that receives the Proc yields more than one value to it the rest are considered to be arguments of the method call.
-
-Symbols from Ruby 1.8.7 on respond to +to_proc+, and Active Support defines it for previous versions.
-
 h3. Extensions to +String+
 
 h4. +squish+
