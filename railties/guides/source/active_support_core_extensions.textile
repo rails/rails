@@ -297,32 +297,6 @@ h4. Instance Variables
 
 Active Support provides several methods to ease access to instance variables.
 
-h5. +instance_variable_defined?+
-
-The method +instance_variable_defined?+ exists in Ruby 1.8.6 and later, and it is defined for previous versions anyway:
-
-<ruby>
-class C
-  def initialize
-    @a = 1
-  end
-
-  def m
-    @b = 2
-  end
-end
-
-c = C.new
-
-c.instance_variable_defined?("@a") # => true
-c.instance_variable_defined?(:@a)  # => true
-c.instance_variable_defined?("a")  # => NameError: `a' is not allowed as an instance variable name
-
-c.instance_variable_defined?("@b") # => false
-c.m
-c.instance_variable_defined?("@b") # => true
-</ruby>
-
 h5. +instance_variable_names+
 
 Ruby 1.8 and 1.9 have a method called +instance_variables+ that returns the names of the defined instance variables. But they behave differently, in 1.8 it returns strings whereas in 1.9 it returns symbols. Active Support defines +instance_variable_names+ as a portable way to obtain them as strings:
