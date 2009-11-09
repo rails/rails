@@ -274,8 +274,8 @@ module ActiveResource
           @site = nil
         else
           @site = create_site_uri_from(site)
-          @user = URI.decode(@site.user) if @site.user
-          @password = URI.decode(@site.password) if @site.password
+          @user = uri_parser.unescape(@site.user) if @site.user
+          @password = uri_parser.unescape(@site.password) if @site.password
         end
       end
 
@@ -737,12 +737,12 @@ module ActiveResource
 
         # Accepts a URI and creates the site URI from that.
         def create_site_uri_from(site)
-          site.is_a?(URI) ? site.dup : URI.parse(site)
+          site.is_a?(URI) ? site.dup : uri_parser.parse(site)
         end
 
         # Accepts a URI and creates the proxy URI from that.
         def create_proxy_uri_from(proxy)
-          proxy.is_a?(URI) ? proxy.dup : URI.parse(proxy)
+          proxy.is_a?(URI) ? proxy.dup : uri_parser.parse(proxy)
         end
 
         # contains a set of the current prefix parameters.
@@ -766,6 +766,10 @@ module ActiveResource
           end
 
           [ prefix_options, query_options ]
+        end
+
+        def uri_parser
+          @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
         end
     end
 
