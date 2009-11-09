@@ -679,10 +679,6 @@ Symbols from Ruby 1.8.7 on respond to +to_proc+, and Active Support defines it f
 
 h3. Extensions to +String+
 
-h4. +bytesize+
-
-Ruby 1.9 introduces +String#bytesize+ to obtain the length of a string in bytes. Ruby 1.8.7 defines this method as an alias for +String#size+ for forward compatibility, and Active Support does so for previous versions.
-
 h4. +squish+
 
 The method +String#squish+ strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each:
