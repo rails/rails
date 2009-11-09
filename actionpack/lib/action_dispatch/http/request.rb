@@ -167,7 +167,7 @@ module ActionDispatch
 
       @env["action_dispatch.request.formats"] ||=
         if parameters[:format]
-          [Mime[parameters[:format]]]
+          Array.wrap(Mime[parameters[:format]])
         elsif xhr? || (accept && !accept.include?(?,))
           accepts
         else

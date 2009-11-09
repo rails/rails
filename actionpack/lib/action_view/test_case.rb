@@ -120,6 +120,7 @@ module ActionView
       def _view
         view = ActionView::Base.new(ActionController::Base.view_paths, _assigns, @controller)
         view.class.send :include, _helpers
+        view.output_buffer = self.output_buffer
         view
       end
 
