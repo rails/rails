@@ -958,16 +958,6 @@ If an optional block is given +many?+ only takes into account those elements tha
 @see_more = videos.many? {|video| video.category == params[:category]}
 </ruby>
 
-h4. +none?+
-
-The method +none?+ is the negation of +any?+. It yields elements to a block and returns true if none of them matches:
-
-<ruby>
-success = responses.none? {|r| r.status / 100 == 5}
-</ruby>
-
-Ruby 1.8.7 and later already have +none?+, Active Support defines it for previous versions.
-
 h3. Extensions to +Array+
 
 h4. Accessing
