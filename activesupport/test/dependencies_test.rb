@@ -3,7 +3,6 @@ require 'pp'
 require 'active_support/dependencies'
 require 'active_support/core_ext/module/loading'
 require 'active_support/core_ext/kernel/reporting'
-require 'active_support/core_ext/symbol/to_proc'
 
 module ModuleWithMissing
   mattr_accessor :missing_count
