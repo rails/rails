@@ -1152,15 +1152,16 @@ module ActiveResource
     def respond_to?(method, include_priv = false)
       method_name = method.to_s
       if attributes.nil?
-        return super
+        super
       elsif attributes.has_key?(method_name)
-        return true
-      elsif ['?','='].include?(method_name.last) && attributes.has_key?(method_name.first(-1))
-        return true
+        true
+      elsif method_name =~ /(?:=|\?)$/ && attributes.include?($`)
+        true
+      else
+        # super must be called at the end of the method, because the inherited respond_to?
+        # would return true for generated readers, even if the attribute wasn't present
+        super
       end
-      # super must be called at the end of the method, because the inherited respond_to?
-      # would return true for generated readers, even if the attribute wasn't present
-      super
     end
 
     protected
@@ -1249,13 +1250,15 @@ module ActiveResource
       def method_missing(method_symbol, *arguments) #:nodoc:
         method_name = method_symbol.to_s
 
-        case method_name.last
+        if method_name =~ /(=|\?)$/
+          case $1
           when "="
-            attributes[method_name.first(-1)] = arguments.first
+            attributes[$`] = arguments.first
           when "?"
-            attributes[method_name.first(-1)]
-          else
-            attributes.has_key?(method_name) ? attributes[method_name] : super
+            attributes[$`]
+          end
+        else
+          attributes.include?(method_name) ? attributes[method_name] : super
         end
       end
   end
