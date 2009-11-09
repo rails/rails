@@ -16,7 +16,7 @@ gems:
 - name: pg
   version: >= 0.8.0
 - name: rack
-  version: '~> 1.0.0'
+  version: '~> 1.0.1'
 - name: rake
   version: >= 0.8.1
 - name: sqlite-ruby
