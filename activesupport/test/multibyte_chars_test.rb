@@ -229,9 +229,9 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   end
 
   def test_include_raises_when_nil_is_passed
-    assert_raise(RUBY_VERSION >= '1.9.2' ? NoMethodError : TypeError) do
-      @chars.include?(nil)
-    end
+    @chars.include?(nil)
+    flunk "Expected chars.include?(nil) to raise TypeError or NoMethodError"
+  rescue Exception => e
   end
 
   def test_index_should_return_character_offset
