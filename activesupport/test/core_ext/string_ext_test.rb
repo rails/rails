@@ -185,17 +185,9 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert s.starts_with?('hel')
     assert !s.starts_with?('el')
 
-    assert s.start_with?('h')
-    assert s.start_with?('hel')
-    assert !s.start_with?('el')
-
     assert s.ends_with?('o')
     assert s.ends_with?('lo')
     assert !s.ends_with?('el')
-
-    assert s.end_with?('o')
-    assert s.end_with?('lo')
-    assert !s.end_with?('el')
   end
 
   def test_string_squish
