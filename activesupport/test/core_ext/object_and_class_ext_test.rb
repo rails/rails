@@ -182,13 +182,6 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
     assert_equal %w(@bar @baz), @source.instance_variable_names.sort
   end
 
-  def test_instance_variable_defined
-    assert @source.instance_variable_defined?('@bar')
-    assert @source.instance_variable_defined?(:@bar)
-    assert !@source.instance_variable_defined?(:@foo)
-    assert !@source.instance_variable_defined?('@foo')
-  end
-
   def test_copy_instance_variables_from_without_explicit_excludes
     assert_equal [], @dest.instance_variables
     @dest.copy_instance_variables_from(@source)
