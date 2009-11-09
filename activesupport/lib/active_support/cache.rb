@@ -43,7 +43,8 @@ module ActiveSupport
     #   ActiveSupport::Cache.lookup_store(MyOwnCacheStore.new)
     #   # => returns MyOwnCacheStore.new
     def self.lookup_store(*store_option)
-      store, *parameters = *([ store_option ].flatten)
+      store = store_option.shift
+      parameters = store_option
 
       case store
       when Symbol

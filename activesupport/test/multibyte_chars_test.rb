@@ -228,8 +228,8 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert !@chars.include?('a')
   end
 
-  def test_include_raises_type_error_when_nil_is_passed
-    assert_raise(TypeError) do
+  def test_include_raises_when_nil_is_passed
+    assert_raise(RUBY_VERSION >= '1.9.2' ? NoMethodError : TypeError) do
       @chars.include?(nil)
     end
   end
