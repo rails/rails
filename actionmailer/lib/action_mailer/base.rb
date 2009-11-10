@@ -452,6 +452,8 @@ module ActionMailer #:nodoc:
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
     def initialize(method_name=nil, *parameters) #:nodoc:
+      @_response_body = nil
+      super()
       create!(method_name, *parameters) if method_name
     end
 
