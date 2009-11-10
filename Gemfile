@@ -20,7 +20,7 @@ gem "rack-test", ">= 0.5.0"
 gem "erubis", ">= 2.6.5"
 gem "RedCloth", ">= 4.2.2"
 
-only :ci do
+if ENV['CI']
   gem "fcgi", ">= 0.8.7" if RUBY_VERSION <= '1.9.0'
   gem "nokogiri", ">= 1.4.0"
   gem "memcache-client", ">= 1.7.6"
