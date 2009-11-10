@@ -7,7 +7,9 @@ def root_dir
 end
 
 def rake(*tasks)
-  tasks.map { |task| system "#{root_dir}/bin/rake", task }.join("\n")
+  result = nil
+  tasks.each { |task| result = system("#{root_dir}/bin/rake", task) }
+  result
 end
 
 puts "[CruiseControl] Rails build"
