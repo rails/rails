@@ -9,7 +9,7 @@ gems:
 - name: memcache-client
   version: >= 1.5.0
 - name: mocha
-  version: >= 0.9.7
+  version: >= 0.9.8
 - name: mysql
   version: >= 2.8.1
 - name: nokogiri
@@ -17,7 +17,7 @@ gems:
 - name: pg
   version: >= 0.8.0
 - name: rack
-  version: '~> 1.0.0'
+  version: '~> 1.0.1'
 - name: rack-test
   version: >= 0.5.0
 - name: rake
