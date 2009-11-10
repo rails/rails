@@ -22,21 +22,18 @@ module ActiveRecord
       self.base      = base
       self.attribute = attribute
       self.type      = type || :invalid
+      self.options   = options
       self.message   = options.delete(:message) || self.type
-      self.options   = {
-        :scope => [:activerecord, :errors],
-        :model => @base.class.human_name,
-        :attribute => @base.class.human_attribute_name(attribute.to_s),
-        :value => value
-      }.merge!(options)
     end
 
     def message
-      generate_message(@message, options.dup)
+      # When type is a string, it means that we do not have to do a lookup, because
+      # the user already sent the "final" message.
+      type.is_a?(String) ? type : generate_message(default_options)
     end
 
     def full_message
-      attribute.to_s == 'base' ? message : generate_full_message(message, options.dup)
+      attribute.to_s == 'base' ? message : generate_full_message(default_options)
     end
 
     alias :to_s :message
@@ -65,16 +62,16 @@ module ActiveRecord
       # <li><tt>activerecord.errors.messages.blank</tt></li>
       # <li>any default you provided through the +options+ hash (in the activerecord.errors scope)</li>
       # </ol>
-      def generate_message(message, options = {})
+      def generate_message(options = {})
         keys = @base.class.self_and_descendants_from_active_record.map do |klass|
-          [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}",
-            :"models.#{klass.name.underscore}.#{message}" ]
+          [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{@message}",
+            :"models.#{klass.name.underscore}.#{@message}" ]
         end.flatten
 
         keys << options.delete(:default)
-        keys << :"messages.#{message}"
-        keys << message if message.is_a?(String)
-        keys << @type unless @type == message
+        keys << :"messages.#{@message}"
+        keys << @message if @message.is_a?(String)
+        keys << @type unless @type == @message
         keys.compact!
 
         options.merge!(:default => keys)
@@ -108,7 +105,7 @@ module ActiveRecord
       #         full_messages:
       #           title:
       #             blank: This title is screwed!
-      def generate_full_message(message, options = {})
+      def generate_full_message(options = {})
         keys = [
           :"full_messages.#{@message}",
           :'full_messages.format',
@@ -117,6 +114,15 @@ module ActiveRecord
 
         options.merge!(:default => keys, :message => self.message)
         I18n.translate(keys.shift, options)
+      end
+
+      # Return user options with default options.
+      #
+      def default_options
+        options.reverse_merge :scope => [:activerecord, :errors],
+                              :model => @base.class.human_name,
+                              :attribute => @base.class.human_attribute_name(attribute.to_s),
+                              :value => value
       end
   end
 

@@ -28,6 +28,12 @@ class ProtectedPerson < ActiveRecord::Base
   set_table_name 'people'
   attr_accessor :addon
   attr_protected :first_name
+
+  def special_error
+    this_method_does_not_exist!
+  rescue
+    errors.add(:special_error, "This method does not exist")
+  end
 end
 
 class UniqueReply < Reply
@@ -169,6 +175,14 @@ class ValidationsTest < ActiveRecord::TestCase
         person = ProtectedPerson.create!
         assert_equal person.first_name, "Mary", "should be ok when no attributes are passed to create!"
       end
+    end
+  end
+
+  def test_values_are_not_retrieved_unless_needed
+    assert_nothing_raised do
+      person = ProtectedPerson.new
+      person.special_error
+      assert_equal "This method does not exist", person.errors[:special_error]
     end
   end
 
