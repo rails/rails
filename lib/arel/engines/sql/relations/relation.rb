@@ -12,7 +12,7 @@ module Arel
         order = order.zip((0...order.size).to_a).map { |s,i| "id_list.alias_#{i} #{'DESC' if s =~ /\bdesc$/i}" }.join(', ')
 
         query = build_query \
-          "SELECT     #{select_clauses.to_s}",
+          "SELECT     #{select_clauses.kind_of?(::Array) ? select_clauses.join("") : select_clauses.to_s}",
           "FROM       #{table_sql(Sql::TableReference.new(self))}",
           (joins(self)                                   unless joins(self).blank? ),
           ("WHERE     #{where_clauses.join("\n\tAND ")}" unless wheres.blank?      ),
