@@ -5,6 +5,7 @@
 # DateTime    to_date, to_datetime, xmlschema
 # Enumerable  group_by, each_with_object, none?
 # Process     Process.daemon
+# REXML       security fix
 # String      ord
 # Time        to_date, to_time, to_datetime
 require 'active_support'
@@ -13,4 +14,5 @@ require 'active_support/core_ext/date_time/conversions'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/process/daemon'
 require 'active_support/core_ext/string/conversions'
+require 'active_support/core_ext/rexml'
 require 'active_support/core_ext/time/conversions'
