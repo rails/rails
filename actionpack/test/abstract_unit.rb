@@ -2,7 +2,6 @@ root = File.expand_path('../../..', __FILE__)
 begin
   require "#{root}/vendor/gems/environment"
 rescue LoadError
-  $stderr.puts "Missing bundled environment, continuing: #{$!}"
   $:.unshift "#{root}/activesupport/lib"
   $:.unshift "#{root}/activemodel/lib"
 end
