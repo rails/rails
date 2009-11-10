@@ -36,7 +36,7 @@ else
   end
 
   desc "Run specs with mysql and sqlite3 database adapters (default)"
-  task :spec => ["check_dependencies", "spec:sqlite3", "spec:mysql", "spec:postgresql"]
+  task :spec => ["spec:sqlite3", "spec:mysql", "spec:postgresql"]
 
   desc "Default task is to run specs"
   task :default => :spec

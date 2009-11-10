@@ -14,8 +14,19 @@ module Arel
       insertion_attributes_values_sql = if record.is_a?(Value)
         record.value
       else
-        build_query "(#{record.keys.collect { |key| engine.quote_column_name(key.name) }.join(', ')})",
-          "VALUES (#{record.collect { |key, value| key.format(value) }.join(', ')})"
+        attributes = record.keys.sort_by do |attribute|
+          attribute.name.to_s
+        end
+
+        first = attributes.collect do |key|
+          engine.quote_column_name(key.name)
+        end.join(', ')
+
+        second = attributes.collect do |key|
+          key.format(record[key])
+        end.join(', ')
+
+        build_query "(#{first})", "VALUES (#{second})"
       end
 
       build_query \
@@ -37,7 +48,12 @@ module Arel
 
     def assignment_sql
       if assignments.respond_to?(:collect)
-        assignments.collect do |attribute, value|
+        attributes = assignments.keys.sort_by do |attribute|
+          attribute.name.to_s
+        end
+
+        attributes.map do |attribute|
+          value = assignments[attribute]
           "#{engine.quote_column_name(attribute.name)} = #{attribute.format(value)}"
         end.join(",\n")
       else

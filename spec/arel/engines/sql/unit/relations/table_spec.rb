@@ -42,8 +42,8 @@ module Arel
 
       describe '#reset' do
         it "reloads columns from the database" do
-          lambda { stub(@relation.engine).columns { [] } }.should_not change { @relation.attributes }
-          lambda { @relation.reset                       }.should     change { @relation.attributes }
+          lambda { @relation.engine.stub!(:columns => []) }.should_not change { @relation.attributes }
+          lambda { @relation.reset                        }.should     change { @relation.attributes }
         end
       end
     end

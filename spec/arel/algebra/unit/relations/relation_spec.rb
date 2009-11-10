@@ -150,7 +150,7 @@ module Arel
         describe '#delete' do
           it 'manufactures a deletion relation' do
             Session.start do
-              mock(Session.new).delete(Deletion.new(@relation))
+              Session.new.should_receive(:delete).with(Deletion.new(@relation))
               @relation.delete
             end
           end
@@ -160,7 +160,7 @@ module Arel
           it 'manufactures an insertion relation' do
             Session.start do
               record = { @relation[:name] => 'carl' }
-              mock(Session.new).create(Insert.new(@relation, record))
+              Session.new.should_receive(:create).with(Insert.new(@relation, record))
               @relation.insert(record)
             end
           end
@@ -170,7 +170,7 @@ module Arel
           it 'manufactures an update relation' do
             Session.start do
               assignments = { @relation[:name] => Value.new('bob', @relation) }
-              mock(Session.new).update(Update.new(@relation, assignments))
+              Session.new.should_receive(:update).with(Update.new(@relation, assignments))
               @relation.update(assignments)
             end
           end
@@ -180,8 +180,8 @@ module Arel
 
     describe Relation::Enumerable do
       it "implements enumerable" do
-        check @relation.collect.should == @relation.session.read(@relation).collect
-        @relation.first.should   == @relation.session.read(@relation).first
+        @relation.map { |value| value }.should ==
+        @relation.session.read(@relation).map { |value| value }
       end
     end
   end
