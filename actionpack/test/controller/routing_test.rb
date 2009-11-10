@@ -1645,6 +1645,22 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_uri_equal '/foo?x=hello+world', default_route_set.generate({:controller => 'foo', :x => 'hello world'})
   end
 
+  def test_generate_with_default_params
+    set.draw do |map|
+      map.connect 'dummy/page/:page', :controller => 'dummy'
+      map.connect 'dummy/dots/page.:page', :controller => 'dummy', :action => 'dots'
+      map.connect 'ibocorp/:page', :controller => 'ibocorp',
+                                   :requirements => { :page => /\d+/ },
+                                   :defaults => { :page => 1 }
+
+      map.connect ':controller/:action/:id'
+    end
+
+    pending do
+      assert_equal '/ibocorp', set.generate({:controller => 'ibocorp', :page => 1})
+    end
+  end
+
   private
     def assert_uri_equal(expected, actual)
       assert_equal(sort_query_string_params(expected), sort_query_string_params(actual))
