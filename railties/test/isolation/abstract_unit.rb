@@ -157,9 +157,13 @@ Module.new do
   FileUtils.mkdir(tmp_path)
 
   environment = File.expand_path('../../../../vendor/gems/environment', __FILE__)
+  if File.exist?(environment)
+    require_environment = "-r #{environment}"
+  end
 
-  `#{Gem.ruby} -r #{environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{tmp_path('app_template')}`
+  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{tmp_path('app_template')}`
   File.open("#{tmp_path}/app_template/config/boot.rb", 'w') do |f|
-    f.puts "require '#{environment}' ; require 'rails'"
+    f.puts "require '#{environment}'" if require_environment
+    f.puts "require 'rails'"
   end
 end
