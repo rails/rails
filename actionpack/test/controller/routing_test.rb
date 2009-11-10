@@ -1661,6 +1661,42 @@ class RouteSetTest < ActiveSupport::TestCase
     end
   end
 
+  def test_generate_with_optional_params_recalls_last_request
+    set.draw do |map|
+      map.connect "blog/", :controller => "blog", :action => "index"
+
+      map.connect "blog/:year/:month/:day",
+                  :controller => "blog",
+                  :action => "show_date",
+                  :requirements => { :year => /(19|20)\d\d/, :month => /[01]?\d/, :day => /[0-3]?\d/ },
+                  :day => nil, :month => nil
+
+      map.connect "blog/show/:id", :controller => "blog", :action => "show", :id => /\d+/
+      map.connect "blog/:controller/:action/:id"
+      map.connect "*anything", :controller => "blog", :action => "unknown_request"
+    end
+
+    assert_equal({:controller => "blog", :action => "index"}, set.recognize_path("/blog"))
+    assert_equal({:controller => "blog", :action => "show", :id => "123"}, set.recognize_path("/blog/show/123"))
+    assert_equal({:controller => "blog", :action => "show_date", :year => "2004"}, set.recognize_path("/blog/2004"))
+    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :month => "12"}, set.recognize_path("/blog/2004/12"))
+    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :month => "12", :day => "25"}, set.recognize_path("/blog/2004/12/25"))
+    assert_equal({:controller => "articles", :action => "edit", :id => "123"}, set.recognize_path("/blog/articles/edit/123"))
+    assert_equal({:controller => "articles", :action => "show_stats"}, set.recognize_path("/blog/articles/show_stats"))
+    assert_equal({:controller => "blog", :action => "unknown_request", :anything => ["blog", "wibble"]}, set.recognize_path("/blog/wibble"))
+    assert_equal({:controller => "blog", :action => "unknown_request", :anything => ["junk"]}, set.recognize_path("/junk"))
+
+    last_request = set.recognize_path("/blog/2006/07/28").freeze
+    assert_equal({:controller => "blog",  :action => "show_date", :year => "2006", :month => "07", :day => "28"}, last_request)
+    assert_equal("/blog/2006/07/25", set.generate({:day => 25}, last_request))
+    assert_equal("/blog/2005", set.generate({:year => 2005}, last_request))
+    assert_equal("/blog/show/123", set.generate({:action => "show" , :id => 123}, last_request))
+    pending do
+      assert_equal("/blog/2006/07/28", set.generate({:year => 2006}, last_request))
+    end
+    assert_equal("/blog/2006", set.generate({:year => 2006, :month => nil}, last_request))
+  end
+
   private
     def assert_uri_equal(expected, actual)
       assert_equal(sort_query_string_params(expected), sort_query_string_params(actual))
