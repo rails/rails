@@ -165,13 +165,12 @@ class GeneratorsTest < GeneratorsTestCase
   def test_developer_options_are_overwriten_by_user_options
     Rails::Generators.options[:new_generator] = { :generate => false }
 
-    self.class.class_eval <<-end_eval
-      class NewGenerator < Rails::Generators::Base
-        class_option :generate, :default => true
-      end
-    end_eval
+    klass = Class.new(Rails::Generators::Base) do
+      def self.name() 'NewGenerator' end
+      class_option :generate, :default => true
+    end
 
-    assert_equal false, NewGenerator.class_options[:generate].default
+    assert_equal false, klass.class_options[:generate].default
   end
 
   def test_source_paths_for_not_namespaced_generators

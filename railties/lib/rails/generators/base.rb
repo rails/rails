@@ -25,8 +25,11 @@ module Rails
       # Automatically sets the source root based on the class name.
       #
       def self.source_root
-        @_rails_source_root ||= File.expand_path(File.join(File.dirname(__FILE__),
-                                                 base_name, generator_name, 'templates'))
+        @_rails_source_root ||= begin
+          if base_name && generator_name
+            File.expand_path(File.join(File.dirname(__FILE__), base_name, generator_name, 'templates'))
+          end
+        end
       end
 
       # Tries to get the description from a USAGE file one folder above the source
@@ -216,7 +219,7 @@ module Rails
         # and can point to wrong directions when inside an specified directory.
         base.source_root
 
-        if base.name && base.name !~ /Base$/ && defined?(Rails.root) && Rails.root
+        if base.name && base.name !~ /Base$/ && base.base_name && base.generator_name && defined?(Rails.root) && Rails.root
           path = File.expand_path(File.join(Rails.root, 'lib', 'templates'))
           if base.name.include?('::')
             base.source_paths << File.join(path, base.base_name, base.generator_name)
@@ -276,8 +279,10 @@ module Rails
         # Sets the base_name taking into account the current class namespace.
         #
         def self.base_name
-          if name
-            @base_name ||= name.split('::').first.underscore
+          @base_name ||= begin
+            if base = name.to_s.split('::').first
+              base.underscore
+            end
           end
         end
 
@@ -287,9 +292,10 @@ module Rails
         def self.generator_name
           if name
             @generator_name ||= begin
-              klass_name = name.to_s.split('::').last
-              klass_name.sub!(/Generator$/, '')
-              klass_name.underscore
+              if klass_name = name.to_s.split('::').last
+                klass_name.sub!(/Generator$/, '')
+                klass_name.underscore
+              end
             end
           end
         end
@@ -298,35 +304,27 @@ module Rails
         # Rails::Generators.options.
         #
         def self.default_value_for_option(name, options)
-          config = Rails::Generators.options
-          generator, base = generator_name.to_sym, base_name.to_sym
-
-          if config[generator] && config[generator].key?(name)
-            config[generator][name]
-          elsif config[base] && config[base].key?(name)
-            config[base][name]
-          elsif config[:rails].key?(name)
-            config[:rails][name]
-          else
-            options[:default]
-          end
+          default_for_option(Rails::Generators.options, name, options, options[:default])
         end
 
         # Return default aliases for the option name given doing a lookup in
         # Rails::Generators.aliases.
         #
         def self.default_aliases_for_option(name, options)
-          config = Rails::Generators.aliases
-          generator, base = generator_name.to_sym, base_name.to_sym
+          default_for_option(Rails::Generators.aliases, name, options, options[:aliases])
+        end
 
-          if config[generator] && config[generator].key?(name)
-            config[generator][name]
-          elsif config[base] && config[base].key?(name)
-            config[base][name]
+        # Return default for the option name given doing a lookup in config.
+        #
+        def self.default_for_option(config, name, options, default)
+          if generator_name and c = config[generator_name.to_sym] and c.key?(name)
+            c[name]
+          elsif base_name and c = config[base_name.to_sym] and c.key?(name)
+            c[name]
           elsif config[:rails].key?(name)
             config[:rails][name]
           else
-            options[:aliases]
+            default
           end
         end
 
