@@ -10,5 +10,5 @@ module Arel
   require 'arel/engines'
   autoload :Session, 'arel/session'
 
-  VERSION = "0.1.2"
+  VERSION = "0.2.pre"
 end
