@@ -1,11 +1,11 @@
 ORIG_ARGV = ARGV.dup
-root = File.expand_path('../../..', __FILE__)
+
 begin
-  require "#{root}/vendor/gems/environment"
+  require File.expand_path('../../../vendor/gems/environment', __FILE__)
 rescue LoadError
-  $:.unshift("#{root}/activesupport/lib")
-  $:.unshift("#{root}/activerecord/lib")
 end
+
+$:.unshift(File.dirname(__FILE__) + '/../lib')
 
 require 'test/unit'
 require 'mocha'
