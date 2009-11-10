@@ -180,8 +180,8 @@ module Arel
 
     describe Relation::Enumerable do
       it "implements enumerable" do
-        check @relation.collect.should == @relation.session.read(@relation).collect
-        @relation.first.should   == @relation.session.read(@relation).first
+        @relation.map { |value| value }.should ==
+        @relation.session.read(@relation).map { |value| value }
       end
     end
   end
