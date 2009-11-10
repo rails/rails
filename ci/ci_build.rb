@@ -16,6 +16,10 @@ root_dir = File.expand_path('../..', __FILE__)
 # A security hole, but there is nothing valuable on rails CI box anyway.
 build_results[:geminstaller] = system "sudo geminstaller --config=#{root_dir}/ci/geminstaller.yml --exceptions"
 
+def rake(*tasks)
+  tasks.map { |task| system "#{root_dir}/bin/rake", task }.join("\n")
+end
+
 cd root_dir do
   puts
   puts "[CruiseControl] Bundling RubyGems"
@@ -27,8 +31,8 @@ cd "#{root_dir}/activesupport" do
   puts
   puts "[CruiseControl] Building ActiveSupport"
   puts
-  build_results[:activesupport] = system 'rake'
-  build_results[:activesupport_isolated] = system 'rake test:isolated'
+  build_results[:activesupport] = rake
+  build_results[:activesupport_isolated] = rake 'test:isolated'
 end
 
 rm_f "#{root_dir}/activerecord/debug.log"
@@ -36,28 +40,28 @@ cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with MySQL"
   puts
-  build_results[:activerecord_mysql] = system 'rake mysql:rebuild_databases && rake test_mysql'
+  build_results[:activerecord_mysql] = rake 'mysql:rebuild_databases', 'test_mysql'
 end
 
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with PostgreSQL"
   puts
-  build_results[:activerecord_postgresql8] = system 'rake postgresql:rebuild_databases && rake test_postgresql'
+  build_results[:activerecord_postgresql8] = rake 'postgresql:rebuild_databases', 'test_postgresql'
 end
 
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with SQLite 3"
   puts
-  build_results[:activerecord_sqlite3] = system 'rake test_sqlite3'
+  build_results[:activerecord_sqlite3] = rake 'test_sqlite3'
 end
 
 cd "#{root_dir}/activemodel" do
   puts
   puts "[CruiseControl] Building ActiveModel"
   puts
-  build_results[:activemodel] = system 'rake'
+  build_results[:activemodel] = rake
 end
 
 rm_f "#{root_dir}/activeresource/debug.log"
@@ -65,29 +69,29 @@ cd "#{root_dir}/activeresource" do
   puts
   puts "[CruiseControl] Building ActiveResource"
   puts
-  build_results[:activeresource] = system 'rake'
+  build_results[:activeresource] = rake
 end
 
 cd "#{root_dir}/actionpack" do
   puts
   puts "[CruiseControl] Building ActionPack"
   puts
-  build_results[:actionpack] = system 'rake'
-  build_results[:actionpack_isolated] = system 'rake test:isolated'
+  build_results[:actionpack] = rake
+  build_results[:actionpack_isolated] = rake 'test:isolated'
 end
 
 cd "#{root_dir}/actionmailer" do
   puts
   puts "[CruiseControl] Building ActionMailer"
   puts
-  build_results[:actionmailer] = system 'rake'
+  build_results[:actionmailer] = rake
 end
 
 cd "#{root_dir}/railties" do
   puts
   puts "[CruiseControl] Building RailTies"
   puts
-  build_results[:railties] = system 'rake'
+  build_results[:railties] = rake
 end
 
 
