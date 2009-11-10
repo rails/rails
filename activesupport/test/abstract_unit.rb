@@ -7,16 +7,8 @@ rescue LoadError
   $:.unshift("#{root}/activerecord/lib")
 end
 
-
 require 'test/unit'
-
-begin
-  require 'mocha'
-rescue LoadError
-  $stderr.puts 'Loading rubygems'
-  require 'rubygems'
-  require 'mocha'
-end
+require 'mocha'
 
 ENV['NO_RELOAD'] = '1'
 require 'active_support'
