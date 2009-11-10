@@ -48,7 +48,7 @@ Spec::Runner.configure do |config|
   config.include BeLikeMatcher, HashTheSameAsMatcher, DisambiguateAttributesMatcher
   config.include AdapterGuards
   config.include Check
-  config.mock_with :rr
+
   config.before do
     Arel::Table.engine = Arel::Sql::Engine.new(ActiveRecord::Base)
   end
