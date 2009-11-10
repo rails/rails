@@ -10,7 +10,7 @@ module Arel
       end
 
       before do
-        @relation = Table.new(:users)
+        @relation = Arel::Table.new(:users)
         @attribute1 = @relation[:id]
         @attribute2 = @relation[:name]
       end

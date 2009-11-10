@@ -4,11 +4,11 @@ module Arel
   module Predicates
     describe Predicate do
       before do
-        @relation = Table.new(:users)
+        @relation = Arel::Table.new(:users)
         @attribute1 = @relation[:id]
         @attribute2 = @relation[:name]
-        @operand1 = Equality.new(@attribute1, 1)
-        @operand2 = Equality.new(@attribute2, "name")
+        @operand1 = Arel::Predicates::Equality.new(@attribute1, 1)
+        @operand2 = Arel::Predicates::Equality.new(@attribute2, "name")
       end
 
       describe "when being combined with another predicate with AND logic" do

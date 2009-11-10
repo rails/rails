@@ -4,7 +4,7 @@ module Arel
   module Predicates
     describe In do
       before do
-        @relation = Table.new(:users)
+        @relation = Arel::Table.new(:users)
         @attribute = @relation[:id]
       end
 

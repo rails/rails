@@ -4,8 +4,8 @@ module Arel
   module Predicates
     describe Equality do
       before do
-        @relation1 = Table.new(:users)
-        @relation2 = Table.new(:photos)
+        @relation1 = Arel::Table.new(:users)
+        @relation2 = Arel::Table.new(:photos)
         @attribute1 = @relation1[:id]
         @attribute2 = @relation2[:user_id]
       end
