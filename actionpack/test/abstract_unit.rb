@@ -11,12 +11,6 @@ $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
-begin
-  %w( rack rack/test sqlite3 ).each { |lib| require lib }
-rescue LoadError => e
-  abort e.message
-end
-
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
 require 'test/unit'
