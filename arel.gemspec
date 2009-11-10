@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{arel}
-  s.version = "0.1.3"
+  s.version = "0.2.pre"
 
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bryan Helmkamp", "Nick Kallen"]
-  s.date = %q{2009-10-27}
+  s.date = %q{2009-11-10}
   s.description = %q{Arel is a Relational Algebra for Ruby. It 1) simplifies the generation complex
 of SQL queries and it 2) adapts to various RDBMS systems. It is intended to be
 a framework framework; that is, you can build your own ORM with it, focusing on
@@ -14,11 +14,13 @@ innovative object and collection modeling as opposed to database compatibility
 and query generation.}
   s.email = %q{bryan@brynary.com}
   s.extra_rdoc_files = [
+    "History.txt",
     "README.markdown"
   ]
   s.files = [
     ".gitignore",
     ".gitmodules",
+    "History.txt",
     "README.markdown",
     "Rakefile",
     "Thorfile",

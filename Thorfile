@@ -30,7 +30,7 @@ and query generation.
       s.test_files = normalize_files(Dir['spec/**/*.rb'] - repo.lib.ignored_files)
 
       s.has_rdoc = true
-      s.extra_rdoc_files = %w[README.markdown]
+      s.extra_rdoc_files = %w[History.txt README.markdown]
 
       # Arel required ActiveRecord, but we're not declaring it to avoid a
       # circular dependency chain. The solution is for ActiveRecord to release
