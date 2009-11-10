@@ -1,12 +1,17 @@
 #!/usr/bin/env ruby
 require 'fileutils'
-
 include FileUtils
 
-puts "[CruiseControl] Rails build"
+def root_dir
+  @root_dir ||= File.expand_path('../..', __FILE__)
+end
 
+def rake(*tasks)
+  tasks.map { |task| system "#{root_dir}/bin/rake", task }.join("\n")
+end
+
+puts "[CruiseControl] Rails build"
 build_results = {}
-root_dir = File.expand_path('../..', __FILE__)
 
 # Requires gem home and path to be writeable and/or overridden to be ~/.gem,
 # Will enable when RubyGems supports this properly (in a coming release)
@@ -15,10 +20,6 @@ root_dir = File.expand_path('../..', __FILE__)
 # for now, use the no-passwd sudoers approach (documented in ci_setup_notes.txt)
 # A security hole, but there is nothing valuable on rails CI box anyway.
 build_results[:geminstaller] = system "sudo geminstaller --config=#{root_dir}/ci/geminstaller.yml --exceptions"
-
-def rake(*tasks)
-  tasks.map { |task| system "#{root_dir}/bin/rake", task }.join("\n")
-end
 
 cd root_dir do
   puts
