@@ -21,6 +21,8 @@ gem "erubis", ">= 2.6.5"
 gem "RedCloth", ">= 4.2.2"
 
 if ENV['CI']
+  disable_system_gems
+
   gem "nokogiri", ">= 1.4.0"
   gem "memcache-client", ">= 1.7.6"
   gem "pg", ">= 0.8.0"
