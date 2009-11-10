@@ -3,8 +3,10 @@ begin
   require "#{root}/vendor/gems/environment"
 rescue LoadError
   $:.unshift("#{root}/activesupport/lib")
-  $:.unshift("#{root}/activemodel/lib")
 end
+
+lib = File.expand_path("#{File.dirname(__FILE__)}/../../lib")
+$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
 require 'config'
 require 'active_model'

@@ -6,7 +6,9 @@ rescue LoadError
   $:.unshift "#{root}/activemodel/lib"
 end
 
-$:.unshift(File.dirname(__FILE__) + '/../lib')
+lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
+$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
+
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')

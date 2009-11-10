@@ -5,7 +5,8 @@ begin
 rescue LoadError
 end
 
-$:.unshift(File.dirname(__FILE__) + '/../lib')
+lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
+$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
 require 'test/unit'
 require 'mocha'
