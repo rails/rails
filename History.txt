@@ -1,0 +1,11 @@
+== Git
+
+* 1 major enhancement
+
+  * Ruby 1.9 compatibility
+
+== 0.1.0 / 2009-08-06
+
+* 1 major enhancement
+
+  * Birthday!
