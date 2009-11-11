@@ -26,6 +26,7 @@ if ENV['CI']
   gem "nokogiri", ">= 1.4.0"
   gem "memcache-client", ">= 1.7.6"
   gem "pg", ">= 0.8.0"
+  gem "mysql", ">= 2.8.1"
 
   # fcgi gem doesn't compile on 1.9
   # avoid minitest strangeness on 1.9
