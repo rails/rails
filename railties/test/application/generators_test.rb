@@ -23,7 +23,8 @@ module ApplicationTests
       Rails::Initializer.run do |c|
         c.generators.orm            = :datamapper
         c.generators.test_framework = :rspec
-        expected = { :rails => { :orm => :datamapper, :test_framework => :rspec } }
+        c.generators.helper         = false
+        expected = { :rails => { :orm => :datamapper, :test_framework => :rspec, :helper => false } }
         assert_equal(expected, c.generators.options)
       end
     end
@@ -45,6 +46,7 @@ module ApplicationTests
       end
       # Initialize the application
       Rails.initialize!
+      Rails::Generators.configure!
 
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
       assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]
@@ -57,6 +59,7 @@ module ApplicationTests
       end
       # Initialize the application
       Rails.initialize!
+      Rails::Generators.configure!
 
       assert_equal Thor::Base.shell, Thor::Shell::Basic
     end

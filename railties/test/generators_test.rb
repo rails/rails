@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'generators', 'generators_test_helper')
+require 'generators/generators_test_helper'
 require 'rails/generators/rails/model/model_generator'
 require 'rails/generators/test_unit/model/model_generator'
 require 'mocha'
@@ -43,6 +43,12 @@ class GeneratorsTest < GeneratorsTestCase
     klass = Rails::Generators.find_by_namespace(:test_unit, nil, :model)
     assert klass
     assert_equal "test_unit:generators:model", klass.namespace
+  end
+
+  def test_find_by_namespace_with_duplicated_name
+    klass = Rails::Generators.find_by_namespace(:foobar)
+    assert klass
+    assert_equal "foobar:foobar", klass.namespace
   end
 
   def test_find_by_namespace_add_generators_to_raw_lookups
@@ -101,14 +107,15 @@ class GeneratorsTest < GeneratorsTestCase
 
   def test_rails_generators_with_others_information
     output = capture(:stdout){ Rails::Generators.help }.split("\n").last
-    assert_equal "Others: active_record:fixjour, fixjour, mspec, rails:javascripts.", output
+    assert_equal "Others: active_record:fixjour, fixjour, foobar, mspec, rails:javascripts.", output
   end
 
   def test_warning_is_shown_if_generator_cant_be_loaded
-    Rails::Generators.load_paths << File.expand_path("../fixtures/vendor/gems/gems/wrong", __FILE__)
+    Rails::Generators.load_paths << File.join(Rails.root, "vendor", "gems", "gems", "wrong")
     output = capture(:stderr){ Rails::Generators.find_by_namespace(:wrong) }
+
     assert_match /\[WARNING\] Could not load generator at/, output
-    assert_match /Error: uninitialized constant Rails::Generator/, output
+    assert_match /Rails 2\.x generator/, output
   end
 
   def test_no_color_sets_proper_shell
@@ -159,10 +166,7 @@ class GeneratorsTest < GeneratorsTestCase
     Rails::Generators.options[:new_generator] = { :generate => false }
 
     klass = Class.new(Rails::Generators::Base) do
-      def self.name
-        "NewGenerator"
-      end
-
+      def self.name() 'NewGenerator' end
       class_option :generate, :default => true
     end
 

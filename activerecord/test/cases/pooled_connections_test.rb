@@ -105,7 +105,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
       Thread.new do
         ActiveRecord::Base.connection.rollback_db_transaction
         ActiveRecord::Base.connection_pool.release_connection
-      end.join rescue nil
+      end
       add_record('three')
     end
 

@@ -71,7 +71,7 @@ module ActiveRecord
             else
               relation = arel_table(@reflection.table_name)
               relation.conditions(relation[@reflection.primary_key_name].eq(@owner.id).
-                  and(Arel::In.new(relation[@reflection.klass.primary_key], records.map(&:id)))
+                  and(Arel::Predicates::In.new(relation[@reflection.klass.primary_key], records.map(&:id)))
               ).update(relation[@reflection.primary_key_name] => nil)
 
               @owner.class.update_counters(@owner.id, cached_counter_attribute_name => -records.size) if has_cached_counter?

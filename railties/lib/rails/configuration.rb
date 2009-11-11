@@ -278,12 +278,16 @@ module Rails
       end
 
       def method_missing(method, *args)
-        method        = method.to_s.sub(/=$/, '').to_sym
-        namespace     = args.first.is_a?(Symbol) ? args.shift : nil
-        configuration = args.first.is_a?(Hash)   ? args.shift : nil
+        method = method.to_s.sub(/=$/, '').to_sym
 
-        @options[:rails][method] = namespace if namespace
-        namespace ||= method
+        if method == :rails
+          namespace, configuration = :rails, args.shift
+        elsif args.first.is_a?(Hash)
+          namespace, configuration = method, args.shift
+        else
+          namespace, configuration = args.shift, args.shift
+          @options[:rails][method] = namespace
+        end
 
         if configuration
           aliases = configuration.delete(:aliases)

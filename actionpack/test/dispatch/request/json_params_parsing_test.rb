@@ -57,7 +57,7 @@ class JsonParamsParsingTest < ActionController::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do |map|
-          match ':action', :to => TestController
+          match ':action', :to => ::JsonParamsParsingTest::TestController
         end
         yield
       end

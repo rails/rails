@@ -10,8 +10,8 @@ class TestIsolated < Test::Unit::TestCase
   Dir["#{File.dirname(__FILE__)}/{abstract,controller,dispatch,template}/**/*_test.rb"].each do |file|
     define_method("test #{file}") do
       command = "#{ruby} -Ilib:test #{file}"
-      silence_stderr { `#{command}` }
-      assert_equal 0, $?.to_i, command
+      result = silence_stderr { `#{command}` }
+      assert_block("#{command}\n#{result}") { $?.to_i.zero? }
     end
   end
 end

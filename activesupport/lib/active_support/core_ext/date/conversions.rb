@@ -1,6 +1,7 @@
 require 'active_support/inflector'
 require 'active_support/core_ext/time/conversions'
 require 'active_support/core_ext/date_time/conversions'
+require 'active_support/values/time_zone'
 
 class Date
   DATE_FORMATS = {

@@ -154,13 +154,13 @@ class FileStoreTest < ActiveSupport::TestCase
     File.stubs(:mtime).returns(time)
 
     @cache.write('foo', 'bar')
-    cache_read = lambda { @cache.read('foo', :expires_in => 1.minute) }
+    cache_read = lambda { @cache.read('foo', :expires_in => 60) }
     assert_equal 'bar', cache_read.call
 
-    Time.stubs(:now).returns(time + 30.seconds)
+    Time.stubs(:now).returns(time + 30)
     assert_equal 'bar', cache_read.call
 
-    Time.stubs(:now).returns(time + 2.minutes)
+    Time.stubs(:now).returns(time + 120)
     assert_nil cache_read.call
   end
 end

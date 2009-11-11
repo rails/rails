@@ -1,11 +1,15 @@
 module Rails
   class Application
-    extend Initializable
+    include Initializable
 
     class << self
       # Stub out App initialize
       def initialize!
         new
+      end
+
+      def new
+        @instance ||= super
       end
 
       def config
@@ -27,23 +31,36 @@ module Rails
         config.root
       end
 
-      def routes
-        ActionController::Routing::Routes
-      end
-
-      def middleware
-        config.middleware
-      end
-
       def call(env)
-        @app ||= middleware.build(routes)
-        @app.call(env)
+        new.call(env)
       end
+    end
 
-      def new
-        run_initializers
-        self
-      end
+    def initialize
+      run_initializers
+    end
+
+    def config
+      self.class.config
+    end
+
+    alias configuration config
+
+    def plugin_loader
+      self.class.plugin_loader
+    end
+
+    def middleware
+      config.middleware
+    end
+
+    def routes
+      ActionController::Routing::Routes
+    end
+
+    def call(env)
+      @app ||= middleware.build(routes)
+      @app.call(env)
     end
 
     initializer :initialize_rails do
@@ -242,6 +259,7 @@ module Rails
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     initializer :initialize_time_zone do
       if config.time_zone
+        require 'active_support/core_ext/time/zones'
         zone_default = Time.__send__(:get_zone, config.time_zone)
 
         unless zone_default
@@ -408,17 +426,6 @@ module Rails
     initializer :disable_dependency_loading do
       if configuration.cache_classes && !configuration.dependency_loading
         ActiveSupport::Dependencies.unhook!
-      end
-    end
-
-    # Configure generators if they were already loaded
-    # ===
-    # TODO: Does this need to be an initializer here?
-    initializer :initialize_generators do
-      if defined?(Rails::Generators)
-        Rails::Generators.no_color! unless config.generators.colorize_logging
-        Rails::Generators.aliases.deep_merge! config.generators.aliases
-        Rails::Generators.options.deep_merge! config.generators.options
       end
     end
 

@@ -5,7 +5,7 @@ class TestRequestTest < ActiveSupport::TestCase
     env = ActionDispatch::TestRequest.new.env
 
     assert_equal "GET", env.delete("REQUEST_METHOD")
-    assert_equal nil, env.delete("HTTPS")
+    assert_equal "off", env.delete("HTTPS")
     assert_equal "http", env.delete("rack.url_scheme")
     assert_equal "example.org", env.delete("SERVER_NAME")
     assert_equal "80", env.delete("SERVER_PORT")

@@ -37,7 +37,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get 'admin', :to => "queenbee#index"
       end
 
-      constraints IpRestrictor do
+      constraints ::TestRoutingMapper::IpRestrictor do
         get 'admin/accounts', :to => "queenbee#accounts"
       end
 
@@ -80,7 +80,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      match 'sprockets.js', :to => SprocketsApp
+      match 'sprockets.js', :to => ::TestRoutingMapper::SprocketsApp
 
       match 'people/:id/update', :to => 'people#update', :as => :update_person
       match '/projects/:project_id/people/:id/update', :to => 'people#update', :as => :update_project_person
@@ -190,8 +190,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_projects
     with_test_routes do
+      get '/projects'
+      assert_equal 'projects#index', @response.body
+      assert_equal '/projects', projects_path
+
+      get '/projects/new'
+      assert_equal 'projects#new', @response.body
+      assert_equal '/projects/new', new_project_path
+
       get '/projects/1'
       assert_equal 'projects#show', @response.body
+      assert_equal '/projects/1', project_path(:id => '1')
+
+      get '/projects/1/edit'
+      assert_equal 'projects#edit', @response.body
+      assert_equal '/projects/1/edit', edit_project_path(:id => '1')
     end
   end
 
@@ -231,7 +244,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'people#index', @response.body
 
       get '/projects/1/companies/1/avatar'
-      assert_equal 'avatar#show', @response.body
+      assert_equal 'avatars#show', @response.body
     end
   end
 
@@ -254,7 +267,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'people#show', @response.body
 
       get '/projects/1/people/1/7a2dec8/avatar'
-      assert_equal 'avatar#show', @response.body
+      assert_equal 'avatars#show', @response.body
 
       put '/projects/1/people/1/accessible_projects'
       assert_equal 'people#accessible_projects', @response.body
@@ -282,7 +295,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'posts#preview', @response.body
 
       get '/projects/1/posts/1/subscription'
-      assert_equal 'subscription#show', @response.body
+      assert_equal 'subscriptions#show', @response.body
 
       get '/projects/1/posts/1/comments'
       assert_equal 'comments#index', @response.body
@@ -329,13 +342,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_account_namespace
     with_test_routes do
       get '/account/subscription'
-      assert_equal 'subscription#show', @response.body
+      assert_equal 'subscriptions#show', @response.body
 
       get '/account/credit'
-      assert_equal 'credit#show', @response.body
+      assert_equal 'credits#show', @response.body
 
       get '/account/credit_card'
-      assert_equal 'credit_card#show', @response.body
+      assert_equal 'credit_cards#show', @response.body
     end
   end
 

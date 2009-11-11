@@ -452,6 +452,8 @@ module ActionMailer #:nodoc:
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
     def initialize(method_name=nil, *parameters) #:nodoc:
+      @_response_body = nil
+      super()
       create!(method_name, *parameters) if method_name
     end
 
@@ -465,8 +467,8 @@ module ActionMailer #:nodoc:
       create_parts
 
       # Set the subject if not set yet
-      @subject ||= I18n.t(method_name, :scope => [:actionmailer, :subjects, mailer_name],
-                                       :default => method_name.humanize)
+      @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
+                                    :default => method_name.humanize)
 
       # build the mail object itself
       @mail = create_mail

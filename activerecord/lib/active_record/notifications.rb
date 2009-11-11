@@ -1,5 +1,5 @@
 require 'active_support/notifications'
 
-ActiveSupport::Notifications.subscribe("sql") do |event|
-  ActiveRecord::Base.connection.log_info(event.payload[:sql], event.payload[:name], event.duration)
+ActiveSupport::Notifications.subscribe("sql") do |name, before, after, result, instrumenter_id, payload|
+  ActiveRecord::Base.connection.log_info(payload[:sql], name, after - before)
 end

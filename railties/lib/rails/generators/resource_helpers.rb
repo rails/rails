@@ -6,6 +6,8 @@ module Rails
     # ActiveModel.
     #
     module ResourceHelpers
+      mattr_accessor :skip_warn
+
       def self.included(base) #:nodoc:
         base.send :attr_reader, :controller_name, :controller_class_name, :controller_file_name,
                                 :controller_class_path, :controller_file_path
@@ -19,7 +21,11 @@ module Rails
         super
 
         if name == name.pluralize && !options[:force_plural]
-          say "Plural version of the model detected, using singularized version. Override with --force-plural."
+          unless ResourceHelpers.skip_warn
+            say "Plural version of the model detected, using singularized version. Override with --force-plural."
+            ResourceHelpers.skip_warn = true
+          end
+
           name.replace name.singularize
           assign_names!(self.name)
         end

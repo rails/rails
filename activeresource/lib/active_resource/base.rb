@@ -8,6 +8,7 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/misc'
+require 'active_support/core_ext/object/to_query'
 require 'set'
 require 'uri'
 
@@ -273,8 +274,8 @@ module ActiveResource
           @site = nil
         else
           @site = create_site_uri_from(site)
-          @user = URI.decode(@site.user) if @site.user
-          @password = URI.decode(@site.password) if @site.password
+          @user = uri_parser.unescape(@site.user) if @site.user
+          @password = uri_parser.unescape(@site.password) if @site.password
         end
       end
 
@@ -736,12 +737,12 @@ module ActiveResource
 
         # Accepts a URI and creates the site URI from that.
         def create_site_uri_from(site)
-          site.is_a?(URI) ? site.dup : URI.parse(site)
+          site.is_a?(URI) ? site.dup : uri_parser.parse(site)
         end
 
         # Accepts a URI and creates the proxy URI from that.
         def create_proxy_uri_from(proxy)
-          proxy.is_a?(URI) ? proxy.dup : URI.parse(proxy)
+          proxy.is_a?(URI) ? proxy.dup : uri_parser.parse(proxy)
         end
 
         # contains a set of the current prefix parameters.
@@ -765,6 +766,10 @@ module ActiveResource
           end
 
           [ prefix_options, query_options ]
+        end
+
+        def uri_parser
+          @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
         end
     end
 
@@ -1151,15 +1156,16 @@ module ActiveResource
     def respond_to?(method, include_priv = false)
       method_name = method.to_s
       if attributes.nil?
-        return super
+        super
       elsif attributes.has_key?(method_name)
-        return true
-      elsif ['?','='].include?(method_name.last) && attributes.has_key?(method_name.first(-1))
-        return true
+        true
+      elsif method_name =~ /(?:=|\?)$/ && attributes.include?($`)
+        true
+      else
+        # super must be called at the end of the method, because the inherited respond_to?
+        # would return true for generated readers, even if the attribute wasn't present
+        super
       end
-      # super must be called at the end of the method, because the inherited respond_to?
-      # would return true for generated readers, even if the attribute wasn't present
-      super
     end
 
     protected
@@ -1248,13 +1254,15 @@ module ActiveResource
       def method_missing(method_symbol, *arguments) #:nodoc:
         method_name = method_symbol.to_s
 
-        case method_name.last
+        if method_name =~ /(=|\?)$/
+          case $1
           when "="
-            attributes[method_name.first(-1)] = arguments.first
+            attributes[$`] = arguments.first
           when "?"
-            attributes[method_name.first(-1)]
-          else
-            attributes.has_key?(method_name) ? attributes[method_name] : super
+            attributes[$`]
+          end
+        else
+          attributes.include?(method_name) ? attributes[method_name] : super
         end
       end
   end

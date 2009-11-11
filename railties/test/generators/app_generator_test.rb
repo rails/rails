@@ -110,20 +110,6 @@ class AppGeneratorTest < GeneratorsTestCase
     ).each { |path| assert_file "script/#{path}", /#!\/usr\/bin\/env/ }
   end
 
-  def test_rails_is_frozen
-    generator(:freeze => true, :database => "sqlite3").expects(:run).
-              with("rake rails:freeze:edge", :verbose => false)
-    silence(:stdout){ generator.invoke }
-
-    assert_file 'Gemfile' do |content|
-      flag = %(gem "rails", "#{Rails::VERSION::STRING}", :git => "git://github.com/rails/rails.git")
-      assert_match /^#{Regexp.escape(flag)}$/, content
-
-      flag = %(# gem "rails", "#{Rails::VERSION::STRING}")
-      assert_match /^#{Regexp.escape(flag)}$/, content
-    end
-  end
-
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match /It works from file!/, run_generator(["-m", "lib/template.rb"])

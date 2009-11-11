@@ -250,6 +250,8 @@ module ActiveRecord
                 assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
               end
             }, __FILE__, __LINE__
+
+            add_autosave_association_callbacks(reflection)
           else
             raise ArgumentError, "No association found for name `#{association_name}'. Has it been defined yet?"
           end

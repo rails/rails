@@ -1,13 +1,9 @@
 require 'benchmark'
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/benchmark'
 require 'active_support/core_ext/exception'
 require 'active_support/core_ext/class/attribute_accessors'
-
-%w(hash nil string time date date_time array big_decimal range object boolean).each do |library|
-  require "active_support/core_ext/#{library}/conversions"
-end
-
-# require 'active_support/core_ext' # FIXME: pulling in all to_param extensions
+require 'active_support/core_ext/object/to_param'
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -48,7 +44,7 @@ module ActiveSupport
     #   ActiveSupport::Cache.lookup_store(MyOwnCacheStore.new)
     #   # => returns MyOwnCacheStore.new
     def self.lookup_store(*store_option)
-      store, *parameters = *([ store_option ].flatten)
+      store, *parameters = *Array.wrap(store_option).flatten
 
       case store
       when Symbol

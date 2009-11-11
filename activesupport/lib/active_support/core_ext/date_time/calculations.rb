@@ -1,4 +1,4 @@
-require 'rational'
+require 'rational' unless RUBY_VERSION >= '1.9.2'
 
 class DateTime
   class << self

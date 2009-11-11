@@ -191,4 +191,11 @@ class OrderedHashTest < Test::Unit::TestCase
       assert_equal "odd number of arguments for Hash", $!.message
     end
   end
+
+  def test_replace_updates_keys
+    @other_ordered_hash = ActiveSupport::OrderedHash[:black, '000000', :white, '000000']
+    original = @ordered_hash.replace(@other_ordered_hash)
+    assert_same original, @ordered_hash
+    assert_equal @other_ordered_hash.keys, @ordered_hash.keys
+  end
 end

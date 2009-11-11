@@ -1,34 +1,34 @@
 module ActionController
   class Middleware < Metal
     class ActionMiddleware
-      def initialize(controller)
-        @controller = controller
+      def initialize(controller, app)
+        @controller, @app = controller, app
       end
 
       def call(env)
-        controller = @controller.allocate
-        controller.send(:initialize)
-        controller.app = @app
-        controller._call(env)
+        @controller.build(@app).dispatch(:index, env)
       end
+    end
 
-      def app=(app)
-        @app = app
+    class << self
+      alias build new
+
+      def new(app)
+        ActionMiddleware.new(self, app)
       end
     end
-    
-    def self.new(app)
-      middleware = ActionMiddleware.new(self)
-      middleware.app = app
-      middleware
+
+    attr_internal :app
+
+    def process(action)
+      response = super
+      self.status, self.headers, self.response_body = response if response.is_a?(Array)
+      response
     end
-    
-    def _call(env)
-      @_env = env
-      @_request = ActionDispatch::Request.new(env)
-      @_response = ActionDispatch::Response.new
-      @_response.request = @_request
-      process(:index)
+
+    def initialize(app)
+      super()
+      @_app = app
     end
     
     def index

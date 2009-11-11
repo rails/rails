@@ -1,20 +1,17 @@
-# Gemfile is where you list all of your application's dependencies
-#
-<%= "# " if options.freeze? %>gem "rails", "<%= Rails::VERSION::STRING %>"
-#
-# Bundling edge rails:
-<%= "# " unless options.freeze? %>gem "rails", "<%= Rails::VERSION::STRING %>", :git => "git://github.com/rails/rails.git"
+# Edit this Gemfile to bundle your application's dependencies.
 
-# Specify gemcutter as a gem source
-# source "http://gemcutter.org"
+gem "rails", "<%= Rails::VERSION::STRING %>"
 
-# Specify gems that this application depends on and have them installed with rake gems:install
+## Bundle edge rails:
+# gem "rails", :git => "git://github.com/rails/rails.git"
+
+## Bundle the gems you use:
 # gem "bj"
 # gem "hpricot", "0.6"
 # gem "sqlite3-ruby", :require_as => "sqlite3"
 # gem "aws-s3", :require_as => "aws/s3"
 
-# Specify gems that should only be required in certain environments
+## Bundle gems used only in certain environments:
 # gem "rspec", :only => :test
 # only :test do
 #   gem "webrat"

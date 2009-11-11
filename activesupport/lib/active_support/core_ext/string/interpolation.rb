@@ -6,7 +6,6 @@
 =end
 
 if RUBY_VERSION < '1.9'
-  require 'active_support/core_ext/string/bytesize'
 
   # KeyError is raised by String#% when the string contains a named placeholder
   # that is not contained in the given arguments hash. Ruby 1.9 includes and

@@ -5,7 +5,7 @@ require 'strscan'
 require 'active_support/memoizable'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/object/tap'
+require 'active_support/core_ext/string/access'
 
 module ActionDispatch
   class Request < Rack::Request
@@ -166,7 +166,7 @@ module ActionDispatch
 
       @env["action_dispatch.request.formats"] ||=
         if parameters[:format]
-          [Mime[parameters[:format]]]
+          Array.wrap(Mime[parameters[:format]])
         elsif xhr? || (accept && !accept.include?(?,))
           accepts
         else

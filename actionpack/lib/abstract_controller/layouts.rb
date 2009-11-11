@@ -89,7 +89,7 @@ module AbstractController
       # ==== Returns
       # String:: A template name
       def _implied_layout_name
-        name.underscore
+        name && name.underscore
       end
 
       # Takes the specified layout and creates a _layout method to be called
@@ -100,7 +100,7 @@ module AbstractController
       # name, return that string. Otherwise, use the superclass'
       # layout (which might also be implied)
       def _write_layout_method
-        case @_layout
+        case defined?(@_layout) ? @_layout : nil
         when String
           self.class_eval %{def _layout(details) #{@_layout.inspect} end}
         when Symbol
@@ -119,17 +119,19 @@ module AbstractController
         when true
           raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
         when nil
-          self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def _layout(details)
-              self.class.cache_layout(details) do
-                if template_exists?("#{_implied_layout_name}", details, :_prefix => "layouts")
-                  "#{_implied_layout_name}"
-                else
-                  super
+          if name
+            self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def _layout(details)
+                self.class.cache_layout(details) do
+                  if template_exists?("#{_implied_layout_name}", details, :_prefix => "layouts")
+                    "#{_implied_layout_name}"
+                  else
+                    super
+                  end
                 end
               end
-            end
-          RUBY
+            RUBY
+          end
         end
         self.class_eval { private :_layout }
       end

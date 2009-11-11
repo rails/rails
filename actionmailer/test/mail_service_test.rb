@@ -402,7 +402,7 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_nothing_raised { TestMailer.deliver_subject_with_i18n(@recipient) }
     assert_equal "Subject with i18n", ActionMailer::Base.deliveries.first.subject
 
-    I18n.backend.store_translations('en', :actionmailer => {:subjects => {:test_mailer => {:subject_with_i18n => "New Subject!"}}})
+    I18n.backend.store_translations('en', :actionmailer => {:test_mailer => {:subject_with_i18n => {:subject => "New Subject!"}}})
     assert_nothing_raised { TestMailer.deliver_subject_with_i18n(@recipient) }
     assert_equal "New Subject!", ActionMailer::Base.deliveries.last.subject
   end
