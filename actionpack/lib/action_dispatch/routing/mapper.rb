@@ -195,9 +195,9 @@ module ActionDispatch
 
           @constraints.each { |constraint|
             if constraint.respond_to?(:matches?) && !constraint.matches?(req)
-              return Rack::Mount::Const::EXPECTATION_FAILED_RESPONSE
+              return [417, {}, []]
             elsif constraint.respond_to?(:call) && !constraint.call(req)
-              return Rack::Mount::Const::EXPECTATION_FAILED_RESPONSE
+              return [417, {}, []]
             end
           }
 
