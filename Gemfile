@@ -14,7 +14,7 @@ gem "arel", "0.2.pre", :git => "git://github.com/rails/arel.git"
 gem "sqlite3-ruby", ">= 1.2.5"
 
 # AP
-gem "rack", "1.0.1", :git => "git://github.com/rails/rack.git", :branch => "rack-1.0"
+gem "rack", "1.0.1", :git => "git://github.com/rails/rack.git"
 gem "rack-mount", :git => "git://github.com/rails/rack-mount.git"
 gem "rack-test", ">= 0.5.0"
 gem "erubis", ">= 2.6.5"
