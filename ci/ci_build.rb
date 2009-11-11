@@ -38,6 +38,43 @@ cd "#{root_dir}/activesupport" do
   build_results[:activesupport_isolated] = rake 'test:isolated'
 end
 
+cd "#{root_dir}/railties" do
+  puts
+  puts "[CruiseControl] Building RailTies"
+  puts
+  build_results[:railties] = rake
+end
+
+cd "#{root_dir}/actionpack" do
+  puts
+  puts "[CruiseControl] Building ActionPack"
+  puts
+  build_results[:actionpack] = rake
+  build_results[:actionpack_isolated] = rake 'test:isolated'
+end
+
+cd "#{root_dir}/actionmailer" do
+  puts
+  puts "[CruiseControl] Building ActionMailer"
+  puts
+  build_results[:actionmailer] = rake
+end
+
+cd "#{root_dir}/activemodel" do
+  puts
+  puts "[CruiseControl] Building ActiveModel"
+  puts
+  build_results[:activemodel] = rake
+end
+
+rm_f "#{root_dir}/activeresource/debug.log"
+cd "#{root_dir}/activeresource" do
+  puts
+  puts "[CruiseControl] Building ActiveResource"
+  puts
+  build_results[:activeresource] = rake
+end
+
 rm_f "#{root_dir}/activerecord/debug.log"
 cd "#{root_dir}/activerecord" do
   puts
@@ -58,43 +95,6 @@ cd "#{root_dir}/activerecord" do
   puts "[CruiseControl] Building ActiveRecord with SQLite 3"
   puts
   build_results[:activerecord_sqlite3] = rake 'test_sqlite3'
-end
-
-cd "#{root_dir}/activemodel" do
-  puts
-  puts "[CruiseControl] Building ActiveModel"
-  puts
-  build_results[:activemodel] = rake
-end
-
-rm_f "#{root_dir}/activeresource/debug.log"
-cd "#{root_dir}/activeresource" do
-  puts
-  puts "[CruiseControl] Building ActiveResource"
-  puts
-  build_results[:activeresource] = rake
-end
-
-cd "#{root_dir}/actionpack" do
-  puts
-  puts "[CruiseControl] Building ActionPack"
-  puts
-  build_results[:actionpack] = rake
-  build_results[:actionpack_isolated] = rake 'test:isolated'
-end
-
-cd "#{root_dir}/actionmailer" do
-  puts
-  puts "[CruiseControl] Building ActionMailer"
-  puts
-  build_results[:actionmailer] = rake
-end
-
-cd "#{root_dir}/railties" do
-  puts
-  puts "[CruiseControl] Building RailTies"
-  puts
-  build_results[:railties] = rake
 end
 
 
