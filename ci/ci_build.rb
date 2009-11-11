@@ -107,6 +107,8 @@ puts "[CruiseControl]   #{`mysql --version`}"
 puts "[CruiseControl]   #{`pg_config --version`}"
 puts "[CruiseControl]   SQLite3: #{`sqlite3 -version`}"
 `gem env`.each_line {|line| print "[CruiseControl]   #{line}"}
+puts "[CruiseControl]   Bundled gems:"
+`gem bundle --list`.each_line {|line| print "[CruiseControl]     #{line}"}
 puts "[CruiseControl]   Local gems:"
 `gem list`.each_line {|line| print "[CruiseControl]     #{line}"}
 
