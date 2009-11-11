@@ -7,9 +7,8 @@ def root_dir
 end
 
 def rake(*tasks)
-  result = nil
-  tasks.each { |task| result = system("#{root_dir}/bin/rake", task) }
-  result
+  tasks.each { |task| return false unless system("#{root_dir}/bin/rake", task) }
+  true
 end
 
 puts "[CruiseControl] Rails build"
@@ -27,7 +26,7 @@ cd root_dir do
   puts
   puts "[CruiseControl] Bundling RubyGems"
   puts
-  build_results[:bundle] = system 'rm -rf vendor && env CI=1 gem bundle --update && chmod 755 bin'
+  build_results[:bundle] = system 'rm -rf vendor && env CI=1 gem bundle --update && chmod 755 bin vendor vendor/gems'
 end
 
 cd "#{root_dir}/activesupport" do
