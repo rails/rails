@@ -22,21 +22,23 @@ RUBY_FORGE_USER    = "webster132"
 
 
 task :default => :test
+task :test => 'test:isolated'
 
 ## This is required until the regular test task
 ## below passes.  It's not ideal, but at least
 ## we can see the failures
-task :test do
-  dir = ENV["TEST_DIR"] || "**"
-  Dir["test/#{dir}/*_test.rb"].all? do |file|
-    next true if file.include?("fixtures")
-    ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-    system(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
-  end or raise "Failures"
+namespace :test do
+  task :isolated do
+    dir = ENV["TEST_DIR"] || "**"
+    Dir["test/#{dir}/*_test.rb"].all? do |file|
+      next true if file.include?("fixtures")
+      ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
+      system(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
+    end or raise "Failures"
+  end
 end
-task :isolated_test => :test
 
-Rake::TestTask.new("regular_test") do |t|
+Rake::TestTask.new('test:regular') do |t|
   t.libs << 'test' << "#{File.dirname(__FILE__)}/../activesupport/lib"
   t.pattern = 'test/**/*_test.rb'
   t.warning = true
