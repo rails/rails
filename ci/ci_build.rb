@@ -33,7 +33,7 @@ cd "#{root_dir}/activesupport" do
   puts
   puts "[CruiseControl] Building ActiveSupport"
   puts
-  build_results[:activesupport] = rake
+  build_results[:activesupport] = rake 'test'
   build_results[:activesupport_isolated] = rake 'test:isolated'
 end
 
@@ -41,14 +41,14 @@ cd "#{root_dir}/railties" do
   puts
   puts "[CruiseControl] Building RailTies"
   puts
-  build_results[:railties] = rake
+  build_results[:railties] = rake 'test'
 end
 
 cd "#{root_dir}/actionpack" do
   puts
   puts "[CruiseControl] Building ActionPack"
   puts
-  build_results[:actionpack] = rake
+  build_results[:actionpack] = rake 'test'
   build_results[:actionpack_isolated] = rake 'test:isolated'
 end
 
@@ -56,14 +56,14 @@ cd "#{root_dir}/actionmailer" do
   puts
   puts "[CruiseControl] Building ActionMailer"
   puts
-  build_results[:actionmailer] = rake
+  build_results[:actionmailer] = rake 'test'
 end
 
 cd "#{root_dir}/activemodel" do
   puts
   puts "[CruiseControl] Building ActiveModel"
   puts
-  build_results[:activemodel] = rake
+  build_results[:activemodel] = rake 'test'
 end
 
 rm_f "#{root_dir}/activeresource/debug.log"
@@ -71,7 +71,7 @@ cd "#{root_dir}/activeresource" do
   puts
   puts "[CruiseControl] Building ActiveResource"
   puts
-  build_results[:activeresource] = rake
+  build_results[:activeresource] = rake 'test'
 end
 
 rm_f "#{root_dir}/activerecord/debug.log"
