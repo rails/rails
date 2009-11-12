@@ -12,6 +12,8 @@ end
 # AR
 gem "arel", "0.2.pre", :git => "git://github.com/rails/arel.git"
 gem "sqlite3-ruby", ">= 1.2.5"
+gem "pg", ">= 0.8.0"
+gem "mysql", ">= 2.8.1"
 
 # AP
 gem "rack", "1.0.1", :git => "git://github.com/rails/rack.git"
@@ -25,8 +27,6 @@ if ENV['CI']
 
   gem "nokogiri", ">= 1.4.0"
   gem "memcache-client", ">= 1.7.6"
-  gem "pg", ">= 0.8.0"
-  gem "mysql", ">= 2.8.1"
 
   # fcgi gem doesn't compile on 1.9
   # avoid minitest strangeness on 1.9
