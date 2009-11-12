@@ -65,13 +65,17 @@ class QuotingTest < Test::Unit::TestCase
   # test an email that has been created using \r\n newlines, instead of
   # \n newlines.
   def test_email_quoted_with_0d0a
-    mail = TMail::Mail.parse(IO.read("#{File.dirname(__FILE__)}/fixtures/raw_email_quoted_with_0d0a"))
-    assert_match %r{Elapsed time}, mail.body
+    mail = Mail.parse(IO.read("#{File.dirname(__FILE__)}/fixtures/raw_email_quoted_with_0d0a"))
+    # CHANGED: subject returns an object now
+    # assert_match %r{Elapsed time}, mail.body
+    assert_match %r{Elapsed time}, mail.body.decoded
   end
 
   def test_email_with_partially_quoted_subject
-    mail = TMail::Mail.parse(IO.read("#{File.dirname(__FILE__)}/fixtures/raw_email_with_partially_quoted_subject"))
-    assert_equal "Re: Test: \"\346\274\242\345\255\227\" mid \"\346\274\242\345\255\227\" tail", mail.subject
+    mail = Mail.parse(IO.read("#{File.dirname(__FILE__)}/fixtures/raw_email_with_partially_quoted_subject"))
+    # CHANGED: subject returns an object now
+    # assert_equal "Re: Test: \"\346\274\242\345\255\227\" mid \"\346\274\242\345\255\227\" tail", mail.subject
+    assert_equal "Re: Test: \"\346\274\242\345\255\227\" mid \"\346\274\242\345\255\227\" tail", mail.subject.decoded
   end
 
   private

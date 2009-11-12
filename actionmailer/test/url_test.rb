@@ -31,7 +31,7 @@ class ActionMailerUrlTest < Test::Unit::TestCase
   end
 
   def new_mail( charset="utf-8" )
-    mail = TMail::Mail.new
+    mail = Mail.new
     mail.mime_version = "1.0"
     if charset
       mail.set_content_type "text", "plain", { "charset" => charset }

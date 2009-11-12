@@ -251,7 +251,7 @@ module ActionMailer #:nodoc:
   #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
   #   +implicit_parts_order+.
   class Base
-    include AdvAttrAccessor, PartContainer, Quoting, Utils
+    include AdvAttrAccessor, Quoting, Utils
 
     include AbstractController::RenderingController
     include AbstractController::LocalizedCache
@@ -366,6 +366,12 @@ module ActionMailer #:nodoc:
     # Alias controller_path to mailer_name so render :partial in views work.
     alias :controller_path :mailer_name
 
+    def part(params)
+      part = Mail::Part.new(params)
+      yield part
+      self.parts << part
+    end
+
     class << self
       attr_writer :mailer_name
 
@@ -411,7 +417,7 @@ module ActionMailer #:nodoc:
       #   end
       def receive(raw_email)
         logger.info "Received mail:\n #{raw_email}" unless logger.nil?
-        mail = TMail::Mail.parse(raw_email)
+        mail = Mail.parse(raw_email)
         mail.base64_decode
         new.receive(mail)
       end
@@ -456,7 +462,7 @@ module ActionMailer #:nodoc:
     end
 
     # Initialize the mailer via the given +method_name+. The body will be
-    # rendered and a new TMail::Mail object created.
+    # rendered and a new Mail object created.
     def create!(method_name, *parameters) #:nodoc:
       initialize_defaults(method_name)
       __send__(method_name, *parameters)
@@ -472,7 +478,7 @@ module ActionMailer #:nodoc:
       @mail = create_mail
     end
 
-    # Delivers a TMail::Mail object. By default, it delivers the cached mail
+    # Delivers a Mail object. By default, it delivers the cached mail
     # object (from the <tt>create!</tt> method). If no cached mail object exists, and
     # no alternate has been given as the parameter, this will fail.
     def deliver!(mail = @mail)
@@ -520,18 +526,18 @@ module ActionMailer #:nodoc:
         super # Run deprecation hooks
 
         if String === response_body
-          @parts.unshift Part.new(
-            :content_type => "text/plain",
-            :disposition => "inline",
-            :charset => charset,
+          @parts.unshift Mail::Part.new(
+            :content_type => ["text", "plain", {:charset => charset}],
+            :content_disposition => "inline",
             :body => response_body
           )
         else
           self.class.template_root.find_all(@template, {}, mailer_name).each do |template|
-            @parts << Part.new(
-              :content_type => template.mime_type ? template.mime_type.to_s : "text/plain",
-              :disposition => "inline",
-              :charset => charset,
+            ct = template.mime_type ? template.mime_type.to_s : "text/plain"
+            main_type, sub_type = ct.split("/")
+            @parts << Mail::Part.new(
+              :content_type => [main_type, sub_type, {:charset => charset}],
+              :content_disposition => "inline",
               :body => render_to_body(:_template => template)
             )
           end
@@ -551,8 +557,8 @@ module ActionMailer #:nodoc:
         order = order.collect { |s| s.downcase }
 
         parts = parts.sort do |a, b|
-          a_ct = a.content_type.downcase
-          b_ct = b.content_type.downcase
+          a_ct = a.content_type.content_type.downcase
+          b_ct = b.content_type.content_type.downcase
 
           a_in = order.include? a_ct
           b_in = order.include? b_ct
@@ -577,7 +583,7 @@ module ActionMailer #:nodoc:
       end
 
       def create_mail
-        m = TMail::Mail.new
+        m = Mail.new
 
         m.subject,     = quote_any_if_necessary(charset, subject)
         m.to, m.from   = quote_any_address_if_necessary(charset, recipients, from)
@@ -599,7 +605,7 @@ module ActionMailer #:nodoc:
           m.body = normalize_new_lines(@parts.first.body)
         else
           @parts.each do |p|
-            part = (TMail::Mail === p ? p : p.to_mail(self))
+            part = (Mail === p ? p : p.to_mail(self))
             m.parts << part
           end
 
@@ -611,6 +617,18 @@ module ActionMailer #:nodoc:
 
         @mail = m
       end
+
+      def parse_content_type(defaults=nil)
+        if content_type.blank? 
+          return defaults                                                ? 
+            [ defaults.content_type, { 'charset' => defaults.charset } ] : 
+            [ nil, {} ] 
+        end 
+        ctype, *attrs = content_type.split(/;\s*/)
+        attrs = attrs.inject({}) { |h,s| k,v = s.split(/=/, 2); h[k] = v; h }
+        [ctype, {"charset" => charset || defaults && defaults.charset}.merge(attrs)]
+      end
+
 
   end
 end

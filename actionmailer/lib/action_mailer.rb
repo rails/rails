@@ -53,4 +53,5 @@ end
 
 autoload :MailHelper, 'action_mailer/mail_helper'
 
-require 'action_mailer/vendor/tmail'
+require '/Users/mikel/ruby_programs/mail/lib/mail'
+require 'action_mailer/vendor/tmail_compat'
