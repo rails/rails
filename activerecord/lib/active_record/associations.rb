@@ -1922,12 +1922,16 @@ module ActiveRecord
                   reflection = base.reflections[name]
                   is_collection = [:has_many, :has_and_belongs_to_many].include?(reflection.macro)
 
-                  parent_records = records.map do |record|
-                    descendant = record.send(reflection.name)
-                    next unless descendant
-                    descendant.target.uniq! if is_collection
-                    descendant
-                  end.flatten.compact
+                  parent_records = []
+                  records.each do |record|
+                    if descendant = record.send(reflection.name)
+                      if is_collection
+                        parent_records.concat descendant.target.uniq
+                      else
+                        parent_records << descendant
+                      end
+                    end
+                  end
 
                   remove_duplicate_results!(reflection.klass, parent_records, associations[name]) unless parent_records.empty?
                 end
