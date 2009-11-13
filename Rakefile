@@ -3,7 +3,7 @@ require 'rake/rdoctask'
 
 env = %(PKG_BUILD="#{ENV['PKG_BUILD']}") if ENV['PKG_BUILD']
 
-PROJECTS = %w(activesupport actionpack actionmailer activeresource activerecord railties)
+PROJECTS = %w(activesupport railties actionpack actionmailer activeresource activerecord)
 
 Dir["#{File.dirname(__FILE__)}/*/lib/*/version.rb"].each do |version_path|
   require version_path
