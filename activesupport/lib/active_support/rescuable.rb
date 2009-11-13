@@ -1,3 +1,4 @@
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/inheritable_attributes'
 require 'active_support/core_ext/proc'
 
@@ -81,7 +82,7 @@ module ActiveSupport
     def handler_for_rescue(exception)
       # We go from right to left because pairs are pushed onto rescue_handlers
       # as rescue_from declarations are found.
-      _, rescuer = Array(rescue_handlers).reverse.detect do |klass_name, handler|
+      _, rescuer = Array.wrap(rescue_handlers).reverse.detect do |klass_name, handler|
         # The purpose of allowing strings in rescue_from is to support the
         # declaration of handler associations for exception classes whose
         # definition is yet unknown.
