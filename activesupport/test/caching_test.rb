@@ -35,7 +35,9 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
 
   def test_mem_cache_fragment_cache_store_with_given_mem_cache_like_object
     MemCache.expects(:new).never
-    store = ActiveSupport::Cache.lookup_store :mem_cache_store, stub("memcache", :get => true)
+    memcache = Object.new
+    def memcache.get() true end
+    store = ActiveSupport::Cache.lookup_store :mem_cache_store, memcache
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
   end
 
