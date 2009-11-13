@@ -146,7 +146,7 @@ module ActiveRecord
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, construct_join(options[:joins], scope))
             construct_finder_arel_with_included_associations(options, join_dependency)
           else
-            relation = arel_table(options[:from]).
+            relation = arel_table_for(options[:from]).
               joins(construct_join(options[:joins], scope)).
               conditions(construct_conditions(options[:conditions], scope)).
               order(options[:order]).
@@ -164,7 +164,7 @@ module ActiveRecord
 
       def execute_simple_calculation(operation, column_name, options, relation) #:nodoc:
         column = if column_names.include?(column_name.to_s)
-          Arel::Attribute.new(arel_table(options[:from] || table_name),
+          Arel::Attribute.new(arel_table_for(options[:from] || table_name),
                               options[:select] || column_name)
         else
           Arel::SqlLiteral.new(options[:select] ||

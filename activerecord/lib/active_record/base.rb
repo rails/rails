@@ -1493,11 +1493,11 @@ module ActiveRecord #:nodoc:
 
 
       def arel_table(table = nil)
-        table = table_name if table.blank?
-        if @arel_table.nil? || @arel_table.name != table
-          @arel_table = Relation.new(self, Arel::Table.new(table))
-        end
-        @arel_table
+        @arel_table ||= arel_table_for(table_name)
+      end
+
+      def arel_table_for(table_name)
+        Relation.new(self, Arel::Table.new(table_name))
       end
 
       private
@@ -1666,7 +1666,7 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_arel(options = {}, scope = scope(:find))
           # TODO add lock to Arel
-          relation = arel_table(options[:from]).
+          relation = arel_table_for(options[:from]).
             joins(construct_join(options[:joins], scope)).
             conditions(construct_conditions(options[:conditions], scope)).
             select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
