@@ -489,7 +489,7 @@ EOM
         def self.extended(object)
           object.class_eval do
             attr_accessor :original_path, :content_type
-            alias_method :local_path, :path
+            alias_method :local_path, :path if method_defined?(:path)
           end
         end
 
