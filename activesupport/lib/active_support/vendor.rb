@@ -9,7 +9,7 @@ end
   unless ActiveSupport.requirable? lib
     # Try to activate a gem ~> satisfying the requested version first.
     begin
-      gem lib, "~> #{version}"
+      gem lib, ">= #{version}"
       # Use the vendored lib if the gem's missing or we aren't using RubyGems.
     rescue LoadError, NoMethodError
       # There could be symlinks
