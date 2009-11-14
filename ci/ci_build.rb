@@ -38,11 +38,13 @@ cd "#{root_dir}/activerecord" do
   build_results[:activerecord_postgresql8] = system 'rake postgresql:rebuild_databases && rake test_postgresql'
 end
 
-cd "#{root_dir}/activerecord" do
- puts
- puts "[CruiseControl] Building ActiveRecord with SQLite 2"
- puts
- build_results[:activerecord_sqlite] = system 'rake test_sqlite'
+if RUBY_VERSION < '1.9.0'
+  cd "#{root_dir}/activerecord" do
+   puts
+   puts "[CruiseControl] Building ActiveRecord with SQLite 2"
+   puts
+   build_results[:activerecord_sqlite] = system 'rake test_sqlite'
+  end
 end
 
 cd "#{root_dir}/activerecord" do
