@@ -1,11 +1,3 @@
-require 'active_support/duration'
-require 'active_support/values/time_zone'
-require 'active_support/core_ext/numeric/time'
-require 'active_support/core_ext/integer/time'
-require 'active_support/core_ext/time/conversions'
-require 'active_support/core_ext/date/conversions'
-require 'active_support/core_ext/date_time/conversions'
-
 module ActiveSupport
   # A Time-like class that can represent a time in any time zone. Necessary because standard Ruby Time instances are
   # limited to UTC and the system's <tt>ENV['TZ']</tt> zone.
