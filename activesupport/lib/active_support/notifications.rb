@@ -144,27 +144,21 @@ module ActiveSupport
     class LittleFanout
       def initialize
         @listeners = []
-        @stream    = Queue.new
-        Thread.new { consume }
       end
 
       def publish(*args)
-        @stream.push(args)
+        @listeners.each { |l| l.publish(*args) }
       end
 
       def subscribe(pattern=nil, &block)
         @listeners << Listener.new(pattern, &block)
       end
 
-      def consume
-        while args = @stream.shift
-          @listeners.each { |l| l.publish(*args) }
-        end
+      def drained?
+        @listeners.all? &:drained?
       end
 
       class Listener
-        # attr_reader :thread
-
         def initialize(pattern, &block)
           @pattern = pattern
           @subscriber = block
@@ -182,6 +176,10 @@ module ActiveSupport
           while args = @queue.shift
             @subscriber.call(*args)
           end
+        end
+
+        def drained?
+          @queue.size.zero?
         end
       end
     end
