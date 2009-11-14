@@ -48,6 +48,6 @@ class DomAssertionsTest < ActionView::TestCase
   private
   
   def assert_assertion_fails
-    assert_raise(Test::Unit::AssertionFailedError) { yield }
+    assert_raise(ActiveSupport::TestCase::Assertion) { yield }
   end
 end
