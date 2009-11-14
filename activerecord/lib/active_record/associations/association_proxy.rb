@@ -264,13 +264,7 @@ module ActiveRecord
           end
         else
           def flatten_deeper(array)
-            array.sum [] do |elem|
-              if elem.respond_to?(:each)
-                flatten_deeper(elem)
-              else
-                [elem]
-              end
-            end
+            array.flatten
           end
         end
 
