@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-if RAILS_ENV < '1.9.0'
+if RUBY_VERSION < '1.9.0'
 uses_gem "fcgi", "0.8.7" do
 
 require 'action_controller'
