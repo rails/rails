@@ -100,7 +100,7 @@ class NotificationsMainTest < Test::Unit::TestCase
     assert_equal 2, @events.size
     assert_equal :awesome, @events.last.name
     assert_equal Hash[:payload => "notifications"], @events.last.payload
-    assert_in_delta 100, @events.last.duration, 70
+    assert_in_delta 1000, @events.last.duration, 70
   end
 
   def test_event_is_pushed_even_if_block_fails
