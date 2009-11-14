@@ -185,7 +185,7 @@ Module.new do
   FileUtils.mkdir(tmp_path)
 
   environment = File.expand_path('../../../../vendor/gems/environment', __FILE__)
-  if File.exist?(environment)
+  if File.exist?("#{environment}.rb")
     require_environment = "-r #{environment}"
   end
 
