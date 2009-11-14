@@ -18,8 +18,6 @@ gem "mysql", ">= 2.8.1"
 # AP
 gem "rack", "1.0.1", :git => "git://github.com/rails/rack.git"
 gem "rack-mount", :git => "git://github.com/rails/rack-mount.git"
-gem "rack-test", ">= 0.5.0"
-gem "erubis", ">= 2.6.5"
 gem "RedCloth", ">= 4.2.2"
 
 if ENV['CI']

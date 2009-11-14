@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.add_dependency('rack',          '~> 1.0.1')
   s.add_dependency('rack-test',     '~> 0.5.0')
   s.add_dependency('rack-mount',    '~> 0.0.1')
-  s.add_dependency('erubis',        '~> 2.6.0')
+  s.add_dependency('erubis',        '~> 2.6.5')
 
   s.require_path = 'lib'
   s.autorequire = 'action_controller'
