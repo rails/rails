@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'active_support/core_ext/date_time'
+require 'active_support/time'
 
 class DateTimeExtCalculationsTest < Test::Unit::TestCase
   def test_to_s
