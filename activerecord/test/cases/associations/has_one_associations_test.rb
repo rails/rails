@@ -327,10 +327,4 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert       !account.new_record?
     assert_equal 500, account.credit_limit
   end
-
-  def test_create!_respects_hash_condition
-    account = companies(:first_firm).create_account_limit_500_with_hash_conditions!
-    assert       !account.new_record?
-    assert_equal 500, account.credit_limit
-  end
 end
