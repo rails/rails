@@ -268,7 +268,7 @@ module ActiveRecord
               if elem.respond_to?(:each)
                 flatten_deeper(elem)
               else
-                Array.wrap(elem)
+                [elem]
               end
             end
           end
