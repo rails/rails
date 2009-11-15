@@ -372,7 +372,17 @@ module ActionDispatch
         end
         recall[:action] = options.delete(:action) if options[:action] == 'index'
 
-        path = _uri(named_route, options, recall)
+        parameterize = lambda { |name, value|
+          if name == :controller
+            value
+          elsif value.is_a?(Array)
+            value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
+          else
+            Rack::Mount::Utils.escape_uri(value.to_param)
+          end
+        }
+
+        path = @set.url(named_route, options, recall, :parameterize => parameterize)
         if path && method == :generate_extras
           uri = URI(path)
           extras = uri.query ?
@@ -439,59 +449,6 @@ module ActionDispatch
       def extract_request_environment(request)
         { :method => request.method }
       end
-
-      private
-        def _uri(named_route, params, recall)
-          params = URISegment.wrap_values(params)
-          recall = URISegment.wrap_values(recall)
-
-          unless result = @set.generate(:path_info, named_route, params, recall)
-            return
-          end
-
-          uri, params = result
-          params.each do |k, v|
-            if v._value
-              params[k] = v._value
-            else
-              params.delete(k)
-            end
-          end
-
-          uri << "?#{Rack::Mount::Utils.build_nested_query(params)}" if uri && params.any?
-          uri
-        end
-
-        class URISegment < Struct.new(:_value, :_escape)
-          EXCLUDED = [:controller]
-
-          def self.wrap_values(hash)
-            hash.inject({}) { |h, (k, v)|
-              h[k] = new(v, !EXCLUDED.include?(k.to_sym))
-              h
-            }
-          end
-
-          extend Forwardable
-          def_delegators :_value, :==, :eql?, :hash
-
-          def to_param
-            @to_param ||= begin
-              if _value.is_a?(Array)
-                _value.map { |v| _escaped(v) }.join('/')
-              else
-                _escaped(_value)
-              end
-            end
-          end
-          alias_method :to_s, :to_param
-
-          private
-            def _escaped(value)
-              v = value.respond_to?(:to_param) ? value.to_param : value
-              _escape ? Rack::Mount::Utils.escape_uri(v) : v.to_s
-            end
-        end
     end
   end
 end
