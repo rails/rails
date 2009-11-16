@@ -1,4 +1,4 @@
-require 'action_controller'
+require 'action_dispatch'
 
 require 'fileutils'
 require 'optparse'
