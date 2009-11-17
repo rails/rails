@@ -19,6 +19,7 @@ class SanitizerTest < ActionController::TestCase
     assert_equal "This has a  here.", sanitizer.sanitize("This has a <!-- comment --> here.")
     assert_equal "This has a  here.", sanitizer.sanitize("This has a <![CDATA[<section>]]> here.")
     assert_equal "This has an unclosed ", sanitizer.sanitize("This has an unclosed <![CDATA[<section>]] here...")
+    assert_equal "non printable char is a tag", sanitizer.sanitize("<\x07a href='/hello'>non printable char is a tag</a>")
     [nil, '', '   '].each { |blank| assert_equal blank, sanitizer.sanitize(blank) }
   end
 
