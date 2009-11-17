@@ -38,24 +38,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
   end
 
-  def test_lock_destroy
-    p1 = Person.find(1)
-    p2 = Person.find(1)
-    assert_equal 0, p1.lock_version
-    assert_equal 0, p2.lock_version
-
-    p1.first_name = 'stu'
-    p1.save!
-    assert_equal 1, p1.lock_version
-    assert_equal 0, p2.lock_version
-
-    assert_raises(ActiveRecord::StaleObjectError) { p2.destroy }
-
-    assert p1.destroy
-    assert_equal true, p1.frozen?
-    assert_raises(ActiveRecord::RecordNotFound) { Person.find(1) }
-  end
-
   def test_lock_repeating
     p1 = Person.find(1)
     p2 = Person.find(1)
