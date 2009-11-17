@@ -132,6 +132,28 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert !posts(:welcome).reload.people(true).include?(people(:michael))
   end
 
+  def test_replace_order_is_preserved
+    posts(:welcome).people.clear
+    posts(:welcome).people = [people(:david), people(:michael)]
+    assert_equal [people(:david).id, people(:michael).id], posts(:welcome).readers.all(:order => 'id').map(&:person_id)
+
+    # Test the inverse order in case the first success was a coincidence
+    posts(:welcome).people.clear
+    posts(:welcome).people = [people(:michael), people(:david)]
+    assert_equal [people(:michael).id, people(:david).id], posts(:welcome).readers.all(:order => 'id').map(&:person_id)
+  end
+
+  def test_replace_by_id_order_is_preserved
+    posts(:welcome).people.clear
+    posts(:welcome).person_ids = [people(:david).id, people(:michael).id]
+    assert_equal [people(:david).id, people(:michael).id], posts(:welcome).readers.all(:order => 'id').map(&:person_id)
+
+    # Test the inverse order in case the first success was a coincidence
+    posts(:welcome).people.clear
+    posts(:welcome).person_ids = [people(:michael).id, people(:david).id]
+    assert_equal [people(:michael).id, people(:david).id], posts(:welcome).readers.all(:order => 'id').map(&:person_id)
+  end
+
   def test_associate_with_create
     assert_queries(1) { posts(:thinking) }
     
