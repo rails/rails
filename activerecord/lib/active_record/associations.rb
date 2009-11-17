@@ -1,4 +1,5 @@
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
@@ -1396,8 +1397,8 @@ module ActiveRecord
             end
 
             define_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
-              ids = (new_value || []).reject { |nid| nid.blank? }
-              send("#{reflection.name}=", reflection.klass.find(ids))
+              ids = (new_value || []).reject { |nid| nid.blank? }.map(&:to_i)
+              send("#{reflection.name}=", reflection.klass.find(ids).index_by(&:id).values_at(*ids))
             end
           end
         end
