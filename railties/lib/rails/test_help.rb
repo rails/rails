@@ -17,7 +17,7 @@ if defined?(ActiveRecord)
 
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures
-    self.fixture_path = "#{RAILS_ROOT}/test/fixtures/"
+    self.fixture_path = "#{Rails.root}/test/fixtures/"
     self.use_instantiated_fixtures  = false
     self.use_transactional_fixtures = true
   end

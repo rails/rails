@@ -56,6 +56,12 @@ class I18nValidationTest < ActiveModel::TestCase
     @person.errors.add_on_blank :title, 'custom'
   end
 
+  def test_errors_full_messages_translates_human_attribute_name_for_model_attributes
+    @person.errors.add('name', 'empty')
+    I18n.expects(:translate).with(:"person.name", :default => ['Name'], :scope => [:activemodel, :attributes], :count => 1).returns('Name')
+    @person.errors.full_messages
+  end
+
   # ActiveRecord::Validations
   # validates_confirmation_of w/ mocha
   def test_validates_confirmation_of_generates_message
@@ -493,6 +499,8 @@ class I18nValidationTest < ActiveModel::TestCase
     @person.valid?
     assert_equal ['global message'], @person.errors[:title]
   end
+
+  # test with validates_with
 
   def test_validations_with_message_symbol_must_translate
     I18n.backend.store_translations 'en', :activemodel => {:errors => {:messages => {:custom_error => "I am a custom error"}}}

@@ -4,11 +4,11 @@ require 'active_support/core_ext/proc'
 module ActiveSupport
   # Rescuable module adds support for easier exception handling.
   module Rescuable
-    def self.included(base) # :nodoc:
-      base.class_inheritable_accessor :rescue_handlers
-      base.rescue_handlers = []
+    extend Concern
 
-      base.extend(ClassMethods)
+    included do
+      class_inheritable_accessor :rescue_handlers
+      self.rescue_handlers = []
     end
 
     module ClassMethods
@@ -81,7 +81,7 @@ module ActiveSupport
     def handler_for_rescue(exception)
       # We go from right to left because pairs are pushed onto rescue_handlers
       # as rescue_from declarations are found.
-      _, rescuer = Array(rescue_handlers).reverse.detect do |klass_name, handler|
+      _, rescuer = rescue_handlers.reverse.detect do |klass_name, handler|
         # The purpose of allowing strings in rescue_from is to support the
         # declaration of handler associations for exception classes whose
         # definition is yet unknown.

@@ -1,5 +1,5 @@
 # Require your environment file to bootstrap Rails
-require ::File.dirname(__FILE__) + '/config/environment'
+require ::File.expand_path('../config/environment',  __FILE__)
 
 # Dispatch the request
-run Rails.application.new
+run Rails.application

@@ -1,3 +1,5 @@
+require "active_support/multibyte"
+
 class String
   unless '1.9'.respond_to?(:force_encoding)
     # Returns the character at the +position+ treating the string as an array (where 0 is the first character).

@@ -106,7 +106,7 @@ module ActiveRecord
   #
   # The Rails package has several tools to help create and apply migrations.
   #
-  # To generate a new migration, you can use 
+  # To generate a new migration, you can use
   #   script/generate migration MyNewMigration
   #
   # where MyNewMigration is the name of your migration. The generator will
@@ -124,16 +124,16 @@ module ActiveRecord
   #     def self.up
   #       add_column :tablenames, :fieldname, :string
   #     end
-  # 
+  #
   #     def self.down
   #       remove_column :tablenames, :fieldname
   #     end
   #   end
-  # 
+  #
   # To run migrations against the currently configured database, use
   # <tt>rake db:migrate</tt>. This will update the database by running all of the
   # pending migrations, creating the <tt>schema_migrations</tt> table
-  # (see "About the schema_migrations table" section below) if missing. It will also 
+  # (see "About the schema_migrations table" section below) if missing. It will also
   # invoke the db:schema:dump task, which will update your db/schema.rb file
   # to match the structure of your database.
   #
@@ -243,7 +243,7 @@ module ActiveRecord
   # lower than the current schema version: when migrating up, those
   # never-applied "interleaved" migrations will be automatically applied, and
   # when migrating down, never-applied "interleaved" migrations will be skipped.
-  # 
+  #
   # == Timestamped Migrations
   #
   # By default, Rails generates migrations that look like:
@@ -256,7 +256,7 @@ module ActiveRecord
   # off by setting:
   #
   #    config.active_record.timestamped_migrations = false
-  # 
+  #
   # In environment.rb.
   #
   class Migration
@@ -340,10 +340,6 @@ module ActiveRecord
         self.verbose = save
       end
 
-      def connection
-        ActiveRecord::Base.connection
-      end
-
       def method_missing(method, *arguments, &block)
         arg_list = arguments.map(&:inspect) * ', '
 
@@ -351,7 +347,7 @@ module ActiveRecord
           unless arguments.empty? || method == :execute
             arguments[0] = Migrator.proper_table_name(arguments.first)
           end
-          connection.send(method, *arguments, &block)
+          Base.connection.send(method, *arguments, &block)
         end
       end
     end
@@ -403,7 +399,7 @@ module ActiveRecord
       def down(migrations_path, target_version = nil)
         self.new(:down, migrations_path, target_version).migrate
       end
-      
+
       def run(direction, migrations_path, target_version)
         self.new(direction, migrations_path, target_version).run
       end
@@ -413,7 +409,8 @@ module ActiveRecord
       end
 
       def get_all_versions
-        Base.connection.select_values("SELECT version FROM #{schema_migrations_table_name}").map(&:to_i).sort
+        table = Arel::Table.new(schema_migrations_table_name)
+        Base.connection.select_values(table.project(table['version']).to_sql).map(&:to_i).sort
       end
 
       def current_version
@@ -447,17 +444,17 @@ module ActiveRecord
     def initialize(direction, migrations_path, target_version = nil)
       raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
       Base.connection.initialize_schema_migrations_table
-      @direction, @migrations_path, @target_version = direction, migrations_path, target_version      
+      @direction, @migrations_path, @target_version = direction, migrations_path, target_version
     end
 
     def current_version
       migrated.last || 0
     end
-    
+
     def current_migration
       migrations.detect { |m| m.version == current_version }
     end
-    
+
     def run
       target = migrations.detect { |m| m.version == @target_version }
       raise UnknownMigrationVersionError.new(@target_version) if target.nil?
@@ -474,14 +471,14 @@ module ActiveRecord
       if target.nil? && !@target_version.nil? && @target_version > 0
         raise UnknownMigrationVersionError.new(@target_version)
       end
-      
+
       start = up? ? 0 : (migrations.index(current) || 0)
       finish = migrations.index(target) || migrations.size - 1
       runnable = migrations[start..finish]
-      
+
       # skip the last migration if we're headed down, but not ALL the way down
       runnable.pop if down? && !target.nil?
-      
+
       runnable.each do |migration|
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})"
 
@@ -509,28 +506,28 @@ module ActiveRecord
     def migrations
       @migrations ||= begin
         files = Dir["#{@migrations_path}/[0-9]*_*.rb"]
-        
+
         migrations = files.inject([]) do |klasses, file|
           version, name = file.scan(/([0-9]+)_([_a-z0-9]*).rb/).first
-          
+
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
-          
+
           if klasses.detect { |m| m.version == version }
-            raise DuplicateMigrationVersionError.new(version) 
+            raise DuplicateMigrationVersionError.new(version)
           end
 
           if klasses.detect { |m| m.name == name.camelize }
-            raise DuplicateMigrationNameError.new(name.camelize) 
+            raise DuplicateMigrationNameError.new(name.camelize)
           end
-          
+
           migration = MigrationProxy.new
           migration.name     = name.camelize
           migration.version  = version
           migration.filename = file
           klasses << migration
         end
-        
+
         migrations = migrations.sort_by(&:version)
         down? ? migrations.reverse : migrations
       end
@@ -547,15 +544,15 @@ module ActiveRecord
 
     private
       def record_version_state_after_migrating(version)
-        sm_table = self.class.schema_migrations_table_name
+        table = Arel::Table.new(self.class.schema_migrations_table_name)
 
         @migrated_versions ||= []
         if down?
-          @migrated_versions.delete(version.to_i)
-          Base.connection.update("DELETE FROM #{sm_table} WHERE version = '#{version}'")
+          @migrated_versions.delete(version)
+          table.where(table["version"].eq(version.to_s)).delete
         else
-          @migrated_versions.push(version.to_i).sort!
-          Base.connection.insert("INSERT INTO #{sm_table} (version) VALUES ('#{version}')")
+          @migrated_versions.push(version).sort!
+          table.insert table["version"] => version.to_s
         end
       end
 

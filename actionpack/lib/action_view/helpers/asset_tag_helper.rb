@@ -133,9 +133,13 @@ module ActionView
     # change. You can use something like Live HTTP Headers for Firefox to verify
     # that the cache is indeed working.
     module AssetTagHelper
-      ASSETS_DIR      = defined?(Rails.public_path) ? Rails.public_path : "public"
-      JAVASCRIPTS_DIR = "#{ASSETS_DIR}/javascripts"
-      STYLESHEETS_DIR = "#{ASSETS_DIR}/stylesheets"
+      assets_dir = defined?(Rails.public_path) ? Rails.public_path : "public"
+      ActionView::DEFAULT_CONFIG = {
+        :assets_dir => assets_dir,
+        :javascripts_dir => "#{assets_dir}/javascripts",
+        :stylesheets_dir => "#{assets_dir}/stylesheets",
+      }
+
       JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls'].freeze unless const_defined?(:JAVASCRIPT_DEFAULT_SOURCES)
 
       # Returns a link tag that browsers and news readers can use to auto-detect
@@ -280,7 +284,7 @@ module ActionView
 
         if concat || (ActionController::Base.perform_caching && cache)
           joined_javascript_name = (cache == true ? "all" : cache) + ".js"
-          joined_javascript_path = File.join(joined_javascript_name[/^#{File::SEPARATOR}/] ? ASSETS_DIR : JAVASCRIPTS_DIR, joined_javascript_name)
+          joined_javascript_path = File.join(joined_javascript_name[/^#{File::SEPARATOR}/] ? config.assets_dir : config.javascripts_dir, joined_javascript_name)
 
           unless ActionController::Base.perform_caching && File.exists?(joined_javascript_path)
             write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources, recursive))
@@ -431,7 +435,7 @@ module ActionView
 
         if concat || (ActionController::Base.perform_caching && cache)
           joined_stylesheet_name = (cache == true ? "all" : cache) + ".css"
-          joined_stylesheet_path = File.join(joined_stylesheet_name[/^#{File::SEPARATOR}/] ? ASSETS_DIR : STYLESHEETS_DIR, joined_stylesheet_name)
+          joined_stylesheet_path = File.join(joined_stylesheet_name[/^#{File::SEPARATOR}/] ? config.assets_dir : config.stylesheets_dir, joined_stylesheet_name)
 
           unless ActionController::Base.perform_caching && File.exists?(joined_stylesheet_path)
             write_asset_file_contents(joined_stylesheet_path, compute_stylesheet_paths(sources, recursive))
@@ -630,11 +634,11 @@ module ActionView
         # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
         # roots. Rewrite the asset path for cache-busting asset ids. Include
         # asset host, if configured, with the correct request protocol.
-        def compute_public_path(source, dir, ext = nil, include_host = true)
+        def compute_public_path(source, dir, ext = nil, include_host = true)          
           has_request = @controller.respond_to?(:request)
 
           source_ext = File.extname(source)[1..-1]
-          if ext && !is_uri?(source) && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(ASSETS_DIR, dir, "#{source}.#{ext}"))))
+          if ext && !is_uri?(source) && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(config.assets_dir, dir, "#{source}.#{ext}"))))
             source += ".#{ext}"
           end
 
@@ -700,7 +704,7 @@ module ActionView
             if @@cache_asset_timestamps && (asset_id = @@asset_timestamps_cache[source])
               asset_id
             else
-              path = File.join(ASSETS_DIR, source)
+              path = File.join(config.assets_dir, source)
               asset_id = File.exist?(path) ? File.mtime(path).to_i.to_s : ''
 
               if @@cache_asset_timestamps
@@ -743,20 +747,20 @@ module ActionView
 
         def expand_javascript_sources(sources, recursive = false)
           if sources.include?(:all)
-            all_javascript_files = collect_asset_files(JAVASCRIPTS_DIR, ('**' if recursive), '*.js')
+            all_javascript_files = collect_asset_files(config.javascripts_dir, ('**' if recursive), '*.js')
             ((determine_source(:defaults, @@javascript_expansions).dup & all_javascript_files) + all_javascript_files).uniq
           else
             expanded_sources = sources.collect do |source|
               determine_source(source, @@javascript_expansions)
             end.flatten
-            expanded_sources << "application" if sources.include?(:defaults) && File.exist?(File.join(JAVASCRIPTS_DIR, "application.js"))
+            expanded_sources << "application" if sources.include?(:defaults) && File.exist?(File.join(config.javascripts_dir, "application.js"))
             expanded_sources
           end
         end
 
         def expand_stylesheet_sources(sources, recursive)
           if sources.first == :all
-            collect_asset_files(STYLESHEETS_DIR, ('**' if recursive), '*.css')
+            collect_asset_files(config.stylesheets_dir, ('**' if recursive), '*.css')
           else
             sources.collect do |source|
               determine_source(source, @@stylesheet_expansions)
@@ -803,7 +807,7 @@ module ActionView
         end
 
         def asset_file_path(path)
-          File.join(ASSETS_DIR, path.split('?').first)
+          File.join(config.assets_dir, path.split('?').first)
         end
 
         def asset_file_path!(path)

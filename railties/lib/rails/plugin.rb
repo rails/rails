@@ -1,180 +1,64 @@
 module Rails
-  # The Plugin class should be an object which provides the following methods:
-  #
-  # * +name+       - Used during initialisation to order the plugin (based on name and
-  #                  the contents of <tt>config.plugins</tt>).
-  # * +valid?+     - Returns true if this plugin can be loaded.
-  # * +load_paths+ - Each path within the returned array will be added to the <tt>$LOAD_PATH</tt>.
-  # * +load+       - Finally 'load' the plugin.
-  #
-  # These methods are expected by the Rails::Plugin::Locator and Rails::Plugin::Loader classes.
-  # The default implementation returns the <tt>lib</tt> directory as its <tt>load_paths</tt>, 
-  # and evaluates <tt>init.rb</tt> when <tt>load</tt> is called.
-  #
-  # You can also inspect the about.yml data programmatically:
-  #
-  #   plugin = Rails::Plugin.new(path_to_my_plugin)
-  #   plugin.about["author"] # => "James Adam"
-  #   plugin.about["url"] # => "http://interblah.net"
   class Plugin
-    include Comparable
-    
-    attr_reader :directory, :name
-    
-    def initialize(directory)
-      @directory = directory
-      @name      = File.basename(@directory) rescue nil
-      @loaded    = false
-    end
-    
-    def valid?
-      File.directory?(directory) && (has_app_directory? || has_lib_directory? || has_init_file?)
-    end
-  
-    # Returns a list of paths this plugin wishes to make available in <tt>$LOAD_PATH</tt>.
-    def load_paths
-      report_nonexistant_or_empty_plugin! unless valid?
-      
-      load_paths = []
-      load_paths << lib_path  if has_lib_directory?
-      load_paths << app_paths if has_app_directory?
-      load_paths.flatten
-    end
-    
-    # Evaluates a plugin's init.rb file.
-    def load(initializer)
-      return if loaded?
-      report_nonexistant_or_empty_plugin! unless valid?
-      evaluate_init_rb(initializer)
-      @loaded = true
-    end
-    
-    def loaded?
-      @loaded
-    end
-    
-    def <=>(other_plugin)
-      name <=> other_plugin.name
-    end
+    include Initializable
 
-    def about
-      @about ||= load_about_information
-    end
-
-    # Engines are plugins with an app/ directory.
-    def engine?
-      has_app_directory?
-    end
-    
-    # Returns true if the engine ships with a routing file
-    def routed?
-      File.exist?(routing_file)
-    end
-
-    # Returns true if there is any localization file in locale_path
-    def localized?
-      locale_files.any?
-    end
-
-    def view_path
-      File.join(directory, 'app', 'views')
-    end
-
-    def controller_path
-      File.join(directory, 'app', 'controllers')
-    end
-
-    def metal_path
-      File.join(directory, 'app', 'metal')
-    end
-
-    def routing_file
-      File.join(directory, 'config', 'routes.rb')
-    end
-
-    def locale_path
-      File.join(directory, 'config', 'locales')
-    end
-
-    def locale_files
-      Dir[ File.join(locale_path, '*.{rb,yml}') ]
-    end
-    
-
-    private
-      def load_about_information
-        about_yml_path = File.join(@directory, "about.yml")
-        parsed_yml = File.exist?(about_yml_path) ? YAML.load(File.read(about_yml_path)) : {}
-        parsed_yml || {}
-      rescue Exception
-        {}
-      end
-
-      def report_nonexistant_or_empty_plugin!
-        raise LoadError, "Can not find the plugin named: #{name}"
-      end
-
-      
-      def app_paths
-        [ File.join(directory, 'app', 'models'), File.join(directory, 'app', 'helpers'), controller_path, metal_path ]
-      end
-      
-      def lib_path
-        File.join(directory, 'lib')
-      end
-
-      def classic_init_path
-        File.join(directory, 'init.rb')
-      end
-
-      def gem_init_path
-        File.join(directory, 'rails', 'init.rb')
-      end
-
-      def init_path
-        File.file?(gem_init_path) ? gem_init_path : classic_init_path
-      end
-
-
-      def has_app_directory?
-        File.directory?(File.join(directory, 'app'))
-      end
-
-      def has_lib_directory?
-        File.directory?(lib_path)
-      end
-
-      def has_init_file?
-        File.file?(init_path)
-      end
-
-
-      def evaluate_init_rb(initializer)
-        if has_init_file?
-          require 'active_support/core_ext/kernel/reporting'
-          silence_warnings do
-            # Allow plugins to reference the current configuration object
-            config = initializer.configuration
-            
-            eval(IO.read(init_path), binding, init_path)
+    class Vendored < Plugin
+      def self.all(list, paths)
+        plugins = []
+        paths.each do |path|
+          Dir["#{path}/*"].each do |plugin_path|
+            plugin = new(plugin_path)
+            next unless list.include?(plugin.name) || list.include?(:all)
+            plugins << plugin
           end
         end
-      end               
-  end
 
-  # This Plugin subclass represents a Gem plugin. Although RubyGems has already
-  # taken care of $LOAD_PATHs, it exposes its load_paths to add them
-  # to Dependencies.load_paths.
-  class GemPlugin < Plugin
-    # Initialize this plugin from a Gem::Specification.
-    def initialize(spec, gem)
-      directory = spec.full_gem_path
-      super(directory)
-      @name = spec.name
-    end
+        plugins.sort_by do |p|
+          [list.index(p.name) || list.index(:all), p.name.to_s]
+        end
+      end
 
-    def init_path
-      File.join(directory, 'rails', 'init.rb')
+      attr_reader :name, :path
+
+      def initialize(path)
+        @name = File.basename(path).to_sym
+        @path = path
+      end
+
+      def load_paths
+        Dir["#{path}/{lib}", "#{path}/app/{models,controllers,helpers}"]
+      end
+
+      initializer :add_to_load_path, :after => :set_autoload_paths do |app|
+        load_paths.each do |path|
+          $LOAD_PATH << path
+          require "active_support/dependencies"
+
+          ActiveSupport::Dependencies.load_paths << path
+
+          unless app.config.reload_plugins
+            ActiveSupport::Dependencies.load_once_paths << path
+          end
+        end
+      end
+
+      initializer :load_init_rb, :before => :load_application_initializers do |app|
+        file   = "#{@path}/init.rb"
+        config = app.config
+        eval File.read(file), binding, file if File.file?(file)
+      end
+
+      initializer :add_view_paths, :after => :initialize_framework_views do
+        ActionController::Base.view_paths.concat ["#{path}/app/views"] if File.directory?("#{path}/app/views")
+      end
+
+      initializer :add_routing_file, :after => :initialize_routing do |app|
+        routing_file = "#{path}/config/routes.rb"
+        if File.exist?(routing_file)
+          app.routes.add_configuration_file(routing_file)
+          app.routes.reload!
+        end
+      end
     end
   end
 end

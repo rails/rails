@@ -112,7 +112,7 @@ class MemCacheStoreTest < ActionController::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
-          map.connect "/:action", :controller => "mem_cache_store_test/test"
+          match ':action', :to => ::MemCacheStoreTest::TestController
         end
         @app = ActionDispatch::Session::MemCacheStore.new(set, :key => '_session_id')
         yield

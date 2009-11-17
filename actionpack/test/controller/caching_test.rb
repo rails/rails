@@ -149,7 +149,9 @@ end
 
 class ActionCachingTestController < ActionController::Base
   rescue_from(Exception) { head 500 }
-  rescue_from(ActiveRecord::RecordNotFound) { head :not_found }
+  if defined? ActiveRecord
+    rescue_from(ActiveRecord::RecordNotFound) { head :not_found }
+  end
 
   caches_action :index, :redirected, :forbidden, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
   caches_action :show, :cache_path => 'http://test.host/custom/show'
@@ -226,12 +228,16 @@ class ActionCachingMockController
     @mock_url_for
   end
 
+  def params
+    request.parameters
+  end
+
   def request
     mocked_path = @mock_path
     Object.new.instance_eval(<<-EVAL)
       def path; '#{@mock_path}' end
       def format; 'all' end
-      def cache_format; nil end
+      def parameters; {:format => nil}; end
       self
     EVAL
   end
@@ -464,7 +470,7 @@ class ActionCacheTest < ActionController::TestCase
     @mock_controller.mock_url_for = 'http://example.org/'
     @mock_controller.mock_path    = '/'
 
-    assert_equal 'example.org/index', @path_class.path_for(@mock_controller, {})
+    assert_equal 'example.org/index', @path_class.new(@mock_controller, {}).path
   end
 
   def test_file_extensions
@@ -474,11 +480,13 @@ class ActionCacheTest < ActionController::TestCase
     assert_response :success
   end
 
-  def test_record_not_found_returns_404_for_multiple_requests
-    get :record_not_found
-    assert_response 404
-    get :record_not_found
-    assert_response 404
+  if defined? ActiveRecord
+    def test_record_not_found_returns_404_for_multiple_requests
+      get :record_not_found
+      assert_response 404
+      get :record_not_found
+      assert_response 404
+    end
   end
 
   def test_four_oh_four_returns_404_for_multiple_requests
@@ -624,20 +632,13 @@ class FragmentCachingTest < ActionController::TestCase
 
   def test_fragment_for_logging
     fragment_computed = false
-
-    listener = []
-    ActiveSupport::Orchestra.register listener
+    ActiveSupport::Notifications.queue.expects(:publish).times(2)
 
     buffer = 'generated till now -> '
     @controller.fragment_for(buffer, 'expensive') { fragment_computed = true }
 
-    assert_equal 1, listener.count { |e| e.name == :fragment_exist? }
-    assert_equal 1, listener.count { |e| e.name == :write_fragment }
-
     assert fragment_computed
     assert_equal 'generated till now -> ', buffer
-  ensure
-    ActiveSupport::Orchestra.unregister listener
   end
 
 end

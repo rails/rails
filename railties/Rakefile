@@ -6,7 +6,8 @@ require 'rake/gempackagetask'
 require 'date'
 require 'rbconfig'
 
-require File.join(File.dirname(__FILE__), 'lib/rails', 'version')
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/lib"
+require 'rails/version'
 
 PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME        = ENV['PKG_NAME'] || 'rails'
@@ -21,20 +22,23 @@ RUBY_FORGE_USER    = "webster132"
 
 
 task :default => :test
+task :test => 'test:isolated'
 
 ## This is required until the regular test task
 ## below passes.  It's not ideal, but at least
 ## we can see the failures
-task :test do 
-  dir = ENV["TEST_DIR"] || "**"
-  Dir["test/#{dir}/*_test.rb"].all? do |file|
-    ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-    system(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
-  end or raise "Failures"
+namespace :test do
+  task :isolated do
+    dir = ENV["TEST_DIR"] || "**"
+    Dir["test/#{dir}/*_test.rb"].all? do |file|
+      next true if file.include?("fixtures")
+      ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
+      system(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
+    end or raise "Failures"
+  end
 end
-task :isolated_test => :test
 
-Rake::TestTask.new("regular_test") do |t|
+Rake::TestTask.new('test:regular') do |t|
   t.libs << 'test' << "#{File.dirname(__FILE__)}/../activesupport/lib"
   t.pattern = 'test/**/*_test.rb'
   t.warning = true
@@ -80,7 +84,7 @@ end
 # Run application generator -------------------------------------------------------------
 
 task :create_rails do
-  require File.join(File.dirname(__FILE__), 'lib', 'generators')
+  require 'rails/generators'
   require 'rails/generators/rails/app/app_generator'
   Rails::Generators::AppGenerator.start [ File.basename(PKG_DESTINATION), "--quiet" ],
                                         :destination_root => File.expand_path(File.dirname(PKG_DESTINATION))
@@ -146,7 +150,7 @@ end
 
 # Publishing -------------------------------------------------------
 desc "Publish the rails gem"
-task :pgem => [:gem] do 
+task :pgem => [:gem] do
   require 'rake/contrib/sshpublisher'
   Rake::SshFilePublisher.new("gems.rubyonrails.org", "/u/sites/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
   `ssh gems.rubyonrails.org '/u/sites/gems/gemupdate.sh'`

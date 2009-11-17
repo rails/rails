@@ -65,7 +65,7 @@ class AppGeneratorTest < GeneratorsTestCase
 
   def test_activerecord_is_removed_from_frameworks_if_skip_activerecord_is_given
     run_generator ["--skip-activerecord"]
-    assert_file "config/environment.rb", /config\.frameworks \-= \[ :active_record \]/
+    assert_file "config/application.rb", /config\.frameworks \-= \[ :active_record \]/
   end
 
   def test_prototype_and_test_unit_are_added_by_default
@@ -110,15 +110,8 @@ class AppGeneratorTest < GeneratorsTestCase
     ).each { |path| assert_file "script/#{path}", /#!\/usr\/bin\/env/ }
   end
 
-  def test_rails_is_frozen
-    generator(:freeze => true, :database => "sqlite3").expects(:run).
-              with("rake rails:freeze:edge", :verbose => false)
-    silence(:stdout){ generator.invoke }
-    assert_file 'config/environment.rb', /# RAILS_GEM_VERSION/
-  end
-
   def test_template_from_dir_pwd
-    FileUtils.cd(RAILS_ROOT)
+    FileUtils.cd(Rails.root)
     assert_match /It works from file!/, run_generator(["-m", "lib/template.rb"])
   end
 

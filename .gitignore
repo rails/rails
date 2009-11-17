@@ -27,7 +27,7 @@ railties/guides/output
 *.rbc
 *.swp
 *.swo
-actionpack/bin
+*.tmproj
+bin
 vendor/gems/
-*/vendor/gems/
 railties/tmp

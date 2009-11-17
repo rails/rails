@@ -44,23 +44,30 @@ module ActionController #:nodoc:
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
   module Cookies
-    def self.included(base)
-      base.helper_method :cookies
+    extend ActiveSupport::Concern
+
+    include RackConvenience
+
+    included do
+      helper_method :cookies
     end
 
-    protected
-      # Returns the cookie container, which operates as described above.
-      def cookies
-        @cookies ||= CookieJar.new(self)
-      end
+  protected
+    # Returns the cookie container, which operates as described above.
+    def cookies
+      @cookies ||= CookieJar.build(request, response)
+    end
   end
 
   class CookieJar < Hash #:nodoc:
-    def initialize(controller)
-      @controller, @cookies = controller, controller.request.cookies
-      super()
-      update(@cookies)
+    def self.build(request, response)
+      new.tap do |hash|
+        hash.update(request.cookies)
+        hash.response = response
+      end
     end
+
+    attr_accessor :response
 
     # Returns the value of the cookie by +name+, or +nil+ if no such cookie exists.
     def [](name)
@@ -72,13 +79,16 @@ module ActionController #:nodoc:
     def []=(key, options)
       if options.is_a?(Hash)
         options.symbolize_keys!
+        value = options[:value]
       else
-        options = { :value => options }
+        value = options
+        options = { :value => value }
       end
 
-      options[:path] = "/" unless options.has_key?(:path)
-      super(key.to_s, options[:value])
-      @controller.response.set_cookie(key, options)
+      super(key.to_s, value)
+      
+      options[:path] ||= "/"
+      response.set_cookie(key, options)
     end
 
     # Removes the cookie on the client machine by setting the value to an empty string
@@ -86,9 +96,10 @@ module ActionController #:nodoc:
     # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
     def delete(key, options = {})
       options.symbolize_keys!
-      options[:path] = "/" unless options.has_key?(:path)
-      super(key.to_s)
-      @controller.response.delete_cookie(key, options)
+      options[:path] ||= "/"
+      value = super(key.to_s)
+      response.delete_cookie(key, options)
+      value
     end
   end
 end

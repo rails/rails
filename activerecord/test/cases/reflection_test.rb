@@ -15,8 +15,8 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_human_name
-    assert_equal "Price estimate", PriceEstimate.human_name
-    assert_equal "Subscriber", Subscriber.human_name
+    assert_equal "Price estimate", PriceEstimate.model_name.human
+    assert_equal "Subscriber", Subscriber.model_name.human
   end
 
   def test_column_null_not_null
@@ -176,8 +176,8 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_reflection_of_all_associations
     # FIXME these assertions bust a lot
-    assert_equal 36, Firm.reflect_on_all_associations.size
-    assert_equal 26, Firm.reflect_on_all_associations(:has_many).size
+    assert_equal 37, Firm.reflect_on_all_associations.size
+    assert_equal 27, Firm.reflect_on_all_associations(:has_many).size
     assert_equal 10, Firm.reflect_on_all_associations(:has_one).size
     assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
   end

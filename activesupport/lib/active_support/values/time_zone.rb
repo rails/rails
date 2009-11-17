@@ -1,6 +1,4 @@
-require 'active_support/core_ext/time'
-require 'active_support/core_ext/date'
-require 'active_support/core_ext/date_time'
+require 'active_support/core_ext/object/blank'
 
 # The TimeZone class serves as a wrapper around TZInfo::Timezone instances. It allows us to do the following:
 #
@@ -63,7 +61,7 @@ module ActiveSupport
         "Azores"                       => "Atlantic/Azores",
         "Cape Verde Is."               => "Atlantic/Cape_Verde",
         "Dublin"                       => "Europe/Dublin",
-        "Edinburgh"                    => "Europe/Dublin",
+        "Edinburgh"                    => "Europe/London",
         "Lisbon"                       => "Europe/Lisbon",
         "London"                       => "Europe/London",
         "Casablanca"                   => "Africa/Casablanca",

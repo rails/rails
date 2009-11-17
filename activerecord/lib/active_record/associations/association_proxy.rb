@@ -156,15 +156,6 @@ module ActiveRecord
           @reflection.options[:dependent]
         end
 
-        # Returns a string with the IDs of +records+ joined with a comma, quoted
-        # if needed. The result is ready to be inserted into a SQL IN clause.
-        #
-        #   quoted_record_ids(records) # => "23,56,58,67"
-        #
-        def quoted_record_ids(records)
-          records.map { |record| record.quoted_id }.join(',')
-        end
-
         def interpolate_sql(sql, record = nil)
           @owner.send(:interpolate_sql, sql, record)
         end
@@ -265,10 +256,16 @@ module ActiveRecord
           end
         end
 
-        # Array#flatten has problems with recursive arrays. Going one level
-        # deeper solves the majority of the problems.
-        def flatten_deeper(array)
-          array.collect { |element| (element.respond_to?(:flatten) && !element.is_a?(Hash)) ? element.flatten : element }.flatten
+        if RUBY_VERSION < '1.9.2'
+          # Array#flatten has problems with recursive arrays before Ruby 1.9.2.
+          # Going one level deeper solves the majority of the problems.
+          def flatten_deeper(array)
+            array.collect { |element| (element.respond_to?(:flatten) && !element.is_a?(Hash)) ? element.flatten : element }.flatten
+          end
+        else
+          def flatten_deeper(array)
+            array.flatten
+          end
         end
 
         # Returns the ID of the owner, quoted if needed.

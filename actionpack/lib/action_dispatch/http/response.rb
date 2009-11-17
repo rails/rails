@@ -270,6 +270,8 @@ module ActionDispatch # :nodoc:
 
         if control.empty?
           headers["Cache-Control"] = DEFAULT_CACHE_CONTROL
+        elsif @cache_control[:no_cache]
+          headers["Cache-Control"] = "no-cache"
         else
           extras  = control[:extras]
           max_age = control[:max_age]

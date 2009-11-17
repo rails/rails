@@ -3,10 +3,6 @@ if ARGV.empty?
   exit(1)
 end
 
-# Keep the expensive require out of the profile.
-$stderr.puts 'Loading Rails...'
-require RAILS_ROOT + '/config/environment'
-
 # Define a method to profile.
 if ARGV[1] and ARGV[1].to_i > 1
   eval "def profile_me() #{ARGV[1]}.times { #{ARGV[0]} } end"

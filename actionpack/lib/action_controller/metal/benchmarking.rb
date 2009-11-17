@@ -1,29 +1,10 @@
-require 'benchmark'
+require 'active_support/core_ext/benchmark'
 
 module ActionController #:nodoc:
   # The benchmarking module times the performance of actions and reports to the logger. If the Active Record
   # package has been included, a separate timing section for database calls will be added as well.
   module Benchmarking #:nodoc:
     extend ActiveSupport::Concern
-
-    module ClassMethods
-      # Log and benchmark the workings of a single block and silence whatever logging that may have happened inside it 
-      # (unless <tt>use_silence</tt> is set to false).
-      #
-      # The benchmark is only recorded if the current level of the logger matches the <tt>log_level</tt>, which makes it
-      # easy to include benchmarking statements in production software that will remain inexpensive because the benchmark
-      # will only be conducted if the log level is low enough.
-      def benchmark(title, log_level = Logger::DEBUG, use_silence = true)
-        if logger && logger.level == log_level
-          result = nil
-          ms = Benchmark.ms { result = use_silence ? silence { yield } : yield }
-          logger.add(log_level, "#{title} (#{('%.1f' % ms)}ms)")
-          result
-        else
-          yield
-        end
-      end
-    end
 
     protected
       def render(*args, &block)
@@ -45,7 +26,7 @@ module ActionController #:nodoc:
         else
           super
         end
-      end    
+      end
 
     private
       def process_action(*args)

@@ -12,11 +12,24 @@ module Rails
 
       add_runtime_options!
 
+      # Always move to rails source root.
+      #
+      def initialize(*args) #:nodoc:
+        if !invoked?(args) && defined?(Rails.root) && Rails.root
+          self.destination_root = Rails.root
+          FileUtils.cd(destination_root)
+        end
+        super
+      end
+
       # Automatically sets the source root based on the class name.
       #
       def self.source_root
-        @_rails_source_root ||= File.expand_path(File.join(File.dirname(__FILE__),
-                                                 base_name, generator_name, 'templates'))
+        @_rails_source_root ||= begin
+          if base_name && generator_name
+            File.expand_path(File.join(File.dirname(__FILE__), base_name, generator_name, 'templates'))
+          end
+        end
       end
 
       # Tries to get the description from a USAGE file one folder above the source
@@ -201,10 +214,13 @@ module Rails
       #
       def self.inherited(base) #:nodoc:
         super
-        base.source_root # Cache source root
 
-        if defined?(RAILS_ROOT) && base.name !~ /Base$/
-          path = File.expand_path(File.join(RAILS_ROOT, 'lib', 'templates'))
+        # Cache source root, we need to do this, since __FILE__ is a relative value
+        # and can point to wrong directions when inside an specified directory.
+        base.source_root
+
+        if base.name && base.name !~ /Base$/ && base.base_name && base.generator_name && defined?(Rails.root) && Rails.root
+          path = File.expand_path(File.join(Rails.root, 'lib', 'templates'))
           if base.name.include?('::')
             base.source_paths << File.join(path, base.base_name, base.generator_name)
           else
@@ -247,6 +263,13 @@ module Rails
           end
         end
 
+        # Check if this generator was invoked from another one by inspecting
+        # parameters.
+        #
+        def invoked?(args)
+          args.last.is_a?(Hash) && args.last.key?(:invocations)
+        end
+
         # Use Rails default banner.
         #
         def self.banner
@@ -256,17 +279,24 @@ module Rails
         # Sets the base_name taking into account the current class namespace.
         #
         def self.base_name
-          @base_name ||= self.name.split('::').first.underscore
+          @base_name ||= begin
+            if base = name.to_s.split('::').first
+              base.underscore
+            end
+          end
         end
 
         # Removes the namespaces and get the generator name. For example,
         # Rails::Generators::MetalGenerator will return "metal" as generator name.
         #
         def self.generator_name
-          @generator_name ||= begin
-            klass_name = self.name.split('::').last
-            klass_name.sub!(/Generator$/, '')
-            klass_name.underscore
+          if name
+            @generator_name ||= begin
+              if klass_name = name.to_s.split('::').last
+                klass_name.sub!(/Generator$/, '')
+                klass_name.underscore
+              end
+            end
           end
         end
 
@@ -274,35 +304,27 @@ module Rails
         # Rails::Generators.options.
         #
         def self.default_value_for_option(name, options)
-          config = Rails::Generators.options
-          generator, base = generator_name.to_sym, base_name.to_sym
-
-          if config[generator] && config[generator].key?(name)
-            config[generator][name]
-          elsif config[base] && config[base].key?(name)
-            config[base][name]
-          elsif config[:rails].key?(name)
-            config[:rails][name]
-          else
-            options[:default]
-          end
+          default_for_option(Rails::Generators.options, name, options, options[:default])
         end
 
         # Return default aliases for the option name given doing a lookup in
         # Rails::Generators.aliases.
         #
         def self.default_aliases_for_option(name, options)
-          config = Rails::Generators.aliases
-          generator, base = generator_name.to_sym, base_name.to_sym
+          default_for_option(Rails::Generators.aliases, name, options, options[:aliases])
+        end
 
-          if config[generator] && config[generator].key?(name)
-            config[generator][name]
-          elsif config[base] && config[base].key?(name)
-            config[base][name]
+        # Return default for the option name given doing a lookup in config.
+        #
+        def self.default_for_option(config, name, options, default)
+          if generator_name and c = config[generator_name.to_sym] and c.key?(name)
+            c[name]
+          elsif base_name and c = config[base_name.to_sym] and c.key?(name)
+            c[name]
           elsif config[:rails].key?(name)
             config[:rails][name]
           else
-            options[:aliases]
+            default
           end
         end
 

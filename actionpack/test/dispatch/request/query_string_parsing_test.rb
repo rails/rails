@@ -109,12 +109,12 @@ class QueryStringParsingTest < ActionController::IntegrationTest
     def assert_parses(expected, actual)
       with_routing do |set|
         set.draw do |map|
-          map.connect ':action', :controller => "query_string_parsing_test/test"
+          match ':action', :to => ::QueryStringParsingTest::TestController
         end
 
         get "/parse", actual
         assert_response :ok
-        assert_equal(expected, TestController.last_query_parameters)
+        assert_equal(expected, ::QueryStringParsingTest::TestController.last_query_parameters)
       end
     end
 end

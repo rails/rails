@@ -1,4 +1,3 @@
-require 'benchmark'
 require 'date'
 require 'bigdecimal'
 require 'bigdecimal/util'
@@ -11,8 +10,6 @@ require 'active_record/connection_adapters/abstract/quoting'
 require 'active_record/connection_adapters/abstract/connection_pool'
 require 'active_record/connection_adapters/abstract/connection_specification'
 require 'active_record/connection_adapters/abstract/query_cache'
-
-require 'active_support/core_ext/benchmark'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -33,6 +30,7 @@ module ActiveRecord
       include Quoting, DatabaseStatements, SchemaStatements
       include QueryCache
       include ActiveSupport::Callbacks
+
       define_callbacks :checkout, :checkin
 
       @@row_even = true
@@ -75,7 +73,7 @@ module ActiveRecord
       def supports_ddl_transactions?
         false
       end
-      
+
       # Does this adapter support savepoints? PostgreSQL and MySQL do, SQLite
       # does not.
       def supports_savepoints?
@@ -193,6 +191,7 @@ module ActiveRecord
       end
 
       def log_info(sql, name, ms)
+        @runtime += ms
         if @logger && @logger.debug?
           name = '%s (%.1fms)' % [name || 'SQL', ms]
           @logger.debug(format_log_entry(name, sql.squeeze(' ')))
@@ -200,13 +199,8 @@ module ActiveRecord
       end
 
       protected
-        def log(sql, name)
-          event = ActiveSupport::Orchestra.instrument(:sql, :sql => sql, :name => name) do
-            yield if block_given?
-          end
-          @runtime += event.duration
-          log_info(sql, name, event.duration)
-          event.result
+        def log(sql, name, &block)
+          ActiveSupport::Notifications.instrument(:sql, :sql => sql, :name => name, &block)
         rescue Exception => e
           # Log message and raise exception.
           # Set last_verification to 0, so that connection gets verified

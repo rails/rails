@@ -1,19 +1,17 @@
-$:.unshift(File.dirname(__FILE__) + '/../lib')
-$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
-$:.unshift(File.dirname(__FILE__) + '/../../activemodel/lib')
+root = File.expand_path('../../..', __FILE__)
+begin
+  require "#{root}/vendor/gems/environment"
+rescue LoadError
+  $:.unshift "#{root}/activesupport/lib"
+  $:.unshift "#{root}/activemodel/lib"
+end
+
+lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
+$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
-
-bundler = File.join(File.dirname(__FILE__), '..', 'vendor', 'gems', 'environment')
-require bundler if File.exist?("#{bundler}.rb")
-
-begin
-  %w( rack rack/test sqlite3 ).each { |lib| require lib }
-rescue LoadError => e
-  abort e.message
-end
 
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
@@ -103,6 +101,26 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
 
   self.app = build_app
 
+  class StubDispatcher
+    def self.new(*args)
+      lambda { |env|
+        params = env['action_dispatch.request.path_parameters']
+        controller, action = params[:controller], params[:action]
+        [200, {'Content-Type' => 'text/html'}, ["#{controller}##{action}"]]
+      }
+    end
+  end
+
+  def self.stub_controllers
+    old_dispatcher = ActionDispatch::Routing::RouteSet::Dispatcher
+    ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
+    ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, StubDispatcher }
+    yield ActionDispatch::Routing::RouteSet.new
+  ensure
+    ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
+    ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, old_dispatcher }
+  end
+
   def with_routing(&block)
     real_routes = ActionController::Routing::Routes
     ActionController::Routing.module_eval { remove_const :Routes }
@@ -173,8 +191,8 @@ class ::ApplicationController < ActionController::Base
 end
 
 module ActionController
-  class << Routing
-    def possible_controllers
+  module Routing
+    def self.possible_controllers
       @@possible_controllers ||= []
     end
   end

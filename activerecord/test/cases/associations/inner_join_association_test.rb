@@ -26,7 +26,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_construct_finder_sql_applies_association_conditions
     sql = Author.send(:construct_finder_sql, :joins => :categories_like_general, :conditions => "TERMINATING_MARKER")
-    assert_match /INNER JOIN .?categories.? ON.*AND.*.?General.?.*TERMINATING_MARKER/, sql
+    assert_match /INNER JOIN .?categories.? ON.*AND.*.?General.?(.|\n)*TERMINATING_MARKER/, sql
   end
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions

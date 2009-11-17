@@ -5,12 +5,13 @@ module ActiveModel
     attr_reader :singular, :plural, :element, :collection, :partial_path, :human
     alias_method :cache_key, :collection
 
-    def initialize(name)
-      super
+    def initialize(klass, name)
+      super(name)
+      @klass = klass
       @singular = ActiveSupport::Inflector.underscore(self).tr('/', '_').freeze
       @plural = ActiveSupport::Inflector.pluralize(@singular).freeze
       @element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self)).freeze
-      @human = @element.gsub(/_/, " ")
+      @human = ActiveSupport::Inflector.humanize(@element).freeze
       @collection = ActiveSupport::Inflector.tableize(self).freeze
       @partial_path = "#{@collection}/#{@element}".freeze
     end
@@ -20,7 +21,7 @@ module ActiveModel
     # Returns an ActiveModel::Name object for module. It can be
     # used to retrieve all kinds of naming-related information.
     def model_name
-      @_model_name ||= ActiveModel::Name.new(name)
+      @_model_name ||= ActiveModel::Name.new(self, name)
     end
   end
 end

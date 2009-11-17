@@ -104,7 +104,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
       authors.first.posts.first.special_comments.first.post.very_special_comment
     end
   end
-  
+
   def test_eager_association_loading_where_first_level_returns_nil
     authors = Author.find(:all, :include => {:post_about_thinking => :comments}, :order => 'authors.id DESC')
     assert_equal [authors(:mary), authors(:david)], authors

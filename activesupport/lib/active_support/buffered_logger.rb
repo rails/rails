@@ -53,7 +53,6 @@ module ActiveSupport
         FileUtils.mkdir_p(File.dirname(log))
         @log = open(log, (File::WRONLY | File::APPEND | File::CREAT))
         @log.sync = true
-        @log.write("# Logfile created on %s" % [Time.now.to_s])
       end
     end
 

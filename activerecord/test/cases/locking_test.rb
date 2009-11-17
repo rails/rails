@@ -282,11 +282,14 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
         assert first.end > second.end
       end
 
-      def test_second_lock_waits
-        assert [0.2, 1, 5].any? { |zzz|
-          first, second = duel(zzz) { Person.find 1, :lock => true }
-          second.end > first.end
-        }
+      # Hit by ruby deadlock detection since connection checkout is mutexed.
+      if RUBY_VERSION < '1.9.0'
+        def test_second_lock_waits
+          assert [0.2, 1, 5].any? { |zzz|
+            first, second = duel(zzz) { Person.find 1, :lock => true }
+            second.end > first.end
+          }
+        end
       end
 
       protected

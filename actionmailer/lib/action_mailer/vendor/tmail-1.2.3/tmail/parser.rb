@@ -43,6 +43,7 @@ module Racc
 
   class Parser
 
+    old_verbose, $VERBOSE = $VERBOSE, nil
     Racc_Runtime_Version = '1.4.5'
     Racc_Runtime_Revision = '$Revision: 1.7 $'.split[1]
 
@@ -71,6 +72,7 @@ module Racc
       Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_R
       Racc_Runtime_Type            = 'ruby'
     end
+    $VERBOSE = old_verbose
 
     def Parser.racc_runtime_type
       Racc_Runtime_Type

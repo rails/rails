@@ -12,9 +12,30 @@ class PathsTest < ActiveSupport::TestCase
     assert_equal "/fiz/baz", root.path
   end
 
+  test "the paths object can be initialized with nil" do
+    assert_nothing_raised do
+      Rails::Application::Root.new(nil)
+    end
+  end
+
+  test "a paths object initialized with nil can be updated" do
+    root = Rails::Application::Root.new(nil)
+    root.app = "app"
+    root.path = "/root"
+    assert_equal ["/root/app"], root.app.to_a
+  end
+
   test "creating a root level path" do
     @root.app = "/foo/bar"
     assert_equal ["/foo/bar"], @root.app.to_a
+  end
+
+  test "raises exception if root path never set" do
+    root = Rails::Application::Root.new(nil)
+    root.app = "app"
+    assert_raises RuntimeError do
+      root.app.to_a
+    end
   end
 
   test "creating a root level path without assignment" do

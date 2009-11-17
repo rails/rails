@@ -5,7 +5,7 @@ module ActionView #:nodoc:
       if value.html_safe?
         super(value)
       else
-        super(CGI.escapeHTML(value))
+        super(ERB::Util.h(value))
       end
     end
 

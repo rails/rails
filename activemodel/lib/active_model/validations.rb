@@ -1,14 +1,13 @@
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/hash/keys'
-require 'active_support/concern'
-require 'active_support/callbacks'
 
 module ActiveModel
   module Validations
     extend ActiveSupport::Concern
-    include ActiveSupport::NewCallbacks
+    include ActiveSupport::Callbacks
 
     included do
+      extend ActiveModel::Translation
       define_callbacks :validate, :scope => :name
     end
 
@@ -99,7 +98,7 @@ module ActiveModel
     def invalid?
       !valid?
     end
-    
+
     protected
       # Hook method defining how an attribute value should be retieved. By default this is assumed
       # to be an instance named after the attribute. Override this method in subclasses should you
@@ -110,9 +109,9 @@ module ActiveModel
       #     def initialize(data = {})
       #       @data = data
       #     end
-      #     
+      #
       #     private
-      #     
+      #
       #     def read_attribute_for_validation(key)
       #       @data[key]
       #     end

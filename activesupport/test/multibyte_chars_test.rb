@@ -100,9 +100,14 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   def setup
     @chars = UNICODE_STRING.dup.mb_chars
 
-    # NEWLINE, SPACE, EM SPACE
-    @whitespace = "\n#{[32, 8195].pack('U*')}"
-    @whitespace.force_encoding(Encoding::UTF_8) if @whitespace.respond_to?(:force_encoding)
+    if RUBY_VERSION < '1.9'
+      # Multibyte support all kinds of whitespace (ie. NEWLINE, SPACE, EM SPACE)
+      @whitespace = "\n\t#{[32, 8195].pack('U*')}"
+    else
+      # Ruby 1.9 only supports basic whitespace
+      @whitespace = "\n\t ".force_encoding(Encoding::UTF_8)
+    end
+    
     @byte_order_mark = [65279].pack('U')
   end
 
@@ -163,6 +168,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert chars('').strip.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars('').reverse.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars(' ').slice(0).kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').limit(0).kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars('').upcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars('').downcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars('').capitalize.kind_of?(ActiveSupport::Multibyte.proxy_class)
@@ -190,7 +196,9 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   def test_should_return_character_offset_for_regexp_matches
     assert_nil(@chars =~ /wrong/u)
     assert_equal 0, (@chars =~ /こ/u)
+    assert_equal 0, (@chars =~ /こに/u)
     assert_equal 1, (@chars =~ /に/u)
+    assert_equal 2, (@chars =~ /ち/u)
     assert_equal 3, (@chars =~ /わ/u)
   end
 
@@ -220,10 +228,10 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert !@chars.include?('a')
   end
 
-  def test_include_raises_type_error_when_nil_is_passed
-    assert_raise(TypeError) do
-      @chars.include?(nil)
-    end
+  def test_include_raises_when_nil_is_passed
+    @chars.include?(nil)
+    flunk "Expected chars.include?(nil) to raise TypeError or NoMethodError"
+  rescue Exception => e
   end
 
   def test_index_should_return_character_offset
@@ -378,6 +386,17 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_equal 'わちにこ', @chars.reverse
   end
 
+  def test_reverse_should_work_with_normalized_strings
+    str = 'bös'
+    reversed_str = 'söb'
+    assert_equal chars(reversed_str).normalize(:kc), chars(str).normalize(:kc).reverse
+    assert_equal chars(reversed_str).normalize(:c), chars(str).normalize(:c).reverse
+    assert_equal chars(reversed_str).normalize(:d), chars(str).normalize(:d).reverse
+    assert_equal chars(reversed_str).normalize(:kd), chars(str).normalize(:kd).reverse
+    assert_equal chars(reversed_str).decompose, chars(str).decompose.reverse
+    assert_equal chars(reversed_str).compose, chars(str).compose.reverse
+  end
+
   def test_slice_should_take_character_offsets
     assert_equal nil, ''.mb_chars.slice(0)
     assert_equal 'こ', @chars.slice(0)
@@ -476,6 +495,43 @@ class MultibyteCharsExtrasTest < Test::Unit::TestCase
     end
   end
 
+  def test_limit_should_not_break_on_blank_strings
+    example = chars('')
+    assert_equal example, example.limit(0)
+    assert_equal example, example.limit(1)
+  end
+
+  def test_limit_should_work_on_a_multibyte_string
+    example = chars(UNICODE_STRING)
+    bytesize = UNICODE_STRING.respond_to?(:bytesize) ? UNICODE_STRING.bytesize : UNICODE_STRING.size
+    
+    assert_equal UNICODE_STRING, example.limit(bytesize)
+    assert_equal '', example.limit(0)
+    assert_equal '', example.limit(1)
+    assert_equal 'こ', example.limit(3)
+    assert_equal 'こに', example.limit(6)
+    assert_equal 'こに', example.limit(8)
+    assert_equal 'こにち', example.limit(9)
+    assert_equal 'こにちわ', example.limit(50)
+  end
+
+  def test_limit_should_work_on_an_ascii_string
+    ascii = chars(ASCII_STRING)
+    assert_equal ASCII_STRING, ascii.limit(ASCII_STRING.length)
+    assert_equal '', ascii.limit(0)
+    assert_equal 'o', ascii.limit(1)
+    assert_equal 'oh', ascii.limit(2)
+    assert_equal 'ohay', ascii.limit(4)
+    assert_equal 'ohayo', ascii.limit(50)
+  end
+
+  def test_limit_should_keep_under_the_specified_byte_limit
+    example = chars(UNICODE_STRING)
+    (1..UNICODE_STRING.length).each do |limit|
+      assert example.limit(limit).to_s.length <= limit
+    end
+  end
+  
   def test_composition_exclusion_is_set_up_properly
     # Normalization of DEVANAGARI LETTER QA breaks when composition exclusion isn't used correctly
     qa = [0x915, 0x93c].pack('U*')
@@ -584,5 +640,23 @@ class MultibyteCharsExtrasTest < Test::Unit::TestCase
     classes.collect do |k|
       character_from_class[k.intern]
     end.pack('U*')
+  end
+end
+
+class MultibyteInternalsTest < ActiveSupport::TestCase
+  include MultibyteTestHelpers
+
+  test "Chars translates a character offset to a byte offset" do
+    example = chars("Puisque c'était son erreur, il m'a aidé")
+    [
+      [0, 0],
+      [3, 3],
+      [12, 11],
+      [14, 13],
+      [41, 39]
+    ].each do |byte_offset, character_offset|
+      assert_equal character_offset, example.send(:translate_offset, byte_offset),
+        "Expected byte offset #{byte_offset} to translate to #{character_offset}"
+    end
   end
 end

@@ -125,8 +125,8 @@ class VerificationTest < ActionController::TestCase
     assert_not_deprecated do
       with_routing do |set|
         set.draw do |map|
-          map.foo '/foo', :controller => 'test', :action => 'foo'
-          map.connect ":controller/:action/:id"
+          match 'foo', :to => 'test#foo', :as => :foo
+          match 'verification_test/:action', :to => ::VerificationTest::TestController
         end
         get :guarded_one_for_named_route_test, :two => "not one"
         assert_redirected_to '/foo'

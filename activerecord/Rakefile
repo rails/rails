@@ -49,11 +49,13 @@ task :test do
   run_without_aborting(*tasks)
 end
 
-task :isolated_test do
-  tasks = defined?(JRUBY_VERSION) ?
-    %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
-    %w(isolated_test_mysql isolated_test_sqlite3 isolated_test_postgresql)
-  run_without_aborting(*tasks)
+namespace :test do
+  task :isolated do
+    tasks = defined?(JRUBY_VERSION) ?
+      %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
+      %w(isolated_test_mysql isolated_test_sqlite3 isolated_test_postgresql)
+    run_without_aborting(*tasks)
+  end
 end
 
 %w( mysql postgresql sqlite3 firebird db2 oracle sybase openbase frontbase jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
@@ -195,8 +197,6 @@ spec = eval(File.read('activerecord.gemspec'))
 
 Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
-  p.need_tar = true
-  p.need_zip = true
 end
 
 task :lines do

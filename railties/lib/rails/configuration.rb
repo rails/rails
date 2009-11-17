@@ -1,84 +1,75 @@
+require 'active_support/ordered_options'
+
 module Rails
   class Configuration
-    attr_accessor :cache_classes, :load_paths, :eager_load_paths, :framework_paths,
-                  :load_once_paths, :gems_dependencies_loaded, :after_initialize_blocks,
-                  :frameworks, :framework_root_path, :root_path, :plugin_paths, :plugins,
-                  :plugin_loader, :plugin_locators, :gems, :loaded_plugins, :reload_plugins,
+    attr_accessor :cache_classes, :load_paths, :load_once_paths, :after_initialize_blocks,
+                  :frameworks, :framework_root_path, :root, :gems, :plugins,
                   :i18n, :gems, :whiny_nils, :consider_all_requests_local,
                   :action_controller, :active_record, :action_view, :active_support,
                   :action_mailer, :active_resource,
-                  :log_path, :log_level, :logger, :preload_frameworks,
+                  :reload_plugins, :log_path, :log_level, :logger, :preload_frameworks,
                   :database_configuration_file, :cache_store, :time_zone,
                   :view_path, :metals, :controller_paths, :routes_configuration_file,
                   :eager_load_paths, :dependency_loading, :paths, :serve_static_assets
 
     def initialize
-      set_root_path!
-
-      @framework_paths              = []
       @load_once_paths              = []
       @after_initialize_blocks      = []
-      @loaded_plugins               = []
       @dependency_loading           = true
-      @eager_load_paths             = default_eager_load_paths
-      @load_paths                   = default_load_paths
-      @plugin_paths                 = default_plugin_paths
-      @frameworks                   = default_frameworks
-      @plugin_loader                = default_plugin_loader
-      @plugin_locators              = default_plugin_locators
-      @gems                         = default_gems
-      @i18n                         = default_i18n
-      @log_path                     = default_log_path
-      @log_level                    = default_log_level
-      @cache_store                  = default_cache_store
-      @view_path                    = default_view_path
-      @controller_paths             = default_controller_paths
-      @routes_configuration_file    = default_routes_configuration_file
-      @database_configuration_file  = default_database_configuration_file
-      @serve_static_assets          = default_serve_static_assets
+      @serve_static_assets          = true
 
-      for framework in default_frameworks
-        self.send("#{framework}=", Rails::OrderedOptions.new)
+      for framework in frameworks
+        self.send("#{framework}=", ActiveSupport::OrderedOptions.new)
       end
-      self.active_support = Rails::OrderedOptions.new
+      self.active_support = ActiveSupport::OrderedOptions.new
     end
 
     def after_initialize(&blk)
       @after_initialize_blocks << blk if blk
     end
 
-    def set_root_path!
-      raise 'RAILS_ROOT is not set' unless defined?(RAILS_ROOT)
-      raise 'RAILS_ROOT is not a directory' unless File.directory?(RAILS_ROOT)
+    def root
+      @root ||= begin
+        call_stack = caller.map { |p| p.split(':').first }
+        root_path  = call_stack.detect { |p| p !~ %r[railties/lib/rails] }
+        root_path  = File.dirname(root_path)
 
-      self.root_path =
-        # Pathname is incompatible with Windows, but Windows doesn't have
-        # real symlinks so File.expand_path is safe.
-        if RUBY_PLATFORM =~ /(:?mswin|mingw)/
-          File.expand_path(RAILS_ROOT)
-
-        # Otherwise use Pathname#realpath which respects symlinks.
-        else
-          Pathname.new(RAILS_ROOT).realpath.to_s
+        while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/config.ru")
+          parent = File.dirname(root_path)
+          root_path = parent != root_path && parent
         end
 
-      @paths = Rails::Application::Root.new(root_path)
-      @paths.app                 "app",             :load_path => true
-      @paths.app.metals          "app/metal",       :eager_load => true
-      @paths.app.models          "app/models",      :eager_load => true
-      @paths.app.controllers     "app/controllers", builtin_directories, :eager_load => true
-      @paths.app.helpers         "app/helpers",     :eager_load => true
-      @paths.app.services        "app/services",    :load_path => true
-      @paths.lib                 "lib",             :load_path => true
-      @paths.vendor              "vendor",          :load_path => true
-      @paths.vendor.plugins      "vendor/plugins"
-      @paths.tmp                 "tmp"
-      @paths.tmp.cache           "tmp/cache"
-      @paths.config              "config"
-      @paths.config.locales      "config/locales"
-      @paths.config.environments "config/environments", :glob => "#{RAILS_ENV}.rb"
+        root = File.exist?("#{root_path}/config.ru") ? root_path : Dir.pwd
 
-      RAILS_ROOT.replace root_path
+        RUBY_PLATFORM =~ /(:?mswin|mingw)/ ?
+          Pathname.new(root).expand_path :
+          Pathname.new(root).realpath
+      end
+    end
+
+    def root=(root)
+      @root = Pathname.new(root).expand_path
+    end
+
+    def paths
+      @paths ||= begin
+        paths = Rails::Application::Root.new(root)
+        paths.app                 "app",             :load_path => true
+        paths.app.metals          "app/metal",       :eager_load => true
+        paths.app.models          "app/models",      :eager_load => true
+        paths.app.controllers     "app/controllers", builtin_directories, :eager_load => true
+        paths.app.helpers         "app/helpers",     :eager_load => true
+        paths.app.services        "app/services",    :load_path => true
+        paths.lib                 "lib",             :load_path => true
+        paths.vendor              "vendor",          :load_path => true
+        paths.vendor.plugins      "vendor/plugins"
+        paths.tmp                 "tmp"
+        paths.tmp.cache           "tmp/cache"
+        paths.config              "config"
+        paths.config.locales      "config/locales"
+        paths.config.environments "config/environments", :glob => "#{RAILS_ENV}.rb"
+        paths
+      end
     end
 
     # Enable threaded mode. Allows concurrent requests to controller actions and
@@ -105,7 +96,7 @@ module Rails
     end
 
     def framework_root_path
-      defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root_path}/vendor/rails"
+      defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root}/vendor/rails"
     end
 
     def middleware
@@ -121,63 +112,69 @@ module Rails
       YAML::load(ERB.new(IO.read(database_configuration_file)).result)
     end
 
-    def default_routes_configuration_file
-      File.join(root_path, 'config', 'routes.rb')
+    def routes_configuration_file
+      @routes_configuration_file ||= File.join(root, 'config', 'routes.rb')
     end
 
-    def default_controller_paths
-      paths = [File.join(root_path, 'app', 'controllers')]
-      paths.concat builtin_directories
-      paths
-    end
-
-    def default_cache_store
-      if File.exist?("#{root_path}/tmp/cache/")
-        [ :file_store, "#{root_path}/tmp/cache/" ]
-      else
-        :memory_store
+    def controller_paths
+      @controller_paths ||= begin
+        paths = [File.join(root, 'app', 'controllers')]
+        paths.concat builtin_directories
+        paths
       end
     end
 
-    def default_database_configuration_file
-      File.join(root_path, 'config', 'database.yml')
+    def cache_store
+      @cache_store ||= begin
+        if File.exist?("#{root}/tmp/cache/")
+          [ :file_store, "#{root}/tmp/cache/" ]
+        else
+          :memory_store
+        end
+      end
     end
 
-    def default_view_path
-      File.join(root_path, 'app', 'views')
+    def database_configuration_file
+      @database_configuration_file ||= File.join(root, 'config', 'database.yml')
     end
 
-    def default_eager_load_paths
-      %w(
+    def view_path
+      @view_path ||= File.join(root, 'app', 'views')
+    end
+
+    def eager_load_paths
+      @eager_load_paths ||= %w(
         app/metal
         app/models
         app/controllers
         app/helpers
-      ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+      ).map { |dir| "#{root}/#{dir}" }.select { |dir| File.directory?(dir) }
     end
 
-    def default_load_paths
-      paths = []
+    def load_paths
+      @load_paths ||= begin
+        paths = []
 
-      # Add the old mock paths only if the directories exists
-      paths.concat(Dir["#{root_path}/test/mocks/#{RAILS_ENV}"]) if File.exists?("#{root_path}/test/mocks/#{RAILS_ENV}")
+        # Add the old mock paths only if the directories exists
+        paths.concat(Dir["#{root}/test/mocks/#{RAILS_ENV}"]) if File.exists?("#{root}/test/mocks/#{RAILS_ENV}")
 
-      # Add the app's controller directory
-      paths.concat(Dir["#{root_path}/app/controllers/"])
+        # Add the app's controller directory
+        paths.concat(Dir["#{root}/app/controllers/"])
 
-      # Followed by the standard includes.
-      paths.concat %w(
-        app
-        app/metal
-        app/models
-        app/controllers
-        app/helpers
-        app/services
-        lib
-        vendor
-      ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+        # Followed by the standard includes.
+        paths.concat %w(
+          app
+          app/metal
+          app/models
+          app/controllers
+          app/helpers
+          app/services
+          lib
+          vendor
+        ).map { |dir| "#{root}/#{dir}" }.select { |dir| File.directory?(dir) }
 
-      paths.concat builtin_directories
+        paths.concat builtin_directories
+      end
     end
 
     def builtin_directories
@@ -185,75 +182,34 @@ module Rails
       (RAILS_ENV == 'development') ? Dir["#{RAILTIES_PATH}/builtin/*/"] : []
     end
 
-    def default_log_path
-      File.join(root_path, 'log', "#{RAILS_ENV}.log")
+    def log_path
+      @log_path ||= File.join(root, 'log', "#{RAILS_ENV}.log")
     end
 
-    def default_log_level
-      RAILS_ENV == 'production' ? :info : :debug
+    def log_level
+      @log_level ||= RAILS_ENV == 'production' ? :info : :debug
     end
 
-    def default_frameworks
-      [ :active_record, :action_controller, :action_view, :action_mailer, :active_resource ]
+    def frameworks
+      @frameworks ||= [ :active_record, :action_controller, :action_view, :action_mailer, :active_resource ]
     end
 
-    def default_plugin_paths
-      ["#{root_path}/vendor/plugins"]
-    end
+    def i18n
+      @i18n ||= begin
+        i18n = ActiveSupport::OrderedOptions.new
+        i18n.load_path = []
 
-    def default_plugin_loader
-      require 'rails/plugin/loader'
-      Plugin::Loader
-    end
+        if File.exist?(File.join(root, 'config', 'locales'))
+          i18n.load_path << Dir[File.join(root, 'config', 'locales', '*.{rb,yml}')]
+          i18n.load_path.flatten!
+        end
 
-    def default_plugin_locators
-      require 'rails/plugin/locator'
-      locators = []
-      locators << Plugin::GemLocator if defined? Gem
-      locators << Plugin::FileSystemLocator
-    end
-
-    def default_i18n
-      i18n = Rails::OrderedOptions.new
-      i18n.load_path = []
-
-      if File.exist?(File.join(RAILS_ROOT, 'config', 'locales'))
-        i18n.load_path << Dir[File.join(RAILS_ROOT, 'config', 'locales', '*.{rb,yml}')]
-        i18n.load_path.flatten!
+        i18n
       end
-
-      i18n
-    end
-
-    def default_serve_static_assets
-      true
-    end
-
-    # Adds a single Gem dependency to the rails application. By default, it will require
-    # the library with the same name as the gem. Use :lib to specify a different name.
-    #
-    #   # gem 'aws-s3', '>= 0.4.0'
-    #   # require 'aws/s3'
-    #   config.gem 'aws-s3', :lib => 'aws/s3', :version => '>= 0.4.0', \
-    #     :source => "http://code.whytheluckystiff.net"
-    #
-    # To require a library be installed, but not attempt to load it, pass :lib => false
-    #
-    #   config.gem 'qrp', :version => '0.4.1', :lib => false
-    def gem(name, options = {})
-      @gems << Rails::GemDependency.new(name, options)
-    end
-
-    def default_gems
-      []
     end
 
     def environment_path
-      "#{root_path}/config/environments/#{RAILS_ENV}.rb"
-    end
-
-    def reload_plugins?
-      @reload_plugins
+      "#{root}/config/environments/#{RAILS_ENV}.rb"
     end
 
     # Holds generators configuration:
@@ -277,6 +233,14 @@ module Rails
       end
     end
 
+    # Allows Notifications queue to be modified.
+    #
+    #   config.notifications.queue = MyNewQueue.new
+    #
+    def notifications
+      ActiveSupport::Notifications
+    end
+
     class Generators #:nodoc:
       attr_accessor :aliases, :options, :colorize_logging
 
@@ -287,12 +251,16 @@ module Rails
       end
 
       def method_missing(method, *args)
-        method        = method.to_s.sub(/=$/, '').to_sym
-        namespace     = args.first.is_a?(Symbol) ? args.shift : nil
-        configuration = args.first.is_a?(Hash)   ? args.shift : nil
+        method = method.to_s.sub(/=$/, '').to_sym
 
-        @options[:rails][method] = namespace if namespace
-        namespace ||= method
+        if method == :rails
+          namespace, configuration = :rails, args.shift
+        elsif args.first.is_a?(Hash)
+          namespace, configuration = method, args.shift
+        else
+          namespace, configuration = args.shift, args.shift
+          @options[:rails][method] = namespace
+        end
 
         if configuration
           aliases = configuration.delete(:aliases)

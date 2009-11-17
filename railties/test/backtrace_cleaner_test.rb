@@ -1,6 +1,4 @@
 require 'abstract_unit'
-
-require 'rails/initializer'
 require 'rails/backtrace_cleaner'
 
 if defined? Test::Unit::Util::BacktraceFilter
@@ -18,12 +16,12 @@ if defined? Test::Unit::Util::BacktraceFilter
     test "test with backtrace should use the rails backtrace cleaner to clean" do
       Rails.stubs(:backtrace_cleaner).returns(stub(:clean))
       Rails.backtrace_cleaner.expects(:clean).with(@backtrace, nil)
-      @test.filter_backtrace(@backtrace)
+      @test.send(:filter_backtrace, @backtrace)
     end
 
     test "filter backtrace should have the same arity as Test::Unit::Util::BacktraceFilter" do
       assert_nothing_raised do
-        @test.filter_backtrace(@backtrace, '/opt/local/lib')
+        @test.send(:filter_backtrace, @backtrace, '/opt/local/lib')
       end
     end
   end
@@ -31,31 +29,26 @@ else
   $stderr.puts 'No BacktraceFilter for minitest'
 end
 
-class BacktraceCleanerVendorGemTest < ActiveSupport::TestCase
-  def setup
-    @cleaner = Rails::BacktraceCleaner.new
-  end
+if defined? Gem
+  class BacktraceCleanerVendorGemTest < ActiveSupport::TestCase
+    def setup
+      @cleaner = Rails::BacktraceCleaner.new
+    end
 
-  test "should format installed gems correctly" do
-    @backtrace = [ "#{Gem.default_dir}/gems/nosuchgem-1.2.3/lib/foo.rb" ]
-    @result = @cleaner.clean(@backtrace)
-    assert_equal "nosuchgem (1.2.3) lib/foo.rb", @result[0]
-  end
-
-  test "should format installed gems not in Gem.default_dir correctly" do
-    @target_dir = Gem.path.detect { |p| p != Gem.default_dir }
-    # skip this test if default_dir is the only directory on Gem.path
-    if @target_dir
-      @backtrace = [ "#{@target_dir}/gems/nosuchgem-1.2.3/lib/foo.rb" ]
+    test "should format installed gems correctly" do
+      @backtrace = [ "#{Gem.path[0]}/gems/nosuchgem-1.2.3/lib/foo.rb" ]
       @result = @cleaner.clean(@backtrace)
       assert_equal "nosuchgem (1.2.3) lib/foo.rb", @result[0]
     end
-  end
 
-  test "should format vendor gems correctly" do
-    @backtrace = [ "#{Rails::GemDependency.unpacked_path}/nosuchgem-1.2.3/lib/foo.rb" ]
-    @result = @cleaner.clean(@backtrace)
-    assert_equal "nosuchgem (1.2.3) [v] lib/foo.rb", @result[0]
+    test "should format installed gems not in Gem.default_dir correctly" do
+      @target_dir = Gem.path.detect { |p| p != Gem.default_dir }
+      # skip this test if default_dir is the only directory on Gem.path
+      if @target_dir
+        @backtrace = [ "#{@target_dir}/gems/nosuchgem-1.2.3/lib/foo.rb" ]
+        @result = @cleaner.clean(@backtrace)
+        assert_equal "nosuchgem (1.2.3) lib/foo.rb", @result[0]
+      end
+    end
   end
-
 end

@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'active_support/core_ext/string/access'
 require 'active_support/core_ext/string/behavior'
 
 module ActiveSupport #:nodoc:
@@ -197,7 +198,7 @@ module ActiveSupport #:nodoc:
       #   'Café périferôl'.mb_chars.index('ô') #=> 12
       #   'Café périferôl'.mb_chars.index(/\w/u) #=> 0
       def index(needle, offset=0)
-        wrapped_offset = self.first(offset).wrapped_string.length
+        wrapped_offset = first(offset).wrapped_string.length
         index = @wrapped_string.index(needle, wrapped_offset)
         index ? (self.class.u_unpack(@wrapped_string.slice(0...index)).size) : nil
       end
@@ -211,7 +212,7 @@ module ActiveSupport #:nodoc:
       #   'Café périferôl'.mb_chars.rindex(/\w/u) #=> 13
       def rindex(needle, offset=nil)
         offset ||= length
-        wrapped_offset = self.first(offset).wrapped_string.length
+        wrapped_offset = first(offset).wrapped_string.length
         index = @wrapped_string.rindex(needle, wrapped_offset)
         index ? (self.class.u_unpack(@wrapped_string.slice(0...index)).size) : nil
       end
@@ -321,7 +322,7 @@ module ActiveSupport #:nodoc:
       # Example:
       #   'Café'.mb_chars.reverse.to_s #=> 'éfaC'
       def reverse
-        chars(self.class.u_unpack(@wrapped_string).reverse.pack('U*'))
+        chars(self.class.g_unpack(@wrapped_string).reverse.flatten.pack('U*'))
       end
 
       # Implements Unicode-aware slice with codepoints. Slicing on one point returns the codepoints for that
@@ -361,6 +362,16 @@ module ActiveSupport #:nodoc:
         slice = self[*args]
         self[*args] = ''
         slice
+      end
+
+      # Limit the byte size of the string to a number of bytes without breaking characters. Usable
+      # when the storage for a string is limited for some reason.
+      #
+      # Example:
+      #   s = 'こんにちは'
+      #   s.mb_chars.limit(7) #=> "こに"
+      def limit(limit)
+        slice(0...translate_offset(limit))
       end
 
       # Returns the codepoint of the first character in the string.
@@ -651,24 +662,20 @@ module ActiveSupport #:nodoc:
       end
 
       protected
-
+        
         def translate_offset(byte_offset) #:nodoc:
           return nil if byte_offset.nil?
           return 0   if @wrapped_string == ''
-          chunk = @wrapped_string[0..byte_offset]
+          
+          if @wrapped_string.respond_to?(:force_encoding)
+            @wrapped_string = @wrapped_string.dup.force_encoding(Encoding::ASCII_8BIT)
+          end
+          
           begin
-            begin
-              chunk.unpack('U*').length - 1
-            rescue ArgumentError => e
-              chunk = @wrapped_string[0..(byte_offset+=1)]
-              # Stop retrying at the end of the string
-              raise e unless byte_offset < chunk.length 
-              # We damaged a character, retry
-              retry
-            end
-          # Catch the ArgumentError so we can throw our own
-          rescue ArgumentError 
-            raise EncodingError, 'malformed UTF-8 character'
+            @wrapped_string[0...byte_offset].unpack('U*').length
+          rescue ArgumentError => e
+            byte_offset -= 1
+            retry
           end
         end
 

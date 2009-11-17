@@ -3,6 +3,13 @@ require 'abstract_unit'
 class AssetTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
+  DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG.merge(
+    :assets_dir => File.dirname(__FILE__) + "/../fixtures/public",
+    :javascripts_dir => File.dirname(__FILE__) + "/../fixtures/public/javascripts",
+    :stylesheets_dir => File.dirname(__FILE__) + "/../fixtures/public/stylesheets")
+
+  include ActiveSupport::Configurable
+
   def setup
     super
     silence_warnings do
@@ -871,6 +878,9 @@ end
 
 class AssetTagHelperNonVhostTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
+
+  DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG
+  include ActiveSupport::Configurable
 
   def setup
     super

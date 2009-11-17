@@ -148,40 +148,9 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_equal "100,000", d.salary_before_type_cast
   end
 
-  def test_validates_length_with_globally_modified_error_message
-    defaults = ActiveSupport::Deprecation.silence { ActiveRecord::Errors.default_error_messages }
-    original_message = defaults[:too_short]
-    defaults[:too_short] = 'tu est trops petit hombre {{count}}'
-
-    Topic.validates_length_of :title, :minimum => 10
-    t = Topic.create(:title => 'too short')
-    assert !t.valid?
-
-    assert_equal ['tu est trops petit hombre 10'], t.errors[:title]
-
-  ensure
-    defaults[:too_short] = original_message
-  end
-
   def test_validates_acceptance_of_as_database_column
     Topic.validates_acceptance_of(:author_name)
     topic = Topic.create("author_name" => "Dan Brown")
     assert_equal "Dan Brown", topic["author_name"]
-  end
-
-  def test_deprecated_validation_instance_methods
-    tom = DeprecatedPerson.new
-
-    assert_deprecated do
-      assert tom.invalid?
-      assert_equal ["always invalid", "invalid on create"], tom.errors[:name]
-    end
-
-    tom.save(false)
-
-    assert_deprecated do
-      assert tom.invalid?
-      assert_equal ["always invalid", "invalid on update"], tom.errors[:name]
-    end
   end
 end

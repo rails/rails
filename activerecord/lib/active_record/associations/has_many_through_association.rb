@@ -56,7 +56,7 @@ module ActiveRecord
           options[:joins]   = construct_joins(options[:joins])
           options[:include] = @reflection.source_reflection.options[:include] if options[:include].nil? && @reflection.source_reflection.options[:include]
         end
-        
+
         def insert_record(record, force = true, validate = true)
           if record.new_record?
             if force

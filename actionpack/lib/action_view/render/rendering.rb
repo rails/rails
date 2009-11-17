@@ -71,12 +71,10 @@ module ActionView
     # In this case, the layout would receive the block passed into <tt>render :layout</tt>,
     # and the Struct specified in the layout would be passed into the block. The result
     # would be <html>Hello David</html>.
-    def _layout_for(name = nil)
+    def _layout_for(name = nil, &block)
       return @_content_for[name || :layout] if !block_given? || name
 
-      with_output_buffer do
-        return yield
-      end
+      capture(&block)
     end
 
     def _render_inline(inline, layout, options)
@@ -123,7 +121,6 @@ module ActionView
         template.render(self, locals)
       end
 
-      @cached_content_for_layout = content
       @_content_for[:layout] = content
 
       if layout

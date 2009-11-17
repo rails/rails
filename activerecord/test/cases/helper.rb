@@ -1,5 +1,12 @@
-$:.unshift(File.dirname(__FILE__) + '/../../lib')
-$:.unshift(File.dirname(__FILE__) + '/../../../activesupport/lib')
+root = File.expand_path('../../../..', __FILE__)
+begin
+  require "#{root}/vendor/gems/environment"
+rescue LoadError
+  $:.unshift("#{root}/activesupport/lib")
+end
+
+lib = File.expand_path("#{File.dirname(__FILE__)}/../../lib")
+$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
 require 'config'
 

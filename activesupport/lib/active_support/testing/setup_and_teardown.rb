@@ -1,11 +1,9 @@
-require 'active_support/callbacks'
-
 module ActiveSupport
   module Testing
     module SetupAndTeardown
       def self.included(base)
         base.class_eval do
-          include ActiveSupport::Callbacks
+          include ActiveSupport::DeprecatedCallbacks
           define_callbacks :setup, :teardown
 
           if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
@@ -23,18 +21,18 @@ module ActiveSupport
             run_callbacks :setup
             result = super
           rescue Exception => e
-            result = runner.puke(self.class, self.name, e)
+            result = runner.puke(self.class, method_name, e)
           ensure
             begin
               run_callbacks :teardown, :enumerator => :reverse_each
             rescue Exception => e
-              result = runner.puke(self.class, self.name, e)
+              result = runner.puke(self.class, method_name, e)
             end
           end
           result
         end
       end
-      
+
       module ForClassicTestUnit
         # For compatibility with Ruby < 1.8.6
         PASSTHROUGH_EXCEPTIONS = Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS rescue [NoMemoryError, SignalException, Interrupt, SystemExit]

@@ -29,4 +29,10 @@ class Hash
     replace(hash)
     omit
   end
+
+  def extract!(*keys)
+    result = {}
+    keys.each {|key| result[key] = delete(key) }
+    result
+  end
 end

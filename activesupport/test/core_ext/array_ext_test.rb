@@ -339,6 +339,11 @@ class ArrayWrapperTests < Test::Unit::TestCase
     end
   end
 
+  class Proxy
+    def initialize(target) @target = target end
+    def method_missing(*a) @target.send(*a) end
+  end
+
   def test_array
     ary = %w(foo bar)
     assert_same ary, Array.wrap(ary)
@@ -363,5 +368,20 @@ class ArrayWrapperTests < Test::Unit::TestCase
 
   def test_object_with_to_ary
     assert_equal ["foo", "bar"], Array.wrap(FakeCollection.new)
+  end
+
+  def test_proxy_object
+    p = Proxy.new(Object.new)
+    assert_equal [p], Array.wrap(p)
+  end
+
+  def test_proxy_to_object_with_to_ary
+    p = Proxy.new(FakeCollection.new)
+    assert_equal [p], Array.wrap(p)
+  end
+
+  def test_struct
+    o = Struct.new(:foo).new(123)
+    assert_equal [o], Array.wrap(o)
   end
 end

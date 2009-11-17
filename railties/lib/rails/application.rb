@@ -1,8 +1,22 @@
 module Rails
   class Application
-    extend Initializable
+    include Initializable
 
     class << self
+      def inherited(klass)
+        Rails.application ||= klass unless klass.name =~ /Rails/
+        super
+      end
+
+      # Stub out App initialize
+      def initialize!
+        new
+      end
+
+      def new
+        @instance ||= super
+      end
+
       def config
         @config ||= Configuration.new
       end
@@ -14,31 +28,52 @@ module Rails
         @config = config
       end
 
-      def plugin_loader
-        @plugin_loader ||= config.plugin_loader.new(self)
-      end
-
-      def routes
-        ActionController::Routing::Routes
-      end
-
-      def middleware
-        config.middleware
+      def root
+        config.root
       end
 
       def call(env)
-        @app ||= middleware.build(routes)
-        @app.call(env)
-      end
-
-      def new
-        initializers.run
-        self
+        new.call(env)
       end
     end
 
+    def initialize
+      run_initializers(self)
+    end
+
+    def config
+      self.class.config
+    end
+
+    alias configuration config
+
+    def middleware
+      config.middleware
+    end
+
+    def routes
+      ActionController::Routing::Routes
+    end
+
+    def initializers
+      initializers = super
+      plugins.each { |p| initializers += p.initializers }
+      initializers
+    end
+
+    def plugins
+      @plugins ||= begin
+        Plugin::Vendored.all(config.plugins || [:all], config.paths.vendor.plugins)
+      end
+    end
+
+    def call(env)
+      @app ||= middleware.build(routes)
+      @app.call(env)
+    end
+
     initializer :initialize_rails do
-      Rails.initializers.run
+      Rails.run_initializers
     end
 
     # Set the <tt>$LOAD_PATH</tt> based on the value of
@@ -46,13 +81,6 @@ module Rails
     initializer :set_load_path do
       config.paths.add_to_load_path
       $LOAD_PATH.uniq!
-    end
-
-    # Bail if boot.rb is outdated
-    initializer :freak_out_if_boot_rb_is_outdated do
-      unless defined?(Rails::BOOTSTRAP_VERSION)
-        abort %{Your config/boot.rb is outdated: Run "rake rails:update".}
-      end
     end
 
     # Requires all frameworks specified by the Configuration#frameworks
@@ -92,17 +120,10 @@ module Rails
       config.load_once_paths.freeze
     end
 
-    # Adds all load paths from plugins to the global set of load paths, so that
-    # code from plugins can be required (explicitly or automatically via ActiveSupport::Dependencies).
-    initializer :add_plugin_load_paths do
-      require 'active_support/dependencies'
-      plugin_loader.add_plugin_load_paths
-    end
-
     # Create tmp directories
     initializer :ensure_tmp_directories_exist do
       %w(cache pids sessions sockets).each do |dir_to_make|
-        FileUtils.mkdir_p(File.join(config.root_path, 'tmp', dir_to_make))
+        FileUtils.mkdir_p(File.join(config.root, 'tmp', dir_to_make))
       end
     end
 
@@ -121,15 +142,6 @@ module Rails
         (self.class.constants - constants).each do |const|
           Object.const_set(const, self.class.const_get(const))
         end
-      end
-    end
-
-    initializer :add_gem_load_paths do
-      require 'rails/gem_dependency'
-      Rails::GemDependency.add_frozen_gem_path
-      unless config.gems.empty?
-        require "rubygems"
-        config.gems.each { |gem| gem.add_load_paths }
       end
     end
 
@@ -249,6 +261,7 @@ module Rails
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     initializer :initialize_time_zone do
       if config.time_zone
+        require 'active_support/core_ext/time/zones'
         zone_default = Time.__send__(:get_zone, config.time_zone)
 
         unless zone_default
@@ -310,7 +323,6 @@ module Rails
       # TODO: Make Rails and metal work without ActionController
       if config.frameworks.include?(:action_controller)
         Rails::Rack::Metal.requested_metals = config.metals
-        Rails::Rack::Metal.metal_paths += plugin_loader.engine_metal_paths
 
         config.middleware.insert_before(
           :"ActionDispatch::ParamsParser",
@@ -318,94 +330,19 @@ module Rails
       end
     end
 
-    initializer :check_for_unbuilt_gems do
-      unbuilt_gems = config.gems.select {|gem| gem.frozen? && !gem.built? }
-      if unbuilt_gems.size > 0
-        # don't print if the gems:build rake tasks are being run
-        unless $gems_build_rake_task
-          abort <<-end_error
-  The following gems have native components that need to be built
-  #{unbuilt_gems.map { |gemm| "#{gemm.name}  #{gemm.requirement}" } * "\n  "}
-
-  You're running:
-  ruby #{Gem.ruby_version} at #{Gem.ruby}
-  rubygems #{Gem::RubyGemsVersion} at #{Gem.path * ', '}
-
-  Run `rake gems:build` to build the unbuilt gems.
-          end_error
-        end
-      end
-    end
-
-    initializer :load_gems do
-      unless $gems_rake_task
-        config.gems.each { |gem| gem.load }
-      end
-    end
-
-    # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
-    # defaults to <tt>vendor/plugins</tt> but may also be set to a list of
-    # paths, such as
-    #   config.plugin_paths = ["#{RAILS_ROOT}/lib/plugins", "#{RAILS_ROOT}/vendor/plugins"]
-    #
-    # In the default implementation, as each plugin discovered in <tt>plugin_paths</tt> is initialized:
-    # * its +lib+ directory, if present, is added to the load path (immediately after the applications lib directory)
-    # * <tt>init.rb</tt> is evaluated, if present
-    #
-    # After all plugins are loaded, duplicates are removed from the load path.
-    # If an array of plugin names is specified in config.plugins, only those plugins will be loaded
-    # and they plugins will be loaded in that order. Otherwise, plugins are loaded in alphabetical
-    # order.
-    #
-    # if config.plugins ends contains :all then the named plugins will be loaded in the given order and all other
-    # plugins will be loaded in alphabetical order
-    initializer :load_plugins do
-      plugin_loader.load_plugins
-    end
-
-    # TODO: Figure out if this needs to run a second time
-    # load_gems
-
-    initializer :check_gem_dependencies do
-      unloaded_gems = config.gems.reject { |g| g.loaded? }
-      if unloaded_gems.size > 0
-        configuration.gems_dependencies_loaded = false
-        # don't print if the gems rake tasks are being run
-        unless $gems_rake_task
-          abort <<-end_error
-  Missing these required gems:
-  #{unloaded_gems.map { |gemm| "#{gemm.name}  #{gemm.requirement}" } * "\n  "}
-
-  You're running:
-  ruby #{Gem.ruby_version} at #{Gem.ruby}
-  rubygems #{Gem::RubyGemsVersion} at #{Gem.path * ', '}
-
-  Run `rake gems:install` to install the missing gems.
-          end_error
-        end
-      else
-        configuration.gems_dependencies_loaded = true
-      end
-    end
-
     # # bail out if gems are missing - note that check_gem_dependencies will have
     # # already called abort() unless $gems_rake_task is set
     # return unless gems_dependencies_loaded
-
     initializer :load_application_initializers do
-      if config.gems_dependencies_loaded
-        Dir["#{configuration.root_path}/config/initializers/**/*.rb"].sort.each do |initializer|
-          load(initializer)
-        end
+      Dir["#{configuration.root}/config/initializers/**/*.rb"].sort.each do |initializer|
+        load(initializer)
       end
     end
 
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)
     initializer :after_initialize do
-      if config.gems_dependencies_loaded
-        configuration.after_initialize_blocks.each do |block|
-          block.call
-        end
+      configuration.after_initialize_blocks.each do |block|
+        block.call
       end
     end
 
@@ -447,7 +384,7 @@ module Rails
     #
     # # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
     initializer :load_observers do
-      if config.gems_dependencies_loaded && configuration.frameworks.include?(:active_record)
+      if configuration.frameworks.include?(:active_record)
         ActiveRecord::Base.instantiate_observers
       end
     end
@@ -473,14 +410,14 @@ module Rails
       end
     end
 
-    # Configure generators if they were already loaded
-    # ===
-    # TODO: Does this need to be an initializer here?
-    initializer :initialize_generators do
-      if defined?(Rails::Generators)
-        Rails::Generators.no_color! unless config.generators.colorize_logging
-        Rails::Generators.aliases.deep_merge! config.generators.aliases
-        Rails::Generators.options.deep_merge! config.generators.options
+    # For each framework, search for instrument file with Notifications hooks.
+    #
+    initializer :load_notifications_hooks do
+      config.frameworks.each do |framework|
+        begin
+          require "#{framework}/notifications"
+        rescue LoadError => e
+        end
       end
     end
   end

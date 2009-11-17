@@ -54,44 +54,44 @@ class ActionsTest < GeneratorsTestCase
     action :plugin, 'rest_auth', {}
   end
 
-  def test_gem_should_put_gem_dependency_in_enviroment
+  def test_add_source_adds_source_to_gemfile
+    run_generator
+    action :add_source, 'http://gems.github.com'
+    assert_file 'Gemfile', /source "http:\/\/gems\.github\.com"/
+  end
+
+  def test_gem_should_put_gem_dependency_in_gemfile
     run_generator
     action :gem, 'will-paginate'
-    assert_file 'config/environment.rb', /config\.gem 'will\-paginate'/
+    assert_file 'Gemfile', /gem "will\-paginate"/
   end
 
-  def test_gem_with_options_should_include_options_in_gem_dependency_in_environment
+  def test_gem_with_options_should_include_all_options_in_gemfile
     run_generator
-    action :gem, 'mislav-will-paginate', :lib => 'will-paginate', :source => 'http://gems.github.com'
 
-    regexp = /#{Regexp.escape("config.gem 'mislav-will-paginate', :lib => 'will-paginate', :source => 'http://gems.github.com'")}/
-    assert_file 'config/environment.rb', regexp
+    assert_deprecated do
+      action :gem, 'mislav-will-paginate', :lib => 'will-paginate', :source => 'http://gems.github.com'
+    end
+
+    assert_file 'Gemfile', /gem "mislav\-will\-paginate", :require_as => "will\-paginate"/
+    assert_file 'Gemfile', /source "http:\/\/gems\.github\.com"/
   end
 
-  def test_gem_with_env_string_should_put_gem_dependency_in_specified_environment
+  def test_gem_with_env_should_include_all_dependencies_in_gemfile
     run_generator
-    action :gem, 'rspec', :env => 'test'
-    assert_file 'config/environments/test.rb', /config\.gem 'rspec'/
-  end
 
-  def test_gem_with_env_array_should_put_gem_dependency_in_specified_environments
-    run_generator
-    action :gem, 'quietbacktrace', :env => %w[ development test ]
-    assert_file 'config/environments/development.rb', /config\.gem 'quietbacktrace'/
-    assert_file 'config/environments/test.rb', /config\.gem 'quietbacktrace'/
-  end
+    assert_deprecated do
+      action :gem, 'rspec', :env => %w(development test)
+    end
 
-  def test_gem_with_lib_option_set_to_false_should_put_gem_dependency_in_enviroment_correctly
-    run_generator
-    action :gem, 'mislav-will-paginate', :lib => false
-    assert_file 'config/environment.rb', /config\.gem 'mislav\-will\-paginate'\, :lib => false/
+    assert_file 'Gemfile', /gem "rspec", :only => \["development", "test"\]/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block
     run_generator
-    load_paths = 'config.load_paths += %w["#{RAILS_ROOT}/app/extras"]'
+    load_paths = 'config.load_paths += %w["#{Rails.root}/app/extras"]'
     action :environment, load_paths
-    assert_file 'config/environment.rb', /#{Regexp.escape(load_paths)}/
+    assert_file 'config/application.rb', /#{Regexp.escape(load_paths)}/
   end
 
   def test_environment_with_block_should_include_block_contents_in_environment_initializer_block
@@ -102,7 +102,7 @@ class ActionsTest < GeneratorsTestCase
       '# This will be added'
     end
 
-    assert_file 'config/environment.rb' do |content|
+    assert_file 'config/application.rb' do |content|
       assert_match /# This will be added/, content
       assert_no_match /# This wont be added/, content
     end
@@ -163,9 +163,10 @@ class ActionsTest < GeneratorsTestCase
     action :capify!
   end
 
-  def test_freeze_should_freeze_rails_edge
-    generator.expects(:run).once.with('rake rails:freeze:edge', :verbose => false)
-    action :freeze!
+  def test_freeze_is_deprecated
+    assert_deprecated do
+      action :freeze!
+    end
   end
 
   def test_route_should_add_data_to_the_routes_block_in_config_routes

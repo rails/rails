@@ -476,7 +476,7 @@ module ActiveRecord
 
         def callback(method, record)
           callbacks_for(method).each do |callback|
-            ActiveSupport::Callbacks::Callback.new(method, callback, record).call(@owner, record)
+            ActiveSupport::DeprecatedCallbacks::Callback.new(method, callback, record).call(@owner, record)
           end
         end
 

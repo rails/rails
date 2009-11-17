@@ -8,10 +8,14 @@ module AbstractController
 
     included do
       attr_internal :formats
-
       extlib_inheritable_accessor :_view_paths
-
       self._view_paths ||= ActionView::PathSet.new
+    end
+
+    # Initialize controller with nil formats.
+    def initialize(*) #:nodoc:
+      @_formats = nil
+      super
     end
 
     # An instance of a view class. The default view class is ActionView::Base
@@ -99,6 +103,7 @@ module AbstractController
     end
 
   private
+
     # Take in a set of options and determine the template to render
     #
     # ==== Options
@@ -109,6 +114,18 @@ module AbstractController
     #   to a directory.
     # _partial<TrueClass, FalseClass>:: Whether or not the file to look up is a partial
     def _determine_template(options)
+      if options.key?(:text)
+        options[:_template] = ActionView::TextTemplate.new(options[:text], format_for_text)
+      elsif options.key?(:inline)
+        handler = ActionView::Template.handler_class_for_extension(options[:type] || "erb")
+        template = ActionView::Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
+        options[:_template] = template
+      elsif options.key?(:template)
+        options[:_template_name] = options[:template]
+      elsif options.key?(:file)
+        options[:_template_name] = options[:file]
+      end
+
       name = (options[:_template_name] || action_name).to_s
 
       options[:_template] ||= with_template_cache(name) do
@@ -126,6 +143,10 @@ module AbstractController
 
     def with_template_cache(name)
       yield
+    end
+
+    def format_for_text
+      Mime[:text]
     end
 
     module ClassMethods

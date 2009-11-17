@@ -86,7 +86,7 @@ module RenderAction
     describe "Both <controller_path>.html.erb and application.html.erb are missing"
 
     test "rendering with layout => true" do
-      assert_raise(ArgumentError, /no default layout for RenderAction::BasicController in/) do
+      assert_raise(ArgumentError) do
         get "/render_action/basic/hello_world_with_layout", {}, "action_dispatch.show_exceptions" => false
       end
     end

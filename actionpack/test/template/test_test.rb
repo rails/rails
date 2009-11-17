@@ -48,8 +48,7 @@ class PeopleHelperTest < ActionView::TestCase
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
-          map.people 'people', :controller => 'people', :action => 'index'
-          map.connect ':controller/:action/:id'
+          match 'people', :to => 'people#index', :as => :people
         end
         yield
       end

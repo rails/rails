@@ -11,17 +11,12 @@ class Array
   #   Array("foo\nbar")        # => ["foo\n", "bar"], in Ruby 1.8
   #   Array.wrap("foo\nbar")   # => ["foo\nbar"]
   def self.wrap(object)
-    case object
-    when nil
+    if object.nil?
       []
-    when self
-      object
+    elsif object.respond_to?(:to_ary)
+      object.to_ary
     else
-      if object.respond_to?(:to_ary)
-        object.to_ary
-      else
-        [object]
-      end
+      [object]
     end
   end
 end

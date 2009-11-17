@@ -39,8 +39,10 @@ module ActiveModel
   autoload :Serialization, 'active_model/serialization'
   autoload :StateMachine, 'active_model/state_machine'
   autoload :TestCase, 'active_model/test_case'
+  autoload :Translation, 'active_model/translation'
   autoload :Validations, 'active_model/validations'
   autoload :ValidationsRepairHelper, 'active_model/validations_repair_helper'
+  autoload :Validator, 'active_model/validator'
   autoload :VERSION, 'active_model/version'
 
   module Serializers

@@ -1,7 +1,7 @@
 require "cases/helper"
 
 class CopyTableTest < ActiveRecord::TestCase
-  fixtures :companies, :comments
+  fixtures :customers, :companies, :comments
 
   def setup
     @connection = ActiveRecord::Base.connection
@@ -27,8 +27,8 @@ class CopyTableTest < ActiveRecord::TestCase
     test_copy_table('customers', 'customers2',
         :rename => {'name' => 'person_name'}) do |from, to, options|
       expected = column_values(from, 'name')
-      assert expected.any?, 'only nils in resultset; real values are needed'
       assert_equal expected, column_values(to, 'person_name')
+      assert expected.any?, "No values in table: #{expected.inspect}"
     end
   end
 

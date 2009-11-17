@@ -1,4 +1,4 @@
-require 'digest/md5' 
+require 'digest/md5'
 require 'active_support/secure_random'
 require 'rails/version' unless defined?(Rails::VERSION)
 
@@ -11,9 +11,6 @@ module Rails::Generators
 
     class_option :database, :type => :string, :aliases => "-d", :default => "sqlite3",
                             :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
-
-    class_option :freeze, :type => :boolean, :aliases => "-F", :default => false,
-                          :desc => "Freeze Rails in vendor/rails from the gems"
 
     class_option :template, :type => :string, :aliases => "-m",
                             :desc => "Path to an application template (can be a filesystem path or URL)."
@@ -54,6 +51,7 @@ module Rails::Generators
       copy_file "Rakefile"
       copy_file "README"
       copy_file "config.ru"
+      template "Gemfile"
     end
 
     def create_app_files
@@ -65,6 +63,7 @@ module Rails::Generators
 
       inside "config" do
         copy_file "routes.rb"
+        template  "application.rb"
         template  "environment.rb"
 
         directory "environments"
@@ -124,8 +123,10 @@ module Rails::Generators
     end
 
     def create_script_files
-      directory "script"
-      chmod "script", 0755, :verbose => false
+      directory "script" do |file|
+        prepend_file file, "#{shebang}\n", :verbose => false
+        chmod file, 0755, :verbose => false
+      end
     end
 
     def create_test_files
@@ -151,10 +152,6 @@ module Rails::Generators
       apply rails_template if rails_template
     rescue Thor::Error, LoadError, Errno::ENOENT => e
       raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
-    end
-
-    def freeze?
-      freeze! if options[:freeze]
     end
 
     protected

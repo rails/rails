@@ -199,6 +199,24 @@ class IntegrationTestTest < Test::Unit::TestCase
     assert_equal ::ActionController::Integration::Session, session2.class
     assert_not_equal session1, session2
   end
+
+  # RSpec mixes Matchers (which has a #method_missing) into
+  # IntegrationTest's superclass.  Make sure IntegrationTest does not
+  # try to delegate these methods to the session object.
+  def test_does_not_prevent_method_missing_passing_up_to_ancestors
+    mixin = Module.new do
+      def method_missing(name, *args)
+        name.to_s == 'foo' ? 'pass' : super
+      end
+    end
+    @test.class.superclass.__send__(:include, mixin)
+    begin
+      assert_equal 'pass', @test.foo
+    ensure
+      # leave other tests as unaffected as possible
+      mixin.__send__(:remove_method, :method_missing)
+    end
+  end
 end
 
 # Tests that integration tests don't call Controller test methods for processing.
@@ -372,7 +390,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
-          map.connect "/:action", :controller => "integration_process_test/integration"
+          match ':action', :to => ::IntegrationProcessTest::IntegrationController
         end
         yield
       end

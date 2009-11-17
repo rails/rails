@@ -30,7 +30,9 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
 
   def test_mem_cache_fragment_cache_store_with_given_mem_cache_like_object
     MemCache.expects(:new).never
-    store = ActiveSupport::Cache.lookup_store :mem_cache_store, stub("memcache", :get => true)
+    memcache = Object.new
+    def memcache.get() true end
+    store = ActiveSupport::Cache.lookup_store :mem_cache_store, memcache
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
   end
 
@@ -154,13 +156,13 @@ class FileStoreTest < ActiveSupport::TestCase
     File.stubs(:mtime).returns(time)
 
     @cache.write('foo', 'bar')
-    cache_read = lambda { @cache.read('foo', :expires_in => 1.minute) }
+    cache_read = lambda { @cache.read('foo', :expires_in => 60) }
     assert_equal 'bar', cache_read.call
 
-    Time.stubs(:now).returns(time + 30.seconds)
+    Time.stubs(:now).returns(time + 30)
     assert_equal 'bar', cache_read.call
 
-    Time.stubs(:now).returns(time + 2.minutes)
+    Time.stubs(:now).returns(time + 120)
     assert_nil cache_read.call
   end
 end

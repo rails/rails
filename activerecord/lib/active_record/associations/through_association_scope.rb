@@ -42,7 +42,7 @@ module ActiveRecord
       end
 
       def construct_from
-        @reflection.quoted_table_name
+        @reflection.table_name
       end
 
       def construct_select(custom_select = nil)

@@ -8,7 +8,7 @@ module ActionController
       attr_internal :request
     end
 
-    def call(name, env)
+    def dispatch(action, env)
       @_request = ActionDispatch::Request.new(env)
       @_response = ActionDispatch::Response.new
       @_response.request = request

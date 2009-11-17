@@ -3,7 +3,8 @@ module ActionController #:nodoc:
     extend ActiveSupport::Concern
 
     included do
-      class_inheritable_reader :mimes_for_respond_to
+      extlib_inheritable_accessor :responder, :mimes_for_respond_to, :instance_writer => false
+      self.responder = ActionController::Responder
       clear_respond_to
     end
 
@@ -46,7 +47,7 @@ module ActionController #:nodoc:
       # Clear all mimes in respond_to.
       #
       def clear_respond_to
-        write_inheritable_attribute(:mimes_for_respond_to, ActiveSupport::OrderedHash.new)
+        self.mimes_for_respond_to = ActiveSupport::OrderedHash.new
       end
     end
 
@@ -219,10 +220,6 @@ module ActionController #:nodoc:
         options.merge!(:default_response => response)
         (options.delete(:responder) || responder).call(self, resources, options)
       end
-    end
-
-    def responder
-      ActionController::Responder
     end
 
   protected

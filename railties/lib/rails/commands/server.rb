@@ -1,4 +1,4 @@
-require 'action_controller'
+require 'action_dispatch'
 
 require 'fileutils'
 require 'optparse'
@@ -7,7 +7,7 @@ options = {
   :Port        => 3000,
   :Host        => "0.0.0.0",
   :environment => (ENV['RAILS_ENV'] || "development").dup,
-  :config      => RAILS_ROOT + "/config.ru",
+  :config      => "#{Rails.root}/config.ru",
   :detach      => false,
   :debugger    => false
 }
@@ -42,11 +42,11 @@ unless server
 end
 
 puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-puts "=> Rails #{Rails.version} application starting on http://#{options[:Host]}:#{options[:Port]}}"
+puts "=> Rails #{Rails.version} application starting on http://#{options[:Host]}:#{options[:Port]}"
 
 if options[:detach]
   Process.daemon
-  pid = "#{RAILS_ROOT}/tmp/pids/server.pid"
+  pid = "#{Rails.root}/tmp/pids/server.pid"
   File.open(pid, 'w'){ |f| f.write(Process.pid) }
   at_exit { File.delete(pid) if File.exist?(pid) }
 end

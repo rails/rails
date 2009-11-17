@@ -3,6 +3,7 @@ module ActionController
     extend ActiveSupport::Concern
 
     include RackConvenience
+    include Head
 
     # Sets the etag, last_modified, or both on the response and renders a
     # "304 Not Modified" response if the request is already fresh.
@@ -27,43 +28,9 @@ module ActionController
 
       response.etag          = options[:etag]          if options[:etag]
       response.last_modified = options[:last_modified] if options[:last_modified]
+      response.cache_control[:public] = true if options[:public]
 
-      if options[:public]
-        response.cache_control[:public] = true
-      end
-
-      if request.fresh?(response)
-        head :not_modified
-      end
-    end
-
-    # Return a response that has no content (merely headers). The options
-    # argument is interpreted to be a hash of header names and values.
-    # This allows you to easily return a response that consists only of
-    # significant headers:
-    #
-    #   head :created, :location => person_path(@person)
-    #
-    # It can also be used to return exceptional conditions:
-    #
-    #   return head(:method_not_allowed) unless request.post?
-    #   return head(:bad_request) unless valid_request?
-    #   render
-    def head(*args)
-      if args.length > 2
-        raise ArgumentError, "too many arguments to head"
-      elsif args.empty?
-        raise ArgumentError, "too few arguments to head"
-      end
-      options  = args.extract_options!
-      status   = args.shift || options.delete(:status) || :ok
-      location = options.delete(:location)
-
-      options.each do |key, value|
-        headers[key.to_s.dasherize.split(/-/).map { |v| v.capitalize }.join("-")] = value.to_s
-      end
-
-      render :nothing => true, :status => status, :location => location
+      head :not_modified if request.fresh?(response)
     end
 
     # Sets the etag and/or last_modified on the response and checks it against
@@ -113,7 +80,7 @@ module ActionController
     # Sets a HTTP 1.1 Cache-Control header of "no-cache" so no caching should occur by the browser or
     # intermediate caches (like caching proxy servers).
     def expires_now #:doc:
-      response.headers["Cache-Control"] = "no-cache"
+      response.cache_control.replace(:no_cache => true)
     end
   end
 end

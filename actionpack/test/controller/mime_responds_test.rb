@@ -501,6 +501,12 @@ class RespondWithController < ActionController::Base
     respond_with(Customer.new("david", 13), :responder => responder)
   end
 
+  def using_resource_with_action
+    respond_with(Customer.new("david", 13), :action => :foo) do |format|
+      format.html { raise ActionView::MissingTemplate.new([], "method") }
+    end
+  end
+
 protected
 
   def _render_js(js, options)
@@ -715,6 +721,20 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_match /<name>jamis<\/name>/, @response.body
   end
 
+  def test_using_resource_with_action
+    @controller.instance_eval do
+      def render(params={})
+        self.response_body = "#{params[:action]} - #{formats}"
+      end
+    end
+
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+
+    post :using_resource_with_action
+    assert_equal "foo - #{[:html].to_s}", @controller.response_body
+  end
+
   def test_clear_respond_to
     @controller = InheritedRespondWithController.new
     @request.accept = "text/html"
@@ -758,6 +778,14 @@ class RespondWithControllerTest < ActionController::TestCase
   def test_using_resource_with_responder
     get :using_resource_with_responder
     assert_equal "Resource name is david", @response.body
+  end
+
+  def test_using_resource_with_set_responder
+    RespondWithController.responder = proc { |c, r, o| c.render :text => "Resource name is #{r.first.name}" }
+    get :using_resource
+    assert_equal "Resource name is david", @response.body
+  ensure
+    RespondWithController.responder = ActionController::Responder
   end
 
   def test_not_acceptable

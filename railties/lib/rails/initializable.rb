@@ -1,85 +1,117 @@
 module Rails
   module Initializable
-
-    # A collection of initializers
-    class Collection
-      def initialize(context)
-        @context = context
-        @keys    = []
-        @values  = {}
-        @ran     = false
-      end
-
-      def run
-        return self if @ran
-        each do |key, initializer|
-          @context.class_eval(&initializer.block)
-        end
-        @ran = true
-        self
-      end
-
-      def [](key)
-        keys, values = merge_with_parent
-        values[key.to_sym]
-      end
-
-      def []=(key, value)
-        key = key.to_sym
-        @keys |= [key]
-        @values[key] = value
-      end
-
-      def each
-        keys, values = merge_with_parent
-        keys.each { |k| yield k, values[k] }
-        self
-      end
-
-    protected
-
-      attr_reader :keys, :values
-
-    private
-
-      def merge_with_parent
-        keys, values = [], {}
-
-        if @context.is_a?(Class) && @context.superclass.is_a?(Initializable)
-          parent = @context.superclass.initializers
-          keys, values = parent.keys, parent.values
-        end
-
-        values = values.merge(@values)
-        return keys | @keys, values
-      end
-
+    def self.included(base)
+      base.extend ClassMethods
     end
 
     class Initializer
-      attr_reader :name, :options, :block
+      attr_reader :name, :before, :after, :global, :block
 
-      def initialize(name, options = {}, &block)
-        @name, @options, @block = name, options, block
+      def initialize(name, context, options, &block)
+        @name, @context, @options, @block = name, context, options, block
+      end
+
+      def before
+        @options[:before]
+      end
+
+      def after
+        @options[:after]
+      end
+
+      def global
+        @options[:global]
+      end
+
+      alias global? global
+
+      def run(*args)
+        @context.instance_exec(*args, &block)
+      end
+
+      def bind(context)
+        return self if @context
+        Initializer.new(@name, context, @options, &block)
       end
     end
 
-    def initializer(name, options = {}, &block)
-      @initializers ||= Collection.new(self)
-      @initializers[name] = Initializer.new(name, options, &block)
+    class Collection < Array
+      def initialize(initializers = [])
+        super()
+        initializers.each do |initializer|
+          if initializer.before
+            index = index_for(initializer.before)
+          elsif initializer.after
+            index = index_for(initializer.after)
+            index += 1 if index
+          else
+            index = length
+          end
+          insert(index || -1, initializer)
+        end
+      end
+
+      def +(other)
+        Collection.new(to_a + other.to_a)
+      end
+
+      def index_for(name)
+        initializer = find { |i| i.name == name }
+        initializer && index(initializer)
+      end
+    end
+
+    def run_initializers(*args)
+      return if @ran
+      initializers.each do |initializer|
+        initializer.run(*args)
+      end
+      @ran = true
     end
 
     def initializers
-      @initializers ||= Collection.new(self)
+      @initializers ||= begin
+        initializers = self.class.initializers_for(:instance)
+        Collection.new(initializers.map { |i| i.bind(self) })
+      end
     end
 
+    module ClassMethods
+      def initializers
+        @initializers ||= []
+      end
+
+      def initializers_for(scope = :global)
+        initializers = Collection.new
+        ancestors.reverse_each do |klass|
+          next unless klass.respond_to?(:initializers)
+          initializers = initializers + klass.initializers.select { |i|
+            (scope == :global) == !!i.global?
+          }
+        end
+        initializers
+      end
+
+      def initializer(name, opts = {}, &blk)
+        @initializers ||= []
+        @initializers << Initializer.new(name, nil, opts, &blk)
+      end
+
+      def run_initializers(*args)
+        return if @ran
+        initializers_for(:global).each do |initializer|
+          instance_exec(*args, &initializer.block)
+        end
+        @ran = true
+      end
+    end
   end
 
-  extend Initializable
+  include Initializable
 
   # Check for valid Ruby version (1.8.2 or 1.8.4 or higher). This is done in an
   # external file, so we can use it from the `rails` program as well without duplication.
-  initializer :check_ruby_version do
+  initializer :check_ruby_version, :global => true do
     require 'rails/ruby_version_check'
   end
 
@@ -89,7 +121,7 @@ module Rails
   # on ActionController::Base.
   #
   # For Ruby 1.9, UTF-8 is the default internal and external encoding.
-  initializer :initialize_encoding do
+  initializer :initialize_encoding, :global => true do
     if RUBY_VERSION < '1.9'
       $KCODE='u'
     else

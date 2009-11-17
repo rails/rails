@@ -38,6 +38,11 @@ module ActiveSupport
       #
       # If no addresses are specified, then MemCacheStore will connect to
       # localhost port 11211 (the default memcached port).
+      #
+      # Instead of addresses one can pass in a MemCache-like object. For example:
+      #
+      #   require 'memcached' # gem install memcached; uses C bindings to libmemcached
+      #   ActiveSupport::Cache::MemCacheStore.new(Memcached::Rails.new("localhost:11211"))
       def initialize(*addresses)
         if addresses.first.respond_to?(:get)
           @data = addresses.first
@@ -103,17 +108,20 @@ module ActiveSupport
       end
 
       def increment(key, amount = 1) # :nodoc:
-        log("incrementing", key, amount)
+        response = instrument(:increment, key, :amount => amount) do
+          @data.incr(key, amount)
+        end
 
-        response = @data.incr(key, amount)
         response == Response::NOT_FOUND ? nil : response
       rescue MemCache::MemCacheError
         nil
       end
 
       def decrement(key, amount = 1) # :nodoc:
-        log("decrement", key, amount)
-        response = @data.decr(key, amount)
+        response = instrument(:decrement, key, :amount => amount) do
+          @data.decr(key, amount)
+        end
+
         response == Response::NOT_FOUND ? nil : response
       rescue MemCache::MemCacheError
         nil

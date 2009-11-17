@@ -1,17 +1,17 @@
 ORIG_ARGV = ARGV.dup
 
-require 'test/unit'
-
 begin
-  require 'mocha'
+  require File.expand_path('../../../vendor/gems/environment', __FILE__)
 rescue LoadError
-  $stderr.puts 'Loading rubygems'
-  require 'rubygems'
-  require 'mocha'
 end
 
+lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
+$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
+
+require 'test/unit'
+require 'mocha'
+
 ENV['NO_RELOAD'] = '1'
-$:.unshift "#{File.dirname(__FILE__)}/../lib"
 require 'active_support'
 require 'active_support/test_case'
 

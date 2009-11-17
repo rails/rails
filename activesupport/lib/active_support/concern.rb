@@ -1,11 +1,17 @@
-require 'active_support/dependency_module'
-
 module ActiveSupport
   module Concern
-    include DependencyModule
+    def self.extended(base)
+      base.instance_variable_set("@_dependencies", [])
+    end
 
     def append_features(base)
-      if super
+      if base.instance_variable_defined?("@_dependencies")
+        base.instance_variable_get("@_dependencies") << self
+        return false
+      else
+        return false if base < self
+        @_dependencies.each { |dep| base.send(:include, dep) }
+        super
         base.extend const_get("ClassMethods") if const_defined?("ClassMethods")
         base.send :include, const_get("InstanceMethods") if const_defined?("InstanceMethods")
         base.class_eval(&@_included_block) if instance_variable_defined?("@_included_block")
@@ -19,7 +25,5 @@ module ActiveSupport
         super
       end
     end
-
-    alias_method :include, :depends_on
   end
 end

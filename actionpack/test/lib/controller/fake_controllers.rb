@@ -5,8 +5,10 @@ class NotAController; end
 
 module Admin
   class << self; alias_method :const_available?, :const_defined?; end
-  class UserController < ActionController::Base; end
   class NewsFeedController < ActionController::Base; end
+  class PostsController < ActionController::Base; end
+  class StuffController < ActionController::Base; end
+  class UserController < ActionController::Base; end
 end
 
 module Api
@@ -24,8 +26,11 @@ class ElsewhereController < ActionController::Base; end
 class FooController < ActionController::Base; end
 class HiController < ActionController::Base; end
 class ImageController < ActionController::Base; end
+class NotesController < ActionController::Base; end
 class PeopleController < ActionController::Base; end
+class PostsController < ActionController::Base; end
 class SessionsController  < ActionController::Base; end
+class StuffController < ActionController::Base; end
 class SubpathBooksController < ActionController::Base; end
 class WeblogController < ActionController::Base; end
 

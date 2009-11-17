@@ -36,8 +36,6 @@ ARGV.delete(code_or_file)
 ENV["RAILS_ENV"] = options[:environment]
 RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
 
-require RAILS_ROOT + '/config/environment'
-
 begin
   if code_or_file.nil?
     $stderr.puts "Run '#{$0} -h' for help."

@@ -1,8 +1,4 @@
-require 'tmpdir'
-
-require "active_support/core_ext/class"
-# Use the old layouts until actionmailer gets refactored
-require "action_controller/legacy/layout"
+require 'active_support/core_ext/class'
 
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -232,7 +228,7 @@ module ActionMailer #:nodoc:
   # * <tt>raise_delivery_errors</tt> - Whether or not errors should be raised if the email fails to be delivered.
   #
   # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default), <tt>:sendmail</tt>, <tt>:test</tt>,
-  #   and <tt>:file</tt>.
+  #   and <tt>:file</tt>. Or you may provide a custom delivery method object eg. MyOwnDeliveryMethodClass.new
   #
   # * <tt>perform_deliveries</tt> - Determines whether <tt>deliver_*</tt> methods are actually carried out. By default they are,
   #   but this can be turned off to help functional testing.
@@ -256,12 +252,19 @@ module ActionMailer #:nodoc:
   #   +implicit_parts_order+.
   class Base
     include AdvAttrAccessor, PartContainer, Quoting, Utils
-    extend AbstractController::RenderingController
+
+    include AbstractController::RenderingController
+    include AbstractController::LocalizedCache
+    include AbstractController::Layouts
+
+    include AbstractController::Helpers
+    helper MailHelper
 
     if Object.const_defined?(:ActionController)
       include ActionController::UrlWriter
-      include ActionController::Layout
     end
+
+    include ActionMailer::DeprecatedBody
 
     private_class_method :new #:nodoc:
 
@@ -270,34 +273,8 @@ module ActionMailer #:nodoc:
 
     cattr_accessor :logger
 
-    @@smtp_settings = {
-      :address              => "localhost",
-      :port                 => 25,
-      :domain               => 'localhost.localdomain',
-      :user_name            => nil,
-      :password             => nil,
-      :authentication       => nil,
-      :enable_starttls_auto => true,
-    }
-    cattr_accessor :smtp_settings
-
-    @@sendmail_settings = {
-      :location       => '/usr/sbin/sendmail',
-      :arguments      => '-i -t'
-    }
-    cattr_accessor :sendmail_settings
-
-    @@file_settings = {
-      :location       => defined?(Rails) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"
-    }
-
-    cattr_accessor :file_settings
-
     @@raise_delivery_errors = true
     cattr_accessor :raise_delivery_errors
-
-    superclass_delegating_accessor :delivery_method
-    self.delivery_method = :smtp
 
     @@perform_deliveries = true
     cattr_accessor :perform_deliveries
@@ -317,16 +294,11 @@ module ActionMailer #:nodoc:
     @@default_implicit_parts_order = [ "text/html", "text/enriched", "text/plain" ]
     cattr_accessor :default_implicit_parts_order
 
+    @@protected_instance_variables = []
     cattr_reader :protected_instance_variables
-    @@protected_instance_variables = %w(@body)
 
     # Specify the BCC addresses for the message
     adv_attr_accessor :bcc
-
-    # Define the body of the message. This is either a Hash (in which case it
-    # specifies the variables to pass to the template when it is rendered),
-    # or a string, in which case it specifies the actual text of the message.
-    adv_attr_accessor :body
 
     # Specify the CC addresses for the message.
     adv_attr_accessor :cc
@@ -372,43 +344,42 @@ module ActionMailer #:nodoc:
     # have multiple mailer methods share the same template.
     adv_attr_accessor :template
 
+    # The mail and action_name instances referenced by this mailer.
+    attr_reader :mail, :action_name
+
+    # Where the response body is stored.
+    attr_internal :response_body
+
     # Override the mailer name, which defaults to an inflected version of the
     # mailer's class name. If you want to use a template in a non-standard
     # location, you can use this to specify that location.
+    attr_writer :mailer_name
+
     def mailer_name(value = nil)
       if value
-        self.mailer_name = value
+        @mailer_name = value
       else
-        self.class.mailer_name
+        @mailer_name || self.class.mailer_name
       end
     end
 
-    def mailer_name=(value)
-      self.class.mailer_name = value
-    end
-
-    # The mail object instance referenced by this mailer.
-    attr_reader :mail
-    attr_reader :template_name, :default_template_name, :action_name
-
-    def controller_path
-      self.class.controller_path
-    end
-    
-    def formats
-      @template.formats
-    end
+    # Alias controller_path to mailer_name so render :partial in views work.
+    alias :controller_path :mailer_name
 
     class << self
       attr_writer :mailer_name
+
+      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::File, :prefix => :file
+      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::Sendmail, :prefix => :sendmail
+      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::Smtp, :prefix => :smtp
 
       def mailer_name
         @mailer_name ||= name.underscore
       end
 
-      # for ActionView compatibility
-      alias_method :controller_name, :mailer_name
-      alias_method :controller_path, :mailer_name
+      def delivery_method=(method_name)
+        @delivery_method = ActionMailer::DeliveryMethod.lookup_method(method_name)
+      end
 
       def respond_to?(method_symbol, include_private = false) #:nodoc:
         matches_dynamic_method?(method_symbol) || super
@@ -459,6 +430,7 @@ module ActionMailer #:nodoc:
         self.view_paths && self.view_paths.first
       end
 
+      # Should template root overwrite the whole view_paths?
       def template_root=(root)
         self.view_paths = ActionView::Base.process_view_paths(root)
       end
@@ -470,73 +442,36 @@ module ActionMailer #:nodoc:
         end
     end
 
+    # Configure delivery method. Check ActionMailer::DeliveryMethod for more
+    # instructions.
+    superclass_delegating_reader :delivery_method
+    self.delivery_method = :smtp
+
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
     def initialize(method_name=nil, *parameters) #:nodoc:
+      @_response_body = nil
+      super()
       create!(method_name, *parameters) if method_name
     end
 
     # Initialize the mailer via the given +method_name+. The body will be
     # rendered and a new TMail::Mail object created.
     def create!(method_name, *parameters) #:nodoc:
-      ActiveSupport::Orchestra.instrument(:create_mail, :name => method_name) do
-        initialize_defaults(method_name)
-        __send__(method_name, *parameters)
+      initialize_defaults(method_name)
+      __send__(method_name, *parameters)
 
-        # If an explicit, textual body has not been set, we check assumptions.
-        unless String === @body
-          # First, we look to see if there are any likely templates that match,
-          # which include the content-type in their file name (i.e.,
-          # "the_template_file.text.html.erb", etc.). Only do this if parts
-          # have not already been specified manually.
-          # if @parts.empty?
-            template_root.find_all(@template, {}, template_path).each do |template|
-              @parts << Part.new(
-                :content_type => template.mime_type ? template.mime_type.to_s : "text/plain",
-                :disposition => "inline",
-                :charset => charset,
-                :body => render_template(template, @body)
-              )
-            end
+      # Create e-mail parts
+      create_parts
 
-            if @parts.size > 1
-              @content_type = "multipart/alternative" if @content_type !~ /^multipart/
-              @parts = sort_parts(@parts, @implicit_parts_order)
-            end
-          # end
+      # Set the subject if not set yet
+      @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
+                                    :default => method_name.humanize)
 
-          # Then, if there were such templates, we check to see if we ought to
-          # also render a "normal" template (without the content type). If a
-          # normal template exists (or if there were no implicit parts) we render
-          # it.
-          # ====
-          # TODO: Revisit this
-          # template_exists = @parts.empty?
-          # template_exists ||= template_root.find("#{mailer_name}/#{@template}")
-          # @body = render_message(@template, @body) if template_exists
-
-          # Finally, if there are other message parts and a textual body exists,
-          # we shift it onto the front of the parts and set the body to nil (so
-          # that create_mail doesn't try to render it in addition to the parts).
-          # ====
-          # TODO: Revisit this
-          # if !@parts.empty? && String === @body
-          #   @parts.unshift Part.new(:charset => charset, :body => @body)
-          #   @body = nil
-          # end
-        end
-
-        # If this is a multipart e-mail add the mime_version if it is not
-        # already set.
-        @mime_version ||= "1.0" if !@parts.empty?
-
-        # build the mail object itself
-        @mail = create_mail
-      end
-
-      @mail
+      # build the mail object itself
+      @mail = create_mail
     end
 
     # Delivers a TMail::Mail object. By default, it delivers the cached mail
@@ -545,14 +480,14 @@ module ActionMailer #:nodoc:
     def deliver!(mail = @mail)
       raise "no mail object available for delivery!" unless mail
 
-      unless logger.nil?
+      if logger
         logger.info  "Sent mail to #{Array(recipients).join(', ')}"
         logger.debug "\n#{mail.encoded}"
       end
 
-      ActiveSupport::Orchestra.instrument(:deliver_mail, :mail => @mail) do
+      ActiveSupport::Notifications.instrument(:deliver_mail, :mail => @mail) do
         begin
-          __send__("perform_delivery_#{delivery_method}", mail) if perform_deliveries
+          self.delivery_method.perform_delivery(mail) if perform_deliveries
         rescue Exception => e # Net::SMTP errors or sendmail pipe errors
           raise e if raise_delivery_errors
         end
@@ -562,93 +497,61 @@ module ActionMailer #:nodoc:
     end
 
     private
+
       # Set up the default values for the various instance variables of this
       # mailer. Subclasses may override this method to provide different
       # defaults.
       def initialize_defaults(method_name)
-        @charset ||= @@default_charset.dup
-        @content_type ||= @@default_content_type.dup
+        @charset              ||= @@default_charset.dup
+        @content_type         ||= @@default_content_type.dup
         @implicit_parts_order ||= @@default_implicit_parts_order.dup
-        @template ||= method_name
-        @default_template_name = @action_name = @template
-        @mailer_name ||= self.class.name.underscore
-        @parts ||= []
+        @mime_version         ||= @@default_mime_version.dup if @@default_mime_version
+
+        @mailer_name ||= self.class.mailer_name
+        @template    ||= method_name
+        @action_name = @template
+
+        @parts   ||= []
         @headers ||= {}
-        @body ||= {}
-        @mime_version = @@default_mime_version.dup if @@default_mime_version
         @sent_on ||= Time.now
+
+        super # Run deprecation hooks
       end
 
-      def render_template(template, body)
-        if template.respond_to?(:mime_type)
-          @current_template_content_type = template.mime_type && template.mime_type.to_sym.to_s
-        end
-        
-        @template = initialize_template_class(body)
-        layout = _pick_layout(layout, true) unless 
-          ActionController::Base.exempt_from_layout.include?(template.handler)
-        @template._render_template(template, layout, {})
-      ensure
-        @current_template_content_type = nil
-      end
+      def create_parts
+        super # Run deprecation hooks
 
-      def render_message(method_name, body)
-        render :file => method_name, :body => body
-      ensure
-        @current_template_content_type = nil
-      end
-
-      def render(opts)
-        layout, file = opts.delete(:layout), opts[:file]
-        
-        begin
-          @template = initialize_template_class(opts.delete(:body))
-          
-          if file
-            prefix = mailer_name unless file =~ /\//
-            template = view_paths.find(file, {:formats => formats}, prefix)
-          end
-
-          layout = _pick_layout(layout, 
-            !template || ActionController::Base.exempt_from_layout.include?(template.handler))
-
-          if template
-            @template._render_template(template, layout, opts)
-          elsif inline = opts[:inline]
-            @template._render_inline(inline, layout, opts)
-          end
-        end
-      end
-
-      def default_template_format
-        if @current_template_content_type
-          Mime::Type.lookup(@current_template_content_type).to_sym
+        if String === response_body
+          @parts.unshift Part.new(
+            :content_type => "text/plain",
+            :disposition => "inline",
+            :charset => charset,
+            :body => response_body
+          )
         else
-          :html
+          self.class.template_root.find_all(@template, {}, mailer_name).each do |template|
+            @parts << Part.new(
+              :content_type => template.mime_type ? template.mime_type.to_s : "text/plain",
+              :disposition => "inline",
+              :charset => charset,
+              :body => render_to_body(:_template => template)
+            )
+          end
+
+          if @parts.size > 1
+            @content_type = "multipart/alternative" if @content_type !~ /^multipart/
+            @parts = sort_parts(@parts, @implicit_parts_order)
+          end
+
+          # If this is a multipart e-mail add the mime_version if it is not
+          # already set.
+          @mime_version ||= "1.0" if !@parts.empty?
         end
-      end
-
-      def template_root
-        self.class.template_root
-      end
-
-      def template_root=(root)
-        self.class.template_root = root
-      end
-
-      def template_path
-        "#{mailer_name}"
-      end
-
-      def initialize_template_class(assigns)
-        template = ActionView::Base.new(self.class.view_paths, assigns, self)
-        template.formats = [default_template_format]
-        template
       end
 
       def sort_parts(parts, order = [])
         order = order.collect { |s| s.downcase }
-        
+
         parts = parts.sort do |a, b|
           a_ct = a.content_type.downcase
           b_ct = b.content_type.downcase
@@ -697,14 +600,6 @@ module ActionMailer #:nodoc:
           m.set_content_type(real_content_type, nil, ctype_attrs)
           m.body = normalize_new_lines(@parts.first.body)
         else
-          if String === body
-            part = TMail::Mail.new
-            part.body = normalize_new_lines(body)
-            part.set_content_type(real_content_type, nil, ctype_attrs)
-            part.set_content_disposition "inline"
-            m.parts << part
-          end
-
           @parts.each do |p|
             part = (TMail::Mail === p ? p : p.to_mail(self))
             m.parts << part
@@ -719,43 +614,5 @@ module ActionMailer #:nodoc:
         @mail = m
       end
 
-      def perform_delivery_smtp(mail)
-        destinations = mail.destinations
-        mail.ready_to_send
-        sender = (mail['return-path'] && mail['return-path'].spec) || mail['from']
-
-        smtp = Net::SMTP.new(smtp_settings[:address], smtp_settings[:port])
-        smtp.enable_starttls_auto if smtp_settings[:enable_starttls_auto] && smtp.respond_to?(:enable_starttls_auto)
-        smtp.start(smtp_settings[:domain], smtp_settings[:user_name], smtp_settings[:password],
-                   smtp_settings[:authentication]) do |smtp|
-          smtp.sendmail(mail.encoded, sender, destinations)
-        end
-      end
-
-      def perform_delivery_sendmail(mail)
-        sendmail_args = sendmail_settings[:arguments]
-        sendmail_args += " -f \"#{mail['return-path']}\"" if mail['return-path']
-        IO.popen("#{sendmail_settings[:location]} #{sendmail_args}","w+") do |sm|
-          sm.print(mail.encoded.gsub(/\r/, ''))
-          sm.flush
-        end
-      end
-
-      def perform_delivery_test(mail)
-        deliveries << mail
-      end
-
-      def perform_delivery_file(mail)
-        FileUtils.mkdir_p file_settings[:location]
-
-        (mail.to + mail.cc + mail.bcc).uniq.each do |to|
-          File.open(File.join(file_settings[:location], to), 'a') { |f| f.write(mail) }
-        end
-      end
-  end
-
-  Base.class_eval do
-    include Helpers
-    helper MailHelper
   end
 end

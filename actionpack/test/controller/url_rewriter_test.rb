@@ -224,9 +224,8 @@ class UrlWriterTests < ActionController::TestCase
   def test_named_routes
     with_routing do |set|
       set.draw do |map|
-        map.no_args '/this/is/verbose', :controller => 'home', :action => 'index'
-        map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
-        map.connect ':controller/:action/:id'
+        match 'this/is/verbose', :to => 'home#index', :as => :no_args
+        match 'home/sweet/home/:user', :to => 'home#index', :as => :home
       end
 
       # We need to create a new class in order to install the new named route.
@@ -264,7 +263,7 @@ class UrlWriterTests < ActionController::TestCase
   def test_only_path
     with_routing do |set|
       set.draw do |map|
-        map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
+        match 'home/sweet/home/:user', :to => 'home#index', :as => :home
         map.connect ':controller/:action/:id'
       end
 
@@ -321,8 +320,8 @@ class UrlWriterTests < ActionController::TestCase
     params = extract_params(url)
     assert_equal params[0], { 'query[hobby]'              => 'piercing'     }.to_query
     assert_equal params[1], { 'query[person][name]'       => 'Bob'          }.to_query
-    assert_equal params[2], { 'query[person][position][]' => 'prof'         }.to_query
-    assert_equal params[3], { 'query[person][position][]' => 'art director' }.to_query
+    assert_equal params[2], { 'query[person][position][]' => 'art director' }.to_query
+    assert_equal params[3], { 'query[person][position][]' => 'prof'         }.to_query
   end
 
   def test_path_generation_for_symbol_parameter_keys
@@ -334,7 +333,6 @@ class UrlWriterTests < ActionController::TestCase
       set.draw do |map|
         map.main '', :controller => 'posts', :format => nil
         map.resources :posts
-        map.connect ':controller/:action/:id'
       end
 
       # We need to create a new class in order to install the new named route.
@@ -359,10 +357,10 @@ class UrlWriterTests < ActionController::TestCase
       controller = kls.new
       params = {:id => 1, :format => :xml}
       assert_deprecated do
-        assert_equal("/posts/1.xml", controller.send(:formatted_post_path, params))    
+        assert_equal("/posts/1.xml", controller.send(:formatted_post_path, params))
       end
       assert_deprecated do
-        assert_equal("/posts/1.xml", controller.send(:formatted_post_path, 1, :xml))    
+        assert_equal("/posts/1.xml", controller.send(:formatted_post_path, 1, :xml))
       end
     end
   end
@@ -382,6 +380,6 @@ class UrlWriterTests < ActionController::TestCase
 
   private
     def extract_params(url)
-      url.split('?', 2).last.split('&')
+      url.split('?', 2).last.split('&').sort
     end
 end

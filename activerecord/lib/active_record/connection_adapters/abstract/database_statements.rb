@@ -53,7 +53,7 @@ module ActiveRecord
       def delete(sql, name = nil)
         delete_sql(sql, name)
       end
-      
+
       # Checks whether there is currently no transaction active. This is done
       # by querying the database driver, and does not use the transaction
       # house-keeping information recorded by #increment_open_transactions and
@@ -170,7 +170,7 @@ module ActiveRecord
           end
         end
       end
-      
+
       # Begins the transaction (and turns off auto-committing).
       def begin_db_transaction()    end
 
@@ -180,33 +180,6 @@ module ActiveRecord
       # Rolls back the transaction (and turns on auto-committing). Must be
       # done if the transaction block raises an exception or returns false.
       def rollback_db_transaction() end
-
-      # Alias for <tt>add_limit_offset!</tt>.
-      def add_limit!(sql, options)
-        add_limit_offset!(sql, options) if options
-      end
-
-      # Appends +LIMIT+ and +OFFSET+ options to an SQL statement, or some SQL
-      # fragment that has the same semantics as LIMIT and OFFSET.
-      #
-      # +options+ must be a Hash which contains a +:limit+ option (required)
-      # and an +:offset+ option (optional).
-      #
-      # This method *modifies* the +sql+ parameter.
-      #
-      # ===== Examples
-      #  add_limit_offset!('SELECT * FROM suppliers', {:limit => 10, :offset => 50})
-      # generates
-      #  SELECT * FROM suppliers LIMIT 10 OFFSET 50
-      def add_limit_offset!(sql, options)
-        if limit = options[:limit]
-          sql << " LIMIT #{sanitize_limit(limit)}"
-          if offset = options[:offset]
-            sql << " OFFSET #{offset.to_i}"
-          end
-        end
-        sql
-      end
 
       # Appends a locking clause to an SQL statement.
       # This method *modifies* the +sql+ parameter.
@@ -235,8 +208,8 @@ module ActiveRecord
         execute "INSERT INTO #{quote_table_name(table_name)} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
       end
 
-      def empty_insert_statement(table_name)
-        "INSERT INTO #{quote_table_name(table_name)} VALUES(DEFAULT)"
+      def empty_insert_statement_value
+        "VALUES(DEFAULT)"
       end
 
       def case_sensitive_equality_operator

@@ -1,13 +1,9 @@
 require 'benchmark'
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/benchmark'
 require 'active_support/core_ext/exception'
 require 'active_support/core_ext/class/attribute_accessors'
-
-%w(hash nil string time date date_time array big_decimal range object boolean).each do |library|
-  require "active_support/core_ext/#{library}/conversions"
-end
-
-# require 'active_support/core_ext' # FIXME: pulling in all to_param extensions
+require 'active_support/core_ext/object/to_param'
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -48,7 +44,7 @@ module ActiveSupport
     #   ActiveSupport::Cache.lookup_store(MyOwnCacheStore.new)
     #   # => returns MyOwnCacheStore.new
     def self.lookup_store(*store_option)
-      store, *parameters = *([ store_option ].flatten)
+      store, *parameters = *Array.wrap(store_option).flatten
 
       case store
       when Symbol
@@ -105,7 +101,7 @@ module ActiveSupport
     #   cache.write("city", "Duckburgh")
     #   cache.read("city")   # => "Duckburgh"
     class Store
-      cattr_accessor :logger
+      cattr_accessor :logger, :instance_writter => false
 
       attr_reader :silence
       alias :silence? :silence
@@ -120,6 +116,15 @@ module ActiveSupport
         yield
       ensure
         @silence = previous_silence
+      end
+
+      # Set to true if cache stores should be instrumented. By default is false.
+      def self.instrument=(boolean)
+        Thread.current[:instrument_cache_store] = boolean
+      end
+
+      def self.instrument
+        Thread.current[:instrument_cache_store] || false
       end
 
       # Fetches data from the cache, using the given key. If there is data in
@@ -219,7 +224,6 @@ module ActiveSupport
       end
 
       def increment(key, amount = 1)
-        log("incrementing", key, amount)
         if num = read(key)
           write(key, num + amount)
         else
@@ -228,7 +232,6 @@ module ActiveSupport
       end
 
       def decrement(key, amount = 1)
-        log("decrementing", key, amount)
         if num = read(key)
           write(key, num - amount)
         else
@@ -244,16 +247,20 @@ module ActiveSupport
         end
 
         def instrument(operation, key, options, &block)
-          payload = { :key => key }
-          payload.merge!(options) if options.is_a?(Hash)
+          log(operation, key, options)
 
-          event = ActiveSupport::Orchestra.instrument(:"cache_#{operation}", payload, &block)
-          log("#{operation} (%.1fms)" % event.duration, key, options)
-          event.result
+          if self.class.instrument
+            payload = { :key => key }
+            payload.merge!(options) if options.is_a?(Hash)
+            ActiveSupport::Notifications.instrument(:"cache_#{operation}", payload, &block)
+          else
+            yield
+          end
         end
 
         def log(operation, key, options)
-          logger.debug("Cache #{operation}: #{key}#{options ? " (#{options.inspect})" : ""}") if logger && !silence?
+          return unless logger && !silence?
+          logger.debug("Cache #{operation}: #{key}#{options ? " (#{options.inspect})" : ""}")
         end
     end
   end

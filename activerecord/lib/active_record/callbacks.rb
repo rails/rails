@@ -20,7 +20,7 @@ module ActiveRecord
   # * (6) <tt>after_save</tt>
   #
   # That's a total of eight callbacks, which gives you immense power to react and prepare for each state in the
-  # Active Record lifecycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar, except that each 
+  # Active Record lifecycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar, except that each
   # <tt>_on_create</tt> callback is replaced by the corresponding <tt>_on_update</tt> callback.
   #
   # Examples:
@@ -210,7 +210,7 @@ module ActiveRecord
   # instead of quietly returning +false+.
   module Callbacks
     extend ActiveSupport::Concern
-    include ActiveSupport::NewCallbacks
+    include ActiveSupport::Callbacks
 
     CALLBACKS = [
       :after_initialize, :after_find, :before_validation, :after_validation,

@@ -6,10 +6,7 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/instance_variables'
 require 'active_support/deprecation'
 
-require 'active_support/core_ext/date_time/conversions'
-require 'active_support/core_ext/time/conversions'
-require 'active_support/time_with_zone'
-require 'active_support/values/time_zone'
+require 'active_support/time'
 
 # Hack to load json gem first so we can overwrite its to_json.
 begin

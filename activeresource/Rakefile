@@ -35,14 +35,15 @@ Rake::TestTask.new { |t|
   t.warning = true
 }
 
-task :isolated_test do
-  ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-  activesupport_path = "#{File.dirname(__FILE__)}/../activesupport/lib"
-  Dir.glob("test/**/*_test.rb").all? do |file|
-    system(ruby, '-w', "-Ilib:test:#{activesupport_path}", file)
-  end or raise "Failures"
+namespace :test do
+  task :isolated do
+    ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
+    activesupport_path = "#{File.dirname(__FILE__)}/../activesupport/lib"
+    Dir.glob("test/**/*_test.rb").all? do |file|
+      system(ruby, '-w', "-Ilib:test:#{activesupport_path}", file)
+    end or raise "Failures"
+  end
 end
-
 
 # Generate the RDoc documentation
 
@@ -62,8 +63,6 @@ spec = eval(File.read('activeresource.gemspec'))
 
 Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
-  p.need_tar = true
-  p.need_zip = true
 end
 
 task :lines do
@@ -80,10 +79,10 @@ task :lines do
       codelines += 1
     end
     puts "L: #{sprintf("%4d", lines)}, LOC #{sprintf("%4d", codelines)} | #{file_name}"
-    
+
     total_lines     += lines
     total_codelines += codelines
-    
+
     lines, codelines = 0, 0
   end
 
@@ -94,14 +93,14 @@ end
 # Publishing ------------------------------------------------------
 
 desc "Publish the beta gem"
-task :pgem => [:package] do 
+task :pgem => [:package] do
   require 'rake/contrib/sshpublisher'
   Rake::SshFilePublisher.new("gems.rubyonrails.org", "/u/sites/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
   `ssh gems.rubyonrails.org '/u/sites/gems/gemupdate.sh'`
 end
 
 desc "Publish the API documentation"
-task :pdoc => [:rdoc] do 
+task :pdoc => [:rdoc] do
   require 'rake/contrib/sshpublisher'
   Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/ar", "doc").upload
 end

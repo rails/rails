@@ -411,12 +411,6 @@ module ActiveRecord
         "DISTINCT #{columns}"
       end
 
-      # ORDER BY clause for the passed order option.
-      # PostgreSQL overrides this due to its stricter standards compliance.
-      def add_order_by_for_association_limiting!(sql, options)
-        sql << " ORDER BY #{options[:order]}"
-      end
-
       # Adds timestamps (created_at and updated_at) columns to the named table.
       # ===== Examples
       #  add_timestamps(:suppliers)

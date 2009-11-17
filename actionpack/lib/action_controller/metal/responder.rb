@@ -14,12 +14,11 @@ module ActionController #:nodoc:
   #
   # When a request comes, for example with format :xml, three steps happen:
   #
-  #   1) respond_with searches for a template at people/index.xml;
+  #   1) responder searches for a template at people/index.xml;
   #
-  #   2) if the template is not available, it will create a responder, passing
-  #      the controller and the resource and invoke :to_xml on it;
+  #   2) if the template is not available, it will invoke :to_xml in the given resource;
   #
-  #   3) if the responder does not respond_to :to_xml, call to_format on it.
+  #   3) if the responder does not respond_to :to_xml, call :to_format on it.
   #
   # === Builtin HTTP verb semantics
   #
@@ -88,14 +87,16 @@ module ActionController #:nodoc:
       @resource = resources.is_a?(Array) ? resources.last : resources
       @resources = resources
       @options = options
+      @action = options.delete(:action)
       @default_response = options.delete(:default_response)
     end
 
     delegate :head, :render, :redirect_to,   :to => :controller
     delegate :get?, :post?, :put?, :delete?, :to => :request
 
-    # Undefine :to_json since it's defined on Object
-    undef_method :to_json
+    # Undefine :to_json and :to_yaml since it's defined on Object
+    undef_method(:to_json) if method_defined?(:to_json)
+    undef_method(:to_yaml) if method_defined?(:to_yaml)
 
     # Initializes a new responder an invoke the proper format. If the format is
     # not defined, call to_format.
@@ -111,14 +112,8 @@ module ActionController #:nodoc:
     #
     def to_html
       default_render
-    rescue ActionView::MissingTemplate
-      if get?
-        raise
-      elsif has_errors?
-        render :action => default_action
-      else
-        redirect_to resource_location
-      end
+    rescue ActionView::MissingTemplate => e
+      navigation_behavior(e)
     end
 
     # All others formats follow the procedure below. First we try to render a
@@ -127,9 +122,26 @@ module ActionController #:nodoc:
     #
     def to_format
       default_render
-    rescue ActionView::MissingTemplate
+    rescue ActionView::MissingTemplate => e
       raise unless resourceful?
+      api_behavior(e)
+    end
 
+  protected
+
+    # This is the common behavior for "navigation" requests, like :html, :iphone and so forth.
+    def navigation_behavior(error)
+      if get?
+        raise error
+      elsif has_errors?
+        render :action => default_action
+      else
+        redirect_to resource_location
+      end
+    end
+
+    # This is the common behavior for "API" requests, like :xml and :json.
+    def api_behavior(error)
       if get?
         display resource
       elsif has_errors?
@@ -140,8 +152,6 @@ module ActionController #:nodoc:
         head :ok
       end
     end
-
-  protected
 
     # Checks whether the resource responds to the current format or not.
     #
@@ -194,7 +204,7 @@ module ActionController #:nodoc:
     # the verb is post.
     #
     def default_action
-      request.post? ? :new : :edit
+      @action || (request.post? ? :new : :edit)
     end
   end
 end

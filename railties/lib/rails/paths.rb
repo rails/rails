@@ -19,14 +19,14 @@ module Rails
     class Root
       include PathParent
 
-      attr_reader :path
+      attr_accessor :path
+
       def initialize(path)
-        raise unless path.is_a?(String)
+        raise if path.is_a?(Array)
 
         @children = {}
 
-        # TODO: Move logic from set_root_path initializer
-        @path = File.expand_path(path)
+        @path = path
         @root = self
         @all_paths = []
       end
@@ -64,7 +64,7 @@ module Rails
     end
 
     class Path
-      include PathParent
+      include PathParent, Enumerable
 
       attr_reader :path
       attr_accessor :glob
@@ -81,6 +81,10 @@ module Rails
         @load_path  = @options[:load_path] || @eager_load
 
         @root.all_paths << self
+      end
+
+      def each
+        to_a.each { |p| yield p }
       end
 
       def push(path)
@@ -123,8 +127,10 @@ module Rails
       end
 
       def paths
+        raise "You need to set a path root" unless @root.path
+
         @paths.map do |path|
-          path.index('/') == 0 ? path : File.join(@root.path, path)
+          path.index('/') == 0 ? path : File.expand_path(File.join(@root.path, path))
         end
       end
 

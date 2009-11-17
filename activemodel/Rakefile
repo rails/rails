@@ -1,4 +1,5 @@
-require File.join(File.dirname(__FILE__), 'lib', 'active_model', 'version')
+dir = File.dirname(__FILE__)
+require "#{dir}/lib/active_model/version"
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'activemodel'
@@ -11,18 +12,20 @@ require 'rake/testtask'
 
 task :default => :test
 
-Rake::TestTask.new do |t| 
-  t.libs << "test"
-  t.test_files = Dir.glob("test/cases/**/*_test.rb").sort
+Rake::TestTask.new do |t|
+  t.libs << "#{dir}/test"
+  t.test_files = Dir.glob("#{dir}/test/cases/**/*_test.rb").sort
   t.verbose = true
   t.warning = true
 end
 
-task :isolated_test do
-  ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-  Dir.glob("test/**/*_test.rb").all? do |file|
-    system(ruby, '-w', '-Ilib:test', file)
-  end or raise "Failures"
+namespace :test do
+  task :isolated do
+    ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
+    Dir.glob("#{dir}/test/**/*_test.rb").all? do |file|
+      system(ruby, '-w', "-I#{dir}/lib", "-I#{dir}/test", file)
+    end or raise "Failures"
+  end
 end
 
 
@@ -30,23 +33,21 @@ require 'rake/rdoctask'
 
 # Generate the RDoc documentation
 Rake::RDocTask.new do |rdoc|
-  rdoc.rdoc_dir = 'doc'
+  rdoc.rdoc_dir = "#{dir}/doc"
   rdoc.title    = "Active Model"
   rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
   rdoc.options << '--charset' << 'utf-8'
   rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
-  rdoc.rdoc_files.include('README', 'CHANGES')
-  rdoc.rdoc_files.include('lib/**/*.rb')
+  rdoc.rdoc_files.include("#{dir}/README", "#{dir}/CHANGES")
+  rdoc.rdoc_files.include("#{dir}/lib/**/*.rb")
 end
 
 
 require 'rake/packagetask'
 require 'rake/gempackagetask'
 
-spec = eval(File.read('activemodel.gemspec'))
+spec = eval(File.read("#{dir}/activemodel.gemspec"))
 
 Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
-  p.need_tar = true
-  p.need_zip = true
 end

@@ -1,9 +1,13 @@
+require 'rails/generators/active_model'
+
 module Rails
   module Generators
     # Deal with controller names on scaffold and add some helpers to deal with
     # ActiveModel.
     #
     module ResourceHelpers
+      mattr_accessor :skip_warn
+
       def self.included(base) #:nodoc:
         base.send :attr_reader, :controller_name, :controller_class_name, :controller_file_name,
                                 :controller_class_path, :controller_file_path
@@ -17,7 +21,11 @@ module Rails
         super
 
         if name == name.pluralize && !options[:force_plural]
-          say "Plural version of the model detected, using singularized version. Override with --force-plural."
+          unless ResourceHelpers.skip_warn
+            say "Plural version of the model detected, using singularized version. Override with --force-plural."
+            ResourceHelpers.skip_warn = true
+          end
+
           name.replace name.singularize
           assign_names!(self.name)
         end
@@ -47,20 +55,11 @@ module Rails
               raise "You need to have :orm as class option to invoke orm_class and orm_instance"
             end
 
-            active_model = "#{options[:orm].to_s.classify}::Generators::ActiveModel"
-
-            # If the orm was not loaded, try to load it at "generators/orm",
-            # for example "generators/active_record" or "generators/sequel".
             begin
-              klass = active_model.constantize
-            rescue NameError
-              require "rails/generators/#{options[:orm]}"
+              "#{options[:orm].to_s.classify}::Generators::ActiveModel".constantize
+            rescue NameError => e
+              Rails::Generators::ActiveModel
             end
-
-            # Try once again after loading the file with success.
-            klass ||= active_model.constantize
-          rescue Exception => e
-            raise Error, "Could not load #{active_model}, skipping controller. Error: #{e.message}."
           end
         end
 

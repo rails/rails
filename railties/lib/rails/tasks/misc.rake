@@ -1,7 +1,7 @@
 task :default => :test
 task :environment do
   $rails_rake_task = true
-  require(File.join(RAILS_ROOT, 'config', 'environment'))
+  require(File.join(Rails.root, 'config', 'environment'))
 end
 
 task :rails_env do

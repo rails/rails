@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/duplicable'
+require 'active_support/core_ext/array/extract_options'
 
 # Retain for backward compatibility.  Methods are now included in Class.
 module ClassInheritableAttributes # :nodoc:
@@ -10,16 +11,19 @@ end
 # children, which is unlike the regular class-level attributes that are shared across the entire hierarchy.
 class Class # :nodoc:
   def class_inheritable_reader(*syms)
+    options = syms.extract_options!
     syms.each do |sym|
       next if sym.is_a?(Hash)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        def self.#{sym}                         # def self.after_add
-          read_inheritable_attribute(:#{sym})   #   read_inheritable_attribute(:after_add)
-        end                                     # end
-
-        def #{sym}                              # def after_add
-          self.class.#{sym}                     #   self.class.after_add
-        end                                     # end
+        def self.#{sym}                                # def self.after_add
+          read_inheritable_attribute(:#{sym})          #   read_inheritable_attribute(:after_add)
+        end                                            # end
+                                                       #
+        #{"                                            #
+        def #{sym}                                     # def after_add
+          self.class.#{sym}                            #   self.class.after_add
+        end                                            # end
+        " unless options[:instance_reader] == false }  # # the reader above is generated unless options[:instance_reader] == false
       EOS
     end
   end
@@ -156,7 +160,7 @@ class Class
   #   moving on). In particular, this makes the return value of this function
   #   less useful.
   def extlib_inheritable_reader(*ivars)
-    instance_reader = ivars.pop[:reader] if ivars.last.is_a?(Hash)
+    options = ivars.extract_options!
 
     ivars.each do |ivar|
       self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -164,10 +168,10 @@ class Class
           return @#{ivar} if self.object_id == #{self.object_id} || defined?(@#{ivar})
           ivar = superclass.#{ivar}
           return nil if ivar.nil? && !#{self}.instance_variable_defined?("@#{ivar}")
-          @#{ivar} = ivar && !ivar.is_a?(Module) && !ivar.is_a?(Numeric) && !ivar.is_a?(TrueClass) && !ivar.is_a?(FalseClass) ? ivar.dup : ivar
+          @#{ivar} = ivar.duplicable? ? ivar.dup : ivar
         end
       RUBY
-      unless instance_reader == false
+      unless options[:instance_reader] == false
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{ivar}
             self.class.#{ivar}
@@ -190,14 +194,15 @@ class Class
   # @todo We need a style for class_eval <<-HEREDOC. I'd like to make it
   #   class_eval(<<-RUBY, __FILE__, __LINE__), but we should codify it somewhere.
   def extlib_inheritable_writer(*ivars)
-    instance_writer = ivars.pop[:writer] if ivars.last.is_a?(Hash)
+    options = ivars.extract_options!
+
     ivars.each do |ivar|
       self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
         def self.#{ivar}=(obj)
           @#{ivar} = obj
         end
       RUBY
-      unless instance_writer == false
+      unless options[:instance_writer] == false
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{ivar}=(obj) self.class.#{ivar} = obj end
         RUBY

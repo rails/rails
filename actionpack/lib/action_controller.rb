@@ -2,6 +2,8 @@ module ActionController
   autoload :Base,                 "action_controller/base"
   autoload :Benchmarking,         "action_controller/metal/benchmarking"
   autoload :ConditionalGet,       "action_controller/metal/conditional_get"
+  autoload :Configuration,        "action_controller/metal/configuration"
+  autoload :Head,                 "action_controller/metal/head"
   autoload :Helpers,              "action_controller/metal/helpers"
   autoload :HideActions,          "action_controller/metal/hide_actions"
   autoload :Layouts,              "action_controller/metal/layouts"
@@ -18,22 +20,20 @@ module ActionController
   autoload :Testing,              "action_controller/metal/testing"
   autoload :UrlFor,               "action_controller/metal/url_for"
 
-  # Ported modules
-  # require 'action_controller/routing'
   autoload :Caching,           'action_controller/caching'
   autoload :Dispatcher,        'action_controller/dispatch/dispatcher'
   autoload :Integration,       'action_controller/deprecated/integration_test'
   autoload :IntegrationTest,   'action_controller/deprecated/integration_test'
   autoload :MimeResponds,      'action_controller/metal/mime_responds'
   autoload :PerformanceTest,   'action_controller/deprecated/performance_test'
-  autoload :PolymorphicRoutes, 'action_controller/routing/generation/polymorphic_routes'
+  autoload :PolymorphicRoutes, 'action_controller/polymorphic_routes'
   autoload :RecordIdentifier,  'action_controller/record_identifier'
-  autoload :Resources,         'action_controller/routing/resources'
+  autoload :Routing,           'action_controller/deprecated'
   autoload :SessionManagement, 'action_controller/metal/session_management'
   autoload :TestCase,          'action_controller/testing/test_case'
   autoload :TestProcess,       'action_controller/testing/process'
-  autoload :UrlRewriter,       'action_controller/routing/generation/url_rewriter'
-  autoload :UrlWriter,         'action_controller/routing/generation/url_rewriter'
+  autoload :UrlRewriter,       'action_controller/url_rewriter'
+  autoload :UrlWriter,         'action_controller/url_rewriter'
 
   autoload :Verification,             'action_controller/metal/verification'
   autoload :Flash,                    'action_controller/metal/flash'
@@ -54,8 +54,6 @@ module ActionController
   autoload :RenderError,              'action_controller/metal/exceptions'
   autoload :SessionOverflowError,     'action_controller/metal/exceptions'
   autoload :UnknownHttpMethod,        'action_controller/metal/exceptions'
-
-  autoload :Routing,                  'action_controller/routing'
 end
 
 autoload :HTML, 'action_controller/vendor/html-scanner'

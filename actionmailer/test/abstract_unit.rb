@@ -1,9 +1,17 @@
+root = File.expand_path('../../..', __FILE__)
+begin
+  require "#{root}/vendor/gems/environment"
+rescue LoadError
+  $:.unshift("#{root}/activesupport/lib")
+  $:.unshift("#{root}/actionpack/lib")
+end
+
+lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
+$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
+
 require 'rubygems'
 require 'test/unit'
 
-$:.unshift "#{File.dirname(__FILE__)}/../lib"
-$:.unshift "#{File.dirname(__FILE__)}/../../activesupport/lib"
-$:.unshift "#{File.dirname(__FILE__)}/../../actionpack/lib"
 require 'action_mailer'
 require 'action_mailer/test_case'
 
@@ -13,6 +21,8 @@ ActiveSupport::Deprecation.debug = true
 # Bogus template processors
 ActionView::Template.register_template_handler :haml, lambda { |template| "Look its HAML!".inspect }
 ActionView::Template.register_template_handler :bak, lambda { |template| "Lame backup".inspect }
+
+ActionView::Base::DEFAULT_CONFIG = { :assets_dir => '/nowhere' }
 
 $:.unshift "#{File.dirname(__FILE__)}/fixtures/helpers"
 

@@ -106,7 +106,7 @@ class CookieTest < ActionController::TestCase
   def test_cookiejar_accessor
     @request.cookies["user_name"] = "david"
     @controller.request = @request
-    jar = ActionController::CookieJar.new(@controller)
+    jar = ActionController::CookieJar.build(@controller.request, @controller.response)
     assert_equal "david", jar["user_name"]
     assert_equal nil, jar["something_else"]
   end
@@ -114,8 +114,15 @@ class CookieTest < ActionController::TestCase
   def test_cookiejar_accessor_with_array_value
     @request.cookies["pages"] = %w{1 2 3}
     @controller.request = @request
-    jar = ActionController::CookieJar.new(@controller)
+    jar = ActionController::CookieJar.build(@controller.request, @controller.response)
     assert_equal %w{1 2 3}, jar["pages"]
+  end
+
+  def test_cookiejar_delete_removes_item_and_returns_its_value
+    @request.cookies["user_name"] = "david"
+    @controller.response = @response
+    jar = ActionController::CookieJar.build(@controller.request, @controller.response)
+    assert_equal "david", jar.delete("user_name")
   end
 
   def test_delete_cookie_with_path
@@ -124,9 +131,8 @@ class CookieTest < ActionController::TestCase
   end
 
   def test_cookies_persist_throughout_request
-    get :authenticate
-    cookies = @controller.send(:cookies)
-    assert_equal 'david', cookies['user_name']
+    response = get :authenticate
+    assert response.headers["Set-Cookie"] =~ /user_name=david/
   end
   
   private

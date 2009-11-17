@@ -1,3 +1,5 @@
+require "active_support/inflector/methods"
+
 module ActionDispatch
   class MiddlewareStack < Array
     class Middleware
@@ -32,7 +34,7 @@ module ActionDispatch
         elsif @klass.respond_to?(:call)
           @klass.call
         else
-          @klass.to_s.constantize
+          ActiveSupport::Inflector.constantize(@klass.to_s)
         end
       end
 
@@ -53,7 +55,7 @@ module ActionDispatch
         when Class
           klass == middleware
         else
-          klass == middleware.to_s.constantize
+          klass == ActiveSupport::Inflector.constantize(middleware.to_s)
         end
       end
 

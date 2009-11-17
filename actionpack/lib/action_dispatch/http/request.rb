@@ -5,7 +5,7 @@ require 'strscan'
 require 'active_support/memoizable'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/object/tap'
+require 'active_support/core_ext/string/access'
 
 module ActionDispatch
   class Request < Rack::Request
@@ -97,6 +97,10 @@ module ActionDispatch
       end
     end
 
+    def forgery_whitelisted?
+      method == :get || xhr? || content_type.nil? || !content_type.verify_request?
+    end
+
     def media_type
       content_type.to_s
     end
@@ -136,19 +140,16 @@ module ActionDispatch
     # If-Modified-Since and If-None-Match conditions. If both headers are
     # supplied, both must match, or the request is not considered fresh.
     def fresh?(response)
-      case
-      when if_modified_since && if_none_match
-        not_modified?(response.last_modified) && etag_matches?(response.etag)
-      when if_modified_since
-        not_modified?(response.last_modified)
-      when if_none_match
-        etag_matches?(response.etag)
-      else
-        false
-      end
-    end
+      last_modified = if_modified_since
+      etag          = if_none_match
 
-    ONLY_ALL = [Mime::ALL].freeze
+      return false unless last_modified || etag
+
+      success = true
+      success &&= not_modified?(response.last_modified) if last_modified
+      success &&= etag_matches?(response.etag) if etag
+      success
+    end
 
     # Returns the Mime type for the \format used in the request.
     #
@@ -165,7 +166,7 @@ module ActionDispatch
 
       @env["action_dispatch.request.formats"] ||=
         if parameters[:format]
-          [Mime[parameters[:format]]]
+          Array.wrap(Mime[parameters[:format]])
         elsif xhr? || (accept && !accept.include?(?,))
           accepts
         else
@@ -202,10 +203,6 @@ module ActionDispatch
       else
         :html
       end
-    end
-
-    def cache_format
-      parameters[:format]
     end
 
     # Returns true if the request's "X-Requested-With" header contains
@@ -492,7 +489,7 @@ EOM
         def self.extended(object)
           object.class_eval do
             attr_accessor :original_path, :content_type
-            alias_method :local_path, :path
+            alias_method :local_path, :path if method_defined?(:path)
           end
         end
 

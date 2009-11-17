@@ -41,6 +41,8 @@ module ActionDispatch
   autoload :Static, 'action_dispatch/middleware/static'
   autoload :StringCoercion, 'action_dispatch/middleware/string_coercion'
 
+  autoload :Routing, 'action_dispatch/routing'
+
   autoload :Assertions, 'action_dispatch/testing/assertions'
   autoload :Integration, 'action_dispatch/testing/integration'
   autoload :IntegrationTest, 'action_dispatch/testing/integration'

@@ -102,7 +102,7 @@
       minute: "Minute"
       second: "Seconds"
 
-  activerecord:
+  activemodel:
     errors:
       template:
         header:

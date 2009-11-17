@@ -17,7 +17,7 @@ module ActiveResource
       :head => 'Accept'
     }
 
-    attr_reader :site, :user, :password, :timeout, :proxy, :ssl_options
+    attr_reader :site, :user, :password, :auth_type, :timeout, :proxy, :ssl_options
     attr_accessor :format
 
     class << self
@@ -31,20 +31,21 @@ module ActiveResource
     def initialize(site, format = ActiveResource::Formats::XmlFormat)
       raise ArgumentError, 'Missing site URI' unless site
       @user = @password = nil
+      @uri_parser = URI.const_defined?(:Parser) ? URI::Parser.new : URI
       self.site = site
       self.format = format
     end
 
     # Set URI for remote service.
     def site=(site)
-      @site = site.is_a?(URI) ? site : URI.parse(site)
-      @user = URI.decode(@site.user) if @site.user
-      @password = URI.decode(@site.password) if @site.password
+      @site = site.is_a?(URI) ? site : @uri_parser.parse(site)
+      @user = @uri_parser.unescape(@site.user) if @site.user
+      @password = @uri_parser.unescape(@site.password) if @site.password
     end
 
     # Set the proxy for remote service.
     def proxy=(proxy)
-      @proxy = proxy.is_a?(URI) ? proxy : URI.parse(proxy)
+      @proxy = proxy.is_a?(URI) ? proxy : @uri_parser.parse(proxy)
     end
 
     # Sets the user for remote service.
@@ -55,6 +56,11 @@ module ActiveResource
     # Sets the password for remote service.
     def password=(password)
       @password = password
+    end
+
+    # Sets the auth type for remote service.
+    def auth_type=(auth_type)
+      @auth_type = legitimize_auth_type(auth_type)
     end
 
     # Sets the number of seconds after which HTTP requests to the remote service should time out.
@@ -70,31 +76,31 @@ module ActiveResource
     # Executes a GET request.
     # Used to get (find) resources.
     def get(path, headers = {})
-      format.decode(request(:get, path, build_request_headers(headers, :get)).body)
+      with_auth { format.decode(request(:get, path, build_request_headers(headers, :get, self.site.merge(path))).body) }
     end
 
     # Executes a DELETE request (see HTTP protocol documentation if unfamiliar).
     # Used to delete resources.
     def delete(path, headers = {})
-      request(:delete, path, build_request_headers(headers, :delete))
+      with_auth { request(:delete, path, build_request_headers(headers, :delete, self.site.merge(path))) }
     end
 
     # Executes a PUT request (see HTTP protocol documentation if unfamiliar).
     # Used to update resources.
     def put(path, body = '', headers = {})
-      request(:put, path, body.to_s, build_request_headers(headers, :put))
+      with_auth { request(:put, path, body.to_s, build_request_headers(headers, :put, self.site.merge(path))) }
     end
 
     # Executes a POST request.
     # Used to create new resources.
     def post(path, body = '', headers = {})
-      request(:post, path, body.to_s, build_request_headers(headers, :post))
+      with_auth { request(:post, path, body.to_s, build_request_headers(headers, :post, self.site.merge(path))) }
     end
 
     # Executes a HEAD request.
     # Used to obtain meta-information about resources, such as whether they exist and their size (via response headers).
     def head(path, headers = {})
-      request(:head, path, build_request_headers(headers, :head))
+      with_auth { request(:head, path, build_request_headers(headers, :head, self.site.merge(path))) }
     end
 
 
@@ -198,13 +204,70 @@ module ActiveResource
       end
 
       # Builds headers for request to remote service.
-      def build_request_headers(headers, http_method=nil)
-        authorization_header.update(default_header).update(http_format_header(http_method)).update(headers)
+      def build_request_headers(headers, http_method, uri)
+        authorization_header(http_method, uri).update(default_header).update(http_format_header(http_method)).update(headers)
       end
 
-      # Sets authorization header
-      def authorization_header
-        (@user || @password ? { 'Authorization' => 'Basic ' + ["#{@user}:#{ @password}"].pack('m').delete("\r\n") } : {})
+      def response_auth_header
+        @response_auth_header ||= ""
+      end
+
+      def with_auth
+        retried ||= false
+        yield
+      rescue UnauthorizedAccess => e
+        raise if retried || auth_type != :digest
+        @response_auth_header = e.response['WWW-Authenticate']
+        retried = true
+        retry
+      end
+
+      def authorization_header(http_method, uri)
+        if @user || @password
+          if auth_type == :digest
+            { 'Authorization' => digest_auth_header(http_method, uri) }
+          else
+            { 'Authorization' => 'Basic ' + ["#{@user}:#{@password}"].pack('m').delete("\r\n") }
+          end
+        else
+          {}
+        end
+      end
+
+      def digest_auth_header(http_method, uri)
+        params = extract_params_from_response
+
+        ha1 = Digest::MD5.hexdigest("#{@user}:#{params['realm']}:#{@password}")
+        ha2 = Digest::MD5.hexdigest("#{http_method.to_s.upcase}:#{uri.path}")
+
+        params.merge!('cnonce' => client_nonce)
+        request_digest = Digest::MD5.hexdigest([ha1, params['nonce'], "0", params['cnonce'], params['qop'], ha2].join(":"))
+        "Digest #{auth_attributes_for(uri, request_digest, params)}"
+      end
+
+      def client_nonce
+        Digest::MD5.hexdigest("%x" % (Time.now.to_i + rand(65535)))
+      end
+
+      def extract_params_from_response
+        params = {}
+        if response_auth_header =~ /^(\w+) (.*)/
+          $2.gsub(/(\w+)="(.*?)"/) { params[$1] = $2 }
+        end
+        params
+      end
+
+      def auth_attributes_for(uri, request_digest, params)
+        [
+          %Q(username="#{@user}"),
+          %Q(realm="#{params['realm']}"),
+          %Q(qop="#{params['qop']}"),
+          %Q(uri="#{uri.path}"),
+          %Q(nonce="#{params['nonce']}"),
+          %Q(nc="0"),
+          %Q(cnonce="#{params['cnonce']}"),
+          %Q(opaque="#{params['opaque']}"),
+          %Q(response="#{request_digest}")].join(", ")
       end
 
       def http_format_header(http_method)
@@ -213,6 +276,12 @@ module ActiveResource
 
       def logger #:nodoc:
         Base.logger
+      end
+
+      def legitimize_auth_type(auth_type)
+        return :basic if auth_type.nil?
+        auth_type = auth_type.to_sym
+        [:basic, :digest].include?(auth_type) ? auth_type : :basic
       end
   end
 end

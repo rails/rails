@@ -510,6 +510,7 @@ module ActiveRecord
           end
         end
       end
+      alias :create :insert
 
       # create a 2D array representing the result set
       def result_as_array(res) #:nodoc:
@@ -926,20 +927,6 @@ module ActiveRecord
         # all the required columns for the ORDER BY to work properly.
         sql = "DISTINCT ON (#{columns}) #{columns}, "
         sql << order_columns * ', '
-      end
-
-      # Returns an ORDER BY clause for the passed order option.
-      #
-      # PostgreSQL does not allow arbitrary ordering when using DISTINCT ON, so we work around this
-      # by wrapping the +sql+ string as a sub-select and ordering in that query.
-      def add_order_by_for_association_limiting!(sql, options) #:nodoc:
-        return sql if options[:order].blank?
-
-        order = options[:order].split(',').collect { |s| s.strip }.reject(&:blank?)
-        order.map! { |s| 'DESC' if s =~ /\bdesc$/i }
-        order = order.zip((0...order.size).to_a).map { |s,i| "id_list.alias_#{i} #{s}" }.join(', ')
-
-        sql.replace "SELECT * FROM (#{sql}) AS id_list ORDER BY #{order}"
       end
 
       protected

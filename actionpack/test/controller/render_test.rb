@@ -73,6 +73,11 @@ class TestController < ActionController::Base
     render :action => 'hello_world'
   end
 
+  def conditional_hello_with_expires_now
+    expires_now
+    render :action => 'hello_world'
+  end
+
   def conditional_hello_with_bangs
     render :action => 'hello_world'
   end
@@ -855,7 +860,7 @@ class RenderTest < ActionController::TestCase
   # :ported:
   def test_access_to_controller_name_in_view
     get :accessing_controller_name_in_template
-    assert_equal "test", @response.body # name is explicitly set to 'test' inside the controller.
+    assert_equal "test", @response.body # name is explicitly set in the controller.
   end
 
   # :ported:
@@ -1320,6 +1325,11 @@ class ExpiresInRenderTest < ActionController::TestCase
   def test_expires_in_old_syntax
     get :conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax
     assert_equal "max-age=60, public, max-stale=18000", @response.headers["Cache-Control"]
+  end
+
+  def test_expires_now
+    get :conditional_hello_with_expires_now
+    assert_equal "no-cache", @response.headers["Cache-Control"]
   end
 end
 
