@@ -52,30 +52,38 @@ module ActionDispatch
 
           resource = resources.pop
 
+          plural   = resource.to_s
+          singular = plural.singularize
+
           if @scope[:scope_level] == :resources
-            member do
-              resources(resource, options, &block)
+            parent_resource = @scope[:scope_level_options][:name]
+            with_scope_level(:member) do
+              scope(":#{parent_resource}_id", :name_prefix => parent_resource) do
+                resources(resource, options, &block)
+              end
             end
             return self
           end
 
-          plural   = resource.to_s
-          singular = plural.singularize
+          if @scope[:options] && (prefix = @scope[:options][:name_prefix])
+            plural   = "#{prefix}_#{plural}"
+            singular = "#{prefix}_#{singular}"
+          end
 
           controller(resource) do
             namespace(resource) do
-              with_scope_level(:resources) do
+              with_scope_level(:resources, :name => singular) do
                 yield if block_given?
 
                 member do
-                  get "", :to => :show, :as => "#{singular}"
+                  get "", :to => :show, :as => singular
                   put "", :to => :update
                   delete "", :to => :destroy
                   get "edit", :to => :edit, :as => "edit_#{singular}"
                 end
 
                 collection do
-                  get "", :to => :index, :as => "#{plural}"
+                  get "", :to => :index, :as => plural
                   post "", :to => :create
                   get "new", :to => :new, :as => "new_#{singular}"
                 end
@@ -127,11 +135,13 @@ module ActionDispatch
         end
 
         private
-          def with_scope_level(kind)
+          def with_scope_level(kind, options = {})
             old, @scope[:scope_level] = @scope[:scope_level], kind
+            old_options, @scope[:scope_level_options] = @scope[:scope_level_options], options
             yield
           ensure
             @scope[:scope_level] = old
+            @scope[:scope_level_options] = old_options
           end
       end
 
