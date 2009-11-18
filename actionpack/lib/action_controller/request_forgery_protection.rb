@@ -89,9 +89,13 @@ module ActionController #:nodoc:
           request.method == :get      ||
           request.xhr?                ||
           !verifiable_request_format? ||
-          form_authenticity_token == params[request_forgery_protection_token]
+          form_authenticity_token == form_authenticity_param
       end
-    
+
+      def form_authenticity_param
+        params[request_forgery_protection_token]
+      end
+
       def verifiable_request_format?
         !request.content_type.nil? && request.content_type.verify_request?
       end
