@@ -3,13 +3,11 @@ require 'action_dispatch'
 require 'fileutils'
 require 'optparse'
 
-# Waiting for Rack::Server patch
-
 options = {
   :Port        => 3000,
   :Host        => "0.0.0.0",
   :environment => (ENV['RAILS_ENV'] || "development").dup,
-  :config      => $config_ru,
+  :config      => "#{Rails.root}/config.ru",
   :detach      => false,
   :debugger    => false
 }

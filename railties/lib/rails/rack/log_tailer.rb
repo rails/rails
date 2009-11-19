@@ -1,11 +1,12 @@
 module Rails
   module Rack
     class LogTailer
+      EnvironmentLog = "#{File.expand_path(Rails.root)}/log/#{Rails.env}.log"
+
       def initialize(app, log = nil)
-        @default_log = "#{File.expand_path(Rails.root)}/log/#{Rails.env}.log"
         @app = app
 
-        path = Pathname.new(log || @default_log).cleanpath
+        path = Pathname.new(log || EnvironmentLog).cleanpath
         @cursor = ::File.size(path)
         @last_checked = Time.now.to_f
 
