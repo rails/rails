@@ -251,7 +251,7 @@ end
 
 class CustomAuthenticityParamControllerTest < ActionController::TestCase
   def setup
-    ActionController::Base.request_forgery_protection_token = :authenticity_tok
+    ActionController::Base.request_forgery_protection_token = :authenticity_token
   end
 
   def test_should_allow_custom_token
