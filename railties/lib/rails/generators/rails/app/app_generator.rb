@@ -50,7 +50,7 @@ module Rails::Generators
     def create_root_files
       copy_file "Rakefile"
       copy_file "README"
-      copy_file "config.ru"
+      template "config.ru"
       template "Gemfile"
     end
 

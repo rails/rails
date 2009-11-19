@@ -3,11 +3,6 @@ module Rails
     include Initializable
 
     class << self
-      def inherited(klass)
-        Rails.application ||= klass unless klass.name =~ /Rails/
-        super
-      end
-
       # Stub out App initialize
       def initialize!
         new
@@ -38,6 +33,7 @@ module Rails
     end
 
     def initialize
+      Rails.application ||= self
       run_initializers(self)
     end
 
