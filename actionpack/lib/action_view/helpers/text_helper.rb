@@ -548,7 +548,7 @@ module ActionView
             left, right = $`, $'
             # detect already linked URLs and URLs in the middle of a tag
             if left =~ /<[^>]+$/ && right =~ /^[^>]*>/
-              # do not change string; URL is alreay linked
+              # do not change string; URL is already linked
               href
             else
               # don't include trailing punctuation character as part of the URL
@@ -560,7 +560,7 @@ module ActionView
               end
 
               link_text = block_given?? yield(href) : href
-              href = 'http://' + href unless href.index('http') == 0
+              href = 'http://' + href unless href =~ %r{^[a-z]+://}i
 
               content_tag(:a, h(link_text), link_attributes.merge('href' => href)) + punctuation
             end
