@@ -561,12 +561,10 @@ class ActionMailerTest < Test::Unit::TestCase
       created = TestMailer.create_iso_charset @recipient
     end
     assert_not_nil created
-    expected.message_id = '<123@456>'
-    created.message_id = '<123@456>'
     
     expected.message_id = '<123@456>'
     created.message_id = '<123@456>'
-    
+
     assert_equal expected.encoded, created.encoded
 
     assert_nothing_raised do
@@ -597,14 +595,23 @@ class ActionMailerTest < Test::Unit::TestCase
       created = TestMailer.create_unencoded_subject @recipient
     end
     assert_not_nil created
+
+    expected.message_id = '<123@456>'
+    created.message_id = '<123@456>'
+
     assert_equal expected.encoded, created.encoded
 
     assert_nothing_raised do
       TestMailer.deliver_unencoded_subject @recipient
     end
 
-    assert_not_nil ActionMailer::Base.deliveries.first
-    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
+    delivered = ActionMailer::Base.deliveries.first
+    assert_not_nil delivered
+
+    expected.message_id = '<123@456>'
+    delivered.message_id = '<123@456>'
+    
+    assert_equal expected.encoded, delivered.encoded
   end
 
   def test_instances_are_nil
@@ -1065,7 +1072,7 @@ EOF
 
   def test_body_is_stored_as_an_ivar
     mail = TestMailer.create_body_ivar(@recipient)
-    assert_equal "body: foo\nbar: baz", mail.body.encoded
+    assert_equal "body: foo\nbar: baz", mail.body.decoded
   end
 
   def test_starttls_is_enabled_if_supported
