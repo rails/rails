@@ -56,7 +56,7 @@ end
 class MailerHelperTest < Test::Unit::TestCase
   def new_mail( charset="utf-8" )
     mail = Mail.new
-    mail.content_type ["text", "plain", { "charset" => charset }]
+    mail.content_type(["text", "plain", { "charset" => charset }])
     mail
   end
 

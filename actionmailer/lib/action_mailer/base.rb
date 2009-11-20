@@ -573,8 +573,8 @@ module ActionMailer #:nodoc:
         order = order.collect { |s| s.downcase }
 
         parts = parts.sort do |a, b|
-          a_ct = a.content_type.content_type.downcase
-          b_ct = b.content_type.content_type.downcase
+          a_ct = a.content_type.string.downcase
+          b_ct = b.content_type.string.downcase
 
           a_in = order.include? a_ct
           b_in = order.include? b_ct
@@ -615,11 +615,11 @@ module ActionMailer #:nodoc:
         
         if @parts.empty?
           main_type, sub_type = split_content_type(real_content_type)
-          m.content_type(main_type, sub_type, ctype_attrs)
+          m.content_type([main_type, sub_type, ctype_attrs])
           m.body = normalize_new_lines(body)
         elsif @parts.size == 1 && @parts.first.parts.empty?
           main_type, sub_type = split_content_type(real_content_type)
-          m.content_type(main_type, sub_type, ctype_attrs)
+          m.content_type([main_type, sub_type, ctype_attrs])
           m.body = normalize_new_lines(@parts.first.body)
         else
           @parts.each do |p|
@@ -629,7 +629,7 @@ module ActionMailer #:nodoc:
           if real_content_type =~ /multipart/
             ctype_attrs.delete "charset"
             main_type, sub_type = split_content_type(real_content_type)
-            m.content_type([main_type.to_s, sub_type.to_s, ctype_attrs])
+            m.content_type([main_type, sub_type, ctype_attrs])
           end
         end
 
