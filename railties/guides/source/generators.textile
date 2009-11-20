@@ -33,9 +33,9 @@ $ ruby script/generate helper --help
 
 h3. Creating your first generator
 
-Since Rails 3.0, generators are built on top of Thor:"http://github.com/wycats/thor". Thor has a powerful options parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named "initializer.rb" inside "config/initializers".
+Since Rails 3.0, generators are built on top of "Thor":http://github.com/wycats/thor. Thor has a powerful options parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named +initializer.rb+ inside +config/initializers+.
 
-The first step is to create a file at "RAILS_APP/lib/generators/initializer_generator.rb" with the following content:
+The first step is to create a file at +RAILS_APP/lib/generators/initializer_generator.rb+ with the following content:
 
 <ruby>
 class InitializerGenerator < Rails::Generators::Base
@@ -45,7 +45,7 @@ class InitializerGenerator < Rails::Generators::Base
 end
 </ruby>
 
-Our new generator is quite simple: it inherits from Rails::Generators::Base and have one method definition. Each public method in the generator is executed when a generator is invoked. Finally, we invoke the create_file method that will create a file at the given destination with the given content. If you are familiar with Rails Application Templates API, you are at home with new generators API.
+Our new generator is quite simple: it inherits from +Rails::Generators::Base+ and have one method definition. Each public method in the generator is executed when a generator is invoked. Finally, we invoke the +create_file+ method that will create a file at the given destination with the given content. If you are familiar with Rails Application Templates API, you are at home with new generators API.
 
 To invoke our new generator, we just need to do:
 
@@ -59,7 +59,7 @@ Before we go on, let's see our brand new generator description:
 $ ruby script/generate initializer --help
 </shell>
 
-Rails usually is able to generate good descriptions if a generator is namespaced, as "ActiveRecord::Generators::ModelGenerator", but not in this particular case. We can solve this problem in two ways. The first one is calling +desc+ inside our generator:
+Rails usually is able to generate good descriptions if a generator is namespaced, as +ActiveRecord::Generators::ModelGenerator+, but not in this particular case. We can solve this problem in two ways. The first one is calling +desc+ inside our generator:
 
 <ruby>
 class InitializerGenerator < Rails::Generators::Base
@@ -70,7 +70,7 @@ class InitializerGenerator < Rails::Generators::Base
 end
 </ruby>
 
-Now we can see the new description by invoking --help in the new generator. The second way to add a description is by creating a file named "USAGE" in the same directory as our generator. We are going to do that in the next step.
+Now we can see the new description by invoking +--help+ in the new generator. The second way to add a description is by creating a file named +USAGE+ in the same directory as our generator. We are going to do that in the next step.
 
 h3. Creating generators with generators
 
@@ -94,7 +94,7 @@ class InitializerGenerator < Rails::Generators::NamedBase
 end
 </ruby>
 
-At first, we can notice that we are inheriting from Rails::Generators::NamedBase instead of Rails::Generators::Base. This means that our generator expects as least one argument, which will be the name of the initializer.
+At first, we can notice that we are inheriting from +Rails::Generators::NamedBase+ instead of +Rails::Generators::Base+. This means that our generator expects as least one argument, which will be the name of the initializer.
 
 We can see that by invoking the description of this new generator (don't forget to delete the old generator file):
 
@@ -104,13 +104,14 @@ Usage:
   script/generate initializer NAME [options]
 </shell>
 
-We can also see in our new generator that it has a class method called +source_root+. This method points to where our generator templates will be placed and by default it points to the created directory under "RAILS_APP/lib/generators/initializer/templates". In order to understand what a generator template means, let's create one.
+We can also see in our new generator that it has a class method called +source_root+. This method points to where our generator templates will be placed and by default it points to the created directory under +RAILS_APP/lib/generators/initializer/templates+. In order to understand what a generator template means, let's create one.
 
-To do that, create a file at "RAILS_APP/lib/generators/initializer/templates/initializer.rb" with the following content:
+To do that, create a file at +RAILS_APP/lib/generators/initializer/templates/initializer.rb+ with the following content:
 
-<shell>
+<ruby>
 # Add initialization content here
-</shell>
+
+</ruby>
 
 And now let's change the generator to use this template when invoked:
 
@@ -132,7 +133,7 @@ And let's execute our generator:
 $ ruby script/generate initializer foo
 </shell>
 
-We can see that now a initializer named foo was created at "config/initializers/foo.rb" with the contents of our template. That means that copy_file copied a file in our source root to the destination path we gave. The method +file_name+ is automatically created when we inherit from +Rails::Generators::NamedBase+.
+We can see that now a initializer named foo was created at +config/initializers/foo.rb+ with the contents of our template. That means that copy_file copied a file in our source root to the destination path we gave. The method +file_name+ is automatically created when we inherit from +Rails::Generators::NamedBase+.
 
 h3. Generators lookup
 
@@ -154,7 +155,7 @@ First Rails looks for generators in your application, then in plugins and/or gem
 
 h3. Customizing your workflow
 
-Rails generators are flexible enough to let you customize your scaffold the way you want. In your "config/application.rb" there is section just for generators:
+Rails generators are flexible enough to let you customize your scaffold the way you want. In your +config/application.rb+ there is section just for generators:
 
 <ruby>
 config.generators do |g|
@@ -208,13 +209,13 @@ config.generators do |g|
 end
 </ruby>
 
-If we generate another resource on scaffold, we can notice that stylesheets neither fixtures are created anymore. If you want to customize it further, for example to use Datamapper and Rspec instead of ActiveRecord and Test::Unit, is just a matter of adding their gems to your application and configuring your generators.
+If we generate another resource on scaffold, we can notice that stylesheets neither fixtures are created anymore. If you want to customize it further, for example to use +Datamapper+ and +Rspec+ instead of +ActiveRecord+ and +TestUnit+, is just a matter of adding their gems to your application and configuring your generators.
 
 To show that, we are going to create a new helper generator that simply adds some instance variable readers. First, we create a generator:
 
 <shell>
 $ ruby script/generate generator my_helper
-<shell>
+</shell>
 
 After that, we can delete both templates directory and the +source_root+ class method from our new generators, because we are not going to need them. So our new generator looks like the following:
 
@@ -234,7 +235,7 @@ We can try out our new generator by creating a helper for users:
 
 <shell>
 $ ruby script/generate my_helper users
-<shell>
+</shell>
 
 And it will generate:
 
@@ -244,7 +245,7 @@ module UsersHelper
 end
 </ruby>
 
-Which is what we expected. We can now tell scaffold to use our new helper generator by configuring "config/application.rb" once again:
+Which is what we expected. We can now tell scaffold to use our new helper generator by configuring +config/application.rb+ once again:
 
 <ruby>
 config.generators do |g|
@@ -263,7 +264,7 @@ $ ruby script/generate scaffold Post body:text
       [...]
       invoke    my_helper
       create      app/helpers/posts_helper.rb
-<shell>
+</shell>
 
 We can notice on the output that our new helper was invoked instead of the Rails default. However one thing is missing, which is tests for our new generator and to do that, we are going to reuse old helpers test generators.
 
@@ -298,7 +299,7 @@ h3. Customizing your workflow by changing generators templates
 
 In the step above, we simply wanted to add a line to the generated helper, without adding any extra functionality. There is a simpler to do that, and it's by replacing the templates of already existing generators.
 
-In Rails 3.0 and above, generators does not look only in the source root for templates, they also search for templates in other paths. And one of them is inside "RAILS_APP/lib/templates". Since we want to customize +Rails::Generators::HelperGenerator+, we can do that by simple making a template copy inside "RAILS_APP/lib/templates/rails/helper" with the name "helper.rb". So let's create such file with the following content:
+In Rails 3.0 and above, generators does not look only in the source root for templates, they also search for templates in other paths. And one of them is inside +RAILS_APP/lib/templates+. Since we want to customize +Rails::Generators::HelperGenerator+, we can do that by simple making a template copy inside +RAILS_APP/lib/templates/rails/helper+ with the name +helper.rb+. So let's create such file with the following content:
 
 <erb>
 module <%= class_name %>Helper
@@ -308,20 +309,22 @@ end
 
 So now we can revert the changes in "config/application.rb":
 
+<ruby>
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
   g.test_framework  :test_unit, :fixture => false
   g.stylesheets     false
 end
+</ruby>
 
-If you generate another resource, you can see that we got exactly the same result! This is useful if you want to customize your scaffold templates and/or layout by just creating "edit.html.erb", "index.html.erb" and so on inside "RAILS_APP/lib/templates/erb/scaffold/"
+If you generate another resource, you can see that we got exactly the same result! This is useful if you want to customize your scaffold templates and/or layout by just creating +edit.html.erb+, +index.html.erb+ and so on inside +RAILS_APP/lib/templates/erb/scaffold+.
 
 h3. Adding generators fallbacks
 
-One last feature about generators which is quite useful for plugin generators is fallbacks. For example, imagine that you want to add a feature on top of TestUnit test framework, like shoulda:"http://github.com/thoughtbot/shoulda" does. Since TestUnit already implements all generators required by Rails and shoulda just want to overwrite part of it, there is no need for shoulda reimplement some generators again, they can simply tell Rails to use a TestUnit generator if none was found under +Shoulda+ namespace.
+One last feature about generators which is quite useful for plugin generators is fallbacks. For example, imagine that you want to add a feature on top of TestUnit test framework, like "shoulda":http://github.com/thoughtbot/shoulda does. Since TestUnit already implements all generators required by Rails and shoulda just want to overwrite part of it, there is no need for shoulda reimplement some generators again, they can simply tell Rails to use a +TestUnit+ generator if none was found under +Shoulda+ namespace.
 
-We can easily simulate this behavior by changing our "config/application.rb" once again:
+We can easily simulate this behavior by changing our +config/application.rb+ once again:
 
 <ruby>
 config.generators do |g|
