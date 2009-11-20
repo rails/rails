@@ -198,7 +198,7 @@ module Rails
         return klass if klass
       end
 
-      invoke_fallbacks_for(name, base)
+      invoke_fallbacks_for(name, base) || invoke_fallbacks_for(context, name)
     end
 
     # Receives a namespace, arguments and the behavior to invoke the generator.

@@ -150,6 +150,13 @@ class GeneratorsTest < GeneratorsTestCase
     assert_equal "test_unit:generators:plugin", klass.namespace
   end
 
+  def test_fallbacks_for_generators_on_find_by_namespace_with_context
+    Rails::Generators.fallbacks[:remarkable] = :test_unit
+    klass = Rails::Generators.find_by_namespace(:remarkable, :rails, :plugin)
+    assert klass
+    assert_equal "test_unit:generators:plugin", klass.namespace
+  end
+
   def test_fallbacks_for_generators_on_invoke
     Rails::Generators.fallbacks[:shoulda] = :test_unit
     TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
