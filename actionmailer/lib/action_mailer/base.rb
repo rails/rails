@@ -366,10 +366,27 @@ module ActionMailer #:nodoc:
     # Alias controller_path to mailer_name so render :partial in views work.
     alias :controller_path :mailer_name
 
+    # Add a part to a multipart message, with the given content-type. The
+    # part itself is yielded to the block so that other properties (charset,
+    # body, headers, etc.) can be set on it.
     def part(params)
+      params = {:content_type => params} if String === params
+      if custom_headers = params.delete(:headers)
+        STDERR.puts("Passing custom headers with :headers => {} is deprecated.  Please just pass in custom headers directly.")
+        params = params.merge(custom_headers)
+      end
       part = Mail::Part.new(params)
-      yield part
-      self.parts << part
+      yield part if block_given?
+      @parts << part
+    end
+
+    # Add an attachment to a multipart message. This is simply a part with the
+    # content-disposition set to "attachment".
+    def attachment(params, &block)
+      params = { :content_type => params } if String === params
+      params = { :disposition => "attachment",
+                 :transfer_encoding => "base64" }.merge(params)
+      part(params, &block)
     end
 
     class << self
@@ -417,8 +434,7 @@ module ActionMailer #:nodoc:
       #   end
       def receive(raw_email)
         logger.info "Received mail:\n #{raw_email}" unless logger.nil?
-        mail = Mail.parse(raw_email)
-        mail.base64_decode
+        mail = Mail.new(raw_email)
         new.receive(mail)
       end
 
@@ -598,24 +614,30 @@ module ActionMailer #:nodoc:
         real_content_type, ctype_attrs = parse_content_type
         
         if @parts.empty?
-          m.set_content_type(real_content_type, nil, ctype_attrs)
+          main_type, sub_type = split_content_type(real_content_type)
+          m.content_type(main_type, sub_type, ctype_attrs)
           m.body = normalize_new_lines(body)
         elsif @parts.size == 1 && @parts.first.parts.empty?
-          m.set_content_type(real_content_type, nil, ctype_attrs)
+          main_type, sub_type = split_content_type(real_content_type)
+          m.content_type(main_type, sub_type, ctype_attrs)
           m.body = normalize_new_lines(@parts.first.body)
         else
           @parts.each do |p|
-            part = (Mail === p ? p : p.to_mail(self))
-            m.parts << part
+            m.parts << p
           end
 
           if real_content_type =~ /multipart/
             ctype_attrs.delete "charset"
-            m.set_content_type(real_content_type, nil, ctype_attrs)
+            main_type, sub_type = split_content_type(real_content_type)
+            m.content_type([main_type.to_s, sub_type.to_s, ctype_attrs])
           end
         end
 
         @mail = m
+      end
+      
+      def split_content_type(ct)
+        ct.to_s.split("/")
       end
 
       def parse_content_type(defaults=nil)

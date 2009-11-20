@@ -34,7 +34,7 @@ class ActionMailerUrlTest < Test::Unit::TestCase
     mail = Mail.new
     mail.mime_version = "1.0"
     if charset
-      mail.set_content_type "text", "plain", { "charset" => charset }
+      mail.content_type ["text", "plain", { "charset" => charset }]
     end
     mail
   end

@@ -2,21 +2,7 @@
 # Created in 1.2 of Mail.  Will be deprecated
 STDERR.puts("DEPRECATION WARNING, Mail running in TMail compatibility mode.  This will be deprecated soon.")
 
-module Mail
-  
-  def Mail.parse(string)
-    STDERR.puts("DEPRECATION WARNING, Mail.parse(string) is deprecated, please use Mail.new")
-    ::Mail.new(string)
-  end
-  
-end
-
 class Mail::Message
-  
-  def set_content_type(*args)
-    STDERR.puts("DEPRECATION WARNING, Message#set_content_type is deprecated, please use Message#content_type")
-    content_type(args)
-  end
   
   def set_content_disposition(*args)
     STDERR.puts("DEPRECATION WARNING, Message#set_content_disposition is deprecated, please use Message#content_disposition")
