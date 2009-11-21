@@ -226,8 +226,7 @@ module ActionView
       # Returns the text with all the Textile[http://www.textism.com/tools/textile] codes turned into HTML tags.
       #
       # You can learn more about Textile's syntax at its website[http://www.textism.com/tools/textile].
-      # <i>This method is only available if RedCloth[http://whytheluckystiff.net/ruby/redcloth/]
-      # is available</i>.
+      # <i>This method is only available if RedCloth[http://redcloth.org/] is available</i>.
       #
       # ==== Examples
       #   textilize("*This is Textile!*  Rejoice!")
@@ -263,8 +262,7 @@ module ActionView
       # but without the bounding <p> tag that RedCloth adds.
       #
       # You can learn more about Textile's syntax at its website[http://www.textism.com/tools/textile].
-      # <i>This method is requires RedCloth[http://whytheluckystiff.net/ruby/redcloth/]
-      # to be available</i>.
+      # <i>This method is requires RedCloth[http://redcloth.org/] to be available</i>.
       #
       # ==== Examples
       #   textilize_without_paragraph("*This is Textile!*  Rejoice!")
