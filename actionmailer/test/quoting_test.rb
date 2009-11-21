@@ -6,37 +6,37 @@ class QuotingTest < Test::Unit::TestCase
   # Move some tests from TMAIL here
   def test_unquote_quoted_printable
     a ="=?ISO-8859-1?Q?[166417]_Bekr=E6ftelse_fra_Rejsefeber?="
-    b = TMail::Unquoter.unquote_and_convert_to(a, 'utf-8')
+    b = Mail::Encodings.unquote_and_convert_to(a, 'utf-8')
     assert_equal "[166417] Bekr\303\246ftelse fra Rejsefeber", b
   end
 
   def test_unquote_base64
     a ="=?ISO-8859-1?B?WzE2NjQxN10gQmVrcuZmdGVsc2UgZnJhIFJlanNlZmViZXI=?="
-    b = TMail::Unquoter.unquote_and_convert_to(a, 'utf-8')
+    b = Mail::Encodings.unquote_and_convert_to(a, 'utf-8')
     assert_equal "[166417] Bekr\303\246ftelse fra Rejsefeber", b
   end
 
   def test_unquote_without_charset
     a ="[166417]_Bekr=E6ftelse_fra_Rejsefeber"
-    b = TMail::Unquoter.unquote_and_convert_to(a, 'utf-8')
+    b = Mail::Encodings.unquote_and_convert_to(a, 'utf-8')
     assert_equal "[166417]_Bekr=E6ftelse_fra_Rejsefeber", b
   end
 
   def test_unqoute_multiple
     a ="=?utf-8?q?Re=3A_=5B12=5D_=23137=3A_Inkonsistente_verwendung_von_=22Hin?==?utf-8?b?enVmw7xnZW4i?="
-    b = TMail::Unquoter.unquote_and_convert_to(a, 'utf-8')
+    b = Mail::Encodings.unquote_and_convert_to(a, 'utf-8')
     assert_equal "Re: [12] #137: Inkonsistente verwendung von \"Hinzuf\303\274gen\"", b
   end
 
   def test_unqoute_in_the_middle
     a ="Re: Photos =?ISO-8859-1?Q?Brosch=FCre_Rand?="
-    b = TMail::Unquoter.unquote_and_convert_to(a, 'utf-8')
+    b = Mail::Encodings.unquote_and_convert_to(a, 'utf-8')
     assert_equal "Re: Photos Brosch\303\274re Rand", b
   end
 
   def test_unqoute_iso
     a ="=?ISO-8859-1?Q?Brosch=FCre_Rand?="
-    b = TMail::Unquoter.unquote_and_convert_to(a, 'iso-8859-1')
+    b = Mail::Encodings.unquote_and_convert_to(a, 'iso-8859-1')
     expected = "Brosch\374re Rand"
     expected.force_encoding 'iso-8859-1' if expected.respond_to?(:force_encoding)
     assert_equal expected, b
@@ -57,7 +57,7 @@ class QuotingTest < Test::Unit::TestCase
       quoted_printable(#{original.inspect}, "UTF-8")
     CODE
 
-    unquoted = TMail::Unquoter.unquote_and_convert_to(result, nil)
+    unquoted = Mail::Encodings.unquote_and_convert_to(result, nil)
     assert_equal unquoted, original
   end
 

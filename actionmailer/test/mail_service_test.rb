@@ -708,7 +708,7 @@ The body
 EOF
     mail = Mail.new(msg)
     assert_equal "this == working?", mail.subject.decoded
-    assert_equal "this == working?", mail.quoted_subject
+    assert_equal "Subject: this == working?\r\n", mail.subject.encoded
   end
 
   def test_unquote_7bit_body
@@ -722,7 +722,7 @@ The=3Dbody
 EOF
     mail = Mail.new(msg)
     assert_equal "The=3Dbody", mail.body.decoded.strip
-    assert_equal "The=3Dbody", mail.quoted_body.strip
+    assert_equal "The=3Dbody", mail.body.encoded.strip
   end
 
   def test_unquote_quoted_printable_body
@@ -736,7 +736,7 @@ The=3Dbody
 EOF
     mail = Mail.new(msg)
     assert_equal "The=body", mail.body.decoded.strip
-    assert_equal "The=3Dbody", mail.quoted_body.strip
+    assert_equal "The=3Dbody", mail.body.encoded.strip
   end
 
   def test_unquote_base64_body
@@ -750,7 +750,7 @@ VGhlIGJvZHk=
 EOF
     mail = Mail.new(msg)
     assert_equal "The body", mail.body.decoded.strip
-    assert_equal "VGhlIGJvZHk=", mail.quoted_body.strip
+    assert_equal "VGhlIGJvZHk=", mail.body.encoded.strip
   end
 
   def test_extended_headers
@@ -823,7 +823,7 @@ EOF
   def test_receive_decodes_base64_encoded_mail
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email")
     TestMailer.receive(fixture)
-    assert_match(/Jamis/, TestMailer.received_body)
+    assert_match(/Jamis/, TestMailer.received_body.decoded)
   end
 
   def test_receive_attachments
@@ -831,7 +831,7 @@ EOF
     mail = Mail.new(fixture)
     attachment = mail.attachments.last
     assert_equal "smime.p7s", attachment.original_filename
-    assert_equal "application/pkcs7-signature", attachment.content_type
+    assert_equal "application/pkcs7-signature", mail.parts.last.content_type.string
   end
 
   def test_decode_attachment_without_charset
