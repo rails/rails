@@ -695,7 +695,7 @@ The body
 EOF
     mail = Mail.new(msg)
     assert_equal "testing testing \326\244", mail.subject.decoded
-    assert_equal "=?utf-8?Q?testing_testing_=D6=A4?=", mail.quoted_subject
+    assert_equal "Subject: =?utf-8?Q?testing_testing_=D6=A4?=\r\n", mail.subject.encoded
   end
 
   def test_unquote_7bit_subject
