@@ -50,7 +50,6 @@ class QuotingTest < Test::Unit::TestCase
       $:.unshift(File.dirname(__FILE__) + "/../lib/")
       if RUBY_VERSION < '1.9'
         $KCODE = 'u'
-        require 'jcode'
       end
       require 'action_mailer/quoting'
       include ActionMailer::Quoting
