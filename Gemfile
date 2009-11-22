@@ -19,6 +19,9 @@ gem "mysql", ">= 2.8.1"
 gem "rack", "1.0.1", :git => "git://github.com/rails/rack.git"
 gem "RedCloth", ">= 4.2.2"
 
+# AM
+gem "mail", "~> 1.2.8"
+
 if ENV['CI']
   disable_system_gems
 
