@@ -384,8 +384,9 @@ module ActionMailer #:nodoc:
     # content-disposition set to "attachment".
     def attachment(params, &block)
       params = { :content_type => params } if String === params
-      params = { :disposition => "attachment",
-                 :transfer_encoding => "base64" }.merge(params)
+      params = { :content_disposition => "attachment",
+                 :content_transfer_encoding => "base64" }.merge(params)
+      params[:data] = params.delete(:body) if params[:body]
       part(params, &block)
     end
 
@@ -623,7 +624,7 @@ module ActionMailer #:nodoc:
           m.body = normalize_new_lines(@parts.first.body)
         else
           @parts.each do |p|
-            m.parts << p
+            m.add_part(p)
           end
 
           if real_content_type =~ /multipart/

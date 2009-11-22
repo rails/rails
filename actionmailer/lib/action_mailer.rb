@@ -41,6 +41,7 @@ module ActionMailer
   autoload :TestCase, 'action_mailer/test_case'
   autoload :TestHelper, 'action_mailer/test_helper'
   autoload :Utils, 'action_mailer/utils'
+
 end
 
 module Text
@@ -53,5 +54,5 @@ end
 
 autoload :MailHelper, 'action_mailer/mail_helper'
 
+
 require '/Users/mikel/ruby_programs/mail/lib/mail'
-require 'action_mailer/vendor/tmail_compat'

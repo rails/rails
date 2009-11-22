@@ -20,6 +20,9 @@
   
 * There is no idea of a "sub_head" in Mail.  A part is just a Message with some extra functionality, so it 
   just has a "header" like a normal mail message
+  
+* When you want to add a nested part, you now need to use "add_part(params)" instead of "part(params)"  This
+  creates a Mail gem Part object
 
 *2.3.2 [Final] (March 15, 2009)*
 
