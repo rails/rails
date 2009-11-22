@@ -54,5 +54,4 @@ end
 
 autoload :MailHelper, 'action_mailer/mail_helper'
 
-gem 'mail', '>= 1.2.8'
 require 'mail'
