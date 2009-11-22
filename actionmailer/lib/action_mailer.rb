@@ -54,5 +54,4 @@ end
 
 autoload :MailHelper, 'action_mailer/mail_helper'
 
-
-require '/Users/mikel/ruby_programs/mail/lib/mail'
+gem 'mail', '>= 1.2.8'
