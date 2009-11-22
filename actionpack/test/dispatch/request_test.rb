@@ -432,6 +432,10 @@ class RequestTest < ActiveSupport::TestCase
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => :txt })
     assert_equal with_set(Mime::TEXT), request.formats
+
+    request = stub_request
+    request.expects(:parameters).at_least_once.returns({ :format => :unknown })
+    assert request.formats.empty?
   end
 
   test "negotiate_mime" do

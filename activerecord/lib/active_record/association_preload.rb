@@ -1,3 +1,6 @@
+require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/enumerable'
+
 module ActiveRecord
   # See ActiveRecord::AssociationPreload::ClassMethods for documentation.
   module AssociationPreload #:nodoc:
@@ -82,7 +85,7 @@ module ActiveRecord
       # only one level deep in the +associations+ argument, i.e. it's not passed
       # to the child associations when +associations+ is a Hash.
       def preload_associations(records, associations, preload_options={})
-        records = [records].flatten.compact.uniq
+        records = Array.wrap(records).compact.uniq
         return if records.empty?
         case associations
         when Array then associations.each {|association| preload_associations(records, association, preload_options)}
@@ -92,7 +95,7 @@ module ActiveRecord
             raise "parent must be an association name" unless parent.is_a?(String) || parent.is_a?(Symbol)
             preload_associations(records, parent, preload_options)
             reflection = reflections[parent]
-            parents = records.map {|record| record.send(reflection.name)}.flatten.compact
+            parents = records.sum { |record| Array.wrap(record.send(reflection.name)) }
             unless parents.empty?
               parents.first.class.preload_associations(parents, child)
             end
@@ -123,7 +126,8 @@ module ActiveRecord
         parent_records.each do |parent_record|
           association_proxy = parent_record.send(reflection_name)
           association_proxy.loaded
-          association_proxy.target.push(*[associated_record].flatten)
+          association_proxy.target.push *Array.wrap(associated_record)
+
           association_proxy.__send__(:set_inverse_instance, associated_record, parent_record)
         end
       end
@@ -254,6 +258,7 @@ module ActiveRecord
         through_reflection = reflections[through_association]
         through_primary_key = through_reflection.primary_key_name
 
+        through_records = []
         if reflection.options[:source_type]
           interface = reflection.source_reflection.options[:foreign_type]
           preload_options = {:conditions => ["#{connection.quote_column_name interface} = ?", reflection.options[:source_type]]}
@@ -262,23 +267,22 @@ module ActiveRecord
           records.first.class.preload_associations(records, through_association, preload_options)
 
           # Dont cache the association - we would only be caching a subset
-          through_records = []
           records.each do |record|
             proxy = record.send(through_association)
 
             if proxy.respond_to?(:target)
-              through_records << proxy.target
+              through_records.concat Array.wrap(proxy.target)
               proxy.reset
             else # this is a has_one :through reflection
               through_records << proxy if proxy
             end
           end
-          through_records.flatten!
         else
           records.first.class.preload_associations(records, through_association)
-          through_records = records.map {|record| record.send(through_association)}.flatten
+          records.each do |record|
+            through_records.concat Array.wrap(record.send(through_association))
+          end
         end
-        through_records.compact!
         through_records
       end
 

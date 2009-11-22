@@ -1,7 +1,4 @@
 require 'active_support'
-require 'active_support/core_ext/time'
-require 'active_support/core_ext/date'
-require 'active_support/core_ext/date_time'
 
 module ActiveSupport
   autoload :Duration, 'active_support/duration'
@@ -12,3 +9,26 @@ module ActiveSupport
     [Duration, TimeWithZone, TimeZone]
   end
 end
+
+require 'date'
+require 'time'
+
+require 'active_support/core_ext/time/publicize_conversion_methods'
+require 'active_support/core_ext/time/marshal_with_utc_flag'
+require 'active_support/core_ext/time/acts_like'
+require 'active_support/core_ext/time/calculations'
+require 'active_support/core_ext/time/conversions'
+require 'active_support/core_ext/time/zones'
+
+require 'active_support/core_ext/date/acts_like'
+require 'active_support/core_ext/date/freeze'
+require 'active_support/core_ext/date/calculations'
+require 'active_support/core_ext/date/conversions'
+
+require 'active_support/core_ext/date_time/acts_like'
+require 'active_support/core_ext/date_time/calculations'
+require 'active_support/core_ext/date_time/conversions'
+require 'active_support/core_ext/date_time/zones'
+
+require 'active_support/core_ext/integer/time'
+require 'active_support/core_ext/numeric/time'

@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/time'
 
 class MessageEncryptorTest < Test::Unit::TestCase
   def setup

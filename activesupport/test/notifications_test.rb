@@ -75,7 +75,7 @@ class NotificationsMainTest < Test::Unit::TestCase
       1 + 1
     end
 
-    sleep(0.1)
+    drain
 
     assert_equal 1, @events.size
     assert_equal :awesome, @events.last.name
@@ -88,19 +88,18 @@ class NotificationsMainTest < Test::Unit::TestCase
         1 + 1
       end
 
-      sleep(0.1)
+      drain
 
       assert_equal 1, @events.size
       assert_equal :wot, @events.first.name
       assert_equal Hash[:payload => "child"], @events.first.payload
     end
 
-    sleep(0.1)
+    drain
 
     assert_equal 2, @events.size
     assert_equal :awesome, @events.last.name
     assert_equal Hash[:payload => "notifications"], @events.last.payload
-    assert_in_delta 100, @events.last.duration, 70
   end
 
   def test_event_is_pushed_even_if_block_fails
@@ -108,7 +107,7 @@ class NotificationsMainTest < Test::Unit::TestCase
       raise "OMG"
     end rescue RuntimeError
 
-    sleep(0.1)
+    drain
 
     assert_equal 1, @events.size
     assert_equal :awesome, @events.last.name
@@ -117,7 +116,7 @@ class NotificationsMainTest < Test::Unit::TestCase
 
   def test_event_is_pushed_even_without_block
     ActiveSupport::Notifications.instrument(:awesome, :payload => "notifications")
-    sleep(0.1)
+    drain
 
     assert_equal 1, @events.size
     assert_equal :awesome, @events.last.name
@@ -137,8 +136,9 @@ class NotificationsMainTest < Test::Unit::TestCase
     end
     ActiveSupport::Notifications.instrument(:cache){ 1 }
 
-    sleep 0.1
+    drain
 
+    assert_equal 3, @another.size
     before, during, after = @another.map {|e| e.transaction_id }
     assert_equal before, after
     assert_not_equal before, during
@@ -153,7 +153,7 @@ class NotificationsMainTest < Test::Unit::TestCase
 
     ActiveSupport::Notifications.instrument(:cache){ 1 }
 
-    sleep(0.1)
+    drain
 
     assert_equal 1, @another.size
     assert_equal :cache, @another.first.name
@@ -169,7 +169,7 @@ class NotificationsMainTest < Test::Unit::TestCase
     ActiveSupport::Notifications.instrument(:something){ 0 }
     ActiveSupport::Notifications.instrument(:cache){ 1 }
 
-    sleep(0.1)
+    drain
 
     assert_equal 1, @another.size
     assert_equal :cache, @another.first.name
@@ -186,7 +186,7 @@ class NotificationsMainTest < Test::Unit::TestCase
       ActiveSupport::Notifications.instrument(:value){ i }
     end
 
-    sleep 0.1
+    drain
 
     assert_equal 100, @events.size
     assert_equal :value, @events.first.name
@@ -198,4 +198,9 @@ class NotificationsMainTest < Test::Unit::TestCase
     assert_equal 1, @another.first.result
     assert_equal 100, @another.last.result
   end
+
+  private
+    def drain
+      sleep(0.1) until ActiveSupport::Notifications.queue.drained?
+    end
 end

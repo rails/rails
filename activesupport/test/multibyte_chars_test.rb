@@ -228,10 +228,10 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert !@chars.include?('a')
   end
 
-  def test_include_raises_type_error_when_nil_is_passed
-    assert_raise(TypeError) do
-      @chars.include?(nil)
-    end
+  def test_include_raises_when_nil_is_passed
+    @chars.include?(nil)
+    flunk "Expected chars.include?(nil) to raise TypeError or NoMethodError"
+  rescue Exception => e
   end
 
   def test_index_should_return_character_offset

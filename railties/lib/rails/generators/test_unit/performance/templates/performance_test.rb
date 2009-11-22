@@ -1,5 +1,5 @@
 require 'test_helper'
-require 'performance_test_help'
+require 'rails/performance_test_help'
 
 class <%= class_name %>Test < ActionController::PerformanceTest
   # Replace this with your real tests.

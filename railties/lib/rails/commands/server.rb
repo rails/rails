@@ -1,4 +1,4 @@
-require 'action_controller'
+require 'action_dispatch'
 
 require 'fileutils'
 require 'optparse'
@@ -42,7 +42,7 @@ unless server
 end
 
 puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-puts "=> Rails #{Rails.version} application starting on http://#{options[:Host]}:#{options[:Port]}}"
+puts "=> Rails #{Rails.version} application starting on http://#{options[:Host]}:#{options[:Port]}"
 
 if options[:detach]
   Process.daemon

@@ -166,10 +166,7 @@ class GeneratorsTest < GeneratorsTestCase
     Rails::Generators.options[:new_generator] = { :generate => false }
 
     klass = Class.new(Rails::Generators::Base) do
-      def self.name
-        "NewGenerator"
-      end
-
+      def self.name() 'NewGenerator' end
       class_option :generate, :default => true
     end
 

@@ -110,19 +110,17 @@ module ActiveRecord
     end
 
     def respond_to?(method)
-      if @relation.respond_to?(method) || Array.instance_methods.include?(method.to_s)
-        true
-      else
-        super
-      end
+      @relation.respond_to?(method) || Array.method_defined?(method) || super
     end
 
     private
       def method_missing(method, *args, &block)
         if @relation.respond_to?(method)
           @relation.send(method, *args, &block)
-        elsif Array.instance_methods.include?(method.to_s)
+        elsif Array.method_defined?(method)
           to_a.send(method, *args, &block)
+        else
+          super
         end
       end
   end

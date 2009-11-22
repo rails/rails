@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/reverse_merge'
+
 module ActiveModel
   module Translation
     include ActiveModel::Naming

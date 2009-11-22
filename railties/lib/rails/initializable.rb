@@ -42,7 +42,8 @@ module Rails
           if initializer.before
             index = index_for(initializer.before)
           elsif initializer.after
-            index = index_for(initializer.after) + 1
+            index = index_for(initializer.after)
+            index += 1 if index
           else
             index = length
           end

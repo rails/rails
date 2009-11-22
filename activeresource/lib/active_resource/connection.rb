@@ -31,20 +31,21 @@ module ActiveResource
     def initialize(site, format = ActiveResource::Formats::XmlFormat)
       raise ArgumentError, 'Missing site URI' unless site
       @user = @password = nil
+      @uri_parser = URI.const_defined?(:Parser) ? URI::Parser.new : URI
       self.site = site
       self.format = format
     end
 
     # Set URI for remote service.
     def site=(site)
-      @site = site.is_a?(URI) ? site : URI.parse(site)
-      @user = URI.decode(@site.user) if @site.user
-      @password = URI.decode(@site.password) if @site.password
+      @site = site.is_a?(URI) ? site : @uri_parser.parse(site)
+      @user = @uri_parser.unescape(@site.user) if @site.user
+      @password = @uri_parser.unescape(@site.password) if @site.password
     end
 
     # Set the proxy for remote service.
     def proxy=(proxy)
-      @proxy = proxy.is_a?(URI) ? proxy : URI.parse(proxy)
+      @proxy = proxy.is_a?(URI) ? proxy : @uri_parser.parse(proxy)
     end
 
     # Sets the user for remote service.

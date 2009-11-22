@@ -1,4 +1,5 @@
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
@@ -1396,8 +1397,8 @@ module ActiveRecord
             end
 
             define_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
-              ids = (new_value || []).reject { |nid| nid.blank? }
-              send("#{reflection.name}=", reflection.klass.find(ids))
+              ids = (new_value || []).reject { |nid| nid.blank? }.map(&:to_i)
+              send("#{reflection.name}=", reflection.klass.find(ids).index_by(&:id).values_at(*ids))
             end
           end
         end
@@ -1480,7 +1481,7 @@ module ActiveRecord
           if reflection.options.include?(:dependent)
             # Add polymorphic type if the :as option is present
             dependent_conditions = []
-            dependent_conditions << "#{reflection.primary_key_name} = \#{record.quoted_id}"
+            dependent_conditions << "#{reflection.primary_key_name} = \#{record.#{reflection.name}.send(:owner_quoted_id)}"
             dependent_conditions << "#{reflection.options[:as]}_type = '#{base_class.name}'" if reflection.options[:as]
             dependent_conditions << sanitize_sql(reflection.options[:conditions], reflection.quoted_table_name) if reflection.options[:conditions]
             dependent_conditions << extra_conditions if extra_conditions
@@ -1922,12 +1923,16 @@ module ActiveRecord
                   reflection = base.reflections[name]
                   is_collection = [:has_many, :has_and_belongs_to_many].include?(reflection.macro)
 
-                  parent_records = records.map do |record|
-                    descendant = record.send(reflection.name)
-                    next unless descendant
-                    descendant.target.uniq! if is_collection
-                    descendant
-                  end.flatten.compact
+                  parent_records = []
+                  records.each do |record|
+                    if descendant = record.send(reflection.name)
+                      if is_collection
+                        parent_records.concat descendant.target.uniq
+                      else
+                        parent_records << descendant
+                      end
+                    end
+                  end
 
                   remove_duplicate_results!(reflection.klass, parent_records, associations[name]) unless parent_records.empty?
                 end

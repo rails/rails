@@ -1,4 +1,5 @@
 require 'active_support/time'
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/reverse_merge'
 
 class Hash
@@ -138,7 +139,7 @@ class Hash
         case value.class.to_s
           when 'Hash'
             if value['type'] == 'array'
-              child_key, entries = value.detect { |k,v| k != 'type' }   # child_key is throwaway
+              child_key, entries = Array.wrap(value.detect { |k,v| k != 'type' })   # child_key is throwaway
               if entries.nil? || (c = value['__content__'] && c.blank?)
                 []
               else

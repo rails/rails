@@ -23,6 +23,7 @@ class ERB
       end
     end
 
+    undef :h
     alias h html_escape
 
     module_function :html_escape
