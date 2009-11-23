@@ -137,10 +137,10 @@ class Logger
       attr_writer :formatter
       public :formatter=
 
-      alias old_format_datetime format_datetime
+      alias old_format_datetime format_datetime if method_defined?(:format_datetime)
       def format_datetime(datetime) datetime end
 
-      alias old_msg2str msg2str
+      alias old_msg2str msg2str if method_defined?(:msg2str)
       def msg2str(msg) msg end
     end
 end
