@@ -372,8 +372,9 @@ module ActionMailer #:nodoc:
     def part(params)
       params = {:content_type => params} if String === params
       if custom_headers = params.delete(:headers)
-        STDERR.puts("Passing custom headers with :headers => {} is deprecated.  Please just pass in custom headers directly.")
-        params = params.merge(custom_headers)
+        ActiveSupport::Deprecation.warn('Passing custom headers with :headers => {} is deprecated. ' <<
+                                        'Please just pass in custom headers directly.', caller[0,10])
+        params.merge!(custom_headers)
       end
       part = Mail::Part.new(params)
       yield part if block_given?
