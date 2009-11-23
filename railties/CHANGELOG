@@ -1,5 +1,7 @@
 *Edge*
 
+* Fixed that the debugger wouldn't go into IRB mode because of left-over ARGVs [DHH]
+
 * I18n support for plugins.  #2325 [Antonio Tapiador, Sven Fuchs]
 
 * Ruby 1.9: use UTF-8 for default internal and external encodings.  [Jeremy Kemper]
