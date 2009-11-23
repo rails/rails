@@ -40,7 +40,6 @@ module ActionMailer
   autoload :Quoting, 'action_mailer/quoting'
   autoload :TestCase, 'action_mailer/test_case'
   autoload :TestHelper, 'action_mailer/test_helper'
-  autoload :Utils, 'action_mailer/utils'
 
 end
 
@@ -54,5 +53,5 @@ end
 
 autoload :MailHelper, 'action_mailer/mail_helper'
 
-gem 'mail', '>= 1.2.8'
+gem 'mail', '>= 1.2.9'
 require 'mail'

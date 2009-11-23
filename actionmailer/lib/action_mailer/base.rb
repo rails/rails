@@ -251,7 +251,7 @@ module ActionMailer #:nodoc:
   #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
   #   +implicit_parts_order+.
   class Base
-    include AdvAttrAccessor, Quoting, Utils
+    include AdvAttrAccessor, Quoting
 
     include AbstractController::RenderingController
     include AbstractController::LocalizedCache
@@ -617,11 +617,11 @@ module ActionMailer #:nodoc:
         if @parts.empty?
           main_type, sub_type = split_content_type(real_content_type)
           m.content_type([main_type, sub_type, ctype_attrs])
-          m.body = normalize_new_lines(body)
+          m.body = body
         elsif @parts.size == 1 && @parts.first.parts.empty?
           main_type, sub_type = split_content_type(real_content_type)
           m.content_type([main_type, sub_type, ctype_attrs])
-          m.body = normalize_new_lines(@parts.first.body)
+          m.body = @parts.first.body.encoded
         else
           @parts.each do |p|
             m.add_part(p)
