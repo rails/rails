@@ -1020,9 +1020,15 @@ EOF
     attachment = mail.attachments.last
 
     expected = "01 Quien Te Dij\212at. Pitbull.mp3"
-    expected.force_encoding(Encoding::ASCII_8BIT) if expected.respond_to?(:force_encoding)
-
-    assert_equal expected, attachment.original_filename
+    
+    if expected.respond_to?(:force_encoding)
+      result = attachment.original_filename.dup
+      expected.force_encoding(Encoding::ASCII_8BIT)
+      result.force_encoding(Encoding::ASCII_8BIT)
+      assert_equal expected, result
+    else
+      assert_equal expected, attachment.original_filename
+    end
   end
 
   def test_decode_message_with_unknown_charset
