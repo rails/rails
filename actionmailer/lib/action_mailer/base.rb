@@ -386,7 +386,11 @@ module ActionMailer #:nodoc:
       params = { :content_type => params } if String === params
       params = { :content_disposition => "attachment",
                  :content_transfer_encoding => "base64" }.merge(params)
-      params[:data] = params.delete(:body) if params[:body]
+      if params[:body]
+        ActiveSupport::Deprecation.warn('attachment :body => "string" is deprecated. To set the body of an attachment ' <<
+                                        'please use :data instead, like attachment :data => "string".', caller[0,10])
+        params[:data] = params.delete(:body)
+      end
       part(params, &block)
     end
 

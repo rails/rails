@@ -9,7 +9,7 @@ class FunkyPathMailer < ActionMailer::Base
     subject    "This path has dots"
     from       "Chad Fowler <chad@chadfowler.com>"
     attachment :content_type => "text/plain",
-      :body => "dots dots dots..."
+      :data => "dots dots dots..."
   end
 end
 
@@ -144,7 +144,7 @@ class TestMailer < ActionMailer::Base
     end
 
     attachment :content_type => "image/jpeg", :filename => File.join(File.dirname(__FILE__), "fixtures", "attachments", "foo.jpg"),
-      :body => "123456789"
+      :data => "123456789"
 
     render :text => "plain text default"
   end
@@ -232,7 +232,7 @@ class TestMailer < ActionMailer::Base
       p.part :content_type => "text/html", :body => "<b>test</b> HTML<br/>\nline #2"
     end
 
-    attachment :content_type => "application/octet-stream", :filename => "test.txt", :body => "test abcdefghijklmnopqstuvwxyz"
+    attachment :content_type => "application/octet-stream", :filename => "test.txt", :data => "test abcdefghijklmnopqstuvwxyz"
   end
 
   def nested_multipart_with_body(recipient)
@@ -252,7 +252,7 @@ class TestMailer < ActionMailer::Base
     from         "test@example.com"
     content_type "multipart/related"
     part         :content_type => "text/html", :body => 'yo'
-    attachment   :content_type => "image/jpeg", :filename => File.join(File.dirname(__FILE__), "fixtures", "attachments", "test.jpg"), :body => "i am not a real picture", :headers => { 'Content-ID' => '<test@test.com>' }
+    attachment   :content_type => "image/jpeg", :filename => File.join(File.dirname(__FILE__), "fixtures", "attachments", "test.jpg"), :data => "i am not a real picture", :headers => { 'Content-ID' => '<test@test.com>' }
   end
 
   def unnamed_attachment(recipient)
@@ -261,7 +261,7 @@ class TestMailer < ActionMailer::Base
     from         "test@example.com"
     content_type "multipart/mixed"
     part :content_type => "text/plain", :body => "hullo"
-    attachment :content_type => "application/octet-stream", :body => "test abcdefghijklmnopqstuvwxyz"
+    attachment :content_type => "application/octet-stream", :data => "test abcdefghijklmnopqstuvwxyz"
   end
 
   def headers_with_nonalpha_chars(recipient)
