@@ -1,3 +1,8 @@
+*Edge*
+
+* Fixed that the debugger wouldn't go into IRB mode because of left-over ARGVs [DHH]
+
+
 *2.3.4 (September 4, 2009)*
 
 * I18n support for plugins.  #2325 [Antonio Tapiador, Sven Fuchs]

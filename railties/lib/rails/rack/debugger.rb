@@ -4,6 +4,8 @@ module Rails
       def initialize(app)
         @app = app
 
+        ARGV.clear # clear ARGV so that script/server options aren't passed to IRB
+
         require_library_or_gem 'ruby-debug'
         ::Debugger.start
         ::Debugger.settings[:autoeval] = true if ::Debugger.respond_to?(:settings)
