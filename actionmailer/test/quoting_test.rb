@@ -57,6 +57,10 @@ class QuotingTest < Test::Unit::TestCase
     CODE
 
     unquoted = Mail::Encodings.unquote_and_convert_to(result, nil)
+
+    unquoted.force_encoding(Encoding::ASCII_8BIT) if unquoted.respond_to?(:force_encoding)
+    original.force_encoding(Encoding::ASCII_8BIT) if original.respond_to?(:force_encoding)
+
     assert_equal unquoted, original
   end
 

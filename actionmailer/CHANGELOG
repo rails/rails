@@ -1,13 +1,16 @@
 *Mail Integration
 
-* Mail does not have "quoted_body", "quoted_subject" etc.  All of these are accessed via body.encoded, subject.encoded etc
+* Mail does not have "quoted_body", "quoted_subject" etc.  All of these are accessed via body.encoded, 
+  subject.encoded etc
 
-* Every part of a Mail object returns an object, never a string.  So Mail.body returns a Mail::Body class object, need to call #encoded or #decoded to get the string you want
+* Every part of a Mail object returns an object, never a string.  So Mail.body returns a Mail::Body
+  class object, need to call #encoded or #decoded to get the string you want
 
 * Mail::Message#set_content_type does not exist, it is simply Mail::Message#content_type
 
-* Every mail message gets a unique message_id unless you specify one, had to change all the tests that check for
-  equality with expected.encoded == actual.encoded to first replace their message_ids with control values
+* Every mail message gets a unique message_id unless you specify one, had to change all the tests that
+  check for equality with expected.encoded == actual.encoded to first replace their message_ids with
+  control values
 
 * Mail now has a proper concept of parts, remove the ActionMailer::Part and ActionMailer::PartContainer classes
 
@@ -20,9 +23,6 @@
   
 * There is no idea of a "sub_head" in Mail.  A part is just a Message with some extra functionality, so it 
   just has a "header" like a normal mail message
-  
-* When you want to add a nested part, you now need to use "add_part(params)" instead of "part(params)"  This
-  creates a Mail gem Part object
 
 *2.3.2 [Final] (March 15, 2009)*
 

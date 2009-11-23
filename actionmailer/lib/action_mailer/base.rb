@@ -251,7 +251,7 @@ module ActionMailer #:nodoc:
   #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
   #   +implicit_parts_order+.
   class Base
-    include AdvAttrAccessor, Quoting, Utils
+    include AdvAttrAccessor, Quoting
 
     include AbstractController::RenderingController
     include AbstractController::LocalizedCache
@@ -372,8 +372,9 @@ module ActionMailer #:nodoc:
     def part(params)
       params = {:content_type => params} if String === params
       if custom_headers = params.delete(:headers)
-        STDERR.puts("Passing custom headers with :headers => {} is deprecated.  Please just pass in custom headers directly.")
-        params = params.merge(custom_headers)
+        ActiveSupport::Deprecation.warn('Passing custom headers with :headers => {} is deprecated. ' <<
+                                        'Please just pass in custom headers directly.', caller[0,10])
+        params.merge!(custom_headers)
       end
       part = Mail::Part.new(params)
       yield part if block_given?
@@ -386,7 +387,11 @@ module ActionMailer #:nodoc:
       params = { :content_type => params } if String === params
       params = { :content_disposition => "attachment",
                  :content_transfer_encoding => "base64" }.merge(params)
-      params[:data] = params.delete(:body) if params[:body]
+      if params[:body]
+        ActiveSupport::Deprecation.warn('attachment :body => "string" is deprecated. To set the body of an attachment ' <<
+                                        'please use :data instead, like attachment :data => "string".', caller[0,10])
+        params[:data] = params.delete(:body)
+      end
       part(params, &block)
     end
 
@@ -619,11 +624,11 @@ module ActionMailer #:nodoc:
         if @parts.empty?
           main_type, sub_type = split_content_type(real_content_type)
           m.content_type([main_type, sub_type, ctype_attrs])
-          m.body = normalize_new_lines(body)
+          m.body = body
         elsif @parts.size == 1 && @parts.first.parts.empty?
           main_type, sub_type = split_content_type(real_content_type)
           m.content_type([main_type, sub_type, ctype_attrs])
-          m.body = normalize_new_lines(@parts.first.body)
+          m.body = @parts.first.body.encoded
         else
           @parts.each do |p|
             m.add_part(p)
