@@ -1419,15 +1419,13 @@ class RouteSetTest < ActiveSupport::TestCase
         :requirements => {:name => /(david|jamis)/i}
     end
 
-    pending do
-      url = set.generate({:controller => 'pages', :action => 'show', :name => 'david'})
-      assert_equal "/page/david", url
-      assert_raise ActionController::RoutingError do
-        url = set.generate({:controller => 'pages', :action => 'show', :name => 'davidjamis'})
-      end
-      url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
-      assert_equal "/page/JAMIS", url
+    url = set.generate({:controller => 'pages', :action => 'show', :name => 'david'})
+    assert_equal "/page/david", url
+    assert_raise ActionController::RoutingError do
+      url = set.generate({:controller => 'pages', :action => 'show', :name => 'davidjamis'})
     end
+    url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
+    assert_equal "/page/JAMIS", url
   end
 
   def test_route_requirement_recognize_with_extended_syntax
