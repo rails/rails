@@ -4,8 +4,12 @@ require 'optparse'
 
 module Rails
   class DBConsole
-    def self.start
-      new.start
+    def self.start(app)
+      new(app).start
+    end
+
+    def initialize(app)
+      @app = app
     end
 
     def start
@@ -31,7 +35,7 @@ module Rails
       end
 
       env = ARGV.first || ENV['RAILS_ENV'] || 'development'
-      unless config = YAML::load(ERB.new(IO.read("#{Rails.root}/config/database.yml")).result)[env]
+      unless config = YAML::load(ERB.new(IO.read("#{@app.root}/config/database.yml")).result)[env]
         abort "No database is configured for the environment '#{env}'"
       end
 

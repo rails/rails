@@ -3,11 +3,6 @@ module Rails
     include Initializable
 
     class << self
-      def inherited(klass)
-        Rails.application ||= klass unless klass.name =~ /Rails/
-        super
-      end
-
       # Stub out App initialize
       def initialize!
         new
@@ -32,17 +27,30 @@ module Rails
         config.root
       end
 
+      def load_tasks
+        require "rails/tasks"
+        task :environment do
+          $rails_rake_task = true
+          initialize!
+        end
+      end
+
       def call(env)
         new.call(env)
       end
     end
 
     def initialize
+      Rails.application ||= self
       run_initializers(self)
     end
 
     def config
       self.class.config
+    end
+
+    def root
+      config.root
     end
 
     alias configuration config

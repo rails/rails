@@ -7,21 +7,8 @@ module ApplicationTests
     include ActiveSupport::Testing::Isolation
 
     def rackup
-      config = "#{app_path}/config.ru"
-      # Copied from ActionDispatch::Utils.parse_config
-      # ActionDispatch is not necessarily available at this point.
-      require 'rack'
-      if config =~ /\.ru$/
-        cfgfile = ::File.read(config)
-        if cfgfile[/^#\\(.*)/]
-          opts.parse! $1.split(/\s+/)
-        end
-        inner_app = eval "Rack::Builder.new {( " + cfgfile + "\n )}.to_app",
-                         nil, config
-      else
-        require config
-        inner_app = Object.const_get(::File.basename(config, '.rb').capitalize)
-      end
+      require "rack"
+      Rack::Builder.parse_file("#{app_path}/config.ru")
     end
 
     def setup
@@ -40,14 +27,14 @@ module ApplicationTests
 
     test "Rails.application is available after config.ru has been racked up" do
       rackup
-      assert Rails.application < Rails::Application
+      assert Rails.application.is_a?(Rails::Application)
     end
 
     # Passenger still uses AC::Dispatcher, so we need to
     # keep it working for now
     test "deprecated ActionController::Dispatcher still works" do
       rackup
-      assert ActionController::Dispatcher.new < Rails::Application
+      assert ActionController::Dispatcher.new.is_a?(Rails::Application)
     end
 
     test "the config object is available on the application object" do
