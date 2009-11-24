@@ -280,6 +280,10 @@ module ActionDispatch
         Regexp.union(*possible_controllers.collect { |n| Regexp.escape(n) })
       end
 
+      def clear_controller_cache!
+        @possible_controllers = nil
+      end
+
       # Returns an array of paths, cleaned of double-slashes and relative path references.
       # * "\\\" and "//"  become "\\" or "/".
       # * "/foo/bar/../config" becomes "/foo/config".
@@ -307,8 +311,15 @@ module ActionDispatch
         unless @possible_controllers
           @possible_controllers = []
 
-          paths = controller_paths.select { |path| File.directory?(path) && path != "." }
+          # Find any controller classes already in memory
+          ActionController::Base.subclasses.each do |klass|
+            controller_name = klass.underscore
+            controller_name.gsub!(/_controller\Z/, '')
+            @possible_controllers << controller_name
+          end
 
+          # Find controllers in controllers/ directory
+          paths = controller_paths.select { |path| File.directory?(path) && path != "." }
           seen_paths = Hash.new {|h, k| h[k] = true; false}
           normalize_paths(paths).each do |load_path|
             Dir["#{load_path}/**/*_controller.rb"].collect do |path|
@@ -325,12 +336,6 @@ module ActionDispatch
           @possible_controllers.uniq!
         end
         @possible_controllers
-      end
-
-      # Replaces the internal list of controllers available to ActionController::Routing with the passed argument.
-      #   ActionController::Routing.use_controllers!([ "posts", "comments", "admin/comments" ])
-      def use_controllers!(controller_names)
-        @possible_controllers = controller_names
       end
     end
   end

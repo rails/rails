@@ -246,7 +246,9 @@ module ActionDispatch
       end
 
       def load!
-        Routing.use_controllers!(nil) # Clear the controller cache so we may discover new ones
+        # Clear the controller cache so we may discover new ones
+        Routing.clear_controller_cache!
+
         load_routes!
       end
 

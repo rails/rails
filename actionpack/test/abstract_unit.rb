@@ -191,20 +191,8 @@ class ::ApplicationController < ActionController::Base
 end
 
 module ActionController
-  module Routing
-    def self.possible_controllers
-      @@possible_controllers ||= []
-    end
-  end
-
   class Base
     include ActionController::Testing
-
-    def self.inherited(klass)
-      name = klass.name.underscore.sub(/_controller$/, '')
-      ActionController::Routing.possible_controllers << name unless name.blank?
-      super
-    end
   end
 
   Base.view_paths = FIXTURE_LOAD_PATH
