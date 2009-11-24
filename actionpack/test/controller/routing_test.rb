@@ -1762,13 +1762,6 @@ class RouteLoadingTest < Test::Unit::TestCase
     2.times { routes.reload! }
   end
 
-  def test_adding_inflections_forces_reload
-    ActiveSupport::Inflector::Inflections.instance.expects(:uncountable).with('equipment')
-    routes.expects(:reload!)
-
-    ActiveSupport::Inflector.inflections { |inflect| inflect.uncountable('equipment') }
-  end
-
   def test_load_with_configuration
     routes.configuration_files.clear
     routes.add_configuration_file("foobarbaz")
