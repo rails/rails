@@ -264,10 +264,7 @@ module ActionDispatch
     autoload :RouteSet, 'action_dispatch/routing/route_set'
 
     SEPARATORS = %w( / . ? )
-
     HTTP_METHODS = [:get, :head, :post, :put, :delete, :options]
-
-    ALLOWED_REQUIREMENTS_FOR_OPTIMISATION = [:controller, :action].to_set
 
     # The root paths which may contain controller files
     mattr_accessor :controller_paths
@@ -341,29 +338,6 @@ module ActionDispatch
       #   ActionController::Routing.use_controllers!([ "posts", "comments", "admin/comments" ])
       def use_controllers!(controller_names)
         @possible_controllers = controller_names
-      end
-
-      # Returns a controller path for a new +controller+ based on a +previous+ controller path.
-      # Handles 4 scenarios:
-      #
-      # * stay in the previous controller:
-      #     controller_relative_to( nil, "groups/discussion" ) # => "groups/discussion"
-      #
-      # * stay in the previous namespace:
-      #     controller_relative_to( "posts", "groups/discussion" ) # => "groups/posts"
-      #
-      # * forced move to the root namespace:
-      #     controller_relative_to( "/posts", "groups/discussion" ) # => "posts"
-      #
-      # * previous namespace is root:
-      #     controller_relative_to( "posts", "anything_with_no_slashes" ) # =>"posts"
-      #
-      def controller_relative_to(controller, previous)
-        if controller.nil?           then previous
-        elsif controller[0] == ?/    then controller[1..-1]
-        elsif %r{^(.*)/} =~ previous then "#{$1}/#{controller}"
-        else controller
-        end
       end
     end
   end
