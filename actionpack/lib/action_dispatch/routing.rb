@@ -280,17 +280,6 @@ module ActionDispatch
         Regexp.union(*possible_controllers.collect { |n| Regexp.escape(n) })
       end
 
-      # Expects an array of controller names as the first argument.
-      # Executes the passed block with only the named controllers named available.
-      # This method is used in internal Rails testing.
-      def with_controllers(names)
-        prior_controllers = @possible_controllers
-        use_controllers! names
-        yield
-      ensure
-        use_controllers! prior_controllers
-      end
-
       # Returns an array of paths, cleaned of double-slashes and relative path references.
       # * "\\\" and "//"  become "\\" or "/".
       # * "/foo/bar/../config" becomes "/foo/config".
