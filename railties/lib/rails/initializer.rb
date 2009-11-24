@@ -1,6 +1,6 @@
 require "rails" # In case people require this file directly
 
-RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
+RAILS_ENV = (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 
 module Rails
   class Initializer
