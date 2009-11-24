@@ -276,6 +276,10 @@ module ActionDispatch
     end
 
     class << self
+      def controller_constraints
+        Regexp.union(*possible_controllers.collect { |n| Regexp.escape(n) })
+      end
+
       # Expects an array of controller names as the first argument.
       # Executes the passed block with only the named controllers named available.
       # This method is used in internal Rails testing.
