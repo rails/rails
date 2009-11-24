@@ -10,13 +10,15 @@ module ApplicationTests
       def initialize
         @events = []
         @subscribers = []
+        @listeners = []
       end
 
       def publish(name, *args)
         @events << name
       end
 
-      def subscribe(pattern=nil, &block)
+      def subscribe(listener, pattern=nil, &block)
+        @listeners << listener
         @subscribers << pattern
       end
     end

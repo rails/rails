@@ -51,30 +51,6 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   end
 end
 
-class RoutingTest < Test::Unit::TestCase
-  def test_normalize_unix_paths
-    load_paths = %w(. config/../app/controllers config/../app//helpers script/../config/../vendor/rails/actionpack/lib vendor/rails/railties/builtin/rails_info app/models lib script/../config/../foo/bar/../../app/models .foo/../.bar foo.bar/../config)
-    paths = ActionController::Routing.normalize_paths(load_paths)
-    assert_equal %w(vendor/rails/railties/builtin/rails_info vendor/rails/actionpack/lib app/controllers app/helpers app/models config .bar lib .), paths
-  end
-
-  def test_normalize_windows_paths
-    load_paths = %w(. config\\..\\app\\controllers config\\..\\app\\\\helpers script\\..\\config\\..\\vendor\\rails\\actionpack\\lib vendor\\rails\\railties\\builtin\\rails_info app\\models lib script\\..\\config\\..\\foo\\bar\\..\\..\\app\\models .foo\\..\\.bar foo.bar\\..\\config)
-    paths = ActionController::Routing.normalize_paths(load_paths)
-    assert_equal %w(vendor\\rails\\railties\\builtin\\rails_info vendor\\rails\\actionpack\\lib app\\controllers app\\helpers app\\models config .bar lib .), paths
-  end
-
-  def test_routing_helper_module
-    assert_kind_of Module, ActionController::Routing::Helpers
-
-    h = ActionController::Routing::Helpers
-    c = Class.new
-    assert ! c.ancestors.include?(h)
-    ActionController::Routing::Routes.install_helpers c
-    assert c.ancestors.include?(h)
-  end
-end
-
 class MockController
   attr_accessor :routes
 
@@ -1760,13 +1736,6 @@ class RouteLoadingTest < Test::Unit::TestCase
     routes.expects(:load).with(regexp_matches(/routes\.rb$/)).times(2)
 
     2.times { routes.reload! }
-  end
-
-  def test_adding_inflections_forces_reload
-    ActiveSupport::Inflector::Inflections.instance.expects(:uncountable).with('equipment')
-    routes.expects(:reload!)
-
-    ActiveSupport::Inflector.inflections { |inflect| inflect.uncountable('equipment') }
   end
 
   def test_load_with_configuration

@@ -31,7 +31,7 @@ module Rails
     def root
       @root ||= begin
         call_stack = caller.map { |p| p.split(':').first }
-        root_path  = call_stack.detect { |p| p !~ %r[railties/lib/rails] }
+        root_path  = call_stack.detect { |p| p !~ %r[railties/lib/rails|rack/lib/rack] }
         root_path  = File.dirname(root_path)
 
         while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/config.ru")

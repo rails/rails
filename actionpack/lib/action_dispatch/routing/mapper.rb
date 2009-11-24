@@ -282,6 +282,8 @@ module ActionDispatch
         constraints.reject! { |k, v| segment_keys.include?(k.to_s) }
         conditions.merge!(constraints)
 
+        requirements[:controller] ||= Routing.controller_constraints
+
         if via = options[:via]
           via = Array(via).map { |m| m.to_s.upcase }
           conditions[:request_method] = Regexp.union(*via)
