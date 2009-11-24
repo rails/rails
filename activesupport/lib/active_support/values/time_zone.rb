@@ -1,7 +1,4 @@
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/time'
-require 'active_support/core_ext/date'
-require 'active_support/core_ext/date_time'
 
 # The TimeZone class serves as a wrapper around TZInfo::Timezone instances. It allows us to do the following:
 #

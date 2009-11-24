@@ -1,11 +1,6 @@
 module ActiveRecord
   module Associations
     class HasAndBelongsToManyAssociation < AssociationCollection #:nodoc:
-      def initialize(owner, reflection)
-        super
-        @primary_key_list = {}
-      end
-
       def create(attributes = {})
         create_record(attributes) { |record| insert_record(record) }
       end
@@ -23,9 +18,7 @@ module ActiveRecord
       end
 
       def has_primary_key?
-        return @has_primary_key unless @has_primary_key.nil?
-        @has_primary_key = (@owner.connection.supports_primary_key? &&
-          @owner.connection.primary_key(@reflection.options[:join_table]))
+        @has_primary_key ||= @owner.connection.supports_primary_key? && @owner.connection.primary_key(@reflection.options[:join_table])
       end
 
       protected
@@ -40,11 +33,6 @@ module ActiveRecord
         end
 
         def insert_record(record, force = true, validate = true)
-          if has_primary_key?
-            raise ActiveRecord::ConfigurationError,
-              "Primary key is not allowed in a has_and_belongs_to_many join table (#{@reflection.options[:join_table]})."
-          end
-
           if record.new_record?
             if force
               record.save!

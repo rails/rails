@@ -94,6 +94,10 @@ module InitializableTests
       include Rails::Initializable
 
       initializer :startup, :before => :last do
+        $arr << 3
+      end
+
+      initializer :terminate, :after => :first do
         $arr << two
       end
 
@@ -109,7 +113,7 @@ module InitializableTests
     end
 
     initializer :last do
-      $arr << 3
+      $arr << 4
     end
 
     def self.initializers
@@ -189,7 +193,7 @@ module InitializableTests
     test "merges in the initializers from the parent in the right order" do
       $arr = []
       OverriddenInitializer.new.run_initializers
-      assert_equal [1, 2, 3], $arr
+      assert_equal [1, 2, 3, 4], $arr
     end
   end
 end

@@ -1,6 +1,6 @@
 require 'abstract_unit'
+require 'active_support/time'
 require 'active_support/core_ext/range'
-require 'active_support/core_ext/date/conversions'
 
 class RangeTest < Test::Unit::TestCase
   def test_to_s_from_dates

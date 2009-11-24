@@ -1,8 +1,23 @@
 module ActiveSupport
   module Testing
+    class RemoteError < StandardError
+
+      attr_reader :message, :backtrace
+
+      def initialize(exception)
+        @message = "caught #{exception.class.name}: #{exception.message}"
+        @backtrace = exception.backtrace
+      end
+    end
+
     class ProxyTestResult
       def initialize
         @calls = []
+      end
+
+      def add_error(e)
+        e = Test::Unit::Error.new(e.test_name, RemoteError.new(e.exception))
+        @calls << [:add_error, e]
       end
 
       def __replay__(result)
