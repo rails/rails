@@ -41,10 +41,10 @@ module Rails
       end
 
       if options[:sandbox]
-        puts "Loading #{ENV['RAILS_ENV']} environment in sandbox (Rails #{Rails.version})"
+        puts "Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})"
         puts "Any modifications you make will be rolled back on exit"
       else
-        puts "Loading #{ENV['RAILS_ENV']} environment (Rails #{Rails.version})"
+        puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
       end
       IRB.start
     end
