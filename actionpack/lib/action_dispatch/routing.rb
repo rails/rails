@@ -366,16 +366,5 @@ module ActionDispatch
         end
       end
     end
-
-    ActiveSupport::Inflector.module_eval do
-      # Ensures that routes are reloaded when Rails inflections are updated.
-      def inflections_with_route_reloading(&block)
-        returning(inflections_without_route_reloading(&block)) {
-          ActionDispatch::Routing::Routes.reload! if block_given?
-        }
-      end
-
-      alias_method_chain :inflections, :route_reloading
-    end
   end
 end
