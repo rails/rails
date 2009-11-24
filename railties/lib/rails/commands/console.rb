@@ -4,6 +4,8 @@ require "irb/completion"
 
 module Rails
   class Console
+    ENVIRONMENTS = %w(production development test)
+
     def self.start
       new.start
     end
@@ -16,6 +18,10 @@ module Rails
         opt.on('-s', '--sandbox', 'Rollback database modifications on exit.') { |v| options[:sandbox] = v }
         opt.on("--debugger", 'Enable ruby-debugging for the console.') { |v| options[:debugger] = v }
         opt.parse!(ARGV)
+      end
+
+      if env = ARGV.first
+        ENV['RAILS_ENV'] = ENVIRONMENTS.find { |e| e.index(env) } || env
       end
 
       require "#{Rails.root}/config/environment"
@@ -32,15 +38,6 @@ module Rails
           exit
         end
       end
-
-      ENV['RAILS_ENV'] =
-        case ARGV.first
-        when "p" then "production"
-        when "d" then "development"
-        when "t" then "test"
-        else
-          ARGV.first || ENV['RAILS_ENV'] || 'development'
-        end
 
       if options[:sandbox]
         puts "Loading #{ENV['RAILS_ENV']} environment in sandbox (Rails #{Rails.version})"
