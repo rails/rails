@@ -9,7 +9,7 @@ require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/inflections'
 
 # TODO: Do not always push on vendored thor
-$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/vendor/thor-0.11.8/lib")
+$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/vendor/thor-0.12.0/lib")
 require 'rails/generators/base'
 require 'rails/generators/named_base'
 
@@ -86,28 +86,16 @@ module Rails
       @options ||= DEFAULT_OPTIONS.dup
     end
 
-    # We have two scenarios here: when rubygems is loaded and when bundler is
-    # being used. If rubygems is loaded, we get all generators paths from loaded
-    # specs. Otherwise we just have to look into vendor/gems/gems.
-    #
-    def self.gems_generators_paths
-      paths = []
-
-      if defined?(Gem) && Gem.respond_to?(:loaded_specs)
-        Gem.loaded_specs.each do |name, spec|
-          generator_path = File.join(spec.full_gem_path, "lib/generators")
-          paths << generator_path if File.exist?(generator_path)
-        end
+    def self.gems_generators_paths #:nodoc:
+      return [] unless defined?(Gem) && Gem.respond_to?(:loaded_specs)
+      Gem.loaded_specs.inject([]) do |paths, (name, spec)|
+        paths += Dir[File.join(spec.full_gem_path, "lib/{generators,rails_generators}")]
       end
-
-      paths
     end
 
-    # Load paths from plugin.
-    #
-    def self.plugins_generators_paths
+    def self.plugins_generators_paths #:nodoc:
       return [] unless Rails.root
-      Dir[File.join(Rails.root, "vendor", "plugins", "*", "lib", "generators")]
+      Dir[File.join(Rails.root, "vendor", "plugins", "*", "lib", "{generators,rails_generators}")]
     end
 
     # Hold configured generators fallbacks. If a plugin developer wants a
@@ -147,8 +135,8 @@ module Rails
     def self.load_paths
       @load_paths ||= begin
         paths = []
-        paths << File.join(Rails.root, "lib", "generators") if Rails.root
-        paths << File.join(Thor::Util.user_home, ".rails", "generators")
+        paths += Dir[File.join(Rails.root, "lib", "{generators,rails_generators}")] if Rails.root
+        paths += Dir[File.join(Thor::Util.user_home, ".rails", "{generators,rails_generators}")]
         paths += self.plugins_generators_paths
         paths += self.gems_generators_paths
         paths << File.expand_path(File.join(File.dirname(__FILE__), "generators"))
@@ -210,7 +198,7 @@ module Rails
         return klass if klass
       end
 
-      invoke_fallbacks_for(name, base)
+      invoke_fallbacks_for(name, base) || invoke_fallbacks_for(context, name)
     end
 
     # Receives a namespace, arguments and the behavior to invoke the generator.
@@ -278,13 +266,13 @@ module Rails
 
       # By default, Rails strips the generator namespace to make invocations
       # easier. This method generaters the both possibilities names.
-      def self.generator_names(first, second)
+      def self.generator_names(first, second) #:nodoc:
         [ "#{first}:generators:#{second}", "#{first}:#{second}" ]
       end
 
       # Try callbacks for the given base.
       #
-      def self.invoke_fallbacks_for(name, base)
+      def self.invoke_fallbacks_for(name, base) #:nodoc:
         return nil unless base && fallbacks[base.to_sym]
         invoked_fallbacks = []
 

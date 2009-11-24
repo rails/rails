@@ -113,8 +113,7 @@ module ActionDispatch
           end
         end
 
-        possible_names = Routing.possible_controllers.collect { |n| Regexp.escape(n) }
-        requirements[:controller] ||= Regexp.union(*possible_names)
+        requirements[:controller] ||= Routing.controller_constraints
 
         if defaults[:controller]
           defaults[:action] ||= 'index'

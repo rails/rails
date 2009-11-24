@@ -1,5 +1,0 @@
-<%= shebang %>
-require File.expand_path('../../config/environment',  __FILE__)
-require 'rails/generators'
-Rails::Generators.configure!
-require 'rails/commands/generate'

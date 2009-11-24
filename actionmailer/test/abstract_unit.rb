@@ -4,8 +4,10 @@ begin
 rescue LoadError
   $:.unshift("#{root}/activesupport/lib")
   $:.unshift("#{root}/actionpack/lib")
-  $:.unshift("#{root}/actionmailer/lib")
 end
+
+lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
+$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
 require 'rubygems'
 require 'test/unit'

@@ -6,16 +6,12 @@ rescue LoadError
   $:.unshift "#{root}/activemodel/lib"
 end
 
-$:.unshift(File.dirname(__FILE__) + '/../lib')
+lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
+$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
+
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
-
-begin
-  %w( rack rack/test sqlite3 ).each { |lib| require lib }
-rescue LoadError => e
-  abort e.message
-end
 
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
@@ -195,20 +191,8 @@ class ::ApplicationController < ActionController::Base
 end
 
 module ActionController
-  module Routing
-    def self.possible_controllers
-      @@possible_controllers ||= []
-    end
-  end
-
   class Base
     include ActionController::Testing
-
-    def self.inherited(klass)
-      name = klass.name.underscore.sub(/_controller$/, '')
-      ActionController::Routing.possible_controllers << name unless name.blank?
-      super
-    end
   end
 
   Base.view_paths = FIXTURE_LOAD_PATH

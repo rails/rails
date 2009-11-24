@@ -7,6 +7,7 @@ module Kernel
     end
   end
 
+  undef :breakpoint if respond_to?(:breakpoint)
   def breakpoint
     message = "\n***** The 'breakpoint' command has been renamed 'debugger' -- please change *****\n"
     defined?(Rails) ? Rails.logger.info(message) : $stderr.puts(message)

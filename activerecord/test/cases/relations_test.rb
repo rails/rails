@@ -78,7 +78,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Topic.all
 
     ["map", "uniq", "sort", "insert", "delete", "update"].each do |method|
-      assert relation.respond_to?(method)
+      assert relation.respond_to?(method), "Topic.all should respond to #{method.inspect}"
     end
   end
 

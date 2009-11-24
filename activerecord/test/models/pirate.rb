@@ -18,7 +18,7 @@ class Pirate < ActiveRecord::Base
   has_many :treasure_estimates, :through => :treasures, :source => :price_estimates
 
   # These both have :autosave enabled because accepts_nested_attributes_for is used on them.
-  has_one :ship, :validate => true
+  has_one :ship
   has_one :non_validated_ship, :class_name => 'Ship'
   has_many :birds
   has_many :birds_with_method_callbacks, :class_name => "Bird",

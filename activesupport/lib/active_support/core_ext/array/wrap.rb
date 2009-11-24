@@ -4,11 +4,10 @@ class Array
   def self.wrap(object)
     if object.nil?
       []
-    # to_a doesn't work correctly with Array() but to_ary always does
-    elsif object.respond_to?(:to_a) && !object.respond_to?(:to_ary)
-      [object]
+    elsif object.respond_to?(:to_ary)
+      object.to_ary
     else
-      Array(object)
+      [object]
     end
   end
 end

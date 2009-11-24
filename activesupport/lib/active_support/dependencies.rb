@@ -339,7 +339,7 @@ module ActiveSupport #:nodoc:
           next
         end
         [ nesting_camel ]
-      end.flatten.compact.uniq
+      end.compact.flatten.compact.uniq
     end
 
     # Search for a file in load_paths matching the provided suffix.

@@ -1,4 +1,5 @@
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/array/wrap'
 
 module ActiveSupport
   # Callbacks are hooks into the lifecycle of an object that allow you to trigger logic
@@ -194,8 +195,8 @@ module ActiveSupport
         end
 
         def should_run_callback?(*args)
-          [options[:if]].flatten.compact.all? { |a| evaluate_method(a, *args) } &&
-          ![options[:unless]].flatten.compact.any? { |a| evaluate_method(a, *args) }
+          Array.wrap(options[:if]).flatten.compact.all? { |a| evaluate_method(a, *args) } &&
+          !Array.wrap(options[:unless]).flatten.compact.any? { |a| evaluate_method(a, *args) }
         end
     end
 

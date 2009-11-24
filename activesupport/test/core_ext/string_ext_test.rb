@@ -4,7 +4,8 @@ require 'abstract_unit'
 require 'inflector_test_cases'
 
 require 'active_support/core_ext/string'
-require 'active_support/core_ext/time'
+require 'active_support/time'
+require 'active_support/core_ext/kernel/reporting'
 
 class StringInflectionsTest < Test::Unit::TestCase
   include InflectorTestCases
@@ -185,17 +186,9 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert s.starts_with?('hel')
     assert !s.starts_with?('el')
 
-    assert s.start_with?('h')
-    assert s.start_with?('hel')
-    assert !s.start_with?('el')
-
     assert s.ends_with?('o')
     assert s.ends_with?('lo')
     assert !s.ends_with?('el')
-
-    assert s.end_with?('o')
-    assert s.end_with?('lo')
-    assert !s.end_with?('el')
   end
 
   def test_string_squish
@@ -213,17 +206,6 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal original.squish!, expected
     # And changes the original string:
     assert_equal original, expected
-  end
-
-  if RUBY_VERSION < '1.9'
-    def test_each_char_with_utf8_string_when_kcode_is_utf8
-      with_kcode('UTF8') do
-        '€2.99'.each_char do |char|
-          assert_not_equal 1, char.length
-          break
-        end
-      end
-    end
   end
 end
 
@@ -347,13 +329,6 @@ class TestGetTextString < Test::Unit::TestCase
   def test_string_interpolation_raises_an_argument_error_when_mixing_named_and_unnamed_placeholders
     assert_raises(ArgumentError) { "%{name} %f" % [1.0] }
     assert_raises(ArgumentError) { "%{name} %f" % [1.0, 2.0] }
-  end
-end
-
-class StringBytesizeTest < Test::Unit::TestCase
-  def test_bytesize
-    assert_respond_to 'foo', :bytesize
-    assert_equal 3, 'foo'.bytesize
   end
 end
 

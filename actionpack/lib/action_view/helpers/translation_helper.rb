@@ -21,7 +21,7 @@ module ActionView
 
       # Delegates to I18n.localize with no additional functionality.
       def localize(*args)
-        I18n.localize *args
+        I18n.localize(*args)
       end
       alias :l :localize
 

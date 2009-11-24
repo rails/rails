@@ -74,7 +74,7 @@ class Thor::Group
     #
     def invoke(*names, &block)
       options = names.last.is_a?(Hash) ? names.pop : {}
-      verbose = options.fetch(:verbose, :white)
+      verbose = options.fetch(:verbose, true)
 
       names.each do |name|
         invocations[name] = false

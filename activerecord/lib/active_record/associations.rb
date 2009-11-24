@@ -1,4 +1,5 @@
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
@@ -57,6 +58,12 @@ module ActiveRecord
   class HasManyThroughCantDissociateNewRecords < ActiveRecordError #:nodoc:
     def initialize(owner, reflection)
       super("Cannot dissociate new records through '#{owner.class.name}##{reflection.name}' on '#{reflection.source_reflection.class_name rescue nil}##{reflection.source_reflection.name rescue nil}'. Both records must have an id in order to delete the has_many :through record associating them.")
+    end
+  end
+
+  class HasAndBelongsToManyAssociationWithPrimaryKeyError < ActiveRecordError #:nodoc:
+    def initialize(reflection)
+      super("Primary key is not allowed in a has_and_belongs_to_many join table (#{reflection.options[:join_table]}).")
     end
   end
 
@@ -1396,8 +1403,8 @@ module ActiveRecord
             end
 
             define_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
-              ids = (new_value || []).reject { |nid| nid.blank? }
-              send("#{reflection.name}=", reflection.klass.find(ids))
+              ids = (new_value || []).reject { |nid| nid.blank? }.map(&:to_i)
+              send("#{reflection.name}=", reflection.klass.find(ids).index_by(&:id).values_at(*ids))
             end
           end
         end
@@ -1480,7 +1487,7 @@ module ActiveRecord
           if reflection.options.include?(:dependent)
             # Add polymorphic type if the :as option is present
             dependent_conditions = []
-            dependent_conditions << "#{reflection.primary_key_name} = \#{record.quoted_id}"
+            dependent_conditions << "#{reflection.primary_key_name} = \#{record.#{reflection.name}.send(:owner_quoted_id)}"
             dependent_conditions << "#{reflection.options[:as]}_type = '#{base_class.name}'" if reflection.options[:as]
             dependent_conditions << sanitize_sql(reflection.options[:conditions], reflection.quoted_table_name) if reflection.options[:conditions]
             dependent_conditions << extra_conditions if extra_conditions
@@ -1674,7 +1681,6 @@ module ActiveRecord
 
         def create_has_and_belongs_to_many_reflection(association_id, options, &extension)
           options.assert_valid_keys(valid_keys_for_has_and_belongs_to_many_association)
-
           options[:extend] = create_extension_modules(association_id, extension, options[:extend])
 
           reflection = create_reflection(:has_and_belongs_to_many, association_id, options, self)
@@ -1684,6 +1690,9 @@ module ActiveRecord
           end
 
           reflection.options[:join_table] ||= join_table_name(undecorated_table_name(self.to_s), undecorated_table_name(reflection.class_name))
+          if connection.supports_primary_key? && (connection.primary_key(reflection.options[:join_table]) rescue false)
+             raise HasAndBelongsToManyAssociationWithPrimaryKeyError.new(reflection)
+          end
 
           reflection
         end
@@ -1922,12 +1931,16 @@ module ActiveRecord
                   reflection = base.reflections[name]
                   is_collection = [:has_many, :has_and_belongs_to_many].include?(reflection.macro)
 
-                  parent_records = records.map do |record|
-                    descendant = record.send(reflection.name)
-                    next unless descendant
-                    descendant.target.uniq! if is_collection
-                    descendant
-                  end.flatten.compact
+                  parent_records = []
+                  records.each do |record|
+                    if descendant = record.send(reflection.name)
+                      if is_collection
+                        parent_records.concat descendant.target.uniq
+                      else
+                        parent_records << descendant
+                      end
+                    end
+                  end
 
                   remove_duplicate_results!(reflection.klass, parent_records, associations[name]) unless parent_records.empty?
                 end

@@ -92,6 +92,34 @@ module TestHelpers
       add_to_config 'config.action_controller.session = { :key => "_myapp_session", :secret => "bac838a849c1d5c4de2e6a50af826079" }'
     end
 
+    class Bukkit
+      def initialize(path)
+        @path = path
+      end
+
+      def write(file, string)
+        path = "#{@path}/#{file}"
+        FileUtils.mkdir_p(File.dirname(path))
+        File.open(path, "w") {|f| f.puts string }
+      end
+
+      def delete(file)
+        File.delete("#{@path}/#{file}")
+      end
+    end
+
+    def plugin(name, string = "")
+      dir = "#{app_path}/vendor/plugins/#{name}"
+      FileUtils.mkdir_p(dir)
+      File.open("#{dir}/init.rb", 'w') do |f|
+        f.puts "::#{name.upcase} = 'loaded'"
+        f.puts string
+      end
+      Bukkit.new(dir).tap do |bukkit|
+        yield bukkit if block_given?
+      end
+    end
+
     def script(script)
       Dir.chdir(app_path) do
         `#{Gem.ruby} #{app_path}/script/#{script}`
@@ -157,9 +185,13 @@ Module.new do
   FileUtils.mkdir(tmp_path)
 
   environment = File.expand_path('../../../../vendor/gems/environment', __FILE__)
+  if File.exist?("#{environment}.rb")
+    require_environment = "-r #{environment}"
+  end
 
-  `#{Gem.ruby} -r #{environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{tmp_path('app_template')}`
+  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{tmp_path('app_template')}`
   File.open("#{tmp_path}/app_template/config/boot.rb", 'w') do |f|
-    f.puts "require '#{environment}' ; require 'rails'"
+    f.puts "require '#{environment}'" if require_environment
+    f.puts "require 'rails'"
   end
 end

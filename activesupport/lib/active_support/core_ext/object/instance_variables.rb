@@ -1,11 +1,4 @@
 class Object
-  # Available in 1.8.6 and later.
-  unless respond_to?(:instance_variable_defined?)
-    def instance_variable_defined?(variable)
-      instance_variables.include?(variable.to_s)
-    end
-  end
-
   # Returns a hash that maps instance variable names without "@" to their
   # corresponding values. Keys are strings both in Ruby 1.8 and 1.9.
   #

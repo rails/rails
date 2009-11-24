@@ -43,7 +43,14 @@ class NilClass
 
   private
     def method_missing(method, *args, &block)
-      raise_nil_warning_for METHOD_CLASS_MAP[method], method, caller
+      # Ruby 1.9.2: disallow explicit coercion via method_missing.
+      if method == :to_ary || method == :to_str
+        super
+      elsif klass = METHOD_CLASS_MAP[method]
+        raise_nil_warning_for klass, method, caller
+      else
+        super
+      end
     end
 
     # Raises a NoMethodError when you attempt to call a method on +nil+.
@@ -55,4 +62,3 @@ class NilClass
       raise NoMethodError, message, with_caller || caller
     end
 end
-

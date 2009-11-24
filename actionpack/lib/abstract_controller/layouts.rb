@@ -100,7 +100,7 @@ module AbstractController
       # name, return that string. Otherwise, use the superclass'
       # layout (which might also be implied)
       def _write_layout_method
-        case @_layout
+        case defined?(@_layout) ? @_layout : nil
         when String
           self.class_eval %{def _layout(details) #{@_layout.inspect} end}
         when Symbol

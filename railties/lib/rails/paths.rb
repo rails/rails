@@ -64,7 +64,7 @@ module Rails
     end
 
     class Path
-      include PathParent
+      include PathParent, Enumerable
 
       attr_reader :path
       attr_accessor :glob
@@ -81,6 +81,10 @@ module Rails
         @load_path  = @options[:load_path] || @eager_load
 
         @root.all_paths << self
+      end
+
+      def each
+        to_a.each { |p| yield p }
       end
 
       def push(path)

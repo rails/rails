@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/tap'
-
 module ActiveRecord
   module AttributeMethods
     module Dirty

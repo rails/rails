@@ -101,6 +101,11 @@ module ActionController #:nodoc:
         session[:_csrf_token] ||= ActiveSupport::SecureRandom.base64(32)
       end
 
+      # The form's authenticity parameter. Override to provide your own.
+      def form_authenticity_param
+        params[request_forgery_protection_token]
+      end
+
       def protect_against_forgery?
         allow_forgery_protection
       end

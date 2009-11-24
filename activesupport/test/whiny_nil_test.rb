@@ -13,7 +13,7 @@ class WhinyNilTest < Test::Unit::TestCase
   def test_unchanged
     nil.method_thats_not_in_whiners
   rescue NoMethodError => nme
-    assert_match(/nil.method_thats_not_in_whiners/, nme.message)
+    assert(nme.message =~ /nil:NilClass/)
   end
 
   def test_active_record
@@ -34,5 +34,17 @@ class WhinyNilTest < Test::Unit::TestCase
     nil.id
   rescue RuntimeError => nme
     assert(!(nme.message =~ /nil:NilClass/))
+  end
+
+  def test_no_to_ary_coercion
+    nil.to_ary
+  rescue NoMethodError => nme
+    assert(nme.message =~ /nil:NilClass/)
+  end
+
+  def test_no_to_str_coercion
+    nil.to_str
+  rescue NoMethodError => nme
+    assert(nme.message =~ /nil:NilClass/)
   end
 end
