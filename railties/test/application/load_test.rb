@@ -8,7 +8,8 @@ module ApplicationTests
 
     def rackup
       require "rack"
-      Rack::Builder.parse_file("#{app_path}/config.ru")
+      app, options = Rack::Builder.parse_file("#{app_path}/config.ru")
+      app
     end
 
     def setup
