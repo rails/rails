@@ -163,7 +163,8 @@ module ActiveSupport
           @listeners.all? &:drained?
         end
 
-      class Listener
+      # Used for internal implementation only.
+      class Listener #:nodoc:
         def initialize(pattern, &block)
           @pattern = pattern
           @subscriber = block
