@@ -154,9 +154,14 @@ module ActiveSupport
         @listeners << Listener.new(pattern, &block)
       end
 
-      def drained?
-        @listeners.all? &:drained?
+      def wait
+        sleep 0.05 until drained?
       end
+
+      private
+        def drained?
+          @listeners.all? &:drained?
+        end
 
       class Listener
         def initialize(pattern, &block)

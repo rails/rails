@@ -201,6 +201,6 @@ class NotificationsMainTest < Test::Unit::TestCase
 
   private
     def drain
-      sleep(0.1) until ActiveSupport::Notifications.queue.drained?
+      ActiveSupport::Notifications.queue.wait
     end
 end
