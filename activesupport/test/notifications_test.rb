@@ -176,21 +176,6 @@ class NotificationsMainTest < Test::Unit::TestCase
     assert_equal 1, @another.first.result
   end
 
-  def test_subscriber_allows_sync_listeners
-    @another = []
-    ActiveSupport::Notifications.subscribe(/cache/, :with => ActiveSupport::Notifications::SyncListener) do |*args|
-      @another << ActiveSupport::Notifications::Event.new(*args)
-    end
-
-    Thread.expects(:new).never
-    ActiveSupport::Notifications.instrument(:something){ 0 }
-    ActiveSupport::Notifications.instrument(:cache){ 1 }
-
-    assert_equal 1, @another.size
-    assert_equal :cache, @another.first.name
-    assert_equal 1, @another.first.result
-  end
-
   def test_with_several_consumers_and_several_events
     @another = []
     ActiveSupport::Notifications.subscribe do |*args|
@@ -216,6 +201,6 @@ class NotificationsMainTest < Test::Unit::TestCase
 
   private
     def drain
-      sleep(0.05) until ActiveSupport::Notifications.queue.drained?
+      sleep(0.1) until ActiveSupport::Notifications.queue.drained?
     end
 end
