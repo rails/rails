@@ -29,6 +29,8 @@ module Rails
 
       def load_tasks
         require "rails/tasks"
+        Dir["#{root}/vendor/plugins/*/**/tasks/**/*.rake"].sort.each { |ext| load ext }
+        Dir["#{root}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }
         task :environment do
           $rails_rake_task = true
           initialize!
