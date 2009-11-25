@@ -1,3 +1,12 @@
+*2.3.5 (November 25, 2009)*
+
+* Minor Bug Fixes and deprecation warnings
+
+* More flexible content type handling when parsing responses.
+  
+  Ensures that ARes will handle responses like test/xml, or content types
+  with charsets included.
+
 *2.3.4 (September 4, 2009)*
 
 * Add support for errors in JSON format.  #1956 [Fabien Jakimowicz]

@@ -2,6 +2,7 @@
 
 * Fixed that the debugger wouldn't go into IRB mode because of left-over ARGVs [DHH]
 
+* 1.9 compatibility
 
 *2.3.4 (September 4, 2009)*
 
