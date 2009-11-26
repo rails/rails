@@ -57,6 +57,7 @@ module ActiveRecord
           @target = (AssociationProxy === obj ? obj.target : obj)
         end
 
+        set_inverse_instance(obj, @owner)
         @loaded = true
 
         unless @owner.new_record? or obj.nil? or dont_save
