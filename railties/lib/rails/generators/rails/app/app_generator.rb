@@ -48,9 +48,9 @@ module Rails::Generators
     end
 
     def create_root_files
-      copy_file "Rakefile"
       copy_file "README"
-      copy_file "config.ru"
+      template "Rakefile"
+      template "config.ru"
       template "Gemfile"
     end
 
@@ -179,6 +179,10 @@ module Rails::Generators
 
       def app_name
         @app_name ||= File.basename(destination_root)
+      end
+
+      def app_const
+        @app_const ||= app_name.classify
       end
 
       def app_secret

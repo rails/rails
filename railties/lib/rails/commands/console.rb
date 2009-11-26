@@ -6,8 +6,12 @@ module Rails
   class Console
     ENVIRONMENTS = %w(production development test)
 
-    def self.start
-      new.start
+    def self.start(app)
+      new(app).start
+    end
+
+    def initialize(app)
+      @app = app
     end
 
     def start
@@ -25,7 +29,7 @@ module Rails
         ENV['RAILS_ENV'] = ENVIRONMENTS.find { |e| e.index(env) } || env
       end
 
-      require "#{Rails.root}/config/environment"
+      @app.initialize!
       require "rails/console_app"
       require "rails/console_sandbox" if options[:sandbox]
       require "rails/console_with_helpers"
@@ -41,10 +45,10 @@ module Rails
       end
 
       if options[:sandbox]
-        puts "Loading #{ENV['RAILS_ENV']} environment in sandbox (Rails #{Rails.version})"
+        puts "Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})"
         puts "Any modifications you make will be rolled back on exit"
       else
-        puts "Loading #{ENV['RAILS_ENV']} environment (Rails #{Rails.version})"
+        puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
       end
       IRB.start
     end

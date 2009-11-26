@@ -104,7 +104,7 @@ module Rails
       # file in config/environments.
       #
       def environment(data=nil, options={}, &block)
-        sentinel = "Rails::Initializer.run do |config|"
+        sentinel = /class [a-z_:]+ < Rails::Application/i
         data = block.call if !data && block_given?
 
         in_root do
