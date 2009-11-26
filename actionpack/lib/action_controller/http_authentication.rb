@@ -227,9 +227,9 @@ module ActionController
       end
 
       def decode_credentials(header)
-        header.to_s.gsub(/^Digest\s+/,'').split(',').inject({}) do |hash, pair|
+        header.to_s.gsub(/^Digest\s+/,'').split(',').inject({}.with_indifferent_access) do |hash, pair|
           key, value = pair.split('=', 2)
-          hash[key.strip.to_sym] = value.to_s.gsub(/^"|"$/,'').gsub(/'/, '')
+          hash[key.strip] = value.to_s.gsub(/^"|"$/,'').gsub(/'/, '')
           hash
         end
       end
