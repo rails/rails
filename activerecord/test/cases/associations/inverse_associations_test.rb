@@ -135,6 +135,21 @@ class InverseHasOneTests < ActiveRecord::TestCase
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
   end
 
+  def test_parent_instance_should_be_shared_with_replaced_child
+    man = Man.find(:first)
+    old_face = man.face
+    new_face = Face.new
+
+    assert_not_nil man.face
+    man.face.replace(new_face)
+
+    assert_equal man.name, new_face.man.name, "Name of man should be the same before changes to parent instance"
+    man.name = 'Bongo'
+    assert_equal man.name, new_face.man.name, "Name of man should be the same after changes to parent instance"
+    new_face.man.name = 'Mungo'
+    assert_equal man.name, new_face.man.name, "Name of man should be the same after changes to replaced-parent-owned instance"
+  end
+
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.find(:first).dirty_face }
   end
