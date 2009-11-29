@@ -2,6 +2,71 @@ module ActionDispatch
   module Routing
     class Mapper
       module Resources
+        class Resource #:nodoc:
+          attr_reader :plural, :singular
+          attr_reader :path_prefix, :name_prefix
+
+          def initialize(entities, options = {})
+            entities = entities.to_s
+
+            @plural   = entities.pluralize
+            @singular = entities.singularize
+
+            @path_prefix = options[:path_prefix]
+            @name_prefix = options[:name_prefix]
+          end
+
+          def name
+            plural
+          end
+
+          def controller
+            plural
+          end
+
+          def member_name
+            if name_prefix
+              "#{name_prefix}_#{singular}"
+            else
+              singular
+            end
+          end
+
+          def collection_name
+            if name_prefix
+              "#{name_prefix}_#{plural}"
+            else
+              plural
+            end
+          end
+
+          def new_name
+            if name_prefix
+              "new_#{name_prefix}_#{singular}"
+            else
+              "new_#{singular}"
+            end
+          end
+
+          def edit_name
+            if name_prefix
+              "edit_#{name_prefix}_#{singular}"
+            else
+              "edit_#{singular}"
+            end
+          end
+        end
+
+        class SingletonResource < Resource #:nodoc:
+          def initialize(entity, options = {})
+            super(entity)
+          end
+
+          def name
+            singular
+          end
+        end
+
         def resource(*resources, &block)
           options = resources.last.is_a?(Hash) ? resources.pop : {}
 
@@ -11,29 +76,27 @@ module ActionDispatch
             return self
           end
 
-          resource = resources.pop
+          name_prefix = @scope[:options][:name_prefix] if @scope[:options]
+          resource = SingletonResource.new(resources.pop, :name_prefix => name_prefix)
 
           if @scope[:scope_level] == :resources
             member do
-              resource(resource, options, &block)
+              resource(resource.name, options, &block)
             end
             return self
           end
 
-          singular = resource.to_s
-          plural   = singular.pluralize
-
-          controller(plural) do
-            namespace(resource) do
-              with_scope_level(:resource) do
+          controller(resource.controller) do
+            namespace(resource.name) do
+              with_scope_level(:resource, :name => resource.singular) do
                 yield if block_given?
 
-                get "", :to => :show, :as => "#{singular}"
+                get "", :to => :show, :as => resource.member_name
                 post "", :to => :create
                 put "", :to => :update
                 delete "", :to => :destroy
-                get "new", :to => :new, :as => "new_#{singular}"
-                get "edit", :to => :edit, :as => "edit_#{singular}"
+                get "new", :to => :new, :as => resource.new_name
+                get "edit", :to => :edit, :as => resource.edit_name
               end
             end
           end
@@ -50,42 +113,35 @@ module ActionDispatch
             return self
           end
 
-          resource = resources.pop
-
-          plural   = resource.to_s
-          singular = plural.singularize
+          name_prefix = @scope[:options][:name_prefix] if @scope[:options]
+          resource = Resource.new(resources.pop, :name_prefix => name_prefix)
 
           if @scope[:scope_level] == :resources
             parent_resource = @scope[:scope_level_options][:name]
             with_scope_level(:member) do
               scope(":#{parent_resource}_id", :name_prefix => parent_resource) do
-                resources(resource, options, &block)
+                resources(resource.name, options, &block)
               end
             end
             return self
           end
 
-          if @scope[:options] && (prefix = @scope[:options][:name_prefix])
-            plural   = "#{prefix}_#{plural}"
-            singular = "#{prefix}_#{singular}"
-          end
-
-          controller(resource) do
-            namespace(resource) do
-              with_scope_level(:resources, :name => singular) do
+          controller(resource.controller) do
+            namespace(resource.name) do
+              with_scope_level(:resources, :name => resource.singular) do
                 yield if block_given?
 
                 collection do
-                  get "", :to => :index, :as => plural
+                  get "", :to => :index, :as => resource.collection_name
                   post "", :to => :create
-                  get "new", :to => :new, :as => "new_#{singular}"
+                  get "new", :to => :new, :as => resource.new_name
                 end
 
                 member do
-                  get "", :to => :show, :as => singular
+                  get "", :to => :show, :as => resource.member_name
                   put "", :to => :update
                   delete "", :to => :destroy
-                  get "edit", :to => :edit, :as => "edit_#{singular}"
+                  get "edit", :to => :edit, :as => resource.edit_name
                 end
               end
             end
