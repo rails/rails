@@ -202,6 +202,12 @@ module ActionDispatch
       end
 
       module Scoping
+        def self.extended(object)
+          object.instance_eval do
+            @scope = {}
+          end
+        end
+
         def scope(*args)
           options = args.extract_options!
 
@@ -249,9 +255,24 @@ module ActionDispatch
         def constraints(constraints = {})
           scope(:constraints => constraints) { yield }
         end
+
+        def match(*args)
+          options = args.extract_options!
+          options = (@scope[:options] || {}).merge(options)
+          args.push(options)
+          super(*args)
+        end
       end
 
       class Constraints
+        def new(app, constraints = [])
+          if constraints.any?
+            super(app, constraints)
+          else
+            app
+          end
+        end
+
         def initialize(app, constraints = [])
           @app, @constraints = app, constraints
         end
@@ -273,7 +294,6 @@ module ActionDispatch
 
       def initialize(set)
         @set = set
-        @scope = {}
 
         extend Scoping
         extend Resources
@@ -313,7 +333,6 @@ module ActionDispatch
 
         path = args.first
 
-        options = (@scope[:options] || {}).merge(options)
         conditions, defaults = {}, {}
 
         path = nil if path == ""
@@ -345,29 +364,12 @@ module ActionDispatch
           conditions[:request_method] = Regexp.union(*via)
         end
 
-        defaults[:controller] = @scope[:controller].to_s if @scope[:controller]
+        defaults[:controller] ||= @scope[:controller].to_s if @scope[:controller]
 
-        if options[:to].respond_to?(:call)
-          app = options[:to]
-          defaults.delete(:controller)
-          defaults.delete(:action)
-        elsif options[:to].is_a?(String)
-          defaults[:controller], defaults[:action] = options[:to].split('#')
-        elsif options[:to].is_a?(Symbol)
-          defaults[:action] = options[:to].to_s
-        end
-        app ||= Routing::RouteSet::Dispatcher.new(:defaults => defaults)
+        app = initialize_app_endpoint(options, defaults)
+        validate_defaults!(app, defaults, segment_keys)
+        app = Constraints.new(app, blocks)
 
-        if app.is_a?(Routing::RouteSet::Dispatcher)
-          unless defaults.include?(:controller) || segment_keys.include?("controller")
-            raise ArgumentError, "missing :controller"
-          end
-          unless defaults.include?(:action) || segment_keys.include?("action")
-            raise ArgumentError, "missing :action"
-          end
-        end
-
-        app = Constraints.new(app, blocks) if blocks.any?
         @set.add_route(app, conditions, requirements, defaults, options[:as])
 
         self
@@ -383,6 +385,34 @@ module ActionDispatch
       end
 
       private
+        def initialize_app_endpoint(options, defaults)
+          app = nil
+
+          if options[:to].respond_to?(:call)
+            app = options[:to]
+            defaults.delete(:controller)
+            defaults.delete(:action)
+          elsif options[:to].is_a?(String)
+            defaults[:controller], defaults[:action] = options[:to].split('#')
+          elsif options[:to].is_a?(Symbol)
+            defaults[:action] = options[:to].to_s
+          end
+
+          app || Routing::RouteSet::Dispatcher.new(:defaults => defaults)
+        end
+
+        def validate_defaults!(app, defaults, segment_keys)
+          return unless app.is_a?(Routing::RouteSet::Dispatcher)
+
+          unless defaults.include?(:controller) || segment_keys.include?("controller")
+            raise ArgumentError, "missing :controller"
+          end
+
+          unless defaults.include?(:action) || segment_keys.include?("action")
+            raise ArgumentError, "missing :action"
+          end
+        end
+
         def map_method(method, *args, &block)
           options = args.extract_options!
           options[:via] = method
