@@ -216,8 +216,10 @@ module ActiveRecord
       end
 
       def check_validity_of_inverse!
-        if has_inverse? && inverse_of.nil?
-          raise InverseOfAssociationNotFoundError.new(self)
+        unless options[:polymorphic]
+          if has_inverse? && inverse_of.nil?
+            raise InverseOfAssociationNotFoundError.new(self)
+          end
         end
       end
 
@@ -239,6 +241,14 @@ module ActiveRecord
       def inverse_of
         if has_inverse?
           @inverse_of ||= klass.reflect_on_association(options[:inverse_of])
+        else
+          nil
+        end
+      end
+
+      def polymorphic_inverse_of(associated_class)
+        if has_inverse?
+          associated_class.reflect_on_association(options[:inverse_of])
         else
           nil
         end
