@@ -75,17 +75,17 @@ module ActionDispatch
               with_scope_level(:resources, :name => singular) do
                 yield if block_given?
 
+                collection do
+                  get "", :to => :index, :as => plural
+                  post "", :to => :create
+                  get "new", :to => :new, :as => "new_#{singular}"
+                end
+
                 member do
                   get "", :to => :show, :as => singular
                   put "", :to => :update
                   delete "", :to => :destroy
                   get "edit", :to => :edit, :as => "edit_#{singular}"
-                end
-
-                collection do
-                  get "", :to => :index, :as => plural
-                  post "", :to => :create
-                  get "new", :to => :new, :as => "new_#{singular}"
                 end
               end
             end
