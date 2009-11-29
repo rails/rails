@@ -5,3 +5,7 @@ trusting:
 weather_beaten:
   description: weather beaten
   man: steve
+
+confused:
+  description: confused
+  polymorphic_man: gordon (Man)

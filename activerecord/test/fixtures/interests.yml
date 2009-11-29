@@ -23,7 +23,11 @@ woodsmanship:
   zine: going_out
   man: steve
 
-survial:
+survival:
   topic: Survival
   zine: going_out
   man: steve
+
+llama_wrangling:
+  topic: Llama Wrangling
+  polymorphic_man: gordon (Man)
