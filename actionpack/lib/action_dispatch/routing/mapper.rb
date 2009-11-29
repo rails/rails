@@ -264,6 +264,42 @@ module ActionDispatch
         end
       end
 
+      module HttpHelpers
+        def get(*args, &block)
+          map_method(:get, *args, &block)
+        end
+
+        def post(*args, &block)
+          map_method(:post, *args, &block)
+        end
+
+        def put(*args, &block)
+          map_method(:put, *args, &block)
+        end
+
+        def delete(*args, &block)
+          map_method(:delete, *args, &block)
+        end
+
+        def redirect(path, options = {})
+          status = options[:status] || 301
+          lambda { |env|
+            req = Rack::Request.new(env)
+            url = req.scheme + '://' + req.host + path
+            [status, {'Location' => url, 'Content-Type' => 'text/html'}, ['Moved Permanently']]
+          }
+        end
+
+        private
+          def map_method(method, *args, &block)
+            options = args.extract_options!
+            options[:via] = method
+            args.push(options)
+            match(*args, &block)
+            self
+          end
+      end
+
       class Constraints
         def new(app, constraints = [])
           if constraints.any?
@@ -295,24 +331,9 @@ module ActionDispatch
       def initialize(set)
         @set = set
 
+        extend HttpHelpers
         extend Scoping
         extend Resources
-      end
-
-      def get(*args, &block)
-        map_method(:get, *args, &block)
-      end
-
-      def post(*args, &block)
-        map_method(:post, *args, &block)
-      end
-
-      def put(*args, &block)
-        map_method(:put, *args, &block)
-      end
-
-      def delete(*args, &block)
-        map_method(:delete, *args, &block)
       end
 
       def root(options = {})
@@ -375,15 +396,6 @@ module ActionDispatch
         self
       end
 
-      def redirect(path, options = {})
-        status = options[:status] || 301
-        lambda { |env|
-          req = Rack::Request.new(env)
-          url = req.scheme + '://' + req.host + path
-          [status, {'Location' => url, 'Content-Type' => 'text/html'}, ['Moved Permanently']]
-        }
-      end
-
       private
         def initialize_app_endpoint(options, defaults)
           app = nil
@@ -411,14 +423,6 @@ module ActionDispatch
           unless defaults.include?(:action) || segment_keys.include?("action")
             raise ArgumentError, "missing :action"
           end
-        end
-
-        def map_method(method, *args, &block)
-          options = args.extract_options!
-          options[:via] = method
-          args.push(options)
-          match(*args, &block)
-          self
         end
     end
   end
