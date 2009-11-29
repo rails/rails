@@ -71,6 +71,16 @@ module Notifications
       end
   end
 
+  class SyncPubSubTest < PubSubTest
+    def setup
+      Thread.abort_on_exception = true
+
+      @notifier = ActiveSupport::Notifications::Notifier.new(ActiveSupport::Notifications::Fanout.new(true))
+      @events = []
+      @notifier.subscribe { |*args| @events << event(*args) }
+    end
+  end
+
   class InstrumentationTest < TestCase
     def test_instrument_returns_block_result
       assert_equal 2, @notifier.instrument(:awesome) { 1 + 1 }
