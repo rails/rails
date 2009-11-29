@@ -68,7 +68,7 @@ module ActionDispatch
         end
 
         def resource(*resources, &block)
-          options = resources.last.is_a?(Hash) ? resources.pop : {}
+          options = resources.extract_options!
 
           if resources.length > 1
             raise ArgumentError if block_given?
@@ -105,7 +105,7 @@ module ActionDispatch
         end
 
         def resources(*resources, &block)
-          options = resources.last.is_a?(Hash) ? resources.pop : {}
+          options = resources.extract_options!
 
           if resources.length > 1
             raise ArgumentError if block_given?
@@ -173,7 +173,7 @@ module ActionDispatch
         end
 
         def match(*args)
-          options = args.last.is_a?(Hash) ? args.pop : {}
+          options = args.extract_options!
           args.push(options)
 
           case options.delete(:on)
@@ -203,7 +203,7 @@ module ActionDispatch
 
       module Scoping
         def scope(*args)
-          options = args.last.is_a?(Hash) ? args.pop : {}
+          options = args.extract_options!
 
           constraints = options.delete(:constraints) || {}
           unless constraints.is_a?(Hash)
@@ -300,7 +300,7 @@ module ActionDispatch
       end
 
       def match(*args)
-        options = args.last.is_a?(Hash) ? args.pop : {}
+        options = args.extract_options!
 
         if args.length > 1
           args.each { |path| match(path, options) }
@@ -384,7 +384,7 @@ module ActionDispatch
 
       private
         def map_method(method, *args, &block)
-          options = args.last.is_a?(Hash) ? args.pop : {}
+          options = args.extract_options!
           options[:via] = method
           args.push(options)
           match(*args, &block)
