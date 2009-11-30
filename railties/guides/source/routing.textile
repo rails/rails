@@ -891,7 +891,7 @@ h5. The +assert_routing+ Assertion
 The +assert_routing+ assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of +assert_generates+ and +assert_recognizes+.
 
 <ruby>
-assert_routing { :path => "photos", :method => :post }, { :controller => "photos", :action => "create" }
+assert_routing({ :path => "photos", :method => :post }, { :controller => "photos", :action => "create" })
 </ruby>
 
 h3. Changelog

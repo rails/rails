@@ -114,7 +114,7 @@ module ActionDispatch
       #  assert_routing 'controller/action/9', {:id => "9", :item => "square"}, {:controller => "controller", :action => "action"}, {}, {:item => "square"}
       #
       #  # Tests a route with a HTTP method
-      #  assert_routing { :method => 'put', :path => '/product/321' }, { :controller => "product", :action => "update", :id => "321" }
+      #  assert_routing({ :method => 'put', :path => '/product/321' }, { :controller => "product", :action => "update", :id => "321" })
       def assert_routing(path, options, defaults={}, extras={}, message=nil)
         assert_recognizes(options, path, extras, message)
 
