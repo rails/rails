@@ -82,10 +82,6 @@ module Rails
       @app.call(env)
     end
 
-    initializer :initialize_rails do
-      Rails.run_initializers
-    end
-
     # Set the <tt>$LOAD_PATH</tt> based on the value of
     # Configuration#load_paths. Duplicates are removed.
     initializer :set_load_path do
