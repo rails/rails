@@ -80,15 +80,19 @@ module ActionDispatch
           resource = SingletonResource.new(resources.pop, :name_prefix => name_prefix)
 
           if @scope[:scope_level] == :resources
-            member do
-              resource(resource.name, options, &block)
+            parent_resource = @scope[:scope_level_options][:name]
+            parent_named_prefix = @scope[:scope_level_options][:name_prefix]
+            with_scope_level(:member) do
+              scope(":#{parent_resource}_id", :name_prefix => parent_named_prefix) do
+                resource(resource.name, options, &block)
+              end
             end
             return self
           end
 
           controller(resource.controller) do
             namespace(resource.name) do
-              with_scope_level(:resource, :name => resource.singular) do
+              with_scope_level(:resource, :name => resource.singular, :name_prefix => resource.member_name) do
                 yield if block_given?
 
                 get "", :to => :show, :as => resource.member_name
@@ -118,8 +122,9 @@ module ActionDispatch
 
           if @scope[:scope_level] == :resources
             parent_resource = @scope[:scope_level_options][:name]
+            parent_named_prefix = @scope[:scope_level_options][:name_prefix]
             with_scope_level(:member) do
-              scope(":#{parent_resource}_id", :name_prefix => parent_resource) do
+              scope(":#{parent_resource}_id", :name_prefix => parent_named_prefix) do
                 resources(resource.name, options, &block)
               end
             end
@@ -128,7 +133,7 @@ module ActionDispatch
 
           controller(resource.controller) do
             namespace(resource.name) do
-              with_scope_level(:resources, :name => resource.singular) do
+              with_scope_level(:resources, :name => resource.singular, :name_prefix => resource.member_name) do
                 yield if block_given?
 
                 collection do
