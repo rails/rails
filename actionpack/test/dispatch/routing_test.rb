@@ -251,9 +251,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/projects/1/companies/1/people'
       assert_equal 'people#index', @response.body
-      pending do
-        assert_equal '/projects/1/companies/1/people', project_company_people_path(:project_id => '1', :company_id => '1')
-      end
+      assert_equal '/projects/1/companies/1/people', project_company_people_path(:project_id => '1', :company_id => '1')
 
       get '/projects/1/companies/1/avatar'
       assert_equal 'avatars#show', @response.body
@@ -345,9 +343,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/projects/1/posts/1/comments'
       assert_equal 'comments#index', @response.body
-      pending do
-        assert_equal '/projects/1/posts/1/comments', project_post_comments_path(:project_id => '1', :post_id => '1')
-      end
+      assert_equal '/projects/1/posts/1/comments', project_post_comments_path(:project_id => '1', :post_id => '1')
 
       post '/projects/1/posts/1/comments/preview'
       assert_equal 'comments#preview', @response.body

@@ -632,13 +632,15 @@ class FragmentCachingTest < ActionController::TestCase
 
   def test_fragment_for_logging
     fragment_computed = false
-    ActiveSupport::Notifications.queue.expects(:publish).times(2)
+    events = []
+    ActiveSupport::Notifications.subscribe { |*args| events << args }
 
     buffer = 'generated till now -> '
     @controller.fragment_for(buffer, 'expensive') { fragment_computed = true }
 
     assert fragment_computed
     assert_equal 'generated till now -> ', buffer
+    assert_equal [:fragment_exist?, :write_fragment], events.map(&:first)
   end
 
 end

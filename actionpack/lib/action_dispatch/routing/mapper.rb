@@ -2,8 +2,73 @@ module ActionDispatch
   module Routing
     class Mapper
       module Resources
+        class Resource #:nodoc:
+          attr_reader :plural, :singular
+          attr_reader :path_prefix, :name_prefix
+
+          def initialize(entities, options = {})
+            entities = entities.to_s
+
+            @plural   = entities.pluralize
+            @singular = entities.singularize
+
+            @path_prefix = options[:path_prefix]
+            @name_prefix = options[:name_prefix]
+          end
+
+          def name
+            plural
+          end
+
+          def controller
+            plural
+          end
+
+          def member_name
+            if name_prefix
+              "#{name_prefix}_#{singular}"
+            else
+              singular
+            end
+          end
+
+          def collection_name
+            if name_prefix
+              "#{name_prefix}_#{plural}"
+            else
+              plural
+            end
+          end
+
+          def new_name
+            if name_prefix
+              "new_#{name_prefix}_#{singular}"
+            else
+              "new_#{singular}"
+            end
+          end
+
+          def edit_name
+            if name_prefix
+              "edit_#{name_prefix}_#{singular}"
+            else
+              "edit_#{singular}"
+            end
+          end
+        end
+
+        class SingletonResource < Resource #:nodoc:
+          def initialize(entity, options = {})
+            super(entity)
+          end
+
+          def name
+            singular
+          end
+        end
+
         def resource(*resources, &block)
-          options = resources.last.is_a?(Hash) ? resources.pop : {}
+          options = resources.extract_options!
 
           if resources.length > 1
             raise ArgumentError if block_given?
@@ -11,29 +76,31 @@ module ActionDispatch
             return self
           end
 
-          resource = resources.pop
+          name_prefix = @scope[:options][:name_prefix] if @scope[:options]
+          resource = SingletonResource.new(resources.pop, :name_prefix => name_prefix)
 
           if @scope[:scope_level] == :resources
-            member do
-              resource(resource, options, &block)
+            parent_resource = @scope[:scope_level_options][:name]
+            parent_named_prefix = @scope[:scope_level_options][:name_prefix]
+            with_scope_level(:member) do
+              scope(":#{parent_resource}_id", :name_prefix => parent_named_prefix) do
+                resource(resource.name, options, &block)
+              end
             end
             return self
           end
 
-          singular = resource.to_s
-          plural   = singular.pluralize
-
-          controller(plural) do
-            namespace(resource) do
-              with_scope_level(:resource) do
+          controller(resource.controller) do
+            namespace(resource.name) do
+              with_scope_level(:resource, :name => resource.singular, :name_prefix => resource.member_name) do
                 yield if block_given?
 
-                get "", :to => :show, :as => "#{singular}"
+                get "", :to => :show, :as => resource.member_name
                 post "", :to => :create
                 put "", :to => :update
                 delete "", :to => :destroy
-                get "new", :to => :new, :as => "new_#{singular}"
-                get "edit", :to => :edit, :as => "edit_#{singular}"
+                get "new", :to => :new, :as => resource.new_name
+                get "edit", :to => :edit, :as => resource.edit_name
               end
             end
           end
@@ -42,7 +109,7 @@ module ActionDispatch
         end
 
         def resources(*resources, &block)
-          options = resources.last.is_a?(Hash) ? resources.pop : {}
+          options = resources.extract_options!
 
           if resources.length > 1
             raise ArgumentError if block_given?
@@ -50,42 +117,36 @@ module ActionDispatch
             return self
           end
 
-          resource = resources.pop
-
-          plural   = resource.to_s
-          singular = plural.singularize
+          name_prefix = @scope[:options][:name_prefix] if @scope[:options]
+          resource = Resource.new(resources.pop, :name_prefix => name_prefix)
 
           if @scope[:scope_level] == :resources
             parent_resource = @scope[:scope_level_options][:name]
+            parent_named_prefix = @scope[:scope_level_options][:name_prefix]
             with_scope_level(:member) do
-              scope(":#{parent_resource}_id", :name_prefix => parent_resource) do
-                resources(resource, options, &block)
+              scope(":#{parent_resource}_id", :name_prefix => parent_named_prefix) do
+                resources(resource.name, options, &block)
               end
             end
             return self
           end
 
-          if @scope[:options] && (prefix = @scope[:options][:name_prefix])
-            plural   = "#{prefix}_#{plural}"
-            singular = "#{prefix}_#{singular}"
-          end
-
-          controller(resource) do
-            namespace(resource) do
-              with_scope_level(:resources, :name => singular) do
+          controller(resource.controller) do
+            namespace(resource.name) do
+              with_scope_level(:resources, :name => resource.singular, :name_prefix => resource.member_name) do
                 yield if block_given?
 
-                member do
-                  get "", :to => :show, :as => singular
-                  put "", :to => :update
-                  delete "", :to => :destroy
-                  get "edit", :to => :edit, :as => "edit_#{singular}"
+                collection do
+                  get "", :to => :index, :as => resource.collection_name
+                  post "", :to => :create
+                  get "new", :to => :new, :as => resource.new_name
                 end
 
-                collection do
-                  get "", :to => :index, :as => plural
-                  post "", :to => :create
-                  get "new", :to => :new, :as => "new_#{singular}"
+                member do
+                  get "", :to => :show, :as => resource.member_name
+                  put "", :to => :update
+                  delete "", :to => :destroy
+                  get "edit", :to => :edit, :as => resource.edit_name
                 end
               end
             end
@@ -117,7 +178,7 @@ module ActionDispatch
         end
 
         def match(*args)
-          options = args.last.is_a?(Hash) ? args.pop : {}
+          options = args.extract_options!
           args.push(options)
 
           case options.delete(:on)
@@ -146,8 +207,14 @@ module ActionDispatch
       end
 
       module Scoping
+        def self.extended(object)
+          object.instance_eval do
+            @scope = {}
+          end
+        end
+
         def scope(*args)
-          options = args.last.is_a?(Hash) ? args.pop : {}
+          options = args.extract_options!
 
           constraints = options.delete(:constraints) || {}
           unless constraints.is_a?(Hash)
@@ -193,9 +260,60 @@ module ActionDispatch
         def constraints(constraints = {})
           scope(:constraints => constraints) { yield }
         end
+
+        def match(*args)
+          options = args.extract_options!
+          options = (@scope[:options] || {}).merge(options)
+          args.push(options)
+          super(*args)
+        end
+      end
+
+      module HttpHelpers
+        def get(*args, &block)
+          map_method(:get, *args, &block)
+        end
+
+        def post(*args, &block)
+          map_method(:post, *args, &block)
+        end
+
+        def put(*args, &block)
+          map_method(:put, *args, &block)
+        end
+
+        def delete(*args, &block)
+          map_method(:delete, *args, &block)
+        end
+
+        def redirect(path, options = {})
+          status = options[:status] || 301
+          lambda { |env|
+            req = Rack::Request.new(env)
+            url = req.scheme + '://' + req.host + path
+            [status, {'Location' => url, 'Content-Type' => 'text/html'}, ['Moved Permanently']]
+          }
+        end
+
+        private
+          def map_method(method, *args, &block)
+            options = args.extract_options!
+            options[:via] = method
+            args.push(options)
+            match(*args, &block)
+            self
+          end
       end
 
       class Constraints
+        def new(app, constraints = [])
+          if constraints.any?
+            super(app, constraints)
+          else
+            app
+          end
+        end
+
         def initialize(app, constraints = [])
           @app, @constraints = app, constraints
         end
@@ -217,26 +335,10 @@ module ActionDispatch
 
       def initialize(set)
         @set = set
-        @scope = {}
 
+        extend HttpHelpers
         extend Scoping
         extend Resources
-      end
-
-      def get(*args, &block)
-        map_method(:get, *args, &block)
-      end
-
-      def post(*args, &block)
-        map_method(:post, *args, &block)
-      end
-
-      def put(*args, &block)
-        map_method(:put, *args, &block)
-      end
-
-      def delete(*args, &block)
-        map_method(:delete, *args, &block)
       end
 
       def root(options = {})
@@ -244,7 +346,7 @@ module ActionDispatch
       end
 
       def match(*args)
-        options = args.last.is_a?(Hash) ? args.pop : {}
+        options = args.extract_options!
 
         if args.length > 1
           args.each { |path| match(path, options) }
@@ -257,7 +359,6 @@ module ActionDispatch
 
         path = args.first
 
-        options = (@scope[:options] || {}).merge(options)
         conditions, defaults = {}, {}
 
         path = nil if path == ""
@@ -289,50 +390,44 @@ module ActionDispatch
           conditions[:request_method] = Regexp.union(*via)
         end
 
-        defaults[:controller] = @scope[:controller].to_s if @scope[:controller]
+        defaults[:controller] ||= @scope[:controller].to_s if @scope[:controller]
 
-        if options[:to].respond_to?(:call)
-          app = options[:to]
-          defaults.delete(:controller)
-          defaults.delete(:action)
-        elsif options[:to].is_a?(String)
-          defaults[:controller], defaults[:action] = options[:to].split('#')
-        elsif options[:to].is_a?(Symbol)
-          defaults[:action] = options[:to].to_s
-        end
-        app ||= Routing::RouteSet::Dispatcher.new(:defaults => defaults)
+        app = initialize_app_endpoint(options, defaults)
+        validate_defaults!(app, defaults, segment_keys)
+        app = Constraints.new(app, blocks)
 
-        if app.is_a?(Routing::RouteSet::Dispatcher)
-          unless defaults.include?(:controller) || segment_keys.include?("controller")
-            raise ArgumentError, "missing :controller"
-          end
-          unless defaults.include?(:action) || segment_keys.include?("action")
-            raise ArgumentError, "missing :action"
-          end
-        end
-
-        app = Constraints.new(app, blocks) if blocks.any?
         @set.add_route(app, conditions, requirements, defaults, options[:as])
 
         self
       end
 
-      def redirect(path, options = {})
-        status = options[:status] || 301
-        lambda { |env|
-          req = Rack::Request.new(env)
-          url = req.scheme + '://' + req.host + path
-          [status, {'Location' => url, 'Content-Type' => 'text/html'}, ['Moved Permanently']]
-        }
-      end
-
       private
-        def map_method(method, *args, &block)
-          options = args.last.is_a?(Hash) ? args.pop : {}
-          options[:via] = method
-          args.push(options)
-          match(*args, &block)
-          self
+        def initialize_app_endpoint(options, defaults)
+          app = nil
+
+          if options[:to].respond_to?(:call)
+            app = options[:to]
+            defaults.delete(:controller)
+            defaults.delete(:action)
+          elsif options[:to].is_a?(String)
+            defaults[:controller], defaults[:action] = options[:to].split('#')
+          elsif options[:to].is_a?(Symbol)
+            defaults[:action] = options[:to].to_s
+          end
+
+          app || Routing::RouteSet::Dispatcher.new(:defaults => defaults)
+        end
+
+        def validate_defaults!(app, defaults, segment_keys)
+          return unless app.is_a?(Routing::RouteSet::Dispatcher)
+
+          unless defaults.include?(:controller) || segment_keys.include?("controller")
+            raise ArgumentError, "missing :controller"
+          end
+
+          unless defaults.include?(:action) || segment_keys.include?("action")
+            raise ArgumentError, "missing :action"
+          end
         end
     end
   end

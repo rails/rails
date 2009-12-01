@@ -16,7 +16,7 @@ module ActionMailer
       def perform_delivery(mail)
         destinations = mail.destinations
         mail.ready_to_send
-        sender = (mail['return-path'] && mail['return-path'].spec) || mail['from']
+        sender = (mail['return-path'] && mail['return-path'].spec) || Array(mail.from).first
 
         smtp = Net::SMTP.new(settings[:address], settings[:port])
         smtp.enable_starttls_auto if settings[:enable_starttls_auto] && smtp.respond_to?(:enable_starttls_auto)

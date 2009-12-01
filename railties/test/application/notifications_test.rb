@@ -5,21 +5,8 @@ module ApplicationTests
     include ActiveSupport::Testing::Isolation
 
     class MyQueue
-      attr_reader :events, :subscribers
-
-      def initialize
-        @events = []
-        @subscribers = []
-        @listeners = []
-      end
-
       def publish(name, *args)
-        @events << name
-      end
-
-      def subscribe(listener, pattern=nil, &block)
-        @listeners << listener
-        @subscribers << pattern
+        raise name
       end
     end
 
@@ -28,21 +15,16 @@ module ApplicationTests
       boot_rails
       require "rails"
       require "active_support/notifications"
+      @events = []
       Rails::Initializer.run do |c|
-        c.notifications.queue = MyQueue.new
-        c.notifications.subscribe(/listening/) do
-          puts "Cool"
-        end
+        c.notifications.notifier = ActiveSupport::Notifications::Notifier.new(MyQueue.new)
       end
     end
 
     test "new queue is set" do
-      ActiveSupport::Notifications.instrument(:foo)
-      assert_equal :foo, ActiveSupport::Notifications.queue.events.first
-    end
-
-    test "configuration subscribers are loaded" do
-      assert_equal 1, ActiveSupport::Notifications.queue.subscribers.count { |s| s == /listening/ }
+      assert_raise RuntimeError do
+        ActiveSupport::Notifications.publish('foo')
+      end
     end
   end
 end

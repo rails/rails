@@ -25,7 +25,7 @@ require File.join(File.dirname(__FILE__), "action_pack")
 
 module ActionView
   def self.load_all!
-    [Context, Base, InlineTemplate, TemplateError]
+    [Context, Base, TemplateError]
   end
 
   autoload :Base,              'action_view/base'
