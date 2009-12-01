@@ -92,7 +92,7 @@ namespace :rails do
 
   namespace :update do
     def invoke_from_app_generator(method)
-      require 'generators'
+      require 'rails/generators'
       require 'rails/generators/rails/app/app_generator'
 
       generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
