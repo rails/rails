@@ -103,6 +103,7 @@ namespace :rails do
     desc "Update config/boot.rb from your current rails install"
     task :configs do
       invoke_from_app_generator :create_boot_file
+      invoke_from_app_generator :create_config_files
     end
 
     desc "Update Prototype javascripts from your current rails install"
