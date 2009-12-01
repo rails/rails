@@ -507,6 +507,13 @@ class RespondWithController < ActionController::Base
     end
   end
 
+  def using_responder_with_respond
+    responder = Class.new(ActionController::Responder) do
+      def respond; @controller.render :text => "respond #{format}"; end
+    end
+    respond_with(Customer.new("david", 13), :responder => responder)
+  end
+
 protected
 
   def _render_js(js, options)
@@ -733,6 +740,16 @@ class RespondWithControllerTest < ActionController::TestCase
 
     post :using_resource_with_action
     assert_equal "foo - #{[:html].to_s}", @controller.response_body
+  end
+
+  def test_respond_as_responder_entry_point
+    @request.accept = "text/html"
+    get :using_responder_with_respond
+    assert_equal "respond html", @response.body
+
+    @request.accept = "application/xml"
+    get :using_responder_with_respond
+    assert_equal "respond xml", @response.body
   end
 
   def test_clear_respond_to

@@ -102,9 +102,14 @@ module ActionController #:nodoc:
     # not defined, call to_format.
     #
     def self.call(*args)
-      responder = new(*args)
-      method = :"to_#{responder.format}"
-      responder.respond_to?(method) ? responder.send(method) : responder.to_format
+      new(*args).respond
+    end
+
+    # Main entry point for responder responsible to dispatch to the proper format.
+    #
+    def respond
+      method = :"to_#{format}"
+      respond_to?(method) ? send(method) : to_format
     end
 
     # HTML format does not render the resource, it always attempt to render a

@@ -640,6 +640,7 @@ class FragmentCachingTest < ActionController::TestCase
 
     assert fragment_computed
     assert_equal 'generated till now -> ', buffer
+    ActiveSupport::Notifications.notifier.wait
     assert_equal [:fragment_exist?, :write_fragment], events.map(&:first)
   end
 
