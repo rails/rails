@@ -1639,9 +1639,7 @@ class RouteSetTest < ActiveSupport::TestCase
       map.connect ':controller/:action/:id'
     end
 
-    pending do
-      assert_equal '/ibocorp', set.generate({:controller => 'ibocorp', :page => 1})
-    end
+    assert_equal '/ibocorp', set.generate({:controller => 'ibocorp', :page => 1})
   end
 
   def test_generate_with_optional_params_recalls_last_request

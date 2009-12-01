@@ -175,7 +175,7 @@ module ActionDispatch
               optional = false
             elsif segment =~ /^:(\w+)$/
               if defaults.has_key?($1.to_sym)
-                defaults.delete($1.to_sym)
+                defaults.delete($1.to_sym) if defaults[$1.to_sym].nil?
               else
                 optional = false
               end
