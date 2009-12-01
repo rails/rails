@@ -117,6 +117,11 @@ module ActiveRecord
             :create => create_scoping
           }
         end
+
+        def we_can_set_the_inverse_on_this?(record)
+          inverse = @reflection.inverse_of
+          return !inverse.nil?
+        end
     end
   end
 end

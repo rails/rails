@@ -1,11 +1,6 @@
 module ActiveRecord
   module Associations
     class HasManyThroughAssociation < HasManyAssociation #:nodoc:
-      def initialize(owner, reflection)
-        reflection.check_validity!
-        super
-      end
-
       alias_method :new, :build
 
       def create!(attrs = nil)
@@ -260,6 +255,11 @@ module ActiveRecord
 
         def cached_counter_attribute_name
           "#{@reflection.name}_count"
+        end
+
+        # NOTE - not sure that we can actually cope with inverses here
+        def we_can_set_the_inverse_on_this?(record)
+          false
         end
     end
   end

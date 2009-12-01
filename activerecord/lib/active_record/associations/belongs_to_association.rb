@@ -31,6 +31,8 @@ module ActiveRecord
           @updated = true
         end
 
+        set_inverse_instance(record, @owner)
+
         loaded
         record
       end
@@ -46,13 +48,15 @@ module ActiveRecord
                         else
                           "find"
                         end
-          @reflection.klass.send(find_method,
+          the_target = @reflection.klass.send(find_method,
             @owner[@reflection.primary_key_name],
             :select     => @reflection.options[:select],
             :conditions => conditions,
             :include    => @reflection.options[:include],
             :readonly   => @reflection.options[:readonly]
           ) if @owner[@reflection.primary_key_name]
+          set_inverse_instance(the_target, @owner)
+          the_target
         end
 
         def foreign_key_present
@@ -70,6 +74,12 @@ module ActiveRecord
                                   else
                                     @owner[@reflection.primary_key_name]
                                   end
+        end
+
+        # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
+        # has_one associations.
+        def we_can_set_the_inverse_on_this?(record)
+          @reflection.has_inverse? && @reflection.inverse_of.macro == :has_one
         end
     end
   end

@@ -1,4 +1,10 @@
 module ActiveRecord
+  class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
+    def initialize(reflection)
+      super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{reflection.class_name})")
+    end
+  end
+
   class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(owner_class_name, reflection)
       super("Could not find the association #{reflection.options[:through].inspect} in model #{owner_class_name}")
@@ -1526,7 +1532,7 @@ module ActiveRecord
           :finder_sql, :counter_sql,
           :before_add, :after_add, :before_remove, :after_remove,
           :extend, :readonly,
-          :validate
+          :validate, :inverse_of
         ]
 
         def create_has_many_reflection(association_id, options, &extension)
@@ -1540,7 +1546,7 @@ module ActiveRecord
         @@valid_keys_for_has_one_association = [
           :class_name, :foreign_key, :remote, :select, :conditions, :order,
           :include, :dependent, :counter_cache, :extend, :as, :readonly,
-          :validate, :primary_key
+          :validate, :primary_key, :inverse_of
         ]
 
         def create_has_one_reflection(association_id, options)
@@ -1559,7 +1565,7 @@ module ActiveRecord
         @@valid_keys_for_belongs_to_association = [
           :class_name, :primary_key, :foreign_key, :foreign_type, :remote, :select, :conditions,
           :include, :dependent, :counter_cache, :extend, :polymorphic, :readonly,
-          :validate, :touch
+          :validate, :touch, :inverse_of
         ]
 
         def create_belongs_to_reflection(association_id, options)
@@ -1960,19 +1966,25 @@ module ActiveRecord
                   return nil if record.id.to_s != join.parent.record_id(row).to_s or row[join.aliased_primary_key].nil?
                   association = join.instantiate(row)
                   collection.target.push(association)
+                  collection.__send__(:set_inverse_instance, association, record)
                 when :has_one
                   return if record.id.to_s != join.parent.record_id(row).to_s
                   return if record.instance_variable_defined?("@#{join.reflection.name}")
                   association = join.instantiate(row) unless row[join.aliased_primary_key].nil?
-                  record.send("set_#{join.reflection.name}_target", association)
+                  set_target_and_inverse(join, association, record)
                 when :belongs_to
                   return if record.id.to_s != join.parent.record_id(row).to_s or row[join.aliased_primary_key].nil?
                   association = join.instantiate(row)
-                  record.send("set_#{join.reflection.name}_target", association)
+                  set_target_and_inverse(join, association, record)
                 else
                   raise ConfigurationError, "unknown macro: #{join.reflection.macro}"
               end
               return association
+            end
+
+            def set_target_and_inverse(join, association, record)
+              association_proxy = record.send("set_#{join.reflection.name}_target", association)
+              association_proxy.__send__(:set_inverse_instance, association, record)
             end
 
           class JoinBase # :nodoc:
