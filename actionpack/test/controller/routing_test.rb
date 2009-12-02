@@ -1851,11 +1851,9 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal({:controller => 'posts', :action => 'show_date', :year => '2009'}, @routes.recognize_path('/blog/2009', :method => :get))
     assert_equal({:controller => 'posts', :action => 'show_date', :year => '2009', :month => '01'}, @routes.recognize_path('/blog/2009/01', :method => :get))
     assert_equal({:controller => 'posts', :action => 'show_date', :year => '2009', :month => '01', :day => '01'}, @routes.recognize_path('/blog/2009/01/01', :method => :get))
-    assert_raise(ActionController::ActionControllerError) { @routes.recognize_path('/blog/123456789', :method => :get) }
 
     assert_equal({:controller => 'archive', :action => 'index', :year => '2010'}, @routes.recognize_path('/archive/2010'))
     assert_equal({:controller => 'archive', :action => 'index'}, @routes.recognize_path('/archive'))
-    assert_raise(ActionController::ActionControllerError) { @routes.recognize_path('/archive/january') }
 
     assert_equal({:controller => 'people', :action => 'index'}, @routes.recognize_path('/people', :method => :get))
     assert_equal({:controller => 'people', :action => 'index', :format => 'xml'}, @routes.recognize_path('/people.xml', :method => :get))
