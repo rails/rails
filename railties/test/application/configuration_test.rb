@@ -44,5 +44,14 @@ module ApplicationTests
         assert_equal Pathname.new("#{app_path}/app"), Rails.application.root
       end
     end
+
+    test "config.active_support.bare does not require all of ActiveSupport" do
+      add_to_config "config.frameworks = []; config.active_support.bare = true"
+
+      Dir.chdir("#{app_path}/app") do
+        require "#{app_path}/config/environment"
+        assert_raises(NoMethodError, /day/) { 1.day }
+      end
+    end
   end
 end
