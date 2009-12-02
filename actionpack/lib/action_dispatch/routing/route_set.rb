@@ -379,7 +379,8 @@ module ActionDispatch
         end
         recall[:action] = options.delete(:action) if options[:action] == 'index'
 
-        parameterize = lambda { |name, value|
+        opts = {}
+        opts[:parameterize] = lambda { |name, value|
           if name == :controller
             value
           elsif value.is_a?(Array)
@@ -389,7 +390,22 @@ module ActionDispatch
           end
         }
 
-        path = @set.url(named_route, options, recall, :parameterize => parameterize)
+        unless result = @set.generate(:path_info, named_route, options, recall, opts)
+          raise ActionController::RoutingError, "No route matches #{options.inspect}"
+        end
+
+        uri, params = result
+        params.each do |k, v|
+          if v
+            params[k] = v
+          else
+            params.delete(k)
+          end
+        end
+
+        uri << "?#{build_nested_query(params)}" if uri && params.any?
+        path = uri
+
         if path && method == :generate_extras
           uri = URI(path)
           extras = uri.query ?
@@ -456,6 +472,31 @@ module ActionDispatch
       def extract_request_environment(request)
         { :method => request.method }
       end
+
+      private
+        def build_nested_query(value, prefix = nil)
+          case value
+          when Array
+            value.map { |v|
+              build_nested_query(v, "#{prefix}[]")
+            }.join("&")
+          when Hash
+            value.map { |k, v|
+              build_nested_query(v, prefix ? "#{prefix}[#{k}]" : k)
+            }.join("&")
+          when String
+            raise ArgumentError, "value must be a Hash" if prefix.nil?
+            "#{Rack::Utils.escape(prefix)}=#{Rack::Utils.escape(value)}"
+          when NilClass
+            Rack::Utils.escape(prefix)
+          else
+            if value.respond_to?(:to_param)
+              build_nested_query(value.to_param.to_s, prefix)
+            else
+              Rack::Utils.escape(prefix)
+            end
+          end
+        end
     end
   end
 end
