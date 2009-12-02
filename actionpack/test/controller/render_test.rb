@@ -54,7 +54,7 @@ class TestController < ActionController::Base
   end
   
   def conditional_hello_with_expires_in
-    expires_in 1.minute
+    expires_in 60.1.seconds
     render :action => 'hello_world'
   end
   

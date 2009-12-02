@@ -270,7 +270,7 @@ module ActionDispatch # :nodoc:
           max_age = control[:max_age]
 
           options = []
-          options << "max-age=#{max_age}" if max_age
+          options << "max-age=#{max_age.to_i}" if max_age
           options << (control[:public] ? "public" : "private")
           options << "must-revalidate" if control[:must_revalidate]
           options.concat(extras) if extras
