@@ -33,7 +33,6 @@ module ActionDispatch # :nodoc:
   #  end
   class Response < Rack::Response
     attr_accessor :request, :blank
-    attr_reader :cache_control
 
     attr_writer :header, :sending_file
     alias_method :headers=, :header=
