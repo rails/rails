@@ -188,6 +188,43 @@ Currently works for mysql, postgresql and sqlite.
 
 == Description of Contents
 
+The default directory structure of a generated Ruby on Rails applicartion:
+
+  |-- app
+  |   |-- controllers
+  |   |-- helpers
+  |   |-- models
+  |   `-- views
+  |       `-- layouts
+  |-- config
+  |   |-- environments
+  |   |-- initializers
+  |   `-- locales
+  |-- db
+  |-- doc
+  |-- lib
+  |   `-- tasks
+  |-- log
+  |-- public
+  |   |-- images
+  |   |-- javascripts
+  |   `-- stylesheets
+  |-- script
+  |   `-- performance
+  |-- test
+  |   |-- fixtures
+  |   |-- functional
+  |   |-- integration
+  |   |-- performance
+  |   `-- unit
+  |-- tmp
+  |   |-- cache
+  |   |-- pids
+  |   |-- sessions
+  |   `-- sockets
+  `-- vendor
+      `-- plugins
+
 app
   Holds all the code that's specific to this particular application.
 
