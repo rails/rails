@@ -46,9 +46,9 @@ getting up and running with mongrel is as easy as: <tt>gem install mongrel</tt>.
 More info at: http://mongrel.rubyforge.org
 
 Other ruby web servers exist which can run your rails application, however script/server does
-not search for them or start them.  These include Thin, Ebb, and Apache with mod_rails.
+not search for them or start them.  These include {Thin}[http://code.macournoyer.com/thin/], {Ebb}[http://ebb.rubyforge.org/], and Apache with {mod_rails}[http://www.modrails.com/].
 
-For production use, often a web/proxy server such as Apache, LiteSpeed, Lighttpd or IIS is
+For production use, often a web/proxy server such as {Apache}[http://apache.org], {Nginx}[http://nginx.net/], {LiteSpeed}[http://litespeedtech.com/], {Lighttpd}[http://www.lighttpd.net/] or {IIS}[http://www.iis.net/] is
 deployed as the front-end server, with the chosen ruby web server running in the back-end
 and receiving the proxied requests via one of several protocols (HTTP, CGI, FCGI).
 
