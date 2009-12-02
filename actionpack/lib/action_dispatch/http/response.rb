@@ -56,12 +56,6 @@ module ActionDispatch # :nodoc:
       @cache_control ||= {}
     end
 
-    def write(str)
-      s = str.to_s
-      @writer.call s
-      str
-    end
-
     def status=(status)
       @status = status.to_i
     end
