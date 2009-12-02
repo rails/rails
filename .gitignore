@@ -7,16 +7,9 @@ activerecord/doc
 actionpack/doc
 actionmailer/doc
 activesupport/doc
-activemodel/pkg
-activeresource/pkg
-activerecord/pkg
-actionpack/pkg
 activemodel/test/fixtures/fixture_database.sqlite3
-actionmailer/pkg
-activesupport/pkg
 actionpack/test/tmp
 activesupport/test/fixtures/isolation_test
-railties/pkg
 railties/test/500.html
 railties/test/fixtures/tmp
 railties/test/initializer/root/log
@@ -31,3 +24,4 @@ railties/guides/output
 bin
 vendor/gems/
 railties/tmp
+pkg
