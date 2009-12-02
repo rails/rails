@@ -27,11 +27,13 @@ module ActionDispatch
             end
           end
 
+          unless controller = controller(params)
+            return [417, {}, []]
+          end
+
           if env['action_controller.recognize']
-            controller(params)
             [200, {}, params]
           else
-            controller = controller(params)
             controller.action(params[:action]).call(env)
           end
         end
@@ -42,8 +44,8 @@ module ActionDispatch
               controller = "#{params[:controller].camelize}Controller"
               ActiveSupport::Inflector.constantize(controller)
             end
-          rescue NameError => e
-            raise ActionController::RoutingError, e.message
+          rescue NameError
+            nil
           end
 
           def merge_default_action!(params)

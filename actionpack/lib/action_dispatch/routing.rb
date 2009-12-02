@@ -265,6 +265,7 @@ module ActionDispatch
 
     SEPARATORS = %w( / . ? )
     HTTP_METHODS = [:get, :head, :post, :put, :delete, :options]
+    CONTROLLER_REGEXP = /[_a-zA-Z0-9]+/
 
     # The root paths which may contain controller files
     mattr_accessor :controller_paths
@@ -277,7 +278,11 @@ module ActionDispatch
 
     class << self
       def controller_constraints
-        @controller_constraints ||= Regexp.union(*possible_controllers.collect { |n| Regexp.escape(n) })
+        @controller_constraints ||= begin
+          source = controller_namespaces.map { |ns| "#{Regexp.escape(ns)}/#{CONTROLLER_REGEXP.source}" }
+          source << CONTROLLER_REGEXP.source
+          Regexp.compile(source.sort.reverse.join('|'))
+        end
       end
 
       def clear_controller_cache!
@@ -285,57 +290,25 @@ module ActionDispatch
       end
 
       private
-        # Returns the array of controller names currently available to ActionController::Routing.
-        def possible_controllers
-          possible_controllers = []
+        def controller_namespaces
+          namespaces = Set.new
 
-          # Find any controller classes already in memory
+          # Find any nested controllers already in memory
           ActionController::Base.subclasses.each do |klass|
             controller_name = klass.underscore
-            controller_name.gsub!(/_controller\Z/, '')
-            possible_controllers << controller_name
+            namespaces << controller_name.split('/')[0...-1].join('/')
           end
 
-          # Find controllers in controllers/ directory
-          paths = controller_paths.select { |path| File.directory?(path) && path != "." }
-          seen_paths = Hash.new {|h, k| h[k] = true; false}
-          normalize_paths(paths).each do |load_path|
+          # Find namespaces in controllers/ directory
+          controller_paths.each do |load_path|
+            load_path = File.expand_path(load_path)
             Dir["#{load_path}/**/*_controller.rb"].collect do |path|
-              next if seen_paths[path.gsub(%r{^\.[/\\]}, "")]
-
-              controller_name = path[(load_path.length + 1)..-1]
-
-              controller_name.gsub!(/_controller\.rb\Z/, '')
-              possible_controllers << controller_name
+              namespaces << File.dirname(path).sub(/#{load_path}\/?/, '')
             end
           end
 
-          # remove duplicates
-          possible_controllers.uniq!
-
-          possible_controllers
-        end
-
-        # Returns an array of paths, cleaned of double-slashes and relative path references.
-        # * "\\\" and "//"  become "\\" or "/".
-        # * "/foo/bar/../config" becomes "/foo/config".
-        # The returned array is sorted by length, descending.
-        def normalize_paths(paths)
-          # do the hokey-pokey of path normalization...
-          paths = paths.collect do |path|
-            path = path.
-              gsub("//", "/").           # replace double / chars with a single
-              gsub("\\\\", "\\").        # replace double \ chars with a single
-              gsub(%r{(.)[\\/]$}, '\1')  # drop final / or \ if path ends with it
-
-            # eliminate .. paths where possible
-            re = %r{[^/\\]+[/\\]\.\.[/\\]}
-            path.gsub!(re, "") while path.match(re)
-            path
-          end
-
-          # start with longest path, first
-          paths = paths.uniq.sort_by { |path| - path.length }
+          namespaces.delete('')
+          namespaces
         end
     end
   end
