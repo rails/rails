@@ -435,7 +435,7 @@ module ActionDispatch
           end
         end
 
-        uri << "?#{build_nested_query(params)}" if uri && params.any?
+        uri << "?#{params.to_query}" if uri && params.any?
         path = uri
 
         if path && method == :generate_extras
@@ -504,29 +504,6 @@ module ActionDispatch
       def extract_request_environment(request)
         { :method => request.method }
       end
-
-      private
-        def build_nested_query(value, prefix = nil)
-          case value
-          when Array
-            value.map { |v|
-              build_nested_query(v, "#{prefix}[]")
-            }.join("&")
-          when Hash
-            value.map { |k, v|
-              build_nested_query(v, prefix ? "#{prefix}[#{k}]" : k)
-            }.join("&")
-          when String
-            raise ArgumentError, "value must be a Hash" if prefix.nil?
-            "#{prefix}=#{Rack::Utils.escape(value)}"
-          else
-            if value.respond_to?(:to_param)
-              build_nested_query(value.to_param.to_s, prefix)
-            else
-              Rack::Utils.escape(prefix)
-            end
-          end
-        end
     end
   end
 end
