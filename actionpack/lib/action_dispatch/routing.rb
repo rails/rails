@@ -265,51 +265,10 @@ module ActionDispatch
 
     SEPARATORS = %w( / . ? )
     HTTP_METHODS = [:get, :head, :post, :put, :delete, :options]
-    CONTROLLER_REGEXP = /[_a-zA-Z0-9]+/
-
-    # The root paths which may contain controller files
-    mattr_accessor :controller_paths
-    self.controller_paths = []
 
     # A helper module to hold URL related helpers.
     module Helpers
       include ActionController::PolymorphicRoutes
-    end
-
-    class << self
-      def controller_constraints
-        @controller_constraints ||= begin
-          source = controller_namespaces.map { |ns| "#{Regexp.escape(ns)}/#{CONTROLLER_REGEXP.source}" }
-          source << CONTROLLER_REGEXP.source
-          Regexp.compile(source.sort.reverse.join('|'))
-        end
-      end
-
-      def clear_controller_cache!
-        @controller_constraints = nil
-      end
-
-      private
-        def controller_namespaces
-          namespaces = Set.new
-
-          # Find any nested controllers already in memory
-          ActionController::Base.subclasses.each do |klass|
-            controller_name = klass.underscore
-            namespaces << controller_name.split('/')[0...-1].join('/')
-          end
-
-          # Find namespaces in controllers/ directory
-          controller_paths.each do |load_path|
-            load_path = File.expand_path(load_path)
-            Dir["#{load_path}/**/*_controller.rb"].collect do |path|
-              namespaces << File.dirname(path).sub(/#{load_path}\/?/, '')
-            end
-          end
-
-          namespaces.delete('')
-          namespaces
-        end
     end
   end
 end

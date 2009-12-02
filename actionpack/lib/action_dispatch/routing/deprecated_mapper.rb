@@ -113,7 +113,7 @@ module ActionDispatch
           end
         end
 
-        requirements[:controller] ||= Routing.controller_constraints
+        requirements[:controller] ||= @set.controller_constraints
 
         if defaults[:controller]
           defaults[:action] ||= 'index'

@@ -387,7 +387,7 @@ module Rails
     initializer :initialize_routing do
       next unless configuration.frameworks.include?(:action_controller)
 
-      ActionController::Routing.controller_paths += configuration.controller_paths
+      ActionController::Routing::Routes.controller_paths += configuration.controller_paths
       ActionController::Routing::Routes.add_configuration_file(configuration.routes_configuration_file)
       ActionController::Routing::Routes.reload!
     end
