@@ -25,7 +25,9 @@ module ApplicationTests
         config.frameworks << :action_foo
       end
 
-      assert_raises RuntimeError do
+      require "active_support/core_ext/load_error"
+
+      assert_raises MissingSourceFile do
         Rails.initialize!
       end
     end

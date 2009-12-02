@@ -93,18 +93,8 @@ module Rails
     # list. By default, all frameworks (Active Record, Active Support,
     # Action Pack, Action Mailer, and Active Resource) are loaded.
     initializer :require_frameworks do
-      begin
-        require 'active_support'
-        require 'active_support/core_ext/kernel/reporting'
-        require 'active_support/core_ext/logger'
-
-        # TODO: This is here to make Sam Ruby's tests pass. Needs discussion.
-        require 'active_support/core_ext/numeric/bytes'
-        config.frameworks.each { |framework| require(framework.to_s) }
-      rescue LoadError => e
-        # Re-raise as RuntimeError because Mongrel would swallow LoadError.
-        raise e.to_s
-      end
+      require 'active_support/all' unless config.active_support.bare
+      config.frameworks.each { |framework| require(framework.to_s) }
     end
 
     # Set the paths from which Rails will automatically load source files, and
@@ -307,9 +297,6 @@ module Rails
         config.send(framework).each do |setting, value|
           base_class.send("#{setting}=", value)
         end
-      end
-      config.active_support.each do |setting, value|
-        ActiveSupport.send("#{setting}=", value)
       end
     end
 

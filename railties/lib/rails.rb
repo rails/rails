@@ -1,5 +1,9 @@
 require "pathname"
 
+require 'active_support'
+require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/logger'
+
 require 'rails/initializable'
 require 'rails/application'
 require 'rails/railties_path'
