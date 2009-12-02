@@ -56,7 +56,7 @@ class Default < Thor
       s.test_files.exclude 'spec/sandbox/**/*'
     end
 
-    Jeweler::RubyforgeTasks.new
+    Jeweler::GemcutterTasks.new
   rescue LoadError
     puts "Jeweler, or one of its dependencies, is not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
   end

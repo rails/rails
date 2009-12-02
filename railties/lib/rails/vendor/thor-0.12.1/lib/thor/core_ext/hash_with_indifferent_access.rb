@@ -65,7 +65,7 @@ class Thor
             else
               self[$1] == args.first
             end
-          else 
+          else
             self[method]
           end
         end

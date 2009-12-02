@@ -114,7 +114,7 @@ class Thor
       @source_paths ||= self.class.source_paths_for_search
     end
 
-    # Receives a file or directory and search for it in the source paths. 
+    # Receives a file or directory and search for it in the source paths.
     #
     def find_in_source_paths(file)
       relative_root = relative_to_original_destination_root(destination_root, false)
@@ -222,7 +222,7 @@ class Thor
       run "#{command}", config.merge(:with => Thor::Util.ruby_command)
     end
 
-    # Run a thor command. A hash of options can be given and it's converted to 
+    # Run a thor command. A hash of options can be given and it's converted to
     # switches.
     #
     # ==== Parameters
