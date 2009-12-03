@@ -32,64 +32,66 @@ require 'active_model'
 require 'arel'
 
 module ActiveRecord
-  # TODO: Review explicit loads to see if they will automatically be handled by the initializer.
-  def self.load_all!
-    [Base, DynamicFinderMatch, ConnectionAdapters::AbstractAdapter]
-  end
+  extend ActiveSupport::Autoload
 
-  autoload :VERSION, 'active_record/version'
+  autoload :VERSION
 
   autoload :ActiveRecordError, 'active_record/base'
   autoload :ConnectionNotEstablished, 'active_record/base'
 
-  autoload :Aggregations, 'active_record/aggregations'
-  autoload :AssociationPreload, 'active_record/association_preload'
-  autoload :Associations, 'active_record/associations'
-  autoload :AttributeMethods, 'active_record/attribute_methods'
-  autoload :Attributes, 'active_record/attributes'
-  autoload :AutosaveAssociation, 'active_record/autosave_association'
-  autoload :Relation, 'active_record/relation'
-  autoload :Base, 'active_record/base'
-  autoload :Batches, 'active_record/batches'
-  autoload :Calculations, 'active_record/calculations'
-  autoload :Callbacks, 'active_record/callbacks'
-  autoload :DynamicFinderMatch, 'active_record/dynamic_finder_match'
-  autoload :DynamicScopeMatch, 'active_record/dynamic_scope_match'
-  autoload :Migration, 'active_record/migration'
+  autoload :Aggregations
+  autoload :AssociationPreload
+  autoload :Associations
+  autoload :AttributeMethods
+  autoload :Attributes
+  autoload :AutosaveAssociation
+  autoload :Relation
+  autoload :Base
+  autoload :Batches
+  autoload :Calculations
+  autoload :Callbacks
+  autoload :DynamicFinderMatch
+  autoload :DynamicScopeMatch
+  autoload :Migration
   autoload :Migrator, 'active_record/migration'
-  autoload :NamedScope, 'active_record/named_scope'
-  autoload :NestedAttributes, 'active_record/nested_attributes'
-  autoload :Observer, 'active_record/observer'
-  autoload :QueryCache, 'active_record/query_cache'
-  autoload :Reflection, 'active_record/reflection'
-  autoload :Schema, 'active_record/schema'
-  autoload :SchemaDumper, 'active_record/schema_dumper'
-  autoload :Serialization, 'active_record/serialization'
-  autoload :SessionStore, 'active_record/session_store'
-  autoload :StateMachine, 'active_record/state_machine'
-  autoload :TestCase, 'active_record/test_case'
-  autoload :Timestamp, 'active_record/timestamp'
-  autoload :Transactions, 'active_record/transactions'
-  autoload :Types, 'active_record/types'
-  autoload :Validations, 'active_record/validations'
+  autoload :NamedScope
+  autoload :NestedAttributes
+  autoload :Observer
+  autoload :QueryCache
+  autoload :Reflection
+  autoload :Schema
+  autoload :SchemaDumper
+  autoload :Serialization
+  autoload :SessionStore
+  autoload :StateMachine
+  autoload :Timestamp
+  autoload :Transactions
+  autoload :Types
+  autoload :Validations
 
   module AttributeMethods
-    autoload :BeforeTypeCast, 'active_record/attribute_methods/before_type_cast'
-    autoload :Dirty, 'active_record/attribute_methods/dirty'
-    autoload :PrimaryKey, 'active_record/attribute_methods/primary_key'
-    autoload :Query, 'active_record/attribute_methods/query'
-    autoload :Read, 'active_record/attribute_methods/read'
-    autoload :TimeZoneConversion, 'active_record/attribute_methods/time_zone_conversion'
-    autoload :Write, 'active_record/attribute_methods/write'
+    extend ActiveSupport::Autoload
+
+    autoload :BeforeTypeCast
+    autoload :Dirty
+    autoload :PrimaryKey
+    autoload :Query
+    autoload :Read
+    autoload :TimeZoneConversion
+    autoload :Write
   end
 
   module Attributes
-    autoload :Aliasing, 'active_record/attributes/aliasing'
-    autoload :Store, 'active_record/attributes/store'
-    autoload :Typecasting, 'active_record/attributes/typecasting'
+    extend ActiveSupport::Autoload
+
+    autoload :Aliasing
+    autoload :Store
+    autoload :Typecasting
   end
 
   module Type
+    extend ActiveSupport::Autoload
+    
     autoload :Number, 'active_record/types/number'
     autoload :Object, 'active_record/types/object'
     autoload :Serialize, 'active_record/types/serialize'
@@ -98,12 +100,16 @@ module ActiveRecord
   end
 
   module Locking
-    autoload :Optimistic, 'active_record/locking/optimistic'
-    autoload :Pessimistic, 'active_record/locking/pessimistic'
+    extend ActiveSupport::Autoload
+    
+    autoload :Optimistic
+    autoload :Pessimistic
   end
 
   module ConnectionAdapters
-    autoload :AbstractAdapter, 'active_record/connection_adapters/abstract_adapter'
+    extend ActiveSupport::Autoload
+    
+    autoload :AbstractAdapter
   end
 end
 

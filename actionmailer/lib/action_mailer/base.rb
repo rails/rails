@@ -258,7 +258,7 @@ module ActionMailer #:nodoc:
     include AbstractController::Layouts
 
     include AbstractController::Helpers
-    helper MailHelper
+    helper ActionMailer::MailHelper
 
     if Object.const_defined?(:ActionController)
       include ActionController::UrlWriter

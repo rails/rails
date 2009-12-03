@@ -25,32 +25,34 @@ actionpack_path = "#{File.dirname(__FILE__)}/../../actionpack/lib"
 $:.unshift(actionpack_path) if File.directory?(actionpack_path)
 require 'action_controller'
 require 'action_view'
+require 'active_support/autoload'
 
 module ActionMailer
-  def self.load_all!
-    [Base, Part, ::Text::Format, ::Net::SMTP]
-  end
+  extend ::ActiveSupport::Autoload
 
-  autoload :AdvAttrAccessor, 'action_mailer/adv_attr_accessor'
-  autoload :DeprecatedBody, 'action_mailer/deprecated_body'
-  autoload :Base, 'action_mailer/base'
-  autoload :DeliveryMethod, 'action_mailer/delivery_method'
-  autoload :Part, 'action_mailer/part'
-  autoload :PartContainer, 'action_mailer/part_container'
-  autoload :Quoting, 'action_mailer/quoting'
-  autoload :TestCase, 'action_mailer/test_case'
-  autoload :TestHelper, 'action_mailer/test_helper'
-  autoload :Utils, 'action_mailer/utils'
+  autoload :AdvAttrAccessor
+  autoload :DeprecatedBody
+  autoload :Base
+  autoload :DeliveryMethod
+  autoload :MailHelper
+  autoload :Part
+  autoload :PartContainer
+  autoload :Quoting
+  autoload :TestHelper
+  autoload :Utils
 end
 
 module Text
+  extend ActiveSupport::Autoload
+
   autoload :Format, 'action_mailer/vendor/text_format'
 end
 
 module Net
-  autoload :SMTP, 'net/smtp'
+  extend ActiveSupport::Autoload
+
+  autoload :SMTP
 end
 
-autoload :MailHelper, 'action_mailer/mail_helper'
 
 require 'action_mailer/vendor/tmail'

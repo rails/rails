@@ -24,7 +24,7 @@ module ActionController
     include ActionController::MimeResponds
 
     # Rails 2.x compatibility
-    include ActionController::Rails2Compatibility
+    include ActionController::Compatibility
 
     include ActionController::Cookies
     include ActionController::Session

@@ -29,7 +29,7 @@ module ActionDispatch
       'ActionView::MissingTemplate'         => 'missing_template',
       'ActionController::RoutingError'      => 'routing_error',
       ActionController::UnknownAction.name  => 'unknown_action',
-      'ActionView::TemplateError'           => 'template_error'
+      'ActionView::Template::Error'         => 'template_error'
     })
 
     FAILSAFE_RESPONSE = [500, {'Content-Type' => 'text/html'},
@@ -119,7 +119,7 @@ module ActionDispatch
         return unless logger
 
         ActiveSupport::Deprecation.silence do
-          if ActionView::TemplateError === exception
+          if ActionView::Template::Error === exception
             logger.fatal(exception.to_s)
           else
             logger.fatal(

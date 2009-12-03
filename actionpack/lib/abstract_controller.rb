@@ -2,15 +2,20 @@ require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/module/delegation"
 
 module AbstractController
-  autoload :Base,                "abstract_controller/base"
-  autoload :Callbacks,           "abstract_controller/callbacks"
-  autoload :Helpers,             "abstract_controller/helpers"
-  autoload :Layouts,             "abstract_controller/layouts"
-  autoload :LocalizedCache,      "abstract_controller/localized_cache"
-  autoload :Logger,              "abstract_controller/logger"
-  autoload :RenderingController, "abstract_controller/rendering_controller"
+  extend ActiveSupport::Autoload
+
+  autoload :Base
+  autoload :Callbacks
+  autoload :Helpers
+  autoload :Layouts
+  autoload :LocalizedCache
+  autoload :Logger
+  autoload :RenderingController
+
   # === Exceptions
-  autoload :ActionNotFound,      "abstract_controller/exceptions"
-  autoload :DoubleRenderError,   "abstract_controller/exceptions"
-  autoload :Error,               "abstract_controller/exceptions"
+  autoload_at "abstract_controller/exceptions" do
+    autoload :ActionNotFound
+    autoload :DoubleRenderError
+    autoload :Error
+  end
 end

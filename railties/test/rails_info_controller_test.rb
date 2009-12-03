@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'action_controller'
+require 'action_controller/test_case'
 
 require 'rails/info'
 require 'rails/info_controller'

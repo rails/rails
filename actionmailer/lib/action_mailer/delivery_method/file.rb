@@ -6,7 +6,7 @@ module ActionMailer
     # A delivery method implementation which writes all mails to a file.
     class File < Method
       self.settings = {
-        :location       => defined?(Rails) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"
+        :location       => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"
       }
 
       def perform_delivery(mail)
