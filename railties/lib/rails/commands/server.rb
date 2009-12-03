@@ -41,9 +41,9 @@ module Rails
       new(app).start
     end
 
-    def initialize(app)
+    def initialize(app_const)
       super() # Call Rack::Server#initialize without passing any options to use.
-      @app = app
+      @app_const = app_const
     end
 
     def start
@@ -69,7 +69,7 @@ module Rails
     end
 
     def log_path
-      "#{File.expand_path(@app.root)}/log/#{options[:environment]}.log"
+      "#{File.expand_path(@app_const.root)}/log/#{options[:environment]}.log"
     end
 
     def default_options
@@ -77,10 +77,10 @@ module Rails
         :Port        => 3000,
         :Host        => "0.0.0.0",
         :environment => (ENV['RAILS_ENV'] || "development").dup,
-        :rack_file   => "#{@app.root}/config.ru",
+        :rack_file   => "#{@app_const.root}/config.ru",
         :daemonize   => false,
         :debugger    => false,
-        :pid         => "#{@app.root}/tmp/pids/server.pid",
+        :pid         => "#{@app_const.root}/tmp/pids/server.pid",
         :AccessLog   => []
       }
     end

@@ -17,7 +17,7 @@
 
 * thor help now show information about any class/task. All those calls are
   possible:
-  
+
     thor help describe
     thor help describe:amazing
 
@@ -47,7 +47,7 @@
   are in the 'standard' group. Running 'thor -T' will only show the standard
   tasks - adding --all will show all tasks. You can also filter on a specific
   group using the --group option: thor -T --group advanced
-  
+
 == 0.9.6, released 2008-09-13
 
 * Generic improvements

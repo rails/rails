@@ -18,12 +18,14 @@ class Thor
     #
     #   copy_file "doc/README"
     #
-    def copy_file(source, destination=nil, config={})
+    def copy_file(source, destination=nil, config={}, &block)
       destination ||= source
       source = File.expand_path(find_in_source_paths(source.to_s))
 
       create_file destination, nil, config do
-        File.read(source)
+        content = File.read(source)
+        content = block.call(content) if block
+        content
       end
     end
 
@@ -72,13 +74,15 @@ class Thor
     #
     #   template "doc/README"
     #
-    def template(source, destination=nil, config={})
+    def template(source, destination=nil, config={}, &block)
       destination ||= source
       source  = File.expand_path(find_in_source_paths(source.to_s))
       context = instance_eval('binding')
 
       create_file destination, nil, config do
-        ERB.new(::File.read(source), nil, '-').result(context)
+        content = ERB.new(::File.read(source), nil, '-').result(context)
+        content = block.call(content) if block
+        content
       end
     end
 

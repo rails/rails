@@ -33,7 +33,6 @@ module ActionDispatch # :nodoc:
   #  end
   class Response < Rack::Response
     attr_accessor :request, :blank
-    attr_reader :cache_control
 
     attr_writer :header, :sending_file
     alias_method :headers=, :header=
@@ -55,12 +54,6 @@ module ActionDispatch # :nodoc:
 
     def cache_control
       @cache_control ||= {}
-    end
-
-    def write(str)
-      s = str.to_s
-      @writer.call s
-      str
     end
 
     def status=(status)
@@ -277,7 +270,7 @@ module ActionDispatch # :nodoc:
           max_age = control[:max_age]
 
           options = []
-          options << "max-age=#{max_age}" if max_age
+          options << "max-age=#{max_age.to_i}" if max_age
           options << (control[:public] ? "public" : "private")
           options << "must-revalidate" if control[:must_revalidate]
           options.concat(extras) if extras

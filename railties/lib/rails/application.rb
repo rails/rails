@@ -82,8 +82,21 @@ module Rails
       @app.call(env)
     end
 
-    initializer :initialize_rails do
-      Rails.run_initializers
+
+    # Loads the environment specified by Configuration#environment_path, which
+    # is typically one of development, test, or production.
+    initializer :load_environment do
+      next unless File.file?(config.environment_path)
+
+      config = self.config
+
+      Kernel.class_eval do
+        meth = instance_method(:config) if Object.respond_to?(:config)
+        define_method(:config) { config }
+        require config.environment_path
+        remove_method :config
+        define_method(:config, &meth) if meth
+      end
     end
 
     # Set the <tt>$LOAD_PATH</tt> based on the value of
@@ -97,18 +110,8 @@ module Rails
     # list. By default, all frameworks (Active Record, Active Support,
     # Action Pack, Action Mailer, and Active Resource) are loaded.
     initializer :require_frameworks do
-      begin
-        require 'active_support'
-        require 'active_support/core_ext/kernel/reporting'
-        require 'active_support/core_ext/logger'
-
-        # TODO: This is here to make Sam Ruby's tests pass. Needs discussion.
-        require 'active_support/core_ext/numeric/bytes'
-        config.frameworks.each { |framework| require(framework.to_s) }
-      rescue LoadError => e
-        # Re-raise as RuntimeError because Mongrel would swallow LoadError.
-        raise e.to_s
-      end
+      require 'active_support/all' unless config.active_support.bare
+      config.frameworks.each { |framework| require(framework.to_s) }
     end
 
     # Set the paths from which Rails will automatically load source files, and
@@ -134,24 +137,6 @@ module Rails
     initializer :ensure_tmp_directories_exist do
       %w(cache pids sessions sockets).each do |dir_to_make|
         FileUtils.mkdir_p(File.join(config.root, 'tmp', dir_to_make))
-      end
-    end
-
-    # Loads the environment specified by Configuration#environment_path, which
-    # is typically one of development, test, or production.
-    initializer :load_environment do
-      silence_warnings do
-        next if @environment_loaded
-        next unless File.file?(config.environment_path)
-
-        @environment_loaded = true
-        constants = self.class.constants
-
-        eval(IO.read(config.environment_path), binding, config.environment_path)
-
-        (self.class.constants - constants).each do |const|
-          Object.const_set(const, self.class.const_get(const))
-        end
       end
     end
 
@@ -312,9 +297,6 @@ module Rails
           base_class.send("#{setting}=", value)
         end
       end
-      config.active_support.each do |setting, value|
-        ActiveSupport.send("#{setting}=", value)
-      end
     end
 
     # Sets +ActionController::Base#view_paths+ and +ActionMailer::Base#template_root+
@@ -387,7 +369,7 @@ module Rails
     initializer :initialize_routing do
       next unless configuration.frameworks.include?(:action_controller)
 
-      ActionController::Routing.controller_paths += configuration.controller_paths
+      ActionController::Routing::Routes.controller_paths += configuration.controller_paths
       ActionController::Routing::Routes.add_configuration_file(configuration.routes_configuration_file)
       ActionController::Routing::Routes.reload!
     end

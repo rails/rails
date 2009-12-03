@@ -7,7 +7,7 @@ Example:
 
     class App < Thor                                                 # [1]
       map "-L" => :list                                              # [2]
-      
+
       desc "install APP_NAME", "install one of the available apps"   # [3]
       method_options :force => :boolean, :alias => :string           # [4]
       def install(name)
@@ -17,7 +17,7 @@ Example:
         end
         # other code
       end
-      
+
       desc "list [SEARCH]", "list all of the available apps, limited by SEARCH"
       def list(search="")
         # list everything
@@ -126,13 +126,13 @@ invoked only once. For example:
         invoke :two
         invoke :three
       end
-      
+
       desc "two", "Prints 2, 3"
       def two
         puts 2
         invoke :three
       end
-      
+
       desc "three", "Prints 3"
       def three
         puts 3
@@ -155,15 +155,15 @@ Thor::Group as this:
 
     class Counter < Thor::Group
       desc "Prints 1, 2, 3"
-      
+
       def one
         puts 1
       end
-     
+
       def two
         puts 2
       end
-      
+
       def three
         puts 3
       end
@@ -184,15 +184,15 @@ Besides, Thor::Group can parse arguments and options as Thor tasks:
       # number will be available as attr_accessor
       argument :number, :type => :numeric, :desc => "The number to start counting"
       desc "Prints the 'number' given upto 'number+2'"
-      
+
       def one
         puts number + 0
       end
-      
+
       def two
         puts number + 1
       end
-      
+
       def three
         puts number + 2
       end

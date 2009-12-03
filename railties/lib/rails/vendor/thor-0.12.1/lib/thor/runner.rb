@@ -36,7 +36,7 @@ class Thor::Runner < Thor #:nodoc:
   def install(name)
     initialize_thorfiles
 
-    # If a directory name is provided as the argument, look for a 'main.thor' 
+    # If a directory name is provided as the argument, look for a 'main.thor'
     # task in said directory.
     begin
       if File.directory?(File.expand_path(name))

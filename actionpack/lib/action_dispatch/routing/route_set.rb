@@ -27,10 +27,13 @@ module ActionDispatch
             end
           end
 
+          unless controller = controller(params)
+            return [417, {}, []]
+          end
+
           if env['action_controller.recognize']
             [200, {}, params]
           else
-            controller = controller(params)
             controller.action(params[:action]).call(env)
           end
         end
@@ -41,6 +44,8 @@ module ActionDispatch
               controller = "#{params[:controller].camelize}Controller"
               ActiveSupport::Inflector.constantize(controller)
             end
+          rescue NameError
+            nil
           end
 
           def merge_default_action!(params)
@@ -197,10 +202,11 @@ module ActionDispatch
           end
       end
 
-      attr_accessor :routes, :named_routes, :configuration_files
+      attr_accessor :routes, :named_routes, :configuration_files, :controller_paths
 
       def initialize
         self.configuration_files = []
+        self.controller_paths = []
 
         self.routes = []
         self.named_routes = NamedRouteCollection.new
@@ -247,7 +253,7 @@ module ActionDispatch
 
       def load!
         # Clear the controller cache so we may discover new ones
-        Routing.clear_controller_cache!
+        @controller_constraints = nil
 
         load_routes!
       end
@@ -290,6 +296,37 @@ module ActionDispatch
         end
 
         routes_changed_at
+      end
+
+      CONTROLLER_REGEXP = /[_a-zA-Z0-9]+/
+
+      def controller_constraints
+        @controller_constraints ||= begin
+          source = controller_namespaces.map { |ns| "#{Regexp.escape(ns)}/#{CONTROLLER_REGEXP.source}" }
+          source << CONTROLLER_REGEXP.source
+          Regexp.compile(source.sort.reverse.join('|'))
+        end
+      end
+
+      def controller_namespaces
+        namespaces = Set.new
+
+        # Find any nested controllers already in memory
+        ActionController::Base.subclasses.each do |klass|
+          controller_name = klass.underscore
+          namespaces << controller_name.split('/')[0...-1].join('/')
+        end
+
+        # Find namespaces in controllers/ directory
+        controller_paths.each do |load_path|
+          load_path = File.expand_path(load_path)
+          Dir["#{load_path}/**/*_controller.rb"].collect do |path|
+            namespaces << File.dirname(path).sub(/#{load_path}\/?/, '')
+          end
+        end
+
+        namespaces.delete('')
+        namespaces
       end
 
       def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil)
@@ -374,7 +411,8 @@ module ActionDispatch
         end
         recall[:action] = options.delete(:action) if options[:action] == 'index'
 
-        parameterize = lambda { |name, value|
+        opts = {}
+        opts[:parameterize] = lambda { |name, value|
           if name == :controller
             value
           elsif value.is_a?(Array)
@@ -384,7 +422,22 @@ module ActionDispatch
           end
         }
 
-        path = @set.url(named_route, options, recall, :parameterize => parameterize)
+        unless result = @set.generate(:path_info, named_route, options, recall, opts)
+          raise ActionController::RoutingError, "No route matches #{options.inspect}"
+        end
+
+        uri, params = result
+        params.each do |k, v|
+          if v
+            params[k] = v
+          else
+            params.delete(k)
+          end
+        end
+
+        uri << "?#{params.to_query}" if uri && params.any?
+        path = uri
+
         if path && method == :generate_extras
           uri = URI(path)
           extras = uri.query ?

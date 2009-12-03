@@ -143,7 +143,7 @@ class Thor
           answer = ask %[Overwrite #{destination}? (enter "h" for help) #{options}]
 
           case answer
-            when is?(:yes), is?(:force)
+            when is?(:yes), is?(:force), ""
               return true
             when is?(:no), is?(:skip)
               return false

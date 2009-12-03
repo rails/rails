@@ -7,11 +7,11 @@ class String
     @_rails_html_safe = true
     self
   end
-  
+
   def html_safe
     dup.html_safe!
   end
-  
+
   alias original_plus +
   def +(other)
     result = original_plus(other)
@@ -21,7 +21,7 @@ class String
       result
     end
   end
-  
+
   alias original_concat <<
   def <<(other)
     result = original_concat(other)
@@ -30,14 +30,15 @@ class String
     end
     result
   end
-  
+
+  remove_method :concat
   def concat(other)
     self << other
   end
-  
+
   private
     def also_html_safe?(other)
       other.respond_to?(:html_safe?) && other.html_safe?
     end
-  
+
 end

@@ -79,11 +79,9 @@ class Thor
                 next if dirname == given_destination
                 base.empty_directory(dirname, config)
               when /\.tt$/
-                destination = base.template(file_source, file_destination[0..-4], config)
-                @block.call(destination) if @block
+                destination = base.template(file_source, file_destination[0..-4], config, &@block)
               else
-                destination = base.copy_file(file_source, file_destination, config)
-                @block.call(destination) if @block
+                destination = base.copy_file(file_source, file_destination, config, &@block)
             end
           end
         end

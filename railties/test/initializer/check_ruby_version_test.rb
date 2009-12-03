@@ -7,7 +7,6 @@ module InitializerTests
     def setup
       build_app
       boot_rails
-      require "rails"
     end
 
     test "rails does not initialize with ruby version 1.8.1" do
@@ -50,8 +49,7 @@ module InitializerTests
     def assert_rails_boots(version = nil)
       set_ruby_version(version) if version
       assert_nothing_raised "It appears that rails does not boot" do
-        Rails::Initializer.run { |c| c.frameworks = [] }
-        Rails.initialize!
+        require "rails"
       end
     end
 
@@ -59,8 +57,7 @@ module InitializerTests
       set_ruby_version(version)
       $stderr = File.open("/dev/null", "w")
       assert_raises(SystemExit) do
-        Rails::Initializer.run { |c| c.frameworks = [] }
-        Rails.initialize!
+        require "rails"
       end
     end
   end

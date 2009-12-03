@@ -132,7 +132,7 @@ class Thor::Group
 
       names.each do |name|
         unless class_options.key?(name)
-          raise ArgumentError, "You have to define the option #{name.inspect} " << 
+          raise ArgumentError, "You have to define the option #{name.inspect} " <<
                                "before setting invoke_from_option."
         end
 

@@ -515,11 +515,15 @@ module ActionMailer #:nodoc:
         @headers ||= {}
         @sent_on ||= Time.now
 
-        super # Run deprecation hooks
+        ActiveSupport::Deprecation.silence do
+          super # Run deprecation hooks
+        end
       end
 
       def create_parts
-        super # Run deprecation hooks
+        ActiveSupport::Deprecation.silence do
+          super # Run deprecation hooks
+        end
 
         if String === response_body
           @parts.unshift Part.new(
@@ -592,7 +596,7 @@ module ActionMailer #:nodoc:
         headers.each { |k, v| m[k] = v }
 
         real_content_type, ctype_attrs = parse_content_type
-        
+
         if @parts.empty?
           m.set_content_type(real_content_type, nil, ctype_attrs)
           m.body = normalize_new_lines(body)
