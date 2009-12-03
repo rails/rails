@@ -25,7 +25,6 @@ actionpack_path = "#{File.dirname(__FILE__)}/../../actionpack/lib"
 $:.unshift(actionpack_path) if File.directory?(actionpack_path)
 require 'action_controller'
 require 'action_view'
-require 'active_support/autoload'
 
 module ActionMailer
   extend ::ActiveSupport::Autoload
