@@ -80,6 +80,11 @@ module ActionController #:nodoc:
   class Responder
     attr_reader :controller, :request, :format, :resource, :resources, :options
 
+    ACTIONS_FOR_VERBS = {
+      :post => :new,
+      :put => :edit
+    }
+
     def initialize(controller, resources, options={})
       @controller = controller
       @request = controller.request
@@ -138,7 +143,7 @@ module ActionController #:nodoc:
     def navigation_behavior(error)
       if get?
         raise error
-      elsif has_errors?
+      elsif has_errors? && default_action
         render :action => default_action
       else
         redirect_to resource_location
@@ -209,7 +214,7 @@ module ActionController #:nodoc:
     # the verb is post.
     #
     def default_action
-      @action || (request.post? ? :new : :edit)
+      @action ||= ACTIONS_FOR_VERBS[request.method]
     end
   end
 end
