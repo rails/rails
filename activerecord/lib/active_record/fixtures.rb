@@ -336,7 +336,6 @@ end
 #   george:
 #     id: 1
 #     name: George the Monkey
-#     pirate_id: 1
 #
 #   ### in fruits.yml
 #
@@ -371,8 +370,8 @@ end
 #   ### in monkeys.yml
 #
 #   george:
+#     id: 1
 #     name: George the Monkey
-#     pirate: reginald
 #     fruits: apple, orange, grape
 #
 #   ### in fruits.yml
