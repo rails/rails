@@ -1437,15 +1437,13 @@ class RouteSetTest < ActiveSupport::TestCase
                                     )/x}
     end
 
-    pending do
-      url = set.generate({:controller => 'pages', :action => 'show', :name => 'david'})
-      assert_equal "/page/david", url
-      assert_raise ActionController::RoutingError do
-        url = set.generate({:controller => 'pages', :action => 'show', :name => 'davidjamis'})
-      end
-      assert_raise ActionController::RoutingError do
-        url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
-      end
+    url = set.generate({:controller => 'pages', :action => 'show', :name => 'david'})
+    assert_equal "/page/david", url
+    assert_raise ActionController::RoutingError do
+      url = set.generate({:controller => 'pages', :action => 'show', :name => 'davidjamis'})
+    end
+    assert_raise ActionController::RoutingError do
+      url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
     end
   end
 
@@ -1461,10 +1459,8 @@ class RouteSetTest < ActiveSupport::TestCase
                                     )/xi}
     end
 
-    pending do
-      url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
-      assert_equal "/page/JAMIS", url
-    end
+    url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
+    assert_equal "/page/JAMIS", url
   end
 
   def test_route_requirement_recognize_with_xi_modifiers
