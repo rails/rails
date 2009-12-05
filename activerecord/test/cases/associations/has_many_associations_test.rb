@@ -1132,11 +1132,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_normal_method_call_in_association_proxy
-    assert_equal 'Welcome to the weblog', Comment.all.map { |comment| comment.post }.first.title
+    assert_equal 'Welcome to the weblog', Comment.all.map { |comment| comment.post }.sort_by(&:id).first.title
   end
 
   def test_instance_eval_in_association_proxy
-    assert_equal 'Welcome to the weblog', Comment.all.map { |comment| comment.post }.first.instance_eval{title}
+    assert_equal 'Welcome to the weblog', Comment.all.map { |comment| comment.post }.sort_by(&:id).first.instance_eval{title}
   end
 end
 
