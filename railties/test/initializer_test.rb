@@ -180,7 +180,7 @@ class ConfigurationFrameworkPathsTests < Test::Unit::TestCase
     end
 end
 
-require File.dirname(__FILE__) + '/plugin_test_helper'
+require 'plugin_test_helper'
 
 class InitializerPluginLoadingTests < Test::Unit::TestCase
   def setup

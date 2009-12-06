@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/generator_test_helper'
+require File.expand_path('../generator_test_helper', __FILE__)
 
 class RailsHelperGeneratorTest < GeneratorTestCase
   def test_helper_generates_helper

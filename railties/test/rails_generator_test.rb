@@ -27,12 +27,12 @@ end
 
 # Must set before requiring generator libs.
 if defined?(RAILS_ROOT)
-  RAILS_ROOT.replace "#{File.dirname(__FILE__)}/fixtures"
+  RAILS_ROOT.replace File.expand_path('../fixtures', __FILE__)
 else
-  RAILS_ROOT = "#{File.dirname(__FILE__)}/fixtures"
+  RAILS_ROOT = File.expand_path('../fixtures', __FILE__)
 end
 
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'initializer'
 
 # Mocks out the configuration

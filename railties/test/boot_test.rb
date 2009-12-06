@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'initializer'
-require "#{File.dirname(__FILE__)}/../environments/boot"
+require File.expand_path('../../environments/boot', __FILE__)
 
 class BootTest < Test::Unit::TestCase
   def test_boot_returns_if_booted
