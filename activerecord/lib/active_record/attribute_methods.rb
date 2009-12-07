@@ -230,8 +230,8 @@ module ActiveRecord
     # It's also possible to instantiate related objects, so a Client class belonging to the clients
     # table with a +master_id+ foreign key can instantiate master through Client#master.
     def method_missing(method_id, *args, &block)
-      if method_id == :to_ary
-        raise NoMethodError, "undefined method `to_ary' for #{inspect}:#{self.class}"
+      if method_id == :to_ary || method_id == :to_str
+        raise NoMethodError, "undefined method `#{method_id}' for #{inspect}:#{self.class}"
       end
 
       method_name = method_id.to_s
