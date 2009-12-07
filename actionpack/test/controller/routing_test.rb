@@ -1668,9 +1668,7 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal("/blog/2006/07/25", set.generate({:day => 25}, last_request))
     assert_equal("/blog/2005", set.generate({:year => 2005}, last_request))
     assert_equal("/blog/show/123", set.generate({:action => "show" , :id => 123}, last_request))
-    pending do
-      assert_equal("/blog/2006/07/28", set.generate({:year => 2006}, last_request))
-    end
+    assert_equal("/blog/2006", set.generate({:year => 2006}, last_request))
     assert_equal("/blog/2006", set.generate({:year => 2006, :month => nil}, last_request))
   end
 
