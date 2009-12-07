@@ -349,7 +349,7 @@ module ActionDispatch
         options = args.extract_options!
 
         if args.length > 1
-          args.each { |path| match(path, options) }
+          args.each { |path| match(path, options.reverse_merge(:as => path.to_sym)) }
           return self
         end
 
