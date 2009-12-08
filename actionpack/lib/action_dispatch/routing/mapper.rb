@@ -63,7 +63,7 @@ module ActionDispatch
 
           controller(resource.controller) do
             namespace(resource.name) do
-              with_scope_level(:resource, :name => resource.singular, :name_prefix => resource.member_name) do
+              with_scope_level(:resource, :name => resource.singular, :name_prefix => "#{resource.member_name}_") do
                 yield if block_given?
 
                 get "", :to => :show, :as => resource.member_name
@@ -103,7 +103,7 @@ module ActionDispatch
 
           controller(resource.controller) do
             namespace(resource.name) do
-              with_scope_level(:resources, :name => resource.singular, :name_prefix => resource.member_name) do
+              with_scope_level(:resources, :name => resource.singular, :name_prefix => "#{resource.member_name}_") do
                 yield if block_given?
 
                 collection do
@@ -202,7 +202,7 @@ module ActionDispatch
 
           if name_prefix = options.delete(:name_prefix)
             name_prefix_set = true
-            name_prefix, @scope[:name_prefix] = @scope[:name_prefix], (@scope[:name_prefix] ? "#{@scope[:name_prefix]}_#{name_prefix}" : name_prefix)
+            name_prefix, @scope[:name_prefix] = @scope[:name_prefix], (@scope[:name_prefix] ? "#{@scope[:name_prefix]}#{name_prefix}" : name_prefix)
           else
             name_prefix_set = false
           end
@@ -382,7 +382,7 @@ module ActionDispatch
         validate_defaults!(app, defaults, segment_keys)
         app = Constraints.new(app, blocks)
 
-        name = @scope[:name_prefix] ? "#{@scope[:name_prefix]}_#{options[:as]}" : options[:as]
+        name = @scope[:name_prefix] ? "#{@scope[:name_prefix]}#{options[:as]}" : options[:as]
 
         @set.add_route(app, conditions, requirements, defaults, name)
 
