@@ -297,18 +297,16 @@ module ActionDispatch
             return self
           end
 
-          controller(resource.controller) do
-            namespace(resource.name) do
-              with_scope_level(:resource, resource) do
-                yield if block_given?
+          scope(:path => resource.name, :controller => resource.controller) do
+            with_scope_level(:resource, resource) do
+              yield if block_given?
 
-                get "", :to => :show, :as => resource.member_name
-                post "", :to => :create
-                put "", :to => :update
-                delete "", :to => :destroy
-                get "new", :to => :new, :as => "new_#{resource.singular}"
-                get "edit", :to => :edit, :as => "edit_#{resource.singular}"
-              end
+              get "", :to => :show, :as => resource.member_name
+              post "", :to => :create
+              put "", :to => :update
+              delete "", :to => :destroy
+              get "new", :to => :new, :as => "new_#{resource.singular}"
+              get "edit", :to => :edit, :as => "edit_#{resource.singular}"
             end
           end
 
@@ -333,24 +331,22 @@ module ActionDispatch
             return self
           end
 
-          controller(resource.controller) do
-            namespace(resource.name) do
-              with_scope_level(:resources, resource) do
-                yield if block_given?
+          scope(:path => resource.name, :controller => resource.controller) do
+            with_scope_level(:resources, resource) do
+              yield if block_given?
 
-                with_scope_level(:collection) do
-                  get "", :to => :index, :as => resource.collection_name
-                  post "", :to => :create
-                  get "new", :to => :new, :as => "new_#{resource.singular}"
-                end
+              with_scope_level(:collection) do
+                get "", :to => :index, :as => resource.collection_name
+                post "", :to => :create
+                get "new", :to => :new, :as => "new_#{resource.singular}"
+              end
 
-                with_scope_level(:member) do
-                  scope(":id") do
-                    get "", :to => :show, :as => resource.member_name
-                    put "", :to => :update
-                    delete "", :to => :destroy
-                    get "edit", :to => :edit, :as => "edit_#{resource.singular}"
-                  end
+              with_scope_level(:member) do
+                scope(":id") do
+                  get "", :to => :show, :as => resource.member_name
+                  put "", :to => :update
+                  delete "", :to => :destroy
+                  get "edit", :to => :edit, :as => "edit_#{resource.singular}"
                 end
               end
             end
