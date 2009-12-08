@@ -46,8 +46,8 @@ module ActionDispatch
           conditions, defaults = {}, {}
 
           path = nil if path == ""
-          path = Rack::Mount::Utils.normalize_path(path) if path
           path = "#{@scope[:path]}#{path}" if @scope[:path]
+          path = Rack::Mount::Utils.normalize_path(path) if path
 
           raise ArgumentError, "path is required" unless path
 
@@ -169,7 +169,7 @@ module ActionDispatch
 
           if path = options.delete(:path)
             path_set = true
-            path, @scope[:path] = @scope[:path], "#{@scope[:path]}#{Rack::Mount::Utils.normalize_path(path)}"
+            path, @scope[:path] = @scope[:path], Rack::Mount::Utils.normalize_path(@scope[:path].to_s + path.to_s)
           else
             path_set = false
           end
@@ -214,7 +214,7 @@ module ActionDispatch
         end
 
         def namespace(path)
-          scope(path.to_s) { yield }
+          scope("/#{path}") { yield }
         end
 
         def constraints(constraints = {})
@@ -297,16 +297,16 @@ module ActionDispatch
             return self
           end
 
-          scope(:path => resource.name, :controller => resource.controller) do
+          scope(:path => "/#{resource.name}", :controller => resource.controller) do
             with_scope_level(:resource, resource) do
               yield if block_given?
 
-              get "", :to => :show, :as => resource.member_name
-              post "", :to => :create
-              put "", :to => :update
-              delete "", :to => :destroy
-              get "new", :to => :new, :as => "new_#{resource.singular}"
-              get "edit", :to => :edit, :as => "edit_#{resource.singular}"
+              get "(.:format)", :to => :show, :as => resource.member_name
+              post "(.:format)", :to => :create
+              put "(.:format)", :to => :update
+              delete "(.:format)", :to => :destroy
+              get "/new(.:format)", :to => :new, :as => "new_#{resource.singular}"
+              get "/edit(.:format)", :to => :edit, :as => "edit_#{resource.singular}"
             end
           end
 
@@ -331,22 +331,22 @@ module ActionDispatch
             return self
           end
 
-          scope(:path => resource.name, :controller => resource.controller) do
+          scope(:path => "/#{resource.name}", :controller => resource.controller) do
             with_scope_level(:resources, resource) do
               yield if block_given?
 
               with_scope_level(:collection) do
-                get "", :to => :index, :as => resource.collection_name
-                post "", :to => :create
-                get "new", :to => :new, :as => "new_#{resource.singular}"
+                get "(.:format)", :to => :index, :as => resource.collection_name
+                post "(.:format)", :to => :create
+                get "/new(.:format)", :to => :new, :as => "new_#{resource.singular}"
               end
 
               with_scope_level(:member) do
-                scope(":id") do
-                  get "", :to => :show, :as => resource.member_name
-                  put "", :to => :update
-                  delete "", :to => :destroy
-                  get "edit", :to => :edit, :as => "edit_#{resource.singular}"
+                scope("/:id") do
+                  get "(.:format)", :to => :show, :as => resource.member_name
+                  put "(.:format)", :to => :update
+                  delete "(.:format)", :to => :destroy
+                  get "/edit(.:format)", :to => :edit, :as => "edit_#{resource.singular}"
                 end
               end
             end
@@ -373,7 +373,7 @@ module ActionDispatch
           end
 
           with_scope_level(:member) do
-            scope(":id", :name_prefix => parent_resource.member_name, :as => "") do
+            scope("/:id", :name_prefix => parent_resource.member_name, :as => "") do
               yield
             end
           end
@@ -385,7 +385,7 @@ module ActionDispatch
           end
 
           with_scope_level(:nested) do
-            scope(parent_resource.id_segment, :name_prefix => parent_resource.member_name) do
+            scope("/#{parent_resource.id_segment}", :name_prefix => parent_resource.member_name) do
               yield
             end
           end
@@ -402,7 +402,7 @@ module ActionDispatch
           if args.first.is_a?(Symbol)
             begin
               old_name_prefix, @scope[:name_prefix] = @scope[:name_prefix], "#{args.first}_#{@scope[:name_prefix]}"
-              return match(args.first.to_s, options.merge(:to => args.first.to_sym))
+              return match("/#{args.first}(.:format)", options.merge(:to => args.first.to_sym))
             ensure
               @scope[:name_prefix] = old_name_prefix
             end

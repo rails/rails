@@ -95,9 +95,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       controller :articles do
-        scope 'articles', :name_prefix => 'article' do
-          scope :path => ':title', :title => /[a-z]+/, :as => :with_title do
-            match ':id', :to => :with_id
+        scope '/articles', :name_prefix => 'article' do
+          scope :path => '/:title', :title => /[a-z]+/, :as => :with_title do
+            match '/:id', :to => :with_id
           end
         end
       end
@@ -196,13 +196,25 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'projects#index', @response.body
       assert_equal '/projects', projects_path
 
+      get '/projects.xml'
+      assert_equal 'projects#index', @response.body
+      assert_equal '/projects.xml', projects_path(:format => 'xml')
+
       get '/projects/new'
       assert_equal 'projects#new', @response.body
       assert_equal '/projects/new', new_project_path
 
+      get '/projects/new.xml'
+      assert_equal 'projects#new', @response.body
+      assert_equal '/projects/new.xml', new_project_path(:format => 'xml')
+
       get '/projects/1'
       assert_equal 'projects#show', @response.body
       assert_equal '/projects/1', project_path(:id => '1')
+
+      get '/projects/1.xml'
+      assert_equal 'projects#show', @response.body
+      assert_equal '/projects/1.xml', project_path(:id => '1', :format => 'xml')
 
       get '/projects/1/edit'
       assert_equal 'projects#edit', @response.body
