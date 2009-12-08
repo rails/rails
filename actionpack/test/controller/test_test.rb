@@ -456,8 +456,8 @@ XML
   def test_array_path_parameter_handled_properly
     with_routing do |set|
       set.draw do |map|
-        map.connect 'file/*path', :controller => 'test_test/test', :action => 'test_params'
-        map.connect ':controller/:action/:id'
+        match 'file/*path', :to => 'test_test/test#test_params'
+        match ':controller/:action'
       end
 
       get :test_params, :path => ['hello', 'world']
@@ -662,7 +662,7 @@ class NamedRoutesControllerTest < ActionController::TestCase
 
   def test_should_be_able_to_use_named_routes_before_a_request_is_done
     with_routing do |set|
-      set.draw { |map| map.resources :contents }
+      set.draw { |map| resources :contents }
       assert_equal 'http://test.host/contents/new', new_content_url
       assert_equal 'http://test.host/contents/1', content_url(:id => 1)
     end
