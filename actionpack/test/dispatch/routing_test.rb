@@ -93,7 +93,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       controller :articles do
-        scope 'articles', :name_prefix => 'article_' do
+        scope 'articles', :name_prefix => 'article' do
           scope :path => ':title', :title => /[a-z]+/, :as => :with_title do
             match ':id', :to => :with_id
           end
@@ -267,9 +267,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       post '/projects/1/images/1/revise'
       assert_equal 'images#revise', @response.body
-      pending do
-        assert_equal '/projects/1/images/1/revise', revise_project_image_path(:project_id => '1', :id => '1')
-      end
+      assert_equal '/projects/1/images/1/revise', revise_project_image_path(:project_id => '1', :id => '1')
     end
   end
 
@@ -291,21 +289,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       put '/projects/1/people/1/accessible_projects'
       assert_equal 'people#accessible_projects', @response.body
-      pending do
-        assert_equal '/projects/1/people/1/accessible_projects', accessible_projects_project_person_path(:project_id => '1', :id => '1')
-      end
+      assert_equal '/projects/1/people/1/accessible_projects', accessible_projects_project_person_path(:project_id => '1', :id => '1')
 
       post '/projects/1/people/1/resend'
       assert_equal 'people#resend', @response.body
-      pending do
-        assert_equal '/projects/1/people/1/resend', resend_project_person_path(:project_id => '1', :id => '1')
-      end
+      assert_equal '/projects/1/people/1/resend', resend_project_person_path(:project_id => '1', :id => '1')
 
       post '/projects/1/people/1/generate_new_password'
       assert_equal 'people#generate_new_password', @response.body
-      pending do
-        assert_equal '/projects/1/people/1/generate_new_password', generate_new_password_project_person_path(:project_id => '1', :id => '1')
-      end
+      assert_equal '/projects/1/people/1/generate_new_password', generate_new_password_project_person_path(:project_id => '1', :id => '1')
     end
   end
 
@@ -329,9 +321,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       post '/projects/1/posts/1/preview'
       assert_equal 'posts#preview', @response.body
-      pending do
-        assert_equal '/projects/1/posts/1/preview', preview_project_post_path(:project_id => '1', :id => '1')
-      end
+      assert_equal '/projects/1/posts/1/preview', preview_project_post_path(:project_id => '1', :id => '1')
 
       get '/projects/1/posts/1/subscription'
       assert_equal 'subscriptions#show', @response.body

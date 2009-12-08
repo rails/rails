@@ -41,15 +41,6 @@ module ActionDispatch
         def match(*args)
           options = args.extract_options!
 
-          if args.length > 1
-            args.each { |path| match(path, options.reverse_merge(:as => path.to_sym)) }
-            return self
-          end
-
-          if args.first.is_a?(Symbol)
-            return match(args.first.to_s, options.merge(:to => args.first.to_sym))
-          end
-
           path = args.first
 
           conditions, defaults = {}, {}
@@ -185,7 +176,7 @@ module ActionDispatch
 
           if name_prefix = options.delete(:name_prefix)
             name_prefix_set = true
-            name_prefix, @scope[:name_prefix] = @scope[:name_prefix], (@scope[:name_prefix] ? "#{@scope[:name_prefix]}#{name_prefix}" : name_prefix)
+            name_prefix, @scope[:name_prefix] = @scope[:name_prefix], (@scope[:name_prefix] ? "#{@scope[:name_prefix]}_#{name_prefix}" : name_prefix)
           else
             name_prefix_set = false
           end
@@ -235,8 +226,10 @@ module ActionDispatch
 
           options = (@scope[:options] || {}).merge(options)
 
-          if @scope[:name_prefix] && options[:as]
-            options[:as] = "#{@scope[:name_prefix]}#{options[:as]}"
+          if @scope[:name_prefix] && !options[:as].blank?
+            options[:as] = "#{@scope[:name_prefix]}_#{options[:as]}"
+          elsif @scope[:name_prefix] && options[:as].blank?
+            options[:as] = @scope[:name_prefix].to_s
           end
 
           args.push(options)
@@ -274,10 +267,6 @@ module ActionDispatch
           def id_segment
             ":#{singular}_id"
           end
-
-          def member_name_prefix
-            "#{member_name}_"
-          end
         end
 
         class SingletonResource < Resource #:nodoc:
@@ -303,7 +292,7 @@ module ActionDispatch
 
           if @scope[:scope_level] == :resources
             with_scope_level(:member) do
-              scope(parent_resource.id_segment, :name_prefix => parent_resource.member_name_prefix) do
+              scope(parent_resource.id_segment, :name_prefix => parent_resource.member_name) do
                 resource(resource.name, options, &block)
               end
             end
@@ -341,7 +330,7 @@ module ActionDispatch
 
           if @scope[:scope_level] == :resources
             with_scope_level(:member) do
-              scope(parent_resource.id_segment, :name_prefix => parent_resource.member_name_prefix) do
+              scope(parent_resource.id_segment, :name_prefix => parent_resource.member_name) do
                 resources(resource.name, options, &block)
               end
             end
@@ -353,17 +342,19 @@ module ActionDispatch
               with_scope_level(:resources, resource) do
                 yield if block_given?
 
-                collection do
+                with_scope_level(:collection) do
                   get "", :to => :index, :as => resource.collection_name
                   post "", :to => :create
                   get "new", :to => :new, :as => "new_#{resource.singular}"
                 end
 
-                member do
-                  get "", :to => :show, :as => resource.member_name
-                  put "", :to => :update
-                  delete "", :to => :destroy
-                  get "edit", :to => :edit, :as => "edit_#{resource.singular}"
+                with_scope_level(:member) do
+                  scope(":id") do
+                    get "", :to => :show, :as => resource.member_name
+                    put "", :to => :update
+                    delete "", :to => :destroy
+                    get "edit", :to => :edit, :as => "edit_#{resource.singular}"
+                  end
                 end
               end
             end
@@ -378,7 +369,9 @@ module ActionDispatch
           end
 
           with_scope_level(:collection) do
-            yield
+            scope(:name_prefix => parent_resource.member_name, :as => "") do
+              yield
+            end
           end
         end
 
@@ -388,7 +381,7 @@ module ActionDispatch
           end
 
           with_scope_level(:member) do
-            scope(":id") do
+            scope(":id", :name_prefix => parent_resource.member_name, :as => "") do
               yield
             end
           end
@@ -396,6 +389,21 @@ module ActionDispatch
 
         def match(*args)
           options = args.extract_options!
+
+          if args.length > 1
+            args.each { |path| match(path, options) }
+            return self
+          end
+
+          if args.first.is_a?(Symbol)
+            begin
+              old_name_prefix, @scope[:name_prefix] = @scope[:name_prefix], "#{args.first}_#{@scope[:name_prefix]}"
+              return match(args.first.to_s, options.merge(:to => args.first.to_sym))
+            ensure
+              @scope[:name_prefix] = old_name_prefix
+            end
+          end
+
           args.push(options)
 
           case options.delete(:on)
