@@ -228,7 +228,7 @@ module ActionDispatch
 
           if @scope[:name_prefix] && !options[:as].blank?
             options[:as] = "#{@scope[:name_prefix]}_#{options[:as]}"
-          elsif @scope[:name_prefix] && options[:as].blank?
+          elsif @scope[:name_prefix] && options[:as] == ""
             options[:as] = @scope[:name_prefix].to_s
           end
 
