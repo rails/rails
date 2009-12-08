@@ -235,7 +235,7 @@ module ActionDispatch
 
           options = (@scope[:options] || {}).merge(options)
 
-          if @scope[:name_prefix]
+          if @scope[:name_prefix] && options[:as]
             options[:as] = "#{@scope[:name_prefix]}#{options[:as]}"
           end
 
