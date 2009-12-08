@@ -27,6 +27,14 @@ module ActionDispatch
           def collection_name
             plural
           end
+
+          def id_segment
+            ":#{singular}_id"
+          end
+
+          def member_name_prefix
+            "#{member_name}_"
+          end
         end
 
         class SingletonResource < Resource #:nodoc:
@@ -51,10 +59,8 @@ module ActionDispatch
           resource = SingletonResource.new(resources.pop)
 
           if @scope[:scope_level] == :resources
-            parent_resource = @scope[:scope_level_options][:name]
-            parent_named_prefix = @scope[:scope_level_options][:name_prefix]
             with_scope_level(:member) do
-              scope(":#{parent_resource}_id", :name_prefix => parent_named_prefix) do
+              scope(parent_resource.id_segment, :name_prefix => parent_resource.member_name_prefix) do
                 resource(resource.name, options, &block)
               end
             end
@@ -63,7 +69,7 @@ module ActionDispatch
 
           controller(resource.controller) do
             namespace(resource.name) do
-              with_scope_level(:resource, :name => resource.singular, :name_prefix => "#{resource.member_name}_") do
+              with_scope_level(:resource, resource) do
                 yield if block_given?
 
                 get "", :to => :show, :as => resource.member_name
@@ -91,10 +97,8 @@ module ActionDispatch
           resource = Resource.new(resources.pop)
 
           if @scope[:scope_level] == :resources
-            parent_resource = @scope[:scope_level_options][:name]
-            parent_named_prefix = @scope[:scope_level_options][:name_prefix]
             with_scope_level(:member) do
-              scope(":#{parent_resource}_id", :name_prefix => parent_named_prefix) do
+              scope(parent_resource.id_segment, :name_prefix => parent_resource.member_name_prefix) do
                 resources(resource.name, options, &block)
               end
             end
@@ -103,7 +107,7 @@ module ActionDispatch
 
           controller(resource.controller) do
             namespace(resource.name) do
-              with_scope_level(:resources, :name => resource.singular, :name_prefix => "#{resource.member_name}_") do
+              with_scope_level(:resources, resource) do
                 yield if block_given?
 
                 collection do
@@ -165,14 +169,19 @@ module ActionDispatch
           super
         end
 
+        protected
+          def parent_resource
+            @scope[:scope_level_resource]
+          end
+
         private
-          def with_scope_level(kind, options = {})
+          def with_scope_level(kind, resource = parent_resource)
             old, @scope[:scope_level] = @scope[:scope_level], kind
-            old_options, @scope[:scope_level_options] = @scope[:scope_level_options], options
+            old_resource, @scope[:scope_level_resource] = @scope[:scope_level_resource], resource
             yield
           ensure
             @scope[:scope_level] = old
-            @scope[:scope_level_options] = old_options
+            @scope[:scope_level_resource] = old_resource
           end
       end
 
