@@ -4,16 +4,12 @@ module ActionDispatch
       module Resources
         class Resource #:nodoc:
           attr_reader :plural, :singular
-          attr_reader :path_prefix, :name_prefix
 
           def initialize(entities, options = {})
             entities = entities.to_s
 
             @plural   = entities.pluralize
             @singular = entities.singularize
-
-            @path_prefix = options[:path_prefix]
-            @name_prefix = options[:name_prefix]
           end
 
           def name
@@ -25,41 +21,17 @@ module ActionDispatch
           end
 
           def member_name
-            if name_prefix
-              "#{name_prefix}_#{singular}"
-            else
-              singular
-            end
+            singular
           end
 
           def collection_name
-            if name_prefix
-              "#{name_prefix}_#{plural}"
-            else
-              plural
-            end
-          end
-
-          def new_name
-            if name_prefix
-              "new_#{name_prefix}_#{singular}"
-            else
-              "new_#{singular}"
-            end
-          end
-
-          def edit_name
-            if name_prefix
-              "edit_#{name_prefix}_#{singular}"
-            else
-              "edit_#{singular}"
-            end
+            plural
           end
         end
 
         class SingletonResource < Resource #:nodoc:
           def initialize(entity, options = {})
-            super(entity)
+            super
           end
 
           def name
@@ -76,8 +48,7 @@ module ActionDispatch
             return self
           end
 
-          name_prefix = @scope[:options][:name_prefix] if @scope[:options]
-          resource = SingletonResource.new(resources.pop, :name_prefix => name_prefix)
+          resource = SingletonResource.new(resources.pop)
 
           if @scope[:scope_level] == :resources
             parent_resource = @scope[:scope_level_options][:name]
@@ -99,8 +70,8 @@ module ActionDispatch
                 post "", :to => :create
                 put "", :to => :update
                 delete "", :to => :destroy
-                get "new", :to => :new, :as => resource.new_name
-                get "edit", :to => :edit, :as => resource.edit_name
+                get "new", :to => :new, :as => "new_#{resource.singular}"
+                get "edit", :to => :edit, :as => "edit_#{resource.singular}"
               end
             end
           end
@@ -117,8 +88,7 @@ module ActionDispatch
             return self
           end
 
-          name_prefix = @scope[:options][:name_prefix] if @scope[:options]
-          resource = Resource.new(resources.pop, :name_prefix => name_prefix)
+          resource = Resource.new(resources.pop)
 
           if @scope[:scope_level] == :resources
             parent_resource = @scope[:scope_level_options][:name]
@@ -139,14 +109,14 @@ module ActionDispatch
                 collection do
                   get "", :to => :index, :as => resource.collection_name
                   post "", :to => :create
-                  get "new", :to => :new, :as => resource.new_name
+                  get "new", :to => :new, :as => "new_#{resource.singular}"
                 end
 
                 member do
                   get "", :to => :show, :as => resource.member_name
                   put "", :to => :update
                   delete "", :to => :destroy
-                  get "edit", :to => :edit, :as => resource.edit_name
+                  get "edit", :to => :edit, :as => "edit_#{resource.singular}"
                 end
               end
             end
@@ -230,6 +200,13 @@ module ActionDispatch
             path_set = false
           end
 
+          if name_prefix = options.delete(:name_prefix)
+            name_prefix_set = true
+            name_prefix, @scope[:name_prefix] = @scope[:name_prefix], (@scope[:name_prefix] ? "#{@scope[:name_prefix]}_#{name_prefix}" : name_prefix)
+          else
+            name_prefix_set = false
+          end
+
           if controller = options.delete(:controller)
             controller_set = true
             controller, @scope[:controller] = @scope[:controller], controller
@@ -251,6 +228,7 @@ module ActionDispatch
           self
         ensure
           @scope[:path] = path if path_set
+          @scope[:name_prefix] = name_prefix if name_prefix_set
           @scope[:controller] = controller if controller_set
           @scope[:options] = options
           @scope[:blocks] = blocks
@@ -404,7 +382,9 @@ module ActionDispatch
         validate_defaults!(app, defaults, segment_keys)
         app = Constraints.new(app, blocks)
 
-        @set.add_route(app, conditions, requirements, defaults, options[:as])
+        name = @scope[:name_prefix] ? "#{@scope[:name_prefix]}_#{options[:as]}" : options[:as]
+
+        @set.add_route(app, conditions, requirements, defaults, name)
 
         self
       end

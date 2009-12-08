@@ -93,7 +93,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       controller :articles do
-        scope 'articles' do
+        scope 'articles', :name_prefix => 'article' do
           scope :path => ':title', :title => /[a-z]+/, :as => :with_title do
             match ':id', :to => :with_id
           end
@@ -255,9 +255,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/projects/1/companies/1/avatar'
       assert_equal 'avatars#show', @response.body
-      pending do
-        assert_equal '/projects/1/companies/1/avatar', project_company_avatar_path(:project_id => '1', :company_id => '1')
-      end
+      assert_equal '/projects/1/companies/1/avatar', project_company_avatar_path(:project_id => '1', :company_id => '1')
     end
   end
 
@@ -337,9 +335,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/projects/1/posts/1/subscription'
       assert_equal 'subscriptions#show', @response.body
-      pending do
-        assert_equal '/projects/1/posts/1/subscription', project_post_subscription_path(:project_id => '1', :post_id => '1')
-      end
+      assert_equal '/projects/1/posts/1/subscription', project_post_subscription_path(:project_id => '1', :post_id => '1')
 
       get '/projects/1/posts/1/comments'
       assert_equal 'comments#index', @response.body
@@ -407,7 +403,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       assert_raise(ActionController::RoutingError) { get '/articles/123/1' }
 
-      assert_equal '/articles/rails/1', with_title_path(:title => 'rails', :id => 1)
+      assert_equal '/articles/rails/1', article_with_title_path(:title => 'rails', :id => 1)
     end
   end
 
