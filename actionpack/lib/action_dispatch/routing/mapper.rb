@@ -369,7 +369,7 @@ module ActionDispatch
           end
 
           with_scope_level(:collection) do
-            scope(:name_prefix => parent_resource.member_name, :as => "") do
+            scope(:name_prefix => parent_resource.collection_name, :as => "") do
               yield
             end
           end

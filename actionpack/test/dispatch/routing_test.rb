@@ -236,10 +236,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       put '/projects/1/participants/update_all'
       assert_equal 'participants#update_all', @response.body
-
-      pending do
-        assert_equal '/projects/1/participants/update_all', update_all_project_participants_path(:project_id => '1')
-      end
+      assert_equal '/projects/1/participants/update_all', update_all_project_participants_path(:project_id => '1')
     end
   end
 
@@ -309,15 +306,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/projects/1/posts/archive'
       assert_equal 'posts#archive', @response.body
-      pending do
-        assert_equal '/projects/1/posts/archive', archive_project_posts_path(:project_id => '1')
-      end
+      assert_equal '/projects/1/posts/archive', archive_project_posts_path(:project_id => '1')
 
       get '/projects/1/posts/toggle_view'
       assert_equal 'posts#toggle_view', @response.body
-      pending do
-        assert_equal '/projects/1/posts/toggle_view', toggle_view_project_posts_path(:project_id => '1')
-      end
+      assert_equal '/projects/1/posts/toggle_view', toggle_view_project_posts_path(:project_id => '1')
 
       post '/projects/1/posts/1/preview'
       assert_equal 'posts#preview', @response.body
@@ -333,9 +326,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       post '/projects/1/posts/1/comments/preview'
       assert_equal 'comments#preview', @response.body
-      pending do
-        assert_equal '/projects/1/posts/1/comments/preview', preview_project_post_comments_path(:project_id => '1', :post_id => '1')
-      end
+      assert_equal '/projects/1/posts/1/comments/preview', preview_project_post_comments_path(:project_id => '1', :post_id => '1')
     end
   end
 
