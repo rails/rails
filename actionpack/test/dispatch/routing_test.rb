@@ -58,8 +58,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
 
         resources :people do
-          namespace ":access_token" do
-            resource :avatar
+          nested do
+            namespace ":access_token" do
+              resource :avatar
+            end
           end
 
           member do
@@ -280,9 +282,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/projects/1/people/1/7a2dec8/avatar'
       assert_equal 'avatars#show', @response.body
-      pending do
-        assert_equal '/projects/1/people/1/7a2dec8/avatar', project_person_avatar_path(:project_id => '1', :person_id => '1', :access_token => '7a2dec8')
-      end
+      assert_equal '/projects/1/people/1/7a2dec8/avatar', project_person_avatar_path(:project_id => '1', :person_id => '1', :access_token => '7a2dec8')
 
       put '/projects/1/people/1/accessible_projects'
       assert_equal 'people#accessible_projects', @response.body
