@@ -258,7 +258,13 @@ module ActionDispatch
 
         def match(*args)
           options = args.extract_options!
+
           options = (@scope[:options] || {}).merge(options)
+
+          if @scope[:name_prefix]
+            options[:as] = "#{@scope[:name_prefix]}#{options[:as]}"
+          end
+
           args.push(options)
           super(*args)
         end
@@ -391,9 +397,7 @@ module ActionDispatch
         validate_defaults!(app, defaults, segment_keys)
         app = Constraints.new(app, blocks)
 
-        name = @scope[:name_prefix] ? "#{@scope[:name_prefix]}#{options[:as]}" : options[:as]
-
-        @set.add_route(app, conditions, requirements, defaults, name)
+        @set.add_route(app, conditions, requirements, defaults, options[:as])
 
         self
       end
