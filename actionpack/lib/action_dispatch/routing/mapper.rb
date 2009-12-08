@@ -1,6 +1,249 @@
 module ActionDispatch
   module Routing
     class Mapper
+      class Constraints
+        def new(app, constraints = [])
+          if constraints.any?
+            super(app, constraints)
+          else
+            app
+          end
+        end
+
+        def initialize(app, constraints = [])
+          @app, @constraints = app, constraints
+        end
+
+        def call(env)
+          req = Rack::Request.new(env)
+
+          @constraints.each { |constraint|
+            if constraint.respond_to?(:matches?) && !constraint.matches?(req)
+              return [417, {}, []]
+            elsif constraint.respond_to?(:call) && !constraint.call(req)
+              return [417, {}, []]
+            end
+          }
+
+          @app.call(env)
+        end
+      end
+
+      module Base
+        def initialize(set)
+          @set = set
+        end
+
+        def root(options = {})
+          match '/', options.merge(:as => :root)
+        end
+
+        def match(*args)
+          options = args.extract_options!
+
+          if args.length > 1
+            args.each { |path| match(path, options.reverse_merge(:as => path.to_sym)) }
+            return self
+          end
+
+          if args.first.is_a?(Symbol)
+            return match(args.first.to_s, options.merge(:to => args.first.to_sym))
+          end
+
+          path = args.first
+
+          conditions, defaults = {}, {}
+
+          path = nil if path == ""
+          path = Rack::Mount::Utils.normalize_path(path) if path
+          path = "#{@scope[:path]}#{path}" if @scope[:path]
+
+          raise ArgumentError, "path is required" unless path
+
+          constraints = options[:constraints] || {}
+          unless constraints.is_a?(Hash)
+            block, constraints = constraints, {}
+          end
+          blocks = ((@scope[:blocks] || []) + [block]).compact
+          constraints = (@scope[:constraints] || {}).merge(constraints)
+          options.each { |k, v| constraints[k] = v if v.is_a?(Regexp) }
+
+          conditions[:path_info] = path
+          requirements = constraints.dup
+
+          path_regexp = Rack::Mount::Strexp.compile(path, constraints, SEPARATORS)
+          segment_keys = Rack::Mount::RegexpWithNamedGroups.new(path_regexp).names
+          constraints.reject! { |k, v| segment_keys.include?(k.to_s) }
+          conditions.merge!(constraints)
+
+          requirements[:controller] ||= @set.controller_constraints
+
+          if via = options[:via]
+            via = Array(via).map { |m| m.to_s.upcase }
+            conditions[:request_method] = Regexp.union(*via)
+          end
+
+          defaults[:controller] ||= @scope[:controller].to_s if @scope[:controller]
+
+          app = initialize_app_endpoint(options, defaults)
+          validate_defaults!(app, defaults, segment_keys)
+          app = Constraints.new(app, blocks)
+
+          @set.add_route(app, conditions, requirements, defaults, options[:as])
+
+          self
+        end
+
+        private
+          def initialize_app_endpoint(options, defaults)
+            app = nil
+
+            if options[:to].respond_to?(:call)
+              app = options[:to]
+              defaults.delete(:controller)
+              defaults.delete(:action)
+            elsif options[:to].is_a?(String)
+              defaults[:controller], defaults[:action] = options[:to].split('#')
+            elsif options[:to].is_a?(Symbol)
+              defaults[:action] = options[:to].to_s
+            end
+
+            app || Routing::RouteSet::Dispatcher.new(:defaults => defaults)
+          end
+
+          def validate_defaults!(app, defaults, segment_keys)
+            return unless app.is_a?(Routing::RouteSet::Dispatcher)
+
+            unless defaults.include?(:controller) || segment_keys.include?("controller")
+              raise ArgumentError, "missing :controller"
+            end
+
+            unless defaults.include?(:action) || segment_keys.include?("action")
+              raise ArgumentError, "missing :action"
+            end
+          end
+      end
+
+      module HttpHelpers
+        def get(*args, &block)
+          map_method(:get, *args, &block)
+        end
+
+        def post(*args, &block)
+          map_method(:post, *args, &block)
+        end
+
+        def put(*args, &block)
+          map_method(:put, *args, &block)
+        end
+
+        def delete(*args, &block)
+          map_method(:delete, *args, &block)
+        end
+
+        def redirect(path, options = {})
+          status = options[:status] || 301
+          lambda { |env|
+            req = Rack::Request.new(env)
+            url = req.scheme + '://' + req.host + path
+            [status, {'Location' => url, 'Content-Type' => 'text/html'}, ['Moved Permanently']]
+          }
+        end
+
+        private
+          def map_method(method, *args, &block)
+            options = args.extract_options!
+            options[:via] = method
+            args.push(options)
+            match(*args, &block)
+            self
+          end
+      end
+
+      module Scoping
+        def initialize(*args)
+          @scope = {}
+          super
+        end
+
+        def scope(*args)
+          options = args.extract_options!
+
+          case args.first
+          when String
+            options[:path] = args.first
+          when Symbol
+            options[:controller] = args.first
+          end
+
+          if path = options.delete(:path)
+            path_set = true
+            path, @scope[:path] = @scope[:path], "#{@scope[:path]}#{Rack::Mount::Utils.normalize_path(path)}"
+          else
+            path_set = false
+          end
+
+          if name_prefix = options.delete(:name_prefix)
+            name_prefix_set = true
+            name_prefix, @scope[:name_prefix] = @scope[:name_prefix], (@scope[:name_prefix] ? "#{@scope[:name_prefix]}#{name_prefix}" : name_prefix)
+          else
+            name_prefix_set = false
+          end
+
+          if controller = options.delete(:controller)
+            controller_set = true
+            controller, @scope[:controller] = @scope[:controller], controller
+          else
+            controller_set = false
+          end
+
+          constraints = options.delete(:constraints) || {}
+          unless constraints.is_a?(Hash)
+            block, constraints = constraints, {}
+          end
+          constraints, @scope[:constraints] = @scope[:constraints], (@scope[:constraints] || {}).merge(constraints)
+          blocks, @scope[:blocks] = @scope[:blocks], (@scope[:blocks] || []) + [block]
+
+          options, @scope[:options] = @scope[:options], (@scope[:options] || {}).merge(options)
+
+          yield
+
+          self
+        ensure
+          @scope[:path] = path if path_set
+          @scope[:name_prefix] = name_prefix if name_prefix_set
+          @scope[:controller] = controller if controller_set
+          @scope[:options] = options
+          @scope[:blocks] = blocks
+          @scope[:constraints] = constraints
+        end
+
+        def controller(controller)
+          scope(controller.to_sym) { yield }
+        end
+
+        def namespace(path)
+          scope(path.to_s) { yield }
+        end
+
+        def constraints(constraints = {})
+          scope(:constraints => constraints) { yield }
+        end
+
+        def match(*args)
+          options = args.extract_options!
+
+          options = (@scope[:options] || {}).merge(options)
+
+          if @scope[:name_prefix]
+            options[:as] = "#{@scope[:name_prefix]}#{options[:as]}"
+          end
+
+          args.push(options)
+          super(*args)
+        end
+      end
+
       module Resources
         class Resource #:nodoc:
           attr_reader :plural, :singular
@@ -185,251 +428,10 @@ module ActionDispatch
           end
       end
 
-      module Scoping
-        def self.extended(object)
-          object.instance_eval do
-            @scope = {}
-          end
-        end
-
-        def scope(*args)
-          options = args.extract_options!
-
-          case args.first
-          when String
-            options[:path] = args.first
-          when Symbol
-            options[:controller] = args.first
-          end
-
-          if path = options.delete(:path)
-            path_set = true
-            path, @scope[:path] = @scope[:path], "#{@scope[:path]}#{Rack::Mount::Utils.normalize_path(path)}"
-          else
-            path_set = false
-          end
-
-          if name_prefix = options.delete(:name_prefix)
-            name_prefix_set = true
-            name_prefix, @scope[:name_prefix] = @scope[:name_prefix], (@scope[:name_prefix] ? "#{@scope[:name_prefix]}#{name_prefix}" : name_prefix)
-          else
-            name_prefix_set = false
-          end
-
-          if controller = options.delete(:controller)
-            controller_set = true
-            controller, @scope[:controller] = @scope[:controller], controller
-          else
-            controller_set = false
-          end
-
-          constraints = options.delete(:constraints) || {}
-          unless constraints.is_a?(Hash)
-            block, constraints = constraints, {}
-          end
-          constraints, @scope[:constraints] = @scope[:constraints], (@scope[:constraints] || {}).merge(constraints)
-          blocks, @scope[:blocks] = @scope[:blocks], (@scope[:blocks] || []) + [block]
-
-          options, @scope[:options] = @scope[:options], (@scope[:options] || {}).merge(options)
-
-          yield
-
-          self
-        ensure
-          @scope[:path] = path if path_set
-          @scope[:name_prefix] = name_prefix if name_prefix_set
-          @scope[:controller] = controller if controller_set
-          @scope[:options] = options
-          @scope[:blocks] = blocks
-          @scope[:constraints] = constraints
-        end
-
-        def controller(controller)
-          scope(controller.to_sym) { yield }
-        end
-
-        def namespace(path)
-          scope(path.to_s) { yield }
-        end
-
-        def constraints(constraints = {})
-          scope(:constraints => constraints) { yield }
-        end
-
-        def match(*args)
-          options = args.extract_options!
-
-          options = (@scope[:options] || {}).merge(options)
-
-          if @scope[:name_prefix]
-            options[:as] = "#{@scope[:name_prefix]}#{options[:as]}"
-          end
-
-          args.push(options)
-          super(*args)
-        end
-      end
-
-      module HttpHelpers
-        def get(*args, &block)
-          map_method(:get, *args, &block)
-        end
-
-        def post(*args, &block)
-          map_method(:post, *args, &block)
-        end
-
-        def put(*args, &block)
-          map_method(:put, *args, &block)
-        end
-
-        def delete(*args, &block)
-          map_method(:delete, *args, &block)
-        end
-
-        def redirect(path, options = {})
-          status = options[:status] || 301
-          lambda { |env|
-            req = Rack::Request.new(env)
-            url = req.scheme + '://' + req.host + path
-            [status, {'Location' => url, 'Content-Type' => 'text/html'}, ['Moved Permanently']]
-          }
-        end
-
-        private
-          def map_method(method, *args, &block)
-            options = args.extract_options!
-            options[:via] = method
-            args.push(options)
-            match(*args, &block)
-            self
-          end
-      end
-
-      class Constraints
-        def new(app, constraints = [])
-          if constraints.any?
-            super(app, constraints)
-          else
-            app
-          end
-        end
-
-        def initialize(app, constraints = [])
-          @app, @constraints = app, constraints
-        end
-
-        def call(env)
-          req = Rack::Request.new(env)
-
-          @constraints.each { |constraint|
-            if constraint.respond_to?(:matches?) && !constraint.matches?(req)
-              return [417, {}, []]
-            elsif constraint.respond_to?(:call) && !constraint.call(req)
-              return [417, {}, []]
-            end
-          }
-
-          @app.call(env)
-        end
-      end
-
-      def initialize(set)
-        @set = set
-
-        extend HttpHelpers
-        extend Scoping
-        extend Resources
-      end
-
-      def root(options = {})
-        match '/', options.merge(:as => :root)
-      end
-
-      def match(*args)
-        options = args.extract_options!
-
-        if args.length > 1
-          args.each { |path| match(path, options.reverse_merge(:as => path.to_sym)) }
-          return self
-        end
-
-        if args.first.is_a?(Symbol)
-          return match(args.first.to_s, options.merge(:to => args.first.to_sym))
-        end
-
-        path = args.first
-
-        conditions, defaults = {}, {}
-
-        path = nil if path == ""
-        path = Rack::Mount::Utils.normalize_path(path) if path
-        path = "#{@scope[:path]}#{path}" if @scope[:path]
-
-        raise ArgumentError, "path is required" unless path
-
-        constraints = options[:constraints] || {}
-        unless constraints.is_a?(Hash)
-          block, constraints = constraints, {}
-        end
-        blocks = ((@scope[:blocks] || []) + [block]).compact
-        constraints = (@scope[:constraints] || {}).merge(constraints)
-        options.each { |k, v| constraints[k] = v if v.is_a?(Regexp) }
-
-        conditions[:path_info] = path
-        requirements = constraints.dup
-
-        path_regexp = Rack::Mount::Strexp.compile(path, constraints, SEPARATORS)
-        segment_keys = Rack::Mount::RegexpWithNamedGroups.new(path_regexp).names
-        constraints.reject! { |k, v| segment_keys.include?(k.to_s) }
-        conditions.merge!(constraints)
-
-        requirements[:controller] ||= @set.controller_constraints
-
-        if via = options[:via]
-          via = Array(via).map { |m| m.to_s.upcase }
-          conditions[:request_method] = Regexp.union(*via)
-        end
-
-        defaults[:controller] ||= @scope[:controller].to_s if @scope[:controller]
-
-        app = initialize_app_endpoint(options, defaults)
-        validate_defaults!(app, defaults, segment_keys)
-        app = Constraints.new(app, blocks)
-
-        @set.add_route(app, conditions, requirements, defaults, options[:as])
-
-        self
-      end
-
-      private
-        def initialize_app_endpoint(options, defaults)
-          app = nil
-
-          if options[:to].respond_to?(:call)
-            app = options[:to]
-            defaults.delete(:controller)
-            defaults.delete(:action)
-          elsif options[:to].is_a?(String)
-            defaults[:controller], defaults[:action] = options[:to].split('#')
-          elsif options[:to].is_a?(Symbol)
-            defaults[:action] = options[:to].to_s
-          end
-
-          app || Routing::RouteSet::Dispatcher.new(:defaults => defaults)
-        end
-
-        def validate_defaults!(app, defaults, segment_keys)
-          return unless app.is_a?(Routing::RouteSet::Dispatcher)
-
-          unless defaults.include?(:controller) || segment_keys.include?("controller")
-            raise ArgumentError, "missing :controller"
-          end
-
-          unless defaults.include?(:action) || segment_keys.include?("action")
-            raise ArgumentError, "missing :action"
-          end
-        end
+      include Base
+      include HttpHelpers
+      include Scoping
+      include Resources
     end
   end
 end
