@@ -247,7 +247,7 @@ class UrlWriterTests < ActionController::TestCase
 
     with_routing do |set|
       set.draw do |map|
-        map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
+        match '/home/sweet/home/:user', :to => 'home#index', :as => :home
       end
 
       kls = Class.new { include ActionController::UrlWriter }
@@ -264,7 +264,7 @@ class UrlWriterTests < ActionController::TestCase
     with_routing do |set|
       set.draw do |map|
         match 'home/sweet/home/:user', :to => 'home#index', :as => :home
-        map.connect ':controller/:action/:id'
+        match ':controller/:action/:id'
       end
 
       # We need to create a new class in order to install the new named route.

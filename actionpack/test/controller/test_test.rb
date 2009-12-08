@@ -628,17 +628,6 @@ XML
       assert_nothing_raised(NoMethodError) { @response.binary_content }
     end
   end
-
-  protected
-    def with_foo_routing
-      with_routing do |set|
-        set.draw do |map|
-          map.generate_url 'foo', :controller => 'test'
-          map.connect      ':controller/:action/:id'
-        end
-        yield set
-      end
-    end
 end
 
 class InferringClassNameTest < ActionController::TestCase
