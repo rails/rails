@@ -216,6 +216,27 @@ module ActionDispatch
         def scope(*args)
           options = args.extract_options!
 
+          case args.first
+          when String
+            options[:path] = args.first
+          when Symbol
+            options[:controller] = args.first
+          end
+
+          if path = options.delete(:path)
+            path_set = true
+            path, @scope[:path] = @scope[:path], "#{@scope[:path]}#{Rack::Mount::Utils.normalize_path(path)}"
+          else
+            path_set = false
+          end
+
+          if controller = options.delete(:controller)
+            controller_set = true
+            controller, @scope[:controller] = @scope[:controller], controller
+          else
+            controller_set = false
+          end
+
           constraints = options.delete(:constraints) || {}
           unless constraints.is_a?(Hash)
             block, constraints = constraints, {}
@@ -224,19 +245,6 @@ module ActionDispatch
           blocks, @scope[:blocks] = @scope[:blocks], (@scope[:blocks] || []) + [block]
 
           options, @scope[:options] = @scope[:options], (@scope[:options] || {}).merge(options)
-
-          path_set = controller_set = false
-
-          case args.first
-          when String
-            path_set = true
-            path = args.first
-            path, @scope[:path] = @scope[:path], "#{@scope[:path]}#{Rack::Mount::Utils.normalize_path(path)}"
-          when Symbol
-            controller_set = true
-            controller = args.first
-            controller, @scope[:controller] = @scope[:controller], controller
-          end
 
           yield
 

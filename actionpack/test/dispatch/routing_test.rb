@@ -94,7 +94,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       controller :articles do
         scope 'articles' do
-          scope ':title', :title => /[a-z]+/, :as => :with_title do
+          scope :path => ':title', :title => /[a-z]+/, :as => :with_title do
             match ':id', :to => :with_id
           end
         end
