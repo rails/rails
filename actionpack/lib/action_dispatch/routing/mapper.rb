@@ -291,10 +291,8 @@ module ActionDispatch
           resource = SingletonResource.new(resources.pop)
 
           if @scope[:scope_level] == :resources
-            with_scope_level(:member) do
-              scope(parent_resource.id_segment, :name_prefix => parent_resource.member_name) do
-                resource(resource.name, options, &block)
-              end
+            nested do
+              resource(resource.name, options, &block)
             end
             return self
           end
@@ -329,10 +327,8 @@ module ActionDispatch
           resource = Resource.new(resources.pop)
 
           if @scope[:scope_level] == :resources
-            with_scope_level(:member) do
-              scope(parent_resource.id_segment, :name_prefix => parent_resource.member_name) do
-                resources(resource.name, options, &block)
-              end
+            nested do
+              resources(resource.name, options, &block)
             end
             return self
           end
@@ -382,6 +378,18 @@ module ActionDispatch
 
           with_scope_level(:member) do
             scope(":id", :name_prefix => parent_resource.member_name, :as => "") do
+              yield
+            end
+          end
+        end
+
+        def nested
+          unless @scope[:scope_level] == :resources
+            raise ArgumentError, "can't use nested outside resources scope"
+          end
+
+          with_scope_level(:nested) do
+            scope(parent_resource.id_segment, :name_prefix => parent_resource.member_name) do
               yield
             end
           end
