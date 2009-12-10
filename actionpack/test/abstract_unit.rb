@@ -83,7 +83,7 @@ class ActiveSupport::TestCase
   # have been loaded.
   setup_once do
     ActionController::Routing::Routes.draw do |map|
-      map.connect ':controller/:action/:id'
+      match ':controller(/:action(/:id))'
     end
   end
 end

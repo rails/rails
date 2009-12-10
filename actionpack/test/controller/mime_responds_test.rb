@@ -853,9 +853,11 @@ class RespondWithControllerTest < ActionController::TestCase
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
-          map.resources :customers
-          map.resources :quiz_stores, :has_many => :customers
-          map.connect ":controller/:action/:id"
+          resources :customers
+          resources :quiz_stores do
+            resources :customers
+          end
+          match ":controller/:action"
         end
         yield
       end

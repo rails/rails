@@ -269,7 +269,7 @@ module Rails
       #
       # === Example
       #
-      #   route "map.root :controller => :welcome"
+      #   route "root :to => 'welcome'"
       #
       def route(routing_code)
         log :route, routing_code

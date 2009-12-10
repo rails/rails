@@ -216,7 +216,14 @@ module ActionDispatch
 
       def draw(&block)
         clear!
-        Mapper.new(self).instance_exec(DeprecatedMapper.new(self), &block)
+
+        mapper = Mapper.new(self)
+        if block.arity == 1
+          mapper.instance_exec(DeprecatedMapper.new(self), &block)
+        else
+          mapper.instance_exec(&block)
+        end
+
         @set.add_route(NotFound)
         install_helpers
         @set.freeze

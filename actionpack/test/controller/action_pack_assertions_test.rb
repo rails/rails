@@ -221,8 +221,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_assert_redirect_to_named_route
     with_routing do |set|
       set.draw do |map|
-        map.route_one 'route_one', :controller => 'action_pack_assertions', :action => 'nothing'
-        map.connect   ':controller/:action/:id'
+        match 'route_one', :to => 'action_pack_assertions#nothing', :as => :route_one
+        match ':controller/:action'
       end
       set.install_helpers
 
@@ -235,9 +235,9 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_assert_redirect_to_named_route_failure
     with_routing do |set|
       set.draw do |map|
-        map.route_one 'route_one', :controller => 'action_pack_assertions', :action => 'nothing', :id => 'one'
-        map.route_two 'route_two', :controller => 'action_pack_assertions', :action => 'nothing', :id => 'two'
-        map.connect   ':controller/:action/:id'
+        match 'route_one', :to => 'action_pack_assertions#nothing', :as => :route_one
+        match 'route_two', :to => 'action_pack_assertions#nothing', :id => 'two', :as => :route_two
+        match ':controller/:action'
       end
       process :redirect_to_named_route
       assert_raise(ActiveSupport::TestCase::Assertion) do
@@ -255,8 +255,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_assert_redirect_to_nested_named_route
     with_routing do |set|
       set.draw do |map|
-        map.admin_inner_module 'admin/inner_module', :controller => 'admin/inner_module', :action => 'index'
-        map.connect            ':controller/:action/:id'
+        match 'admin/inner_module', :to => 'admin/inner_module#index', :as => :admin_inner_module
+        match ':controller/:action'
       end
       @controller = Admin::InnerModuleController.new
       process :redirect_to_index
@@ -268,8 +268,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_assert_redirected_to_top_level_named_route_from_nested_controller
     with_routing do |set|
       set.draw do |map|
-        map.top_level '/action_pack_assertions/:id', :controller => 'action_pack_assertions', :action => 'index'
-        map.connect   ':controller/:action/:id'
+        match '/action_pack_assertions/:id', :to => 'action_pack_assertions#index', :as => :top_level
+        match ':controller/:action'
       end
       @controller = Admin::InnerModuleController.new
       process :redirect_to_top_level_named_route
@@ -282,8 +282,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     with_routing do |set|
       set.draw do |map|
         # this controller exists in the admin namespace as well which is the only difference from previous test
-        map.top_level '/user/:id', :controller => 'user', :action => 'index'
-        map.connect   ':controller/:action/:id'
+        match '/user/:id', :to => 'user#index', :as => :top_level
+        match ':controller/:action'
       end
       @controller = Admin::InnerModuleController.new
       process :redirect_to_top_level_named_route
