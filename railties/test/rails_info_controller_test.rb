@@ -16,7 +16,7 @@ class InfoControllerTest < ActionController::TestCase
 
   def setup
     ActionController::Routing::Routes.draw do |map|
-      map.connect ':controller/:action/:id'
+      match ':controller/:action'
     end
     @controller.stubs(:consider_all_requests_local => false, :local_request? => true)
   end
