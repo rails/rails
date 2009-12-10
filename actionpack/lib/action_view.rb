@@ -43,6 +43,10 @@ module ActionView
   autoload :PathResolver,      'action_view/template/resolver'
   autoload :PathSet,           'action_view/paths'
   autoload :FileSystemResolverWithFallback, 'action_view/template/resolver'
+
+  autoload :TemplateError,     'action_view/template/error'
+  autoload :TemplateHandler,   'action_view/template'
+  autoload :TemplateHandlers,  'action_view/template'
 end
 
 require 'action_view/erb/util'

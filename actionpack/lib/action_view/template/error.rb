@@ -100,4 +100,6 @@ module ActionView
         end
     end
   end
+
+  TemplateError = Template::Error
 end
