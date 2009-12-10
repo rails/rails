@@ -14,7 +14,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   stub_controllers do |routes|
     Routes = routes
-    Routes.draw do |map|
+    Routes.draw do
       controller :sessions do
         get  'login', :to => :new, :as => :login
         post 'login', :to => :create
