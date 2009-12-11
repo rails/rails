@@ -976,7 +976,7 @@ class RouteSetTest < ActiveSupport::TestCase
     params = set.recognize_path("/people", :method => :put)
     assert_equal("update", params[:action])
 
-    assert_raise(ActionController::NotImplemented) {
+    assert_raise(ActionController::RoutingError) {
       set.recognize_path("/people", :method => :bacon)
     }
 
@@ -992,12 +992,9 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal("destroy", params[:action])
     assert_equal("5", params[:id])
 
-    begin
+    assert_raise(ActionController::RoutingError) {
       set.recognize_path("/people/5", :method => :post)
-      flunk 'Should have raised MethodNotAllowed'
-    rescue ActionController::MethodNotAllowed => e
-      assert_equal [:get, :put, :delete], e.allowed_methods
-    end
+    }
   end
 
   def test_recognize_with_alias_in_conditions
