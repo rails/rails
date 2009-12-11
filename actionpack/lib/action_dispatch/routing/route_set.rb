@@ -433,7 +433,7 @@ module ActionDispatch
           raise ActionController::RoutingError, "No route matches #{options.inspect}"
         end
 
-        uri, params = result
+        path, params = result
         params.each do |k, v|
           if v
             params[k] = v
@@ -442,16 +442,10 @@ module ActionDispatch
           end
         end
 
-        uri << "?#{params.to_query}" if uri && params.any?
-        path = uri
-
         if path && method == :generate_extras
-          uri = URI(path)
-          extras = uri.query ?
-            Rack::Utils.parse_nested_query(uri.query).keys.map { |k| k.to_sym } :
-            []
-          [uri.path, extras]
+          [path, params.keys]
         elsif path
+          path << "?#{params.to_query}" if params.any?
           path
         else
           raise ActionController::RoutingError, "No route matches #{options.inspect}"
