@@ -6,7 +6,14 @@ require "action_view/template/resolver"
 
 module ActionView
   class Template
-    extend TemplateHandlers
+    extend ActiveSupport::Autoload
+    
+    autoload :Error
+    autoload :Handler
+    autoload :Handlers
+    autoload :Text
+    
+    extend Template::Handlers
     attr_reader :source, :identifier, :handler, :mime_type, :formats, :details
 
     def initialize(source, identifier, handler, details)
@@ -32,11 +39,11 @@ module ActionView
         view.send(method_name, locals, &block)
       end
     rescue Exception => e
-      if e.is_a?(TemplateError)
+      if e.is_a?(Template::Error)
         e.sub_template_of(self)
         raise e
       else
-        raise TemplateError.new(self, view.assigns, e)
+        raise Template::Error.new(self, view.assigns, e)
       end
     end
 
@@ -103,7 +110,7 @@ module ActionView
             logger.debug "Backtrace: #{e.backtrace.join("\n")}"
           end
 
-          raise ActionView::TemplateError.new(self, {}, e)
+          raise ActionView::Template::Error.new(self, {}, e)
         end
       end
 

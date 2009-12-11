@@ -50,7 +50,7 @@ module ApplicationTests
 
       Dir.chdir("#{app_path}/app") do
         require "#{app_path}/config/environment"
-        assert_raises(NoMethodError, /day/) { 1.day }
+        assert_raises(NoMethodError) { 1.day }
       end
     end
   end

@@ -17,7 +17,7 @@ Description:
     For example, 'scaffold post title:string body:text published:boolean'
     gives you a model with those three attributes, a controller that handles
     the create/show/update/destroy, forms to create and edit your posts, and
-    an index that lists them all, as well as a map.resources :posts
+    an index that lists them all, as well as a resources :posts
     declaration in config/routes.rb.
 
     If you want to remove all the generated files, run

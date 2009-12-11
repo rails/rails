@@ -133,7 +133,19 @@ module ActionController #:nodoc:
         Array(key || keys).each { |k| used ? @used << k : @used.delete(k) }
         return key ? self[key] : self
       end
+  end
+
+  # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
+  # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
+  # to put a new one.
+  def flash #:doc:
+    unless @_flash
+      @_flash = session["flash"] || FlashHash.new
+      @_flash.sweep
     end
+
+    @_flash
+  end
 
   protected
     def process_action(method_name)
@@ -145,18 +157,6 @@ module ActionController #:nodoc:
     def reset_session
       super
       @_flash = nil
-    end
-
-    # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
-    # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
-    # to put a new one.
-    def flash #:doc:
-      unless @_flash
-        @_flash = session["flash"] || FlashHash.new
-        @_flash.sweep
-      end
-
-      @_flash
     end
   end
 end

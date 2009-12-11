@@ -233,8 +233,8 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_record
     with_routing do |set|
       set.draw do |map|
-        map.resources :workshops
-        map.connect ':controller/:action/:id'
+        resources :workshops
+        match ':controller/:action'
       end
 
       get :redirect_to_existing_record

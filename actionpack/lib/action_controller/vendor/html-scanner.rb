@@ -1,6 +1,8 @@
 $LOAD_PATH << "#{File.dirname(__FILE__)}/html-scanner"
 
 module HTML
+  extend ActiveSupport::Autoload
+
   autoload :CDATA, 'html/node'
   autoload :Document, 'html/document'
   autoload :FullSanitizer, 'html/sanitizer'

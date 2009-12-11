@@ -18,36 +18,37 @@ module ActionDispatch
 
         def call(env)
           params = env[PARAMETERS_KEY]
+          prepare_params!(params)
+
+          unless controller = controller(params)
+            return [417, {}, []]
+          end
+
+          controller.action(params[:action]).call(env)
+        end
+
+        def prepare_params!(params)
           merge_default_action!(params)
           split_glob_param!(params) if @glob_param
+
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY) if value.respond_to?(:force_encoding)
               params[key] = URI.unescape(value)
             end
           end
+        end
 
-          unless controller = controller(params)
-            return [417, {}, []]
+        def controller(params)
+          if params && params.has_key?(:controller)
+            controller = "#{params[:controller].camelize}Controller"
+            ActiveSupport::Inflector.constantize(controller)
           end
-
-          if env['action_controller.recognize']
-            [200, {}, params]
-          else
-            controller.action(params[:action]).call(env)
-          end
+        rescue NameError
+          nil
         end
 
         private
-          def controller(params)
-            if params && params.has_key?(:controller)
-              controller = "#{params[:controller].camelize}Controller"
-              ActiveSupport::Inflector.constantize(controller)
-            end
-          rescue NameError
-            nil
-          end
-
           def merge_default_action!(params)
             params[:action] ||= 'index'
           end
@@ -216,7 +217,14 @@ module ActionDispatch
 
       def draw(&block)
         clear!
-        Mapper.new(self).instance_exec(DeprecatedMapper.new(self), &block)
+
+        mapper = Mapper.new(self)
+        if block.arity == 1
+          mapper.instance_exec(DeprecatedMapper.new(self), &block)
+        else
+          mapper.instance_exec(&block)
+        end
+
         @set.add_route(NotFound)
         install_helpers
         @set.freeze
@@ -426,7 +434,7 @@ module ActionDispatch
           raise ActionController::RoutingError, "No route matches #{options.inspect}"
         end
 
-        uri, params = result
+        path, params = result
         params.each do |k, v|
           if v
             params[k] = v
@@ -435,16 +443,10 @@ module ActionDispatch
           end
         end
 
-        uri << "?#{params.to_query}" if uri && params.any?
-        path = uri
-
         if path && method == :generate_extras
-          uri = URI(path)
-          extras = uri.query ?
-            Rack::Utils.parse_nested_query(uri.query).keys.map { |k| k.to_sym } :
-            []
-          [uri.path, extras]
+          [path, params.keys]
         elsif path
+          path << "?#{params.to_query}" if params.any?
           path
         else
           raise ActionController::RoutingError, "No route matches #{options.inspect}"
@@ -455,37 +457,11 @@ module ActionDispatch
 
       def call(env)
         @set.call(env)
-      rescue ActionController::RoutingError => e
-        raise e if env['action_controller.rescue_error'] == false
-
-        method, path = env['REQUEST_METHOD'].downcase.to_sym, env['PATH_INFO']
-
-        # Route was not recognized. Try to find out why (maybe wrong verb).
-        allows = HTTP_METHODS.select { |verb|
-          begin
-            recognize_path(path, {:method => verb}, false)
-          rescue ActionController::RoutingError
-            nil
-          end
-        }
-
-        if !HTTP_METHODS.include?(method)
-          raise ActionController::NotImplemented.new(*allows)
-        elsif !allows.empty?
-          raise ActionController::MethodNotAllowed.new(*allows)
-        else
-          raise e
-        end
       end
 
-      def recognize(request)
-        params = recognize_path(request.path, extract_request_environment(request))
-        request.path_parameters = params.with_indifferent_access
-        "#{params[:controller].to_s.camelize}Controller".constantize
-      end
-
-      def recognize_path(path, environment = {}, rescue_error = true)
+      def recognize_path(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
+        path = Rack::Mount::Utils.normalize_path(path)
 
         begin
           env = Rack::MockRequest.env_for(path, {:method => method})
@@ -493,16 +469,16 @@ module ActionDispatch
           raise ActionController::RoutingError, e.message
         end
 
-        env['action_controller.recognize'] = true
-        env['action_controller.rescue_error'] = rescue_error
-        status, headers, body = call(env)
-        body
-      end
+        req = Rack::Request.new(env)
+        @set.recognize(req) do |route, params|
+          dispatcher = route.app
+          if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params)
+            dispatcher.prepare_params!(params)
+            return params
+          end
+        end
 
-      # Subclasses and plugins may override this method to extract further attributes
-      # from the request, for use by route conditions and such.
-      def extract_request_environment(request)
-        { :method => request.method }
+        raise ActionController::RoutingError, "No route matches #{path.inspect} with #{environment.inspect}"
       end
     end
   end

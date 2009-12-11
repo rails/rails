@@ -30,11 +30,13 @@ $:.unshift(activemodel_path) if File.directory?(activemodel_path)
 require 'active_model'
 
 module ActiveResource
-  autoload :Base, 'active_resource/base'
-  autoload :Connection, 'active_resource/connection'
-  autoload :CustomMethods, 'active_resource/custom_methods'
-  autoload :Formats, 'active_resource/formats'
-  autoload :Observing, 'active_resource/observing'
-  autoload :Validations, 'active_resource/validations'
-  autoload :HttpMock, 'active_resource/http_mock'
+  extend ActiveSupport::Autoload
+
+  autoload :Base
+  autoload :Connection
+  autoload :CustomMethods
+  autoload :Formats
+  autoload :Observing
+  autoload :Validations
+  autoload :HttpMock
 end

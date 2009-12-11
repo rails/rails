@@ -1,6 +1,6 @@
 module ActionView
-  module TemplateHandlers
-    class Builder < TemplateHandler
+  module Template::Handlers
+    class Builder < Template::Handler
       include Compilable
 
       self.default_format = Mime::XML

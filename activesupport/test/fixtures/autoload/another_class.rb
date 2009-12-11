@@ -1,0 +1,2 @@
+class Fixtures::AnotherClass
+end

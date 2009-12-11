@@ -196,7 +196,7 @@ module ActionView #:nodoc:
     end
 
     class << self
-      delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
+      delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
       delegate :logger, :to => 'ActionController::Base', :allow_nil => true
     end
 

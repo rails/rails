@@ -38,7 +38,7 @@ module AbstractController
       end
 
       def object
-        render :_template => ActionView::TextTemplate.new("With Object")
+        render :_template => ActionView::Template::Text.new("With Object")
       end
     end
 

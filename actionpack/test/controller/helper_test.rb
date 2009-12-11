@@ -191,7 +191,7 @@ class IsolatedHelpersTest < Test::Unit::TestCase
   end
 
   def test_helper_in_a
-    assert_raise(ActionView::TemplateError) { call_controller(A, "index") }
+    assert_raise(ActionView::Template::Error) { call_controller(A, "index") }
   end
 
   def test_helper_in_b

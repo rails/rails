@@ -680,13 +680,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal -2, Topic.find(2).replies_count
   end
 
-  def test_reset_counter_cache
+  def test_reset_counters
     assert_equal 1, Topic.find(1).replies_count
 
     Topic.increment_counter("replies_count", 1)
     assert_equal 2, Topic.find(1).replies_count
 
-    Topic.reset_counter_cache(:replies)
+    Topic.reset_counters(1, :replies)
     assert_equal 1, Topic.find(1).replies_count
   end
 

@@ -45,7 +45,7 @@ class NilClass
     def method_missing(method, *args, &block)
       # Ruby 1.9.2: disallow explicit coercion via method_missing.
       if method == :to_ary || method == :to_str
-        super
+        raise NoMethodError, "undefined method `#{method}' for nil:NilClass"
       elsif klass = METHOD_CLASS_MAP[method]
         raise_nil_warning_for klass, method, caller
       else

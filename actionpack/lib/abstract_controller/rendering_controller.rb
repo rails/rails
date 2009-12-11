@@ -115,7 +115,7 @@ module AbstractController
     # _partial<TrueClass, FalseClass>:: Whether or not the file to look up is a partial
     def _determine_template(options)
       if options.key?(:text)
-        options[:_template] = ActionView::TextTemplate.new(options[:text], format_for_text)
+        options[:_template] = ActionView::Template::Text.new(options[:text], format_for_text)
       elsif options.key?(:inline)
         handler = ActionView::Template.handler_class_for_extension(options[:type] || "erb")
         template = ActionView::Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
