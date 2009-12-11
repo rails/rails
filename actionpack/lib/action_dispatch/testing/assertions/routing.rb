@@ -134,9 +134,11 @@ module ActionDispatch
           # Assume given controller
           request = ActionController::TestRequest.new
           request.env["REQUEST_METHOD"] = request_method.to_s.upcase if request_method
-          request.path   = path
+          request.path = path
 
-          ActionController::Routing::Routes.recognize(request)
+          params = ActionController::Routing::Routes.recognize_path(path, { :method => request.method })
+          request.path_parameters = params.with_indifferent_access
+
           request
         end
     end

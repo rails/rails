@@ -554,10 +554,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   end
 
   def setup_request_method_routes_for(method)
-    @request = ActionController::TestRequest.new
-    @request.env["REQUEST_METHOD"] = method
-    @request.request_uri = "/match"
-
     rs.draw do |r|
       r.connect '/match', :controller => 'books', :action => 'get', :conditions => { :method => :get }
       r.connect '/match', :controller => 'books', :action => 'post', :conditions => { :method => :post }
@@ -569,8 +565,8 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   %w(GET POST PUT DELETE).each do |request_method|
     define_method("test_request_method_recognized_with_#{request_method}") do
       setup_request_method_routes_for(request_method)
-      assert_nothing_raised { rs.recognize(@request) }
-      assert_equal request_method.downcase, @request.path_parameters[:action]
+      params = rs.recognize_path("/match", :method => request_method)
+      assert_equal request_method.downcase, params[:action]
     end
   end
 
@@ -580,18 +576,11 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       r.connect '/match', :controller => 'books', :action => 'not_get_or_post'
     end
 
-    @request = ActionController::TestRequest.new
-    @request.env["REQUEST_METHOD"] = 'POST'
-    @request.request_uri = "/match"
-    assert_nothing_raised { rs.recognize(@request) }
-    assert_equal 'get_or_post', @request.path_parameters[:action]
+    params = rs.recognize_path("/match", :method => :post)
+    assert_equal 'get_or_post', params[:action]
 
-    # have to recreate or else the RouteSet uses a cached version:
-    @request = ActionController::TestRequest.new
-    @request.env["REQUEST_METHOD"] = 'PUT'
-    @request.request_uri = "/match"
-    assert_nothing_raised { rs.recognize(@request) }
-    assert_equal 'not_get_or_post', @request.path_parameters[:action]
+    params = rs.recognize_path("/match", :method => :put)
+    assert_equal 'not_get_or_post', params[:action]
   end
 
   def test_subpath_recognized
@@ -745,9 +734,7 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do |map|
       map.connect '/users/index', :controller => :users, :action => :index
     end
-    @request = ActionController::TestRequest.new
-    @request.request_uri = '/users/index'
-    assert_nothing_raised { set.recognize(@request) }
+    params = set.recognize_path('/users/index', :method => :get)
     assert_equal 1, set.routes.size
   end
 
@@ -980,55 +967,37 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    request.request_uri = "/people"
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("index", request.path_parameters[:action])
-    request.recycle!
+    params = set.recognize_path("/people", :method => :get)
+    assert_equal("index", params[:action])
 
-    request.env["REQUEST_METHOD"] = "POST"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("create", request.path_parameters[:action])
-    request.recycle!
+    params = set.recognize_path("/people", :method => :post)
+    assert_equal("create", params[:action])
 
-    request.env["REQUEST_METHOD"] = "PUT"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("update", request.path_parameters[:action])
-    request.recycle!
+    params = set.recognize_path("/people", :method => :put)
+    assert_equal("update", params[:action])
 
-    assert_raise(ActionController::UnknownHttpMethod) {
-      request.env["REQUEST_METHOD"] = "BACON"
-      set.recognize(request)
+    assert_raise(ActionController::NotImplemented) {
+      set.recognize_path("/people", :method => :bacon)
     }
-    request.recycle!
 
-    request.request_uri = "/people/5"
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("show", request.path_parameters[:action])
-    assert_equal("5", request.path_parameters[:id])
-    request.recycle!
+    params = set.recognize_path("/people/5", :method => :get)
+    assert_equal("show", params[:action])
+    assert_equal("5", params[:id])
 
-    request.env["REQUEST_METHOD"] = "PUT"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("update", request.path_parameters[:action])
-    assert_equal("5", request.path_parameters[:id])
-    request.recycle!
+    params = set.recognize_path("/people/5", :method => :put)
+    assert_equal("update", params[:action])
+    assert_equal("5", params[:id])
 
-    request.env["REQUEST_METHOD"] = "DELETE"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("destroy", request.path_parameters[:action])
-    assert_equal("5", request.path_parameters[:id])
-    request.recycle!
+    params = set.recognize_path("/people/5", :method => :delete)
+    assert_equal("destroy", params[:action])
+    assert_equal("5", params[:id])
 
     begin
-      request.env["REQUEST_METHOD"] = "POST"
-      set.recognize(request)
+      set.recognize_path("/people/5", :method => :post)
       flunk 'Should have raised MethodNotAllowed'
     rescue ActionController::MethodNotAllowed => e
       assert_equal [:get, :put, :delete], e.allowed_methods
     end
-    request.recycle!
   end
 
   def test_recognize_with_alias_in_conditions
@@ -1038,17 +1007,13 @@ class RouteSetTest < ActiveSupport::TestCase
       map.root   :people
     end
 
-    request.path = "/people"
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("people", request.path_parameters[:controller])
-    assert_equal("index", request.path_parameters[:action])
+    params = set.recognize_path("/people", :method => :get)
+    assert_equal("people", params[:controller])
+    assert_equal("index", params[:action])
 
-    request.path = "/"
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("people", request.path_parameters[:controller])
-    assert_equal("index", request.path_parameters[:action])
+    params = set.recognize_path("/", :method => :get)
+    assert_equal("people", params[:controller])
+    assert_equal("index", params[:action])
   end
 
   def test_typo_recognition
@@ -1058,14 +1023,12 @@ class RouteSetTest < ActiveSupport::TestCase
              :year => /\d{4}/, :day => /\d{1,2}/, :month => /\d{1,2}/
     end
 
-    request.path = "/articles/2005/11/05/a-very-interesting-article"
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("permalink", request.path_parameters[:action])
-    assert_equal("2005", request.path_parameters[:year])
-    assert_equal("11", request.path_parameters[:month])
-    assert_equal("05", request.path_parameters[:day])
-    assert_equal("a-very-interesting-article", request.path_parameters[:title])
+    params = set.recognize_path("/articles/2005/11/05/a-very-interesting-article", :method => :get)
+    assert_equal("permalink", params[:action])
+    assert_equal("2005", params[:year])
+    assert_equal("11", params[:month])
+    assert_equal("05", params[:day])
+    assert_equal("a-very-interesting-article", params[:title])
   end
 
   def test_routing_traversal_does_not_load_extra_classes
@@ -1074,9 +1037,7 @@ class RouteSetTest < ActiveSupport::TestCase
       map.connect '/profile', :controller => 'profile'
     end
 
-    request.path = '/profile'
-
-    set.recognize(request) rescue nil
+    params = set.recognize_path("/profile") rescue nil
 
     assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
   end
@@ -1090,24 +1051,17 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    request.request_uri = "/people/5"
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("show", request.path_parameters[:action])
-    assert_equal("5", request.path_parameters[:id])
-    request.recycle!
+    params = set.recognize_path("/people/5", :method => :get)
+    assert_equal("show", params[:action])
+    assert_equal("5", params[:id])
 
-    request.env["REQUEST_METHOD"] = "PUT"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("update", request.path_parameters[:action])
-    request.recycle!
+    params = set.recognize_path("/people/5", :method => :put)
+    assert_equal("update", params[:action])
 
-    request.request_uri = "/people/5.png"
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("show", request.path_parameters[:action])
-    assert_equal("5", request.path_parameters[:id])
-    assert_equal("png", request.path_parameters[:_format])
+    params = set.recognize_path("/people/5.png", :method => :get)
+    assert_equal("show", params[:action])
+    assert_equal("5", params[:id])
+    assert_equal("png", params[:_format])
   end
 
   def test_generate_with_default_action
@@ -1123,11 +1077,9 @@ class RouteSetTest < ActiveSupport::TestCase
   def test_root_map
     set.draw { |map| map.root :controller => "people" }
 
-    request.path = ""
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("people", request.path_parameters[:controller])
-    assert_equal("index", request.path_parameters[:action])
+    params = set.recognize_path("", :method => :get)
+    assert_equal("people", params[:controller])
+    assert_equal("index", params[:action])
   end
 
   def test_namespace
@@ -1139,11 +1091,9 @@ class RouteSetTest < ActiveSupport::TestCase
 
     end
 
-    request.path = "/api/inventory"
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("api/products", request.path_parameters[:controller])
-    assert_equal("inventory", request.path_parameters[:action])
+    params = set.recognize_path("/api/inventory", :method => :get)
+    assert_equal("api/products", params[:controller])
+    assert_equal("inventory", params[:action])
   end
 
   def test_namespaced_root_map
@@ -1155,11 +1105,9 @@ class RouteSetTest < ActiveSupport::TestCase
 
     end
 
-    request.path = "/api"
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("api/products", request.path_parameters[:controller])
-    assert_equal("index", request.path_parameters[:action])
+    params = set.recognize_path("/api", :method => :get)
+    assert_equal("api/products", params[:controller])
+    assert_equal("index", params[:action])
   end
 
   def test_namespace_with_path_prefix
@@ -1169,11 +1117,9 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    request.path = "/prefix/inventory"
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("api/products", request.path_parameters[:controller])
-    assert_equal("inventory", request.path_parameters[:action])
+    params = set.recognize_path("/prefix/inventory", :method => :get)
+    assert_equal("api/products", params[:controller])
+    assert_equal("inventory", params[:action])
   end
 
   def test_namespace_with_blank_path_prefix
@@ -1183,11 +1129,9 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    request.path = "/inventory"
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("api/products", request.path_parameters[:controller])
-    assert_equal("inventory", request.path_parameters[:action])
+    params = set.recognize_path("/inventory", :method => :get)
+    assert_equal("api/products", params[:controller])
+    assert_equal("inventory", params[:action])
   end
 
   def test_generate_changes_controller_module
@@ -1316,11 +1260,9 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    request.path = "/projects/1/milestones"
-    request.env["REQUEST_METHOD"] = "GET"
-    assert_nothing_raised { set.recognize(request) }
-    assert_equal("milestones", request.path_parameters[:controller])
-    assert_equal("index", request.path_parameters[:action])
+    params = set.recognize_path("/projects/1/milestones", :method => :get)
+    assert_equal("milestones", params[:controller])
+    assert_equal("index", params[:action])
   end
 
   def test_setting_root_in_namespace_using_symbol

@@ -479,12 +479,6 @@ module ActionDispatch
         end
       end
 
-      def recognize(request)
-        params = recognize_path(request.path, extract_request_environment(request))
-        request.path_parameters = params.with_indifferent_access
-        "#{params[:controller].to_s.camelize}Controller".constantize
-      end
-
       def recognize_path(path, environment = {}, rescue_error = true)
         method = (environment[:method] || "GET").to_s.upcase
 
@@ -498,12 +492,6 @@ module ActionDispatch
         env['action_controller.rescue_error'] = rescue_error
         status, headers, body = call(env)
         body
-      end
-
-      # Subclasses and plugins may override this method to extract further attributes
-      # from the request, for use by route conditions and such.
-      def extract_request_environment(request)
-        { :method => request.method }
       end
     end
   end
