@@ -349,6 +349,10 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal 946684800.0, DateTime.civil(1999,12,31,19,0,0,Rational(-5,24)).to_f
   end
 
+  def test_to_i
+    assert_equal 946684800, DateTime.civil(2000).to_i
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
