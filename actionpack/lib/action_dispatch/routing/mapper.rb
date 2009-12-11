@@ -2,7 +2,7 @@ module ActionDispatch
   module Routing
     class Mapper
       class Constraints
-        def new(app, constraints = [])
+        def self.new(app, constraints = [])
           if constraints.any?
             super(app, constraints)
           else

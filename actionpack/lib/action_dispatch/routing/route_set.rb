@@ -18,36 +18,37 @@ module ActionDispatch
 
         def call(env)
           params = env[PARAMETERS_KEY]
+          prepare_params!(params)
+
+          unless controller = controller(params)
+            return [417, {}, []]
+          end
+
+          controller.action(params[:action]).call(env)
+        end
+
+        def prepare_params!(params)
           merge_default_action!(params)
           split_glob_param!(params) if @glob_param
+
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY) if value.respond_to?(:force_encoding)
               params[key] = URI.unescape(value)
             end
           end
+        end
 
-          unless controller = controller(params)
-            return [417, {}, []]
+        def controller(params)
+          if params && params.has_key?(:controller)
+            controller = "#{params[:controller].camelize}Controller"
+            ActiveSupport::Inflector.constantize(controller)
           end
-
-          if env['action_controller.recognize']
-            [200, {}, params]
-          else
-            controller.action(params[:action]).call(env)
-          end
+        rescue NameError
+          nil
         end
 
         private
-          def controller(params)
-            if params && params.has_key?(:controller)
-              controller = "#{params[:controller].camelize}Controller"
-              ActiveSupport::Inflector.constantize(controller)
-            end
-          rescue NameError
-            nil
-          end
-
           def merge_default_action!(params)
             params[:action] ||= 'index'
           end
@@ -460,6 +461,7 @@ module ActionDispatch
 
       def recognize_path(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
+        path = Rack::Mount::Utils.normalize_path(path)
 
         begin
           env = Rack::MockRequest.env_for(path, {:method => method})
@@ -467,9 +469,16 @@ module ActionDispatch
           raise ActionController::RoutingError, e.message
         end
 
-        env['action_controller.recognize'] = true
-        status, headers, body = call(env)
-        body
+        req = Rack::Request.new(env)
+        @set.recognize(req) do |route, params|
+          dispatcher = route.app
+          if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params)
+            dispatcher.prepare_params!(params)
+            return params
+          end
+        end
+
+        raise ActionController::RoutingError, "No route matches #{path.inspect} with #{environment.inspect}"
       end
     end
   end
