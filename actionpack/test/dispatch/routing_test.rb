@@ -228,9 +228,23 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'involvements#index', @response.body
       assert_equal '/projects/1/involvements', project_involvements_path(:project_id => '1')
 
+      get '/projects/1/involvements/new'
+      assert_equal 'involvements#new', @response.body
+      assert_equal '/projects/1/involvements/new', new_project_involvement_path(:project_id => '1')
+
       get '/projects/1/involvements/1'
       assert_equal 'involvements#show', @response.body
       assert_equal '/projects/1/involvements/1', project_involvement_path(:project_id => '1', :id => '1')
+
+      put '/projects/1/involvements/1'
+      assert_equal 'involvements#update', @response.body
+
+      delete '/projects/1/involvements/1'
+      assert_equal 'involvements#destroy', @response.body
+
+      get '/projects/1/involvements/1/edit'
+      assert_equal 'involvements#edit', @response.body
+      assert_equal '/projects/1/involvements/1/edit', edit_project_involvement_path(:project_id => '1', :id => '1')
     end
   end
 

@@ -338,7 +338,9 @@ module ActionDispatch
               with_scope_level(:collection) do
                 get "(.:format)", :to => :index, :as => resource.collection_name
                 post "(.:format)", :to => :create
-                get "/new(.:format)", :to => :new, :as => "new_#{resource.singular}"
+                with_exclusive_name_prefix :new do
+                  get "/new(.:format)", :to => :new, :as => resource.singular
+                end
               end
 
               with_scope_level(:member) do
@@ -346,7 +348,9 @@ module ActionDispatch
                   get "(.:format)", :to => :show, :as => resource.member_name
                   put "(.:format)", :to => :update
                   delete "(.:format)", :to => :destroy
-                  get "/edit(.:format)", :to => :edit, :as => "edit_#{resource.singular}"
+                  with_exclusive_name_prefix :edit do
+                    get "/edit(.:format)", :to => :edit, :as => resource.singular
+                  end
                 end
               end
             end
@@ -400,11 +404,8 @@ module ActionDispatch
           end
 
           if args.first.is_a?(Symbol)
-            begin
-              old_name_prefix, @scope[:name_prefix] = @scope[:name_prefix], "#{args.first}_#{@scope[:name_prefix]}"
+            with_exclusive_name_prefix(args.first) do
               return match("/#{args.first}(.:format)", options.merge(:to => args.first.to_sym))
-            ensure
-              @scope[:name_prefix] = old_name_prefix
             end
           end
 
@@ -430,6 +431,22 @@ module ActionDispatch
           end
 
         private
+          def with_exclusive_name_prefix(prefix)
+            begin
+              old_name_prefix = @scope[:name_prefix]
+
+              if !old_name_prefix.blank?
+                @scope[:name_prefix] = "#{prefix}_#{@scope[:name_prefix]}"
+              else
+                @scope[:name_prefix] = prefix.to_s
+              end
+
+              yield
+            ensure
+              @scope[:name_prefix] = old_name_prefix
+            end
+          end
+
           def with_scope_level(kind, resource = parent_resource)
             old, @scope[:scope_level] = @scope[:scope_level], kind
             old_resource, @scope[:scope_level_resource] = @scope[:scope_level_resource], resource
