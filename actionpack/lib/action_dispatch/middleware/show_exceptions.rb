@@ -2,8 +2,6 @@ require "active_support/core_ext/exception"
 
 module ActionDispatch
   class ShowExceptions
-    include StatusCodes
-
     LOCALHOST = '127.0.0.1'.freeze
 
     RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
@@ -104,7 +102,7 @@ module ActionDispatch
       end
 
       def status_code(exception)
-        interpret_status(@@rescue_responses[exception.class.name]).to_i
+        ActionDispatch::StatusCodes::SYMBOL_TO_STATUS_CODE[@@rescue_responses[exception.class.name]]
       end
 
       def render(status, body)

@@ -19,7 +19,6 @@ module ActionController
 
     # Legacy modules
     include SessionManagement
-    include ActionDispatch::StatusCodes
     include ActionController::Caching
     include ActionController::MimeResponds
 
@@ -91,7 +90,7 @@ module ActionController
       end
 
       if options[:status]
-        options[:status] = interpret_status(options[:status]).to_i
+        options[:status] = _interpret_status(options[:status])
       end
 
       options[:update] = blk if block_given?
@@ -140,9 +139,9 @@ module ActionController
       raise ActionControllerError.new("Cannot redirect to nil!") if options.nil?
 
       status = if options.is_a?(Hash) && options.key?(:status)
-        interpret_status(options.delete(:status))
+        _interpret_status(options.delete(:status))
       elsif response_status.key?(:status)
-        interpret_status(response_status[:status])
+        _interpret_status(response_status[:status])
       else
         302
       end
@@ -164,5 +163,14 @@ module ActionController
 
       super(url, status)
     end
+
+    private
+      def _interpret_status(status)
+        if status.is_a?(Symbol)
+          (ActionDispatch::StatusCodes::SYMBOL_TO_STATUS_CODE[status] || 500)
+        else
+          status.to_i
+        end
+      end
   end
 end
