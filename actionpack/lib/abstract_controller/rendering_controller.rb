@@ -1,3 +1,4 @@
+require "abstract_controller/base"
 require "abstract_controller/logger"
 
 module AbstractController
