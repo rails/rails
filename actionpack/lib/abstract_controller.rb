@@ -11,11 +11,4 @@ module AbstractController
   autoload :LocalizedCache
   autoload :Logger
   autoload :RenderingController
-
-  # === Exceptions
-  autoload_at "abstract_controller/exceptions" do
-    autoload :ActionNotFound
-    autoload :DoubleRenderError
-    autoload :Error
-  end
 end
