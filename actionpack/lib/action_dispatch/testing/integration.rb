@@ -2,7 +2,6 @@ require 'stringio'
 require 'uri'
 require 'active_support/test_case'
 require 'active_support/core_ext/object/metaclass'
-require 'action_dispatch/testing/test_process'
 require 'rack/test'
 
 module ActionDispatch

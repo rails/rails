@@ -1,7 +1,6 @@
 require 'active_support/test_case'
 require 'rack/session/abstract/id'
 require 'action_controller/metal/testing'
-require 'action_dispatch/test_case'
 
 module ActionController
   class TestRequest < ActionDispatch::TestRequest #:nodoc:

@@ -6,6 +6,7 @@ require 'active_support/memoizable'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/string/access'
+require 'action_dispatch/http/headers'
 
 module ActionDispatch
   class Request < Rack::Request
@@ -117,7 +118,7 @@ module ActionDispatch
         end
       end
     end
-    
+
     def if_modified_since
       if since = env['HTTP_IF_MODIFIED_SINCE']
         Time.rfc2822(since) rescue nil
