@@ -1187,4 +1187,3 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'Welcome to the weblog', Comment.all.map { |comment| comment.post }.sort_by(&:id).first.instance_eval{title}
   end
 end
-
