@@ -2,9 +2,8 @@ require 'stringio'
 require 'uri'
 require 'active_support/test_case'
 require 'active_support/core_ext/object/metaclass'
-
-# TODO: Remove circular dependency on ActionController
-require 'action_controller/testing/process'
+require 'action_dispatch/testing/test_process'
+require 'rack/test'
 
 module ActionDispatch
   module Integration #:nodoc:
@@ -128,9 +127,7 @@ module ActionDispatch
       DEFAULT_HOST = "www.example.com"
 
       include Test::Unit::Assertions
-      include ActionDispatch::Assertions
-      include ActionController::TestProcess
-      include RequestHelpers
+      include TestProcess, RequestHelpers, Assertions
 
       %w( status status_message headers body redirect? ).each do |method|
         delegate method, :to => :response, :allow_nil => true

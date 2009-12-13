@@ -1,3 +1,4 @@
+require "rack/test"
 require "action_dispatch/testing/assertions"
 require "action_dispatch/testing/integration"
 require "action_dispatch/testing/performance_test"

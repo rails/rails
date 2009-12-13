@@ -126,6 +126,46 @@ module ActionDispatch
         assert_generates(path.is_a?(Hash) ? path[:path] : path, options, defaults, extras, message)
       end
 
+      # A helper to make it easier to test different route configurations.
+      # This method temporarily replaces ActionController::Routing::Routes
+      # with a new RouteSet instance.
+      #
+      # The new instance is yielded to the passed block. Typically the block
+      # will create some routes using <tt>map.draw { map.connect ... }</tt>:
+      #
+      #   with_routing do |set|
+      #     set.draw do |map|
+      #       map.connect ':controller/:action/:id'
+      #         assert_equal(
+      #           ['/content/10/show', {}],
+      #           map.generate(:controller => 'content', :id => 10, :action => 'show')
+      #       end
+      #     end
+      #   end
+      #
+      def with_routing
+        real_routes = ActionController::Routing::Routes
+        ActionController::Routing.module_eval { remove_const :Routes }
+
+        temporary_routes = ActionController::Routing::RouteSet.new
+        ActionController::Routing.module_eval { const_set :Routes, temporary_routes }
+
+        yield temporary_routes
+      ensure
+        if ActionController::Routing.const_defined? :Routes
+          ActionController::Routing.module_eval { remove_const :Routes }
+        end
+        ActionController::Routing.const_set(:Routes, real_routes) if real_routes
+      end
+
+      def method_missing(selector, *args, &block)
+        if @controller && ActionController::Routing::Routes.named_routes.helpers.include?(selector)
+          @controller.send(selector, *args, &block)
+        else
+          super
+        end
+      end
+
       private
         # Recognizes the route for a given path.
         def recognized_request_for(path, request_method = nil)

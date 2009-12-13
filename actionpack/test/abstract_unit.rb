@@ -198,7 +198,7 @@ module ActionController
   Base.view_paths = FIXTURE_LOAD_PATH
 
   class TestCase
-    include TestProcess
+    include ActionDispatch::TestProcess
 
     def assert_template(options = {}, message = nil)
       validate_request!
