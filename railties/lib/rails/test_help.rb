@@ -12,7 +12,6 @@ require 'active_support/core_ext/kernel/requires'
 # AP is always present
 require 'action_controller/test_case'
 require 'action_view/test_case'
-require 'action_dispatch/test_case'
 
 require 'action_mailer/test_case' if defined?(ActionMailer)
 require 'active_model/test_case'  if defined?(ActiveModel)
