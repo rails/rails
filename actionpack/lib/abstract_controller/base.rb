@@ -90,6 +90,8 @@ module AbstractController
         raise ActionNotFound, "The action '#{action}' could not be found"
       end
 
+      @_response_body = nil
+
       process_action(action_name)
     end
 
