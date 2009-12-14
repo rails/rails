@@ -81,5 +81,43 @@ module ApplicationTests
       get '/admin/foo'
       assert_equal 'admin::foo', last_response.body
     end
+
+    test "merges with plugin routes" do
+      controller 'foo', <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            render :text => "foo"
+          end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        ActionController::Routing::Routes.draw do |map|
+          match 'foo', :to => 'foo#index'
+        end
+      RUBY
+
+      plugin 'bar', 'require File.dirname(__FILE__) + "/app/controllers/bar"' do |plugin|
+        plugin.write 'app/controllers/bar.rb', <<-RUBY
+          class BarController < ActionController::Base
+            def index
+              render :text => "bar"
+            end
+          end
+        RUBY
+
+        plugin.write 'config/routes.rb', <<-RUBY
+          ActionController::Routing::Routes.draw do |map|
+            match 'bar', :to => 'bar#index'
+          end
+        RUBY
+      end
+
+      get '/foo'
+      assert_equal 'foo', last_response.body
+
+      get '/bar'
+      assert_equal 'bar', last_response.body
+    end
   end
 end

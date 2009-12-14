@@ -212,11 +212,14 @@ module ActionDispatch
         self.routes = []
         self.named_routes = NamedRouteCollection.new
 
+        @clear_before_draw = true
+        @finalize_set_on_draw = true
+
         clear!
       end
 
       def draw(&block)
-        clear!
+        clear! if @clear_before_draw
 
         mapper = Mapper.new(self)
         if block.arity == 1
@@ -225,9 +228,13 @@ module ActionDispatch
           mapper.instance_exec(&block)
         end
 
-        @set.add_route(NotFound)
-        install_helpers
-        @set.freeze
+        if @finalize_set_on_draw
+          @set.add_route(NotFound)
+          install_helpers
+          @set.freeze
+        end
+
+        nil
       end
 
       def clear!
@@ -283,7 +290,15 @@ module ActionDispatch
 
       def load_routes!
         if configuration_files.any?
-          configuration_files.each { |config| load(config) }
+          @finalize_set_on_draw = false
+          configuration_files.each_with_index do |config, index|
+            @finalize_set_on_draw = true if index == (configuration_files.length - 1)
+            load(config)
+            @clear_before_draw = false if index == 0
+          end
+          @clear_before_draw = true
+          @finalize_set_on_draw = true
+
           @routes_last_modified = routes_changed_at
         else
           draw do |map|
