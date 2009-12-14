@@ -149,6 +149,7 @@ module ActionController #:nodoc:
 
   protected
     def process_action(method_name)
+      @_flash = nil
       super
       @_flash.store(session) if @_flash
       @_flash = nil
