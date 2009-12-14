@@ -42,8 +42,13 @@ module Rails
       end
     end
 
+    attr_reader :route_configuration_files
+
     def initialize
       Rails.application ||= self
+
+      @route_configuration_files = []
+
       run_initializers(self)
     end
 
@@ -63,6 +68,32 @@ module Rails
 
     def routes
       ActionController::Routing::Routes
+    end
+
+    def routes_changed_at
+      routes_changed_at = nil
+
+      route_configuration_files.each do |config|
+        config_changed_at = File.stat(config).mtime
+
+        if routes_changed_at.nil? || config_changed_at > routes_changed_at
+          routes_changed_at = config_changed_at
+        end
+      end
+
+      routes_changed_at
+    end
+
+    def reload_routes!
+      routes.disable_clear_and_finalize = true
+
+      routes.clear!
+      route_configuration_files.each { |config| load(config) }
+      routes.finalize!
+
+      nil
+    ensure
+      routes.disable_clear_and_finalize = false
     end
 
     def initializers
@@ -359,6 +390,18 @@ module Rails
       next unless configuration.frameworks.include?(:action_controller)
       require 'rails/dispatcher' unless defined?(::Dispatcher)
       Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
+
+      unless configuration.cache_classes
+        # Setup dev mode route reloading
+        routes_last_modified = routes_changed_at
+        reload_routes = lambda do
+          unless routes_changed_at == routes_last_modified
+            routes_last_modified = routes_changed_at
+            reload_routes!
+          end
+        end
+        ActionDispatch::Callbacks.before_dispatch { |callbacks| reload_routes }
+      end
     end
 
     # Routing must be initialized after plugins to allow the former to extend the routes
@@ -368,10 +411,8 @@ module Rails
     # loading module used to lazily load controllers (Configuration#controller_paths).
     initializer :initialize_routing do
       next unless configuration.frameworks.include?(:action_controller)
-
-      ActionController::Routing::Routes.controller_paths += configuration.controller_paths
-      ActionController::Routing::Routes.add_configuration_file(configuration.routes_configuration_file)
-      ActionController::Routing::Routes.reload!
+      route_configuration_files << configuration.routes_configuration_file
+      reload_routes!
     end
     #
     # # Observers are loaded after plugins in case Observers or observed models are modified by plugins.

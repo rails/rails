@@ -46,7 +46,6 @@ module ActionDispatch
           request_method = nil
         end
 
-        ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty?
         request = recognized_request_for(path, request_method)
 
         expected_options = expected_options.clone
@@ -80,7 +79,6 @@ module ActionDispatch
       def assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)
         expected_path = "/#{expected_path}" unless expected_path[0] == ?/
         # Load routes.rb if it hasn't been loaded.
-        ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty?
 
         generated_path, extra_keys = ActionController::Routing::Routes.generate_extras(options, defaults)
         found_extras = options.reject {|k, v| ! extra_keys.include? k}

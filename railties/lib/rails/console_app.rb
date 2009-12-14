@@ -27,6 +27,6 @@ end
 def reload!
   puts "Reloading..."
   ActionDispatch::Callbacks.new(lambda {}, true)
-  ActionController::Routing::Routes.reload
+  Rails.application.reload_routes!
   true
 end
