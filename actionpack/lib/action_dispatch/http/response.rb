@@ -49,6 +49,9 @@ module ActionDispatch # :nodoc:
       @body, @cookie = [], []
       @sending_file = false
 
+      @blank = false
+      @etag = nil
+
       yield self if block_given?
     end
 
