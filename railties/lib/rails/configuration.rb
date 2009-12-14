@@ -2,15 +2,19 @@ require 'active_support/ordered_options'
 
 module Rails
   class Configuration
-    attr_accessor :cache_classes, :load_paths, :load_once_paths, :after_initialize_blocks,
-                  :frameworks, :framework_root_path, :root, :gems, :plugins,
-                  :i18n, :gems, :whiny_nils, :consider_all_requests_local,
-                  :action_controller, :active_record, :action_view, :active_support,
-                  :action_mailer, :active_resource,
-                  :reload_plugins, :log_path, :log_level, :logger, :preload_frameworks,
-                  :database_configuration_file, :cache_store, :time_zone,
-                  :view_path, :metals, :controller_paths, :routes_configuration_file,
-                  :eager_load_paths, :dependency_loading, :paths, :serve_static_assets
+    attr_accessor :action_controller, :action_mailer, :action_view,
+                  :active_record, :active_resource, :active_support,
+                  :after_initialize_blocks, :cache_classes,
+                  :consider_all_requests_local, :dependency_loading, :gems,
+                  :load_once_paths, :logger, :metals, :plugins,
+                  :preload_frameworks, :reload_plugins, :serve_static_assets,
+                  :time_zone, :whiny_nils
+
+    attr_writer :cache_store, :controller_paths,
+                :database_configuration_file, :eager_load_paths,
+                :frameworks, :framework_root_path, :i18n, :load_paths,
+                :log_level, :log_path, :paths, :routes_configuration_file,
+                :view_path
 
     def initialize
       @load_once_paths              = []

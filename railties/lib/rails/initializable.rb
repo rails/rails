@@ -5,7 +5,7 @@ module Rails
     end
 
     class Initializer
-      attr_reader :name, :before, :after, :global, :block
+      attr_reader :name, :block
 
       def initialize(name, context, options, &block)
         @name, @context, @options, @block = name, context, options, block
@@ -62,7 +62,7 @@ module Rails
     end
 
     def run_initializers(*args)
-      return if @ran
+      return if instance_variable_defined?(:@ran)
       initializers.each do |initializer|
         initializer.run(*args)
       end
