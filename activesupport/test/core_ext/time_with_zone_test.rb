@@ -283,6 +283,12 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert result.is_a?(Integer)
   end
 
+  def test_to_i_with_wrapped_datetime
+    datetime = DateTime.civil(2000, 1, 1, 0)
+    twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
+    assert_equal 946684800, twz.to_i
+  end
+
   def test_to_time
     assert_equal @twz, @twz.to_time
   end
