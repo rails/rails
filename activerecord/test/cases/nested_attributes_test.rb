@@ -354,6 +354,15 @@ module NestedAttributesOnACollectionAssociationTests
     assert_respond_to @pirate, association_setter
   end
 
+  def test_should_save_only_one_association_on_create
+    pirate = Pirate.create!({
+      :catchphrase => 'Arr',
+      association_getter => { 'foo' => { :name => 'Grace OMalley' } }
+    })
+
+    assert_equal 1, pirate.reload.send(@association_name).count
+  end
+
   def test_should_take_a_hash_with_string_keys_and_assign_the_attributes_to_the_associated_models
     @alternate_params[association_getter].stringify_keys!
     @pirate.update_attributes @alternate_params

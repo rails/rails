@@ -229,6 +229,7 @@ module ActiveRecord
             end
 
             reflection.options[:autosave] = true
+            add_autosave_association_callbacks(reflection)
             self.nested_attributes_options[association_name.to_sym] = options
 
             # def pirate_attributes=(attributes)
@@ -239,8 +240,6 @@ module ActiveRecord
                 assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
               end
             }, __FILE__, __LINE__
-
-            add_autosave_association_callbacks(reflection)
           else
             raise ArgumentError, "No association found for name `#{association_name}'. Has it been defined yet?"
           end
