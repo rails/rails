@@ -73,6 +73,7 @@ module ActionController
         message = "/!\\ FAILSAFE /!\\  #{Time.now}\n  Status: 500 Internal Server Error\n"
         message << "  #{exception}\n    #{exception.backtrace.join("\n    ")}" if exception
         failsafe_logger.fatal(message)
+        failsafe_logger.flush if failsafe_logger.respond_to?(:flush)
       end
 
       def failsafe_logger
