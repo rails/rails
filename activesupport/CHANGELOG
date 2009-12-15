@@ -1,6 +1,13 @@
+*Edge*
+
+* Add Enumerable#exclude? to bring parity to Enumerable#include? and avoid if !x.include?/else calls [DHH]
+
+
 *2.3.5 (November 25, 2009)*
 
 * Minor Bug Fixes and deprecation warnings
+
+* Update Edinburgh TimeZone to use "Europe/London" instead of "Europe/Dublin" #3310 [Phil Ross]
 
 * Fixes for the Nokogiri backend for XmlMini
 
