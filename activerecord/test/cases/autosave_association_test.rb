@@ -31,10 +31,39 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     assert base.valid_keys_for_has_and_belongs_to_many_association.include?(:autosave)
   end
 
+  def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
+    assert_no_difference_when_adding_callbacks_twice_for Pirate, :ship
+  end
+
+  def test_should_not_add_the_same_callbacks_multiple_times_for_belongs_to
+    assert_no_difference_when_adding_callbacks_twice_for Ship, :pirate
+  end
+
+  def test_should_not_add_the_same_callbacks_multiple_times_for_has_many
+    assert_no_difference_when_adding_callbacks_twice_for Pirate, :birds
+  end
+
+  def test_should_not_add_the_same_callbacks_multiple_times_for_has_and_belongs_to_many
+    assert_no_difference_when_adding_callbacks_twice_for Pirate, :parrots
+  end
+
   private
 
   def base
     ActiveRecord::Base
+  end
+
+  def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
+    reflection = model.reflect_on_association(association_name)
+    assert_no_difference "callbacks_for_model(#{model.name}).length" do
+      model.send(:add_autosave_association_callbacks, reflection)
+    end
+  end
+
+  def callbacks_for_model(model)
+    model.instance_variables.grep(/_callbacks$/).map do |ivar|
+      model.instance_variable_get(ivar)
+    end.flatten
   end
 end
 
