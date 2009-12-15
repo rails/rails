@@ -102,15 +102,6 @@ module Enumerable
     size = block_given? ? select(&block).size : self.size
     size > 1
   end
-<<<<<<< HEAD
-=======
-  
-  # The negative of the Enumerable#include?. Returns true if the collection does not include the object.
-  def exclude?(object)
-    !include?(object)
-  end
-end
->>>>>>> 7b61541... Add Enumerable#exclude? to bring parity to Enumerable#include? and avoid if !x.include?/else calls [DHH]
 
   # Returns true if none of the elements match the given block.
   #
@@ -120,4 +111,10 @@ end
   def none?(&block)
     !any?(&block)
   end unless [].respond_to?(:none?)
+
+  
+  # The negative of the Enumerable#include?. Returns true if the collection does not include the object.
+  def exclude?(object)
+    !include?(object)
+  end
 end
