@@ -400,7 +400,7 @@ module Rails
             reload_routes!
           end
         end
-        ActionDispatch::Callbacks.before_dispatch { |callbacks| reload_routes }
+        ActionDispatch::Callbacks.before_dispatch { |callbacks| reload_routes.call }
       end
     end
 

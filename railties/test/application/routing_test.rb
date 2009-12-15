@@ -119,5 +119,37 @@ module ApplicationTests
       get '/bar'
       assert_equal 'bar', last_response.body
     end
+
+    test "reloads routes when configuration is changed" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def bar
+            render :text => "bar"
+          end
+
+          def baz
+            render :text => "baz"
+          end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        ActionController::Routing::Routes.draw do |map|
+          match 'foo', :to => 'foo#bar'
+        end
+      RUBY
+
+      get '/foo'
+      assert_equal 'bar', last_response.body
+
+      app_file 'config/routes.rb', <<-RUBY
+        ActionController::Routing::Routes.draw do |map|
+          match 'foo', :to => 'foo#baz'
+        end
+      RUBY
+
+      get '/foo'
+      assert_equal 'baz', last_response.body
+    end
   end
 end
