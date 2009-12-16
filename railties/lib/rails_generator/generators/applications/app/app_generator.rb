@@ -194,7 +194,7 @@ class AppGenerator < Rails::Generator::Base
       m.template "configs/initializers/session_store.rb", "config/initializers/session_store.rb", 
         :assigns => { :app_name => @app_name, :app_secret => ActiveSupport::SecureRandom.hex(64) }
 
-      m.template "configs/initializers/cookie_verification_secret.rb", 
+      m.template "configs/initializers/cookie_verification_secret.rb", "config/initializers/cookie_verification_secret.rb", 
         :assigns => { :app_secret => ActiveSupport::SecureRandom.hex(64) }
     end
 
