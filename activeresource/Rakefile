@@ -27,8 +27,6 @@ task :default => [ :test ]
 # Run the unit tests
 
 Rake::TestTask.new { |t|
-  activesupport_path = "#{File.dirname(__FILE__)}/../activesupport/lib"
-  t.libs << activesupport_path if File.directory?(activesupport_path)
   t.libs << "test"
   t.pattern = 'test/**/*_test.rb'
   t.warning = true
