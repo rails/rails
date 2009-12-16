@@ -864,6 +864,14 @@ If an optional block is given +many?+ only takes into account those elements tha
 @see_more = videos.many? {|video| video.category == params[:category]}
 </ruby>
 
+h4. +exclude?+
+
+The predicate +exclude?+ tests whether a given object does *not* belong to the collection. It is the negation of the builtin +include?+:
+
+<ruby>
+to_visit << node if visited.exclude?(node)
+</ruby>
+
 h3. Extensions to +Array+
 
 h4. Accessing
