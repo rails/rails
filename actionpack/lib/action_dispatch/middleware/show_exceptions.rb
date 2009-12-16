@@ -10,8 +10,7 @@ module ActionDispatch
     @@rescue_responses = Hash.new(:internal_server_error)
     @@rescue_responses.update({
       'ActionController::RoutingError'             => :not_found,
-      # TODO: Clean this up after the switch
-      ActionController::UnknownAction.name         => :not_found,
+      'AbstractController::ActionNotFound'         => :not_found,
       'ActiveRecord::RecordNotFound'               => :not_found,
       'ActiveRecord::StaleObjectError'             => :conflict,
       'ActiveRecord::RecordInvalid'                => :unprocessable_entity,
@@ -26,7 +25,7 @@ module ActionDispatch
     @@rescue_templates.update({
       'ActionView::MissingTemplate'         => 'missing_template',
       'ActionController::RoutingError'      => 'routing_error',
-      ActionController::UnknownAction.name  => 'unknown_action',
+      'AbstractController::ActionNotFound'  => 'unknown_action',
       'ActionView::Template::Error'         => 'template_error'
     })
 
