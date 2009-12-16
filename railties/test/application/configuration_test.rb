@@ -53,5 +53,26 @@ module ApplicationTests
         assert_raises(NoMethodError) { 1.day }
       end
     end
+
+    test "marking the application as threadsafe sets the correct config variables" do
+      add_to_config <<-RUBY
+        config.threadsafe!
+      RUBY
+
+      require "#{app_path}/config/application"
+      assert AppTemplate.configuration.action_controller.allow_concurrency
+    end
+
+    test "the application can be marked as threadsafe when there are no frameworks" do
+      FileUtils.rm_rf("#{app_path}/config/environments")
+      add_to_config <<-RUBY
+        config.frameworks = []
+        config.threadsafe!
+      RUBY
+
+      assert_nothing_raised do
+        require "#{app_path}/config/application"
+      end
+    end
   end
 end

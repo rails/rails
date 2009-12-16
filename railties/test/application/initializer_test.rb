@@ -6,6 +6,7 @@ module ApplicationTests
 
     def setup
       build_app
+      FileUtils.rm_rf("#{app_path}/config/environments")
       boot_rails
       require "rails"
     end

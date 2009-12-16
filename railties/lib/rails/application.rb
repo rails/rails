@@ -13,7 +13,11 @@ module Rails
       end
 
       def config
-        @config ||= Configuration.new
+        @config ||= begin
+          config = Configuration.new
+          Plugin.plugins.each { |p| config.merge(p.config) }
+          config
+        end
       end
 
       # TODO: change the plugin loader to use config
@@ -104,6 +108,8 @@ module Rails
 
     def plugins
       @plugins ||= begin
+        plugin_names = config.plugins || [:all]
+        Plugin.plugins.select { |p| plugin_names.include?(p.plugin_name) } +
         Plugin::Vendored.all(config.plugins || [:all], config.paths.vendor.plugins)
       end
     end
