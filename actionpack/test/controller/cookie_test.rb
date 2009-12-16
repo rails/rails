@@ -2,6 +2,8 @@ require 'abstract_unit'
 
 class CookieTest < ActionController::TestCase
   class TestController < ActionController::Base
+    self.cookie_verifier_secret = "thisISverySECRET123"
+    
     def authenticate
       cookies["user_name"] = "david"
     end
@@ -38,6 +40,18 @@ class CookieTest < ActionController::TestCase
 
     def authenticate_with_http_only
       cookies["user_name"] = { :value => "david", :httponly => true }
+    end
+    
+    def set_permanent_cookie
+      cookies.permanent[:user_name] = "Jamie"
+    end
+
+    def set_signed_cookie
+      cookies.signed[:user_id] = 45
+    end
+    
+    def set_permanent_signed_cookie
+      cookies.permanent.signed[:remember_me] = 100
     end
 
     def rescue_action(e)
@@ -130,5 +144,22 @@ class CookieTest < ActionController::TestCase
     get :authenticate
     cookies = @controller.send(:cookies)
     assert_equal 'david', cookies['user_name']
+  end
+  
+  def test_permanent_cookie
+    get :set_permanent_cookie
+    assert_match /Jamie/, @response.headers["Set-Cookie"].first
+    assert_match %r(#{20.years.from_now.year}), @response.headers["Set-Cookie"].first
+  end
+  
+  def test_signed_cookie
+    get :set_signed_cookie
+    assert_equal 45, @controller.send(:cookies).signed[:user_id]
+  end
+  
+  def test_permanent_signed_cookie
+    get :set_permanent_signed_cookie
+    assert_match %r(#{20.years.from_now.year}), @response.headers["Set-Cookie"].first
+    assert_equal 100, @controller.send(:cookies).signed[:remember_me]
   end
 end

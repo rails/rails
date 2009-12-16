@@ -1,3 +1,22 @@
+*Edge*
+
+* Added cookies.permanent, cookies.signed, and cookies.permanent.signed accessor for common cookie actions [DHH]. Examples:
+
+    cookies.permanent[:prefers_open_id] = true
+    # => Set-Cookie: prefers_open_id=true; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
+
+    cookies.signed[:discount] = 45
+    # => Set-Cookie: discount=BAhpMg==--2c1c6906c90a3bc4fd54a51ffb41dffa4bf6b5f7; path=/
+
+    cookies.signed[:discount]
+    # => 45 (if the cookie was changed, you'll get a InvalidSignature exception)
+
+    cookies.permanent.signed[:remember_me] = current_user.id
+    # => Set-Cookie: discount=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
+    
+  ...to use the signed cookies, you need to set a secret to ActionController::Base.cookie_verifier_secret (automatically done in config/initializers/cookie_verification_secret.rb for new Rails applications).
+
+
 *2.3.5 (November 25, 2009)*
 
 * Minor Bug Fixes and deprecation warnings
