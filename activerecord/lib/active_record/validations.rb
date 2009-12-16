@@ -158,7 +158,7 @@ module ActiveRecord
     # If +message+ is a Symbol, it will be translated, using the appropriate scope (see translate_error).
     #
     def add(attribute, message = nil, options = {})
-      options[:message] = options.delete(:default) if options.has_key?(:default)
+      options[:message] = options.delete(:default) if options[:default].is_a?(Symbol)
       error, message = message, nil if message.is_a?(Error)
 
       @errors[attribute.to_s] ||= []

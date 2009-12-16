@@ -521,6 +521,12 @@ class ActiveRecordErrorI18nTests < ActiveSupport::TestCase
     assert_equal message, ActiveRecord::Error.new(@reply, *args).full_message
   end
 
+  test ":default is only given to message if a symbol is supplied" do
+    store_translations(:errors => { :messages => { :"foo bar" => "You fooed: {{value}}." } })
+    @reply.errors.add(:title, :inexistent, :default => "foo bar")
+    assert_equal "foo bar", @reply.errors[:title]
+  end
+
   test "#generate_message passes the model attribute value for interpolation" do
     store_translations(:errors => { :messages => { :foo => "You fooed: {{value}}." } })
     @reply.title = "da title"
