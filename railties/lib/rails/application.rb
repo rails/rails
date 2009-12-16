@@ -210,9 +210,9 @@ module Rails
 
     initializer :initialize_middleware_stack do
       if config.frameworks.include?(:action_controller)
-        config.middleware.use(::Rack::Lock) unless ActionController::Base.allow_concurrency
-        config.middleware.use(ActionDispatch::ShowExceptions, ActionController::Base.consider_all_requests_local)
-        config.middleware.use(ActionDispatch::Callbacks, ActionController::Dispatcher.prepare_each_request)
+        config.middleware.use(::Rack::Lock, :if => lambda { ActionController::Base.allow_concurrency })
+        config.middleware.use(ActionDispatch::ShowExceptions, lambda { ActionController::Base.consider_all_requests_local })
+        config.middleware.use(ActionDispatch::Callbacks, lambda { ActionController::Dispatcher.prepare_each_request })
         config.middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
         config.middleware.use(ActionDispatch::ParamsParser)
         config.middleware.use(::Rack::MethodOverride)
