@@ -1247,7 +1247,7 @@ module ActiveRecord
 
             if association.nil? || force_reload
               association = association_proxy_class.new(self, reflection)
-              retval = association.reload
+              retval = force_reload ? reflection.klass.uncached { association.reload } : association.reload
               if retval.nil? and association_proxy_class == BelongsToAssociation
                 association_instance_set(reflection.name, nil)
                 return nil
@@ -1301,7 +1301,7 @@ module ActiveRecord
               association_instance_set(reflection.name, association)
             end
 
-            association.reload if force_reload
+            reflection.klass.uncached { association.reload } if force_reload
 
             association
           end

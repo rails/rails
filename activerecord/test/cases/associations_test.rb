@@ -64,6 +64,16 @@ class AssociationsTest < ActiveRecord::TestCase
     assert !firm.clients(true).empty?, "New firm should have reloaded client objects"
     assert_equal 1, firm.clients(true).size, "New firm should have reloaded clients count"
   end
+  
+  def test_force_reload_is_uncached
+    firm = Firm.create!("name" => "A New Firm, Inc")
+    client = Client.create!("name" => "TheClient.com", :firm => firm)
+    ActiveRecord::Base.cache do
+      firm.clients.each {}
+      assert_queries(0) { assert_not_nil firm.clients.each {} }
+      assert_queries(1) { assert_not_nil firm.clients(true).each {} }
+    end
+  end
 
   def test_storing_in_pstore
     require "tmpdir"
