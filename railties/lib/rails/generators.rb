@@ -1,5 +1,6 @@
-activesupport_path = "#{File.dirname(__FILE__)}/../../../activesupport/lib"
-$LOAD_PATH.unshift(activesupport_path) if File.directory?(activesupport_path)
+activesupport_path = File.expand_path('../../../../activesupport/lib', __FILE__)
+$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
+
 require 'active_support'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/metaclass'

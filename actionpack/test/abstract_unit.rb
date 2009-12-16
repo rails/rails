@@ -1,12 +1,9 @@
-root = File.expand_path('../../..', __FILE__)
 begin
-  require "#{root}/vendor/gems/environment"
+  require File.expand_path('../../../vendor/gems/environment', __FILE__)
 rescue LoadError
-  $:.unshift "#{root}/activesupport/lib"
-  $:.unshift "#{root}/activemodel/lib"
 end
 
-lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
+lib = File.expand_path('../../lib', __FILE__)
 $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
 $:.unshift(File.dirname(__FILE__) + '/lib')
@@ -16,17 +13,19 @@ $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
 require 'test/unit'
-require 'active_support'
-require 'active_support/test_case'
 require 'abstract_controller'
 require 'action_controller'
 require 'action_view'
 require 'action_view/base'
 require 'action_dispatch'
-require 'active_model'
 require 'fixture_template'
+require 'active_support/test_case'
 require 'action_view/test_case'
 require 'active_support/dependencies'
+
+activemodel_path = File.expand_path('../../../activemodel/lib', __FILE__)
+$:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include?(activemodel_path)
+require 'active_model'
 
 begin
   require 'ruby-debug'

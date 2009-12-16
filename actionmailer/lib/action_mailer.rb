@@ -21,8 +21,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-actionpack_path = "#{File.dirname(__FILE__)}/../../actionpack/lib"
-$:.unshift(actionpack_path) if File.directory?(actionpack_path)
+actionpack_path = File.expand_path('../../../actionpack/lib', __FILE__)
+$:.unshift(actionpack_path) if File.directory?(actionpack_path) && !$:.include?(actionpack_path)
+
 require 'action_controller'
 require 'action_view'
 
