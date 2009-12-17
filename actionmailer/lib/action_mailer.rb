@@ -34,11 +34,12 @@ module ActionMailer
   autoload :DeprecatedBody
   autoload :Base
   autoload :DeliveryMethod
+  autoload :MailHelper
   autoload :Part
   autoload :PartContainer
   autoload :Quoting
-  autoload :TestCase
   autoload :TestHelper
+  
 end
 
 module Text
