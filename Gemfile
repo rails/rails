@@ -1,9 +1,9 @@
 gem "rake", ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
 
-gem "rails", "3.0.pre", :vendored_at => "railties"
+gem "rails", "3.0.pre", :path => "railties"
 %w(activesupport activemodel actionpack actionmailer activerecord activeresource).each do |lib|
-  gem lib, '3.0.pre', :vendored_at => lib
+  gem lib, '3.0.pre', :path => lib
 end
 
 # AR
