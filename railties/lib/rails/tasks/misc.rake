@@ -1,8 +1,4 @@
 task :default => :test
-task :environment do
-  $rails_rake_task = true
-  require(File.join(Rails.root, 'config', 'environment'))
-end
 
 task :rails_env do
   unless defined? RAILS_ENV

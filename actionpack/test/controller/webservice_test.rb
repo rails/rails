@@ -255,9 +255,7 @@ class WebServiceTest < ActionController::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do |map|
-          map.with_options :controller => "web_service_test/test" do |c|
-            c.connect "/", :action => "assign_parameters"
-          end
+          match '/', :to => 'web_service_test/test#assign_parameters'
         end
         yield
       end

@@ -31,6 +31,18 @@ class TestMailer < ActionMailer::Base
     render :text => "Goodbye, Mr. #{recipient}"
   end
 
+  def from_with_name
+    from       "System <system@loudthinking.com>"
+    recipients "root@loudthinking.com"
+    body       "Nothing to see here."
+  end
+
+  def from_without_name
+    from       "system@loudthinking.com"
+    recipients "root@loudthinking.com"
+    body       "Nothing to see here."
+  end
+
   def cc_bcc(recipient)
     recipients recipient
     subject    "testing bcc/cc"
@@ -512,6 +524,28 @@ class ActionMailerTest < Test::Unit::TestCase
     delivered.message_id = '<123@456>'
     
     assert_equal expected.encoded, delivered.encoded
+  end
+
+  def test_from_without_name_for_smtp
+    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.deliver_from_without_name
+
+    mail = MockSMTP.deliveries.first
+    assert_not_nil mail
+    mail, from, to = mail
+
+    assert_equal 'system@loudthinking.com', from.to_s
+  end
+
+  def test_from_with_name_for_smtp
+    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.deliver_from_with_name
+
+    mail = MockSMTP.deliveries.first
+    assert_not_nil mail
+    mail, from, to = mail
+
+    assert_equal 'system@loudthinking.com', from.to_s
   end
 
   def test_reply_to

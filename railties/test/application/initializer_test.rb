@@ -6,24 +6,9 @@ module ApplicationTests
 
     def setup
       build_app
+      FileUtils.rm_rf("#{app_path}/config/environments")
       boot_rails
       require "rails"
-    end
-
-    test "initializing an application initializes rails" do
-      Rails::Initializer.run do |config|
-        config.root = app_path
-      end
-
-      if RUBY_VERSION < '1.9'
-        $KCODE = ''
-        Rails.initialize!
-        assert_equal 'UTF8', $KCODE
-      else
-        Encoding.default_external = Encoding::US_ASCII
-        Rails.initialize!
-        assert_equal Encoding::UTF_8, Encoding.default_external
-      end
     end
 
     test "initializing an application adds the application paths to the load path" do
@@ -41,7 +26,9 @@ module ApplicationTests
         config.frameworks << :action_foo
       end
 
-      assert_raises RuntimeError do
+      require "active_support/core_ext/load_error"
+
+      assert_raises MissingSourceFile do
         Rails.initialize!
       end
     end

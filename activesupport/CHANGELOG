@@ -1,5 +1,7 @@
 *Edge*
 
+* Add Enumerable#exclude? to bring parity to Enumerable#include? and avoid if !x.include?/else calls [DHH]
+
 * Update Edinburgh TimeZone to use "Europe/London" instead of "Europe/Dublin" #3310 [Phil Ross]
 
 * Update bundled TZInfo to v0.3.15 [Geoff Buesing]

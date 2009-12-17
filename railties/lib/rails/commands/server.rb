@@ -37,6 +37,15 @@ module Rails
       Options.new
     end
 
+    def self.start(app)
+      new(app).start
+    end
+
+    def initialize(app_const)
+      super() # Call Rack::Server#initialize without passing any options to use.
+      @app_const = app_const
+    end
+
     def start
       puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
       puts "=> Rails #{Rails.version} application starting on http://#{options[:Host]}:#{options[:Port]}"
@@ -54,9 +63,13 @@ module Rails
 
     def middleware
       middlewares = []
-      middlewares << [Rails::Rack::LogTailer] unless options[:daemonize]
+      middlewares << [Rails::Rack::LogTailer, log_path] unless options[:daemonize]
       middlewares << [Rails::Rack::Debugger]  if options[:debugger]
       Hash.new(middlewares)
+    end
+
+    def log_path
+      "#{File.expand_path(@app_const.root)}/log/#{options[:environment]}.log"
     end
 
     def default_options
@@ -64,10 +77,10 @@ module Rails
         :Port        => 3000,
         :Host        => "0.0.0.0",
         :environment => (ENV['RAILS_ENV'] || "development").dup,
-        :rack_file   => "#{Rails.root}/config.ru",
+        :rack_file   => "#{@app_const.root}/config.ru",
         :daemonize   => false,
         :debugger    => false,
-        :pid         => "#{Rails.root}/tmp/pids/server.pid",
+        :pid         => "#{@app_const.root}/tmp/pids/server.pid",
         :AccessLog   => []
       }
     end

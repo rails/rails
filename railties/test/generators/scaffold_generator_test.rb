@@ -25,7 +25,7 @@ class ScaffoldGeneratorTest < GeneratorsTestCase
 
     # Route
     assert_file "config/routes.rb" do |route|
-      assert_match /map\.resources :product_lines$/, route
+      assert_match /resources :product_lines$/, route
     end
 
     # Controller
@@ -99,7 +99,7 @@ class ScaffoldGeneratorTest < GeneratorsTestCase
 
     # Route
     assert_file "config/routes.rb" do |route|
-      assert_no_match /map\.resources :product_lines$/, route
+      assert_no_match /resources :product_lines$/, route
     end
 
     # Controller

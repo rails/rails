@@ -967,6 +967,29 @@ module ActiveRecord #:nodoc:
         connection.select_value(sql, "#{name} Count").to_i
       end
 
+      # Resets one or more counter caches to their correct value using an SQL
+      # count query.  This is useful when adding new counter caches, or if the
+      # counter has been corrupted or modified directly by SQL.
+      #
+      # ==== Parameters
+      #
+      # * +id+ - The id of the object you wish to reset a counter on.
+      # * +counters+ - One or more counter names to reset
+      #
+      # ==== Examples
+      #
+      #   # For Post with id #1 records reset the comments_count
+      #   Post.reset_counters(1, :comments)
+      def reset_counters(id, *counters)
+        object = find(id)
+        counters.each do |association|
+          child_class = reflect_on_association(association).klass
+          counter_name = child_class.reflect_on_association(self.name.downcase.to_sym).counter_cache_column
+
+          connection.update("UPDATE #{quoted_table_name} SET #{connection.quote_column_name(counter_name)} = #{object.send(association).count} WHERE #{connection.quote_column_name(primary_key)} = #{quote_value(object.id)}", "#{name} UPDATE")
+        end
+      end
+
       # A generic "counter updater" implementation, intended primarily to be
       # used by increment_counter and decrement_counter, but which may also
       # be useful on its own. It simply does a direct SQL update for the record

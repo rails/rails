@@ -451,7 +451,7 @@ class UrlHelperControllerTest < ActionController::TestCase
     def with_url_helper_routing
       with_routing do |set|
         set.draw do |map|
-          map.show_named_route 'url_helper_controller_test/url_helper/show_named_route', :controller => 'url_helper_controller_test/url_helper', :action => 'show_named_route'
+          match 'url_helper_controller_test/url_helper/show_named_route', :to => 'url_helper_controller_test/url_helper#show_named_route', :as => :show_named_route
         end
         yield
       end
@@ -505,7 +505,7 @@ class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
     def with_restful_routing
       with_routing do |set|
         set.draw do |map|
-          map.resources :tasks
+          resources :tasks
         end
         yield
       end
@@ -625,8 +625,8 @@ class PolymorphicControllerTest < ActionController::TestCase
     def with_restful_routing
       with_routing do |set|
         set.draw do |map|
-          map.resources :workshops do |w|
-            w.resources :sessions
+          resources :workshops do
+            resources :sessions
           end
         end
         yield

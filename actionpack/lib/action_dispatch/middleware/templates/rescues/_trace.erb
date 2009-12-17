@@ -7,7 +7,7 @@
   names = traces.collect {|name, trace| name}
 %>
 
-<p><code>RAILS_ROOT: <%= defined?(RAILS_ROOT) ? RAILS_ROOT : "unset" %></code></p>
+<p><code>Rails.root: <%= defined?(Rails) && Rails.respond_to?(:root) ? Rails.root : "unset" %></code></p>
 
 <div id="traces">
   <% names.each do |name| %>

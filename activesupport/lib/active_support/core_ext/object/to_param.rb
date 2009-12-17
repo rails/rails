@@ -38,7 +38,7 @@ class Hash
   # ==== Examples
   #   { :name => 'David', :nationality => 'Danish' }.to_query # => "name=David&nationality=Danish"
   #
-  #   { :name => 'David', :nationality => 'Danish' }.to_query('user') # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
+  #   { :name => 'David', :nationality => 'Danish' }.to_query('user') # => "user[name]=David&user[nationality]=Danish"
   def to_param(namespace = nil)
     collect do |key, value|
       value.to_query(namespace ? "#{namespace}[#{key}]" : key)

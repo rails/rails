@@ -114,7 +114,7 @@ module ActionView
 
       test "is able to use named routes" do
         with_routing do |set|
-          set.draw { |map| map.resources :contents }
+          set.draw { |map| resources :contents }
           assert_equal 'http://test.host/contents/new', new_content_url
           assert_equal 'http://test.host/contents/1',   content_url(:id => 1)
         end
@@ -122,7 +122,7 @@ module ActionView
 
       test "named routes can be used from helper included in view" do
         with_routing do |set|
-          set.draw { |map| map.resources :contents }
+          set.draw { |map| resources :contents }
           _helpers.module_eval do
             def render_from_helper
               new_content_url

@@ -3,7 +3,7 @@ require 'active_support/core_ext/string/output_safety'
 require 'erubis'
 
 module ActionView
-  module TemplateHandlers
+  module Template::Handlers
     class Erubis < ::Erubis::Eruby
       def add_preamble(src)
         src << "@output_buffer = ActionView::SafeBuffer.new;"
@@ -26,7 +26,7 @@ module ActionView
       end
     end
 
-    class ERB < TemplateHandler
+    class ERB < Template::Handler
       include Compilable
 
       ##

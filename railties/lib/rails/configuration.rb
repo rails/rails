@@ -1,27 +1,71 @@
 require 'active_support/ordered_options'
 
 module Rails
-  class Configuration
-    attr_accessor :cache_classes, :load_paths, :load_once_paths, :after_initialize_blocks,
-                  :frameworks, :framework_root_path, :root, :gems, :plugins,
-                  :i18n, :gems, :whiny_nils, :consider_all_requests_local,
-                  :action_controller, :active_record, :action_view, :active_support,
-                  :action_mailer, :active_resource,
-                  :reload_plugins, :log_path, :log_level, :logger, :preload_frameworks,
-                  :database_configuration_file, :cache_store, :time_zone,
-                  :view_path, :metals, :controller_paths, :routes_configuration_file,
-                  :eager_load_paths, :dependency_loading, :paths, :serve_static_assets
+  # Temporarily separate the plugin configuration class from the main
+  # configuration class while this bit is being cleaned up.
+  class Plugin::Configuration
 
     def initialize
+      @options = Hash.new { |h,k| h[k] = ActiveSupport::OrderedOptions.new }
+    end
+
+    def middleware
+      @middleware ||= ActionDispatch::MiddlewareStack.new
+    end
+
+    def respond_to?(name)
+      super || name.to_s =~ config_key_regexp
+    end
+
+    def merge(config)
+      @options = config.options.merge(@options)
+    end
+
+  protected
+
+    attr_reader :options
+
+  private
+
+    def method_missing(name, *args, &blk)
+      if name.to_s =~ config_key_regexp
+        return $2 == '=' ? @options[$1] = args.first : @options[$1]
+      end
+
+      super
+    end
+
+    def config_key_regexp
+      bits = config_keys.map { |n| Regexp.escape(n.to_s) }.join('|')
+      /^(#{bits})(?:=)?$/
+    end
+
+    def config_keys
+      ([ :active_support, :active_record, :action_controller,
+         :action_view, :action_mailer, :active_resource ] +
+        Plugin.plugin_names).map { |n| n.to_s }.uniq
+    end
+  end
+
+  class Configuration < Plugin::Configuration
+    attr_accessor :after_initialize_blocks, :cache_classes,
+                  :consider_all_requests_local, :dependency_loading, :gems,
+                  :load_once_paths, :logger, :metals, :plugins,
+                  :preload_frameworks, :reload_plugins, :serve_static_assets,
+                  :time_zone, :whiny_nils
+
+    attr_writer :cache_store, :controller_paths,
+                :database_configuration_file, :eager_load_paths,
+                :frameworks, :framework_root_path, :i18n, :load_paths,
+                :log_level, :log_path, :paths, :routes_configuration_file,
+                :view_path
+
+    def initialize
+      super
       @load_once_paths              = []
       @after_initialize_blocks      = []
       @dependency_loading           = true
       @serve_static_assets          = true
-
-      for framework in frameworks
-        self.send("#{framework}=", ActiveSupport::OrderedOptions.new)
-      end
-      self.active_support = ActiveSupport::OrderedOptions.new
     end
 
     def after_initialize(&blk)
@@ -80,7 +124,10 @@ module Rails
       self.preload_frameworks = true
       self.cache_classes = true
       self.dependency_loading = false
-      self.action_controller.allow_concurrency = true
+
+      if respond_to?(:action_controller)
+        action_controller.allow_concurrency = true
+      end
       self
     end
 
@@ -97,11 +144,6 @@ module Rails
 
     def framework_root_path
       defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root}/vendor/rails"
-    end
-
-    def middleware
-      require 'action_dispatch'
-      @middleware ||= ActionDispatch::MiddlewareStack.new
     end
 
     # Loads and returns the contents of the #database_configuration_file. The

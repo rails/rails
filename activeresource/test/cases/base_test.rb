@@ -543,9 +543,9 @@ class BaseTest < Test::Unit::TestCase
     assert Person.collection_path(:gender => 'male', :student => true).include?('gender=male')
     assert Person.collection_path(:gender => 'male', :student => true).include?('student=true')
 
-    assert_equal '/people.xml?name%5B%5D=bob&name%5B%5D=your+uncle%2Bme&name%5B%5D=&name%5B%5D=false', Person.collection_path(:name => ['bob', 'your uncle+me', nil, false])
+    assert_equal '/people.xml?name[]=bob&name[]=your+uncle%2Bme&name[]=&name[]=false', Person.collection_path(:name => ['bob', 'your uncle+me', nil, false])
 
-    assert_equal '/people.xml?struct%5Ba%5D%5B%5D=2&struct%5Ba%5D%5B%5D=1&struct%5Bb%5D=fred', Person.collection_path(:struct => {:a => [2,1], 'b' => 'fred'})
+    assert_equal '/people.xml?struct[a][]=2&struct[a][]=1&struct[b]=fred', Person.collection_path(:struct => {:a => [2,1], 'b' => 'fred'})
   end
 
   def test_custom_element_path
@@ -581,7 +581,7 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '/people/1/addresses/1.xml?type=work', StreetAddress.element_path(1, :person_id => 1, :type => 'work')
     assert_equal '/people/1/addresses/1.xml?type=work', StreetAddress.element_path(1, 'person_id' => 1, :type => 'work')
     assert_equal '/people/1/addresses/1.xml?type=work', StreetAddress.element_path(1, :type => 'work', :person_id => 1)
-    assert_equal '/people/1/addresses/1.xml?type%5B%5D=work&type%5B%5D=play+time', StreetAddress.element_path(1, :person_id => 1, :type => ['work', 'play time'])
+    assert_equal '/people/1/addresses/1.xml?type[]=work&type[]=play+time', StreetAddress.element_path(1, :person_id => 1, :type => ['work', 'play time'])
   end
 
   def test_custom_element_path_with_prefix_and_parameters

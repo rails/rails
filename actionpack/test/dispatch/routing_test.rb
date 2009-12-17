@@ -14,7 +14,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   stub_controllers do |routes|
     Routes = routes
-    Routes.draw do |map|
+    Routes.draw do
       controller :sessions do
         get  'login', :to => :new, :as => :login
         post 'login', :to => :create
@@ -58,8 +58,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
 
         resources :people do
-          namespace ":access_token" do
-            resource :avatar
+          nested do
+            namespace ":access_token" do
+              resource :avatar
+            end
           end
 
           member do
@@ -93,9 +95,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       controller :articles do
-        scope 'articles' do
-          scope ':title', :title => /[a-z]+/, :as => :with_title do
-            match ':id', :to => :with_id
+        scope '/articles', :name_prefix => 'article' do
+          scope :path => '/:title', :title => /[a-z]+/, :as => :with_title do
+            match '/:id', :to => :with_id
           end
         end
       end
@@ -194,13 +196,25 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'projects#index', @response.body
       assert_equal '/projects', projects_path
 
+      get '/projects.xml'
+      assert_equal 'projects#index', @response.body
+      assert_equal '/projects.xml', projects_path(:format => 'xml')
+
       get '/projects/new'
       assert_equal 'projects#new', @response.body
       assert_equal '/projects/new', new_project_path
 
+      get '/projects/new.xml'
+      assert_equal 'projects#new', @response.body
+      assert_equal '/projects/new.xml', new_project_path(:format => 'xml')
+
       get '/projects/1'
       assert_equal 'projects#show', @response.body
       assert_equal '/projects/1', project_path(:id => '1')
+
+      get '/projects/1.xml'
+      assert_equal 'projects#show', @response.body
+      assert_equal '/projects/1.xml', project_path(:id => '1', :format => 'xml')
 
       get '/projects/1/edit'
       assert_equal 'projects#edit', @response.body
@@ -214,9 +228,23 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'involvements#index', @response.body
       assert_equal '/projects/1/involvements', project_involvements_path(:project_id => '1')
 
+      get '/projects/1/involvements/new'
+      assert_equal 'involvements#new', @response.body
+      assert_equal '/projects/1/involvements/new', new_project_involvement_path(:project_id => '1')
+
       get '/projects/1/involvements/1'
       assert_equal 'involvements#show', @response.body
       assert_equal '/projects/1/involvements/1', project_involvement_path(:project_id => '1', :id => '1')
+
+      put '/projects/1/involvements/1'
+      assert_equal 'involvements#update', @response.body
+
+      delete '/projects/1/involvements/1'
+      assert_equal 'involvements#destroy', @response.body
+
+      get '/projects/1/involvements/1/edit'
+      assert_equal 'involvements#edit', @response.body
+      assert_equal '/projects/1/involvements/1/edit', edit_project_involvement_path(:project_id => '1', :id => '1')
     end
   end
 
@@ -236,10 +264,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       put '/projects/1/participants/update_all'
       assert_equal 'participants#update_all', @response.body
-
-      pending do
-        assert_equal '/projects/1/participants/update_all', update_all_project_participants_path(:project_id => '1')
-      end
+      assert_equal '/projects/1/participants/update_all', update_all_project_participants_path(:project_id => '1')
     end
   end
 
@@ -251,15 +276,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/projects/1/companies/1/people'
       assert_equal 'people#index', @response.body
-      pending do
-        assert_equal '/projects/1/companies/1/people', project_company_people_path(:project_id => '1', :company_id => '1')
-      end
+      assert_equal '/projects/1/companies/1/people', project_company_people_path(:project_id => '1', :company_id => '1')
 
       get '/projects/1/companies/1/avatar'
       assert_equal 'avatars#show', @response.body
-      pending do
-        assert_equal '/projects/1/companies/1/avatar', project_company_avatar_path(:project_id => '1', :company_id => '1')
-      end
+      assert_equal '/projects/1/companies/1/avatar', project_company_avatar_path(:project_id => '1', :company_id => '1')
     end
   end
 
@@ -271,9 +292,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       post '/projects/1/images/1/revise'
       assert_equal 'images#revise', @response.body
-      pending do
-        assert_equal '/projects/1/images/1/revise', revise_project_image_path(:project_id => '1', :id => '1')
-      end
+      assert_equal '/projects/1/images/1/revise', revise_project_image_path(:project_id => '1', :id => '1')
     end
   end
 
@@ -289,27 +308,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/projects/1/people/1/7a2dec8/avatar'
       assert_equal 'avatars#show', @response.body
-      pending do
-        assert_equal '/projects/1/people/1/7a2dec8/avatar', project_person_avatar_path(:project_id => '1', :person_id => '1', :access_token => '7a2dec8')
-      end
+      assert_equal '/projects/1/people/1/7a2dec8/avatar', project_person_avatar_path(:project_id => '1', :person_id => '1', :access_token => '7a2dec8')
 
       put '/projects/1/people/1/accessible_projects'
       assert_equal 'people#accessible_projects', @response.body
-      pending do
-        assert_equal '/projects/1/people/1/accessible_projects', accessible_projects_project_person_path(:project_id => '1', :id => '1')
-      end
+      assert_equal '/projects/1/people/1/accessible_projects', accessible_projects_project_person_path(:project_id => '1', :id => '1')
 
       post '/projects/1/people/1/resend'
       assert_equal 'people#resend', @response.body
-      pending do
-        assert_equal '/projects/1/people/1/resend', resend_project_person_path(:project_id => '1', :id => '1')
-      end
+      assert_equal '/projects/1/people/1/resend', resend_project_person_path(:project_id => '1', :id => '1')
 
       post '/projects/1/people/1/generate_new_password'
       assert_equal 'people#generate_new_password', @response.body
-      pending do
-        assert_equal '/projects/1/people/1/generate_new_password', generate_new_password_project_person_path(:project_id => '1', :id => '1')
-      end
+      assert_equal '/projects/1/people/1/generate_new_password', generate_new_password_project_person_path(:project_id => '1', :id => '1')
     end
   end
 
@@ -321,39 +332,27 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/projects/1/posts/archive'
       assert_equal 'posts#archive', @response.body
-      pending do
-        assert_equal '/projects/1/posts/archive', archive_project_posts_path(:project_id => '1')
-      end
+      assert_equal '/projects/1/posts/archive', archive_project_posts_path(:project_id => '1')
 
       get '/projects/1/posts/toggle_view'
       assert_equal 'posts#toggle_view', @response.body
-      pending do
-        assert_equal '/projects/1/posts/toggle_view', toggle_view_project_posts_path(:project_id => '1')
-      end
+      assert_equal '/projects/1/posts/toggle_view', toggle_view_project_posts_path(:project_id => '1')
 
       post '/projects/1/posts/1/preview'
       assert_equal 'posts#preview', @response.body
-      pending do
-        assert_equal '/projects/1/posts/1/preview', preview_project_post_path(:project_id => '1', :id => '1')
-      end
+      assert_equal '/projects/1/posts/1/preview', preview_project_post_path(:project_id => '1', :id => '1')
 
       get '/projects/1/posts/1/subscription'
       assert_equal 'subscriptions#show', @response.body
-      pending do
-        assert_equal '/projects/1/posts/1/subscription', project_post_subscription_path(:project_id => '1', :post_id => '1')
-      end
+      assert_equal '/projects/1/posts/1/subscription', project_post_subscription_path(:project_id => '1', :post_id => '1')
 
       get '/projects/1/posts/1/comments'
       assert_equal 'comments#index', @response.body
-      pending do
-        assert_equal '/projects/1/posts/1/comments', project_post_comments_path(:project_id => '1', :post_id => '1')
-      end
+      assert_equal '/projects/1/posts/1/comments', project_post_comments_path(:project_id => '1', :post_id => '1')
 
       post '/projects/1/posts/1/comments/preview'
       assert_equal 'comments#preview', @response.body
-      pending do
-        assert_equal '/projects/1/posts/1/comments/preview', preview_project_post_comments_path(:project_id => '1', :post_id => '1')
-      end
+      assert_equal '/projects/1/posts/1/comments/preview', preview_project_post_comments_path(:project_id => '1', :post_id => '1')
     end
   end
 
@@ -411,7 +410,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       assert_raise(ActionController::RoutingError) { get '/articles/123/1' }
 
-      assert_equal '/articles/rails/1', with_title_path(:title => 'rails', :id => 1)
+      assert_equal '/articles/rails/1', article_with_title_path(:title => 'rails', :id => 1)
     end
   end
 

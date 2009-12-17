@@ -235,6 +235,10 @@ module ActiveModel
     # It's also possible to instantiate related objects, so a Client class belonging to the clients
     # table with a +master_id+ foreign key can instantiate master through Client#master.
     def method_missing(method_id, *args, &block)
+      if method_id == :to_ary || method_id == :to_str
+        raise NoMethodError, "undefined method `#{method_id}' for #{inspect}:#{self.class}"
+      end
+
       method_name = method_id.to_s
       if match = match_attribute_method?(method_name)
         guard_private_attribute_method!(method_name, args)

@@ -1,5 +1,9 @@
 *Edge*
 
+* MySQL: add_ and change_column support positioning.  #3286 [Ben Marini]
+
+* Reset your Active Record counter caches with the reset_counter_cache class method.  #1211 [Mike Breen, Gabe da Silveira]
+
 * Remove support for SQLite 2. Please upgrade to SQLite 3+ or install the plugin from git://github.com/rails/sqlite2_adapter.git [Pratik Naik]
 
 * PostgreSQL: XML datatype support.  #1874 [Leonardo Borges]

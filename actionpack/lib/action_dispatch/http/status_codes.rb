@@ -21,22 +21,5 @@ module ActionDispatch
       hash[ActiveSupport::Inflector.underscore(message.gsub(/ /, "")).to_sym] = code
       hash
     }.freeze
-
-    private
-      # Given a status parameter, determine whether it needs to be converted
-      # to a string. If it is a fixnum, use the STATUS_CODES hash to lookup
-      # the default message. If it is a symbol, use the SYMBOL_TO_STATUS_CODE
-      # hash to convert it.
-      def interpret_status(status)
-        case status
-        when Fixnum then
-          "#{status} #{STATUS_CODES[status]}".strip
-        when Symbol then
-          interpret_status(SYMBOL_TO_STATUS_CODE[status] ||
-            "500 Unknown Status #{status.inspect}")
-        else
-          status.to_s
-        end
-      end
   end
 end

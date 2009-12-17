@@ -258,7 +258,7 @@ module ActionMailer #:nodoc:
     include AbstractController::Layouts
 
     include AbstractController::Helpers
-    helper MailHelper
+    helper ActionMailer::MailHelper
 
     if Object.const_defined?(:ActionController)
       include ActionController::UrlWriter
@@ -543,11 +543,15 @@ module ActionMailer #:nodoc:
         @headers ||= {}
         @sent_on ||= Time.now
 
-        super # Run deprecation hooks
+        ActiveSupport::Deprecation.silence do
+          super # Run deprecation hooks
+        end
       end
 
       def create_parts
-        super # Run deprecation hooks
+        ActiveSupport::Deprecation.silence do
+          super # Run deprecation hooks
+        end
 
         if String === response_body
           @parts.unshift Mail::Part.new(
@@ -620,7 +624,7 @@ module ActionMailer #:nodoc:
         headers.each { |k, v| m[k] = v }
 
         real_content_type, ctype_attrs = parse_content_type
-        
+
         if @parts.empty?
           main_type, sub_type = split_content_type(real_content_type)
           m.content_type([main_type, sub_type, ctype_attrs])
