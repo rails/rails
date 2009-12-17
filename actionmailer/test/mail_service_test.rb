@@ -534,7 +534,7 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_not_nil mail
     mail, from, to = mail
 
-    assert_equal 'system@loudthinking.com', from.to_s
+    assert_equal 'system@loudthinking.com', from.decoded
   end
 
   def test_from_with_name_for_smtp
@@ -545,7 +545,7 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_not_nil mail
     mail, from, to = mail
 
-    assert_equal 'system@loudthinking.com', from.to_s
+    assert_equal 'system@loudthinking.com', from.addresses.first
   end
 
   def test_reply_to
