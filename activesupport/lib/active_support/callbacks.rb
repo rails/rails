@@ -524,7 +524,7 @@ module ActiveSupport
       # to change this behavior.
       #
       # * <tt>:scope</tt> - Show which methods should be executed when a class
-      # is giben as callback:
+      # is given as callback:
       #
       #   define_callbacks :filters, :scope => [ :kind ]
       #
