@@ -71,6 +71,18 @@ class FlashTest < ActionController::TestCase
       redirect_to :action => "std_action"
       @flash_copy = {}.update(flash)
     end
+    
+    def redirect_with_alert
+      redirect_to '/nowhere', :alert => "Beware the nowheres!"
+    end
+    
+    def redirect_with_notice
+      redirect_to '/somewhere', :notice => "Good luck in the somewheres!"
+    end
+
+    def redirect_with_other_flashes
+      redirect_to '/wonderland', :flash => { :joyride => "Horses!" }
+    end
   end
 
   tests TestController
@@ -143,5 +155,20 @@ class FlashTest < ActionController::TestCase
   def test_does_not_set_the_session_if_the_flash_is_empty
     get :std_action
     assert_nil session["flash"]
+  end
+  
+  def test_redirect_to_with_alert
+    get :redirect_with_alert
+    assert_equal "Beware the nowheres!", @controller.send(:flash)[:alert]
+  end
+  
+  def test_redirect_to_with_notice
+    get :redirect_with_notice
+    assert_equal "Good luck in the somewheres!", @controller.send(:flash)[:notice]
+  end
+  
+  def test_redirect_to_with_other_flashes
+    get :redirect_with_other_flashes
+    assert_equal "Horses!", @controller.send(:flash)[:joyride]
   end
 end

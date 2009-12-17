@@ -1092,10 +1092,19 @@ module ActionController #:nodoc:
       # The redirection happens as a "302 Moved" header unless otherwise specified.
       #
       # Examples:
-      #   redirect_to post_url(@post), :status=>:found
-      #   redirect_to :action=>'atom', :status=>:moved_permanently
-      #   redirect_to post_url(@post), :status=>301
-      #   redirect_to :action=>'atom', :status=>302
+      #   redirect_to post_url(@post), :status => :found
+      #   redirect_to :action=>'atom', :status => :moved_permanently
+      #   redirect_to post_url(@post), :status => 301
+      #   redirect_to :action=>'atom', :status => 302
+      #
+      # It is also possible to assign a flash message as part of the redirection. There are two special accessors for commonly used the flash names
+      # +alert+ and +notice+ as well as a general purpose +flash+ bucket.
+      #
+      # Examples:
+      #   redirect_to post_url(@post), :alert => "Watch it, mister!"
+      #   redirect_to post_url(@post), :status=> :found, :notice => "Pay attention to the road"
+      #   redirect_to post_url(@post), :status => 301, :flash => { :updated_post_id => @post.id }
+      #   redirect_to { :action=>'atom' }, :alert => "Something serious happened"
       #
       # When using <tt>redirect_to :back</tt>, if there is no referrer,
       # RedirectBackError will be raised. You may specify some fallback
@@ -1412,7 +1421,7 @@ module ActionController #:nodoc:
   end
 
   Base.class_eval do
-    [ Filters, Layout, Benchmarking, Rescue, Flash, MimeResponds, Helpers,
+    [ Filters, Layout, Benchmarking, Rescue, MimeResponds, Helpers, Flash,
       Cookies, Caching, Verification, Streaming, SessionManagement,
       HttpAuthentication::Basic::ControllerMethods, HttpAuthentication::Digest::ControllerMethods,
       RecordIdentifier, RequestForgeryProtection, Translation
