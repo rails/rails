@@ -121,9 +121,8 @@ module ActiveRecord
           else
             record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
             self.target = record
+            set_inverse_instance(record, @owner)
           end
-
-          set_inverse_instance(record, @owner)
 
           record
         end
