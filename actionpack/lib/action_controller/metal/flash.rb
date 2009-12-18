@@ -30,6 +30,10 @@ module ActionController #:nodoc:
 
     include Session
 
+    included do
+      helper_method :alert, :notice
+    end
+
     class FlashNow #:nodoc:
       def initialize(flash)
         @flash = flash
@@ -147,6 +151,27 @@ module ActionController #:nodoc:
     @_flash
   end
 
+  # Convenience accessor for flash[:alert]
+  def alert
+    flash[:alert]
+  end
+  
+  # Convenience accessor for flash[:alert]=
+  def alert=(message)
+    flash[:alert] = message
+  end
+
+  # Convenience accessor for flash[:notice]
+  def notice
+    flash[:notice]
+  end
+  
+  # Convenience accessor for flash[:notice]=
+  def notice=(message)
+    flash[:notice] = message
+  end
+
+
   protected
     def process_action(method_name)
       @_flash = nil
@@ -158,6 +183,22 @@ module ActionController #:nodoc:
     def reset_session
       super
       @_flash = nil
+    end
+
+    def redirect_to(options = {}, response_status_and_flash = {}) #:doc:
+      if alert = response_status_and_flash.delete(:alert)
+        flash[:alert] = alert
+      end
+
+      if notice = response_status_and_flash.delete(:notice)
+        flash[:notice] = notice
+      end
+    
+      if other_flashes = response_status_and_flash.delete(:flash)
+        flash.update(other_flashes)
+      end
+      
+      super(options, response_status_and_flash)
     end
   end
 end
