@@ -7,7 +7,6 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "simple output" do
     @response.body = "Hello, World!"
-    @response.prepare!
 
     status, headers, body = @response.to_a
     assert_equal 200, status
@@ -25,7 +24,6 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "utf8 output" do
     @response.body = [1090, 1077, 1089, 1090].pack("U*")
-    @response.prepare!
 
     status, headers, body = @response.to_a
     assert_equal 200, status
@@ -41,7 +39,6 @@ class ResponseTest < ActiveSupport::TestCase
     @response.body = Proc.new do |response, output|
       5.times { |n| output.write(n) }
     end
-    @response.prepare!
 
     status, headers, body = @response.to_a
     assert_equal 200, status
@@ -59,14 +56,12 @@ class ResponseTest < ActiveSupport::TestCase
   test "content type" do
     [204, 304].each do |c|
       @response.status = c.to_s
-      @response.prepare!
       status, headers, body = @response.to_a
       assert !headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
       @response.status = c.to_s
-      @response.prepare!
       status, headers, body = @response.to_a
       assert headers.has_key?("Content-Type"), "#{c} did not have Content-Type header"
     end
@@ -74,7 +69,6 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "does not include Status header" do
     @response.status = "200 OK"
-    @response.prepare!
     status, headers, body = @response.to_a
     assert !headers.has_key?('Status')
   end
@@ -114,13 +108,11 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "cookies" do
     @response.set_cookie("user_name", :value => "david", :path => "/")
-    @response.prepare!
     status, headers, body = @response.to_a
     assert_equal "user_name=david; path=/", headers["Set-Cookie"]
     assert_equal({"user_name" => "david"}, @response.cookies)
 
     @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
-    @response.prepare!
     status, headers, body = @response.to_a
     assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT", headers["Set-Cookie"]
     assert_equal({"login" => "foo&bar", "user_name" => "david"}, @response.cookies)
