@@ -22,14 +22,13 @@ module ActionController
       autoload :HideActions
       autoload :Layouts
       autoload :MimeResponds
-      autoload :RackConvenience
+      autoload :RackDelegation
       autoload :Compatibility
       autoload :Redirecting
       autoload :Rendering
       autoload :Renderers
       autoload :Rescue
       autoload :Responder
-      autoload :Session
       autoload :SessionManagement
       autoload :UrlFor
       autoload :Verification

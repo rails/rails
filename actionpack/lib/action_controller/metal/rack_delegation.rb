@@ -1,8 +1,9 @@
 module ActionController
-  module RackConvenience
+  module RackDelegation
     extend ActiveSupport::Concern
 
     included do
+      delegate :session, :reset_session, :to => "@_request"
       delegate :headers, :status=, :location=, :content_type=,
                :status, :location, :content_type, :to => "@_response"
       attr_internal :request
