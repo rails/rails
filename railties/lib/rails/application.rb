@@ -418,6 +418,7 @@ module Rails
     initializer :initialize_routing do
       next unless configuration.frameworks.include?(:action_controller)
       route_configuration_files << configuration.routes_configuration_file
+      route_configuration_files << configuration.builtin_routes_configuration_file
       reload_routes!
     end
     #

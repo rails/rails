@@ -158,6 +158,10 @@ module Rails
       @routes_configuration_file ||= File.join(root, 'config', 'routes.rb')
     end
 
+    def builtin_routes_configuration_file
+      @builtin_routes_configuration_file ||= File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
+    end
+
     def controller_paths
       @controller_paths ||= begin
         paths = [File.join(root, 'app', 'controllers')]
