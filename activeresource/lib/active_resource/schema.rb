@@ -2,7 +2,6 @@ require 'active_resource/exceptions'
 
 module ActiveResource # :nodoc:
   class Schema # :nodoc:
-
     # attributes can be known to be one of these types. They are easy to
     # cast to/from.
     KNOWN_ATTRIBUTE_TYPES = %w( string integer float )
@@ -15,9 +14,9 @@ module ActiveResource # :nodoc:
     # unlike an Active Record TableDefinition (on which it is based).
     # It provides a set of convenience methods for people to define their
     # schema using the syntax:
-    #  schema do |s|
-    #    s.string :foo
-    #    s.integer :bar
+    #  schema do
+    #    string :foo
+    #    integer :bar
     #  end
     #
     #  The schema stores the name and type of each attribute. That is then
@@ -44,15 +43,13 @@ module ActiveResource # :nodoc:
     # %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |attr_type|
     KNOWN_ATTRIBUTE_TYPES.each do |attr_type|
       class_eval <<-EOV
-        def #{attr_type.to_s}(*args)                                                # def string(*args)
+        def #{attr_type.to_s}(*args)                                            # def string(*args)
           options = args.extract_options!                                      #   options = args.extract_options!
           attr_names = args                                                    #   attr_names = args
                                                                                #
           attr_names.each { |name| attribute(name, '#{attr_type}', options) }  #   attr_names.each { |name| attribute(name, 'string', options) }
         end                                                                    # end
       EOV
-
     end
-
   end
 end

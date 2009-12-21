@@ -254,18 +254,18 @@ module ActiveResource
       #
       # example:
       # class Person < ActiveResource::Base
-      #   schema do |s|
+      #   schema do
       #     # define each attribute separately
-      #     s.attribute 'name', :string
+      #     attribute 'name', :string
       #
       #     # or use the convenience methods and pass >=1 attribute names
-      #     s.string  'eye_colour', 'hair_colour'
-      #     s.integer 'age'
-      #     s.float   'height', 'weight'
+      #     string  'eye_colour', 'hair_colour'
+      #     integer 'age'
+      #     float   'height', 'weight'
       #
       #     # unsupported types should be left as strings
       #     # overload the accessor methods if you need to convert them
-      #     s.attribute 'created_at', 'string'
+      #     attribute 'created_at', 'string'
       #   end
       # end
       #
@@ -297,7 +297,7 @@ module ActiveResource
       def schema(&block)
         if block_given?
           schema_definition = Schema.new
-          yield schema_definition
+          schema_definition.instance_eval(&block)
 
           # skip out if we didn't define anything
           return unless schema_definition.attrs.present?
@@ -343,8 +343,8 @@ module ActiveResource
 
         raise ArgumentError, "Expected a hash" unless the_schema.kind_of? Hash
 
-        schema do |s|
-          the_schema.each {|k,v| s.attribute(k,v) }
+        schema do
+          the_schema.each {|k,v| attribute(k,v) }
         end
       end
 
