@@ -92,7 +92,7 @@ class SchemaTest < ActiveModel::TestCase
 
   test "schema should accept all known attribute types as values" do
     # I'd prefer to use  here...
-    ActiveResource::SchemaDefinition::KNOWN_ATTRIBUTE_TYPES.each do |the_type|
+    ActiveResource::Schema::KNOWN_ATTRIBUTE_TYPES.each do |the_type|
       assert_nothing_raised("should have accepted #{the_type.inspect}"){ Person.schema = {'my_key' => the_type }}
     end
   end
@@ -171,13 +171,13 @@ class SchemaTest < ActiveModel::TestCase
     matz = Person.find(1)
     assert !matz.schema.blank?, "should have some sort of schema on an instance variable"
     assert_not_equal new_schema, matz.schema, "should not have the class-level schema until it's been added to the class!"
-    
+
     assert_nothing_raised {
       Person.schema = new_schema
       assert_equal new_schema, matz.schema, "class-level schema should override instance-level schema"
     }
   end
- 
+
 
   #####################################################
   # Using the define_schema syntax
@@ -188,11 +188,11 @@ class SchemaTest < ActiveModel::TestCase
 
     assert_nothing_raised("Should allow the define_schema to take a block") do
       Person.define_schema do |s|
-        assert s.kind_of?(ActiveResource::SchemaDefinition), "the 's' should be a schema definition or we're way off track..."
+        assert s.kind_of?(ActiveResource::Schema), "the 's' should be a schema definition or we're way off track..."
       end
     end
   end
- 
+
   test "schema definition should store and return attribute set" do
     assert_nothing_raised do
       Person.define_schema do |s|
@@ -202,13 +202,13 @@ class SchemaTest < ActiveModel::TestCase
       end
     end
   end
- 
+
   test "should be able to add attributes through define_schema" do
     assert_nothing_raised do
       Person.define_schema do |s|
         assert s.attribute('foo', 'string'), "should take a simple attribute"
         assert s.attrs.has_key?('foo'), "should have saved the attribute name"
-        assert_equal 'string', s.attrs['foo'], "should have saved the attribute type" 
+        assert_equal 'string', s.attrs['foo'], "should have saved the attribute type"
       end
     end
   end
@@ -218,23 +218,23 @@ class SchemaTest < ActiveModel::TestCase
       Person.define_schema do |s|
         assert s.attribute(:foo, :integer), "should take a simple attribute as symbols"
         assert s.attrs.has_key?('foo'), "should have saved the attribute name as a string"
-        assert_equal 'integer', s.attrs['foo'], "should have saved the attribute type as a string" 
+        assert_equal 'integer', s.attrs['foo'], "should have saved the attribute type as a string"
       end
     end
   end
- 
+
   test "should be able to add all known attribute types" do
     Person.define_schema do |s|
-      ActiveResource::SchemaDefinition::KNOWN_ATTRIBUTE_TYPES.each do |the_type|
+      ActiveResource::Schema::KNOWN_ATTRIBUTE_TYPES.each do |the_type|
         assert_nothing_raised do
           assert s.attribute('foo', the_type), "should take a simple attribute of type: #{the_type}"
           assert s.attrs.has_key?('foo'), "should have saved the attribute name"
-          assert_equal the_type.to_s, s.attrs['foo'], "should have saved the attribute type of: #{the_type}" 
+          assert_equal the_type.to_s, s.attrs['foo'], "should have saved the attribute type of: #{the_type}"
         end
       end
     end
   end
- 
+
   test "attributes should not accept unknown values" do
     bad_values = [ :oogle, :blob, 'thing']
 
@@ -251,20 +251,20 @@ class SchemaTest < ActiveModel::TestCase
     end
   end
 
-   
+
   test "should accept attribute types as the type's name as the method" do
     Person.define_schema do |s|
-      ActiveResource::SchemaDefinition::KNOWN_ATTRIBUTE_TYPES.each do |the_type|
+      ActiveResource::Schema::KNOWN_ATTRIBUTE_TYPES.each do |the_type|
         assert s.respond_to?(the_type), "should recognise the attribute-type: #{the_type} as a method"
         assert_nothing_raised("should take the method #{the_type} with the attribute name") do
           s.send(the_type,'foo')  # eg s.string :foo
         end
         assert s.attrs.has_key?('foo'), "should now have saved the attribute name"
-        assert_equal the_type.to_s, s.attrs['foo'], "should have saved the attribute type of: #{the_type}" 
+        assert_equal the_type.to_s, s.attrs['foo'], "should have saved the attribute type of: #{the_type}"
       end
     end
   end
-   
+
   test "should accept multiple attribute names for an attribute method" do
     names = ['foo','bar','baz']
     Person.define_schema do |s|
@@ -273,7 +273,7 @@ class SchemaTest < ActiveModel::TestCase
       end
       names.each do |the_name|
         assert s.attrs.has_key?(the_name), "should now have saved the attribute name: #{the_name}"
-        assert_equal 'string', s.attrs[the_name], "should have saved the attribute as a string" 
+        assert_equal 'string', s.attrs[the_name], "should have saved the attribute as a string"
       end
     end
   end
@@ -282,13 +282,13 @@ class SchemaTest < ActiveModel::TestCase
   # What a schema does for us
   ####
 
-  # respond_to? 
+  # respond_to?
 
   test "should respond positively to attributes that are only in the schema" do
     new_attr_name = :my_new_schema_attribute
     new_attr_name_two = :another_new_schema_attribute
     assert Person.schema.blank?, "sanity check - should have a blank class schema"
-     
+
     assert !Person.new.respond_do?(new_attr_name), "sanity check - should not respond to the brand-new attribute yet"
     assert !Person.new.respond_do?(new_attr_name_two), "sanity check - should not respond to the brand-new attribute yet"
 
@@ -306,7 +306,7 @@ class SchemaTest < ActiveModel::TestCase
     new_attr_name_two = :another_new_schema_attribute
 
     assert Person.schema.blank?, "sanity check - should have a blank class schema"
-     
+
     assert !Person.new.respond_do?(new_attr_name), "sanity check - should not respond to the brand-new attribute yet"
     assert !Person.new.respond_do?(new_attr_name_two), "sanity check - should not respond to the brand-new attribute yet"
 
@@ -328,10 +328,10 @@ class SchemaTest < ActiveModel::TestCase
     assert Person.schema.blank?, "sanity check - should have a blank class schema"
 
     assert_raises(NoMethodError, "should not have found the attribute: #{new_attr_name} as a method") do
-      Person.new.send(new_attr_name) 
+      Person.new.send(new_attr_name)
     end
     assert_raises(NoMethodError, "should not have found the attribute: #{new_attr_name_two} as a method") do
-      Person.new.send(new_attr_name_two) 
+      Person.new.send(new_attr_name_two)
     end
 
     Person.schema = {new_attr_name.to_s => :float}
@@ -348,9 +348,9 @@ class SchemaTest < ActiveModel::TestCase
   # Known attributes
   #
   # Attributes can be known to be attributes even if they aren't actually
-  # 'set' on a particular instance. 
+  # 'set' on a particular instance.
   # This will only differ from 'attributes' if a schema has been set.
- 
+
   test "new model should have no known attributes" do
     assert Person.known_attributes.blank?, "should have no known attributes"
     assert Person.new.known_attributes.blank?, "should have no known attributes on a new instance"

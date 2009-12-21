@@ -1,7 +1,7 @@
 require 'active_resource/exceptions'
 
 module ActiveResource # :nodoc:
-  class SchemaDefinition # :nodoc:
+  class Schema # :nodoc:
 
     # attributes can be known to be one of these types. They are easy to
     # cast to/from.
@@ -11,7 +11,7 @@ module ActiveResource # :nodoc:
     # have been defined.
     attr_accessor :attrs
 
-    # The internals of an Active Resource SchemaDefinition are very simple -
+    # The internals of an Active Resource Schema are very simple -
     # unlike an Active Record TableDefinition (on which it is based).
     # It provides a set of convenience methods for people to define their
     # schema using the syntax:
@@ -28,7 +28,7 @@ module ActiveResource # :nodoc:
     end
 
     def attribute(name, type, options = {})
-      raise ArgumentError, "Unknown Attribute type: #{type.inspect} for key: #{name.inspect}" unless type.nil? || SchemaDefinition::KNOWN_ATTRIBUTE_TYPES.include?(type.to_s) 
+      raise ArgumentError, "Unknown Attribute type: #{type.inspect} for key: #{name.inspect}" unless type.nil? || Schema::KNOWN_ATTRIBUTE_TYPES.include?(type.to_s)
 
       the_type = type.to_s
       # TODO: add defaults
@@ -39,7 +39,7 @@ module ActiveResource # :nodoc:
     end
 
     # The following are the attribute types supported by Active Resource
-    # migrations. 
+    # migrations.
     # TODO:  We should eventually support all of these:
     # %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |attr_type|
     KNOWN_ATTRIBUTE_TYPES.each do |attr_type|

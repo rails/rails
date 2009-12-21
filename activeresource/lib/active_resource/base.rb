@@ -13,7 +13,6 @@ require 'set'
 require 'uri'
 
 require 'active_resource/exceptions'
-require 'active_resource/schema_definition'
 
 module ActiveResource
   # ActiveResource::Base is the main class for mapping RESTful resources as models in a Rails application.
@@ -270,9 +269,9 @@ module ActiveResource
       #     s.integer 'age'
       #     s.float   'height', 'weight'
       #
-      #     # unsupported types should be left as strings 
+      #     # unsupported types should be left as strings
       #     # overload the accessor methods if you need to convert them
-      #     s.attribute 'created_at', 'string' 
+      #     s.attribute 'created_at', 'string'
       #   end
       # end
       #
@@ -295,14 +294,14 @@ module ActiveResource
       #  string, integer, float
       #
       # Note: at present the attribute-type doesn't do anything, but stay
-      # tuned...  
+      # tuned...
       # Shortly it will also *cast* the value of the returned attribute.
       # ie:
       # j.age                 # => 34   # cast to an integer
       # j.weight              # => '65' # still a string!
       #
       def define_schema
-        schema_definition = SchemaDefinition.new
+        schema_definition = Schema.new
         yield schema_definition if block_given?
 
         # skip out if we didn't define anything
@@ -317,7 +316,7 @@ module ActiveResource
         end
 
         schema
-      end  
+      end
 
 
       # Alternative, direct way to specify a <tt>schema</tt> for this
@@ -326,7 +325,7 @@ module ActiveResource
       #
       # Pass the schema as a hash with the keys being the attribute-names
       # and the value being one of the accepted attribute types (as defined
-      # in <tt>define_schema</tt>) 
+      # in <tt>define_schema</tt>)
       #
       # example:
       #
@@ -342,7 +341,7 @@ module ActiveResource
           # purposefully nulling out the schema
           @schema = nil
           @known_attributes = []
-          return 
+          return
         end
 
         raise ArgumentError, "Expected a hash" unless the_schema.kind_of? Hash
