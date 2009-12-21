@@ -24,7 +24,7 @@ module ActionController
       autoload :MimeResponds
       autoload :RackConvenience
       autoload :Compatibility
-      autoload :Redirector
+      autoload :Redirecting
       autoload :Rendering
       autoload :RenderOptions
       autoload :Rescue

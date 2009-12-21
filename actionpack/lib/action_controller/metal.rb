@@ -58,7 +58,7 @@ module ActionController
 
     # Basic implementations for content_type=, location=, and headers are
     # provided to reduce the dependency on the RackConvenience module
-    # in Renderer and Redirector.
+    # in Rendering and Redirecting.
 
     def content_type=(type)
       headers["Content-Type"] = type.to_s

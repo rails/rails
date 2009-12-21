@@ -7,7 +7,7 @@ module ActionController
     end
   end
 
-  module Redirector
+  module Redirecting
     extend ActiveSupport::Concern
     include AbstractController::Logger
 

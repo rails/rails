@@ -8,7 +8,7 @@ module ActionController
     include ActionController::Helpers
     include ActionController::HideActions
     include ActionController::UrlFor
-    include ActionController::Redirector
+    include ActionController::Redirecting
     include ActionController::Rendering
     include ActionController::RenderOptions::All
     include ActionController::Layouts
