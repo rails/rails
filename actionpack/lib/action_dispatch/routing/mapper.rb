@@ -39,9 +39,13 @@ module ActionDispatch
         end
 
         def match(*args)
-          options = args.extract_options!
-
-          path = args.first
+          if args.one? && args.first.is_a?(Hash)
+            path    = args.first.keys.first
+            options = { :to => args.first.values.first }
+          else
+            path    = args.first
+            options = args.extract_options!
+          end
 
           conditions, defaults = {}, {}
 
