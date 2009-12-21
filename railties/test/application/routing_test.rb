@@ -28,6 +28,12 @@ module ApplicationTests
         end
       RUBY
 
+      app_file 'config/routes.rb', <<-RUBY
+        ActionController::Routing::Routes.draw do |map|
+          match ':controller(/:action)'
+        end
+      RUBY
+
       get '/foo'
       assert_equal 'foo', last_response.body
     end
@@ -46,6 +52,12 @@ module ApplicationTests
           def index
             render :text => "bar"
           end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        ActionController::Routing::Routes.draw do |map|
+          match ':controller(/:action)'
         end
       RUBY
 
@@ -72,6 +84,12 @@ module ApplicationTests
               render :text => "admin::foo"
             end
           end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        ActionController::Routing::Routes.draw do |map|
+          match ':controller(/:action)'
         end
       RUBY
 
