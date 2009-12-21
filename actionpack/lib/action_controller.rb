@@ -26,7 +26,7 @@ module ActionController
       autoload :Compatibility
       autoload :Redirecting
       autoload :Rendering
-      autoload :RenderOptions
+      autoload :Renderers
       autoload :Rescue
       autoload :Responder
       autoload :Session

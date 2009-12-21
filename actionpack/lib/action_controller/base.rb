@@ -10,7 +10,7 @@ module ActionController
     include ActionController::UrlFor
     include ActionController::Redirecting
     include ActionController::Rendering
-    include ActionController::RenderOptions::All
+    include ActionController::Renderers::All
     include ActionController::Layouts
     include ActionController::ConditionalGet
     include ActionController::RackConvenience
