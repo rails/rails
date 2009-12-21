@@ -1,6 +1,0 @@
-require "action_dispatch/testing/assertions"
-require "action_dispatch/testing/integration"
-require "action_dispatch/testing/performance_test"
-require "action_dispatch/testing/test_request"
-require "action_dispatch/testing/test_response"
-require "action_dispatch/testing/integration"

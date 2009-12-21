@@ -39,9 +39,13 @@ module ActionDispatch
         end
 
         def match(*args)
-          options = args.extract_options!
-
-          path = args.first
+          if args.one? && args.first.is_a?(Hash)
+            path    = args.first.keys.first
+            options = { :to => args.first.values.first }
+          else
+            path    = args.first
+            options = args.extract_options!
+          end
 
           conditions, defaults = {}, {}
 
@@ -132,13 +136,19 @@ module ActionDispatch
           map_method(:delete, *args, &block)
         end
 
-        def redirect(path, options = {})
+        def redirect(*args, &block)
+          options = args.last.is_a?(Hash) ? args.pop : {}
+
+          path = args.shift || block
+          path_proc = path.is_a?(Proc) ? path : proc {|params| path % params }
           status = options[:status] || 301
-          lambda { |env|
+
+          lambda do |env|
             req = Rack::Request.new(env)
-            url = req.scheme + '://' + req.host + path
+            params = path_proc.call(env["action_dispatch.request.path_parameters"])
+            url = req.scheme + '://' + req.host + params
             [status, {'Location' => url, 'Content-Type' => 'text/html'}, ['Moved Permanently']]
-          }
+          end
         end
 
         private

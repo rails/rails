@@ -158,7 +158,7 @@ module ActionController
   module Layouts
     extend ActiveSupport::Concern
 
-    include ActionController::RenderingController
+    include ActionController::Rendering
     include AbstractController::Layouts
 
     module ClassMethods

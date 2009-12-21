@@ -203,20 +203,18 @@ module ActionDispatch
           end
       end
 
-      attr_accessor :routes, :named_routes, :configuration_files, :controller_paths
+      attr_accessor :routes, :named_routes
+      attr_accessor :disable_clear_and_finalize
 
       def initialize
-        self.configuration_files = []
-        self.controller_paths = []
-
         self.routes = []
         self.named_routes = NamedRouteCollection.new
 
-        clear!
+        @disable_clear_and_finalize = false
       end
 
       def draw(&block)
-        clear!
+        clear! unless @disable_clear_and_finalize
 
         mapper = Mapper.new(self)
         if block.arity == 1
@@ -225,12 +223,20 @@ module ActionDispatch
           mapper.instance_exec(&block)
         end
 
+        finalize! unless @disable_clear_and_finalize
+
+        nil
+      end
+
+      def finalize!
         @set.add_route(NotFound)
         install_helpers
         @set.freeze
       end
 
       def clear!
+        # Clear the controller cache so we may discover new ones
+        @controller_constraints = nil
         routes.clear
         named_routes.clear
         @set = ::Rack::Mount::RouteSet.new(:parameters_key => PARAMETERS_KEY)
@@ -243,67 +249,6 @@ module ActionDispatch
 
       def empty?
         routes.empty?
-      end
-
-      def add_configuration_file(path)
-        self.configuration_files << path
-      end
-
-      # Deprecated accessor
-      def configuration_file=(path)
-        add_configuration_file(path)
-      end
-
-      # Deprecated accessor
-      def configuration_file
-        configuration_files
-      end
-
-      def load!
-        # Clear the controller cache so we may discover new ones
-        @controller_constraints = nil
-
-        load_routes!
-      end
-
-      # reload! will always force a reload whereas load checks the timestamp first
-      alias reload! load!
-
-      def reload
-        if configuration_files.any? && @routes_last_modified
-          if routes_changed_at == @routes_last_modified
-            return # routes didn't change, don't reload
-          else
-            @routes_last_modified = routes_changed_at
-          end
-        end
-
-        load!
-      end
-
-      def load_routes!
-        if configuration_files.any?
-          configuration_files.each { |config| load(config) }
-          @routes_last_modified = routes_changed_at
-        else
-          draw do |map|
-            map.connect ":controller/:action/:id"
-          end
-        end
-      end
-
-      def routes_changed_at
-        routes_changed_at = nil
-
-        configuration_files.each do |config|
-          config_changed_at = File.stat(config).mtime
-
-          if routes_changed_at.nil? || config_changed_at > routes_changed_at
-            routes_changed_at = config_changed_at
-          end
-        end
-
-        routes_changed_at
       end
 
       CONTROLLER_REGEXP = /[_a-zA-Z0-9]+/
@@ -325,11 +270,14 @@ module ActionDispatch
           namespaces << controller_name.split('/')[0...-1].join('/')
         end
 
-        # Find namespaces in controllers/ directory
-        controller_paths.each do |load_path|
-          load_path = File.expand_path(load_path)
-          Dir["#{load_path}/**/*_controller.rb"].collect do |path|
-            namespaces << File.dirname(path).sub(/#{load_path}\/?/, '')
+        # TODO: Move this into Railties
+        if defined?(Rails.application)
+          # Find namespaces in controllers/ directory
+          Rails.application.configuration.controller_paths.each do |load_path|
+            load_path = File.expand_path(load_path)
+            Dir["#{load_path}/**/*_controller.rb"].collect do |path|
+              namespaces << File.dirname(path).sub(/#{load_path}\/?/, '')
+            end
           end
         end
 

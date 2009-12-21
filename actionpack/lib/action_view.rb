@@ -21,7 +21,12 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require File.join(File.dirname(__FILE__), "action_pack")
+activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
+$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
+require 'active_support/ruby/shim'
+require 'active_support/core_ext/class/attribute_accessors'
+
+require 'action_pack'
 
 module ActionView
   extend ActiveSupport::Autoload
@@ -51,10 +56,4 @@ end
 
 require 'action_view/erb/util'
 
-
 I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
-
-activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-$:.unshift activesupport_path if File.directory?(activesupport_path)
-require 'active_support'
-require 'active_support/core_ext/class/attribute_accessors'

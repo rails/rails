@@ -1,8 +1,6 @@
 require 'active_support/test_case'
 require 'rack/session/abstract/id'
 require 'action_controller/metal/testing'
-require 'action_controller/testing/process'
-require 'action_dispatch/test_case'
 
 module ActionController
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
@@ -183,7 +181,7 @@ module ActionController
   #
   #  assert_redirected_to page_url(:title => 'foo')
   class TestCase < ActiveSupport::TestCase
-    include TestProcess
+    include ActionDispatch::TestProcess
 
     # Executes a request simulating GET HTTP method and set/volley the response
     def get(action, parameters = nil, session = nil, flash = nil)

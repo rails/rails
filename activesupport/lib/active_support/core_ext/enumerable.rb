@@ -101,6 +101,11 @@ module Enumerable
     size = block_given? ? select(&block).size : self.size
     size > 1
   end
+  
+  # The negative of the Enumerable#include?. Returns true if the collection does not include the object.
+  def exclude?(object)
+    !include?(object)
+  end
 end
 
 class Range #:nodoc:

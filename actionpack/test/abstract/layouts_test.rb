@@ -6,7 +6,7 @@ module AbstractControllerTests
 
     # Base controller for these tests
     class Base < AbstractController::Base
-      include AbstractController::RenderingController
+      include AbstractController::Rendering
       include AbstractController::Layouts
 
       self.view_paths = [ActionView::FixtureResolver.new(

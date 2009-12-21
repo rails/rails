@@ -1,13 +1,21 @@
+require "abstract_controller/base"
 require "abstract_controller/logger"
 
 module AbstractController
-  module RenderingController
+  class DoubleRenderError < Error
+    DEFAULT_MESSAGE = "Render and/or redirect were called multiple times in this action. Please note that you may only call render OR redirect, and at most once per action. Also note that neither redirect nor render terminate execution of the action, so if you want to exit an action after redirecting, you need to do something like \"redirect_to(...) and return\"."
+
+    def initialize(message = nil)
+      super(message || DEFAULT_MESSAGE)
+    end
+  end
+
+  module Rendering
     extend ActiveSupport::Concern
 
     include AbstractController::Logger
 
     included do
-      attr_internal :formats
       extlib_inheritable_accessor :_view_paths
       self._view_paths ||= ActionView::PathSet.new
     end
@@ -21,7 +29,7 @@ module AbstractController
     # An instance of a view class. The default view class is ActionView::Base
     #
     # The view class must have the following methods:
-    # View.for_controller[controller] Create a new ActionView instance for a 
+    # View.for_controller[controller] Create a new ActionView instance for a
     #   controller
     # View#render_partial[options]
     #   - responsible for setting options[:_template]
@@ -71,7 +79,7 @@ module AbstractController
     #
     # :api: plugin
     def render_to_string(options = {})
-      AbstractController::RenderingController.body_to_s(render_to_body(options))
+      AbstractController::Rendering.body_to_s(render_to_body(options))
     end
 
     # Renders the template from an object.
@@ -152,12 +160,12 @@ module AbstractController
     module ClassMethods
       def clear_template_caches!
       end
-      
+
       # Append a path to the list of view paths for this controller.
       #
       # ==== Parameters
-      # path<String, ViewPath>:: If a String is provided, it gets converted into 
-      # the default view path. You may also provide a custom view path 
+      # path<String, ViewPath>:: If a String is provided, it gets converted into
+      # the default view path. You may also provide a custom view path
       # (see ActionView::ViewPathSet for more information)
       def append_view_path(path)
         self.view_paths << path
@@ -166,8 +174,8 @@ module AbstractController
       # Prepend a path to the list of view paths for this controller.
       #
       # ==== Parameters
-      # path<String, ViewPath>:: If a String is provided, it gets converted into 
-      # the default view path. You may also provide a custom view path 
+      # path<String, ViewPath>:: If a String is provided, it gets converted into
+      # the default view path. You may also provide a custom view path
       # (see ActionView::ViewPathSet for more information)
       def prepend_view_path(path)
         clear_template_caches!

@@ -1,7 +1,6 @@
 require 'active_support/all'
 require 'active_support/test_case'
 require 'action_controller'
-require 'action_dispatch/test_case'
 
 # work around the at_exit hook in test/unit, which kills IRB
 Test::Unit.run = true if Test::Unit.respond_to?(:run=)
@@ -28,6 +27,6 @@ end
 def reload!
   puts "Reloading..."
   ActionDispatch::Callbacks.new(lambda {}, true)
-  ActionController::Routing::Routes.reload
+  Rails.application.reload_routes!
   true
 end

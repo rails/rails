@@ -1,8 +1,11 @@
 module AbstractController
+  class Error < StandardError; end
+  class ActionNotFound < StandardError; end
 
   class Base
     attr_internal :response_body
     attr_internal :action_name
+    attr_internal :formats
 
     class << self
       attr_reader :abstract
@@ -74,7 +77,7 @@ module AbstractController
     abstract!
 
     # Calls the action going through the entire action dispatch stack.
-    # 
+    #
     # The actual method that is called is determined by calling
     # #method_for_action. If no method can handle the action, then an
     # ActionNotFound error is raised.
@@ -87,6 +90,8 @@ module AbstractController
       unless action_name = method_for_action(action_name)
         raise ActionNotFound, "The action '#{action}' could not be found"
       end
+
+      @_response_body = nil
 
       process_action(action_name)
     end

@@ -1,53 +1,58 @@
-require "active_support"
+activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
+$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
+require 'active_support/ruby/shim'
 
 module ActionController
   extend ActiveSupport::Autoload
 
-  autoload :Base
-  autoload :Caching
-  autoload :PolymorphicRoutes
-  autoload :RecordIdentifier
-  autoload :UrlRewriter
-  autoload :Translation
-  autoload :Metal
-  autoload :Middleware
+  deferrable do
+    autoload :Base
+    autoload :Caching
+    autoload :PolymorphicRoutes
+    autoload :Translation
+    autoload :Metal
+    autoload :Middleware
 
-  autoload_under "metal" do
-    autoload :Benchmarking
-    autoload :ConditionalGet
-    autoload :Configuration
-    autoload :Head
-    autoload :Helpers
-    autoload :HideActions
-    autoload :Layouts
-    autoload :MimeResponds
-    autoload :RackConvenience
-    autoload :Compatibility
-    autoload :Redirector
-    autoload :RenderingController
-    autoload :RenderOptions
-    autoload :Rescue
-    autoload :Responder
-    autoload :Session
-    autoload :SessionManagement
-    autoload :UrlFor
-    autoload :Verification
-    autoload :Flash
-    autoload :RequestForgeryProtection
-    autoload :Streaming
-    autoload :HttpAuthentication
-    autoload :FilterParameterLogging
-    autoload :Cookies
+    autoload_under "metal" do
+      autoload :Benchmarking
+      autoload :ConditionalGet
+      autoload :Configuration
+      autoload :Head
+      autoload :Helpers
+      autoload :HideActions
+      autoload :Layouts
+      autoload :MimeResponds
+      autoload :RackDelegation
+      autoload :Compatibility
+      autoload :Redirecting
+      autoload :Rendering
+      autoload :Renderers
+      autoload :Rescue
+      autoload :Responder
+      autoload :SessionManagement
+      autoload :UrlFor
+      autoload :Verification
+      autoload :Flash
+      autoload :RequestForgeryProtection
+      autoload :Streaming
+      autoload :HttpAuthentication
+      autoload :FilterParameterLogging
+      autoload :Cookies
+    end
+
+    autoload :Dispatcher,      'action_controller/dispatch/dispatcher'
+    autoload :PerformanceTest, 'action_controller/deprecated/performance_test'
+    autoload :Routing,         'action_controller/deprecated'
+    autoload :Integration,     'action_controller/deprecated/integration_test'
+    autoload :IntegrationTest, 'action_controller/deprecated/integration_test'
   end
 
-  autoload :Dispatcher,               'action_controller/dispatch/dispatcher'
-  autoload :PerformanceTest,          'action_controller/deprecated/performance_test'
-  autoload :Routing,                  'action_controller/deprecated'
-  autoload :Integration,              'action_controller/deprecated/integration_test'
-  autoload :IntegrationTest,          'action_controller/deprecated/integration_test'
-
+  autoload :RecordIdentifier
+  autoload :UrlRewriter
   autoload :UrlWriter,                'action_controller/url_rewriter'
 
+  # TODO: Don't autoload exceptions, setup explicit
+  # requires for files that need them
   autoload_at "action_controller/metal/exceptions" do
     autoload :ActionControllerError
     autoload :RenderError

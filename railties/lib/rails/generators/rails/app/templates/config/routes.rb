@@ -3,7 +3,7 @@ ActionController::Routing::Routes.draw do |map|
   # first created -> highest priority.
 
   # Sample of regular route:
-  #   match 'products/:id', :to => 'catalog#view'
+  #   match 'products/:id' => 'catalog#view'
   # Keep in mind you can assign values other than :controller and :action
 
   # Sample of named route:
@@ -52,9 +52,7 @@ ActionController::Routing::Routes.draw do |map|
 
   # See how all your routes lay out with "rake routes"
 
-  # Install the default route as the lowest priority.
-  # Note: The default route make all actions in every controller accessible
-  # via GET requests. You should consider removing or commenting it out if
-  # you're using named routes and resources.
-  match ':controller(/:action(/:id(.:format)))'
+  # This is a legacy wild controller route that's not recommended for RESTful applications.
+  # Note: This route will make all actions in every controller accessible via GET requests.
+  # match ':controller(/:action(/:id(.:format)))'
 end

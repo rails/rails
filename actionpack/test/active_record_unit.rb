@@ -11,19 +11,15 @@ class ActiveRecordTestConnector
 end
 
 # Try to grab AR
-if defined?(ActiveRecord) && defined?(Fixtures)
-  $stderr.puts 'Active Record is already loaded, running tests'
-else
-  $stderr.print 'Attempting to load Active Record... '
+unless defined?(ActiveRecord) && defined?(Fixtures)
   begin
     PATH_TO_AR = "#{File.dirname(__FILE__)}/../../activerecord/lib"
     raise LoadError, "#{PATH_TO_AR} doesn't exist" unless File.directory?(PATH_TO_AR)
     $LOAD_PATH.unshift PATH_TO_AR
     require 'active_record'
     require 'active_record/fixtures'
-    $stderr.puts 'success'
   rescue LoadError => e
-    $stderr.print "failed. Skipping Active Record assertion tests: #{e}"
+    $stderr.print "Failed to load Active Record. Skipping Active Record assertion tests: #{e}"
     ActiveRecordTestConnector.able_to_connect = false
   end
 end
