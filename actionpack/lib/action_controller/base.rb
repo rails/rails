@@ -13,7 +13,7 @@ module ActionController
     include ActionController::RenderOptions::All
     include ActionController::Layouts
     include ActionController::ConditionalGet
-    include ActionController::RackConvenience
+    include ActionController::RackDelegation
     include ActionController::Benchmarking
     include ActionController::Configuration
 

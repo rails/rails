@@ -1,5 +1,5 @@
 module ActionController
-  module RackConvenience
+  module RackDelegation
     extend ActiveSupport::Concern
 
     included do
