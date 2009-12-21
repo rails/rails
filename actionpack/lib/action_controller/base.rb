@@ -9,7 +9,7 @@ module ActionController
     include ActionController::HideActions
     include ActionController::UrlFor
     include ActionController::Redirector
-    include ActionController::RenderingController
+    include ActionController::Rendering
     include ActionController::RenderOptions::All
     include ActionController::Layouts
     include ActionController::ConditionalGet

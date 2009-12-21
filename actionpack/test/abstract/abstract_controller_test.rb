@@ -28,7 +28,7 @@ module AbstractController
     # Test Render mixin
     # ====
     class RenderingController < AbstractController::Base
-      include ::AbstractController::RenderingController
+      include ::AbstractController::Rendering
 
       def _prefix() end
 

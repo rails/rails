@@ -15,6 +15,6 @@ module AbstractController
     autoload :Layouts
     autoload :LocalizedCache
     autoload :Logger
-    autoload :RenderingController
+    autoload :Rendering
   end
 end

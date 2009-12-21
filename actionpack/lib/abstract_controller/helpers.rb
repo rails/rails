@@ -4,7 +4,7 @@ module AbstractController
   module Helpers
     extend ActiveSupport::Concern
 
-    include RenderingController
+    include Rendering
 
     def self.next_serial
       @helper_serial ||= 0
