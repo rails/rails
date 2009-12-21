@@ -69,7 +69,7 @@ module ActionController #:nodoc:
   # Giving an array of resources, you ensure that the responder will redirect to
   # <code>project_task_url</code> instead of <code>task_url</code>.
   #
-  # Namespaced and singleton resources requires a symbol to be given, as in
+  # Namespaced and singleton resources require a symbol to be given, as in
   # polymorphic urls. If a project has one manager which has many tasks, it
   # should be invoked as:
   #
@@ -116,7 +116,7 @@ module ActionController #:nodoc:
       navigation_behavior(e)
     end
 
-    # All others formats follow the procedure below. First we try to render a
+    # All other formats follow the procedure below. First we try to render a
     # template, if the template is not available, we verify if the resource
     # responds to :to_format and display it.
     #
@@ -173,11 +173,11 @@ module ActionController #:nodoc:
       @default_response.call
     end
 
-    # display is just a shortcut to render a resource with the current format.
+    # Display is just a shortcut to render a resource with the current format.
     #
     #   display @user, :status => :ok
     #
-    # For xml request is equivalent to:
+    # For XML requests it's equivalent to:
     #
     #   render :xml => @user, :status => :ok
     #
@@ -194,14 +194,14 @@ module ActionController #:nodoc:
       controller.render given_options.merge!(options).merge!(format => resource)
     end
 
-    # Check if the resource has errors or not.
+    # Check whether the resource has errors.
     #
     def has_errors?
       resource.respond_to?(:errors) && !resource.errors.empty?
     end
 
-    # By default, render the :edit action for html requests with failure, unless
-    # the verb is post.
+    # By default, render the <code>:edit</code> action for HTML requests with failure, unless
+    # the verb is POST.
     #
     def default_action
       @action || (request.post? ? :new : :edit)
