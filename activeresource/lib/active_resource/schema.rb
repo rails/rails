@@ -15,13 +15,13 @@ module ActiveResource # :nodoc:
     # unlike an Active Record TableDefinition (on which it is based).
     # It provides a set of convenience methods for people to define their
     # schema using the syntax:
-    #  define_schema do |s|
+    #  schema do |s|
     #    s.string :foo
     #    s.integer :bar
     #  end
     #
     #  The schema stores the name and type of each attribute. That is then
-    #  read out by the define_schema method to populate the actual
+    #  read out by the schema method to populate the actual
     #  Resource's schema
     def initialize
       @attrs = {}

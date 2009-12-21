@@ -241,12 +241,6 @@ module ActiveResource
     cattr_accessor :logger
 
     class << self
-      # This will shortly disappear to be replaced by the migration-style
-      # usage of this for defining a schema. At that point, all the doc
-      # currenlty on <tt>schema=</tt> will move back here...
-      def schema # :nodoc:
-        @schema ||= nil
-      end
       # Creates a schema for this resource - setting the attributes that are
       # known prior to fetching an instance from the remote system.
       #
@@ -260,7 +254,7 @@ module ActiveResource
       #
       # example:
       # class Person < ActiveResource::Base
-      #   define_schema do |s|
+      #   schema do |s|
       #     # define each attribute separately
       #     s.attribute 'name', :string
       #
@@ -300,32 +294,35 @@ module ActiveResource
       # j.age                 # => 34   # cast to an integer
       # j.weight              # => '65' # still a string!
       #
-      def define_schema
-        schema_definition = Schema.new
-        yield schema_definition if block_given?
+      def schema(&block)
+        if block_given?
+          schema_definition = Schema.new
+          yield schema_definition
 
-        # skip out if we didn't define anything
-        return unless schema_definition.attrs.present?
+          # skip out if we didn't define anything
+          return unless schema_definition.attrs.present?
 
-        @schema ||= {}.with_indifferent_access
-        @known_attributes ||= []
+          @schema ||= {}.with_indifferent_access
+          @known_attributes ||= []
 
-        schema_definition.attrs.each do |k,v|
-          @schema[k] = v
-          @known_attributes << k
+          schema_definition.attrs.each do |k,v|
+            @schema[k] = v
+            @known_attributes << k
+          end
+
+          schema
+        else
+          @schema ||= nil
         end
-
-        schema
       end
 
-
       # Alternative, direct way to specify a <tt>schema</tt> for this
-      # Resource. <tt>define_schema</tt> is more flexible, but this is quick
+      # Resource. <tt>schema</tt> is more flexible, but this is quick
       # for a very simple schema.
       #
       # Pass the schema as a hash with the keys being the attribute-names
       # and the value being one of the accepted attribute types (as defined
-      # in <tt>define_schema</tt>)
+      # in <tt>schema</tt>)
       #
       # example:
       #
@@ -346,7 +343,7 @@ module ActiveResource
 
         raise ArgumentError, "Expected a hash" unless the_schema.kind_of? Hash
 
-        define_schema do |s|
+        schema do |s|
           the_schema.each {|k,v| s.attribute(k,v) }
         end
       end

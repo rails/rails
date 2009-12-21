@@ -180,14 +180,14 @@ class SchemaTest < ActiveModel::TestCase
 
 
   #####################################################
-  # Using the define_schema syntax
+  # Using the schema syntax
   ####
 
-  test "should be able to use define_schema" do
-    assert Person.respond_to?(:define_schema), "should at least respond to the define_schema method"
+  test "should be able to use schema" do
+    assert Person.respond_to?(:schema), "should at least respond to the schema method"
 
-    assert_nothing_raised("Should allow the define_schema to take a block") do
-      Person.define_schema do |s|
+    assert_nothing_raised("Should allow the schema to take a block") do
+      Person.schema do |s|
         assert s.kind_of?(ActiveResource::Schema), "the 's' should be a schema definition or we're way off track..."
       end
     end
@@ -195,7 +195,7 @@ class SchemaTest < ActiveModel::TestCase
 
   test "schema definition should store and return attribute set" do
     assert_nothing_raised do
-      Person.define_schema do |s|
+      Person.schema do |s|
         assert s.respond_to?(:attrs), "should return attributes in theory"
         s.attribute :foo, :string
         assert_equal({'foo' => 'string' }, s.attrs, "should return attributes in practice")
@@ -203,9 +203,9 @@ class SchemaTest < ActiveModel::TestCase
     end
   end
 
-  test "should be able to add attributes through define_schema" do
+  test "should be able to add attributes through schema" do
     assert_nothing_raised do
-      Person.define_schema do |s|
+      Person.schema do |s|
         assert s.attribute('foo', 'string'), "should take a simple attribute"
         assert s.attrs.has_key?('foo'), "should have saved the attribute name"
         assert_equal 'string', s.attrs['foo'], "should have saved the attribute type"
@@ -215,7 +215,7 @@ class SchemaTest < ActiveModel::TestCase
 
   test "should convert symbol attributes to strings" do
     assert_nothing_raised do
-      Person.define_schema do |s|
+      Person.schema do |s|
         assert s.attribute(:foo, :integer), "should take a simple attribute as symbols"
         assert s.attrs.has_key?('foo'), "should have saved the attribute name as a string"
         assert_equal 'integer', s.attrs['foo'], "should have saved the attribute type as a string"
@@ -224,7 +224,7 @@ class SchemaTest < ActiveModel::TestCase
   end
 
   test "should be able to add all known attribute types" do
-    Person.define_schema do |s|
+    Person.schema do |s|
       ActiveResource::Schema::KNOWN_ATTRIBUTE_TYPES.each do |the_type|
         assert_nothing_raised do
           assert s.attribute('foo', the_type), "should take a simple attribute of type: #{the_type}"
@@ -238,7 +238,7 @@ class SchemaTest < ActiveModel::TestCase
   test "attributes should not accept unknown values" do
     bad_values = [ :oogle, :blob, 'thing']
 
-    Person.define_schema do |s|
+    Person.schema do |s|
       bad_values.each do |bad_value|
         assert_raises(ArgumentError,"should only accept a known attribute type, but accepted: #{bad_value.inspect}") do
           s.attribute 'key', bad_value
@@ -253,7 +253,7 @@ class SchemaTest < ActiveModel::TestCase
 
 
   test "should accept attribute types as the type's name as the method" do
-    Person.define_schema do |s|
+    Person.schema do |s|
       ActiveResource::Schema::KNOWN_ATTRIBUTE_TYPES.each do |the_type|
         assert s.respond_to?(the_type), "should recognise the attribute-type: #{the_type} as a method"
         assert_nothing_raised("should take the method #{the_type} with the attribute name") do
@@ -267,7 +267,7 @@ class SchemaTest < ActiveModel::TestCase
 
   test "should accept multiple attribute names for an attribute method" do
     names = ['foo','bar','baz']
-    Person.define_schema do |s|
+    Person.schema do |s|
       assert_nothing_raised("should take strings with multiple attribute names as params") do
         s.string( *names)
       end
@@ -294,11 +294,11 @@ class SchemaTest < ActiveModel::TestCase
 
     assert_nothing_raised do
       Person.schema = {new_attr_name.to_s => 'string'}
-      Person.define_schema {|s| s.string new_attr_name_two }
+      Person.schema {|s| s.string new_attr_name_two }
     end
 
     assert Person.new.respond_to?(new_attr_name), "should respond to the attribute in a passed-in schema, but failed on: #{new_attr_name}"
-    assert Person.new.respond_to?(new_attr_name_two), "should respond to the attribute from the define_schema, but failed on: #{new_attr_name_two}"
+    assert Person.new.respond_to?(new_attr_name_two), "should respond to the attribute from the schema, but failed on: #{new_attr_name_two}"
   end
 
   test "should not care about ordering of schema definitions" do
@@ -311,12 +311,12 @@ class SchemaTest < ActiveModel::TestCase
     assert !Person.new.respond_do?(new_attr_name_two), "sanity check - should not respond to the brand-new attribute yet"
 
     assert_nothing_raised do
-      Person.define_schema {|s| s.string new_attr_name_two }
+      Person.schema {|s| s.string new_attr_name_two }
       Person.schema = {new_attr_name.to_s => 'string'}
     end
 
     assert Person.new.respond_to?(new_attr_name), "should respond to the attribute in a passed-in schema, but failed on: #{new_attr_name}"
-    assert Person.new.respond_to?(new_attr_name_two), "should respond to the attribute from the define_schema, but failed on: #{new_attr_name_two}"
+    assert Person.new.respond_to?(new_attr_name_two), "should respond to the attribute from the schema, but failed on: #{new_attr_name_two}"
   end
 
   # method_missing effects
@@ -335,7 +335,7 @@ class SchemaTest < ActiveModel::TestCase
     end
 
     Person.schema = {new_attr_name.to_s => :float}
-    Person.define_schema {|s| s.string new_attr_name_two }
+    Person.schema {|s| s.string new_attr_name_two }
 
     assert_nothing_raised do
       Person.new.send(new_attr_name)
