@@ -45,7 +45,7 @@ module ActionController
 
     # The details below can be overridden to support a specific
     # Request and Response object. The default ActionController::Base
-    # implementation includes RackConvenience, which makes a request
+    # implementation includes RackDelegation, which makes a request
     # and response object available. You might wish to control the
     # environment and response manually for performance reasons.
 
@@ -57,7 +57,7 @@ module ActionController
     end
 
     # Basic implementations for content_type=, location=, and headers are
-    # provided to reduce the dependency on the RackConvenience module
+    # provided to reduce the dependency on the RackDelegation module
     # in Renderer and Redirector.
 
     def content_type=(type)
@@ -66,6 +66,10 @@ module ActionController
 
     def location=(url)
       headers["Location"] = url
+    end
+
+    def status=(status)
+      @_status = ActionDispatch::StatusCodes[status]
     end
 
     # :api: private
@@ -92,6 +96,7 @@ module ActionController
 
       def initialize(controller, action)
         @controller, @action = controller, action
+        @_formats = [Mime::HTML]
       end
 
       def call(env)

@@ -28,8 +28,6 @@ module ActionController #:nodoc:
   module Flash
     extend ActiveSupport::Concern
 
-    include Session
-
     included do
       helper_method :alert, :notice
     end
@@ -155,7 +153,7 @@ module ActionController #:nodoc:
   def alert
     flash[:alert]
   end
-  
+
   # Convenience accessor for flash[:alert]=
   def alert=(message)
     flash[:alert] = message
@@ -165,7 +163,7 @@ module ActionController #:nodoc:
   def notice
     flash[:notice]
   end
-  
+
   # Convenience accessor for flash[:notice]=
   def notice=(message)
     flash[:notice] = message
@@ -193,11 +191,11 @@ module ActionController #:nodoc:
       if notice = response_status_and_flash.delete(:notice)
         flash[:notice] = notice
       end
-    
+
       if other_flashes = response_status_and_flash.delete(:flash)
         flash.update(other_flashes)
       end
-      
+
       super(options, response_status_and_flash)
     end
   end

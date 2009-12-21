@@ -22,7 +22,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         delete 'logout', :to => :destroy, :as => :logout
       end
 
+      match 'account/logout' => redirect("/logout")
       match 'account/login', :to => redirect("/login")
+
+      match 'account/modulo/:name', :to => redirect("/%{name}s")
+      match 'account/proc/:name', :to => redirect {|params| "/#{params[:name].pluralize}" }
 
       match 'openid/login', :via => [:get, :post], :to => "openid#login"
 
@@ -34,11 +38,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       constraints(:ip => /192\.168\.1\.\d\d\d/) do
-        get 'admin', :to => "queenbee#index"
+        get 'admin' => "queenbee#index"
       end
 
       constraints ::TestRoutingMapper::IpRestrictor do
-        get 'admin/accounts', :to => "queenbee#accounts"
+        get 'admin/accounts' => "queenbee#accounts"
       end
 
       resources :projects, :controller => :project do
@@ -82,7 +86,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      match 'sprockets.js', :to => ::TestRoutingMapper::SprocketsApp
+      match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
 
       match 'people/:id/update', :to => 'people#update', :as => :update_person
       match '/projects/:project_id/people/:id/update', :to => 'people#update', :as => :update_project_person
@@ -141,6 +145,33 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/account/login'
       assert_equal 301, @response.status
       assert_equal 'http://www.example.com/login', @response.headers['Location']
+      assert_equal 'Moved Permanently', @response.body
+    end
+  end
+
+  def test_logout_redirect_without_to
+    with_test_routes do
+      get '/account/logout'
+      assert_equal 301, @response.status
+      assert_equal 'http://www.example.com/logout', @response.headers['Location']
+      assert_equal 'Moved Permanently', @response.body
+    end
+  end
+
+  def test_redirect_modulo
+    with_test_routes do
+      get '/account/modulo/name'
+      assert_equal 301, @response.status
+      assert_equal 'http://www.example.com/names', @response.headers['Location']
+      assert_equal 'Moved Permanently', @response.body
+    end
+  end
+
+  def test_redirect_proc
+    with_test_routes do
+      get '/account/proc/person'
+      assert_equal 301, @response.status
+      assert_equal 'http://www.example.com/people', @response.headers['Location']
       assert_equal 'Moved Permanently', @response.body
     end
   end

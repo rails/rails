@@ -2,7 +2,7 @@ module ActionController
   module Testing
     extend ActiveSupport::Concern
 
-    include RackConvenience
+    include RackDelegation
 
     # OMG MEGA HAX
     def process_with_new_base_test(request, response)

@@ -23,7 +23,7 @@
 
 activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
 $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
-require 'active_support'
+require 'active_support/ruby/shim'
 
 require 'rack'
 
@@ -38,7 +38,6 @@ module ActionDispatch
     autoload :Request
     autoload :Response
     autoload :StatusCodes
-    autoload :Utils
   end
 
   deferrable do

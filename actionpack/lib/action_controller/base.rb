@@ -8,12 +8,12 @@ module ActionController
     include ActionController::Helpers
     include ActionController::HideActions
     include ActionController::UrlFor
-    include ActionController::Redirector
-    include ActionController::RenderingController
-    include ActionController::RenderOptions::All
+    include ActionController::Redirecting
+    include ActionController::Rendering
+    include ActionController::Renderers::All
     include ActionController::Layouts
     include ActionController::ConditionalGet
-    include ActionController::RackConvenience
+    include ActionController::RackDelegation
     include ActionController::Benchmarking
     include ActionController::Configuration
 
@@ -26,7 +26,6 @@ module ActionController
     include ActionController::Compatibility
 
     include ActionController::Cookies
-    include ActionController::Session
     include ActionController::Flash
     include ActionController::Verification
     include ActionController::RequestForgeryProtection
@@ -90,7 +89,7 @@ module ActionController
       end
 
       if options[:status]
-        options[:status] = _interpret_status(options[:status])
+        options[:status] = ActionDispatch::StatusCodes[options[:status]]
       end
 
       options[:update] = blk if block_given?

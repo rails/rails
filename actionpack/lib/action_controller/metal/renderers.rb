@@ -1,10 +1,9 @@
 module ActionController
-
   def self.add_renderer(key, &block)
-    RenderOptions.add(key, &block)
+    Renderers.add(key, &block)
   end
 
-  module RenderOptions
+  module Renderers
     extend ActiveSupport::Concern
 
     included do
@@ -52,7 +51,7 @@ module ActionController
 
     module All
       extend ActiveSupport::Concern
-      include RenderOptions
+      include Renderers
 
       INCLUDED = []
       included do

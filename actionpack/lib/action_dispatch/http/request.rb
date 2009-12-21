@@ -465,6 +465,15 @@ EOM
       session['flash'] || {}
     end
 
+    # Returns the authorization header regardless of whether it was specified directly or through one of the
+    # proxy alternatives.
+    def authorization
+      @env['HTTP_AUTHORIZATION']   ||
+      @env['X-HTTP_AUTHORIZATION'] ||
+      @env['X_HTTP_AUTHORIZATION'] ||
+      @env['REDIRECT_X_HTTP_AUTHORIZATION']
+    end
+
     # Receives an array of mimes and return the first user sent mime that
     # matches the order array.
     #

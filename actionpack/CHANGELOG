@@ -1,5 +1,7 @@
 *Edge*
 
+* Added ActionDispatch::Request#authorization to access the http authentication header regardless of its proxy hiding [DHH]
+
 * Added :alert, :notice, and :flash as options to ActionController::Base#redirect_to that'll automatically set the proper flash before the redirection [DHH]. Examples:
 
     flash[:notice] = 'Post was created'

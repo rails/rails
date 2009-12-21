@@ -1,9 +1,9 @@
 module ActionController
-  module RenderingController
+  module Rendering
     extend ActiveSupport::Concern
 
     included do
-      include AbstractController::RenderingController
+      include AbstractController::Rendering
       include AbstractController::LocalizedCache
     end
 

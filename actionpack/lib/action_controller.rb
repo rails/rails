@@ -1,6 +1,6 @@
 activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
 $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
-require 'active_support'
+require 'active_support/ruby/shim'
 
 module ActionController
   extend ActiveSupport::Autoload
@@ -22,14 +22,13 @@ module ActionController
       autoload :HideActions
       autoload :Layouts
       autoload :MimeResponds
-      autoload :RackConvenience
+      autoload :RackDelegation
       autoload :Compatibility
-      autoload :Redirector
-      autoload :RenderingController
-      autoload :RenderOptions
+      autoload :Redirecting
+      autoload :Rendering
+      autoload :Renderers
       autoload :Rescue
       autoload :Responder
-      autoload :Session
       autoload :SessionManagement
       autoload :UrlFor
       autoload :Verification

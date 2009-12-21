@@ -2,7 +2,7 @@ module ActionController
   module UrlFor
     extend ActiveSupport::Concern
 
-    include RackConvenience
+    include RackDelegation
 
     # Overwrite to implement a number of default options that all url_for-based methods will use. The default options should come in
     # the form of a hash, just like the one you would use for url_for directly. Example:
