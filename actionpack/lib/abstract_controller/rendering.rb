@@ -16,7 +16,6 @@ module AbstractController
     include AbstractController::Logger
 
     included do
-      attr_internal :formats
       extlib_inheritable_accessor :_view_paths
       self._view_paths ||= ActionView::PathSet.new
     end

@@ -62,9 +62,9 @@ module ActionController
     private
       def _extract_redirect_to_status(options, response_status)
         status = if options.is_a?(Hash) && options.key?(:status)
-          _interpret_status(options.delete(:status))
+          ActionDispatch::StatusCodes[options.delete(:status)]
         elsif response_status.key?(:status)
-          _interpret_status(response_status[:status])
+          ActionDispatch::StatusCodes[response_status[:status]]
         else
           302
         end
@@ -85,14 +85,6 @@ module ActionController
         else
           url_for(options)
         end.gsub(/[\r\n]/, '')
-      end
-
-      def _interpret_status(status)
-        if status.is_a?(Symbol)
-          (ActionDispatch::StatusCodes::SYMBOL_TO_STATUS_CODE[status] || 500)
-        else
-          status.to_i
-        end
       end
   end
 end

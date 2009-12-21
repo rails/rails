@@ -68,6 +68,10 @@ module ActionController
       headers["Location"] = url
     end
 
+    def status=(status)
+      @_status = ActionDispatch::StatusCodes[status]
+    end
+
     # :api: private
     def dispatch(name, env)
       @_env = env
@@ -92,6 +96,7 @@ module ActionController
 
       def initialize(controller, action)
         @controller, @action = controller, action
+        @_formats = [Mime::HTML]
       end
 
       def call(env)
