@@ -14,6 +14,14 @@ module ActionDispatch
       510 => "Not Extended"
     }).freeze
 
+    def self.[](status)
+      if status.is_a?(Symbol)
+        SYMBOL_TO_STATUS_CODE[status] || 500
+      else
+        status.to_i
+      end
+    end
+
     # Provides a symbol-to-fixnum lookup for converting a symbol (like
     # :created or :not_implemented) into its corresponding HTTP status
     # code (like 200 or 501).

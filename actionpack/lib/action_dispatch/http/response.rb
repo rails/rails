@@ -60,7 +60,7 @@ module ActionDispatch # :nodoc:
     end
 
     def status=(status)
-      @status = status.to_i
+      @status = ActionDispatch::StatusCodes[status]
     end
 
     # The response code of the request

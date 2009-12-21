@@ -5,6 +5,7 @@ module AbstractController
   class Base
     attr_internal :response_body
     attr_internal :action_name
+    attr_internal :formats
 
     class << self
       attr_reader :abstract

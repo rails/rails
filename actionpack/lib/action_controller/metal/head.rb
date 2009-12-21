@@ -1,5 +1,7 @@
 module ActionController
   module Head
+    include UrlFor
+
     # Return a response that has no content (merely headers). The options
     # argument is interpreted to be a hash of header names and values.
     # This allows you to easily return a response that consists only of
@@ -21,7 +23,10 @@ module ActionController
         headers[key.to_s.dasherize.split(/-/).map { |v| v.capitalize }.join("-")] = value.to_s
       end
 
-      render :nothing => true, :status => status, :location => location
+      self.status = status
+      self.location = url_for(location) if location
+      self.content_type = Mime[formats.first]
+      self.response_body = " "
     end
   end
 end
