@@ -43,12 +43,12 @@ module ActiveResource # :nodoc:
     # %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |attr_type|
     KNOWN_ATTRIBUTE_TYPES.each do |attr_type|
       class_eval <<-EOV
-        def #{attr_type.to_s}(*args)                                            # def string(*args)
-          options = args.extract_options!                                      #   options = args.extract_options!
-          attr_names = args                                                    #   attr_names = args
-                                                                               #
-          attr_names.each { |name| attribute(name, '#{attr_type}', options) }  #   attr_names.each { |name| attribute(name, 'string', options) }
-        end                                                                    # end
+        def #{attr_type.to_s}(*args)
+          options = args.extract_options!
+          attr_names = args
+
+          attr_names.each { |name| attribute(name, '#{attr_type}', options) }
+        end
       EOV
     end
   end
