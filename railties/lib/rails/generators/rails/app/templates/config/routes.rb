@@ -3,7 +3,7 @@ ActionController::Routing::Routes.draw do |map|
   # first created -> highest priority.
 
   # Sample of regular route:
-  #   match 'products/:id', :to => 'catalog#view'
+  #   match 'products/:id' => 'catalog#view'
   # Keep in mind you can assign values other than :controller and :action
 
   # Sample of named route:
