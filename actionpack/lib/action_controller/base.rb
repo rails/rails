@@ -26,7 +26,6 @@ module ActionController
     include ActionController::Compatibility
 
     include ActionController::Cookies
-    include ActionController::Session
     include ActionController::Flash
     include ActionController::Verification
     include ActionController::RequestForgeryProtection

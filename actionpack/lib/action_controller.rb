@@ -29,7 +29,6 @@ module ActionController
       autoload :RenderOptions
       autoload :Rescue
       autoload :Responder
-      autoload :Session
       autoload :SessionManagement
       autoload :UrlFor
       autoload :Verification
