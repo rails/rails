@@ -38,7 +38,6 @@ module ActionDispatch
     autoload :Request
     autoload :Response
     autoload :StatusCodes
-    autoload :Utils
   end
 
   deferrable do
