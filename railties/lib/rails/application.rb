@@ -66,6 +66,10 @@ module Rails
       self.class.config
     end
 
+    class << self
+      alias configure class_eval
+    end
+
     def root
       config.root
     end
