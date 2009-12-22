@@ -89,6 +89,13 @@ module TestHelpers
         end
       end
 
+      routes = File.read("#{app_path}/config/routes.rb")
+      if routes =~ /(\n\s*end\s*)\Z/
+        File.open("#{app_path}/config/routes.rb", 'w') do |f|
+          f.puts $` + "\nmatch ':controller(/:action(/:id))(.:format)'\n" + $1
+        end
+      end
+
       add_to_config 'config.action_controller.session = { :key => "_myapp_session", :secret => "bac838a849c1d5c4de2e6a50af826079" }'
     end
 
