@@ -41,6 +41,10 @@ module Rails
         end
       end
 
+      def routes
+        ActionController::Routing::Routes
+      end
+
       def call(env)
         new.call(env)
       end

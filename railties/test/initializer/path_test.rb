@@ -14,6 +14,7 @@ class PathsTest < Test::Unit::TestCase
         ActionController::Base.session_store = nil
       end
     end
+    Object.const_set(:AppTemplate, Rails.application)
     Rails.initialize!
     @paths = Rails.application.config.paths
   end

@@ -2,7 +2,6 @@ require 'abstract_unit'
 require 'rails/paths'
 
 class PathsTest < ActiveSupport::TestCase
-
   def setup
     @root = Rails::Application::Root.new("/foo/bar")
   end

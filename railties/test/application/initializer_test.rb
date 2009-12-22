@@ -15,6 +15,7 @@ module ApplicationTests
       Rails::Initializer.run do |config|
         config.root = app_path
       end
+      Object.const_set(:AppTemplate, Rails.application)
 
       Rails.initialize!
       assert $:.include?("#{app_path}/app/models")
@@ -45,6 +46,7 @@ module ApplicationTests
         config.root = app_path
         config.eager_load_paths = "#{app_path}/lib"
       end
+      Object.const_set(:AppTemplate, Rails.application)
 
       Rails.initialize!
 
@@ -55,6 +57,7 @@ module ApplicationTests
       app_file "config/environments/development.rb", "$initialize_test_set_from_env = 'success'"
       assert_nil $initialize_test_set_from_env
       Rails::Initializer.run { |config| config.root = app_path }
+      Object.const_set(:AppTemplate, Rails.application)
       Rails.initialize!
       assert_equal "success", $initialize_test_set_from_env
     end
@@ -75,6 +78,7 @@ module ApplicationTests
         config.after_initialize { $test_after_initialize_block1 = "success" }
         config.after_initialize { $test_after_initialize_block2 = "congratulations" }
       end
+      Object.const_set(:AppTemplate, Rails.application)
       Rails.initialize!
 
       assert_equal "success", $test_after_initialize_block1
@@ -88,6 +92,7 @@ module ApplicationTests
         config.after_initialize # don't pass a block, this is what we're testing!
         config.after_initialize { $test_after_initialize_block2 = "congratulations" }
       end
+      Object.const_set(:AppTemplate, Rails.application)
       Rails.initialize!
 
       assert_equal "success", $test_after_initialize_block1
@@ -100,6 +105,7 @@ module ApplicationTests
         config.root = app_path
         config.i18n.default_locale = :de
       end
+      Object.const_set(:AppTemplate, Rails.application)
       Rails.initialize!
 
       assert_equal :de, I18n.default_locale
@@ -137,6 +143,7 @@ module ApplicationTests
         config.root = app_path
         config.action_controller.session_store = :cookie_store
       end
+      Object.const_set(:AppTemplate, Rails.application)
       Rails.initialize!
 
       assert !Rails.application.config.middleware.include?(ActiveRecord::SessionStore)
@@ -155,6 +162,7 @@ module ApplicationTests
         c.root = app_path
         c.action_controller.session_store = :active_record_store
       end
+      Object.const_set(:AppTemplate, Rails.application)
       Rails.initialize!
 
       expects = [ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
@@ -179,6 +187,7 @@ module ApplicationTests
         c.root = app_path
         c.frameworks -= [:action_view]
       end
+      Object.const_set(:AppTemplate, Rails.application)
       Rails.initialize!
 
       assert_equal nil, ActionMailer::Base.template_root
@@ -189,6 +198,7 @@ module ApplicationTests
       Rails::Initializer.run do |c|
         c.root = app_path
       end
+      Object.const_set(:AppTemplate, Rails.application)
       Rails.initialize!
       assert_instance_of Pathname, Rails.root
     end

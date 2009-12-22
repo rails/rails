@@ -62,9 +62,9 @@ module Rails::Generators
       empty_directory "config"
 
       inside "config" do
-        copy_file "routes.rb"
-        template  "application.rb"
-        template  "environment.rb"
+        template "routes.rb"
+        template "application.rb"
+        template "environment.rb"
 
         directory "environments"
         directory "initializers"
