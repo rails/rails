@@ -1,3 +1,6 @@
+require 'action_dispatch/http/request'
+require 'action_dispatch/http/response'
+
 module ActionController
   module RackDelegation
     extend ActiveSupport::Concern

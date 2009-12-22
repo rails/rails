@@ -34,12 +34,12 @@ end
 module ActionDispatch
   extend ActiveSupport::Autoload
 
-  autoload_under 'http' do
-    autoload :Request
-    autoload :Response
-  end
-
   deferrable do
+    autoload_under 'http' do
+      autoload :Request
+      autoload :Response
+    end
+
     autoload_under 'middleware' do
       autoload :Callbacks
       autoload :ParamsParser
@@ -71,8 +71,6 @@ module ActionDispatch
       autoload :TestResponse
     end
   end
-
-  autoload :HTML, 'action_controller/vendor/html-scanner'
 end
 
 autoload :Mime, 'action_dispatch/http/mime_type'
