@@ -109,6 +109,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       scope ':access_token', :constraints => { :access_token => /\w{5,5}/ } do
         resources :rooms
       end
+      
+      root :to => 'projects#index'
     end
   end
 
@@ -455,6 +457,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/12345/rooms/1/edit'
       assert_equal 'rooms#edit', @response.body
+    end
+  end
+
+  def test_root
+    with_test_routes do
+      get '/'
+      assert_equal 'projects#index', @response.body
     end
   end
 

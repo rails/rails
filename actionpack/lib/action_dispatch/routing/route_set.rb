@@ -5,7 +5,7 @@ module ActionDispatch
   module Routing
     class RouteSet #:nodoc:
       NotFound = lambda { |env|
-        raise ActionController::RoutingError, "No route matches #{env['PATH_INFO'].inspect} with #{env.inspect}"
+        raise ActionController::RoutingError, "No route matches #{env['PATH_INFO'].inspect}"
       }
 
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
@@ -426,7 +426,7 @@ module ActionDispatch
           end
         end
 
-        raise ActionController::RoutingError, "No route matches #{path.inspect} with #{environment.inspect}"
+        raise ActionController::RoutingError, "No route matches #{path.inspect}"
       end
     end
   end

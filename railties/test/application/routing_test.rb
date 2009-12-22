@@ -28,6 +28,12 @@ module ApplicationTests
         end
       RUBY
 
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do |map|
+          match ':controller(/:action)'
+        end
+      RUBY
+
       get '/foo'
       assert_equal 'foo', last_response.body
     end
@@ -46,6 +52,12 @@ module ApplicationTests
           def index
             render :text => "bar"
           end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do |map|
+          match ':controller(/:action)'
         end
       RUBY
 
@@ -75,6 +87,12 @@ module ApplicationTests
         end
       RUBY
 
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do |map|
+          match ':controller(/:action)'
+        end
+      RUBY
+
       get '/foo'
       assert_equal 'foo', last_response.body
 
@@ -92,7 +110,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        ActionController::Routing::Routes.draw do |map|
+        AppTemplate::Application.routes.draw do |map|
           match 'foo', :to => 'foo#index'
         end
       RUBY
@@ -107,7 +125,7 @@ module ApplicationTests
         RUBY
 
         plugin.write 'config/routes.rb', <<-RUBY
-          ActionController::Routing::Routes.draw do |map|
+          AppTemplate::Application.routes.draw do |map|
             match 'bar', :to => 'bar#index'
           end
         RUBY
@@ -134,7 +152,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        ActionController::Routing::Routes.draw do |map|
+        AppTemplate::Application.routes.draw do |map|
           match 'foo', :to => 'foo#bar'
         end
       RUBY
@@ -143,7 +161,7 @@ module ApplicationTests
       assert_equal 'bar', last_response.body
 
       app_file 'config/routes.rb', <<-RUBY
-        ActionController::Routing::Routes.draw do |map|
+        AppTemplate::Application.routes.draw do |map|
           match 'foo', :to => 'foo#baz'
         end
       RUBY
