@@ -49,12 +49,10 @@ module ActiveModel
       #   end
       #
       def validates_with(*args)
-        configuration = args.extract_options!
+        options = args.extract_options!
 
-        validate configuration do |record|
-          args.each do |klass|
-            klass.new(record, configuration.except(:on, :if, :unless)).validate
-          end
+        args.each do |klass|
+          validate klass.new(options.except(:on, :if, :unless)), options
         end
       end
     end

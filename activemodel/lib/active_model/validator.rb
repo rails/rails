@@ -54,14 +54,13 @@ module ActiveModel #:nodoc:
   #   end
   #
   class Validator
-    attr_reader :record, :options
+    attr_reader :options
 
-    def initialize(record, options)
-      @record = record
+    def initialize(options)
       @options = options
     end
 
-    def validate
+    def validate(record)
       raise "You must override this method"
     end
   end
