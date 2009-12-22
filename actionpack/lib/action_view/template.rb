@@ -7,12 +7,14 @@ require "action_view/template/resolver"
 module ActionView
   class Template
     extend ActiveSupport::Autoload
-    
-    autoload :Error
-    autoload :Handler
-    autoload :Handlers
-    autoload :Text
-    
+
+    eager_autoload do
+      autoload :Error
+      autoload :Handler
+      autoload :Handlers
+      autoload :Text
+    end
+
     extend Template::Handlers
     attr_reader :source, :identifier, :handler, :mime_type, :formats, :details
 

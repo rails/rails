@@ -8,13 +8,11 @@ require 'active_support/core_ext/module/delegation'
 module AbstractController
   extend ActiveSupport::Autoload
 
-  deferrable do
-    autoload :Base
-    autoload :Callbacks
-    autoload :Helpers
-    autoload :Layouts
-    autoload :LocalizedCache
-    autoload :Logger
-    autoload :Rendering
-  end
+  autoload :Base
+  autoload :Callbacks
+  autoload :Helpers
+  autoload :Layouts
+  autoload :LocalizedCache
+  autoload :Logger
+  autoload :Rendering
 end

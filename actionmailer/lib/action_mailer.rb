@@ -30,29 +30,34 @@ require 'action_view'
 module ActionMailer
   extend ::ActiveSupport::Autoload
 
-  autoload :AdvAttrAccessor
-  autoload :DeprecatedBody
-  autoload :Base
-  autoload :DeliveryMethod
-  autoload :MailHelper
-  autoload :Part
-  autoload :PartContainer
-  autoload :Quoting
-  autoload :TestHelper
-  autoload :Utils
+  eager_autoload do
+    autoload :AdvAttrAccessor
+    autoload :DeprecatedBody
+    autoload :Base
+    autoload :DeliveryMethod
+    autoload :MailHelper
+    autoload :Part
+    autoload :PartContainer
+    autoload :Quoting
+    autoload :TestHelper
+    autoload :Utils
+  end
 end
 
 module Text
   extend ActiveSupport::Autoload
 
-  autoload :Format, 'action_mailer/vendor/text_format'
+  eager_autoload do
+    autoload :Format, 'action_mailer/vendor/text_format'
+  end
 end
 
 module Net
   extend ActiveSupport::Autoload
 
-  autoload :SMTP
+  eager_autoload do
+    autoload :SMTP
+  end
 end
-
 
 require 'action_mailer/vendor/tmail'

@@ -35,82 +35,94 @@ require 'arel'
 module ActiveRecord
   extend ActiveSupport::Autoload
 
-  autoload :VERSION
+  eager_autoload do
+    autoload :VERSION
 
-  autoload :ActiveRecordError, 'active_record/base'
-  autoload :ConnectionNotEstablished, 'active_record/base'
+    autoload :ActiveRecordError, 'active_record/base'
+    autoload :ConnectionNotEstablished, 'active_record/base'
 
-  autoload :Aggregations
-  autoload :AssociationPreload
-  autoload :Associations
-  autoload :AttributeMethods
-  autoload :Attributes
-  autoload :AutosaveAssociation
-  autoload :Relation
-  autoload :Base
-  autoload :Batches
-  autoload :Calculations
-  autoload :Callbacks
-  autoload :DynamicFinderMatch
-  autoload :DynamicScopeMatch
-  autoload :Migration
-  autoload :Migrator, 'active_record/migration'
-  autoload :NamedScope
-  autoload :NestedAttributes
-  autoload :Observer
-  autoload :QueryCache
-  autoload :Reflection
-  autoload :Schema
-  autoload :SchemaDumper
-  autoload :Serialization
-  autoload :SessionStore
-  autoload :StateMachine
-  autoload :Timestamp
-  autoload :Transactions
-  autoload :Types
-  autoload :Validations
+    autoload :Aggregations
+    autoload :AssociationPreload
+    autoload :Associations
+    autoload :AttributeMethods
+    autoload :Attributes
+    autoload :AutosaveAssociation
+    autoload :Relation
+    autoload :Base
+    autoload :Batches
+    autoload :Calculations
+    autoload :Callbacks
+    autoload :DynamicFinderMatch
+    autoload :DynamicScopeMatch
+    autoload :Migration
+    autoload :Migrator, 'active_record/migration'
+    autoload :NamedScope
+    autoload :NestedAttributes
+    autoload :Observer
+    autoload :QueryCache
+    autoload :Reflection
+    autoload :Schema
+    autoload :SchemaDumper
+    autoload :Serialization
+    autoload :SessionStore
+    autoload :StateMachine
+    autoload :Timestamp
+    autoload :Transactions
+    autoload :Types
+    autoload :Validations
+  end
 
   module AttributeMethods
     extend ActiveSupport::Autoload
 
-    autoload :BeforeTypeCast
-    autoload :Dirty
-    autoload :PrimaryKey
-    autoload :Query
-    autoload :Read
-    autoload :TimeZoneConversion
-    autoload :Write
+    eager_autoload do
+      autoload :BeforeTypeCast
+      autoload :Dirty
+      autoload :PrimaryKey
+      autoload :Query
+      autoload :Read
+      autoload :TimeZoneConversion
+      autoload :Write
+    end
   end
 
   module Attributes
     extend ActiveSupport::Autoload
 
-    autoload :Aliasing
-    autoload :Store
-    autoload :Typecasting
+    eager_autoload do
+      autoload :Aliasing
+      autoload :Store
+      autoload :Typecasting
+    end
   end
 
   module Type
     extend ActiveSupport::Autoload
 
-    autoload :Number, 'active_record/types/number'
-    autoload :Object, 'active_record/types/object'
-    autoload :Serialize, 'active_record/types/serialize'
-    autoload :TimeWithZone, 'active_record/types/time_with_zone'
-    autoload :Unknown, 'active_record/types/unknown'
+    eager_autoload do
+      autoload :Number, 'active_record/types/number'
+      autoload :Object, 'active_record/types/object'
+      autoload :Serialize, 'active_record/types/serialize'
+      autoload :TimeWithZone, 'active_record/types/time_with_zone'
+      autoload :Unknown, 'active_record/types/unknown'
+    end
   end
 
   module Locking
     extend ActiveSupport::Autoload
 
-    autoload :Optimistic
-    autoload :Pessimistic
+    eager_autoload do
+      autoload :Optimistic
+      autoload :Pessimistic
+    end
   end
 
   module ConnectionAdapters
     extend ActiveSupport::Autoload
 
-    autoload :AbstractAdapter
+    eager_autoload do
+      autoload :AbstractAdapter
+    end
   end
 end
 
