@@ -33,14 +33,12 @@ require 'active_model'
 module ActiveResource
   extend ActiveSupport::Autoload
 
-  eager_autoload do
-    autoload :Base
-    autoload :Connection
-    autoload :CustomMethods
-    autoload :Formats
-    autoload :HttpMock
-    autoload :Observing
-    autoload :Schema
-    autoload :Validations
-  end
+  autoload :Base
+  autoload :Connection
+  autoload :CustomMethods
+  autoload :Formats
+  autoload :HttpMock
+  autoload :Observing
+  autoload :Schema
+  autoload :Validations
 end
