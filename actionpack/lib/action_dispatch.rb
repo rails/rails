@@ -37,7 +37,6 @@ module ActionDispatch
   autoload_under 'http' do
     autoload :Request
     autoload :Response
-    autoload :StatusCodes
   end
 
   deferrable do

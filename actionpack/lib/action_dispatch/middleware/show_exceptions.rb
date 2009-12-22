@@ -101,7 +101,7 @@ module ActionDispatch
       end
 
       def status_code(exception)
-        ActionDispatch::StatusCodes::SYMBOL_TO_STATUS_CODE[@@rescue_responses[exception.class.name]]
+        Rack::Utils.status_code(@@rescue_responses[exception.class.name])
       end
 
       def render(status, body)

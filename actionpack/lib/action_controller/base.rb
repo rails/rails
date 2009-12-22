@@ -90,7 +90,7 @@ module ActionController
       end
 
       if options[:status]
-        options[:status] = ActionDispatch::StatusCodes[options[:status]]
+        options[:status] = Rack::Utils.status_code(options[:status])
       end
 
       options[:update] = blk if block_given?
