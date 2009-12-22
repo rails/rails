@@ -13,7 +13,7 @@ gem "pg", ">= 0.8.0"
 gem "mysql", ">= 2.8.1"
 
 # AP
-gem "rack", "1.0.1", :git => "git://github.com/rails/rack.git"
+gem "rack", "1.1.0", :git => "git://github.com/rack/rack.git"
 gem "RedCloth", ">= 4.2.2"
 
 if ENV['CI']
