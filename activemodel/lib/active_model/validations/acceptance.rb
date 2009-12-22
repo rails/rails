@@ -1,5 +1,13 @@
 module ActiveModel
   module Validations
+    class AcceptanceValidator < EachValidator
+      def validate_each(record, attribute, value)
+        unless value == options[:accept]
+          record.errors.add(attribute, :accepted, :default => options[:message])
+        end
+      end
+    end
+
     module ClassMethods
       # Encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
       #
@@ -25,8 +33,8 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_acceptance_of(*attr_names)
-        configuration = { :allow_nil => true, :accept => "1" }
-        configuration.update(attr_names.extract_options!)
+        options = { :allow_nil => true, :accept => "1" }
+        options.update(attr_names.extract_options!)
 
         db_cols = begin
           column_names
@@ -37,11 +45,7 @@ module ActiveModel
         names = attr_names.reject { |name| db_cols.include?(name.to_s) }
         attr_accessor(*names)
 
-        validates_each(attr_names,configuration) do |record, attr_name, value|
-          unless value == configuration[:accept]
-            record.errors.add(attr_name, :accepted, :default => configuration[:message])
-          end
-        end
+        validates_with AcceptanceValidator, options.merge(:attributes => attr_names)
       end
     end
   end

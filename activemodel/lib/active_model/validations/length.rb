@@ -1,7 +1,44 @@
 module ActiveModel
   module Validations
+    class LengthValidator < EachValidator
+      MESSAGES = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }.freeze
+      CHECKS   = { :is => :==, :minimum => :>=, :maximum => :<= }.freeze
+
+      attr_reader :type
+
+      def initialize(options)
+        @type = options.delete(:type)
+        super
+      end
+
+      def validate_each(record, attribute, value)
+        checks = options.slice(:minimum, :maximum, :is)
+        value  = options[:tokenizer].call(value) if value.kind_of?(String)
+
+        if [:within, :in].include?(type)
+          range = options[type]
+          checks[:minimum], checks[:maximum] = range.begin, range.end
+          checks[:maximum] -= 1 if range.exclude_end?
+        end
+
+        checks.each do |key, check_value|
+          custom_message = options[:message] || options[MESSAGES[key]]
+          validity_check = CHECKS[key]
+
+          valid_value = if key == :maximum
+            value.nil? || value.size.send(validity_check, check_value)
+          else
+            value && value.size.send(validity_check, check_value)
+          end
+
+          record.errors.add(attribute, MESSAGES[key], :default => custom_message, :count => check_value) unless valid_value
+        end
+      end
+    end
+
     module ClassMethods
       ALL_RANGE_OPTIONS = [ :is, :within, :in, :minimum, :maximum ].freeze
+      DEFAULT_TOKENIZER = lambda { |value| value.split(//) }
 
       # Validates that the specified attribute matches the length restrictions supplied. Only one option can be used at a time:
       #
@@ -38,62 +75,32 @@ module ActiveModel
       # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string. (e.g. <tt>:tokenizer => lambda {|str| str.scan(/\w+/)}</tt> to
       #   count words as in above example.)
       #   Defaults to <tt>lambda{ |value| value.split(//) }</tt> which counts individual characters.
-      def validates_length_of(*attrs)
-        # Merge given options with defaults.
-        options = { :tokenizer => lambda {|value| value.split(//)} }
-        options.update(attrs.extract_options!.symbolize_keys)
+      def validates_length_of(*attr_names)
+        options = { :tokenizer => DEFAULT_TOKENIZER }
+        options.update(attr_names.extract_options!)
 
         # Ensure that one and only one range option is specified.
         range_options = ALL_RANGE_OPTIONS & options.keys
         case range_options.size
         when 0
-          raise ArgumentError, 'Range unspecified.  Specify the :within, :maximum, :minimum, or :is option.'
+          raise ArgumentError, 'Range unspecified. Specify the :within, :maximum, :minimum, or :is option.'
         when 1
           # Valid number of options; do nothing.
         else
-          raise ArgumentError, 'Too many range options specified.  Choose only one.'
+          raise ArgumentError, 'Too many range options specified. Choose only one.'
         end
 
-        # Get range option and value.
-        option = range_options.first
-        option_value = options[range_options.first]
-        key = {:is => :wrong_length, :minimum => :too_short, :maximum => :too_long}[option]
-        custom_message = options[:message] || options[key]
+        type  = range_options.first
+        value = options[type]
 
-        case option
+        case type
         when :within, :in
-          raise ArgumentError, ":#{option} must be a Range" unless option_value.is_a?(Range)
-
-          validates_each(attrs, options) do |record, attr, value|
-            value = options[:tokenizer].call(value) if value.kind_of?(String)
-
-            min, max = option_value.begin, option_value.end
-            max = max - 1 if option_value.exclude_end?
-
-            if value.nil? || value.size < min
-              record.errors.add(attr, :too_short, :default => custom_message || options[:too_short], :count => min)
-            elsif value.size > max
-              record.errors.add(attr, :too_long, :default => custom_message || options[:too_long], :count => max)
-            end
-          end
+          raise ArgumentError, ":#{type} must be a Range" unless value.is_a?(Range)
         when :is, :minimum, :maximum
-          raise ArgumentError, ":#{option} must be a nonnegative Integer" unless option_value.is_a?(Integer) and option_value >= 0
-
-          # Declare different validations per option.
-          validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
-
-          validates_each(attrs, options) do |record, attr, value|
-            value = options[:tokenizer].call(value) if value.kind_of?(String)
-
-            valid_value = if option == :maximum
-              value.nil? || value.size.send(validity_checks[option], option_value)
-            else
-              value && value.size.send(validity_checks[option], option_value)
-            end
-
-            record.errors.add(attr, key, :default => custom_message, :count => option_value) unless valid_value
-          end
+          raise ArgumentError, ":#{type} must be a nonnegative Integer" unless value.is_a?(Integer) && value >= 0
         end
+
+        validates_with LengthValidator, options.merge(:attributes => attr_names, :type => type)
       end
 
       alias_method :validates_size_of, :validates_length_of

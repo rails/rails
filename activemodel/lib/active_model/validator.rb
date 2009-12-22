@@ -1,5 +1,4 @@
 module ActiveModel #:nodoc:
-
   # A simple base class that can be used along with ActiveModel::Base.validates_with
   #
   #   class Person < ActiveModel::Base
@@ -61,7 +60,28 @@ module ActiveModel #:nodoc:
     end
 
     def validate(record)
-      raise "You must override this method"
+      raise NotImplementedError
+    end
+  end
+
+  class EachValidator < Validator
+    attr_reader :attributes
+
+    def initialize(options)
+      @attributes = options.delete(:attributes)
+      super
+    end
+
+    def validate(record)
+      attributes.each do |attribute|
+        value = record.send(:read_attribute_for_validation, attribute)
+        next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
+        validate_each(record, attribute, value)
+      end
+    end
+
+    def validate_each(record)
+      raise NotImplementedError
     end
   end
 end

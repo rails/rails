@@ -2,6 +2,12 @@ require 'active_support/core_ext/object/blank'
 
 module ActiveModel
   module Validations
+    class PresenceValidator < EachValidator
+      def validate(record)
+        record.errors.add_on_blank(attributes, options[:message])
+      end
+    end
+
     module ClassMethods
       # Validates that the specified attributes are not blank (as defined by Object#blank?). Happens by default on save. Example:
       #
@@ -28,13 +34,8 @@ module ActiveModel
       #   The method, proc or string should return or evaluate to a true or false value.
       #
       def validates_presence_of(*attr_names)
-        configuration = attr_names.extract_options!
-
-        # can't use validates_each here, because it cannot cope with nonexistent attributes,
-        # while errors.add_on_empty can
-        validate configuration do |record|
-          record.errors.add_on_blank(attr_names, configuration[:message])
-        end
+        options = attr_names.extract_options!
+        validates_with PresenceValidator, options.merge(:attributes => attr_names)
       end
     end
   end
