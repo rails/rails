@@ -1,4 +1,7 @@
 require 'active_support/core_ext/class'
+require 'action_mailer/part'
+require 'action_mailer/vendor/text_format'
+require 'action_mailer/vendor/tmail'
 
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
