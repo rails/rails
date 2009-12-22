@@ -29,33 +29,29 @@ require 'active_support'
 module ActiveModel
   extend ActiveSupport::Autoload
 
-  eager_autoload do
-    autoload :AttributeMethods
-    autoload :Conversion
-    autoload :DeprecatedErrorMethods
-    autoload :Dirty
-    autoload :Errors
-    autoload :Lint
-    autoload :Name,         'active_model/naming'
-    autoload :Naming
-    autoload :Observer,     'active_model/observing'
-    autoload :Observing
-    autoload :Serialization
-    autoload :StateMachine
-    autoload :Translation
-    autoload :Validations
-    autoload :ValidationsRepairHelper
-    autoload :Validator
-    autoload :VERSION
-  end
+  autoload :AttributeMethods
+  autoload :Conversion
+  autoload :DeprecatedErrorMethods
+  autoload :Dirty
+  autoload :Errors
+  autoload :Lint
+  autoload :Name,         'active_model/naming'
+  autoload :Naming
+  autoload :Observer,     'active_model/observing'
+  autoload :Observing
+  autoload :Serialization
+  autoload :StateMachine
+  autoload :Translation
+  autoload :Validations
+  autoload :ValidationsRepairHelper
+  autoload :Validator
+  autoload :VERSION
 
   module Serializers
     extend ActiveSupport::Autoload
 
-    eager_autoload do
-      autoload :JSON
-      autoload :Xml
-    end
+    autoload :JSON
+    autoload :Xml
   end
 end
 
