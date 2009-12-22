@@ -182,7 +182,7 @@ module Rails::Generators
       end
 
       def app_const
-        @app_const ||= app_name.classify
+        @app_const ||= "#{app_name.classify}::Application"
       end
 
       def app_secret

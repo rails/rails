@@ -21,7 +21,7 @@ module PluginsTest
     test "plugin configurations are available in the application" do
       class Foo < Rails::Plugin ; config.foo.greetings = "hello" ; end
       require "#{app_path}/config/application"
-      assert_equal "hello", AppTemplate.config.foo.greetings
+      assert_equal "hello", AppTemplate::Application.config.foo.greetings
     end
 
     test "plugin config merges are deep" do

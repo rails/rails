@@ -271,6 +271,8 @@ module ActionMailer #:nodoc:
     class_inheritable_accessor :view_paths
     self.view_paths = []
 
+    attr_internal :formats
+
     cattr_accessor :logger
 
     @@raise_delivery_errors = true
@@ -452,6 +454,7 @@ module ActionMailer #:nodoc:
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
     def initialize(method_name=nil, *parameters) #:nodoc:
+      @_formats = []
       @_response_body = nil
       super()
       create!(method_name, *parameters) if method_name
