@@ -21,6 +21,7 @@ module ActionController
       autoload :Helpers
       autoload :HideActions
       autoload :Layouts
+      autoload :Logger
       autoload :MimeResponds
       autoload :RackDelegation
       autoload :Compatibility

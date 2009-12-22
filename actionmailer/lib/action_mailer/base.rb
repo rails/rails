@@ -250,30 +250,20 @@ module ActionMailer #:nodoc:
   #   <tt>["text/html", "text/enriched", "text/plain"]</tt>. Items that appear first in the array have higher priority in the mail client
   #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
   #   +implicit_parts_order+.
-  class Base
+  class Base < AbstractController::Base
     include AdvAttrAccessor, PartContainer, Quoting, Utils
 
     include AbstractController::Rendering
     include AbstractController::LocalizedCache
     include AbstractController::Layouts
-
     include AbstractController::Helpers
+
     helper ActionMailer::MailHelper
 
-    if Object.const_defined?(:ActionController)
-      include ActionController::UrlWriter
-    end
-
+    include ActionController::UrlWriter
     include ActionMailer::DeprecatedBody
 
     private_class_method :new #:nodoc:
-
-    class_inheritable_accessor :view_paths
-    self.view_paths = []
-
-    attr_internal :formats
-
-    cattr_accessor :logger
 
     @@raise_delivery_errors = true
     cattr_accessor :raise_delivery_errors
@@ -346,24 +336,13 @@ module ActionMailer #:nodoc:
     # have multiple mailer methods share the same template.
     adv_attr_accessor :template
 
-    # The mail and action_name instances referenced by this mailer.
-    attr_reader :mail, :action_name
-
-    # Where the response body is stored.
-    attr_internal :response_body
-
     # Override the mailer name, which defaults to an inflected version of the
     # mailer's class name. If you want to use a template in a non-standard
     # location, you can use this to specify that location.
-    attr_writer :mailer_name
+    adv_attr_accessor :mailer_name
 
-    def mailer_name(value = nil)
-      if value
-        @mailer_name = value
-      else
-        @mailer_name || self.class.mailer_name
-      end
-    end
+    # Expose the internal mail
+    attr_reader :mail
 
     # Alias controller_path to mailer_name so render :partial in views work.
     alias :controller_path :mailer_name
@@ -453,18 +432,16 @@ module ActionMailer #:nodoc:
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
-    def initialize(method_name=nil, *parameters) #:nodoc:
-      @_formats = []
-      @_response_body = nil
+    def initialize(method_name=nil, *args) #:nodoc:
       super()
-      create!(method_name, *parameters) if method_name
+      process(method_name, *args) if method_name
     end
 
-    # Initialize the mailer via the given +method_name+. The body will be
+    # Process the mailer via the given +method_name+. The body will be
     # rendered and a new TMail::Mail object created.
-    def create!(method_name, *parameters) #:nodoc:
+    def process(method_name, *args) #:nodoc:
       initialize_defaults(method_name)
-      __send__(method_name, *parameters)
+      super
 
       # Create e-mail parts
       create_parts
@@ -473,7 +450,7 @@ module ActionMailer #:nodoc:
       @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
                                     :default => method_name.humanize)
 
-      # build the mail object itself
+      # Build the mail object itself
       @mail = create_mail
     end
 
@@ -488,7 +465,7 @@ module ActionMailer #:nodoc:
         logger.debug "\n#{mail.encoded}"
       end
 
-      ActiveSupport::Notifications.instrument(:deliver_mail, :mail => @mail) do
+      ActiveSupport::Notifications.instrument(:deliver_mail, :mail => mail) do
         begin
           self.delivery_method.perform_delivery(mail) if perform_deliveries
         rescue Exception => e # Net::SMTP errors or sendmail pipe errors
@@ -510,23 +487,18 @@ module ActionMailer #:nodoc:
         @implicit_parts_order ||= @@default_implicit_parts_order.dup
         @mime_version         ||= @@default_mime_version.dup if @@default_mime_version
 
-        @mailer_name ||= self.class.mailer_name
+        @mailer_name ||= self.class.mailer_name.dup
         @template    ||= method_name
-        @action_name = @template
 
         @parts   ||= []
         @headers ||= {}
         @sent_on ||= Time.now
 
-        ActiveSupport::Deprecation.silence do
-          super # Run deprecation hooks
-        end
+        super # Run deprecation hooks
       end
 
       def create_parts
-        ActiveSupport::Deprecation.silence do
-          super # Run deprecation hooks
-        end
+        super # Run deprecation hooks
 
         if String === response_body
           @parts.unshift Part.new(

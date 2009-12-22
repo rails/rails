@@ -34,13 +34,13 @@ class TestMailer < ActionMailer::Base
   def from_with_name
     from       "System <system@loudthinking.com>"
     recipients "root@loudthinking.com"
-    body       "Nothing to see here."
+    render :text => "Nothing to see here."
   end
 
   def from_without_name
     from       "system@loudthinking.com"
     recipients "root@loudthinking.com"
-    body       "Nothing to see here."
+    render :text => "Nothing to see here."
   end
 
   def cc_bcc(recipient)
@@ -301,6 +301,7 @@ class TestMailer < ActionMailer::Base
     render :text => "testing"
   end
 
+  # This tests body calls accepeting a hash, which is deprecated.
   def body_ivar(recipient)
     recipients   recipient
     subject      "Body as a local variable"
@@ -1043,7 +1044,8 @@ EOF
   end
 
   def test_body_is_stored_as_an_ivar
-    mail = TestMailer.create_body_ivar(@recipient)
+    mail = nil
+    ActiveSupport::Deprecation.silence { mail = TestMailer.create_body_ivar(@recipient) }
     assert_equal "body: foo\nbar: baz", mail.body
   end
 

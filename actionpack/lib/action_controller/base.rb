@@ -14,6 +14,7 @@ module ActionController
     include ActionController::Layouts
     include ActionController::ConditionalGet
     include ActionController::RackDelegation
+    include ActionController::Logger
     include ActionController::Benchmarking
     include ActionController::Configuration
 

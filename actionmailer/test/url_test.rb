@@ -12,8 +12,8 @@ class TestMailer < ActionMailer::Base
     @from         = "system@loudthinking.com"
     @sent_on      = Time.local(2004, 12, 12)
 
-    @body["recipient"]   = recipient
-    @body["welcome_url"] = url_for :host => "example.com", :controller => "welcome", :action => "greeting"
+    @recipient   = recipient
+    @welcome_url = url_for :host => "example.com", :controller => "welcome", :action => "greeting"
   end
 
   class <<self
