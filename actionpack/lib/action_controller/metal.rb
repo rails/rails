@@ -69,7 +69,7 @@ module ActionController
     end
 
     def status=(status)
-      @_status = ActionDispatch::StatusCodes[status]
+      @_status = Rack::Utils.status_code(status)
     end
 
     # :api: private

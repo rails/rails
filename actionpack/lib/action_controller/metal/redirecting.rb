@@ -58,18 +58,18 @@ module ActionController
 
       logger.info("Redirected to #{location}") if logger && logger.info?
     end
-    
+
     private
       def _extract_redirect_to_status(options, response_status)
         status = if options.is_a?(Hash) && options.key?(:status)
-          ActionDispatch::StatusCodes[options.delete(:status)]
+          Rack::Utils.status_code(options.delete(:status))
         elsif response_status.key?(:status)
-          ActionDispatch::StatusCodes[response_status[:status]]
+          Rack::Utils.status_code(response_status[:status])
         else
           302
         end
       end
-      
+
       def _compute_redirect_to_location(options)
         case options
         # The scheme name consist of a letter followed by any combination of

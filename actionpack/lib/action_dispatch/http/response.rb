@@ -60,7 +60,7 @@ module ActionDispatch # :nodoc:
     end
 
     def status=(status)
-      @status = ActionDispatch::StatusCodes[status]
+      @status = Rack::Utils.status_code(status)
     end
 
     # The response code of the request
@@ -74,7 +74,7 @@ module ActionDispatch # :nodoc:
     end
 
     def message
-      StatusCodes::STATUS_CODES[@status]
+      Rack::Utils::HTTP_STATUS_CODES[@status]
     end
     alias_method :status_message, :message
 

@@ -37,43 +37,38 @@ module ActionDispatch
   autoload_under 'http' do
     autoload :Request
     autoload :Response
-    autoload :StatusCodes
   end
 
-  deferrable do
-    autoload_under 'middleware' do
-      autoload :Callbacks
-      autoload :ParamsParser
-      autoload :Rescue
-      autoload :ShowExceptions
-      autoload :Static
-      autoload :StringCoercion
-    end
-
-    autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
-    autoload :Routing
-
-    module Http
-      autoload :Headers, 'action_dispatch/http/headers'
-    end
-
-    module Session
-      autoload :AbstractStore, 'action_dispatch/middleware/session/abstract_store'
-      autoload :CookieStore,   'action_dispatch/middleware/session/cookie_store'
-      autoload :MemCacheStore, 'action_dispatch/middleware/session/mem_cache_store'
-    end
-
-    autoload_under 'testing' do
-      autoload :Assertions
-      autoload :Integration
-      autoload :PerformanceTest
-      autoload :TestProcess
-      autoload :TestRequest
-      autoload :TestResponse
-    end
+  autoload_under 'middleware' do
+    autoload :Callbacks
+    autoload :ParamsParser
+    autoload :Rescue
+    autoload :ShowExceptions
+    autoload :Static
+    autoload :StringCoercion
   end
 
-  autoload :HTML, 'action_controller/vendor/html-scanner'
+  autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
+  autoload :Routing
+
+  module Http
+    autoload :Headers, 'action_dispatch/http/headers'
+  end
+
+  module Session
+    autoload :AbstractStore, 'action_dispatch/middleware/session/abstract_store'
+    autoload :CookieStore,   'action_dispatch/middleware/session/cookie_store'
+    autoload :MemCacheStore, 'action_dispatch/middleware/session/mem_cache_store'
+  end
+
+  autoload_under 'testing' do
+    autoload :Assertions
+    autoload :Integration
+    autoload :PerformanceTest
+    autoload :TestProcess
+    autoload :TestRequest
+    autoload :TestResponse
+  end
 end
 
 autoload :Mime, 'action_dispatch/http/mime_type'

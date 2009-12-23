@@ -31,27 +31,28 @@ require 'action_pack'
 module ActionView
   extend ActiveSupport::Autoload
 
-  autoload :Base
-  autoload :Context
-  autoload :Template
-  autoload :Helpers
-  autoload :SafeBuffer
+  eager_autoload do
+    autoload :Base
+    autoload :Context
+    autoload :Template
+    autoload :Helpers
+    autoload :SafeBuffer
 
+    autoload_under "render" do
+      autoload :Partials
+      autoload :Rendering
+    end
 
-  autoload_under "render" do
-    autoload :Partials
-    autoload :Rendering
+    autoload :MissingTemplate,   'action_view/base'
+    autoload :Resolver,          'action_view/template/resolver'
+    autoload :PathResolver,      'action_view/template/resolver'
+    autoload :PathSet,           'action_view/paths'
+    autoload :FileSystemResolverWithFallback, 'action_view/template/resolver'
+
+    autoload :TemplateError,     'action_view/template/error'
+    autoload :TemplateHandler,   'action_view/template'
+    autoload :TemplateHandlers,  'action_view/template'
   end
-
-  autoload :MissingTemplate,   'action_view/base'
-  autoload :Resolver,          'action_view/template/resolver'
-  autoload :PathResolver,      'action_view/template/resolver'
-  autoload :PathSet,           'action_view/paths'
-  autoload :FileSystemResolverWithFallback, 'action_view/template/resolver'
-
-  autoload :TemplateError,     'action_view/template/error'
-  autoload :TemplateHandler,   'action_view/template'
-  autoload :TemplateHandlers,  'action_view/template'
 end
 
 require 'action_view/erb/util'

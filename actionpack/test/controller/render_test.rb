@@ -1125,7 +1125,7 @@ class RenderTest < ActionController::TestCase
     assert !@response.headers.include?('Content-Length')
     assert_response :no_content
 
-    ActionDispatch::StatusCodes::SYMBOL_TO_STATUS_CODE.each do |status, code|
+    Rack::Utils::SYMBOL_TO_STATUS_CODE.each do |status, code|
       get :head_with_symbolic_status, :status => status.to_s
       assert_equal code, @response.response_code
       assert_response status
@@ -1133,7 +1133,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_head_with_integer_status
-    ActionDispatch::StatusCodes::STATUS_CODES.each do |code, message|
+    Rack::Utils::HTTP_STATUS_CODES.each do |code, message|
       get :head_with_integer_status, :status => code.to_s
       assert_equal message, @response.message
     end
