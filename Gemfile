@@ -31,3 +31,5 @@ if ENV['CI']
     gem "test-unit", ">= 2.0.5"
   end
 end
+
+disable_system_gems

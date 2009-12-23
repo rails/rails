@@ -21,11 +21,7 @@ module Rails
       end
 
       def config
-        @config ||= begin
-          config = Configuration.new
-          Plugin.plugins.each { |p| config.merge(p.config) }
-          config
-        end
+        @config ||= Configuration.new(Plugin::Configuration.default)
       end
 
       # TODO: change the plugin loader to use config
@@ -122,10 +118,11 @@ module Rails
       initializers
     end
 
+    # TODO: Fix this method
     def plugins
       @plugins ||= begin
         plugin_names = config.plugins || [:all]
-        Plugin.plugins.select { |p| plugin_names.include?(p.plugin_name) } +
+        Plugin.plugins.select { |p| plugin_names.include?(:all) || plugin_names.include?(p.plugin_name) } +
         Plugin::Vendored.all(config.plugins || [:all], config.paths.vendor.plugins)
       end
     end
@@ -189,20 +186,9 @@ module Rails
       end
     end
 
-    # This initialization routine does nothing unless <tt>:active_record</tt>
-    # is one of the frameworks to load (Configuration#frameworks). If it is,
-    # this sets the database configuration from Configuration#database_configuration
-    # and then establishes the connection.
-    initializer :initialize_database do
-      if defined?(ActiveRecord)
-        ActiveRecord::Base.configurations = config.database_configuration
-        ActiveRecord::Base.establish_connection
-      end
-    end
-
     # Include middleware to serve up static assets
     initializer :initialize_static_server do
-      if config.frameworks.include?(:action_controller) && config.serve_static_assets
+      if defined?(ActionController) && config.serve_static_assets
         config.middleware.use(ActionDispatch::Static, Rails.public_path)
       end
     end
@@ -268,7 +254,7 @@ module Rails
     # logger is already set, it is not changed, otherwise it is set to use
     # RAILS_DEFAULT_LOGGER.
     initializer :initialize_framework_logging do
-      for framework in [ :active_record, :action_controller, :action_mailer ]
+      for framework in [ :action_controller, :action_mailer ]
         # TODO BEFORE PUSHING: REMOVEZ
         begin
           framework.to_s.camelize.constantize.const_get("Base").logger ||= Rails.logger
@@ -293,7 +279,7 @@ module Rails
       require('active_support/whiny_nil') if config.whiny_nils
     end
 
-    # Sets the default value for Time.zone, and turns on ActiveRecord::Base#time_zone_aware_attributes.
+    # Sets the default value for Time.zone
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     initializer :initialize_time_zone do
       if config.time_zone
@@ -307,11 +293,6 @@ module Rails
         end
 
         Time.zone_default = zone_default
-
-        if defined?(ActiveRecord)
-          ActiveRecord::Base.time_zone_aware_attributes = true
-          ActiveRecord::Base.default_timezone = :utc
-        end
       end
     end
 
@@ -331,7 +312,7 @@ module Rails
     # (Configuration#frameworks). The available settings map to the accessors
     # on each of the corresponding Base classes.
     initializer :initialize_framework_settings do
-      config.frameworks.each do |framework|
+      (config.frameworks - [:active_record, :action_controller]).each do |framework|
         # TODO BEFORE PUSHING: This needs to work differently
         begin
           base_class = framework.to_s.camelize.constantize.const_get("Base")
@@ -383,20 +364,6 @@ module Rails
       end
     end
 
-    # # Setup database middleware after initializers have run
-    initializer :initialize_database_middleware do
-      if defined?(ActiveRecord)
-        if defined?(ActionController) && ActionController::Base.session_store &&
-            ActionController::Base.session_store.name == 'ActiveRecord::SessionStore'
-          configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
-          configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::QueryCache
-        else
-          configuration.middleware.use ActiveRecord::ConnectionAdapters::ConnectionManagement
-          configuration.middleware.use ActiveRecord::QueryCache
-        end
-      end
-    end
-
     # TODO: Make a DSL way to limit an initializer to a particular framework
 
     # # Prepare dispatcher callbacks and run 'prepare' callbacks
@@ -415,25 +382,6 @@ module Rails
           end
         end
         ActionDispatch::Callbacks.before_dispatch { |callbacks| reload_routes.call }
-      end
-    end
-
-    # Routing must be initialized after plugins to allow the former to extend the routes
-    # ---
-    # If Action Controller is not one of the loaded frameworks (Configuration#frameworks)
-    # this does nothing. Otherwise, it loads the routing definitions and sets up
-    # loading module used to lazily load controllers (Configuration#controller_paths).
-    initializer :initialize_routing do
-      next unless configuration.frameworks.include?(:action_controller)
-      route_configuration_files << configuration.routes_configuration_file
-      route_configuration_files << configuration.builtin_routes_configuration_file
-      reload_routes!
-    end
-    #
-    # # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
-    initializer :load_observers do
-      if defined?(ActiveRecord)
-        ActiveRecord::Base.instantiate_observers
       end
     end
 
