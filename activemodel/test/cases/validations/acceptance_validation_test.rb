@@ -9,9 +9,10 @@ require 'models/person'
 
 class AcceptanceValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
-  include ActiveModel::ValidationsRepairHelper
 
-  repair_validations(Topic)
+  def teardown
+    Topic.reset_callbacks(:validate)
+  end
 
   def test_terms_of_service_agreement_no_acceptance
     Topic.validates_acceptance_of(:terms_of_service, :on => :create)
@@ -53,28 +54,18 @@ class AcceptanceValidationTest < ActiveModel::TestCase
     assert t.save
   end
 
-  def test_validates_acceptance_of_with_custom_error_using_quotes
-    repair_validations(Developer) do
-      Developer.validates_acceptance_of :salary, :message=> "This string contains 'single' and \"double\" quotes"
-      d = Developer.new
-      d.salary = "0"
-      assert !d.valid?
-      assert_equal "This string contains 'single' and \"double\" quotes", d.errors[:salary].last
-    end
-  end
-
   def test_validates_acceptance_of_for_ruby_class
-    repair_validations(Person) do
-      Person.validates_acceptance_of :karma
+    Person.validates_acceptance_of :karma
 
-      p = Person.new
-      p.karma = ""
+    p = Person.new
+    p.karma = ""
 
-      assert p.invalid?
-      assert_equal ["must be accepted"], p.errors[:karma]
+    assert p.invalid?
+    assert_equal ["must be accepted"], p.errors[:karma]
 
-      p.karma = "1"
-      assert p.valid?
-    end
+    p.karma = "1"
+    assert p.valid?
+  ensure
+    Person.reset_callbacks(:validate)
   end
 end

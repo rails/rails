@@ -6,9 +6,10 @@ require 'models/topic'
 
 class ValidatesWithTest < ActiveRecord::TestCase
   include ActiveModel::TestsDatabase
-  include ActiveModel::ValidationsRepairHelper
 
-  repair_validations(Topic)
+  def teardown
+    Topic.reset_callbacks(:validate)
+  end
 
   ERROR_MESSAGE = "Validation error from validator"
   OTHER_ERROR_MESSAGE = "Validation error from other validator"

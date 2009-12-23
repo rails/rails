@@ -62,9 +62,10 @@ unless ENV['FIXTURE_DEBUG']
   end
 end
 
+require "cases/validations_repair_helper"
 class ActiveSupport::TestCase
   include ActiveRecord::TestFixtures
-  include ActiveModel::ValidationsRepairHelper
+  include ActiveRecord::ValidationsRepairHelper
 
   self.fixture_path = FIXTURES_ROOT
   self.use_instantiated_fixtures  = false

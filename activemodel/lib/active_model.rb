@@ -43,7 +43,6 @@ module ActiveModel
   autoload :StateMachine
   autoload :Translation
   autoload :Validations
-  autoload :ValidationsRepairHelper
   autoload :Validator
   autoload :EachValidator, 'active_model/validator'
   autoload :BlockValidator, 'active_model/validator'
