@@ -1,6 +1,11 @@
 module ActiveModel
   module Validations
     class InclusionValidator < EachValidator
+      def check_validity!
+         raise ArgumentError, "An object with the method include? is required must be supplied as the " <<
+                              ":in option of the configuration hash" unless options[:in].respond_to?(:include?)
+       end
+
       def validate_each(record, attribute, value)
         return if options[:in].include?(value)
         record.errors.add(attribute, :inclusion, :default => options[:message], :value => value)
@@ -30,10 +35,6 @@ module ActiveModel
       def validates_inclusion_of(*attr_names)
         options = attr_names.extract_options!
         options[:in] ||= options.delete(:within)
-
-        raise ArgumentError, "An object with the method include? is required must be supplied as the " <<
-                             ":in option of the configuration hash" unless options[:in].respond_to?(:include?)
-
         validates_with InclusionValidator, options.merge(:attributes => attr_names)
       end
     end

@@ -1,56 +1,64 @@
 module ActiveModel
   module Validations
     class NumericalityValidator < EachValidator
-      CHECKS = { :greater_than => '>', :greater_than_or_equal_to => '>=',
-                 :equal_to => '==', :less_than => '<', :less_than_or_equal_to => '<=',
-                 :odd => 'odd?', :even => 'even?' }.freeze
+      CHECKS = { :greater_than => :>, :greater_than_or_equal_to => :>=,
+                 :equal_to => :==, :less_than => :<, :less_than_or_equal_to => :<=,
+                 :odd => :odd?, :even => :even? }.freeze
+
+      def check_validity!
+        options.slice(*CHECKS.keys) do |option, value|
+          next if [:odd, :even].include?(option)
+          raise ArgumentError, ":#{option} must be a number, a symbol or a proc" unless value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
+        end
+      end
 
       def validate_each(record, attr_name, value)
         before_type_cast = "#{attr_name}_before_type_cast"
 
-        if record.respond_to?(before_type_cast.to_sym)
-          raw_value = record.send("#{attr_name}_before_type_cast") || value
-        else
-          raw_value = value
-        end
+        raw_value = record.send("#{attr_name}_before_type_cast") if record.respond_to?(before_type_cast.to_sym)
+        raw_value ||= value
 
-        return if options[:allow_nil] and raw_value.nil?
+        return if options[:allow_nil] && raw_value.nil?
 
-        if options[:only_integer]
-          unless raw_value.to_s =~ /\A[+-]?\d+\Z/
-            record.errors.add(attr_name, :not_a_number, :value => raw_value, :default => options[:message])
-            return
-          end
-          raw_value = raw_value.to_i
-        else
-          begin
-            raw_value = Kernel.Float(raw_value)
-          rescue ArgumentError, TypeError
-            record.errors.add(attr_name, :not_a_number, :value => raw_value, :default => options[:message])
-            return
-          end
+        unless value = parse_raw_value(raw_value, options)
+          record.errors.add(attr_name, :not_a_number, :value => raw_value, :default => options[:message])
+          return
         end
 
         options.slice(*CHECKS.keys).each do |option, option_value|
           case option
           when :odd, :even
-            unless raw_value.to_i.method(CHECKS[option])[]
-              record.errors.add(attr_name, option, :value => raw_value, :default => options[:message])
+            unless value.to_i.send(CHECKS[option])
+              record.errors.add(attr_name, option, :value => value, :default => options[:message])
             end
           else
-            option_value = option_value.call(record)        if option_value.is_a? Proc
-            option_value = record.method(option_value).call if option_value.is_a? Symbol
-            
-            unless raw_value.method(CHECKS[option])[option_value]
-              record.errors.add(attr_name, option, :default => options[:message], :value => raw_value, :count => option_value)
+            option_value = option_value.call(record) if option_value.is_a?(Proc)
+            option_value = record.send(option_value) if option_value.is_a?(Symbol)
+
+            unless value.send(CHECKS[option], option_value)
+              record.errors.add(attr_name, option, :default => options[:message], :value => value, :count => option_value)
             end
           end
         end      
       end
+
+    protected
+
+      def parse_raw_value(raw_value, options)
+        if options[:only_integer]
+          raw_value.to_i if raw_value.to_s =~ /\A[+-]?\d+\Z/
+        else
+          begin
+            Kernel.Float(raw_value)
+          rescue ArgumentError, TypeError
+            nil
+          end
+        end
+      end
+
     end
+
     module ClassMethods
-
-
       # Validates whether the value of the specified attribute is numeric by trying to convert it to
       # a float with Kernel.Float (if <tt>only_integer</tt> is false) or applying it to the regular expression
       # <tt>/\A[\+\-]?\d+\Z/</tt> (if <tt>only_integer</tt> is set to true).
@@ -93,14 +101,6 @@ module ActiveModel
       def validates_numericality_of(*attr_names)
         options = { :only_integer => false, :allow_nil => false }
         options.update(attr_names.extract_options!)
-
-        numericality_options = NumericalityValidator::CHECKS.keys & options.keys
-
-        (numericality_options - [ :odd, :even ]).each do |option|
-          value = options[option]
-          raise ArgumentError, ":#{option} must be a number, a symbol or a proc" unless value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
-        end
-
         validates_with NumericalityValidator, options.merge(:attributes => attr_names)
       end
     end

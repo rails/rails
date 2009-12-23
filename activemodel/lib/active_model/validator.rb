@@ -70,6 +70,7 @@ module ActiveModel #:nodoc:
     def initialize(options)
       @attributes = options.delete(:attributes)
       super
+      check_validity!
     end
 
     def validate(record)
@@ -82,6 +83,9 @@ module ActiveModel #:nodoc:
 
     def validate_each(record)
       raise NotImplementedError
+    end
+
+    def check_validity!
     end
   end
 end

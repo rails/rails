@@ -1,16 +1,24 @@
 module ActiveModel
   module Validations
     class LengthValidator < EachValidator
-      MESSAGES = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }.freeze
-      CHECKS   = { :is => :==, :minimum => :>=, :maximum => :<= }.freeze
+      OPTIONS   = [ :is, :within, :in, :minimum, :maximum ].freeze
+      MESSAGES  = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }.freeze
+      CHECKS    = { :is => :==, :minimum => :>=, :maximum => :<= }.freeze
 
+      DEFAULT_TOKENIZER = lambda { |value| value.split(//) }
       attr_reader :type
 
       def initialize(options)
-        @type = options.delete(:type)
+        options[:tokenizer] ||= DEFAULT_TOKENIZER
         super
+        @type = (OPTIONS & options.keys).first
       end
 
+      def check_validity!
+        ensure_one_range_option!
+        ensure_argument_types!
+      end
+        
       def validate_each(record, attribute, value)
         checks = options.slice(:minimum, :maximum, :is)
         value  = options[:tokenizer].call(value) if value.kind_of?(String)
@@ -34,11 +42,35 @@ module ActiveModel
           record.errors.add(attribute, MESSAGES[key], :default => custom_message, :count => check_value) unless valid_value
         end
       end
+
+    protected
+
+      def ensure_one_range_option! #:nodoc:
+        range_options = OPTIONS & options.keys
+
+        case range_options.size
+        when 0
+          raise ArgumentError, 'Range unspecified. Specify the :within, :maximum, :minimum, or :is option.'
+        when 1
+          # Valid number of options; do nothing.
+        else
+          raise ArgumentError, 'Too many range options specified. Choose only one.'
+        end
+      end
+    
+      def ensure_argument_types! #:nodoc:
+        value = options[type]
+
+        case type
+        when :within, :in
+          raise ArgumentError, ":#{type} must be a Range" unless value.is_a?(Range)
+        when :is, :minimum, :maximum
+          raise ArgumentError, ":#{type} must be a nonnegative Integer" unless value.is_a?(Integer) && value >= 0
+        end
+      end
     end
 
     module ClassMethods
-      ALL_RANGE_OPTIONS = [ :is, :within, :in, :minimum, :maximum ].freeze
-      DEFAULT_TOKENIZER = lambda { |value| value.split(//) }
 
       # Validates that the specified attribute matches the length restrictions supplied. Only one option can be used at a time:
       #
@@ -78,28 +110,6 @@ module ActiveModel
       def validates_length_of(*attr_names)
         options = { :tokenizer => DEFAULT_TOKENIZER }
         options.update(attr_names.extract_options!)
-
-        # Ensure that one and only one range option is specified.
-        range_options = ALL_RANGE_OPTIONS & options.keys
-        case range_options.size
-        when 0
-          raise ArgumentError, 'Range unspecified. Specify the :within, :maximum, :minimum, or :is option.'
-        when 1
-          # Valid number of options; do nothing.
-        else
-          raise ArgumentError, 'Too many range options specified. Choose only one.'
-        end
-
-        type  = range_options.first
-        value = options[type]
-
-        case type
-        when :within, :in
-          raise ArgumentError, ":#{type} must be a Range" unless value.is_a?(Range)
-        when :is, :minimum, :maximum
-          raise ArgumentError, ":#{type} must be a nonnegative Integer" unless value.is_a?(Integer) && value >= 0
-        end
-
         validates_with LengthValidator, options.merge(:attributes => attr_names, :type => type)
       end
 
