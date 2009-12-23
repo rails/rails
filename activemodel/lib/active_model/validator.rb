@@ -51,7 +51,6 @@ module ActiveModel #:nodoc:
   #       @my_custom_field = options[:field_name] || :first_name
   #     end
   #   end
-  #
   class Validator
     attr_reader :options
 
@@ -64,6 +63,11 @@ module ActiveModel #:nodoc:
     end
   end
 
+  # EachValidator is a validator which iterates through the attributes given
+  # in the options hash invoking the validate_each method passing in the
+  # record, attribute and value.
+  #
+  # All ActiveModel validations are built on top of this Validator.
   class EachValidator < Validator
     attr_reader :attributes
 
@@ -81,11 +85,25 @@ module ActiveModel #:nodoc:
       end
     end
 
-    def validate_each(record)
+    def validate_each(record, attribute, value)
       raise NotImplementedError
     end
 
     def check_validity!
+    end
+  end
+
+  # BlockValidator is a special EachValidator which receives a block on initialization
+  # and call this block for each attribute being validated. +validates_each+ uses this
+  # Validator.
+  class BlockValidator < EachValidator
+    def initialize(options, &block)
+      @block = block
+      super
+    end
+
+    def validate_each(record, attribute, value)
+      @block.call(record, attribute, value)
     end
   end
 end

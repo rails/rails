@@ -48,9 +48,9 @@ module ActiveModel
       #     end
       #   end
       #
-      def validates_with(*args)
+      def validates_with(*args, &block)
         options = args.extract_options!
-        args.each { |klass| validate(klass.new(options), options) }
+        args.each { |klass| validate(klass.new(options, &block), options) }
       end
     end
   end

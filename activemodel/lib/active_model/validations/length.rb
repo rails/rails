@@ -10,8 +10,8 @@ module ActiveModel
 
       def initialize(options)
         options[:tokenizer] ||= DEFAULT_TOKENIZER
-        super
         @type = (OPTIONS & options.keys).first
+        super
       end
 
       def check_validity!
@@ -108,9 +108,8 @@ module ActiveModel
       #   count words as in above example.)
       #   Defaults to <tt>lambda{ |value| value.split(//) }</tt> which counts individual characters.
       def validates_length_of(*attr_names)
-        options = { :tokenizer => DEFAULT_TOKENIZER }
-        options.update(attr_names.extract_options!)
-        validates_with LengthValidator, options.merge(:attributes => attr_names, :type => type)
+        options = attr_names.extract_options!
+        validates_with LengthValidator, options.merge(:attributes => attr_names)
       end
 
       alias_method :validates_size_of, :validates_length_of

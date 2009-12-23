@@ -46,6 +46,7 @@ module ActiveModel
   autoload :ValidationsRepairHelper
   autoload :Validator
   autoload :EachValidator, 'active_model/validator'
+  autoload :BlockValidator, 'active_model/validator'
   autoload :VERSION
 
   module Serializers
