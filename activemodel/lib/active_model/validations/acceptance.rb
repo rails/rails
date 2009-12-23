@@ -1,6 +1,10 @@
 module ActiveModel
   module Validations
     class AcceptanceValidator < EachValidator
+      def initialize(options)
+        super(options.reverse_merge(:allow_nil => true, :accept => "1"))
+      end
+
       def validate_each(record, attribute, value)
         unless value == options[:accept]
           record.errors.add(attribute, :accepted, :default => options[:message])
@@ -33,8 +37,7 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_acceptance_of(*attr_names)
-        options = { :allow_nil => true, :accept => "1" }
-        options.update(attr_names.extract_options!)
+        options = attr_names.extract_options!
 
         db_cols = begin
           column_names

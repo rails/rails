@@ -9,9 +9,8 @@ module ActiveModel
       attr_reader :type
 
       def initialize(options)
-        options[:tokenizer] ||= DEFAULT_TOKENIZER
         @type = (OPTIONS & options.keys).first
-        super
+        super(options.reverse_merge(:tokenizer => DEFAULT_TOKENIZER))
       end
 
       def check_validity!

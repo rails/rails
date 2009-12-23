@@ -5,6 +5,10 @@ module ActiveModel
                  :equal_to => :==, :less_than => :<, :less_than_or_equal_to => :<=,
                  :odd => :odd?, :even => :even? }.freeze
 
+      def initialize(options)
+        super(options.reverse_merge(:only_integer => false, :allow_nil => false))
+      end
+
       def check_validity!
         options.slice(*CHECKS.keys) do |option, value|
           next if [:odd, :even].include?(option)
@@ -99,8 +103,7 @@ module ActiveModel
       #   end
       #
       def validates_numericality_of(*attr_names)
-        options = { :only_integer => false, :allow_nil => false }
-        options.update(attr_names.extract_options!)
+        options = attr_names.extract_options!
         validates_with NumericalityValidator, options.merge(:attributes => attr_names)
       end
     end
