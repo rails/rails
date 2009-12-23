@@ -153,6 +153,14 @@ module TestHelpers
       app_file("app/controllers/#{name}_controller.rb", contents)
     end
 
+    def use_frameworks(arr)
+      to_remove =  [:actionmailer,
+                    :activemodel,
+                    :activerecord,
+                    :activeresource] - arr
+      $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
+    end
+
     def boot_rails
       root = File.expand_path('../../../..', __FILE__)
       begin

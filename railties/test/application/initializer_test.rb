@@ -19,19 +19,6 @@ module ApplicationTests
       assert $:.include?("#{app_path}/app/models")
     end
 
-    test "adding an unknown framework raises an error" do
-      add_to_config <<-RUBY
-        config.root = "#{app_path}"
-        config.frameworks << :action_foo
-      RUBY
-
-      require "active_support/core_ext/load_error"
-
-      assert_raises MissingSourceFile do
-        require "#{app_path}/config/environment"
-      end
-    end
-
     test "eager loading loads parent classes before children" do
       app_file "lib/zoo.rb", <<-ZOO
         class Zoo ; include ReptileHouse ; end
@@ -180,19 +167,6 @@ module ApplicationTests
 
       assert !Rails.application.config.middleware.include?(ActiveRecord::SessionStore)
     end
-
-    # Pathview test
-    test "load view paths doesn't perform anything when action_view not in frameworks" do
-      add_to_config <<-RUBY
-        config.root = "#{app_path}"
-        config.frameworks -= [:action_view]
-      RUBY
-      require "#{app_path}/config/environment"
-
-      assert_equal nil, ActionMailer::Base.template_root
-      assert_equal [], ActionController::Base.view_paths
-    end
-
     test "Rails.root should be a Pathname" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"

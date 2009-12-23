@@ -4,7 +4,16 @@ module ApplicationTests
   class InitializerTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
 
+    def new_app
+      File.expand_path("#{app_path}/../new_app")
+    end
+
+    def copy_app
+      FileUtils.cp_r(app_path, new_app)
+    end
+
     def setup
+      FileUtils.rm_rf(new_app) if File.directory?(new_app)
       build_app
       boot_rails
     end
@@ -15,42 +24,36 @@ module ApplicationTests
     end
 
     test "the application root can be set" do
-      FileUtils.mkdir_p("#{app_path}/hello")
+      copy_app
       add_to_config <<-RUBY
-        config.frameworks = []
-        config.root = '#{app_path}/hello'
+        config.root = '#{new_app}'
       RUBY
-      require "#{app_path}/config/environment"
-      assert_equal Pathname.new("#{app_path}/hello"), Rails.application.root
-    end
 
-    test "the application root is detected as where config.ru is located" do
-      add_to_config <<-RUBY
-        config.frameworks = []
-      RUBY
-      FileUtils.mv "#{app_path}/config.ru", "#{app_path}/config/config.ru"
+      use_frameworks []
+
       require "#{app_path}/config/environment"
-      assert_equal Pathname.new("#{app_path}/config"), Rails.application.root
+      assert_equal Pathname.new(new_app), Rails.application.root
     end
 
     test "the application root is Dir.pwd if there is no config.ru" do
       File.delete("#{app_path}/config.ru")
-      add_to_config <<-RUBY
-        config.frameworks = []
-      RUBY
 
-      Dir.chdir("#{app_path}/app") do
+      use_frameworks []
+
+      Dir.chdir("#{app_path}") do
         require "#{app_path}/config/environment"
-        assert_equal Pathname.new("#{app_path}/app"), Rails.application.root
+        assert_equal Pathname.new("#{app_path}"), Rails.application.root
       end
     end
 
     test "config.active_support.bare does not require all of ActiveSupport" do
-      add_to_config "config.frameworks = []; config.active_support.bare = true"
+      add_to_config "config.active_support.bare = true"
+
+      use_frameworks []
 
       Dir.chdir("#{app_path}/app") do
         require "#{app_path}/config/environment"
-        assert_raises(NoMethodError) { 1.day }
+        assert_raises(NoMethodError) { [1,2,3].rand }
       end
     end
 

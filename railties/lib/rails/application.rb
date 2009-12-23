@@ -1,3 +1,5 @@
+require "fileutils"
+
 module Rails
   class Application
     include Initializable
@@ -140,13 +142,13 @@ module Rails
       $LOAD_PATH.uniq!
     end
 
-    # Requires all frameworks specified by the Configuration#frameworks
-    # list. By default, all frameworks (Active Record, Active Support,
-    # Action Pack, Action Mailer, and Active Resource) are loaded.
-    initializer :require_frameworks do
-      require 'active_support/all' unless config.active_support.bare
-      config.frameworks.each { |framework| require(framework.to_s) }
-    end
+    # # Requires all frameworks specified by the Configuration#frameworks
+    # # list. By default, all frameworks (Active Record, Active Support,
+    # # Action Pack, Action Mailer, and Active Resource) are loaded.
+    # initializer :require_frameworks do
+    #   require 'active_support/all' unless config.active_support.bare
+    #   config.frameworks.each { |framework| require(framework.to_s) }
+    # end
 
     # Set the paths from which Rails will automatically load source files, and
     # the load_once paths.
@@ -192,7 +194,7 @@ module Rails
     # this sets the database configuration from Configuration#database_configuration
     # and then establishes the connection.
     initializer :initialize_database do
-      if config.frameworks.include?(:active_record)
+      if defined?(ActiveRecord)
         ActiveRecord::Base.configurations = config.database_configuration
         ActiveRecord::Base.establish_connection
       end
@@ -206,7 +208,7 @@ module Rails
     end
 
     initializer :initialize_middleware_stack do
-      if config.frameworks.include?(:action_controller)
+      if defined?(ActionController)
         config.middleware.use(::Rack::Lock, :if => lambda { ActionController::Base.allow_concurrency })
         config.middleware.use(::Rack::Runtime)
         config.middleware.use(ActionDispatch::ShowExceptions, lambda { ActionController::Base.consider_all_requests_local })
@@ -231,7 +233,7 @@ module Rails
     end
 
     initializer :initialize_framework_caches do
-      if config.frameworks.include?(:action_controller)
+      if defined?(ActionController)
         ActionController::Base.cache_store ||= RAILS_CACHE
       end
     end
@@ -266,8 +268,12 @@ module Rails
     # logger is already set, it is not changed, otherwise it is set to use
     # RAILS_DEFAULT_LOGGER.
     initializer :initialize_framework_logging do
-      for framework in ([ :active_record, :action_controller, :action_mailer ] & config.frameworks)
-        framework.to_s.camelize.constantize.const_get("Base").logger ||= Rails.logger
+      for framework in [ :active_record, :action_controller, :action_mailer ]
+        # TODO BEFORE PUSHING: REMOVEZ
+        begin
+          framework.to_s.camelize.constantize.const_get("Base").logger ||= Rails.logger
+        rescue Exception
+        end
       end
 
       ActiveSupport::Dependencies.logger ||= Rails.logger
@@ -302,7 +308,7 @@ module Rails
 
         Time.zone_default = zone_default
 
-        if config.frameworks.include?(:active_record)
+        if defined?(ActiveRecord)
           ActiveRecord::Base.time_zone_aware_attributes = true
           ActiveRecord::Base.default_timezone = :utc
         end
@@ -326,10 +332,14 @@ module Rails
     # on each of the corresponding Base classes.
     initializer :initialize_framework_settings do
       config.frameworks.each do |framework|
-        base_class = framework.to_s.camelize.constantize.const_get("Base")
+        # TODO BEFORE PUSHING: This needs to work differently
+        begin
+          base_class = framework.to_s.camelize.constantize.const_get("Base")
 
-        config.send(framework).each do |setting, value|
-          base_class.send("#{setting}=", value)
+          config.send(framework).each do |setting, value|
+            base_class.send("#{setting}=", value)
+          end
+        rescue Exception
         end
       end
     end
@@ -339,16 +349,16 @@ module Rails
     # paths have already been set, it is not changed, otherwise it is
     # set to use Configuration#view_path.
     initializer :initialize_framework_views do
-      if config.frameworks.include?(:action_view)
+      if defined?(ActionView)
         view_path = ActionView::PathSet.type_cast(config.view_path, config.cache_classes)
-        ActionMailer::Base.template_root  = view_path if config.frameworks.include?(:action_mailer) && ActionMailer::Base.view_paths.blank?
-        ActionController::Base.view_paths = view_path if config.frameworks.include?(:action_controller) && ActionController::Base.view_paths.blank?
+        
+        ActionMailer::Base.template_root  = view_path if defined?(ActionMailer) && ActionMailer::Base.view_paths.blank?
+        ActionController::Base.view_paths = view_path if defined?(ActionController) && ActionController::Base.view_paths.blank?
       end
     end
 
     initializer :initialize_metal do
-      # TODO: Make Rails and metal work without ActionController
-      if config.frameworks.include?(:action_controller)
+      if defined?(ActionController)
         Rails::Rack::Metal.requested_metals = config.metals
 
         config.middleware.insert_before(
@@ -375,8 +385,8 @@ module Rails
 
     # # Setup database middleware after initializers have run
     initializer :initialize_database_middleware do
-      if configuration.frameworks.include?(:active_record)
-        if configuration.frameworks.include?(:action_controller) && ActionController::Base.session_store &&
+      if defined?(ActiveRecord)
+        if defined?(ActionController) && ActionController::Base.session_store &&
             ActionController::Base.session_store.name == 'ActiveRecord::SessionStore'
           configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
           configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::QueryCache
@@ -422,7 +432,7 @@ module Rails
     #
     # # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
     initializer :load_observers do
-      if configuration.frameworks.include?(:active_record)
+      if defined?(ActiveRecord)
         ActiveRecord::Base.instantiate_observers
       end
     end
