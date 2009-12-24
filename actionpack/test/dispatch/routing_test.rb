@@ -111,6 +111,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       root :to => 'projects#index'
+      match '/info' => 'projects#info', :as => 'info'
     end
   end
 
@@ -466,6 +467,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/', root_path
       get '/'
       assert_equal 'projects#index', @response.body
+    end
+  end
+
+  def test_index
+    with_test_routes do
+      assert_equal '/info', info_path
+      get '/info'
+      assert_equal 'projects#info', @response.body
     end
   end
 

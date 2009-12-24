@@ -35,18 +35,17 @@ module ActionDispatch
         end
 
         def root(options = {})
-          raise "Can't rename root to #{options[:as].inspect}: root is always named 'root'" if options.include?(:as)
-          match '/', options.merge(:as => :root)
+          match '/', options.reverse_merge(:as => :root)
         end
 
         def match(*args)
-          if args.one? && args.first.is_a?(Hash)
-            options = args.first
-            path    = options.keys.first
-            options[:to] = options.delete(path)
+          options = args.extract_options!
+
+          if args.empty?
+            path, to = options.find {|name,value| name.is_a?(String)}
+            options.merge!(:to => to).delete(path) if path
           else
-            path    = args.first
-            options = args.extract_options!
+            path = args.first
           end
 
           conditions, defaults = {}, {}
