@@ -1,21 +1,17 @@
+require 'active_support/core_ext/module/delegation'
+
 module Rails
   class Application
     include Initializable
 
     class << self
-      # Stub out App initialize
-      def initialize!
-        new
-      end
+      attr_writer :config
+      alias configure class_eval
+      delegate :initialize!, :load_tasks, :to => :instance
 
-      def new
-        @instance ||= begin
-          begin
-            require config.environment_path
-          rescue LoadError
-          end
-          super
-        end
+      private :new
+      def instance
+        @instance ||= new
       end
 
       def config
@@ -26,66 +22,29 @@ module Rails
         end
       end
 
-      # TODO: change the plugin loader to use config
-      alias configuration config
-
-      def config=(config)
-        @config = config
-      end
-
-      def root
-        config.root
-      end
-
-      def load_tasks
-        require "rails/tasks"
-        Dir["#{root}/vendor/plugins/*/**/tasks/**/*.rake"].sort.each { |ext| load ext }
-        Dir["#{root}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }
-        task :environment do
-          $rails_rake_task = true
-          initialize!
-        end
-      end
-
       def routes
         ActionController::Routing::Routes
       end
-
-      def call(env)
-        new.call(env)
-      end
     end
 
+    delegate :config, :routes, :to => :'self.class'
+    delegate :root, :middleware, :to => :config
     attr_reader :route_configuration_files
 
     def initialize
+      require_environment
       Rails.application ||= self
-
       @route_configuration_files = []
+    end
 
+    def initialize!
       run_initializers(self)
+      self
     end
 
-    def config
-      self.class.config
-    end
-
-    class << self
-      alias configure class_eval
-    end
-
-    def root
-      config.root
-    end
-
-    alias configuration config
-
-    def middleware
-      config.middleware
-    end
-
-    def routes
-      ActionController::Routing::Routes
+    def require_environment
+      require config.environment_path
+    rescue LoadError
     end
 
     def routes_changed_at
@@ -112,6 +71,16 @@ module Rails
       nil
     ensure
       routes.disable_clear_and_finalize = false
+    end
+
+    def load_tasks
+      require "rails/tasks"
+      Dir["#{root}/vendor/plugins/*/**/tasks/**/*.rake"].sort.each { |ext| load ext }
+      Dir["#{root}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }
+      task :environment do
+        $rails_rake_task = true
+        initialize!
+      end
     end
 
     def initializers
@@ -170,7 +139,7 @@ module Rails
     # Create tmp directories
     initializer :ensure_tmp_directories_exist do
       %w(cache pids sessions sockets).each do |dir_to_make|
-        FileUtils.mkdir_p(File.join(config.root, 'tmp', dir_to_make))
+        FileUtils.mkdir_p(File.join(root, 'tmp', dir_to_make))
       end
     end
 
@@ -361,28 +330,28 @@ module Rails
     # # already called abort() unless $gems_rake_task is set
     # return unless gems_dependencies_loaded
     initializer :load_application_initializers do
-      Dir["#{configuration.root}/config/initializers/**/*.rb"].sort.each do |initializer|
+      Dir["#{root}/config/initializers/**/*.rb"].sort.each do |initializer|
         load(initializer)
       end
     end
 
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)
     initializer :after_initialize do
-      configuration.after_initialize_blocks.each do |block|
+      config.after_initialize_blocks.each do |block|
         block.call
       end
     end
 
     # # Setup database middleware after initializers have run
     initializer :initialize_database_middleware do
-      if configuration.frameworks.include?(:active_record)
-        if configuration.frameworks.include?(:action_controller) && ActionController::Base.session_store &&
+      if config.frameworks.include?(:active_record)
+        if config.frameworks.include?(:action_controller) && ActionController::Base.session_store &&
             ActionController::Base.session_store.name == 'ActiveRecord::SessionStore'
-          configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
-          configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::QueryCache
+          config.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
+          config.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::QueryCache
         else
-          configuration.middleware.use ActiveRecord::ConnectionAdapters::ConnectionManagement
-          configuration.middleware.use ActiveRecord::QueryCache
+          config.middleware.use ActiveRecord::ConnectionAdapters::ConnectionManagement
+          config.middleware.use ActiveRecord::QueryCache
         end
       end
     end
@@ -391,11 +360,11 @@ module Rails
 
     # # Prepare dispatcher callbacks and run 'prepare' callbacks
     initializer :prepare_dispatcher do
-      next unless configuration.frameworks.include?(:action_controller)
+      next unless config.frameworks.include?(:action_controller)
       require 'rails/dispatcher' unless defined?(::Dispatcher)
-      Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
+      Dispatcher.define_dispatcher_callbacks(config.cache_classes)
 
-      unless configuration.cache_classes
+      unless config.cache_classes
         # Setup dev mode route reloading
         routes_last_modified = routes_changed_at
         reload_routes = lambda do
@@ -414,15 +383,15 @@ module Rails
     # this does nothing. Otherwise, it loads the routing definitions and sets up
     # loading module used to lazily load controllers (Configuration#controller_paths).
     initializer :initialize_routing do
-      next unless configuration.frameworks.include?(:action_controller)
-      route_configuration_files << configuration.routes_configuration_file
-      route_configuration_files << configuration.builtin_routes_configuration_file
+      next unless config.frameworks.include?(:action_controller)
+      route_configuration_files << config.routes_configuration_file
+      route_configuration_files << config.builtin_routes_configuration_file
       reload_routes!
     end
     #
     # # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
     initializer :load_observers do
-      if configuration.frameworks.include?(:active_record)
+      if config.frameworks.include?(:active_record)
         ActiveRecord::Base.instantiate_observers
       end
     end
@@ -431,8 +400,8 @@ module Rails
     initializer :load_application_classes do
       next if $rails_rake_task
 
-      if configuration.cache_classes
-        configuration.eager_load_paths.each do |load_path|
+      if config.cache_classes
+        config.eager_load_paths.each do |load_path|
           matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
           Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
             require_dependency file.sub(matcher, '\1')
@@ -443,7 +412,7 @@ module Rails
 
     # Disable dependency loading during request cycle
     initializer :disable_dependency_loading do
-      if configuration.cache_classes && !configuration.dependency_loading
+      if config.cache_classes && !config.dependency_loading
         ActiveSupport::Dependencies.unhook!
       end
     end
