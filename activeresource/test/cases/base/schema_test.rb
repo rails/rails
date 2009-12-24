@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/hash/conversions'
 require "fixtures/person"
 require "fixtures/street_address"
 
