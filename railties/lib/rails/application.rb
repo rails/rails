@@ -1,89 +1,47 @@
 require "fileutils"
+require 'active_support/core_ext/module/delegation'
 
 module Rails
   class Application
     include Initializable
 
     class << self
-      # Stub out App initialize
-      def initialize!
-        new
-      end
+      attr_writer :config
+      alias configure class_eval
+      delegate :initialize!, :load_tasks, :to => :instance
 
-      def new
-        @instance ||= begin
-          begin
-            require config.environment_path
-          rescue LoadError
-          end
-          super
-        end
+      private :new
+      def instance
+        @instance ||= new
       end
 
       def config
         @config ||= Configuration.new(Plugin::Configuration.default)
       end
 
-      # TODO: change the plugin loader to use config
-      alias configuration config
-
-      def config=(config)
-        @config = config
-      end
-
-      def root
-        config.root
-      end
-
-      def load_tasks
-        require "rails/tasks"
-        Dir["#{root}/vendor/plugins/*/**/tasks/**/*.rake"].sort.each { |ext| load ext }
-        Dir["#{root}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }
-        task :environment do
-          $rails_rake_task = true
-          initialize!
-        end
-      end
-
       def routes
         ActionController::Routing::Routes
       end
-
-      def call(env)
-        new.call(env)
-      end
     end
 
+    delegate :config, :routes, :to => :'self.class'
+    delegate :root, :middleware, :to => :config
     attr_reader :route_configuration_files
 
     def initialize
+      require_environment
       Rails.application ||= self
-
       @route_configuration_files = []
+    end
 
+    def initialize!
       run_initializers(self)
+      self
     end
 
-    def config
-      self.class.config
-    end
-
-    class << self
-      alias configure class_eval
-    end
-
-    def root
-      config.root
-    end
-
-    alias configuration config
-
-    def middleware
-      config.middleware
-    end
-
-    def routes
-      ActionController::Routing::Routes
+    def require_environment
+      require config.environment_path
+    rescue LoadError
     end
 
     def routes_changed_at
@@ -110,6 +68,16 @@ module Rails
       nil
     ensure
       routes.disable_clear_and_finalize = false
+    end
+
+    def load_tasks
+      require "rails/tasks"
+      Dir["#{root}/vendor/plugins/*/**/tasks/**/*.rake"].sort.each { |ext| load ext }
+      Dir["#{root}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }
+      task :environment do
+        $rails_rake_task = true
+        initialize!
+      end
     end
 
     def initializers
@@ -165,7 +133,7 @@ module Rails
     # Create tmp directories
     initializer :ensure_tmp_directories_exist do
       %w(cache pids sessions sockets).each do |dir_to_make|
-        FileUtils.mkdir_p(File.join(config.root, 'tmp', dir_to_make))
+        FileUtils.mkdir_p(File.join(root, 'tmp', dir_to_make))
       end
     end
 
@@ -267,14 +235,14 @@ module Rails
     # # already called abort() unless $gems_rake_task is set
     # return unless gems_dependencies_loaded
     initializer :load_application_initializers do
-      Dir["#{configuration.root}/config/initializers/**/*.rb"].sort.each do |initializer|
+      Dir["#{root}/config/initializers/**/*.rb"].sort.each do |initializer|
         load(initializer)
       end
     end
 
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)
     initializer :after_initialize do
-      configuration.after_initialize_blocks.each do |block|
+      config.after_initialize_blocks.each do |block|
         block.call
       end
     end
@@ -283,8 +251,8 @@ module Rails
     initializer :load_application_classes do
       next if $rails_rake_task
 
-      if configuration.cache_classes
-        configuration.eager_load_paths.each do |load_path|
+      if config.cache_classes
+        config.eager_load_paths.each do |load_path|
           matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
           Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
             require_dependency file.sub(matcher, '\1')
@@ -295,7 +263,7 @@ module Rails
 
     # Disable dependency loading during request cycle
     initializer :disable_dependency_loading do
-      if configuration.cache_classes && !configuration.dependency_loading
+      if config.cache_classes && !config.dependency_loading
         ActiveSupport::Dependencies.unhook!
       end
     end
