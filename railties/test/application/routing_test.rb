@@ -19,6 +19,11 @@ module ApplicationTests
       end
     end
 
+    test "rails/info/properties" do
+      get "/rails/info/properties"
+      assert_equal 200, last_response.status
+    end
+
     test "simple controller" do
       controller :foo, <<-RUBY
         class FooController < ActionController::Base
