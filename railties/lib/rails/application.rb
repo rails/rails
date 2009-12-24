@@ -1,91 +1,47 @@
+require "fileutils"
+require 'active_support/core_ext/module/delegation'
+
 module Rails
   class Application
     include Initializable
 
     class << self
-      # Stub out App initialize
-      def initialize!
-        new
-      end
+      attr_writer :config
+      alias configure class_eval
+      delegate :initialize!, :load_tasks, :to => :instance
 
-      def new
-        @instance ||= begin
-          begin
-            require config.environment_path
-          rescue LoadError
-          end
-          super
-        end
+      private :new
+      def instance
+        @instance ||= new
       end
 
       def config
-        @config ||= begin
-          config = Configuration.new
-          Plugin.plugins.each { |p| config.merge(p.config) }
-          config
-        end
-      end
-
-      # TODO: change the plugin loader to use config
-      alias configuration config
-
-      def config=(config)
-        @config = config
-      end
-
-      def root
-        config.root
-      end
-
-      def load_tasks
-        require "rails/tasks"
-        Dir["#{root}/vendor/plugins/*/**/tasks/**/*.rake"].sort.each { |ext| load ext }
-        Dir["#{root}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }
-        task :environment do
-          $rails_rake_task = true
-          initialize!
-        end
+        @config ||= Configuration.new(Plugin::Configuration.default)
       end
 
       def routes
         ActionController::Routing::Routes
       end
-
-      def call(env)
-        new.call(env)
-      end
     end
 
+    delegate :config, :routes, :to => :'self.class'
+    delegate :root, :middleware, :to => :config
     attr_reader :route_configuration_files
 
     def initialize
+      require_environment
       Rails.application ||= self
-
       @route_configuration_files = []
+    end
 
+    def initialize!
       run_initializers(self)
+      self
     end
 
-    def config
-      self.class.config
-    end
-
-    class << self
-      alias configure class_eval
-    end
-
-    def root
-      config.root
-    end
-
-    alias configuration config
-
-    def middleware
-      config.middleware
-    end
-
-    def routes
-      ActionController::Routing::Routes
+    def require_environment
+      require config.environment_path
+    rescue LoadError
     end
 
     def routes_changed_at
@@ -114,16 +70,27 @@ module Rails
       routes.disable_clear_and_finalize = false
     end
 
+    def load_tasks
+      require "rails/tasks"
+      Dir["#{root}/vendor/plugins/*/**/tasks/**/*.rake"].sort.each { |ext| load ext }
+      Dir["#{root}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }
+      task :environment do
+        $rails_rake_task = true
+        initialize!
+      end
+    end
+
     def initializers
       initializers = super
       plugins.each { |p| initializers += p.initializers }
       initializers
     end
 
+    # TODO: Fix this method
     def plugins
       @plugins ||= begin
         plugin_names = config.plugins || [:all]
-        Plugin.plugins.select { |p| plugin_names.include?(p.plugin_name) } +
+        Plugin.plugins.select { |p| plugin_names.include?(:all) || plugin_names.include?(p.plugin_name) } +
         Plugin::Vendored.all(config.plugins || [:all], config.paths.vendor.plugins)
       end
     end
@@ -133,19 +100,15 @@ module Rails
       @app.call(env)
     end
 
+    initializer :load_all_active_support do
+      require "active_support/all" unless config.active_support.bare
+    end
+
     # Set the <tt>$LOAD_PATH</tt> based on the value of
     # Configuration#load_paths. Duplicates are removed.
     initializer :set_load_path do
       config.paths.add_to_load_path
       $LOAD_PATH.uniq!
-    end
-
-    # Requires all frameworks specified by the Configuration#frameworks
-    # list. By default, all frameworks (Active Record, Active Support,
-    # Action Pack, Action Mailer, and Active Resource) are loaded.
-    initializer :require_frameworks do
-      require 'active_support/all' unless config.active_support.bare
-      config.frameworks.each { |framework| require(framework.to_s) }
     end
 
     # Set the paths from which Rails will automatically load source files, and
@@ -170,7 +133,7 @@ module Rails
     # Create tmp directories
     initializer :ensure_tmp_directories_exist do
       %w(cache pids sessions sockets).each do |dir_to_make|
-        FileUtils.mkdir_p(File.join(config.root, 'tmp', dir_to_make))
+        FileUtils.mkdir_p(File.join(root, 'tmp', dir_to_make))
       end
     end
 
@@ -178,45 +141,7 @@ module Rails
     # Used by Passenger to ensure everything's loaded before forking and
     # to avoid autoload race conditions in JRuby.
     initializer :preload_frameworks do
-      if config.preload_frameworks
-        config.frameworks.each do |framework|
-          # String#classify and #constantize aren't available yet.
-          toplevel = Object.const_get(framework.to_s.gsub(/(?:^|_)(.)/) { $1.upcase })
-          toplevel.load_all! if toplevel.respond_to?(:load_all!)
-        end
-      end
-    end
-
-    # This initialization routine does nothing unless <tt>:active_record</tt>
-    # is one of the frameworks to load (Configuration#frameworks). If it is,
-    # this sets the database configuration from Configuration#database_configuration
-    # and then establishes the connection.
-    initializer :initialize_database do
-      if config.frameworks.include?(:active_record)
-        ActiveRecord::Base.configurations = config.database_configuration
-        ActiveRecord::Base.establish_connection
-      end
-    end
-
-    # Include middleware to serve up static assets
-    initializer :initialize_static_server do
-      if config.frameworks.include?(:action_controller) && config.serve_static_assets
-        config.middleware.use(ActionDispatch::Static, Rails.public_path)
-      end
-    end
-
-    initializer :initialize_middleware_stack do
-      if config.frameworks.include?(:action_controller)
-        config.middleware.use(::Rack::Lock, :if => lambda { ActionController::Base.allow_concurrency })
-        config.middleware.use(::Rack::Runtime)
-        config.middleware.use(ActionDispatch::ShowExceptions, lambda { ActionController::Base.consider_all_requests_local })
-        config.middleware.use(ActionDispatch::Callbacks, lambda { ActionController::Dispatcher.prepare_each_request })
-        config.middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
-        config.middleware.use(ActionDispatch::ParamsParser)
-        config.middleware.use(::Rack::MethodOverride)
-        config.middleware.use(::Rack::Head)
-        config.middleware.use(ActionDispatch::StringCoercion)
-      end
+      ActiveSupport::Autoload.eager_load! if config.preload_frameworks
     end
 
     initializer :initialize_cache do
@@ -227,12 +152,6 @@ module Rails
           # Insert middleware to setup and teardown local cache for each request
           config.middleware.insert_after(:"Rack::Lock", RAILS_CACHE.middleware)
         end
-      end
-    end
-
-    initializer :initialize_framework_caches do
-      if config.frameworks.include?(:action_controller)
-        ActionController::Base.cache_store ||= RAILS_CACHE
       end
     end
 
@@ -266,10 +185,6 @@ module Rails
     # logger is already set, it is not changed, otherwise it is set to use
     # RAILS_DEFAULT_LOGGER.
     initializer :initialize_framework_logging do
-      for framework in ([ :active_record, :action_controller, :action_mailer ] & config.frameworks)
-        framework.to_s.camelize.constantize.const_get("Base").logger ||= Rails.logger
-      end
-
       ActiveSupport::Dependencies.logger ||= Rails.logger
       Rails.cache.logger ||= Rails.logger
     end
@@ -287,7 +202,7 @@ module Rails
       require('active_support/whiny_nil') if config.whiny_nils
     end
 
-    # Sets the default value for Time.zone, and turns on ActiveRecord::Base#time_zone_aware_attributes.
+    # Sets the default value for Time.zone
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     initializer :initialize_time_zone do
       if config.time_zone
@@ -301,11 +216,6 @@ module Rails
         end
 
         Time.zone_default = zone_default
-
-        if config.frameworks.include?(:active_record)
-          ActiveRecord::Base.time_zone_aware_attributes = true
-          ActiveRecord::Base.default_timezone = :utc
-        end
       end
     end
 
@@ -321,109 +231,19 @@ module Rails
       end
     end
 
-    # Initializes framework-specific settings for each of the loaded frameworks
-    # (Configuration#frameworks). The available settings map to the accessors
-    # on each of the corresponding Base classes.
-    initializer :initialize_framework_settings do
-      config.frameworks.each do |framework|
-        base_class = framework.to_s.camelize.constantize.const_get("Base")
-
-        config.send(framework).each do |setting, value|
-          base_class.send("#{setting}=", value)
-        end
-      end
-    end
-
-    # Sets +ActionController::Base#view_paths+ and +ActionMailer::Base#template_root+
-    # (but only for those frameworks that are to be loaded). If the framework's
-    # paths have already been set, it is not changed, otherwise it is
-    # set to use Configuration#view_path.
-    initializer :initialize_framework_views do
-      if config.frameworks.include?(:action_view)
-        view_path = ActionView::PathSet.type_cast(config.view_path, config.cache_classes)
-        ActionMailer::Base.template_root  = view_path if config.frameworks.include?(:action_mailer) && ActionMailer::Base.view_paths.blank?
-        ActionController::Base.view_paths = view_path if config.frameworks.include?(:action_controller) && ActionController::Base.view_paths.blank?
-      end
-    end
-
-    initializer :initialize_metal do
-      # TODO: Make Rails and metal work without ActionController
-      if config.frameworks.include?(:action_controller)
-        Rails::Rack::Metal.requested_metals = config.metals
-
-        config.middleware.insert_before(
-          :"ActionDispatch::ParamsParser",
-          Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
-      end
-    end
-
     # # bail out if gems are missing - note that check_gem_dependencies will have
     # # already called abort() unless $gems_rake_task is set
     # return unless gems_dependencies_loaded
     initializer :load_application_initializers do
-      Dir["#{configuration.root}/config/initializers/**/*.rb"].sort.each do |initializer|
+      Dir["#{root}/config/initializers/**/*.rb"].sort.each do |initializer|
         load(initializer)
       end
     end
 
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)
     initializer :after_initialize do
-      configuration.after_initialize_blocks.each do |block|
+      config.after_initialize_blocks.each do |block|
         block.call
-      end
-    end
-
-    # # Setup database middleware after initializers have run
-    initializer :initialize_database_middleware do
-      if configuration.frameworks.include?(:active_record)
-        if configuration.frameworks.include?(:action_controller) && ActionController::Base.session_store &&
-            ActionController::Base.session_store.name == 'ActiveRecord::SessionStore'
-          configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
-          configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::QueryCache
-        else
-          configuration.middleware.use ActiveRecord::ConnectionAdapters::ConnectionManagement
-          configuration.middleware.use ActiveRecord::QueryCache
-        end
-      end
-    end
-
-    # TODO: Make a DSL way to limit an initializer to a particular framework
-
-    # # Prepare dispatcher callbacks and run 'prepare' callbacks
-    initializer :prepare_dispatcher do
-      next unless configuration.frameworks.include?(:action_controller)
-      require 'rails/dispatcher' unless defined?(::Dispatcher)
-      Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
-
-      unless configuration.cache_classes
-        # Setup dev mode route reloading
-        routes_last_modified = routes_changed_at
-        reload_routes = lambda do
-          unless routes_changed_at == routes_last_modified
-            routes_last_modified = routes_changed_at
-            reload_routes!
-          end
-        end
-        ActionDispatch::Callbacks.before_dispatch { |callbacks| reload_routes.call }
-      end
-    end
-
-    # Routing must be initialized after plugins to allow the former to extend the routes
-    # ---
-    # If Action Controller is not one of the loaded frameworks (Configuration#frameworks)
-    # this does nothing. Otherwise, it loads the routing definitions and sets up
-    # loading module used to lazily load controllers (Configuration#controller_paths).
-    initializer :initialize_routing do
-      next unless configuration.frameworks.include?(:action_controller)
-      route_configuration_files << configuration.routes_configuration_file
-      route_configuration_files << configuration.builtin_routes_configuration_file
-      reload_routes!
-    end
-    #
-    # # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
-    initializer :load_observers do
-      if configuration.frameworks.include?(:active_record)
-        ActiveRecord::Base.instantiate_observers
       end
     end
 
@@ -431,8 +251,8 @@ module Rails
     initializer :load_application_classes do
       next if $rails_rake_task
 
-      if configuration.cache_classes
-        configuration.eager_load_paths.each do |load_path|
+      if config.cache_classes
+        config.eager_load_paths.each do |load_path|
           matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
           Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
             require_dependency file.sub(matcher, '\1')
@@ -443,7 +263,7 @@ module Rails
 
     # Disable dependency loading during request cycle
     initializer :disable_dependency_loading do
-      if configuration.cache_classes && !configuration.dependency_loading
+      if config.cache_classes && !config.dependency_loading
         ActiveSupport::Dependencies.unhook!
       end
     end

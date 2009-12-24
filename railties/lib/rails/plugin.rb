@@ -2,8 +2,10 @@ module Rails
   class Plugin
     include Initializable
 
-    def self.plugin_name
-      @plugin_name || name.demodulize.underscore
+    def self.plugin_name(plugin_name = nil)
+      @plugin_name ||= name.demodulize.underscore
+      @plugin_name = plugin_name if plugin_name
+      @plugin_name
     end
 
     def self.inherited(klass)
@@ -20,7 +22,7 @@ module Rails
     end
 
     def self.config
-      @config ||= Configuration.new
+      Configuration.default
     end
 
     class Vendored < Plugin

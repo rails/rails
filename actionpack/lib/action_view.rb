@@ -32,7 +32,6 @@ module ActionView
   extend ActiveSupport::Autoload
 
   eager_autoload do
-    autoload :Base
     autoload :Context
     autoload :Template
     autoload :Helpers
@@ -56,5 +55,6 @@ module ActionView
 end
 
 require 'action_view/erb/util'
+require 'action_view/base'
 
 I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
