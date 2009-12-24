@@ -22,7 +22,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         delete 'logout', :to => :destroy, :as => :logout
       end
 
-      match 'account/logout' => redirect("/logout")
+      match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
 
       match 'account/modulo/:name', :to => redirect("/%{name}s")
@@ -110,6 +110,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :rooms
       end
       
+      match '/info' => 'projects#info', :as => 'info'
       root :to => 'projects#index'
     end
   end
@@ -153,6 +154,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_logout_redirect_without_to
     with_test_routes do
+      assert_equal '/account/logout', logout_redirect_path
       get '/account/logout'
       assert_equal 301, @response.status
       assert_equal 'http://www.example.com/logout', @response.headers['Location']
@@ -462,8 +464,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_root
     with_test_routes do
+      assert_equal '/', root_path
       get '/'
       assert_equal 'projects#index', @response.body
+    end
+  end
+  
+  def test_index
+    with_test_routes do
+      assert_equal '/info', info_path
+      get '/info'
+      assert_equal 'projects#info', @response.body
     end
   end
 

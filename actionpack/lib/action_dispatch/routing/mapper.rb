@@ -19,14 +19,133 @@ module ActionDispatch
 
           @constraints.each { |constraint|
             if constraint.respond_to?(:matches?) && !constraint.matches?(req)
-              return [417, {}, []]
+              return [ 417, {}, [] ]
             elsif constraint.respond_to?(:call) && !constraint.call(req)
-              return [417, {}, []]
+              return [ 417, {}, [] ]
             end
           }
 
           @app.call(env)
         end
+      end
+
+      class Mapping
+        def initialize(set, scope, args)
+          @set, @scope    = set, scope
+          @path, @options = extract_path_and_options(args)
+        end
+        
+        def to_route
+          [ app, conditions, requirements, defaults, @options[:as] ]
+        end
+        
+        private
+          def extract_path_and_options(args)
+            options = args.extract_options!
+
+            if args.empty?
+              path, to = options.find { |name, value| name.is_a?(String) }
+              options.merge!(:to => to).delete(path) if path
+            else
+              path = args.first
+            end
+          
+            [ normalize_path(path), options ]
+          end
+
+          def normalize_path(path)
+            path = nil if path == ""
+            path = "#{@scope[:path]}#{path}" if @scope[:path]
+            path = Rack::Mount::Utils.normalize_path(path) if path   
+
+            raise ArgumentError, "path is required" unless path
+          
+            path         
+          end
+
+
+          def app
+            Constraints.new(
+              to.respond_to?(:call) ? to : Routing::RouteSet::Dispatcher.new(:defaults => defaults),
+              blocks
+            )
+          end
+
+          def conditions
+            { :path_info => @path }.merge(constraints).merge(request_method_condition)
+          end
+          
+          def requirements
+            @requirements ||= returning(@options[:constraints] || {}) do |requirements|
+              requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
+              @options.each { |k, v| requirements[k] = v if v.is_a?(Regexp) }
+              requirements[:controller] ||= @set.controller_constraints
+            end
+          end
+
+          def defaults
+            @defaults ||= if to.respond_to?(:call)
+              { }
+            else
+              defaults = case to
+              when String
+                controller, action = to.split('#')
+                { :controller => controller, :action => action }
+              when Symbol
+                { :controller => default_controller, :action => to.to_s }
+              else
+                { :controller => default_controller }
+              end
+              
+              if defaults[:controller].blank? && segment_keys.exclude?("controller")
+                raise ArgumentError, "missing :controller"
+              end
+              
+              if defaults[:action].blank? && segment_keys.exclude?("action")
+                raise ArgumentError, "missing :action"
+              end
+              
+              defaults
+            end
+          end
+
+          
+          def blocks
+            if @options[:constraints].present? && !@options[:constraints].is_a?(Hash)
+              block = @options[:constraints]
+            else
+              block = nil
+            end
+            
+            ((@scope[:blocks] || []) + [ block ]).compact              
+          end
+        
+          def constraints
+            @constraints ||= requirements.reject { |k, v| segment_keys.include?(k.to_s) || k == :controller }
+          end
+
+          def request_method_condition
+            if via = @options[:via]
+              via = Array(via).map { |m| m.to_s.upcase }
+              { :request_method => Regexp.union(*via) }
+            else
+              { }
+            end
+          end
+          
+          def segment_keys
+            @segment_keys ||= Rack::Mount::RegexpWithNamedGroups.new(
+                Rack::Mount::Strexp.compile(@path, requirements, SEPARATORS)
+              ).names
+          end
+
+          def to
+            @options[:to]
+          end
+          
+          def default_controller
+            @scope[:controller].to_s if @scope[:controller]
+          end
       end
 
       module Base
@@ -35,88 +154,13 @@ module ActionDispatch
         end
 
         def root(options = {})
-          match '/', options.merge(:as => :root)
+          match '/', options.reverse_merge(:as => :root)
         end
 
         def match(*args)
-          if args.one? && args.first.is_a?(Hash)
-            path    = args.first.keys.first
-            options = { :to => args.first.values.first }
-          else
-            path    = args.first
-            options = args.extract_options!
-          end
-
-          conditions, defaults = {}, {}
-
-          path = nil if path == ""
-          path = "#{@scope[:path]}#{path}" if @scope[:path]
-          path = Rack::Mount::Utils.normalize_path(path) if path
-
-          raise ArgumentError, "path is required" unless path
-
-          constraints = options[:constraints] || {}
-          unless constraints.is_a?(Hash)
-            block, constraints = constraints, {}
-          end
-          blocks = ((@scope[:blocks] || []) + [block]).compact
-          constraints = (@scope[:constraints] || {}).merge(constraints)
-          options.each { |k, v| constraints[k] = v if v.is_a?(Regexp) }
-
-          conditions[:path_info] = path
-          requirements = constraints.dup
-
-          path_regexp = Rack::Mount::Strexp.compile(path, constraints, SEPARATORS)
-          segment_keys = Rack::Mount::RegexpWithNamedGroups.new(path_regexp).names
-          constraints.reject! { |k, v| segment_keys.include?(k.to_s) }
-          conditions.merge!(constraints)
-
-          requirements[:controller] ||= @set.controller_constraints
-
-          if via = options[:via]
-            via = Array(via).map { |m| m.to_s.upcase }
-            conditions[:request_method] = Regexp.union(*via)
-          end
-
-          defaults[:controller] ||= @scope[:controller].to_s if @scope[:controller]
-
-          app = initialize_app_endpoint(options, defaults)
-          validate_defaults!(app, defaults, segment_keys)
-          app = Constraints.new(app, blocks)
-
-          @set.add_route(app, conditions, requirements, defaults, options[:as])
-
+          @set.add_route(*Mapping.new(@set, @scope, args).to_route)
           self
         end
-
-        private
-          def initialize_app_endpoint(options, defaults)
-            app = nil
-
-            if options[:to].respond_to?(:call)
-              app = options[:to]
-              defaults.delete(:controller)
-              defaults.delete(:action)
-            elsif options[:to].is_a?(String)
-              defaults[:controller], defaults[:action] = options[:to].split('#')
-            elsif options[:to].is_a?(Symbol)
-              defaults[:action] = options[:to].to_s
-            end
-
-            app || Routing::RouteSet::Dispatcher.new(:defaults => defaults)
-          end
-
-          def validate_defaults!(app, defaults, segment_keys)
-            return unless app.is_a?(Routing::RouteSet::Dispatcher)
-
-            unless defaults.include?(:controller) || segment_keys.include?("controller")
-              raise ArgumentError, "missing :controller"
-            end
-
-            unless defaults.include?(:action) || segment_keys.include?("action")
-              raise ArgumentError, "missing :action"
-            end
-          end
       end
 
       module HttpHelpers
@@ -139,15 +183,16 @@ module ActionDispatch
         def redirect(*args, &block)
           options = args.last.is_a?(Hash) ? args.pop : {}
 
-          path = args.shift || block
-          path_proc = path.is_a?(Proc) ? path : proc {|params| path % params }
-          status = options[:status] || 301
+          path      = args.shift || block
+          path_proc = path.is_a?(Proc) ? path : proc { |params| path % params }
+          status    = options[:status] || 301
 
           lambda do |env|
-            req = Rack::Request.new(env)
+            req    = Rack::Request.new(env)
             params = path_proc.call(env["action_dispatch.request.path_parameters"])
-            url = req.scheme + '://' + req.host + params
-            [status, {'Location' => url, 'Content-Type' => 'text/html'}, ['Moved Permanently']]
+            url    = req.scheme + '://' + req.host + params
+
+            [ status, {'Location' => url, 'Content-Type' => 'text/html'}, ['Moved Permanently'] ]
           end
         end
 
@@ -211,11 +256,11 @@ module ActionDispatch
 
           self
         ensure
-          @scope[:path] = path if path_set
+          @scope[:path]        = path        if path_set
           @scope[:name_prefix] = name_prefix if name_prefix_set
-          @scope[:controller] = controller if controller_set
-          @scope[:options] = options
-          @scope[:blocks] = blocks
+          @scope[:controller]  = controller  if controller_set
+          @scope[:options]     = options
+          @scope[:blocks]      = blocks
           @scope[:constraints] = constraints
         end
 
@@ -311,12 +356,12 @@ module ActionDispatch
             with_scope_level(:resource, resource) do
               yield if block_given?
 
-              get "(.:format)", :to => :show, :as => resource.member_name
-              post "(.:format)", :to => :create
-              put "(.:format)", :to => :update
-              delete "(.:format)", :to => :destroy
-              get "/new(.:format)", :to => :new, :as => "new_#{resource.singular}"
-              get "/edit(.:format)", :to => :edit, :as => "edit_#{resource.singular}"
+              get    "(.:format)",      :to => :show, :as => resource.member_name
+              post   "(.:format)",      :to => :create
+              put    "(.:format)",      :to => :update
+              delete "(.:format)",      :to => :destroy
+              get    "/new(.:format)",  :to => :new,  :as => "new_#{resource.singular}"
+              get    "/edit(.:format)", :to => :edit, :as => "edit_#{resource.singular}"
             end
           end
 
@@ -346,8 +391,9 @@ module ActionDispatch
               yield if block_given?
 
               with_scope_level(:collection) do
-                get "(.:format)", :to => :index, :as => resource.collection_name
+                get  "(.:format)", :to => :index, :as => resource.collection_name
                 post "(.:format)", :to => :create
+
                 with_exclusive_name_prefix :new do
                   get "/new(.:format)", :to => :new, :as => resource.singular
                 end
@@ -355,9 +401,10 @@ module ActionDispatch
 
               with_scope_level(:member) do
                 scope("/:id") do
-                  get "(.:format)", :to => :show, :as => resource.member_name
-                  put "(.:format)", :to => :update
+                  get    "(.:format)", :to => :show, :as => resource.member_name
+                  put    "(.:format)", :to => :update
                   delete "(.:format)", :to => :destroy
+
                   with_exclusive_name_prefix :edit do
                     get "/edit(.:format)", :to => :edit, :as => resource.singular
                   end
