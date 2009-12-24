@@ -20,8 +20,10 @@ module ApplicationTests
     end
 
     test "config.ru can be racked up" do
-      @app = rackup
-      assert_welcome get("/")
+      Dir.chdir app_path do
+        @app = rackup
+        assert_welcome get("/")
+      end
     end
 
     test "Rails.application is available after config.ru has been racked up" do
