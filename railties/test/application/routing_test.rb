@@ -1,18 +1,18 @@
 require 'isolation/abstract_unit'
-require 'rack/test'
 
 module ApplicationTests
   class RoutingTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
-    include Rack::Test::Methods
 
     def setup
       build_app
+      boot_rails
+      require 'rack/test'
+      extend Rack::Test::Methods
     end
 
     def app
       @app ||= begin
-        boot_rails
         require "#{app_path}/config/environment"
 
         Rails.application
