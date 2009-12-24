@@ -132,6 +132,10 @@ module Rails
       @app.call(env)
     end
 
+    initializer :load_all_active_support do
+      require "active_support/all" unless config.active_support.bare
+    end
+
     # Set the <tt>$LOAD_PATH</tt> based on the value of
     # Configuration#load_paths. Duplicates are removed.
     initializer :set_load_path do
