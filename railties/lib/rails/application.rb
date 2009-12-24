@@ -176,7 +176,7 @@ module Rails
 
     initializer :initialize_middleware_stack do
       if config.frameworks.include?(:action_controller)
-        config.middleware.use(::Rack::Lock, :if => lambda { ActionController::Base.allow_concurrency })
+        config.middleware.use(::Rack::Lock, :if => lambda { !ActionController::Base.allow_concurrency })
         config.middleware.use(::Rack::Runtime)
         config.middleware.use(ActionDispatch::ShowExceptions, lambda { ActionController::Base.consider_all_requests_local })
         config.middleware.use(ActionDispatch::Callbacks, lambda { ActionController::Dispatcher.prepare_each_request })
