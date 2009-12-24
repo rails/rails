@@ -171,6 +171,8 @@ module ApplicationTests
         end
       RUBY
 
+      sleep 0.1
+
       get '/foo'
       assert_equal 'baz', last_response.body
     end

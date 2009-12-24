@@ -139,14 +139,6 @@ module Rails
       $LOAD_PATH.uniq!
     end
 
-    # # Requires all frameworks specified by the Configuration#frameworks
-    # # list. By default, all frameworks (Active Record, Active Support,
-    # # Action Pack, Action Mailer, and Active Resource) are loaded.
-    # initializer :require_frameworks do
-    #   require 'active_support/all' unless config.active_support.bare
-    #   config.frameworks.each { |framework| require(framework.to_s) }
-    # end
-
     # Set the paths from which Rails will automatically load source files, and
     # the load_once paths.
     initializer :set_autoload_paths do
@@ -177,34 +169,7 @@ module Rails
     # Used by Passenger to ensure everything's loaded before forking and
     # to avoid autoload race conditions in JRuby.
     initializer :preload_frameworks do
-      if config.preload_frameworks
-        config.frameworks.each do |framework|
-          # String#classify and #constantize aren't available yet.
-          toplevel = Object.const_get(framework.to_s.gsub(/(?:^|_)(.)/) { $1.upcase })
-          toplevel.load_all! if toplevel.respond_to?(:load_all!)
-        end
-      end
-    end
-
-    # Include middleware to serve up static assets
-    initializer :initialize_static_server do
-      if defined?(ActionController) && config.serve_static_assets
-        config.middleware.use(ActionDispatch::Static, Rails.public_path)
-      end
-    end
-
-    initializer :initialize_middleware_stack do
-      if defined?(ActionController)
-        config.middleware.use(::Rack::Lock, :if => lambda { ActionController::Base.allow_concurrency })
-        config.middleware.use(::Rack::Runtime)
-        config.middleware.use(ActionDispatch::ShowExceptions, lambda { ActionController::Base.consider_all_requests_local })
-        config.middleware.use(ActionDispatch::Callbacks, lambda { ActionController::Dispatcher.prepare_each_request })
-        config.middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
-        config.middleware.use(ActionDispatch::ParamsParser)
-        config.middleware.use(::Rack::MethodOverride)
-        config.middleware.use(::Rack::Head)
-        config.middleware.use(ActionDispatch::StringCoercion)
-      end
+      ActiveSupport::Autoload.eager_load! if config.preload_frameworks
     end
 
     initializer :initialize_cache do
@@ -215,12 +180,6 @@ module Rails
           # Insert middleware to setup and teardown local cache for each request
           config.middleware.insert_after(:"Rack::Lock", RAILS_CACHE.middleware)
         end
-      end
-    end
-
-    initializer :initialize_framework_caches do
-      if defined?(ActionController)
-        ActionController::Base.cache_store ||= RAILS_CACHE
       end
     end
 
@@ -254,14 +213,6 @@ module Rails
     # logger is already set, it is not changed, otherwise it is set to use
     # RAILS_DEFAULT_LOGGER.
     initializer :initialize_framework_logging do
-      for framework in [ :action_controller, :action_mailer ]
-        # TODO BEFORE PUSHING: REMOVEZ
-        begin
-          framework.to_s.camelize.constantize.const_get("Base").logger ||= Rails.logger
-        rescue Exception
-        end
-      end
-
       ActiveSupport::Dependencies.logger ||= Rails.logger
       Rails.cache.logger ||= Rails.logger
     end
@@ -308,46 +259,6 @@ module Rails
       end
     end
 
-    # Initializes framework-specific settings for each of the loaded frameworks
-    # (Configuration#frameworks). The available settings map to the accessors
-    # on each of the corresponding Base classes.
-    initializer :initialize_framework_settings do
-      (config.frameworks - [:active_record, :action_controller]).each do |framework|
-        # TODO BEFORE PUSHING: This needs to work differently
-        begin
-          base_class = framework.to_s.camelize.constantize.const_get("Base")
-
-          config.send(framework).each do |setting, value|
-            base_class.send("#{setting}=", value)
-          end
-        rescue Exception
-        end
-      end
-    end
-
-    # Sets +ActionController::Base#view_paths+ and +ActionMailer::Base#template_root+
-    # (but only for those frameworks that are to be loaded). If the framework's
-    # paths have already been set, it is not changed, otherwise it is
-    # set to use Configuration#view_path.
-    initializer :initialize_framework_views do
-      if defined?(ActionView)
-        view_path = ActionView::PathSet.type_cast(config.view_path, config.cache_classes)
-        
-        ActionMailer::Base.template_root  = view_path if defined?(ActionMailer) && ActionMailer::Base.view_paths.blank?
-        ActionController::Base.view_paths = view_path if defined?(ActionController) && ActionController::Base.view_paths.blank?
-      end
-    end
-
-    initializer :initialize_metal do
-      if defined?(ActionController)
-        Rails::Rack::Metal.requested_metals = config.metals
-
-        config.middleware.insert_before(
-          :"ActionDispatch::ParamsParser",
-          Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
-      end
-    end
-
     # # bail out if gems are missing - note that check_gem_dependencies will have
     # # already called abort() unless $gems_rake_task is set
     # return unless gems_dependencies_loaded
@@ -361,27 +272,6 @@ module Rails
     initializer :after_initialize do
       configuration.after_initialize_blocks.each do |block|
         block.call
-      end
-    end
-
-    # TODO: Make a DSL way to limit an initializer to a particular framework
-
-    # # Prepare dispatcher callbacks and run 'prepare' callbacks
-    initializer :prepare_dispatcher do
-      next unless configuration.frameworks.include?(:action_controller)
-      require 'rails/dispatcher' unless defined?(::Dispatcher)
-      Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
-
-      unless configuration.cache_classes
-        # Setup dev mode route reloading
-        routes_last_modified = routes_changed_at
-        reload_routes = lambda do
-          unless routes_changed_at == routes_last_modified
-            routes_last_modified = routes_changed_at
-            reload_routes!
-          end
-        end
-        ActionDispatch::Callbacks.before_dispatch { |callbacks| reload_routes.call }
       end
     end
 
