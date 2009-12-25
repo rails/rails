@@ -205,11 +205,22 @@ module ActionView
       end
 
       def render
+        options = @options
+
         if @collection = collection
-          render_collection
+          ActiveSupport::Notifications.instrument(:render_collection, :path => @path,
+                                                  :count => @collection.size) do
+            render_collection
+          end
         else
-          @template = template = find_template
-          render_template(template, @object || @locals[template.variable_name])
+          content = ActiveSupport::Notifications.instrument(:render_partial, :path => @path) do
+            render_partial
+          end
+
+          if !@block && options[:layout]
+            content = @view._render_layout(find_template(options[:layout]), @locals){ content }
+          end
+          content
         end
       end
 
@@ -227,9 +238,7 @@ module ActionView
       end
 
       def collection_with_template(template)
-        options = @options
-
-        segments, locals, as = [], @locals, options[:as] || template.variable_name
+        segments, locals, as = [], @locals, @options[:as] || template.variable_name
 
         counter_name  = template.counter_name
         locals[counter_name] = -1
@@ -246,9 +255,7 @@ module ActionView
       end
 
       def collection_without_template
-        options = @options
-
-        segments, locals, as = [], @locals, options[:as]
+        segments, locals, as = [], @locals, @options[:as]
         index, template = -1, nil
 
         @collection.each do |object|
@@ -263,18 +270,15 @@ module ActionView
         segments
       end
 
-      def render_template(template, object = @object)
-        options, locals, view = @options, @locals, @view
-        locals[options[:as] || template.variable_name] = object
+      def render_partial(object = @object)
+        @template = template = find_template
+        locals, view = @locals, @view
 
-        content = template.render(view, locals) do |*name|
-          @view._layout_for(*name, &@block)
-        end
+        object ||= locals[template.variable_name]
+        locals[@options[:as] || template.variable_name] = object
 
-        if @block || !options[:layout]
-          content
-        else
-          @view._render_layout(find_template(options[:layout]), @locals){ content }
+        template.render(view, locals) do |*name|
+          view._layout_for(*name, &@block)
         end
       end
 
