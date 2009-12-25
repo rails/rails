@@ -32,19 +32,19 @@ class RelationTest < ActiveRecord::TestCase
   def test_finding_with_order_and_take
     entrants = Entrant.order("id ASC").limit(2).to_a
 
-    assert_equal(2, entrants.size)
-    assert_equal(entrants(:first).name, entrants.first.name)
+    assert_equal 2, entrants.size
+    assert_equal entrants(:first).name, entrants.first.name
   end
 
   def test_finding_with_order_limit_and_offset
     entrants = Entrant.order("id ASC").limit(2).offset(1)
 
-    assert_equal(2, entrants.size)
-    assert_equal(entrants(:second).name, entrants.first.name)
+    assert_equal 2, entrants.size
+    assert_equal entrants(:second).name, entrants.first.name
 
     entrants = Entrant.order("id ASC").limit(2).offset(2)
-    assert_equal(1, entrants.size)
-    assert_equal(entrants(:third).name, entrants.first.name)
+    assert_equal 1, entrants.size
+    assert_equal entrants(:third).name, entrants.first.name
   end
 
   def test_finding_with_group
