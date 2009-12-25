@@ -57,56 +57,48 @@ module ActiveRecord
     end
 
     def select(selects)
-      selects.blank? ? self : create_new_relation(@relation.project(selects))
+      create_new_relation(@relation.project(selects))
     end
 
     def group(groups)
-      groups.blank? ? self : create_new_relation(@relation.group(groups))
+      create_new_relation(@relation.group(groups))
     end
 
     def order(orders)
-      orders.blank? ? self : create_new_relation(@relation.order(orders))
+      create_new_relation(@relation.order(orders))
     end
 
     def limit(limits)
-      limits.blank? ? self : create_new_relation(@relation.take(limits))
+      create_new_relation(@relation.take(limits))
     end
 
     def offset(offsets)
-      offsets.blank? ? self : create_new_relation(@relation.skip(offsets))
+      create_new_relation(@relation.skip(offsets))
     end
 
     def on(join)
-      join.blank? ? self : create_new_relation(@relation.on(join))
+      create_new_relation(@relation.on(join))
     end
 
     def joins(join, join_type = nil)
-      if join.blank?
-        self
-      else
-        join = case join
-          when String
-            @relation.join(join)
-          when Hash, Array, Symbol
-            if @klass.send(:array_of_strings?, join)
-              @relation.join(join.join(' '))
-            else
-              @relation.join(@klass.send(:build_association_joins, join))
-            end
+      join = case join
+        when String
+          @relation.join(join)
+        when Hash, Array, Symbol
+          if @klass.send(:array_of_strings?, join)
+            @relation.join(join.join(' '))
           else
-            @relation.join(join, join_type)
-        end
-        create_new_relation(join)
+            @relation.join(@klass.send(:build_association_joins, join))
+          end
+        else
+          @relation.join(join, join_type)
       end
+      create_new_relation(join)
     end
 
     def where(conditions)
-      if conditions.blank?
-        self
-      else
-        conditions = @klass.send(:merge_conditions, conditions) if [String, Hash, Array].include?(conditions.class)
-        create_new_relation(@relation.where(conditions))
-      end
+      conditions = @klass.send(:merge_conditions, conditions) if [String, Hash, Array].include?(conditions.class)
+      create_new_relation(@relation.where(conditions))
     end
 
     def respond_to?(method)
