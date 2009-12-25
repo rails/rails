@@ -92,9 +92,9 @@ module ActionDispatch
                 controller, action = to.split('#')
                 { :controller => controller, :action => action }
               when Symbol
-                { :controller => default_controller, :action => to.to_s }
+                { :action => to.to_s }.merge(default_controller ? { :controller => default_controller } : {})
               else
-                { :controller => default_controller }
+                default_controller ? { :controller => default_controller } : {}
               end
               
               if defaults[:controller].blank? && segment_keys.exclude?("controller")
