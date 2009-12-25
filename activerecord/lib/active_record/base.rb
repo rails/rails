@@ -651,7 +651,7 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      delegate :select, :group, :order, :limit, :joins, :conditions, :preload, :eager_load, :to => :arel_table
+      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :to => :arel_table
 
       # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
       # same arguments to this method as you can to <tt>find(:first)</tt>.
@@ -885,7 +885,7 @@ module ActiveRecord #:nodoc:
         relation = arel_table
 
         if conditions = construct_conditions(conditions, scope)
-          relation = relation.conditions(Arel::SqlLiteral.new(conditions))
+          relation = relation.where(Arel::SqlLiteral.new(conditions))
         end
 
         relation = if options.has_key?(:limit) || (scope && scope[:limit])
@@ -948,7 +948,7 @@ module ActiveRecord #:nodoc:
       # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
         if conditions
-          arel_table.conditions(Arel::SqlLiteral.new(construct_conditions(conditions, scope(:find)))).delete
+          arel_table.where(Arel::SqlLiteral.new(construct_conditions(conditions, scope(:find)))).delete
         else
           arel_table.delete
         end
@@ -1689,7 +1689,7 @@ module ActiveRecord #:nodoc:
           # TODO add lock to Arel
           relation = arel_table(options[:from]).
             joins(construct_join(options[:joins], scope)).
-            conditions(construct_conditions(options[:conditions], scope)).
+            where(construct_conditions(options[:conditions], scope)).
             select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
             group(construct_group(options[:group], options[:having], scope)).
             order(construct_order(options[:order], scope)).
@@ -2564,7 +2564,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          self.class.arel_table.conditions(self.class.arel_table[self.class.primary_key].eq(id)).delete
+          self.class.arel_table.where(self.class.arel_table[self.class.primary_key].eq(id)).delete
         end
 
         @destroyed = true
@@ -2851,7 +2851,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        self.class.arel_table.conditions(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
+        self.class.arel_table.where(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes

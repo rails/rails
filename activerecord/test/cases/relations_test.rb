@@ -19,8 +19,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_conditions
-    assert_equal ["David"], Author.conditions(:name => 'David').map(&:name)
-    assert_equal ['Mary'],  Author.conditions(["name = ?", 'Mary']).map(&:name)
+    assert_equal ["David"], Author.where(:name => 'David').map(&:name)
+    assert_equal ['Mary'],  Author.where(["name = ?", 'Mary']).map(&:name)
   end
 
   def test_finding_with_order
@@ -54,14 +54,14 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_hash_conditions_on_joined_table
-    firms = DependentFirm.joins(:account).conditions({:name => 'RailsCore', :accounts => { :credit_limit => 55..60 }}).to_a
+    firms = DependentFirm.joins(:account).where({:name => 'RailsCore', :accounts => { :credit_limit => 55..60 }}).to_a
     assert_equal 1, firms.size
     assert_equal companies(:rails_core), firms.first
   end
 
   def test_find_all_with_join
     developers_on_project_one = Developer.joins('LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id').
-      conditions('project_id=1').to_a
+      where('project_id=1').to_a
 
     assert_equal 3, developers_on_project_one.length
     developer_names = developers_on_project_one.map { |d| d.name }
@@ -70,7 +70,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_on_hash_conditions
-    assert_equal Topic.find(:all, :conditions => {:approved => false}), Topic.conditions({ :approved => false }).to_a
+    assert_equal Topic.find(:all, :conditions => {:approved => false}), Topic.where({ :approved => false }).to_a
   end
 
   def test_joins_with_string_array
@@ -97,7 +97,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_of_stis_with_multiple_references
     authors = Author.eager_load(:posts => { :special_comments => { :post => [ :special_comments, :very_special_comment ] } }).
-      order('comments.body, very_special_comments_posts.body').conditions('posts.id = 4').to_a
+      order('comments.body, very_special_comments_posts.body').where('posts.id = 4').to_a
 
     assert_equal [authors(:david)], authors
     assert_no_queries do
@@ -144,7 +144,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 2, post.comments.size
     assert post.comments.include?(comments(:greetings))
 
-    post = Post.conditions("posts.title = 'Welcome to the weblog'").preload(:comments).first
+    post = Post.where("posts.title = 'Welcome to the weblog'").preload(:comments).first
     assert_equal 2, post.comments.size
     assert post.comments.include?(comments(:greetings))
 

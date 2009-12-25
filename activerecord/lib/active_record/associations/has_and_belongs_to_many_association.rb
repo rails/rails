@@ -71,7 +71,7 @@ module ActiveRecord
             records.each { |record| @owner.connection.delete(interpolate_sql(sql, record)) }
           else
             relation = arel_table(@reflection.options[:join_table])
-            relation.conditions(relation[@reflection.primary_key_name].eq(@owner.id).
+            relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
               and(Arel::Predicates::In.new(relation[@reflection.association_foreign_key], records.map(&:id)))
             ).delete
           end

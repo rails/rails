@@ -100,7 +100,7 @@ module ActiveRecord
       end
     end
 
-    def conditions(conditions)
+    def where(conditions)
       if conditions.blank?
         self
       else
