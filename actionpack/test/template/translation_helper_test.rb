@@ -9,7 +9,7 @@ class TranslationHelperTest < Test::Unit::TestCase
   end
   
   def test_delegates_to_i18n_setting_the_raise_option
-    I18n.expects(:translate).with(:foo, :locale => 'en', :raise => true)
+    I18n.expects(:translate).with(:foo, :locale => 'en', :raise => true).returns("")
     translate :foo, :locale => 'en'
   end
   
@@ -26,7 +26,7 @@ class TranslationHelperTest < Test::Unit::TestCase
   
   def test_scoping_by_partial
     expects(:template).returns(stub(:path_without_format_and_extension => "people/index"))
-    I18n.expects(:translate).with("people.index.foo", :locale => 'en', :raise => true)
+    I18n.expects(:translate).with("people.index.foo", :locale => 'en', :raise => true).returns("")
     translate ".foo", :locale => 'en'
   end
 end
