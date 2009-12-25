@@ -174,6 +174,12 @@ ActiveRecord::Schema.define do
 
   create_table :events, :force => true do |t|
     t.string :title, :limit => 5
+    t.datetime :ends_on
+  end
+
+  create_table :event_authors, :force => true do |t|
+    t.integer :event_id
+    t.integer :author_id
   end
 
   create_table :funny_jokes, :force => true do |t|

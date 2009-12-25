@@ -88,6 +88,9 @@ class Author < ActiveRecord::Base
   has_many :tags,     :through => :posts # through has_many :through
   has_many :post_categories, :through => :posts, :source => :categories
 
+  has_many :event_authors
+  has_many :events, :through => :event_authors
+  
   has_one :essay, :primary_key => :name, :as => :writer
 
   belongs_to :author_address, :dependent => :destroy
