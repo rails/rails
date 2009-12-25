@@ -253,7 +253,7 @@ module ActionMailer #:nodoc:
   #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
   #   +implicit_parts_order+.
   class Base < AbstractController::Base
-    include PartContainer, Quoting, Utils
+    include PartContainer, Quoting
     extend  AdvAttrAccessor
 
     include AbstractController::Rendering
@@ -454,7 +454,7 @@ module ActionMailer #:nodoc:
                                     :default => method_name.humanize)
 
       # Build the mail object itself
-      @mail = create_mail
+      create_mail
     end
 
     # Delivers a TMail::Mail object. By default, it delivers the cached mail
@@ -582,15 +582,7 @@ module ActionMailer #:nodoc:
           m.set_content_type(real_content_type, nil, ctype_attrs)
           m.body = normalize_new_lines(@parts.first.body)
         else
-          @parts.each do |p|
-            part = (TMail::Mail === p ? p : p.to_mail(self))
-            m.parts << part
-          end
-
-          if real_content_type =~ /multipart/
-            ctype_attrs.delete "charset"
-            m.set_content_type(real_content_type, nil, ctype_attrs)
-          end
+          setup_multiple_parts(m, real_content_type, ctype_attrs)
         end
 
         @mail = m

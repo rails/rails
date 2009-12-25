@@ -4,7 +4,7 @@ module ActionMailer
   # and add them to the +parts+ list of the mailer, it is easier
   # to use the helper methods in ActionMailer::PartContainer.
   class Part
-    include PartContainer, Utils
+    include PartContainer
     extend  AdvAttrAccessor
 
     # Represents the body of the part, as a string. This should not be a
@@ -83,16 +83,8 @@ module ActionMailer
           @parts.unshift Part.new(:charset => charset, :body => @body, :content_type => 'text/plain')
           @body = nil
         end
-          
-        @parts.each do |p|
-          prt = (TMail::Mail === p ? p : p.to_mail(defaults))
-          part.parts << prt
-        end
-        
-        if real_content_type =~ /multipart/
-          ctype_attrs.delete 'charset'
-          part.set_content_type(real_content_type, nil, ctype_attrs)
-        end
+
+        setup_multiple_parts(part, real_content_type, ctype_attrs)
       end
 
       headers.each { |k,v| part[k] = v }
