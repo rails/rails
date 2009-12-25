@@ -23,6 +23,7 @@ class String
   end
 
   alias original_concat <<
+  alias safe_concat <<
   def <<(other)
     result = original_concat(other)
     unless html_safe? && also_html_safe?(other)
