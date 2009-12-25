@@ -12,6 +12,12 @@ require 'models/company'
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments
 
+  def test_scoped
+    topics = Topic.scoped
+    assert_kind_of ActiveRecord::Relation, topics
+    assert_equal 4, topics.size
+  end
+
   def test_finding_with_conditions
     assert_equal Author.find(:all, :conditions => "name = 'David'"), Author.all.conditions("name = 'David'").to_a
   end
