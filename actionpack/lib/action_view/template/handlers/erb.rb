@@ -10,7 +10,8 @@ module ActionView
       end
 
       def add_text(src, text)
-        src << "@output_buffer << ('" << escape_text(text) << "'.html_safe!);"
+        return if text.empty?
+        src << "@output_buffer.safe_concat('" << escape_text(text) << "');"
       end
 
       def add_expr_literal(src, code)

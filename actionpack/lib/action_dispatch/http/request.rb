@@ -18,7 +18,7 @@ module ActionDispatch
 
         HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
         HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
-        HTTP_NEGOTIATE HTTP_PRAGMA HTTP_REFERER HTTP_USER_AGENT ].each do |env|
+        HTTP_NEGOTIATE HTTP_PRAGMA ].each do |env|
       define_method(env.sub(/^HTTP_/n, '').downcase) do
         @env[env]
       end

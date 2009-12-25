@@ -19,19 +19,6 @@ module ApplicationTests
       assert $:.include?("#{app_path}/app/models")
     end
 
-    test "adding an unknown framework raises an error" do
-      add_to_config <<-RUBY
-        config.root = "#{app_path}"
-        config.frameworks << :action_foo
-      RUBY
-
-      require "active_support/core_ext/load_error"
-
-      assert_raises MissingSourceFile do
-        require "#{app_path}/config/environment"
-      end
-    end
-
     test "eager loading loads parent classes before children" do
       app_file "lib/zoo.rb", <<-ZOO
         class Zoo ; include ReptileHouse ; end
@@ -148,49 +135,14 @@ module ApplicationTests
       assert !Rails.application.config.middleware.include?(ActiveRecord::SessionStore)
     end
 
-    test "database middleware doesn't initialize when activerecord is not in frameworks" do
-      add_to_config <<-RUBY
-        config.root = "#{app_path}"
-        config.frameworks = []
-      RUBY
-      require "#{app_path}/config/environment"
-
-      assert_equal [], Rails.application.config.middleware
-    end
-
     test "database middleware initializes when session store is active record" do
-      add_to_config <<-RUBY
-        config.root = "#{app_path}"
-        config.action_controller.session_store = :active_record_store
-      RUBY
+      add_to_config "config.action_controller.session_store = :active_record_store"
+
       require "#{app_path}/config/environment"
 
       expects = [ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
       middleware = Rails.application.config.middleware.map { |m| m.klass }
       assert_equal expects, middleware & expects
-    end
-
-    test "ensure database middleware doesn't use action_controller on initializing" do
-      add_to_config <<-RUBY
-        config.root = "#{app_path}"
-        config.frameworks -= [:action_controller]
-        config.action_controller.session_store = :active_record_store
-      RUBY
-      require "#{app_path}/config/environment"
-
-      assert !Rails.application.config.middleware.include?(ActiveRecord::SessionStore)
-    end
-
-    # Pathview test
-    test "load view paths doesn't perform anything when action_view not in frameworks" do
-      add_to_config <<-RUBY
-        config.root = "#{app_path}"
-        config.frameworks -= [:action_view]
-      RUBY
-      require "#{app_path}/config/environment"
-
-      assert_equal nil, ActionMailer::Base.template_root
-      assert_equal [], ActionController::Base.view_paths
     end
 
     test "Rails.root should be a Pathname" do
@@ -199,6 +151,22 @@ module ApplicationTests
       RUBY
       require "#{app_path}/config/environment"
       assert_instance_of Pathname, Rails.root
+    end
+  end
+
+  class InitializerCustomFrameworkExtensionsTest < Test::Unit::TestCase
+    include ActiveSupport::Testing::Isolation
+
+    def setup
+      build_app
+      boot_rails
+    end
+
+    test "database middleware doesn't initialize when activerecord is not in frameworks" do
+      use_frameworks []
+      require "#{app_path}/config/environment"
+
+      assert !defined?(ActiveRecord)
     end
   end
 end

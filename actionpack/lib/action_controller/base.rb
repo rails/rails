@@ -14,6 +14,7 @@ module ActionController
     include ActionController::Layouts
     include ActionController::ConditionalGet
     include ActionController::RackDelegation
+    include ActionController::Logger
     include ActionController::Benchmarking
     include ActionController::Configuration
 
@@ -89,7 +90,7 @@ module ActionController
       end
 
       if options[:status]
-        options[:status] = ActionDispatch::StatusCodes[options[:status]]
+        options[:status] = Rack::Utils.status_code(options[:status])
       end
 
       options[:update] = blk if block_given?

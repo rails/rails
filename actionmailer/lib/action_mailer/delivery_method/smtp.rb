@@ -1,8 +1,9 @@
+require 'net/smtp'
+
 module ActionMailer
   module DeliveryMethod
     # A delivery method implementation which sends via smtp.
     class Smtp < Method
-
       self.settings = {
         :address              => "localhost",
         :port                 => 25,
@@ -26,6 +27,5 @@ module ActionMailer
         end
       end
     end
-
   end
 end

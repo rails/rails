@@ -28,7 +28,7 @@ module ActionDispatch
           assert_block("") { true } # to count the assertion
         elsif type.is_a?(Fixnum) && @response.response_code == type
           assert_block("") { true } # to count the assertion
-        elsif type.is_a?(Symbol) && @response.response_code == ActionDispatch::StatusCodes::SYMBOL_TO_STATUS_CODE[type]
+        elsif type.is_a?(Symbol) && @response.response_code == Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
           assert_block("") { true } # to count the assertion
         else
           assert_block(build_message(message, "Expected response to be a <?>, but was <?>", type, @response.response_code)) { false }

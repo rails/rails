@@ -1,4 +1,3 @@
-
 module ActionView #:nodoc:
   class SafeBuffer < String
     def <<(value)

@@ -411,7 +411,7 @@ module ActionDispatch
   # At its simplest, you simply extend IntegrationTest and write your tests
   # using the get/post methods:
   #
-  #   require "#{File.dirname(__FILE__)}/test_helper"
+  #   require "test_helper"
   #
   #   class ExampleTest < ActionController::IntegrationTest
   #     fixtures :people
@@ -435,7 +435,7 @@ module ActionDispatch
   # powerful testing DSL that is specific for your application. You can even
   # reference any named routes you happen to have defined!
   #
-  #   require "#{File.dirname(__FILE__)}/test_helper"
+  #   require "test_helper"
   #
   #   class AdvancedTest < ActionController::IntegrationTest
   #     fixtures :people, :rooms

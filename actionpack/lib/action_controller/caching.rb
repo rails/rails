@@ -32,11 +32,13 @@ module ActionController #:nodoc:
     extend ActiveSupport::Concern
     extend ActiveSupport::Autoload
 
-    autoload :Actions
-    autoload :Fragments
-    autoload :Pages
-    autoload :Sweeper, 'action_controller/caching/sweeping'
-    autoload :Sweeping, 'action_controller/caching/sweeping'
+    eager_autoload do
+      autoload :Actions
+      autoload :Fragments
+      autoload :Pages
+      autoload :Sweeper, 'action_controller/caching/sweeping'
+      autoload :Sweeping, 'action_controller/caching/sweeping'
+    end
 
     included do
       @@cache_store = nil

@@ -41,18 +41,3 @@ module ActionMailer
   autoload :TestHelper
   autoload :Utils
 end
-
-module Text
-  extend ActiveSupport::Autoload
-
-  autoload :Format, 'action_mailer/vendor/text_format'
-end
-
-module Net
-  extend ActiveSupport::Autoload
-
-  autoload :SMTP
-end
-
-
-require 'action_mailer/vendor/tmail'

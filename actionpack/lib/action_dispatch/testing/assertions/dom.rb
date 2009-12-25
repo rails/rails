@@ -1,3 +1,5 @@
+require 'action_controller/vendor/html-scanner'
+
 module ActionDispatch
   module Assertions
     module DomAssertions
@@ -15,7 +17,7 @@ module ActionDispatch
 
         assert_block(full_message) { expected_dom == actual_dom }
       end
-      
+
       # The negated form of +assert_dom_equivalent+.
       #
       # ==== Examples

@@ -178,7 +178,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     @app = lambda { |env|
       [200,
         {'ETag' => '"202cb962ac59075b964b07152d234b70"',
-          'Cache-Control' => 'public'}, 'Hello']
+          'Cache-Control' => 'public'}, ['Hello']]
     }
 
     get '/'
@@ -217,7 +217,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     @app = lambda { |env|
       [200,
         {'Content-Type' => 'application/xml; charset=utf-16'},
-        'Hello']
+        ['Hello']]
     }
 
     get '/'

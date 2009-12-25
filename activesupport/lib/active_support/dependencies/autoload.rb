@@ -5,13 +5,13 @@ module ActiveSupport
     @@autoloads = {}
     @@under_path = nil
     @@at_path = nil
-    @@autoload_defer = false
+    @@eager_autoload = false
 
     def autoload(const_name, path = @@at_path)
       full = [self.name, @@under_path, const_name.to_s, path].compact.join("::")
       location = path || Inflector.underscore(full)
 
-      unless @@autoload_defer
+      if @@eager_autoload
         @@autoloads[const_name] = location
       end
       super const_name, location
@@ -31,11 +31,11 @@ module ActiveSupport
       @@at_path = old_path
     end
 
-    def deferrable
-      old_defer, @@autoload_defer = @@autoload_defer, true
+    def eager_autoload
+      old_eager, @@eager_autoload = @@eager_autoload, true
       yield
     ensure
-      @@autoload_defer = old_defer
+      @@eager_autoload = old_eager
     end
 
     def self.eager_autoload!
