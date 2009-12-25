@@ -15,5 +15,10 @@ module ActionMailer
 
       formatted
     end
+
+    # Access the mailer instance.
+    def mailer #:nodoc:
+      @controller
+    end
   end
 end

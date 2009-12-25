@@ -25,7 +25,8 @@ module ActionMailer #:nodoc:
   #      bcc        ["bcc@example.com", "Order Watcher <watcher@example.com>"]
   #      from       "system@example.com"
   #      subject    "New account information"
-  #      body       :account => recipient
+  #
+  #      @account = recipient
   #    end
   #  end
   #
@@ -44,13 +45,6 @@ module ActionMailer #:nodoc:
   # When a <tt>headers 'return-path'</tt> is specified, that value will be used as the 'envelope from'
   # address. Setting this is useful when you want delivery notifications sent to a different address than
   # the one in <tt>from</tt>.
-  #
-  # The <tt>body</tt> method has special behavior. It takes a hash which generates an instance variable
-  # named after each key in the hash containing the value that that key points to.
-  #
-  # So, for example, <tt>body :account => recipient</tt> would result
-  # in an instance variable <tt>@account</tt> with the value of <tt>recipient</tt> being accessible in the
-  # view.
   #
   #
   # = Mailer views
@@ -71,7 +65,12 @@ module ActionMailer #:nodoc:
   # You can even use Action Pack helpers in these views. For example:
   #
   #   You got a new note!
-  #   <%= truncate(note.body, 25) %>
+  #   <%= truncate(@note.body, 25) %>
+  #
+  # If you need to access the subject, from or the recipients in the view, you can do that through mailer object:
+  #
+  #   You got a new note from <%= mailer.from %>!
+  #   <%= truncate(@note.body, 25) %>
   #
   #
   # = Generating URLs
@@ -254,14 +253,15 @@ module ActionMailer #:nodoc:
   #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
   #   +implicit_parts_order+.
   class Base < AbstractController::Base
-    include AdvAttrAccessor, PartContainer, Quoting, Utils
+    include PartContainer, Quoting
+    extend  AdvAttrAccessor
 
     include AbstractController::Rendering
     include AbstractController::LocalizedCache
     include AbstractController::Layouts
     include AbstractController::Helpers
 
-    helper ActionMailer::MailHelper
+    helper  ActionMailer::MailHelper
 
     include ActionController::UrlWriter
     include ActionMailer::DeprecatedBody
@@ -289,7 +289,7 @@ module ActionMailer #:nodoc:
     @@default_implicit_parts_order = [ "text/html", "text/enriched", "text/plain" ]
     cattr_accessor :default_implicit_parts_order
 
-    @@protected_instance_variables = []
+    @@protected_instance_variables = %w(@parts @mail)
     cattr_reader :protected_instance_variables
 
     # Specify the BCC addresses for the message
@@ -454,7 +454,7 @@ module ActionMailer #:nodoc:
                                     :default => method_name.humanize)
 
       # Build the mail object itself
-      @mail = create_mail
+      create_mail
     end
 
     # Delivers a TMail::Mail object. By default, it delivers the cached mail
@@ -582,15 +582,7 @@ module ActionMailer #:nodoc:
           m.set_content_type(real_content_type, nil, ctype_attrs)
           m.body = normalize_new_lines(@parts.first.body)
         else
-          @parts.each do |p|
-            part = (TMail::Mail === p ? p : p.to_mail(self))
-            m.parts << part
-          end
-
-          if real_content_type =~ /multipart/
-            ctype_attrs.delete "charset"
-            m.set_content_type(real_content_type, nil, ctype_attrs)
-          end
+          setup_multiple_parts(m, real_content_type, ctype_attrs)
         end
 
         @mail = m

@@ -40,13 +40,20 @@ class RenderMailer < ActionMailer::Base
     from       "tester@example.com"
   end
 
-  def included_old_subtemplate(recipient)
+  def mailer_accessor(recipient)
     recipients recipient
-    subject    "Including another template in the one being rendered"
+    subject    "Mailer Accessor"
     from       "tester@example.com"
 
-    @world = "Earth"
-    render :inline => "Hello, <%= render \"subtemplate\" %>"
+    render :inline => "Look, <%= mailer.subject %>!"
+  end
+
+  def no_instance_variable(recipient)
+    recipients recipient
+    subject    "No Instance Variable"
+    from       "tester@example.com"
+
+    render :inline => "Look, subject.nil? is <%= @subject.nil? %>!"
   end
 
   def initialize_defaults(method_name)
@@ -107,6 +114,16 @@ class RenderHelperTest < Test::Unit::TestCase
   def test_included_subtemplate
     mail = RenderMailer.deliver_included_subtemplate(@recipient)
     assert_equal "Hey Ho, let's go!", mail.body.strip
+  end
+
+  def test_mailer_accessor
+    mail = RenderMailer.deliver_mailer_accessor(@recipient)
+    assert_equal "Look, Mailer Accessor!", mail.body.strip
+  end
+
+  def test_no_instance_variable
+    mail = RenderMailer.deliver_no_instance_variable(@recipient)
+    assert_equal "Look, subject.nil? is true!", mail.body.strip
   end
 end
 

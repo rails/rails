@@ -39,8 +39,24 @@ module ActionMailer
     end
 
     private
-    
-      def parse_content_type(defaults=nil)
+
+      def normalize_new_lines(text) #:nodoc:
+        text.to_s.gsub(/\r\n?/, "\n")
+      end
+
+      def setup_multiple_parts(mailer, real_content_type, ctype_attrs) #:nodoc:
+        @parts.each do |p|
+          part = (TMail::Mail === p ? p : p.to_mail(self))
+          mailer.parts << part
+        end
+
+        if real_content_type =~ /multipart/
+          ctype_attrs.delete "charset"
+          mailer.set_content_type(real_content_type, nil, ctype_attrs)
+        end
+      end
+
+      def parse_content_type(defaults=nil) #:nodoc:
         if content_type.blank? 
           return defaults                                                ? 
             [ defaults.content_type, { 'charset' => defaults.charset } ] : 
