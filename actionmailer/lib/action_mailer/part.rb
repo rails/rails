@@ -4,7 +4,8 @@ module ActionMailer
   # and add them to the +parts+ list of the mailer, it is easier
   # to use the helper methods in ActionMailer::PartContainer.
   class Part
-    include AdvAttrAccessor, PartContainer, Utils
+    include PartContainer, Utils
+    extend  AdvAttrAccessor
 
     # Represents the body of the part, as a string. This should not be a
     # Hash (like ActionMailer::Base), but if you want a template to be rendered
