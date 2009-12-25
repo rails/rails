@@ -274,7 +274,7 @@ module ActionView
         if @block || !options[:layout]
           content
         else
-          find_template(options[:layout]).render(@view, @locals) { content }
+          @view._render_layout(find_template(options[:layout]), @locals){ content }
         end
       end
 

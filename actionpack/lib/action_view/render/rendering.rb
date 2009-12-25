@@ -73,7 +73,6 @@ module ActionView
     # would be <html>Hello David</html>.
     def _layout_for(name = nil, &block)
       return @_content_for[name || :layout] if !block_given? || name
-
       capture(&block)
     end
 
@@ -88,10 +87,7 @@ module ActionView
     end
 
     def _render_text(content, layout, locals)
-      content = layout.render(self, locals) do |*name|
-        _layout_for(*name) { content }
-      end if layout
-
+      content = _render_layout(layout, locals){ content } if layout
       content
     end
 
@@ -121,10 +117,14 @@ module ActionView
       if layout
         @_layout = layout.identifier
         logger.info("Rendering template within #{layout.inspect}") if logger
-        content = layout.render(self, locals) { |*name| _layout_for(*name) }
+        content = _render_layout(layout, locals)
       end
 
       content
+    end
+
+    def _render_layout(layout, locals, &block)
+      layout.render(self, locals){ |*name| _layout_for(*name, &block) }
     end
   end
 end
