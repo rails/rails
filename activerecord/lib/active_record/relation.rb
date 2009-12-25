@@ -4,20 +4,20 @@ module ActiveRecord
     delegate :length, :collect, :find, :map, :each, :to => :to_a
     attr_reader :relation, :klass
 
-    def initialize(klass, relation)
+    def initialize(klass, relation, readonly = false, preload = [], eager_load = [])
       @klass, @relation = klass, relation
-      @readonly = false
-      @associations_to_preload = []
-      @eager_load_associations = []
+      @readonly = readonly
+      @associations_to_preload = preload
+      @eager_load_associations = eager_load
     end
 
-    def preload(association)
-      @associations_to_preload += association
+    def preload(associations)
+      @associations_to_preload << associations
       self
     end
 
-    def eager_load(association)
-      @eager_load_associations += association
+    def eager_load(associations)
+      @eager_load_associations += Array.wrap(associations)
       self
     end
 
@@ -45,7 +45,7 @@ module ActiveRecord
         @klass.find_by_sql(@relation.to_sql)
       end
 
-      @klass.send(:preload_associations, records, @associations_to_preload) unless @associations_to_preload.empty?
+      @associations_to_preload.each {|associations| @klass.send(:preload_associations, records, associations) }
       records.each { |record| record.readonly! } if @readonly
 
       records
@@ -57,27 +57,27 @@ module ActiveRecord
     end
 
     def select(selects)
-      selects.blank? ? self : Relation.new(@klass, @relation.project(selects))
+      selects.blank? ? self : create_new_relation(@relation.project(selects))
     end
 
     def group(groups)
-      groups.blank? ? self : Relation.new(@klass, @relation.group(groups))
+      groups.blank? ? self : create_new_relation(@relation.group(groups))
     end
 
     def order(orders)
-      orders.blank? ? self : Relation.new(@klass, @relation.order(orders))
+      orders.blank? ? self : create_new_relation(@relation.order(orders))
     end
 
     def limit(limits)
-      limits.blank? ? self : Relation.new(@klass, @relation.take(limits))
+      limits.blank? ? self : create_new_relation(@relation.take(limits))
     end
 
     def offset(offsets)
-      offsets.blank? ? self : Relation.new(@klass, @relation.skip(offsets))
+      offsets.blank? ? self : create_new_relation(@relation.skip(offsets))
     end
 
     def on(join)
-      join.blank? ? self : Relation.new(@klass, @relation.on(join))
+      join.blank? ? self : create_new_relation(@relation.on(join))
     end
 
     def joins(join, join_type = nil)
@@ -96,7 +96,7 @@ module ActiveRecord
           else
             @relation.join(join, join_type)
         end
-        Relation.new(@klass, join)
+        create_new_relation(join)
       end
     end
 
@@ -105,7 +105,7 @@ module ActiveRecord
         self
       else
         conditions = @klass.send(:merge_conditions, conditions) if [String, Hash, Array].include?(conditions.class)
-        Relation.new(@klass, @relation.where(conditions))
+        create_new_relation(@relation.where(conditions))
       end
     end
 
@@ -114,14 +114,20 @@ module ActiveRecord
     end
 
     private
-      def method_missing(method, *args, &block)
-        if @relation.respond_to?(method)
-          @relation.send(method, *args, &block)
-        elsif Array.method_defined?(method)
-          to_a.send(method, *args, &block)
-        else
-          super
-        end
+
+    def method_missing(method, *args, &block)
+      if @relation.respond_to?(method)
+        @relation.send(method, *args, &block)
+      elsif Array.method_defined?(method)
+        to_a.send(method, *args, &block)
+      else
+        super
       end
+    end
+
+    def create_new_relation(relation)
+      Relation.new(@klass, relation, @readonly, @associations_to_preload, @eager_load_associations)
+    end
+
   end
 end

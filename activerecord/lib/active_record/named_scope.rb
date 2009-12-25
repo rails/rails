@@ -23,7 +23,26 @@ module ActiveRecord
       #
       # You can define a scope that applies to all finders using ActiveRecord::Base.default_scope.
       def scoped(options = {}, &block)
-        options.present? ? Scope.new(self, options, &block) : arel_table
+        if options.present?
+          Scope.new(self, options, &block)
+        else
+          if !scoped?(:find)
+            relation = arel_table
+          else
+            relation = construct_finder_arel
+            include_associations = scope(:find, :include)
+
+            if include_associations.present?
+              if references_eager_loaded_tables?(options)
+                relation.eager_load(include_associations)
+              else
+                relation.preload(include_associations)
+              end
+            end
+          end
+
+          relation
+        end
       end
 
       def scopes

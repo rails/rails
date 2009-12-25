@@ -13,6 +13,7 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/object/metaclass'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveRecord #:nodoc:
   # Generic Active Record exception class.
@@ -649,6 +650,8 @@ module ActiveRecord #:nodoc:
           else             find_from_ids(args, options)
         end
       end
+
+      delegate :select, :group, :order, :limit, :joins, :conditions, :preload, :eager_load, :to => :arel_table
 
       # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
       # same arguments to this method as you can to <tt>find(:first)</tt>.
@@ -1514,13 +1517,8 @@ module ActiveRecord #:nodoc:
         "(#{segments.join(') AND (')})" unless segments.empty?
       end
 
-
       def arel_table(table = nil)
-        table = table_name if table.blank?
-        if @arel_table.nil? || @arel_table.name != table
-          @arel_table = Relation.new(self, Arel::Table.new(table))
-        end
-        @arel_table
+        Relation.new(self, Arel::Table.new(table || table_name))
       end
 
       private
