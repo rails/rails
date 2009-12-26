@@ -9,6 +9,7 @@ module ActiveRecord
       @readonly = readonly
       @associations_to_preload = preload
       @eager_load_associations = eager_load
+      @loaded = false
     end
 
     def preload(*associations)
@@ -21,38 +22,6 @@ module ActiveRecord
 
     def readonly
       create_new_relation(@relation, true)
-    end
-
-    def to_a
-      records = if @eager_load_associations.any?
-        catch :invalid_query do
-          return @klass.send(:find_with_associations, {
-            :select => @relation.send(:select_clauses).join(', '),
-            :joins => @relation.joins(relation),
-            :group => @relation.send(:group_clauses).join(', '),
-            :order => @relation.send(:order_clauses).join(', '),
-            :conditions => @relation.send(:where_clauses).join("\n\tAND "),
-            :limit => @relation.taken,
-            :offset => @relation.skipped
-            },
-            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
-        end
-        []
-      else
-        @klass.find_by_sql(@relation.to_sql)
-      end
-
-      @associations_to_preload.each {|associations| @klass.send(:preload_associations, records, associations) }
-      records.each { |record| record.readonly! } if @readonly
-
-      records
-    end
-
-    alias all to_a
-
-    def first
-      @relation = @relation.take(1)
-      to_a.first
     end
 
     def select(selects)
@@ -107,6 +76,48 @@ module ActiveRecord
 
     def respond_to?(method)
       @relation.respond_to?(method) || Array.method_defined?(method) || super
+    end
+
+    def to_a
+      return @records if loaded?
+
+      @records = if @eager_load_associations.any?
+        catch :invalid_query do
+          return @klass.send(:find_with_associations, {
+            :select => @relation.send(:select_clauses).join(', '),
+            :joins => @relation.joins(relation),
+            :group => @relation.send(:group_clauses).join(', '),
+            :order => @relation.send(:order_clauses).join(', '),
+            :conditions => @relation.send(:where_clauses).join("\n\tAND "),
+            :limit => @relation.taken,
+            :offset => @relation.skipped
+            },
+            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
+        end
+        []
+      else
+        @klass.find_by_sql(@relation.to_sql)
+      end
+
+      @associations_to_preload.each {|associations| @klass.send(:preload_associations, @records, associations) }
+      @records.each { |record| record.readonly! } if @readonly
+
+      @loaded = true
+      @records
+    end
+
+    alias all to_a
+
+    def first
+      if loaded?
+        @records.first
+      else
+        @first ||= limit(1).to_a[0]
+      end
+    end
+
+    def loaded?
+      @loaded
     end
 
     private

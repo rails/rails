@@ -24,6 +24,37 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal 4, topics.size }
   end
 
+  def test_loaded_all
+    topics = Topic.scoped
+
+    assert_queries(1) do
+      2.times { assert_equal 4, topics.all.size }
+    end
+
+    assert topics.loaded?
+  end
+
+  def test_scoped_first
+    topics = Topic.scoped
+
+    assert_queries(1) do
+      2.times { assert_equal "The First Topic", topics.first.title }
+    end
+
+    assert ! topics.loaded?
+  end
+
+  def test_loaded_first
+    topics = Topic.scoped
+
+    assert_queries(1) do
+      topics.all # force load
+      2.times { assert_equal "The First Topic", topics.first.title }
+    end
+
+    assert topics.loaded?
+  end
+
   def test_finding_with_conditions
     assert_equal ["David"], Author.where(:name => 'David').map(&:name)
     assert_equal ['Mary'],  Author.where(["name = ?", 'Mary']).map(&:name)
@@ -141,7 +172,7 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-    def test_default_scope_with_conditions_string
+  def test_default_scope_with_conditions_string
     assert_equal Developer.find_all_by_name('David').map(&:id).sort, DeveloperCalledDavid.scoped.to_a.map(&:id).sort
     assert_equal nil, DeveloperCalledDavid.create!.name
   end
