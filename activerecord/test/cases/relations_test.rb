@@ -188,13 +188,18 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_with_conditions_string
-    assert_equal Developer.find_all_by_name('David').map(&:id).sort, DeveloperCalledDavid.scoped.to_a.map(&:id).sort
+    assert_equal Developer.find_all_by_name('David').map(&:id).sort, DeveloperCalledDavid.scoped.map(&:id).sort
     assert_equal nil, DeveloperCalledDavid.create!.name
   end
 
   def test_default_scope_with_conditions_hash
     assert_equal Developer.find_all_by_name('Jamis').map(&:id).sort, DeveloperCalledJamis.scoped.map(&:id).sort
     assert_equal 'Jamis', DeveloperCalledJamis.create!.name
+  end
+
+  def test_default_scoping_finder_methods
+    developers = DeveloperCalledDavid.order('id').map(&:id).sort
+    assert_equal Developer.find_all_by_name('David').map(&:id).sort, developers
   end
 
   def test_loading_with_one_association
