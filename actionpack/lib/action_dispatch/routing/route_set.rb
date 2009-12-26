@@ -21,7 +21,7 @@ module ActionDispatch
           prepare_params!(params)
 
           unless controller = controller(params)
-            return [417, {}, []]
+            return [404, {'X-Cascade' => 'pass'}, []]
           end
 
           controller.action(params[:action]).call(env)

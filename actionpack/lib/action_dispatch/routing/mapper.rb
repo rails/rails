@@ -19,9 +19,9 @@ module ActionDispatch
 
           @constraints.each { |constraint|
             if constraint.respond_to?(:matches?) && !constraint.matches?(req)
-              return [ 417, {}, [] ]
+              return [ 404, {'X-Cascade' => 'pass'}, [] ]
             elsif constraint.respond_to?(:call) && !constraint.call(req)
-              return [ 417, {}, [] ]
+              return [ 404, {'X-Cascade' => 'pass'}, [] ]
             end
           }
 
@@ -34,11 +34,11 @@ module ActionDispatch
           @set, @scope    = set, scope
           @path, @options = extract_path_and_options(args)
         end
-        
+
         def to_route
           [ app, conditions, requirements, defaults, @options[:as] ]
         end
-        
+
         private
           def extract_path_and_options(args)
             options = args.extract_options!
@@ -49,18 +49,18 @@ module ActionDispatch
             else
               path = args.first
             end
-          
+
             [ normalize_path(path), options ]
           end
 
           def normalize_path(path)
             path = nil if path == ""
             path = "#{@scope[:path]}#{path}" if @scope[:path]
-            path = Rack::Mount::Utils.normalize_path(path) if path   
+            path = Rack::Mount::Utils.normalize_path(path) if path
 
             raise ArgumentError, "path is required" unless path
-          
-            path         
+
+            path
           end
 
 
@@ -74,7 +74,7 @@ module ActionDispatch
           def conditions
             { :path_info => @path }.merge(constraints).merge(request_method_condition)
           end
-          
+
           def requirements
             @requirements ||= returning(@options[:constraints] || {}) do |requirements|
               requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
@@ -96,30 +96,30 @@ module ActionDispatch
               else
                 default_controller ? { :controller => default_controller } : {}
               end
-              
+
               if defaults[:controller].blank? && segment_keys.exclude?("controller")
                 raise ArgumentError, "missing :controller"
               end
-              
+
               if defaults[:action].blank? && segment_keys.exclude?("action")
                 raise ArgumentError, "missing :action"
               end
-              
+
               defaults
             end
           end
 
-          
+
           def blocks
             if @options[:constraints].present? && !@options[:constraints].is_a?(Hash)
               block = @options[:constraints]
             else
               block = nil
             end
-            
-            ((@scope[:blocks] || []) + [ block ]).compact              
+
+            ((@scope[:blocks] || []) + [ block ]).compact
           end
-        
+
           def constraints
             @constraints ||= requirements.reject { |k, v| segment_keys.include?(k.to_s) || k == :controller }
           end
@@ -132,7 +132,7 @@ module ActionDispatch
               { }
             end
           end
-          
+
           def segment_keys
             @segment_keys ||= Rack::Mount::RegexpWithNamedGroups.new(
                 Rack::Mount::Strexp.compile(@path, requirements, SEPARATORS)
@@ -142,7 +142,7 @@ module ActionDispatch
           def to
             @options[:to]
           end
-          
+
           def default_controller
             @scope[:controller].to_s if @scope[:controller]
           end
