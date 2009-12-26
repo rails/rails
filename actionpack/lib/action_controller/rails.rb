@@ -14,10 +14,6 @@ module ActionController
     end
 
     # Routing must be initialized after plugins to allow the former to extend the routes
-    # ---
-    # If Action Controller is not one of the loaded frameworks (Configuration#frameworks)
-    # this does nothing. Otherwise, it loads the routing definitions and sets up
-    # loading module used to lazily load controllers (Configuration#controller_paths).
     initializer "action_controller.initialize_routing" do |app|
       app.route_configuration_files << app.config.routes_configuration_file
       app.route_configuration_files << app.config.builtin_routes_configuration_file
@@ -88,13 +84,8 @@ module ActionController
     initializer "action_controller.notifications" do |app|
       require 'active_support/notifications'
 
-      ActiveSupport::Notifications.subscribe(/(read|write|cache|expire|exist)_(fragment|page)\??/) do |*args|
-        event = ActiveSupport::Notifications::Event.new(*args)
-
-        if logger = ActionController::Base.logger
-          human_name = event.name.to_s.humanize
-          logger.info("#{human_name} (%.1fms)" % event.duration)
-        end
+      ActiveSupport::Notifications.subscribe do |*args|
+        ActionController::Base.log_event(*args) if ActionController::Base.logger
       end
     end
 

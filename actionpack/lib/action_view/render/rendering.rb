@@ -107,12 +107,6 @@ module ActionView
     end
 
     def _render_template(template, layout = nil, options = {}, partial = nil)
-      logger && logger.info do
-        msg = "Rendering #{template.inspect}"
-        msg << " (#{options[:status]})" if options[:status]
-        msg
-      end
-
       locals = options[:locals] || {}
 
       content = ActiveSupport::Notifications.instrument(:render_template,
@@ -124,8 +118,7 @@ module ActionView
 
       if layout
         @_layout = layout.identifier
-        logger.info("Rendering template within #{layout.inspect}") if logger
-        content = _render_layout(layout, locals)
+        content  = _render_layout(layout, locals)
       end
 
       content
