@@ -136,6 +136,20 @@ module ActiveRecord
         @relation.send(method, *args, &block)
       elsif Array.method_defined?(method)
         to_a.send(method, *args, &block)
+      elsif match = DynamicFinderMatch.match(method)
+        attributes = match.attribute_names
+        super unless @klass.send(:all_attributes_exists?, attributes)
+
+        if match.finder?
+          conditions = attributes.inject({}) {|h, a| h[a] = args[attributes.index(a)]; h}
+          result = where(conditions).send(match.finder)
+
+          if match.bang? && result.blank?
+            raise RecordNotFound, "Couldn't find #{@klass.name} with #{conditions.to_a.collect {|p| p.join(' = ')}.join(', ')}"
+          else
+            result
+          end
+        end
       else
         super
       end

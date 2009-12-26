@@ -1,4 +1,6 @@
 require "cases/helper"
+require 'models/tag'
+require 'models/tagging'
 require 'models/post'
 require 'models/topic'
 require 'models/comment'
@@ -10,7 +12,8 @@ require 'models/developer'
 require 'models/company'
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments
+  fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
+    :taggings
 
   def test_scoped
     topics = Topic.scoped
@@ -221,6 +224,35 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.eager_load(:last_comment).order('comments.id DESC')
     post = posts.find { |p| p.id == 1 }
     assert_equal Post.find(1).last_comment, post.last_comment
+  end
+
+  def test_dynamic_find_by_attributes
+    david = authors(:david)
+    author = Author.preload(:taggings).find_by_id(david.id)
+    expected_taggings = taggings(:welcome_general, :thinking_general)
+
+    assert_no_queries do
+      assert_equal expected_taggings, author.taggings.uniq.sort_by { |t| t.id }
+    end
+
+    authors = Author.scoped
+    assert_equal david, authors.find_by_id_and_name(david.id, david.name)
+    assert_equal david, authors.find_by_id_and_name!(david.id, david.name)
+  end
+
+  def test_dynamic_find_by_attributes_bang
+    author = Author.scoped.find_by_id!(authors(:david).id)
+    assert_equal "David", author.name
+
+    assert_raises(ActiveRecord::RecordNotFound) { Author.scoped.find_by_id_and_name!('invalid', 'wt') }
+  end
+
+  def test_dynamic_find_all_by_attributes
+    authors = Author.scoped
+
+    davids = authors.find_all_by_name('David')
+    assert_kind_of Array, davids
+    assert_equal [authors(:david)], davids
   end
 end
 
