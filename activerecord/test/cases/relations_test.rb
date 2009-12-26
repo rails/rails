@@ -116,22 +116,28 @@ class RelationTest < ActiveRecord::TestCase
   def test_find_with_included_associations
     assert_queries(2) do
       posts = Post.preload(:comments)
-      posts.first.comments.first
+      assert posts.first.comments.first
     end
 
     assert_queries(2) do
       posts = Post.preload(:comments).to_a
-      posts.first.comments.first
+      assert posts.first.comments.first
     end
 
     assert_queries(2) do
       posts = Post.preload(:author)
-      posts.first.author
+      assert posts.first.author
     end
 
     assert_queries(2) do
       posts = Post.preload(:author).to_a
-      posts.first.author
+      assert posts.first.author
+    end
+
+    assert_queries(3) do
+      posts = Post.preload(:author, :comments).to_a
+      assert posts.first.author
+      assert posts.first.comments.first
     end
   end
 

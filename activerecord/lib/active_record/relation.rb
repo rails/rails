@@ -11,11 +11,11 @@ module ActiveRecord
       @eager_load_associations = eager_load
     end
 
-    def preload(associations)
+    def preload(*associations)
       create_new_relation(@relation, @readonly, @associations_to_preload + Array.wrap(associations))
     end
 
-    def eager_load(associations)
+    def eager_load(*associations)
       create_new_relation(@relation, @readonly, @associations_to_preload, @eager_load_associations + Array.wrap(associations))
     end
 
