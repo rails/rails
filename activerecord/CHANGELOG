@@ -1,5 +1,30 @@
 *Edge*
 
+* Rename Model.conditions and relation.conditions to .where. [Pratik Naik]
+
+  Before :
+    User.conditions(:name => 'lifo')
+    User.select('id').conditions(["age > ?", 21])
+
+  Now :
+    User.where(:name => 'lifo')
+    User.select('id').where(["age > ?", 21])
+
+* Add Model.select/group/order/limit/joins/conditions/preload/eager_load class methods returning a lazy relation. [Pratik Naik]
+
+  Examples :
+
+    posts = Post.select('id).order('name') # Returns a lazy relation
+    posts.each {|p| puts p.id } # Fires "select id from posts order by name"
+
+* Model.scoped now returns a relation if invoked without any arguments. [Pratik Naik]
+
+  Example :
+
+    posts = Post.scoped
+    posts.size # Fires "select count(*) from  posts" and returns the count
+    posts.each {|p| puts p.name } # Fires "select * from posts" and loads post objects
+
 * Association inverses for belongs_to, has_one, and has_many. Optimization to reduce database queries.  #3533 [Murray Steele]
 
     # post.comments sets each comment's post without needing to :include
