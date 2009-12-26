@@ -51,6 +51,8 @@ module ActiveRecord
       records
     end
 
+    alias all to_a
+
     def first
       @relation = @relation.take(1)
       to_a.first

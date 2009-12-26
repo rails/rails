@@ -18,6 +18,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 4, topics.size
   end
 
+  def test_scoped_all
+    topics = Topic.scoped.all
+    assert_kind_of Array, topics
+    assert_no_queries { assert_equal 4, topics.size }
+  end
+
   def test_finding_with_conditions
     assert_equal ["David"], Author.where(:name => 'David').map(&:name)
     assert_equal ['Mary'],  Author.where(["name = ?", 'Mary']).map(&:name)
