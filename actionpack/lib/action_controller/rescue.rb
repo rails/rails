@@ -15,7 +15,7 @@ module ActionController #:nodoc:
   # behavior is achieved by overriding the <tt>rescue_action_in_public</tt>
   # and <tt>rescue_action_locally</tt> methods.
   module Rescue
-    LOCALHOST = '127.0.0.1'.freeze
+    LOCALHOST = ['127.0.0.1', '::1'].freeze
 
     DEFAULT_RESCUE_RESPONSE = :internal_server_error
     DEFAULT_RESCUE_RESPONSES = {
@@ -122,7 +122,7 @@ module ActionController #:nodoc:
       # method if you wish to redefine the meaning of a local request to
       # include remote IP addresses or other criteria.
       def local_request? #:doc:
-        request.remote_addr == LOCALHOST && request.remote_ip == LOCALHOST
+        LOCALHOST.any?{ |local_ip| request.remote_addr == local_ip && request.remote_ip == local_ip }
       end
 
       # Render detailed diagnostics for unhandled exceptions rescued from
