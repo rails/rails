@@ -48,7 +48,7 @@ module Arel
   protected
 
     def build_query(*parts)
-      parts.compact.join("\n")
+      parts.compact.join(" ")
     end
 
     def select_clauses
