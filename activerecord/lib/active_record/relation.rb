@@ -120,6 +120,12 @@ module ActiveRecord
       @loaded
     end
 
+    def reload
+      @loaded = false
+      @records = @first = nil
+      self
+    end
+
     private
 
     def method_missing(method, *args, &block)

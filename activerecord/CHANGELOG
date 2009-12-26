@@ -1,5 +1,13 @@
 *Edge*
 
+* Add relation.reload to force reloading the records. [Pratik Naik]
+
+  topics = Topic.scoped
+  topics.to_a  # force load
+  topics.first # returns a cached record
+  topics.reload
+  topics.first # Fetches a new record from the database
+
 * Rename Model.conditions and relation.conditions to .where. [Pratik Naik]
 
   Before :

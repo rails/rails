@@ -55,6 +55,21 @@ class RelationTest < ActiveRecord::TestCase
     assert topics.loaded?
   end
 
+  def test_reload
+    topics = Topic.scoped
+
+    assert_queries(1) do
+      2.times { topics.to_a }
+    end
+
+    assert topics.loaded?
+
+    topics.reload
+    assert ! topics.loaded?
+
+    assert_queries(1) { topics.to_a }
+  end
+
   def test_finding_with_conditions
     assert_equal ["David"], Author.where(:name => 'David').map(&:name)
     assert_equal ['Mary'],  Author.where(["name = ?", 'Mary']).map(&:name)
