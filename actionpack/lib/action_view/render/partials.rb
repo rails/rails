@@ -191,23 +191,30 @@ module ActionView
       def setup(options, block)
         partial = options[:partial]
 
-        @options    = options
-        @locals     = options[:locals] || {}
-        @block      = block
+        @options = options
+        @locals  = options[:locals] || {}
+        @block   = block
 
         if String === partial
-          @object = options[:object]
-          @path   = partial
+          @object     = options[:object]
+          @path       = partial
+          @collection = collection
         else
           @object = partial
-          @path   = partial_path(partial)
+
+          if @collection = collection
+            paths = @collection_paths = @collection.map { |o| partial_path(o) }
+            @path = paths.uniq.size == 1 ? paths.first : nil
+          else
+            @path = partial_path
+          end
         end
       end
 
       def render
         options = @options
 
-        if @collection = collection
+        if @collection
           ActiveSupport::Notifications.instrument(:render_collection, :path => @path,
                                                   :count => @collection.size) do
             render_collection
@@ -226,28 +233,17 @@ module ActionView
 
       def render_collection
         @template = template = find_template
-
         return nil if @collection.blank?
 
         if @options.key?(:spacer_template)
           spacer = find_template(@options[:spacer_template]).render(@view, @locals)
         end
 
-        result = if template
-          collection_with_template(template)
-        else
-          paths = @collection.map { |o| partial_path(o) }
-
-          if paths.uniq.size == 1
-            collection_with_template(find_template(paths.first))
-          else
-            collection_without_template(paths)
-          end
-        end
+        result = template ? collection_with_template : collection_without_template
         result.join(spacer).html_safe!
       end
 
-      def collection_with_template(template)
+      def collection_with_template(template = @template)
         segments, locals, as = [], @locals, @options[:as] || template.variable_name
 
         counter_name  = template.counter_name
@@ -264,14 +260,14 @@ module ActionView
         segments
       end
 
-      def collection_without_template(collection_paths)
+      def collection_without_template(collection_paths = @collection_paths)
         segments, locals, as = [], @locals, @options[:as]
         index, template = -1, nil
 
         @collection.each_with_index do |object, i|
           template = find_template(collection_paths[i])
           locals[template.counter_name] = (index += 1)
-          locals[template.variable_name] = object
+          locals[as || template.variable_name] = object
 
           segments << template.render(@view, locals)
         end
@@ -319,9 +315,9 @@ module ActionView
 
       def partial_path(object = @object)
         @partial_names[object.class] ||= begin
-          return nil unless object.respond_to?(:to_model)
+          object = object.to_model if object.respond_to?(:to_model)
 
-          object.to_model.class.model_name.partial_path.dup.tap do |partial|
+          object.class.model_name.partial_path.dup.tap do |partial|
             path = @view.controller_path
             partial.insert(0, "#{File.dirname(path)}/") if path.include?(?/)
           end
