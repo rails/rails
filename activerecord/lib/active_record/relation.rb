@@ -98,8 +98,13 @@ module ActiveRecord
       create_new_relation(join)
     end
 
-    def where(conditions)
-      conditions = @klass.send(:merge_conditions, conditions) if [String, Hash, Array].include?(conditions.class)
+    def where(*args)
+      if [String, Hash, Array].include?(args.first.class)
+        conditions = @klass.send(:merge_conditions, args.size > 1 ? Array.wrap(args) : args.first)
+      else
+        conditions = args.first
+      end
+
       create_new_relation(@relation.where(conditions))
     end
 

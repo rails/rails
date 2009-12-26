@@ -27,6 +27,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_finding_with_conditions
     assert_equal ["David"], Author.where(:name => 'David').map(&:name)
     assert_equal ['Mary'],  Author.where(["name = ?", 'Mary']).map(&:name)
+    assert_equal ['Mary'],  Author.where("name = ?", 'Mary').map(&:name)
   end
 
   def test_finding_with_order
