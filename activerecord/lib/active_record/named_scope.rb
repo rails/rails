@@ -28,6 +28,7 @@ module ActiveRecord
         else
           if !scoped?(:find)
             relation = arel_table
+            relation = relation.where(type_condition) if finder_needs_type_condition?
           else
             relation = construct_finder_arel
             include_associations = scope(:find, :include)

@@ -49,19 +49,22 @@ module ActiveRecord
     end
 
     def joins(join, join_type = nil)
-      join = case join
-        when String
-          @relation.join(join)
-        when Hash, Array, Symbol
-          if @klass.send(:array_of_strings?, join)
-            @relation.join(join.join(' '))
-          else
-            @relation.join(@klass.send(:build_association_joins, join))
-          end
+      return self if join.blank?
+
+      join_relation = case join
+      when String
+        @relation.join(join)
+      when Hash, Array, Symbol
+        if @klass.send(:array_of_strings?, join)
+          @relation.join(join.join(' '))
         else
-          @relation.join(join, join_type)
+          @relation.join(@klass.send(:build_association_joins, join))
+        end
+      else
+        @relation.join(join, join_type)
       end
-      create_new_relation(join)
+
+      create_new_relation(join_relation)
     end
 
     def where(*args)

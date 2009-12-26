@@ -291,7 +291,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_hash_conditions_on_joined_table
-    firms = Firm.all :joins => :account, :conditions => {:accounts => { :credit_limit => 50 }}
+    firms = Firm.joins(:account).where(:accounts => { :credit_limit => 50 })
     assert_equal 1, firms.size
     assert_equal companies(:first_firm), firms.first
   end
