@@ -12,18 +12,15 @@ module ActiveRecord
     end
 
     def preload(associations)
-      @associations_to_preload << associations
-      self
+      create_new_relation(@relation, @readonly, @associations_to_preload + Array.wrap(associations))
     end
 
     def eager_load(associations)
-      @eager_load_associations += Array.wrap(associations)
-      self
+      create_new_relation(@relation, @readonly, @associations_to_preload, @eager_load_associations + Array.wrap(associations))
     end
 
     def readonly
-      @readonly = true
-      self
+      create_new_relation(@relation, true)
     end
 
     def to_a
@@ -124,8 +121,8 @@ module ActiveRecord
       end
     end
 
-    def create_new_relation(relation)
-      Relation.new(@klass, relation, @readonly, @associations_to_preload, @eager_load_associations)
+    def create_new_relation(relation, readonly = @readonly, preload = @associations_to_preload, eager_load = @eager_load_associations)
+      Relation.new(@klass, relation, readonly, preload, eager_load)
     end
 
   end
