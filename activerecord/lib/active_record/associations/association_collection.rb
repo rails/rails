@@ -20,7 +20,22 @@ module ActiveRecord
         super
         construct_sql
       end
-      
+
+      delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :to => :scoped
+
+      def select(select = nil, &block)
+        if block_given?
+          load_target
+          @target.select(&block)
+        else
+          scoped.select(select)
+        end
+      end
+
+      def scoped
+        with_scope(construct_scope) { @reflection.klass.scoped }
+      end
+
       def find(*args)
         options = args.extract_options!
 
@@ -383,7 +398,7 @@ module ActiveRecord
           loaded if target
           target
         end
-        
+
         def method_missing(method, *args)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             if block_given?

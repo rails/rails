@@ -1,5 +1,15 @@
 *Edge*
 
+* Add new finder methods to association collection. [Pratik Naik]
+
+  class User < ActiveRecord::Base
+    has_many :items
+  end
+
+  user = User.first
+  user.items.where(:items => {:colour => 'red'})
+  user.items.select('items.id')
+
 * Add relation.reload to force reloading the records. [Pratik Naik]
 
   topics = Topic.scoped
