@@ -233,7 +233,17 @@ module ActionView
           spacer = find_template(@options[:spacer_template]).render(@view, @locals)
         end
 
-        result = template ? collection_with_template(template) : collection_without_template
+        result = if template
+          collection_with_template(template)
+        else
+          paths = @collection.map { |o| partial_path(o) }
+
+          if paths.uniq.size == 1
+            collection_with_template(find_template(paths.first))
+          else
+            collection_without_template(paths)
+          end
+        end
         result.join(spacer).html_safe!
       end
 
@@ -254,12 +264,12 @@ module ActionView
         segments
       end
 
-      def collection_without_template
+      def collection_without_template(collection_paths)
         segments, locals, as = [], @locals, @options[:as]
         index, template = -1, nil
 
-        @collection.each do |object|
-          template = find_template(partial_path(object))
+        @collection.each_with_index do |object, i|
+          template = find_template(collection_paths[i])
           locals[template.counter_name] = (index += 1)
           locals[template.variable_name] = object
 
