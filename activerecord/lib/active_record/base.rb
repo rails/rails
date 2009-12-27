@@ -644,10 +644,14 @@ module ActiveRecord #:nodoc:
         set_readonly_option!(options)
 
         case args.first
-          when :first then find_initial(options)
-          when :last  then find_last(options)
-          when :all   then find_every(options)
-          else             find_from_ids(args, options)
+        when :first
+          find_initial(options)
+        when :last
+          find_last(options)
+        when :all
+          find_every(options)
+        else
+          construct_finder_arel_with_includes(options).find(*args)
         end
       end
 
@@ -1568,64 +1572,6 @@ module ActiveRecord #:nodoc:
           records
         end
 
-        def find_from_ids(ids, options)
-          expects_array = ids.first.kind_of?(Array)
-          return ids.first if expects_array && ids.first.empty?
-
-          ids = ids.flatten.compact.uniq
-
-          case ids.size
-            when 0
-              raise RecordNotFound, "Couldn't find #{name} without an ID"
-            when 1
-              result = find_one(ids.first, options)
-              expects_array ? [ result ] : result
-            else
-              find_some(ids, options)
-          end
-        end
-
-        def find_one(id, options)
-          conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
-          options.update :conditions => "#{quoted_table_name}.#{connection.quote_column_name(primary_key)} = #{quote_value(id,columns_hash[primary_key])}#{conditions}"
-
-          # Use find_every(options).first since the primary key condition
-          # already ensures we have a single record. Using find_initial adds
-          # a superfluous :limit => 1.
-          if result = find_every(options).first
-            result
-          else
-            raise RecordNotFound, "Couldn't find #{name} with ID=#{id}#{conditions}"
-          end
-        end
-
-        def find_some(ids, options)
-          conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
-          ids_list   = ids.map { |id| quote_value(id,columns_hash[primary_key]) }.join(',')
-          options.update :conditions => "#{quoted_table_name}.#{connection.quote_column_name(primary_key)} IN (#{ids_list})#{conditions}"
-
-          result = find_every(options)
-
-          # Determine expected size from limit and offset, not just ids.size.
-          expected_size =
-            if options[:limit] && ids.size > options[:limit]
-              options[:limit]
-            else
-              ids.size
-            end
-
-          # 11 ids with limit 3, offset 9 should give 2 results.
-          if options[:offset] && (ids.size - options[:offset] < expected_size)
-            expected_size = ids.size - options[:offset]
-          end
-
-          if result.size == expected_size
-            result
-          else
-            raise RecordNotFound, "Couldn't find all #{name.pluralize} with IDs (#{ids_list})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"
-          end
-        end
-
         # Finder methods must instantiate through this method to work with the
         # single-table inheritance model that makes it possible to create
         # objects of different types from the same table.
@@ -1742,6 +1688,7 @@ module ActiveRecord #:nodoc:
 
         def construct_order(order, scope)
           orders = []
+
           scoped_order = scope[:order] if scope
           if order
             orders << order
@@ -1749,7 +1696,8 @@ module ActiveRecord #:nodoc:
           elsif scoped_order
             orders << scoped_order
           end
-          orders
+
+          orders.reject {|o| o.blank?}
         end
 
         def construct_limit(limit, scope)
