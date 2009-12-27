@@ -1,5 +1,11 @@
 *Edge*
 
+* Add relation.exists? [Pratik Naik]
+
+  red_items = Item.where(:colours => 'red')
+  red_items.exists?
+  red_items.exists?(1)
+
 * Add find(ids) to relations. [Pratik Naik]
 
   old_users = User.order("age DESC")

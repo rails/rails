@@ -298,4 +298,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { authors.find(['invalid', 'oops']) }
   end
 
+  def test_exists
+    davids = Author.where(:name => 'David')
+    assert davids.exists?
+    assert davids.exists?(authors(:david).id)
+    assert ! davids.exists?(authors(:mary).id)
+    assert ! davids.exists?("hax'id")
+
+    fake  = Author.where(:name => 'fake author')
+    assert ! fake.exists?
+    assert ! fake.exists?(authors(:david).id)
+  end
 end

@@ -139,6 +139,12 @@ module ActiveRecord
       end
     end
 
+    def exists?(id = nil)
+      relation = select("#{@klass.quoted_table_name}.#{@klass.primary_key}").limit(1)
+      relation = relation.where(@klass.primary_key => id) if id
+      relation.first ? true : false
+    end
+
     def first
       if loaded?
         @records.first
