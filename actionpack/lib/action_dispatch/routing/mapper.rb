@@ -1,5 +1,3 @@
-require 'active_support/core_ext/enumerable'
-
 module ActionDispatch
   module Routing
     class Mapper
@@ -58,15 +56,15 @@ module ActionDispatch
 
             [ normalize_path(path), options ]
           end
-          
+
           # match "account" => "account#index"
           def using_to_shorthand?(args, options)
             args.empty? && options.present?
           end
-          
+
           # match "account/overview"
           def using_match_shorthand?(args, options)
-            args.present? && options.except(:via).empty? && args.first.exclude?(":")
+            args.present? && options.except(:via).empty? && !args.first.include?(':')
           end
 
           def normalize_path(path)
