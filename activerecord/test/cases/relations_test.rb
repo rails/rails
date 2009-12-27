@@ -275,5 +275,27 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal authors(:david), authors.find_or_create_by_name(:name => 'David')
   end
 
-end
+  def test_find_id
+    authors = Author.scoped
 
+    david = authors.find(authors(:david).id)
+    assert_equal 'David', david.name
+
+    assert_raises(ActiveRecord::RecordNotFound) { authors.where(:name => 'lifo').find('invalid') }
+  end
+
+  def test_find_ids
+    authors = Author.order('id ASC')
+
+    results = authors.find(authors(:david).id, authors(:mary).id)
+    assert_kind_of Array, results
+    assert_equal 2, results.size
+    assert_equal 'David', results[0].name
+    assert_equal 'Mary', results[1].name
+    assert_equal results, authors.find([authors(:david).id, authors(:mary).id])
+
+    assert_raises(ActiveRecord::RecordNotFound) { authors.where(:name => 'lifo').find(authors(:david).id, 'invalid') }
+    assert_raises(ActiveRecord::RecordNotFound) { authors.find(['invalid', 'oops']) }
+  end
+
+end

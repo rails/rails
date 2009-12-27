@@ -91,7 +91,7 @@ module ActiveRecord
             :joins => @relation.joins(relation),
             :group => @relation.send(:group_clauses).join(', '),
             :order => @relation.send(:order_clauses).join(', '),
-            :conditions => @relation.send(:where_clauses).join("\n\tAND "),
+            :conditions => where_clause,
             :limit => @relation.taken,
             :offset => @relation.skipped
             },
@@ -110,6 +110,25 @@ module ActiveRecord
     end
 
     alias all to_a
+
+    def find(*ids, &block)
+      return to_a.find(&block) if block_given?
+
+      expects_array = ids.first.kind_of?(Array)
+      return ids.first if expects_array && ids.first.empty?
+
+      ids = ids.flatten.compact.uniq
+
+      case ids.size
+      when 0
+        raise RecordNotFound, "Couldn't find #{@klass.name} without an ID"
+      when 1
+        result = find_one(ids.first)
+        expects_array ? [ result ] : result
+      else
+        find_some(ids)
+      end
+    end
 
     def first
       if loaded?
@@ -183,9 +202,51 @@ module ActiveRecord
       record
     end
 
+    def find_one(id)
+      record = where(@klass.primary_key => id).first
+
+      unless record
+        conditions = where_clause(', ')
+        conditions = " [WHERE #{conditions}]" if conditions.present?
+        raise RecordNotFound, "Couldn't find #{@klass.name} with ID=#{id}#{conditions}"
+      end
+
+      record
+    end
+
+    def find_some(ids)
+      result = where(@klass.primary_key => ids).all
+
+      expected_size =
+        if @relation.taken && ids.size > @relation.taken
+          @relation.taken
+        else
+          ids.size
+        end
+
+      # 11 ids with limit 3, offset 9 should give 2 results.
+      if @relation.skipped && (ids.size - @relation.skipped < expected_size)
+        expected_size = ids.size - @relation.skipped
+      end
+
+      if result.size == expected_size
+        result
+      else
+        conditions = where_clause(', ')
+        conditions = " [WHERE #{conditions}]" if conditions.present?
+
+        error = "Couldn't find all #{@klass.name.pluralize} with IDs "
+        error << "(#{ids.join(", ")})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"
+        raise RecordNotFound, error
+      end
+    end
+
     def create_new_relation(relation, readonly = @readonly, preload = @associations_to_preload, eager_load = @eager_load_associations)
       Relation.new(@klass, relation, readonly, preload, eager_load)
     end
 
+    def where_clause(join_string = "\n\tAND ")
+      @relation.send(:where_clauses).join(join_string)
+    end
   end
 end

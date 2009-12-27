@@ -1,5 +1,11 @@
 *Edge*
 
+* Add find(ids) to relations. [Pratik Naik]
+
+  old_users = User.order("age DESC")
+  old_users.find(1)
+  old_users.find(1, 2, 3)
+
 * Add new finder methods to association collection. [Pratik Naik]
 
   class User < ActiveRecord::Base
