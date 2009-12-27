@@ -1,3 +1,5 @@
+require 'active_support/core_ext/enumberable'
+
 module ActionDispatch
   module Routing
     class Mapper
