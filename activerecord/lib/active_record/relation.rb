@@ -2,7 +2,7 @@ module ActiveRecord
   class Relation
     delegate :to_sql, :to => :relation
     delegate :length, :collect, :find, :map, :each, :to => :to_a
-    attr_reader :relation, :klass
+    attr_reader :relation, :klass, :associations_to_preload, :eager_load_associations
 
     def initialize(klass, relation, readonly = false, preload = [], eager_load = [])
       @klass, @relation = klass, relation
@@ -19,7 +19,9 @@ module ActiveRecord
         where(r.send(:where_clause)).
         limit(r.taken).
         offset(r.skipped).
-        select(r.send(:select_clauses).join(', '))
+        select(r.send(:select_clauses).join(', ')).
+        eager_load(r.eager_load_associations).
+        preload(r.associations_to_preload)
     end
 
     alias :& :merge

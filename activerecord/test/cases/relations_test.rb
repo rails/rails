@@ -332,8 +332,24 @@ class RelationTest < ActiveRecord::TestCase
     devs = Developer.where("salary >= 80000") & Developer.limit(2) & Developer.order('id ASC').where("id < 3")
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
 
-    dev_with_count = Developer.limit(1) & Developer.order('id DESC') & Developer.select('developers.*, count(id) id_count').group('id')
+    dev_with_count = Developer.limit(1) & Developer.order('id DESC') & Developer.select('developers.*').group('id')
     assert_equal [developers(:poor_jamis)], dev_with_count.to_a
-    assert_equal 1, dev_with_count.first.id_count.to_i
+  end
+
+  def test_relation_merging_with_eager_load
+    relations = []
+    relations << (Post.order('comments.id DESC') & Post.eager_load(:last_comment) & Post.scoped)
+    relations << (Post.eager_load(:last_comment) & Post.order('comments.id DESC') & Post.scoped)
+    
+    relations.each do |posts|
+      post = posts.find { |p| p.id == 1 }
+      assert_equal Post.find(1).last_comment, post.last_comment
+    end
+  end
+
+  def test_relation_merging_with_preload
+    [Post.scoped & Post.preload(:author), Post.preload(:author) & Post.scoped].each do |posts|
+      assert_queries(2) { assert posts.first.author }
+    end
   end
 end
