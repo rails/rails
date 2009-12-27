@@ -28,6 +28,14 @@ module ActiveRecord
       create_new_relation(@relation.project(selects))
     end
 
+    # TODO : This is temporary. We need .from in Arel.
+    attr_writer :from
+    def from(from)
+      relation = create_new_relation
+      relation.from = from
+      relation
+    end
+
     def group(groups)
       create_new_relation(@relation.group(groups))
     end
@@ -94,7 +102,7 @@ module ActiveRecord
             :conditions => where_clause,
             :limit => @relation.taken,
             :offset => @relation.skipped,
-            :from => @relation.send(:table_sql, Arel::Sql::TableReference.new(@relation))
+            :from => @from
             },
             ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
         end
@@ -242,8 +250,10 @@ module ActiveRecord
       end
     end
 
-    def create_new_relation(relation, readonly = @readonly, preload = @associations_to_preload, eager_load = @eager_load_associations)
-      Relation.new(@klass, relation, readonly, preload, eager_load)
+    def create_new_relation(relation = @relation, readonly = @readonly, preload = @associations_to_preload, eager_load = @eager_load_associations)
+      r = self.class.new(@klass, relation, readonly, preload, eager_load)
+      r.from = @from
+      r
     end
 
     def where_clause(join_string = "\n\tAND ")

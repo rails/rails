@@ -1632,7 +1632,8 @@ module ActiveRecord #:nodoc:
             group(construct_group(options[:group], options[:having], scope)).
             order(construct_order(options[:order], scope)).
             limit(construct_limit(options[:limit], scope)).
-            offset(construct_offset(options[:offset], scope))
+            offset(construct_offset(options[:offset], scope)).
+            from(options[:from])
 
           relation = relation.readonly if options[:readonly]
 
