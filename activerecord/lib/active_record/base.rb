@@ -732,10 +732,13 @@ module ActiveRecord #:nodoc:
       #   Person.exists?(:name => "David")
       #   Person.exists?(['name LIKE ?', "%#{query}%"])
       #   Person.exists?
-      def exists?(id_or_conditions = {})
-        find_initial(
-          :select => "#{quoted_table_name}.#{primary_key}",
-          :conditions => expand_id_conditions(id_or_conditions)) ? true : false
+      def exists?(id_or_conditions = nil)
+        case id_or_conditions
+        when Array, Hash
+          where(id_or_conditions).exists?
+        else
+          scoped.exists?(id_or_conditions)
+        end
       end
 
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -1871,14 +1874,6 @@ module ActiveRecord #:nodoc:
                               "#{quoted_column_name} BETWEEN ? AND ?"
                             end
             else            "#{quoted_column_name} = ?"
-          end
-        end
-
-        # Interpret Array and Hash as conditions and anything else as an id.
-        def expand_id_conditions(id_or_conditions)
-          case id_or_conditions
-            when Array, Hash then id_or_conditions
-            else sanitize_sql(primary_key => id_or_conditions)
           end
         end
 
