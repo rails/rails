@@ -640,18 +640,15 @@ module ActiveRecord #:nodoc:
       #   end
       def find(*args)
         options = args.extract_options!
-        validate_find_options(options)
         set_readonly_option!(options)
 
+        relation = construct_finder_arel_with_includes(options)
+
         case args.first
-        when :first
-          construct_finder_arel_with_includes(options).first
-        when :last
-          find_last(options)
-        when :all
-          construct_finder_arel_with_includes(options).all
+        when :first, :last, :all
+          relation.send(args.first)
         else
-          construct_finder_arel_with_includes(options).find(*args)
+          relation.find(*args)
         end
       end
 
@@ -1513,40 +1510,6 @@ module ActiveRecord #:nodoc:
       end
 
       private
-        def find_last(options)
-          order = options[:order]
-
-          if order
-            order = reverse_sql_order(order)
-          elsif !scoped?(:find, :order)
-            order = "#{table_name}.#{primary_key} DESC"
-          end
-
-          if scoped?(:find, :order)
-            scope = scope(:find)
-            original_scoped_order = scope[:order]
-            scope[:order] = reverse_sql_order(original_scoped_order)
-          end
-
-          begin
-            construct_finder_arel_with_includes(options).order(order).first
-          ensure
-            scope[:order] = original_scoped_order if original_scoped_order
-          end
-        end
-
-        def reverse_sql_order(order_query)
-          order_query.to_s.split(/,/).each { |s|
-            if s.match(/\s(asc|ASC)$/)
-              s.gsub!(/\s(asc|ASC)$/, ' DESC')
-            elsif s.match(/\s(desc|DESC)$/)
-              s.gsub!(/\s(desc|DESC)$/, ' ASC')
-            else
-              s.concat(' DESC')
-            end
-          }.join(',')
-        end
-
         # Finder methods must instantiate through this method to work with the
         # single-table inheritance model that makes it possible to create
         # objects of different types from the same table.
