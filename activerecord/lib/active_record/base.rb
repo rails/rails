@@ -649,7 +649,7 @@ module ActiveRecord #:nodoc:
         when :last
           find_last(options)
         when :all
-          find_every(options)
+          construct_finder_arel_with_includes(options).all
         else
           construct_finder_arel_with_includes(options).find(*args)
         end
