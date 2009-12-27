@@ -309,4 +309,10 @@ class RelationTest < ActiveRecord::TestCase
     assert ! fake.exists?
     assert ! fake.exists?(authors(:david).id)
   end
+
+  def test_last
+    authors = Author.scoped
+    assert_equal authors(:mary), authors.last
+  end
+
 end

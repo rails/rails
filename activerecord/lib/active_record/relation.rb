@@ -44,6 +44,18 @@ module ActiveRecord
       create_new_relation(@relation.order(orders))
     end
 
+    def reverse_order
+      relation = create_new_relation
+      relation.instance_variable_set(:@orders, nil)
+
+      order_clause = @relation.send(:order_clauses).join(', ')
+      if order_clause.present?
+        relation.order(reverse_sql_order(order_clause))
+      else
+        relation.order("#{@klass.table_name}.#{@klass.primary_key} DESC")
+      end
+    end
+
     def limit(limits)
       create_new_relation(@relation.take(limits))
     end
@@ -153,13 +165,21 @@ module ActiveRecord
       end
     end
 
+    def last
+      if loaded?
+        @records.last
+      else
+        @last ||= reverse_order.limit(1).to_a[0]
+      end
+    end
+
     def loaded?
       @loaded
     end
 
     def reload
       @loaded = false
-      @records = @first = nil
+      @records = @first = @last = nil
       self
     end
 
@@ -265,5 +285,18 @@ module ActiveRecord
     def where_clause(join_string = "\n\tAND ")
       @relation.send(:where_clauses).join(join_string)
     end
+
+    def reverse_sql_order(order_query)
+      order_query.to_s.split(/,/).each { |s|
+        if s.match(/\s(asc|ASC)$/)
+          s.gsub!(/\s(asc|ASC)$/, ' DESC')
+        elsif s.match(/\s(desc|DESC)$/)
+          s.gsub!(/\s(desc|DESC)$/, ' ASC')
+        else
+          s.concat(' DESC')
+        end
+      }.join(',')
+    end
+
   end
 end
