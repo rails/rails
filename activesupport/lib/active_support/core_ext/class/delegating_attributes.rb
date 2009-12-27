@@ -1,5 +1,4 @@
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/array/extract_options'
 
 class Class
