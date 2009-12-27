@@ -43,14 +43,28 @@ module ActionDispatch
           def extract_path_and_options(args)
             options = args.extract_options!
 
-            if args.empty?
+            case
+            when using_to_shorthand?(args, options)
               path, to = options.find { |name, value| name.is_a?(String) }
               options.merge!(:to => to).delete(path) if path
+            when using_match_shorthand?(args, options)
+              path = args.first
+              options = { :to => path.gsub("/", "#"), :as => path.gsub("/", "_") }
             else
               path = args.first
             end
 
             [ normalize_path(path), options ]
+          end
+          
+          # match "account" => "account#index"
+          def using_to_shorthand?(args, options)
+            args.empty? && options.present?
+          end
+          
+          # match "account/overview"
+          def using_match_shorthand?(args, options)
+            args.present? && options.except(:via).empty? && args.first.exclude?(":")
           end
 
           def normalize_path(path)

@@ -16,14 +16,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     Routes = routes
     Routes.draw do
       controller :sessions do
-        get  'login', :to => :new, :as => :login
-        post 'login', :to => :create
+        get  'login' => :new, :as => :login
+        post 'login' => :create
 
-        delete 'logout', :to => :destroy, :as => :logout
+        delete 'logout' => :destroy, :as => :logout
       end
 
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
+
+      match 'account/overview'
 
       match 'account/modulo/:name', :to => redirect("/%{name}s")
       match 'account/proc/:name', :to => redirect {|params| "/#{params[:name].pluralize}" }
@@ -31,10 +33,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'openid/login', :via => [:get, :post], :to => "openid#login"
 
       controller(:global) do
-        match 'global/:action'
+        get   'global/hide_notice'
         match 'global/export',      :to => :export, :as => :export_request
-        match 'global/hide_notice', :to => :hide_notice, :as => :hide_notice
         match '/export/:id/:file',  :to => :export, :as => :export_download, :constraints => { :file => /.*/ }
+        match 'global/:action'
       end
 
       constraints(:ip => /192\.168\.1\.\d\d\d/) do
@@ -221,7 +223,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'global#export', @response.body
 
       assert_equal '/global/export', export_request_path
-      assert_equal '/global/hide_notice', hide_notice_path
+      assert_equal '/global/hide_notice', global_hide_notice_path
       assert_equal '/export/123/foo.txt', export_download_path(:id => 123, :file => 'foo.txt')
     end
   end
@@ -484,6 +486,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/info', info_path
       get '/info'
       assert_equal 'projects#info', @response.body
+    end
+  end
+  
+  def test_convention_match_with_no_scope
+    with_test_routes do
+      assert_equal '/account/overview', account_overview_path
+      get '/account/overview'
+      assert_equal 'account#overview', @response.body
     end
   end
 
