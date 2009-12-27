@@ -51,6 +51,10 @@ module Arel
         OPERATION
       end
 
+      def lock(locking = nil)
+        Lock.new(self, locking)
+      end
+
       def alias
         Alias.new(self)
       end
@@ -131,6 +135,7 @@ module Arel
       def taken;                  nil end
       def skipped;                nil end
       def sources;                []  end
+      def locked;                 []  end
     end
     include DefaultOperations
   end

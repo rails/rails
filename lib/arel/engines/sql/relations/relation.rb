@@ -16,7 +16,8 @@ module Arel
           "FROM       #{from_clauses}",
           (joins(self)                                   unless joins(self).blank? ),
           ("WHERE     #{where_clauses.join("\n\tAND ")}" unless wheres.blank?      ),
-          ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   )
+          ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
+          ("#{locked}"                                   unless locked.blank?     )
 
         build_query \
           "SELECT * FROM (#{query}) AS id_list",
@@ -33,7 +34,8 @@ module Arel
           ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
           ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      ),
           ("LIMIT     #{taken}"                          unless taken.blank?       ),
-          ("OFFSET    #{skipped}"                        unless skipped.blank?     )
+          ("OFFSET    #{skipped}"                        unless skipped.blank?     ),
+          ("#{locked}"                                   unless locked.blank?     )
       end
     end
 

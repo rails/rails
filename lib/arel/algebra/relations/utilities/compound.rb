@@ -2,7 +2,7 @@ module Arel
   class Compound < Relation
     attr_reader :relation
     delegate :joins, :join?, :inserts, :taken, :skipped, :name, :externalizable?,
-             :column_for, :engine, :sources,
+             :column_for, :engine, :sources, :locked,
              :to => :relation
 
     [:attributes, :wheres, :groupings, :orders].each do |operation_name|
