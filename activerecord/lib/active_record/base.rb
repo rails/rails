@@ -669,16 +669,10 @@ module ActiveRecord #:nodoc:
         find(:last, *args)
       end
 
-      # Returns an ActiveRecord::Relation object. You can pass in all the same arguments to this method as you can
-      # to find(:all).
+      # A convenience wrapper for <tt>find(:all, *args)</tt>. You can pass in all the
+      # same arguments to this method as you can to <tt>find(:all)</tt>.
       def all(*args)
-        options = args.extract_options!
-
-        if options.empty? && !scoped?(:find)
-          arel_table.to_a
-        else
-          construct_finder_arel_with_includes(options).to_a
-        end
+        find(:all, *args)
       end
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
