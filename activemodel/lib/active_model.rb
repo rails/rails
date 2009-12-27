@@ -55,4 +55,5 @@ module ActiveModel
   end
 end
 
+require 'active_support/i18n'
 I18n.load_path << File.dirname(__FILE__) + '/active_model/locale/en.yml'
