@@ -43,7 +43,7 @@ module Arel
         join(other_relation, OuterJoin)
       end
 
-      [:where, :project, :order, :take, :skip, :group].each do |operation_name|
+      [:where, :project, :order, :take, :skip, :group, :from].each do |operation_name|
         class_eval <<-OPERATION, __FILE__, __LINE__
           def #{operation_name}(*arguments, &block)
             arguments.all?(&:blank?) && !block_given?? self : #{operation_name.to_s.classify}.new(self, *arguments, &block)
@@ -130,6 +130,7 @@ module Arel
       def joins(formatter = nil); nil end # FIXME
       def taken;                  nil end
       def skipped;                nil end
+      def sources;                []  end
     end
     include DefaultOperations
   end

@@ -98,6 +98,10 @@ module Arel
             (table.name != name_for(table) ? " AS " + quote_table_name(name_for(table)) : '')
         end
       end
+
+      def attribute(attribute)
+        attribute
+      end
     end
 
     class Attribute < WhereCondition

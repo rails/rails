@@ -13,7 +13,7 @@ module Arel
 
         query = build_query \
           "SELECT     #{select_clauses.kind_of?(::Array) ? select_clauses.join("") : select_clauses.to_s}",
-          "FROM       #{table_sql(Sql::TableReference.new(self))}",
+          "FROM       #{from_clauses}",
           (joins(self)                                   unless joins(self).blank? ),
           ("WHERE     #{where_clauses.join("\n\tAND ")}" unless wheres.blank?      ),
           ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   )
@@ -27,7 +27,7 @@ module Arel
       else
         build_query \
           "SELECT     #{select_clauses.join(', ')}",
-          "FROM       #{table_sql(Sql::TableReference.new(self))}",
+          "FROM       #{from_clauses}",
           (joins(self)                                   unless joins(self).blank? ),
           ("WHERE     #{where_clauses.join("\n\tAND ")}" unless wheres.blank?      ),
           ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
@@ -49,6 +49,10 @@ module Arel
 
     def build_query(*parts)
       parts.compact.join(" ")
+    end
+
+    def from_clauses
+      sources.blank? ? table_sql(Sql::TableReference.new(self)) : sources
     end
 
     def select_clauses
