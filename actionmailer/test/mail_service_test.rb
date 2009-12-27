@@ -363,7 +363,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
     assert_equal "multipart/mixed", created.content_type.string
     assert_equal "multipart/alternative", created.parts[0].content_type.string
-    assert_equal "bar", created.parts[0].header['foo'].decoded
+    assert_equal "bar", created.parts[0].header['foo'].to_s
     assert_nil created.parts[0].charset
     assert_equal "text/plain", created.parts[0].parts[0].content_type.string
     assert_equal "text/html", created.parts[0].parts[1].content_type.string
@@ -425,11 +425,11 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def test_subject_with_i18n
     assert_nothing_raised { TestMailer.deliver_subject_with_i18n(@recipient) }
-    assert_equal "Subject with i18n", ActionMailer::Base.deliveries.first.subject.decoded
+    assert_equal "Subject with i18n", ActionMailer::Base.deliveries.first.subject.to_s
 
     I18n.backend.store_translations('en', :actionmailer => {:test_mailer => {:subject_with_i18n => {:subject => "New Subject!"}}})
     assert_nothing_raised { TestMailer.deliver_subject_with_i18n(@recipient) }
-    assert_equal "New Subject!", ActionMailer::Base.deliveries.last.subject.decoded
+    assert_equal "New Subject!", ActionMailer::Base.deliveries.last.subject.to_s
   end
 
   def test_custom_template
@@ -534,7 +534,7 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_not_nil mail
     mail, from, to = mail
 
-    assert_equal 'system@loudthinking.com', from.decoded
+    assert_equal 'system@loudthinking.com', from.to_s
   end
 
   def test_from_with_name_for_smtp
@@ -730,7 +730,7 @@ Content-Type: text/plain; charset=iso-8859-1
 The body
 EOF
     mail = Mail.new(msg)
-    assert_equal "testing testing \326\244", mail.subject.decoded
+    assert_equal "testing testing \326\244", mail.subject.to_s
     assert_equal "Subject: =?utf-8?Q?testing_testing_=D6=A4?=\r\n", mail.subject.encoded
   end
 
@@ -743,7 +743,7 @@ Content-Type: text/plain; charset=iso-8859-1
 The body
 EOF
     mail = Mail.new(msg)
-    assert_equal "this == working?", mail.subject.decoded
+    assert_equal "this == working?", mail.subject.to_s
     assert_equal "Subject: this == working?\r\n", mail.subject.encoded
   end
 
@@ -960,7 +960,7 @@ EOF
 
     mail = TestMailer.create_implicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length
-    assert_equal "1.0", mail.mime_version.decoded
+    assert_equal "1.0", mail.mime_version.to_s
     assert_equal "multipart/alternative", mail.content_type.string
     assert_equal "application/x-yaml", mail.parts[0].content_type.string
     assert_equal "utf-8", mail.parts[0].charset
@@ -1108,7 +1108,7 @@ EOF
 
   def test_return_path_with_create
     mail = TestMailer.create_return_path
-    assert_equal "another@somewhere.test", mail['return-path'].decoded.to_s
+    assert_equal "another@somewhere.test", mail['return-path'].to_s
   end
 
   def test_return_path_with_deliver
