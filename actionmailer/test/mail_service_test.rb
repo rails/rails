@@ -239,7 +239,7 @@ class TestMailer < ActionMailer::Base
     from         "test@example.com"
     content_type "multipart/mixed"
 
-    part :content_type => "multipart/alternative", :content_disposition => "inline", :headers => { "foo" => "bar" } do |p|
+    part :content_type => "multipart/alternative", :content_disposition => "inline", "foo" => "bar" do |p|
       p.part :content_type => "text/plain", :body => "test text\nline #2"
       p.part :content_type => "text/html", :body => "<b>test</b> HTML<br/>\nline #2"
     end
@@ -264,7 +264,7 @@ class TestMailer < ActionMailer::Base
     from         "test@example.com"
     content_type "multipart/related"
     part         :content_type => "text/html", :body => 'yo'
-    attachment   :content_type => "image/jpeg", :filename => File.join(File.dirname(__FILE__), "fixtures", "attachments", "test.jpg"), :data => "i am not a real picture", :headers => { 'Content-ID' => '<test@test.com>' }
+    attachment   :content_type => "image/jpeg", :filename => File.join(File.dirname(__FILE__), "fixtures", "attachments", "test.jpg"), :data => "i am not a real picture", 'Content-ID' => '<test@test.com>'
   end
 
   def unnamed_attachment(recipient)
@@ -1251,6 +1251,6 @@ class RespondToTest < Test::Unit::TestCase
       RespondToMailer.not_a_method
     end
 
-    assert_match /undefined method.*not_a_method/, error.message
+    assert_match(/undefined method.*not_a_method/, error.message)
   end
 end

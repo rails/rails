@@ -53,7 +53,9 @@ class RenderMailer < ActionMailer::Base
     subject    "No Instance Variable"
     from       "tester@example.com"
 
-    render :inline => "Look, subject.nil? is <%= @subject.nil? %>!"
+    silence_warnings do
+      render :inline => "Look, subject.nil? is <%= @subject.nil? %>!"
+    end
   end
 
   def initialize_defaults(method_name)

@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class TMailMailTest < Test::Unit::TestCase
+class MailTest < Test::Unit::TestCase
   def test_body
     m = Mail.new
     expected = 'something_with_underscores'
