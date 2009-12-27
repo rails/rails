@@ -4,8 +4,7 @@ $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.inc
 require 'active_support'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/metaclass'
-require 'active_support/core_ext/array'
-require 'active_support/core_ext/hash'
+require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/inflections'
 
@@ -95,7 +94,7 @@ module Rails
     end
 
     def self.plugins_generators_paths #:nodoc:
-      return [] unless Rails.root
+      return [] unless defined?(Rails.root)
       Dir[File.join(Rails.root, "vendor", "plugins", "*", "lib", "{generators,rails_generators}")]
     end
 
@@ -136,7 +135,7 @@ module Rails
     def self.load_paths
       @load_paths ||= begin
         paths = []
-        paths += Dir[File.join(Rails.root, "lib", "{generators,rails_generators}")] if Rails.root
+        paths += Dir[File.join(Rails.root, "lib", "{generators,rails_generators}")] if defined?(Rails.root)
         paths += Dir[File.join(Thor::Util.user_home, ".rails", "{generators,rails_generators}")]
         paths += self.plugins_generators_paths
         paths += self.gems_generators_paths
