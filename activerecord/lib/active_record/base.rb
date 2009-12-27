@@ -671,9 +671,9 @@ module ActiveRecord #:nodoc:
         options = args.extract_options!
 
         if options.empty? && !scoped?(:find)
-          arel_table
+          arel_table.to_a
         else
-          construct_finder_arel_with_includes(options)
+          construct_finder_arel_with_includes(options).to_a
         end
       end
 

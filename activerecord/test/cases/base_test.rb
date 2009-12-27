@@ -1902,8 +1902,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Developer.find(:first, :order => 'id desc'), Developer.last
   end
 
+  def test_all
+    developers = Developer.all
+    assert_kind_of Array, developers
+    assert_equal Developer.find(:all), developers
+  end
+
   def test_all_with_conditions
-    assert_equal Developer.find(:all, :order => 'id desc'), Developer.all.order('id desc').to_a
+    assert_equal Developer.find(:all, :order => 'id desc'), Developer.order('id desc').all
   end
 
   def test_find_ordered_last
