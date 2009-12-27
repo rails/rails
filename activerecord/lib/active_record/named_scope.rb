@@ -26,23 +26,11 @@ module ActiveRecord
         if options.present?
           Scope.new(self, options, &block)
         else
-          if !scoped?(:find)
-            relation = arel_table
-            relation = relation.where(type_condition) if finder_needs_type_condition?
+          unless scoped?(:find)
+            finder_needs_type_condition? ? arel_table.where(type_condition) : arel_table
           else
-            relation = construct_finder_arel
-            include_associations = scope(:find, :include)
-
-            if include_associations.present?
-              if references_eager_loaded_tables?(options)
-                relation.eager_load(include_associations)
-              else
-                relation.preload(include_associations)
-              end
-            end
+            construct_finder_arel_with_includes
           end
-
-          relation
         end
       end
 

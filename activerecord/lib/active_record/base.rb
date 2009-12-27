@@ -671,20 +671,10 @@ module ActiveRecord #:nodoc:
         options = args.extract_options!
 
         if options.empty? && !scoped?(:find)
-          relation = arel_table
+          arel_table
         else
-          relation = construct_finder_arel(options)
-          include_associations = merge_includes(scope(:find, :include), options[:include])
-
-          if include_associations.any?
-            if references_eager_loaded_tables?(options)
-              relation.eager_load(include_associations)
-            else
-              relation.preload(include_associations)
-            end
-          end
+          construct_finder_arel_with_includes(options)
         end
-        relation
       end
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
@@ -1687,6 +1677,8 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_arel(options = {}, scope = scope(:find))
           # TODO add lock to Arel
+          validate_find_options(options)
+
           relation = arel_table(options[:from]).
             joins(construct_join(options[:joins], scope)).
             where(construct_conditions(options[:conditions], scope)).
@@ -1697,6 +1689,21 @@ module ActiveRecord #:nodoc:
             offset(construct_offset(options[:offset], scope))
 
           relation = relation.readonly if options[:readonly]
+
+          relation
+        end
+
+        def construct_finder_arel_with_includes(options = {})
+          relation = construct_finder_arel(options)
+          include_associations = merge_includes(scope(:find, :include), options[:include])
+
+          if include_associations.any?
+            if references_eager_loaded_tables?(options)
+              relation = relation.eager_load(include_associations)
+            else
+              relation = relation.preload(include_associations)
+            end
+          end
 
           relation
         end
@@ -1853,48 +1860,9 @@ module ActiveRecord #:nodoc:
             attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
             if match.finder?
-              finder = match.finder
-              bang = match.bang?
-              # def self.find_by_login_and_activated(*args)
-              #   options = args.extract_options!
-              #   attributes = construct_attributes_from_arguments(
-              #     [:login,:activated],
-              #     args
-              #   )
-              #   finder_options = { :conditions => attributes }
-              #   validate_find_options(options)
-              #   set_readonly_option!(options)
-              #
-              #   if options[:conditions]
-              #     with_scope(:find => finder_options) do
-              #       find(:first, options)
-              #     end
-              #   else
-              #     find(:first, options.merge(finder_options))
-              #   end
-              # end
-              self.class_eval %{
-                def self.#{method_id}(*args)
-                  options = args.extract_options!
-                  attributes = construct_attributes_from_arguments(
-                    [:#{attribute_names.join(',:')}],
-                    args
-                  )
-                  finder_options = { :conditions => attributes }
-                  validate_find_options(options)
-                  set_readonly_option!(options)
-
-                  #{'result = ' if bang}if options[:conditions]
-                    with_scope(:find => finder_options) do
-                      find(:#{finder}, options)
-                    end
-                  else
-                    find(:#{finder}, options.merge(finder_options))
-                  end
-                  #{'result || raise(RecordNotFound, "Couldn\'t find #{name} with #{attributes.to_a.collect { |pair| pair.join(\' = \') }.join(\', \')}")' if bang}
-                end
-              }, __FILE__, __LINE__
-              send(method_id, *arguments)
+              options = arguments.extract_options!
+              relation = options.any? ? construct_finder_arel_with_includes(options) : scoped
+              relation.send :find_by_attributes, match, attribute_names, *arguments
             elsif match.instantiator?
               instantiator = match.instantiator
               # def self.find_or_create_by_user_id(*args)

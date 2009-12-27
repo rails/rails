@@ -129,7 +129,7 @@ module ActiveRecord
       self
     end
 
-    private
+    protected
 
     def method_missing(method, *args, &block)
       if @relation.respond_to?(method)
@@ -141,17 +141,21 @@ module ActiveRecord
         super unless @klass.send(:all_attributes_exists?, attributes)
 
         if match.finder?
-          conditions = attributes.inject({}) {|h, a| h[a] = args[attributes.index(a)]; h}
-          result = where(conditions).send(match.finder)
-
-          if match.bang? && result.blank?
-            raise RecordNotFound, "Couldn't find #{@klass.name} with #{conditions.to_a.collect {|p| p.join(' = ')}.join(', ')}"
-          else
-            result
-          end
+          find_by_attributes(match, attributes, *args)
         end
       else
         super
+      end
+    end
+
+    def find_by_attributes(match, attributes, *args)
+      conditions = attributes.inject({}) {|h, a| h[a] = args[attributes.index(a)]; h}
+      result = where(conditions).send(match.finder)
+
+      if match.bang? && result.blank?
+        raise RecordNotFound, "Couldn't find #{@klass.name} with #{conditions.to_a.collect {|p| p.join(' = ')}.join(', ')}"
+      else
+        result
       end
     end
 
