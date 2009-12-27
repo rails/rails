@@ -5,20 +5,24 @@ module Rails
   # configuration class while this bit is being cleaned up.
   class Plugin::Configuration
 
-    def initialize
-      @options = Hash.new { |h,k| h[k] = ActiveSupport::OrderedOptions.new }
+    def self.default
+      @default ||= new
     end
 
-    def middleware
-      @middleware ||= ActionDispatch::MiddlewareStack.new
+    attr_reader :middleware
+
+    def initialize(base = nil)
+      if base
+        @options    = base.options.dup
+        @middleware = base.middleware.dup
+      else
+        @options    = Hash.new { |h,k| h[k] = ActiveSupport::OrderedOptions.new }
+        @middleware = ActionDispatch::MiddlewareStack.new
+      end
     end
 
     def respond_to?(name)
       super || name.to_s =~ config_key_regexp
-    end
-
-    def merge(config)
-      @options = config.options.merge(@options)
     end
 
   protected
@@ -41,8 +45,7 @@ module Rails
     end
 
     def config_keys
-      ([ :active_support, :active_record, :action_controller,
-         :action_view, :action_mailer, :active_resource ] +
+      ([ :active_support, :action_view, :action_mailer, :active_resource ] +
         Plugin.plugin_names).map { |n| n.to_s }.uniq
     end
   end
@@ -60,7 +63,7 @@ module Rails
                 :log_level, :log_path, :paths, :routes_configuration_file,
                 :view_path
 
-    def initialize
+    def initialize(base = nil)
       super
       @load_once_paths              = []
       @after_initialize_blocks      = []
@@ -156,6 +159,10 @@ module Rails
 
     def routes_configuration_file
       @routes_configuration_file ||= File.join(root, 'config', 'routes.rb')
+    end
+
+    def builtin_routes_configuration_file
+      @builtin_routes_configuration_file ||= File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
     end
 
     def controller_paths

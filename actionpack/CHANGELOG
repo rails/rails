@@ -1,5 +1,19 @@
 *Edge*
 
+* Added ActionDispatch::Request#authorization to access the http authentication header regardless of its proxy hiding [DHH]
+
+* Added :alert, :notice, and :flash as options to ActionController::Base#redirect_to that'll automatically set the proper flash before the redirection [DHH]. Examples:
+
+    flash[:notice] = 'Post was created'
+    redirect_to(@post)
+  
+  ...becomes:
+  
+    redirect_to(@post, :notice => 'Post was created')
+
+* Added ActionController::Base#notice/= and ActionController::Base#alert/= as a convenience accessors in both the controller and the view for flash[:notice]/= and flash[:alert]/= [DHH]
+
+
 * Introduce grouped_collection_select helper.  #1249 [Dan Codeape, Erik Ostrom]
 
 * Make sure javascript_include_tag/stylesheet_link_tag does not append ".js" or ".css" onto external urls. #1664 [Matthew Rudy Jacobs]

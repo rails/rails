@@ -1,3 +1,5 @@
+require 'action_controller/vendor/html-scanner'
+
 #--
 # Copyright (c) 2006 Assaf Arkin (http://labnotes.org)
 # Under MIT and/or CC By license.
@@ -16,7 +18,7 @@ module ActionDispatch
     #
     # Use +css_select+ to select elements without making an assertions, either
     # from the response HTML or elements selected by the enclosing assertion.
-    # 
+    #
     # In addition to HTML responses, you can make the following assertions:
     # * +assert_select_rjs+ - Assertions on HTML content of RJS update and insertion operations.
     # * +assert_select_encoded+ - Assertions on HTML encoded inside XML, for example for dealing with feed item descriptions.
@@ -53,8 +55,8 @@ module ActionDispatch
       #   end
       #
       #   # Selects all list items in unordered lists
-      #   items = css_select("ul>li") 
-      #      
+      #   items = css_select("ul>li")
+      #
       #   # Selects all form tags and then all inputs inside the form
       #   forms = css_select("form")
       #   forms.each do |form|
@@ -212,7 +214,7 @@ module ActionDispatch
           # Otherwise just operate on the response document.
           root = response_from_page_or_rjs
         end
-        
+
         # First or second argument is the selector: string and we pass
         # all remaining arguments. Array and we pass the argument. Also
         # accepts selector itself.
@@ -225,7 +227,7 @@ module ActionDispatch
             selector = arg
           else raise ArgumentError, "Expecting a selector as the first argument"
         end
-        
+
         # Next argument is used for equality tests.
         equals = {}
         case arg = args.shift
@@ -315,10 +317,10 @@ module ActionDispatch
         # Returns all matches elements.
         matches
       end
-      
+
       def count_description(min, max) #:nodoc:
         pluralize = lambda {|word, quantity| word << (quantity == 1 ? '' : 's')}
-        
+
         if min && max && (max != min)
           "between #{min} and #{max} elements"
         elsif min && !(min == 1 && max == 1)
@@ -327,7 +329,7 @@ module ActionDispatch
           "at most #{max} #{pluralize['element', max]}"
         end
       end
-      
+
       # :call-seq:
       #   assert_select_rjs(id?) { |elements| ... }
       #   assert_select_rjs(statement, id?) { |elements| ... }
@@ -344,7 +346,7 @@ module ActionDispatch
       # that update or insert an element with that identifier.
       #
       # Use the first argument to narrow down assertions to only statements
-      # of that type. Possible values are <tt>:replace</tt>, <tt>:replace_html</tt>, 
+      # of that type. Possible values are <tt>:replace</tt>, <tt>:replace_html</tt>,
       # <tt>:show</tt>, <tt>:hide</tt>, <tt>:toggle</tt>, <tt>:remove</tta>,
       # <tt>:insert_html</tt> and <tt>:redirect</tt>.
       #
@@ -494,7 +496,7 @@ module ActionDispatch
       #       end
       #     end
       #   end
-      #   
+      #
       #
       #   # Selects all paragraph tags from within the description of an RSS feed
       #   assert_select_feed :rss, 2.0 do

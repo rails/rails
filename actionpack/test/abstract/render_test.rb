@@ -4,7 +4,7 @@ module AbstractController
   module Testing
 
     class ControllerRenderer < AbstractController::Base
-      include AbstractController::RenderingController
+      include AbstractController::Rendering
 
       self.view_paths = [ActionView::FixtureResolver.new(
         "default.erb" => "With Default",

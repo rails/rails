@@ -1,13 +1,13 @@
-ActionController::Routing::Routes.draw do |map|
+<%= app_const %>.routes.draw do |map|
   # The priority is based upon order of creation:
   # first created -> highest priority.
 
   # Sample of regular route:
-  #   match 'products/:id', :to => 'catalog#view'
+  #   match 'products/:id' => 'catalog#view'
   # Keep in mind you can assign values other than :controller and :action
 
   # Sample of named route:
-  #   match 'products/:id/purchase', :to => 'catalog#purchase', :as => :purchase
+  #   match 'products/:id/purchase' => 'catalog#purchase', :as => :purchase
   # This route can be invoked with purchase_url(:id => product.id)
 
   # Sample resource route (maps HTTP verbs to controller actions automatically):
@@ -48,13 +48,11 @@ ActionController::Routing::Routes.draw do |map|
 
   # You can have the root of your site routed with "root"
   # just remember to delete public/index.html.
-  # root :to => "welcome"
+  # root :to => "welcome#index"
 
   # See how all your routes lay out with "rake routes"
 
-  # Install the default route as the lowest priority.
-  # Note: The default route make all actions in every controller accessible
-  # via GET requests. You should consider removing or commenting it out if
-  # you're using named routes and resources.
-  match ':controller(/:action(/:id(.:format)))'
+  # This is a legacy wild controller route that's not recommended for RESTful applications.
+  # Note: This route will make all actions in every controller accessible via GET requests.
+  # match ':controller(/:action(/:id(.:format)))'
 end

@@ -5,7 +5,7 @@ module ActionDispatch
   module Routing
     class RouteSet #:nodoc:
       NotFound = lambda { |env|
-        raise ActionController::RoutingError, "No route matches #{env['PATH_INFO'].inspect} with #{env.inspect}"
+        raise ActionController::RoutingError, "No route matches #{env['PATH_INFO'].inspect}"
       }
 
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
@@ -21,7 +21,7 @@ module ActionDispatch
           prepare_params!(params)
 
           unless controller = controller(params)
-            return [417, {}, []]
+            return [404, {'X-Cascade' => 'pass'}, []]
           end
 
           controller.action(params[:action]).call(env)
@@ -273,7 +273,7 @@ module ActionDispatch
         # TODO: Move this into Railties
         if defined?(Rails.application)
           # Find namespaces in controllers/ directory
-          Rails.application.configuration.controller_paths.each do |load_path|
+          Rails.application.config.controller_paths.each do |load_path|
             load_path = File.expand_path(load_path)
             Dir["#{load_path}/**/*_controller.rb"].collect do |path|
               namespaces << File.dirname(path).sub(/#{load_path}\/?/, '')
@@ -426,7 +426,7 @@ module ActionDispatch
           end
         end
 
-        raise ActionController::RoutingError, "No route matches #{path.inspect} with #{environment.inspect}"
+        raise ActionController::RoutingError, "No route matches #{path.inspect}"
       end
     end
   end

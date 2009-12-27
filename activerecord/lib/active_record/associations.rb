@@ -1382,9 +1382,9 @@ module ActiveRecord
               if reflection.through_reflection && reflection.source_reflection.belongs_to?
                 through = reflection.through_reflection
                 primary_key = reflection.source_reflection.primary_key_name
-                send(through.name).all(:select => "DISTINCT #{through.quoted_table_name}.#{primary_key}").map!(&:"#{primary_key}")
+                send(through.name).select("DISTINCT #{through.quoted_table_name}.#{primary_key}").map!(&:"#{primary_key}")
               else
-                send(reflection.name).all(:select => "#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map!(&:id)
+                send(reflection.name).select("#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map!(&:id)
               end
             end
           end
@@ -1717,9 +1717,9 @@ module ActiveRecord
             select(column_aliases(join_dependency)).
             group(construct_group(options[:group], options[:having], scope)).
             order(construct_order(options[:order], scope)).
-            conditions(construct_conditions(options[:conditions], scope))
+            where(construct_conditions(options[:conditions], scope))
 
-          relation = relation.conditions(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
+          relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
           relation = relation.limit(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)
 
           relation
@@ -1757,7 +1757,7 @@ module ActiveRecord
           end
 
           relation = relation.joins(construct_join(options[:joins], scope)).
-            conditions(construct_conditions(options[:conditions], scope)).
+            where(construct_conditions(options[:conditions], scope)).
             group(construct_group(options[:group], options[:having], scope)).
             order(construct_order(options[:order], scope)).
             limit(construct_limit(options[:limit], scope)).

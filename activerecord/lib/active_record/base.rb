@@ -13,6 +13,7 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/object/metaclass'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveRecord #:nodoc:
   # Generic Active Record exception class.
@@ -650,6 +651,8 @@ module ActiveRecord #:nodoc:
         end
       end
 
+      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :to => :scoped
+
       # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
       # same arguments to this method as you can to <tt>find(:first)</tt>.
       def first(*args)
@@ -668,20 +671,10 @@ module ActiveRecord #:nodoc:
         options = args.extract_options!
 
         if options.empty? && !scoped?(:find)
-          relation = arel_table
+          arel_table.to_a
         else
-          relation = construct_finder_arel(options)
-          include_associations = merge_includes(scope(:find, :include), options[:include])
-
-          if include_associations.any?
-            if references_eager_loaded_tables?(options)
-              relation.eager_load(include_associations)
-            else
-              relation.preload(include_associations)
-            end
-          end
+          construct_finder_arel_with_includes(options).to_a
         end
-        relation
       end
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
@@ -882,7 +875,7 @@ module ActiveRecord #:nodoc:
         relation = arel_table
 
         if conditions = construct_conditions(conditions, scope)
-          relation = relation.conditions(Arel::SqlLiteral.new(conditions))
+          relation = relation.where(Arel::SqlLiteral.new(conditions))
         end
 
         relation = if options.has_key?(:limit) || (scope && scope[:limit])
@@ -945,7 +938,7 @@ module ActiveRecord #:nodoc:
       # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
         if conditions
-          arel_table.conditions(Arel::SqlLiteral.new(construct_conditions(conditions, scope(:find)))).delete
+          arel_table.where(Arel::SqlLiteral.new(construct_conditions(conditions, scope(:find)))).delete
         else
           arel_table.delete
         end
@@ -1514,13 +1507,8 @@ module ActiveRecord #:nodoc:
         "(#{segments.join(') AND (')})" unless segments.empty?
       end
 
-
       def arel_table(table = nil)
-        table = table_name if table.blank?
-        if @arel_table.nil? || @arel_table.name != table
-          @arel_table = Relation.new(self, Arel::Table.new(table))
-        end
-        @arel_table
+        Relation.new(self, Arel::Table.new(table || table_name))
       end
 
       private
@@ -1689,9 +1677,11 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_arel(options = {}, scope = scope(:find))
           # TODO add lock to Arel
+          validate_find_options(options)
+
           relation = arel_table(options[:from]).
             joins(construct_join(options[:joins], scope)).
-            conditions(construct_conditions(options[:conditions], scope)).
+            where(construct_conditions(options[:conditions], scope)).
             select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
             group(construct_group(options[:group], options[:having], scope)).
             order(construct_order(options[:order], scope)).
@@ -1699,6 +1689,21 @@ module ActiveRecord #:nodoc:
             offset(construct_offset(options[:offset], scope))
 
           relation = relation.readonly if options[:readonly]
+
+          relation
+        end
+
+        def construct_finder_arel_with_includes(options = {})
+          relation = construct_finder_arel(options)
+          include_associations = merge_includes(scope(:find, :include), options[:include])
+
+          if include_associations.any?
+            if references_eager_loaded_tables?(options)
+              relation = relation.eager_load(include_associations)
+            else
+              relation = relation.preload(include_associations)
+            end
+          end
 
           relation
         end
@@ -1837,9 +1842,8 @@ module ActiveRecord #:nodoc:
         end
 
         # Enables dynamic finders like <tt>find_by_user_name(user_name)</tt> and <tt>find_by_user_name_and_password(user_name, password)</tt>
-        # that are turned into <tt>find(:first, :conditions => ["user_name = ?", user_name])</tt> and
-        # <tt>find(:first, :conditions => ["user_name = ? AND password = ?", user_name, password])</tt> respectively. Also works for
-        # <tt>find(:all)</tt> by using <tt>find_all_by_amount(50)</tt> that is turned into <tt>find(:all, :conditions => ["amount = ?", 50])</tt>.
+        # that are turned into <tt>where(:user_name => user_name).first</tt> and <tt>where(:user_name => user_name, :password => :password).first</tt>
+        # respectively. Also works for <tt>all</tt> by using <tt>find_all_by_amount(50)</tt> that is turned into <tt>where(:amount => 50).all</tt>.
         #
         # It's even possible to use all the additional parameters to +find+. For example, the full interface for +find_all_by_amount+
         # is actually <tt>find_all_by_amount(amount, options)</tt>.
@@ -1855,103 +1859,11 @@ module ActiveRecord #:nodoc:
             attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
             if match.finder?
-              finder = match.finder
-              bang = match.bang?
-              # def self.find_by_login_and_activated(*args)
-              #   options = args.extract_options!
-              #   attributes = construct_attributes_from_arguments(
-              #     [:login,:activated],
-              #     args
-              #   )
-              #   finder_options = { :conditions => attributes }
-              #   validate_find_options(options)
-              #   set_readonly_option!(options)
-              #
-              #   if options[:conditions]
-              #     with_scope(:find => finder_options) do
-              #       find(:first, options)
-              #     end
-              #   else
-              #     find(:first, options.merge(finder_options))
-              #   end
-              # end
-              self.class_eval %{
-                def self.#{method_id}(*args)
-                  options = args.extract_options!
-                  attributes = construct_attributes_from_arguments(
-                    [:#{attribute_names.join(',:')}],
-                    args
-                  )
-                  finder_options = { :conditions => attributes }
-                  validate_find_options(options)
-                  set_readonly_option!(options)
-
-                  #{'result = ' if bang}if options[:conditions]
-                    with_scope(:find => finder_options) do
-                      find(:#{finder}, options)
-                    end
-                  else
-                    find(:#{finder}, options.merge(finder_options))
-                  end
-                  #{'result || raise(RecordNotFound, "Couldn\'t find #{name} with #{attributes.to_a.collect { |pair| pair.join(\' = \') }.join(\', \')}")' if bang}
-                end
-              }, __FILE__, __LINE__
-              send(method_id, *arguments)
+              options = arguments.extract_options!
+              relation = options.any? ? construct_finder_arel_with_includes(options) : scoped
+              relation.send :find_by_attributes, match, attribute_names, *arguments
             elsif match.instantiator?
-              instantiator = match.instantiator
-              # def self.find_or_create_by_user_id(*args)
-              #   guard_protected_attributes = false
-              #
-              #   if args[0].is_a?(Hash)
-              #     guard_protected_attributes = true
-              #     attributes = args[0].with_indifferent_access
-              #     find_attributes = attributes.slice(*[:user_id])
-              #   else
-              #     find_attributes = attributes = construct_attributes_from_arguments([:user_id], args)
-              #   end
-              #
-              #   options = { :conditions => find_attributes }
-              #   set_readonly_option!(options)
-              #
-              #   record = find(:first, options)
-              #
-              #   if record.nil?
-              #     record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
-              #     yield(record) if block_given?
-              #     record.save
-              #     record
-              #   else
-              #     record
-              #   end
-              # end
-              self.class_eval %{
-                def self.#{method_id}(*args)
-                  guard_protected_attributes = false
-
-                  if args[0].is_a?(Hash)
-                    guard_protected_attributes = true
-                    attributes = args[0].with_indifferent_access
-                    find_attributes = attributes.slice(*[:#{attribute_names.join(',:')}])
-                  else
-                    find_attributes = attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
-                  end
-
-                  options = { :conditions => find_attributes }
-                  set_readonly_option!(options)
-
-                  record = find(:first, options)
-
-                  if record.nil?
-                    record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
-                    #{'yield(record) if block_given?'}
-                    #{'record.save' if instantiator == :create}
-                    record
-                  else
-                    record
-                  end
-                end
-              }, __FILE__, __LINE__
-              send(method_id, *arguments, &block)
+              scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block
             end
           elsif match = DynamicScopeMatch.match(method_id)
             attribute_names = match.attribute_names
@@ -2566,7 +2478,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          self.class.arel_table.conditions(self.class.arel_table[self.class.primary_key].eq(id)).delete
+          self.class.arel_table.where(self.class.arel_table[self.class.primary_key].eq(id)).delete
         end
 
         @destroyed = true
@@ -2853,7 +2765,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        self.class.arel_table.conditions(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
+        self.class.arel_table.where(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes

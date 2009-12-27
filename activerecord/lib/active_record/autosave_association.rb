@@ -221,9 +221,9 @@ module ActiveRecord
       if new_record
         association
       elsif association.loaded?
-        autosave ? association : association.select { |record| record.new_record? }
+        autosave ? association : association.find_all { |record| record.new_record? }
       else
-        autosave ? association.target : association.target.select { |record| record.new_record? }
+        autosave ? association.target : association.target.find_all { |record| record.new_record? }
       end
     end
 

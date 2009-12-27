@@ -1,8 +1,12 @@
+require 'action_dispatch/http/request'
+require 'action_dispatch/http/response'
+
 module ActionController
-  module RackConvenience
+  module RackDelegation
     extend ActiveSupport::Concern
 
     included do
+      delegate :session, :to => "@_request"
       delegate :headers, :status=, :location=, :content_type=,
                :status, :location, :content_type, :to => "@_response"
       attr_internal :request
@@ -22,6 +26,10 @@ module ActionController
     def response_body=(body)
       response.body = body if response
       super
+    end
+
+    def reset_session
+      @_request.reset_session
     end
   end
 end

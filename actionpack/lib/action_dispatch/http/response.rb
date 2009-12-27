@@ -60,7 +60,7 @@ module ActionDispatch # :nodoc:
     end
 
     def status=(status)
-      @status = status.to_i
+      @status = Rack::Utils.status_code(status)
     end
 
     # The response code of the request
@@ -74,7 +74,7 @@ module ActionDispatch # :nodoc:
     end
 
     def message
-      StatusCodes::STATUS_CODES[@status]
+      Rack::Utils::HTTP_STATUS_CODES[@status]
     end
     alias_method :status_message, :message
 
@@ -144,18 +144,6 @@ module ActionDispatch # :nodoc:
     CONTENT_TYPE    = "Content-Type"
 
     cattr_accessor(:default_charset) { "utf-8" }
-
-    def assign_default_content_type_and_charset!
-      return if headers[CONTENT_TYPE].present?
-
-      @content_type ||= Mime::HTML
-      @charset      ||= self.class.default_charset
-
-      type = @content_type.to_s.dup
-      type << "; charset=#{@charset}" unless @sending_file
-
-      headers[CONTENT_TYPE] = type
-    end
 
     def to_a
       assign_default_content_type_and_charset!
@@ -259,6 +247,18 @@ module ActionDispatch # :nodoc:
         !@blank && @body.respond_to?(:all?) && @body.all? { |part| part.is_a?(String) }
       end
 
+      def assign_default_content_type_and_charset!
+        return if headers[CONTENT_TYPE].present?
+
+        @content_type ||= Mime::HTML
+        @charset      ||= self.class.default_charset
+
+        type = @content_type.to_s.dup
+        type << "; charset=#{@charset}" unless @sending_file
+
+        headers[CONTENT_TYPE] = type
+      end
+
       DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
 
       def set_conditional_cache_control!
@@ -280,7 +280,6 @@ module ActionDispatch # :nodoc:
 
           headers["Cache-Control"] = options.join(", ")
         end
-
       end
   end
 end

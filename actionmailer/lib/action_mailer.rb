@@ -31,15 +31,13 @@ module ActionMailer
   extend ::ActiveSupport::Autoload
 
   autoload :AdvAttrAccessor
-  autoload :DeprecatedBody
   autoload :Base
   autoload :DeliveryMethod
+  autoload :DeprecatedBody
   autoload :MailHelper
-  autoload :Part
-  autoload :PartContainer
   autoload :Quoting
+  autoload :TestCase
   autoload :TestHelper
-  
 end
 
 module Text
@@ -48,12 +46,4 @@ module Text
   autoload :Format, 'action_mailer/vendor/text_format'
 end
 
-module Net
-  extend ActiveSupport::Autoload
-
-  autoload :SMTP
-end
-
-
-gem 'mail', '>= 1.4.1'
 require 'mail'

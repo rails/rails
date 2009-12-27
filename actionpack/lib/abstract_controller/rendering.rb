@@ -10,13 +10,12 @@ module AbstractController
     end
   end
 
-  module RenderingController
+  module Rendering
     extend ActiveSupport::Concern
 
     include AbstractController::Logger
 
     included do
-      attr_internal :formats
       extlib_inheritable_accessor :_view_paths
       self._view_paths ||= ActionView::PathSet.new
     end
@@ -80,7 +79,7 @@ module AbstractController
     #
     # :api: plugin
     def render_to_string(options = {})
-      AbstractController::RenderingController.body_to_s(render_to_body(options))
+      AbstractController::Rendering.body_to_s(render_to_body(options))
     end
 
     # Renders the template from an object.
@@ -126,8 +125,8 @@ module AbstractController
       if options.key?(:text)
         options[:_template] = ActionView::Template::Text.new(options[:text], format_for_text)
       elsif options.key?(:inline)
-        handler = ActionView::Template.handler_class_for_extension(options[:type] || "erb")
-        template = ActionView::Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
+        handler  = ActionView::Template.handler_class_for_extension(options[:type] || "erb")
+        template = ActionView::Template.new(options[:inline], "inline template", handler, {})
         options[:_template] = template
       elsif options.key?(:template)
         options[:_template_name] = options[:template]
@@ -195,8 +194,7 @@ module AbstractController
       #   otherwise, process the parameter into a ViewPathSet.
       def view_paths=(paths)
         clear_template_caches!
-        self._view_paths = paths.is_a?(ActionView::PathSet) ?
-                            paths : ActionView::Base.process_view_paths(paths)
+        self._view_paths = paths.is_a?(ActionView::PathSet) ? paths : ActionView::Base.process_view_paths(paths)
       end
     end
   end

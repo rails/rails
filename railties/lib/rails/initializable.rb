@@ -93,6 +93,7 @@ module Rails
       end
 
       def initializer(name, opts = {}, &blk)
+        raise ArgumentError, "A block must be passed when defining an initializer" unless blk
         @initializers ||= []
         @initializers << Initializer.new(name, nil, opts, &blk)
       end

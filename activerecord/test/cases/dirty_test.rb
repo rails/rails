@@ -301,7 +301,7 @@ class DirtyTest < ActiveRecord::TestCase
   def test_save_should_not_save_serialized_attribute_with_partial_updates_if_not_present
     with_partial_updates(Topic) do
       Topic.create!(:author_name => 'Bill', :content => {:a => "a"})
-      topic = Topic.first(:select => 'id, author_name')
+      topic = Topic.select('id, author_name').first
       topic.update_attribute :author_name, 'John'
       topic = Topic.first
       assert_not_nil topic.content

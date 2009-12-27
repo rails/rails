@@ -1,22 +1,27 @@
 require 'isolation/abstract_unit'
-require 'rack/test'
 
 module ApplicationTests
   class RoutingTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
-    include Rack::Test::Methods
 
     def setup
       build_app
+      boot_rails
+      require 'rack/test'
+      extend Rack::Test::Methods
     end
 
     def app
       @app ||= begin
-        boot_rails
         require "#{app_path}/config/environment"
 
         Rails.application
       end
+    end
+
+    test "rails/info/properties" do
+      get "/rails/info/properties"
+      assert_equal 200, last_response.status
     end
 
     test "simple controller" do
@@ -25,6 +30,12 @@ module ApplicationTests
           def index
             render :text => "foo"
           end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do |map|
+          match ':controller(/:action)'
         end
       RUBY
 
@@ -46,6 +57,12 @@ module ApplicationTests
           def index
             render :text => "bar"
           end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do |map|
+          match ':controller(/:action)'
         end
       RUBY
 
@@ -75,6 +92,12 @@ module ApplicationTests
         end
       RUBY
 
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do |map|
+          match ':controller(/:action)'
+        end
+      RUBY
+
       get '/foo'
       assert_equal 'foo', last_response.body
 
@@ -92,7 +115,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        ActionController::Routing::Routes.draw do |map|
+        AppTemplate::Application.routes.draw do |map|
           match 'foo', :to => 'foo#index'
         end
       RUBY
@@ -107,7 +130,7 @@ module ApplicationTests
         RUBY
 
         plugin.write 'config/routes.rb', <<-RUBY
-          ActionController::Routing::Routes.draw do |map|
+          AppTemplate::Application.routes.draw do |map|
             match 'bar', :to => 'bar#index'
           end
         RUBY
@@ -134,7 +157,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        ActionController::Routing::Routes.draw do |map|
+        AppTemplate::Application.routes.draw do |map|
           match 'foo', :to => 'foo#bar'
         end
       RUBY
@@ -143,10 +166,12 @@ module ApplicationTests
       assert_equal 'bar', last_response.body
 
       app_file 'config/routes.rb', <<-RUBY
-        ActionController::Routing::Routes.draw do |map|
+        AppTemplate::Application.routes.draw do |map|
           match 'foo', :to => 'foo#baz'
         end
       RUBY
+
+      sleep 0.1
 
       get '/foo'
       assert_equal 'baz', last_response.body

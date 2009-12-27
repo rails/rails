@@ -78,12 +78,12 @@ module ActionView
     end
 
     def _render_inline(inline, layout, options)
-      handler = Template.handler_class_for_extension(options[:type] || "erb")
-      template = Template.new(options[:inline],
-        "inline #{options[:inline].inspect}", handler, {})
+      handler  = Template.handler_class_for_extension(options[:type] || "erb")
+      template = Template.new(options[:inline], "inline template", handler, {})
 
-      locals = options[:locals]
+      locals  = options[:locals]
       content = template.render(self, locals)
+
       _render_text(content, layout, locals)
     end
 
@@ -91,6 +91,7 @@ module ActionView
       content = layout.render(self, locals) do |*name|
         _layout_for(*name) { content }
       end if layout
+
       content
     end
 
@@ -113,21 +114,16 @@ module ActionView
         msg
       end
 
-      locals = options[:locals] || {}
-
-      content = if partial
-        _render_partial_object(template, options)
-      else
-        template.render(self, locals)
-      end
-
+      locals  = options[:locals] || {}
+      content = partial ? _render_partial_object(template, options) : template.render(self, locals)
       @_content_for[:layout] = content
 
       if layout
         @_layout = layout.identifier
         logger.info("Rendering template within #{layout.inspect}") if logger
-        content = layout.render(self, locals) {|*name| _layout_for(*name) }
+        content = layout.render(self, locals) { |*name| _layout_for(*name) }
       end
+
       content
     end
   end

@@ -148,7 +148,7 @@ module ActiveRecord
           else
             relation = arel_table(options[:from]).
               joins(construct_join(options[:joins], scope)).
-              conditions(construct_conditions(options[:conditions], scope)).
+              where(construct_conditions(options[:conditions], scope)).
               order(options[:order]).
               limit(options[:limit]).
               offset(options[:offset])

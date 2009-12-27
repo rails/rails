@@ -37,7 +37,8 @@ module ActiveResource
   autoload :Connection
   autoload :CustomMethods
   autoload :Formats
-  autoload :Observing
-  autoload :Validations
   autoload :HttpMock
+  autoload :Observing
+  autoload :Schema
+  autoload :Validations
 end

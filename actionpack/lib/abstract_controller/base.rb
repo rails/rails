@@ -5,6 +5,7 @@ module AbstractController
   class Base
     attr_internal :response_body
     attr_internal :action_name
+    attr_internal :formats
 
     class << self
       attr_reader :abstract
@@ -83,7 +84,7 @@ module AbstractController
     #
     # ==== Returns
     # self
-    def process(action)
+    def process(action, *args)
       @_action_name = action_name = action.to_s
 
       unless action_name = method_for_action(action_name)
@@ -92,7 +93,7 @@ module AbstractController
 
       @_response_body = nil
 
-      process_action(action_name)
+      process_action(action_name, *args)
     end
 
   private
@@ -112,8 +113,8 @@ module AbstractController
     # Call the action. Override this in a subclass to modify the
     # behavior around processing an action. This, and not #process,
     # is the intended way to override action dispatching.
-    def process_action(method_name)
-      send_action(method_name)
+    def process_action(method_name, *args)
+      send_action(method_name, *args)
     end
 
     # Actually call the method associated with the action. Override

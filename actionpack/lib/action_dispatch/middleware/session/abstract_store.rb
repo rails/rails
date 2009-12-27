@@ -1,4 +1,5 @@
 require 'rack/utils'
+require 'rack/request'
 
 module ActionDispatch
   module Session
