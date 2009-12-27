@@ -300,6 +300,16 @@ class ArrayToXmlTests < Test::Unit::TestCase
 
     assert xml.include?(%(<count>2</count>)), xml
   end
+  
+  class Namespaced < Hash
+  end
+  def test_to_xml_with_namespaced_classes
+    xml = [
+      Namespaced.new :name => "David"
+    ].to_xml
+
+    assert_match(/<array\-to\-xml\-tests\-namespaceds/, xml)
+  end
 
   def test_to_xml_with_empty
     xml = [].to_xml
