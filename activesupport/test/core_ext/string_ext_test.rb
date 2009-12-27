@@ -441,3 +441,10 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert @string.html_safe?
   end
 end
+
+class StringExcludeTest < ActiveSupport::TestCase
+  test 'inverse of #include' do
+    assert_equal false, 'foo'.exclude?('o')
+    assert_equal true, 'foo'.exclude?('p')
+  end
+end
