@@ -1,4 +1,5 @@
 require 'libxml'
+require 'active_support/core_ext/object/returning'
 
 # = XmlMini LibXML implementation
 module ActiveSupport
