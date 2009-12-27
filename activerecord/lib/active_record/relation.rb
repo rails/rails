@@ -69,7 +69,7 @@ module ActiveRecord
     end
 
     def joins(join, join_type = nil)
-      return self if join.blank?
+      return create_new_relation if join.blank?
 
       join_relation = case join
       when String
