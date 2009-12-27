@@ -21,7 +21,8 @@ module ActiveRecord
         offset(r.skipped).
         select(r.send(:select_clauses).join(', ')).
         eager_load(r.eager_load_associations).
-        preload(r.associations_to_preload)
+        preload(r.associations_to_preload).
+        from(r.send(:sources).any? ? r.send(:from_clauses) : nil)
     end
 
     alias :& :merge
@@ -42,12 +43,8 @@ module ActiveRecord
       selects.present? ? create_new_relation(@relation.project(selects)) : create_new_relation
     end
 
-    # TODO : This is temporary. We need .from in Arel.
-    attr_writer :from
     def from(from)
-      relation = create_new_relation
-      relation.from = from
-      relation
+      from.present? ? create_new_relation(@relation.from(from)) : create_new_relation
     end
 
     def group(groups)
@@ -130,7 +127,7 @@ module ActiveRecord
             :conditions => where_clause,
             :limit => @relation.taken,
             :offset => @relation.skipped,
-            :from => @from
+            :from => (@relation.send(:from_clauses) if @relation.send(:sources).any?)
             },
             ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
         end
@@ -303,9 +300,7 @@ module ActiveRecord
     end
 
     def create_new_relation(relation = @relation, readonly = @readonly, preload = @associations_to_preload, eager_load = @eager_load_associations)
-      r = self.class.new(@klass, relation, readonly, preload, eager_load)
-      r.from = @from
-      r
+      self.class.new(@klass, relation, readonly, preload, eager_load)
     end
 
     def where_clause(join_string = "\n\tAND ")
