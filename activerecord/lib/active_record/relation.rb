@@ -164,11 +164,12 @@ module ActiveRecord
     def find_or_instantiator_by_attributes(match, attributes, *args)
       guard_protected_attributes = false
 
-      attributes_for_create = conditions = attributes.inject({}) {|h, a| h[a] = args[attributes.index(a)]; h}
-
       if args[0].is_a?(Hash)
         guard_protected_attributes = true
-        conditions = args[0].with_indifferent_access.slice(*attributes).symbolize_keys
+        attributes_for_create = args[0].with_indifferent_access
+        conditions = attributes_for_create.slice(*attributes).symbolize_keys
+      else
+        attributes_for_create = conditions = attributes.inject({}) {|h, a| h[a] = args[attributes.index(a)]; h}
       end
 
       record = where(conditions).first

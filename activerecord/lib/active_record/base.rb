@@ -1864,60 +1864,7 @@ module ActiveRecord #:nodoc:
               relation = options.any? ? construct_finder_arel_with_includes(options) : scoped
               relation.send :find_by_attributes, match, attribute_names, *arguments
             elsif match.instantiator?
-              instantiator = match.instantiator
-              # def self.find_or_create_by_user_id(*args)
-              #   guard_protected_attributes = false
-              #
-              #   if args[0].is_a?(Hash)
-              #     guard_protected_attributes = true
-              #     attributes = args[0].with_indifferent_access
-              #     find_attributes = attributes.slice(*[:user_id])
-              #   else
-              #     find_attributes = attributes = construct_attributes_from_arguments([:user_id], args)
-              #   end
-              #
-              #   options = { :conditions => find_attributes }
-              #   set_readonly_option!(options)
-              #
-              #   record = find(:first, options)
-              #
-              #   if record.nil?
-              #     record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
-              #     yield(record) if block_given?
-              #     record.save
-              #     record
-              #   else
-              #     record
-              #   end
-              # end
-              self.class_eval %{
-                def self.#{method_id}(*args)
-                  guard_protected_attributes = false
-
-                  if args[0].is_a?(Hash)
-                    guard_protected_attributes = true
-                    attributes = args[0].with_indifferent_access
-                    find_attributes = attributes.slice(*[:#{attribute_names.join(',:')}])
-                  else
-                    find_attributes = attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
-                  end
-
-                  options = { :conditions => find_attributes }
-                  set_readonly_option!(options)
-
-                  record = find(:first, options)
-
-                  if record.nil?
-                    record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
-                    #{'yield(record) if block_given?'}
-                    #{'record.save' if instantiator == :create}
-                    record
-                  else
-                    record
-                  end
-                end
-              }, __FILE__, __LINE__
-              send(method_id, *arguments, &block)
+              scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block
             end
           elsif match = DynamicScopeMatch.match(method_id)
             attribute_names = match.attribute_names

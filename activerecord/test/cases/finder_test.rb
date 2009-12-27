@@ -880,13 +880,6 @@ class FinderTest < ActiveRecord::TestCase
     assert !c.new_record?
   end
 
-  def test_dynamic_find_or_initialize_from_one_attribute_caches_method
-    class << Company; self; end.send(:remove_method, :find_or_initialize_by_name) if Company.public_methods.any? { |m| m.to_s == 'find_or_initialize_by_name' }
-    assert !Company.public_methods.any? { |m| m.to_s == 'find_or_initialize_by_name' }
-    sig38 = Company.find_or_initialize_by_name("38signals")
-    assert Company.public_methods.any? { |m| m.to_s == 'find_or_initialize_by_name' }
-  end
-
   def test_find_or_initialize_from_two_attributes
     another = Topic.find_or_initialize_by_title_and_author_name("Another topic","John")
     assert_equal "Another topic", another.title
