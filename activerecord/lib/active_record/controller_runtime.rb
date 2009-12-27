@@ -1,5 +1,5 @@
-module ActionController
-  module ActiveRecordRuntime
+module ActiveRecord
+  module ControllerRuntime
     extend ActiveSupport::Concern
 
     attr_internal :db_runtime

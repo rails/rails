@@ -1,6 +1,7 @@
 module ActionController
   class Plugin < Rails::Plugin
     plugin_name :action_controller
+    include_modules_in "ActionController::Base"
 
     initializer "action_controller.set_configs" do |app|
       app.config.action_controller.each do |k,v|

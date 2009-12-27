@@ -7,6 +7,9 @@ require "action_controller/rails"
 module ActiveRecord
   class Plugin < Rails::Plugin
     plugin_name :active_record
+    include_modules_in "ActiveRecord::Base"
+
+    config.action_controller.include "ActiveRecord::ControllerRuntime"
 
     initializer "active_record.set_configs" do |app|
       app.config.active_record.each do |k,v|

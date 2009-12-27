@@ -30,12 +30,22 @@ module ActionController
       end
     end
 
-    def cleanup_view_runtime
+    # If you want to remove any time taken into account in :view_runtime
+    # wrongly, you can do it here:
+    #
+    #   def cleanup_view_runtime
+    #     super - time_taken_in_something_expensive
+    #   end
+    #
+    # :api: plugin
+    def cleanup_view_runtime #:nodoc:
       yield
     end
 
     module ClassMethods
-      def log_event(name, before, after, instrumenter_id, payload)
+      # This is the hook invoked by ActiveSupport::Notifications.subscribe.
+      # If you need to log any event, overwrite the method and do it here.
+      def log_event(name, before, after, instrumenter_id, payload) #:nodoc:
         if name == :process_action
           duration     = [(after - before) * 1000, 0.01].max
           controller   = payload[:controller]
@@ -65,6 +75,7 @@ module ActionController
     protected
 
       # A hook which allows logging what happened during controller process action.
+      # :api: plugin
       def log_process_action(controller) #:nodoc:
         view_runtime = controller.send :view_runtime
         logger.info("  View runtime: %.1fms" % view_runtime.to_f) if view_runtime
