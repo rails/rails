@@ -1,4 +1,4 @@
-require 'active_support/core_ext/enumberable'
+require 'active_support/core_ext/enumerable'
 
 module ActionDispatch
   module Routing
