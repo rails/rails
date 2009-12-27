@@ -652,7 +652,7 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :to => :scoped
+      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :from, :to => :scoped
 
       # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
       # same arguments to this method as you can to <tt>find(:first)</tt>.

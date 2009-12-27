@@ -61,14 +61,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_with_two_tables_in_from_without_getting_double_quoted
-    posts = Post.find(:all,
-      :select     => "posts.*",
-      :from       => "authors, posts",
-      :include    => :comments,
-      :conditions => "posts.author_id = authors.id",
-      :order      => "posts.id"
-    )
-
+    posts = Post.select("posts.*").from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").order("posts.id").to_a
     assert_equal 2, posts.first.comments.size
   end
 

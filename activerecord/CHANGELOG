@@ -1,5 +1,10 @@
 *Edge*
 
+* Add Model.from and association_collection#from finder methods [Pratik Naik]
+
+  user = User.scoped
+  user.select('*').from('users, items')
+
 * Add relation.destroy_all [Pratik Naik]
 
   old_items = Item.where("age > 100")
