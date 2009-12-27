@@ -328,4 +328,12 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.loaded?
   end
 
+  def test_relation_merging
+    devs = Developer.where("salary >= 80000") & Developer.limit(2) & Developer.order('id ASC').where("id < 3")
+    assert_equal [developers(:david), developers(:jamis)], devs.to_a
+
+    dev_with_count = Developer.limit(1) & Developer.order('id DESC') & Developer.select('developers.*, count(id) id_count').group('id')
+    assert_equal [developers(:poor_jamis)], dev_with_count.to_a
+    assert_equal 1, dev_with_count.first.id_count.to_i
+  end
 end

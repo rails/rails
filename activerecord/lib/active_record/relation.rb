@@ -12,6 +12,18 @@ module ActiveRecord
       @loaded = false
     end
 
+    def merge(r)
+      joins(r.relation.joins(r.relation)).
+        group(r.send(:group_clauses).join(', ')).
+        order(r.send(:order_clauses).join(', ')).
+        where(r.send(:where_clause)).
+        limit(r.taken).
+        offset(r.skipped).
+        select(r.send(:select_clauses).join(', '))
+    end
+
+    alias :& :merge
+
     def preload(*associations)
       create_new_relation(@relation, @readonly, @associations_to_preload + Array.wrap(associations))
     end
@@ -25,7 +37,7 @@ module ActiveRecord
     end
 
     def select(selects)
-      create_new_relation(@relation.project(selects))
+      selects.present? ? create_new_relation(@relation.project(selects)) : create_new_relation
     end
 
     # TODO : This is temporary. We need .from in Arel.
@@ -37,11 +49,11 @@ module ActiveRecord
     end
 
     def group(groups)
-      create_new_relation(@relation.group(groups))
+      groups.present? ? create_new_relation(@relation.group(groups)) : create_new_relation
     end
 
     def order(orders)
-      create_new_relation(@relation.order(orders))
+      orders.present? ? create_new_relation(@relation.order(orders)) : create_new_relation
     end
 
     def reverse_order
@@ -57,11 +69,11 @@ module ActiveRecord
     end
 
     def limit(limits)
-      create_new_relation(@relation.take(limits))
+      limits.present? ? create_new_relation(@relation.take(limits)) : create_new_relation
     end
 
     def offset(offsets)
-      create_new_relation(@relation.skip(offsets))
+      offsets.present? ? create_new_relation(@relation.skip(offsets)) : create_new_relation
     end
 
     def on(join)
