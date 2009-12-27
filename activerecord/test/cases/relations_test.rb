@@ -38,7 +38,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_scoped_first
-    topics = Topic.scoped
+    topics = Topic.scoped.order('id ASC')
 
     assert_queries(1) do
       2.times { assert_equal "The First Topic", topics.first.title }
@@ -48,7 +48,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_loaded_first
-    topics = Topic.scoped
+    topics = Topic.scoped.order('id ASC')
 
     assert_queries(1) do
       topics.all # force load
@@ -244,7 +244,7 @@ class RelationTest < ActiveRecord::TestCase
     author = Author.scoped.find_by_id!(authors(:david).id)
     assert_equal "David", author.name
 
-    assert_raises(ActiveRecord::RecordNotFound) { Author.scoped.find_by_id_and_name!('invalid', 'wt') }
+    assert_raises(ActiveRecord::RecordNotFound) { Author.scoped.find_by_id_and_name!(20, 'invalid') }
   end
 
   def test_dynamic_find_all_by_attributes
@@ -281,7 +281,7 @@ class RelationTest < ActiveRecord::TestCase
     david = authors.find(authors(:david).id)
     assert_equal 'David', david.name
 
-    assert_raises(ActiveRecord::RecordNotFound) { authors.where(:name => 'lifo').find('invalid') }
+    assert_raises(ActiveRecord::RecordNotFound) { authors.where(:name => 'lifo').find('42') }
   end
 
   def test_find_ids
@@ -294,8 +294,8 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'Mary', results[1].name
     assert_equal results, authors.find([authors(:david).id, authors(:mary).id])
 
-    assert_raises(ActiveRecord::RecordNotFound) { authors.where(:name => 'lifo').find(authors(:david).id, 'invalid') }
-    assert_raises(ActiveRecord::RecordNotFound) { authors.find(['invalid', 'oops']) }
+    assert_raises(ActiveRecord::RecordNotFound) { authors.where(:name => 'lifo').find(authors(:david).id, '42') }
+    assert_raises(ActiveRecord::RecordNotFound) { authors.find(['42', 43]) }
   end
 
   def test_exists
@@ -303,7 +303,8 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.exists?
     assert davids.exists?(authors(:david).id)
     assert ! davids.exists?(authors(:mary).id)
-    assert ! davids.exists?("hax'id")
+    assert ! davids.exists?("42")
+    assert ! davids.exists?(42)
 
     fake  = Author.where(:name => 'fake author')
     assert ! fake.exists?
@@ -332,7 +333,7 @@ class RelationTest < ActiveRecord::TestCase
     devs = Developer.where("salary >= 80000") & Developer.limit(2) & Developer.order('id ASC').where("id < 3")
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
 
-    dev_with_count = Developer.limit(1) & Developer.order('id DESC') & Developer.select('developers.*').group('id')
+    dev_with_count = Developer.limit(1) & Developer.order('id DESC') & Developer.select('developers.*')
     assert_equal [developers(:poor_jamis)], dev_with_count.to_a
   end
 
