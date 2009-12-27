@@ -142,6 +142,8 @@ module ActiveRecord
 
         if match.finder?
           find_by_attributes(match, attributes, *args)
+        elsif match.instantiator?
+          find_or_instantiator_by_attributes(match, attributes, *args, &block)
         end
       else
         super
@@ -157,6 +159,27 @@ module ActiveRecord
       else
         result
       end
+    end
+
+    def find_or_instantiator_by_attributes(match, attributes, *args)
+      guard_protected_attributes = false
+
+      attributes_for_create = conditions = attributes.inject({}) {|h, a| h[a] = args[attributes.index(a)]; h}
+
+      if args[0].is_a?(Hash)
+        guard_protected_attributes = true
+        conditions = args[0].with_indifferent_access.slice(*attributes).symbolize_keys
+      end
+
+      record = where(conditions).first
+
+      unless record
+        record = @klass.new { |r| r.send(:attributes=, attributes_for_create, guard_protected_attributes) }
+        yield(record) if block_given?
+        record.save if match.instantiator == :create
+      end
+
+      record
     end
 
     def create_new_relation(relation, readonly = @readonly, preload = @associations_to_preload, eager_load = @eager_load_associations)

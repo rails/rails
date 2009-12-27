@@ -254,5 +254,26 @@ class RelationTest < ActiveRecord::TestCase
     assert_kind_of Array, davids
     assert_equal [authors(:david)], davids
   end
+
+  def test_dynamic_find_or_initialize_by_attributes
+    authors = Author.scoped
+
+    lifo = authors.find_or_initialize_by_name('Lifo')
+    assert_equal "Lifo", lifo.name
+    assert lifo.new_record?
+
+    assert_equal authors(:david), authors.find_or_initialize_by_name(:name => 'David')
+  end
+
+  def test_dynamic_find_or_create_by_attributes
+    authors = Author.scoped
+
+    lifo = authors.find_or_create_by_name('Lifo')
+    assert_equal "Lifo", lifo.name
+    assert ! lifo.new_record?
+
+    assert_equal authors(:david), authors.find_or_create_by_name(:name => 'David')
+  end
+
 end
 
