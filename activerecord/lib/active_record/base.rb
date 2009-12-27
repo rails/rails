@@ -1842,9 +1842,8 @@ module ActiveRecord #:nodoc:
         end
 
         # Enables dynamic finders like <tt>find_by_user_name(user_name)</tt> and <tt>find_by_user_name_and_password(user_name, password)</tt>
-        # that are turned into <tt>find(:first, :conditions => ["user_name = ?", user_name])</tt> and
-        # <tt>find(:first, :conditions => ["user_name = ? AND password = ?", user_name, password])</tt> respectively. Also works for
-        # <tt>find(:all)</tt> by using <tt>find_all_by_amount(50)</tt> that is turned into <tt>find(:all, :conditions => ["amount = ?", 50])</tt>.
+        # that are turned into <tt>where(:user_name => user_name).first</tt> and <tt>where(:user_name => user_name, :password => :password).first</tt>
+        # respectively. Also works for <tt>all</tt> by using <tt>find_all_by_amount(50)</tt> that is turned into <tt>where(:amount => 50).all</tt>.
         #
         # It's even possible to use all the additional parameters to +find+. For example, the full interface for +find_all_by_amount+
         # is actually <tt>find_all_by_amount(amount, options)</tt>.
