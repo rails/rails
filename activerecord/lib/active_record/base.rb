@@ -652,7 +652,7 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :to => :scoped
+      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :from, :to => :scoped
 
       # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
       # same arguments to this method as you can to <tt>find(:first)</tt>.
@@ -1563,7 +1563,7 @@ module ActiveRecord #:nodoc:
           # TODO add lock to Arel
           validate_find_options(options)
 
-          relation = arel_table(options[:from]).
+          relation = arel_table.
             joins(construct_join(options[:joins], scope)).
             where(construct_conditions(options[:conditions], scope)).
             select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).

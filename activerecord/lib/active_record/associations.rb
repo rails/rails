@@ -1707,7 +1707,7 @@ module ActiveRecord
         def construct_finder_arel_with_included_associations(options, join_dependency)
           scope = scope(:find)
 
-          relation = arel_table((scope && scope[:from]) || options[:from])
+          relation = arel_table
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
@@ -1717,7 +1717,8 @@ module ActiveRecord
             select(column_aliases(join_dependency)).
             group(construct_group(options[:group], options[:having], scope)).
             order(construct_order(options[:order], scope)).
-            where(construct_conditions(options[:conditions], scope))
+            where(construct_conditions(options[:conditions], scope)).
+            from((scope && scope[:from]) || options[:from])
 
           relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
           relation = relation.limit(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)

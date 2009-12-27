@@ -7,6 +7,9 @@ require "action_controller/rails"
 module ActiveRecord
   class Plugin < Rails::Plugin
     plugin_name :active_record
+    include_modules_in "ActiveRecord::Base"
+
+    config.action_controller.include "ActiveRecord::ControllerRuntime"
 
     initializer "active_record.set_configs" do |app|
       app.config.active_record.each do |k,v|
@@ -50,8 +53,8 @@ module ActiveRecord
     initializer "active_record.notifications" do
       require 'active_support/notifications'
 
-      ActiveSupport::Notifications.subscribe("sql") do |name, before, after, result, instrumenter_id, payload|
-        ActiveRecord::Base.connection.log_info(payload[:sql], name, after - before)
+      ActiveSupport::Notifications.subscribe("sql") do |name, before, after, instrumenter_id, payload|
+        ActiveRecord::Base.connection.log_info(payload[:sql], payload[:name], (after - before) * 1000)
       end
     end
 

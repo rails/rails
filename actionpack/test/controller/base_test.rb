@@ -158,13 +158,6 @@ class PerformActionTest < ActionController::TestCase
     assert_raise(ActionController::UnknownAction) { get :hidden_action }
     assert_raise(ActionController::UnknownAction) { get :another_hidden_action }
   end
-
-  def test_namespaced_action_should_log_module_name
-    use_controller Submodule::ContainedNonEmptyController
-    @controller.logger = MockLogger.new
-    get :public_action
-    assert_match /Processing\sSubmodule::ContainedNonEmptyController#public_action/, @controller.logger.logged[1]
-  end
 end
 
 class DefaultUrlOptionsTest < ActionController::TestCase

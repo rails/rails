@@ -52,6 +52,7 @@ module ActiveRecord
     autoload :Batches
     autoload :Calculations
     autoload :Callbacks
+    autoload :ControllerRuntime
     autoload :DynamicFinderMatch
     autoload :DynamicScopeMatch
     autoload :Migration

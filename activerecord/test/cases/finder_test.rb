@@ -1023,7 +1023,7 @@ class FinderTest < ActiveRecord::TestCase
     all_topics = Topic.find(:all)
 
     Topic.with_scope(:find => { :from => 'fake_topics' }) do
-      assert_equal all_topics, Topic.all(:from => 'topics').to_a
+      assert_equal all_topics, Topic.from('topics').to_a
     end
   end
 
