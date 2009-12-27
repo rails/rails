@@ -4,7 +4,10 @@
   subject.encoded etc
 
 * Every part of a Mail object returns an object, never a string.  So Mail.body returns a Mail::Body
-  class object, need to call #encoded or #decoded to get the string you want
+  class object, need to call #encoded or #decoded to get the string you want.
+  
+* By default, a field will return the #decoded value when you send it :to_s and any object that
+  is a container (like header, body etc) will return #encoded value when you send it :to_s
 
 * Mail::Message#set_content_type does not exist, it is simply Mail::Message#content_type
 
