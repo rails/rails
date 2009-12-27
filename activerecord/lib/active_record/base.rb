@@ -1563,7 +1563,7 @@ module ActiveRecord #:nodoc:
           # TODO add lock to Arel
           validate_find_options(options)
 
-          relation = arel_table(options[:from]).
+          relation = arel_table.
             joins(construct_join(options[:joins], scope)).
             where(construct_conditions(options[:conditions], scope)).
             select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
