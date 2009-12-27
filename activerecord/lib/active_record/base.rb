@@ -914,7 +914,7 @@ module ActiveRecord #:nodoc:
       #   Person.destroy_all("last_login < '2004-04-04'")
       #   Person.destroy_all(:status => "inactive")
       def destroy_all(conditions = nil)
-        where(conditions).each {|object| object.destroy }
+        where(conditions).destroy_all
       end
 
       # Deletes the records matching +conditions+ without instantiating the records first, and hence not

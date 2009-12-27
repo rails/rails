@@ -315,4 +315,17 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal authors(:mary), authors.last
   end
 
+  def test_destroy_all
+    davids = Author.where(:name => 'David')
+
+    # Force load
+    assert_equal [authors(:david)], davids.to_a
+    assert davids.loaded?
+
+    assert_difference('Author.count', -1) { davids.destroy_all }
+
+    assert_equal [], davids.to_a
+    assert davids.loaded?
+  end
+
 end

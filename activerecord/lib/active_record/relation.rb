@@ -175,13 +175,23 @@ module ActiveRecord
       end
     end
 
+    def destroy_all
+      to_a.each {|object| object.destroy}
+      reset
+    end
+
     def loaded?
       @loaded
     end
 
     def reload
       @loaded = false
-      @records = @first = @last = nil
+      reset
+    end
+
+    def reset
+      @first = @last = nil
+      @records = []
       self
     end
 

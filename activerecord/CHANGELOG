@@ -1,5 +1,10 @@
 *Edge*
 
+* Add relation.destroy_all [Pratik Naik]
+
+  old_items = Item.where("age > 100")
+  old_items.destroy_all
+
 * Add relation.exists? [Pratik Naik]
 
   red_items = Item.where(:colours => 'red')
