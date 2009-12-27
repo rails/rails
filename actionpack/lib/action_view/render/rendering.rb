@@ -73,25 +73,24 @@ module ActionView
     # would be <html>Hello David</html>.
     def _layout_for(name = nil, &block)
       return @_content_for[name || :layout] if !block_given? || name
-
       capture(&block)
     end
 
     def _render_inline(inline, layout, options)
-      handler  = Template.handler_class_for_extension(options[:type] || "erb")
-      template = Template.new(options[:inline], "inline template", handler, {})
+      locals = options[:locals]
 
-      locals  = options[:locals]
-      content = template.render(self, locals)
+      content = ActiveSupport::Notifications.instrument(:render_inline) do
+        handler  = Template.handler_class_for_extension(options[:type] || "erb")
+        template = Template.new(options[:inline], "inline template", handler, {})
+        template.render(self, locals)
+      end
 
       _render_text(content, layout, locals)
     end
 
     def _render_text(content, layout, locals)
-      content = layout.render(self, locals) do |*name|
-        _layout_for(*name) { content }
-      end if layout
-
+      ActiveSupport::Notifications.instrument(:render_text)
+      content = _render_layout(layout, locals){ content } if layout
       content
     end
 
@@ -108,23 +107,27 @@ module ActionView
     end
 
     def _render_template(template, layout = nil, options = {}, partial = nil)
-      logger && logger.info do
-        msg = "Rendering #{template.inspect}"
-        msg << " (#{options[:status]})" if options[:status]
-        msg
+      locals = options[:locals] || {}
+
+      content = ActiveSupport::Notifications.instrument(:render_template,
+                :identifier => template.identifier, :layout => (layout ? layout.identifier : nil)) do
+        partial ? _render_partial_object(template, options) : template.render(self, locals)
       end
 
-      locals  = options[:locals] || {}
-      content = partial ? _render_partial_object(template, options) : template.render(self, locals)
       @_content_for[:layout] = content
 
       if layout
         @_layout = layout.identifier
-        logger.info("Rendering template within #{layout.inspect}") if logger
-        content = layout.render(self, locals) { |*name| _layout_for(*name) }
+        content  = _render_layout(layout, locals)
       end
 
       content
+    end
+
+    def _render_layout(layout, locals, &block)
+      ActiveSupport::Notifications.instrument(:render_layout, :identifier => layout.identifier) do
+        layout.render(self, locals){ |*name| _layout_for(*name, &block) }
+      end
     end
   end
 end

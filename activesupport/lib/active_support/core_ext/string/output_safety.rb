@@ -1,3 +1,15 @@
+class Object
+  def html_safe?
+    false
+  end
+end
+
+class Fixnum
+  def html_safe?
+    true
+  end
+end
+
 class String
   attr_accessor :_rails_html_safe
   alias html_safe? _rails_html_safe

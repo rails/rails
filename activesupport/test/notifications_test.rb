@@ -134,27 +134,25 @@ module Notifications
 
   class EventTest < TestCase
     def test_events_are_initialized_with_details
-      event = event(:foo, Time.now, Time.now + 1, 1, random_id, :payload => :bar)
+      time = Time.now
+      event = event(:foo, time, time + 0.01, random_id, {})
+
       assert_equal :foo, event.name
-      assert_equal Hash[:payload => :bar], event.payload
+      assert_equal time, event.time
+      assert_equal 10.0, event.duration
     end
 
     def test_events_consumes_information_given_as_payload
-      time = Time.now
-      event = event(:foo, time, time + 0.01, 1, random_id, {})
-
-      assert_equal Hash.new, event.payload
-      assert_equal time, event.time
-      assert_equal 1, event.result
-      assert_equal 10.0, event.duration
+      event = event(:foo, Time.now, Time.now + 1, random_id, :payload => :bar)
+      assert_equal Hash[:payload => :bar], event.payload
     end
 
     def test_event_is_parent_based_on_time_frame
       time = Time.utc(2009, 01, 01, 0, 0, 1)
 
-      parent    = event(:foo, Time.utc(2009), Time.utc(2009) + 100, nil, random_id, {})
-      child     = event(:foo, time, time + 10, nil, random_id, {})
-      not_child = event(:foo, time, time + 100, nil, random_id, {})
+      parent    = event(:foo, Time.utc(2009), Time.utc(2009) + 100, random_id, {})
+      child     = event(:foo, time, time + 10, random_id, {})
+      not_child = event(:foo, time, time + 100, random_id, {})
 
       assert parent.parent_of?(child)
       assert !child.parent_of?(parent)

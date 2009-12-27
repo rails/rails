@@ -10,10 +10,10 @@ module ActiveSupport
       end
 
       def instrument(name, payload={})
-        time   = Time.now
-        result = yield if block_given?
+        time = Time.now
+        yield if block_given?
       ensure
-        @notifier.publish(name, time, Time.now, result, @id, payload)
+        @notifier.publish(name, time, Time.now, @id, payload)
       end
 
       private
@@ -23,15 +23,14 @@ module ActiveSupport
     end
 
     class Event
-      attr_reader :name, :time, :end, :transaction_id, :result, :payload
+      attr_reader :name, :time, :end, :transaction_id, :payload
 
-      def initialize(name, start, ending, result, transaction_id, payload)
+      def initialize(name, start, ending, transaction_id, payload)
         @name           = name
         @payload        = payload.dup
         @time           = start
         @transaction_id = transaction_id
         @end            = ending
-        @result         = result
       end
 
       def duration

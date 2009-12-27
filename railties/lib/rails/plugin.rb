@@ -25,6 +25,24 @@ module Rails
       Configuration.default
     end
 
+    # Creates an initializer which includes all given modules to the given class.
+    #
+    #   module Rails
+    #     class ActionController < Rails::Plugin
+    #       plugin_name :action_controller
+    #       include_modules_in "ActionController::Base"
+    #     end
+    #   end
+    #
+    def self.include_modules_in(klass, from=plugin_name)
+      self.initializer :"#{from}.include_modules" do |app|
+        klass = klass.constantize if klass.is_a?(String)
+        app.config.send(from).includes.each do |mod|
+          klass.send(:include, mod.is_a?(String) ? mod.constantize : mod)
+        end
+      end
+    end
+
     class Vendored < Plugin
       def self.all(list, paths)
         plugins = []

@@ -1,6 +1,24 @@
 require 'active_support/ordered_options'
 
 module Rails
+  # Create a Plugin::Options from ActiveSuppot::OrderedOptions,
+  # which support the following syntax:
+  #
+  #   controller.action_controller.include FooBar
+  #
+  class Plugin::Options < ActiveSupport::OrderedOptions #:nodoc:
+    attr_reader :includes
+
+    def initialize(*args)
+      @includes = []
+      super
+    end
+
+    def include(*args)
+      @includes.concat(args)
+    end
+  end
+
   # Temporarily separate the plugin configuration class from the main
   # configuration class while this bit is being cleaned up.
   class Plugin::Configuration
@@ -16,7 +34,7 @@ module Rails
         @options    = base.options.dup
         @middleware = base.middleware.dup
       else
-        @options    = Hash.new { |h,k| h[k] = ActiveSupport::OrderedOptions.new }
+        @options    = Hash.new { |h,k| h[k] = Rails::Plugin::Options.new }
         @middleware = ActionDispatch::MiddlewareStack.new
       end
     end

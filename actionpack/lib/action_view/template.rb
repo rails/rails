@@ -36,10 +36,8 @@ module ActionView
     end
 
     def render(view, locals, &block)
-      ActiveSupport::Notifications.instrument(:render_template, :identifier => identifier) do
-        method_name = compile(locals, view)
-        view.send(method_name, locals, &block)
-      end
+      method_name = compile(locals, view)
+      view.send(method_name, locals, &block)
     rescue Exception => e
       if e.is_a?(Template::Error)
         e.sub_template_of(self)

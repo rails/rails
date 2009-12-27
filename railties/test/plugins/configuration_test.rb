@@ -8,6 +8,10 @@ module PluginsTest
       require "rails"
     end
 
+    module Bar; end
+    module Baz; end
+    module All; end
+
     test "config is available to plugins" do
       class Foo < Rails::Plugin ; end
       assert_nil Foo.config.action_controller.foo
@@ -22,6 +26,18 @@ module PluginsTest
       class Foo < Rails::Plugin ; config.foo.greetings = "hello" ; end
       require "#{app_path}/config/application"
       assert_equal "hello", AppTemplate::Application.config.foo.greetings
+    end
+
+    test "plugin configurations allow modules to be given" do
+      class Foo < Rails::Plugin ; config.foo.include(Bar, Baz) ; end
+      assert_equal [Bar, Baz], Foo.config.foo.includes
+    end
+
+    test "plugin includes given modules in given class" do
+      class Foo < Rails::Plugin ; config.foo.include(Bar, "PluginsTest::ConfigurationTest::Baz") ; include_modules_in All ; end
+      Foo.new.run_initializers(Foo)
+      assert All.ancestors.include?(Bar)
+      assert All.ancestors.include?(Baz)
     end
 
     test "plugin config merges are deep" do
