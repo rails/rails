@@ -52,27 +52,21 @@ module ActiveRecord
             load_target.select { |r| ids.include?(r.id) }
           end
         else
-          conditions = "#{@finder_sql}"
-          if sanitized_conditions = sanitize_sql(options[:conditions])
-            conditions << " AND (#{sanitized_conditions})"
-          end
-          
-          options[:conditions] = conditions
-
-          if options[:order] && @reflection.options[:order]
-            options[:order] = "#{options[:order]}, #{@reflection.options[:order]}"
-          elsif @reflection.options[:order]
-            options[:order] = @reflection.options[:order]
-          end
-          
-          # Build options specific to association
-          construct_find_options!(options)
-          
           merge_options_from_reflection!(options)
-          
-          # Pass through args exactly as we received them.
-          args << options
-          @reflection.klass.find(*args)
+          construct_find_options!(options)
+
+          find_scope = construct_scope[:find].slice(:conditions, :order)
+
+          with_scope(:find => find_scope) do
+            relation = @reflection.klass.send(:construct_finder_arel_with_includes, options)
+
+            case args.first
+            when :first, :last, :all
+              relation.send(args.first)
+            else
+              relation.find(*args)
+            end
+          end
         end
       end
 
