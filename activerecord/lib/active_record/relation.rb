@@ -93,7 +93,8 @@ module ActiveRecord
             :order => @relation.send(:order_clauses).join(', '),
             :conditions => where_clause,
             :limit => @relation.taken,
-            :offset => @relation.skipped
+            :offset => @relation.skipped,
+            :from => @relation.send(:table_sql, Arel::Sql::TableReference.new(@relation))
             },
             ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
         end
