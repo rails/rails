@@ -645,7 +645,7 @@ module ActiveRecord #:nodoc:
 
         case args.first
         when :first
-          find_initial(options)
+          construct_finder_arel_with_includes(options).first
         when :last
           find_last(options)
         when :all
@@ -1519,11 +1519,6 @@ module ActiveRecord #:nodoc:
       end
 
       private
-        def find_initial(options)
-          options.update(:limit => 1)
-          find_every(options).first
-        end
-
         def find_last(options)
           order = options[:order]
 
@@ -1540,7 +1535,7 @@ module ActiveRecord #:nodoc:
           end
 
           begin
-            find_initial(options.merge({ :order => order }))
+            construct_finder_arel_with_includes(options).order(order).first
           ensure
             scope[:order] = original_scoped_order if original_scoped_order
           end
@@ -1556,23 +1551,6 @@ module ActiveRecord #:nodoc:
               s.concat(' DESC')
             end
           }.join(',')
-        end
-
-        def find_every(options)
-          include_associations = merge_includes(scope(:find, :include), options[:include])
-
-          if include_associations.any? && references_eager_loaded_tables?(options)
-            records = find_with_associations(options)
-          else
-            records = find_by_sql(construct_finder_sql(options))
-            if include_associations.any?
-              preload_associations(records, include_associations)
-            end
-          end
-
-          records.each { |record| record.readonly! } if options[:readonly]
-
-          records
         end
 
         # Finder methods must instantiate through this method to work with the
