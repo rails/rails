@@ -55,5 +55,5 @@ module Net
 end
 
 
-gem 'mail', '>= 1.4.0'
+gem 'mail', '>= 1.4.1'
 require 'mail'
