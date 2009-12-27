@@ -382,9 +382,9 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_equal "multipart/mixed", created.content_type.string
     assert_equal "multipart/alternative", created.parts.first.content_type.string
     assert_equal "text/plain", created.parts.first.parts.first.content_type.string
-    assert_equal "Nothing to see here.", created.parts.first.parts.first.body.decoded
+    assert_equal "Nothing to see here.", created.parts.first.parts.first.body.to_s
     assert_equal "text/html", created.parts.first.parts.second.content_type.string
-    assert_equal "<b>test</b> HTML<br/>", created.parts.first.parts.second.body.decoded
+    assert_equal "<b>test</b> HTML<br/>", created.parts.first.parts.second.body.to_s
   end
 
   def test_attachment_with_custom_header
@@ -757,7 +757,7 @@ Content-Transfer-Encoding: 7bit
 The=3Dbody
 EOF
     mail = Mail.new(msg)
-    assert_equal "The=3Dbody", mail.body.decoded.strip
+    assert_equal "The=3Dbody", mail.body.to_s.strip
     assert_equal "The=3Dbody", mail.body.encoded.strip
   end
 
@@ -771,7 +771,7 @@ Content-Transfer-Encoding: quoted-printable
 The=3Dbody
 EOF
     mail = Mail.new(msg)
-    assert_equal "The=body", mail.body.decoded.strip
+    assert_equal "The=body", mail.body.to_s.strip
     assert_equal "The=3Dbody", mail.body.encoded.strip
   end
 
@@ -785,7 +785,7 @@ Content-Transfer-Encoding: base64
 VGhlIGJvZHk=
 EOF
     mail = Mail.new(msg)
-    assert_equal "The body", mail.body.decoded.strip
+    assert_equal "The body", mail.body.to_s.strip
     assert_equal "VGhlIGJvZHk=", mail.body.encoded.strip
   end
 
@@ -859,7 +859,7 @@ EOF
   def test_receive_decodes_base64_encoded_mail
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email")
     TestMailer.receive(fixture)
-    assert_match(/Jamis/, TestMailer.received_body.decoded)
+    assert_match(/Jamis/, TestMailer.received_body.to_s)
   end
 
   def test_receive_attachments
@@ -997,19 +997,19 @@ EOF
 
   def test_html_mail_with_underscores
     mail = TestMailer.create_html_mail_with_underscores(@recipient)
-    assert_equal %{<a href="http://google.com" target="_blank">_Google</a>}, mail.body.decoded
+    assert_equal %{<a href="http://google.com" target="_blank">_Google</a>}, mail.body.to_s
   end
 
   def test_various_newlines
     mail = TestMailer.create_various_newlines(@recipient)
     assert_equal("line #1\nline #2\nline #3\nline #4\n\n" +
-                 "line #5\n\nline#6\n\nline #7", mail.body.decoded)
+                 "line #5\n\nline#6\n\nline #7", mail.body.to_s)
   end
 
   def test_various_newlines_multipart
     mail = TestMailer.create_various_newlines_multipart(@recipient)
-    assert_equal "line #1\nline #2\nline #3\nline #4\n\n", mail.parts[0].body.decoded
-    assert_equal "<p>line #1</p>\n<p>line #2</p>\n<p>line #3</p>\n<p>line #4</p>\n\n", mail.parts[1].body.decoded
+    assert_equal "line #1\nline #2\nline #3\nline #4\n\n", mail.parts[0].body.to_s
+    assert_equal "<p>line #1</p>\n<p>line #2</p>\n<p>line #3</p>\n<p>line #4</p>\n\n", mail.parts[1].body.to_s
     assert_equal "line #1\r\nline #2\r\nline #3\r\nline #4\r\n\r\n", mail.parts[0].body.encoded
     assert_equal "<p>line #1</p>\r\n<p>line #2</p>\r\n<p>line #3</p>\r\n<p>line #4</p>\r\n\r\n", mail.parts[1].body.encoded
   end
@@ -1042,7 +1042,7 @@ EOF
     mail = Mail.new(fixture)
     assert_equal(2, mail.parts.length)
     assert_equal(4, mail.parts.first.parts.length)
-    assert_equal("This is the first part.", mail.parts.first.parts.first.body.decoded)
+    assert_equal("This is the first part.", mail.parts.first.parts.first.body.to_s)
     assert_equal("test.rb", mail.parts.first.parts.second.filename)
     assert_equal("flowed", mail.parts.first.parts.fourth.content_type.parameters[:format])
     assert_equal('smime.p7s', mail.parts.second.filename)
@@ -1120,7 +1120,7 @@ EOF
 
   def test_body_is_stored_as_an_ivar
     mail = TestMailer.create_body_ivar(@recipient)
-    assert_equal "body: foo\nbar: baz", mail.body.decoded
+    assert_equal "body: foo\nbar: baz", mail.body.to_s
   end
 
   def test_starttls_is_enabled_if_supported

@@ -72,7 +72,7 @@ class QuotingTest < Test::Unit::TestCase
     mail = Mail.new(IO.read("#{File.dirname(__FILE__)}/fixtures/raw_email_quoted_with_0d0a"))
     # CHANGED: subject returns an object now
     # assert_match %r{Elapsed time}, mail.body
-    assert_match %r{Elapsed time}, mail.body.decoded
+    assert_match %r{Elapsed time}, mail.body.to_s
   end
 
   def test_email_with_partially_quoted_subject

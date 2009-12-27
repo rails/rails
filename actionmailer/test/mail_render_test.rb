@@ -88,35 +88,35 @@ class RenderHelperTest < Test::Unit::TestCase
     mail = RenderMailer.create_implicit_body(@recipient)
     # CHANGED: body returns an object now
     # assert_equal "Hello there, \n\nMr. test@localhost", mail.body.strip
-    assert_equal "Hello there, \n\nMr. test@localhost", mail.body.decoded.strip
+    assert_equal "Hello there, \n\nMr. test@localhost", mail.body.to_s.strip
   end
 
   def test_inline_template
     mail = RenderMailer.create_inline_template(@recipient)
     # CHANGED: body returns an object now
     # assert_equal "Hello, Earth", mail.body.strip
-    assert_equal "Hello, Earth", mail.body.decoded.strip
+    assert_equal "Hello, Earth", mail.body.to_s.strip
   end
 
   def test_file_template
     mail = RenderMailer.create_file_template(@recipient)
     # CHANGED: body returns an object now
     # assert_equal "Hello there, \n\nMr. test@localhost", mail.body.strip
-    assert_equal "Hello there, \n\nMr. test@localhost", mail.body.decoded.strip
+    assert_equal "Hello there, \n\nMr. test@localhost", mail.body.to_s.strip
   end
 
   def test_rxml_template
     mail = RenderMailer.deliver_rxml_template(@recipient)
     # CHANGED: body returns an object now
     # assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<test/>", mail.body.strip
-    assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<test/>", mail.body.decoded.strip
+    assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<test/>", mail.body.to_s.strip
   end
 
   def test_included_subtemplate
     mail = RenderMailer.deliver_included_subtemplate(@recipient)
     # CHANGED: body returns an object now
     # assert_equal "Hey Ho, let's go!", mail.body.strip
-    assert_equal "Hey Ho, let's go!", mail.body.decoded.strip
+    assert_equal "Hey Ho, let's go!", mail.body.to_s.strip
   end
 end
 
@@ -135,12 +135,12 @@ class FirstSecondHelperTest < Test::Unit::TestCase
 
   def test_ordering
     mail = FirstMailer.create_share(@recipient)
-    assert_equal "first mail", mail.body.decoded.strip
+    assert_equal "first mail", mail.body.to_s.strip
     mail = SecondMailer.create_share(@recipient)
-    assert_equal "second mail", mail.body.decoded.strip
+    assert_equal "second mail", mail.body.to_s.strip
     mail = FirstMailer.create_share(@recipient)
-    assert_equal "first mail", mail.body.decoded.strip
+    assert_equal "first mail", mail.body.to_s.strip
     mail = SecondMailer.create_share(@recipient)
-    assert_equal "second mail", mail.body.decoded.strip
+    assert_equal "second mail", mail.body.to_s.strip
   end
 end
