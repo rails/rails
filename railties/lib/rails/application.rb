@@ -72,13 +72,7 @@ module Rails
 
     def load_tasks
       require "rails/tasks"
-      # Load all extension rake tasks
-      # TODO: Make all plugin objects respond to :load_tasks
-      plugins.each do |plugin|
-        plugin.load_tasks if plugin.respond_to? :load_tasks
-      end
-      # Load all plugin tasks
-      Dir["#{root}/vendor/plugins/*/**/tasks/**/*.rake"].sort.each { |ext| load ext }
+      plugins.each { |p| p.load_tasks }
       # Load all application tasks
       # TODO: extract out the path to the rake tasks
       Dir["#{root}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }

@@ -85,6 +85,10 @@ module Rails
         Dir["#{path}/{lib}", "#{path}/app/{models,controllers,helpers}"]
       end
 
+      def load_tasks
+        Dir["#{path}/**/tasks/**/*.rake"].sort.each { |ext| load ext }
+      end
+
       initializer :add_to_load_path, :after => :set_autoload_paths do |app|
         load_paths.each do |path|
           $LOAD_PATH << path
