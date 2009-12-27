@@ -1,8 +1,8 @@
 module ActiveRecord
   class Relation
     delegate :to_sql, :to => :relation
-    delegate :length, :collect, :find, :map, :each, :to => :to_a
-    attr_reader :relation, :klass
+    delegate :length, :collect, :map, :each, :to => :to_a
+    attr_reader :relation, :klass, :associations_to_preload, :eager_load_associations
 
     def initialize(klass, relation, readonly = false, preload = [], eager_load = [])
       @klass, @relation = klass, relation
@@ -11,6 +11,21 @@ module ActiveRecord
       @eager_load_associations = eager_load
       @loaded = false
     end
+
+    def merge(r)
+      joins(r.relation.joins(r.relation)).
+        group(r.send(:group_clauses).join(', ')).
+        order(r.send(:order_clauses).join(', ')).
+        where(r.send(:where_clause)).
+        limit(r.taken).
+        offset(r.skipped).
+        select(r.send(:select_clauses).join(', ')).
+        eager_load(r.eager_load_associations).
+        preload(r.associations_to_preload).
+        from(r.send(:sources).any? ? r.send(:from_clauses) : nil)
+    end
+
+    alias :& :merge
 
     def preload(*associations)
       create_new_relation(@relation, @readonly, @associations_to_preload + Array.wrap(associations))
@@ -25,23 +40,19 @@ module ActiveRecord
     end
 
     def select(selects)
-      create_new_relation(@relation.project(selects))
+      selects.present? ? create_new_relation(@relation.project(selects)) : create_new_relation
     end
 
-    # TODO : This is temporary. We need .from in Arel.
-    attr_writer :from
     def from(from)
-      relation = create_new_relation
-      relation.from = from
-      relation
+      from.present? ? create_new_relation(@relation.from(from)) : create_new_relation
     end
 
     def group(groups)
-      create_new_relation(@relation.group(groups))
+      groups.present? ? create_new_relation(@relation.group(groups)) : create_new_relation
     end
 
     def order(orders)
-      create_new_relation(@relation.order(orders))
+      orders.present? ? create_new_relation(@relation.order(orders)) : create_new_relation
     end
 
     def reverse_order
@@ -57,11 +68,11 @@ module ActiveRecord
     end
 
     def limit(limits)
-      create_new_relation(@relation.take(limits))
+      limits.present? ? create_new_relation(@relation.take(limits)) : create_new_relation
     end
 
     def offset(offsets)
-      create_new_relation(@relation.skip(offsets))
+      offsets.present? ? create_new_relation(@relation.skip(offsets)) : create_new_relation
     end
 
     def on(join)
@@ -69,7 +80,7 @@ module ActiveRecord
     end
 
     def joins(join, join_type = nil)
-      return self if join.blank?
+      return create_new_relation if join.blank?
 
       join_relation = case join
       when String
@@ -116,7 +127,7 @@ module ActiveRecord
             :conditions => where_clause,
             :limit => @relation.taken,
             :offset => @relation.skipped,
-            :from => @from
+            :from => (@relation.send(:from_clauses) if @relation.send(:sources).any?)
             },
             ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
         end
@@ -289,9 +300,7 @@ module ActiveRecord
     end
 
     def create_new_relation(relation = @relation, readonly = @readonly, preload = @associations_to_preload, eager_load = @eager_load_associations)
-      r = self.class.new(@klass, relation, readonly, preload, eager_load)
-      r.from = @from
-      r
+      self.class.new(@klass, relation, readonly, preload, eager_load)
     end
 
     def where_clause(join_string = "\n\tAND ")
