@@ -346,33 +346,6 @@ module ActionMailer #:nodoc:
     # Alias controller_path to mailer_name so render :partial in views work.
     alias :controller_path :mailer_name
 
-    # Add a part to a multipart message, with the given content-type. The
-    # part itself is yielded to the block so that other properties (charset,
-    # body, headers, etc.) can be set on it.
-    def part(params)
-      params = {:content_type => params} if String === params
-      if custom_headers = params.delete(:headers)
-        ActiveSupport::Deprecation.warn('Passing custom headers with :headers => {} is deprecated. ' <<
-                                        'Please just pass in custom headers directly.', caller[0,10])
-        params.merge!(custom_headers)
-      end
-      part = Mail::Part.new(params)
-      yield part if block_given?
-      @parts << part
-    end
-
-    # Add an attachment to a multipart message. This is simply a part with the
-    # content-disposition set to "attachment".
-    def attachment(params, &block)
-      super # Run deprecation hooks
-
-      params = { :content_type => params } if String === params
-      params = { :content_disposition => "attachment",
-                 :content_transfer_encoding => "base64" }.merge(params)
-
-      part(params, &block)
-    end
-
     class << self
       attr_writer :mailer_name
 
@@ -453,18 +426,45 @@ module ActionMailer #:nodoc:
     superclass_delegating_reader :delivery_method
     self.delivery_method = :smtp
 
+    # Add a part to a multipart message, with the given content-type. The
+    # part itself is yielded to the block so that other properties (charset,
+    # body, headers, etc.) can be set on it.
+    def part(params)
+      params = {:content_type => params} if String === params
+      if custom_headers = params.delete(:headers)
+        ActiveSupport::Deprecation.warn('Passing custom headers with :headers => {} is deprecated. ' <<
+                                        'Please just pass in custom headers directly.', caller[0,10])
+        params.merge!(custom_headers)
+      end
+      part = Mail::Part.new(params)
+      yield part if block_given?
+      @parts << part
+    end
+
+    # Add an attachment to a multipart message. This is simply a part with the
+    # content-disposition set to "attachment".
+    def attachment(params, &block)
+      super # Run deprecation hooks
+
+      params = { :content_type => params } if String === params
+      params = { :content_disposition => "attachment",
+                 :content_transfer_encoding => "base64" }.merge(params)
+
+      part(params, &block)
+    end
+
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
-    def initialize(method_name=nil, *args) #:nodoc:
+    def initialize(method_name=nil, *args)
       super()
       process(method_name, *args) if method_name
     end
 
     # Process the mailer via the given +method_name+. The body will be
-    # rendered and a new TMail::Mail object created.
-    def process(method_name, *args) #:nodoc:
+    # rendered and a new Mail object created.
+    def process(method_name, *args)
       initialize_defaults(method_name)
       super
 
@@ -506,7 +506,7 @@ module ActionMailer #:nodoc:
       # Set up the default values for the various instance variables of this
       # mailer. Subclasses may override this method to provide different
       # defaults.
-      def initialize_defaults(method_name)
+      def initialize_defaults(method_name) #:nodoc:
         @charset              ||= @@default_charset.dup
         @content_type         ||= @@default_content_type.dup
         @implicit_parts_order ||= @@default_implicit_parts_order.dup
@@ -522,24 +522,14 @@ module ActionMailer #:nodoc:
         super # Run deprecation hooks
       end
 
-      def create_parts
+      def create_parts #:nodoc:
         super # Run deprecation hooks
 
         if String === response_body
-          @parts.unshift Mail::Part.new(
-            :content_type => ["text", "plain", {:charset => charset}],
-            :content_disposition => "inline",
-            :body => response_body
-          )
+          @parts.unshift create_inline_part(response_body)
         else
           self.class.template_root.find_all(@template, {}, mailer_name).each do |template|
-            ct = template.mime_type ? template.mime_type.to_s : "text/plain"
-            main_type, sub_type = ct.split("/")
-            @parts << Mail::Part.new(
-              :content_type => [main_type, sub_type, {:charset => charset}],
-              :content_disposition => "inline",
-              :body => render_to_body(:_template => template)
-            )
+            @parts << create_inline_part(render_to_body(:_template => template), template.mime_type)
           end
 
           if @parts.size > 1
@@ -553,7 +543,18 @@ module ActionMailer #:nodoc:
         end
       end
 
-      def sort_parts(parts, order = [])
+      def create_inline_part(body, mime_type=nil) #:nodoc:
+        ct = mime_type || "text/plain"
+        main_type, sub_type = split_content_type(ct.to_s)
+
+        Mail::Part.new(
+          :content_type => [main_type, sub_type, {:charset => charset}],
+          :content_disposition => "inline",
+          :body => body
+        )
+      end
+
+      def sort_parts(parts, order = []) #:nodoc:
         order = order.collect { |s| s.downcase }
 
         parts = parts.sort do |a, b|
@@ -582,7 +583,7 @@ module ActionMailer #:nodoc:
         parts
       end
 
-      def create_mail
+      def create_mail #:nodoc:
         m = Mail.new
 
         m.subject,     = quote_any_if_necessary(charset, subject)
@@ -596,13 +597,12 @@ module ActionMailer #:nodoc:
         headers.each { |k, v| m[k] = v }
 
         real_content_type, ctype_attrs = parse_content_type
+        main_type, sub_type = split_content_type(real_content_type)
 
         if @parts.empty?
-          main_type, sub_type = split_content_type(real_content_type)
           m.content_type([main_type, sub_type, ctype_attrs])
           m.body = body
         elsif @parts.size == 1 && @parts.first.parts.empty?
-          main_type, sub_type = split_content_type(real_content_type)
           m.content_type([main_type, sub_type, ctype_attrs])
           m.body = @parts.first.body.encoded
         else
@@ -612,7 +612,6 @@ module ActionMailer #:nodoc:
 
           if real_content_type =~ /multipart/
             ctype_attrs.delete "charset"
-            main_type, sub_type = split_content_type(real_content_type)
             m.content_type([main_type, sub_type, ctype_attrs])
           end
         end
@@ -620,21 +619,23 @@ module ActionMailer #:nodoc:
         @mail = m
       end
       
-      def split_content_type(ct)
+      def split_content_type(ct) #:nodoc:
         ct.to_s.split("/")
       end
 
-      def parse_content_type(defaults=nil)
-        if content_type.blank? 
-          return defaults                                                ? 
-            [ defaults.content_type, { 'charset' => defaults.charset } ] : 
-            [ nil, {} ] 
-        end 
-        ctype, *attrs = content_type.split(/;\s*/)
-        attrs = attrs.inject({}) { |h,s| k,v = s.split(/=/, 2); h[k] = v; h }
-        [ctype, {"charset" => charset || defaults && defaults.charset}.merge(attrs)]
+      def parse_content_type(defaults=nil) #:nodoc:
+        if content_type.blank?
+          if defaults
+            [ defaults.content_type, { 'charset' => defaults.charset } ]
+          else
+            [ nil, {} ]
+          end
+        else
+          ctype, *attrs = content_type.split(/;\s*/)
+          attrs = attrs.inject({}) { |h,s| k,v = s.split(/\=/, 2); h[k] = v; h }
+          [ctype, {"charset" => charset || defaults && defaults.charset}.merge(attrs)]
+        end
       end
-
 
   end
 end
