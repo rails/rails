@@ -213,7 +213,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   def test_validates_uniqueness_inside_with_scope
     Topic.validates_uniqueness_of(:title)
 
-    Topic.with_scope(:find => { :conditions => { :author_name => "David" } }) do
+    Topic.send(:with_scope, :find => { :conditions => { :author_name => "David" } }) do
       t1 = Topic.new("title" => "I'm unique!", "author_name" => "Mary")
       assert t1.save
       t2 = Topic.new("title" => "I'm unique!", "author_name" => "David")

@@ -120,7 +120,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_scoped_include
-    Developer.with_scope(:find => { :include => :projects, :order => "projects.name" }) do
+    Developer.send(:with_scope, :find => { :include => :projects, :order => "projects.name" }) do
       assert Developer.exists?
     end
   end
@@ -1022,7 +1022,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_finder_with_scoped_from
     all_topics = Topic.find(:all)
 
-    Topic.with_scope(:find => { :from => 'fake_topics' }) do
+    Topic.send(:with_scope, :find => { :from => 'fake_topics' }) do
       assert_equal all_topics, Topic.from('topics').to_a
     end
   end

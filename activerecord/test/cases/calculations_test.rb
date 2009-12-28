@@ -42,7 +42,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_get_maximum_of_field_with_scoped_include
-    Account.with_scope :find => { :include => :firm, :conditions => "companies.name != 'Summit'" } do
+    Account.send :with_scope, :find => { :include => :firm, :conditions => "companies.name != 'Summit'" } do
       assert_equal 50, Account.maximum(:credit_limit)
     end
   end
