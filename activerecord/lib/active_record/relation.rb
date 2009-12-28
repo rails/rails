@@ -35,12 +35,17 @@ module ActiveRecord
       create_new_relation(@relation, @readonly, @associations_to_preload, @eager_load_associations + Array.wrap(associations))
     end
 
-    def readonly
-      create_new_relation(@relation, true)
+    def readonly(status = true)
+      status.nil? ? create_new_relation : create_new_relation(@relation, status)
     end
 
     def select(selects)
-      selects.present? ? create_new_relation(@relation.project(selects)) : create_new_relation
+      if selects.present?
+        frozen = @relation.joins(relation).present? ? false : @readonly
+        create_new_relation(@relation.project(selects), frozen)
+      else
+        create_new_relation
+      end
     end
 
     def from(from)
@@ -106,7 +111,7 @@ module ActiveRecord
         @relation.join(join, join_type)
       end
 
-      create_new_relation(join_relation)
+      create_new_relation(join_relation, true)
     end
 
     def where(*args)
