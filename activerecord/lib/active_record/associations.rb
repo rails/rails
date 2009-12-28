@@ -1466,11 +1466,10 @@ module ActiveRecord
         end
 
         def find_with_associations(options = {}, join_dependency = nil)
-          catch :invalid_query do
-            join_dependency ||= JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
-            rows = select_all_rows(options, join_dependency)
-            return join_dependency.instantiate(rows)
-          end
+          join_dependency ||= JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
+          rows = select_all_rows(options, join_dependency)
+          join_dependency.instantiate(rows)
+        rescue ThrowResult
           []
         end
 
@@ -1733,7 +1732,7 @@ module ActiveRecord
 
         def construct_arel_limited_ids_condition(options, join_dependency)
           if (ids_array = select_limited_ids_array(options, join_dependency)).empty?
-            throw :invalid_query
+            raise ThrowResult
           else
             Arel::Predicates::In.new(
               Arel::SqlLiteral.new("#{connection.quote_table_name table_name}.#{primary_key}"),

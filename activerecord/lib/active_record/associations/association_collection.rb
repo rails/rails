@@ -177,7 +177,7 @@ module ActiveRecord
         if @reflection.options[:counter_sql]
           @reflection.klass.count_by_sql(@counter_sql)
         else
-          column_name, options = @reflection.klass.send(:construct_count_options_from_args, *args)
+          column_name, options = @reflection.klass.scoped.send(:construct_count_options_from_args, *args)
           if @reflection.options[:uniq]
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
             column_name = "#{@reflection.quoted_table_name}.#{@reflection.klass.primary_key}" if column_name == :all

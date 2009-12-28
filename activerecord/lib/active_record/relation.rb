@@ -149,8 +149,8 @@ module ActiveRecord
       return @records if loaded?
 
       @records = if @eager_load_associations.any?
-        catch :invalid_query do
-          return @klass.send(:find_with_associations, {
+        begin
+          @klass.send(:find_with_associations, {
             :select => @relation.send(:select_clauses).join(', '),
             :joins => @relation.joins(relation),
             :group => @relation.send(:group_clauses).join(', '),
@@ -161,8 +161,9 @@ module ActiveRecord
             :from => (@relation.send(:from_clauses) if @relation.send(:sources).present?)
             },
             ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
+        rescue ThrowResult
+          []
         end
-        []
       else
         @klass.find_by_sql(@relation.to_sql)
       end

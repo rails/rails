@@ -69,6 +69,10 @@ module ActiveRecord #:nodoc:
   class StatementInvalid < ActiveRecordError
   end
 
+  # Raised when SQL statement is invalid and the application gets a blank result.
+  class ThrowResult < ActiveRecordError
+  end
+
   # Parent class for all specific exceptions which wrap database driver exceptions
   # provides access to the original exception also.
   class WrappedDatabaseException < StatementInvalid
