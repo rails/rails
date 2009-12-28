@@ -22,7 +22,7 @@ module ActiveRecord
           params << record.send(:id)
         end
 
-        finder_class.with_exclusive_scope do
+        finder_class.send(:with_exclusive_scope) do
           if finder_class.exists?([sql, *params])
             record.errors.add(attribute, :taken, :default => options[:message], :value => value)
           end
