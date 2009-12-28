@@ -245,6 +245,37 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_automatically_enable_autosave_on_the_association
     assert Pirate.reflect_on_association(:ship).options[:autosave]
   end
+
+  def test_should_accept_update_only_option
+    Pirate.accepts_nested_attributes_for :ship, :update_only => true
+    @pirate.update_attribute(:ship_attributes, { :id => @pirate.ship.id, :name => 'Mayflower' })
+
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+  end
+
+  def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
+    Pirate.accepts_nested_attributes_for :ship, :update_only => true
+    @ship.delete
+
+    assert_difference('Ship.count', 1) do
+      @pirate.reload.update_attribute(:ship_attributes, { :name => 'Mayflower' })
+    end
+
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+  end
+
+
+  def test_should_update_existing_when_update_only_is_true_and_no_id_is_given
+    Pirate.accepts_nested_attributes_for :ship, :update_only => true
+
+    assert_no_difference('Ship.count') do
+      @pirate.reload.update_attributes(:ship_attributes => { :name => 'Mayflower' })
+    end
+
+    assert_equal 'Mayflower', @ship.reload.name
+
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+  end
 end
 
 class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
