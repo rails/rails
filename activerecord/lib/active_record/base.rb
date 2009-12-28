@@ -1560,7 +1560,6 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_arel(options = {}, scope = scope(:find))
-          # TODO add lock to Arel
           validate_find_options(options)
 
           relation = arel_table.
