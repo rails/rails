@@ -5,7 +5,7 @@
   User.lock.where(:name => 'lifo').to_a
 
   old_items = Item.where("age > 100")
-  old_items.locked.each {|i| .. }
+  old_items.lock.each {|i| .. }
 
 * Add Model.from and association_collection#from finder methods [Pratik Naik]
 
