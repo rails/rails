@@ -81,8 +81,6 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_calculate_honors_implicit_inner_joins
-    Author.calculate(:count, 'authors.id', :joins => :posts)
-    return
     real_count = Author.scoped.to_a.sum{|a| a.posts.count }
     assert_equal real_count, Author.calculate(:count, 'authors.id', :joins => :posts), "plain inner join count should match the number of referenced posts records"
   end
