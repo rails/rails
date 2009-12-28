@@ -55,6 +55,18 @@ module ActiveRecord
       from.present? ? create_new_relation(@relation.from(from)) : create_new_relation
     end
 
+    def having(*args)
+      return create_new_relation if args.blank?
+
+      if [String, Hash, Array].include?(args.first.class)
+        havings = @klass.send(:merge_conditions, args.size > 1 ? Array.wrap(args) : args.first)
+      else
+        havings = args.first
+      end
+
+      create_new_relation(@relation.having(havings))
+    end
+
     def group(groups)
       groups.present? ? create_new_relation(@relation.group(groups)) : create_new_relation
     end

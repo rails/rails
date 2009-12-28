@@ -1715,7 +1715,8 @@ module ActiveRecord
 
           relation = relation.joins(construct_join(options[:joins], scope)).
             select(column_aliases(join_dependency)).
-            group(construct_group(options[:group], options[:having], scope)).
+            group(options[:group] || (scope && scope[:group])).
+            having(options[:having] || (scope && scope[:having])).
             order(construct_order(options[:order], scope)).
             where(construct_conditions(options[:conditions], scope)).
             from((scope && scope[:from]) || options[:from])
@@ -1759,7 +1760,8 @@ module ActiveRecord
 
           relation = relation.joins(construct_join(options[:joins], scope)).
             where(construct_conditions(options[:conditions], scope)).
-            group(construct_group(options[:group], options[:having], scope)).
+            group(options[:group] || (scope && scope[:group])).
+            having(options[:having] || (scope && scope[:having])).
             order(construct_order(options[:order], scope)).
             limit(construct_limit(options[:limit], scope)).
             offset(construct_limit(options[:offset], scope)).

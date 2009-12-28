@@ -194,7 +194,7 @@ module ActiveRecord
 
         options[:select] <<  ", #{group_field} AS #{group_alias}"
 
-        relation = relation.select(options[:select]).group(construct_group(options[:group], options[:having], nil))
+        relation = relation.select(options[:select]).group(options[:group]).having(options[:having])
 
         calculated_data = connection.select_all(relation.to_sql)
 

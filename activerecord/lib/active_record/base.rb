@@ -652,7 +652,7 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :from, :lock, :readonly, :to => :scoped
+      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :from, :lock, :readonly, :having, :to => :scoped
 
       # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
       # same arguments to this method as you can to <tt>find(:first)</tt>.
@@ -1566,7 +1566,8 @@ module ActiveRecord #:nodoc:
             joins(construct_join(options[:joins], scope)).
             where(construct_conditions(options[:conditions], scope)).
             select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
-            group(construct_group(options[:group], options[:having], scope)).
+            group(options[:group] || (scope && scope[:group])).
+            having(options[:having] || (scope && scope[:having])).
             order(construct_order(options[:order], scope)).
             limit(construct_limit(options[:limit], scope)).
             offset(construct_offset(options[:offset], scope)).
@@ -1609,18 +1610,6 @@ module ActiveRecord #:nodoc:
           else
             ""
           end
-        end
-
-        def construct_group(group, having, scope)
-          sql = ''
-          if group
-            sql << group.to_s
-            sql << " HAVING #{sanitize_sql_for_conditions(having)}" if having
-          elsif scope && (scoped_group = scope[:group])
-            sql << scoped_group.to_s
-            sql << " HAVING #{sanitize_sql_for_conditions(scope[:having])}" if scope[:having]
-          end
-          sql
         end
 
         def construct_order(order, scope)
