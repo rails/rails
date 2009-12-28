@@ -1,4 +1,5 @@
 require 'active_support/core_ext/class'
+require 'mail'
 
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -534,7 +535,7 @@ module ActionMailer #:nodoc:
         if String === response_body
           @parts.unshift create_inline_part(response_body)
         else
-          self.class.template_root.find_all(@template, {}, mailer_name).each do |template|
+          self.class.template_root.find_all(@template, {}, @mailer_name).each do |template|
             @parts << create_inline_part(render_to_body(:_template => template), template.mime_type)
           end
 
@@ -575,17 +576,14 @@ module ActionMailer #:nodoc:
         real_content_type, ctype_attrs = parse_content_type
         main_type, sub_type = split_content_type(real_content_type)
 
-        if @parts.empty?
-          m.content_type([main_type, sub_type, ctype_attrs])
-          m.body = body
-        elsif @parts.size == 1 && @parts.first.parts.empty?
+        if @parts.size == 1 && @parts.first.parts.empty?
           m.content_type([main_type, sub_type, ctype_attrs])
           m.body = @parts.first.body.encoded
         else
-          
           @parts.each do |p|
             m.add_part(p)
           end
+
           m.body.set_sort_order(@implicit_parts_order)
           m.body.sort_parts!
 
@@ -603,16 +601,12 @@ module ActionMailer #:nodoc:
       end
 
       def parse_content_type(defaults=nil) #:nodoc:
-        if content_type.blank?
-          if defaults
-            [ defaults.content_type, { 'charset' => defaults.charset } ]
-          else
-            [ nil, {} ]
-          end
+        if @content_type.blank?
+          [ nil, {} ]
         else
-          ctype, *attrs = content_type.split(/;\s*/)
+          ctype, *attrs = @content_type.split(/;\s*/)
           attrs = attrs.inject({}) { |h,s| k,v = s.split(/\=/, 2); h[k] = v; h }
-          [ctype, {"charset" => charset || defaults && defaults.charset}.merge(attrs)]
+          [ctype, {"charset" => @charset}.merge(attrs)]
         end
       end
 

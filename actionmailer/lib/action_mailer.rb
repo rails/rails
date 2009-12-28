@@ -24,7 +24,6 @@
 actionpack_path = File.expand_path('../../../actionpack/lib', __FILE__)
 $:.unshift(actionpack_path) if File.directory?(actionpack_path) && !$:.include?(actionpack_path)
 
-
 require 'action_controller'
 require 'action_view'
 
@@ -46,5 +45,3 @@ module Text
 
   autoload :Format, 'action_mailer/vendor/text_format'
 end
-
-require 'mail'
