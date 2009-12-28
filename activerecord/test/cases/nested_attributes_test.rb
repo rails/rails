@@ -247,34 +247,24 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_accept_update_only_option
-    Pirate.accepts_nested_attributes_for :ship, :update_only => true
-    @pirate.update_attribute(:ship_attributes, { :id => @pirate.ship.id, :name => 'Mayflower' })
-
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    @pirate.update_attribute(:update_only_ship_attributes, { :id => @pirate.ship.id, :name => 'Mayflower' })
   end
 
   def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
-    Pirate.accepts_nested_attributes_for :ship, :update_only => true
     @ship.delete
-
     assert_difference('Ship.count', 1) do
-      @pirate.reload.update_attribute(:ship_attributes, { :name => 'Mayflower' })
+      @pirate.reload.update_attribute(:update_only_ship_attributes, { :name => 'Mayflower' })
     end
-
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   end
 
-
   def test_should_update_existing_when_update_only_is_true_and_no_id_is_given
-    Pirate.accepts_nested_attributes_for :ship, :update_only => true
+    @ship.delete
+    @ship = @pirate.create_update_only_ship(:name => 'Nights Dirty Lightning')
 
     assert_no_difference('Ship.count') do
-      @pirate.reload.update_attributes(:ship_attributes => { :name => 'Mayflower' })
+      @pirate.update_attributes(:update_only_ship_attributes => { :name => 'Mayflower' })
     end
-
     assert_equal 'Mayflower', @ship.reload.name
-
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   end
 end
 
@@ -392,6 +382,27 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_automatically_enable_autosave_on_the_association
     assert Ship.reflect_on_association(:pirate).options[:autosave]
+  end
+
+  def test_should_accept_update_only_option
+    @ship.update_attribute(:update_only_pirate_attributes, { :id => @pirate.ship.id, :catchphrase => 'Arr' })
+  end
+
+  def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
+    @pirate.delete
+    assert_difference('Pirate.count', 1) do
+      @ship.reload.update_attribute(:update_only_pirate_attributes, { :catchphrase => 'Arr' })
+    end
+  end
+
+  def test_should_update_existing_when_update_only_is_true_and_no_id_is_given
+    @pirate.delete
+    @pirate = @ship.create_update_only_pirate(:catchphrase => 'Aye')
+
+    assert_no_difference('Pirate.count') do
+      @ship.update_attributes(:update_only_pirate_attributes => { :catchphrase => 'Arr' })
+    end
+    assert_equal 'Arr', @pirate.reload.catchphrase
   end
 end
 
