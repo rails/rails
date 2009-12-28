@@ -523,8 +523,21 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_not_equal i.topic, iz.topic, "Interest topics should not be the same after changes to parent-owned instance"
   end
 
-  def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
-    assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.find(:first).horrible_man }
+  def test_trying_to_access_inverses_that_dont_exist_shouldnt_raise_an_error
+    # Ideally this would, if only for symmetry's sake with other association types
+    assert_nothing_raised(ActiveRecord::InverseOfAssociationNotFoundError) { Face.find(:first).horrible_polymorphic_man }
+  end
+
+  def test_trying_to_set_polymorphic_inverses_that_dont_exist_at_all_should_raise_an_error
+    # fails because no class has the correct inverse_of for horrible_polymorphic_man
+    assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.find(:first).horrible_polymorphic_man = Man.first }
+  end
+
+  def test_trying_to_set_polymorphic_inverses_that_dont_exist_on_the_instance_being_set_should_raise_an_error
+    # passes because Man does have the correct inverse_of
+    assert_nothing_raised(ActiveRecord::InverseOfAssociationNotFoundError) { Face.find(:first).polymorphic_man = Man.first }
+    # fails because Interest does have the correct inverse_of
+    assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.find(:first).polymorphic_man = Interest.first }
   end
 end
 
