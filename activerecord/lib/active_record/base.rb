@@ -1596,10 +1596,6 @@ module ActiveRecord #:nodoc:
           relation
         end
 
-        def construct_finder_sql(options, scope = scope(:find))
-          construct_finder_arel(options, scope).to_sql
-        end
-
         def construct_join(joins, scope)
           merged_joins = scope && scope[:joins] && joins ? merge_joins(scope[:joins], joins) : (joins || scope && scope[:joins])
           case merged_joins
