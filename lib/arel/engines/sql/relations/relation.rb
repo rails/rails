@@ -17,6 +17,7 @@ module Arel
           (joins(self)                                   unless joins(self).blank? ),
           ("WHERE     #{where_clauses.join("\n\tAND ")}" unless wheres.blank?      ),
           ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
+          ("HAVING    #{having_clauses.join(', ')}"      unless havings.blank?   ),
           ("#{locked}"                                   unless locked.blank?     )
 
         build_query \
@@ -32,6 +33,7 @@ module Arel
           (joins(self)                                   unless joins(self).blank? ),
           ("WHERE     #{where_clauses.join("\n\tAND ")}" unless wheres.blank?      ),
           ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
+          ("HAVING    #{having_clauses.join(', ')}"      unless havings.blank?     ),
           ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      ),
           ("LIMIT     #{taken}"                          unless taken.blank?       ),
           ("OFFSET    #{skipped}"                        unless skipped.blank?     ),
@@ -67,6 +69,10 @@ module Arel
 
     def group_clauses
       groupings.collect { |g| g.to_sql(Sql::GroupClause.new(self)) }
+    end
+
+    def having_clauses
+      havings.collect { |g| g.to_sql(Sql::HavingClause.new(self)) }
     end
 
     def order_clauses

@@ -57,6 +57,12 @@ module Arel
       end
     end
 
+    class HavingClause < PassThrough
+      def attribute(attribute)
+        attribute
+      end
+    end
+
     class WhereCondition < Formatter
       def attribute(attribute)
         "#{quote_table_name(name_for(attribute.original_relation))}.#{quote_column_name(attribute.name)}"

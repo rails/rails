@@ -5,7 +5,7 @@ module Arel
              :column_for, :engine, :sources, :locked,
              :to => :relation
 
-    [:attributes, :wheres, :groupings, :orders].each do |operation_name|
+    [:attributes, :wheres, :groupings, :orders, :havings].each do |operation_name|
       class_eval <<-OPERATION, __FILE__, __LINE__
         def #{operation_name}
           @#{operation_name} ||= relation.#{operation_name}.collect { |o| o.bind(self) }
