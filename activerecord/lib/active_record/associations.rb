@@ -772,7 +772,7 @@ module ActiveRecord
       #   Returns a new object of the collection type that has been instantiated
       #   with +attributes+, linked to this object through a foreign key, and that has already
       #   been saved (if it passed the validation). *Note*: This only works if the base model
-      #   already exists, not if it's +nil+ or is a new (unsaved) record!
+      #   already exists in the DB, not if it is a new (unsaved) record!
       #
       # (*Note*: +collection+ is replaced with the symbol passed as the first argument, so
       # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.)
