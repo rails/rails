@@ -209,9 +209,9 @@ module ActiveRecord
       #   exception is raised. If omitted, any number associations can be processed.
       #   Note that the :limit option is only applicable to one-to-many associations.
       # [:update_only]
-      #   Allows to specify that the an existing record can only be updated.
-      #   A new record in only created when there is no existing record. This
-      #   option only works for on-to-one associations and is ignored for
+      #   Allows you to specify that an existing record may only be updated.
+      #   A new record may only be created when there is no existing record.
+      #   This option only works for one-to-one associations and is ignored for
       #   collection associations. This option is off by default.
       #
       # Examples:
@@ -238,7 +238,7 @@ module ActiveRecord
             self.nested_attributes_options[association_name.to_sym] = options
 
             # def pirate_attributes=(attributes)
-            #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes, false)
+            #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes)
             # end
             class_eval %{
               def #{association_name}_attributes=(attributes)
@@ -279,43 +279,29 @@ module ActiveRecord
 
     # Assigns the given attributes to the association.
     #
-    # If the given attributes include an <tt>:id</tt> that matches the existing
-    # record’s id, then the existing record will be modified. Otherwise a new
-    # record will be built.
-    #
-    # If update_only is true, a new record is only created when no object exists,
-    # otherwise it will be updated
-    #
     # If update_only is false and the given attributes include an <tt>:id</tt>
     # that matches the existing record’s id, then the existing record will be
-    # modified. Otherwise a new record will be built.
+    # modified. If update_only is true, a new record is only created when no
+    # object exists. Otherwise a new record will be built.
     #
-    # If the given attributes include a matching <tt>:id</tt> attribute _and_ a
-    # <tt>:_destroy</tt> key set to a truthy value, then the existing record
-    # will be marked for destruction.
+    # If the given attributes include a matching <tt>:id</tt> attribute, or
+    # update_only is true, and a <tt>:_destroy</tt> key set to a truthy value,
+    # then the existing record will be marked for destruction.
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
       options = self.nested_attributes_options[association_name]
       attributes = attributes.with_indifferent_access
+      check_existing_record = (options[:update_only] || !attributes['id'].blank?)
 
-      if options[:update_only]
-        if existing_record = send(association_name)
-          assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+      if check_existing_record && (record = send(association_name)) &&
+          (options[:update_only] || record.id.to_s == attributes['id'].to_s)
+        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy])
+      elsif !reject_new_record?(association_name, attributes)
+        method = "build_#{association_name}"
+        if respond_to?(method)
+          send(method, attributes.except(*UNASSIGNABLE_KEYS))
         else
-          unless reject_new_record?(association_name, attributes)
-            send("build_#{association_name}", attributes.except(*UNASSIGNABLE_KEYS))
-          end
+          raise ArgumentError, "Cannot build association #{association_name}. Are you trying to build a polymorphic one-to-one association?"
         end
-      elsif attributes['id'].blank?
-        unless reject_new_record?(association_name, attributes)
-          method = "build_#{association_name}"
-          if respond_to?(method)
-            send(method, attributes.except(*UNASSIGNABLE_KEYS))
-          else
-            raise ArgumentError, "Cannot build association #{association_name}. Are you trying to build a polymorphic one-to-one association?"
-          end
-        end
-      elsif (existing_record = send(association_name)) && existing_record.id.to_s == attributes['id'].to_s
-        assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
       end
     end
 
