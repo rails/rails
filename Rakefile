@@ -24,8 +24,15 @@ task :default => %w(test test:isolated)
   end
 end
 
-spec = eval(File.read('rails.gemspec'))
+desc "Smoke-test all projects"
+task :smoke do
+  (PROJECTS - %w(activerecord)).each do |project|
+    system %(cd #{project} && #{env} #{$0} test:isolated)
+  end
+  system %(cd activerecord && #{env} #{$0} sqlite3:isolated_test)
+end
 
+spec = eval(File.read('rails.gemspec'))
 Rake::GemPackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
 end
