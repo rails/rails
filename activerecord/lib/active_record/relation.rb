@@ -25,7 +25,7 @@ module ActiveRecord
         select(r.send(:select_clauses).join(', ')).
         eager_load(r.eager_load_associations).
         preload(r.associations_to_preload).
-        from(r.send(:sources).any? ? r.send(:from_clauses) : nil)
+        from(r.send(:sources).present? ? r.send(:from_clauses) : nil)
     end
 
     alias :& :merge
@@ -158,7 +158,7 @@ module ActiveRecord
             :conditions => where_clause,
             :limit => @relation.taken,
             :offset => @relation.skipped,
-            :from => (@relation.send(:from_clauses) if @relation.send(:sources).any?)
+            :from => (@relation.send(:from_clauses) if @relation.send(:sources).present?)
             },
             ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
         end
