@@ -1,5 +1,12 @@
 *Edge*
 
+* Add Relation#count. [Pratik Naik]
+
+  legends = People.where("age > 100")
+  legends.count
+  legends.count(:age, :distinct => true)
+  legends.select('id').count
+
 * Add Model.readonly and association_collection#readonly finder method. [Pratik Naik]
 
   Post.readonly.to_a # Load all posts in readonly mode
