@@ -433,7 +433,8 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_child_instance_should_be_shared_with_replaced_via_method_parent
-    f = Face.find(:first)
+    f = faces(:trusting)
+    assert_not_nil f.man
     m = Man.new(:name => 'Charles')
     f.man.replace(m)
     assert_not_nil m.face
