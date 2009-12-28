@@ -767,13 +767,12 @@ module ActiveRecord
       # [collection.build(attributes = {}, ...)]
       #   Returns one or more new objects of the collection type that have been instantiated
       #   with +attributes+ and linked to this object through a foreign key, but have not yet
-      #   been saved. <b>Note:</b> This only works if an associated object already exists, not if
-      #   it's +nil+!
+      #   been saved.
       # [collection.create(attributes = {})]
       #   Returns a new object of the collection type that has been instantiated
       #   with +attributes+, linked to this object through a foreign key, and that has already
-      #   been saved (if it passed the validation). <b>Note:</b> This only works if an associated
-      #   object already exists, not if it's +nil+!
+      #   been saved (if it passed the validation). *Note*: This only works if the base model
+      #   already exists, not if it's +nil+ or is a new (unsaved) record!
       #
       # (*Note*: +collection+ is replaced with the symbol passed as the first argument, so
       # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.)
