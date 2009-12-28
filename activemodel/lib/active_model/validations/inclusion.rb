@@ -1,5 +1,17 @@
 module ActiveModel
   module Validations
+    class InclusionValidator < EachValidator
+      def check_validity!
+         raise ArgumentError, "An object with the method include? is required must be supplied as the " <<
+                              ":in option of the configuration hash" unless options[:in].respond_to?(:include?)
+       end
+
+      def validate_each(record, attribute, value)
+        return if options[:in].include?(value)
+        record.errors.add(attribute, :inclusion, :default => options[:message], :value => value)
+      end
+    end
+
     module ClassMethods
       # Validates whether the value of the specified attribute is available in a particular enumerable object.
       #
@@ -21,17 +33,9 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_inclusion_of(*attr_names)
-        configuration = attr_names.extract_options!
-
-        enum = configuration[:in] || configuration[:within]
-
-        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?(:include?)
-
-        validates_each(attr_names, configuration) do |record, attr_name, value|
-          unless enum.include?(value)
-            record.errors.add(attr_name, :inclusion, :default => configuration[:message], :value => value)
-          end
-        end
+        options = attr_names.extract_options!
+        options[:in] ||= options.delete(:within)
+        validates_with InclusionValidator, options.merge(:attributes => attr_names)
       end
     end
   end

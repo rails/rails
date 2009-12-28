@@ -8,9 +8,10 @@ require 'models/person'
 
 class PresenceValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
-  include ActiveModel::ValidationsRepairHelper
 
-  repair_validations(Topic)
+  def teardown
+    Topic.reset_callbacks(:validate)
+  end
 
   def test_validate_format
     Topic.validates_format_of(:title, :content, :with => /^Validation\smacros \w+!$/, :message => "is bad data")
@@ -100,28 +101,18 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert_raise(ArgumentError) { Topic.validates_format_of(:title, :without => "clearly not a regexp") }
   end
 
-  def test_validates_format_of_with_custom_error_using_quotes
-    repair_validations(Developer) do
-      Developer.validates_format_of :name, :with => /^(A-Z*)$/, :message=> "format 'single' and \"double\" quotes"
-      d = Developer.new
-      d.name = d.name_confirmation = "John 32"
-      assert !d.valid?
-      assert_equal ["format 'single' and \"double\" quotes"], d.errors[:name]
-    end
-  end
-
   def test_validates_format_of_for_ruby_class
-    repair_validations(Person) do
-      Person.validates_format_of :karma, :with => /\A\d+\Z/
+    Person.validates_format_of :karma, :with => /\A\d+\Z/
 
-      p = Person.new
-      p.karma = "Pixies"
-      assert p.invalid?
+    p = Person.new
+    p.karma = "Pixies"
+    assert p.invalid?
 
-      assert_equal ["is invalid"], p.errors[:karma]
+    assert_equal ["is invalid"], p.errors[:karma]
 
-      p.karma = "1234"
-      assert p.valid?
-    end
+    p.karma = "1234"
+    assert p.valid?
+  ensure
+    Person.reset_callbacks(:validate)
   end
 end

@@ -8,9 +8,10 @@ require 'models/person'
 
 class InclusionValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
-  include ActiveModel::ValidationsRepairHelper
 
-  repair_validations(Topic)
+  def teardown
+    Topic.reset_callbacks(:validate)
+  end
 
   def test_validates_inclusion_of
     Topic.validates_inclusion_of( :title, :in => %w( a b c d e f g ) )
@@ -53,28 +54,18 @@ class InclusionValidationTest < ActiveModel::TestCase
     assert_equal ["option uhoh is not in the list"], t.errors[:title]
   end
 
-  def test_validates_inclusion_of_with_custom_error_using_quotes
-    repair_validations(Developer) do
-      Developer.validates_inclusion_of :salary, :in => 1000..80000, :message=> "This string contains 'single' and \"double\" quotes"
-      d = Developer.new
-      d.salary = "90,000"
-      assert !d.valid?
-      assert_equal "This string contains 'single' and \"double\" quotes", d.errors[:salary].last
-    end
-  end
-
   def test_validates_inclusion_of_for_ruby_class
-    repair_validations(Person) do
-      Person.validates_inclusion_of :karma, :in => %w( abe monkey )
+    Person.validates_inclusion_of :karma, :in => %w( abe monkey )
 
-      p = Person.new
-      p.karma = "Lifo"
-      assert p.invalid?
+    p = Person.new
+    p.karma = "Lifo"
+    assert p.invalid?
 
-      assert_equal ["is not included in the list"], p.errors[:karma]
+    assert_equal ["is not included in the list"], p.errors[:karma]
 
-      p.karma = "monkey"
-      assert p.valid?
-    end
+    p.karma = "monkey"
+    assert p.valid?
+  ensure
+    Person.reset_callbacks(:validate)
   end
 end

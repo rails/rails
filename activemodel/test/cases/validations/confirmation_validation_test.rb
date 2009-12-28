@@ -8,9 +8,10 @@ require 'models/person'
 
 class ConfirmationValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
-  include ActiveModel::ValidationsRepairHelper
 
-  repair_validations(Topic)
+  def teardown
+    Topic.reset_callbacks(:validate)
+  end
 
   def test_no_title_confirmation
     Topic.validates_confirmation_of(:title)
@@ -39,30 +40,19 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     assert t.save
   end
 
-  def test_validates_confirmation_of_with_custom_error_using_quotes
-    repair_validations(Developer) do
-      Developer.validates_confirmation_of :name, :message=> "confirm 'single' and \"double\" quotes"
-      d = Developer.new
-      d.name = "John"
-      d.name_confirmation = "Johnny"
-      assert !d.valid?
-      assert_equal ["confirm 'single' and \"double\" quotes"], d.errors[:name]
-    end
-  end
-
   def test_validates_confirmation_of_for_ruby_class
-    repair_validations(Person) do
-      Person.validates_confirmation_of :karma
+    Person.validates_confirmation_of :karma
 
-      p = Person.new
-      p.karma_confirmation = "None"
-      assert p.invalid?
+    p = Person.new
+    p.karma_confirmation = "None"
+    assert p.invalid?
 
-      assert_equal ["doesn't match confirmation"], p.errors[:karma]
+    assert_equal ["doesn't match confirmation"], p.errors[:karma]
 
-      p.karma = "None"
-      assert p.valid?
-    end
+    p.karma = "None"
+    assert p.valid?
+  ensure
+    Person.reset_callbacks(:validate)
   end
 
 end

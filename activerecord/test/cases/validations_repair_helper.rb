@@ -1,4 +1,4 @@
-module ActiveModel
+module ActiveRecord
   module ValidationsRepairHelper
     extend ActiveSupport::Concern
 

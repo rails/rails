@@ -1,5 +1,15 @@
 module ActiveModel
   module Validations
+    class FormatValidator < EachValidator
+      def validate_each(record, attribute, value)
+        if options[:with] && value.to_s !~ options[:with]
+          record.errors.add(attribute, :invalid, :default => options[:message], :value => value)
+        elsif options[:without] && value.to_s =~ options[:without]
+          record.errors.add(attribute, :invalid, :default => options[:message], :value => value)
+        end
+      end
+    end
+
     module ClassMethods
       # Validates whether the value of the specified attribute is of the correct form, going by the regular expression provided.
       # You can require that the attribute matches the regular expression:
@@ -33,29 +43,21 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_format_of(*attr_names)
-        configuration = attr_names.extract_options!
+        options = attr_names.extract_options!
 
-        unless configuration.include?(:with) ^ configuration.include?(:without)  # ^ == xor, or "exclusive or"
+        unless options.include?(:with) ^ options.include?(:without)  # ^ == xor, or "exclusive or"
           raise ArgumentError, "Either :with or :without must be supplied (but not both)"
         end
 
-        if configuration[:with] && !configuration[:with].is_a?(Regexp)
+        if options[:with] && !options[:with].is_a?(Regexp)
           raise ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash"
         end
 
-        if configuration[:without] && !configuration[:without].is_a?(Regexp)
+        if options[:without] && !options[:without].is_a?(Regexp)
           raise ArgumentError, "A regular expression must be supplied as the :without option of the configuration hash"
         end
 
-        if configuration[:with]
-          validates_each(attr_names, configuration) do |record, attr_name, value|
-            record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value) if value.to_s !~ configuration[:with]
-          end
-        elsif configuration[:without]
-          validates_each(attr_names, configuration) do |record, attr_name, value|
-            record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value) if value.to_s =~ configuration[:without]
-          end
-        end
+        validates_with FormatValidator, options.merge(:attributes => attr_names)
       end
     end
   end

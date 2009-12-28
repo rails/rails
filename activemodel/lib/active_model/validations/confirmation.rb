@@ -1,5 +1,13 @@
 module ActiveModel
   module Validations
+    class ConfirmationValidator < EachValidator
+      def validate_each(record, attribute, value)
+        confirmed = record.send(:"#{attribute}_confirmation")
+        return if confirmed.nil? || value == confirmed
+        record.errors.add(attribute, :confirmation, :default => options[:message])
+      end
+    end
+
     module ClassMethods
       # Encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
       #
@@ -30,15 +38,9 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_confirmation_of(*attr_names)
-        configuration = attr_names.extract_options!
-
-        attr_accessor(*(attr_names.map { |n| "#{n}_confirmation" }))
-
-        validates_each(attr_names, configuration) do |record, attr_name, value|
-          unless record.send("#{attr_name}_confirmation").nil? or value == record.send("#{attr_name}_confirmation")
-            record.errors.add(attr_name, :confirmation, :default => configuration[:message])
-          end
-        end
+        options = attr_names.extract_options!
+        attr_accessor(*(attr_names.map { |n| :"#{n}_confirmation" }))
+        validates_with ConfirmationValidator, options.merge(:attributes => attr_names)
       end
     end
   end
