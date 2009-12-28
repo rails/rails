@@ -13,6 +13,8 @@ module ActiveRecord
     end
 
     def merge(r)
+      raise ArgumentError, "Cannot merge a #{r.klass.name} relation with #{@klass.name} relation" if r.klass != @klass
+
       joins(r.relation.joins(r.relation)).
         group(r.send(:group_clauses).join(', ')).
         order(r.send(:order_clauses).join(', ')).

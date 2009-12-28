@@ -353,4 +353,9 @@ class RelationTest < ActiveRecord::TestCase
       assert_queries(2) { assert posts.first.author }
     end
   end
+
+  def test_invalid_merge
+    assert_raises(ArgumentError) { Post.scoped & Developer.scoped }
+  end
+
 end
