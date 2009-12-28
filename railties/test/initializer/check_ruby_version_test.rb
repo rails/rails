@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module InitializerTests
-  class PathsTest < Test::Unit::TestCase
+  class CheckRubyVersionTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -9,52 +9,21 @@ module InitializerTests
       boot_rails
     end
 
-    test "rails does not initialize with ruby version 1.8.1" do
-      assert_rails_does_not_boot "1.8.1"
+    test "rails initializes with ruby 1.8.7 or later" do
+      if RUBY_VERSION < '1.8.7'
+        assert_rails_does_not_boot
+      else
+        assert_rails_boots
+      end
     end
 
-    test "rails does not initialize with ruby version 1.8.2" do
-      assert_rails_does_not_boot "1.8.2"
-    end
-
-    test "rails does not initialize with ruby version 1.8.3" do
-      assert_rails_does_not_boot "1.8.3"
-    end
-
-    test "rails does not initialize with ruby version 1.8.4" do
-      assert_rails_does_not_boot "1.8.4"
-    end
-
-    test "rails does not initializes with ruby version 1.8.5" do
-      assert_rails_does_not_boot "1.8.5"
-    end
-
-    test "rails does not initialize with ruby version 1.8.6" do
-      assert_rails_does_not_boot "1.8.6"
-    end
-
-    test "rails initializes with ruby version 1.8.7" do
-      assert_rails_boots "1.8.7"
-    end
-
-    test "rails initializes with the current version of Ruby" do
-      assert_rails_boots
-    end
-
-    def set_ruby_version(version)
-      $-w = nil
-      Object.const_set(:RUBY_VERSION, version.freeze)
-    end
-
-    def assert_rails_boots(version = nil)
-      set_ruby_version(version) if version
+    def assert_rails_boots
       assert_nothing_raised "It appears that rails does not boot" do
         require "rails"
       end
     end
 
-    def assert_rails_does_not_boot(version)
-      set_ruby_version(version)
+    def assert_rails_does_not_boot
       $stderr = File.open("/dev/null", "w")
       assert_raises(SystemExit) do
         require "rails"
