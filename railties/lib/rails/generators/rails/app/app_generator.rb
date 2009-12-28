@@ -49,6 +49,7 @@ module Rails::Generators
 
     def create_root_files
       copy_file "README"
+      copy_file "gitignore", ".gitignore"
       template "Rakefile"
       template "config.ru"
       template "Gemfile"
