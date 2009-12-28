@@ -1,5 +1,9 @@
 *Mail Integration
 
+* ActionMailer::Base :default_implicit_parts_order now is in the sequence of the order you want, no
+reversing of ordering takes place.  The default order now is text/plain, then text/enriched, then 
+text/html and then any other part that is not one of these three.
+
 * Mail does not have "quoted_body", "quoted_subject" etc.  All of these are accessed via body.encoded, 
   subject.encoded etc
 

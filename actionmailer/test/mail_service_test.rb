@@ -930,7 +930,6 @@ EOF
     mail = TestMailer.create_explicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length
     assert_equal 'multipart/mixed', mail.content_type.string
-
     assert_equal "text/plain", mail.parts[0].content_type.string
 
     assert_equal "text/html", mail.parts[1].content_type.string
@@ -938,7 +937,6 @@ EOF
 
     assert_equal "image/jpeg", mail.parts[2].content_type.string
     assert_equal "attachment", mail.parts[2].content_disposition.disposition_type
-
     assert_equal "foo.jpg", mail.parts[2].content_disposition.filename
     assert_equal "foo.jpg", mail.parts[2].content_type.filename
     assert_nil mail.parts[2].charset
@@ -963,11 +961,11 @@ EOF
     assert_equal 3, mail.parts.length
     assert_equal "1.0", mail.mime_version.to_s
     assert_equal "multipart/alternative", mail.content_type.string
-    assert_equal "application/x-yaml", mail.parts[0].content_type.string
+    assert_equal "text/plain", mail.parts[0].content_type.string
     assert_equal "utf-8", mail.parts[0].charset
-    assert_equal "text/plain", mail.parts[1].content_type.string
+    assert_equal "text/html", mail.parts[1].content_type.string
     assert_equal "utf-8", mail.parts[1].charset
-    assert_equal "text/html", mail.parts[2].content_type.string
+    assert_equal "application/x-yaml", mail.parts[2].content_type.string
     assert_equal "utf-8", mail.parts[2].charset
   end
 
@@ -976,9 +974,9 @@ EOF
 
     mail = TestMailer.create_implicitly_multipart_example(@recipient, nil, ["application/x-yaml", "text/plain"])
     assert_equal 3, mail.parts.length
-    assert_equal "text/html", mail.parts[0].content_type.string
+    assert_equal "application/x-yaml", mail.parts[0].content_type.string
     assert_equal "text/plain", mail.parts[1].content_type.string
-    assert_equal "application/x-yaml", mail.parts[2].content_type.string
+    assert_equal "text/html", mail.parts[2].content_type.string
   end
 
   def test_implicitly_multipart_messages_with_charset

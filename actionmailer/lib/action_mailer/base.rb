@@ -282,7 +282,13 @@ module ActionMailer #:nodoc:
     @@default_mime_version = "1.0"
     cattr_accessor :default_mime_version
 
-    @@default_implicit_parts_order = [ "text/html", "text/enriched", "text/plain" ]
+    # This specifies the order that the parts of a multipart email will be.  Usually you put
+    # text/plain at the top so someone without a MIME capable email reader can read the plain
+    # text of your email first.
+    #
+    # Any content type that is not listed here will be inserted in the order you add them to
+    # the email after the content types you list here.
+    @@default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
     cattr_accessor :default_implicit_parts_order
 
     @@protected_instance_variables = %w(@parts @mail)
@@ -534,7 +540,6 @@ module ActionMailer #:nodoc:
 
           if @parts.size > 1
             @content_type = "multipart/alternative" if @content_type !~ /^multipart/
-            @parts = sort_parts(@parts, @implicit_parts_order)
           end
 
           # If this is a multipart e-mail add the mime_version if it is not
@@ -552,35 +557,6 @@ module ActionMailer #:nodoc:
           :content_disposition => "inline",
           :body => body
         )
-      end
-
-      def sort_parts(parts, order = []) #:nodoc:
-        order = order.collect { |s| s.downcase }
-
-        parts = parts.sort do |a, b|
-          a_ct = a.content_type.string.downcase
-          b_ct = b.content_type.string.downcase
-
-          a_in = order.include? a_ct
-          b_in = order.include? b_ct
-
-          s = case
-          when a_in && b_in
-            order.index(a_ct) <=> order.index(b_ct)
-          when a_in
-            -1
-          when b_in
-            1
-          else
-            a_ct <=> b_ct
-          end
-
-          # reverse the ordering because parts that come last are displayed
-          # first in mail clients
-          (s * -1)
-        end
-
-        parts
       end
 
       def create_mail #:nodoc:
@@ -606,9 +582,12 @@ module ActionMailer #:nodoc:
           m.content_type([main_type, sub_type, ctype_attrs])
           m.body = @parts.first.body.encoded
         else
+          
           @parts.each do |p|
             m.add_part(p)
           end
+          m.body.set_sort_order(@implicit_parts_order)
+          m.body.sort_parts!
 
           if real_content_type =~ /multipart/
             ctype_attrs.delete "charset"
