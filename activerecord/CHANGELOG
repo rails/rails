@@ -1,5 +1,12 @@
 *Edge*
 
+* Add .lock finder method [Pratik Naik]
+
+  User.lock.where(:name => 'lifo').to_a
+
+  old_items = Item.where("age > 100")
+  old_items.locked.each {|i| .. }
+
 * Add Model.from and association_collection#from finder methods [Pratik Naik]
 
   user = User.scoped

@@ -652,7 +652,7 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :from, :to => :scoped
+      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :from, :lock, :to => :scoped
 
       # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
       # same arguments to this method as you can to <tt>find(:first)</tt>.
@@ -1572,6 +1572,9 @@ module ActiveRecord #:nodoc:
             limit(construct_limit(options[:limit], scope)).
             offset(construct_offset(options[:offset], scope)).
             from(options[:from])
+
+          lock = (scope && scope[:lock]) || options[:lock]
+          relation = relation.lock if lock.present?
 
           relation = relation.readonly if options[:readonly]
 

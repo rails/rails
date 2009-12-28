@@ -55,6 +55,17 @@ module ActiveRecord
       orders.present? ? create_new_relation(@relation.order(orders)) : create_new_relation
     end
 
+    def lock(locks = true)
+      case locks
+      when String
+        create_new_relation(@relation.lock(locks))
+      when TrueClass, NilClass
+        create_new_relation(@relation.lock)
+      else
+        create_new_relation
+      end
+    end
+
     def reverse_order
       relation = create_new_relation
       relation.instance_variable_set(:@orders, nil)
