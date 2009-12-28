@@ -1702,14 +1702,6 @@ module ActiveRecord #:nodoc:
           o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
         end
 
-        # The optional scope argument is for the current <tt>:find</tt> scope.
-        # The <tt>:lock</tt> option has precedence over a scoped <tt>:lock</tt>.
-        def add_lock!(sql, options, scope = :auto)
-          scope = scope(:find) if :auto == scope
-          options = options.reverse_merge(:lock => scope[:lock]) if scope
-          connection.add_lock!(sql, options)
-        end
-
         def type_condition(table_alias=nil)
           quoted_table_alias = self.connection.quote_table_name(table_alias || table_name)
           quoted_inheritance_column = connection.quote_column_name(inheritance_column)

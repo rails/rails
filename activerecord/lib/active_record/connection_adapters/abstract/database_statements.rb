@@ -181,18 +181,6 @@ module ActiveRecord
       # done if the transaction block raises an exception or returns false.
       def rollback_db_transaction() end
 
-      # Appends a locking clause to an SQL statement.
-      # This method *modifies* the +sql+ parameter.
-      #   # SELECT * FROM suppliers FOR UPDATE
-      #   add_lock! 'SELECT * FROM suppliers', :lock => true
-      #   add_lock! 'SELECT * FROM suppliers', :lock => ' FOR UPDATE'
-      def add_lock!(sql, options)
-        case lock = options[:lock]
-          when true;   sql << ' FOR UPDATE'
-          when String; sql << " #{lock}"
-        end
-      end
-
       def default_sequence_name(table, column)
         nil
       end
