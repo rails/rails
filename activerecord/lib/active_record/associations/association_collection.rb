@@ -21,7 +21,7 @@ module ActiveRecord
         construct_sql
       end
 
-      delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :from, :lock, :to => :scoped
+      delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :from, :lock, :readonly, :to => :scoped
 
       def select(select = nil, &block)
         if block_given?

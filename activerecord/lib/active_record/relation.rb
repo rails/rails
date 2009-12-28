@@ -1,7 +1,7 @@
 module ActiveRecord
   class Relation
     delegate :to_sql, :to => :relation
-    delegate :length, :collect, :map, :each, :to => :to_a
+    delegate :length, :collect, :map, :each, :all?, :to => :to_a
     attr_reader :relation, :klass, :associations_to_preload, :eager_load_associations
 
     def initialize(klass, relation, readonly = false, preload = [], eager_load = [])

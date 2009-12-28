@@ -1,5 +1,10 @@
 *Edge*
 
+* Add Model.readonly and association_collection#readonly finder method. [Pratik Naik]
+
+  Post.readonly.to_a # Load all posts in readonly mode
+  @user.items.readonly(false).to_a # Load all the user items in writable mode
+
 * Add .lock finder method [Pratik Naik]
 
   User.lock.where(:name => 'lifo').to_a
