@@ -1,5 +1,6 @@
 gem "rake", ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
+gem "ruby-debug", ">= 0.10.3" if RUBY_VERSION < '1.9'
 
 gem "rails", "3.0.pre", :path => "railties"
 %w(activesupport activemodel actionpack actionmailer activerecord activeresource).each do |lib|
