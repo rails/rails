@@ -208,6 +208,11 @@ module ActiveRecord
       #   nested attributes array exceeds the specified limit, NestedAttributes::TooManyRecords
       #   exception is raised. If omitted, any number associations can be processed.
       #   Note that the :limit option is only applicable to one-to-many associations.
+      # [:update_only]
+      #   Allows to specify that the an existing record can only be updated.
+      #   A new record in only created when there is no existing record. This
+      #   option only works for on-to-one associations and is ignored for
+      #   collection associations. This option is off by default.
       #
       # Examples:
       #   # creates avatar_attributes=
@@ -215,9 +220,9 @@ module ActiveRecord
       #   # creates avatar_attributes= and posts_attributes=
       #   accepts_nested_attributes_for :avatar, :posts, :allow_destroy => true
       def accepts_nested_attributes_for(*attr_names)
-        options = { :allow_destroy => false }
+        options = { :allow_destroy => false, :update_only => false }
         options.update(attr_names.extract_options!)
-        options.assert_valid_keys(:allow_destroy, :reject_if, :limit)
+        options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only)
 
         attr_names.each do |association_name|
           if reflection = reflect_on_association(association_name)
@@ -278,6 +283,13 @@ module ActiveRecord
     # record’s id, then the existing record will be modified. Otherwise a new
     # record will be built.
     #
+    # If update_only is true, a new record is only created when no object exists,
+    # otherwise it will be updated
+    #
+    # If update_only is false and the given attributes include an <tt>:id</tt>
+    # that matches the existing record’s id, then the existing record will be
+    # modified. Otherwise a new record will be built.
+    #
     # If the given attributes include a matching <tt>:id</tt> attribute _and_ a
     # <tt>:_destroy</tt> key set to a truthy value, then the existing record
     # will be marked for destruction.
@@ -285,7 +297,15 @@ module ActiveRecord
       options = self.nested_attributes_options[association_name]
       attributes = attributes.with_indifferent_access
 
-      if attributes['id'].blank?
+      if options[:update_only]
+        if existing_record = send(association_name)
+          assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+        else
+          unless reject_new_record?(association_name, attributes)
+            send("build_#{association_name}", attributes.except(*UNASSIGNABLE_KEYS))
+          end
+        end
+      elsif attributes['id'].blank?
         unless reject_new_record?(association_name, attributes)
           method = "build_#{association_name}"
           if respond_to?(method)
