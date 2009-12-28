@@ -593,6 +593,8 @@ module ActionMailer #:nodoc:
           end
         end
 
+        m.content_transfer_encoding = '8bit' unless m.body.only_us_ascii?
+        
         @mail = m
       end
       

@@ -107,7 +107,7 @@ class TestMailer < ActionMailer::Base
     cc         "Foo áëô îü <extended@example.net>"
     bcc        "Foo áëô îü <extended@example.net>"
     charset    "utf-8"
-
+    
     render :text => "åœö blah"
   end
 
