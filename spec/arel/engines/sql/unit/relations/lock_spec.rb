@@ -17,10 +17,17 @@ module Arel
           })
         end
 
-        adapter_is_not :mysql do
+        adapter_is :postgresql do
           sql.should be_like(%Q{
             SELECT "users"."id", "users"."name"
             FROM "users" FOR UPDATE
+          })
+        end
+
+        adapter_is :sqlite3 do
+          sql.should be_like(%Q{
+            SELECT "users"."id", "users"."name"
+            FROM "users"
           })
         end
       end
@@ -35,10 +42,17 @@ module Arel
           })
         end
 
-        adapter_is_not :mysql do
+        adapter_is :postgresql do
           sql.should be_like(%Q{
             SELECT "users"."id", "users"."name"
             FROM "users" LOCK IN SHARE MODE
+          })
+        end
+
+        adapter_is :sqlite3 do
+          sql.should be_like(%Q{
+            SELECT "users"."id", "users"."name"
+            FROM "users"
           })
         end
       end

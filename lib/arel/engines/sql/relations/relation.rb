@@ -35,7 +35,7 @@ module Arel
           ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      ),
           ("LIMIT     #{taken}"                          unless taken.blank?       ),
           ("OFFSET    #{skipped}"                        unless skipped.blank?     ),
-          ("#{locked}"                                   unless locked.blank?     )
+          ("#{locked}"                                   unless engine.adapter_name =~ /SQLite/ || locked.blank?)
       end
     end
 
