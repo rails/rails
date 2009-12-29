@@ -10,8 +10,8 @@ module Mime
     %w(<< concat shift unshift push pop []= clear compact! collect!
     delete delete_at delete_if flatten! map! insert reject! reverse!
     replace slice! sort! uniq!).each do |method|
-      module_eval <<-CODE
-        def #{method}(*args)
+      module_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{method}(*)
           @symbols = nil
           super
         end
