@@ -33,21 +33,15 @@ module ActiveRecord
     alias :& :merge
 
     def preload(*associations)
-      relation = spawn
-      relation.preload_associations += Array.wrap(associations)
-      relation
+      spawn.tap {|r| r.preload_associations += Array.wrap(associations) }
     end
 
     def eager_load(*associations)
-      relation = spawn
-      relation.eager_load_associations += Array.wrap(associations)
-      relation
+      spawn.tap {|r| r.eager_load_associations += Array.wrap(associations) }
     end
 
     def readonly(status = true)
-      relation = spawn
-      relation.readonly = status
-      relation
+      spawn.tap {|r| r.readonly = status }
     end
 
     def select(selects)
@@ -135,9 +129,7 @@ module ActiveRecord
         @relation.join(join, join_type)
       end
 
-      relation = spawn(join_relation)
-      relation.readonly = true
-      relation
+      spawn(join_relation) { |r| r.readonly = true }
     end
 
     def where(*args)
