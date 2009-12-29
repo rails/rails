@@ -129,7 +129,7 @@ module ActiveRecord
         @relation.join(join, join_type)
       end
 
-      spawn(join_relation) { |r| r.readonly = true }
+      spawn(join_relation).tap { |r| r.readonly = true }
     end
 
     def where(*args)
