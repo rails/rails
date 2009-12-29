@@ -13,7 +13,7 @@ module ActionController #:nodoc:
       cattr_accessor :request_forgery_protection_token
 
       # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
-      class_inheritable_accessor :allow_forgery_protection
+      extlib_inheritable_accessor :allow_forgery_protection
       self.allow_forgery_protection = true
 
       helper_method :form_authenticity_token
