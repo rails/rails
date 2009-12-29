@@ -108,7 +108,7 @@ NOTE: If you're working with Active Record code, you _must_ ensure that the test
 
 h3. Helping to Resolve Existing Issues
 
-As a next step beyond reporting issues, you can help the core team resolve existing issues. If you check the "open tickets":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets?q=state%3Aopen list in Lighthouse, you'll find hundreds of issues already requiring attention. What can you do for these? Quite a bit, actually:
+As a next step beyond reporting issues, you can help the core team resolve existing issues. If you check the "open tickets":https://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets?q=state%3Aopen list in Lighthouse, you'll find hundreds of issues already requiring attention. What can you do for these? Quite a bit, actually:
 
 h4. Verifying Bug Reports
 
