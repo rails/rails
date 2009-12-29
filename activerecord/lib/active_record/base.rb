@@ -1645,7 +1645,7 @@ module ActiveRecord #:nodoc:
 
         # Merges includes so that the result is a valid +include+
         def merge_includes(first, second)
-         (safe_to_array(first) + safe_to_array(second)).uniq
+         (Array.wrap(first) + Array.wrap(second)).uniq
         end
 
         def merge_joins(*joins)
@@ -1657,7 +1657,7 @@ module ActiveRecord #:nodoc:
             end
             joins.flatten.map{|j| j.strip}.uniq
           else
-            joins.collect{|j| safe_to_array(j)}.flatten.uniq
+            joins.collect{|j| Array.wrap(j)}.flatten.uniq
           end
         end
 
@@ -1672,18 +1672,6 @@ module ActiveRecord #:nodoc:
               Arel::InnerJoin.new(relation, association_relation, association.association_join).joins(relation)
             end
           }.join(" ")
-        end
-
-        # Object#to_a is deprecated, though it does have the desired behavior
-        def safe_to_array(o)
-          case o
-          when NilClass
-            []
-          when Array
-            o
-          else
-            [o]
-          end
         end
 
         def array_of_strings?(o)
