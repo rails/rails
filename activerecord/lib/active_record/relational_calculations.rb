@@ -109,11 +109,11 @@ module ActiveRecord
       # TODO : relation.projections only works when .select() was last in the chain. Fix it!
       case args.size
       when 0
-        select = @relation.send(:select_clauses).join(', ') if @relation.respond_to?(:projections) && @relation.projections.present?
+        select = get_projection_name_from_chained_relations
         column_name = select if select !~ /(,|\*)/
       when 1
         if args[0].is_a?(Hash)
-          select = @relation.send(:select_clauses).join(', ') if @relation.respond_to?(:projections) && @relation.projections.present?
+          select = get_projection_name_from_chained_relations
           column_name = select if select !~ /(,|\*)/
           options = args[0]
         else
@@ -163,6 +163,21 @@ module ActiveRecord
 
     def type_cast_using_column(value, column)
       column ? column.type_cast(value) : value
+    end
+
+    def get_projection_name_from_chained_relations
+      name = nil
+      if @relation.respond_to?(:projections) && @relation.projections.present?
+        name = @relation.send(:select_clauses).join(', ')
+      elsif @relation.respond_to?(:relation) && relation = @relation.relation
+        while relation.respond_to?(:relation)
+          if relation.respond_to?(:projections) && relation.projections.present?
+            name = relation.send(:select_clauses).join(', ')
+          end
+          relation = relation.relation
+        end
+      end
+      name
     end
 
   end

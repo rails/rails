@@ -376,7 +376,7 @@ class RelationTest < ActiveRecord::TestCase
     relations = []
     relations << (Post.order('comments.id DESC') & Post.eager_load(:last_comment) & Post.scoped)
     relations << (Post.eager_load(:last_comment) & Post.order('comments.id DESC') & Post.scoped)
-    
+
     relations.each do |posts|
       post = posts.find { |p| p.id == 1 }
       assert_equal Post.find(1).last_comment, post.last_comment
@@ -418,6 +418,9 @@ class RelationTest < ActiveRecord::TestCase
     Post.update_all(:comments_count => nil)
     posts = Post.scoped
 
+    assert_equal 0, posts.select('comments_count').where('id is not null').order('id').count
+    assert_equal 0, posts.where('id is not null').select('comments_count').count
+
     assert_equal 7, posts.select('comments_count').count('id')
     assert_equal 0, posts.select('comments_count').count
     assert_equal 0, posts.count(:comments_count)
@@ -433,6 +436,13 @@ class RelationTest < ActiveRecord::TestCase
     best_posts = posts.where(:comments_count => 0)
     best_posts.to_a # force load
     assert_no_queries { assert_equal 5, best_posts.size }
+  end
+
+  def test_count_complex_chained_relations
+    posts = Post.select('comments_count').where('id is not null').group("author_id").where("comments_count > 0")
+
+    expected = { 1 => 2 }
+    assert_equal expected, posts.count
   end
 
 end
