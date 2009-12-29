@@ -30,6 +30,7 @@ module ActiveModel
   extend ActiveSupport::Autoload
 
   autoload :AttributeMethods
+  autoload :Callbacks
   autoload :Conversion
   autoload :DeprecatedErrorMethods
   autoload :Dirty
