@@ -22,7 +22,7 @@ This guide is designed for beginners who want to get started with a Rails applic
 It is highly recommended that you *familiarize yourself with Ruby before diving into Rails*. You will find it much easier to follow what's going on with a Rails application if you understand basic Ruby syntax. Rails isn't going to magically revolutionize the way you write web applications if you have no experience with the language it uses. There are some good free resources on the internet for learning Ruby, including:
 
 * "Mr. Neighborly's Humble Little Ruby Book":http://www.humblelittlerubybook.com
-* "Programming Ruby":http://www.rubycentral.com/book
+* "Programming Ruby":http://www.ruby-doc.org/docs/ProgrammingRuby/
 * "Why's (Poignant) Guide to Ruby":http://mislav.uniqpath.com/poignant-guide/
 
 h3. What is Rails?
