@@ -81,7 +81,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_order
     topics = Topic.order('id')
-    assert_equal 4, topics.size
+    assert_equal 4, topics.to_a.size
     assert_equal topics(:first).title, topics.first.title
   end
 
@@ -95,11 +95,11 @@ class RelationTest < ActiveRecord::TestCase
   def test_finding_with_order_limit_and_offset
     entrants = Entrant.order("id ASC").limit(2).offset(1)
 
-    assert_equal 2, entrants.size
+    assert_equal 2, entrants.to_a.size
     assert_equal entrants(:second).name, entrants.first.name
 
     entrants = Entrant.order("id ASC").limit(2).offset(2)
-    assert_equal 1, entrants.size
+    assert_equal 1, entrants.to_a.size
     assert_equal entrants(:third).name, entrants.first.name
   end
 
@@ -408,4 +408,16 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 0, posts.count(:comments_count)
     assert_equal 0, posts.count('comments_count')
   end
+
+  def test_size
+    posts = Post.scoped
+
+    assert_queries(1) { assert_equal 7, posts.size }
+    assert ! posts.loaded?
+
+    best_posts = posts.where(:comments_count => 0)
+    best_posts.to_a # force load
+    assert_no_queries { assert_equal 5, best_posts.size }
+  end
+
 end

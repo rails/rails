@@ -219,6 +219,14 @@ module ActiveRecord
       end
     end
 
+    def size
+      loaded? ? @records.length : count
+    end
+
+    def empty?
+      loaded? ? @records.empty? : count.zero?
+    end
+
     def destroy_all
       to_a.each {|object| object.destroy}
       reset
