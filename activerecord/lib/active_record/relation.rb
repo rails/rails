@@ -1,18 +1,18 @@
 module ActiveRecord
   class Relation
-    delegate :to_sql, :to => :relation
-    delegate :length, :collect, :map, :each, :all?, :to => :to_a
-    attr_reader :relation, :klass, :associations_to_preload, :eager_load_associations
-
     include RelationalCalculations
 
-    attr_writer :readonly
+    delegate :to_sql, :to => :relation
+    delegate :length, :collect, :map, :each, :all?, :to => :to_a
 
-    def initialize(klass, relation, preload = [], eager_load = [])
+    attr_reader :relation, :klass, :preload_associations, :eager_load_associations
+    attr_writer :readonly, :preload_associations, :eager_load_associations
+
+    def initialize(klass, relation)
       @klass, @relation = klass, relation
-      @associations_to_preload = preload
-      @eager_load_associations = eager_load
-      @loaded = false
+      @preload_associations = []
+      @eager_load_associations = []
+      @loaded, @readonly = false
     end
 
     def merge(r)
@@ -26,42 +26,46 @@ module ActiveRecord
         offset(r.skipped).
         select(r.send(:select_clauses).join(', ')).
         eager_load(r.eager_load_associations).
-        preload(r.associations_to_preload).
+        preload(r.preload_associations).
         from(r.send(:sources).present? ? r.send(:from_clauses) : nil)
     end
 
     alias :& :merge
 
     def preload(*associations)
-      create_new_relation(@relation, @associations_to_preload + Array.wrap(associations))
+      relation = spawn
+      relation.preload_associations += Array.wrap(associations)
+      relation
     end
 
     def eager_load(*associations)
-      create_new_relation(@relation, @associations_to_preload, @eager_load_associations + Array.wrap(associations))
+      relation = spawn
+      relation.eager_load_associations += Array.wrap(associations)
+      relation
     end
 
     def readonly(status = true)
-      relation = create_new_relation
+      relation = spawn
       relation.readonly = status
       relation
     end
 
     def select(selects)
       if selects.present?
-        relation = create_new_relation(@relation.project(selects))
+        relation = spawn(@relation.project(selects))
         relation.readonly = @relation.joins(relation).present? ? false : @readonly
         relation
       else
-        create_new_relation
+        spawn
       end
     end
 
     def from(from)
-      from.present? ? create_new_relation(@relation.from(from)) : create_new_relation
+      from.present? ? spawn(@relation.from(from)) : spawn
     end
 
     def having(*args)
-      return create_new_relation if args.blank?
+      return spawn if args.blank?
 
       if [String, Hash, Array].include?(args.first.class)
         havings = @klass.send(:merge_conditions, args.size > 1 ? Array.wrap(args) : args.first)
@@ -69,30 +73,30 @@ module ActiveRecord
         havings = args.first
       end
 
-      create_new_relation(@relation.having(havings))
+      spawn(@relation.having(havings))
     end
 
     def group(groups)
-      groups.present? ? create_new_relation(@relation.group(groups)) : create_new_relation
+      groups.present? ? spawn(@relation.group(groups)) : spawn
     end
 
     def order(orders)
-      orders.present? ? create_new_relation(@relation.order(orders)) : create_new_relation
+      orders.present? ? spawn(@relation.order(orders)) : spawn
     end
 
     def lock(locks = true)
       case locks
       when String
-        create_new_relation(@relation.lock(locks))
+        spawn(@relation.lock(locks))
       when TrueClass, NilClass
-        create_new_relation(@relation.lock)
+        spawn(@relation.lock)
       else
-        create_new_relation
+        spawn
       end
     end
 
     def reverse_order
-      relation = create_new_relation
+      relation = spawn
       relation.instance_variable_set(:@orders, nil)
 
       order_clause = @relation.send(:order_clauses).join(', ')
@@ -104,19 +108,19 @@ module ActiveRecord
     end
 
     def limit(limits)
-      limits.present? ? create_new_relation(@relation.take(limits)) : create_new_relation
+      limits.present? ? spawn(@relation.take(limits)) : spawn
     end
 
     def offset(offsets)
-      offsets.present? ? create_new_relation(@relation.skip(offsets)) : create_new_relation
+      offsets.present? ? spawn(@relation.skip(offsets)) : spawn
     end
 
     def on(join)
-      create_new_relation(@relation.on(join))
+      spawn(@relation.on(join))
     end
 
     def joins(join, join_type = nil)
-      return create_new_relation if join.blank?
+      return spawn if join.blank?
 
       join_relation = case join
       when String
@@ -131,13 +135,13 @@ module ActiveRecord
         @relation.join(join, join_type)
       end
 
-      relation = create_new_relation(join_relation)
+      relation = spawn(join_relation)
       relation.readonly = true
       relation
     end
 
     def where(*args)
-      return create_new_relation if args.blank?
+      return spawn if args.blank?
 
       if [String, Hash, Array].include?(args.first.class)
         conditions = @klass.send(:merge_conditions, args.size > 1 ? Array.wrap(args) : args.first)
@@ -146,7 +150,7 @@ module ActiveRecord
         conditions = args.first
       end
 
-      create_new_relation(@relation.where(conditions))
+      spawn(@relation.where(conditions))
     end
 
     def respond_to?(method, include_private = false)
@@ -184,7 +188,7 @@ module ActiveRecord
         @klass.find_by_sql(@relation.to_sql)
       end
 
-      @associations_to_preload.each {|associations| @klass.send(:preload_associations, @records, associations) }
+      @preload_associations.each {|associations| @klass.send(:preload_associations, @records, associations) }
       @records.each { |record| record.readonly! } if @readonly
 
       @loaded = true
@@ -264,6 +268,14 @@ module ActiveRecord
       @first = @last = nil
       @records = []
       self
+    end
+
+    def spawn(relation = @relation)
+      relation = self.class.new(@klass, relation)
+      relation.readonly = @readonly
+      relation.preload_associations = @preload_associations
+      relation.eager_load_associations = @eager_load_associations
+      relation
     end
 
     protected
@@ -357,12 +369,6 @@ module ActiveRecord
         error << "(#{ids.join(", ")})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"
         raise RecordNotFound, error
       end
-    end
-
-    def create_new_relation(relation = @relation, preload = @associations_to_preload, eager_load = @eager_load_associations)
-      relation = self.class.new(@klass, relation, preload, eager_load)
-      relation.readonly = @readonly
-      relation
     end
 
     def where_clause(join_string = "\n\tAND ")
