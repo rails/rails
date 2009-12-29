@@ -142,8 +142,8 @@ module ActiveRecord
       create_new_relation(@relation.where(conditions))
     end
 
-    def respond_to?(method)
-      return true if @relation.respond_to?(method) || Array.method_defined?(method)
+    def respond_to?(method, include_private = false)
+      return true if @relation.respond_to?(method, include_private) || Array.method_defined?(method)
 
       if match = DynamicFinderMatch.match(method)
         return true if @klass.send(:all_attributes_exists?, match.attribute_names)

@@ -146,6 +146,13 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_respond_to_private_arel_methods
+    relation = Topic.scoped
+
+    assert ! relation.respond_to?(:matching_attributes)
+    assert relation.respond_to?(:matching_attributes, true)
+  end
+
   def test_respond_to_dynamic_finders
     relation = Topic.scoped
 
