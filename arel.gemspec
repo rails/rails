@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bryan Helmkamp", "Nick Kallen"]
-  s.date = %q{2009-11-10}
+  s.date = %q{2009-12-29}
   s.description = %q{Arel is a Relational Algebra for Ruby. It 1) simplifies the generation complex
 of SQL queries and it 2) adapts to various RDBMS systems. It is intended to be
 a framework framework; that is, you can build your own ORM with it, focusing on
@@ -40,8 +40,11 @@ and query generation.}
     "lib/arel/algebra/predicates.rb",
     "lib/arel/algebra/relations.rb",
     "lib/arel/algebra/relations/operations/alias.rb",
+    "lib/arel/algebra/relations/operations/from.rb",
     "lib/arel/algebra/relations/operations/group.rb",
+    "lib/arel/algebra/relations/operations/having.rb",
     "lib/arel/algebra/relations/operations/join.rb",
+    "lib/arel/algebra/relations/operations/lock.rb",
     "lib/arel/algebra/relations/operations/order.rb",
     "lib/arel/algebra/relations/operations/project.rb",
     "lib/arel/algebra/relations/operations/skip.rb",
@@ -129,9 +132,12 @@ and query generation.}
     "spec/arel/engines/sql/unit/primitives/value_spec.rb",
     "spec/arel/engines/sql/unit/relations/alias_spec.rb",
     "spec/arel/engines/sql/unit/relations/delete_spec.rb",
+    "spec/arel/engines/sql/unit/relations/from_spec.rb",
     "spec/arel/engines/sql/unit/relations/group_spec.rb",
+    "spec/arel/engines/sql/unit/relations/having_spec.rb",
     "spec/arel/engines/sql/unit/relations/insert_spec.rb",
     "spec/arel/engines/sql/unit/relations/join_spec.rb",
+    "spec/arel/engines/sql/unit/relations/lock_spec.rb",
     "spec/arel/engines/sql/unit/relations/order_spec.rb",
     "spec/arel/engines/sql/unit/relations/project_spec.rb",
     "spec/arel/engines/sql/unit/relations/skip_spec.rb",
@@ -201,9 +207,12 @@ and query generation.}
     "spec/arel/engines/sql/unit/primitives/value_spec.rb",
     "spec/arel/engines/sql/unit/relations/alias_spec.rb",
     "spec/arel/engines/sql/unit/relations/delete_spec.rb",
+    "spec/arel/engines/sql/unit/relations/from_spec.rb",
     "spec/arel/engines/sql/unit/relations/group_spec.rb",
+    "spec/arel/engines/sql/unit/relations/having_spec.rb",
     "spec/arel/engines/sql/unit/relations/insert_spec.rb",
     "spec/arel/engines/sql/unit/relations/join_spec.rb",
+    "spec/arel/engines/sql/unit/relations/lock_spec.rb",
     "spec/arel/engines/sql/unit/relations/order_spec.rb",
     "spec/arel/engines/sql/unit/relations/project_spec.rb",
     "spec/arel/engines/sql/unit/relations/skip_spec.rb",
