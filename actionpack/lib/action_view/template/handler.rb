@@ -17,8 +17,8 @@ module ActionView
         end
 
         def compile(template)
-           raise "Need to implement #{self.class.name}#compile(template)"
-         end
+          raise "Need to implement #{self.class.name}#compile(template)"
+        end
       end
     end
 

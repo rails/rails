@@ -20,7 +20,7 @@ module AbstractController
       end
 
       def clear_template_caches!
-        @found_layouts.clear if @found_layouts
+        @found_layouts.clear if defined? @found_layouts
         super
       end
 

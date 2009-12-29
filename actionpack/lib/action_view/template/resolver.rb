@@ -108,13 +108,9 @@ module ActionView
         query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << '}'
       end
 
-      Dir[query].map do |path|
-        next if File.directory?(path)
-        source = File.read(path)
-        identifier = Pathname.new(path).expand_path.to_s
-
-        Template.new(source, identifier, *path_to_details(path))
-      end.compact
+      Dir[query].reject { |p| File.directory?(p) }.map do |p|
+        Template.new(File.read(p), File.expand_path(p), *path_to_details(p))
+      end
     end
 
     # # TODO: fix me

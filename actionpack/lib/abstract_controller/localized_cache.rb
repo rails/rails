@@ -1,6 +1,6 @@
 module AbstractController
   class HashKey
-    @hash_keys = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = {} } }
+    @hash_keys = Hash.new {|h,k| h[k] = Hash.new {|sh,sk| sh[sk] = {} } }
 
     def self.get(klass, formats, locale)
       @hash_keys[klass][formats][locale] ||= new(klass, formats, locale)

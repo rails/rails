@@ -467,8 +467,8 @@ module ActiveSupport
       # method that took into consideration the per_key conditions. This
       # is a speed improvement for ActionPack.
       #
-      def set_callback(name, *filters, &block)
-        __update_callbacks(name, filters, block) do |chain, type, filters, options|
+      def set_callback(name, *filter_list, &block)
+        __update_callbacks(name, filter_list, block) do |chain, type, filters, options|
           filters.map! do |filter|
             chain.delete_if {|c| c.matches?(type, filter) }
             Callback.new(chain, filter, type, options.dup, self)
@@ -480,8 +480,8 @@ module ActiveSupport
 
       # Skip a previously defined callback for a given type.
       #
-      def skip_callback(name, *filters, &block)
-        __update_callbacks(name, filters, block) do |chain, type, filters, options|
+      def skip_callback(name, *filter_list, &block)
+        __update_callbacks(name, filter_list, block) do |chain, type, filters, options|
           chain = send("_#{name}_callbacks=", chain.clone(self))
 
           filters.each do |filter|

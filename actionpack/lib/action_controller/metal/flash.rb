@@ -123,80 +123,79 @@ module ActionController #:nodoc:
         session["flash"] = self
       end
 
-    private
-      # Used internally by the <tt>keep</tt> and <tt>discard</tt> methods
-      #     use()               # marks the entire flash as used
-      #     use('msg')          # marks the "msg" entry as used
-      #     use(nil, false)     # marks the entire flash as unused (keeps it around for one more action)
-      #     use('msg', false)   # marks the "msg" entry as unused (keeps it around for one more action)
-      # Returns the single value for the key you asked to be marked (un)used or the FlashHash itself
-      # if no key is passed.
-      def use(key = nil, used = true)
-        Array(key || keys).each { |k| used ? @used << k : @used.delete(k) }
-        return key ? self[key] : self
-      end
-  end
-
-  # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
-  # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
-  # to put a new one.
-  def flash #:doc:
-    unless @_flash
-      @_flash = session["flash"] || FlashHash.new
-      @_flash.sweep
+      private
+        # Used internally by the <tt>keep</tt> and <tt>discard</tt> methods
+        #     use()               # marks the entire flash as used
+        #     use('msg')          # marks the "msg" entry as used
+        #     use(nil, false)     # marks the entire flash as unused (keeps it around for one more action)
+        #     use('msg', false)   # marks the "msg" entry as unused (keeps it around for one more action)
+        # Returns the single value for the key you asked to be marked (un)used or the FlashHash itself
+        # if no key is passed.
+        def use(key = nil, used = true)
+          Array(key || keys).each { |k| used ? @used << k : @used.delete(k) }
+          return key ? self[key] : self
+        end
     end
 
-    @_flash
-  end
-
-  # Convenience accessor for flash[:alert]
-  def alert
-    flash[:alert]
-  end
-
-  # Convenience accessor for flash[:alert]=
-  def alert=(message)
-    flash[:alert] = message
-  end
-
-  # Convenience accessor for flash[:notice]
-  def notice
-    flash[:notice]
-  end
-
-  # Convenience accessor for flash[:notice]=
-  def notice=(message)
-    flash[:notice] = message
-  end
-
-
-  protected
-    def process_action(method_name)
-      @_flash = nil
-      super
-      @_flash.store(session) if @_flash
-      @_flash = nil
-    end
-
-    def reset_session
-      super
-      @_flash = nil
-    end
-
-    def redirect_to(options = {}, response_status_and_flash = {}) #:doc:
-      if alert = response_status_and_flash.delete(:alert)
-        flash[:alert] = alert
+    # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
+    # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
+    # to put a new one.
+    def flash #:doc:
+      unless @_flash
+        @_flash = session["flash"] || FlashHash.new
+        @_flash.sweep
       end
 
-      if notice = response_status_and_flash.delete(:notice)
-        flash[:notice] = notice
-      end
-
-      if other_flashes = response_status_and_flash.delete(:flash)
-        flash.update(other_flashes)
-      end
-
-      super(options, response_status_and_flash)
+      @_flash
     end
+
+    # Convenience accessor for flash[:alert]
+    def alert
+      flash[:alert]
+    end
+
+    # Convenience accessor for flash[:alert]=
+    def alert=(message)
+      flash[:alert] = message
+    end
+
+    # Convenience accessor for flash[:notice]
+    def notice
+      flash[:notice]
+    end
+
+    # Convenience accessor for flash[:notice]=
+    def notice=(message)
+      flash[:notice] = message
+    end
+
+    protected
+      def process_action(method_name)
+        @_flash = nil
+        super
+        @_flash.store(session) if @_flash
+        @_flash = nil
+      end
+
+      def reset_session
+        super
+        @_flash = nil
+      end
+
+      def redirect_to(options = {}, response_status_and_flash = {}) #:doc:
+        if alert = response_status_and_flash.delete(:alert)
+          flash[:alert] = alert
+        end
+
+        if notice = response_status_and_flash.delete(:notice)
+          flash[:notice] = notice
+        end
+
+        if other_flashes = response_status_and_flash.delete(:flash)
+          flash.update(other_flashes)
+        end
+
+        super(options, response_status_and_flash)
+      end
   end
 end

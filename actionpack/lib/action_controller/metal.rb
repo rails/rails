@@ -85,7 +85,7 @@ module ActionController
     end
 
     class ActionEndpoint
-      @@endpoints = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = {} } }
+      @@endpoints = Hash.new {|h,k| h[k] = Hash.new {|sh,sk| sh[sk] = {} } }
 
       def self.for(controller, action, stack)
         @@endpoints[controller][action][stack] ||= begin
