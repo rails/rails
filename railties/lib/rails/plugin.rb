@@ -27,12 +27,17 @@ module Rails
 
     def self.rake_tasks(&blk)
       @rake_tasks ||= []
-      @rake_tasks << blk
+      @rake_tasks << blk if blk
+      @rake_tasks
     end
 
-    def self.load_tasks
-      return unless @rake_tasks
-      @rake_tasks.each { |blk| blk.call }
+    def rake_tasks
+      self.class.rake_tasks
+    end
+
+    def load_tasks
+      return unless rake_tasks
+      rake_tasks.each { |blk| blk.call }
     end
 
     # Creates an initializer which includes all given modules to the given class.
@@ -78,6 +83,10 @@ module Rails
 
       def load_paths
         Dir["#{path}/{lib}", "#{path}/app/{models,controllers,helpers}"]
+      end
+
+      def load_tasks
+        Dir["#{path}/**/tasks/**/*.rake"].sort.each { |ext| load ext }
       end
 
       initializer :add_to_load_path, :after => :set_autoload_paths do |app|
