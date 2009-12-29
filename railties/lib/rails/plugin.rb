@@ -25,6 +25,16 @@ module Rails
       Configuration.default
     end
 
+    def self.rake_tasks(&blk)
+      @rake_tasks ||= []
+      @rake_tasks << blk
+    end
+
+    def self.load_tasks
+      return unless @rake_tasks
+      @rake_tasks.each { |blk| blk.call }
+    end
+
     # Creates an initializer which includes all given modules to the given class.
     #
     #   module Rails

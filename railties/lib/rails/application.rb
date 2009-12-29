@@ -72,7 +72,12 @@ module Rails
 
     def load_tasks
       require "rails/tasks"
+      # Load all extension rake tasks
+      plugins.each(&:load_tasks)
+      # Load all plugin tasks
       Dir["#{root}/vendor/plugins/*/**/tasks/**/*.rake"].sort.each { |ext| load ext }
+      # Load all application tasks
+      # TODO: extract out the path to the rake tasks
       Dir["#{root}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }
       task :environment do
         $rails_rake_task = true
