@@ -143,7 +143,15 @@ module ActiveRecord
     end
 
     def respond_to?(method)
-      @relation.respond_to?(method) || Array.method_defined?(method) || super
+      return true if @relation.respond_to?(method) || Array.method_defined?(method)
+
+      if match = DynamicFinderMatch.match(method)
+        return true if @klass.send(:all_attributes_exists?, match.attribute_names)
+      elsif match = DynamicScopeMatch.match(method)
+        return true if @klass.send(:all_attributes_exists?, match.attribute_names)
+      else
+        super
+      end
     end
 
     def to_a

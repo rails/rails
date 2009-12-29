@@ -142,7 +142,15 @@ class RelationTest < ActiveRecord::TestCase
     relation = Topic.scoped
 
     ["map", "uniq", "sort", "insert", "delete", "update"].each do |method|
-      assert relation.respond_to?(method), "Topic.all should respond to #{method.inspect}"
+      assert relation.respond_to?(method), "Topic.scoped should respond to #{method.inspect}"
+    end
+  end
+
+  def test_respond_to_dynamic_finders
+    relation = Topic.scoped
+
+    ["find_by_title", "find_by_title_and_author_name", "find_or_create_by_title", "find_or_initialize_by_title_and_author_name"].each do |method|
+      assert relation.respond_to?(method), "Topic.scoped should respond to #{method.inspect}"
     end
   end
 
