@@ -134,6 +134,7 @@ module ActiveRecord
 
       if [String, Hash, Array].include?(args.first.class)
         conditions = @klass.send(:merge_conditions, args.size > 1 ? Array.wrap(args) : args.first)
+        conditions = Arel::SqlLiteral.new(conditions) if conditions
       else
         conditions = args.first
       end
@@ -220,6 +221,11 @@ module ActiveRecord
 
     def destroy_all
       to_a.each {|object| object.destroy}
+      reset
+    end
+
+    def delete_all
+      @relation.delete
       reset
     end
 

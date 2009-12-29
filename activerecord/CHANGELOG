@@ -1,5 +1,9 @@
 *Edge*
 
+* Add Relation#delete_all. [Pratik Naik]
+
+  Item.where(:colour => 'red').delete_all
+
 * Add Model.having and Relation#having. [Pratik Naik]
 
   Developer.group("salary").having("sum(salary) >  10000").select("salary")

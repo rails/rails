@@ -329,6 +329,26 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.loaded?
   end
 
+  def test_delete_all
+    davids = Author.where(:name => 'David')
+
+    assert_difference('Author.count', -1) { davids.delete_all }
+    assert ! davids.loaded?
+  end
+
+  def test_delete_all_loaded
+    davids = Author.where(:name => 'David')
+
+    # Force load
+    assert_equal [authors(:david)], davids.to_a
+    assert davids.loaded?
+
+    assert_difference('Author.count', -1) { davids.delete_all }
+
+    assert_equal [], davids.to_a
+    assert davids.loaded?
+  end
+
   def test_relation_merging
     devs = Developer.where("salary >= 80000") & Developer.limit(2) & Developer.order('id ASC').where("id < 3")
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
