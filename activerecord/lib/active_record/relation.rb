@@ -5,9 +5,11 @@ module ActiveRecord
     attr_reader :relation, :klass, :associations_to_preload, :eager_load_associations
 
     include RelationalCalculations
-    def initialize(klass, relation, readonly = false, preload = [], eager_load = [])
+
+    attr_writer :readonly
+
+    def initialize(klass, relation, preload = [], eager_load = [])
       @klass, @relation = klass, relation
-      @readonly = readonly
       @associations_to_preload = preload
       @eager_load_associations = eager_load
       @loaded = false
@@ -31,21 +33,24 @@ module ActiveRecord
     alias :& :merge
 
     def preload(*associations)
-      create_new_relation(@relation, @readonly, @associations_to_preload + Array.wrap(associations))
+      create_new_relation(@relation, @associations_to_preload + Array.wrap(associations))
     end
 
     def eager_load(*associations)
-      create_new_relation(@relation, @readonly, @associations_to_preload, @eager_load_associations + Array.wrap(associations))
+      create_new_relation(@relation, @associations_to_preload, @eager_load_associations + Array.wrap(associations))
     end
 
     def readonly(status = true)
-      status.nil? ? create_new_relation : create_new_relation(@relation, status)
+      relation = create_new_relation
+      relation.readonly = status
+      relation
     end
 
     def select(selects)
       if selects.present?
-        frozen = @relation.joins(relation).present? ? false : @readonly
-        create_new_relation(@relation.project(selects), frozen)
+        relation = create_new_relation(@relation.project(selects))
+        relation.readonly = @relation.joins(relation).present? ? false : @readonly
+        relation
       else
         create_new_relation
       end
@@ -126,7 +131,9 @@ module ActiveRecord
         @relation.join(join, join_type)
       end
 
-      create_new_relation(join_relation, true)
+      relation = create_new_relation(join_relation)
+      relation.readonly = true
+      relation
     end
 
     def where(*args)
@@ -352,8 +359,10 @@ module ActiveRecord
       end
     end
 
-    def create_new_relation(relation = @relation, readonly = @readonly, preload = @associations_to_preload, eager_load = @eager_load_associations)
-      self.class.new(@klass, relation, readonly, preload, eager_load)
+    def create_new_relation(relation = @relation, preload = @associations_to_preload, eager_load = @eager_load_associations)
+      relation = self.class.new(@klass, relation, preload, eager_load)
+      relation.readonly = @readonly
+      relation
     end
 
     def where_clause(join_string = "\n\tAND ")
