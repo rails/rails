@@ -225,8 +225,7 @@ module ActiveRecord
     end
 
     def delete_all
-      @relation.delete
-      reset
+      @relation.delete.tap { reset }
     end
 
     def loaded?
