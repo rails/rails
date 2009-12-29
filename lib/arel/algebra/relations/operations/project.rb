@@ -14,7 +14,7 @@ module Arel
     end
 
     def externalizable?
-      attributes.any?(&:aggregation?) or relation.externalizable?
+      attributes.any? { |a| a.respond_to?(:aggregation?) && a.aggregation? } || relation.externalizable?
     end
   end
 end
