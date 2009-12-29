@@ -165,19 +165,12 @@ module ActiveRecord
       column ? column.type_cast(value) : value
     end
 
-    def get_projection_name_from_chained_relations
-      name = nil
-      if @relation.respond_to?(:projections) && @relation.projections.present?
-        name = @relation.send(:select_clauses).join(', ')
-      elsif @relation.respond_to?(:relation) && relation = @relation.relation
-        while relation.respond_to?(:relation)
-          if relation.respond_to?(:projections) && relation.projections.present?
-            name = relation.send(:select_clauses).join(', ')
-          end
-          relation = relation.relation
-        end
+    def get_projection_name_from_chained_relations(relation = @relation)
+      if relation.respond_to?(:projections) && relation.projections.present?
+        relation.send(:select_clauses).join(', ')
+      elsif relation.respond_to?(:relation)
+        get_projection_name_from_chained_relations(relation.relation)
       end
-      name
     end
 
   end
