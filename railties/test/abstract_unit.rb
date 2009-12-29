@@ -22,6 +22,8 @@ require 'active_support/test_case'
 require 'action_controller'
 require 'rails'
 
-Rails::Initializer.run do |config|
+# TODO: Remove these hacks
+class TestApp < Rails::Application
   config.root = File.dirname(__FILE__)
 end
+Rails.application = TestApp

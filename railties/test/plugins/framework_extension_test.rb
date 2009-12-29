@@ -2,6 +2,8 @@ require "isolation/abstract_unit"
 
 module PluginsTest
   class FrameworkExtensionTest < Test::Unit::TestCase
+    include ActiveSupport::Testing::Isolation
+
     def setup
       build_app
       boot_rails
@@ -23,12 +25,15 @@ module PluginsTest
       require 'rake'
       require 'rake/testtask'
       require 'rake/rdoctask'
+
       AppTemplate::Application.load_tasks
       assert $ran_block
     end
   end
 
   class ActiveRecordExtensionTest < Test::Unit::TestCase
+    include ActiveSupport::Testing::Isolation
+
     def setup
       build_app
       boot_rails
