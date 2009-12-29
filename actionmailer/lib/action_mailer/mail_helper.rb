@@ -12,7 +12,7 @@ module ActionMailer
       # Make list points stand on their own line
       formatted.gsub!(/[ ]*([*]+) ([^*]*)/) { |s| "  #{$1} #{$2.strip}\n" }
       formatted.gsub!(/[ ]*([#]+) ([^#]*)/) { |s| "  #{$1} #{$2.strip}\n" }
-
+ 
       formatted
     end
 

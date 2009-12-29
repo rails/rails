@@ -1,11 +1,8 @@
 require 'active_support/core_ext/class'
-require 'action_mailer/part'
-require 'action_mailer/vendor/text_format'
-require 'action_mailer/vendor/tmail'
+require 'mail'
 
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
-  #
   #
   # = Mailer Models
   #
@@ -253,7 +250,7 @@ module ActionMailer #:nodoc:
   #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
   #   +implicit_parts_order+.
   class Base < AbstractController::Base
-    include PartContainer, Quoting
+    include Quoting
     extend  AdvAttrAccessor
 
     include AbstractController::Rendering
@@ -286,7 +283,13 @@ module ActionMailer #:nodoc:
     @@default_mime_version = "1.0"
     cattr_accessor :default_mime_version
 
-    @@default_implicit_parts_order = [ "text/html", "text/enriched", "text/plain" ]
+    # This specifies the order that the parts of a multipart email will be.  Usually you put
+    # text/plain at the top so someone without a MIME capable email reader can read the plain
+    # text of your email first.
+    #
+    # Any content type that is not listed here will be inserted in the order you add them to
+    # the email after the content types you list here.
+    @@default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
     cattr_accessor :default_implicit_parts_order
 
     @@protected_instance_variables = %w(@parts @mail)
@@ -395,8 +398,7 @@ module ActionMailer #:nodoc:
       #   end
       def receive(raw_email)
         logger.info "Received mail:\n #{raw_email}" unless logger.nil?
-        mail = TMail::Mail.parse(raw_email)
-        mail.base64_decode
+        mail = Mail.new(raw_email)
         new.receive(mail)
       end
 
@@ -431,18 +433,45 @@ module ActionMailer #:nodoc:
     superclass_delegating_reader :delivery_method
     self.delivery_method = :smtp
 
+    # Add a part to a multipart message, with the given content-type. The
+    # part itself is yielded to the block so that other properties (charset,
+    # body, headers, etc.) can be set on it.
+    def part(params)
+      params = {:content_type => params} if String === params
+      if custom_headers = params.delete(:headers)
+        ActiveSupport::Deprecation.warn('Passing custom headers with :headers => {} is deprecated. ' <<
+                                        'Please just pass in custom headers directly.', caller[0,10])
+        params.merge!(custom_headers)
+      end
+      part = Mail::Part.new(params)
+      yield part if block_given?
+      @parts << part
+    end
+
+    # Add an attachment to a multipart message. This is simply a part with the
+    # content-disposition set to "attachment".
+    def attachment(params, &block)
+      super # Run deprecation hooks
+
+      params = { :content_type => params } if String === params
+      params = { :content_disposition => "attachment",
+                 :content_transfer_encoding => "base64" }.merge(params)
+
+      part(params, &block)
+    end
+
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
-    def initialize(method_name=nil, *args) #:nodoc:
+    def initialize(method_name=nil, *args)
       super()
       process(method_name, *args) if method_name
     end
 
     # Process the mailer via the given +method_name+. The body will be
-    # rendered and a new TMail::Mail object created.
-    def process(method_name, *args) #:nodoc:
+    # rendered and a new Mail object created.
+    def process(method_name, *args)
       initialize_defaults(method_name)
       super
 
@@ -457,7 +486,7 @@ module ActionMailer #:nodoc:
       create_mail
     end
 
-    # Delivers a TMail::Mail object. By default, it delivers the cached mail
+    # Delivers a Mail object. By default, it delivers the cached mail
     # object (from the <tt>create!</tt> method). If no cached mail object exists, and
     # no alternate has been given as the parameter, this will fail.
     def deliver!(mail = @mail)
@@ -484,7 +513,7 @@ module ActionMailer #:nodoc:
       # Set up the default values for the various instance variables of this
       # mailer. Subclasses may override this method to provide different
       # defaults.
-      def initialize_defaults(method_name)
+      def initialize_defaults(method_name) #:nodoc:
         @charset              ||= @@default_charset.dup
         @content_type         ||= @@default_content_type.dup
         @implicit_parts_order ||= @@default_implicit_parts_order.dup
@@ -500,29 +529,18 @@ module ActionMailer #:nodoc:
         super # Run deprecation hooks
       end
 
-      def create_parts
+      def create_parts #:nodoc:
         super # Run deprecation hooks
 
         if String === response_body
-          @parts.unshift Part.new(
-            :content_type => "text/plain",
-            :disposition => "inline",
-            :charset => charset,
-            :body => response_body
-          )
+          @parts.unshift create_inline_part(response_body)
         else
-          self.class.template_root.find_all(@template, {}, mailer_name).each do |template|
-            @parts << Part.new(
-              :content_type => template.mime_type ? template.mime_type.to_s : "text/plain",
-              :disposition => "inline",
-              :charset => charset,
-              :body => render_to_body(:_template => template)
-            )
+          self.class.template_root.find_all(@template, {}, @mailer_name).each do |template|
+            @parts << create_inline_part(render_to_body(:_template => template), template.mime_type)
           end
 
           if @parts.size > 1
             @content_type = "multipart/alternative" if @content_type !~ /^multipart/
-            @parts = sort_parts(@parts, @implicit_parts_order)
           end
 
           # If this is a multipart e-mail add the mime_version if it is not
@@ -531,37 +549,19 @@ module ActionMailer #:nodoc:
         end
       end
 
-      def sort_parts(parts, order = [])
-        order = order.collect { |s| s.downcase }
+      def create_inline_part(body, mime_type=nil) #:nodoc:
+        ct = mime_type || "text/plain"
+        main_type, sub_type = split_content_type(ct.to_s)
 
-        parts = parts.sort do |a, b|
-          a_ct = a.content_type.downcase
-          b_ct = b.content_type.downcase
-
-          a_in = order.include? a_ct
-          b_in = order.include? b_ct
-
-          s = case
-          when a_in && b_in
-            order.index(a_ct) <=> order.index(b_ct)
-          when a_in
-            -1
-          when b_in
-            1
-          else
-            a_ct <=> b_ct
-          end
-
-          # reverse the ordering because parts that come last are displayed
-          # first in mail clients
-          (s * -1)
-        end
-
-        parts
+        Mail::Part.new(
+          :content_type => [main_type, sub_type, {:charset => charset}],
+          :content_disposition => "inline",
+          :body => body
+        )
       end
 
-      def create_mail
-        m = TMail::Mail.new
+      def create_mail #:nodoc:
+        m = Mail.new
 
         m.subject,     = quote_any_if_necessary(charset, subject)
         m.to, m.from   = quote_any_address_if_necessary(charset, recipients, from)
@@ -574,18 +574,42 @@ module ActionMailer #:nodoc:
         headers.each { |k, v| m[k] = v }
 
         real_content_type, ctype_attrs = parse_content_type
+        main_type, sub_type = split_content_type(real_content_type)
 
-        if @parts.empty?
-          m.set_content_type(real_content_type, nil, ctype_attrs)
-          m.body = normalize_new_lines(body)
-        elsif @parts.size == 1 && @parts.first.parts.empty?
-          m.set_content_type(real_content_type, nil, ctype_attrs)
-          m.body = normalize_new_lines(@parts.first.body)
+        if @parts.size == 1 && @parts.first.parts.empty?
+          m.content_type([main_type, sub_type, ctype_attrs])
+          m.body = @parts.first.body.encoded
         else
-          setup_multiple_parts(m, real_content_type, ctype_attrs)
+          @parts.each do |p|
+            m.add_part(p)
+          end
+
+          m.body.set_sort_order(@implicit_parts_order)
+          m.body.sort_parts!
+
+          if real_content_type =~ /multipart/
+            ctype_attrs.delete "charset"
+            m.content_type([main_type, sub_type, ctype_attrs])
+          end
         end
 
+        m.content_transfer_encoding = '8bit' unless m.body.only_us_ascii?
+        
         @mail = m
+      end
+      
+      def split_content_type(ct) #:nodoc:
+        ct.to_s.split("/")
+      end
+
+      def parse_content_type(defaults=nil) #:nodoc:
+        if @content_type.blank?
+          [ nil, {} ]
+        else
+          ctype, *attrs = @content_type.split(/;\s*/)
+          attrs = attrs.inject({}) { |h,s| k,v = s.split(/\=/, 2); h[k] = v; h }
+          [ctype, {"charset" => @charset}.merge(attrs)]
+        end
       end
 
   end
