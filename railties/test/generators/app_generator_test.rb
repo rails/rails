@@ -149,6 +149,19 @@ class AppGeneratorTest < GeneratorsTestCase
     assert_file 'lib/test_file.rb', 'heres test data'
   end
 
+  def test_dev_option
+    run_generator ["--dev"]
+    rails_path = File.expand_path('../../..', Rails.root)
+    dev_gem = %(gem "rails", :path => #{rails_path.inspect})
+    assert_file 'Gemfile', /^#{Regexp.escape(dev_gem)}$/
+  end
+
+  def test_edge_option
+    run_generator ["--edge"]
+    edge_gem = %(gem "rails", :git => "git://github.com/rails/rails.git")
+    assert_file 'Gemfile', /^#{Regexp.escape(edge_gem)}$/
+  end
+
   protected
 
     def run_generator(args=[])

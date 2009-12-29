@@ -1,9 +1,14 @@
 # Edit this Gemfile to bundle your application's dependencies.
-
+<% if !dev_or_edge? %>
 gem "rails", "<%= Rails::VERSION::STRING %>"
+<% end -%>
 
 ## Bundle edge rails:
-# gem "rails", :git => "git://github.com/rails/rails.git"
+<%- if options.dev? -%>
+gem "rails", :path => "<%= Rails::Generators::RAILS_DEV_PATH %>"
+<%- else -%>
+<%= "# " unless options.edge? %>gem "rails", :git => "git://github.com/rails/rails.git"
+<%- end -%>
 
 ## Bundle the gems you use:
 # gem "bj"

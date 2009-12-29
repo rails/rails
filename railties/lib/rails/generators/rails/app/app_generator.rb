@@ -3,6 +3,10 @@ require 'active_support/secure_random'
 require 'rails/version' unless defined?(Rails::VERSION)
 
 module Rails::Generators
+  # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
+  # can change in Ruby 1.8.7 when we FileUtils.cd.
+  RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
+
   class AppGenerator < Base
     DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
     add_shebang_option!
@@ -15,17 +19,22 @@ module Rails::Generators
     class_option :template, :type => :string, :aliases => "-m",
                             :desc => "Path to an application template (can be a filesystem path or URL)."
 
+    class_option :dev, :type => :boolean, :default => false,
+                       :desc => "Setup the application with Gemfile pointing to your Rails checkout"
+
+    class_option :edge, :type => :boolean, :default => false,
+                        :desc => "Setup the application with Gemfile pointing to Rails repository"
+
     class_option :skip_activerecord, :type => :boolean, :aliases => "-O", :default => false,
-                                   :desc => "Skip ActiveRecord files"
+                                     :desc => "Skip ActiveRecord files"
 
     class_option :skip_testunit, :type => :boolean, :aliases => "-T", :default => false,
-                               :desc => "Skip TestUnit files"
+                                 :desc => "Skip TestUnit files"
 
     class_option :skip_prototype, :type => :boolean, :aliases => "-J", :default => false,
-                                :desc => "Skip Prototype files"
+                                  :desc => "Skip Prototype files"
 
-    # Add Rails options
-    #
+    # Add bin/rails options
     class_option :version, :type => :boolean, :aliases => "-v", :group => :rails,
                            :desc => "Show Rails version number and quit"
 
@@ -173,7 +182,6 @@ module Rails::Generators
       end
 
       # Define file as an alias to create_file for backwards compatibility.
-      #
       def file(*args, &block)
         create_file(*args, &block)
       end
@@ -188,6 +196,10 @@ module Rails::Generators
 
       def app_secret
         ActiveSupport::SecureRandom.hex(64)
+      end
+
+      def dev_or_edge?
+        options.dev? || options.edge?
       end
 
       def self.banner
