@@ -3,7 +3,6 @@ $VERBOSE = nil
 # Load Rails rakefile extensions
 %w(
   annotations
-  databases
   documentation
   framework
   log

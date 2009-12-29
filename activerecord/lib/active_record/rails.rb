@@ -11,6 +11,10 @@ module ActiveRecord
 
     config.action_controller.include "ActiveRecord::ControllerRuntime"
 
+    rake_tasks do
+      load "active_record/rails/databases.rake"
+    end
+
     initializer "active_record.set_configs" do |app|
       app.config.active_record.each do |k,v|
         ActiveRecord::Base.send "#{k}=", v
