@@ -54,6 +54,7 @@ end
 class Post < Struct.new(:title, :author_name, :body, :secret, :written_on, :cost)
   extend ActiveModel::Naming
   include ActiveModel::Conversion
+  extend ActiveModel::Translation
 
   alias_method :secret?, :secret
 
