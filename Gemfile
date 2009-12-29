@@ -9,9 +9,6 @@ end
 # AS
 gem "i18n", ">= 0.3.0"
 
-# AM
-gem "mail", ">= 1.4.2"
-
 # AR
 gem "arel", "0.2.pre", :git => "git://github.com/rails/arel.git"
 gem "sqlite3-ruby", ">= 1.2.5"
