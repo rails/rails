@@ -1825,7 +1825,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_conditions
-    scoped_developers = Developer.with_scope(:find => { :conditions => 'salary > 90000' }) do
+    scoped_developers = Developer.send(:with_scope, :find => { :conditions => 'salary > 90000' }) do
       Developer.find(:all, :conditions => 'id < 5')
     end
     assert !scoped_developers.include?(developers(:david)) # David's salary is less than 90,000
@@ -1833,7 +1833,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_limit_offset
-    scoped_developers = Developer.with_scope(:find => { :limit => 3, :offset => 2 }) do
+    scoped_developers = Developer.send(:with_scope, :find => { :limit => 3, :offset => 2 }) do
       Developer.find(:all, :order => 'id')
     end
     assert !scoped_developers.include?(developers(:david))
@@ -1847,17 +1847,17 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_scoped_find_order
     # Test order in scope
-    scoped_developers = Developer.with_scope(:find => { :limit => 1, :order => 'salary DESC' }) do
+    scoped_developers = Developer.send(:with_scope, :find => { :limit => 1, :order => 'salary DESC' }) do
       Developer.find(:all)
     end
     assert_equal 'Jamis', scoped_developers.first.name
     assert scoped_developers.include?(developers(:jamis))
     # Test scope without order and order in find
-    scoped_developers = Developer.with_scope(:find => { :limit => 1 }) do
+    scoped_developers = Developer.send(:with_scope, :find => { :limit => 1 }) do
       Developer.find(:all, :order => 'salary DESC')
     end
     # Test scope order + find order, find has priority
-    scoped_developers = Developer.with_scope(:find => { :limit => 3, :order => 'id DESC' }) do
+    scoped_developers = Developer.send(:with_scope, :find => { :limit => 3, :order => 'id DESC' }) do
       Developer.find(:all, :order => 'salary ASC')
     end
     assert scoped_developers.include?(developers(:poor_jamis))
@@ -1869,7 +1869,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_limit_offset_including_has_many_association
-    topics = Topic.with_scope(:find => {:limit => 1, :offset => 1, :include => :replies}) do
+    topics = Topic.send(:with_scope, :find => {:limit => 1, :offset => 1, :include => :replies}) do
       Topic.find(:all, :order => "topics.id")
     end
     assert_equal 1, topics.size
@@ -1877,7 +1877,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_order_including_has_many_association
-    developers = Developer.with_scope(:find => { :order => 'developers.salary DESC', :include => :projects }) do
+    developers = Developer.send(:with_scope, :find => { :order => 'developers.salary DESC', :include => :projects }) do
       Developer.find(:all)
     end
     assert developers.size >= 2
@@ -1887,7 +1887,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_with_group_and_having
-    developers = Developer.with_scope(:find => { :group => 'developers.salary', :having => "SUM(salary) > 10000", :select => "SUM(salary) as salary" }) do
+    developers = Developer.send(:with_scope, :find => { :group => 'developers.salary', :having => "SUM(salary) > 10000", :select => "SUM(salary) as salary" }) do
       Developer.find(:all)
     end
     assert_equal 3, developers.size
@@ -1933,7 +1933,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_scoped_ordered_last
-    last_developer = Developer.with_scope(:find => { :order => 'developers.salary ASC' }) do
+    last_developer = Developer.send(:with_scope, :find => { :order => 'developers.salary ASC' }) do
       Developer.find(:last)
     end
     assert_equal last_developer, Developer.find(:all, :order => 'developers.salary ASC').last

@@ -69,6 +69,10 @@ module ActiveRecord #:nodoc:
   class StatementInvalid < ActiveRecordError
   end
 
+  # Raised when SQL statement is invalid and the application gets a blank result.
+  class ThrowResult < ActiveRecordError
+  end
+
   # Parent class for all specific exceptions which wrap database driver exceptions
   # provides access to the original exception also.
   class WrappedDatabaseException < StatementInvalid
@@ -652,7 +656,7 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :from, :to => :scoped
+      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :from, :lock, :readonly, :having, :to => :scoped
 
       # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
       # same arguments to this method as you can to <tt>find(:first)</tt>.
@@ -1560,18 +1564,21 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_arel(options = {}, scope = scope(:find))
-          # TODO add lock to Arel
           validate_find_options(options)
 
           relation = arel_table.
             joins(construct_join(options[:joins], scope)).
             where(construct_conditions(options[:conditions], scope)).
             select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
-            group(construct_group(options[:group], options[:having], scope)).
+            group(options[:group] || (scope && scope[:group])).
+            having(options[:having] || (scope && scope[:having])).
             order(construct_order(options[:order], scope)).
             limit(construct_limit(options[:limit], scope)).
             offset(construct_offset(options[:offset], scope)).
             from(options[:from])
+
+          lock = (scope && scope[:lock]) || options[:lock]
+          relation = relation.lock if lock.present?
 
           relation = relation.readonly if options[:readonly]
 
@@ -1593,10 +1600,6 @@ module ActiveRecord #:nodoc:
           relation
         end
 
-        def construct_finder_sql(options, scope = scope(:find))
-          construct_finder_arel(options, scope).to_sql
-        end
-
         def construct_join(joins, scope)
           merged_joins = scope && scope[:joins] && joins ? merge_joins(scope[:joins], joins) : (joins || scope && scope[:joins])
           case merged_joins
@@ -1611,18 +1614,6 @@ module ActiveRecord #:nodoc:
           else
             ""
           end
-        end
-
-        def construct_group(group, having, scope)
-          sql = ''
-          if group
-            sql << group.to_s
-            sql << " HAVING #{sanitize_sql_for_conditions(having)}" if having
-          elsif scope && (scoped_group = scope[:group])
-            sql << scoped_group.to_s
-            sql << " HAVING #{sanitize_sql_for_conditions(scope[:having])}" if scope[:having]
-          end
-          sql
         end
 
         def construct_order(order, scope)
@@ -1701,14 +1692,6 @@ module ActiveRecord #:nodoc:
 
         def array_of_strings?(o)
           o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
-        end
-
-        # The optional scope argument is for the current <tt>:find</tt> scope.
-        # The <tt>:lock</tt> option has precedence over a scoped <tt>:lock</tt>.
-        def add_lock!(sql, options, scope = :auto)
-          scope = scope(:find) if :auto == scope
-          options = options.reverse_merge(:lock => scope[:lock]) if scope
-          connection.add_lock!(sql, options)
         end
 
         def type_condition(table_alias=nil)

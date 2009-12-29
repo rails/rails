@@ -353,4 +353,39 @@ class RelationTest < ActiveRecord::TestCase
       assert_queries(2) { assert posts.first.author }
     end
   end
+
+  def test_invalid_merge
+    assert_raises(ArgumentError) { Post.scoped & Developer.scoped }
+  end
+
+  def test_count
+    posts = Post.scoped
+
+    assert_equal 7, posts.count
+    assert_equal 7, posts.count(:all)
+    assert_equal 7, posts.count(:id)
+
+    assert_equal 1, posts.where('comments_count > 1').count
+    assert_equal 5, posts.where(:comments_count => 0).count
+  end
+
+  def test_count_with_distinct
+    posts = Post.scoped
+
+    assert_equal 3, posts.count(:comments_count, :distinct => true)
+    assert_equal 7, posts.count(:comments_count, :distinct => false)
+
+    assert_equal 3, posts.select(:comments_count).count(:distinct => true)
+    assert_equal 7, posts.select(:comments_count).count(:distinct => false)
+  end
+
+  def test_count_explicit_columns
+    Post.update_all(:comments_count => nil)
+    posts = Post.scoped
+
+    assert_equal 7, posts.select('comments_count').count('id')
+    assert_equal 0, posts.select('comments_count').count
+    assert_equal 0, posts.count(:comments_count)
+    assert_equal 0, posts.count('comments_count')
+  end
 end

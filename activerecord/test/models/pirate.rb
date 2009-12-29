@@ -19,6 +19,7 @@ class Pirate < ActiveRecord::Base
 
   # These both have :autosave enabled because accepts_nested_attributes_for is used on them.
   has_one :ship
+  has_one :update_only_ship, :class_name => 'Ship'
   has_one :non_validated_ship, :class_name => 'Ship'
   has_many :birds
   has_many :birds_with_method_callbacks, :class_name => "Bird",
@@ -35,6 +36,7 @@ class Pirate < ActiveRecord::Base
 
   accepts_nested_attributes_for :parrots, :birds, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+  accepts_nested_attributes_for :update_only_ship, :update_only => true
   accepts_nested_attributes_for :parrots_with_method_callbacks, :parrots_with_proc_callbacks,
     :birds_with_method_callbacks, :birds_with_proc_callbacks, :allow_destroy => true
   accepts_nested_attributes_for :birds_with_reject_all_blank, :reject_if => :all_blank

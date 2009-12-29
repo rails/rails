@@ -1,9 +1,10 @@
 module ActiveRecord
   class Relation
     delegate :to_sql, :to => :relation
-    delegate :length, :collect, :map, :each, :to => :to_a
+    delegate :length, :collect, :map, :each, :all?, :to => :to_a
     attr_reader :relation, :klass, :associations_to_preload, :eager_load_associations
 
+    include RelationalCalculations
     def initialize(klass, relation, readonly = false, preload = [], eager_load = [])
       @klass, @relation = klass, relation
       @readonly = readonly
@@ -13,6 +14,8 @@ module ActiveRecord
     end
 
     def merge(r)
+      raise ArgumentError, "Cannot merge a #{r.klass.name} relation with #{@klass.name} relation" if r.klass != @klass
+
       joins(r.relation.joins(r.relation)).
         group(r.send(:group_clauses).join(', ')).
         order(r.send(:order_clauses).join(', ')).
@@ -22,7 +25,7 @@ module ActiveRecord
         select(r.send(:select_clauses).join(', ')).
         eager_load(r.eager_load_associations).
         preload(r.associations_to_preload).
-        from(r.send(:sources).any? ? r.send(:from_clauses) : nil)
+        from(r.send(:sources).present? ? r.send(:from_clauses) : nil)
     end
 
     alias :& :merge
@@ -35,16 +38,33 @@ module ActiveRecord
       create_new_relation(@relation, @readonly, @associations_to_preload, @eager_load_associations + Array.wrap(associations))
     end
 
-    def readonly
-      create_new_relation(@relation, true)
+    def readonly(status = true)
+      status.nil? ? create_new_relation : create_new_relation(@relation, status)
     end
 
     def select(selects)
-      selects.present? ? create_new_relation(@relation.project(selects)) : create_new_relation
+      if selects.present?
+        frozen = @relation.joins(relation).present? ? false : @readonly
+        create_new_relation(@relation.project(selects), frozen)
+      else
+        create_new_relation
+      end
     end
 
     def from(from)
       from.present? ? create_new_relation(@relation.from(from)) : create_new_relation
+    end
+
+    def having(*args)
+      return create_new_relation if args.blank?
+
+      if [String, Hash, Array].include?(args.first.class)
+        havings = @klass.send(:merge_conditions, args.size > 1 ? Array.wrap(args) : args.first)
+      else
+        havings = args.first
+      end
+
+      create_new_relation(@relation.having(havings))
     end
 
     def group(groups)
@@ -53,6 +73,17 @@ module ActiveRecord
 
     def order(orders)
       orders.present? ? create_new_relation(@relation.order(orders)) : create_new_relation
+    end
+
+    def lock(locks = true)
+      case locks
+      when String
+        create_new_relation(@relation.lock(locks))
+      when TrueClass, NilClass
+        create_new_relation(@relation.lock)
+      else
+        create_new_relation
+      end
     end
 
     def reverse_order
@@ -95,7 +126,7 @@ module ActiveRecord
         @relation.join(join, join_type)
       end
 
-      create_new_relation(join_relation)
+      create_new_relation(join_relation, true)
     end
 
     def where(*args)
@@ -118,8 +149,8 @@ module ActiveRecord
       return @records if loaded?
 
       @records = if @eager_load_associations.any?
-        catch :invalid_query do
-          return @klass.send(:find_with_associations, {
+        begin
+          @klass.send(:find_with_associations, {
             :select => @relation.send(:select_clauses).join(', '),
             :joins => @relation.joins(relation),
             :group => @relation.send(:group_clauses).join(', '),
@@ -127,11 +158,12 @@ module ActiveRecord
             :conditions => where_clause,
             :limit => @relation.taken,
             :offset => @relation.skipped,
-            :from => (@relation.send(:from_clauses) if @relation.send(:sources).any?)
+            :from => (@relation.send(:from_clauses) if @relation.send(:sources).present?)
             },
             ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
+        rescue ThrowResult
+          []
         end
-        []
       else
         @klass.find_by_sql(@relation.to_sql)
       end

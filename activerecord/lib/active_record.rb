@@ -48,6 +48,7 @@ module ActiveRecord
     autoload :Attributes
     autoload :AutosaveAssociation
     autoload :Relation
+    autoload :RelationalCalculations
     autoload :Base
     autoload :Batches
     autoload :Calculations

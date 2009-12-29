@@ -35,16 +35,17 @@ module ActiveModel
   autoload :Dirty
   autoload :Errors
   autoload :Lint
-  autoload :Name,         'active_model/naming'
+  autoload :Name, 'active_model/naming'
   autoload :Naming
-  autoload :Observer,     'active_model/observing'
+  autoload :Observer, 'active_model/observing'
   autoload :Observing
   autoload :Serialization
   autoload :StateMachine
   autoload :Translation
   autoload :Validations
-  autoload :ValidationsRepairHelper
   autoload :Validator
+  autoload :EachValidator, 'active_model/validator'
+  autoload :BlockValidator, 'active_model/validator'
   autoload :VERSION
 
   module Serializers

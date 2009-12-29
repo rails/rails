@@ -98,14 +98,14 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_scoped_create_without_attributes
-    Reply.with_scope(:create => {}) do
+    Reply.send(:with_scope, :create => {}) do
       assert_raise(ActiveRecord::RecordInvalid) { Reply.create! }
     end
   end
 
   def test_create_with_exceptions_using_scope_for_protected_attributes
     assert_nothing_raised do
-      ProtectedPerson.with_scope( :create => { :first_name => "Mary" } ) do
+      ProtectedPerson.send(:with_scope,  :create => { :first_name => "Mary" } ) do
         person = ProtectedPerson.create! :addon => "Addon"
         assert_equal person.first_name, "Mary", "scope should ignore attr_protected"
       end
@@ -114,7 +114,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_create_with_exceptions_using_scope_and_empty_attributes
     assert_nothing_raised do
-      ProtectedPerson.with_scope( :create => { :first_name => "Mary" } ) do
+      ProtectedPerson.send(:with_scope,  :create => { :first_name => "Mary" } ) do
         person = ProtectedPerson.create!
         assert_equal person.first_name, "Mary", "should be ok when no attributes are passed to create!"
       end

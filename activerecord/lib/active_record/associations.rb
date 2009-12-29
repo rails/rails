@@ -3,8 +3,8 @@ require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
-    def initialize(reflection)
-      super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{reflection.class_name})")
+    def initialize(reflection, associated_class = nil)
+      super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{associated_class.nil? ? reflection.class_name : associated_class.name})")
     end
   end
 
@@ -1466,11 +1466,10 @@ module ActiveRecord
         end
 
         def find_with_associations(options = {}, join_dependency = nil)
-          catch :invalid_query do
-            join_dependency ||= JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
-            rows = select_all_rows(options, join_dependency)
-            return join_dependency.instantiate(rows)
-          end
+          join_dependency ||= JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
+          rows = select_all_rows(options, join_dependency)
+          join_dependency.instantiate(rows)
+        rescue ThrowResult
           []
         end
 
@@ -1715,7 +1714,8 @@ module ActiveRecord
 
           relation = relation.joins(construct_join(options[:joins], scope)).
             select(column_aliases(join_dependency)).
-            group(construct_group(options[:group], options[:having], scope)).
+            group(options[:group] || (scope && scope[:group])).
+            having(options[:having] || (scope && scope[:having])).
             order(construct_order(options[:order], scope)).
             where(construct_conditions(options[:conditions], scope)).
             from((scope && scope[:from]) || options[:from])
@@ -1732,7 +1732,7 @@ module ActiveRecord
 
         def construct_arel_limited_ids_condition(options, join_dependency)
           if (ids_array = select_limited_ids_array(options, join_dependency)).empty?
-            throw :invalid_query
+            raise ThrowResult
           else
             Arel::Predicates::In.new(
               Arel::SqlLiteral.new("#{connection.quote_table_name table_name}.#{primary_key}"),
@@ -1759,7 +1759,8 @@ module ActiveRecord
 
           relation = relation.joins(construct_join(options[:joins], scope)).
             where(construct_conditions(options[:conditions], scope)).
-            group(construct_group(options[:group], options[:having], scope)).
+            group(options[:group] || (scope && scope[:group])).
+            having(options[:having] || (scope && scope[:having])).
             order(construct_order(options[:order], scope)).
             limit(construct_limit(options[:limit], scope)).
             offset(construct_limit(options[:offset], scope)).

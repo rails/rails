@@ -1,5 +1,28 @@
 *Edge*
 
+* Add Model.having and Relation#having. [Pratik Naik]
+
+  Developer.group("salary").having("sum(salary) >  10000").select("salary")
+
+* Add Relation#count. [Pratik Naik]
+
+  legends = People.where("age > 100")
+  legends.count
+  legends.count(:age, :distinct => true)
+  legends.select('id').count
+
+* Add Model.readonly and association_collection#readonly finder method. [Pratik Naik]
+
+  Post.readonly.to_a # Load all posts in readonly mode
+  @user.items.readonly(false).to_a # Load all the user items in writable mode
+
+* Add .lock finder method [Pratik Naik]
+
+  User.lock.where(:name => 'lifo').to_a
+
+  old_items = Item.where("age > 100")
+  old_items.lock.each {|i| .. }
+
 * Add Model.from and association_collection#from finder methods [Pratik Naik]
 
   user = User.scoped
