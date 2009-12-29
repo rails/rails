@@ -2,7 +2,7 @@ module ActionController
   module ConditionalGet
     extend ActiveSupport::Concern
 
-    include RackConvenience
+    include RackDelegation
     include Head
 
     # Sets the etag, last_modified, or both on the response and renders a

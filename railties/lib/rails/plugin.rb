@@ -2,6 +2,29 @@ module Rails
   class Plugin
     include Initializable
 
+    def self.plugin_name(plugin_name = nil)
+      @plugin_name ||= name.demodulize.underscore
+      @plugin_name = plugin_name if plugin_name
+      @plugin_name
+    end
+
+    def self.inherited(klass)
+      @plugins ||= []
+      @plugins << klass unless klass == Vendored
+    end
+
+    def self.plugins
+      @plugins
+    end
+
+    def self.plugin_names
+      plugins.map { |p| p.plugin_name }
+    end
+
+    def self.config
+      Configuration.default
+    end
+
     class Vendored < Plugin
       def self.all(list, paths)
         plugins = []
@@ -55,8 +78,8 @@ module Rails
       initializer :add_routing_file, :after => :initialize_routing do |app|
         routing_file = "#{path}/config/routes.rb"
         if File.exist?(routing_file)
-          app.routes.add_configuration_file(routing_file)
-          app.routes.reload!
+          app.route_configuration_files << routing_file
+          app.reload_routes!
         end
       end
     end

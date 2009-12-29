@@ -171,7 +171,7 @@ class ActionsTest < GeneratorsTestCase
 
   def test_route_should_add_data_to_the_routes_block_in_config_routes
     run_generator
-    route_command = "map.route '/login', :controller => 'sessions', :action => 'new'"
+    route_command = "route '/login', :controller => 'sessions', :action => 'new'"
     action :route, route_command
     assert_file 'config/routes.rb', /#{Regexp.escape(route_command)}/
   end

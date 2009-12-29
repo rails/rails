@@ -5,7 +5,7 @@ class EachTest < ActiveRecord::TestCase
   fixtures :posts
 
   def setup
-    @posts = Post.all(:order => "id asc")
+    @posts = Post.order("id asc")
     @total = Post.count
   end
   

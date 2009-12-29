@@ -53,7 +53,6 @@ module ActionController #:nodoc:
           log_message << " [#{complete_request_uri rescue "unknown"}]"
 
           logger.info(log_message)
-          response.headers["X-Runtime"] = "%.0f" % ms
         else
           super
         end

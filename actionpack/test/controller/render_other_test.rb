@@ -2,6 +2,11 @@ require 'abstract_unit'
 require 'controller/fake_models'
 require 'pathname'
 
+ActionController.add_renderer :simon do |says, options|
+  self.content_type  = Mime::TEXT
+  self.response_body = "Simon says: #{says}"
+end
+
 class RenderOtherTest < ActionController::TestCase
   class TestController < ActionController::Base
     protect_from_forgery
@@ -107,6 +112,10 @@ class RenderOtherTest < ActionController::TestCase
           page.replace :foo, :partial => 'partial'
         end
       end
+    end
+
+    def render_simon_says
+      render :simon => "foo"
     end
 
     private
@@ -239,5 +248,10 @@ class RenderOtherTest < ActionController::TestCase
   def test_should_render_with_alternate_default_render
     xhr :get, :render_alternate_default
     assert_equal %(Element.replace("foo", "partial html");), @response.body
+  end
+
+  def test_using_custom_render_option
+    get :render_simon_says
+    assert_equal "Simon says: foo", @response.body
   end
 end

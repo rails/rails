@@ -28,7 +28,9 @@ module ActionController #:nodoc:
   module Flash
     extend ActiveSupport::Concern
 
-    include Session
+    included do
+      helper_method :alert, :notice
+    end
 
     class FlashNow #:nodoc:
       def initialize(flash)
@@ -133,10 +135,44 @@ module ActionController #:nodoc:
         Array(key || keys).each { |k| used ? @used << k : @used.delete(k) }
         return key ? self[key] : self
       end
+  end
+
+  # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
+  # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
+  # to put a new one.
+  def flash #:doc:
+    unless @_flash
+      @_flash = session["flash"] || FlashHash.new
+      @_flash.sweep
     end
+
+    @_flash
+  end
+
+  # Convenience accessor for flash[:alert]
+  def alert
+    flash[:alert]
+  end
+
+  # Convenience accessor for flash[:alert]=
+  def alert=(message)
+    flash[:alert] = message
+  end
+
+  # Convenience accessor for flash[:notice]
+  def notice
+    flash[:notice]
+  end
+
+  # Convenience accessor for flash[:notice]=
+  def notice=(message)
+    flash[:notice] = message
+  end
+
 
   protected
     def process_action(method_name)
+      @_flash = nil
       super
       @_flash.store(session) if @_flash
       @_flash = nil
@@ -147,16 +183,20 @@ module ActionController #:nodoc:
       @_flash = nil
     end
 
-    # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
-    # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
-    # to put a new one.
-    def flash #:doc:
-      unless @_flash
-        @_flash = session["flash"] || FlashHash.new
-        @_flash.sweep
+    def redirect_to(options = {}, response_status_and_flash = {}) #:doc:
+      if alert = response_status_and_flash.delete(:alert)
+        flash[:alert] = alert
       end
 
-      @_flash
+      if notice = response_status_and_flash.delete(:notice)
+        flash[:notice] = notice
+      end
+
+      if other_flashes = response_status_and_flash.delete(:flash)
+        flash.update(other_flashes)
+      end
+
+      super(options, response_status_and_flash)
     end
   end
 end

@@ -33,7 +33,6 @@ module ActionDispatch # :nodoc:
   #  end
   class Response < Rack::Response
     attr_accessor :request, :blank
-    attr_reader :cache_control
 
     attr_writer :header, :sending_file
     alias_method :headers=, :header=
@@ -50,6 +49,9 @@ module ActionDispatch # :nodoc:
       @body, @cookie = [], []
       @sending_file = false
 
+      @blank = false
+      @etag = nil
+
       yield self if block_given?
     end
 
@@ -57,14 +59,8 @@ module ActionDispatch # :nodoc:
       @cache_control ||= {}
     end
 
-    def write(str)
-      s = str.to_s
-      @writer.call s
-      str
-    end
-
     def status=(status)
-      @status = status.to_i
+      @status = Rack::Utils.status_code(status)
     end
 
     # The response code of the request
@@ -78,7 +74,7 @@ module ActionDispatch # :nodoc:
     end
 
     def message
-      StatusCodes::STATUS_CODES[@status]
+      Rack::Utils::HTTP_STATUS_CODES[@status]
     end
     alias_method :status_message, :message
 
@@ -148,18 +144,6 @@ module ActionDispatch # :nodoc:
     CONTENT_TYPE    = "Content-Type"
 
     cattr_accessor(:default_charset) { "utf-8" }
-
-    def assign_default_content_type_and_charset!
-      return if headers[CONTENT_TYPE].present?
-
-      @content_type ||= Mime::HTML
-      @charset      ||= self.class.default_charset
-
-      type = @content_type.to_s.dup
-      type << "; charset=#{@charset}" unless @sending_file
-
-      headers[CONTENT_TYPE] = type
-    end
 
     def to_a
       assign_default_content_type_and_charset!
@@ -263,6 +247,18 @@ module ActionDispatch # :nodoc:
         !@blank && @body.respond_to?(:all?) && @body.all? { |part| part.is_a?(String) }
       end
 
+      def assign_default_content_type_and_charset!
+        return if headers[CONTENT_TYPE].present?
+
+        @content_type ||= Mime::HTML
+        @charset      ||= self.class.default_charset
+
+        type = @content_type.to_s.dup
+        type << "; charset=#{@charset}" unless @sending_file
+
+        headers[CONTENT_TYPE] = type
+      end
+
       DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
 
       def set_conditional_cache_control!
@@ -277,14 +273,13 @@ module ActionDispatch # :nodoc:
           max_age = control[:max_age]
 
           options = []
-          options << "max-age=#{max_age}" if max_age
+          options << "max-age=#{max_age.to_i}" if max_age
           options << (control[:public] ? "public" : "private")
           options << "must-revalidate" if control[:must_revalidate]
           options.concat(extras) if extras
 
           headers["Cache-Control"] = options.join(", ")
         end
-
       end
   end
 end

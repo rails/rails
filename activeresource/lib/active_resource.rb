@@ -21,20 +21,24 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-$:.unshift(activesupport_path) if File.directory?(activesupport_path)
-require 'active_support'
+activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
+$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 
-activemodel_path = "#{File.dirname(__FILE__)}/../../activemodel/lib"
-$:.unshift(activemodel_path) if File.directory?(activemodel_path)
+activemodel_path = File.expand_path('../../../activemodel/lib', __FILE__)
+$:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include?(activemodel_path)
+
+require 'active_support'
 require 'active_model'
 
 module ActiveResource
-  autoload :Base, 'active_resource/base'
-  autoload :Connection, 'active_resource/connection'
-  autoload :CustomMethods, 'active_resource/custom_methods'
-  autoload :Formats, 'active_resource/formats'
-  autoload :Observing, 'active_resource/observing'
-  autoload :Validations, 'active_resource/validations'
-  autoload :HttpMock, 'active_resource/http_mock'
+  extend ActiveSupport::Autoload
+
+  autoload :Base
+  autoload :Connection
+  autoload :CustomMethods
+  autoload :Formats
+  autoload :HttpMock
+  autoload :Observing
+  autoload :Schema
+  autoload :Validations
 end

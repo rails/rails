@@ -92,7 +92,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
       end
     end
     
-    assert_match /2 .* but 1/, error.message
+    assert_match(/2 .* but 1/, error.message)
   end
   
   def test_assert_emails_too_many_sent
@@ -103,7 +103,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
       end
     end
     
-    assert_match /1 .* but 2/, error.message
+    assert_match(/1 .* but 2/, error.message)
   end
   
   def test_assert_no_emails_failure
@@ -113,7 +113,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
       end
     end
     
-    assert_match /0 .* but 1/, error.message
+    assert_match(/0 .* but 1/, error.message)
   end
 end
 

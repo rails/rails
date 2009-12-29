@@ -30,12 +30,15 @@ module ActionController #:nodoc:
   #   config.action_controller.cache_store = MyOwnStore.new("parameter")
   module Caching
     extend ActiveSupport::Concern
+    extend ActiveSupport::Autoload
 
-    autoload :Actions, 'action_controller/caching/actions'
-    autoload :Fragments, 'action_controller/caching/fragments'
-    autoload :Pages, 'action_controller/caching/pages'
-    autoload :Sweeper, 'action_controller/caching/sweeping'
-    autoload :Sweeping, 'action_controller/caching/sweeping'
+    eager_autoload do
+      autoload :Actions
+      autoload :Fragments
+      autoload :Pages
+      autoload :Sweeper, 'action_controller/caching/sweeping'
+      autoload :Sweeping, 'action_controller/caching/sweeping'
+    end
 
     included do
       @@cache_store = nil

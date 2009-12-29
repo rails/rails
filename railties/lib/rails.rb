@@ -1,13 +1,9 @@
-require "pathname"
+require "rails/core"
 
-require 'rails/initializable'
-require 'rails/application'
-require 'rails/railties_path'
-require 'rails/version'
-require 'rails/rack'
-require 'rails/paths'
-require 'rails/core'
-require 'rails/configuration'
-require 'rails/deprecation'
-require 'rails/initializer'
-require 'rails/plugin'
+%w(active_model active_record action_controller action_view action_mailer active_resource).each do |framework|
+  begin
+    require framework
+    require "#{framework}/rails"
+  rescue LoadError
+  end
+end

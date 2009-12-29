@@ -1,3 +1,8 @@
+begin
+  require File.expand_path('../../vendor/gems/environment', __FILE__)
+rescue LoadError
+end
+
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
@@ -10,7 +15,7 @@ $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/lib"
 require 'rails/version'
 
 PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
-PKG_NAME        = ENV['PKG_NAME'] || 'rails'
+PKG_NAME        = ENV['PKG_NAME'] || 'railties'
 PKG_VERSION     = Rails::VERSION::STRING + PKG_BUILD
 PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
@@ -141,7 +146,7 @@ Rake::RDocTask.new { |rdoc|
 
 # Generate GEM ----------------------------------------------------------------------------
 
-spec = eval(File.read('rails.gemspec'))
+spec = eval(File.read('railties.gemspec'))
 
 Rake::GemPackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec

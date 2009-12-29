@@ -1,45 +1,56 @@
-irb = RUBY_PLATFORM =~ /(:?mswin|mingw)/ ? 'irb.bat' : 'irb'
-
 require 'optparse'
+require 'irb'
+require "irb/completion"
 
-options = { :sandbox => false, :irb => irb }
-OptionParser.new do |opt|
-  opt.banner = "Usage: console [environment] [options]"
-  opt.on('-s', '--sandbox', 'Rollback database modifications on exit.') { |v| options[:sandbox] = v }
-  opt.on("--irb=[#{irb}]", 'Invoke a different irb.') { |v| options[:irb] = v }
-  opt.on("--debugger", 'Enable ruby-debugging for the console.') { |v| options[:debugger] = v }
-  opt.parse!(ARGV)
-end
+module Rails
+  class Console
+    ENVIRONMENTS = %w(production development test)
 
-libs =  " -r irb/completion"
-libs << %( -r "#{Rails.root}/config/environment")
-libs << " -r rails/console_app"
-libs << " -r rails/console_sandbox" if options[:sandbox]
-libs << " -r rails/console_with_helpers"
+    def self.start(app)
+      new(app).start
+    end
 
-if options[:debugger]
-  begin
-    require 'ruby-debug'
-    libs << " -r ruby-debug"
-    puts "=> Debugger enabled"
-  rescue Exception
-    puts "You need to install ruby-debug to run the console in debugging mode. With gems, use 'gem install ruby-debug'"
-    exit
+    def initialize(app)
+      @app = app
+    end
+
+    def start
+      options = {}
+
+      OptionParser.new do |opt|
+        opt.banner = "Usage: console [environment] [options]"
+        opt.on('-s', '--sandbox', 'Rollback database modifications on exit.') { |v| options[:sandbox] = v }
+        opt.on("--debugger", 'Enable ruby-debugging for the console.') { |v| options[:debugger] = v }
+        opt.on('--irb') { |v| abort '--irb option is no longer supported. Invoke `/your/choice/of/ruby script/console` instead' }
+        opt.parse!(ARGV)
+      end
+
+      if env = ARGV.first
+        ENV['RAILS_ENV'] = ENVIRONMENTS.find { |e| e.index(env) } || env
+      end
+
+      @app.initialize!
+      require "rails/console_app"
+      require "rails/console_sandbox" if options[:sandbox]
+      require "rails/console_with_helpers"
+
+      if options[:debugger]
+        begin
+          require 'ruby-debug'
+          puts "=> Debugger enabled"
+        rescue Exception
+          puts "You need to install ruby-debug to run the console in debugging mode. With gems, use 'gem install ruby-debug'"
+          exit
+        end
+      end
+
+      if options[:sandbox]
+        puts "Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})"
+        puts "Any modifications you make will be rolled back on exit"
+      else
+        puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
+      end
+      IRB.start
+    end
   end
 end
-
-ENV['RAILS_ENV'] = case ARGV.first
-  when "p"; "production"
-  when "d"; "development"
-  when "t"; "test"
-  else
-    ARGV.first || ENV['RAILS_ENV'] || 'development'
-end
-
-if options[:sandbox]
-  puts "Loading #{ENV['RAILS_ENV']} environment in sandbox (Rails #{Rails.version})"
-  puts "Any modifications you make will be rolled back on exit"
-else
-  puts "Loading #{ENV['RAILS_ENV']} environment (Rails #{Rails.version})"
-end
-exec "#{options[:irb]} #{libs} --simple-prompt"

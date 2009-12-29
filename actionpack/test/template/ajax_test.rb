@@ -6,7 +6,7 @@ class AjaxTestCase < ActiveSupport::TestCase
 
   def assert_html(html, matches)
     matches.each do |match|
-      assert_match Regexp.new(Regexp.escape(match)), html
+      assert_match(Regexp.new(Regexp.escape(match)), html)
     end
   end
 
@@ -52,18 +52,18 @@ class LinkToRemoteTest < AjaxTestCase
 
   test "with a hash for :update" do
     link = link(:update => {:success => "#posts", :failure => "#error"})
-    assert_match /data-update-success="#posts"/, link
-    assert_match /data-update-failure="#error"/, link
+    assert_match(/data-update-success="#posts"/, link)
+    assert_match(/data-update-failure="#error"/, link)
   end
 
   test "with positional parameters" do
     link = link(:position => :top, :update => "#posts")
-    assert_match /data\-update\-position="top"/, link
+    assert_match(/data\-update\-position="top"/, link)
   end
 
   test "with an optional method" do
     link = link(:method => "delete")
-    assert_match /data-method="delete"/, link
+    assert_match(/data-method="delete"/, link)
   end
 
   class LegacyLinkToRemoteTest < AjaxTestCase
@@ -99,7 +99,7 @@ class ButtonToRemoteTest < AjaxTestCase
       button = button({:url => {:action => "whatnot"}}, {:class => "fine"})
       [/input/, /class="fine"/, /type="button"/, /value="Remote outpost"/,
        /data-url="\/whatnot"/].each do |match|
-         assert_match match, button
+         assert_match(match, button)
       end
     end
   end

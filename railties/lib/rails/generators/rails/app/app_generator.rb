@@ -48,9 +48,9 @@ module Rails::Generators
     end
 
     def create_root_files
-      copy_file "Rakefile"
       copy_file "README"
-      copy_file "config.ru"
+      template "Rakefile"
+      template "config.ru"
       template "Gemfile"
     end
 
@@ -62,9 +62,9 @@ module Rails::Generators
       empty_directory "config"
 
       inside "config" do
-        copy_file "routes.rb"
-        template  "application.rb"
-        template  "environment.rb"
+        template "routes.rb"
+        template "application.rb"
+        template "environment.rb"
 
         directory "environments"
         directory "initializers"
@@ -123,10 +123,10 @@ module Rails::Generators
     end
 
     def create_script_files
-      directory "script" do |file|
-        prepend_file file, "#{shebang}\n", :verbose => false
-        chmod file, 0755, :verbose => false
+      directory "script" do |content|
+        "#{shebang}\n" + content
       end
+      chmod "script", 0755, :verbose => false
     end
 
     def create_test_files
@@ -179,6 +179,10 @@ module Rails::Generators
 
       def app_name
         @app_name ||= File.basename(destination_root)
+      end
+
+      def app_const
+        @app_const ||= "#{app_name.classify}::Application"
       end
 
       def app_secret

@@ -1,7 +1,7 @@
-require "active_support/core_ext/class"
+require 'active_support/core_ext/class'
+
 module ActionMailer
   module DeliveryMethod
-
     autoload :File,     'action_mailer/delivery_method/file'
     autoload :Sendmail, 'action_mailer/delivery_method/sendmail'
     autoload :Smtp,     'action_mailer/delivery_method/smtp'
@@ -52,6 +52,5 @@ module ActionMailer
       superclass_delegating_accessor :settings
       self.settings = {}
     end
-    
   end
 end

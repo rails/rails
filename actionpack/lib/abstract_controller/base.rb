@@ -1,8 +1,11 @@
 module AbstractController
+  class Error < StandardError; end
+  class ActionNotFound < StandardError; end
 
   class Base
     attr_internal :response_body
     attr_internal :action_name
+    attr_internal :formats
 
     class << self
       attr_reader :abstract
@@ -74,21 +77,23 @@ module AbstractController
     abstract!
 
     # Calls the action going through the entire action dispatch stack.
-    # 
+    #
     # The actual method that is called is determined by calling
     # #method_for_action. If no method can handle the action, then an
     # ActionNotFound error is raised.
     #
     # ==== Returns
     # self
-    def process(action)
+    def process(action, *args)
       @_action_name = action_name = action.to_s
 
       unless action_name = method_for_action(action_name)
         raise ActionNotFound, "The action '#{action}' could not be found"
       end
 
-      process_action(action_name)
+      @_response_body = nil
+
+      process_action(action_name, *args)
     end
 
   private
@@ -108,8 +113,8 @@ module AbstractController
     # Call the action. Override this in a subclass to modify the
     # behavior around processing an action. This, and not #process,
     # is the intended way to override action dispatching.
-    def process_action(method_name)
-      send_action(method_name)
+    def process_action(method_name, *args)
+      send_action(method_name, *args)
     end
 
     # Actually call the method associated with the action. Override

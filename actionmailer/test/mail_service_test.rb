@@ -31,6 +31,18 @@ class TestMailer < ActionMailer::Base
     render :text => "Goodbye, Mr. #{recipient}"
   end
 
+  def from_with_name
+    from       "System <system@loudthinking.com>"
+    recipients "root@loudthinking.com"
+    render :text => "Nothing to see here."
+  end
+
+  def from_without_name
+    from       "system@loudthinking.com"
+    recipients "root@loudthinking.com"
+    render :text => "Nothing to see here."
+  end
+
   def cc_bcc(recipient)
     recipients recipient
     subject    "testing bcc/cc"
@@ -95,7 +107,7 @@ class TestMailer < ActionMailer::Base
     cc         "Foo áëô îü <extended@example.net>"
     bcc        "Foo áëô îü <extended@example.net>"
     charset    "utf-8"
-
+    
     render :text => "åœö blah"
   end
 
@@ -227,7 +239,7 @@ class TestMailer < ActionMailer::Base
     from         "test@example.com"
     content_type "multipart/mixed"
 
-    part :content_type => "multipart/alternative", :content_disposition => "inline", :headers => { "foo" => "bar" } do |p|
+    part :content_type => "multipart/alternative", :content_disposition => "inline", "foo" => "bar" do |p|
       p.part :content_type => "text/plain", :body => "test text\nline #2"
       p.part :content_type => "text/html", :body => "<b>test</b> HTML<br/>\nline #2"
     end
@@ -252,7 +264,7 @@ class TestMailer < ActionMailer::Base
     from         "test@example.com"
     content_type "multipart/related"
     part         :content_type => "text/html", :body => 'yo'
-    attachment   :content_type => "image/jpeg", :filename => File.join(File.dirname(__FILE__), "fixtures", "attachments", "test.jpg"), :data => "i am not a real picture", :headers => { 'Content-ID' => '<test@test.com>' }
+    attachment   :content_type => "image/jpeg", :filename => File.join(File.dirname(__FILE__), "fixtures", "attachments", "test.jpg"), :data => "i am not a real picture", 'Content-ID' => '<test@test.com>'
   end
 
   def unnamed_attachment(recipient)
@@ -289,6 +301,7 @@ class TestMailer < ActionMailer::Base
     render :text => "testing"
   end
 
+  # This tests body calls accepeting a hash, which is deprecated.
   def body_ivar(recipient)
     recipients   recipient
     subject      "Body as a local variable"
@@ -351,7 +364,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
     assert_equal "multipart/mixed", created.content_type.string
     assert_equal "multipart/alternative", created.parts[0].content_type.string
-    assert_equal "bar", created.parts[0].header['foo'].decoded
+    assert_equal "bar", created.parts[0].header['foo'].to_s
     assert_nil created.parts[0].charset
     assert_equal "text/plain", created.parts[0].parts[0].content_type.string
     assert_equal "text/html", created.parts[0].parts[1].content_type.string
@@ -370,9 +383,9 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_equal "multipart/mixed", created.content_type.string
     assert_equal "multipart/alternative", created.parts.first.content_type.string
     assert_equal "text/plain", created.parts.first.parts.first.content_type.string
-    assert_equal "Nothing to see here.", created.parts.first.parts.first.body.decoded
+    assert_equal "Nothing to see here.", created.parts.first.parts.first.body.to_s
     assert_equal "text/html", created.parts.first.parts.second.content_type.string
-    assert_equal "<b>test</b> HTML<br/>", created.parts.first.parts.second.body.decoded
+    assert_equal "<b>test</b> HTML<br/>", created.parts.first.parts.second.body.to_s
   end
 
   def test_attachment_with_custom_header
@@ -413,11 +426,11 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def test_subject_with_i18n
     assert_nothing_raised { TestMailer.deliver_subject_with_i18n(@recipient) }
-    assert_equal "Subject with i18n", ActionMailer::Base.deliveries.first.subject.decoded
+    assert_equal "Subject with i18n", ActionMailer::Base.deliveries.first.subject.to_s
 
     I18n.backend.store_translations('en', :actionmailer => {:test_mailer => {:subject_with_i18n => {:subject => "New Subject!"}}})
     assert_nothing_raised { TestMailer.deliver_subject_with_i18n(@recipient) }
-    assert_equal "New Subject!", ActionMailer::Base.deliveries.last.subject.decoded
+    assert_equal "New Subject!", ActionMailer::Base.deliveries.last.subject.to_s
   end
 
   def test_custom_template
@@ -512,6 +525,28 @@ class ActionMailerTest < Test::Unit::TestCase
     delivered.message_id = '<123@456>'
     
     assert_equal expected.encoded, delivered.encoded
+  end
+
+  def test_from_without_name_for_smtp
+    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.deliver_from_without_name
+
+    mail = MockSMTP.deliveries.first
+    assert_not_nil mail
+    mail, from, to = mail
+
+    assert_equal 'system@loudthinking.com', from.to_s
+  end
+
+  def test_from_with_name_for_smtp
+    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.deliver_from_with_name
+
+    mail = MockSMTP.deliveries.first
+    assert_not_nil mail
+    mail, from, to = mail
+
+    assert_equal 'system@loudthinking.com', from.addresses.first
   end
 
   def test_reply_to
@@ -696,7 +731,7 @@ Content-Type: text/plain; charset=iso-8859-1
 The body
 EOF
     mail = Mail.new(msg)
-    assert_equal "testing testing \326\244", mail.subject.decoded
+    assert_equal "testing testing \326\244", mail.subject.to_s
     assert_equal "Subject: =?utf-8?Q?testing_testing_=D6=A4?=\r\n", mail.subject.encoded
   end
 
@@ -709,7 +744,7 @@ Content-Type: text/plain; charset=iso-8859-1
 The body
 EOF
     mail = Mail.new(msg)
-    assert_equal "this == working?", mail.subject.decoded
+    assert_equal "this == working?", mail.subject.to_s
     assert_equal "Subject: this == working?\r\n", mail.subject.encoded
   end
 
@@ -723,7 +758,7 @@ Content-Transfer-Encoding: 7bit
 The=3Dbody
 EOF
     mail = Mail.new(msg)
-    assert_equal "The=3Dbody", mail.body.decoded.strip
+    assert_equal "The=3Dbody", mail.body.to_s.strip
     assert_equal "The=3Dbody", mail.body.encoded.strip
   end
 
@@ -737,7 +772,7 @@ Content-Transfer-Encoding: quoted-printable
 The=3Dbody
 EOF
     mail = Mail.new(msg)
-    assert_equal "The=body", mail.body.decoded.strip
+    assert_equal "The=body", mail.body.to_s.strip
     assert_equal "The=3Dbody", mail.body.encoded.strip
   end
 
@@ -751,7 +786,7 @@ Content-Transfer-Encoding: base64
 VGhlIGJvZHk=
 EOF
     mail = Mail.new(msg)
-    assert_equal "The body", mail.body.decoded.strip
+    assert_equal "The body", mail.body.to_s.strip
     assert_equal "VGhlIGJvZHk=", mail.body.encoded.strip
   end
 
@@ -825,7 +860,7 @@ EOF
   def test_receive_decodes_base64_encoded_mail
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email")
     TestMailer.receive(fixture)
-    assert_match(/Jamis/, TestMailer.received_body.decoded)
+    assert_match(/Jamis/, TestMailer.received_body.to_s)
   end
 
   def test_receive_attachments
@@ -895,7 +930,6 @@ EOF
     mail = TestMailer.create_explicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length
     assert_equal 'multipart/mixed', mail.content_type.string
-
     assert_equal "text/plain", mail.parts[0].content_type.string
 
     assert_equal "text/html", mail.parts[1].content_type.string
@@ -903,7 +937,6 @@ EOF
 
     assert_equal "image/jpeg", mail.parts[2].content_type.string
     assert_equal "attachment", mail.parts[2].content_disposition.disposition_type
-
     assert_equal "foo.jpg", mail.parts[2].content_disposition.filename
     assert_equal "foo.jpg", mail.parts[2].content_type.filename
     assert_nil mail.parts[2].charset
@@ -926,13 +959,13 @@ EOF
 
     mail = TestMailer.create_implicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length
-    assert_equal "1.0", mail.mime_version.decoded
+    assert_equal "1.0", mail.mime_version.to_s
     assert_equal "multipart/alternative", mail.content_type.string
-    assert_equal "application/x-yaml", mail.parts[0].content_type.string
+    assert_equal "text/plain", mail.parts[0].content_type.string
     assert_equal "utf-8", mail.parts[0].charset
-    assert_equal "text/plain", mail.parts[1].content_type.string
+    assert_equal "text/html", mail.parts[1].content_type.string
     assert_equal "utf-8", mail.parts[1].charset
-    assert_equal "text/html", mail.parts[2].content_type.string
+    assert_equal "application/x-yaml", mail.parts[2].content_type.string
     assert_equal "utf-8", mail.parts[2].charset
   end
 
@@ -941,9 +974,9 @@ EOF
 
     mail = TestMailer.create_implicitly_multipart_example(@recipient, nil, ["application/x-yaml", "text/plain"])
     assert_equal 3, mail.parts.length
-    assert_equal "text/html", mail.parts[0].content_type.string
+    assert_equal "application/x-yaml", mail.parts[0].content_type.string
     assert_equal "text/plain", mail.parts[1].content_type.string
-    assert_equal "application/x-yaml", mail.parts[2].content_type.string
+    assert_equal "text/html", mail.parts[2].content_type.string
   end
 
   def test_implicitly_multipart_messages_with_charset
@@ -963,19 +996,19 @@ EOF
 
   def test_html_mail_with_underscores
     mail = TestMailer.create_html_mail_with_underscores(@recipient)
-    assert_equal %{<a href="http://google.com" target="_blank">_Google</a>}, mail.body.decoded
+    assert_equal %{<a href="http://google.com" target="_blank">_Google</a>}, mail.body.to_s
   end
 
   def test_various_newlines
     mail = TestMailer.create_various_newlines(@recipient)
     assert_equal("line #1\nline #2\nline #3\nline #4\n\n" +
-                 "line #5\n\nline#6\n\nline #7", mail.body.decoded)
+                 "line #5\n\nline#6\n\nline #7", mail.body.to_s)
   end
 
   def test_various_newlines_multipart
     mail = TestMailer.create_various_newlines_multipart(@recipient)
-    assert_equal "line #1\nline #2\nline #3\nline #4\n\n", mail.parts[0].body.decoded
-    assert_equal "<p>line #1</p>\n<p>line #2</p>\n<p>line #3</p>\n<p>line #4</p>\n\n", mail.parts[1].body.decoded
+    assert_equal "line #1\nline #2\nline #3\nline #4\n\n", mail.parts[0].body.to_s
+    assert_equal "<p>line #1</p>\n<p>line #2</p>\n<p>line #3</p>\n<p>line #4</p>\n\n", mail.parts[1].body.to_s
     assert_equal "line #1\r\nline #2\r\nline #3\r\nline #4\r\n\r\n", mail.parts[0].body.encoded
     assert_equal "<p>line #1</p>\r\n<p>line #2</p>\r\n<p>line #3</p>\r\n<p>line #4</p>\r\n\r\n", mail.parts[1].body.encoded
   end
@@ -1008,7 +1041,7 @@ EOF
     mail = Mail.new(fixture)
     assert_equal(2, mail.parts.length)
     assert_equal(4, mail.parts.first.parts.length)
-    assert_equal("This is the first part.", mail.parts.first.parts.first.body.decoded)
+    assert_equal("This is the first part.", mail.parts.first.parts.first.body.to_s)
     assert_equal("test.rb", mail.parts.first.parts.second.filename)
     assert_equal("flowed", mail.parts.first.parts.fourth.content_type.parameters[:format])
     assert_equal('smime.p7s', mail.parts.second.filename)
@@ -1074,7 +1107,7 @@ EOF
 
   def test_return_path_with_create
     mail = TestMailer.create_return_path
-    assert_equal "another@somewhere.test", mail['return-path'].decoded.to_s
+    assert_equal "another@somewhere.test", mail['return-path'].to_s
   end
 
   def test_return_path_with_deliver
@@ -1085,8 +1118,9 @@ EOF
   end
 
   def test_body_is_stored_as_an_ivar
-    mail = TestMailer.create_body_ivar(@recipient)
-    assert_equal "body: foo\nbar: baz", mail.body.decoded
+    mail = nil
+    ActiveSupport::Deprecation.silence { mail = TestMailer.create_body_ivar(@recipient) }
+    assert_equal "body: foo\nbar: baz", mail.body.to_s
   end
 
   def test_starttls_is_enabled_if_supported
@@ -1215,6 +1249,6 @@ class RespondToTest < Test::Unit::TestCase
       RespondToMailer.not_a_method
     end
 
-    assert_match /undefined method.*not_a_method/, error.message
+    assert_match(/undefined method.*not_a_method/, error.message)
   end
 end

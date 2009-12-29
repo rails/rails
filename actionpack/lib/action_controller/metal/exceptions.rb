@@ -18,18 +18,9 @@ module ActionController
 
     def initialize(*allowed_methods)
       super("Only #{allowed_methods.to_sentence(:locale => :en)} requests are allowed.")
-      @allowed_methods = allowed_methods
-    end
-
-    def allowed_methods_header
-      allowed_methods.map { |method_symbol| method_symbol.to_s.upcase } * ', '
-    end
-
-    def handle_response!(response)
-      response.headers['Allow'] ||= allowed_methods_header
     end
   end
-  
+
   class NotImplemented < MethodNotAllowed #:nodoc:
   end
 

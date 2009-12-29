@@ -1,9 +1,8 @@
-require "active_support/core_ext/exception"
+require 'active_support/core_ext/exception'
+require 'action_dispatch/http/request'
 
 module ActionDispatch
   class ShowExceptions
-    include StatusCodes
-
     LOCALHOST = '127.0.0.1'.freeze
 
     RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
@@ -12,8 +11,7 @@ module ActionDispatch
     @@rescue_responses = Hash.new(:internal_server_error)
     @@rescue_responses.update({
       'ActionController::RoutingError'             => :not_found,
-      # TODO: Clean this up after the switch
-      ActionController::UnknownAction.name         => :not_found,
+      'AbstractController::ActionNotFound'         => :not_found,
       'ActiveRecord::RecordNotFound'               => :not_found,
       'ActiveRecord::StaleObjectError'             => :conflict,
       'ActiveRecord::RecordInvalid'                => :unprocessable_entity,
@@ -28,8 +26,8 @@ module ActionDispatch
     @@rescue_templates.update({
       'ActionView::MissingTemplate'         => 'missing_template',
       'ActionController::RoutingError'      => 'routing_error',
-      ActionController::UnknownAction.name  => 'unknown_action',
-      'ActionView::TemplateError'           => 'template_error'
+      'AbstractController::ActionNotFound'  => 'unknown_action',
+      'ActionView::Template::Error'         => 'template_error'
     })
 
     FAILSAFE_RESPONSE = [500, {'Content-Type' => 'text/html'},
@@ -104,7 +102,7 @@ module ActionDispatch
       end
 
       def status_code(exception)
-        interpret_status(@@rescue_responses[exception.class.name]).to_i
+        Rack::Utils.status_code(@@rescue_responses[exception.class.name])
       end
 
       def render(status, body)
@@ -119,7 +117,7 @@ module ActionDispatch
         return unless logger
 
         ActiveSupport::Deprecation.silence do
-          if ActionView::TemplateError === exception
+          if ActionView::Template::Error === exception
             logger.fatal(exception.to_s)
           else
             logger.fatal(
