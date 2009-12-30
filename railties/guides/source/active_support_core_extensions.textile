@@ -48,6 +48,14 @@ The method +present?+ is equivalent to +!blank?+:
 assert @response.body.present? # same as !@response.body.blank?
 </ruby>
 
+h4. +presence+
+
+The +presence+ method returns its receiver if +present?+, and +nil+ otherwise. It is useful for idioms like this:
+
+<ruby>
+host = config[:host].presence || 'localhost'
+</ruby>
+
 h4. +duplicable?+
 
 A few fundamental objects in Ruby are singletons. For example, in the whole live of a program the integer 1 refers always to the same instance:
