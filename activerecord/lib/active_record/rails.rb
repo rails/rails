@@ -3,13 +3,14 @@
 # here. This is needed for correctly setting up the middleware.
 # In the future, this might become an optional require.
 require "action_controller/rails"
+require "active_record/rails/controller_runtime"
 
 module ActiveRecord
   class Plugin < Rails::Plugin
     plugin_name :active_record
     include_modules_in "ActiveRecord::Base"
 
-    config.action_controller.include "ActiveRecord::ControllerRuntime"
+    config.action_controller.include "ActiveRecord::Rails::ControllerRuntime"
 
     rake_tasks do
       load "active_record/rails/databases.rake"
