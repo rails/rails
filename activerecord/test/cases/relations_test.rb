@@ -471,4 +471,10 @@ class RelationTest < ActiveRecord::TestCase
     assert posts.loaded?
   end
 
+  def test_many_with_limits
+    posts = Post.scoped
+
+    assert posts.many?
+    assert ! posts.limit(1).many?
+  end
 end

@@ -250,7 +250,7 @@ module ActiveRecord
       if block_given?
         to_a.many? { |*block_args| yield(*block_args) }
       else
-        size > 1
+        @relation.send(:taken).present? ? to_a.many? : size > 1
       end
     end
 
