@@ -83,5 +83,21 @@ module ApplicationTests
         require "#{app_path}/config/application"
       end
     end
+
+    test "Frameworks are not preloaded by default" do
+      require "#{app_path}/config/environment"
+
+      assert ActionController.autoload?(:RecordIdentifier)
+    end
+
+    test "frameworks are preloaded with config.preload_frameworks is set" do
+      add_to_config <<-RUBY
+        config.preload_frameworks = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !ActionController.autoload?(:RecordIdentifier)
+    end
   end
 end

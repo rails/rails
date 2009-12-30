@@ -143,7 +143,7 @@ module Rails
     # Used by Passenger to ensure everything's loaded before forking and
     # to avoid autoload race conditions in JRuby.
     initializer :preload_frameworks do
-      ActiveSupport::Autoload.eager_load! if config.preload_frameworks
+      ActiveSupport::Autoload.eager_autoload! if config.preload_frameworks
     end
 
     initializer :initialize_cache do
