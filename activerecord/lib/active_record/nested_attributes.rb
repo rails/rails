@@ -184,6 +184,8 @@ module ActiveRecord
     # the parent model is saved. This happens inside the transaction initiated
     # by the parents save method. See ActiveRecord::AutosaveAssociation.
     module ClassMethods
+      REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |_, value| value.blank? } }
+
       # Defines an attributes writer for the specified association(s). If you
       # are using <tt>attr_protected</tt> or <tt>attr_accessible</tt>, then you
       # will need to add the attribute writer to the allowed list.
@@ -225,6 +227,7 @@ module ActiveRecord
         options = { :allow_destroy => false, :update_only => false }
         options.update(attr_names.extract_options!)
         options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only)
+        options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
 
         attr_names.each do |association_name|
           if reflection = reflect_on_association(association_name)
@@ -237,11 +240,7 @@ module ActiveRecord
 
             reflection.options[:autosave] = true
             add_autosave_association_callbacks(reflection)
-            self.nested_attributes_options[association_name.to_sym] = options
- 
-            if options[:reject_if] == :all_blank
-              self.nested_attributes_options[association_name.to_sym][:reject_if] = proc { |attributes| attributes.all? {|k,v| v.blank?} }
-            end
+            nested_attributes_options[association_name.to_sym] = options
 
             # def pirate_attributes=(attributes)
             #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes)
