@@ -274,7 +274,7 @@ module ActiveRecord
 
     def deprecated_callback_method(symbol) #:nodoc:
       if respond_to?(symbol)
-        ActiveSupport::Deprecation.warn("Base##{symbol} has been deprecated, please use Base.#{symbol} :method instead")
+        ActiveSupport::Deprecation.warn("Overwriting #{symbol} in your models has been deprecated, please use Base##{symbol} :method_name instead")
         send(symbol)
       end
     end
