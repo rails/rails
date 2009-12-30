@@ -1,5 +1,5 @@
 module ActiveRecord
-  module RelationalCalculations
+  module CalculationMethods
 
     def count(*args)
       calculate(:count, *construct_count_options_from_args(*args))

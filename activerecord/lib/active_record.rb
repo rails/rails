@@ -47,8 +47,15 @@ module ActiveRecord
     autoload :AttributeMethods
     autoload :Attributes
     autoload :AutosaveAssociation
+
     autoload :Relation
-    autoload :RelationalCalculations
+
+    autoload_under 'relation' do
+      autoload :QueryMethods
+      autoload :FinderMethods
+      autoload :CalculationMethods
+    end
+
     autoload :Base
     autoload :Batches
     autoload :Calculations
