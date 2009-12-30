@@ -1,5 +1,5 @@
 require 'active_support/test_case'
-require 'mail'
+require 'action_mailer/base'
 
 module ActionMailer
   class NonInferrableMailerError < ::StandardError

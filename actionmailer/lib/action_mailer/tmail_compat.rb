@@ -6,5 +6,16 @@ module Mail
       content_type(*args)
     end
     
+    
+    alias :old_transfer_encoding :transfer_encoding
+    def transfer_encoding(value = nil)
+      if value
+        STDERR.puts("Message#transfer_encoding is deprecated, please call Message#content_transfer_encoding with the same arguments.\n#{caller}")
+        content_transfer_encoding(value)
+      else
+        old_transfer_encoding
+      end
+    end
+    
   end
 end

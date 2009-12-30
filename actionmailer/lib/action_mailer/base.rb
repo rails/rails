@@ -1,5 +1,6 @@
 require 'active_support/core_ext/class'
 require 'mail'
+require 'action_mailer/tmail_compat'
 
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -149,7 +150,7 @@ module ActionMailer #:nodoc:
   #
   #       part "text/plain" do |p|
   #         p.body = render_message("signup-as-plain", :account => recipient)
-  #         p.transfer_encoding = "base64"
+  #         p.content_transfer_encoding = "base64"
   #       end
   #     end
   #   end
