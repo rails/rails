@@ -46,7 +46,7 @@ module Rails::Generators
 
     def initialize(*args)
       super
-      if !options[:no_activerecord] && !DATABASES.include?(options[:database])
+      if !options[:skip_activerecord] && !DATABASES.include?(options[:database])
         raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
       end
     end
