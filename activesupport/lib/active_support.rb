@@ -50,7 +50,6 @@ module ActiveSupport
     autoload :Callbacks
     autoload :Concern
     autoload :Configurable
-    autoload :DeprecatedCallbacks
     autoload :Deprecation
     autoload :Gzip
     autoload :Inflector
