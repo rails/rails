@@ -90,7 +90,7 @@ module ActiveSupport
     class Callback
       @@_callback_sequence = 0
 
-      attr_accessor :chain, :filter, :kind, :options, :per_key, :klass
+      attr_accessor :chain, :filter, :kind, :options, :per_key, :klass, :raw_filter
 
       def initialize(chain, filter, kind, options, klass)
         @chain, @kind, @klass = chain, kind, klass
