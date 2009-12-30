@@ -418,7 +418,7 @@ class RelationTest < ActiveRecord::TestCase
     Post.update_all(:comments_count => nil)
     posts = Post.scoped
 
-    assert_equal 0, posts.select('comments_count').where('id is not null').order('id').count
+    assert_equal [0], posts.select('comments_count').where('id is not null').group('id').order('id').count.values.uniq
     assert_equal 0, posts.where('id is not null').select('comments_count').count
 
     assert_equal 7, posts.select('comments_count').count('id')
