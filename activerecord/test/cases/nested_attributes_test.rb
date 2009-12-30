@@ -34,7 +34,10 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_should_add_a_proc_to_nested_attributes_options
-    [:parrots, :birds, :birds_with_reject_all_blank].each do |name|
+    assert_equal ActiveRecord::NestedAttributes::ClassMethods::REJECT_ALL_BLANK_PROC,
+                 Pirate.nested_attributes_options[:birds_with_reject_all_blank][:reject_if]
+    
+    [:parrots, :birds].each do |name|
       assert_instance_of Proc, Pirate.nested_attributes_options[name][:reject_if]
     end
   end
