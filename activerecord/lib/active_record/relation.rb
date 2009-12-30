@@ -238,6 +238,22 @@ module ActiveRecord
       loaded? ? @records.empty? : count.zero?
     end
 
+    def any?
+      if block_given?
+        to_a.any? { |*block_args| yield(*block_args) }
+      else
+        !empty?
+      end
+    end
+
+    def many?
+      if block_given?
+        to_a.many? { |*block_args| yield(*block_args) }
+      else
+        size > 1
+      end
+    end
+
     def destroy_all
       to_a.each {|object| object.destroy}
       reset

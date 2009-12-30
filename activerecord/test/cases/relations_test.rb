@@ -445,4 +445,30 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal expected, posts.count
   end
 
+  def test_any
+    posts = Post.scoped
+
+    assert_queries(3) do
+      assert posts.any? # Uses COUNT()
+      assert ! posts.where(:id => nil).any?
+
+      assert posts.any? {|p| p.id > 0 }
+      assert ! posts.any? {|p| p.id <= 0 }
+    end
+
+    assert posts.loaded?
+  end
+
+  def test_many
+    posts = Post.scoped
+  
+    assert_queries(2) do
+      assert posts.many? # Uses COUNT()
+      assert posts.many? {|p| p.id > 0 }
+      assert ! posts.many? {|p| p.id < 2 }
+    end
+  
+    assert posts.loaded?
+  end
+
 end
