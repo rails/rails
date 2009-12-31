@@ -592,7 +592,7 @@ module NestedAttributesOnACollectionAssociationTests
       assert_no_difference ['Man.count', 'Interest.count'] do
         man = Man.create(:name => 'John',
                          :interests_attributes => [{:topic=>'Cars'}, {:topic=>'Sports'}])
-        assert !man.errors[:interests_man].empty?
+        assert !man.errors[:"interests.man"].empty?
       end
     end
     # restore :inverse_of
