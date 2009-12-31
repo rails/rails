@@ -231,16 +231,10 @@ module ActiveRecord
 
         attr_names.each do |association_name|
           if reflection = reflect_on_association(association_name)
-            type = case reflection.macro
-            when :has_one, :belongs_to
-              :one_to_one
-            when :has_many, :has_and_belongs_to_many
-              :collection
-            end
-
             reflection.options[:autosave] = true
             add_autosave_association_callbacks(reflection)
             nested_attributes_options[association_name.to_sym] = options
+            type = (reflection.collection_association? ? :collection : :one_to_one)
 
             # def pirate_attributes=(attributes)
             #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes)

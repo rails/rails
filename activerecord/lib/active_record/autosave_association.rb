@@ -168,8 +168,7 @@ module ActiveRecord
         validation_method = "validate_associated_records_for_#{reflection.name}"
         force_validation = (reflection.options[:validate] == true || reflection.options[:autosave] == true)
 
-        case reflection.macro
-        when :has_many, :has_and_belongs_to_many
+        if reflection.collection_association?
           unless method_defined?(save_method)
             before_save :before_save_collection_association
 
