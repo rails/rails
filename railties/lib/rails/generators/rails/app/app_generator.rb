@@ -152,7 +152,7 @@ module Rails::Generators
 
       inside "tmp" do
         %w(sessions sockets cache pids).each do |dir|
-          empty_directory_with_gitkeep(dir)
+          empty_directory(dir)
         end
       end
     end
