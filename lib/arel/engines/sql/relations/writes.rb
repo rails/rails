@@ -4,7 +4,7 @@ module Arel
       build_query \
         "DELETE",
         "FROM #{table_sql}",
-        ("WHERE #{wheres.collect(&:to_sql).join('\n\tAND ')}" unless wheres.blank? ),
+        ("WHERE #{wheres.collect(&:to_sql).join(' AND ')}" unless wheres.blank? ),
         ("LIMIT #{taken}"                                     unless taken.blank?  )
     end
   end
@@ -55,7 +55,7 @@ module Arel
         attributes.map do |attribute|
           value = assignments[attribute]
           "#{engine.quote_column_name(attribute.name)} = #{attribute.format(value)}"
-        end.join(",\n")
+        end.join(", ")
       else
         assignments.value
       end
@@ -63,7 +63,7 @@ module Arel
 
     def build_update_conditions_sql
       conditions = ""
-      conditions << " WHERE #{wheres.collect(&:to_sql).join('\n\tAND ')}" unless wheres.blank?
+      conditions << " WHERE #{wheres.collect(&:to_sql).join(' AND ')}" unless wheres.blank?
       conditions << " ORDER BY #{order_clauses.join(', ')}" unless orders.blank?
 
       unless taken.blank?

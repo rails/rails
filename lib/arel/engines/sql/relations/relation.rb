@@ -15,7 +15,7 @@ module Arel
           "SELECT     #{select_clauses.kind_of?(::Array) ? select_clauses.join("") : select_clauses.to_s}",
           "FROM       #{from_clauses}",
           (joins(self)                                   unless joins(self).blank? ),
-          ("WHERE     #{where_clauses.join("\n\tAND ")}" unless wheres.blank?      ),
+          ("WHERE     #{where_clauses.join(" AND ")}"    unless wheres.blank?      ),
           ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
           ("HAVING    #{having_clauses.join(', ')}"      unless havings.blank?   ),
           ("#{locked}"                                   unless locked.blank?     )
@@ -31,7 +31,7 @@ module Arel
           "SELECT     #{select_clauses.join(', ')}",
           "FROM       #{from_clauses}",
           (joins(self)                                   unless joins(self).blank? ),
-          ("WHERE     #{where_clauses.join("\n\tAND ")}" unless wheres.blank?      ),
+          ("WHERE     #{where_clauses.join(" AND ")}"    unless wheres.blank?      ),
           ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
           ("HAVING    #{having_clauses.join(', ')}"      unless havings.blank?     ),
           ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      ),
