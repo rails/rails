@@ -6,7 +6,7 @@ module ActiveRecord
     delegate :length, :collect, :map, :each, :all?, :to => :to_a
 
     attr_reader :relation, :klass, :preload_associations, :eager_load_associations
-    attr_writer :readonly, :preload_associations, :eager_load_associations
+    attr_writer :readonly, :preload_associations, :eager_load_associations, :table
 
     def initialize(klass, relation)
       @klass, @relation = klass, relation
@@ -133,7 +133,16 @@ module ActiveRecord
       relation.readonly = @readonly
       relation.preload_associations = @preload_associations
       relation.eager_load_associations = @eager_load_associations
+      relation.table = table
       relation
+    end
+
+    def table
+      @table ||= Arel::Table.new(@klass.table_name, Arel::Sql::Engine.new(@klass))
+    end
+
+    def primary_key
+      @primary_key ||= table[@klass.primary_key]
     end
 
     protected
