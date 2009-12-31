@@ -1508,6 +1508,10 @@ module ActiveRecord #:nodoc:
         Relation.new(self, Arel::Table.new(table || table_name))
       end
 
+      def engine
+        @engine ||= Arel::Sql::Engine.new(self)
+      end
+
       private
         # Finder methods must instantiate through this method to work with the
         # single-table inheritance model that makes it possible to create
@@ -1964,7 +1968,7 @@ module ActiveRecord #:nodoc:
         #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
         #   { :name => "foo'bar", :group_id => 4 }  returns "name='foo''bar' and group_id='4'"
         #   "name='foo''bar' and group_id='4'" returns "name='foo''bar' and group_id='4'"
-        def sanitize_sql_for_conditions(condition, table_name = quoted_table_name)
+        def sanitize_sql_for_conditions(condition, table_name = self.table_name)
           return nil if condition.blank?
 
           case condition
@@ -2035,30 +2039,12 @@ module ActiveRecord #:nodoc:
         # And for value objects on a composed_of relationship:
         #   { :address => Address.new("123 abc st.", "chicago") }
         #     # => "address_street='123 abc st.' and address_city='chicago'"
-        def sanitize_sql_hash_for_conditions(attrs, default_table_name = quoted_table_name)
+        def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
-          conditions = attrs.map do |attr, value|
-            table_name = default_table_name
-
-            unless value.is_a?(Hash)
-              attr = attr.to_s
-
-              # Extract table name from qualified attribute names.
-              if attr.include?('.')
-                attr_table_name, attr = attr.split('.', 2)
-                attr_table_name = connection.quote_table_name(attr_table_name)
-              else
-                attr_table_name = table_name
-              end
-
-              attribute_condition("#{attr_table_name}.#{connection.quote_column_name(attr)}", value)
-            else
-              sanitize_sql_hash_for_conditions(value, connection.quote_table_name(attr.to_s))
-            end
-          end.join(' AND ')
-
-          replace_bind_variables(conditions, expand_range_bind_variables(attrs.values))
+          table = Arel::Table.new(default_table_name, engine)
+          builder = PredicateBuilder.new(engine)
+          builder.build_from_hash(attrs, table).map(&:to_sql).join(' AND ')
         end
         alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
 

@@ -20,11 +20,13 @@ module ActiveRecord
             arel_table = Arel::Table.new(table_name, @engine)
           end
 
+          attribute = Arel::Attribute.new(arel_table, column.to_sym)
+
           case value
           when Array, Range, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope
-            arel_table[column].in(value)
+            attribute.in(value)
           else
-            arel_table[column].eq(value)
+            attribute.eq(value)
           end
         end
       end
