@@ -59,7 +59,7 @@ module Rails
 
     attr_writer :cache_store, :controller_paths,
                 :database_configuration_file, :eager_load_paths,
-                :frameworks, :framework_root_path, :i18n, :load_paths,
+                :i18n, :load_paths,
                 :log_level, :log_path, :paths, :routes_configuration_file,
                 :view_path
 
@@ -132,21 +132,6 @@ module Rails
         action_controller.allow_concurrency = true
       end
       self
-    end
-
-    def framework_paths
-      paths = %w(railties railties/lib activesupport/lib)
-      paths << 'actionpack/lib' if frameworks.include?(:action_controller) || frameworks.include?(:action_view)
-
-      [:active_record, :action_mailer, :active_resource, :action_web_service].each do |framework|
-        paths << "#{framework.to_s.gsub('_', '')}/lib" if frameworks.include?(framework)
-      end
-
-      paths.map { |dir| "#{framework_root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
-    end
-
-    def framework_root_path
-      defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root}/vendor/rails"
     end
 
     # Loads and returns the contents of the #database_configuration_file. The
@@ -237,10 +222,6 @@ module Rails
 
     def log_level
       @log_level ||= RAILS_ENV == 'production' ? :info : :debug
-    end
-
-    def frameworks
-      @frameworks ||= [ :active_record, :action_controller, :action_view, :action_mailer, :active_resource ]
     end
 
     def i18n

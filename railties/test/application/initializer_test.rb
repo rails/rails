@@ -7,7 +7,6 @@ module ApplicationTests
     def setup
       build_app
       boot_rails
-      require "rails"
     end
 
     test "initializing an application adds the application paths to the load path" do
@@ -51,8 +50,9 @@ module ApplicationTests
       assert_nothing_raised NameError do
         add_to_config <<-RUBY
           config.root = "#{app_path}"
-          config.frameworks = []
         RUBY
+
+        use_frameworks []
         require "#{app_path}/config/environment"
       end
     end

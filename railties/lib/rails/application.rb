@@ -273,7 +273,9 @@ module Rails
     # For each framework, search for instrument file with Notifications hooks.
     #
     initializer :load_notifications_hooks do
-      config.frameworks.each do |framework|
+      frameworks = [ :active_record, :action_controller, :action_view,
+        :action_mailer, :active_resource ]
+      frameworks.each do |framework|
         begin
           require "#{framework}/notifications"
         rescue LoadError => e

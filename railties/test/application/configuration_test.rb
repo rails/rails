@@ -75,9 +75,10 @@ module ApplicationTests
     test "the application can be marked as threadsafe when there are no frameworks" do
       FileUtils.rm_rf("#{app_path}/config/environments")
       add_to_config <<-RUBY
-        config.frameworks = []
         config.threadsafe!
       RUBY
+
+      use_frameworks []
 
       assert_nothing_raised do
         require "#{app_path}/config/application"

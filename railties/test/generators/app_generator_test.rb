@@ -63,10 +63,11 @@ class AppGeneratorTest < GeneratorsTestCase
     assert_no_file "config/database.yml"
   end
 
-  def test_activerecord_is_removed_from_frameworks_if_skip_activerecord_is_given
-    run_generator ["--skip-activerecord"]
-    assert_file "config/application.rb", /config\.frameworks \-= \[ :active_record \]/
-  end
+  # TODO: Bring this back using requires
+  # def test_activerecord_is_removed_from_frameworks_if_skip_activerecord_is_given
+  #   run_generator ["--skip-activerecord"]
+  #   assert_file "config/application.rb", /config\.frameworks \-= \[ :active_record \]/
+  # end
 
   def test_prototype_and_test_unit_are_added_by_default
     run_generator

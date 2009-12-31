@@ -7,14 +7,14 @@ module InitializerTests
     def setup
       build_app
       boot_rails
-      require "rails"
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-        config.frameworks = [:action_controller, :action_view, :action_mailer, :active_record]
         config.after_initialize do
           ActionController::Base.session_store = nil
         end
       RUBY
+      use_frameworks [:action_controller, :action_view, :action_mailer, :active_record]
+      require "rails"
       require "#{app_path}/config/environment"
       @paths = Rails.application.config.paths
     end
