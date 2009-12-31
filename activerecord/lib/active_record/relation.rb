@@ -109,6 +109,10 @@ module ActiveRecord
       @relation.delete.tap { reset }
     end
 
+    def delete(id_or_array)
+      where(@klass.primary_key => id_or_array).delete_all
+    end
+
     def loaded?
       @loaded
     end

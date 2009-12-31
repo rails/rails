@@ -815,8 +815,8 @@ module ActiveRecord #:nodoc:
       #
       #   # Delete multiple rows
       #   Todo.delete([2,3,4])
-      def delete(id)
-        delete_all([ "#{connection.quote_column_name(primary_key)} IN (?)", id ])
+      def delete(id_or_array)
+        arel_table.where(construct_conditions(nil, scope(:find))).delete(id_or_array)
       end
 
       # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
@@ -2323,7 +2323,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          self.class.arel_table.where(self.class.arel_table[self.class.primary_key].eq(id)).delete
+          self.class.arel_table.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
         end
 
         @destroyed = true
