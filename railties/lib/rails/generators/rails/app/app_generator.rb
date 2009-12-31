@@ -34,6 +34,9 @@ module Rails::Generators
     class_option :skip_prototype, :type => :boolean, :aliases => "-J", :default => false,
                                   :desc => "Skip Prototype files"
 
+    class_option :skip_git, :type => :boolean, :aliases => "-G", :default => false,
+                                  :desc => "Skip Git ignores and keeps"
+
     # Add bin/rails options
     class_option :version, :type => :boolean, :aliases => "-v", :group => :rails,
                            :desc => "Show Rails version number and quit"
@@ -58,7 +61,7 @@ module Rails::Generators
 
     def create_root_files
       copy_file "README"
-      copy_file "gitignore", ".gitignore"
+      copy_file "gitignore", ".gitignore" unless options[:skip_git]
       template "Rakefile"
       template "config.ru"
       template "Gemfile"
@@ -101,7 +104,7 @@ module Rails::Generators
 
     def create_lib_files
       empty_directory "lib"
-      empty_directory "lib/tasks"
+      empty_directory_with_gitkeep "lib/tasks"
     end
 
     def create_log_files
@@ -124,7 +127,7 @@ module Rails::Generators
     end
 
     def create_public_stylesheets_files
-      directory "public/stylesheets"
+      empty_directory_with_gitkeep "public/stylesheets"
     end
 
     def create_prototype_files
@@ -149,13 +152,13 @@ module Rails::Generators
 
       inside "tmp" do
         %w(sessions sockets cache pids).each do |dir|
-          empty_directory dir
+          empty_directory_with_gitkeep(dir)
         end
       end
     end
 
     def create_vendor_files
-      empty_directory "vendor/plugins"
+      empty_directory_with_gitkeep "vendor/plugins"
     end
 
     def apply_rails_template
@@ -165,7 +168,6 @@ module Rails::Generators
     end
 
     protected
-
       attr_accessor :rails_template
 
       def set_default_accessors!
@@ -218,6 +220,11 @@ module Rails::Generators
           "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
           "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
         ].find { |f| File.exist?(f) } unless RUBY_PLATFORM =~ /(:?mswin|mingw)/
+      end
+
+      def empty_directory_with_gitkeep(destination, config = {})
+        empty_directory(destination, config)
+        create_file("#{destination}/.gitkeep") unless options[:skip_git]
       end
   end
 end
