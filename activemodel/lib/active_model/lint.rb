@@ -41,6 +41,20 @@ module ActiveModel
         assert_boolean model.destroyed?, "destroyed?"
       end
 
+      # naming
+      # ------
+      #
+      # Model.model_name must returns a string with some convenience methods as
+      # :human and :partial_path. Check ActiveModel::Naming for more information.
+      #
+      def test_model_naming
+        assert model.class.respond_to?(:model_name), "The model should respond to model_name"
+        model_name = model.class.model_name
+        assert_kind_of String, model_name
+        assert_kind_of String, model_name.human
+        assert_kind_of String, model_name.partial_path
+      end
+
       # errors
       # ------
       #

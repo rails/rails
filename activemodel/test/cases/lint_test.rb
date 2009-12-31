@@ -4,6 +4,8 @@ class LintTest < ActiveModel::TestCase
   include ActiveModel::Lint::Tests
 
   class CompliantModel
+    extend ActiveModel::Naming
+
     def to_model
       self
     end
