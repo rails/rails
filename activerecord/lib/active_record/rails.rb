@@ -7,7 +7,6 @@ require "action_controller/rails"
 module ActiveRecord
   class Plugin < Rails::Plugin
     plugin_name :active_record
-    include_modules_in "ActiveRecord::Base"
 
     rake_tasks do
       load "active_record/railties/databases.rake"
