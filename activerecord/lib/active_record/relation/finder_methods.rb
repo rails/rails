@@ -21,8 +21,8 @@ module ActiveRecord
     end
 
     def exists?(id = nil)
-      relation = select("#{@klass.quoted_table_name}.#{@klass.primary_key}").limit(1)
-      relation = relation.where(@klass.primary_key => id) if id
+      relation = select(primary_key).limit(1)
+      relation = relation.where(primary_key.eq(id)) if id
       relation.first ? true : false
     end
 
@@ -78,7 +78,7 @@ module ActiveRecord
     end
 
     def find_one(id)
-      record = where(@klass.primary_key => id).first
+      record = where(primary_key.eq(id)).first
 
       unless record
         conditions = where_clause(', ')
@@ -90,7 +90,7 @@ module ActiveRecord
     end
 
     def find_some(ids)
-      result = where(@klass.primary_key => ids).all
+      result = where(primary_key.in(ids)).all
 
       expected_size =
         if @relation.taken && ids.size > @relation.taken
