@@ -16,6 +16,7 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
       build_app
       boot_rails
+      FileUtils.rm_rf("#{app_path}/config/environments")
     end
 
     test "the application root is set correctly" do

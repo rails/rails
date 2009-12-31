@@ -7,6 +7,7 @@ module InitializerTests
     def setup
       build_app
       boot_rails
+      FileUtils.rm_rf("#{app_path}/config/environments")
       add_to_config <<-RUBY
         config.root = "#{app_path}"
         config.after_initialize do
@@ -14,7 +15,6 @@ module InitializerTests
         end
       RUBY
       use_frameworks [:action_controller, :action_view, :action_mailer, :active_record]
-      require "rails/all"
       require "#{app_path}/config/environment"
       @paths = Rails.application.config.paths
     end

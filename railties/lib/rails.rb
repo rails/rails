@@ -7,6 +7,7 @@ require 'action_dispatch'
 
 require 'rails/initializable'
 require 'rails/application'
+require 'rails/railtie'
 require 'rails/plugin'
 require 'rails/railties_path'
 require 'rails/version'

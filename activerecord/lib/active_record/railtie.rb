@@ -3,11 +3,11 @@
 # here. This is needed for correctly setting up the middleware.
 # In the future, this might become an optional require.
 require "active_record"
-require "action_controller/rails"
+require "action_controller/railtie"
 require "rails"
 
 module ActiveRecord
-  class Plugin < Rails::Plugin
+  class Railtie < Rails::Railtie
     plugin_name :active_record
 
     rake_tasks do

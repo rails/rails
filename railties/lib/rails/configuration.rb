@@ -3,7 +3,7 @@ require 'active_support/ordered_options'
 module Rails
   # Temporarily separate the plugin configuration class from the main
   # configuration class while this bit is being cleaned up.
-  class Plugin::Configuration
+  class Railtie::Configuration
 
     def self.default
       @default ||= new
@@ -45,12 +45,12 @@ module Rails
     end
 
     def config_keys
-      ([ :active_support, :action_view, :action_mailer, :active_resource ] +
-        Plugin.plugin_names).map { |n| n.to_s }.uniq
+      ([ :active_support, :action_view ] +
+        Railtie.plugin_names).map { |n| n.to_s }.uniq
     end
   end
 
-  class Configuration < Plugin::Configuration
+  class Configuration < Railtie::Configuration
     attr_accessor :after_initialize_blocks, :cache_classes,
                   :consider_all_requests_local, :dependency_loading, :gems,
                   :load_once_paths, :logger, :metals, :plugins,

@@ -9,7 +9,7 @@ require "rails"
   active_resource
 ).each do |framework|
   begin
-    require "#{framework}/rails"
+    require "#{framework}/railtie"
   rescue LoadError
   end
 end

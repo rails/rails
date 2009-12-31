@@ -92,8 +92,8 @@ module Rails
     def plugins
       @plugins ||= begin
         plugin_names = config.plugins || [:all]
-        Plugin.plugins.select { |p| plugin_names.include?(:all) || plugin_names.include?(p.plugin_name) }.map { |p| p.new } +
-        Plugin::Vendored.all(config.plugins || [:all], config.paths.vendor.plugins)
+        Railtie.plugins.select { |p| plugin_names.include?(:all) || plugin_names.include?(p.plugin_name) }.map { |p| p.new } +
+        Plugin.all(config.plugins || [:all], config.paths.vendor.plugins)
       end
     end
 

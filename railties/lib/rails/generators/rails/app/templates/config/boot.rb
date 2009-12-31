@@ -15,12 +15,11 @@ end
 
 require 'rails/all'
 # To pick the frameworks you want, remove 'require "rails/all"'
-# and list the frameworks that you want:
+# and list the framework railties that you want:
 #
-# require "rails"
-# require "active_model/rails"
-# require "active_record/rails"
-# require "action_controller/rails"
-# require "action_view/rails"
-# require "action_mailer/rails"
-# require "active_resource/rails"
+# require "active_model/railtie"
+# require "active_record/railtie"
+# require "action_controller/railtie"
+# require "action_view/railtie"
+# require "action_mailer/railtie"
+# require "active_resource/railtie"

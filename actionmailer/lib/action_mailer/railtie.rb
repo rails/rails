@@ -2,7 +2,7 @@ require "action_mailer"
 require "rails"
 
 module ActionMailer
-  class Plugin < Rails::Plugin
+  class Railtie < Rails::Railtie
     plugin_name :action_mailer
 
     initializer "action_mailer.set_configs" do |app|

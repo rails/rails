@@ -7,13 +7,14 @@ module PluginsTest
     def setup
       build_app
       boot_rails
+      FileUtils.rm_rf("#{app_path}/config/environments")
       require "rails/all"
     end
 
     test "rake_tasks block is executed when MyApp.load_tasks is called" do
       $ran_block = false
 
-      class MyPlugin < Rails::Plugin
+      class MyTie < Rails::Railtie
         rake_tasks do
           $ran_block = true
         end
@@ -37,6 +38,7 @@ module PluginsTest
     def setup
       build_app
       boot_rails
+      FileUtils.rm_rf("#{app_path}/config/environments")
     end
 
     test "active_record extensions are applied to ActiveRecord" do

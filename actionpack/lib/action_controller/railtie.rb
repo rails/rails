@@ -2,7 +2,7 @@ require "action_controller"
 require "rails"
 
 module ActionController
-  class Plugin < Rails::Plugin
+  class Railtie < Rails::Railtie
     plugin_name :action_controller
 
     initializer "action_controller.set_configs" do |app|
