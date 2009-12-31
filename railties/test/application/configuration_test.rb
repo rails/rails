@@ -100,5 +100,21 @@ module ApplicationTests
 
       assert !ActionController.autoload?(:RecordIdentifier)
     end
+
+    test "runtime error is raised if config.frameworks= is used" do
+      add_to_config "config.frameworks = []"
+
+      assert_raises RuntimeError do
+        require "#{app_path}/config/environment"
+      end
+    end
+
+    test "runtime error is raised if config.frameworks is used" do
+      add_to_config "config.frameworks -= []"
+
+      assert_raises RuntimeError do
+        require "#{app_path}/config/environment"
+      end
+    end
   end
 end

@@ -119,6 +119,13 @@ module Rails
       end
     end
 
+    def frameworks(*args)
+      raise "config.frameworks in no longer supported. See the generated" \
+            "config/boot.rb for steps on how to limit the frameworks that" \
+            "will be loaded"
+    end
+    alias frameworks= frameworks
+
     # Enable threaded mode. Allows concurrent requests to controller actions and
     # multiple database connections. Also disables automatic dependency loading
     # after boot, and disables reloading code on every request, as these are
