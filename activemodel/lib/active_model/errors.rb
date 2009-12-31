@@ -97,13 +97,14 @@ module ActiveModel
       full_messages = []
 
       each do |attribute, messages|
-        messages = Array.wrap(messages)
+        messages = Array(messages)
         next if messages.empty?
 
         if attribute == :base
           messages.each {|m| full_messages << m }
         else
-          attr_name = @base.class.human_attribute_name(attribute)
+          attr_name = attribute.to_s.gsub('.', '_').humanize
+          attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
           options = { :default => ' ', :scope => @base.class.i18n_scope }
           prefix = attr_name + I18n.t(:"errors.format.separator", options)
 

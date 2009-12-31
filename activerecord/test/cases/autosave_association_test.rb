@@ -982,6 +982,7 @@ module AutosaveAssociationOnACollectionAssociationTests
 
     assert !@pirate.valid?
     assert_equal ["cannot be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["#{@association_name.to_s.titleize} name cannot be blank"], @pirate.errors.full_messages
     assert @pirate.errors[@association_name].empty?
   ensure
     I18n.backend.store_translations(:en, :activerecord => { :errors => { :models =>

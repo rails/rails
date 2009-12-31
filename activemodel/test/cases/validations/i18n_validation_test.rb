@@ -57,7 +57,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
   def test_errors_full_messages_translates_human_attribute_name_for_model_attributes
     @person.errors.add('name', 'empty')
-    I18n.expects(:translate).with(:"person.name", :default => ['Name'], :scope => [:activemodel, :attributes], :count => 1).returns('Name')
+    I18n.expects(:translate).with(:"person.name", :default => ['Name', 'Name'], :scope => [:activemodel, :attributes], :count => 1).returns('Name')
     @person.errors.full_messages
   end
 
