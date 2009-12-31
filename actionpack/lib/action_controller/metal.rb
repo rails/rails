@@ -28,21 +28,6 @@ module ActionController
       self.class.controller_name
     end
 
-    # Returns the full controller name, underscored, without the ending Controller.
-    # For instance, MyApp::MyPostsController would return "my_app/my_posts" for
-    # controller_name.
-    #
-    # ==== Returns
-    # String
-    def self.controller_path
-      @controller_path ||= name && name.sub(/Controller$/, '').underscore
-    end
-
-    # Delegates to the class' #controller_path
-    def controller_path
-      self.class.controller_path
-    end
-
     # The details below can be overridden to support a specific
     # Request and Response object. The default ActionController::Base
     # implementation includes RackDelegation, which makes a request

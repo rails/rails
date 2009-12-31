@@ -72,6 +72,16 @@ module AbstractController
           # And always exclude explicitly hidden actions
           hidden_actions
       end
+
+      # Returns the full controller name, underscored, without the ending Controller.
+      # For instance, MyApp::MyPostsController would return "my_app/my_posts" for
+      # controller_name.
+      #
+      # ==== Returns
+      # String
+      def controller_path
+        @controller_path ||= name && name.sub(/Controller$/, '').underscore
+      end
     end
 
     abstract!
@@ -94,6 +104,11 @@ module AbstractController
       @_response_body = nil
 
       process_action(action_name, *args)
+    end
+
+    # Delegates to the class' #controller_path
+    def controller_path
+      self.class.controller_path
     end
 
   private

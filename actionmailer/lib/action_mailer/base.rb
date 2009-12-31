@@ -364,6 +364,7 @@ module ActionMailer #:nodoc:
       def mailer_name
         @mailer_name ||= name.underscore
       end
+      alias :controller_path :mailer_name
 
       def delivery_method=(method_name)
         @delivery_method = ActionMailer::DeliveryMethod.lookup_method(method_name)

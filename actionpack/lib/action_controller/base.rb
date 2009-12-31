@@ -4,6 +4,7 @@ module ActionController
 
     include AbstractController::Callbacks
     include AbstractController::Logger
+    include AbstractController::Layouts
 
     include ActionController::Helpers
     include ActionController::HideActions
@@ -11,7 +12,6 @@ module ActionController
     include ActionController::Redirecting
     include ActionController::Rendering
     include ActionController::Renderers::All
-    include ActionController::Layouts
     include ActionController::ConditionalGet
     include ActionController::RackDelegation
     include ActionController::Logger

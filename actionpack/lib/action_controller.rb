@@ -13,13 +13,11 @@ module ActionController
   autoload :Middleware
 
   autoload_under "metal" do
-    autoload :Benchmarking
     autoload :ConditionalGet
     autoload :Configuration
     autoload :Head
     autoload :Helpers
     autoload :HideActions
-    autoload :Layouts
     autoload :Logger
     autoload :MimeResponds
     autoload :RackDelegation
