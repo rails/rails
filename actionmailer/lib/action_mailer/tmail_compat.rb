@@ -6,7 +6,6 @@ module Mail
       content_type(*args)
     end
     
-    
     alias :old_transfer_encoding :transfer_encoding
     def transfer_encoding(value = nil)
       if value
