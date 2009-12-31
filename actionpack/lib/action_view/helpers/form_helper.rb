@@ -777,12 +777,15 @@ module ActionView
         options["for"] ||= name_and_id["id"]
 
         content = if text.blank?
-          i18n_label = I18n.t("views.labels.#{object_name}.#{method_name}", :default => "")
-          i18n_label if i18n_label.present?
+          I18n.t("views.labels.#{object_name}.#{method_name}", :default => "").presence
         else
           text.to_s
         end
-        content ||= object.class.human_attribute_name(method_name) if object
+
+        content ||= if object && object.class.respond_to?(:human_attribute_name)
+          object.class.human_attribute_name(method_name)
+        end
+
         content ||= method_name.humanize
 
         label_tag(name_and_id["id"], content, options)
