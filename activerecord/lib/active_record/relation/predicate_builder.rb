@@ -11,7 +11,7 @@ module ActiveRecord
 
         if value.is_a?(Hash)
           arel_table = Arel::Table.new(column, @engine)
-          build_predicate_from_hash(value, arel_table)
+          build_from_hash(value, arel_table)
         else
           column = column.to_s
 
