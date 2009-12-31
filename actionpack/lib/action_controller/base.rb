@@ -3,7 +3,6 @@ module ActionController
     abstract!
 
     include AbstractController::Callbacks
-    include AbstractController::Logger
     include AbstractController::Layouts
 
     include ActionController::Helpers

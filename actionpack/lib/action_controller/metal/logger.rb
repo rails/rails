@@ -8,6 +8,10 @@ module ActionController
   module Logger
     extend ActiveSupport::Concern
 
+    included do
+      include AbstractController::Logger
+    end
+
     attr_internal :view_runtime
 
     def process_action(action)

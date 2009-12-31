@@ -13,29 +13,29 @@ module ActionController
   autoload :Middleware
 
   autoload_under "metal" do
+    autoload :Compatibility
     autoload :ConditionalGet
     autoload :Configuration
+    autoload :Cookies
+    autoload :FilterParameterLogging
+    autoload :Flash
     autoload :Head
     autoload :Helpers
     autoload :HideActions
+    autoload :HttpAuthentication
     autoload :Logger
     autoload :MimeResponds
     autoload :RackDelegation
-    autoload :Compatibility
     autoload :Redirecting
     autoload :Rendering
     autoload :Renderers
+    autoload :RequestForgeryProtection
     autoload :Rescue
     autoload :Responder
     autoload :SessionManagement
+    autoload :Streaming
     autoload :UrlFor
     autoload :Verification
-    autoload :Flash
-    autoload :RequestForgeryProtection
-    autoload :Streaming
-    autoload :HttpAuthentication
-    autoload :FilterParameterLogging
-    autoload :Cookies
   end
 
   autoload :Dispatcher,      'action_controller/dispatch/dispatcher'
