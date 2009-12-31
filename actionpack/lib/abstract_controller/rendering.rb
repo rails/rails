@@ -1,5 +1,4 @@
 require "abstract_controller/base"
-require "abstract_controller/logger"
 
 module AbstractController
   class DoubleRenderError < Error
@@ -12,8 +11,6 @@ module AbstractController
 
   module Rendering
     extend ActiveSupport::Concern
-
-    include AbstractController::Logger
 
     included do
       extlib_inheritable_accessor :_view_paths
@@ -67,7 +64,7 @@ module AbstractController
     def render_to_body(options = {})
       # TODO: Refactor so we can just use the normal template logic for this
       if options.key?(:partial)
-        view_context.render_partial(options)
+        _render_partial(options)
       else
         _determine_template(options)
         _render_template(options)
@@ -87,9 +84,16 @@ module AbstractController
     # ==== Options
     # _template<ActionView::Template>:: The template to render
     # _layout<ActionView::Template>:: The layout to wrap the template in (optional)
-    # _partial<TrueClass, FalseClass>:: Whether or not the template to be rendered is a partial
     def _render_template(options)
       view_context.render_template(options)
+    end
+
+    # Renders the given partial.
+    #
+    # ==== Options
+    # partial<String|Object>:: The partial name or the object to be rendered
+    def _render_partial(options)
+      view_context.render_partial(options)
     end
 
     # The list of view paths for this controller. See ActionView::ViewPathSet for

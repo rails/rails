@@ -20,12 +20,6 @@ module ActionController
 
     def render_to_body(options)
       _process_options(options)
-
-      if options.key?(:partial)
-        options[:partial] = action_name if options[:partial] == true
-        options[:_details] = {:formats => formats}
-      end
-
       super
     end
 
@@ -40,6 +34,12 @@ module ActionController
           options[:_prefix] = _prefix
         end
 
+        super
+      end
+
+      def _render_partial(options)
+        options[:partial] = action_name if options[:partial] == true
+        options[:_details] = {:formats => formats}
         super
       end
 

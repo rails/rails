@@ -254,6 +254,7 @@ module ActionMailer #:nodoc:
     include Quoting
     extend  AdvAttrAccessor
 
+    include AbstractController::Logger
     include AbstractController::Rendering
     include AbstractController::LocalizedCache
     include AbstractController::Layouts
