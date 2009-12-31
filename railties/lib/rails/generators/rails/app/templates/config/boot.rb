@@ -14,9 +14,11 @@ else
 end
 
 require 'rails'
-# To skip frameworks you're not going to use, remove require "rails" and
-# list the frameworks that you are going to use.
+# To skip frameworks you're not going to use, change require "rails"
+# to require "rails/core" and list the frameworks that you are going
+# to use.
 #
+# require "rails/core"
 # require "active_model/rails"
 # require "active_record/rails"
 # require "action_controller/rails"

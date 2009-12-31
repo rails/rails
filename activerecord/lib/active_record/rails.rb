@@ -2,6 +2,7 @@
 # rails, so let's make sure that it gets required before
 # here. This is needed for correctly setting up the middleware.
 # In the future, this might become an optional require.
+require "active_record"
 require "action_controller/rails"
 
 module ActiveRecord
