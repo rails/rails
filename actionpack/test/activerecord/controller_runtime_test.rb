@@ -1,8 +1,8 @@
 require 'active_record_unit'
-require 'active_record/rails/controller_runtime'
+require 'active_record/railties/controller_runtime'
 require 'fixtures/project'
 
-ActionController::Base.send :include, ActiveRecord::Rails::ControllerRuntime
+ActionController::Base.send :include, ActiveRecord::Railties::ControllerRuntime
 
 class ARLoggingController < ActionController::Base
   def show
