@@ -104,11 +104,14 @@ module ActiveRecord
     def where(*args)
       return spawn if args.blank?
 
+      builder = PredicateBuilder.new(Arel::Sql::Engine.new(@klass))
+
       conditions = if [String, Array].include?(args.first.class)
         merged = @klass.send(:merge_conditions, args.size > 1 ? Array.wrap(args) : args.first)
         Arel::SqlLiteral.new(merged) if merged
       elsif args.first.is_a?(Hash)
-        build_predicate_from_hash(args.first)
+        attributes = @klass.send(:expand_hash_conditions_for_aggregates, args.first)
+        builder.build_from_hash(attributes, table)
       else
         args.first
       end
@@ -128,35 +131,6 @@ module ActiveRecord
           s.concat(' DESC')
         end
       }.join(',')
-    end
-
-    def build_predicate_from_hash(attributes, default_table = self.table)
-      attributes = @klass.send(:expand_hash_conditions_for_aggregates, attributes)
-
-      predicates = attributes.map do |column, value|
-        arel_table = default_table
-
-        if value.is_a?(Hash)
-          arel_table = Arel::Table.new(column, Arel::Sql::Engine.new(@klass))
-          build_predicate_from_hash(value, arel_table)
-        else
-          column = column.to_s
-
-          if column.include?('.')
-            table_name, column = column.split('.', 2)
-            arel_table = Arel::Table.new(table_name, Arel::Sql::Engine.new(@klass))
-          end
-
-          case value
-          when Array, Range, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope
-            arel_table[column].in(value)
-          else
-            arel_table[column].eq(value)
-          end
-        end
-      end
-
-      predicates.flatten
     end
 
   end
