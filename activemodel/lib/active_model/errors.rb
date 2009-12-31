@@ -105,11 +105,11 @@ module ActiveModel
         else
           attr_name = attribute.to_s.gsub('.', '_').humanize
           attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
-          options = { :default => ' ', :scope => @base.class.i18n_scope }
-          prefix = attr_name + I18n.t(:"errors.format.separator", options)
+          options = { :default => "{{attribute}} {{message}}", :attribute => attr_name,
+                      :scope => @base.class.i18n_scope }
 
           messages.each do |m|
-            full_messages <<  "#{prefix}#{m}"
+            full_messages << I18n.t(:"errors.format", options.merge(:message => m))
           end
         end
       end
