@@ -166,7 +166,7 @@ module ApplicationTests
       use_frameworks []
       require "#{app_path}/config/environment"
 
-      assert !defined?(ActiveRecord)
+      assert_nil defined?(ActiveRecord)
     end
   end
 end
