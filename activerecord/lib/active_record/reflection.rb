@@ -256,7 +256,10 @@ module ActiveRecord
       # association. Returns +true+ if the +macro+ is one of +has_many+ or
       # +has_and_belongs_to_many+, +false+ otherwise.
       def collection_association?
-        [:has_many, :has_and_belongs_to_many].include?(macro)
+        if @collection_association.nil?
+          @collection_association = [:has_many, :has_and_belongs_to_many].include?(macro)
+        end
+        @collection_association
       end
 
       private
