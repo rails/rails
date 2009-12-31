@@ -4,6 +4,7 @@ require 'models/customer'
 require 'models/company'
 require 'models/company_in_module'
 require 'models/subscriber'
+require 'models/ship'
 require 'models/pirate'
 
 class ReflectionTest < ActiveRecord::TestCase
@@ -182,6 +183,14 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_has_many_through_reflection
     assert_kind_of ActiveRecord::Reflection::ThroughReflection, Subscriber.reflect_on_association(:books)
+  end
+
+  def test_collection_association?
+    assert Pirate.reflect_on_association(:birds).collection_association?
+    assert Pirate.reflect_on_association(:parrots).collection_association?
+
+    assert !Pirate.reflect_on_association(:ship).collection_association?
+    assert !Ship.reflect_on_association(:pirate).collection_association?
   end
 
   private
