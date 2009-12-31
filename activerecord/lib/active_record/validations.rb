@@ -17,8 +17,6 @@ module ActiveRecord
 
   module Validations
     extend ActiveSupport::Concern
-
-    include ActiveSupport::DeprecatedCallbacks
     include ActiveModel::Validations
 
     included do

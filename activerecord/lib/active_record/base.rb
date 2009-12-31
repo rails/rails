@@ -1,4 +1,3 @@
-require 'benchmark'
 require 'yaml'
 require 'set'
 require 'active_support/benchmarkable'

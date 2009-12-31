@@ -485,7 +485,14 @@ module ActiveRecord
 
         def callback(method, record)
           callbacks_for(method).each do |callback|
-            ActiveSupport::DeprecatedCallbacks::Callback.new(method, callback, record).call(@owner, record)
+            case callback
+            when Symbol
+              @owner.send(callback, record)
+            when Proc
+              callback.call(@owner, record)
+            else
+              callback.send(method, @owner, record)
+            end
           end
         end
 
