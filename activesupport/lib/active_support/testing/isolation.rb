@@ -36,28 +36,56 @@ module ActiveSupport
         !ENV["NO_FORK"] && RUBY_PLATFORM !~ /mswin|mingw|java/
       end
 
-      def run(result)
-        unless defined?(@@ran_class_setup)
-          self.class.setup if self.class.respond_to?(:setup)
-          @@ran_class_setup = true
+      def self.included(base)
+        if defined?(::MiniTest) && base < ::MiniTest::Unit::TestCase
+          base.send :include, MiniTest
+        elsif defined?(Test::Unit)
+          base.send :include, TestUnit
         end
+      end
 
-        yield(Test::Unit::TestCase::STARTED, name)
-
-        @_result = result
-
-        serialized = run_in_isolation do |proxy|
-          begin
-            super(proxy) { }
-          rescue Exception => e
-            proxy.add_error(Test::Unit::Error.new(name, e))
+      module TestUnit
+        def run(result)
+          unless defined?(@@ran_class_setup)
+            self.class.setup if self.class.respond_to?(:setup)
+            @@ran_class_setup = true
           end
+
+          yield(Test::Unit::TestCase::STARTED, name)
+
+          @_result = result
+
+          serialized = run_in_isolation do |proxy|
+            begin
+              super(proxy) { }
+            rescue Exception => e
+              proxy.add_error(Test::Unit::Error.new(name, e))
+            end
+          end
+
+          retval, proxy = Marshal.load(serialized)
+          proxy.__replay__(@_result)
+
+          yield(Test::Unit::TestCase::FINISHED, name)
+          retval
         end
+      end
 
-        proxy = Marshal.load(serialized)
-        proxy.__replay__(@_result)
+      module MiniTest
+        def run(runner)
+          unless defined?(@@ran_class_setup)
+            self.class.setup if self.class.respond_to?(:setup)
+            @@ran_class_setup = true
+          end
 
-        yield(Test::Unit::TestCase::FINISHED, name)
+          serialized = run_in_isolation do |runner|
+            super(runner)
+          end
+
+          retval, proxy = Marshal.load(serialized)
+          proxy.__replay__(runner)
+          retval
+        end
       end
 
       module Forking
@@ -67,8 +95,8 @@ module ActiveSupport
           pid = fork do
             read.close
             proxy = ProxyTestResult.new
-            yield proxy
-            write.puts [Marshal.dump(proxy)].pack("m")
+            retval = yield proxy
+            write.puts [Marshal.dump([retval, proxy])].pack("m")
             exit!
           end
 
@@ -87,9 +115,9 @@ module ActiveSupport
 
           if ENV["ISOLATION_TEST"]
             proxy = ProxyTestResult.new
-            yield proxy
+            retval = yield proxy
             File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
-              file.puts [Marshal.dump(proxy)].pack("m")
+              file.puts [Marshal.dump([retval, proxy])].pack("m")
             end
             exit!
           else
