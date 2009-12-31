@@ -23,8 +23,15 @@ module ActiveRecord
           attribute = arel_table[column] || Arel::Attribute.new(arel_table, column.to_sym)
 
           case value
-          when Array, Range, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope
+          when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope
             attribute.in(value)
+          when Range
+            # TODO : Arel should handle ranges with excluded end.
+            if value.exclude_end?
+              [attribute.gteq(value.begin), attribute.lt(value.end)]
+            else
+              attribute.in(value)
+            end
           else
             attribute.eq(value)
           end
