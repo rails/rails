@@ -1,4 +1,5 @@
 require "action_controller"
+require "rails"
 
 module ActionController
   class Plugin < Rails::Plugin

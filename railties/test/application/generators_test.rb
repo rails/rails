@@ -14,7 +14,7 @@ module ApplicationTests
     end
 
     def with_config
-      require "rails"
+      require "rails/all"
       require "rails/generators"
       yield app_const.config
     end

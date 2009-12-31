@@ -5,7 +5,7 @@ module PluginsTest
     def setup
       build_app
       boot_rails
-      require "rails"
+      require "rails/all"
     end
 
     test "config is available to plugins" do

@@ -1,4 +1,5 @@
 require "action_mailer"
+require "rails"
 
 module ActionMailer
   class Plugin < Rails::Plugin

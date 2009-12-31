@@ -4,6 +4,7 @@
 # In the future, this might become an optional require.
 require "active_record"
 require "action_controller/rails"
+require "rails"
 
 module ActiveRecord
   class Plugin < Rails::Plugin

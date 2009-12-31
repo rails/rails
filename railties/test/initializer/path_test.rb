@@ -14,7 +14,7 @@ module InitializerTests
         end
       RUBY
       use_frameworks [:action_controller, :action_view, :action_mailer, :active_record]
-      require "rails"
+      require "rails/all"
       require "#{app_path}/config/environment"
       @paths = Rails.application.config.paths
     end

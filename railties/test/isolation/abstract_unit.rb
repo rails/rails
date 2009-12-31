@@ -207,6 +207,6 @@ Module.new do
   `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{tmp_path('app_template')}`
   File.open("#{tmp_path}/app_template/config/boot.rb", 'w') do |f|
     f.puts "require '#{environment}'" if require_environment
-    f.puts "require 'rails'"
+    f.puts "require 'rails/all'"
   end
 end

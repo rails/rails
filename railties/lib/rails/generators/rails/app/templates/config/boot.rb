@@ -13,12 +13,11 @@ else
   require 'rubygems'
 end
 
-require 'rails'
-# To skip frameworks you're not going to use, change require "rails"
-# to require "rails/core" and list the frameworks that you are going
-# to use.
+require 'rails/all'
+# To pick the frameworks you want, remove 'require "rails/all"'
+# and list the frameworks that you want:
 #
-# require "rails/core"
+# require "rails"
 # require "active_model/rails"
 # require "active_record/rails"
 # require "action_controller/rails"

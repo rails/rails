@@ -19,14 +19,14 @@ module InitializerTests
 
     def assert_rails_boots
       assert_nothing_raised "It appears that rails does not boot" do
-        require "rails"
+        require "rails/all"
       end
     end
 
     def assert_rails_does_not_boot
       $stderr = File.open("/dev/null", "w")
       assert_raises(SystemExit) do
-        require "rails"
+        require "rails/all"
       end
     end
   end
