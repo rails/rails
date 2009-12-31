@@ -3,17 +3,14 @@
 # here. This is needed for correctly setting up the middleware.
 # In the future, this might become an optional require.
 require "action_controller/rails"
-require "active_record/rails/controller_runtime"
 
 module ActiveRecord
   class Plugin < Rails::Plugin
     plugin_name :active_record
     include_modules_in "ActiveRecord::Base"
 
-    config.action_controller.include "ActiveRecord::Rails::ControllerRuntime"
-
     rake_tasks do
-      load "active_record/rails/databases.rake"
+      load "active_record/railties/databases.rake"
     end
 
     initializer "active_record.set_configs" do |app|
@@ -34,6 +31,12 @@ module ActiveRecord
       ActiveRecord::Base.default_timezone = :utc
     end
 
+    # Expose database runtime to controller for logging.
+    initializer "active_record.log_runtime" do |app|
+      require "active_record/railties/controller_runtime"
+      ActionController::Base.send :include, ActiveRecord::Railties::ControllerRuntime
+    end
+
     # Setup database middleware after initializers have run
     initializer "active_record.initialize_database_middleware" do |app|
       middleware = app.config.middleware
@@ -52,7 +55,7 @@ module ActiveRecord
 
     # TODO: ActiveRecord::Base.logger should delegate to its own config.logger
     initializer "active_record.logger" do
-      ActiveRecord::Base.logger ||= Rails.logger
+      ActiveRecord::Base.logger ||= ::Rails.logger
     end
 
     initializer "active_record.notifications" do
