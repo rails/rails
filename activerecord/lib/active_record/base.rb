@@ -1681,14 +1681,14 @@ module ActiveRecord #:nodoc:
           o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
         end
 
-        def type_condition(table_alias=nil)
-          quoted_table_alias = self.connection.quote_table_name(table_alias || table_name)
-          quoted_inheritance_column = connection.quote_column_name(inheritance_column)
-          type_condition = subclasses.inject("#{quoted_table_alias}.#{quoted_inheritance_column} = '#{sti_name}' " ) do |condition, subclass|
-            condition << "OR #{quoted_table_alias}.#{quoted_inheritance_column} = '#{subclass.sti_name}' "
-          end
+        def type_condition(table_alias = nil)
+          table = Arel::Table.new(table_name, :engine => engine, :as => table_alias)
 
-          " (#{type_condition}) "
+          sti_column = table[inheritance_column]
+          condition = sti_column.eq(sti_name)
+          subclasses.each{|subclass| condition = condition.or(sti_column.eq(subclass.sti_name)) }
+
+          condition.to_sql
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
