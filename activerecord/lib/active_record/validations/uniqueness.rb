@@ -8,24 +8,25 @@ module ActiveRecord
 
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
+        table = finder_class.active_relation
+
         table_name   = record.class.quoted_table_name
         sql, params  = mount_sql_and_params(finder_class, table_name, attribute, value)
 
+        relation = table.where(sql, *params)
+
         Array(options[:scope]).each do |scope_item|
           scope_value = record.send(scope_item)
-          sql << " AND " << record.class.send(:attribute_condition, "#{table_name}.#{scope_item}", scope_value)
-          params << scope_value
+          relation = relation.where(scope_item => scope_value)
         end
 
         unless record.new_record?
-          sql << " AND #{record.class.quoted_table_name}.#{record.class.primary_key} <> ?"
-          params << record.send(:id)
+          # TODO : This should be in Arel
+          relation = relation.where("#{record.class.quoted_table_name}.#{record.class.primary_key} <> ?", record.send(:id))
         end
 
-        finder_class.send(:with_exclusive_scope) do
-          if finder_class.exists?([sql, *params])
-            record.errors.add(attribute, :taken, :default => options[:message], :value => value)
-          end
+        if relation.exists?
+          record.errors.add(attribute, :taken, :default => options[:message], :value => value)
         end
       end
 
