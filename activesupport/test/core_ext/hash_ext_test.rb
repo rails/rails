@@ -982,9 +982,11 @@ class QueryTest < Test::Unit::TestCase
 
   def test_expansion_count_is_limited
     expected = {
-      'ActiveSupport::XmlMini_REXML'    => 'RuntimeError',
-      'ActiveSupport::XmlMini_Nokogiri' => 'Nokogiri::XML::SyntaxError',
-      'ActiveSupport::XmlMini_LibXML'   => 'LibXML::XML::Error',
+      'ActiveSupport::XmlMini_REXML'       => 'RuntimeError',
+      'ActiveSupport::XmlMini_Nokogiri'    => 'Nokogiri::XML::SyntaxError',
+      'ActiveSupport::XmlMini_NokogiriSAX' => 'RuntimeError',
+      'ActiveSupport::XmlMini_LibXML'      => 'LibXML::XML::Error',
+      'ActiveSupport::XmlMini_LibXMLSAX'   => 'LibXML::XML::Error',
     }[ActiveSupport::XmlMini.backend.name].constantize
 
     assert_raise expected do
