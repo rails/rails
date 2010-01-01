@@ -13,8 +13,11 @@ gem "i18n", ">= 0.3.0"
 # AR
 gem "arel", "0.2.pre", :git => "git://github.com/rails/arel.git"
 gem "sqlite3-ruby", ">= 1.2.5"
-gem "pg", ">= 0.8.0"
-gem "mysql", ">= 2.8.1"
+
+only :test do
+  gem "pg", ">= 0.8.0"
+  gem "mysql", ">= 2.8.1"
+end
 
 # AP
 gem "rack", "1.1.0", :git => "git://github.com/rack/rack.git"
