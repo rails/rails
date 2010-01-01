@@ -961,6 +961,7 @@ module Text #:nodoc:
       #               <http://www.pragmaticprogrammer.com/ruby/articles/insteval.html>
       #
     def initialize(arg = nil, &block)
+      @text = nil
       case arg
       when Text::Format
         __create(arg.text) do
