@@ -14,8 +14,6 @@ class LibXMLSAXEngineTest < Test::Unit::TestCase
   def setup
     @default_backend = XmlMini.backend
     XmlMini.backend = 'LibXMLSAX'
-
-    LibXML::XML::Error.set_handler(&lambda { |error| }) #silence libxml, exceptions will do
   end
 
   def teardown
@@ -24,7 +22,8 @@ class LibXMLSAXEngineTest < Test::Unit::TestCase
 
   def test_exception_thrown_on_expansion_attack
     assert_raise LibXML::XML::Error do
-      attack_xml = %{<?xml version="1.0" encoding="UTF-8"?>
+      attack_xml = <<-EOT
+      <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE member [
         <!ENTITY a "&b;&b;&b;&b;&b;&b;&b;&b;&b;&b;">
         <!ENTITY b "&c;&c;&c;&c;&c;&c;&c;&c;&c;&c;">
@@ -37,7 +36,8 @@ class LibXMLSAXEngineTest < Test::Unit::TestCase
       <member>
       &a;
       </member>
-     }
+      EOT
+
       Hash.from_xml(attack_xml)
     end
   end

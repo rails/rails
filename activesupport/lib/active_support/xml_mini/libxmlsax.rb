@@ -21,16 +21,13 @@ module ActiveSupport
       end
 
       def on_start_document
-        @hash = {}
+        @hash = { CONTENT_KEY => '' }
         @hash_stack = [@hash]
       end
 
       def on_end_document
-        raise "Parse stack not empty!" if @hash_stack.size > 1
-      end
-
-      def on_error(error_message)
-        raise LibXML::XML::Error, error_message
+        @hash = @hash_stack.pop
+        @hash.delete(CONTENT_KEY)
       end
 
       def on_start_element(name, attrs = {})
@@ -73,8 +70,11 @@ module ActiveSupport
         {}
       else
         data.ungetc(char)
-        document = self.document_class.new
+
+        LibXML::XML::Error.set_handler(&LibXML::XML::Error::QUIET_HANDLER)
         parser = LibXML::XML::SaxParser.io(data)
+        document = self.document_class.new
+
         parser.callbacks = document
         parser.parse
         document.hash

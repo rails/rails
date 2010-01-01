@@ -8,7 +8,7 @@ rescue LoadError
   # Skip nokogiri tests
 else
 
-class NokogiriEngineTest < Test::Unit::TestCase
+class NokogiriSAXEngineTest < Test::Unit::TestCase
   include ActiveSupport
 
   def setup
@@ -36,7 +36,7 @@ class NokogiriEngineTest < Test::Unit::TestCase
   end
 
   def test_exception_thrown_on_expansion_attack
-    assert_raise Nokogiri::XML::SyntaxError do
+    assert_raise RuntimeError do
       attack_xml = <<-EOT
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE member [
@@ -52,6 +52,7 @@ class NokogiriEngineTest < Test::Unit::TestCase
       &a;
       </member>
       EOT
+
       Hash.from_xml(attack_xml)
     end
   end

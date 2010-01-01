@@ -28,7 +28,7 @@ module ActiveSupport
       end
 
       def error(error_message)
-        raise Nokogiri::XML::SyntaxError, error_message
+        raise error_message
       end
 
       def start_element(name, attrs = [])
