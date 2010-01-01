@@ -2,19 +2,19 @@ require 'abstract_unit'
 require 'active_support/xml_mini'
 
 begin
-  gem 'nokogiri', '>= 1.1.1'
+  gem 'libxml-ruby'
 rescue Gem::LoadError
   # Skip nokogiri tests
 else
 
-require 'nokogiri'
+require 'libxml'
 
 class NokogiriEngineTest < Test::Unit::TestCase
   include ActiveSupport
 
   def setup
     @default_backend = XmlMini.backend
-    XmlMini.backend = 'Nokogiri'
+    XmlMini.backend = 'LibXML'
   end
 
   def teardown
@@ -37,7 +37,7 @@ class NokogiriEngineTest < Test::Unit::TestCase
   end
 
   def test_exception_thrown_on_expansion_attack
-    assert_raise Nokogiri::XML::SyntaxError do
+    assert_raise LibXML::XML::Error do
       attack_xml = <<-EOT
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE member [
@@ -58,8 +58,8 @@ class NokogiriEngineTest < Test::Unit::TestCase
   end
 
   def test_setting_nokogiri_as_backend
-    XmlMini.backend = 'Nokogiri'
-    assert_equal XmlMini_Nokogiri, XmlMini.backend
+    XmlMini.backend = 'LibXML'
+    assert_equal XmlMini_LibXML, XmlMini.backend
   end
 
   def test_blank_returns_empty_hash
