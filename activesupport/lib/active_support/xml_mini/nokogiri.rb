@@ -1,4 +1,5 @@
 require 'nokogiri'
+require 'active_support/core_ext/object/blank'
 
 # = XmlMini Nokogiri implementation
 module ActiveSupport
