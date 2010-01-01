@@ -159,7 +159,7 @@ class Class
   #   (error out or do the same as other methods above) instead of silently
   #   moving on). In particular, this makes the return value of this function
   #   less useful.
-  def extlib_inheritable_reader(*ivars)
+  def extlib_inheritable_reader(*ivars, &block)
     options = ivars.extract_options!
 
     ivars.each do |ivar|
@@ -178,6 +178,7 @@ class Class
           end
         RUBY
       end
+      instance_variable_set(:"@#{ivar}", yield) if block_given?
     end
   end
 

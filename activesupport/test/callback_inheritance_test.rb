@@ -56,6 +56,31 @@ class Child < GrandParent
   end
 end
 
+class EmptyParent
+  include ActiveSupport::Callbacks
+
+  def performed?
+    @performed ||= false
+  end
+
+  define_callbacks :dispatch
+
+  def perform!
+    @performed = true
+  end
+
+  def dispatch
+    _run_dispatch_callbacks
+    self
+  end
+end
+
+class EmptyChild < EmptyParent
+  set_callback :dispatch, :before, :do_nothing
+
+  def do_nothing
+  end
+end
 
 class BasicCallbacksTest < Test::Unit::TestCase
   def setup
@@ -111,5 +136,15 @@ class InheritedCallbacksTest2 < Test::Unit::TestCase
 
   def test_crazy_mix_off
     assert_equal %w(before1 before2 update after2 after1), @update2.log
+  end
+end
+
+class DynamicInheritedCallbacks < Test::Unit::TestCase
+  def test_callbacks_looks_to_the_superclass_before_running
+    child = EmptyChild.new.dispatch
+    assert !child.performed?
+    EmptyParent.set_callback :dispatch, :before, :perform!
+    child = EmptyChild.new.dispatch
+    assert child.performed?
   end
 end
