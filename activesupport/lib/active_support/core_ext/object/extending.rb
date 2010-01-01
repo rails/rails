@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/removal'
+
 class Class
   # Rubinius
   if defined?(Class.__subclasses__)
