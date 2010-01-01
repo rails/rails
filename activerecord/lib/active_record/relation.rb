@@ -166,7 +166,7 @@ module ActiveRecord
       end
     end
 
-    def where_clause(join_string = "\n\tAND ")
+    def where_clause(join_string = " AND ")
       @relation.send(:where_clauses).join(join_string)
     end
 
