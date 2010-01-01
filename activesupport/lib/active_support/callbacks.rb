@@ -367,12 +367,6 @@ module ActiveSupport
         method << "halted ? false : (block_given? ? value : true)"
         method.compact.join("\n")
       end
-
-      def clone(klass)
-        chain = CallbackChain.new(@name, @config.dup)
-        callbacks = map { |c| c.clone(chain, klass) }
-        chain.push(*callbacks)
-      end
     end
 
     module ClassMethods
@@ -389,10 +383,16 @@ module ActiveSupport
       # key. See #define_callbacks for more information.
       #
       def __define_runner(symbol) #:nodoc:
+        send("_update_#{symbol}_superclass_callbacks")
         body = send("_#{symbol}_callbacks").compile(nil)
 
         body, line = <<-RUBY_EVAL, __LINE__
           def _run_#{symbol}_callbacks(key = nil, &blk)
+            if self.class.send("_update_#{symbol}_superclass_callbacks")
+              self.class.__define_runner(#{symbol.inspect})
+              return _run_#{symbol}_callbacks
+            end
+
             if key
               name = "_run__\#{self.class.name.hash.abs}__#{symbol}__\#{key.hash.abs}__callbacks"
 
@@ -431,6 +431,8 @@ module ActiveSupport
       # CallbackChain.
       #
       def __update_callbacks(name, filters = [], block = nil) #:nodoc:
+        send("_update_#{name}_superclass_callbacks")
+
         type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
@@ -470,7 +472,8 @@ module ActiveSupport
       def set_callback(name, *filter_list, &block)
         __update_callbacks(name, filter_list, block) do |chain, type, filters, options|
           filters.map! do |filter|
-            chain.delete_if {|c| c.matches?(type, filter) }
+            removed = chain.delete_if {|c| c.matches?(type, filter) } 
+            send("_removed_#{name}_callbacks").push(*removed)
             Callback.new(chain, filter, type, options.dup, self)
           end
 
@@ -482,16 +485,17 @@ module ActiveSupport
       #
       def skip_callback(name, *filter_list, &block)
         __update_callbacks(name, filter_list, block) do |chain, type, filters, options|
-          chain = send("_#{name}_callbacks=", chain.clone(self))
-
           filters.each do |filter|
             filter = chain.find {|c| c.matches?(type, filter) }
 
             if filter && options.any?
-              filter.recompile!(options, options[:per_key] || {})
-            else
-              chain.delete(filter)
+              new_filter = filter.clone(chain, self)
+              chain.insert(chain.index(filter), new_filter)
+              new_filter.recompile!(options, options[:per_key] || {})
             end
+
+            chain.delete(filter)
+            send("_removed_#{name}_callbacks") << filter
           end
         end
       end
@@ -499,7 +503,9 @@ module ActiveSupport
       # Reset callbacks for a given type.
       #
       def reset_callbacks(symbol)
-        send("_#{symbol}_callbacks").clear
+        callbacks = send("_#{symbol}_callbacks")
+        callbacks.clear
+        send("_removed_#{symbol}_callbacks").concat(callbacks)
         __define_runner(symbol)
       end
 
@@ -546,14 +552,46 @@ module ActiveSupport
       #
       # Defaults to :kind.
       #
-      def define_callbacks(*symbols)
-        config = symbols.last.is_a?(Hash) ? symbols.pop : {}
-        symbols.each do |symbol|
-          extlib_inheritable_accessor("_#{symbol}_callbacks") do
-            CallbackChain.new(symbol, config)
+      def define_callbacks(*callbacks)
+        config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
+        callbacks.each do |callback|
+          extlib_inheritable_reader("_#{callback}_callbacks") do
+            CallbackChain.new(callback, config)
           end
 
-          __define_runner(symbol)
+          extlib_inheritable_reader("_removed_#{callback}_callbacks") do
+            []
+          end
+
+          class_eval <<-METHOD, __FILE__, __LINE__ + 1
+            def self._#{callback}_superclass_callbacks
+              if superclass.respond_to?(:_#{callback}_callbacks)
+                superclass._#{callback}_callbacks + superclass._#{callback}_superclass_callbacks
+              else
+                []
+              end
+            end
+
+            def self._update_#{callback}_superclass_callbacks
+              changed, index = false, 0
+
+              callbacks  = (_#{callback}_superclass_callbacks -
+                _#{callback}_callbacks) - _removed_#{callback}_callbacks
+
+              callbacks.each do |callback|
+                if new_index = _#{callback}_callbacks.index(callback)
+                  index = new_index + 1
+                else
+                  changed = true
+                  _#{callback}_callbacks.insert(index, callback)
+                  index = index + 1
+                end
+              end
+              changed
+            end
+          METHOD
+
+          __define_runner(callback)
         end
       end
     end
