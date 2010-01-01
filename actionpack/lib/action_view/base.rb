@@ -274,6 +274,7 @@ module ActionView #:nodoc:
     end
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil, formats = nil)#:nodoc:
+      @config = nil
       @formats = formats
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
       @controller = controller
