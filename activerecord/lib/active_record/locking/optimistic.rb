@@ -78,7 +78,7 @@ module ActiveRecord
           attribute_names.uniq!
 
           begin
-            arel_table = self.class.arel_table(self.class.table_name)
+            arel_table = self.class.arel_table
 
             affected_rows = arel_table.where(
               arel_table[self.class.primary_key].eq(quoted_id).and(

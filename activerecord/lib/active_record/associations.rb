@@ -1751,7 +1751,7 @@ module ActiveRecord
         def construct_finder_sql_for_association_limiting(options, join_dependency)
           scope = scope(:find)
 
-          relation = arel_table(options[:from])
+          relation = arel_table
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
@@ -1764,6 +1764,7 @@ module ActiveRecord
             order(construct_order(options[:order], scope)).
             limit(construct_limit(options[:limit], scope)).
             offset(construct_limit(options[:offset], scope)).
+            from(options[:from]).
             select(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", construct_order(options[:order], scope(:find)).join(",")))
 
           relation.to_sql
