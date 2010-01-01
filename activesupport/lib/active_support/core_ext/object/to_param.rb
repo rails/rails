@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/to_query'
+
 class Object
   # Alias of <tt>to_s</tt>.
   def to_param
