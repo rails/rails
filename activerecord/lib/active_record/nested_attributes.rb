@@ -291,7 +291,7 @@ module ActiveRecord
     # update_only is true, and a <tt>:_destroy</tt> key set to a truthy value,
     # then the existing record will be marked for destruction.
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
-      options = self.nested_attributes_options[association_name]
+      options = nested_attributes_options[association_name]
       attributes = attributes.with_indifferent_access
       check_existing_record = (options[:update_only] || !attributes['id'].blank?)
 
@@ -336,7 +336,7 @@ module ActiveRecord
     #     { :id => '2', :_destroy => true }
     #   ])
     def assign_nested_attributes_for_collection_association(association_name, attributes_collection)
-      options = self.nested_attributes_options[association_name]
+      options = nested_attributes_options[association_name]
 
       unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
         raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
@@ -387,13 +387,11 @@ module ActiveRecord
     end
 
     def call_reject_if(association_name, attributes)
-      callback = self.nested_attributes_options[association_name][:reject_if]
-
-      case callback
+      case callback = nested_attributes_options[association_name][:reject_if]
       when Symbol
         method(callback).arity == 0 ? send(callback) : send(callback, attributes)
       when Proc
-        callback.try(:call, attributes)
+        callback.call(attributes)
       end
     end
   end
