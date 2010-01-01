@@ -163,8 +163,8 @@ module ActiveRecord
       # guards that check if the save or validation methods have already been
       # defined before actually defining them.
       def add_autosave_association_callbacks(reflection)
-        save_method = "autosave_associated_records_for_#{reflection.name}"
-        validation_method = "validate_associated_records_for_#{reflection.name}"
+        save_method = :"autosave_associated_records_for_#{reflection.name}"
+        validation_method = :"validate_associated_records_for_#{reflection.name}"
         force_validation = (reflection.options[:validate] == true || reflection.options[:autosave] == true)
 
         if reflection.collection_association?
