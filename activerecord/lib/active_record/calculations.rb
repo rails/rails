@@ -162,7 +162,7 @@ module ActiveRecord
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, includes, construct_join(options[:joins], scope))
             construct_calculation_arel_with_included_associations(options, join_dependency)
           else
-            arel_table.
+            active_relation.
               joins(construct_join(options[:joins], scope)).
               from((scope && scope[:from]) || options[:from]).
               where(construct_conditions(options[:conditions], scope)).
@@ -178,7 +178,7 @@ module ActiveRecord
         def construct_calculation_arel_with_included_associations(options, join_dependency)
           scope = scope(:find)
 
-          relation = arel_table
+          relation = active_relation
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)

@@ -1706,7 +1706,7 @@ module ActiveRecord
         def construct_finder_arel_with_included_associations(options, join_dependency)
           scope = scope(:find)
 
-          relation = arel_table
+          relation = active_relation
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
@@ -1751,7 +1751,7 @@ module ActiveRecord
         def construct_finder_sql_for_association_limiting(options, join_dependency)
           scope = scope(:find)
 
-          relation = arel_table
+          relation = active_relation
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)

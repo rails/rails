@@ -27,7 +27,7 @@ module ActiveRecord
           Scope.new(self, options, &block)
         else
           unless scoped?(:find)
-            finder_needs_type_condition? ? arel_table.where(type_condition) : arel_table.spawn
+            finder_needs_type_condition? ? active_relation.where(type_condition) : active_relation.spawn
           else
             construct_finder_arel_with_includes
           end

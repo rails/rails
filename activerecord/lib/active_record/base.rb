@@ -816,7 +816,7 @@ module ActiveRecord #:nodoc:
       #   # Delete multiple rows
       #   Todo.delete([2,3,4])
       def delete(id_or_array)
-        arel_table.where(construct_conditions(nil, scope(:find))).delete(id_or_array)
+        active_relation.where(construct_conditions(nil, scope(:find))).delete(id_or_array)
       end
 
       # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
@@ -873,7 +873,7 @@ module ActiveRecord #:nodoc:
       def update_all(updates, conditions = nil, options = {})
         scope = scope(:find)
 
-        relation = arel_table
+        relation = active_relation
 
         if conditions = construct_conditions(conditions, scope)
           relation = relation.where(Arel::SqlLiteral.new(conditions))
@@ -938,7 +938,7 @@ module ActiveRecord #:nodoc:
       # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
       # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
-        arel_table.where(construct_conditions(conditions, scope(:find))).delete_all
+        active_relation.where(construct_conditions(conditions, scope(:find))).delete_all
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
@@ -1392,7 +1392,7 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         undefine_attribute_methods
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
-        @arel_table = @active_relation_engine = nil
+        @active_relation = @active_relation_engine = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -1505,8 +1505,8 @@ module ActiveRecord #:nodoc:
         "(#{segments.join(') AND (')})" unless segments.empty?
       end
 
-      def arel_table
-        @arel_table ||= Relation.new(self, active_relation_table)
+      def active_relation
+        @active_relation ||= Relation.new(self, active_relation_table)
       end
 
       def active_relation_table(table_name_alias = nil)
@@ -1570,7 +1570,7 @@ module ActiveRecord #:nodoc:
         def construct_finder_arel(options = {}, scope = scope(:find))
           validate_find_options(options)
 
-          relation = arel_table.
+          relation = active_relation.
             joins(construct_join(options[:joins], scope)).
             where(construct_conditions(options[:conditions], scope)).
             select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
@@ -1671,7 +1671,7 @@ module ActiveRecord #:nodoc:
 
         def build_association_joins(joins)
           join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, joins, nil)
-          relation = arel_table.relation
+          relation = active_relation.relation
           join_dependency.join_associations.map { |association|
             if (association_relation = association.relation).is_a?(Array)
               [Arel::InnerJoin.new(relation, association_relation.first, association.association_join.first).joins(relation),
@@ -2314,7 +2314,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          self.class.arel_table.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
+          self.class.active_relation.where(self.class.active_relation[self.class.primary_key].eq(id)).delete_all
         end
 
         @destroyed = true
@@ -2601,7 +2601,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        self.class.arel_table.where(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
+        self.class.active_relation.where(self.class.active_relation[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes
@@ -2614,9 +2614,9 @@ module ActiveRecord #:nodoc:
         attributes_values = arel_attributes_values
 
         new_id = if attributes_values.empty?
-          self.class.arel_table.insert connection.empty_insert_statement_value
+          self.class.active_relation.insert connection.empty_insert_statement_value
         else
-          self.class.arel_table.insert attributes_values
+          self.class.active_relation.insert attributes_values
         end
 
         self.id ||= new_id
@@ -2711,7 +2711,7 @@ module ActiveRecord #:nodoc:
               if value && ((self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))) || value.is_a?(Hash) || value.is_a?(Array))
                 value = value.to_yaml
               end
-              attrs[self.class.arel_table[name]] = value
+              attrs[self.class.active_relation[name]] = value
             end
           end
         end
