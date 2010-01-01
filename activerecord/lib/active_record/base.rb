@@ -1391,7 +1391,8 @@ module ActiveRecord #:nodoc:
       #  end
       def reset_column_information
         undefine_attribute_methods
-        @arel_table = @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
+        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
+        @arel_table = @active_relation_engine = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -1504,12 +1505,16 @@ module ActiveRecord #:nodoc:
         "(#{segments.join(') AND (')})" unless segments.empty?
       end
 
-      def arel_table(table = nil)
-        Relation.new(self, Arel::Table.new(table || table_name))
+      def arel_table
+        @arel_table ||= Relation.new(self, active_relation_table)
       end
 
-      def engine
-        @engine ||= Arel::Sql::Engine.new(self)
+      def active_relation_table(table_name_alias = nil)
+        Arel::Table.new(table_name, :as => table_name_alias)
+      end
+
+      def active_relation_engine
+        @active_relation_engine ||= Arel::Sql::Engine.new(self)
       end
 
       private
@@ -1682,7 +1687,7 @@ module ActiveRecord #:nodoc:
         end
 
         def type_condition(table_alias = nil)
-          table = Arel::Table.new(table_name, :engine => engine, :as => table_alias)
+          table = Arel::Table.new(table_name, :engine => active_relation_engine, :as => table_alias)
 
           sti_column = table[inheritance_column]
           condition = sti_column.eq(sti_name)
@@ -2042,8 +2047,8 @@ module ActiveRecord #:nodoc:
         def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
-          table = Arel::Table.new(default_table_name, engine)
-          builder = PredicateBuilder.new(engine)
+          table = Arel::Table.new(default_table_name, active_relation_engine)
+          builder = PredicateBuilder.new(active_relation_engine)
           builder.build_from_hash(attrs, table).map(&:to_sql).join(' AND ')
         end
         alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
