@@ -1,4 +1,5 @@
 require 'openssl'
+require 'active_support/base64'
 
 module ActiveSupport
   # MessageEncryptor is a simple way to encrypt values which get stored somewhere 
