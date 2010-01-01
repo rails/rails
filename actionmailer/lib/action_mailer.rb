@@ -45,5 +45,3 @@ module Text
 
   autoload :Format, 'action_mailer/vendor/text_format'
 end
-
-require 'action_mailer/tmail_compat'

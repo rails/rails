@@ -10,5 +10,14 @@ class TmailCompatTest < Test::Unit::TestCase
     end
     assert_equal mail.content_type.string, "text/plain"
   end
+
+  def test_transfer_encoding_raises_deprecation_warning
+    mail = Mail.new
+    STDERR.expects(:puts) # Deprecation warning
+    assert_nothing_raised do
+      mail.transfer_encoding "base64"
+    end
+    assert_equal mail.content_transfer_encoding.value, "base64"
+  end
   
 end
