@@ -3,10 +3,22 @@ module Arel
     include Recursion::BaseCase
 
     cattr_accessor :engine
-    attr_reader :name, :engine
+    attr_reader :name, :engine, :table_alias, :options
 
-    def initialize(name, engine = Table.engine)
-      @name, @engine = name.to_s, engine
+    def initialize(name, options = {})
+      @name = name.to_s
+
+      if options.is_a?(Hash)
+        @options = options
+        @engine = options[:engine] || Table.engine
+        @table_alias = options[:as].to_s if options[:as].present?
+      else
+        @engine = options # Table.new('foo', engine)
+      end
+    end
+
+    def as(table_alias)
+      Table.new(name, options.merge(:as => table_alias))
     end
 
     def attributes

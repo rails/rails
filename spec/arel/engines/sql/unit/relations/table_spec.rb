@@ -26,6 +26,26 @@ module Arel
       end
     end
 
+    describe '#as' do
+      it "manufactures a simple select query using aliases" do
+        sql = @relation.as(:super_users).to_sql
+
+        adapter_is :mysql do
+          sql.should be_like(%Q{
+            SELECT `super_users`.`id`, `super_users`.`name`
+            FROM `users` AS `super_users`
+          })
+        end
+
+        adapter_is_not :mysql do
+          sql.should be_like(%Q{
+            SELECT "super_users"."id", "super_users"."name"
+            FROM "users" AS "super_users"
+          })
+        end
+      end
+    end
+
     describe '#column_for' do
       it "returns the column corresponding to the attribute" do
         @relation.column_for(@relation[:id]).should == @relation.columns.detect { |c| c.name == 'id' }
