@@ -390,7 +390,7 @@ module ActiveSupport
           def _run_#{symbol}_callbacks(key = nil, &blk)
             if self.class.send("_update_#{symbol}_superclass_callbacks")
               self.class.__define_runner(#{symbol.inspect})
-              return _run_#{symbol}_callbacks
+              return _run_#{symbol}_callbacks(key, &blk)
             end
 
             if key

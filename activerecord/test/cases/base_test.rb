@@ -201,7 +201,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.new(:title => "New Topic")
     assert topic.save!
 
-    reply = Reply.new
+    reply = WrongReply.new
     assert_raise(ActiveRecord::RecordInvalid) { reply.save! }
   end
 
@@ -959,6 +959,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_update_attributes!
+    Reply.validates_presence_of(:title)
     reply = Reply.find(2)
     assert_equal "The Second Topic of the day", reply.title
     assert_equal "Have a nice day", reply.content
@@ -974,6 +975,8 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Have a nice day", reply.content
 
     assert_raise(ActiveRecord::RecordInvalid) { reply.update_attributes!(:title => nil, :content => "Have a nice evening") }
+  ensure
+    Reply.reset_callbacks(:validate)
   end
 
   def test_mass_assignment_should_raise_exception_if_accessible_and_protected_attribute_writers_are_both_used
