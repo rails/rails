@@ -69,7 +69,7 @@ module ActiveRecord
             when :delete_all
               @reflection.klass.delete(records.map { |record| record.id })
             else
-              relation = arel_table(@reflection.table_name)
+              relation = Arel::Table.new(@reflection.table_name)
               relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
                   and(Arel::Predicates::In.new(relation[@reflection.klass.primary_key], records.map(&:id)))
               ).update(relation[@reflection.primary_key_name] => nil)
