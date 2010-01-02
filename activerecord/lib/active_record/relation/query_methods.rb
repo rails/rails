@@ -116,7 +116,7 @@ module ActiveRecord
         args.first
       end
 
-      spawn(@relation.where(*conditions))
+      conditions.is_a?(String) ? spawn(@relation.where(conditions)) : spawn(@relation.where(*conditions))
     end
 
     private
