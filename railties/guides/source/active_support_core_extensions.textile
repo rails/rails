@@ -48,6 +48,8 @@ The method +present?+ is equivalent to +!blank?+:
 assert @response.body.present? # same as !@response.body.blank?
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/object/blank.rb+.
+
 h4. +presence+
 
 The +presence+ method returns its receiver if +present?+, and +nil+ otherwise. It is useful for idioms like this:
@@ -55,6 +57,8 @@ The +presence+ method returns its receiver if +present?+, and +nil+ otherwise. I
 <ruby>
 host = config[:host].presence || 'localhost'
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/object/blank.rb+.
 
 h4. +duplicable?+
 
@@ -89,6 +93,8 @@ By definition all objects are +duplicable?+ except +nil+, +false+, +true+, symbo
 
 WARNING. Using +duplicable?+ is discouraged because it depends on a hard-coded list. Classes have means to disallow duplication like removing +dup+ and +clone+ or raising exceptions from them, only +rescue+ can tell.
 
+NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
+
 h4. +returning+
 
 The method +returning+ yields its argument to a block and returns it. You tipically use it with a mutable object that gets modified in the block:
@@ -101,6 +107,8 @@ def html_options_for_form(url_for_options, options, *parameters_for_url)
   end
 end
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/object/returning.rb+.
 
 h4. +try+
 
@@ -128,6 +136,8 @@ def log_info(sql, name, ms)
 end
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/object/try.rb+.
+
 h4. +metaclass+
 
 The method +metaclass+ returns the singleton class on any object:
@@ -136,6 +146,8 @@ The method +metaclass+ returns the singleton class on any object:
 String.metaclass     # => #<Class:String>
 String.new.metaclass # => #<Class:#<String:0x17a1d1c>>
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/object/metaclass.rb+.
 
 h4. +class_eval(*args, &block)+
 
@@ -156,6 +168,8 @@ class Proc
 end
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/object/metaclass.rb+.
+
 h4. +acts_like?(duck)+
 
 The method +acts_like+ provides a way to check whether some class acts like some other class based on a simple convention: a class that provides the same interface as +String+ defines
@@ -172,6 +186,8 @@ some_klass.acts_like?(:string)
 </ruby>
 
 Rails has classes that act like +Date+ or +Time+ and follow this contract.
+
+NOTE: Defined in +active_support/core_ext/object/acts_like.rb+.
 
 h4. +to_param+
 
@@ -214,6 +230,8 @@ user_path(@user) # => "/users/357-john-smith"
 </ruby>
 
 WARNING. Controllers need to be aware of any redifinition of +to_param+ because when a request like that comes in "357-john-smith" is the value of +params[:id]+.
+
+NOTE: Defined in +active_support/core_ext/object/to_param.rb+.
 
 h4. +to_query+
 
@@ -262,6 +280,8 @@ The method +Hash#to_query+ accepts an optional namespace for the keys:
 # => "user%5Bid%5D=89&user%5Bname%5D=John+Smith"
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/object/to_query.rb+.
+
 h4. +with_options+
 
 The method +with_options+ provides a way to factor out common options in a series of method calls.
@@ -301,6 +321,8 @@ end
 
 TIP: Since +with_options+ forwards calls to its receiver they can be nested. Each nesting level will merge inherited defaults in addition to their own.
 
+NOTE: Defined in +active_support/core_ext/object/with_options.rb+.
+
 h4. Instance Variables
 
 Active Support provides several methods to ease access to instance variables.
@@ -321,6 +343,8 @@ C.new(0, 1).instance_variable_names # => ["@y", "@x"]
 
 WARNING: The order in which the names are returned is unespecified, and it indeed depends on the version of the interpreter.
 
+NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
+
 h5. +instance_values+
 
 The method +instance_values+ returns a hash that maps instance variable names without "@" to their
@@ -335,6 +359,8 @@ end
 
 C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
 
 h5. +copy_instance_variables_from(object, exclude = [])+
 
@@ -367,6 +393,8 @@ a.copy_instance_variables_from(b, [:@y])
 
 In the example +object+ and +self+ are of the same type, but they don't need to.
 
+NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
+
 h4. Silencing Warnings, Streams, and Exceptions
 
 The methods +silence_warnings+ and +enable_warnings+ change the value of +$VERBOSE+ accordingly for the duration of their block, and reset it afterwards:
@@ -391,6 +419,8 @@ suppress(ActiveRecord::StaleObjectError) do
   current_user.increment! :visits
 end
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/kernel/reporting.rb+.
 
 h3. Extensions to +Module+
 
@@ -444,6 +474,8 @@ end
 
 Rails uses +alias_method_chain+ all over the code base. For example validations are added to +ActiveRecord::Base#save+ by wrapping the method that way in a separate module specialised in validations.
 
+NOTE: Defined in +active_support/core_ext/module/aliasing.rb+.
+
 h5. +alias_attribute+
 
 Model attributes have a reader, a writer, and a predicate. You can aliase a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (my mnemonic is they go in the same order as if you did an assignment):
@@ -455,6 +487,8 @@ class User < ActiveRecord::Base
   alias_attribute :login, :email
 end
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/module/aliasing.rb+.
 
 h4. Delegation
 
@@ -495,6 +529,8 @@ module ActiveRecord
 end
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
+
 h4. Class Inheritable Attributes
 
 Class variables are shared down the inheritance tree. Class instance variables are not shared, but they are not inherited either. The macros +class_inheritable_reader+, +class_inheritable_writer+, and +class_inheritable_accessor+ provide accesors for class-level data which is inherited but not shared with children:
@@ -534,6 +570,8 @@ end
 
 Since values are copied when a subclass is defined, if the base class changes the attribute after that, the subclass does not see the new value. That's the point. 
 
+NOTE: Defined in +active_support/core_ext/class/inheritable_attributes.rb+.
+
 There's a related macro called +superclass_delegating_accessor+, however, that does not copy the value when the base class is subclassed. Instead, it delegates reading to the superclass as long as the attribute is not set via its own writer. For example, +ActionMailer::Base+ defines +delivery_method+ this way:
 
 <ruby>
@@ -546,6 +584,8 @@ end
 </ruby>
 
 If for whatever reason an application loads the definition of a mailer class and after that sets +ActionMailer::Base.delivery_method+, the mailer class will still see the new value. In addition, the mailer class is able to change the +delivery_method+ without affecting the value in the parent using its own inherited class attribute writer.
+
+NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
 
 h4. Subclasses
 
@@ -573,6 +613,8 @@ M::A.subclasses # => ["N::C", "M::B2", "M::B1"]
 The order in which these class names are returned is unspecified.
 
 See also +Object#subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
+
+NOTE: Defined in +active_support/core_ext/class/removal.rb+.
 
 h4. Class Removal
 
@@ -618,6 +660,8 @@ C                   # => NameError: uninitialized constant C
 </ruby>
 
 See also +Object#remove_subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
+
+NOTE: Defined in +active_support/core_ext/class/removal.rb+.
 
 h3. Extensions to +String+
 
