@@ -15,6 +15,10 @@ module ActiveRecord
       @loaded, @readonly = false
     end
 
+    def new(*args, &block)
+      @klass.send(:with_scope, :create => create_scope) { @klass.new(*args, &block) }
+    end
+
     def merge(r)
       raise ArgumentError, "Cannot merge a #{r.klass.name} relation with #{@klass.name} relation" if r.klass != @klass
 
@@ -138,7 +142,7 @@ module ActiveRecord
     end
 
     def reset
-      @first = @last = nil
+      @first = @last = @create_scope = nil
       @records = []
       self
     end
@@ -178,6 +182,13 @@ module ActiveRecord
         end
       else
         super
+      end
+    end
+
+    def create_scope
+      @create_scope ||= wheres.inject({}) do |hash, where|
+        hash[where.operand1.name] = where.operand2.value if where.is_a?(Arel::Predicates::Equality)
+        hash
       end
     end
 

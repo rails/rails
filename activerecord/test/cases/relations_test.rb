@@ -477,4 +477,20 @@ class RelationTest < ActiveRecord::TestCase
     assert posts.many?
     assert ! posts.limit(1).many?
   end
+
+  def test_build
+    posts = Post.scoped
+
+    post = posts.new
+    assert_kind_of Post, post
+  end
+
+  def test_scoped_build
+    posts = Post.where(:title => 'You told a lie')
+
+    post = posts.new
+    assert_kind_of Post, post
+    assert_equal 'You told a lie', post.title
+  end
+
 end
