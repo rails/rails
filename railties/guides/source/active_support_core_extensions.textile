@@ -1596,30 +1596,6 @@ NOTE: Defined in +active_support/core_ext/hash/indifferent_access.rb+.
 
 h3. Extensions to +Regexp+
 
-h4. +number_of_captures+
-
-The method +number_of_captures+ returns the number of capturing groups in a given regexp:
-
-<ruby>
-%r{}.number_of_captures                   # => 0
-%r{.(.).}.number_of_captures              # => 1
-%r{\A((#)(\w+|\s+))\z}.number_of_captures # => 3
-</ruby>
-
-Routing code for example uses that method to generate path recognizers:
-
-<ruby>
-def recognition_extraction
-  next_capture = 1
-  extraction = segments.collect do |segment|
-    x = segment.match_extraction(next_capture)
-    next_capture += segment.number_of_captures
-    x
-  end
-  extraction.compact
-end
-</ruby>
-
 h4. +multiline?+
 
 The method +multiline?+ says whether a regexp has the +/m+ flag set, that is, whether the dot matches newlines.
