@@ -2,7 +2,6 @@ module ActiveRecord
   class Relation
     include QueryMethods, FinderMethods, CalculationMethods
 
-    delegate :to_sql, :to => :relation
     delegate :length, :collect, :map, :each, :all?, :to => :to_a
 
     attr_reader :relation, :klass
@@ -157,7 +156,7 @@ module ActiveRecord
     end
 
     def reset
-      @first = @last = @create_scope = @joined_tables = nil
+      @first = @last = @create_scope = @joined_tables = @to_sql = nil
       @records = []
       self
     end
@@ -178,6 +177,10 @@ module ActiveRecord
 
     def primary_key
       @primary_key ||= table[@klass.primary_key]
+    end
+
+    def to_sql
+      @to_sql ||= @relation.to_sql
     end
 
     protected
