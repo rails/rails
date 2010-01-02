@@ -645,7 +645,7 @@ module ActiveRecord #:nodoc:
         options = args.extract_options!
         set_readonly_option!(options)
 
-        relation = construct_finder_arel_with_includes(options)
+        relation = construct_finder_arel(options)
 
         case args.first
         when :first, :last, :all
@@ -1581,17 +1581,7 @@ module ActiveRecord #:nodoc:
             offset(construct_offset(options[:offset], scope)).
             from(options[:from])
 
-          lock = (scope && scope[:lock]) || options[:lock]
-          relation = relation.lock if lock.present?
-
-          relation = relation.readonly if options[:readonly]
-
-          relation
-        end
-
-        def construct_finder_arel_with_includes(options = {})
-          relation = construct_finder_arel(options)
-          include_associations = merge_includes(scope(:find, :include), options[:include])
+          include_associations = merge_includes(scope && scope[:include], options[:include])
 
           if include_associations.any?
             if references_eager_loaded_tables?(options)
@@ -1600,6 +1590,11 @@ module ActiveRecord #:nodoc:
               relation = relation.preload(include_associations)
             end
           end
+
+          lock = (scope && scope[:lock]) || options[:lock]
+          relation = relation.lock if lock.present?
+
+          relation = relation.readonly if options[:readonly]
 
           relation
         end
@@ -1722,7 +1717,7 @@ module ActiveRecord #:nodoc:
             super unless all_attributes_exists?(attribute_names)
             if match.finder?
               options = arguments.extract_options!
-              relation = options.any? ? construct_finder_arel_with_includes(options) : scoped
+              relation = options.any? ? construct_finder_arel(options) : scoped
               relation.send :find_by_attributes, match, attribute_names, *arguments
             elsif match.instantiator?
               scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block

@@ -58,7 +58,7 @@ module ActiveRecord
           find_scope = construct_scope[:find].slice(:conditions, :order)
 
           with_scope(:find => find_scope) do
-            relation = @reflection.klass.send(:construct_finder_arel_with_includes, options)
+            relation = @reflection.klass.send(:construct_finder_arel, options)
 
             case args.first
             when :first, :last, :all
