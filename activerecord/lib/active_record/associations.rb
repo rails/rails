@@ -1830,22 +1830,22 @@ module ActiveRecord
         end
 
         # Checks if the conditions reference a table other than the current model table
-        def include_eager_conditions?(options, tables = nil, joined_tables = nil)
-          ((tables || conditions_tables(options)) - (joined_tables || joined_tables(options))).any?
+        def include_eager_conditions?(options, joined_tables)
+          (conditions_tables(options) - joined_tables).any?
         end
 
         # Checks if the query order references a table other than the current model's table.
-        def include_eager_order?(options, tables = nil, joined_tables = nil)
-          ((tables || order_tables(options)) - (joined_tables || joined_tables(options))).any?
+        def include_eager_order?(options, joined_tables)
+          (order_tables(options) - joined_tables).any?
         end
 
-        def include_eager_select?(options, joined_tables = nil)
-          (selects_tables(options) - (joined_tables || joined_tables(options))).any?
+        def include_eager_select?(options, joined_tables)
+          (selects_tables(options) - joined_tables).any?
         end
 
         def references_eager_loaded_tables?(options)
           joined_tables = joined_tables(options)
-          include_eager_order?(options, nil, joined_tables) || include_eager_conditions?(options, nil, joined_tables) || include_eager_select?(options, joined_tables)
+          include_eager_order?(options, joined_tables) || include_eager_conditions?(options, joined_tables) || include_eager_select?(options, joined_tables)
         end
 
         def using_limitable_reflections?(reflections)
