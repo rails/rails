@@ -76,7 +76,7 @@ module ActiveRecord
     def to_a
       return @records if loaded?
 
-      find_with_associations = @eager_load_associations.any?
+      find_with_associations = @eager_load_associations.any? || references_eager_loaded_tables?
 
       @records = if find_with_associations
         begin
@@ -90,7 +90,7 @@ module ActiveRecord
             :offset => @relation.skipped,
             :from => (@relation.send(:from_clauses) if @relation.send(:sources).present?)
             },
-            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
+            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations + @include_associations, nil))
         rescue ThrowResult
           []
         end
@@ -157,7 +157,7 @@ module ActiveRecord
     end
 
     def reset
-      @first = @last = @create_scope = nil
+      @first = @last = @create_scope = @joined_tables = nil
       @records = []
       self
     end
@@ -214,6 +214,33 @@ module ActiveRecord
 
     def where_clause(join_string = " AND ")
       @relation.send(:where_clauses).join(join_string)
+    end
+
+    def references_eager_loaded_tables?
+      include_eager_order? || include_eager_conditions? || include_eager_select?
+    end
+
+    def include_eager_order?
+      order_clause = @relation.send(:order_clauses).join(', ')
+      (tables_in_string(order_clause) - joined_tables).any?
+    end
+
+    def include_eager_conditions?
+      (tables_in_string(where_clause) - joined_tables).any?
+    end
+
+    def include_eager_select?
+      select_clause = @relation.send(:select_clauses).join(', ')
+      (tables_in_string(select_clause) - joined_tables).any?
+    end
+
+    def joined_tables
+      @joined_tables ||= (tables_in_string(@relation.joins(relation)) + [table.name, table.table_alias]).compact.uniq
+    end
+
+    def tables_in_string(string)
+      return [] if string.blank?
+      string.scan(/([a-zA-Z_][\.\w]+).?\./).flatten.uniq
     end
 
   end

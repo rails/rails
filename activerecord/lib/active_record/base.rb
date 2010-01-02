@@ -1579,17 +1579,8 @@ module ActiveRecord #:nodoc:
             order(construct_order(options[:order], scope)).
             limit(construct_limit(options[:limit], scope)).
             offset(construct_offset(options[:offset], scope)).
-            from(options[:from])
-
-          include_associations = merge_includes(scope && scope[:include], options[:include])
-
-          if include_associations.any?
-            if references_eager_loaded_tables?(options)
-              relation = relation.eager_load(include_associations)
-            else
-              relation = relation.preload(include_associations)
-            end
-          end
+            from(options[:from]).
+            includes( merge_includes(scope && scope[:include], options[:include]))
 
           lock = (scope && scope[:lock]) || options[:lock]
           relation = relation.lock if lock.present?
