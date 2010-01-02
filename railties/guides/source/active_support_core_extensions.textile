@@ -1620,6 +1620,8 @@ def assign_route_options(segments, defaults, requirements)
 end
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/regexp.rb+.
+
 h3. Extensions to +Range+
 
 h4. +to_s+
@@ -1636,6 +1638,8 @@ Active Support extends the method +Range#to_s+ so that it understands an optiona
 
 As the example depicts, the +:db+ format generates a +BETWEEN+ SQL clause. That is used by Active Record in its support for range values in conditions.
 
+NOTE: Defined in +active_support/core_ext/range/conversions.rb+.
+
 h4. +step+
 
 Active Support extends the method +Range#step+ so that it can be invoked without a block:
@@ -1645,6 +1649,8 @@ Active Support extends the method +Range#step+ so that it can be invoked without
 </ruby>
 
 As the example shows, in that case the method returns and array with the corresponding elements.
+
+NOTE: Defined in +active_support/core_ext/range/blockless_step.rb+.
 
 h4. +include?+
 
@@ -1665,6 +1671,8 @@ Active Support extends this method so that the argument may be another range in 
 
 WARNING: The orginal +Range#include?+ is still the one aliased to +Range#===+.
 
+NOTE: Defined in +active_support/core_ext/range/include_range.rb+.
+
 h4. +overlaps?+
 
 The method +Range#overlaps?+ says whether any two given ranges have non-void intersection:
@@ -1674,6 +1682,8 @@ The method +Range#overlaps?+ says whether any two given ranges have non-void int
 (1..10).overlaps?(0..7)   # => true
 (1..10).overlaps?(11..27) # => false
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/range/overlaps.rb+.
 
 h3. Extensions to +Proc+
 
@@ -1719,6 +1729,8 @@ def handler_for_rescue(exception)
 end
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/proc.rb+.
+
 h3. Extensions to +Date+
 
 ...
@@ -1761,6 +1773,8 @@ WARNING. Note you can't append with +atomic_write+.
 
 The auxiliary file is written in a standard directory for temporary files, but you can pass a directory of your choice as second argument.
 
+NOTE: Defined in +active_support/core_ext/file/atomic.rb+.
+
 h3. Extensions to +NameError+
 
 Active Support adds +missing_name?+ to +NameError+, which tests whether the exception was raised because of the name passed as argument.
@@ -1782,7 +1796,9 @@ rescue NameError => e
   raise e unless e.missing_name? "#{module_name}Helper"
 end
 </ruby>
- 
+
+NOTE: Defined in +active_support/core_ext/name_error.rb+.
+
 h3. Extensions to +LoadError+
 
 Rails hijacks +LoadError.new+ to return a +MissingSourceFile+ exception:
@@ -1811,6 +1827,8 @@ rescue NameError => e
   raise e unless e.missing_name? "#{module_name}Helper"
 end
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/load_error.rb+.
 
 h3. Changelog
 
