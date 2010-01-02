@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'thor/core_ext/file_binary_read'
 
 Dir[File.join(File.dirname(__FILE__), "actions", "*.rb")].each do |action|
   require action
@@ -38,17 +39,17 @@ class Thor
       # Add runtime options that help actions execution.
       #
       def add_runtime_options!
-        class_option :pretend, :type => :boolean, :aliases => "-p", :group => :runtime,
-                               :desc => "Run but do not make any changes"
-
         class_option :force, :type => :boolean, :aliases => "-f", :group => :runtime,
                              :desc => "Overwrite files that already exist"
 
-        class_option :skip, :type => :boolean, :aliases => "-s", :group => :runtime,
-                            :desc => "Skip files that already exist"
+        class_option :pretend, :type => :boolean, :aliases => "-p", :group => :runtime,
+                               :desc => "Run but do not make any changes"
 
         class_option :quiet, :type => :boolean, :aliases => "-q", :group => :runtime,
                              :desc => "Supress status output"
+
+        class_option :skip, :type => :boolean, :aliases => "-s", :group => :runtime,
+                            :desc => "Skip files that already exist"
       end
     end
 
@@ -114,7 +115,7 @@ class Thor
       @source_paths ||= self.class.source_paths_for_search
     end
 
-    # Receives a file or directory and search for it in the source paths.
+    # Receives a file or directory and search for it in the source paths. 
     #
     def find_in_source_paths(file)
       relative_root = relative_to_original_destination_root(destination_root, false)
@@ -222,7 +223,7 @@ class Thor
       run "#{command}", config.merge(:with => Thor::Util.ruby_command)
     end
 
-    # Run a thor command. A hash of options can be given and it's converted to
+    # Run a thor command. A hash of options can be given and it's converted to 
     # switches.
     #
     # ==== Parameters

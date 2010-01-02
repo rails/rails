@@ -42,7 +42,7 @@ class Thor
       # Boolean:: true if it is identical, false otherwise.
       #
       def identical?
-        exists? && File.read(destination) == render
+        exists? && File.binread(destination) == render
       end
 
       # Holds the content to be added to the file.
@@ -58,7 +58,7 @@ class Thor
       def invoke!
         invoke_with_conflict_check do
           FileUtils.mkdir_p(File.dirname(destination))
-          File.open(destination, 'w'){ |f| f.write render }
+          File.open(destination, 'wb') { |f| f.write render }
         end
         given_destination
       end

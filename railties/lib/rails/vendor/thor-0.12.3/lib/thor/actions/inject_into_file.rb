@@ -11,7 +11,7 @@ class Thor
     # data<String>:: Data to add to the file. Can be given as a block.
     # config<Hash>:: give :verbose => false to not log the status and the flag
     #                for injection (:after or :before).
-    #
+    # 
     # ==== Examples
     #
     #   inject_into_file "config/environment.rb", "config.gem :thor", :after => "Rails::Initializer.run do |config|\n"
@@ -90,7 +90,7 @@ class Thor
         #
         def replace!(regexp, string)
           unless base.options[:pretend]
-            content = File.read(destination)
+            content = File.binread(destination)
             content.gsub!(regexp, string)
             File.open(destination, 'wb') { |file| file.write(content) }
           end

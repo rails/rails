@@ -78,14 +78,14 @@ class Thor
       @method_options
     end
 
-    # Adds an option to the set of class options. If :for is given as option,
+    # Adds an option to the set of method options. If :for is given as option,
     # it allows you to change the options from a previous defined task.
     #
     #   def previous_task
     #     # magic
     #   end
     #
-    #   method_options :foo => :bar, :for => :previous_task
+    #   method_option :foo => :bar, :for => :previous_task
     #
     #   def next_task
     #     # magic
@@ -101,7 +101,6 @@ class Thor
     # :default  - Default value for this argument. It cannot be required and have default values.
     # :aliases  - Aliases for this option.
     # :type     - The type of the argument, can be :string, :hash, :array, :numeric or :boolean.
-    # :group    - The group for this options. Use by class options to output options in different levels.
     # :banner   - String to show on usage notes.
     #
     def method_option(name, options={})
@@ -140,49 +139,48 @@ class Thor
       end
     end
 
-    # Prints help information. If a task name is given, it shows information
-    # only about the specific task.
+    # Prints help information for the given task.
     #
     # ==== Parameters
-    # meth<String>:: An optional task name to print usage information about.
+    # shell<Thor::Shell>
+    # task_name<String>
     #
-    # ==== Options
-    # namespace:: When true, shows the namespace in the output before the usage.
-    # skip_inherited:: When true, does not show tasks from superclass.
+    def task_help(shell, task_name)
+      task = all_tasks[task_name]
+      raise UndefinedTaskError, "task '#{task_name}' could not be found in namespace '#{self.namespace}'" unless task
+
+      shell.say "Usage:"
+      shell.say "  #{banner(task)}"
+      shell.say
+      class_options_help(shell, nil => task.options.map { |_, o| o })
+      shell.say task.description
+    end
+
+    # Prints help information for this class.
     #
-    def help(shell, meth=nil, options={})
-      meth, options = nil, meth if meth.is_a?(Hash)
+    # ==== Parameters
+    # shell<Thor::Shell>
+    #
+    def help(shell)
+      list = printable_tasks
+      Thor::Util.thor_classes_in(self).each do |klass|
+        list += klass.printable_tasks(false)
+      end
+      list.sort!{ |a,b| a[0] <=> b[0] }
 
-      if meth
-        task = all_tasks[meth]
-        raise UndefinedTaskError, "task '#{meth}' could not be found in namespace '#{self.namespace}'" unless task
+      shell.say "Tasks:"
+      shell.print_table(list, :ident => 2, :truncate => true)
+      shell.say
+      class_options_help(shell)
+    end
 
-        shell.say "Usage:"
-        shell.say "  #{banner(task, options[:namespace], false)}"
-        shell.say
-        class_options_help(shell, "Class", :Method => task.options.map { |_, o| o })
-        shell.say task.description
-      else
-        list = (options[:short] ? tasks : all_tasks).map do |_, task|
-          item = [ banner(task, options[:namespace]) ]
-          item << "# #{task.short_description}" if task.short_description
-          item << " "
-        end
-
-        options[:ident] ||= 2
-        if options[:short]
-          shell.print_list(list, :ident => options[:ident])
-        else
-          shell.say "Tasks:"
-          shell.print_list(list, :ident => options[:ident])
-        end
-
-        Thor::Util.thor_classes_in(self).each do |subclass|
-          namespace = options[:namespace] == true || subclass.namespace.gsub(/^#{self.namespace}:/, '')
-          subclass.help(shell, options.merge(:short => true, :namespace => namespace))
-        end
-
-        class_options_help(shell, "Class") unless options[:short]
+    # Returns tasks ready to be printed.
+    def printable_tasks(all=true)
+      (all ? all_tasks : tasks).map do |_, task|
+        item = []
+        item << banner(task)
+        item << (task.description ? "# #{task.description.gsub(/\s+/m,' ')}" : "")
+        item
       end
     end
 
@@ -193,8 +191,8 @@ class Thor
       # the task that is going to be invoked and a boolean which indicates if
       # the namespace should be displayed as arguments.
       #
-      def banner(task, namespace=true, show_options=true)
-        task.formatted_usage(self, namespace, show_options)
+      def banner(task)
+        "thor " + task.formatted_usage(self)
       end
 
       def baseclass #:nodoc:
@@ -237,6 +235,6 @@ class Thor
 
   desc "help [TASK]", "Describe available tasks or one specific task"
   def help(task=nil)
-    self.class.help(shell, task, :namespace => task && task.include?(?:))
+    task ? self.class.task_help(shell, task) : self.class.help(shell)
   end
 end
