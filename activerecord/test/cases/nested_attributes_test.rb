@@ -81,12 +81,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert ship._destroy
   end
 
-  def test_underscore_delete_is_deprecated
-    ActiveSupport::Deprecation.expects(:warn)
-    ship = Ship.create!(:name => 'Nights Dirty Lightning')
-    ship._delete
-  end
-
   def test_reject_if_method_without_arguments
     Pirate.accepts_nested_attributes_for :ship, :reject_if => :new_record?
 
