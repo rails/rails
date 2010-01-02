@@ -18,16 +18,32 @@ module ActiveRecord
     def merge(r)
       raise ArgumentError, "Cannot merge a #{r.klass.name} relation with #{@klass.name} relation" if r.klass != @klass
 
-      joins(r.relation.joins(r.relation)).
-        group(r.send(:group_clauses).join(', ')).
-        order(r.send(:order_clauses).join(', ')).
-        where(r.send(:where_clause)).
-        limit(r.taken).
-        offset(r.skipped).
-        select(r.send(:select_clauses).join(', ')).
-        eager_load(r.eager_load_associations).
-        preload(r.preload_associations).
-        from(r.send(:sources).present? ? r.send(:from_clauses) : nil)
+      merged_relation = spawn(table)
+
+      [self, r].each do |r|
+        merged_relation = merged_relation.
+          joins(r.relation.joins(r.relation)).
+          group(r.send(:group_clauses).join(', ')).
+          order(r.send(:order_clauses).join(', ')).
+          limit(r.taken).
+          offset(r.skipped).
+          select(r.send(:select_clauses).join(', ')).
+          eager_load(r.eager_load_associations).
+          preload(r.preload_associations).
+          from(r.send(:sources).present? ? r.send(:from_clauses) : nil)
+      end
+
+      merged_wheres = @relation.wheres
+
+      r.wheres.each do |w|
+        if w.is_a?(Arel::Predicates::Equality)
+          merged_wheres = merged_wheres.reject {|p| p.is_a?(Arel::Predicates::Equality) && p.operand1.name == w.operand1.name }
+        end
+
+        merged_wheres << w
+      end
+
+      merged_relation.where(*merged_wheres)
     end
 
     alias :& :merge
@@ -129,7 +145,7 @@ module ActiveRecord
     end
 
     def spawn(relation = @relation)
-      relation = self.class.new(@klass, relation)
+      relation = Relation.new(@klass, relation)
       relation.readonly = @readonly
       relation.preload_associations = @preload_associations
       relation.eager_load_associations = @eager_load_associations
