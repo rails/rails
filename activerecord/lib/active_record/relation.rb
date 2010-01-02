@@ -16,7 +16,15 @@ module ActiveRecord
     end
 
     def new(*args, &block)
-      @klass.send(:with_scope, :create => create_scope) { @klass.new(*args, &block) }
+      with_create_scope { @klass.new(*args, &block) }
+    end
+
+    def create(*args, &block)
+      with_create_scope { @klass.create(*args, &block) }
+    end
+
+    def create!(*args, &block)
+      with_create_scope { @klass.create!(*args, &block) }
     end
 
     def merge(r)
@@ -183,6 +191,10 @@ module ActiveRecord
       else
         super
       end
+    end
+
+    def with_create_scope
+      @klass.send(:with_scope, :create => create_scope) { yield }
     end
 
     def create_scope

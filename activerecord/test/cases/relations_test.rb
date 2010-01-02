@@ -10,6 +10,7 @@ require 'models/comment'
 require 'models/entrant'
 require 'models/developer'
 require 'models/company'
+require 'models/bird'
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
@@ -491,6 +492,29 @@ class RelationTest < ActiveRecord::TestCase
     post = posts.new
     assert_kind_of Post, post
     assert_equal 'You told a lie', post.title
+  end
+
+  def test_create
+    birds = Bird.scoped
+
+    sparrow = birds.create
+    assert_kind_of Bird, sparrow
+    assert sparrow.new_record?
+
+    hen = birds.where(:name => 'hen').create
+    assert ! hen.new_record?
+    assert_equal 'hen', hen.name
+  end
+
+  def test_create_bang
+    birds = Bird.scoped
+
+    assert_raises(ActiveRecord::RecordInvalid) { birds.create! }
+
+    hen = birds.where(:name => 'hen').create!
+    assert_kind_of Bird, hen
+    assert ! hen.new_record?
+    assert_equal 'hen', hen.name
   end
 
 end
