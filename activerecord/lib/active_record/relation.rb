@@ -5,13 +5,15 @@ module ActiveRecord
     delegate :to_sql, :to => :relation
     delegate :length, :collect, :map, :each, :all?, :to => :to_a
 
-    attr_reader :relation, :klass, :preload_associations, :eager_load_associations
-    attr_writer :readonly, :preload_associations, :eager_load_associations, :table
+    attr_reader :relation, :klass
+    attr_writer :readonly, :table
+    attr_accessor :preload_associations, :eager_load_associations, :include_associations
 
     def initialize(klass, relation)
       @klass, @relation = klass, relation
       @preload_associations = []
       @eager_load_associations = []
+      @include_associations = []
       @loaded, @readonly = false
     end
 
@@ -30,7 +32,7 @@ module ActiveRecord
     def merge(r)
       raise ArgumentError, "Cannot merge a #{r.klass.name} relation with #{@klass.name} relation" if r.klass != @klass
 
-      merged_relation = spawn(table).eager_load(r.eager_load_associations).preload(r.preload_associations)
+      merged_relation = spawn(table).eager_load(r.eager_load_associations).preload(r.preload_associations).includes(r.include_associations)
       merged_relation.readonly = r.readonly
 
       [self.relation, r.relation].each do |arel|
@@ -74,7 +76,9 @@ module ActiveRecord
     def to_a
       return @records if loaded?
 
-      @records = if @eager_load_associations.any?
+      find_with_associations = @eager_load_associations.any?
+
+      @records = if find_with_associations
         begin
           @klass.send(:find_with_associations, {
             :select => @relation.send(:select_clauses).join(', '),
@@ -94,7 +98,10 @@ module ActiveRecord
         @klass.find_by_sql(@relation.to_sql)
       end
 
-      @preload_associations.each {|associations| @klass.send(:preload_associations, @records, associations) }
+      preload = @preload_associations
+      preload +=  @include_associations unless find_with_associations
+      preload.each {|associations| @klass.send(:preload_associations, @records, associations) } 
+
       @records.each { |record| record.readonly! } if @readonly
 
       @loaded = true
@@ -160,6 +167,7 @@ module ActiveRecord
       relation.readonly = @readonly
       relation.preload_associations = @preload_associations
       relation.eager_load_associations = @eager_load_associations
+      relation.include_associations = @include_associations
       relation.table = table
       relation
     end
