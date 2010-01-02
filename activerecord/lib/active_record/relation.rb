@@ -18,19 +18,18 @@ module ActiveRecord
     def merge(r)
       raise ArgumentError, "Cannot merge a #{r.klass.name} relation with #{@klass.name} relation" if r.klass != @klass
 
-      merged_relation = spawn(table)
+      merged_relation = spawn(table).eager_load(r.eager_load_associations).preload(r.preload_associations)
+      merged_relation.readonly = r.readonly
 
-      [self, r].each do |r|
+      [self.relation, r.relation].each do |arel|
         merged_relation = merged_relation.
-          joins(r.relation.joins(r.relation)).
-          group(r.send(:group_clauses).join(', ')).
-          order(r.send(:order_clauses).join(', ')).
-          limit(r.taken).
-          offset(r.skipped).
-          select(r.send(:select_clauses).join(', ')).
-          eager_load(r.eager_load_associations).
-          preload(r.preload_associations).
-          from(r.send(:sources).present? ? r.send(:from_clauses) : nil)
+          joins(arel.joins(arel)).
+          group(arel.groupings).
+          order(arel.send(:order_clauses).join(', ')).
+          limit(arel.taken).
+          offset(arel.skipped).
+          select(arel.send(:select_clauses)).
+          from(arel.sources)
       end
 
       merged_wheres = @relation.wheres
