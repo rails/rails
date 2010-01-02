@@ -269,18 +269,5 @@ module Rails
         ActiveSupport::Dependencies.unhook!
       end
     end
-
-    # For each framework, search for instrument file with Notifications hooks.
-    #
-    initializer :load_notifications_hooks do
-      frameworks = [ :active_record, :action_controller, :action_view,
-        :action_mailer, :active_resource ]
-      frameworks.each do |framework|
-        begin
-          require "#{framework}/notifications"
-        rescue LoadError => e
-        end
-      end
-    end
   end
 end
