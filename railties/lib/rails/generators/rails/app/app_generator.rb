@@ -3,6 +3,10 @@ require 'active_support/secure_random'
 require 'rails/version' unless defined?(Rails::VERSION)
 
 module Rails::Generators
+  # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
+  # can change in Ruby 1.8.7 when we FileUtils.cd.
+  RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
+
   class AppGenerator < Base
     DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
     add_shebang_option!
@@ -15,17 +19,25 @@ module Rails::Generators
     class_option :template, :type => :string, :aliases => "-m",
                             :desc => "Path to an application template (can be a filesystem path or URL)."
 
+    class_option :dev, :type => :boolean, :default => false,
+                       :desc => "Setup the application with Gemfile pointing to your Rails checkout"
+
+    class_option :edge, :type => :boolean, :default => false,
+                        :desc => "Setup the application with Gemfile pointing to Rails repository"
+
     class_option :skip_activerecord, :type => :boolean, :aliases => "-O", :default => false,
-                                   :desc => "Skip ActiveRecord files"
+                                     :desc => "Skip ActiveRecord files"
 
     class_option :skip_testunit, :type => :boolean, :aliases => "-T", :default => false,
-                               :desc => "Skip TestUnit files"
+                                 :desc => "Skip TestUnit files"
 
     class_option :skip_prototype, :type => :boolean, :aliases => "-J", :default => false,
-                                :desc => "Skip Prototype files"
+                                  :desc => "Skip Prototype files"
 
-    # Add Rails options
-    #
+    class_option :skip_git, :type => :boolean, :aliases => "-G", :default => false,
+                                  :desc => "Skip Git ignores and keeps"
+
+    # Add bin/rails options
     class_option :version, :type => :boolean, :aliases => "-v", :group => :rails,
                            :desc => "Show Rails version number and quit"
 
@@ -49,6 +61,7 @@ module Rails::Generators
 
     def create_root_files
       copy_file "README"
+      copy_file "gitignore", ".gitignore" unless options[:skip_git]
       template "Rakefile"
       template "config.ru"
       template "Gemfile"
@@ -62,9 +75,9 @@ module Rails::Generators
       empty_directory "config"
 
       inside "config" do
-        copy_file "routes.rb"
-        template  "application.rb"
-        template  "environment.rb"
+        template "routes.rb"
+        template "application.rb"
+        template "environment.rb"
 
         directory "environments"
         directory "initializers"
@@ -91,7 +104,7 @@ module Rails::Generators
 
     def create_lib_files
       empty_directory "lib"
-      empty_directory "lib/tasks"
+      empty_directory_with_gitkeep "lib/tasks"
     end
 
     def create_log_files
@@ -114,7 +127,7 @@ module Rails::Generators
     end
 
     def create_public_stylesheets_files
-      directory "public/stylesheets"
+      empty_directory_with_gitkeep "public/stylesheets"
     end
 
     def create_prototype_files
@@ -123,10 +136,10 @@ module Rails::Generators
     end
 
     def create_script_files
-      directory "script" do |file|
-        prepend_file file, "#{shebang}\n", :verbose => false
-        chmod file, 0755, :verbose => false
+      directory "script" do |content|
+        "#{shebang}\n" + content
       end
+      chmod "script", 0755, :verbose => false
     end
 
     def create_test_files
@@ -139,13 +152,13 @@ module Rails::Generators
 
       inside "tmp" do
         %w(sessions sockets cache pids).each do |dir|
-          empty_directory dir
+          empty_directory(dir)
         end
       end
     end
 
     def create_vendor_files
-      empty_directory "vendor/plugins"
+      empty_directory_with_gitkeep "vendor/plugins"
     end
 
     def apply_rails_template
@@ -155,7 +168,6 @@ module Rails::Generators
     end
 
     protected
-
       attr_accessor :rails_template
 
       def set_default_accessors!
@@ -172,7 +184,6 @@ module Rails::Generators
       end
 
       # Define file as an alias to create_file for backwards compatibility.
-      #
       def file(*args, &block)
         create_file(*args, &block)
       end
@@ -182,11 +193,15 @@ module Rails::Generators
       end
 
       def app_const
-        @app_const ||= app_name.classify
+        @app_const ||= "#{app_name.classify}::Application"
       end
 
       def app_secret
         ActiveSupport::SecureRandom.hex(64)
+      end
+
+      def dev_or_edge?
+        options.dev? || options.edge?
       end
 
       def self.banner
@@ -205,6 +220,11 @@ module Rails::Generators
           "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
           "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
         ].find { |f| File.exist?(f) } unless RUBY_PLATFORM =~ /(:?mswin|mingw)/
+      end
+
+      def empty_directory_with_gitkeep(destination, config = {})
+        empty_directory(destination, config)
+        create_file("#{destination}/.gitkeep") unless options[:skip_git]
       end
   end
 end

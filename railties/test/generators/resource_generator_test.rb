@@ -62,7 +62,7 @@ class ResourceGeneratorTest < GeneratorsTestCase
     run_generator
 
     assert_file "config/routes.rb" do |route|
-      assert_match /map\.resources :accounts$/, route
+      assert_match /resources :accounts$/, route
     end
   end
 
@@ -70,7 +70,7 @@ class ResourceGeneratorTest < GeneratorsTestCase
     run_generator ["account", "--singleton"]
 
     assert_file "config/routes.rb" do |route|
-      assert_match /map\.resource :account$/, route
+      assert_match /resource :account$/, route
     end
   end
 
@@ -93,7 +93,7 @@ class ResourceGeneratorTest < GeneratorsTestCase
     run_generator ["account"], :behavior => :revoke
 
     assert_file "config/routes.rb" do |route|
-      assert_no_match /map\.resources :accounts$/, route
+      assert_no_match /resources :accounts$/, route
     end
   end
 

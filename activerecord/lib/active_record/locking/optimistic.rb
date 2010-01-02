@@ -78,11 +78,11 @@ module ActiveRecord
           attribute_names.uniq!
 
           begin
-            arel_table = self.class.arel_table(self.class.table_name)
+            relation = self.class.active_relation
 
-            affected_rows = arel_table.where(
-              arel_table[self.class.primary_key].eq(quoted_id).and(
-                arel_table[self.class.locking_column].eq(quote_value(previous_value))
+            affected_rows = relation.where(
+              relation[self.class.primary_key].eq(quoted_id).and(
+                relation[self.class.locking_column].eq(quote_value(previous_value))
               )
             ).update(arel_attributes_values(false, false, attribute_names))
 

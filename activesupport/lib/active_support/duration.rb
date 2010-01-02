@@ -1,5 +1,6 @@
 require 'active_support/basic_object'
 require 'active_support/core_ext/array/conversions'
+require 'active_support/core_ext/object/acts_like'
 
 module ActiveSupport
   # Provides accurate date and time measurements using Date#advance and 

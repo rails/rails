@@ -350,6 +350,24 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert_equal @string, @string.html_safe!
   end
 
+  test "A fixnum is safe by default" do
+    assert 5.html_safe?
+  end
+
+  test "An object is unsafe by default" do
+    klass = Class.new(Object) do
+      def to_str
+        "other"
+      end
+    end
+
+    @string.html_safe!
+    @string << klass.new
+
+    assert_equal "helloother", @string
+    assert !@string.html_safe?
+  end
+
   test "Adding a safe string to another safe string returns a safe string" do
     @other_string = "other".html_safe!
     @string.html_safe!
@@ -415,5 +433,18 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     @other_string << @string
     assert @other_string.html_safe?
+  end
+
+  test "Concatting a fixnum to safe always yields safe" do
+    @string.html_safe!
+    @string.concat(13)
+    assert @string.html_safe?
+  end
+end
+
+class StringExcludeTest < ActiveSupport::TestCase
+  test 'inverse of #include' do
+    assert_equal false, 'foo'.exclude?('o')
+    assert_equal true, 'foo'.exclude?('p')
   end
 end

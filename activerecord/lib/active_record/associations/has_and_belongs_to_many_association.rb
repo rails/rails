@@ -44,7 +44,7 @@ module ActiveRecord
           if @reflection.options[:insert_sql]
             @owner.connection.insert(interpolate_sql(@reflection.options[:insert_sql], record))
           else
-            relation = arel_table(@reflection.options[:join_table])
+            relation = Arel::Table.new(@reflection.options[:join_table])
             attributes = columns.inject({}) do |attrs, column|
               case column.name.to_s
                 when @reflection.primary_key_name.to_s
@@ -70,8 +70,8 @@ module ActiveRecord
           if sql = @reflection.options[:delete_sql]
             records.each { |record| @owner.connection.delete(interpolate_sql(sql, record)) }
           else
-            relation = arel_table(@reflection.options[:join_table])
-            relation.conditions(relation[@reflection.primary_key_name].eq(@owner.id).
+            relation = Arel::Table.new(@reflection.options[:join_table])
+            relation.where(relation[@reflection.primary_key_name].eq(@owner.id).
               and(Arel::Predicates::In.new(relation[@reflection.association_foreign_key], records.map(&:id)))
             ).delete
           end

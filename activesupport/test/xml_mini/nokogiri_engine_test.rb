@@ -159,13 +159,49 @@ class NokogiriEngineTest < Test::Unit::TestCase
     XmlMini.parse(io)
   end
 
-  def test_children_with_cdata
+  def test_children_with_simple_cdata
     assert_equal_rexml(<<-eoxml)
     <root>
       <products>
-        hello <![CDATA[everyone]]>
+         <![CDATA[cdatablock]]>
+      </products>
+    </root>
+    eoxml
+  end
+
+  def test_children_with_multiple_cdata
+    assert_equal_rexml(<<-eoxml)
+    <root>
+      <products>
+         <![CDATA[cdatablock1]]><![CDATA[cdatablock2]]>
+      </products>
+    </root>
+    eoxml
+  end
+
+  def test_children_with_text_and_cdata
+    assert_equal_rexml(<<-eoxml)
+    <root>
+      <products>
+        hello <![CDATA[cdatablock]]>
         morning
       </products>
+    </root>
+    eoxml
+  end
+
+  def test_children_with_blank_text
+    assert_equal_rexml(<<-eoxml)
+    <root>
+      <products>   </products>
+    </root>
+    eoxml
+  end
+
+  def test_children_with_blank_text_and_attribute
+    assert_equal_rexml(<<-eoxml)
+    <root>
+      <products type="file">   </products>
     </root>
     eoxml
   end

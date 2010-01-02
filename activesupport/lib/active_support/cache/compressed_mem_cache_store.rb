@@ -1,3 +1,5 @@
+require 'active_support/gzip'
+
 module ActiveSupport
   module Cache
     class CompressedMemCacheStore < MemCacheStore

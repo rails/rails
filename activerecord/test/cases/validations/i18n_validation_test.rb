@@ -3,8 +3,9 @@ require 'models/topic'
 require 'models/reply'
 
 class I18nValidationTest < ActiveRecord::TestCase
+  repair_validations(Topic, Reply)
   def setup
-    Topic.reset_callbacks(:validate)
+    Reply.validates_presence_of(:title)
     @topic = Topic.new
     @old_load_path, @old_backend = I18n.load_path, I18n.backend
     I18n.load_path.clear
@@ -13,7 +14,6 @@ class I18nValidationTest < ActiveRecord::TestCase
   end
 
   def teardown
-    Topic.reset_callbacks(:validate)
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
   end

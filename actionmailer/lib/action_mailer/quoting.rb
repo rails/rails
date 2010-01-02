@@ -43,7 +43,7 @@ module ActionMailer
     # "to", "from", "cc", "bcc" and "reply-to" headers.
     def quote_address_if_necessary(address, charset)
       if Array === address
-        address.map { |a| quote_address_if_necessary(a, charset) }
+        address.map { |a| quote_address_if_necessary(a, charset) }.join(", ")
       elsif address =~ /^(\S.*)\s+(<.*>)$/
         address = $2
         phrase = quote_if_necessary($1.gsub(/^['"](.*)['"]$/, '\1'), charset)

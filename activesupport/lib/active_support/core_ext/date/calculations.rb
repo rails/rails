@@ -1,5 +1,7 @@
+require 'date'
 require 'active_support/duration'
 require 'active_support/core_ext/time/zones'
+require 'active_support/core_ext/object/acts_like'
 
 class Date
   class << self

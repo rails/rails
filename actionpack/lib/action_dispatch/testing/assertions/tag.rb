@@ -1,3 +1,5 @@
+require 'action_controller/vendor/html-scanner'
+
 module ActionDispatch
   module Assertions
     # Pair of assertions to testing elements in the HTML output of the response.
@@ -76,10 +78,10 @@ module ActionDispatch
       #   # Assert that there is a "span" containing between 2 and 4 "em" tags
       #   # as immediate children
       #   assert_tag :tag => "span",
-      #              :children => { :count => 2..4, :only => { :tag => "em" } } 
+      #              :children => { :count => 2..4, :only => { :tag => "em" } }
       #
       #   # Get funky: assert that there is a "div", with an "ul" ancestor
-      #   # and an "li" parent (with "class" = "enum"), and containing a 
+      #   # and an "li" parent (with "class" = "enum"), and containing a
       #   # "span" descendant that contains text matching /hello world/
       #   assert_tag :tag => "div",
       #              :ancestor => { :tag => "ul" },
@@ -98,7 +100,7 @@ module ActionDispatch
         tag = find_tag(opts)
         assert tag, "expected tag, but no tag found matching #{opts.inspect} in:\n#{@response.body.inspect}"
       end
-      
+
       # Identical to +assert_tag+, but asserts that a matching tag does _not_
       # exist. (See +assert_tag+ for a full discussion of the syntax.)
       #
@@ -117,6 +119,19 @@ module ActionDispatch
         opts = opts.size > 1 ? opts.last.merge({ :tag => opts.first.to_s }) : opts.first
         tag = find_tag(opts)
         assert !tag, "expected no tag, but found tag matching #{opts.inspect} in:\n#{@response.body.inspect}"
+      end
+
+      def find_tag(conditions)
+        html_document.find(conditions)
+      end
+
+      def find_all_tag(conditions)
+        html_document.find_all(conditions)
+      end
+
+      def html_document
+        xml = @response.content_type =~ /xml$/
+        @html_document ||= HTML::Document.new(@response.body, false, xml)
       end
     end
   end

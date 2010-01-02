@@ -1,8 +1,9 @@
 require 'cases/helper'
+require 'models/track_back'
 
 class NamingTest < ActiveModel::TestCase
   def setup
-    @model_name = ActiveModel::Name.new(self, 'Post::TrackBack')
+    @model_name = ActiveModel::Name.new(Post::TrackBack)
   end
 
   def test_singular

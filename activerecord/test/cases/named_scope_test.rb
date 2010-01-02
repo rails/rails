@@ -345,8 +345,8 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_chaining_should_use_latest_conditions_when_searching
     # Normal hash conditions
-    assert_equal Topic.all(:conditions => {:approved => true}).to_a, Topic.rejected.approved.all.to_a
-    assert_equal Topic.all(:conditions => {:approved => false}).to_a, Topic.approved.rejected.all.to_a
+    assert_equal Topic.where(:approved => true).to_a, Topic.rejected.approved.all.to_a
+    assert_equal Topic.where(:approved => false).to_a, Topic.approved.rejected.all.to_a
 
     # Nested hash conditions with same keys
     assert_equal [posts(:sti_comments)], Post.with_special_comments.with_very_special_comments.all.to_a

@@ -1,5 +1,7 @@
 require 'abstract_unit'
 
+ActionController::Base.cookie_verifier_secret = "thisISverySECRET123"
+
 class CookieTest < ActionController::TestCase
   class TestController < ActionController::Base
     def authenticate
@@ -45,6 +47,21 @@ class CookieTest < ActionController::TestCase
 
     def authenticate_with_http_only
       cookies["user_name"] = { :value => "david", :httponly => true }
+      head :ok
+    end
+
+    def set_permanent_cookie
+      cookies.permanent[:user_name] = "Jamie"
+      head :ok
+    end
+    
+    def set_signed_cookie
+      cookies.signed[:user_id] = 45
+      head :ok
+    end
+    
+    def set_permanent_signed_cookie
+      cookies.permanent.signed[:remember_me] = 100
       head :ok
     end
   end
@@ -134,6 +151,24 @@ class CookieTest < ActionController::TestCase
     response = get :authenticate
     assert response.headers["Set-Cookie"] =~ /user_name=david/
   end
+
+  def test_permanent_cookie
+    get :set_permanent_cookie
+    assert_match /Jamie/, @response.headers["Set-Cookie"]
+    assert_match %r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"]
+  end
+  
+  def test_signed_cookie
+    get :set_signed_cookie
+    assert_equal 45, @controller.send(:cookies).signed[:user_id]
+  end
+  
+  def test_permanent_signed_cookie
+    get :set_permanent_signed_cookie
+    assert_match %r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"]
+    assert_equal 100, @controller.send(:cookies).signed[:remember_me]
+  end
+
   
   private
     def assert_cookie_header(expected)

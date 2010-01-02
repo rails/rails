@@ -184,6 +184,15 @@ class LibxmlEngineTest < Test::Unit::TestCase
     eoxml
   end
 
+  def test_children_with_blank_text_and_attribute
+    assert_equal_rexml(<<-eoxml)
+    <root>
+      <products type="file">   </products>
+    </root>
+    eoxml
+  end
+
+
   private
   def assert_equal_rexml(xml)
     hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }

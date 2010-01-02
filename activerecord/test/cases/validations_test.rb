@@ -42,7 +42,7 @@ class ValidationsTest < ActiveRecord::TestCase
   repair_validations(Topic)
 
   def test_error_on_create
-    r = Reply.new
+    r = WrongReply.new
     r.title = "Wrong Create"
     assert !r.valid?
     assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
@@ -50,7 +50,7 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_error_on_update
-    r = Reply.new
+    r = WrongReply.new
     r.title = "Bad"
     r.content = "Good"
     assert r.save, "First save should be successful"
@@ -63,11 +63,11 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_invalid_record_exception
-    assert_raise(ActiveRecord::RecordInvalid) { Reply.create! }
-    assert_raise(ActiveRecord::RecordInvalid) { Reply.new.save! }
+    assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create! }
+    assert_raise(ActiveRecord::RecordInvalid) { WrongReply.new.save! }
 
     begin
-      r = Reply.new
+      r = WrongReply.new
       r.save!
       flunk
     rescue ActiveRecord::RecordInvalid => invalid
@@ -77,13 +77,13 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_exception_on_create_bang_many
     assert_raise(ActiveRecord::RecordInvalid) do
-      Reply.create!([ { "title" => "OK" }, { "title" => "Wrong Create" }])
+      WrongReply.create!([ { "title" => "OK" }, { "title" => "Wrong Create" }])
     end
   end
 
   def test_exception_on_create_bang_with_block
     assert_raise(ActiveRecord::RecordInvalid) do
-      Reply.create!({ "title" => "OK" }) do |r|
+      WrongReply.create!({ "title" => "OK" }) do |r|
         r.content = nil
       end
     end
@@ -91,21 +91,21 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_exception_on_create_bang_many_with_block
     assert_raise(ActiveRecord::RecordInvalid) do
-      Reply.create!([{ "title" => "OK" }, { "title" => "Wrong Create" }]) do |r|
+      WrongReply.create!([{ "title" => "OK" }, { "title" => "Wrong Create" }]) do |r|
         r.content = nil
       end
     end
   end
 
   def test_scoped_create_without_attributes
-    Reply.with_scope(:create => {}) do
-      assert_raise(ActiveRecord::RecordInvalid) { Reply.create! }
+    WrongReply.send(:with_scope, :create => {}) do
+      assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create! }
     end
   end
 
   def test_create_with_exceptions_using_scope_for_protected_attributes
     assert_nothing_raised do
-      ProtectedPerson.with_scope( :create => { :first_name => "Mary" } ) do
+      ProtectedPerson.send(:with_scope,  :create => { :first_name => "Mary" } ) do
         person = ProtectedPerson.create! :addon => "Addon"
         assert_equal person.first_name, "Mary", "scope should ignore attr_protected"
       end
@@ -114,7 +114,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_create_with_exceptions_using_scope_and_empty_attributes
     assert_nothing_raised do
-      ProtectedPerson.with_scope( :create => { :first_name => "Mary" } ) do
+      ProtectedPerson.send(:with_scope,  :create => { :first_name => "Mary" } ) do
         person = ProtectedPerson.create!
         assert_equal person.first_name, "Mary", "should be ok when no attributes are passed to create!"
       end
@@ -122,15 +122,15 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_create_without_validation
-    reply = Reply.new
+    reply = WrongReply.new
     assert !reply.save
     assert reply.save(false)
   end
 
   def test_create_without_validation_bang
-    count = Reply.count
-    assert_nothing_raised { Reply.new.save_without_validation! }
-    assert count+1, Reply.count
+    count = WrongReply.count
+    assert_nothing_raised { WrongReply.new.save_without_validation! }
+    assert count+1, WrongReply.count
   end
 
   def test_validates_acceptance_of_with_non_existant_table

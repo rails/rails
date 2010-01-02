@@ -161,7 +161,7 @@ module ActiveRecord
         end
 
         # Forwards the call to the reflection class.
-        def sanitize_sql(sql, table_name = @reflection.klass.quoted_table_name)
+        def sanitize_sql(sql, table_name = @reflection.klass.table_name)
           @reflection.klass.send(:sanitize_sql, sql, table_name)
         end
 

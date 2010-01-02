@@ -1,9 +1,10 @@
 require 'rake'
 require 'rake/rdoctask'
+require 'rake/gempackagetask'
 
 env = %(PKG_BUILD="#{ENV['PKG_BUILD']}") if ENV['PKG_BUILD']
 
-PROJECTS = %w(activesupport actionpack actionmailer activeresource activerecord activemodel railties)
+PROJECTS = %w(activesupport activemodel actionpack actionmailer activeresource activerecord railties)
 
 Dir["#{File.dirname(__FILE__)}/*/lib/*/version.rb"].each do |version_path|
   require version_path
@@ -23,11 +24,28 @@ task :default => %w(test test:isolated)
   end
 end
 
+desc "Smoke-test all projects"
+task :smoke do
+  (PROJECTS - %w(activerecord)).each do |project|
+    system %(cd #{project} && #{env} #{$0} test:isolated)
+  end
+  system %(cd activerecord && #{env} #{$0} sqlite3:isolated_test)
+end
+
+spec = eval(File.read('rails.gemspec'))
+Rake::GemPackageTask.new(spec) do |pkg|
+  pkg.gem_spec = spec
+end
+
 task :install => :gem do
+  system %(cd arel && gem build arel.gemspec && gem install arel-0.2.pre.gem --no-ri --no-rdoc --ignore-dependencies)
+  system %(cd rack && rake gem VERSION=1.0.2.pre && gem install rack-1.0.2.pre.gem --no-ri --no-rdoc --ignore-dependencies)
   (PROJECTS - ["railties"]).each do |project|
+    puts "INSTALLING #{project}"
     system("gem install #{project}/pkg/#{project}-#{ActionPack::VERSION::STRING}.gem --no-ri --no-rdoc")
   end
-  system("gem install railties/pkg/rails-#{ActionPack::VERSION::STRING}.gem --no-ri --no-rdoc")
+  system("gem install railties/pkg/railties-#{ActionPack::VERSION::STRING}.gem --no-ri --no-rdoc")
+  system("gem install pkg/rails-#{ActionPack::VERSION::STRING}.gem --no-ri --no-rdoc")
 end
 
 desc "Generate documentation for the Rails framework"

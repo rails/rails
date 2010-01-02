@@ -1,6 +1,6 @@
 require "pathname"
 require "active_support/core_ext/class"
-require "action_view/template/template"
+require "action_view/template"
 
 module ActionView
   # Abstract superclass
@@ -20,7 +20,7 @@ module ActionView
     register_detail(:locale)  { [I18n.locale] }
     register_detail(:formats) { Mime::SET.symbols }
     register_detail(:handlers, :allow_nil => false) do
-      TemplateHandlers.extensions
+      Template::Handlers.extensions
     end
 
     def initialize(options = {})
@@ -65,7 +65,7 @@ module ActionView
     # as well as incorrectly putting part of the path in the template
     # name instead of the prefix.
     def normalize_name(name, prefix)
-      handlers = TemplateHandlers.extensions.join('|')
+      handlers = Template::Handlers.extensions.join('|')
       name = name.to_s.gsub(/\.(?:#{handlers})$/, '')
 
       parts = name.split('/')
@@ -108,13 +108,9 @@ module ActionView
         query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << '}'
       end
 
-      Dir[query].map do |path|
-        next if File.directory?(path)
-        source = File.read(path)
-        identifier = Pathname.new(path).expand_path.to_s
-
-        Template.new(source, identifier, *path_to_details(path))
-      end.compact
+      Dir[query].reject { |p| File.directory?(p) }.map do |p|
+        Template.new(File.read(p), File.expand_path(p), *path_to_details(p))
+      end
     end
 
     # # TODO: fix me

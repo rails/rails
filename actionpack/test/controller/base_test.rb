@@ -158,13 +158,6 @@ class PerformActionTest < ActionController::TestCase
     assert_raise(ActionController::UnknownAction) { get :hidden_action }
     assert_raise(ActionController::UnknownAction) { get :another_hidden_action }
   end
-
-  def test_namespaced_action_should_log_module_name
-    use_controller Submodule::ContainedNonEmptyController
-    @controller.logger = MockLogger.new
-    get :public_action
-    assert_match /Processing\sSubmodule::ContainedNonEmptyController#public_action/, @controller.logger.logged[1]
-  end
 end
 
 class DefaultUrlOptionsTest < ActionController::TestCase
@@ -179,8 +172,8 @@ class DefaultUrlOptionsTest < ActionController::TestCase
   def test_default_url_options_are_used_if_set
     with_routing do |set|
       set.draw do |map|
-        map.default_url_options 'default_url_options', :controller => 'default_url_options'
-        map.connect ':controller/:action/:id'
+        match 'default_url_options', :to => 'default_url_options#default_url_options_action', :as => :default_url_options
+        match ':controller/:action'
       end
 
       get :default_url_options_action # Make a dummy request so that the controller is initialized properly.
@@ -210,7 +203,7 @@ class EnsureNamedRoutesWorksTicket22BugTest < ActionController::TestCase
   def test_named_routes_still_work
     with_routing do |set|
       set.draw do |map|
-        map.resources :things
+        resources :things
       end
       EmptyController.send :include, ActionController::UrlWriter
 

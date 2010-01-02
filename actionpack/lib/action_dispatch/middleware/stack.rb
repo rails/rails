@@ -93,8 +93,9 @@ module ActionDispatch
     alias_method :insert_before, :insert
 
     def insert_after(index, *args, &block)
-      index = self.index(index) unless index.is_a?(Integer)
-      insert(index + 1, *args, &block)
+      i = index.is_a?(Integer) ? index : self.index(index)
+      raise "No such middleware to insert after: #{index.inspect}" unless i
+      insert(i + 1, *args, &block)
     end
 
     def swap(target, *args, &block)

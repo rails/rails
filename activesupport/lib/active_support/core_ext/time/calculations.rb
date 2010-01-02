@@ -1,4 +1,5 @@
 require 'active_support/duration'
+require 'active_support/core_ext/date/acts_like'
 require 'active_support/core_ext/date/calculations'
 
 class Time

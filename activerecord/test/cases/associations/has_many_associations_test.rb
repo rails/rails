@@ -1179,4 +1179,3 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.name, client.firm_name
   end
 end
-

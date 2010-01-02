@@ -1,6 +1,6 @@
 module ActionView
-  module TemplateHandlers
-    class RJS < TemplateHandler
+  module Template::Handlers
+    class RJS < Template::Handler
       include Compilable
 
       self.default_format = Mime::JS

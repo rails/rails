@@ -89,6 +89,13 @@ module TestHelpers
         end
       end
 
+      routes = File.read("#{app_path}/config/routes.rb")
+      if routes =~ /(\n\s*end\s*)\Z/
+        File.open("#{app_path}/config/routes.rb", 'w') do |f|
+          f.puts $` + "\nmatch ':controller(/:action(/:id))(.:format)'\n" + $1
+        end
+      end
+
       add_to_config 'config.action_controller.session = { :key => "_myapp_session", :secret => "bac838a849c1d5c4de2e6a50af826079" }'
     end
 
@@ -128,7 +135,7 @@ module TestHelpers
 
     def add_to_config(str)
       environment = File.read("#{app_path}/config/application.rb")
-      if environment =~ /(\n\s*end\s*)\Z/
+      if environment =~ /(\n\s*end\s*end\s*)\Z/
         File.open("#{app_path}/config/application.rb", 'w') do |f|
           f.puts $` + "\n#{str}\n" + $1
         end
@@ -144,6 +151,14 @@ module TestHelpers
 
     def controller(name, contents)
       app_file("app/controllers/#{name}_controller.rb", contents)
+    end
+
+    def use_frameworks(arr)
+      to_remove =  [:actionmailer,
+                    :activemodel,
+                    :activerecord,
+                    :activeresource] - arr
+      $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
     def boot_rails
@@ -192,6 +207,6 @@ Module.new do
   `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{tmp_path('app_template')}`
   File.open("#{tmp_path}/app_template/config/boot.rb", 'w') do |f|
     f.puts "require '#{environment}'" if require_environment
-    f.puts "require 'rails'"
+    f.puts "require 'rails/all'"
   end
 end

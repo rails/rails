@@ -24,7 +24,7 @@ class AssetHostTest < Test::Unit::TestCase
   def test_asset_host_as_string
     ActionController::Base.asset_host = "http://www.example.com"
     mail = AssetHostMailer.deliver_email_with_asset(@recipient)
-    assert_equal "<img alt=\"Somelogo\" src=\"http://www.example.com/images/somelogo.png\" />", mail.body.strip
+    assert_equal "<img alt=\"Somelogo\" src=\"http://www.example.com/images/somelogo.png\" />", mail.body.to_s.strip
   end
 
   def test_asset_host_as_one_arguement_proc
@@ -36,7 +36,7 @@ class AssetHostTest < Test::Unit::TestCase
       end
     }
     mail = AssetHostMailer.deliver_email_with_asset(@recipient)
-    assert_equal "<img alt=\"Somelogo\" src=\"http://images.example.com/images/somelogo.png\" />", mail.body.strip
+    assert_equal "<img alt=\"Somelogo\" src=\"http://images.example.com/images/somelogo.png\" />", mail.body.to_s.strip
   end
 
   def test_asset_host_as_two_arguement_proc
@@ -49,6 +49,6 @@ class AssetHostTest < Test::Unit::TestCase
     }
     mail = nil
     assert_nothing_raised { mail = AssetHostMailer.deliver_email_with_asset(@recipient) }
-    assert_equal "<img alt=\"Somelogo\" src=\"http://www.example.com/images/somelogo.png\" />", mail.body.strip
+    assert_equal "<img alt=\"Somelogo\" src=\"http://www.example.com/images/somelogo.png\" />", mail.body.to_s.strip
   end
 end

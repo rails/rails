@@ -5,4 +5,4 @@ gems:
 - name: rubygems-update
   version: >= 1.3.5
 - name: bundler
-  version: >= 0.6.0
+  version: >= 0.7.1

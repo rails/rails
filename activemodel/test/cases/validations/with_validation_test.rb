@@ -6,32 +6,33 @@ require 'models/topic'
 
 class ValidatesWithTest < ActiveRecord::TestCase
   include ActiveModel::TestsDatabase
-  include ActiveModel::ValidationsRepairHelper
 
-  repair_validations(Topic)
+  def teardown
+    Topic.reset_callbacks(:validate)
+  end
 
   ERROR_MESSAGE = "Validation error from validator"
   OTHER_ERROR_MESSAGE = "Validation error from other validator"
 
   class ValidatorThatAddsErrors < ActiveModel::Validator
-    def validate()
+    def validate(record)
       record.errors[:base] << ERROR_MESSAGE
     end
   end
 
   class OtherValidatorThatAddsErrors < ActiveModel::Validator
-    def validate()
+    def validate(record)
       record.errors[:base] << OTHER_ERROR_MESSAGE
     end
   end
 
   class ValidatorThatDoesNotAddErrors < ActiveModel::Validator
-    def validate()
+    def validate(record)
     end
   end
 
   class ValidatorThatValidatesOptions < ActiveModel::Validator
-    def validate()
+    def validate(record)
       if options[:field] == :first_name
         record.errors[:base] << ERROR_MESSAGE
       end
@@ -98,11 +99,11 @@ class ValidatesWithTest < ActiveRecord::TestCase
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
 
-  test "passes all non-standard configuration options to the validator class" do
+  test "passes all configuration options to the validator class" do
     topic = Topic.new
     validator = mock()
-    validator.expects(:new).with(topic, {:foo => :bar}).returns(validator)
-    validator.expects(:validate)
+    validator.expects(:new).with(:foo => :bar, :if => "1 == 1").returns(validator)
+    validator.expects(:validate).with(topic)
 
     Topic.validates_with(validator, :if => "1 == 1", :foo => :bar)
     assert topic.valid?

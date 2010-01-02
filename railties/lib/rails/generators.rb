@@ -1,15 +1,16 @@
-activesupport_path = "#{File.dirname(__FILE__)}/../../../activesupport/lib"
-$LOAD_PATH.unshift(activesupport_path) if File.directory?(activesupport_path)
+activesupport_path = File.expand_path('../../../../activesupport/lib', __FILE__)
+$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
+
 require 'active_support'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/metaclass'
-require 'active_support/core_ext/array'
-require 'active_support/core_ext/hash'
+require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/inflections'
 
 # TODO: Do not always push on vendored thor
-$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/vendor/thor-0.12.0/lib")
+$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/vendor/thor-0.12.1/lib")
 require 'rails/generators/base'
 require 'rails/generators/named_base'
 
@@ -94,7 +95,7 @@ module Rails
     end
 
     def self.plugins_generators_paths #:nodoc:
-      return [] unless Rails.root
+      return [] unless defined?(Rails.root) && Rails.root
       Dir[File.join(Rails.root, "vendor", "plugins", "*", "lib", "{generators,rails_generators}")]
     end
 
@@ -135,7 +136,7 @@ module Rails
     def self.load_paths
       @load_paths ||= begin
         paths = []
-        paths += Dir[File.join(Rails.root, "lib", "{generators,rails_generators}")] if Rails.root
+        paths += Dir[File.join(Rails.root, "lib", "{generators,rails_generators}")] if defined?(Rails.root) && Rails.root
         paths += Dir[File.join(Thor::Util.user_home, ".rails", "{generators,rails_generators}")]
         paths += self.plugins_generators_paths
         paths += self.gems_generators_paths

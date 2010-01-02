@@ -2,14 +2,18 @@
 # so fixtures are loaded to the right database
 silence_warnings { RAILS_ENV = "test" }
 
-require 'rubygems'
-gem "rack", "~> 1.0.0"
-gem "rack-test", "~> 0.5.0"
+require 'rack'
+require 'rack/test'
 
 require 'test/unit'
 require 'active_support/core_ext/kernel/requires'
+
+# AP is always present
+require 'action_controller/test_case'
 require 'action_view/test_case'
+
 require 'action_mailer/test_case' if defined?(ActionMailer)
+require 'active_model/test_case'  if defined?(ActiveModel)
 
 if defined?(ActiveRecord)
   require 'active_record/test_case'

@@ -1,12 +1,9 @@
-root = File.expand_path('../../..', __FILE__)
 begin
-  require "#{root}/vendor/gems/environment"
+  require File.expand_path('../../../vendor/gems/environment', __FILE__)
 rescue LoadError
-  $:.unshift("#{root}/activesupport/lib")
-  $:.unshift("#{root}/actionpack/lib")
 end
 
-lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
+lib = File.expand_path('../../lib', __FILE__)
 $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
 require 'rubygems'

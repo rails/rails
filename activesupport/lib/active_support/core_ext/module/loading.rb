@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/inflections'
+
 class Module
   # Returns String#underscore applied to the module name minus trailing classes.
   #

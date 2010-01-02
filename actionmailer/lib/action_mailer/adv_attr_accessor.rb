@@ -1,29 +1,25 @@
 module ActionMailer
   module AdvAttrAccessor #:nodoc:
-    def self.included(base)
-      base.extend(ClassMethods)
-    end
+    def adv_attr_accessor(*names)
+      names.each do |name|
+        ivar = "@#{name}"
 
-    module ClassMethods #:nodoc:
-      def adv_attr_accessor(*names)
-        names.each do |name|
-          ivar = "@#{name}"
-
-          define_method("#{name}=") do |value|
-            instance_variable_set(ivar, value)
+        class_eval <<-ACCESSORS, __FILE__, __LINE__ + 1
+          def #{name}=(value)
+            #{ivar} = value
           end
 
-          define_method(name) do |*parameters|
-            raise ArgumentError, "expected 0 or 1 parameters" unless parameters.length <= 1
-            if parameters.empty?
-              if instance_variable_names.include?(ivar)
-                instance_variable_get(ivar)
-              end
+          def #{name}(*args)
+            raise ArgumentError, "expected 0 or 1 parameters" unless args.length <= 1
+            if args.empty?
+              #{ivar} if instance_variable_names.include?(#{ivar.inspect})
             else
-              instance_variable_set(ivar, parameters.first)
+              #{ivar} = args.first
             end
           end
-        end
+        ACCESSORS
+
+        self.protected_instance_variables << ivar if self.respond_to?(:protected_instance_variables)
       end
     end
   end

@@ -15,7 +15,6 @@ class DispatcherTest < Test::Unit::TestCase
     ActionDispatch::Callbacks.reset_callbacks(:call)
 
     ActionController::Routing::Routes.stubs(:call).returns([200, {}, 'response'])
-    ActionController::Routing::Routes.stubs(:reload)
     Dispatcher.stubs(:require_dependency)
   end
 
@@ -26,18 +25,6 @@ class DispatcherTest < Test::Unit::TestCase
   def test_clears_dependencies_after_dispatch_if_in_loading_mode
     ActiveSupport::Dependencies.expects(:clear).once
     dispatch(false)
-  end
-
-  def test_reloads_routes_before_dispatch_if_in_loading_mode
-    ActionController::Routing::Routes.expects(:reload).once
-    dispatch(false)
-  end
-
-  def test_leaves_dependencies_after_dispatch_if_not_in_loading_mode
-    ActionController::Routing::Routes.expects(:reload).never
-    ActiveSupport::Dependencies.expects(:clear).never
-
-    dispatch
   end
 
   def test_prepare_callbacks

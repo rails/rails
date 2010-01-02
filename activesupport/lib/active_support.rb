@@ -34,8 +34,38 @@ module ActiveSupport
   end
 end
 
-require 'active_support/autoload'
-require 'active_support/vendor'
+require "active_support/dependencies/autoload"
 
-require 'i18n'
-I18n.load_path << "#{File.dirname(__FILE__)}/active_support/locale/en.yml"
+module ActiveSupport
+  extend ActiveSupport::Autoload
+
+  # TODO: Narrow this list down
+  eager_autoload do
+    autoload :BacktraceCleaner
+    autoload :Base64
+    autoload :BasicObject
+    autoload :Benchmarkable
+    autoload :BufferedLogger
+    autoload :Cache
+    autoload :Callbacks
+    autoload :Concern
+    autoload :Configurable
+    autoload :Deprecation
+    autoload :Gzip
+    autoload :Inflector
+    autoload :Memoizable
+    autoload :MessageEncryptor
+    autoload :MessageVerifier
+    autoload :Multibyte
+    autoload :OptionMerger
+    autoload :OrderedHash
+    autoload :OrderedOptions
+    autoload :Notifications
+    autoload :Rescuable
+    autoload :SecureRandom
+    autoload :StringInquirer
+    autoload :XmlMini
+  end
+end
+
+require 'active_support/vendor'

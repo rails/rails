@@ -5,7 +5,6 @@ require 'models/reply'
 require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/event'
-require 'models/developer'
 
 # The following methods in Topic are used in test_conditional_validation_*
 class Topic
@@ -213,7 +212,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   def test_validates_uniqueness_inside_with_scope
     Topic.validates_uniqueness_of(:title)
 
-    Topic.with_scope(:find => { :conditions => { :author_name => "David" } }) do
+    Topic.send(:with_scope, :find => { :conditions => { :author_name => "David" } }) do
       t1 = Topic.new("title" => "I'm unique!", "author_name" => "Mary")
       assert t1.save
       t2 = Topic.new("title" => "I'm unique!", "author_name" => "David")
@@ -275,15 +274,5 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert !w6.valid?, "w6 shouldn't be valid"
     assert w6.errors[:city].any?, "Should have errors for city"
     assert_equal ["has already been taken"], w6.errors[:city], "Should have uniqueness message for city"
-  end
-
-  def test_validates_uniqueness_of_with_custom_message_using_quotes
-    repair_validations(Developer) do
-      Developer.validates_uniqueness_of :name, :message=> "This string contains 'single' and \"double\" quotes"
-      d = Developer.new
-      d.name = "David"
-      assert !d.valid?
-      assert_equal ["This string contains 'single' and \"double\" quotes"], d.errors[:name]
-    end
   end
 end

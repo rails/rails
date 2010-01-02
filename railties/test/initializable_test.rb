@@ -150,6 +150,16 @@ module InitializableTests
       Word.run_initializers
       assert_equal "bird", $word
     end
+
+    test "creating initializer without a block raises an error" do
+      assert_raise(ArgumentError) do
+        Class.new do
+          include Rails::Initializable
+
+          initializer :foo
+        end
+      end
+    end
   end
 
   class BeforeAfter < ActiveSupport::TestCase

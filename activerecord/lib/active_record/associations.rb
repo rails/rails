@@ -3,8 +3,8 @@ require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
-    def initialize(reflection)
-      super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{reflection.class_name})")
+    def initialize(reflection, associated_class = nil)
+      super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{associated_class.nil? ? reflection.class_name : associated_class.name})")
     end
   end
 
@@ -1325,7 +1325,7 @@ module ActiveRecord
 
             if association.nil? || force_reload
               association = association_proxy_class.new(self, reflection)
-              retval = association.reload
+              retval = force_reload ? reflection.klass.uncached { association.reload } : association.reload
               if retval.nil? and association_proxy_class == BelongsToAssociation
                 association_instance_set(reflection.name, nil)
                 return nil
@@ -1370,7 +1370,7 @@ module ActiveRecord
               association_instance_set(reflection.name, association)
             end
 
-            association.reload if force_reload
+            reflection.klass.uncached { association.reload } if force_reload
 
             association
           end
@@ -1382,9 +1382,9 @@ module ActiveRecord
               if reflection.through_reflection && reflection.source_reflection.belongs_to?
                 through = reflection.through_reflection
                 primary_key = reflection.source_reflection.primary_key_name
-                send(through.name).all(:select => "DISTINCT #{through.quoted_table_name}.#{primary_key}").map!(&:"#{primary_key}")
+                send(through.name).select("DISTINCT #{through.quoted_table_name}.#{primary_key}").map!(&:"#{primary_key}")
               else
-                send(reflection.name).all(:select => "#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map!(&:id)
+                send(reflection.name).select("#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map!(&:id)
               end
             end
           end
@@ -1466,11 +1466,10 @@ module ActiveRecord
         end
 
         def find_with_associations(options = {}, join_dependency = nil)
-          catch :invalid_query do
-            join_dependency ||= JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
-            rows = select_all_rows(options, join_dependency)
-            return join_dependency.instantiate(rows)
-          end
+          join_dependency ||= JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
+          rows = select_all_rows(options, join_dependency)
+          join_dependency.instantiate(rows)
+        rescue ThrowResult
           []
         end
 
@@ -1489,7 +1488,7 @@ module ActiveRecord
             dependent_conditions = []
             dependent_conditions << "#{reflection.primary_key_name} = \#{record.#{reflection.name}.send(:owner_quoted_id)}"
             dependent_conditions << "#{reflection.options[:as]}_type = '#{base_class.name}'" if reflection.options[:as]
-            dependent_conditions << sanitize_sql(reflection.options[:conditions], reflection.quoted_table_name) if reflection.options[:conditions]
+            dependent_conditions << sanitize_sql(reflection.options[:conditions], reflection.table_name) if reflection.options[:conditions]
             dependent_conditions << extra_conditions if extra_conditions
             dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
             dependent_conditions = dependent_conditions.gsub('@', '\@')
@@ -1707,7 +1706,7 @@ module ActiveRecord
         def construct_finder_arel_with_included_associations(options, join_dependency)
           scope = scope(:find)
 
-          relation = arel_table((scope && scope[:from]) || options[:from])
+          relation = active_relation
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
@@ -1715,11 +1714,13 @@ module ActiveRecord
 
           relation = relation.joins(construct_join(options[:joins], scope)).
             select(column_aliases(join_dependency)).
-            group(construct_group(options[:group], options[:having], scope)).
+            group(options[:group] || (scope && scope[:group])).
+            having(options[:having] || (scope && scope[:having])).
             order(construct_order(options[:order], scope)).
-            conditions(construct_conditions(options[:conditions], scope))
+            where(construct_conditions(options[:conditions], scope)).
+            from((scope && scope[:from]) || options[:from])
 
-          relation = relation.conditions(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
+          relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
           relation = relation.limit(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)
 
           relation
@@ -1731,7 +1732,7 @@ module ActiveRecord
 
         def construct_arel_limited_ids_condition(options, join_dependency)
           if (ids_array = select_limited_ids_array(options, join_dependency)).empty?
-            throw :invalid_query
+            raise ThrowResult
           else
             Arel::Predicates::In.new(
               Arel::SqlLiteral.new("#{connection.quote_table_name table_name}.#{primary_key}"),
@@ -1750,18 +1751,20 @@ module ActiveRecord
         def construct_finder_sql_for_association_limiting(options, join_dependency)
           scope = scope(:find)
 
-          relation = arel_table(options[:from])
+          relation = active_relation
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
           end
 
           relation = relation.joins(construct_join(options[:joins], scope)).
-            conditions(construct_conditions(options[:conditions], scope)).
-            group(construct_group(options[:group], options[:having], scope)).
+            where(construct_conditions(options[:conditions], scope)).
+            group(options[:group] || (scope && scope[:group])).
+            having(options[:having] || (scope && scope[:having])).
             order(construct_order(options[:order], scope)).
             limit(construct_limit(options[:limit], scope)).
             offset(construct_limit(options[:offset], scope)).
+            from(options[:from]).
             select(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", construct_order(options[:order], scope(:find)).join(",")))
 
           relation.to_sql

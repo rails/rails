@@ -3,14 +3,15 @@ require 'active_support/core_ext/string/output_safety'
 require 'erubis'
 
 module ActionView
-  module TemplateHandlers
+  module Template::Handlers
     class Erubis < ::Erubis::Eruby
       def add_preamble(src)
         src << "@output_buffer = ActionView::SafeBuffer.new;"
       end
 
       def add_text(src, text)
-        src << "@output_buffer << ('" << escape_text(text) << "'.html_safe!);"
+        return if text.empty?
+        src << "@output_buffer.safe_concat('" << escape_text(text) << "');"
       end
 
       def add_expr_literal(src, code)
@@ -26,7 +27,7 @@ module ActionView
       end
     end
 
-    class ERB < TemplateHandler
+    class ERB < Template::Handler
       include Compilable
 
       ##

@@ -9,7 +9,7 @@ class FunkyPathMailer < ActionMailer::Base
     subject    "This path has dots"
     from       "Chad Fowler <chad@chadfowler.com>"
     attachment :content_type => "text/plain",
-      :body => "dots dots dots..."
+      :data => "dots dots dots..."
   end
 end
 
@@ -34,13 +34,13 @@ class TestMailer < ActionMailer::Base
   def from_with_name
     from       "System <system@loudthinking.com>"
     recipients "root@loudthinking.com"
-    body       "Nothing to see here."
+    render :text => "Nothing to see here."
   end
 
   def from_without_name
     from       "system@loudthinking.com"
     recipients "root@loudthinking.com"
-    body       "Nothing to see here."
+    render :text => "Nothing to see here."
   end
 
   def cc_bcc(recipient)
@@ -107,7 +107,7 @@ class TestMailer < ActionMailer::Base
     cc         "Foo áëô îü <extended@example.net>"
     bcc        "Foo áëô îü <extended@example.net>"
     charset    "utf-8"
-
+    
     render :text => "åœö blah"
   end
 
@@ -155,8 +155,8 @@ class TestMailer < ActionMailer::Base
       p.body = "blah"
     end
 
-    attachment :content_type => "image/jpeg", :filename => "foo.jpg",
-      :body => "123456789"
+    attachment :content_type => "image/jpeg", :filename => File.join(File.dirname(__FILE__), "fixtures", "attachments", "foo.jpg"),
+      :data => "123456789"
 
     render :text => "plain text default"
   end
@@ -239,12 +239,12 @@ class TestMailer < ActionMailer::Base
     from         "test@example.com"
     content_type "multipart/mixed"
 
-    part :content_type => "multipart/alternative", :content_disposition => "inline", :headers => { "foo" => "bar" } do |p|
+    part :content_type => "multipart/alternative", :content_disposition => "inline", "foo" => "bar" do |p|
       p.part :content_type => "text/plain", :body => "test text\nline #2"
       p.part :content_type => "text/html", :body => "<b>test</b> HTML<br/>\nline #2"
     end
 
-    attachment :content_type => "application/octet-stream",:filename => "test.txt", :body => "test abcdefghijklmnopqstuvwxyz"
+    attachment :content_type => "application/octet-stream", :filename => "test.txt", :data => "test abcdefghijklmnopqstuvwxyz"
   end
 
   def nested_multipart_with_body(recipient)
@@ -263,8 +263,8 @@ class TestMailer < ActionMailer::Base
     subject      "custom header in attachment"
     from         "test@example.com"
     content_type "multipart/related"
-    part :content_type => "text/html", :body => 'yo'
-    attachment :content_type => "image/jpeg",:filename => "test.jpeg", :body => "i am not a real picture", :headers => { 'Content-ID' => '<test@test.com>' }
+    part         :content_type => "text/html", :body => 'yo'
+    attachment   :content_type => "image/jpeg", :filename => File.join(File.dirname(__FILE__), "fixtures", "attachments", "test.jpg"), :data => "i am not a real picture", 'Content-ID' => '<test@test.com>'
   end
 
   def unnamed_attachment(recipient)
@@ -273,7 +273,7 @@ class TestMailer < ActionMailer::Base
     from         "test@example.com"
     content_type "multipart/mixed"
     part :content_type => "text/plain", :body => "hullo"
-    attachment :content_type => "application/octet-stream", :body => "test abcdefghijklmnopqstuvwxyz"
+    attachment :content_type => "application/octet-stream", :data => "test abcdefghijklmnopqstuvwxyz"
   end
 
   def headers_with_nonalpha_chars(recipient)
@@ -301,6 +301,7 @@ class TestMailer < ActionMailer::Base
     render :text => "testing"
   end
 
+  # This tests body calls accepeting a hash, which is deprecated.
   def body_ivar(recipient)
     recipients   recipient
     subject      "Body as a local variable"
@@ -331,10 +332,10 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def new_mail( charset="utf-8" )
-    mail = TMail::Mail.new
+    mail = Mail.new
     mail.mime_version = "1.0"
     if charset
-      mail.set_content_type "text", "plain", { "charset" => charset }
+      mail.content_type ["text", "plain", { "charset" => charset }]
     end
     mail
   end
@@ -358,30 +359,33 @@ class ActionMailerTest < Test::Unit::TestCase
   def test_nested_parts
     created = nil
     assert_nothing_raised { created = TestMailer.create_nested_multipart(@recipient)}
-    assert_equal 2,created.parts.size
-    assert_equal 2,created.parts.first.parts.size
+    assert_equal 2, created.parts.size
+    assert_equal 2, created.parts.first.parts.size
 
-    assert_equal "multipart/mixed", created.content_type
-    assert_equal "multipart/alternative", created.parts.first.content_type
-    assert_equal "bar", created.parts.first.header['foo'].to_s
-    assert_nil created.parts.first.charset
-    assert_equal "text/plain", created.parts.first.parts.first.content_type
-    assert_equal "text/html", created.parts.first.parts[1].content_type
-    assert_equal "application/octet-stream", created.parts[1].content_type
+    assert_equal "multipart/mixed", created.content_type.string
+    assert_equal "multipart/alternative", created.parts[0].content_type.string
+    assert_equal "bar", created.parts[0].header['foo'].to_s
+    assert_nil created.parts[0].charset
+    assert_equal "text/plain", created.parts[0].parts[0].content_type.string
+    assert_equal "text/html", created.parts[0].parts[1].content_type.string
+    assert_equal "application/octet-stream", created.parts[1].content_type.string
+    
   end
 
   def test_nested_parts_with_body
     created = nil
     TestMailer.create_nested_multipart_with_body(@recipient)
     assert_nothing_raised { created = TestMailer.create_nested_multipart_with_body(@recipient)}
+
     assert_equal 1,created.parts.size
     assert_equal 2,created.parts.first.parts.size
 
-    assert_equal "multipart/mixed", created.content_type
-    assert_equal "multipart/alternative", created.parts.first.content_type
-    assert_equal "Nothing to see here.", created.parts.first.parts.first.body
-    assert_equal "text/plain", created.parts.first.parts.first.content_type
-    assert_equal "text/html", created.parts.first.parts[1].content_type
+    assert_equal "multipart/mixed", created.content_type.string
+    assert_equal "multipart/alternative", created.parts.first.content_type.string
+    assert_equal "text/plain", created.parts.first.parts.first.content_type.string
+    assert_equal "Nothing to see here.", created.parts.first.parts.first.body.to_s
+    assert_equal "text/html", created.parts.first.parts.second.content_type.string
+    assert_equal "<b>test</b> HTML<br/>", created.parts.first.parts.second.body.to_s
   end
 
   def test_attachment_with_custom_header
@@ -403,20 +407,30 @@ class ActionMailerTest < Test::Unit::TestCase
     created = nil
     assert_nothing_raised { created = TestMailer.create_signed_up(@recipient) }
     assert_not_nil created
+    
+    expected.message_id = '<123@456>'
+    created.message_id = '<123@456>'
+
     assert_equal expected.encoded, created.encoded
 
     assert_nothing_raised { TestMailer.deliver_signed_up(@recipient) }
-    assert_not_nil ActionMailer::Base.deliveries.first
-    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
+
+    delivered = ActionMailer::Base.deliveries.first
+    assert_not_nil delivered
+
+    expected.message_id = '<123@456>'
+    delivered.message_id = '<123@456>'
+
+    assert_equal expected.encoded, delivered.encoded
   end
 
   def test_subject_with_i18n
     assert_nothing_raised { TestMailer.deliver_subject_with_i18n(@recipient) }
-    assert_equal "Subject with i18n", ActionMailer::Base.deliveries.first.subject
+    assert_equal "Subject with i18n", ActionMailer::Base.deliveries.first.subject.to_s
 
     I18n.backend.store_translations('en', :actionmailer => {:test_mailer => {:subject_with_i18n => {:subject => "New Subject!"}}})
     assert_nothing_raised { TestMailer.deliver_subject_with_i18n(@recipient) }
-    assert_equal "New Subject!", ActionMailer::Base.deliveries.last.subject
+    assert_equal "New Subject!", ActionMailer::Base.deliveries.last.subject.to_s
   end
 
   def test_custom_template
@@ -430,6 +444,8 @@ class ActionMailerTest < Test::Unit::TestCase
     created = nil
     assert_nothing_raised { created = TestMailer.create_custom_template(@recipient) }
     assert_not_nil created
+    expected.message_id = '<123@456>'
+    created.message_id = '<123@456>'
     assert_equal expected.encoded, created.encoded
   end
 
@@ -452,8 +468,8 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_nothing_raised { created = TestMailer.create_custom_templating_extension(@recipient) }
     assert_not_nil created
     assert_equal 2, created.parts.length
-    assert_equal 'text/plain', created.parts[0].content_type
-    assert_equal 'text/html', created.parts[1].content_type
+    assert_equal 'text/plain', created.parts[0].content_type.string
+    assert_equal 'text/html', created.parts[1].content_type.string
   end
 
   def test_cancelled_account
@@ -467,11 +483,17 @@ class ActionMailerTest < Test::Unit::TestCase
     created = nil
     assert_nothing_raised { created = TestMailer.create_cancelled_account(@recipient) }
     assert_not_nil created
+    expected.message_id = '<123@456>'
+    created.message_id = '<123@456>'
     assert_equal expected.encoded, created.encoded
 
     assert_nothing_raised { TestMailer.deliver_cancelled_account(@recipient) }
     assert_not_nil ActionMailer::Base.deliveries.first
-    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
+    delivered = ActionMailer::Base.deliveries.first
+    expected.message_id = '<123@456>'
+    delivered.message_id = '<123@456>'
+
+    assert_equal expected.encoded, delivered.encoded
   end
 
   def test_cc_bcc
@@ -489,6 +511,8 @@ class ActionMailerTest < Test::Unit::TestCase
       created = TestMailer.create_cc_bcc @recipient
     end
     assert_not_nil created
+    expected.message_id = '<123@456>'
+    created.message_id = '<123@456>'
     assert_equal expected.encoded, created.encoded
 
     assert_nothing_raised do
@@ -496,7 +520,11 @@ class ActionMailerTest < Test::Unit::TestCase
     end
 
     assert_not_nil ActionMailer::Base.deliveries.first
-    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
+    delivered = ActionMailer::Base.deliveries.first
+    expected.message_id = '<123@456>'
+    delivered.message_id = '<123@456>'
+    
+    assert_equal expected.encoded, delivered.encoded
   end
 
   def test_from_without_name_for_smtp
@@ -518,7 +546,7 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_not_nil mail
     mail, from, to = mail
 
-    assert_equal 'system@loudthinking.com', from.to_s
+    assert_equal 'system@loudthinking.com', from.addresses.first
   end
 
   def test_reply_to
@@ -536,14 +564,23 @@ class ActionMailerTest < Test::Unit::TestCase
       created = TestMailer.create_different_reply_to @recipient
     end
     assert_not_nil created
+    
+    expected.message_id = '<123@456>'
+    created.message_id = '<123@456>'
+    
     assert_equal expected.encoded, created.encoded
 
     assert_nothing_raised do
       TestMailer.deliver_different_reply_to @recipient
     end
 
-    assert_not_nil ActionMailer::Base.deliveries.first
-    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
+    delivered = ActionMailer::Base.deliveries.first
+    assert_not_nil delivered
+    
+    expected.message_id = '<123@456>'
+    delivered.message_id = '<123@456>'
+    
+    assert_equal expected.encoded, delivered.encoded
   end
 
   def test_iso_charset
@@ -561,14 +598,23 @@ class ActionMailerTest < Test::Unit::TestCase
       created = TestMailer.create_iso_charset @recipient
     end
     assert_not_nil created
+    
+    expected.message_id = '<123@456>'
+    created.message_id = '<123@456>'
+
     assert_equal expected.encoded, created.encoded
 
     assert_nothing_raised do
       TestMailer.deliver_iso_charset @recipient
     end
 
-    assert_not_nil ActionMailer::Base.deliveries.first
-    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
+    delivered = ActionMailer::Base.deliveries.first
+    assert_not_nil delivered
+
+    expected.message_id = '<123@456>'
+    delivered.message_id = '<123@456>'
+    
+    assert_equal expected.encoded, delivered.encoded
   end
 
   def test_unencoded_subject
@@ -586,14 +632,23 @@ class ActionMailerTest < Test::Unit::TestCase
       created = TestMailer.create_unencoded_subject @recipient
     end
     assert_not_nil created
+
+    expected.message_id = '<123@456>'
+    created.message_id = '<123@456>'
+
     assert_equal expected.encoded, created.encoded
 
     assert_nothing_raised do
       TestMailer.deliver_unencoded_subject @recipient
     end
 
-    assert_not_nil ActionMailer::Base.deliveries.first
-    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
+    delivered = ActionMailer::Base.deliveries.first
+    assert_not_nil delivered
+
+    expected.message_id = '<123@456>'
+    delivered.message_id = '<123@456>'
+    
+    assert_equal expected.encoded, delivered.encoded
   end
 
   def test_instances_are_nil
@@ -659,7 +714,12 @@ class ActionMailerTest < Test::Unit::TestCase
     TestMailer.logger = FakeLogger.new
     TestMailer.deliver_signed_up(@recipient)
     assert(TestMailer.logger.info_contents =~ /Sent mail to #{@recipient}/)
-    assert_equal(TestMailer.logger.debug_contents, "\n#{mail.encoded}")
+    expected = TestMailer.logger.debug_contents
+    actual = "\n#{mail.encoded}"
+    expected.gsub!(/Message-ID:.*\r\n/, "Message-ID: <123@456>\r\n")
+    actual.gsub!(/Message-ID:.*\r\n/, "Message-ID: <123@456>\r\n")
+    
+    assert_equal(expected, actual)
   end
 
   def test_unquote_quoted_printable_subject
@@ -670,9 +730,9 @@ Content-Type: text/plain; charset=iso-8859-1
 
 The body
 EOF
-    mail = TMail::Mail.parse(msg)
-    assert_equal "testing testing \326\244", mail.subject
-    assert_equal "=?utf-8?Q?testing_testing_=D6=A4?=", mail.quoted_subject
+    mail = Mail.new(msg)
+    assert_equal "testing testing \326\244", mail.subject.to_s
+    assert_equal "Subject: =?utf-8?Q?testing_testing_=D6=A4?=\r\n", mail.subject.encoded
   end
 
   def test_unquote_7bit_subject
@@ -683,9 +743,9 @@ Content-Type: text/plain; charset=iso-8859-1
 
 The body
 EOF
-    mail = TMail::Mail.parse(msg)
-    assert_equal "this == working?", mail.subject
-    assert_equal "this == working?", mail.quoted_subject
+    mail = Mail.new(msg)
+    assert_equal "this == working?", mail.subject.to_s
+    assert_equal "Subject: this == working?\r\n", mail.subject.encoded
   end
 
   def test_unquote_7bit_body
@@ -697,9 +757,9 @@ Content-Transfer-Encoding: 7bit
 
 The=3Dbody
 EOF
-    mail = TMail::Mail.parse(msg)
-    assert_equal "The=3Dbody", mail.body.strip
-    assert_equal "The=3Dbody", mail.quoted_body.strip
+    mail = Mail.new(msg)
+    assert_equal "The=3Dbody", mail.body.to_s.strip
+    assert_equal "The=3Dbody", mail.body.encoded.strip
   end
 
   def test_unquote_quoted_printable_body
@@ -711,9 +771,9 @@ Content-Transfer-Encoding: quoted-printable
 
 The=3Dbody
 EOF
-    mail = TMail::Mail.parse(msg)
-    assert_equal "The=body", mail.body.strip
-    assert_equal "The=3Dbody", mail.quoted_body.strip
+    mail = Mail.new(msg)
+    assert_equal "The=body", mail.body.to_s.strip
+    assert_equal "The=3Dbody", mail.body.encoded.strip
   end
 
   def test_unquote_base64_body
@@ -725,9 +785,9 @@ Content-Transfer-Encoding: base64
 
 VGhlIGJvZHk=
 EOF
-    mail = TMail::Mail.parse(msg)
-    assert_equal "The body", mail.body.strip
-    assert_equal "VGhlIGJvZHk=", mail.quoted_body.strip
+    mail = Mail.new(msg)
+    assert_equal "The body", mail.body.to_s.strip
+    assert_equal "VGhlIGJvZHk=", mail.body.encoded.strip
   end
 
   def test_extended_headers
@@ -748,14 +808,22 @@ EOF
     end
 
     assert_not_nil created
+    expected.message_id = '<123@456>'
+    created.message_id = '<123@456>'
+
     assert_equal expected.encoded, created.encoded
 
     assert_nothing_raised do
       TestMailer.deliver_extended_headers @recipient
     end
 
-    assert_not_nil ActionMailer::Base.deliveries.first
-    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
+    delivered = ActionMailer::Base.deliveries.first
+    assert_not_nil delivered
+    
+    expected.message_id = '<123@456>'
+    delivered.message_id = '<123@456>'
+    
+    assert_equal expected.encoded, delivered.encoded
   end
 
   def test_utf8_body_is_not_quoted
@@ -786,40 +854,40 @@ EOF
 
     created = TestMailer.create_utf8_body @recipient
     assert_match(/\nFrom: =\?utf-8\?Q\?Foo_.*?\?= <extended@example.net>\r/, created.encoded)
-    assert_match(/\nTo: =\?utf-8\?Q\?Foo_.*?\?= <extended@example.net>, Example Recipient <me/, created.encoded)
+    assert_match(/\nTo: =\?utf-8\?Q\?Foo_.*?\?= <extended@example.net>, \r\n\tExample Recipient <me/, created.encoded)
   end
 
   def test_receive_decodes_base64_encoded_mail
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email")
     TestMailer.receive(fixture)
-    assert_match(/Jamis/, TestMailer.received_body)
+    assert_match(/Jamis/, TestMailer.received_body.to_s)
   end
 
   def test_receive_attachments
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email2")
-    mail = TMail::Mail.parse(fixture)
+    mail = Mail.new(fixture)
     attachment = mail.attachments.last
     assert_equal "smime.p7s", attachment.original_filename
-    assert_equal "application/pkcs7-signature", attachment.content_type
+    assert_equal "application/pkcs7-signature", mail.parts.last.content_type.string
   end
 
   def test_decode_attachment_without_charset
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email3")
-    mail = TMail::Mail.parse(fixture)
+    mail = Mail.new(fixture)
     attachment = mail.attachments.last
     assert_equal 1026, attachment.read.length
   end
 
   def test_attachment_using_content_location
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email12")
-    mail = TMail::Mail.parse(fixture)
+    mail = Mail.new(fixture)
     assert_equal 1, mail.attachments.length
     assert_equal "Photo25.jpg", mail.attachments.first.original_filename
   end
 
   def test_attachment_with_text_type
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email13")
-    mail = TMail::Mail.parse(fixture)
+    mail = Mail.new(fixture)
     assert mail.has_attachments?
     assert_equal 1, mail.attachments.length
     assert_equal "hello.rb", mail.attachments.first.original_filename
@@ -827,25 +895,25 @@ EOF
 
   def test_decode_part_without_content_type
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email4")
-    mail = TMail::Mail.parse(fixture)
+    mail = Mail.new(fixture)
     assert_nothing_raised { mail.body }
   end
 
   def test_decode_message_without_content_type
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email5")
-    mail = TMail::Mail.parse(fixture)
+    mail = Mail.new(fixture)
     assert_nothing_raised { mail.body }
   end
 
   def test_decode_message_with_incorrect_charset
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email6")
-    mail = TMail::Mail.parse(fixture)
+    mail = Mail.new(fixture)
     assert_nothing_raised { mail.body }
   end
 
   def test_multipart_with_mime_version
     mail = TestMailer.create_multipart_with_mime_version(@recipient)
-    assert_equal "1.1", mail.mime_version
+    assert_equal "1.1", mail.mime_version.version
   end
 
   def test_multipart_with_utf8_subject
@@ -861,30 +929,29 @@ EOF
   def test_explicitly_multipart_messages
     mail = TestMailer.create_explicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length
-    assert_nil mail.content_type
-    assert_equal "text/plain", mail.parts[0].content_type
+    assert_equal 'multipart/mixed', mail.content_type.string
+    assert_equal "text/plain", mail.parts[0].content_type.string
 
-    assert_equal "text/html", mail.parts[1].content_type
-    assert_equal "iso-8859-1", mail.parts[1].sub_header("content-type", "charset")
-    assert_equal "inline", mail.parts[1].content_disposition
+    assert_equal "text/html", mail.parts[1].content_type.string
+    assert_equal "iso-8859-1", mail.parts[1].charset
 
-    assert_equal "image/jpeg", mail.parts[2].content_type
-    assert_equal "attachment", mail.parts[2].content_disposition
-    assert_equal "foo.jpg", mail.parts[2].sub_header("content-disposition", "filename")
-    assert_equal "foo.jpg", mail.parts[2].sub_header("content-type", "name")
-    assert_nil mail.parts[2].sub_header("content-type", "charset")
+    assert_equal "image/jpeg", mail.parts[2].content_type.string
+    assert_equal "attachment", mail.parts[2].content_disposition.disposition_type
+    assert_equal "foo.jpg", mail.parts[2].content_disposition.filename
+    assert_equal "foo.jpg", mail.parts[2].content_type.filename
+    assert_nil mail.parts[2].charset
   end
 
   def test_explicitly_multipart_with_content_type
     mail = TestMailer.create_explicitly_multipart_example(@recipient, "multipart/alternative")
     assert_equal 3, mail.parts.length
-    assert_equal "multipart/alternative", mail.content_type
+    assert_equal "multipart/alternative", mail.content_type.string
   end
 
   def test_explicitly_multipart_with_invalid_content_type
     mail = TestMailer.create_explicitly_multipart_example(@recipient, "text/xml")
     assert_equal 3, mail.parts.length
-    assert_nil mail.content_type
+    assert_equal 'multipart/mixed', mail.content_type.string
   end
 
   def test_implicitly_multipart_messages
@@ -892,14 +959,14 @@ EOF
 
     mail = TestMailer.create_implicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length
-    assert_equal "1.0", mail.mime_version
-    assert_equal "multipart/alternative", mail.content_type
-    assert_equal "application/x-yaml", mail.parts[0].content_type
-    assert_equal "utf-8", mail.parts[0].sub_header("content-type", "charset")
-    assert_equal "text/plain", mail.parts[1].content_type
-    assert_equal "utf-8", mail.parts[1].sub_header("content-type", "charset")
-    assert_equal "text/html", mail.parts[2].content_type
-    assert_equal "utf-8", mail.parts[2].sub_header("content-type", "charset")
+    assert_equal "1.0", mail.mime_version.to_s
+    assert_equal "multipart/alternative", mail.content_type.string
+    assert_equal "text/plain", mail.parts[0].content_type.string
+    assert_equal "utf-8", mail.parts[0].charset
+    assert_equal "text/html", mail.parts[1].content_type.string
+    assert_equal "utf-8", mail.parts[1].charset
+    assert_equal "application/x-yaml", mail.parts[2].content_type.string
+    assert_equal "utf-8", mail.parts[2].charset
   end
 
   def test_implicitly_multipart_messages_with_custom_order
@@ -907,41 +974,43 @@ EOF
 
     mail = TestMailer.create_implicitly_multipart_example(@recipient, nil, ["application/x-yaml", "text/plain"])
     assert_equal 3, mail.parts.length
-    assert_equal "text/html", mail.parts[0].content_type
-    assert_equal "text/plain", mail.parts[1].content_type
-    assert_equal "application/x-yaml", mail.parts[2].content_type
+    assert_equal "application/x-yaml", mail.parts[0].content_type.string
+    assert_equal "text/plain", mail.parts[1].content_type.string
+    assert_equal "text/html", mail.parts[2].content_type.string
   end
 
   def test_implicitly_multipart_messages_with_charset
     mail = TestMailer.create_implicitly_multipart_example(@recipient, 'iso-8859-1')
 
-    assert_equal "multipart/alternative", mail.header['content-type'].body
+    assert_equal "multipart/alternative", mail.header['content-type'].content_type
 
-    assert_equal 'iso-8859-1', mail.parts[0].sub_header("content-type", "charset")
-    assert_equal 'iso-8859-1', mail.parts[1].sub_header("content-type", "charset")
-    assert_equal 'iso-8859-1', mail.parts[2].sub_header("content-type", "charset")
+    assert_equal 'iso-8859-1', mail.parts[0].content_type.parameters[:charset]
+    assert_equal 'iso-8859-1', mail.parts[1].content_type.parameters[:charset]
+    assert_equal 'iso-8859-1', mail.parts[2].content_type.parameters[:charset]
   end
 
   def test_html_mail
     mail = TestMailer.create_html_mail(@recipient)
-    assert_equal "text/html", mail.content_type
+    assert_equal "text/html", mail.content_type.string
   end
 
   def test_html_mail_with_underscores
     mail = TestMailer.create_html_mail_with_underscores(@recipient)
-    assert_equal %{<a href="http://google.com" target="_blank">_Google</a>}, mail.body
+    assert_equal %{<a href="http://google.com" target="_blank">_Google</a>}, mail.body.to_s
   end
 
   def test_various_newlines
     mail = TestMailer.create_various_newlines(@recipient)
     assert_equal("line #1\nline #2\nline #3\nline #4\n\n" +
-                 "line #5\n\nline#6\n\nline #7", mail.body)
+                 "line #5\n\nline#6\n\nline #7", mail.body.to_s)
   end
 
   def test_various_newlines_multipart
     mail = TestMailer.create_various_newlines_multipart(@recipient)
-    assert_equal "line #1\nline #2\nline #3\nline #4\n\n", mail.parts[0].body
-    assert_equal "<p>line #1</p>\n<p>line #2</p>\n<p>line #3</p>\n<p>line #4</p>\n\n", mail.parts[1].body
+    assert_equal "line #1\nline #2\nline #3\nline #4\n\n", mail.parts[0].body.to_s
+    assert_equal "<p>line #1</p>\n<p>line #2</p>\n<p>line #3</p>\n<p>line #4</p>\n\n", mail.parts[1].body.to_s
+    assert_equal "line #1\r\nline #2\r\nline #3\r\nline #4\r\n\r\n", mail.parts[0].body.encoded
+    assert_equal "<p>line #1</p>\r\n<p>line #2</p>\r\n<p>line #3</p>\r\n<p>line #4</p>\r\n\r\n", mail.parts[1].body.encoded
   end
 
   def test_headers_removed_on_smtp_delivery
@@ -969,35 +1038,41 @@ EOF
 
   def test_recursive_multipart_processing
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email7")
-    mail = TMail::Mail.parse(fixture)
-    assert_equal "This is the first part.\n\nAttachment: test.rb\nAttachment: test.pdf\n\n\nAttachment: smime.p7s\n", mail.body
+    mail = Mail.new(fixture)
+    assert_equal(2, mail.parts.length)
+    assert_equal(4, mail.parts.first.parts.length)
+    assert_equal("This is the first part.", mail.parts.first.parts.first.body.to_s)
+    assert_equal("test.rb", mail.parts.first.parts.second.filename)
+    assert_equal("flowed", mail.parts.first.parts.fourth.content_type.parameters[:format])
+    assert_equal('smime.p7s', mail.parts.second.filename)
   end
 
   def test_decode_encoded_attachment_filename
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email8")
-    mail = TMail::Mail.parse(fixture)
+    mail = Mail.new(fixture)
     attachment = mail.attachments.last
 
     expected = "01 Quien Te Dij\212at. Pitbull.mp3"
-    expected.force_encoding(Encoding::ASCII_8BIT) if expected.respond_to?(:force_encoding)
-
-    assert_equal expected, attachment.original_filename
-  end
-
-  def test_wrong_mail_header
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email9")
-    assert_raise(TMail::SyntaxError) { TMail::Mail.parse(fixture) }
+    
+    if expected.respond_to?(:force_encoding)
+      result = attachment.original_filename.dup
+      expected.force_encoding(Encoding::ASCII_8BIT)
+      result.force_encoding(Encoding::ASCII_8BIT)
+      assert_equal expected, result
+    else
+      assert_equal expected, attachment.original_filename
+    end
   end
 
   def test_decode_message_with_unknown_charset
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email10")
-    mail = TMail::Mail.parse(fixture)
+    mail = Mail.new(fixture)
     assert_nothing_raised { mail.body }
   end
 
   def test_empty_header_values_omitted
     result = TestMailer.create_unnamed_attachment(@recipient).encoded
-    assert_match %r{Content-Type: application/octet-stream[^;]}, result
+    assert_match %r{Content-Type: application/octet-stream;}, result
     assert_match %r{Content-Disposition: attachment[^;]}, result
   end
 
@@ -1020,31 +1095,32 @@ EOF
   def test_multipart_with_template_path_with_dots
     mail = FunkyPathMailer.create_multipart_with_template_path_with_dots(@recipient)
     assert_equal 2, mail.parts.length
-    assert "text/plain", mail.parts[1].content_type
+    assert "text/plain", mail.parts[1].content_type.string
     assert "utf-8", mail.parts[1].charset
   end
 
   def test_custom_content_type_attributes
     mail = TestMailer.create_custom_content_type_attributes
-    assert_match %r{format=flowed}, mail['content-type'].to_s
-    assert_match %r{charset=utf-8}, mail['content-type'].to_s
+    assert_match %r{format="flowed"}, mail.content_type.encoded
+    assert_match %r{charset="utf-8"}, mail.content_type.encoded
   end
 
   def test_return_path_with_create
     mail = TestMailer.create_return_path
-    assert_equal "<another@somewhere.test>", mail['return-path'].to_s
+    assert_equal "another@somewhere.test", mail['return-path'].to_s
   end
 
   def test_return_path_with_deliver
     ActionMailer::Base.delivery_method = :smtp
     TestMailer.deliver_return_path
-    assert_match %r{^Return-Path: <another@somewhere.test>}, MockSMTP.deliveries[0][0]
+    assert_match %r{^Return-Path: another@somewhere.test}, MockSMTP.deliveries[0][0]
     assert_equal "another@somewhere.test", MockSMTP.deliveries[0][1].to_s
   end
 
   def test_body_is_stored_as_an_ivar
-    mail = TestMailer.create_body_ivar(@recipient)
-    assert_equal "body: foo\nbar: baz", mail.body
+    mail = nil
+    ActiveSupport::Deprecation.silence { mail = TestMailer.create_body_ivar(@recipient) }
+    assert_equal "body: foo\nbar: baz", mail.body.to_s
   end
 
   def test_starttls_is_enabled_if_supported
@@ -1173,6 +1249,6 @@ class RespondToTest < Test::Unit::TestCase
       RespondToMailer.not_a_method
     end
 
-    assert_match /undefined method.*not_a_method/, error.message
+    assert_match(/undefined method.*not_a_method/, error.message)
   end
 end

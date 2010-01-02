@@ -9,11 +9,12 @@ require 'models/custom_reader'
 
 class ValidationsTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
-  include ActiveModel::ValidationsRepairHelper
 
   # Most of the tests mess with the validations of Topic, so lets repair it all the time.
   # Other classes we mess with will be dealt with in the specific tests
-  repair_validations(Topic)
+  def teardown
+    Topic.reset_callbacks(:validate)
+  end
 
   def test_single_field_validation
     r = Reply.new

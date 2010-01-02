@@ -74,7 +74,7 @@ module ActionController #:nodoc:
         return unless cache_configured?
         key = fragment_cache_key(key)
 
-        ActiveSupport::Notifications.instrument(:fragment_exist?, :key => key) do
+        ActiveSupport::Notifications.instrument(:exist_fragment?, :key => key) do
           cache_store.exist?(key, options)
         end
       end

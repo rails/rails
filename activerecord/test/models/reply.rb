@@ -7,10 +7,12 @@ class Reply < Topic
   belongs_to :topic_with_primary_key, :class_name => "Topic", :primary_key => "title", :foreign_key => "parent_title", :counter_cache => "replies_count"
   has_many :replies, :class_name => "SillyReply", :dependent => :destroy, :foreign_key => "parent_id"
 
+  attr_accessible :title, :author_name, :author_email_address, :written_on, :content, :last_read, :parent_title
+end
+
+class WrongReply < Reply
   validate :errors_on_empty_content
   validate :title_is_wrong_create, :on => :create
-
-  attr_accessible :title, :author_name, :author_email_address, :written_on, :content, :last_read, :parent_title
 
   validate :check_empty_title
   validate :check_content_mismatch, :on => :create

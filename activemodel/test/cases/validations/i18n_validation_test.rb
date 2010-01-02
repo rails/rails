@@ -1,6 +1,5 @@
 require "cases/helper"
 require 'cases/tests_database'
-
 require 'models/person'
 
 class I18nValidationTest < ActiveModel::TestCase
