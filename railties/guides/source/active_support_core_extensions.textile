@@ -675,6 +675,8 @@ The method +String#squish+ strips leading and trailing whitespace, and substitut
 
 There's also the destructive version +String#squish!+.
 
+NOTE: Defined in +active_support/core_ext/string/filters.rb+.
+
 h4. Key-based Interpolation
 
 In Ruby 1.9 the <tt>%</tt> string operator supports key-based interpolation, both formatted and unformatted:
@@ -687,6 +689,8 @@ In Ruby 1.9 the <tt>%</tt> string operator supports key-based interpolation, bot
 
 Active Support adds that functionality to <tt>%</tt> in previous versions of Ruby.
 
+NOTE: Defined in +active_support/core_ext/string/interpolation.rb+.
+
 h4. +starts_with?+ and +ends_width?+
 
 Active Support defines 3rd person aliases of +String#start_with?+ and +String#end_with?+:
@@ -695,6 +699,8 @@ Active Support defines 3rd person aliases of +String#start_with?+ and +String#en
 "foo".starts_with?("f") # => true
 "foo".ends_with?("o")   # => true
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/string/starts_ends_with.rb+.
 
 h4. Access
 
@@ -709,6 +715,8 @@ Returns the character of the string at position +position+:
 "hello".at(10) # => ERROR if < 1.9, nil in 1.9
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/string/access.rb+.
+
 h5. +from(position)+
 
 Returns the substring of the string starting at position +position+:
@@ -719,6 +727,8 @@ Returns the substring of the string starting at position +position+:
 "hello".from(-2) # => "lo"
 "hello".from(10) # => "" if < 1.9, nil in 1.9
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/string/access.rb+.
 
 h5. +to(position)+
 
@@ -731,13 +741,19 @@ Returns the substring of the string up to position +position+:
 "hello".to(10) # => "hello"
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/string/access.rb+.
+
 h5. +first(limit = 1)+
 
 The call +str.first(n)+ is equivalent to +str.to(n-1)+ if +n+ > 0, and returns an empty string for +n+ == 0.
 
+NOTE: Defined in +active_support/core_ext/string/access.rb+.
+
 h5. +last(limit = 1)+
 
 The call +str.last(n)+ is equivalent to +str.from(-n)+ if +n+ > 0, and returns an empty string for +n+ == 0.
+
+NOTE: Defined in +active_support/core_ext/string/access.rb+.
 
 h3. Extensions to +Numeric+
 
@@ -770,6 +786,8 @@ Singular forms are aliased so you are able to say:
 1.megabyte # => 1048576
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/numeric/bytes.rb+.
+
 h3. Extensions to +Integer+
 
 h4. +multiple_of?+
@@ -783,6 +801,8 @@ The method +multiple_of?+ tests whether an integer is multiple of the argument:
 
 WARNING: Due the way it is implemented the argument must be nonzero, otherwise +ZeroDivisionError+ is raised.
 
+NOTE: Defined in +active_support/core_ext/integer/multiple.rb+.
+
 h4. +ordinalize+
 
 The method +ordinalize+ returns the ordinal string corresponding to the receiver integer:
@@ -793,6 +813,8 @@ The method +ordinalize+ returns the ordinal string corresponding to the receiver
 53.ordinalize   # => "53rd"
 2009.ordinalize # => "2009th"
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/integer/inflections.rb+.
 
 h3. Extensions to +Float+
 
@@ -817,6 +839,8 @@ end
 </ruby>
 
 WARNING. Active Support redefines +group_by+ in Ruby 1.8.7 so that it still returns an ordered hash.
+
+NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
 h4. +sum+
 
@@ -863,6 +887,8 @@ def observed_subclasses
 end
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/enumerable.rb+.
+
 h4. +each_with_object+
 
 The +inject+ method offers iteration with an accumulator:
@@ -887,6 +913,8 @@ Active Support backports +each_with_object+ from Ruby 1.9, which addresses that 
 
 WARNING. Note that the item of the collection and the accumulator come in different order in +inject+ and +each_with_object+.
 
+NOTE: Defined in +active_support/core_ext/enumerable.rb+.
+
 h4. +index_by+
 
 The method +index_by+ generates a hash with the elements of an enumerable indexed by some key.
@@ -899,6 +927,8 @@ invoices.index_by(&:number)
 </ruby>
 
 WARNING. Keys should normally be unique. If the block returns the same value for different elements no collection is built for that key. The last item will win.
+
+NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
 h4. +many?+
 
@@ -916,6 +946,8 @@ If an optional block is given +many?+ only takes into account those elements tha
 @see_more = videos.many? {|video| video.category == params[:category]}
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/enumerable.rb+.
+
 h4. +exclude?+
 
 The predicate +exclude?+ tests whether a given object does *not* belong to the collection. It is the negation of the builtin +include?+:
@@ -923,6 +955,8 @@ The predicate +exclude?+ tests whether a given object does *not* belong to the c
 <ruby>
 to_visit << node if visited.exclude?(node)
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
 h3. Extensions to +Array+
 
@@ -951,6 +985,8 @@ You can pick a random element with +rand+:
 shape_type = [Circle, Square, Triangle].rand
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/array/access.rb+.
+
 h4. Options Extraction
 
 When the last argument in a method call is a hash, except perhaps for a +&block+ argument, Ruby allows you to omit the brackets:
@@ -976,6 +1012,8 @@ end
 </ruby>
 
 This method receives an arbitrary number of action names, and an optional hash of options as last argument. With the call to +extract_options!+ you obtain the options hash and remove it from +actions+ in a simple and explicit way.
+
+NOTE: Defined in +active_support/core_ext/array/extract_options.rb+.
 
 h4. Conversions
 
@@ -1005,6 +1043,8 @@ The defaults for these options can be localised, their keys are:
 
 Options <tt>:connector</tt> and <tt>:skip_last_comma</tt> are deprecated.
 
+NOTE: Defined in +active_support/core_ext/array/conversions.rb+.
+
 h5. +to_formatted_s+
 
 The method +to_formatted_s+ acts like +to_s+ by default.
@@ -1018,6 +1058,8 @@ invoice.lines.to_formatted_s(:db) # => "23,567,556,12"
 </ruby>
 
 Integers in the example above are supposed to come from the respective calls to +id+.
+
+NOTE: Defined in +active_support/core_ext/array/conversions.rb+.
 
 h5. +to_xml+
 
@@ -1118,6 +1160,8 @@ Contributor.all(:limit => 2, :order => 'rank ASC').to_xml(:skip_types => true)
 # </contributors>
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/array/conversions.rb+.
+
 h4. Wrapping
 
 The class method +Array.wrap+ behaves like the function +Array()+ except that it does not try to call +to_a+ on its argument. That changes the behaviour for enumerables:
@@ -1129,6 +1173,8 @@ Array(:foo => :bar)      # => [[:foo, :bar]]
 Array.wrap("foo\nbar")   # => ["foo\nbar"]
 Array("foo\nbar")        # => ["foo\n", "bar"], in Ruby 1.8
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/array/wrap.rb+.
 
 h4. Grouping
 
@@ -1166,6 +1212,8 @@ And you can tell the method not to fill the last group passing +false+:
 
 As a consequence +false+ can't be a used as a padding value.
 
+NOTE: Defined in +active_support/core_ext/array/grouping.rb+.
+
 h5. +in_groups(number, fill_with = nil)+
 
 The method +in_groups+ splits an array into a certain number of groups. The method returns and array with the groups:
@@ -1202,6 +1250,8 @@ And you can tell the method not to fill the smaller groups passing +false+:
 
 As a consequence +false+ can't be a used as a padding value.
 
+NOTE: Defined in +active_support/core_ext/array/grouping.rb+.
+
 h5. +split(value = nil)+
 
 The method +split+ divides an array by a separator and returns the resulting chunks.
@@ -1220,7 +1270,9 @@ Otherwise, the value received as argument, which defaults to +nil+, is the separ
 # => [[0], [-5], [], ["foo", "bar"]]
 </ruby>
 
-NOTE: Observe in the previous example that consecutive separators result in empty arrays.
+TIP: Observe in the previous example that consecutive separators result in empty arrays.
+
+NOTE: Defined in +active_support/core_ext/array/grouping.rb+.
 
 h3. Extensions to +Hash+
 
@@ -1270,6 +1322,8 @@ By default the root node is "hash", but that's configurable via the <tt>:root</t
 
 The default XML builder is a fresh instance of <tt>Builder::XmlMarkup</tt>. You can configure your own builder with the <tt>:builder</tt> option. The method also accepts options like <tt>:dasherize</tt> and friends, they are forwarded to the builder.
 
+NOTE: Defined in +active_support/core_ext/hash/conversions.rb+.
+
 h4. Merging
 
 Ruby has a builtin method +Hash#merge+ that merges two hashes:
@@ -1303,11 +1357,15 @@ options.reverse_merge!(:length => 30, :omission => "...")
 
 WARNING. Take into account that +reverse_merge!+ may change the hash in the caller, which may or may not be a good idea.
 
+NOTE: Defined in +active_support/core_ext/hash/reverse_merge.rb+.
+
 h5. +reverse_update+
 
 The method +reverse_update+ is an alias for +reverse_merge!+, explained above.
 
 WARNING. Note that +reverse_update+ has no bang.
+
+NOTE: Defined in +active_support/core_ext/hash/reverse_merge.rb+.
 
 h5. +deep_merge+ and +deep_merge!+
 
@@ -1321,6 +1379,8 @@ Active Support defines +Hash#deep_merge+. In a deep merge, if a key is found in 
 </ruby>
 
 The method +deep_merge!+ performs a deep merge in place.
+
+NOTE: Defined in +active_support/core_ext/hash/deep_merge.rb+.
 
 h4. Diffing
 
@@ -1358,6 +1418,8 @@ hash.diff(hash2).diff(hash2) == hash
 
 Diffing hashes may be useful for error messages related to expected option hashes for example.
 
+NOTE: Defined in +active_support/core_ext/hash/diff.rb+.
+
 h4. Working with Keys
 
 h5. +except+ and +except!+
@@ -1383,6 +1445,8 @@ params[:account] = params[:account].except(:plan_id) unless admin?
 </ruby>
 
 There's also the bang variant +except!+ that removes keys in the very receiver.
+
+NOTE: Defined in +active_support/core_ext/hash/except.rb+.
 
 h5. +stringify_keys+ and +stringify_keys!+
 
@@ -1413,6 +1477,8 @@ end
 The second line can safely access the "type" key, and let the user to pass either +:type+ or "type".
 
 There's also the bang variant +stringify_keys!+ that stringifies keys in the very receiver.
+
+NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
 h5. +symbolize_keys+ and +symbolize_keys!+
 
@@ -1446,9 +1512,13 @@ The second line can safely access the +:params+ key, and let the user to pass ei
 
 There's also the bang variant +symbolize_keys!+ that symbolizes keys in the very receiver.
 
+NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
+
 h5. +to_options+ and +to_options!+
 
 The methods +to_options+ and +to_options!+ are respectively aliases of +symbolize_keys+ and +symbolize_keys!+.
+
+NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
 h5. +assert_valid_keys+
 
@@ -1481,6 +1551,8 @@ def create_has_many_reflection(association_id, options, &extension)
 end
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
+
 h4. Slicing
 
 Ruby has builtin support for taking slices out of strings and arrays. Active Support extends slicing to hashes:
@@ -1510,6 +1582,8 @@ rest = hash.slice!(:a) # => {:b => 2}
 hash                   # => {:a => 1}
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/hash/slice.rb+.
+
 h4. Indifferent Access
 
 The method +with_indifferent_access+ returns an +ActiveSupport::HashWithIndifferentAccess+ out of its receiver:
@@ -1517,6 +1591,8 @@ The method +with_indifferent_access+ returns an +ActiveSupport::HashWithIndiffer
 <ruby>
 {:a => 1}.with_indifferent_access["a"] # => 1
 </ruby>
+
+NOTE: Defined in +active_support/core_ext/hash/indifferent_access.rb+.
 
 h3. Extensions to +Regexp+
 
