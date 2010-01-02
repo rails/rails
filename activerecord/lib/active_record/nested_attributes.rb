@@ -264,21 +264,11 @@ module ActiveRecord
       marked_for_destruction?
     end
 
-    # Deal with deprecated _delete.
-    #
-    def _delete #:nodoc:
-      ActiveSupport::Deprecation.warn "_delete is deprecated in nested attributes. Use _destroy instead."
-      _destroy
-    end
-
     private
 
     # Attribute hash keys that should not be assigned as normal attributes.
     # These hash keys are nested attributes implementation details.
-    #
-    # TODO Remove _delete from UNASSIGNABLE_KEYS when deprecation warning are
-    # removed.
-    UNASSIGNABLE_KEYS = %w( id _destroy _delete )
+    UNASSIGNABLE_KEYS = %w( id _destroy )
 
     # Assigns the given attributes to the association.
     #
@@ -375,8 +365,7 @@ module ActiveRecord
 
     # Determines if a hash contains a truthy _destroy key.
     def has_destroy_flag?(hash)
-      ConnectionAdapters::Column.value_to_boolean(hash['_destroy']) ||
-      ConnectionAdapters::Column.value_to_boolean(hash['_delete']) # TODO Remove after deprecation.
+      ConnectionAdapters::Column.value_to_boolean(hash['_destroy'])
     end
 
     # Determines if a new record should be build by checking for
