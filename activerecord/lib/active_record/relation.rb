@@ -156,7 +156,7 @@ module ActiveRecord
     end
 
     def reset
-      @first = @last = @create_scope = @joined_tables = @to_sql = nil
+      @first = @last = @create_scope = @to_sql = nil
       @records = []
       self
     end
@@ -220,25 +220,8 @@ module ActiveRecord
     end
 
     def references_eager_loaded_tables?
-      include_eager_order? || include_eager_conditions? || include_eager_select?
-    end
-
-    def include_eager_order?
-      order_clause = @relation.send(:order_clauses).join(', ')
-      (tables_in_string(order_clause) - joined_tables).any?
-    end
-
-    def include_eager_conditions?
-      (tables_in_string(where_clause) - joined_tables).any?
-    end
-
-    def include_eager_select?
-      select_clause = @relation.send(:select_clauses).join(', ')
-      (tables_in_string(select_clause) - joined_tables).any?
-    end
-
-    def joined_tables
-      @joined_tables ||= (tables_in_string(@relation.joins(relation)) + [table.name, table.table_alias]).compact.uniq
+      joined_tables = (tables_in_string(@relation.joins(relation)) + [table.name, table.table_alias]).compact.uniq
+      (tables_in_string(to_sql) - joined_tables).any?
     end
 
     def tables_in_string(string)
