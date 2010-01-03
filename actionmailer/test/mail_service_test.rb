@@ -362,13 +362,13 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_equal 2, created.parts.size
     assert_equal 2, created.parts.first.parts.size
 
-    assert_equal "multipart/mixed", created.content_type.string
-    assert_equal "multipart/alternative", created.parts[0].content_type.string
+    assert_equal "multipart/mixed", created.mime_type
+    assert_equal "multipart/alternative", created.parts[0].mime_type
     assert_equal "bar", created.parts[0].header['foo'].to_s
     assert_nil created.parts[0].charset
-    assert_equal "text/plain", created.parts[0].parts[0].content_type.string
-    assert_equal "text/html", created.parts[0].parts[1].content_type.string
-    assert_equal "application/octet-stream", created.parts[1].content_type.string
+    assert_equal "text/plain", created.parts[0].parts[0].mime_type
+    assert_equal "text/html", created.parts[0].parts[1].mime_type
+    assert_equal "application/octet-stream", created.parts[1].mime_type
     
   end
 
@@ -380,11 +380,11 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_equal 1,created.parts.size
     assert_equal 2,created.parts.first.parts.size
 
-    assert_equal "multipart/mixed", created.content_type.string
-    assert_equal "multipart/alternative", created.parts.first.content_type.string
-    assert_equal "text/plain", created.parts.first.parts.first.content_type.string
+    assert_equal "multipart/mixed", created.mime_type
+    assert_equal "multipart/alternative", created.parts.first.mime_type
+    assert_equal "text/plain", created.parts.first.parts.first.mime_type
     assert_equal "Nothing to see here.", created.parts.first.parts.first.body.to_s
-    assert_equal "text/html", created.parts.first.parts.second.content_type.string
+    assert_equal "text/html", created.parts.first.parts.second.mime_type
     assert_equal "<b>test</b> HTML<br/>", created.parts.first.parts.second.body.to_s
   end
 
@@ -468,8 +468,8 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_nothing_raised { created = TestMailer.create_custom_templating_extension(@recipient) }
     assert_not_nil created
     assert_equal 2, created.parts.length
-    assert_equal 'text/plain', created.parts[0].content_type.string
-    assert_equal 'text/html', created.parts[1].content_type.string
+    assert_equal 'text/plain', created.parts[0].mime_type
+    assert_equal 'text/html', created.parts[1].mime_type
   end
 
   def test_cancelled_account
@@ -731,8 +731,8 @@ Content-Type: text/plain; charset=iso-8859-1
 The body
 EOF
     mail = Mail.new(msg)
-    assert_equal "testing testing \326\244", mail.subject.to_s
-    assert_equal "Subject: =?utf-8?Q?testing_testing_=D6=A4?=\r\n", mail.subject.encoded
+    assert_equal "testing testing \326\244", mail.subject
+    assert_equal "Subject: =?utf-8?Q?testing_testing_=D6=A4?=\r\n", mail[:subject].encoded
   end
 
   def test_unquote_7bit_subject
@@ -744,8 +744,8 @@ Content-Type: text/plain; charset=iso-8859-1
 The body
 EOF
     mail = Mail.new(msg)
-    assert_equal "this == working?", mail.subject.to_s
-    assert_equal "Subject: this == working?\r\n", mail.subject.encoded
+    assert_equal "this == working?", mail.subject
+    assert_equal "Subject: this == working?\r\n", mail[:subject].encoded
   end
 
   def test_unquote_7bit_body
@@ -868,7 +868,7 @@ EOF
     mail = Mail.new(fixture)
     attachment = mail.attachments.last
     assert_equal "smime.p7s", attachment.original_filename
-    assert_equal "application/pkcs7-signature", mail.parts.last.content_type.string
+    assert_equal "application/pkcs7-signature", mail.parts.last.mime_type
   end
 
   def test_decode_attachment_without_charset
@@ -913,7 +913,7 @@ EOF
 
   def test_multipart_with_mime_version
     mail = TestMailer.create_multipart_with_mime_version(@recipient)
-    assert_equal "1.1", mail.mime_version.version
+    assert_equal "1.1", mail.mime_version
   end
 
   def test_multipart_with_utf8_subject
@@ -929,29 +929,29 @@ EOF
   def test_explicitly_multipart_messages
     mail = TestMailer.create_explicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length
-    assert_equal 'multipart/mixed', mail.content_type.string
-    assert_equal "text/plain", mail.parts[0].content_type.string
+    assert_equal 'multipart/mixed', mail.mime_type
+    assert_equal "text/plain", mail.parts[0].mime_type
 
-    assert_equal "text/html", mail.parts[1].content_type.string
+    assert_equal "text/html", mail.parts[1].mime_type
     assert_equal "iso-8859-1", mail.parts[1].charset
 
-    assert_equal "image/jpeg", mail.parts[2].content_type.string
-    assert_equal "attachment", mail.parts[2].content_disposition.disposition_type
-    assert_equal "foo.jpg", mail.parts[2].content_disposition.filename
-    assert_equal "foo.jpg", mail.parts[2].content_type.filename
+    assert_equal "image/jpeg", mail.parts[2].mime_type
+    assert_equal "attachment", mail.parts[2][:content_disposition].disposition_type
+    assert_equal "foo.jpg", mail.parts[2][:content_disposition].filename
+    assert_equal "foo.jpg", mail.parts[2][:content_type].filename
     assert_nil mail.parts[2].charset
   end
 
   def test_explicitly_multipart_with_content_type
     mail = TestMailer.create_explicitly_multipart_example(@recipient, "multipart/alternative")
     assert_equal 3, mail.parts.length
-    assert_equal "multipart/alternative", mail.content_type.string
+    assert_equal "multipart/alternative", mail.mime_type
   end
 
   def test_explicitly_multipart_with_invalid_content_type
     mail = TestMailer.create_explicitly_multipart_example(@recipient, "text/xml")
     assert_equal 3, mail.parts.length
-    assert_equal 'multipart/mixed', mail.content_type.string
+    assert_equal 'multipart/mixed', mail.mime_type
   end
 
   def test_implicitly_multipart_messages
@@ -960,12 +960,12 @@ EOF
     mail = TestMailer.create_implicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length
     assert_equal "1.0", mail.mime_version.to_s
-    assert_equal "multipart/alternative", mail.content_type.string
-    assert_equal "text/plain", mail.parts[0].content_type.string
+    assert_equal "multipart/alternative", mail.mime_type
+    assert_equal "text/plain", mail.parts[0].mime_type
     assert_equal "utf-8", mail.parts[0].charset
-    assert_equal "text/html", mail.parts[1].content_type.string
+    assert_equal "text/html", mail.parts[1].mime_type
     assert_equal "utf-8", mail.parts[1].charset
-    assert_equal "application/x-yaml", mail.parts[2].content_type.string
+    assert_equal "application/x-yaml", mail.parts[2].mime_type
     assert_equal "utf-8", mail.parts[2].charset
   end
 
@@ -974,9 +974,9 @@ EOF
 
     mail = TestMailer.create_implicitly_multipart_example(@recipient, nil, ["application/x-yaml", "text/plain"])
     assert_equal 3, mail.parts.length
-    assert_equal "application/x-yaml", mail.parts[0].content_type.string
-    assert_equal "text/plain", mail.parts[1].content_type.string
-    assert_equal "text/html", mail.parts[2].content_type.string
+    assert_equal "application/x-yaml", mail.parts[0].mime_type
+    assert_equal "text/plain", mail.parts[1].mime_type
+    assert_equal "text/html", mail.parts[2].mime_type
   end
 
   def test_implicitly_multipart_messages_with_charset
@@ -984,14 +984,14 @@ EOF
 
     assert_equal "multipart/alternative", mail.header['content-type'].content_type
 
-    assert_equal 'iso-8859-1', mail.parts[0].content_type.parameters[:charset]
-    assert_equal 'iso-8859-1', mail.parts[1].content_type.parameters[:charset]
-    assert_equal 'iso-8859-1', mail.parts[2].content_type.parameters[:charset]
+    assert_equal 'iso-8859-1', mail.parts[0].content_type_parameters[:charset]
+    assert_equal 'iso-8859-1', mail.parts[1].content_type_parameters[:charset]
+    assert_equal 'iso-8859-1', mail.parts[2].content_type_parameters[:charset]
   end
 
   def test_html_mail
     mail = TestMailer.create_html_mail(@recipient)
-    assert_equal "text/html", mail.content_type.string
+    assert_equal "text/html", mail.mime_type
   end
 
   def test_html_mail_with_underscores
@@ -1043,7 +1043,7 @@ EOF
     assert_equal(4, mail.parts.first.parts.length)
     assert_equal("This is the first part.", mail.parts.first.parts.first.body.to_s)
     assert_equal("test.rb", mail.parts.first.parts.second.filename)
-    assert_equal("flowed", mail.parts.first.parts.fourth.content_type.parameters[:format])
+    assert_equal("flowed", mail.parts.first.parts.fourth.content_type_parameters[:format])
     assert_equal('smime.p7s', mail.parts.second.filename)
   end
 
@@ -1081,9 +1081,9 @@ EOF
     assert !mail.from_addrs.empty?
     assert !mail.cc_addrs.empty?
     assert !mail.bcc_addrs.empty?
-    assert_match(/:/, mail.from_addrs.to_s)
-    assert_match(/:/, mail.cc_addrs.to_s)
-    assert_match(/:/, mail.bcc_addrs.to_s)
+    assert_match(/:/, mail[:from].decoded)
+    assert_match(/:/, mail[:cc].decoded)
+    assert_match(/:/, mail[:bcc].decoded)
   end
 
   def test_deliver_with_mail_object
@@ -1095,14 +1095,14 @@ EOF
   def test_multipart_with_template_path_with_dots
     mail = FunkyPathMailer.create_multipart_with_template_path_with_dots(@recipient)
     assert_equal 2, mail.parts.length
-    assert "text/plain", mail.parts[1].content_type.string
+    assert "text/plain", mail.parts[1].mime_type
     assert "utf-8", mail.parts[1].charset
   end
 
   def test_custom_content_type_attributes
     mail = TestMailer.create_custom_content_type_attributes
-    assert_match %r{format="flowed"}, mail.content_type.encoded
-    assert_match %r{charset="utf-8"}, mail.content_type.encoded
+    assert_match %r{format=flowed}, mail.content_type
+    assert_match %r{charset=utf-8}, mail.content_type
   end
 
   def test_return_path_with_create

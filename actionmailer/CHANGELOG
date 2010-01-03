@@ -1,13 +1,14 @@
 *Rails 3.0 (pending)*
 
+* The Mail::Message class has helped methods for all the field types that return 'common' defaults for the common use case, so to get the subject, mail.subject will give you a string, mail.date will give you a DateTime object, mail.from will give you an array of address specs (mikel@test.lindsaar.net) etc.  If you want to access the field object itself, call mail[:field_name] which will return the field object you want, which you can then chain, like mail[:from].formatted
+
+* Mail#content_type now returns the content_type field as a string. If you want the mime type of a mail, then you call Mail#mime_type (eg, text/plain), if you want the parameters of the content type field, you call Mail#content_type_parameters which gives you a hash, eg {'format' => 'flowed', 'charset' => 'utf-8'}
+
 * ActionMailer::Base :default_implicit_parts_order now is in the sequence of the order you want, no reversing of ordering takes place.  The default order now is text/plain, then text/enriched, then text/html and then any other part that is not one of these three.
 
 * Mail does not have "quoted_body", "quoted_subject" etc.  All of these are accessed via body.encoded, subject.encoded etc
 
-* Every part of a Mail object returns an object, never a string.  So Mail.body returns a Mail::Body class object, need to call #encoded or #decoded to get the string you want.
-
-* By default, a field will return the #decoded value when you send it :to_s and any object that is a container (like header, body etc) will return #encoded value when you send it :to_s
-
+* Every object in a Mail object returns an object, never a string.  So Mail.body returns a Mail::Body class object, need to call #encoded or #decoded to get the string you want.
 * Mail::Message#set_content_type does not exist, it is simply Mail::Message#content_type
 
 * Every mail message gets a unique message_id unless you specify one, had to change all the tests that check for equality with expected.encoded == actual.encoded to first replace their message_ids with control values

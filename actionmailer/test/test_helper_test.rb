@@ -19,8 +19,8 @@ class TestHelperMailerTest < ActionMailer::TestCase
 
   def test_setup_creates_the_expected_mailer
     assert @expected.is_a?(Mail::Message)
-    assert_equal "1.0", @expected.mime_version.version
-    assert_equal "text/plain", @expected.content_type.string
+    assert_equal "1.0", @expected.mime_version
+    assert_equal "text/plain", @expected.mime_type
   end
 
   def test_mailer_class_is_correctly_inferred
