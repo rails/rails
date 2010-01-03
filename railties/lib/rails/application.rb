@@ -8,7 +8,7 @@ module Rails
     class << self
       attr_writer :config
       alias configure class_eval
-      delegate :initialize!, :load_tasks, :to => :instance
+      delegate :initialize!, :load_tasks, :root, :to => :instance
 
       private :new
       def instance
