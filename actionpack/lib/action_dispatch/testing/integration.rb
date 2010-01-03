@@ -2,9 +2,7 @@ require 'stringio'
 require 'uri'
 require 'active_support/test_case'
 require 'active_support/core_ext/object/metaclass'
-
-# TODO: Remove circular dependency on ActionController
-require 'action_controller/testing/process'
+require 'rack/test'
 
 module ActionDispatch
   module Integration #:nodoc:
@@ -128,9 +126,7 @@ module ActionDispatch
       DEFAULT_HOST = "www.example.com"
 
       include Test::Unit::Assertions
-      include ActionDispatch::Assertions
-      include ActionController::TestProcess
-      include RequestHelpers
+      include TestProcess, RequestHelpers, Assertions
 
       %w( status status_message headers body redirect? ).each do |method|
         delegate method, :to => :response, :allow_nil => true
@@ -415,7 +411,7 @@ module ActionDispatch
   # At its simplest, you simply extend IntegrationTest and write your tests
   # using the get/post methods:
   #
-  #   require "#{File.dirname(__FILE__)}/test_helper"
+  #   require "test_helper"
   #
   #   class ExampleTest < ActionController::IntegrationTest
   #     fixtures :people
@@ -439,7 +435,7 @@ module ActionDispatch
   # powerful testing DSL that is specific for your application. You can even
   # reference any named routes you happen to have defined!
   #
-  #   require "#{File.dirname(__FILE__)}/test_helper"
+  #   require "test_helper"
   #
   #   class AdvancedTest < ActionController::IntegrationTest
   #     fixtures :people, :rooms

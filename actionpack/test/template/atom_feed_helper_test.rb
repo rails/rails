@@ -187,10 +187,9 @@ class ScrollsController < ActionController::Base
   end
 
   protected
-
-  def rescue_action(e)
-    raise(e)
-  end
+    def rescue_action(e)
+      raise(e)
+    end
 end
 
 class AtomFeedTest < ActionController::TestCase
@@ -311,11 +310,12 @@ class AtomFeedTest < ActionController::TestCase
       assert_select "summary div p", :text => "after 2"
     end
   end
-private
+
+  private
     def with_restful_routing(resources)
       with_routing do |set|
         set.draw do |map|
-          map.resources(resources)
+          resources(resources)
         end
         yield
       end

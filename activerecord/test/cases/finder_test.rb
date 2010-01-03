@@ -120,7 +120,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_scoped_include
-    Developer.with_scope(:find => { :include => :projects, :order => "projects.name" }) do
+    Developer.send(:with_scope, :find => { :include => :projects, :order => "projects.name" }) do
       assert Developer.exists?
     end
   end
@@ -233,11 +233,11 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_first
-    assert_equal topics(:second).title, Topic.first(:conditions => "title = 'The Second Topic of the day'").title
+    assert_equal topics(:second).title, Topic.where("title = 'The Second Topic of the day'").first.title
   end
 
   def test_first_failing
-    assert_nil Topic.first(:conditions => "title = 'The Second Topic of the day!'")
+    assert_nil Topic.where("title = 'The Second Topic of the day!'").first
   end
 
   def test_unexisting_record_exception_handling
@@ -291,7 +291,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_hash_conditions_on_joined_table
-    firms = Firm.all :joins => :account, :conditions => {:accounts => { :credit_limit => 50 }}
+    firms = Firm.joins(:account).where(:accounts => { :credit_limit => 50 })
     assert_equal 1, firms.size
     assert_equal companies(:first_firm), firms.first
   end
@@ -571,21 +571,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(2, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 1]))
   end
 
-  def test_dynamic_finders_should_go_through_the_find_class_method
-    Topic.expects(:find).with(:first, :conditions => { :title => 'The First Topic!' })
-    Topic.find_by_title("The First Topic!")
-
-    Topic.expects(:find).with(:last, :conditions => { :title => 'The Last Topic!' })
-    Topic.find_last_by_title("The Last Topic!")
-
-    Topic.expects(:find).with(:all, :conditions => { :title => 'A Topic.' })
-    Topic.find_all_by_title("A Topic.")
-
-    Topic.expects(:find).with(:first, :conditions => { :title => 'Does not exist yet for sure!' }).times(2)
-    Topic.find_or_initialize_by_title('Does not exist yet for sure!')
-    Topic.find_or_create_by_title('Does not exist yet for sure!')
-  end
-
   def test_find_by_one_attribute
     assert_equal topics(:first), Topic.find_by_title("The First Topic")
     assert_nil Topic.find_by_title("The First Topic!")
@@ -594,21 +579,6 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_by_one_attribute_bang
     assert_equal topics(:first), Topic.find_by_title!("The First Topic")
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find_by_title!("The First Topic!") }
-  end
-
-  def test_find_by_one_attribute_caches_dynamic_finder
-    # ensure this test can run independently of order
-    class << Topic; self; end.send(:remove_method, :find_by_title) if Topic.public_methods.any? { |m| m.to_s == 'find_by_title' }
-    assert !Topic.public_methods.any? { |m| m.to_s == 'find_by_title' }
-    t = Topic.find_by_title("The First Topic")
-    assert Topic.public_methods.any? { |m| m.to_s == 'find_by_title' }
-  end
-
-  def test_dynamic_finder_returns_same_results_after_caching
-    # ensure this test can run independently of order
-    class << Topic; self; end.send(:remove_method, :find_by_title) if Topic.public_method_defined?(:find_by_title)
-    t = Topic.find_by_title("The First Topic")
-    assert_equal t, Topic.find_by_title("The First Topic") # find_by_title has been cached
   end
 
   def test_find_by_one_attribute_with_order_option
@@ -654,14 +624,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal customers(:david), found_customer
   end
 
-  def test_dynamic_finder_on_one_attribute_with_conditions_caches_method
-    # ensure this test can run independently of order
-    class << Account; self; end.send(:remove_method, :find_by_credit_limit) if Account.public_methods.any? { |m| m.to_s == 'find_by_credit_limit' }
-    assert !Account.public_methods.any? { |m| m.to_s == 'find_by_credit_limit' }
-    a = Account.find_by_credit_limit(50, :conditions => ['firm_id = ?', 6])
-    assert Account.public_methods.any? { |m| m.to_s == 'find_by_credit_limit' }
-  end
-
   def test_dynamic_finder_on_one_attribute_with_conditions_returns_same_results_after_caching
     # ensure this test can run independently of order
     class << Account; self; end.send(:remove_method, :find_by_credit_limit) if Account.public_methods.any? { |m| m.to_s == 'find_by_credit_limit' }
@@ -692,14 +654,6 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_last_by_one_attribute
     assert_equal Topic.last, Topic.find_last_by_title(Topic.last.title)
     assert_nil Topic.find_last_by_title("A title with no matches")
-  end
-
-  def test_find_last_by_one_attribute_caches_dynamic_finder
-    # ensure this test can run independently of order
-    class << Topic; self; end.send(:remove_method, :find_last_by_title) if Topic.public_methods.any? { |m| m.to_s == 'find_last_by_title' }
-    assert !Topic.public_methods.any? { |m| m.to_s == 'find_last_by_title' }
-    t = Topic.find_last_by_title(Topic.last.title)
-    assert Topic.public_methods.any? { |m| m.to_s == 'find_last_by_title' }
   end
 
   def test_find_last_by_invalid_method_syntax
@@ -926,13 +880,6 @@ class FinderTest < ActiveRecord::TestCase
     assert !c.new_record?
   end
 
-  def test_dynamic_find_or_initialize_from_one_attribute_caches_method
-    class << Company; self; end.send(:remove_method, :find_or_initialize_by_name) if Company.public_methods.any? { |m| m.to_s == 'find_or_initialize_by_name' }
-    assert !Company.public_methods.any? { |m| m.to_s == 'find_or_initialize_by_name' }
-    sig38 = Company.find_or_initialize_by_name("38signals")
-    assert Company.public_methods.any? { |m| m.to_s == 'find_or_initialize_by_name' }
-  end
-
   def test_find_or_initialize_from_two_attributes
     another = Topic.find_or_initialize_by_title_and_author_name("Another topic","John")
     assert_equal "Another topic", another.title
@@ -1075,8 +1022,8 @@ class FinderTest < ActiveRecord::TestCase
   def test_finder_with_scoped_from
     all_topics = Topic.find(:all)
 
-    Topic.with_scope(:find => { :from => 'fake_topics' }) do
-      assert_equal all_topics, Topic.all(:from => 'topics').to_a
+    Topic.send(:with_scope, :find => { :from => 'fake_topics' }) do
+      assert_equal all_topics, Topic.from('topics').to_a
     end
   end
 

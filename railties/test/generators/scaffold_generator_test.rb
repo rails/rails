@@ -1,8 +1,8 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/scaffold/scaffold_generator'
 
 class ScaffoldGeneratorTest < GeneratorsTestCase
+  arguments %w(product_line title:string price:integer)
 
   def setup
     super
@@ -25,42 +25,42 @@ class ScaffoldGeneratorTest < GeneratorsTestCase
 
     # Route
     assert_file "config/routes.rb" do |route|
-      assert_match /map\.resources :product_lines$/, route
+      assert_match /resources :product_lines$/, route
     end
 
     # Controller
     assert_file "app/controllers/product_lines_controller.rb" do |content|
       assert_match /class ProductLinesController < ApplicationController/, content
 
-      assert_instance_method content, :index do |m|
+      assert_instance_method :index, content do |m|
         assert_match /@product_lines = ProductLine\.all/, m
       end
 
-      assert_instance_method content, :show do |m|
+      assert_instance_method :show, content do |m|
         assert_match /@product_line = ProductLine\.find\(params\[:id\]\)/, m
       end
 
-      assert_instance_method content, :new do |m|
+      assert_instance_method :new, content do |m|
         assert_match /@product_line = ProductLine\.new/, m
       end
 
-      assert_instance_method content, :edit do |m|
+      assert_instance_method :edit, content do |m|
         assert_match /@product_line = ProductLine\.find\(params\[:id\]\)/, m
       end
 
-      assert_instance_method content, :create do |m|
+      assert_instance_method :create, content do |m|
         assert_match /@product_line = ProductLine\.new\(params\[:product_line\]\)/, m
         assert_match /@product_line\.save/, m
         assert_match /@product_line\.errors/, m
       end
 
-      assert_instance_method content, :update do |m|
+      assert_instance_method :update, content do |m|
         assert_match /@product_line = ProductLine\.find\(params\[:id\]\)/, m
         assert_match /@product_line\.update_attributes\(params\[:product_line\]\)/, m
         assert_match /@product_line\.errors/, m
       end
 
-      assert_instance_method content, :destroy do |m|
+      assert_instance_method :destroy, content do |m|
         assert_match /@product_line = ProductLine\.find\(params\[:id\]\)/, m
         assert_match /@product_line\.destroy/, m
       end
@@ -89,7 +89,7 @@ class ScaffoldGeneratorTest < GeneratorsTestCase
 
   def test_scaffold_on_revoke
     run_generator
-    run_generator :behavior => :revoke
+    run_generator ["product_line"], :behavior => :revoke
 
     # Model
     assert_no_file "app/models/product_line.rb"
@@ -99,7 +99,7 @@ class ScaffoldGeneratorTest < GeneratorsTestCase
 
     # Route
     assert_file "config/routes.rb" do |route|
-      assert_no_match /map\.resources :product_lines$/, route
+      assert_no_match /resources :product_lines$/, route
     end
 
     # Controller
@@ -117,14 +117,4 @@ class ScaffoldGeneratorTest < GeneratorsTestCase
     # Stylesheets (should not be removed)
     assert_file "public/stylesheets/scaffold.css"
   end
-
-  protected
-
-    def run_generator(config={})
-      silence(:stdout) do
-        Rails::Generators::ScaffoldGenerator.start ["product_line", "title:string", "price:integer"],
-                                                   config.merge(:destination_root => destination_root)
-      end
-    end
-
 end

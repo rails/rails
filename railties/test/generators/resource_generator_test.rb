@@ -1,8 +1,8 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/resource/resource_generator'
 
 class ResourceGeneratorTest < GeneratorsTestCase
+  arguments %w(account)
 
   def setup
     super
@@ -50,8 +50,8 @@ class ResourceGeneratorTest < GeneratorsTestCase
     run_generator ["account", "--actions", "index", "new"]
 
     assert_file "app/controllers/accounts_controller.rb" do |controller|
-      assert_instance_method controller, :index
-      assert_instance_method controller, :new
+      assert_instance_method :index, controller
+      assert_instance_method :new, controller
     end
 
     assert_file "app/views/accounts/index.html.erb"
@@ -62,7 +62,7 @@ class ResourceGeneratorTest < GeneratorsTestCase
     run_generator
 
     assert_file "config/routes.rb" do |route|
-      assert_match /map\.resources :accounts$/, route
+      assert_match /resources :accounts$/, route
     end
   end
 
@@ -70,7 +70,7 @@ class ResourceGeneratorTest < GeneratorsTestCase
     run_generator ["account", "--singleton"]
 
     assert_file "config/routes.rb" do |route|
-      assert_match /map\.resource :account$/, route
+      assert_match /resource :account$/, route
     end
   end
 
@@ -93,14 +93,7 @@ class ResourceGeneratorTest < GeneratorsTestCase
     run_generator ["account"], :behavior => :revoke
 
     assert_file "config/routes.rb" do |route|
-      assert_no_match /map\.resources :accounts$/, route
+      assert_no_match /resources :accounts$/, route
     end
   end
-
-  protected
-
-    def run_generator(args=["account"], config={})
-      silence(:stdout) { Rails::Generators::ResourceGenerator.start args, config.merge(:destination_root => destination_root) }
-    end
-
 end

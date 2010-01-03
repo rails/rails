@@ -1,3 +1,4 @@
+require 'action_controller/vendor/html-scanner'
 require 'action_view/helpers/tag_helper'
 
 module ActionView

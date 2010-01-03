@@ -55,7 +55,7 @@ end
 
 class MailerHelperTest < Test::Unit::TestCase
   def new_mail( charset="utf-8" )
-    mail = TMail::Mail.new
+    mail = Mail.new
     mail.set_content_type "text", "plain", { "charset" => charset } if charset
     mail
   end
@@ -90,7 +90,7 @@ class MailerHelperTest < Test::Unit::TestCase
   def test_use_mail_helper
     mail = HelperMailer.create_use_mail_helper(@recipient)
     assert_match %r{  But soft!}, mail.encoded
-    assert_match %r{east, and\n  Juliet}, mail.encoded
+    assert_match %r{east, and\r\n  Juliet}, mail.encoded
   end
 end
 

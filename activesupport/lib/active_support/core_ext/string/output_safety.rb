@@ -1,43 +1,41 @@
-class String
+class Object
   def html_safe?
-    defined?(@_rails_html_safe) && @_rails_html_safe
+    false
   end
+end
+
+class Fixnum
+  def html_safe?
+    true
+  end
+end
+
+class String
+  attr_accessor :_rails_html_safe
+  alias html_safe? _rails_html_safe
 
   def html_safe!
     @_rails_html_safe = true
     self
   end
-  
+
   def html_safe
     dup.html_safe!
   end
-  
+
   alias original_plus +
   def +(other)
     result = original_plus(other)
-    if html_safe? && also_html_safe?(other)
-      result.html_safe!
-    else
-      result
-    end
-  end
-  
-  alias original_concat <<
-  def <<(other)
-    result = original_concat(other)
-    unless html_safe? && also_html_safe?(other)
-      @_rails_html_safe = false
-    end
+    result._rails_html_safe = html_safe? && other.html_safe?
     result
   end
-  
-  def concat(other)
-    self << other
+
+  alias original_concat <<
+  alias safe_concat <<
+  def <<(other)
+    @_rails_html_safe = false unless other.html_safe?
+    result = original_concat(other)
   end
-  
-  private
-    def also_html_safe?(other)
-      other.respond_to?(:html_safe?) && other.html_safe?
-    end
-  
+
+  alias concat <<
 end

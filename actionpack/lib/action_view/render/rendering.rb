@@ -22,15 +22,18 @@ module ActionView
           return _render_partial(options)
         end
 
-        layout = find(layout, {:formats => formats}) if layout
+        template = if options[:file]
+          find(options[:file], {:formats => formats})
+        elsif options[:inline]
+          handler = Template.handler_class_for_extension(options[:type] || "erb")
+          Template.new(options[:inline], "inline template", handler, {})
+        elsif options[:text]
+          Template::Text.new(options[:text])
+        end
 
-        if file = options[:file]
-          template = find(file, {:formats => formats})
+        if template
+          layout = find(layout, {:formats => formats}) if layout
           _render_template(template, layout, :locals => options[:locals])
-        elsif inline = options[:inline]
-          _render_inline(inline, layout, options)
-        elsif text = options[:text]
-          _render_text(text, layout, options[:locals])
         end
       when :update
         update_page(&block)
@@ -73,25 +76,7 @@ module ActionView
     # would be <html>Hello David</html>.
     def _layout_for(name = nil, &block)
       return @_content_for[name || :layout] if !block_given? || name
-
       capture(&block)
-    end
-
-    def _render_inline(inline, layout, options)
-      handler = Template.handler_class_for_extension(options[:type] || "erb")
-      template = Template.new(options[:inline],
-        "inline #{options[:inline].inspect}", handler, {})
-
-      locals = options[:locals]
-      content = template.render(self, locals)
-      _render_text(content, layout, locals)
-    end
-
-    def _render_text(content, layout, locals)
-      content = layout.render(self, locals) do |*name|
-        _layout_for(*name) { content }
-      end if layout
-      content
     end
 
     # This is the API to render a ViewContext's template from a controller.
@@ -99,25 +84,17 @@ module ActionView
     # Internal Options:
     # _template:: The Template object to render
     # _layout::   The layout, if any, to wrap the Template in
-    # _partial::  true if the template is a partial
     def render_template(options)
       _evaluate_assigns_and_ivars
-      template, layout, partial = options.values_at(:_template, :_layout, :_partial)
-      _render_template(template, layout, options, partial)
+      template, layout = options.values_at(:_template, :_layout)
+      _render_template(template, layout, options)
     end
 
-    def _render_template(template, layout = nil, options = {}, partial = nil)
-      logger && logger.info do
-        msg = "Rendering #{template.inspect}"
-        msg << " (#{options[:status]})" if options[:status]
-        msg
-      end
-
+    def _render_template(template, layout = nil, options = {})
       locals = options[:locals] || {}
 
-      content = if partial
-        _render_partial_object(template, options)
-      else
+      content = ActiveSupport::Notifications.instrument(:render_template,
+                :identifier => template.identifier, :layout => (layout ? layout.identifier : nil)) do
         template.render(self, locals)
       end
 
@@ -125,10 +102,16 @@ module ActionView
 
       if layout
         @_layout = layout.identifier
-        logger.info("Rendering template within #{layout.inspect}") if logger
-        content = layout.render(self, locals) {|*name| _layout_for(*name) }
+        content  = _render_layout(layout, locals)
       end
+
       content
+    end
+
+    def _render_layout(layout, locals, &block)
+      ActiveSupport::Notifications.instrument(:render_layout, :identifier => layout.identifier) do
+        layout.render(self, locals){ |*name| _layout_for(*name, &block) }
+      end
     end
   end
 end

@@ -196,7 +196,7 @@ module ActionView #:nodoc:
     end
 
     class << self
-      delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
+      delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
       delegate :logger, :to => 'ActionController::Base', :allow_nil => true
     end
 
@@ -274,6 +274,7 @@ module ActionView #:nodoc:
     end
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil, formats = nil)#:nodoc:
+      @config = nil
       @formats = formats
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
       @controller = controller

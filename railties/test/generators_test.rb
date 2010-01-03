@@ -9,6 +9,11 @@ class GeneratorsTest < GeneratorsTestCase
     Gem.stubs(:respond_to?).with(:loaded_specs).returns(false)
   end
 
+  def test_invoke_add_generators_to_raw_lookups
+    TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
+    Rails::Generators.invoke("test_unit:model", ["Account"])
+  end
+
   def test_invoke_when_generator_is_not_found
     output = capture(:stdout){ Rails::Generators.invoke :unknown }
     assert_equal "Could not find generator unknown.\n", output
@@ -51,12 +56,6 @@ class GeneratorsTest < GeneratorsTestCase
     assert_equal "foobar:foobar", klass.namespace
   end
 
-  def test_find_by_namespace_add_generators_to_raw_lookups
-    klass = Rails::Generators.find_by_namespace("test_unit:model")
-    assert klass
-    assert_equal "test_unit:generators:model", klass.namespace
-  end
-
   def test_find_by_namespace_lookup_to_the_rails_root_folder
     klass = Rails::Generators.find_by_namespace(:fixjour)
     assert klass
@@ -96,7 +95,7 @@ class GeneratorsTest < GeneratorsTestCase
   end
 
   def test_builtin_generators
-    assert Rails::Generators.builtin.include? %w(rails model)
+    assert Rails::Generators.builtin.include?("rails:model")
   end
 
   def test_rails_generators_help_with_builtin_information
@@ -107,7 +106,7 @@ class GeneratorsTest < GeneratorsTestCase
 
   def test_rails_generators_with_others_information
     output = capture(:stdout){ Rails::Generators.help }.split("\n").last
-    assert_equal "Others: active_record:fixjour, fixjour, foobar, mspec, rails:javascripts.", output
+    assert_equal "Others: active_record:fixjour, fixjour, foobar:foobar, mspec, rails:javascripts, xspec.", output
   end
 
   def test_warning_is_shown_if_generator_cant_be_loaded
@@ -150,6 +149,13 @@ class GeneratorsTest < GeneratorsTestCase
     assert_equal "test_unit:generators:plugin", klass.namespace
   end
 
+  def test_fallbacks_for_generators_on_find_by_namespace_with_context
+    Rails::Generators.fallbacks[:remarkable] = :test_unit
+    klass = Rails::Generators.find_by_namespace(:remarkable, :rails, :plugin)
+    assert klass
+    assert_equal "test_unit:generators:plugin", klass.namespace
+  end
+
   def test_fallbacks_for_generators_on_invoke
     Rails::Generators.fallbacks[:shoulda] = :test_unit
     TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
@@ -171,6 +177,8 @@ class GeneratorsTest < GeneratorsTestCase
     end
 
     assert_equal false, klass.class_options[:generate].default
+  ensure
+    Rails::Generators.subclasses.delete(klass)
   end
 
   def test_source_paths_for_not_namespaced_generators

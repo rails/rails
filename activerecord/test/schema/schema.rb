@@ -160,7 +160,7 @@ ActiveRecord::Schema.define do
     t.integer :access_level, :default => 1
   end
 
-  create_table :edges, :force => true do |t|
+  create_table :edges, :force => true, :id => false do |t|
     t.column :source_id, :integer, :null => false
     t.column :sink_id,   :integer, :null => false
   end
@@ -520,11 +520,15 @@ ActiveRecord::Schema.define do
   create_table :faces, :force => true do |t|
     t.string  :description
     t.integer :man_id
+    t.integer :polymorphic_man_id
+    t.string :polymorphic_man_type
   end
 
   create_table :interests, :force => true do |t|
     t.string :topic
     t.integer :man_id
+    t.integer :polymorphic_man_id
+    t.string :polymorphic_man_type
     t.integer :zine_id
   end
 

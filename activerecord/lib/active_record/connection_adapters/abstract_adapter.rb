@@ -1,6 +1,7 @@
 require 'date'
 require 'bigdecimal'
 require 'bigdecimal/util'
+require 'active_support/core_ext/benchmark'
 
 # TODO: Autoload these files
 require 'active_record/connection_adapters/abstract/schema_definitions'
@@ -191,7 +192,6 @@ module ActiveRecord
       end
 
       def log_info(sql, name, ms)
-        @runtime += ms
         if @logger && @logger.debug?
           name = '%s (%.1fms)' % [name || 'SQL', ms]
           @logger.debug(format_log_entry(name, sql.squeeze(' ')))
@@ -199,8 +199,12 @@ module ActiveRecord
       end
 
       protected
-        def log(sql, name, &block)
-          ActiveSupport::Notifications.instrument(:sql, :sql => sql, :name => name, &block)
+        def log(sql, name)
+          result = nil
+          ActiveSupport::Notifications.instrument(:sql, :sql => sql, :name => name) do
+            @runtime += Benchmark.ms { result = yield }
+          end
+          result
         rescue Exception => e
           # Log message and raise exception.
           # Set last_verification to 0, so that connection gets verified

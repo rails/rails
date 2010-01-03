@@ -1,9 +1,10 @@
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
-    def initialize(reflection)
-      super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{reflection.class_name})")
+    def initialize(reflection, associated_class = nil)
+      super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{associated_class.nil? ? reflection.class_name : associated_class.name})")
     end
   end
 
@@ -57,6 +58,12 @@ module ActiveRecord
   class HasManyThroughCantDissociateNewRecords < ActiveRecordError #:nodoc:
     def initialize(owner, reflection)
       super("Cannot dissociate new records through '#{owner.class.name}##{reflection.name}' on '#{reflection.source_reflection.class_name rescue nil}##{reflection.source_reflection.name rescue nil}'. Both records must have an id in order to delete the has_many :through record associating them.")
+    end
+  end
+
+  class HasAndBelongsToManyAssociationWithPrimaryKeyError < ActiveRecordError #:nodoc:
+    def initialize(reflection)
+      super("Primary key is not allowed in a has_and_belongs_to_many join table (#{reflection.options[:join_table]}).")
     end
   end
 
@@ -1316,7 +1323,7 @@ module ActiveRecord
 
             if association.nil? || force_reload
               association = association_proxy_class.new(self, reflection)
-              retval = association.reload
+              retval = force_reload ? reflection.klass.uncached { association.reload } : association.reload
               if retval.nil? and association_proxy_class == BelongsToAssociation
                 association_instance_set(reflection.name, nil)
                 return nil
@@ -1361,7 +1368,7 @@ module ActiveRecord
               association_instance_set(reflection.name, association)
             end
 
-            association.reload if force_reload
+            reflection.klass.uncached { association.reload } if force_reload
 
             association
           end
@@ -1373,9 +1380,9 @@ module ActiveRecord
               if reflection.through_reflection && reflection.source_reflection.belongs_to?
                 through = reflection.through_reflection
                 primary_key = reflection.source_reflection.primary_key_name
-                send(through.name).all(:select => "DISTINCT #{through.quoted_table_name}.#{primary_key}").map!(&:"#{primary_key}")
+                send(through.name).select("DISTINCT #{through.quoted_table_name}.#{primary_key}").map!(&:"#{primary_key}")
               else
-                send(reflection.name).all(:select => "#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map!(&:id)
+                send(reflection.name).select("#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map!(&:id)
               end
             end
           end
@@ -1394,8 +1401,8 @@ module ActiveRecord
             end
 
             define_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
-              ids = (new_value || []).reject { |nid| nid.blank? }
-              send("#{reflection.name}=", reflection.klass.find(ids))
+              ids = (new_value || []).reject { |nid| nid.blank? }.map(&:to_i)
+              send("#{reflection.name}=", reflection.klass.find(ids).index_by(&:id).values_at(*ids))
             end
           end
         end
@@ -1456,12 +1463,10 @@ module ActiveRecord
           after_destroy(method_name)
         end
 
-        def find_with_associations(options = {}, join_dependency = nil)
-          catch :invalid_query do
-            join_dependency ||= JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
-            rows = select_all_rows(options, join_dependency)
-            return join_dependency.instantiate(rows)
-          end
+        def find_with_associations(options, join_dependency)
+          rows = select_all_rows(options, join_dependency)
+          join_dependency.instantiate(rows)
+        rescue ThrowResult
           []
         end
 
@@ -1480,7 +1485,7 @@ module ActiveRecord
             dependent_conditions = []
             dependent_conditions << "#{reflection.primary_key_name} = \#{record.#{reflection.name}.send(:owner_quoted_id)}"
             dependent_conditions << "#{reflection.options[:as]}_type = '#{base_class.name}'" if reflection.options[:as]
-            dependent_conditions << sanitize_sql(reflection.options[:conditions], reflection.quoted_table_name) if reflection.options[:conditions]
+            dependent_conditions << sanitize_sql(reflection.options[:conditions], reflection.table_name) if reflection.options[:conditions]
             dependent_conditions << extra_conditions if extra_conditions
             dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
             dependent_conditions = dependent_conditions.gsub('@', '\@')
@@ -1672,7 +1677,6 @@ module ActiveRecord
 
         def create_has_and_belongs_to_many_reflection(association_id, options, &extension)
           options.assert_valid_keys(valid_keys_for_has_and_belongs_to_many_association)
-
           options[:extend] = create_extension_modules(association_id, extension, options[:extend])
 
           reflection = create_reflection(:has_and_belongs_to_many, association_id, options, self)
@@ -1682,6 +1686,9 @@ module ActiveRecord
           end
 
           reflection.options[:join_table] ||= join_table_name(undecorated_table_name(self.to_s), undecorated_table_name(reflection.class_name))
+          if connection.supports_primary_key? && (connection.primary_key(reflection.options[:join_table]) rescue false)
+             raise HasAndBelongsToManyAssociationWithPrimaryKeyError.new(reflection)
+          end
 
           reflection
         end
@@ -1696,7 +1703,7 @@ module ActiveRecord
         def construct_finder_arel_with_included_associations(options, join_dependency)
           scope = scope(:find)
 
-          relation = arel_table((scope && scope[:from]) || options[:from])
+          relation = active_relation
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
@@ -1704,11 +1711,13 @@ module ActiveRecord
 
           relation = relation.joins(construct_join(options[:joins], scope)).
             select(column_aliases(join_dependency)).
-            group(construct_group(options[:group], options[:having], scope)).
+            group(options[:group] || (scope && scope[:group])).
+            having(options[:having] || (scope && scope[:having])).
             order(construct_order(options[:order], scope)).
-            conditions(construct_conditions(options[:conditions], scope))
+            where(construct_conditions(options[:conditions], scope)).
+            from((scope && scope[:from]) || options[:from])
 
-          relation = relation.conditions(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
+          relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
           relation = relation.limit(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)
 
           relation
@@ -1720,7 +1729,7 @@ module ActiveRecord
 
         def construct_arel_limited_ids_condition(options, join_dependency)
           if (ids_array = select_limited_ids_array(options, join_dependency)).empty?
-            throw :invalid_query
+            raise ThrowResult
           else
             Arel::Predicates::In.new(
               Arel::SqlLiteral.new("#{connection.quote_table_name table_name}.#{primary_key}"),
@@ -1739,99 +1748,23 @@ module ActiveRecord
         def construct_finder_sql_for_association_limiting(options, join_dependency)
           scope = scope(:find)
 
-          relation = arel_table(options[:from])
+          relation = active_relation
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
           end
 
           relation = relation.joins(construct_join(options[:joins], scope)).
-            conditions(construct_conditions(options[:conditions], scope)).
-            group(construct_group(options[:group], options[:having], scope)).
+            where(construct_conditions(options[:conditions], scope)).
+            group(options[:group] || (scope && scope[:group])).
+            having(options[:having] || (scope && scope[:having])).
             order(construct_order(options[:order], scope)).
             limit(construct_limit(options[:limit], scope)).
             offset(construct_limit(options[:offset], scope)).
+            from(options[:from]).
             select(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", construct_order(options[:order], scope(:find)).join(",")))
 
           relation.to_sql
-        end
-
-        def tables_in_string(string)
-          return [] if string.blank?
-          string.scan(/([a-zA-Z_][\.\w]+).?\./).flatten
-        end
-
-        def tables_in_hash(hash)
-          return [] if hash.blank?
-          tables = hash.map do |key, value|
-            if value.is_a?(Hash)
-              key.to_s
-            else
-              tables_in_string(key) if key.is_a?(String)
-            end
-          end
-          tables.flatten.compact
-        end
-
-        def conditions_tables(options)
-          # look in both sets of conditions
-          conditions = [scope(:find, :conditions), options[:conditions]].inject([]) do |all, cond|
-            case cond
-              when nil   then all
-              when Array then all << tables_in_string(cond.first)
-              when Hash  then all << tables_in_hash(cond)
-              else            all << tables_in_string(cond)
-            end
-          end
-          conditions.flatten
-        end
-
-        def order_tables(options)
-          order = [options[:order], scope(:find, :order) ].join(", ")
-          return [] unless order && order.is_a?(String)
-          tables_in_string(order)
-        end
-
-        def selects_tables(options)
-          select = options[:select]
-          return [] unless select && select.is_a?(String)
-          tables_in_string(select)
-        end
-
-        def joined_tables(options)
-          scope = scope(:find)
-          joins = options[:joins]
-          merged_joins = scope && scope[:joins] && joins ? merge_joins(scope[:joins], joins) : (joins || scope && scope[:joins])
-          [table_name] + case merged_joins
-          when Symbol, Hash, Array
-            if array_of_strings?(merged_joins)
-              tables_in_string(merged_joins.join(' '))
-            else
-              join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_joins, nil)
-              join_dependency.join_associations.collect {|join_association| [join_association.aliased_join_table_name, join_association.aliased_table_name]}.flatten.compact
-            end
-          else
-            tables_in_string(merged_joins)
-          end
-        end
-
-        # Checks if the conditions reference a table other than the current model table
-        def include_eager_conditions?(options, tables = nil, joined_tables = nil)
-          ((tables || conditions_tables(options)) - (joined_tables || joined_tables(options))).any?
-        end
-
-        # Checks if the query order references a table other than the current model's table.
-        def include_eager_order?(options, tables = nil, joined_tables = nil)
-          ((tables || order_tables(options)) - (joined_tables || joined_tables(options))).any?
-        end
-
-        def include_eager_select?(options, joined_tables = nil)
-          (selects_tables(options) - (joined_tables || joined_tables(options))).any?
-        end
-
-        def references_eager_loaded_tables?(options)
-          joined_tables = joined_tables(options)
-          include_eager_order?(options, nil, joined_tables) || include_eager_conditions?(options, nil, joined_tables) || include_eager_select?(options, joined_tables)
         end
 
         def using_limitable_reflections?(reflections)

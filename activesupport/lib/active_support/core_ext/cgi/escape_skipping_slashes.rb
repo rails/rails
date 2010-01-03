@@ -1,3 +1,5 @@
+require 'cgi'
+
 class CGI #:nodoc:
   if RUBY_VERSION >= '1.9'
     def self.escape_skipping_slashes(str)

@@ -4,7 +4,7 @@ module ActionView #:nodoc:
       # TODO: Clean this up
       if obj.is_a?(String)
         if cache.nil?
-          cache = !defined?(Rails) || Rails.application.config.cache_classes
+          cache = !defined?(Rails.application) || Rails.application.config.cache_classes
         end
         FileSystemResolverWithFallback.new(obj, :cache => cache)
       else

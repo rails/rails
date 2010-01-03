@@ -44,7 +44,26 @@ module ActiveRecord
       #
       # Note: <tt>Person.count(:all)</tt> will not work because it will use <tt>:all</tt> as the condition.  Use Person.count instead.
       def count(*args)
-        calculate(:count, *construct_count_options_from_args(*args))
+        case args.size
+        when 0
+          construct_calculation_arel.count
+        when 1
+          if args[0].is_a?(Hash)
+            options = args[0]
+            distinct = options.has_key?(:distinct) ? options.delete(:distinct) : false
+            construct_calculation_arel(options).count(options[:select], :distinct => distinct)
+          else
+            construct_calculation_arel.count(args[0])
+          end
+        when 2
+          column_name, options = args
+          distinct = options.has_key?(:distinct) ? options.delete(:distinct) : false
+          construct_calculation_arel(options).count(column_name, :distinct => distinct)
+        else
+          raise ArgumentError, "Unexpected parameters passed to count(): #{args.inspect}"
+        end
+      rescue ThrowResult
+        0
       end
 
       # Calculates the average value on a given column. The value is returned as
@@ -122,168 +141,63 @@ module ActiveRecord
       #   Person.minimum(:age, :having => 'min(age) > 17', :group => :last_name) # Selects the minimum age for any family without any minors
       #   Person.sum("2 * age")
       def calculate(operation, column_name, options = {})
-        validate_calculation_options(operation, options)
-        operation = operation.to_s.downcase
-
-        scope = scope(:find)
-
-        merged_includes = merge_includes(scope ? scope[:include] : [], options[:include])
-
-        if operation == "count"
-          if merged_includes.any?
-            distinct = true
-            column_name = options[:select] || primary_key
-          end
-
-          distinct = nil if column_name.to_s =~ /\s*DISTINCT\s+/i
-          distinct ||= options[:distinct]
-        else
-          distinct = nil
-        end
-
-        catch :invalid_query do
-          relation = if merged_includes.any?
-            join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, construct_join(options[:joins], scope))
-            construct_finder_arel_with_included_associations(options, join_dependency)
-          else
-            relation = arel_table(options[:from]).
-              joins(construct_join(options[:joins], scope)).
-              conditions(construct_conditions(options[:conditions], scope)).
-              order(options[:order]).
-              limit(options[:limit]).
-              offset(options[:offset])
-          end
-          if options[:group]
-            return execute_grouped_calculation(operation, column_name, options, relation)
-          else
-            return execute_simple_calculation(operation, column_name, options.merge(:distinct => distinct), relation)
-          end
-        end
+        construct_calculation_arel(options).calculate(operation, column_name, options.slice(:distinct))
+      rescue ThrowResult
         0
       end
 
-      def execute_simple_calculation(operation, column_name, options, relation) #:nodoc:
-        column = if column_names.include?(column_name.to_s)
-          Arel::Attribute.new(arel_table(options[:from] || table_name),
-                              options[:select] || column_name)
-        else
-          Arel::SqlLiteral.new(options[:select] ||
-                               (column_name == :all ? "*" : column_name.to_s))
-        end
-
-        relation = relation.select(operation == 'count' ? column.count(options[:distinct]) : column.send(operation))
-
-        type_cast_calculated_value(connection.select_value(relation.to_sql), column_for(column_name), operation)
-      end
-
-      def execute_grouped_calculation(operation, column_name, options, relation) #:nodoc:
-        group_attr      = options[:group].to_s
-        association     = reflect_on_association(group_attr.to_sym)
-        associated      = association && association.macro == :belongs_to # only count belongs_to associations
-        group_field     = associated ? association.primary_key_name : group_attr
-        group_alias     = column_alias_for(group_field)
-        group_column    = column_for group_field
-
-        options[:group] = connection.adapter_name == 'FrontBase' ?  group_alias : group_field
-
-        aggregate_alias = column_alias_for(operation, column_name)
-
-        options[:select] = (operation == 'count' && column_name == :all) ?
-          "COUNT(*) AS count_all" :
-          Arel::Attribute.new(arel_table, column_name).send(operation).as(aggregate_alias).to_sql
-
-        options[:select] <<  ", #{group_field} AS #{group_alias}"
-
-        relation = relation.select(options[:select]).group(construct_group(options[:group], options[:having], nil))
-
-        calculated_data = connection.select_all(relation.to_sql)
-
-        if association
-          key_ids     = calculated_data.collect { |row| row[group_alias] }
-          key_records = association.klass.base_class.find(key_ids)
-          key_records = key_records.inject({}) { |hsh, r| hsh.merge(r.id => r) }
-        end
-
-        calculated_data.inject(ActiveSupport::OrderedHash.new) do |all, row|
-          key   = type_cast_calculated_value(row[group_alias], group_column)
-          key   = key_records[key] if associated
-          value = row[aggregate_alias]
-          all[key] = type_cast_calculated_value(value, column_for(column_name), operation)
-          all
-        end
-      end
-
-     protected
-        def construct_count_options_from_args(*args)
-          options     = {}
-          column_name = :all
-
-          # We need to handle
-          #   count()
-          #   count(:column_name=:all)
-          #   count(options={})
-          #   count(column_name=:all, options={})
-          #   selects specified by scopes
-          case args.size
-          when 0
-            column_name = scope(:find)[:select] if scope(:find)
-          when 1
-            if args[0].is_a?(Hash)
-              column_name = scope(:find)[:select] if scope(:find)
-              options = args[0]
-            else
-              column_name = args[0]
-            end
-          when 2
-            column_name, options = args
-          else
-            raise ArgumentError, "Unexpected parameters passed to count(): #{args.inspect}"
-          end
-
-          [column_name || :all, options]
-        end
-
       private
-        def validate_calculation_options(operation, options = {})
+        def validate_calculation_options(options = {})
           options.assert_valid_keys(CALCULATIONS_OPTIONS)
         end
 
-        # Converts the given keys to the value that the database adapter returns as
-        # a usable column name:
-        #
-        #   column_alias_for("users.id")                 # => "users_id"
-        #   column_alias_for("sum(id)")                  # => "sum_id"
-        #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
-        #   column_alias_for("count(*)")                 # => "count_all"
-        #   column_alias_for("count", "id")              # => "count_id"
-        def column_alias_for(*keys)
-          table_name = keys.join(' ')
-          table_name.downcase!
-          table_name.gsub!(/\*/, 'all')
-          table_name.gsub!(/\W+/, ' ')
-          table_name.strip!
-          table_name.gsub!(/ +/, '_')
+        def construct_calculation_arel(options = {})
+          validate_calculation_options(options)
+          options = options.except(:distinct)
 
-          connection.table_alias_for(table_name)
-        end
+          scope = scope(:find)
+          includes = merge_includes(scope ? scope[:include] : [], options[:include])
 
-        def column_for(field)
-          field_name = field.to_s.split('.').last
-          columns.detect { |c| c.name.to_s == field_name }
-        end
-
-        def type_cast_calculated_value(value, column, operation = nil)
-          case operation
-            when 'count' then value.to_i
-            when 'sum'   then type_cast_using_column(value || '0', column)
-            when 'average'   then value && (value.is_a?(Fixnum) ? value.to_f : value).to_d
-            else type_cast_using_column(value, column)
+          if includes.any?
+            join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, includes, construct_join(options[:joins], scope))
+            construct_calculation_arel_with_included_associations(options, join_dependency)
+          else
+            active_relation.
+              joins(construct_join(options[:joins], scope)).
+              from((scope && scope[:from]) || options[:from]).
+              where(construct_conditions(options[:conditions], scope)).
+              order(options[:order]).
+              limit(options[:limit]).
+              offset(options[:offset]).
+              group(options[:group]).
+              having(options[:having]).
+              select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins])))
           end
         end
 
-        def type_cast_using_column(value, column)
-          column ? column.type_cast(value) : value
+        def construct_calculation_arel_with_included_associations(options, join_dependency)
+          scope = scope(:find)
+
+          relation = active_relation
+
+          for association in join_dependency.join_associations
+            relation = association.join_relation(relation)
+          end
+
+          relation = relation.joins(construct_join(options[:joins], scope)).
+            select(column_aliases(join_dependency)).
+            group(options[:group]).
+            having(options[:having]).
+            order(options[:order]).
+            where(construct_conditions(options[:conditions], scope)).
+            from((scope && scope[:from]) || options[:from])
+
+          relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
+          relation = relation.limit(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)
+
+          relation
         end
+
     end
   end
 end

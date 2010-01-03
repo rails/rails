@@ -30,12 +30,15 @@ module ActionController #:nodoc:
   #   config.action_controller.cache_store = MyOwnStore.new("parameter")
   module Caching
     extend ActiveSupport::Concern
+    extend ActiveSupport::Autoload
 
-    autoload :Actions, 'action_controller/caching/actions'
-    autoload :Fragments, 'action_controller/caching/fragments'
-    autoload :Pages, 'action_controller/caching/pages'
-    autoload :Sweeper, 'action_controller/caching/sweeping'
-    autoload :Sweeping, 'action_controller/caching/sweeping'
+    eager_autoload do
+      autoload :Actions
+      autoload :Fragments
+      autoload :Pages
+      autoload :Sweeper, 'action_controller/caching/sweeping'
+      autoload :Sweeping, 'action_controller/caching/sweeping'
+    end
 
     included do
       @@cache_store = nil
@@ -56,6 +59,17 @@ module ActionController #:nodoc:
     module ClassMethods
       def cache_configured?
         perform_caching && cache_store
+      end
+
+      def log_event(name, before, after, instrumenter_id, payload)
+        if name.to_s =~ /(read|write|cache|expire|exist)_(fragment|page)\??/
+          key_or_path = payload[:key] || payload[:path]
+          human_name  = name.to_s.humanize
+          duration    = (after - before) * 1000
+          logger.info("#{human_name} #{key_or_path.inspect} (%.1fms)" % duration)
+        else
+          super
+        end
       end
     end
 

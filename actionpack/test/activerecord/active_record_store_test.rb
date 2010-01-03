@@ -155,7 +155,7 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
     def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do |map|
-          map.connect "/:action", :controller => "active_record_store_test/test"
+          match ':action', :to => 'active_record_store_test/test'
         end
         @app = ActiveRecord::SessionStore.new(set, options.reverse_merge(:key => '_session_id'))
         yield

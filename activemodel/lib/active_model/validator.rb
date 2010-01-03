@@ -1,5 +1,4 @@
 module ActiveModel #:nodoc:
-
   # A simple base class that can be used along with ActiveModel::Base.validates_with
   #
   #   class Person < ActiveModel::Base
@@ -52,17 +51,60 @@ module ActiveModel #:nodoc:
   #       @my_custom_field = options[:field_name] || :first_name
   #     end
   #   end
-  #
   class Validator
-    attr_reader :record, :options
+    attr_reader :options
 
-    def initialize(record, options)
-      @record = record
+    def initialize(options)
       @options = options
     end
 
-    def validate
-      raise "You must override this method"
+    def validate(record)
+      raise NotImplementedError
+    end
+  end
+
+  # EachValidator is a validator which iterates through the attributes given
+  # in the options hash invoking the validate_each method passing in the
+  # record, attribute and value.
+  #
+  # All ActiveModel validations are built on top of this Validator.
+  class EachValidator < Validator
+    attr_reader :attributes
+
+    def initialize(options)
+      @attributes = Array(options.delete(:attributes))
+      raise ":attributes cannot be blank" if @attributes.empty?
+      super
+      check_validity!
+    end
+
+    def validate(record)
+      attributes.each do |attribute|
+        value = record.send(:read_attribute_for_validation, attribute)
+        next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
+        validate_each(record, attribute, value)
+      end
+    end
+
+    def validate_each(record, attribute, value)
+      raise NotImplementedError
+    end
+
+    def check_validity!
+    end
+  end
+
+  # BlockValidator is a special EachValidator which receives a block on initialization
+  # and call this block for each attribute being validated. +validates_each+ uses this
+  # Validator.
+  class BlockValidator < EachValidator
+    def initialize(options, &block)
+      @block = block
+      super
+    end
+
+    def validate_each(record, attribute, value)
+      @block.call(record, attribute, value)
     end
   end
 end

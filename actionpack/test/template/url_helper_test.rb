@@ -391,54 +391,47 @@ class UrlHelperTest < ActionView::TestCase
     end
 end
 
-class UrlHelperController < ActionController::Base
-  def self.controller_path; 'url_helper_with_controller' end
+class UrlHelperControllerTest < ActionController::TestCase
+  class UrlHelperController < ActionController::Base
+    def show_url_for
+      render :inline => "<%= url_for :controller => 'url_helper_controller_test/url_helper', :action => 'show_url_for' %>"
+    end
 
-  def show_url_for
-    render :inline => "<%= url_for :controller => 'url_helper_with_controller', :action => 'show_url_for' %>"
+    def show_named_route
+      render :inline => "<%= show_named_route_#{params[:kind]} %>"
+    end
+
+    def nil_url_for
+      render :inline => '<%= url_for(nil) %>'
+    end
+
+    def rescue_action(e) raise e end
   end
 
-  def show_named_route
-    render :inline => "<%= show_named_route_#{params[:kind]} %>"
-  end
-
-  def nil_url_for
-    render :inline => '<%= url_for(nil) %>'
-  end
-
-  def rescue_action(e) raise e end
-end
-
-class UrlHelperWithControllerTest < ActionController::TestCase
-  def setup
-    super
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @controller = UrlHelperController.new
-  end
+  tests UrlHelperController
 
   def test_url_for_shows_only_path
     get :show_url_for
-    assert_equal '/url_helper_with_controller/show_url_for', @response.body
+    assert_equal '/url_helper_controller_test/url_helper/show_url_for', @response.body
   end
 
   def test_named_route_url_shows_host_and_path
     with_url_helper_routing do
       get :show_named_route, :kind => 'url'
-      assert_equal 'http://test.host/url_helper_with_controller/show_named_route', @response.body
+      assert_equal 'http://test.host/url_helper_controller_test/url_helper/show_named_route', @response.body
     end
   end
 
   def test_named_route_path_shows_only_path
     with_url_helper_routing do
       get :show_named_route, :kind => 'path'
-      assert_equal '/url_helper_with_controller/show_named_route', @response.body
+      assert_equal '/url_helper_controller_test/url_helper/show_named_route', @response.body
     end
   end
 
   def test_url_for_nil_returns_current_path
     get :nil_url_for
-    assert_equal '/url_helper/nil_url_for', @response.body
+    assert_equal '/url_helper_controller_test/url_helper/nil_url_for', @response.body
   end
 
   def test_named_route_should_show_host_and_path_using_controller_default_url_options
@@ -450,7 +443,7 @@ class UrlHelperWithControllerTest < ActionController::TestCase
 
     with_url_helper_routing do
       get :show_named_route, :kind => 'url'
-      assert_equal 'http://testtwo.host/url_helper_with_controller/show_named_route', @response.body
+      assert_equal 'http://testtwo.host/url_helper_controller_test/url_helper/show_named_route', @response.body
     end
   end
 
@@ -458,7 +451,7 @@ class UrlHelperWithControllerTest < ActionController::TestCase
     def with_url_helper_routing
       with_routing do |set|
         set.draw do |map|
-          map.show_named_route 'url_helper_with_controller/show_named_route', :controller => 'url_helper', :action => 'show_named_route'
+          match 'url_helper_controller_test/url_helper/show_named_route', :to => 'url_helper_controller_test/url_helper#show_named_route', :as => :show_named_route
         end
         yield
       end
@@ -512,7 +505,7 @@ class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
     def with_restful_routing
       with_routing do |set|
         set.draw do |map|
-          map.resources :tasks
+          resources :tasks
         end
         yield
       end
@@ -632,8 +625,8 @@ class PolymorphicControllerTest < ActionController::TestCase
     def with_restful_routing
       with_routing do |set|
         set.draw do |map|
-          map.resources :workshops do |w|
-            w.resources :sessions
+          resources :workshops do
+            resources :sessions
           end
         end
         yield

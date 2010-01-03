@@ -4,7 +4,7 @@ module AbstractController
   module Testing
 
     class ControllerRenderer < AbstractController::Base
-      include AbstractController::RenderingController
+      include AbstractController::Rendering
 
       self.view_paths = [ActionView::FixtureResolver.new(
         "default.erb" => "With Default",
@@ -38,7 +38,7 @@ module AbstractController
       end
 
       def object
-        render :_template => ActionView::TextTemplate.new("With Object")
+        render :_template => ActionView::Template::Text.new("With Object")
       end
     end
 

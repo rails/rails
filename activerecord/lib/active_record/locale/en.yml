@@ -1,6 +1,9 @@
 en:
   activerecord:
     errors:
+      # model.errors.full_messages format.
+      format: "{{attribute}} {{message}}"
+
       # The values :model, :attribute and :value are always available for interpolation
       # The value :count is available when applicable. Can be used for pluralization.
       messages:

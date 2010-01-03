@@ -245,6 +245,27 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_automatically_enable_autosave_on_the_association
     assert Pirate.reflect_on_association(:ship).options[:autosave]
   end
+
+  def test_should_accept_update_only_option
+    @pirate.update_attribute(:update_only_ship_attributes, { :id => @pirate.ship.id, :name => 'Mayflower' })
+  end
+
+  def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
+    @ship.delete
+    assert_difference('Ship.count', 1) do
+      @pirate.reload.update_attribute(:update_only_ship_attributes, { :name => 'Mayflower' })
+    end
+  end
+
+  def test_should_update_existing_when_update_only_is_true_and_no_id_is_given
+    @ship.delete
+    @ship = @pirate.create_update_only_ship(:name => 'Nights Dirty Lightning')
+
+    assert_no_difference('Ship.count') do
+      @pirate.update_attributes(:update_only_ship_attributes => { :name => 'Mayflower' })
+    end
+    assert_equal 'Mayflower', @ship.reload.name
+  end
 end
 
 class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
@@ -362,6 +383,27 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_automatically_enable_autosave_on_the_association
     assert Ship.reflect_on_association(:pirate).options[:autosave]
   end
+
+  def test_should_accept_update_only_option
+    @ship.update_attribute(:update_only_pirate_attributes, { :id => @pirate.ship.id, :catchphrase => 'Arr' })
+  end
+
+  def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
+    @pirate.delete
+    assert_difference('Pirate.count', 1) do
+      @ship.reload.update_attribute(:update_only_pirate_attributes, { :catchphrase => 'Arr' })
+    end
+  end
+
+  def test_should_update_existing_when_update_only_is_true_and_no_id_is_given
+    @pirate.delete
+    @pirate = @ship.create_update_only_pirate(:catchphrase => 'Aye')
+
+    assert_no_difference('Pirate.count') do
+      @ship.update_attributes(:update_only_pirate_attributes => { :catchphrase => 'Arr' })
+    end
+    assert_equal 'Arr', @pirate.reload.catchphrase
+  end
 end
 
 module NestedAttributesOnACollectionAssociationTests
@@ -369,6 +411,15 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_define_an_attribute_writer_method_for_the_association
     assert_respond_to @pirate, association_setter
+  end
+
+  def test_should_save_only_one_association_on_create
+    pirate = Pirate.create!({
+      :catchphrase => 'Arr',
+      association_getter => { 'foo' => { :name => 'Grace OMalley' } }
+    })
+
+    assert_equal 1, pirate.reload.send(@association_name).count
   end
 
   def test_should_take_a_hash_with_string_keys_and_assign_the_attributes_to_the_associated_models
@@ -541,7 +592,7 @@ module NestedAttributesOnACollectionAssociationTests
       assert_no_difference ['Man.count', 'Interest.count'] do
         man = Man.create(:name => 'John',
                          :interests_attributes => [{:topic=>'Cars'}, {:topic=>'Sports'}])
-        assert !man.errors[:interests_man].empty?
+        assert !man.errors[:"interests.man"].empty?
       end
     end
     # restore :inverse_of

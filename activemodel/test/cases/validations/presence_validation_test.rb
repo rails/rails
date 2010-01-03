@@ -9,9 +9,6 @@ require 'models/custom_reader'
 
 class PresenceValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
-  include ActiveModel::ValidationsRepairHelper
-
-  repair_validations(Topic)
 
   def test_validate_presences
     Topic.validates_presence_of(:title, :content)
@@ -30,43 +27,44 @@ class PresenceValidationTest < ActiveModel::TestCase
     t.content = "like stuff"
 
     assert t.save
+  ensure
+    Topic.reset_callbacks(:validate)
   end
 
-  # def test_validates_presence_of_with_custom_message_using_quotes
-  #   repair_validations(Developer) do
-  #     Developer.validates_presence_of :non_existent, :message=> "This string contains 'single' and \"double\" quotes"
-  #     d = Developer.new
-  #     d.name = "Joe"
-  #     assert !d.valid?
-  #     assert_equal ["This string contains 'single' and \"double\" quotes"], d.errors[:non_existent]
-  #   end
-  # end
+  def test_validates_acceptance_of_with_custom_error_using_quotes
+    Person.validates_presence_of :karma, :message=> "This string contains 'single' and \"double\" quotes"
+    p = Person.new
+    assert !p.valid?
+    assert_equal "This string contains 'single' and \"double\" quotes", p.errors[:karma].last
+  ensure
+    Person.reset_callbacks(:validate)
+  end
 
   def test_validates_presence_of_for_ruby_class
-    repair_validations(Person) do
-      Person.validates_presence_of :karma
+    Person.validates_presence_of :karma
 
-      p = Person.new
-      assert p.invalid?
+    p = Person.new
+    assert p.invalid?
 
-      assert_equal ["can't be blank"], p.errors[:karma]
+    assert_equal ["can't be blank"], p.errors[:karma]
 
-      p.karma = "Cold"
-      assert p.valid?
-    end
+    p.karma = "Cold"
+    assert p.valid?
+  ensure
+    Person.reset_callbacks(:validate)
   end
   
   def test_validates_presence_of_for_ruby_class_with_custom_reader
-    repair_validations(Person) do
-      CustomReader.validates_presence_of :karma
+    CustomReader.validates_presence_of :karma
 
-      p = CustomReader.new
-      assert p.invalid?
+    p = CustomReader.new
+    assert p.invalid?
 
-      assert_equal ["can't be blank"], p.errors[:karma]
+    assert_equal ["can't be blank"], p.errors[:karma]
 
-      p[:karma] = "Cold"
-      assert p.valid?
-    end
+    p[:karma] = "Cold"
+    assert p.valid?
+  ensure
+    CustomReader.reset_callbacks(:validate)
   end
 end

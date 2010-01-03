@@ -456,8 +456,8 @@ XML
   def test_array_path_parameter_handled_properly
     with_routing do |set|
       set.draw do |map|
-        map.connect 'file/*path', :controller => 'test_test/test', :action => 'test_params'
-        map.connect ':controller/:action/:id'
+        match 'file/*path', :to => 'test_test/test#test_params'
+        match ':controller/:action'
       end
 
       get :test_params, :path => ['hello', 'world']
@@ -563,7 +563,7 @@ XML
     expected = File.read(path)
     expected.force_encoding(Encoding::BINARY) if expected.respond_to?(:force_encoding)
 
-    file = ActionController::TestUploadedFile.new(path, content_type)
+    file = Rack::Test::UploadedFile.new(path, content_type)
     assert_equal filename, file.original_filename
     assert_equal content_type, file.content_type
     assert_equal file.path, file.local_path
@@ -580,10 +580,10 @@ XML
     path = "#{FILES_DIR}/#{filename}"
     content_type = 'image/png'
 
-    binary_uploaded_file = ActionController::TestUploadedFile.new(path, content_type, :binary)
+    binary_uploaded_file = Rack::Test::UploadedFile.new(path, content_type, :binary)
     assert_equal File.open(path, READ_BINARY).read, binary_uploaded_file.read
 
-    plain_uploaded_file = ActionController::TestUploadedFile.new(path, content_type)
+    plain_uploaded_file = Rack::Test::UploadedFile.new(path, content_type)
     assert_equal File.open(path, READ_PLAIN).read, plain_uploaded_file.read
   end
 
@@ -605,7 +605,7 @@ XML
   end
 
   def test_test_uploaded_file_exception_when_file_doesnt_exist
-    assert_raise(RuntimeError) { ActionController::TestUploadedFile.new('non_existent_file') }
+    assert_raise(RuntimeError) { Rack::Test::UploadedFile.new('non_existent_file') }
   end
 
   def test_redirect_url_only_cares_about_location_header
@@ -628,17 +628,6 @@ XML
       assert_nothing_raised(NoMethodError) { @response.binary_content }
     end
   end
-
-  protected
-    def with_foo_routing
-      with_routing do |set|
-        set.draw do |map|
-          map.generate_url 'foo', :controller => 'test'
-          map.connect      ':controller/:action/:id'
-        end
-        yield set
-      end
-    end
 end
 
 class InferringClassNameTest < ActionController::TestCase
@@ -673,7 +662,7 @@ class NamedRoutesControllerTest < ActionController::TestCase
 
   def test_should_be_able_to_use_named_routes_before_a_request_is_done
     with_routing do |set|
-      set.draw { |map| map.resources :contents }
+      set.draw { |map| resources :contents }
       assert_equal 'http://test.host/contents/new', new_content_url
       assert_equal 'http://test.host/contents/1', content_url(:id => 1)
     end

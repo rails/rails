@@ -5,7 +5,7 @@
   You may redistribute it and/or modify it under the same license terms as Ruby.
 =end
 
-if RUBY_VERSION < '1.9'
+if RUBY_VERSION < '1.9' && !"".respond_to?(:interpolate_without_ruby_19_syntax)
 
   # KeyError is raised by String#% when the string contains a named placeholder
   # that is not contained in the given arguments hash. Ruby 1.9 includes and

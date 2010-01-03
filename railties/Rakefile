@@ -1,3 +1,8 @@
+begin
+  require File.expand_path('../../vendor/gems/environment', __FILE__)
+rescue LoadError
+end
+
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
@@ -10,7 +15,7 @@ $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/lib"
 require 'rails/version'
 
 PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
-PKG_NAME        = ENV['PKG_NAME'] || 'rails'
+PKG_NAME        = 'railties'
 PKG_VERSION     = Rails::VERSION::STRING + PKG_BUILD
 PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
@@ -19,7 +24,6 @@ RELEASE_NAME  = "REL #{PKG_VERSION}"
 
 RUBY_FORGE_PROJECT = "rails"
 RUBY_FORGE_USER    = "webster132"
-
 
 task :default => :test
 task :test => 'test:isolated'
@@ -45,33 +49,6 @@ Rake::TestTask.new('test:regular') do |t|
   t.verbose = true
 end
 
-VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport activeresource railties )
-
-desc "Generates a fresh Rails package with documentation"
-task :fresh_rails => [ :clean, :create_rails, :copy_vendor_libraries, :generate_documentation ]
-
-desc "Generates a fresh Rails package using GEMs with documentation"
-task :fresh_gem_rails => [ :clean, :create_rails ]
-
-desc "Generates a fresh Rails package without documentation (faster)"
-task :fresh_rails_without_docs => [ :clean, :create_rails, :copy_vendor_libraries ]
-
-desc "Generates a fresh Rails package without documentation using links (faster)"
-task :fresh_rails_without_docs_using_links => [ :clean, :create_rails, :link_vendor_libraries ]
-
-desc "Generates minimal Rails package using symlinks"
-task :dev => [ :clean, :create_rails, :link_vendor_libraries ]
-
-desc "Packages the fresh Rails package with documentation"
-task :package => [ :clean, :fresh_rails ] do
-  system %{cd ..; tar -czvf #{PKG_NAME}-#{PKG_VERSION}.tgz #{PKG_NAME}}
-  system %{cd ..; zip -r #{PKG_NAME}-#{PKG_VERSION}.zip #{PKG_NAME}}
-end
-
-task :clean do
-  rm_rf PKG_DESTINATION
-end
-
 # Update spinoffs -------------------------------------------------------------------
 
 desc "Updates application README to the latest version Railties README"
@@ -81,50 +58,13 @@ task :update_readme do
   cp "./README", readme
 end
 
-# Run application generator -------------------------------------------------------------
-
-task :create_rails do
-  require 'rails/generators'
-  require 'rails/generators/rails/app/app_generator'
-  Rails::Generators::AppGenerator.start [ File.basename(PKG_DESTINATION), "--quiet" ],
-                                        :destination_root => File.expand_path(File.dirname(PKG_DESTINATION))
-end
-
-# Copy Vendors ----------------------------------------------------------------------------
-
-desc "Copy in all the Rails packages to vendor"
-task :copy_vendor_libraries do
-  mkdir File.join(PKG_DESTINATION, 'vendor', 'rails')
-  VENDOR_LIBS.each { |dir| cp_r File.join('..', dir), File.join(PKG_DESTINATION, 'vendor', 'rails', dir) }
-  FileUtils.rm_r(Dir.glob(File.join(PKG_DESTINATION, 'vendor', 'rails', "**", ".git")))
-end
-
-desc "Link in all the Rails packages to vendor"
-task :link_vendor_libraries do
-  mkdir File.join(PKG_DESTINATION, 'vendor', 'rails')
-  VENDOR_LIBS.each { |dir| ln_s File.join('..', '..', '..', dir), File.join(PKG_DESTINATION, 'vendor', 'rails', dir) }
-end
-
-
 desc 'Generate guides (for authors), use ONLY=foo to process just "foo.textile"'
 task :generate_guides do
   ENV["WARN_BROKEN_LINKS"] = "1" # authors can't disable this
   ruby "guides/rails_guides.rb"
 end
 
-
 # Generate documentation ------------------------------------------------------------------
-
-desc "Generate documentation for the framework and for the empty application"
-task :generate_documentation => [ :generate_app_doc, :generate_rails_framework_doc ]
-
-task :generate_rails_framework_doc do
-  system %{cd #{PKG_DESTINATION}; rake doc:rails}
-end
-
-task :generate_app_doc do
-  system %{cd #{PKG_DESTINATION}; rake doc:app}
-end
 
 Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
@@ -141,14 +81,14 @@ Rake::RDocTask.new { |rdoc|
 
 # Generate GEM ----------------------------------------------------------------------------
 
-spec = eval(File.read('rails.gemspec'))
+spec = eval(File.read('railties.gemspec'))
 
 Rake::GemPackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
 end
 
-
 # Publishing -------------------------------------------------------
+
 desc "Publish the rails gem"
 task :pgem => [:gem] do
   require 'rake/contrib/sshpublisher'

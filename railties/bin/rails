@@ -4,9 +4,10 @@ rescue LoadError
   # If people are not using gems, the load path must still
   # be correct.
   # TODO: Remove the begin / rescue block somehow
-  $:.unshift File.dirname(__FILE__) + '/../lib'
-  $:.unshift File.dirname(__FILE__) + '/../../activesupport/lib'
-  retry
+  $:.unshift File.expand_path('../../lib', __FILE__)
+  $:.unshift File.expand_path('../../../activesupport/lib', __FILE__)
+  $:.unshift File.expand_path('../../../actionpack/lib', __FILE__)
+  require 'rails/ruby_version_check'
 end
 
 Signal.trap("INT") { puts; exit }
@@ -19,7 +20,7 @@ end
 
 ARGV << "--help" if ARGV.empty?
 
-require 'rails'
+
 require 'rails/generators'
 require 'rails/generators/rails/app/app_generator'
 

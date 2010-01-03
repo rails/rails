@@ -10,8 +10,8 @@ module Mime
     %w(<< concat shift unshift push pop []= clear compact! collect!
     delete delete_at delete_if flatten! map! insert reject! reverse!
     replace slice! sort! uniq!).each do |method|
-      module_eval <<-CODE
-        def #{method}(*args)
+      module_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{method}(*)
           @symbols = nil
           super
         end
@@ -104,7 +104,7 @@ module Mime
 
         SET << Mime.const_get(symbol.to_s.upcase)
 
-        ([string] + mime_type_synonyms).each { |string| LOOKUP[string] = SET.last } unless skip_lookup
+        ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = SET.last } unless skip_lookup
         ([symbol.to_s] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext] = SET.last }
       end
 

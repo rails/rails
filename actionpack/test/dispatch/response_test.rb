@@ -7,7 +7,6 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "simple output" do
     @response.body = "Hello, World!"
-    @response.prepare!
 
     status, headers, body = @response.to_a
     assert_equal 200, status
@@ -25,7 +24,6 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "utf8 output" do
     @response.body = [1090, 1077, 1089, 1090].pack("U*")
-    @response.prepare!
 
     status, headers, body = @response.to_a
     assert_equal 200, status
@@ -41,7 +39,6 @@ class ResponseTest < ActiveSupport::TestCase
     @response.body = Proc.new do |response, output|
       5.times { |n| output.write(n) }
     end
-    @response.prepare!
 
     status, headers, body = @response.to_a
     assert_equal 200, status
@@ -59,14 +56,12 @@ class ResponseTest < ActiveSupport::TestCase
   test "content type" do
     [204, 304].each do |c|
       @response.status = c.to_s
-      @response.prepare!
       status, headers, body = @response.to_a
       assert !headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
       @response.status = c.to_s
-      @response.prepare!
       status, headers, body = @response.to_a
       assert headers.has_key?("Content-Type"), "#{c} did not have Content-Type header"
     end
@@ -74,7 +69,6 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "does not include Status header" do
     @response.status = "200 OK"
-    @response.prepare!
     status, headers, body = @response.to_a
     assert !headers.has_key?('Status')
   end
@@ -114,15 +108,126 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "cookies" do
     @response.set_cookie("user_name", :value => "david", :path => "/")
-    @response.prepare!
     status, headers, body = @response.to_a
     assert_equal "user_name=david; path=/", headers["Set-Cookie"]
     assert_equal({"user_name" => "david"}, @response.cookies)
 
     @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
-    @response.prepare!
     status, headers, body = @response.to_a
     assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT", headers["Set-Cookie"]
     assert_equal({"login" => "foo&bar", "user_name" => "david"}, @response.cookies)
+  end
+
+  test "read cache control" do
+    resp = ActionDispatch::Response.new.tap { |resp|
+      resp.cache_control[:public] = true
+      resp.etag = '123'
+      resp.body = 'Hello'
+    }
+    resp.to_a
+
+    assert_equal('"202cb962ac59075b964b07152d234b70"', resp.etag)
+    assert_equal({:public => true}, resp.cache_control)
+
+    assert_equal('public', resp.headers['Cache-Control'])
+    assert_equal('"202cb962ac59075b964b07152d234b70"', resp.headers['ETag'])
+  end
+
+  test "read charset and content type" do
+    resp = ActionDispatch::Response.new.tap { |resp|
+      resp.charset = 'utf-16'
+      resp.content_type = Mime::XML
+      resp.body = 'Hello'
+    }
+    resp.to_a
+
+    assert_equal('utf-16', resp.charset)
+    assert_equal(Mime::XML, resp.content_type)
+
+    assert_equal('application/xml; charset=utf-16', resp.headers['Content-Type'])
+  end
+end
+
+class ResponseIntegrationTest < ActionDispatch::IntegrationTest
+  def app
+    @app
+  end
+
+  test "response cache control from railsish app" do
+    @app = lambda { |env|
+      ActionDispatch::Response.new.tap { |resp|
+        resp.cache_control[:public] = true
+        resp.etag = '123'
+        resp.body = 'Hello'
+      }.to_a
+    }
+
+    get '/'
+    assert_response :success
+
+    assert_equal('public', @response.headers['Cache-Control'])
+    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
+
+    pending do
+      assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
+      assert_equal({:public => true}, @response.cache_control)
+    end
+  end
+
+  test "response cache control from rackish app" do
+    @app = lambda { |env|
+      [200,
+        {'ETag' => '"202cb962ac59075b964b07152d234b70"',
+          'Cache-Control' => 'public'}, ['Hello']]
+    }
+
+    get '/'
+    assert_response :success
+
+    assert_equal('public', @response.headers['Cache-Control'])
+    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
+
+    pending do
+      assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
+      assert_equal({:public => true}, @response.cache_control)
+    end
+  end
+
+  test "response charset and content type from railsish app" do
+    @app = lambda { |env|
+      ActionDispatch::Response.new.tap { |resp|
+        resp.charset = 'utf-16'
+        resp.content_type = Mime::XML
+        resp.body = 'Hello'
+      }.to_a
+    }
+
+    get '/'
+    assert_response :success
+
+    pending do
+      assert_equal('utf-16', @response.charset)
+      assert_equal(Mime::XML, @response.content_type)
+    end
+
+    assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
+  end
+
+  test "response charset and content type from rackish app" do
+    @app = lambda { |env|
+      [200,
+        {'Content-Type' => 'application/xml; charset=utf-16'},
+        ['Hello']]
+    }
+
+    get '/'
+    assert_response :success
+
+    pending do
+      assert_equal('utf-16', @response.charset)
+      assert_equal(Mime::XML, @response.content_type)
+    end
+
+    assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
   end
 end

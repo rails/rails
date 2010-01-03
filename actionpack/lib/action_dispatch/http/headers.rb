@@ -6,13 +6,13 @@ module ActionDispatch
       extend ActiveSupport::Memoizable
 
       def initialize(*args)
-         if args.size == 1 && args[0].is_a?(Hash)
-           super()
-           update(args[0])
-         else
-           super
-         end
-       end
+        if args.size == 1 && args[0].is_a?(Hash)
+          super()
+          update(args[0])
+        else
+          super
+        end
+      end
 
       def [](header_name)
         if include?(header_name)

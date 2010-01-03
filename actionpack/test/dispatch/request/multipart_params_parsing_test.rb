@@ -151,7 +151,7 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do |map|
-          map.connect ':action', :controller => "multipart_params_parsing_test/test"
+          match ':action', :to => 'multipart_params_parsing_test/test'
         end
         yield
       end

@@ -1,127 +1,195 @@
 module ActiveRecord
   class Relation
-    delegate :to_sql, :to => :relation
-    delegate :length, :collect, :find, :map, :each, :to => :to_a
+    include QueryMethods, FinderMethods, CalculationMethods, SpawnMethods
+
+    delegate :length, :collect, :map, :each, :all?, :to => :to_a
+
     attr_reader :relation, :klass
+    attr_writer :readonly, :table
+    attr_accessor :preload_associations, :eager_load_associations, :includes_associations
 
     def initialize(klass, relation)
       @klass, @relation = klass, relation
-      @readonly = false
-      @associations_to_preload = []
+      @preload_associations = []
       @eager_load_associations = []
+      @includes_associations = []
+      @loaded, @readonly = false
     end
 
-    def preload(association)
-      @associations_to_preload += association
-      self
+    def new(*args, &block)
+      with_create_scope { @klass.new(*args, &block) }
     end
 
-    def eager_load(association)
-      @eager_load_associations += association
-      self
+    def create(*args, &block)
+      with_create_scope { @klass.create(*args, &block) }
     end
 
-    def readonly
-      @readonly = true
-      self
+    def create!(*args, &block)
+      with_create_scope { @klass.create!(*args, &block) }
+    end
+
+    def respond_to?(method, include_private = false)
+      return true if @relation.respond_to?(method, include_private) || Array.method_defined?(method)
+
+      if match = DynamicFinderMatch.match(method)
+        return true if @klass.send(:all_attributes_exists?, match.attribute_names)
+      elsif match = DynamicScopeMatch.match(method)
+        return true if @klass.send(:all_attributes_exists?, match.attribute_names)
+      else
+        super
+      end
     end
 
     def to_a
-      records = if @eager_load_associations.any?
-        catch :invalid_query do
-          return @klass.send(:find_with_associations, {
+      return @records if loaded?
+
+      find_with_associations = @eager_load_associations.any? || references_eager_loaded_tables?
+
+      @records = if find_with_associations
+        begin
+          @klass.send(:find_with_associations, {
             :select => @relation.send(:select_clauses).join(', '),
             :joins => @relation.joins(relation),
             :group => @relation.send(:group_clauses).join(', '),
-            :order => @relation.send(:order_clauses).join(', '),
-            :conditions => @relation.send(:where_clauses).join("\n\tAND "),
+            :order => order_clause,
+            :conditions => where_clause,
             :limit => @relation.taken,
-            :offset => @relation.skipped
+            :offset => @relation.skipped,
+            :from => (@relation.send(:from_clauses) if @relation.send(:sources).present?)
             },
-            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations, nil))
+            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations + @includes_associations, nil))
+        rescue ThrowResult
+          []
         end
-        []
       else
         @klass.find_by_sql(@relation.to_sql)
       end
 
-      @klass.send(:preload_associations, records, @associations_to_preload) unless @associations_to_preload.empty?
-      records.each { |record| record.readonly! } if @readonly
+      preload = @preload_associations
+      preload +=  @includes_associations unless find_with_associations
+      preload.each {|associations| @klass.send(:preload_associations, @records, associations) } 
 
-      records
+      @records.each { |record| record.readonly! } if @readonly
+
+      @loaded = true
+      @records
     end
 
-    def first
-      @relation = @relation.take(1)
-      to_a.first
+    alias all to_a
+
+    def size
+      loaded? ? @records.length : count
     end
 
-    def select(selects)
-      selects.blank? ? self : Relation.new(@klass, @relation.project(selects))
+    def empty?
+      loaded? ? @records.empty? : count.zero?
     end
 
-    def group(groups)
-      groups.blank? ? self : Relation.new(@klass, @relation.group(groups))
-    end
-
-    def order(orders)
-      orders.blank? ? self : Relation.new(@klass, @relation.order(orders))
-    end
-
-    def limit(limits)
-      limits.blank? ? self : Relation.new(@klass, @relation.take(limits))
-    end
-
-    def offset(offsets)
-      offsets.blank? ? self : Relation.new(@klass, @relation.skip(offsets))
-    end
-
-    def on(join)
-      join.blank? ? self : Relation.new(@klass, @relation.on(join))
-    end
-
-    def joins(join, join_type = nil)
-      if join.blank?
-        self
+    def any?
+      if block_given?
+        to_a.any? { |*block_args| yield(*block_args) }
       else
-        join = case join
-          when String
-            @relation.join(join)
-          when Hash, Array, Symbol
-            if @klass.send(:array_of_strings?, join)
-              @relation.join(join.join(' '))
-            else
-              @relation.join(@klass.send(:build_association_joins, join))
-            end
-          else
-            @relation.join(join, join_type)
-        end
-        Relation.new(@klass, join)
+        !empty?
       end
     end
 
-    def conditions(conditions)
-      if conditions.blank?
-        self
+    def many?
+      if block_given?
+        to_a.many? { |*block_args| yield(*block_args) }
       else
-        conditions = @klass.send(:merge_conditions, conditions) if [String, Hash, Array].include?(conditions.class)
-        Relation.new(@klass, @relation.where(conditions))
+        @relation.send(:taken).present? ? to_a.many? : size > 1
       end
     end
 
-    def respond_to?(method)
-      @relation.respond_to?(method) || Array.method_defined?(method) || super
+    def destroy_all
+      to_a.each {|object| object.destroy}
+      reset
     end
 
-    private
-      def method_missing(method, *args, &block)
-        if @relation.respond_to?(method)
-          @relation.send(method, *args, &block)
-        elsif Array.method_defined?(method)
-          to_a.send(method, *args, &block)
-        else
-          super
+    def delete_all
+      @relation.delete.tap { reset }
+    end
+
+    def delete(id_or_array)
+      where(@klass.primary_key => id_or_array).delete_all
+    end
+
+    def loaded?
+      @loaded
+    end
+
+    def reload
+      @loaded = false
+      reset
+    end
+
+    def reset
+      @first = @last = @create_scope = @to_sql = @order_clause = nil
+      @records = []
+      self
+    end
+
+    def table
+      @table ||= Arel::Table.new(@klass.table_name, :engine => @klass.active_relation_engine)
+    end
+
+    def primary_key
+      @primary_key ||= table[@klass.primary_key]
+    end
+
+    def to_sql
+      @to_sql ||= @relation.to_sql
+    end
+
+    protected
+
+    def method_missing(method, *args, &block)
+      if @relation.respond_to?(method)
+        @relation.send(method, *args, &block)
+      elsif Array.method_defined?(method)
+        to_a.send(method, *args, &block)
+      elsif match = DynamicFinderMatch.match(method)
+        attributes = match.attribute_names
+        super unless @klass.send(:all_attributes_exists?, attributes)
+
+        if match.finder?
+          find_by_attributes(match, attributes, *args)
+        elsif match.instantiator?
+          find_or_instantiator_by_attributes(match, attributes, *args, &block)
         end
+      else
+        super
       end
+    end
+
+    def with_create_scope
+      @klass.send(:with_scope, :create => create_scope) { yield }
+    end
+
+    def create_scope
+      @create_scope ||= wheres.inject({}) do |hash, where|
+        hash[where.operand1.name] = where.operand2.value if where.is_a?(Arel::Predicates::Equality)
+        hash
+      end
+    end
+
+    def where_clause(join_string = " AND ")
+      @relation.send(:where_clauses).join(join_string)
+    end
+
+    def order_clause
+      @order_clause ||= @relation.send(:order_clauses).join(', ')
+    end
+
+    def references_eager_loaded_tables?
+      joined_tables = (tables_in_string(@relation.joins(relation)) + [table.name, table.table_alias]).compact.uniq
+      (tables_in_string(to_sql) - joined_tables).any?
+    end
+
+    def tables_in_string(string)
+      return [] if string.blank?
+      string.scan(/([a-zA-Z_][\.\w]+).?\./).flatten.uniq
+    end
+
   end
 end

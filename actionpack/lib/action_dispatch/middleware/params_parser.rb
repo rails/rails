@@ -1,4 +1,5 @@
 require 'active_support/json'
+require 'action_dispatch/http/request'
 
 module ActionDispatch
   class ParamsParser
@@ -31,41 +32,39 @@ module ActionDispatch
         return false unless strategy
 
         case strategy
-          when Proc
-            strategy.call(request.raw_post)
-          when :xml_simple, :xml_node
-            request.body.size == 0 ? {} : Hash.from_xml(request.body).with_indifferent_access
-          when :yaml
-            YAML.load(request.body)
-          when :json
-            if request.body.size == 0
-              {}
-            else
-              data = ActiveSupport::JSON.decode(request.body)
-              data = {:_json => data} unless data.is_a?(Hash)
-              data.with_indifferent_access
-            end
+        when Proc
+          strategy.call(request.raw_post)
+        when :xml_simple, :xml_node
+          request.body.size == 0 ? {} : Hash.from_xml(request.body).with_indifferent_access
+        when :yaml
+          YAML.load(request.body)
+        when :json
+          if request.body.size == 0
+            {}
           else
-            false
+            data = ActiveSupport::JSON.decode(request.body)
+            data = {:_json => data} unless data.is_a?(Hash)
+            data.with_indifferent_access
+          end
+        else
+          false
         end
       rescue Exception => e # YAML, XML or Ruby code block errors
         logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
 
         raise
-          { "body" => request.raw_post,
-            "content_type" => request.content_type,
+          { "body"           => request.raw_post,
+            "content_type"   => request.content_type,
             "content_length" => request.content_length,
-            "exception" => "#{e.message} (#{e.class})",
-            "backtrace" => e.backtrace }
+            "exception"      => "#{e.message} (#{e.class})",
+            "backtrace"      => e.backtrace }
       end
 
       def content_type_from_legacy_post_data_format_header(env)
         if x_post_format = env['HTTP_X_POST_DATA_FORMAT']
           case x_post_format.to_s.downcase
-            when 'yaml'
-              return Mime::YAML
-            when 'xml'
-              return Mime::XML
+          when 'yaml' then return Mime::YAML
+          when 'xml'  then return Mime::XML
           end
         end
 

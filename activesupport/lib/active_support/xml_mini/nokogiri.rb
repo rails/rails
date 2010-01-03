@@ -1,4 +1,5 @@
 require 'nokogiri'
+require 'active_support/core_ext/object/blank'
 
 # = XmlMini Nokogiri implementation
 module ActiveSupport
@@ -12,13 +13,13 @@ module ActiveSupport
       if !data.respond_to?(:read)
         data = StringIO.new(data || '')
       end
-      
+
       char = data.getc
       if char.nil?
         {}
       else
         data.ungetc(char)
-        doc = Nokogiri::XML(data) { |cfg| cfg.noblanks }
+        doc = Nokogiri::XML(data)
         raise doc.errors.first if doc.errors.length > 0
         doc.to_hash
       end
@@ -32,39 +33,41 @@ module ActiveSupport
       end
 
       module Node #:nodoc:
-        CONTENT_ROOT = '__content__'
+        CONTENT_ROOT = '__content__'.freeze
 
         # Convert XML document to hash
         #
         # hash::
         #   Hash to merge the converted element into.
-        def to_hash(hash = {})
-          attributes = attributes_as_hash
-          if hash[name]
-            hash[name] = [hash[name]].flatten
-            hash[name] << attributes
-          else
-            hash[name] ||= attributes
+        def to_hash(hash={})
+          node_hash = {}
+
+          # Insert node hash into parent hash correctly.
+          case hash[name]
+            when Array then hash[name] << node_hash
+            when Hash  then hash[name] = [hash[name], node_hash]
+            when nil   then hash[name] = node_hash
           end
 
-          children.each { |child|
-            next if child.blank? && 'file' != self['type']
-
-            if child.text? || child.cdata?
-              (attributes[CONTENT_ROOT] ||= '') << child.content
-              next
+          # Handle child elements
+          children.each do |c|
+            if c.element?
+              c.to_hash(node_hash)
+            elsif c.text? || c.cdata?
+              node_hash[CONTENT_ROOT] ||= ''
+              node_hash[CONTENT_ROOT] << c.content
             end
+          end
 
-            child.to_hash attributes
-          }
+          # Remove content node if it is blank and there are child tags
+          if node_hash.length > 1 && node_hash[CONTENT_ROOT].blank?
+            node_hash.delete(CONTENT_ROOT)
+          end
+
+          # Handle attributes
+          attribute_nodes.each { |a| node_hash[a.node_name] = a.value }
 
           hash
-        end
-
-        def attributes_as_hash
-          Hash[*(attribute_nodes.map { |node|
-            [node.node_name, node.value]
-          }.flatten)]
         end
       end
     end

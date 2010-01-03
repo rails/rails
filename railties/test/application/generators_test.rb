@@ -7,12 +7,20 @@ module ApplicationTests
     def setup
       build_app
       boot_rails
-      require "rails"
+    end
+
+    def app_const
+      @app_const ||= Class.new(Rails::Application)
+    end
+
+    def with_config
+      require "rails/all"
       require "rails/generators"
+      yield app_const.config
     end
 
     test "generators default values" do
-      Rails::Initializer.run do |c|
+      with_config do |c|
         assert_equal(true, c.generators.colorize_logging)
         assert_equal({}, c.generators.aliases)
         assert_equal({}, c.generators.options)
@@ -20,7 +28,7 @@ module ApplicationTests
     end
 
     test "generators set rails options" do
-      Rails::Initializer.run do |c|
+      with_config do |c|
         c.generators.orm            = :datamapper
         c.generators.test_framework = :rspec
         c.generators.helper         = false
@@ -30,7 +38,7 @@ module ApplicationTests
     end
 
     test "generators set rails aliases" do
-      Rails::Initializer.run do |c|
+      with_config do |c|
         c.generators.aliases = { :rails => { :test_framework => "-w" } }
         expected = { :rails => { :test_framework => "-w" } }
         assert_equal expected, c.generators.aliases
@@ -38,14 +46,15 @@ module ApplicationTests
     end
 
     test "generators aliases and options on initialization" do
-      Rails::Initializer.run do |c|
-        c.frameworks = []
-        c.generators.rails :aliases => { :test_framework => "-w" }
-        c.generators.orm :datamapper
-        c.generators.test_framework :rspec
-      end
+      add_to_config <<-RUBY
+        config.generators.rails :aliases => { :test_framework => "-w" }
+        config.generators.orm :datamapper
+        config.generators.test_framework :rspec
+      RUBY
+
+      require "#{app_path}/config/environment"
       # Initialize the application
-      Rails.initialize!
+      require "rails/generators"
       Rails::Generators.configure!
 
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
@@ -53,19 +62,20 @@ module ApplicationTests
     end
 
     test "generators no color on initialization" do
-      Rails::Initializer.run do |c|
-        c.frameworks = []
-        c.generators.colorize_logging = false
-      end
+      add_to_config <<-RUBY
+        config.generators.colorize_logging = false
+      RUBY
+
       # Initialize the application
-      Rails.initialize!
+      require "#{app_path}/config/environment"
+      require "rails/generators"
       Rails::Generators.configure!
 
       assert_equal Thor::Base.shell, Thor::Shell::Basic
     end
 
     test "generators with hashes for options and aliases" do
-      Rails::Initializer.run do |c|
+      with_config do |c|
         c.generators do |g|
           g.orm    :datamapper, :migration => false
           g.plugin :aliases => { :generator => "-g" },
@@ -84,7 +94,7 @@ module ApplicationTests
     end
 
     test "generators with hashes are deep merged" do
-      Rails::Initializer.run do |c|
+      with_config do |c|
         c.generators do |g|
           g.orm    :datamapper, :migration => false
           g.plugin :aliases => { :generator => "-g" },

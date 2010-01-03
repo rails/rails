@@ -7,9 +7,10 @@ require 'models/person'
 
 class ExclusionValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
-  include ActiveModel::ValidationsRepairHelper
 
-  repair_validations(Topic)
+  def teardown
+    Topic.reset_callbacks(:validate)
+  end
 
   def test_validates_exclusion_of
     Topic.validates_exclusion_of( :title, :in => %w( abe monkey ) )
@@ -30,17 +31,17 @@ class ExclusionValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_exclusion_of_for_ruby_class
-    repair_validations(Person) do
-      Person.validates_exclusion_of :karma, :in => %w( abe monkey )
+    Person.validates_exclusion_of :karma, :in => %w( abe monkey )
 
-      p = Person.new
-      p.karma = "abe"
-      assert p.invalid?
+    p = Person.new
+    p.karma = "abe"
+    assert p.invalid?
 
-      assert_equal ["is reserved"], p.errors[:karma]
+    assert_equal ["is reserved"], p.errors[:karma]
 
-      p.karma = "Lifo"
-      assert p.valid?
-    end
+    p.karma = "Lifo"
+    assert p.valid?
+  ensure
+    Person.reset_callbacks(:validate)
   end
 end

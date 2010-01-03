@@ -6,18 +6,34 @@ module ActiveRecord
   module NamedScope
     extend ActiveSupport::Concern
 
-    # All subclasses of ActiveRecord::Base have one named scope:
-    # * <tt>scoped</tt> - which allows for the creation of anonymous \scopes, on the fly: <tt>Shirt.scoped(:conditions => {:color => 'red'}).scoped(:include => :washing_instructions)</tt>
-    #
-    # These anonymous \scopes tend to be useful when procedurally generating complex queries, where passing
-    # intermediate values (scopes) around as first-class objects is convenient.
-    #
-    # You can define a scope that applies to all finders using ActiveRecord::Base.default_scope.
-    included do
-      named_scope :scoped, lambda { |scope| scope }
-    end
-
     module ClassMethods
+      # Returns a relation if invoked without any arguments.
+      #
+      #   posts = Post.scoped 
+      #   posts.size # Fires "select count(*) from  posts" and returns the count
+      #   posts.each {|p| puts p.name } # Fires "select * from posts" and loads post objects
+      #
+      # Returns an anonymous named scope if any options are supplied.
+      #
+      #   shirts = Shirt.scoped(:conditions => {:color => 'red'})
+      #   shirts = shirts.scoped(:include => :washing_instructions)
+      #
+      # Anonymous \scopes tend to be useful when procedurally generating complex queries, where passing
+      # intermediate values (scopes) around as first-class objects is convenient.
+      #
+      # You can define a scope that applies to all finders using ActiveRecord::Base.default_scope.
+      def scoped(options = {}, &block)
+        if options.present?
+          Scope.new(self, options, &block)
+        else
+          unless scoped?(:find)
+            finder_needs_type_condition? ? active_relation.where(type_condition) : active_relation.spawn
+          else
+            construct_finder_arel
+          end
+        end
+      end
+
       def scopes
         read_inheritable_attribute(:scopes) || write_inheritable_attribute(:scopes, {})
       end

@@ -1,3 +1,27 @@
+*Rails 3.0 (pending)*
+
+* The Mail::Message class has helped methods for all the field types that return 'common' defaults for the common use case, so to get the subject, mail.subject will give you a string, mail.date will give you a DateTime object, mail.from will give you an array of address specs (mikel@test.lindsaar.net) etc.  If you want to access the field object itself, call mail[:field_name] which will return the field object you want, which you can then chain, like mail[:from].formatted
+
+* Mail#content_type now returns the content_type field as a string. If you want the mime type of a mail, then you call Mail#mime_type (eg, text/plain), if you want the parameters of the content type field, you call Mail#content_type_parameters which gives you a hash, eg {'format' => 'flowed', 'charset' => 'utf-8'}
+
+* ActionMailer::Base :default_implicit_parts_order now is in the sequence of the order you want, no reversing of ordering takes place.  The default order now is text/plain, then text/enriched, then text/html and then any other part that is not one of these three.
+
+* Mail does not have "quoted_body", "quoted_subject" etc.  All of these are accessed via body.encoded, subject.encoded etc
+
+* Every object in a Mail object returns an object, never a string.  So Mail.body returns a Mail::Body class object, need to call #encoded or #decoded to get the string you want.
+* Mail::Message#set_content_type does not exist, it is simply Mail::Message#content_type
+
+* Every mail message gets a unique message_id unless you specify one, had to change all the tests that check for equality with expected.encoded == actual.encoded to first replace their message_ids with control values
+
+* Mail now has a proper concept of parts, remove the ActionMailer::Part and ActionMailer::PartContainer classes
+
+* Calling #encoded on any object returns it as a string ready to go into the output stream of an email, this means it includes the \r\n at the end of the lines and the object is pre-wrapped with \r\n\t if it is a header field.  Also, the "encoded" value includes the field name if it is a header field.
+
+* Attachments are only the actual attachment, with filename etc.  A part contains an attachment.  The part has the content_type etc.  So attachments.last.content_type is invalid.  But parts.last.content_type
+
+* There is no idea of a "sub_head" in Mail.  A part is just a Message with some extra functionality, so it just has a "header" like a normal mail message
+
+
 *2.3.2 [Final] (March 15, 2009)*
 
 * Fixed that ActionMailer should send correctly formatted Return-Path in MAIL FROM for SMTP #1842 [Matt Jones]

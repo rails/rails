@@ -9,11 +9,12 @@ require 'models/custom_reader'
 
 class ValidationsTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
-  include ActiveModel::ValidationsRepairHelper
 
   # Most of the tests mess with the validations of Topic, so lets repair it all the time.
   # Other classes we mess with will be dealt with in the specific tests
-  repair_validations(Topic)
+  def teardown
+    Topic.reset_callbacks(:validate)
+  end
 
   def test_single_field_validation
     r = Reply.new
@@ -68,6 +69,12 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal "Title is Wrong Create", errors[0]
     assert_equal "Title is Content Mismatch", errors[1]
     assert_equal 2, r.errors.count
+  end
+
+  def test_errors_on_nested_attributes_expands_name
+    t = Topic.new
+    t.errors["replies.name"] << "can't be blank"
+    assert_equal ["Replies name can't be blank"], t.errors.full_messages
   end
 
   def test_errors_on_base

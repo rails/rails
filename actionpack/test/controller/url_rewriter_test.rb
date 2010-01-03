@@ -247,7 +247,7 @@ class UrlWriterTests < ActionController::TestCase
 
     with_routing do |set|
       set.draw do |map|
-        map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
+        match '/home/sweet/home/:user', :to => 'home#index', :as => :home
       end
 
       kls = Class.new { include ActionController::UrlWriter }
@@ -264,7 +264,7 @@ class UrlWriterTests < ActionController::TestCase
     with_routing do |set|
       set.draw do |map|
         match 'home/sweet/home/:user', :to => 'home#index', :as => :home
-        map.connect ':controller/:action/:id'
+        match ':controller/:action/:id'
       end
 
       # We need to create a new class in order to install the new named route.
@@ -331,8 +331,8 @@ class UrlWriterTests < ActionController::TestCase
   def test_named_routes_with_nil_keys
     with_routing do |set|
       set.draw do |map|
-        map.main '', :controller => 'posts', :format => nil
-        map.resources :posts
+        match 'posts.:format', :to => 'posts#index', :as => :posts
+        match '/', :to => 'posts#index', :as => :main
       end
 
       # We need to create a new class in order to install the new named route.
@@ -350,7 +350,7 @@ class UrlWriterTests < ActionController::TestCase
   def test_formatted_url_methods_are_deprecated
     with_routing do |set|
       set.draw do |map|
-        map.resources :posts
+        resources :posts
       end
       # We need to create a new class in order to install the new named route.
       kls = Class.new { include ActionController::UrlWriter }

@@ -7,16 +7,15 @@ module InitializerTests
     def setup
       build_app
       boot_rails
-      require "rails"
     end
 
     # test_config_defaults_and_settings_should_be_added_to_i18n_defaults
     test "i18n config defaults and settings should be added to i18n defaults" do
-      Rails::Initializer.run do |c|
-        c.root = app_path
-        c.i18n.load_path << "my/other/locale.yml"
-      end
-      Rails.initialize!
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+        config.i18n.load_path << "my/other/locale.yml"
+      RUBY
+      require "#{app_path}/config/environment"
 
       #{RAILS_FRAMEWORK_ROOT}/railties/test/fixtures/plugins/engines/engine/config/locales/en.yml
       assert_equal %W(

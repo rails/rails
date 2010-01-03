@@ -1,1 +1,0 @@
-{:'en-Ruby' => {:foo => {:bar => "baz"}}}

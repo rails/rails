@@ -115,7 +115,7 @@ class RendersNoLayoutController < LayoutTest
 end
 
 class LayoutSetInResponseTest < ActionController::TestCase
-  include ActionView::TemplateHandlers
+  include ActionView::Template::Handlers
   
   def test_layout_set_when_using_default_layout
     @controller = DefaultLayoutController.new

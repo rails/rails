@@ -18,9 +18,9 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
 
   def test_setup_creates_the_expected_mailer
-    assert @expected.is_a?(TMail::Mail)
+    assert @expected.is_a?(Mail::Message)
     assert_equal "1.0", @expected.mime_version
-    assert_equal "text/plain", @expected.content_type
+    assert_equal "text/plain", @expected.mime_type
   end
 
   def test_mailer_class_is_correctly_inferred
@@ -92,7 +92,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
       end
     end
     
-    assert_match /2 .* but 1/, error.message
+    assert_match(/2 .* but 1/, error.message)
   end
   
   def test_assert_emails_too_many_sent
@@ -103,7 +103,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
       end
     end
     
-    assert_match /1 .* but 2/, error.message
+    assert_match(/1 .* but 2/, error.message)
   end
   
   def test_assert_no_emails_failure
@@ -113,7 +113,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
       end
     end
     
-    assert_match /0 .* but 1/, error.message
+    assert_match(/0 .* but 1/, error.message)
   end
 end
 
@@ -125,7 +125,7 @@ class AnotherTestHelperMailerTest < ActionMailer::TestCase
   end
 
   def test_setup_shouldnt_conflict_with_mailer_setup
-    assert @expected.is_a?(TMail::Mail)
+    assert @expected.is_a?(Mail::Message)
     assert_equal 'a value', @test_var
   end
 end

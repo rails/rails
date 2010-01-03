@@ -33,19 +33,20 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
   def test_find_with_readonly_option
     Developer.find(:all).each { |d| assert !d.readonly? }
-    Developer.find(:all, :readonly => false).each { |d| assert !d.readonly? }
-    Developer.find(:all, :readonly => true).each { |d| assert d.readonly? }
+    Developer.readonly(false).each { |d| assert !d.readonly? }
+    Developer.readonly(true).each { |d| assert d.readonly? }
+    Developer.readonly.each { |d| assert d.readonly? }
   end
 
 
   def test_find_with_joins_option_implies_readonly
     # Blank joins don't count.
-    Developer.find(:all, :joins => '  ').each { |d| assert !d.readonly? }
-    Developer.find(:all, :joins => '  ', :readonly => false).each { |d| assert !d.readonly? }
+    Developer.joins('  ').each { |d| assert !d.readonly? }
+    Developer.joins('  ').readonly(false).each { |d| assert !d.readonly? }
 
     # Others do.
-    Developer.find(:all, :joins => ', projects').each { |d| assert d.readonly? }
-    Developer.find(:all, :joins => ', projects', :readonly => false).each { |d| assert !d.readonly? }
+    Developer.joins(', projects').each { |d| assert d.readonly? }
+    Developer.joins(', projects').readonly(false).each { |d| assert !d.readonly? }
   end
 
 
@@ -54,7 +55,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
     assert !dev.projects.empty?
     assert dev.projects.all?(&:readonly?)
     assert dev.projects.find(:all).all?(&:readonly?)
-    assert dev.projects.find(:all, :readonly => true).all?(&:readonly?)
+    assert dev.projects.readonly(true).all?(&:readonly?)
   end
 
   def test_has_many_find_readonly
@@ -62,7 +63,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
     assert !post.comments.empty?
     assert !post.comments.any?(&:readonly?)
     assert !post.comments.find(:all).any?(&:readonly?)
-    assert post.comments.find(:all, :readonly => true).all?(&:readonly?)
+    assert post.comments.readonly(true).all?(&:readonly?)
   end
 
   def test_has_many_with_through_is_not_implicitly_marked_readonly
@@ -71,32 +72,32 @@ class ReadOnlyTest < ActiveRecord::TestCase
   end
 
   def test_readonly_scoping
-    Post.with_scope(:find => { :conditions => '1=1' }) do
+    Post.send(:with_scope, :find => { :conditions => '1=1' }) do
       assert !Post.find(1).readonly?
-      assert Post.find(1, :readonly => true).readonly?
-      assert !Post.find(1, :readonly => false).readonly?
+      assert Post.readonly(true).find(1).readonly?
+      assert !Post.readonly(false).find(1).readonly?
     end
 
-    Post.with_scope(:find => { :joins => '   ' }) do
+    Post.send(:with_scope, :find => { :joins => '   ' }) do
       assert !Post.find(1).readonly?
-      assert Post.find(1, :readonly => true).readonly?
-      assert !Post.find(1, :readonly => false).readonly?
+      assert Post.readonly.find(1).readonly?
+      assert !Post.readonly(false).find(1).readonly?
     end
 
     # Oracle barfs on this because the join includes unqualified and
     # conflicting column names
     unless current_adapter?(:OracleAdapter)
-      Post.with_scope(:find => { :joins => ', developers' }) do
+      Post.send(:with_scope, :find => { :joins => ', developers' }) do
         assert Post.find(1).readonly?
-        assert Post.find(1, :readonly => true).readonly?
-        assert !Post.find(1, :readonly => false).readonly?
+        assert Post.readonly.find(1).readonly?
+        assert !Post.readonly(false).find(1).readonly?
       end
     end
 
-    Post.with_scope(:find => { :readonly => true }) do
+    Post.send(:with_scope, :find => { :readonly => true }) do
       assert Post.find(1).readonly?
-      assert Post.find(1, :readonly => true).readonly?
-      assert !Post.find(1, :readonly => false).readonly?
+      assert Post.readonly.find(1).readonly?
+      assert !Post.readonly(false).find(1).readonly?
     end
   end
 

@@ -155,6 +155,13 @@ module ActiveRecord
 
       # Adds a validate and save callback for the association as specified by
       # the +reflection+.
+      #
+      # For performance reasons, we don't check whether to validate at runtime,
+      # but instead only define the method and callback when needed. However,
+      # this can change, for instance, when using nested attributes. Since we
+      # don't want the callbacks to get defined multiple times, there are
+      # guards that check if the save or validation methods have already been
+      # defined before actually defining them.
       def add_autosave_association_callbacks(reflection)
         save_method = "autosave_associated_records_for_#{reflection.name}"
         validation_method = "validate_associated_records_for_#{reflection.name}"
@@ -162,28 +169,33 @@ module ActiveRecord
 
         case reflection.macro
         when :has_many, :has_and_belongs_to_many
-          before_save :before_save_collection_association
+          unless method_defined?(save_method)
+            before_save :before_save_collection_association
 
-          define_method(save_method) { save_collection_association(reflection) }
-          # Doesn't use after_save as that would save associations added in after_create/after_update twice
-          after_create save_method
-          after_update save_method
+            define_method(save_method) { save_collection_association(reflection) }
+            # Doesn't use after_save as that would save associations added in after_create/after_update twice
+            after_create save_method
+            after_update save_method
+          end
 
-          if force_validation || (reflection.macro == :has_many && reflection.options[:validate] != false)
+          if !method_defined?(validation_method) &&
+              (force_validation || (reflection.macro == :has_many && reflection.options[:validate] != false))
             define_method(validation_method) { validate_collection_association(reflection) }
             validate validation_method
           end
         else
-          case reflection.macro
-          when :has_one
-            define_method(save_method) { save_has_one_association(reflection) }
-            after_save save_method
-          when :belongs_to
-            define_method(save_method) { save_belongs_to_association(reflection) }
-            before_save save_method
+          unless method_defined?(save_method)
+            case reflection.macro
+            when :has_one
+              define_method(save_method) { save_has_one_association(reflection) }
+              after_save save_method
+            when :belongs_to
+              define_method(save_method) { save_belongs_to_association(reflection) }
+              before_save save_method
+            end
           end
 
-          if force_validation
+          if !method_defined?(validation_method) && force_validation
             define_method(validation_method) { validate_single_association(reflection) }
             validate validation_method
           end
@@ -221,9 +233,9 @@ module ActiveRecord
       if new_record
         association
       elsif association.loaded?
-        autosave ? association : association.select { |record| record.new_record? }
+        autosave ? association : association.find_all { |record| record.new_record? }
       else
-        autosave ? association.target : association.target.select { |record| record.new_record? }
+        autosave ? association.target : association.target.find_all { |record| record.new_record? }
       end
     end
 
@@ -255,7 +267,7 @@ module ActiveRecord
       unless valid = association.valid?
         if reflection.options[:autosave]
           association.errors.each do |attribute, message|
-            attribute = "#{reflection.name}_#{attribute}"
+            attribute = "#{reflection.name}.#{attribute}"
             errors[attribute] << message if errors[attribute].empty?
           end
         else

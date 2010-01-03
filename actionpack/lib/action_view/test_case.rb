@@ -1,5 +1,5 @@
 require 'active_support/test_case'
-require 'action_controller/testing/test_case'
+require 'action_controller/test_case'
 
 module ActionView
   class Base
@@ -39,8 +39,7 @@ module ActionView
       end
     end
 
-    include ActionDispatch::Assertions
-    include ActionController::TestProcess
+    include ActionDispatch::Assertions, ActionDispatch::TestProcess
     include ActionView::Context
 
     include ActionController::PolymorphicRoutes

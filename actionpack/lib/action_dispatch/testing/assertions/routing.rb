@@ -46,7 +46,6 @@ module ActionDispatch
           request_method = nil
         end
 
-        ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty?
         request = recognized_request_for(path, request_method)
 
         expected_options = expected_options.clone
@@ -80,7 +79,6 @@ module ActionDispatch
       def assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)
         expected_path = "/#{expected_path}" unless expected_path[0] == ?/
         # Load routes.rb if it hasn't been loaded.
-        ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty?
 
         generated_path, extra_keys = ActionController::Routing::Routes.generate_extras(options, defaults)
         found_extras = options.reject {|k, v| ! extra_keys.include? k}
@@ -126,6 +124,46 @@ module ActionDispatch
         assert_generates(path.is_a?(Hash) ? path[:path] : path, options, defaults, extras, message)
       end
 
+      # A helper to make it easier to test different route configurations.
+      # This method temporarily replaces ActionController::Routing::Routes
+      # with a new RouteSet instance.
+      #
+      # The new instance is yielded to the passed block. Typically the block
+      # will create some routes using <tt>map.draw { map.connect ... }</tt>:
+      #
+      #   with_routing do |set|
+      #     set.draw do |map|
+      #       map.connect ':controller/:action/:id'
+      #         assert_equal(
+      #           ['/content/10/show', {}],
+      #           map.generate(:controller => 'content', :id => 10, :action => 'show')
+      #       end
+      #     end
+      #   end
+      #
+      def with_routing
+        real_routes = ActionController::Routing::Routes
+        ActionController::Routing.module_eval { remove_const :Routes }
+
+        temporary_routes = ActionController::Routing::RouteSet.new
+        ActionController::Routing.module_eval { const_set :Routes, temporary_routes }
+
+        yield temporary_routes
+      ensure
+        if ActionController::Routing.const_defined? :Routes
+          ActionController::Routing.module_eval { remove_const :Routes }
+        end
+        ActionController::Routing.const_set(:Routes, real_routes) if real_routes
+      end
+
+      def method_missing(selector, *args, &block)
+        if @controller && ActionController::Routing::Routes.named_routes.helpers.include?(selector)
+          @controller.send(selector, *args, &block)
+        else
+          super
+        end
+      end
+
       private
         # Recognizes the route for a given path.
         def recognized_request_for(path, request_method = nil)
@@ -134,9 +172,11 @@ module ActionDispatch
           # Assume given controller
           request = ActionController::TestRequest.new
           request.env["REQUEST_METHOD"] = request_method.to_s.upcase if request_method
-          request.path   = path
+          request.path = path
 
-          ActionController::Routing::Routes.recognize(request)
+          params = ActionController::Routing::Routes.recognize_path(path, { :method => request.method })
+          request.path_parameters = params.with_indifferent_access
+
           request
         end
     end

@@ -80,6 +80,11 @@ module ActionController #:nodoc:
   class Responder
     attr_reader :controller, :request, :format, :resource, :resources, :options
 
+    ACTIONS_FOR_VERBS = {
+      :post => :new,
+      :put => :edit
+    }
+
     def initialize(controller, resources, options={})
       @controller = controller
       @request = controller.request
@@ -102,9 +107,14 @@ module ActionController #:nodoc:
     # not defined, call to_format.
     #
     def self.call(*args)
-      responder = new(*args)
-      method = :"to_#{responder.format}"
-      responder.respond_to?(method) ? responder.send(method) : responder.to_format
+      new(*args).respond
+    end
+
+    # Main entry point for responder responsible to dispatch to the proper format.
+    #
+    def respond
+      method = :"to_#{format}"
+      respond_to?(method) ? send(method) : to_format
     end
 
     # HTML format does not render the resource, it always attempt to render a
@@ -133,7 +143,7 @@ module ActionController #:nodoc:
     def navigation_behavior(error)
       if get?
         raise error
-      elsif has_errors?
+      elsif has_errors? && default_action
         render :action => default_action
       else
         redirect_to resource_location
@@ -204,7 +214,7 @@ module ActionController #:nodoc:
     # the verb is POST.
     #
     def default_action
-      @action || (request.post? ? :new : :edit)
+      @action ||= ACTIONS_FOR_VERBS[request.method]
     end
   end
 end

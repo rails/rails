@@ -3,6 +3,7 @@ require 'generators/generators_test_helper'
 require 'rails/generators/rails/app/app_generator'
 
 class AppGeneratorTest < GeneratorsTestCase
+  arguments [destination_root]
 
   def setup
     super
@@ -49,8 +50,18 @@ class AppGeneratorTest < GeneratorsTestCase
   end
 
   def test_invalid_database_option_raises_an_error
-    content = capture(:stderr){ run_generator(["-d", "unknown"]) }
+    content = capture(:stderr){ run_generator([destination_root, "-d", "unknown"]) }
     assert_match /Invalid value for \-\-database option/, content
+  end
+
+  def test_invalid_application_name_raises_an_error
+    content = capture(:stderr){ Rails::Generators::AppGenerator.start [File.join(destination_root, "43-things")] }
+    assert_equal "Invalid application name 43-things. Please give a name which does not start with numbers.\n", content
+  end
+
+  def test_invalid_application_name_is_fixed
+    silence(:stdout){ Rails::Generators::AppGenerator.start [File.join(destination_root, "things-43")] }
+    assert_file "things-43/config/environment.rb", /Things43::Application/
   end
 
   def test_config_database_is_added_by_default
@@ -59,14 +70,15 @@ class AppGeneratorTest < GeneratorsTestCase
   end
 
   def test_config_database_is_not_added_if_skip_activerecord_is_given
-    run_generator ["--skip-activerecord"]
+    run_generator [destination_root, "--skip-activerecord"]
     assert_no_file "config/database.yml"
   end
 
-  def test_activerecord_is_removed_from_frameworks_if_skip_activerecord_is_given
-    run_generator ["--skip-activerecord"]
-    assert_file "config/application.rb", /config\.frameworks \-= \[ :active_record \]/
-  end
+  # TODO: Bring this back using requires
+  # def test_activerecord_is_removed_from_frameworks_if_skip_activerecord_is_given
+  #   run_generator ["--skip-activerecord"]
+  #   assert_file "config/application.rb", /config\.frameworks \-= \[ :active_record \]/
+  # end
 
   def test_prototype_and_test_unit_are_added_by_default
     run_generator
@@ -75,13 +87,13 @@ class AppGeneratorTest < GeneratorsTestCase
   end
 
   def test_prototype_and_test_unit_are_skipped_if_required
-    run_generator ["--skip-prototype", "--skip-testunit"]
+    run_generator [destination_root, "--skip-prototype", "--skip-testunit"]
     assert_no_file "public/javascripts/prototype.js"
     assert_no_file "test"
   end
 
   def test_shebang_is_added_to_files
-    run_generator ["--ruby", "foo/bar/baz"]
+    run_generator [destination_root, "--ruby", "foo/bar/baz"]
 
     %w(
       about
@@ -96,7 +108,7 @@ class AppGeneratorTest < GeneratorsTestCase
   end
 
   def test_shebang_when_is_the_same_as_default_use_env
-    run_generator ["--ruby", Thor::Util.ruby_command]
+    run_generator [destination_root, "--ruby", Thor::Util.ruby_command]
 
     %w(
       about
@@ -112,11 +124,11 @@ class AppGeneratorTest < GeneratorsTestCase
 
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
-    assert_match /It works from file!/, run_generator(["-m", "lib/template.rb"])
+    assert_match /It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"])
   end
 
   def test_template_raises_an_error_with_invalid_path
-    content = capture(:stderr){ run_generator(["-m", "non/existant/path"]) }
+    content = capture(:stderr){ run_generator([destination_root, "-m", "non/existant/path"]) }
     assert_match /The template \[.*\] could not be loaded/, content
     assert_match /non\/existant\/path/, content
   end
@@ -126,7 +138,7 @@ class AppGeneratorTest < GeneratorsTestCase
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    generator(:template => path, :database => "sqlite3").expects(:open).with(path).returns(template)
+    generator([destination_root], :template => path, :database => "sqlite3").expects(:open).with(path).returns(template)
     assert_match /It works!/, silence(:stdout){ generator.invoke }
   end
 
@@ -149,15 +161,20 @@ class AppGeneratorTest < GeneratorsTestCase
     assert_file 'lib/test_file.rb', 'heres test data'
   end
 
+  def test_dev_option
+    run_generator [destination_root, "--dev"]
+    rails_path = File.expand_path('../../..', Rails.root)
+    dev_gem = %(gem "rails", :path => #{rails_path.inspect})
+    assert_file 'Gemfile', /^#{Regexp.escape(dev_gem)}$/
+  end
+
+  def test_edge_option
+    run_generator [destination_root, "--edge"]
+    edge_gem = %(gem "rails", :git => "git://github.com/rails/rails.git")
+    assert_file 'Gemfile', /^#{Regexp.escape(edge_gem)}$/
+  end
+
   protected
-
-    def run_generator(args=[])
-      silence(:stdout) { Rails::Generators::AppGenerator.start [destination_root].concat(args) }
-    end
-
-    def generator(options={})
-      @generator ||= Rails::Generators::AppGenerator.new([destination_root], options, :destination_root => destination_root)
-    end
 
     def action(*args, &block)
       silence(:stdout){ generator.send(*args, &block) }

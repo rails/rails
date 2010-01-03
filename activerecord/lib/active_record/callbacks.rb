@@ -1,5 +1,3 @@
-require 'observer'
-
 module ActiveRecord
   # Callbacks are hooks into the lifecycle of an Active Record object that allow you to trigger logic
   # before or after an alteration of the object state. This can be used to make sure that associated and
@@ -210,7 +208,6 @@ module ActiveRecord
   # instead of quietly returning +false+.
   module Callbacks
     extend ActiveSupport::Concern
-    include ActiveSupport::Callbacks
 
     CALLBACKS = [
       :after_initialize, :after_find, :before_validation, :after_validation,
@@ -224,60 +221,14 @@ module ActiveRecord
         alias_method_chain method, :callbacks
       end
 
-      define_callbacks :initialize, :find, :save, :create, :update, :destroy,
-                       :validation, :terminator => "result == false", :scope => [:kind, :name]
+      extend ActiveModel::Callbacks
+
+      define_model_callbacks :initialize, :find, :only => :after
+      define_model_callbacks :save, :create, :update, :destroy
+      define_model_callbacks :validation, :only => [:before, :after]
     end
 
     module ClassMethods
-      def after_initialize(*args, &block)
-        options = args.extract_options!
-        options[:prepend] = true
-        set_callback(:initialize, :after, *(args << options), &block)
-      end
-
-      def after_find(*args, &block)
-        options = args.extract_options!
-        options[:prepend] = true
-        set_callback(:find, :after, *(args << options), &block)
-      end
-
-      [:save, :create, :update, :destroy].each do |callback|
-        module_eval <<-CALLBACKS, __FILE__, __LINE__
-          def before_#{callback}(*args, &block)
-            set_callback(:#{callback}, :before, *args, &block)
-          end
-
-          def around_#{callback}(*args, &block)
-            set_callback(:#{callback}, :around, *args, &block)
-          end
-
-          def after_#{callback}(*args, &block)
-            options = args.extract_options!
-            options[:prepend] = true
-            options[:if] = Array(options[:if]) << "!halted && value != false"
-            set_callback(:#{callback}, :after, *(args << options), &block)
-          end
-        CALLBACKS
-      end
-
-      def before_validation(*args, &block)
-        options = args.extract_options!
-        if options[:on]
-          options[:if] = Array(options[:if])
-          options[:if] << "@_on_validate == :#{options[:on]}"
-        end
-        set_callback(:validation, :before, *(args << options), &block)
-      end
-
-      def after_validation(*args, &block)
-        options = args.extract_options!
-        options[:if] = Array(options[:if])
-        options[:if] << "!halted"
-        options[:if] << "@_on_validate == :#{options[:on]}" if options[:on]
-        options[:prepend] = true
-        set_callback(:validation, :after, *(args << options), &block)
-      end
-
       def method_added(meth)
         super
         if CALLBACKS.include?(meth.to_sym)
@@ -323,7 +274,7 @@ module ActiveRecord
 
     def deprecated_callback_method(symbol) #:nodoc:
       if respond_to?(symbol)
-        ActiveSupport::Deprecation.warn("Base##{symbol} has been deprecated, please use Base.#{symbol} :method instead")
+        ActiveSupport::Deprecation.warn("Overwriting #{symbol} in your models has been deprecated, please use Base##{symbol} :method_name instead")
         send(symbol)
       end
     end

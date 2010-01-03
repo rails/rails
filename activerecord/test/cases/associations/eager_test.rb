@@ -61,14 +61,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_with_two_tables_in_from_without_getting_double_quoted
-    posts = Post.find(:all,
-      :select     => "posts.*",
-      :from       => "authors, posts",
-      :include    => :comments,
-      :conditions => "posts.author_id = authors.id",
-      :order      => "posts.id"
-    )
-
+    posts = Post.select("posts.*").from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").order("posts.id").to_a
     assert_equal 2, posts.first.comments.size
   end
 
@@ -469,7 +462,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_has_many_and_limit_and_scoped_conditions_on_the_eagers
     posts = nil
-    Post.with_scope(:find => {
+    Post.send(:with_scope, :find => {
       :include    => :comments,
       :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'"
     }) do
@@ -477,7 +470,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_equal 2, posts.size
     end
 
-    Post.with_scope(:find => {
+    Post.send(:with_scope, :find => {
       :include    => [ :comments, :author ],
       :conditions => "authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')"
     }) do
@@ -487,7 +480,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_scoped_and_explicit_conditions_on_the_eagers
-    Post.with_scope(:find => { :conditions => "1=1" }) do
+    Post.send(:with_scope, :find => { :conditions => "1=1" }) do
       posts = authors(:david).posts.find(:all,
         :include    => :comments,
         :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'",
@@ -506,7 +499,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_scoped_order_using_association_limiting_without_explicit_scope
     posts_with_explicit_order = Post.find(:all, :conditions => 'comments.id is not null', :include => :comments, :order => 'posts.id DESC', :limit => 2)
-    posts_with_scoped_order = Post.with_scope(:find => {:order => 'posts.id DESC'}) do
+    posts_with_scoped_order = Post.send(:with_scope, :find => {:order => 'posts.id DESC'}) do
       Post.find(:all, :conditions => 'comments.id is not null', :include => :comments, :limit => 2)
     end
     assert_equal posts_with_explicit_order, posts_with_scoped_order

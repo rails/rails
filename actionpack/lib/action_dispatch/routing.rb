@@ -265,118 +265,11 @@ module ActionDispatch
     autoload :RouteSet, 'action_dispatch/routing/route_set'
 
     SEPARATORS = %w( / . ? )
-
     HTTP_METHODS = [:get, :head, :post, :put, :delete, :options]
-
-    ALLOWED_REQUIREMENTS_FOR_OPTIMISATION = [:controller, :action].to_set
-
-    # The root paths which may contain controller files
-    mattr_accessor :controller_paths
-    self.controller_paths = []
 
     # A helper module to hold URL related helpers.
     module Helpers
       include ActionController::PolymorphicRoutes
-    end
-
-    class << self
-      # Expects an array of controller names as the first argument.
-      # Executes the passed block with only the named controllers named available.
-      # This method is used in internal Rails testing.
-      def with_controllers(names)
-        prior_controllers = @possible_controllers
-        use_controllers! names
-        yield
-      ensure
-        use_controllers! prior_controllers
-      end
-
-      # Returns an array of paths, cleaned of double-slashes and relative path references.
-      # * "\\\" and "//"  become "\\" or "/".
-      # * "/foo/bar/../config" becomes "/foo/config".
-      # The returned array is sorted by length, descending.
-      def normalize_paths(paths)
-        # do the hokey-pokey of path normalization...
-        paths = paths.collect do |path|
-          path = path.
-            gsub("//", "/").           # replace double / chars with a single
-            gsub("\\\\", "\\").        # replace double \ chars with a single
-            gsub(%r{(.)[\\/]$}, '\1')  # drop final / or \ if path ends with it
-
-          # eliminate .. paths where possible
-          re = %r{[^/\\]+[/\\]\.\.[/\\]}
-          path.gsub!(re, "") while path.match(re)
-          path
-        end
-
-        # start with longest path, first
-        paths = paths.uniq.sort_by { |path| - path.length }
-      end
-
-      # Returns the array of controller names currently available to ActionController::Routing.
-      def possible_controllers
-        unless @possible_controllers
-          @possible_controllers = []
-
-          paths = controller_paths.select { |path| File.directory?(path) && path != "." }
-
-          seen_paths = Hash.new {|h, k| h[k] = true; false}
-          normalize_paths(paths).each do |load_path|
-            Dir["#{load_path}/**/*_controller.rb"].collect do |path|
-              next if seen_paths[path.gsub(%r{^\.[/\\]}, "")]
-
-              controller_name = path[(load_path.length + 1)..-1]
-
-              controller_name.gsub!(/_controller\.rb\Z/, '')
-              @possible_controllers << controller_name
-            end
-          end
-
-          # remove duplicates
-          @possible_controllers.uniq!
-        end
-        @possible_controllers
-      end
-
-      # Replaces the internal list of controllers available to ActionController::Routing with the passed argument.
-      #   ActionController::Routing.use_controllers!([ "posts", "comments", "admin/comments" ])
-      def use_controllers!(controller_names)
-        @possible_controllers = controller_names
-      end
-
-      # Returns a controller path for a new +controller+ based on a +previous+ controller path.
-      # Handles 4 scenarios:
-      #
-      # * stay in the previous controller:
-      #     controller_relative_to( nil, "groups/discussion" ) # => "groups/discussion"
-      #
-      # * stay in the previous namespace:
-      #     controller_relative_to( "posts", "groups/discussion" ) # => "groups/posts"
-      #
-      # * forced move to the root namespace:
-      #     controller_relative_to( "/posts", "groups/discussion" ) # => "posts"
-      #
-      # * previous namespace is root:
-      #     controller_relative_to( "posts", "anything_with_no_slashes" ) # =>"posts"
-      #
-      def controller_relative_to(controller, previous)
-        if controller.nil?           then previous
-        elsif controller[0] == ?/    then controller[1..-1]
-        elsif %r{^(.*)/} =~ previous then "#{$1}/#{controller}"
-        else controller
-        end
-      end
-    end
-
-    ActiveSupport::Inflector.module_eval do
-      # Ensures that routes are reloaded when Rails inflections are updated.
-      def inflections_with_route_reloading(&block)
-        returning(inflections_without_route_reloading(&block)) {
-          ActionDispatch::Routing::Routes.reload! if block_given?
-        }
-      end
-
-      alias_method_chain :inflections, :route_reloading
     end
   end
 end

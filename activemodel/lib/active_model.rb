@@ -21,34 +21,41 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-$:.unshift(activesupport_path) if File.directory?(activesupport_path)
+activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
+$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 require 'active_support'
 
+
 module ActiveModel
-  autoload :AttributeMethods, 'active_model/attribute_methods'
-  autoload :Conversion, 'active_model/conversion'
-  autoload :DeprecatedErrorMethods, 'active_model/deprecated_error_methods'
-  autoload :Dirty, 'active_model/dirty'
-  autoload :Errors, 'active_model/errors'
-  autoload :Lint, 'active_model/lint'
+  extend ActiveSupport::Autoload
+
+  autoload :AttributeMethods
+  autoload :Callbacks
+  autoload :Conversion
+  autoload :DeprecatedErrorMethods
+  autoload :Dirty
+  autoload :Errors
+  autoload :Lint
   autoload :Name, 'active_model/naming'
-  autoload :Naming, 'active_model/naming'
+  autoload :Naming
   autoload :Observer, 'active_model/observing'
-  autoload :Observing, 'active_model/observing'
-  autoload :Serialization, 'active_model/serialization'
-  autoload :StateMachine, 'active_model/state_machine'
-  autoload :TestCase, 'active_model/test_case'
-  autoload :Translation, 'active_model/translation'
-  autoload :Validations, 'active_model/validations'
-  autoload :ValidationsRepairHelper, 'active_model/validations_repair_helper'
-  autoload :Validator, 'active_model/validator'
-  autoload :VERSION, 'active_model/version'
+  autoload :Observing
+  autoload :Serialization
+  autoload :StateMachine
+  autoload :Translation
+  autoload :Validations
+  autoload :Validator
+  autoload :EachValidator, 'active_model/validator'
+  autoload :BlockValidator, 'active_model/validator'
+  autoload :VERSION
 
   module Serializers
-    autoload :JSON, 'active_model/serializers/json'
-    autoload :Xml, 'active_model/serializers/xml'
+    extend ActiveSupport::Autoload
+
+    autoload :JSON
+    autoload :Xml
   end
 end
 
+require 'active_support/i18n'
 I18n.load_path << File.dirname(__FILE__) + '/active_model/locale/en.yml'

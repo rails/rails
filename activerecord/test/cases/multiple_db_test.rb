@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/entrant'
+require 'models/bird'
 
 # So we can test whether Course.connection survives a reload.
 require_dependency 'models/course'
@@ -81,5 +82,10 @@ class MultipleDbTest < ActiveRecord::TestCase
 
     assert_equal "Ruby Development", Course.find(1).name
     assert_equal "Ruby Developer", Entrant.find(1).name
+  end
+
+  def test_arel_table_engines
+    assert_not_equal Entrant.active_relation_engine, Course.active_relation_engine
+    assert_equal Entrant.active_relation_engine, Bird.active_relation_engine
   end
 end

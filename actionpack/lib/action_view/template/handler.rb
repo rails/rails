@@ -3,34 +3,39 @@ require "action_dispatch/http/mime_type"
 
 # Legacy TemplateHandler stub
 module ActionView
-  module TemplateHandlers #:nodoc:
-    module Compilable
-      def self.included(base)
-        base.extend(ClassMethods)
-      end
+  class Template
+    module Handlers #:nodoc:
+      module Compilable
+        def self.included(base)
+          base.extend(ClassMethods)
+        end
 
-      module ClassMethods
-        def call(template)
-          new.compile(template)
+        module ClassMethods
+          def call(template)
+            new.compile(template)
+          end
+        end
+
+        def compile(template)
+          raise "Need to implement #{self.class.name}#compile(template)"
         end
       end
+    end
 
-      def compile(template)
-         raise "Need to implement #{self.class.name}#compile(template)"
-       end
+    class Template::Handler
+      extlib_inheritable_accessor :default_format
+      self.default_format = Mime::HTML
+
+      def self.call(template)
+        raise "Need to implement #{self.class.name}#call(template)"
+      end
+
+      def render(template, local_assigns)
+        raise "Need to implement #{self.class.name}#render(template, local_assigns)"
+      end
     end
   end
-
-  class TemplateHandler
-    extlib_inheritable_accessor :default_format
-    self.default_format = Mime::HTML
-
-    def self.call(template)
-      raise "Need to implement #{self.class.name}#call(template)"
-    end
-
-    def render(template, local_assigns)
-      raise "Need to implement #{self.class.name}#render(template, local_assigns)"
-    end
-  end
+  
+  TemplateHandlers = Template::Handlers
+  TemplateHandler = Template::Handler
 end

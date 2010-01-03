@@ -15,6 +15,14 @@ module ActionMailer
       @body ||= {}
     end
 
+    def attachment(params, &block)
+      if params[:body]
+        ActiveSupport::Deprecation.warn('attachment :body => "string" is deprecated. To set the body of an attachment ' <<
+                                        'please use :data instead, like attachment :data => "string".', caller[0,10])
+        params[:data] = params.delete(:body)
+      end
+    end
+
     def create_parts
       if String === @body
         ActiveSupport::Deprecation.warn('body is deprecated. To set the body with a text ' <<

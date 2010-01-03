@@ -31,10 +31,39 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     assert base.valid_keys_for_has_and_belongs_to_many_association.include?(:autosave)
   end
 
+  def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
+    assert_no_difference_when_adding_callbacks_twice_for Pirate, :ship
+  end
+
+  def test_should_not_add_the_same_callbacks_multiple_times_for_belongs_to
+    assert_no_difference_when_adding_callbacks_twice_for Ship, :pirate
+  end
+
+  def test_should_not_add_the_same_callbacks_multiple_times_for_has_many
+    assert_no_difference_when_adding_callbacks_twice_for Pirate, :birds
+  end
+
+  def test_should_not_add_the_same_callbacks_multiple_times_for_has_and_belongs_to_many
+    assert_no_difference_when_adding_callbacks_twice_for Pirate, :parrots
+  end
+
   private
 
   def base
     ActiveRecord::Base
+  end
+
+  def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
+    reflection = model.reflect_on_association(association_name)
+    assert_no_difference "callbacks_for_model(#{model.name}).length" do
+      model.send(:add_autosave_association_callbacks, reflection)
+    end
+  end
+
+  def callbacks_for_model(model)
+    model.instance_variables.grep(/_callbacks$/).map do |ivar|
+      model.instance_variable_get(ivar)
+    end.flatten
   end
 end
 
@@ -757,14 +786,14 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_automatically_validate_the_associated_model
     @pirate.ship.name = ''
     assert @pirate.invalid?
-    assert @pirate.errors[:ship_name].any?
+    assert @pirate.errors[:"ship.name"].any?
   end
 
   def test_should_merge_errors_on_the_associated_models_onto_the_parent_even_if_it_is_not_valid
     @pirate.ship.name   = nil
     @pirate.catchphrase = nil
     assert @pirate.invalid?
-    assert @pirate.errors[:ship_name].any?
+    assert @pirate.errors[:"ship.name"].any?
     assert @pirate.errors[:catchphrase].any?
   end
 
@@ -857,7 +886,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_automatically_validate_the_associated_model
     @ship.pirate.catchphrase = ''
     assert @ship.invalid?
-    assert @ship.errors[:pirate_catchphrase].any?
+    assert @ship.errors[:"pirate.catchphrase"].any?
   end
 
   def test_should_merge_errors_on_the_associated_model_onto_the_parent_even_if_it_is_not_valid
@@ -865,7 +894,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     @ship.pirate.catchphrase = nil
     assert @ship.invalid?
     assert @ship.errors[:name].any?
-    assert @ship.errors[:pirate_catchphrase].any?
+    assert @ship.errors[:"pirate.catchphrase"].any?
   end
 
   def test_should_still_allow_to_bypass_validations_on_the_associated_model
@@ -932,7 +961,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).each { |child| child.name = '' }
 
     assert !@pirate.valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}_name"]
+    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
     assert @pirate.errors[@association_name].empty?
   end
 
@@ -940,8 +969,25 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).build(:name => '')
 
     assert !@pirate.valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}_name"]
+    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
     assert @pirate.errors[@association_name].empty?
+  end
+
+  def test_should_default_invalid_error_from_i18n
+    I18n.backend.store_translations(:en, :activerecord => { :errors => { :models =>
+      { @association_name.to_s.singularize.to_sym => { :blank => "cannot be blank" } }
+    }})
+
+    @pirate.send(@association_name).build(:name => '')
+
+    assert !@pirate.valid?
+    assert_equal ["cannot be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["#{@association_name.to_s.titleize} name cannot be blank"], @pirate.errors.full_messages
+    assert @pirate.errors[@association_name].empty?
+  ensure
+    I18n.backend.store_translations(:en, :activerecord => { :errors => { :models =>
+      { @association_name.to_s.singularize.to_sym => nil }
+    }})
   end
 
   def test_should_merge_errors_on_the_associated_models_onto_the_parent_even_if_it_is_not_valid
@@ -949,7 +995,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.catchphrase = nil
 
     assert !@pirate.valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}_name"]
+    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
     assert @pirate.errors[:catchphrase].any?
   end
 

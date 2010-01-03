@@ -6,6 +6,7 @@ require 'active_support/memoizable'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/string/access'
+require 'action_dispatch/http/headers'
 
 module ActionDispatch
   class Request < Rack::Request
@@ -17,7 +18,7 @@ module ActionDispatch
 
         HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
         HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
-        HTTP_NEGOTIATE HTTP_PRAGMA HTTP_REFERER HTTP_USER_AGENT ].each do |env|
+        HTTP_NEGOTIATE HTTP_PRAGMA ].each do |env|
       define_method(env.sub(/^HTTP_/n, '').downcase) do
         @env[env]
       end
@@ -117,7 +118,7 @@ module ActionDispatch
         end
       end
     end
-    
+
     def if_modified_since
       if since = env['HTTP_IF_MODIFIED_SINCE']
         Time.rfc2822(since) rescue nil
@@ -462,6 +463,15 @@ EOM
 
     def flash
       session['flash'] || {}
+    end
+
+    # Returns the authorization header regardless of whether it was specified directly or through one of the
+    # proxy alternatives.
+    def authorization
+      @env['HTTP_AUTHORIZATION']   ||
+      @env['X-HTTP_AUTHORIZATION'] ||
+      @env['X_HTTP_AUTHORIZATION'] ||
+      @env['REDIRECT_X_HTTP_AUTHORIZATION']
     end
 
     # Receives an array of mimes and return the first user sent mime that

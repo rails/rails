@@ -23,16 +23,6 @@ module ActiveRecord
     #   p2.first_name = "should fail"
     #   p2.save # Raises a ActiveRecord::StaleObjectError
     #
-    # Optimistic locking will also check for stale data when objects are destroyed.  Example:
-    #
-    #   p1 = Person.find(1)
-    #   p2 = Person.find(1)
-    #
-    #   p1.first_name = "Michael"
-    #   p1.save
-    #
-    #   p2.destroy # Raises a ActiveRecord::StaleObjectError
-    #
     # You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging,
     # or otherwise apply the business logic needed to resolve the conflict.
     #
@@ -49,7 +39,6 @@ module ActiveRecord
         self.lock_optimistically = true
 
         alias_method_chain :update, :lock
-        alias_method_chain :destroy, :lock
         alias_method_chain :attributes_from_column_definition, :lock
 
         class << self
@@ -89,11 +78,11 @@ module ActiveRecord
           attribute_names.uniq!
 
           begin
-            arel_table = self.class.arel_table(self.class.table_name)
+            relation = self.class.active_relation
 
-            affected_rows = arel_table.where(
-              arel_table[self.class.primary_key].eq(quoted_id).and(
-                arel_table[self.class.locking_column].eq(quote_value(previous_value))
+            affected_rows = relation.where(
+              relation[self.class.primary_key].eq(quoted_id).and(
+                relation[self.class.locking_column].eq(quote_value(previous_value))
               )
             ).update(arel_attributes_values(false, false, attribute_names))
 
@@ -110,29 +99,6 @@ module ActiveRecord
             raise
           end
         end
-
-  def destroy_with_lock #:nodoc:
-    return destroy_without_lock unless locking_enabled?
-
-    unless new_record?
-      lock_col = self.class.locking_column
-      previous_value = send(lock_col).to_i
-
-      arel_table = self.class.arel_table(self.class.table_name)
-
-      affected_rows = arel_table.where(
-          arel_table[self.class.primary_key].eq(quoted_id).and(
-          arel_table[self.class.locking_column].eq(quote_value(previous_value))
-        )
-      ).delete
-
-      unless affected_rows == 1
-        raise ActiveRecord::StaleObjectError, "Attempted to delete a stale object"
-      end
-    end
-
-    freeze
-  end
 
       module ClassMethods
         DEFAULT_LOCKING_COLUMN = 'lock_version'

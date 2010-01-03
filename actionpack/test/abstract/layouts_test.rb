@@ -6,7 +6,7 @@ module AbstractControllerTests
 
     # Base controller for these tests
     class Base < AbstractController::Base
-      include AbstractController::RenderingController
+      include AbstractController::Rendering
       include AbstractController::Layouts
 
       self.view_paths = [ActionView::FixtureResolver.new(
@@ -23,7 +23,7 @@ module AbstractControllerTests
       self.view_paths = []
       
       def index
-        render :_template => ActionView::TextTemplate.new("Hello blank!")
+        render :_template => ActionView::Template::Text.new("Hello blank!")
       end
     end
     
@@ -31,19 +31,19 @@ module AbstractControllerTests
       layout "hello"
       
       def index
-        render :_template => ActionView::TextTemplate.new("Hello string!")
+        render :_template => ActionView::Template::Text.new("Hello string!")
       end
 
       def overwrite_default
-        render :_template => ActionView::TextTemplate.new("Hello string!"), :layout => :default
+        render :_template => ActionView::Template::Text.new("Hello string!"), :layout => :default
       end
 
       def overwrite_false
-        render :_template => ActionView::TextTemplate.new("Hello string!"), :layout => false
+        render :_template => ActionView::Template::Text.new("Hello string!"), :layout => false
       end
 
       def overwrite_string
-        render :_template => ActionView::TextTemplate.new("Hello string!"), :layout => "omg"
+        render :_template => ActionView::Template::Text.new("Hello string!"), :layout => "omg"
       end
 
       def overwrite_skip
@@ -72,7 +72,7 @@ module AbstractControllerTests
       layout :hello
       
       def index
-        render :_template => ActionView::TextTemplate.new("Hello symbol!")
+        render :_template => ActionView::Template::Text.new("Hello symbol!")
       end
     private  
       def hello
@@ -84,7 +84,7 @@ module AbstractControllerTests
       layout :no_hello
       
       def index
-        render :_template => ActionView::TextTemplate.new("Hello missing symbol!")
+        render :_template => ActionView::Template::Text.new("Hello missing symbol!")
       end
     private  
       def no_hello
@@ -96,7 +96,7 @@ module AbstractControllerTests
       layout :nilz
       
       def index
-        render :_template => ActionView::TextTemplate.new("Hello nilz!")
+        render :_template => ActionView::Template::Text.new("Hello nilz!")
       end
       
       def nilz() end
@@ -106,7 +106,7 @@ module AbstractControllerTests
       layout :objekt
       
       def index
-        render :_template => ActionView::TextTemplate.new("Hello nilz!")
+        render :_template => ActionView::Template::Text.new("Hello nilz!")
       end
       
       def objekt
@@ -118,7 +118,7 @@ module AbstractControllerTests
       layout :omg_no_method
       
       def index
-        render :_template => ActionView::TextTemplate.new("Hello boom!")
+        render :_template => ActionView::Template::Text.new("Hello boom!")
       end
     end
     
@@ -126,7 +126,7 @@ module AbstractControllerTests
       layout "missing"
       
       def index
-        render :_template => ActionView::TextTemplate.new("Hello missing!")
+        render :_template => ActionView::Template::Text.new("Hello missing!")
       end
     end
     
@@ -134,7 +134,7 @@ module AbstractControllerTests
       layout false
       
       def index
-        render :_template => ActionView::TextTemplate.new("Hello false!")
+        render :_template => ActionView::Template::Text.new("Hello false!")
       end
     end
     
@@ -142,7 +142,7 @@ module AbstractControllerTests
       layout nil
       
       def index
-        render :_template => ActionView::TextTemplate.new("Hello nil!")
+        render :_template => ActionView::Template::Text.new("Hello nil!")
       end
     end
     

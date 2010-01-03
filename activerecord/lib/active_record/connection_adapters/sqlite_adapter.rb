@@ -183,12 +183,6 @@ module ActiveRecord
         catch_schema_changes { @connection.rollback }
       end
 
-      # SELECT ... FOR UPDATE is redundant since the table is locked.
-      def add_lock!(sql, options) #:nodoc:
-        sql
-      end
-
-
       # SCHEMA STATEMENTS ========================================
 
       def tables(name = nil) #:nodoc:

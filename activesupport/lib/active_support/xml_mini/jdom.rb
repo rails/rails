@@ -3,6 +3,8 @@ raise "JRuby is required to use the JDOM backend for XmlMini" unless RUBY_PLATFO
 require 'jruby'
 include Java
 
+require 'active_support/core_ext/object/blank'
+
 import javax.xml.parsers.DocumentBuilder unless defined? DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory unless defined? DocumentBuilderFactory
 import java.io.StringReader unless defined? StringReader

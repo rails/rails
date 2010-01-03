@@ -20,7 +20,22 @@ module ActiveRecord
         super
         construct_sql
       end
-      
+
+      delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
+
+      def select(select = nil, &block)
+        if block_given?
+          load_target
+          @target.select(&block)
+        else
+          scoped.select(select)
+        end
+      end
+
+      def scoped
+        with_scope(construct_scope) { @reflection.klass.scoped }
+      end
+
       def find(*args)
         options = args.extract_options!
 
@@ -37,27 +52,21 @@ module ActiveRecord
             load_target.select { |r| ids.include?(r.id) }
           end
         else
-          conditions = "#{@finder_sql}"
-          if sanitized_conditions = sanitize_sql(options[:conditions])
-            conditions << " AND (#{sanitized_conditions})"
-          end
-          
-          options[:conditions] = conditions
-
-          if options[:order] && @reflection.options[:order]
-            options[:order] = "#{options[:order]}, #{@reflection.options[:order]}"
-          elsif @reflection.options[:order]
-            options[:order] = @reflection.options[:order]
-          end
-          
-          # Build options specific to association
-          construct_find_options!(options)
-          
           merge_options_from_reflection!(options)
-          
-          # Pass through args exactly as we received them.
-          args << options
-          @reflection.klass.find(*args)
+          construct_find_options!(options)
+
+          find_scope = construct_scope[:find].slice(:conditions, :order)
+
+          with_scope(:find => find_scope) do
+            relation = @reflection.klass.send(:construct_finder_arel, options)
+
+            case args.first
+            when :first, :last, :all
+              relation.send(args.first)
+            else
+              relation.find(*args)
+            end
+          end
         end
       end
 
@@ -168,7 +177,7 @@ module ActiveRecord
         if @reflection.options[:counter_sql]
           @reflection.klass.count_by_sql(@counter_sql)
         else
-          column_name, options = @reflection.klass.send(:construct_count_options_from_args, *args)
+          column_name, options = @reflection.klass.scoped.send(:construct_count_options_from_args, *args)
           if @reflection.options[:uniq]
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
             column_name = "#{@reflection.quoted_table_name}.#{@reflection.klass.primary_key}" if column_name == :all
@@ -383,7 +392,7 @@ module ActiveRecord
           loaded if target
           target
         end
-        
+
         def method_missing(method, *args)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             if block_given?
@@ -476,7 +485,14 @@ module ActiveRecord
 
         def callback(method, record)
           callbacks_for(method).each do |callback|
-            ActiveSupport::DeprecatedCallbacks::Callback.new(method, callback, record).call(@owner, record)
+            case callback
+            when Symbol
+              @owner.send(callback, record)
+            when Proc
+              callback.call(@owner, record)
+            else
+              callback.send(method, @owner, record)
+            end
           end
         end
 

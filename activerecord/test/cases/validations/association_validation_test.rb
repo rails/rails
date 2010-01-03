@@ -10,7 +10,7 @@ require 'models/interest'
 class AssociationValidationTest < ActiveRecord::TestCase
   fixtures :topics, :owners
 
-  repair_validations(Topic)
+  repair_validations(Topic, Reply)
 
   def test_validates_size_of_association
     repair_validations(Owner) do
@@ -40,7 +40,8 @@ class AssociationValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_associated_many
-    Topic.validates_associated( :replies )
+    Topic.validates_associated(:replies)
+    Reply.validates_presence_of(:content)
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     t.replies << [r = Reply.new("title" => "A reply"), r2 = Reply.new("title" => "Another reply", "content" => "non-empty"), r3 = Reply.new("title" => "Yet another reply"), r4 = Reply.new("title" => "The last reply", "content" => "non-empty")]
     assert !t.valid?
