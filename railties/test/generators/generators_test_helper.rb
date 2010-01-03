@@ -25,4 +25,8 @@ class GeneratorsTestCase < Rails::Generators::TestCase
   rescue
     # Do nothing.
   end
+
+  def test_truth
+    # Don't cry test/unit
+  end
 end
