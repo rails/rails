@@ -20,7 +20,9 @@ class GeneratorsTestCase < Rails::Generators::TestCase
   destination File.join(Rails.root, "tmp")
   setup :prepare_destination
 
-  def test_truth
-    # Don't cry test unit
+  def self.inherited(base)
+    base.tests Rails::Generators.const_get(base.name.sub(/Test$/, ''))
+  rescue
+    # Do nothing.
   end
 end

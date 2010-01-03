@@ -1,8 +1,8 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/resource/resource_generator'
 
 class ResourceGeneratorTest < GeneratorsTestCase
+  arguments %w(account)
 
   def setup
     super
@@ -96,11 +96,4 @@ class ResourceGeneratorTest < GeneratorsTestCase
       assert_no_match /resources :accounts$/, route
     end
   end
-
-  protected
-
-    def run_generator(args=["account"], config={})
-      silence(:stdout) { Rails::Generators::ResourceGenerator.start args, config.merge(:destination_root => destination_root) }
-    end
-
 end

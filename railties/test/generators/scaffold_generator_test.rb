@@ -1,8 +1,8 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/scaffold/scaffold_generator'
 
 class ScaffoldGeneratorTest < GeneratorsTestCase
+  arguments %w(product_line title:string price:integer)
 
   def setup
     super
@@ -89,7 +89,7 @@ class ScaffoldGeneratorTest < GeneratorsTestCase
 
   def test_scaffold_on_revoke
     run_generator
-    run_generator :behavior => :revoke
+    run_generator ["product_line"], :behavior => :revoke
 
     # Model
     assert_no_file "app/models/product_line.rb"
@@ -117,14 +117,4 @@ class ScaffoldGeneratorTest < GeneratorsTestCase
     # Stylesheets (should not be removed)
     assert_file "public/stylesheets/scaffold.css"
   end
-
-  protected
-
-    def run_generator(config={})
-      silence(:stdout) do
-        Rails::Generators::ScaffoldGenerator.start ["product_line", "title:string", "price:integer"],
-                                                   config.merge(:destination_root => destination_root)
-      end
-    end
-
 end

@@ -1,8 +1,8 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/controller/controller_generator'
 
 class ControllerGeneratorTest < GeneratorsTestCase
+  arguments %w(Account foo bar)
 
   def test_help_does_not_show_invoked_generators_options_if_they_already_exist
     content = run_generator ["--help"]
@@ -70,11 +70,4 @@ class ControllerGeneratorTest < GeneratorsTestCase
       assert_instance_method :bar, controller
     end
   end
-
-  protected
-
-    def run_generator(args=["Account", "foo", "bar"])
-      silence(:stdout) { Rails::Generators::ControllerGenerator.start args, :destination_root => destination_root }
-    end
-
 end

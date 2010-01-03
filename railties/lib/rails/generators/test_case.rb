@@ -29,12 +29,13 @@ module Rails
     class TestCase < ActiveSupport::TestCase
       include FileUtils
 
-      extlib_inheritable_accessor :destination_root, :current_path, :instance_writer => false
-      extlib_inheritable_accessor :generator_class
+      extlib_inheritable_accessor :destination_root, :current_path, :generator_class,
+                                  :default_arguments, :instance_writer => false
 
       # Generators frequently change the current path using +FileUtils.cd+.
       # So we need to store the path at file load and revert back to it after each test.
       self.current_path = File.expand_path(Dir.pwd)
+      self.default_arguments = []
 
       setup :destination_root_is_set?, :ensure_current_path
       teardown :ensure_current_path
@@ -45,6 +46,15 @@ module Rails
       #
       def self.tests(klass)
         self.generator_class = klass
+      end
+
+      # Sets default arguments on generator invocation. This can be overwritten when
+      # invoking it.
+      #
+      #   arguments %w(app_name --skip-activerecord)
+      #
+      def self.arguments(array)
+        self.default_arguments = array
       end
 
       # Sets the destination of generator files:
@@ -195,8 +205,13 @@ module Rails
       #
       # You can provide a configuration hash as second argument. This method returns the output
       # printed by the generator.
-      def run_generator(args=[], config={})
-        capture(:stdout) { self.generator_class.start args, config.reverse_merge(:destination_root => destination_root) }
+      def run_generator(args=self.default_arguments, config={})
+        capture(:stdout) { self.generator_class.start(args, config.reverse_merge(:destination_root => destination_root)) }
+      end
+
+      # Instantiate the generator.
+      def generator(args=self.default_arguments, options={}, config={})
+        @generator ||= self.generator_class.new(args, options, config.reverse_merge(:destination_root => destination_root))
       end
 
       protected

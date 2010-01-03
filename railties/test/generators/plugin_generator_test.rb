@@ -1,8 +1,8 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/plugin/plugin_generator'
 
 class PluginGeneratorTest < GeneratorsTestCase
+  arguments %w(plugin_fu)
 
   def test_plugin_skeleton_is_created
     run_generator
@@ -46,11 +46,4 @@ class PluginGeneratorTest < GeneratorsTestCase
     run_generator
     run_generator ["plugin_fu"], :behavior => :revoke
   end
-
-  protected
-
-    def run_generator(args=["plugin_fu"], config={})
-      silence(:stdout) { Rails::Generators::PluginGenerator.start args, config.merge(:destination_root => destination_root) }
-    end
-
 end

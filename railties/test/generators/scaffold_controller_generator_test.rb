@@ -1,4 +1,3 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/scaffold_controller/scaffold_controller_generator'
 
@@ -8,6 +7,7 @@ module Unknown
 end
 
 class ScaffoldControllerGeneratorTest < GeneratorsTestCase
+  arguments %w(User name:string age:integer)
 
   def test_controller_skeleton_is_created
     run_generator
@@ -135,11 +135,4 @@ class ScaffoldControllerGeneratorTest < GeneratorsTestCase
   ensure
     Unknown::Generators.send :remove_const, :ActiveModel
   end
-
-  protected
-
-    def run_generator(args=["User", "name:string", "age:integer"])
-      silence(:stdout) { Rails::Generators::ScaffoldControllerGenerator.start args, :destination_root => destination_root }
-    end
-
 end
