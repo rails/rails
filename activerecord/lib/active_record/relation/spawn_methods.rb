@@ -5,7 +5,7 @@ module ActiveRecord
       relation.readonly = @readonly
       relation.preload_associations = @preload_associations
       relation.eager_load_associations = @eager_load_associations
-      relation.include_associations = @include_associations
+      relation.includes_associations = @includes_associations
       relation.table = table
       relation
     end
@@ -13,7 +13,7 @@ module ActiveRecord
     def merge(r)
       raise ArgumentError, "Cannot merge a #{r.klass.name} relation with #{@klass.name} relation" if r.klass != @klass
 
-      merged_relation = spawn(table).eager_load(r.eager_load_associations).preload(r.preload_associations).includes(r.include_associations)
+      merged_relation = spawn(table).eager_load(r.eager_load_associations).preload(r.preload_associations).includes(r.includes_associations)
       merged_relation.readonly = r.readonly
 
       [self.relation, r.relation].each do |arel|

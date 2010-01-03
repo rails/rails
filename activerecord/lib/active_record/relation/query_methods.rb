@@ -6,7 +6,7 @@ module ActiveRecord
     end
 
     def includes(*associations)
-      spawn.tap {|r| r.include_associations += Array.wrap(associations) }
+      spawn.tap {|r| r.includes_associations += Array.wrap(associations) }
     end
 
     def eager_load(*associations)

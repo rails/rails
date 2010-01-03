@@ -6,13 +6,13 @@ module ActiveRecord
 
     attr_reader :relation, :klass
     attr_writer :readonly, :table
-    attr_accessor :preload_associations, :eager_load_associations, :include_associations
+    attr_accessor :preload_associations, :eager_load_associations, :includes_associations
 
     def initialize(klass, relation)
       @klass, @relation = klass, relation
       @preload_associations = []
       @eager_load_associations = []
-      @include_associations = []
+      @includes_associations = []
       @loaded, @readonly = false
     end
 
@@ -57,7 +57,7 @@ module ActiveRecord
             :offset => @relation.skipped,
             :from => (@relation.send(:from_clauses) if @relation.send(:sources).present?)
             },
-            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations + @include_associations, nil))
+            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations + @includes_associations, nil))
         rescue ThrowResult
           []
         end
@@ -66,7 +66,7 @@ module ActiveRecord
       end
 
       preload = @preload_associations
-      preload +=  @include_associations unless find_with_associations
+      preload +=  @includes_associations unless find_with_associations
       preload.each {|associations| @klass.send(:preload_associations, @records, associations) } 
 
       @records.each { |record| record.readonly! } if @readonly
