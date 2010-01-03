@@ -799,8 +799,6 @@ The method +multiple_of?+ tests whether an integer is multiple of the argument:
 1.multiple_of?(2) # => false
 </ruby>
 
-WARNING: Due the way it is implemented the argument must be nonzero, otherwise +ZeroDivisionError+ is raised.
-
 NOTE: Defined in +active_support/core_ext/integer/multiple.rb+.
 
 h4. +ordinalize+
