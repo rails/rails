@@ -62,9 +62,9 @@ module ActionController #:nodoc:
       end
 
       def log_event(name, before, after, instrumenter_id, payload)
-        if name.to_s =~ /(read|write|cache|expire|exist)_(fragment|page)\??/
+        if name.to_s =~ /actioncontroller\.((read|write|expire|exist)_(fragment|page)\??)/
           key_or_path = payload[:key] || payload[:path]
-          human_name  = name.to_s.humanize
+          human_name  = $1.humanize
           duration    = (after - before) * 1000
           logger.info("#{human_name} #{key_or_path.inspect} (%.1fms)" % duration)
         else

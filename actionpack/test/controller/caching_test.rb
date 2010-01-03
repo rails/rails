@@ -630,17 +630,15 @@ class FragmentCachingTest < ActionController::TestCase
   end
 
   def test_fragment_for_logging
-    fragment_computed = false
-    events = []
-    ActiveSupport::Notifications.subscribe { |*args| events << args }
+    @controller.logger = MockLogger.new
 
-    buffer = 'generated till now -> '
-    @controller.fragment_for(buffer, 'expensive') { fragment_computed = true }
+    fragment_computed = false
+    @controller.fragment_for('buffer', 'expensive') { fragment_computed = true }
+    ActiveSupport::Notifications.notifier.wait
 
     assert fragment_computed
-    assert_equal 'generated till now -> ', buffer
-    ActiveSupport::Notifications.notifier.wait
-    assert_equal [:exist_fragment?, :write_fragment], events.map(&:first)
+    assert_match /Exist fragment\? "views\/expensive"/, @controller.logger.logged[0]
+    assert_match /Write fragment "views\/expensive"/, @controller.logger.logged[1]
   end
 
 end

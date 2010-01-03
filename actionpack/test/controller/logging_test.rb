@@ -75,6 +75,6 @@ class LoggingTest < ActionController::TestCase
     end
 
     def logs
-      @logs ||= @controller.logger.logged.compact.map {|l| l.to_s.strip}
+      @logs ||= @controller.logger.logged
     end
 end

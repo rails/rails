@@ -96,7 +96,6 @@ class ActiveSupport::TestCase
 end
 
 class MockLogger
-  attr_reader :logged
   attr_accessor :level
 
   def initialize
@@ -107,6 +106,10 @@ class MockLogger
   def method_missing(method, *args, &blk)
     @logged << args.first
     @logged << blk.call if block_given?
+  end
+
+  def logged
+    @logged.compact.map { |l| l.to_s.strip }
   end
 end
 
