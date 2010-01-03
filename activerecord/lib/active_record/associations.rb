@@ -1465,8 +1465,7 @@ module ActiveRecord
           after_destroy(method_name)
         end
 
-        def find_with_associations(options = {}, join_dependency = nil)
-          join_dependency ||= JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
+        def find_with_associations(options, join_dependency)
           rows = select_all_rows(options, join_dependency)
           join_dependency.instantiate(rows)
         rescue ThrowResult
@@ -1768,84 +1767,6 @@ module ActiveRecord
             select(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", construct_order(options[:order], scope(:find)).join(",")))
 
           relation.to_sql
-        end
-
-        def tables_in_string(string)
-          return [] if string.blank?
-          string.scan(/([a-zA-Z_][\.\w]+).?\./).flatten
-        end
-
-        def tables_in_hash(hash)
-          return [] if hash.blank?
-          tables = hash.map do |key, value|
-            if value.is_a?(Hash)
-              key.to_s
-            else
-              tables_in_string(key) if key.is_a?(String)
-            end
-          end
-          tables.flatten.compact
-        end
-
-        def conditions_tables(options)
-          # look in both sets of conditions
-          conditions = [scope(:find, :conditions), options[:conditions]].inject([]) do |all, cond|
-            case cond
-              when nil   then all
-              when Array then all << tables_in_string(cond.first)
-              when Hash  then all << tables_in_hash(cond)
-              else            all << tables_in_string(cond)
-            end
-          end
-          conditions.flatten
-        end
-
-        def order_tables(options)
-          order = [options[:order], scope(:find, :order) ].join(", ")
-          return [] unless order && order.is_a?(String)
-          tables_in_string(order)
-        end
-
-        def selects_tables(options)
-          select = options[:select]
-          return [] unless select && select.is_a?(String)
-          tables_in_string(select)
-        end
-
-        def joined_tables(options)
-          scope = scope(:find)
-          joins = options[:joins]
-          merged_joins = scope && scope[:joins] && joins ? merge_joins(scope[:joins], joins) : (joins || scope && scope[:joins])
-          [table_name] + case merged_joins
-          when Symbol, Hash, Array
-            if array_of_strings?(merged_joins)
-              tables_in_string(merged_joins.join(' '))
-            else
-              join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_joins, nil)
-              join_dependency.join_associations.collect {|join_association| [join_association.aliased_join_table_name, join_association.aliased_table_name]}.flatten.compact
-            end
-          else
-            tables_in_string(merged_joins)
-          end
-        end
-
-        # Checks if the conditions reference a table other than the current model table
-        def include_eager_conditions?(options, tables = nil, joined_tables = nil)
-          ((tables || conditions_tables(options)) - (joined_tables || joined_tables(options))).any?
-        end
-
-        # Checks if the query order references a table other than the current model's table.
-        def include_eager_order?(options, tables = nil, joined_tables = nil)
-          ((tables || order_tables(options)) - (joined_tables || joined_tables(options))).any?
-        end
-
-        def include_eager_select?(options, joined_tables = nil)
-          (selects_tables(options) - (joined_tables || joined_tables(options))).any?
-        end
-
-        def references_eager_loaded_tables?(options)
-          joined_tables = joined_tables(options)
-          include_eager_order?(options, nil, joined_tables) || include_eager_conditions?(options, nil, joined_tables) || include_eager_select?(options, joined_tables)
         end
 
         def using_limitable_reflections?(reflections)

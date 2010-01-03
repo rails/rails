@@ -23,7 +23,7 @@ class Thor
       source = File.expand_path(find_in_source_paths(source.to_s))
 
       create_file destination, nil, config do
-        content = File.read(source)
+        content = File.binread(source)
         content = block.call(content) if block
         content
       end
@@ -48,7 +48,7 @@ class Thor
     #
     def get(source, destination=nil, config={}, &block)
       source = File.expand_path(find_in_source_paths(source.to_s)) unless source =~ /^http\:\/\//
-      render = open(source).read
+      render = File.binread(source)
 
       destination ||= if block_given?
         block.arity == 1 ? block.call(render) : block.call
@@ -80,7 +80,7 @@ class Thor
       context = instance_eval('binding')
 
       create_file destination, nil, config do
-        content = ERB.new(::File.read(source), nil, '-').result(context)
+        content = ERB.new(::File.binread(source), nil, '-').result(context)
         content = block.call(content) if block
         content
       end
@@ -193,7 +193,7 @@ class Thor
       say_status :gsub, relative_to_original_destination_root(path), config.fetch(:verbose, true)
 
       unless options[:pretend]
-        content = File.read(path)
+        content = File.binread(path)
         content.gsub!(flag, *args, &block)
         File.open(path, 'wb') { |file| file.write(content) }
       end

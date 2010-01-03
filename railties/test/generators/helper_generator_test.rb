@@ -1,4 +1,3 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/helper/helper_generator'
 
@@ -6,6 +5,7 @@ ObjectHelper = Class.new
 AnotherObjectHelperTest = Class.new
 
 class HelperGeneratorTest < GeneratorsTestCase
+  arguments %w(admin)
 
   def test_helper_skeleton_is_created
     run_generator
@@ -50,11 +50,4 @@ class HelperGeneratorTest < GeneratorsTestCase
       end
     end
   end
-
-  protected
-
-    def run_generator(args=["admin"])
-      silence(:stdout) { Rails::Generators::HelperGenerator.start args, :destination_root => destination_root }
-    end
-
 end

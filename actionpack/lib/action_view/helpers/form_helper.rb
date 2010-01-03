@@ -504,14 +504,38 @@ module ActionView
       end
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
-      # assigned to the template (identified by +object+). The text of label will default to the attribute name unless you specify
-      # it explicitly. Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
+      # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
+      # is found in the current I18n locale (through views.labels.<modelname>.<attribute>) or you specify it explicitly. 
+      # Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
       # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
       # target labels for radio_button tags (where the value is used in the ID of the input tag).
       #
       # ==== Examples
       #   label(:post, :title)
       #   # => <label for="post_title">Title</label>
+      #
+      #   You can localize your labels based on model and attribute names.
+      #   For example you can define the following in your locale (e.g. en.yml)
+      #
+      #   views:
+      #     labels:
+      #       post:
+      #         body: "Write your entire text here"
+      #
+      #   Which then will result in
+      #
+      #   label(:post, :body)
+      #   # => <label for="post_body">Write your entire text here</label>
+      #
+      #   Localization can also be based purely on the translation of the attribute-name like this:
+      #
+      #   activemodel:
+      #     attribute:
+      #       post:
+      #         cost: "Total cost"
+      #
+      #   label(:post, :cost)
+      #   # => <label for="post_cost">Total cost</label>
       #
       #   label(:post, :title, "A short title")
       #   # => <label for="post_title">A short title</label>
@@ -751,7 +775,19 @@ module ActionView
         add_default_name_and_id_for_value(tag_value, name_and_id)
         options.delete("index")
         options["for"] ||= name_and_id["id"]
-        content = (text.blank? ? nil : text.to_s) || method_name.humanize
+
+        content = if text.blank?
+          I18n.t("views.labels.#{object_name}.#{method_name}", :default => "").presence
+        else
+          text.to_s
+        end
+
+        content ||= if object && object.class.respond_to?(:human_attribute_name)
+          object.class.human_attribute_name(method_name)
+        end
+
+        content ||= method_name.humanize
+
         label_tag(name_and_id["id"], content, options)
       end
 

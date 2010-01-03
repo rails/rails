@@ -63,7 +63,7 @@ class Thor
         #
         def show_diff(destination, content) #:nodoc:
           if diff_lcs_loaded? && ENV['THOR_DIFF'].nil? && ENV['RAILS_DIFF'].nil?
-            actual  = File.read(destination).to_s.split("\n")
+            actual  = File.binread(destination).to_s.split("\n")
             content = content.to_s.split("\n")
 
             Diff::LCS.sdiff(actual, content).each do |diff|

@@ -645,7 +645,7 @@ module ActiveRecord #:nodoc:
         options = args.extract_options!
         set_readonly_option!(options)
 
-        relation = construct_finder_arel_with_includes(options)
+        relation = construct_finder_arel(options)
 
         case args.first
         when :first, :last, :all
@@ -655,7 +655,7 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :from, :lock, :readonly, :having, :to => :scoped
+      delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
 
       # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
       # same arguments to this method as you can to <tt>find(:first)</tt>.
@@ -1510,11 +1510,17 @@ module ActiveRecord #:nodoc:
       end
 
       def active_relation_table(table_name_alias = nil)
-        Arel::Table.new(table_name, :as => table_name_alias)
+        Arel::Table.new(table_name, :as => table_name_alias, :engine => active_relation_engine)
       end
 
       def active_relation_engine
-        @active_relation_engine ||= Arel::Sql::Engine.new(self)
+        @active_relation_engine ||= begin
+          if self == ActiveRecord::Base
+            Arel::Table.engine
+          else
+            connection_handler.connection_pools[name] ? Arel::Sql::Engine.new(self) : superclass.active_relation_engine
+          end
+        end
       end
 
       private
@@ -1579,27 +1585,13 @@ module ActiveRecord #:nodoc:
             order(construct_order(options[:order], scope)).
             limit(construct_limit(options[:limit], scope)).
             offset(construct_offset(options[:offset], scope)).
-            from(options[:from])
+            from(options[:from]).
+            includes( merge_includes(scope && scope[:include], options[:include]))
 
           lock = (scope && scope[:lock]) || options[:lock]
           relation = relation.lock if lock.present?
 
           relation = relation.readonly if options[:readonly]
-
-          relation
-        end
-
-        def construct_finder_arel_with_includes(options = {})
-          relation = construct_finder_arel(options)
-          include_associations = merge_includes(scope(:find, :include), options[:include])
-
-          if include_associations.any?
-            if references_eager_loaded_tables?(options)
-              relation = relation.eager_load(include_associations)
-            else
-              relation = relation.preload(include_associations)
-            end
-          end
 
           relation
         end
@@ -1722,7 +1714,7 @@ module ActiveRecord #:nodoc:
             super unless all_attributes_exists?(attribute_names)
             if match.finder?
               options = arguments.extract_options!
-              relation = options.any? ? construct_finder_arel_with_includes(options) : scoped
+              relation = options.any? ? construct_finder_arel(options) : scoped
               relation.send :find_by_attributes, match, attribute_names, *arguments
             elsif match.instantiator?
               scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block

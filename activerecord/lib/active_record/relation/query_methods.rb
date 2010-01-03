@@ -5,6 +5,10 @@ module ActiveRecord
       spawn.tap {|r| r.preload_associations += Array.wrap(associations) }
     end
 
+    def includes(*associations)
+      spawn.tap {|r| r.includes_associations += Array.wrap(associations) }
+    end
+
     def eager_load(*associations)
       spawn.tap {|r| r.eager_load_associations += Array.wrap(associations) }
     end
@@ -116,7 +120,7 @@ module ActiveRecord
         args.first
       end
 
-      spawn(@relation.where(*conditions))
+      conditions.is_a?(String) ? spawn(@relation.where(conditions)) : spawn(@relation.where(*conditions))
     end
 
     private

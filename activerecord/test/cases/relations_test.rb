@@ -10,6 +10,7 @@ require 'models/comment'
 require 'models/entrant'
 require 'models/developer'
 require 'models/company'
+require 'models/bird'
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
@@ -177,7 +178,7 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_find_with_included_associations
+  def test_find_with_preloaded_associations
     assert_queries(2) do
       posts = Post.preload(:comments)
       assert posts.first.comments.first
@@ -200,6 +201,29 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_queries(3) do
       posts = Post.preload(:author, :comments).to_a
+      assert posts.first.author
+      assert posts.first.comments.first
+    end
+  end
+
+  def test_find_with_included_associations
+    assert_queries(2) do
+      posts = Post.includes(:comments)
+      assert posts.first.comments.first
+    end
+
+    assert_queries(2) do
+      posts = Post.scoped.includes(:comments)
+      assert posts.first.comments.first
+    end
+
+    assert_queries(2) do
+      posts = Post.includes(:author)
+      assert posts.first.author
+    end
+
+    assert_queries(3) do
+      posts = Post.includes(:author, :comments).to_a
       assert posts.first.author
       assert posts.first.comments.first
     end
@@ -383,6 +407,11 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_relation_merging_with_locks
+    devs = Developer.lock.where("salary >= 80000").order("id DESC") & Developer.limit(2)
+    assert devs.locked.present?
+  end
+
   def test_relation_merging_with_preload
     [Post.scoped & Post.preload(:author), Post.preload(:author) & Post.scoped].each do |posts|
       assert_queries(2) { assert posts.first.author }
@@ -477,4 +506,54 @@ class RelationTest < ActiveRecord::TestCase
     assert posts.many?
     assert ! posts.limit(1).many?
   end
+
+  def test_build
+    posts = Post.scoped
+
+    post = posts.new
+    assert_kind_of Post, post
+  end
+
+  def test_scoped_build
+    posts = Post.where(:title => 'You told a lie')
+
+    post = posts.new
+    assert_kind_of Post, post
+    assert_equal 'You told a lie', post.title
+  end
+
+  def test_create
+    birds = Bird.scoped
+
+    sparrow = birds.create
+    assert_kind_of Bird, sparrow
+    assert sparrow.new_record?
+
+    hen = birds.where(:name => 'hen').create
+    assert ! hen.new_record?
+    assert_equal 'hen', hen.name
+  end
+
+  def test_create_bang
+    birds = Bird.scoped
+
+    assert_raises(ActiveRecord::RecordInvalid) { birds.create! }
+
+    hen = birds.where(:name => 'hen').create!
+    assert_kind_of Bird, hen
+    assert ! hen.new_record?
+    assert_equal 'hen', hen.name
+  end
+
+  def test_except
+    relation = Post.where(:author_id => 1).order('id ASC').limit(1)
+    assert_equal [posts(:welcome)], relation.all
+
+    author_posts = relation.except(:order, :limit)
+    assert_equal Post.where(:author_id => 1).all, author_posts.all
+
+    all_posts = relation.except(:where, :order, :limit)
+    assert_equal Post.all, all_posts.all
+  end
+
 end

@@ -8,7 +8,7 @@ module Rails
     class << self
       attr_writer :config
       alias configure class_eval
-      delegate :initialize!, :load_tasks, :to => :instance
+      delegate :initialize!, :load_tasks, :root, :to => :instance
 
       private :new
       def instance
@@ -267,19 +267,6 @@ module Rails
     initializer :disable_dependency_loading do
       if config.cache_classes && !config.dependency_loading
         ActiveSupport::Dependencies.unhook!
-      end
-    end
-
-    # For each framework, search for instrument file with Notifications hooks.
-    #
-    initializer :load_notifications_hooks do
-      frameworks = [ :active_record, :action_controller, :action_view,
-        :action_mailer, :active_resource ]
-      frameworks.each do |framework|
-        begin
-          require "#{framework}/notifications"
-        rescue LoadError => e
-        end
       end
     end
   end

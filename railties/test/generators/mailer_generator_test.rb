@@ -1,8 +1,8 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/mailer/mailer_generator'
 
 class MailerGeneratorTest < GeneratorsTestCase
+  arguments %w(notifier foo bar)
 
   def test_mailer_skeleton_is_created
     run_generator
@@ -42,11 +42,4 @@ class MailerGeneratorTest < GeneratorsTestCase
     assert_file "app/models/notifier.rb", /def foo/
     assert_file "app/models/notifier.rb", /def bar/
   end
-
-  protected
-
-    def run_generator(args=["notifier", "foo", "bar"])
-      silence(:stdout) { Rails::Generators::MailerGenerator.start args, :destination_root => destination_root }
-    end
-
 end

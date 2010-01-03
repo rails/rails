@@ -22,7 +22,7 @@ class Thor
   end
 
   module Shell
-    SHELL_DELEGATED_METHODS = [:ask, :yes?, :no?, :say, :say_status, :print_list, :print_table]
+    SHELL_DELEGATED_METHODS = [:ask, :yes?, :no?, :say, :say_status, :print_table]
 
     # Add shell to initialize config values.
     #

@@ -21,7 +21,7 @@ module ActiveRecord
         construct_sql
       end
 
-      delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :from, :lock, :readonly, :having, :to => :scoped
+      delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
 
       def select(select = nil, &block)
         if block_given?
@@ -58,7 +58,7 @@ module ActiveRecord
           find_scope = construct_scope[:find].slice(:conditions, :order)
 
           with_scope(:find => find_scope) do
-            relation = @reflection.klass.send(:construct_finder_arel_with_includes, options)
+            relation = @reflection.klass.send(:construct_finder_arel, options)
 
             case args.first
             when :first, :last, :all

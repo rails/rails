@@ -21,20 +21,6 @@ class I18nValidationTest < ActiveModel::TestCase
     I18n.backend = @old_backend
   end
 
-  def test_percent_s_interpolation_syntax_in_error_messages_was_deprecated
-    assert_not_deprecated do
-      default = "%s interpolation syntax was deprecated"
-      assert_equal default, I18n.t(:does_not_exist, :default => default, :value => 'this')
-    end
-  end
-
-  def test_percent_d_interpolation_syntax_in_error_messages_was_deprecated
-    assert_not_deprecated do
-      default = "%d interpolation syntaxes are deprecated"
-      assert_equal default, I18n.t(:does_not_exist, :default => default, :count => 2)
-    end
-  end
-
   def test_errors_add_on_empty_generates_message
     @person.errors.expects(:generate_message).with(:title, :empty, {:default => nil})
     @person.errors.add_on_empty :title
@@ -57,8 +43,14 @@ class I18nValidationTest < ActiveModel::TestCase
 
   def test_errors_full_messages_translates_human_attribute_name_for_model_attributes
     @person.errors.add('name', 'empty')
-    I18n.expects(:translate).with(:"person.name", :default => ['Name'], :scope => [:activemodel, :attributes], :count => 1).returns('Name')
+    I18n.expects(:translate).with(:"person.name", :default => ['Name', 'Name'], :scope => [:activemodel, :attributes], :count => 1).returns('Name')
     @person.errors.full_messages
+  end
+
+  def test_errors_full_messages_uses_format
+    I18n.backend.store_translations('en', :activemodel => {:errors => {:format => "Field {{attribute}} {{message}}"}})
+    @person.errors.add('name', 'empty')
+    assert_equal ["Field Name empty"], @person.errors.full_messages
   end
 
   # ActiveRecord::Validations

@@ -1,8 +1,8 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/observer/observer_generator'
 
 class ObserverGeneratorTest < GeneratorsTestCase
+  arguments %w(account)
 
   def test_invokes_default_orm
     run_generator
@@ -23,11 +23,4 @@ class ObserverGeneratorTest < GeneratorsTestCase
     content = run_generator ["account", "--test-framework=rspec"]
     assert_match /rspec \[not found\]/, content
   end
-
-  protected
-
-    def run_generator(args=["account"])
-      silence(:stdout) { Rails::Generators::ObserverGenerator.start args, :destination_root => destination_root }
-    end
-
 end

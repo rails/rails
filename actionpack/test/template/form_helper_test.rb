@@ -6,6 +6,25 @@ class FormHelperTest < ActionView::TestCase
 
   def setup
     super
+
+    # Create "label" locale for testing I18n label helpers
+    I18n.backend.store_translations 'label', {
+      :activemodel => {
+        :attributes => {
+          :post => {
+            :cost => "Total cost"
+          }
+        }
+      },
+      :views => {
+        :labels => {
+          :post => {
+            :body => "Write entire text here"
+          }
+        }
+      }
+    }
+
     @post = Post.new
     @comment = Comment.new
     def @post.errors()
@@ -49,6 +68,27 @@ class FormHelperTest < ActionView::TestCase
   def test_label_with_symbols
     assert_dom_equal('<label for="post_title">Title</label>', label(:post, :title))
     assert_dom_equal('<label for="post_secret">Secret?</label>', label(:post, :secret?))
+  end
+
+  def test_label_with_locales_strings
+    old_locale, I18n.locale = I18n.locale, :label
+    assert_dom_equal('<label for="post_body">Write entire text here</label>', label("post", "body"))
+  ensure
+    I18n.locale = old_locale
+  end
+
+  def test_label_with_human_attribute_name
+    old_locale, I18n.locale = I18n.locale, :label
+    assert_dom_equal('<label for="post_cost">Total cost</label>', label(:post, :cost))
+  ensure
+    I18n.locale = old_locale
+  end
+
+  def test_label_with_locales_symbols
+    old_locale, I18n.locale = I18n.locale, :label
+    assert_dom_equal('<label for="post_body">Write entire text here</label>', label(:post, :body))
+  ensure
+    I18n.locale = old_locale
   end
 
   def test_label_with_for_attribute_as_symbol

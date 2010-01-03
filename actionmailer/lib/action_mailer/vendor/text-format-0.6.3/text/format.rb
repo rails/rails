@@ -36,7 +36,7 @@
 # 2003.03.28              Austin Ziegler
 #             Added the ability for a hyphenator to receive the formatter
 #             object. Fixed a bug for strings matching /\A\s*\Z/ failing
-#             entirely. Fixed a test case failing under 1.6.8. 
+#             entirely. Fixed a test case failing under 1.6.8.
 # 2003.04.04              Austin Ziegler
 #             Handle the case of hyphenators returning nil for first/rest.
 # 2003.09.17          Austin Ziegler
@@ -78,7 +78,7 @@ module Text #:nodoc:
    # BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
    # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
    # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-   # SOFTWARE.  
+   # SOFTWARE.
    class Format
     VERSION = '0.63'
 
@@ -961,6 +961,7 @@ module Text #:nodoc:
       #               <http://www.pragmaticprogrammer.com/ruby/articles/insteval.html>
       #
     def initialize(arg = nil, &block)
+      @text = nil
       case arg
       when Text::Format
         __create(arg.text) do

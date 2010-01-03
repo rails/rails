@@ -29,7 +29,7 @@ module ActiveRecord
           unless scoped?(:find)
             finder_needs_type_condition? ? active_relation.where(type_condition) : active_relation.spawn
           else
-            construct_finder_arel_with_includes
+            construct_finder_arel
           end
         end
       end

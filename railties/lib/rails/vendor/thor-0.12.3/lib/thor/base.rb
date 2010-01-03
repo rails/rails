@@ -92,6 +92,8 @@ class Thor
     end
 
     module ClassMethods
+      attr_accessor :debugging
+
       # Adds an argument to the class and creates an attr_accessor for it.
       #
       # Arguments are different from options in several aspects. The first one
@@ -347,10 +349,11 @@ class Thor
       # Default way to start generators from the command line.
       #
       def start(given_args=ARGV, config={})
+        self.debugging = given_args.include?("--debug")
         config[:shell] ||= Thor::Base.shell.new
         yield
       rescue Thor::Error => e
-        if given_args.include?("--debug")
+        if debugging
           raise e
         else
           config[:shell].error e.message
@@ -361,48 +364,43 @@ class Thor
       protected
 
         # Prints the class options per group. If an option does not belong to
-        # any group, it uses the ungrouped name value. This method provide to
-        # hooks to add extra options, one of them if the third argument called
-        # extra_group that should be a hash in the format :group => Array[Options].
+        # any group, it's printed as Class option.
         #
-        # The second is by returning a lambda used to print values. The lambda
-        # requires two options: the group name and the array of options.
-        #
-        def class_options_help(shell, ungrouped_name=nil, extra_group=nil) #:nodoc:
-          groups = {}
-
+        def class_options_help(shell, groups={}) #:nodoc:
+          # Group options by group
           class_options.each do |_, value|
             groups[value.group] ||= []
             groups[value.group] << value
           end
 
-          printer = proc do |group_name, options|
-            list = []
-            padding = options.collect{ |o| o.aliases.size  }.max.to_i * 4
-
-            options.each do |option|
-              item = [ option.usage(padding) ]
-              item.push(option.description ? "# #{option.description}" : "")
-
-              list << item
-              list << [ "", "# Default: #{option.default}" ] if option.show_default?
-            end
-
-            unless list.empty?
-              shell.say(group_name ? "#{group_name} options:" : "Options:")
-              shell.print_table(list, :ident => 2)
-              shell.say ""
-            end
-          end
-
           # Deal with default group
           global_options = groups.delete(nil) || []
-          printer.call(ungrouped_name, global_options) if global_options
+          print_options(shell, global_options)
 
           # Print all others
-          groups = extra_group.merge(groups) if extra_group
-          groups.each(&printer)
-          printer
+          groups.each do |group_name, options|
+            print_options(shell, options, group_name)
+          end
+        end
+
+        # Receives a set of options and print them.
+        def print_options(shell, options, group_name=nil)
+          return if options.empty?
+
+          list = []
+          padding = options.collect{ |o| o.aliases.size }.max.to_i * 4
+
+          options.each do |option|
+            item = [ option.usage(padding) ]
+            item.push(option.description ? "# #{option.description}" : "")
+
+            list << item
+            list << [ "", "# Default: #{option.default}" ] if option.show_default?
+          end
+
+          shell.say(group_name ? "#{group_name} options:" : "Options:")
+          shell.print_table(list, :ident => 2)
+          shell.say ""
         end
 
         # Raises an error if the word given is a Thor reserved word.

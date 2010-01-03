@@ -1,8 +1,8 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/model/model_generator'
 
 class ModelGeneratorTest < GeneratorsTestCase
+  arguments %w(Account name:string age:integer)
 
   def test_help_shows_invoked_generators_options
     content = run_generator ["--help"]
@@ -84,13 +84,13 @@ class ModelGeneratorTest < GeneratorsTestCase
     run_generator ["product", "name:string", "supplier_id:integer"]
 
     assert_migration "db/migrate/create_products.rb" do |m|
-      assert_class_method m, :up do |up|
+      assert_class_method :up, m do |up|
         assert_match /create_table :products/, up
         assert_match /t\.string :name/, up
         assert_match /t\.integer :supplier_id/, up
       end
 
-      assert_class_method m, :down do |down|
+      assert_class_method :down, m do |down|
         assert_match /drop_table :products/, down
       end
     end
@@ -126,7 +126,7 @@ class ModelGeneratorTest < GeneratorsTestCase
     run_generator ["account", "--no-timestamps"]
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
-      assert_class_method m, :up do |up|
+      assert_class_method :up, m do |up|
         assert_no_match /t.timestamps/, up
       end
     end
@@ -171,11 +171,4 @@ class ModelGeneratorTest < GeneratorsTestCase
     content = capture(:stderr){ run_generator ["object"] }
     assert_match /The name 'Object' is either already used in your application or reserved/, content
   end
-
-  protected
-
-    def run_generator(args=["Account", "name:string", "age:integer"], config={})
-      silence(:stdout) { Rails::Generators::ModelGenerator.start args, config.merge(:destination_root => destination_root) }
-    end
-
 end
