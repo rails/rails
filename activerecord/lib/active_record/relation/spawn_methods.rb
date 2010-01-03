@@ -23,7 +23,8 @@ module ActiveRecord
           limit(arel.taken).
           offset(arel.skipped).
           select(arel.send(:select_clauses)).
-          from(arel.sources)
+          from(arel.sources).
+          having(arel.havings)
       end
 
       relation_order = r.send(:order_clause)
@@ -63,6 +64,7 @@ module ActiveRecord
       result = result.from(@relation.sources) unless skips.include?(:from)
       result = result.order(order_clause) unless skips.include?(:order)
       result = result.where(*@relation.wheres) unless skips.include?(:where)
+      result = result.having(*@relation.havings) unless skips.include?(:having)
 
       result
     end
