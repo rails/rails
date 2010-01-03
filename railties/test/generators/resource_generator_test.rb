@@ -50,8 +50,8 @@ class ResourceGeneratorTest < GeneratorsTestCase
     run_generator ["account", "--actions", "index", "new"]
 
     assert_file "app/controllers/accounts_controller.rb" do |controller|
-      assert_instance_method controller, :index
-      assert_instance_method controller, :new
+      assert_instance_method :index, controller
+      assert_instance_method :new, controller
     end
 
     assert_file "app/views/accounts/index.html.erb"

@@ -21,12 +21,12 @@ class MigrationGeneratorTest < GeneratorsTestCase
     run_generator [@migration, "title:string", "body:text"]
 
     assert_migration "db/migrate/#{@migration}.rb" do |content|
-      assert_class_method content, :up do |up|
+      assert_class_method :up, content do |up|
         assert_match /add_column :posts, :title, :string/, up
         assert_match /add_column :posts, :body, :text/, up
       end
 
-      assert_class_method content, :down do |down|
+      assert_class_method :down, content do |down|
         assert_match /remove_column :posts, :title/, down
         assert_match /remove_column :posts, :body/, down
       end
@@ -38,12 +38,12 @@ class MigrationGeneratorTest < GeneratorsTestCase
     run_generator [@migration, "title:string", "body:text"]
 
     assert_migration "db/migrate/#{@migration}.rb" do |content|
-      assert_class_method content, :up do |up|
+      assert_class_method :up, content do |up|
         assert_match /remove_column :posts, :title/, up
         assert_match /remove_column :posts, :body/, up
       end
 
-      assert_class_method content, :down do |down|
+      assert_class_method :down, content do |down|
         assert_match /add_column :posts, :title, :string/, down
         assert_match /add_column :posts, :body, :text/, down
       end

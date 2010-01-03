@@ -15,35 +15,35 @@ class ScaffoldControllerGeneratorTest < GeneratorsTestCase
     assert_file "app/controllers/users_controller.rb" do |content|
       assert_match /class UsersController < ApplicationController/, content
 
-      assert_instance_method content, :index do |m|
+      assert_instance_method :index, content do |m|
         assert_match /@users = User\.all/, m
       end
 
-      assert_instance_method content, :show do |m|
+      assert_instance_method :show, content do |m|
         assert_match /@user = User\.find\(params\[:id\]\)/, m
       end
 
-      assert_instance_method content, :new do |m|
+      assert_instance_method :new, content do |m|
         assert_match /@user = User\.new/, m
       end
 
-      assert_instance_method content, :edit do |m|
+      assert_instance_method :edit, content do |m|
         assert_match /@user = User\.find\(params\[:id\]\)/, m
       end
 
-      assert_instance_method content, :create do |m|
+      assert_instance_method :create, content do |m|
         assert_match /@user = User\.new\(params\[:user\]\)/, m
         assert_match /@user\.save/, m
         assert_match /@user\.errors/, m
       end
 
-      assert_instance_method content, :update do |m|
+      assert_instance_method :update, content do |m|
         assert_match /@user = User\.find\(params\[:id\]\)/, m
         assert_match /@user\.update_attributes\(params\[:user\]\)/, m
         assert_match /@user\.errors/, m
       end
 
-      assert_instance_method content, :destroy do |m|
+      assert_instance_method :destroy, content do |m|
         assert_match /@user = User\.find\(params\[:id\]\)/, m
         assert_match /@user\.destroy/, m
       end
@@ -108,7 +108,7 @@ class ScaffoldControllerGeneratorTest < GeneratorsTestCase
     assert_file "app/controllers/users_controller.rb" do |content|
       assert_match /class UsersController < ApplicationController/, content
 
-      assert_instance_method content, :index do |m|
+      assert_instance_method :index, content do |m|
         assert_match /@users = User\.all/, m
       end
     end
@@ -127,7 +127,7 @@ class ScaffoldControllerGeneratorTest < GeneratorsTestCase
     assert_file "app/controllers/users_controller.rb" do |content|
       assert_match /class UsersController < ApplicationController/, content
 
-      assert_instance_method content, :index do |m|
+      assert_instance_method :index, content do |m|
         assert_match /@users = User\.find\(:all\)/, m
         assert_no_match /@users = User\.all/, m
       end

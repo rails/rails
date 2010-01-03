@@ -272,7 +272,7 @@ module Rails
         # parameters.
         #
         def invoked?(args)
-          args.last.is_a?(Hash) && args.last.key?(:invocations)
+          args.last.is_a?(Hash) && (args.last.key?(:invocations) || args.last.key?(:destination_root))
         end
 
         # Use Rails default banner.

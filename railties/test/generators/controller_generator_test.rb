@@ -6,7 +6,7 @@ class ControllerGeneratorTest < GeneratorsTestCase
 
   def test_help_does_not_show_invoked_generators_options_if_they_already_exist
     content = run_generator ["--help"]
-    assert_no_match /Helper options:/, content
+    assert_no_match /Helper options\:/, content
   end
 
   def test_controller_skeleton_is_created
@@ -66,8 +66,8 @@ class ControllerGeneratorTest < GeneratorsTestCase
     run_generator
 
     assert_file "app/controllers/account_controller.rb" do |controller|
-      assert_instance_method controller, :foo
-      assert_instance_method controller, :bar
+      assert_instance_method :foo, controller
+      assert_instance_method :bar, controller
     end
   end
 

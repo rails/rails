@@ -32,35 +32,35 @@ class ScaffoldGeneratorTest < GeneratorsTestCase
     assert_file "app/controllers/product_lines_controller.rb" do |content|
       assert_match /class ProductLinesController < ApplicationController/, content
 
-      assert_instance_method content, :index do |m|
+      assert_instance_method :index, content do |m|
         assert_match /@product_lines = ProductLine\.all/, m
       end
 
-      assert_instance_method content, :show do |m|
+      assert_instance_method :show, content do |m|
         assert_match /@product_line = ProductLine\.find\(params\[:id\]\)/, m
       end
 
-      assert_instance_method content, :new do |m|
+      assert_instance_method :new, content do |m|
         assert_match /@product_line = ProductLine\.new/, m
       end
 
-      assert_instance_method content, :edit do |m|
+      assert_instance_method :edit, content do |m|
         assert_match /@product_line = ProductLine\.find\(params\[:id\]\)/, m
       end
 
-      assert_instance_method content, :create do |m|
+      assert_instance_method :create, content do |m|
         assert_match /@product_line = ProductLine\.new\(params\[:product_line\]\)/, m
         assert_match /@product_line\.save/, m
         assert_match /@product_line\.errors/, m
       end
 
-      assert_instance_method content, :update do |m|
+      assert_instance_method :update, content do |m|
         assert_match /@product_line = ProductLine\.find\(params\[:id\]\)/, m
         assert_match /@product_line\.update_attributes\(params\[:product_line\]\)/, m
         assert_match /@product_line\.errors/, m
       end
 
-      assert_instance_method content, :destroy do |m|
+      assert_instance_method :destroy, content do |m|
         assert_match /@product_line = ProductLine\.find\(params\[:id\]\)/, m
         assert_match /@product_line\.destroy/, m
       end
