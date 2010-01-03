@@ -55,6 +55,7 @@ module ActiveRecord
       autoload :FinderMethods
       autoload :CalculationMethods
       autoload :PredicateBuilder
+      autoload :SpawnMethods
     end
 
     autoload :Base
