@@ -45,5 +45,27 @@ module ActiveRecord
 
     alias :& :merge
 
+    def except(*skips)
+      result = Relation.new(@klass, table)
+      result.table = table
+
+      [:eager_load, :preload, :includes].each do |load_method|
+        result = result.send(load_method, send(:"#{load_method}_associations"))
+      end
+
+      result.readonly = self.readonly unless skips.include?(:readonly)
+
+      result = result.joins(@relation.joins(@relation)) unless skips.include?(:joins)
+      result = result.group(@relation.groupings) unless skips.include?(:group)
+      result = result.limit(@relation.taken) unless skips.include?(:limit)
+      result = result.offset(@relation.skipped) unless skips.include?(:offset)
+      result = result.select(@relation.send(:select_clauses)) unless skips.include?(:select)
+      result = result.from(@relation.sources) unless skips.include?(:from)
+      result = result.order(order_clause) unless skips.include?(:order)
+      result = result.where(*@relation.wheres) unless skips.include?(:where)
+
+      result
+    end
+
   end
 end

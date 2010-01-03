@@ -539,4 +539,16 @@ class RelationTest < ActiveRecord::TestCase
     assert ! hen.new_record?
     assert_equal 'hen', hen.name
   end
+
+  def test_except
+    relation = Post.where(:author_id => 1).order('id ASC').limit(1)
+    assert_equal [posts(:welcome)], relation.all
+
+    author_posts = relation.except(:order, :limit)
+    assert_equal Post.where(:author_id => 1).all, author_posts.all
+
+    all_posts = relation.except(:where, :order, :limit)
+    assert_equal Post.all, all_posts.all
+  end
+
 end
