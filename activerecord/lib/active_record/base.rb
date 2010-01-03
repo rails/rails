@@ -1510,11 +1510,17 @@ module ActiveRecord #:nodoc:
       end
 
       def active_relation_table(table_name_alias = nil)
-        Arel::Table.new(table_name, :as => table_name_alias)
+        Arel::Table.new(table_name, :as => table_name_alias, :engine => active_relation_engine)
       end
 
       def active_relation_engine
-        @active_relation_engine ||= Arel::Sql::Engine.new(self)
+        @active_relation_engine ||= begin
+          if self == ActiveRecord::Base
+            Arel::Table.engine
+          else
+            connection_handler.connection_pools[name] ? Arel::Sql::Engine.new(self) : superclass.active_relation_engine
+          end
+        end
       end
 
       private

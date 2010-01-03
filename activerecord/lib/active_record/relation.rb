@@ -130,7 +130,7 @@ module ActiveRecord
     end
 
     def table
-      @table ||= Arel::Table.new(@klass.table_name, Arel::Sql::Engine.new(@klass))
+      @table ||= Arel::Table.new(@klass.table_name, :engine => @klass.active_relation_engine)
     end
 
     def primary_key
