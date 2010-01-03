@@ -264,6 +264,19 @@ module ActiveRecord
         @collection_association
       end
 
+      # Returns whether or not the association should be validated as part of
+      # the parent's validation.
+      #
+      # Unless you explicitely disable validation with
+      # <tt>:validate => false</tt>, it will take place when:
+      #
+      # * you explicitely enable validation; <tt>:validate => true</tt>
+      # * you use autosave; <tt>:autosave => true</tt>
+      # * the association is a +has_many+ association
+      def validate?
+        !options[:validate].nil? ? options[:validate] : (options[:autosave] == true || macro == :has_many)
+      end
+
       private
         def derive_class_name
           class_name = name.to_s.camelize

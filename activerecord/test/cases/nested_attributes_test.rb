@@ -561,7 +561,7 @@ module NestedAttributesOnACollectionAssociationTests
     assert Pirate.reflect_on_association(@association_name).options[:autosave]
   end
 
-  def test_validate_presence_of_parent__works_with_inverse_of
+  def test_validate_presence_of_parent_works_with_inverse_of
     Man.accepts_nested_attributes_for(:interests)
     assert_equal :man, Man.reflect_on_association(:interests).options[:inverse_of]
     assert_equal :interests, Interest.reflect_on_association(:man).options[:inverse_of]
@@ -578,7 +578,7 @@ module NestedAttributesOnACollectionAssociationTests
     end
   end
 
-  def test_validate_presence_of_parent__fails_without_inverse_of
+  def test_validate_presence_of_parent_fails_without_inverse_of
     Man.accepts_nested_attributes_for(:interests)
     Man.reflect_on_association(:interests).options.delete(:inverse_of)
     Interest.reflect_on_association(:man).options.delete(:inverse_of)
