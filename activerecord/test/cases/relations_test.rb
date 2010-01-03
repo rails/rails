@@ -407,6 +407,11 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_relation_merging_with_locks
+    devs = Developer.lock.where("salary >= 80000").order("id DESC") & Developer.limit(2)
+    assert devs.locked.present?
+  end
+
   def test_relation_merging_with_preload
     [Post.scoped & Post.preload(:author), Post.preload(:author) & Post.scoped].each do |posts|
       assert_queries(2) { assert posts.first.author }

@@ -24,7 +24,8 @@ module ActiveRecord
           offset(arel.skipped).
           select(arel.send(:select_clauses)).
           from(arel.sources).
-          having(arel.havings)
+          having(arel.havings).
+          lock(arel.locked)
       end
 
       relation_order = r.send(:order_clause)
@@ -65,6 +66,7 @@ module ActiveRecord
       result = result.order(order_clause) unless skips.include?(:order)
       result = result.where(*@relation.wheres) unless skips.include?(:where)
       result = result.having(*@relation.havings) unless skips.include?(:having)
+      result = result.lock(@relation.locked) unless skips.include?(:lock)
 
       result
     end
