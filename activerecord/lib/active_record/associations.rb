@@ -1465,8 +1465,7 @@ module ActiveRecord
           after_destroy(method_name)
         end
 
-        def find_with_associations(options = {}, join_dependency = nil)
-          join_dependency ||= JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
+        def find_with_associations(options, join_dependency)
           rows = select_all_rows(options, join_dependency)
           join_dependency.instantiate(rows)
         rescue ThrowResult
