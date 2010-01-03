@@ -539,5 +539,4 @@ class RelationTest < ActiveRecord::TestCase
     assert ! hen.new_record?
     assert_equal 'hen', hen.name
   end
-
 end

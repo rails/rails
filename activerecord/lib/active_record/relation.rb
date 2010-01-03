@@ -38,12 +38,15 @@ module ActiveRecord
         merged_relation = merged_relation.
           joins(arel.joins(arel)).
           group(arel.groupings).
-          order(arel.send(:order_clauses).join(', ')).
           limit(arel.taken).
           offset(arel.skipped).
           select(arel.send(:select_clauses)).
           from(arel.sources)
       end
+
+      relation_order = r.send(:order_clause)
+      merged_order = relation_order.present? ? relation_order : order_clause
+      merged_relation = merged_relation.order(merged_order)
 
       merged_wheres = @relation.wheres
 
@@ -83,7 +86,7 @@ module ActiveRecord
             :select => @relation.send(:select_clauses).join(', '),
             :joins => @relation.joins(relation),
             :group => @relation.send(:group_clauses).join(', '),
-            :order => @relation.send(:order_clauses).join(', '),
+            :order => order_clause,
             :conditions => where_clause,
             :limit => @relation.taken,
             :offset => @relation.skipped,
@@ -156,7 +159,7 @@ module ActiveRecord
     end
 
     def reset
-      @first = @last = @create_scope = @to_sql = nil
+      @first = @last = @create_scope = @to_sql = @order_clause = nil
       @records = []
       self
     end
@@ -217,6 +220,10 @@ module ActiveRecord
 
     def where_clause(join_string = " AND ")
       @relation.send(:where_clauses).join(join_string)
+    end
+
+    def order_clause
+      @order_clause ||= @relation.send(:order_clauses).join(', ')
     end
 
     def references_eager_loaded_tables?
