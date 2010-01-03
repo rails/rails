@@ -19,6 +19,7 @@ class LoggingTest < ActionController::TestCase
 
   def setup
     super
+    wait # Wait pending notifications to be published
     set_logger
   end
 

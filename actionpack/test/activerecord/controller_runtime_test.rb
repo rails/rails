@@ -23,6 +23,8 @@ class ARLoggingTest < ActionController::TestCase
   end
 
   def test_log_with_active_record
+    # Wait pending notifications to be published
+    wait
     get :show
     wait
     assert_match /ActiveRecord runtime/, @controller.logger.logged[3]

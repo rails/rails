@@ -106,6 +106,9 @@ class ShowExceptionsTest < ActionController::IntegrationTest
   end
 
   test "publishes notifications" do
+    # Wait pending notifications to be published
+    ActiveSupport::Notifications.notifier.wait
+
     @app, event = ProductionApp, nil
     self.remote_addr = '127.0.0.1'
 

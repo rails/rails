@@ -630,6 +630,8 @@ class FragmentCachingTest < ActionController::TestCase
   end
 
   def test_fragment_for_logging
+    # Wait pending notifications to be published
+    ActiveSupport::Notifications.notifier.wait
     @controller.logger = MockLogger.new
 
     fragment_computed = false
