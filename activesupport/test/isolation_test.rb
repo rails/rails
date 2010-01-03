@@ -1,10 +1,10 @@
 require 'abstract_unit'
 require 'rbconfig'
 
-# if defined?(MiniTest) || defined?(Test::Unit::TestResultFailureSupport)
-#   $stderr.puts "Isolation tests can test test-unit 1 only"
+if defined?(MiniTest) || defined?(Test::Unit::TestResultFailureSupport)
+  $stderr.puts "Isolation tests can test test-unit 1 only"
 
-if ENV['CHILD']
+elsif ENV['CHILD']
   class ChildIsolationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
