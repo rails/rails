@@ -53,6 +53,16 @@ class AppGeneratorTest < GeneratorsTestCase
     assert_match /Invalid value for \-\-database option/, content
   end
 
+  def test_invalid_application_name_raises_an_error
+    content = capture(:stderr){ Rails::Generators::AppGenerator.start [File.join(destination_root, "43-things")] }
+    assert_equal "Invalid application name 43-things. Please give a name which does not start with numbers.\n", content
+  end
+
+  def test_invalid_application_name_is_fixed
+    silence(:stdout){ Rails::Generators::AppGenerator.start [File.join(destination_root, "things-43")] }
+    assert_file "things-43/config/environment.rb", /Things43::Application/
+  end
+
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/

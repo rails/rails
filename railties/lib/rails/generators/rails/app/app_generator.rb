@@ -53,8 +53,9 @@ module Rails::Generators
 
     def create_root
       self.destination_root = File.expand_path(app_path, destination_root)
-      empty_directory '.'
+      valid_app_const?
 
+      empty_directory '.'
       set_default_accessors!
       FileUtils.cd(destination_root)
     end
@@ -193,7 +194,14 @@ module Rails::Generators
       end
 
       def app_const
-        @app_const ||= "#{app_name.classify}::Application"
+        @app_const ||= "#{app_name.gsub(/\W/, '_').squeeze('_').classify}::Application"
+      end
+
+      def valid_app_const?
+        case app_const
+        when /^\d/
+          raise Error, "Invalid application name #{app_name}. Please give a name which does not start with numbers."
+        end
       end
 
       def app_secret
