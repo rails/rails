@@ -284,6 +284,10 @@ module ActiveRecord
       if check_existing_record && (record = send(association_name)) &&
           (options[:update_only] || record.id.to_s == attributes['id'].to_s)
         assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy])
+
+      elsif attributes['id']
+        raise_nested_attributes_record_not_found(association_name, attributes['id'])
+
       elsif !reject_new_record?(association_name, attributes)
         method = "build_#{association_name}"
         if respond_to?(method)
@@ -345,6 +349,8 @@ module ActiveRecord
           end
         elsif existing_record = send(association_name).detect { |record| record.id.to_s == attributes['id'].to_s }
           assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+        else
+          raise_nested_attributes_record_not_found(association_name, attributes['id'])
         end
       end
     end
@@ -378,6 +384,11 @@ module ActiveRecord
       when Proc
         callback.call(attributes)
       end
+    end
+
+    def raise_nested_attributes_record_not_found(association_name, record_id)
+      reflection = self.class.reflect_on_association(association_name)
+      raise RecordNotFound, "Couldn't find #{reflection.klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
     end
   end
 end
