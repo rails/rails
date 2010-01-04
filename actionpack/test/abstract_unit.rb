@@ -20,7 +20,6 @@ require 'action_view/base'
 require 'action_dispatch'
 require 'fixture_template'
 require 'active_support/test_case'
-require 'action_view/test_case'
 require 'active_support/dependencies'
 
 activemodel_path = File.expand_path('../../../activemodel/lib', __FILE__)
