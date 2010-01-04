@@ -6,6 +6,8 @@ module ActionController
     include AbstractController::Layouts
 
     include ActionController::Helpers
+    helper :all # By default, all helpers should be included
+    
     include ActionController::HideActions
     include ActionController::UrlFor
     include ActionController::Redirecting
