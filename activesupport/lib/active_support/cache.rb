@@ -247,13 +247,13 @@ module ActiveSupport
           expires_in || 0
         end
 
-        def instrument(operation, key, options, &block)
+        def instrument(operation, key, options)
           log(operation, key, options)
 
           if self.class.instrument
             payload = { :key => key }
             payload.merge!(options) if options.is_a?(Hash)
-            ActiveSupport::Notifications.instrument(:"cache_#{operation}", payload, &block)
+            ActiveSupport::Notifications.instrument("active_support.cache_#{operation}", payload){ yield }
           else
             yield
           end

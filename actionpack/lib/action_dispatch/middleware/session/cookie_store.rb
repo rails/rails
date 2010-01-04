@@ -179,7 +179,7 @@ module ActionDispatch
               'cookie containing the session data. Use ' +
               'config.action_controller.session = { :key => ' +
               '"_myapp_session", :secret => "some secret phrase" } in ' +
-              'config/environment.rb'
+              'config/application.rb'
           end
         end
 

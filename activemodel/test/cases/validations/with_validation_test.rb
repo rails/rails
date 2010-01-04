@@ -39,6 +39,18 @@ class ValidatesWithTest < ActiveRecord::TestCase
     end
   end
 
+  class ValidatorPerEachAttribute < ActiveModel::EachValidator
+    def validate_each(record, attribute, value)
+      record.errors[attribute] << "Value is #{value}"
+    end
+  end
+
+  class ValidatorCheckValidity < ActiveModel::EachValidator
+    def check_validity!
+      raise "boom!"
+    end
+  end
+
   test "vaidation with class that adds errors" do
     Topic.validates_with(ValidatorThatAddsErrors)
     topic = Topic.new
@@ -116,4 +128,39 @@ class ValidatesWithTest < ActiveRecord::TestCase
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
 
+  test "validates_with each validator" do
+    Topic.validates_with(ValidatorPerEachAttribute, :attributes => [:title, :content])
+    topic = Topic.new :title => "Title", :content => "Content"
+    assert !topic.valid?
+    assert_equal ["Value is Title"], topic.errors[:title]
+    assert_equal ["Value is Content"], topic.errors[:content]
+  end
+
+  test "each validator checks validity" do
+    assert_raise RuntimeError do
+      Topic.validates_with(ValidatorCheckValidity, :attributes => [:title])
+    end
+  end
+
+  test "each validator expects attributes to be given" do
+    assert_raise RuntimeError do
+      Topic.validates_with(ValidatorPerEachAttribute)
+    end
+  end
+
+  test "each validator skip nil values if :allow_nil is set to true" do
+    Topic.validates_with(ValidatorPerEachAttribute, :attributes => [:title, :content], :allow_nil => true)
+    topic = Topic.new :content => ""
+    assert !topic.valid?
+    assert topic.errors[:title].empty?
+    assert_equal ["Value is "], topic.errors[:content]
+  end
+
+  test "each validator skip blank values if :allow_blank is set to true" do
+    Topic.validates_with(ValidatorPerEachAttribute, :attributes => [:title, :content], :allow_blank => true)
+    topic = Topic.new :content => ""
+    assert topic.valid?
+    assert topic.errors[:title].empty?
+    assert topic.errors[:content].empty?
+  end
 end

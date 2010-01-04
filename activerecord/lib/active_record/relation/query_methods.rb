@@ -5,12 +5,20 @@ module ActiveRecord
       spawn.tap {|r| r.preload_associations += Array.wrap(associations) }
     end
 
+    def includes(*associations)
+      spawn.tap {|r| r.includes_associations += Array.wrap(associations) }
+    end
+
     def eager_load(*associations)
       spawn.tap {|r| r.eager_load_associations += Array.wrap(associations) }
     end
 
     def readonly(status = true)
       spawn.tap {|r| r.readonly = status }
+    end
+
+    def create_with(attributes = {})
+      spawn.tap {|r| r.create_with_attributes = attributes }
     end
 
     def select(selects)

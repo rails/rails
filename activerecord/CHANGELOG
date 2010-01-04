@@ -2,6 +2,11 @@
 
 * Changed ActiveRecord::Base.store_full_sti_class to be true by default reflecting the previously announced Rails 3 default [DHH]
 
+* Add Relation#except. [Pratik Naik]
+
+  one_red_item = Item.where(:colour => 'red').limit(1)
+  all_items = one_red_item.except(:where, :limit)
+
 * Add Relation#delete_all. [Pratik Naik]
 
   Item.where(:colour => 'red').delete_all

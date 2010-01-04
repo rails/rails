@@ -267,7 +267,7 @@ module ActiveRecord
       unless valid = association.valid?
         if reflection.options[:autosave]
           association.errors.each do |attribute, message|
-            attribute = "#{reflection.name}_#{attribute}"
+            attribute = "#{reflection.name}.#{attribute}"
             errors[attribute] << message if errors[attribute].empty?
           end
         else

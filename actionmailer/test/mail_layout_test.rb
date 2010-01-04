@@ -72,12 +72,12 @@ class LayoutMailerTest < Test::Unit::TestCase
     mail = AutoLayoutMailer.create_multipart(@recipient)
     # CHANGED: content_type returns an object
     # assert_equal "multipart/alternative", mail.content_type
-    assert_equal "multipart/alternative", mail.content_type.string
+    assert_equal "multipart/alternative", mail.mime_type
     assert_equal 2, mail.parts.size
 
     # CHANGED: content_type returns an object
     # assert_equal 'text/plain', mail.parts.first.content_type
-    assert_equal 'text/plain', mail.parts.first.content_type.string
+    assert_equal 'text/plain', mail.parts.first.mime_type
     
     # CHANGED: body returns an object
     # assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body
@@ -85,7 +85,7 @@ class LayoutMailerTest < Test::Unit::TestCase
 
     # CHANGED: content_type returns an object
     # assert_equal 'text/html', mail.parts.last.content_type
-    assert_equal 'text/html', mail.parts.last.content_type.string
+    assert_equal 'text/html', mail.parts.last.mime_type
 
     # CHANGED: body returns an object
     # assert_equal "Hello from layout text/html multipart", mail.parts.last.body
@@ -96,19 +96,19 @@ class LayoutMailerTest < Test::Unit::TestCase
     mail = AutoLayoutMailer.create_multipart(@recipient, "multipart/mixed")
     # CHANGED: content_type returns an object
     # assert_equal "multipart/mixed", mail.content_type
-    assert_equal "multipart/mixed", mail.content_type.string
+    assert_equal "multipart/mixed", mail.mime_type
     assert_equal 2, mail.parts.size
 
     # CHANGED: content_type returns an object
     # assert_equal 'text/plain', mail.parts.first.content_type
-    assert_equal 'text/plain', mail.parts.first.content_type.string
+    assert_equal 'text/plain', mail.parts.first.mime_type
     # CHANGED: body returns an object
     # assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body
     assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body.to_s
 
     # CHANGED: content_type returns an object
     # assert_equal 'text/html', mail.parts.last.content_type
-    assert_equal 'text/html', mail.parts.last.content_type.string
+    assert_equal 'text/html', mail.parts.last.mime_type
     # CHANGED: body returns an object
     # assert_equal "Hello from layout text/html multipart", mail.parts.last.body
     assert_equal "Hello from layout text/html multipart", mail.parts.last.body.to_s
@@ -116,13 +116,13 @@ class LayoutMailerTest < Test::Unit::TestCase
 
   def test_should_fix_multipart_layout
     mail = AutoLayoutMailer.create_multipart(@recipient, "text/plain")
-    assert_equal "multipart/alternative", mail.content_type.string
+    assert_equal "multipart/alternative", mail.mime_type
     assert_equal 2, mail.parts.size
 
-    assert_equal 'text/plain', mail.parts.first.content_type.string
+    assert_equal 'text/plain', mail.parts.first.mime_type
     assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body.to_s
 
-    assert_equal 'text/html', mail.parts.last.content_type.string
+    assert_equal 'text/html', mail.parts.last.mime_type
     assert_equal "Hello from layout text/html multipart", mail.parts.last.body.to_s
   end
 

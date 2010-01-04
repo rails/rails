@@ -500,7 +500,7 @@ module ActionMailer #:nodoc:
         logger.debug "\n#{mail.encoded}"
       end
 
-      ActiveSupport::Notifications.instrument(:deliver_mail, :mail => mail) do
+      ActiveSupport::Notifications.instrument("action_mailer.deliver", :mail => mail) do
         begin
           self.delivery_method.perform_delivery(mail) if perform_deliveries
         rescue Exception => e # Net::SMTP errors or sendmail pipe errors

@@ -71,6 +71,12 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 2, r.errors.count
   end
 
+  def test_errors_on_nested_attributes_expands_name
+    t = Topic.new
+    t.errors["replies.name"] << "can't be blank"
+    assert_equal ["Replies name can't be blank"], t.errors.full_messages
+  end
+
   def test_errors_on_base
     r = Reply.new
     r.content = "Mismatch"

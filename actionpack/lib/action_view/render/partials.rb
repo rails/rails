@@ -215,12 +215,13 @@ module ActionView
         options = @options
 
         if @collection
-          ActiveSupport::Notifications.instrument(:render_collection, :path => @path,
-                                                  :count => @collection.size) do
+          ActiveSupport::Notifications.instrument("action_view.render_collection",
+            :path => @path, :count => @collection.size) do
             render_collection
           end
         else
-          content = ActiveSupport::Notifications.instrument(:render_partial, :path => @path) do
+          content = ActiveSupport::Notifications.instrument("action_view.render_partial",
+            :path => @path) do
             render_partial
           end
 

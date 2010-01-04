@@ -36,7 +36,7 @@ class Thor
     # string (--foo=value) or booleans (just --foo).
     #
     # By default all options are optional, unless :required is given.
-    #
+    # 
     def self.parse(key, value)
       if key.is_a?(Array)
         name, *aliases = key

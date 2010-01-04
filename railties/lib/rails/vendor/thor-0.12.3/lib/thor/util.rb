@@ -76,8 +76,10 @@ class Thor
     # Returns the thor classes declared inside the given class.
     #
     def self.thor_classes_in(klass)
+      stringfied_constants = klass.constants.map { |c| c.to_s }
       Thor::Base.subclasses.select do |subclass|
-        klass.constants.include?(subclass.name.gsub("#{klass.name}::", ''))
+        next unless subclass.name
+        stringfied_constants.include?(subclass.name.gsub("#{klass.name}::", ''))
       end
     end
 
@@ -155,33 +157,13 @@ class Thor
     # inside the sandbox to avoid namespacing conflicts.
     #
     def self.load_thorfile(path, content=nil)
-      content ||= File.read(path)
+      content ||= File.binread(path)
 
       begin
         Thor::Sandbox.class_eval(content, path)
       rescue Exception => e
         $stderr.puts "WARNING: unable to load thorfile #{path.inspect}: #{e.message}"
       end
-    end
-
-    # Receives a yaml (hash) and updates all constants entries to namespace.
-    # This was added to deal with deprecated versions of Thor.
-    #
-    # TODO Deprecate this method in the future.
-    #
-    # ==== Returns
-    # TrueClass|FalseClass:: Returns true if any change to the yaml file was made.
-    #
-    def self.convert_constants_to_namespaces(yaml)
-      yaml_changed = false
-
-      yaml.each do |k, v|
-        next unless v[:constants] && v[:namespaces].nil?
-        yaml_changed = true
-        yaml[k][:namespaces] = v[:constants].map{|c| Thor::Util.namespace_from_thor_class(c)}
-      end
-
-      yaml_changed
     end
 
     def self.user_home

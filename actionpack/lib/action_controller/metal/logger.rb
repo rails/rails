@@ -15,7 +15,8 @@ module ActionController
     attr_internal :view_runtime
 
     def process_action(action)
-      ActiveSupport::Notifications.instrument(:process_action, :controller => self, :action => action) do
+      ActiveSupport::Notifications.instrument("action_controller.process_action",
+        :controller => self, :action => action) do
         super
       end
     end
@@ -50,7 +51,7 @@ module ActionController
       # This is the hook invoked by ActiveSupport::Notifications.subscribe.
       # If you need to log any event, overwrite the method and do it here.
       def log_event(name, before, after, instrumenter_id, payload) #:nodoc:
-        if name == :process_action
+        if name == "action_controller.process_action"
           duration     = [(after - before) * 1000, 0.01].max
           controller   = payload[:controller]
           request      = controller.request
@@ -66,7 +67,7 @@ module ActionController
           message << " [#{request.request_uri rescue "unknown"}]"
 
           logger.info(message)
-        elsif name == :render_template
+        elsif name == "action_view.render_template"
           # TODO Make render_template logging work if you are using just ActionView
           duration = (after - before) * 1000
           message = "Rendered #{payload[:identifier]}"

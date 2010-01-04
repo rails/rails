@@ -72,7 +72,8 @@ module ActiveModel #:nodoc:
     attr_reader :attributes
 
     def initialize(options)
-      @attributes = options.delete(:attributes)
+      @attributes = Array(options.delete(:attributes))
+      raise ":attributes cannot be blank" if @attributes.empty?
       super
       check_validity!
     end

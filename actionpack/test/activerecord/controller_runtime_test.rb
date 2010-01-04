@@ -23,9 +23,11 @@ class ARLoggingTest < ActionController::TestCase
   end
 
   def test_log_with_active_record
+    # Wait pending notifications to be published
+    wait
     get :show
     wait
-    assert_match /ActiveRecord runtime/, logs[3]
+    assert_match /ActiveRecord runtime/, @controller.logger.logged[3]
   end
 
   private
@@ -33,7 +35,4 @@ class ARLoggingTest < ActionController::TestCase
       @controller.logger = MockLogger.new
     end
 
-    def logs
-      @logs ||= @controller.logger.logged.compact.map {|l| l.to_s.strip}
-    end
 end

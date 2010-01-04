@@ -41,16 +41,12 @@ class Thor::Group
     # ==== Options
     # short:: When true, shows only usage.
     #
-    def help(shell, options={})
-      if options[:short]
-        shell.say banner
-      else
-        shell.say "Usage:"
-        shell.say "  #{banner}"
-        shell.say
-        class_options_help(shell)
-        shell.say self.desc if self.desc
-      end
+    def help(shell)
+      shell.say "Usage:"
+      shell.say "  #{banner}\n"
+      shell.say
+      class_options_help(shell)
+      shell.say self.desc if self.desc
     end
 
     # Stores invocations for this class merging with superclass values.
@@ -132,7 +128,7 @@ class Thor::Group
 
       names.each do |name|
         unless class_options.key?(name)
-          raise ArgumentError, "You have to define the option #{name.inspect} " <<
+          raise ArgumentError, "You have to define the option #{name.inspect} " << 
                                "before setting invoke_from_option."
         end
 
@@ -177,15 +173,11 @@ class Thor::Group
     # Overwrite class options help to allow invoked generators options to be
     # shown recursively when invoking a generator.
     #
-    def class_options_help(shell, ungrouped_name=nil, extra_group=nil) #:nodoc:
-      group_options = {}
-
-      get_options_from_invocations(group_options, class_options) do |klass|
-        klass.send(:get_options_from_invocations, group_options, class_options)
+    def class_options_help(shell, groups={}) #:nodoc:
+      get_options_from_invocations(groups, class_options) do |klass|
+        klass.send(:get_options_from_invocations, groups, class_options)
       end
-
-      group_options.merge!(extra_group) if extra_group
-      super(shell, ungrouped_name, group_options)
+      super(shell, groups)
     end
 
     # Get invocations array and merge options from invocations. Those
@@ -218,13 +210,26 @@ class Thor::Group
       end
     end
 
+    # Returns tasks ready to be printed.
+    def printable_tasks(*)
+      item = []
+      item << banner
+      item << (desc ? "# #{desc.gsub(/\s+/m,' ')}" : "")
+      [item]
+    end
+
     protected
 
       # The banner for this class. You can customize it if you are invoking the
       # thor class by another ways which is not the Thor::Runner.
       #
       def banner
-        "#{self.namespace} #{self.arguments.map {|a| a.usage }.join(' ')}"
+        "thor #{self_task.formatted_usage(self, false)}"
+      end
+
+      # Represents the whole class as a task.
+      def self_task #:nodoc:
+        Thor::Task::Dynamic.new(self.namespace, class_options)
       end
 
       def baseclass #:nodoc:
@@ -243,7 +248,6 @@ class Thor::Group
 
     # Shortcut to invoke with padding and block handling. Use internally by
     # invoke and invoke_from_option class methods.
-    #
     def _invoke_for_class_method(klass, task=nil, *args, &block) #:nodoc:
       shell.padding += 1
 

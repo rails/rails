@@ -1,8 +1,10 @@
-require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/app/app_generator'
 
 class ActionsTest < GeneratorsTestCase
+  tests Rails::Generators::AppGenerator
+  arguments [destination_root]
+
   def setup
     super
     @git_plugin_uri = 'git://github.com/technoweenie/restful-authentication.git'
@@ -177,14 +179,6 @@ class ActionsTest < GeneratorsTestCase
   end
 
   protected
-
-    def run_generator
-      silence(:stdout) { Rails::Generators::AppGenerator.start [destination_root] }
-    end
-
-    def generator(config={})
-      @generator ||= Rails::Generators::Base.new([], {}, { :destination_root => destination_root }.merge!(config))
-    end
 
     def action(*args, &block)
       silence(:stdout){ generator.send(*args, &block) }
