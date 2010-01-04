@@ -17,6 +17,10 @@ module ActiveRecord
       spawn.tap {|r| r.readonly = status }
     end
 
+    def create_with(attributes = {})
+      spawn.tap {|r| r.create_with_attributes = attributes }
+    end
+
     def select(selects)
       if selects.present?
         relation = spawn(@relation.project(selects))
