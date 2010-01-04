@@ -9,9 +9,6 @@ require 'test/unit'
 require 'active_support/core_ext/kernel/requires'
 
 if defined?(ActiveRecord)
-  require 'active_record/test_case'
-  require 'active_record/fixtures'
-
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures
     self.fixture_path = "#{Rails.root}/test/fixtures/"

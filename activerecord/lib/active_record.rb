@@ -134,6 +134,9 @@ module ActiveRecord
       autoload :AbstractAdapter
     end
   end
+
+  autoload :TestCase
+  autoload :TestFixtures, 'active_record/fixtures'
 end
 
 Arel::Table.engine = Arel::Sql::Engine.new(ActiveRecord::Base)

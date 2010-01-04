@@ -13,8 +13,6 @@ require 'test/unit'
 require 'stringio'
 
 require 'active_record'
-require 'active_record/test_case'
-require 'active_record/fixtures'
 require 'connection'
 
 begin
