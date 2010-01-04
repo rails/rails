@@ -14,7 +14,7 @@ module ActionDispatch
   #     ExceptionNotifier.deliver_exception(start, payload)
   #   end
   #
-  # The payload is a hash which has to pairs:
+  # The payload is a hash which has two pairs:
   #
   # * :env - Contains the rack env for the given request;
   # * :exception - The exception raised;
