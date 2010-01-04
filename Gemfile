@@ -20,7 +20,6 @@ only :test do
 end
 
 # AP
-gem "rack", "1.1.0", :git => "git://github.com/rack/rack.git"
 gem "rack-test", "0.5.3"
 gem "RedCloth", ">= 4.2.2"
 

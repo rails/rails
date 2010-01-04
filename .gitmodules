@@ -1,6 +1,3 @@
 [submodule "arel"]
 	path = arel
 	url = git://github.com/rails/arel.git
-[submodule "rack"]
-	path = rack
-	url = git://github.com/rails/rack.git
