@@ -86,6 +86,10 @@ module Notifications
       assert_equal 2, @notifier.instrument(:awesome) { 1 + 1 }
     end
 
+    def test_instrumenter_exposes_its_id
+      assert_equal 20, ActiveSupport::Notifications::Instrumenter.new(@notifier).id.size
+    end
+
     def test_nested_events_can_be_instrumented
       @notifier.instrument(:awesome, :payload => "notifications") do
         @notifier.instrument(:wot, :payload => "child") do

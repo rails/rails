@@ -4,6 +4,8 @@ require 'active_support/core_ext/module/delegation'
 module ActiveSupport
   module Notifications
     class Instrumenter
+      attr_reader :id
+
       def initialize(notifier)
         @id = unique_id
         @notifier = notifier
