@@ -230,6 +230,10 @@ module Rails
     def log_level
       @log_level ||= RAILS_ENV == 'production' ? :info : :debug
     end
+    
+    def time_zone
+      @time_zone ||= "UTC"
+    end
 
     def i18n
       @i18n ||= begin
