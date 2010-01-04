@@ -1,4 +1,3 @@
-require 'active_support/test_case'
 require 'rack/session/abstract/id'
 
 module ActionController

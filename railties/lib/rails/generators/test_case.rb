@@ -1,4 +1,3 @@
-require 'active_support/test_case'
 require 'active_support/core_ext/class/inheritable_attributes'
 require 'active_support/core_ext/hash/reverse_merge'
 require 'rails/generators'
@@ -76,7 +75,7 @@ module Rails
           eval "$#{stream} = StringIO.new"
           yield
           result = eval("$#{stream}").string
-        ensure 
+        ensure
           eval("$#{stream} = #{stream.upcase}")
         end
 
@@ -137,9 +136,9 @@ module Rails
       #
       #   assert_migration "db/migrate/create_products.rb"
       #
-      # This method manipulates the given path and tries to find any migration which 
+      # This method manipulates the given path and tries to find any migration which
       # matches the migration name. For example, the call above is converted to:
-      # 
+      #
       #   assert_file "db/migrate/003_create_products.rb"
       #
       # Consequently, assert_migration accepts the same arguments has assert_file.

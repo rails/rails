@@ -66,6 +66,8 @@ module ActiveSupport
     autoload :StringInquirer
     autoload :XmlMini
   end
+
+  autoload :TestCase
 end
 
 require 'active_support/vendor'

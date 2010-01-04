@@ -1,5 +1,3 @@
-require 'active_support/test_case'
-
 module ActionView
   class Base
     alias_method :initialize_without_template_tracking, :initialize
