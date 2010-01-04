@@ -12,6 +12,8 @@ class ModulesTest < ActiveRecord::TestCase
     [:Firm, :Client].each do |const|
       @undefined_consts.merge! const => Object.send(:remove_const, const) if Object.const_defined?(const)
     end
+    
+    ActiveRecord::Base.store_full_sti_class = false
   end
 
   def teardown
@@ -19,6 +21,8 @@ class ModulesTest < ActiveRecord::TestCase
     @undefined_consts.each do |constant, value|
       Object.send :const_set, constant, value unless value.nil?
     end
+    
+    ActiveRecord::Base.store_full_sti_class = true
   end
 
   def test_module_spanning_associations

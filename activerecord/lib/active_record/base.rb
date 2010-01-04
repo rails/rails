@@ -550,7 +550,7 @@ module ActiveRecord #:nodoc:
 
     # Determine whether to store the full constant name including namespace when using STI
     superclass_delegating_accessor :store_full_sti_class
-    self.store_full_sti_class = false
+    self.store_full_sti_class = true
 
     # Stores the default scope for the class
     class_inheritable_accessor :default_scoping, :instance_writer => false

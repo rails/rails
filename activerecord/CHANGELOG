@@ -1,5 +1,7 @@
 *Edge*
 
+* Changed ActiveRecord::Base.store_full_sti_class to be true by default reflecting the previously announced Rails 3 default [DHH]
+
 * Add Relation#delete_all. [Pratik Naik]
 
   Item.where(:colour => 'red').delete_all

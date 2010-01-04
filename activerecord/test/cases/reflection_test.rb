@@ -137,6 +137,8 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_association_reflection_in_modules
+    ActiveRecord::Base.store_full_sti_class = false
+    
     assert_reflection MyApplication::Business::Firm,
       :clients_of_firm,
       :klass      => MyApplication::Business::Client,
@@ -172,6 +174,8 @@ class ReflectionTest < ActiveRecord::TestCase
       :klass      => MyApplication::Billing::Nested::Firm,
       :class_name => 'Nested::Firm',
       :table_name => 'companies'
+  ensure
+    ActiveRecord::Base.store_full_sti_class = true
   end
 
   def test_reflection_of_all_associations

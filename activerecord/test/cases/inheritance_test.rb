@@ -241,6 +241,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
   end
 
   def test_instantiation_doesnt_try_to_require_corresponding_file
+    ActiveRecord::Base.store_full_sti_class = false
     foo = Firm.find(:first).clone
     foo.ruby_type = foo.type = 'FirmOnTheFly'
     foo.save!
@@ -259,5 +260,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     # And instantiate will find the existing constant rather than trying
     # to require firm_on_the_fly.
     assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
+  ensure
+    ActiveRecord::Base.store_full_sti_class = true
   end
 end

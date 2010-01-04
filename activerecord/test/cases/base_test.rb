@@ -2138,8 +2138,11 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_type_name_with_module_should_handle_beginning
+    ActiveRecord::Base.store_full_sti_class = false
     assert_equal 'ActiveRecord::Person', ActiveRecord::Base.send(:type_name_with_module, 'Person')
     assert_equal '::Person', ActiveRecord::Base.send(:type_name_with_module, '::Person')
+  ensure
+    ActiveRecord::Base.store_full_sti_class = true
   end
 
   def test_to_param_should_return_string
