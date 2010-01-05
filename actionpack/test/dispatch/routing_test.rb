@@ -507,6 +507,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_redirect_with_port
+    previous_host, self.host = self.host, 'www.example.com:3000'
+    with_test_routes do
+      get '/account/login'
+      assert_equal 301, @response.status
+      assert_equal 'http://www.example.com:3000/login', @response.headers['Location']
+      assert_equal 'Moved Permanently', @response.body
+    end
+  ensure
+    self.host = previous_host
+  end
+
   private
     def with_test_routes
       real_routes, temp_routes = ActionController::Routing::Routes, Routes

@@ -208,6 +208,7 @@ module ActionDispatch
             uri = URI.parse(path_proc.call(req.params))
             uri.scheme ||= req.scheme
             uri.host   ||= req.host
+            uri.port   ||= req.port unless req.port == 80
 
             headers = {
               'Location' => uri.to_s,
