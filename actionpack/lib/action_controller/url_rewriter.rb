@@ -130,7 +130,7 @@ module ActionController
       end
       trailing_slash = options.delete(:trailing_slash) if options.key?(:trailing_slash)
       url << ActionController::Base.relative_url_root.to_s unless options[:skip_relative_url_root]
-      anchor = "##{CGI.escape options.delete(:anchor).to_param.to_s}" if options[:anchor]
+      anchor = "##{Rack::Utils.escape options.delete(:anchor).to_param.to_s}" if options[:anchor]
       generated = Routing::Routes.generate(options, {})
       url << (trailing_slash ? generated.sub(/\?|\z/) { "/" + $& } : generated)
       url << anchor if anchor
@@ -172,7 +172,7 @@ module ActionController
         path = rewrite_path(options)
         rewritten_url << ActionController::Base.relative_url_root.to_s unless options[:skip_relative_url_root]
         rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
-        rewritten_url << "##{CGI.escape(options[:anchor].to_param.to_s)}" if options[:anchor]
+        rewritten_url << "##{Rack::Utils.escape(options[:anchor].to_param.to_s)}" if options[:anchor]
 
         rewritten_url
       end
@@ -195,7 +195,7 @@ module ActionController
 
       def rewrite_authentication(options)
         if options[:user] && options[:password]
-          "#{CGI.escape(options.delete(:user))}:#{CGI.escape(options.delete(:password))}@"
+          "#{Rack::Utils.escape(options.delete(:user))}:#{Rack::Utils.escape(options.delete(:password))}@"
         else
           ""
         end
