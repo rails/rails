@@ -29,6 +29,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       match 'account/modulo/:name', :to => redirect("/%{name}s")
       match 'account/proc/:name', :to => redirect {|params| "/#{params[:name].pluralize}" }
+      match 'account/google' => redirect('http://www.google.com/')
 
       match 'openid/login', :via => [:get, :post], :to => "openid#login"
 
@@ -472,7 +473,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'projects#index', @response.body
     end
   end
-  
+
   def test_index
     with_test_routes do
       assert_equal '/info', info_path
@@ -488,12 +489,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'projects#info', @response.body
     end
   end
-  
+
   def test_convention_match_with_no_scope
     with_test_routes do
       assert_equal '/account/overview', account_overview_path
       get '/account/overview'
       assert_equal 'account#overview', @response.body
+    end
+  end
+
+  def test_redirect_with_complete_url
+    with_test_routes do
+      get '/account/google'
+      assert_equal 301, @response.status
+      assert_equal 'http://www.google.com/', @response.headers['Location']
+      assert_equal 'Moved Permanently', @response.body
     end
   end
 
