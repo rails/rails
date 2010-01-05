@@ -1,4 +1,5 @@
 require 'rack/session/abstract/id'
+require 'action_view/test_case'
 
 module ActionController
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
