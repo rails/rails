@@ -798,7 +798,7 @@ module ActionView
         if field_type == "hidden"
           options.delete("size")
         end
-        options["type"] = field_type
+        options["type"]  ||= field_type
         options["value"] ||= value_before_type_cast(object) unless field_type == "file"
         options["value"] &&= html_escape(options["value"])
         add_default_name_and_id(options)
