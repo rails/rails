@@ -23,26 +23,6 @@ module ActionController
       app.reload_routes!
     end
 
-    # Include middleware to serve up static assets
-    initializer "action_controller.initialize_static_server" do |app|
-      if app.config.serve_static_assets
-        app.config.middleware.use(ActionDispatch::Static, Rails.public_path)
-      end
-    end
-
-    initializer "action_controller.initialize_middleware_stack" do |app|
-      middleware = app.config.middleware
-      middleware.use(::Rack::Lock, :if => lambda { ActionController::Base.allow_concurrency })
-      middleware.use(::Rack::Runtime)
-      middleware.use(ActionDispatch::ShowExceptions, lambda { ActionController::Base.consider_all_requests_local })
-      middleware.use(ActionDispatch::Callbacks, lambda { ActionController::Dispatcher.prepare_each_request })
-      middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
-      middleware.use(ActionDispatch::ParamsParser)
-      middleware.use(::Rack::MethodOverride)
-      middleware.use(::Rack::Head)
-      middleware.use(ActionDispatch::StringCoercion)
-    end
-
     initializer "action_controller.initialize_framework_caches" do
       ActionController::Base.cache_store ||= RAILS_CACHE
     end

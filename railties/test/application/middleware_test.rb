@@ -55,6 +55,18 @@ module ApplicationTests
       assert_equal "Rack::Config", middleware.last
     end
 
+    test "insert middleware after" do
+      add_to_config "config.middleware.insert_after ActionDispatch::Static, Rack::Config"
+      boot!
+      assert_equal "Rack::Config", middleware.second
+    end
+
+    test "insert middleware before" do
+      add_to_config "config.middleware.insert_before ActionDispatch::Static, Rack::Config"
+      boot!
+      assert_equal "Rack::Config", middleware.first
+    end
+
     private
       def boot!
         require "#{app_path}/config/environment"
