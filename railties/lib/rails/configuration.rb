@@ -19,7 +19,6 @@ module Rails
         middleware.use('ActionDispatch::ParamsParser')
         middleware.use('::Rack::MethodOverride')
         middleware.use('::Rack::Head')
-        middleware.use('ActionDispatch::StringCoercion')
       end
     end
 
