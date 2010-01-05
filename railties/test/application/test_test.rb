@@ -23,6 +23,31 @@ module ApplicationTests
       run_test 'unit/foo_test.rb'
     end
 
+    test "integration test" do
+      controller 'posts', <<-RUBY
+        class PostsController < ActionController::Base
+        end
+      RUBY
+
+      app_file 'app/views/posts/index.html.erb', <<-HTML
+        Posts#index
+      HTML
+
+      app_file 'test/integration/posts_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class PostsTest < ActionController::IntegrationTest
+          def test_index
+            get '/posts'
+            assert_response :success
+            assert_template "index"
+          end
+        end
+      RUBY
+
+      run_test 'integration/posts_test.rb'
+    end
+
     private
       def run_test(name)
         result = ruby '-Itest', "#{app_path}/test/#{name}"
