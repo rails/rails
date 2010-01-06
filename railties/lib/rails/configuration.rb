@@ -133,8 +133,8 @@ module Rails
     end
 
     def frameworks(*args)
-      raise "config.frameworks in no longer supported. See the generated" \
-            "config/boot.rb for steps on how to limit the frameworks that" \
+      raise "config.frameworks in no longer supported. See the generated " \
+            "config/boot.rb for steps on how to limit the frameworks that " \
             "will be loaded"
     end
     alias frameworks= frameworks
