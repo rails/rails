@@ -138,41 +138,38 @@ module ActionDispatch
             end
           end
 
-          def named_helper_module_eval(code, *args)
-            @module.module_eval(code, *args)
-          end
-
           def define_hash_access(route, name, kind, options)
             selector = hash_access_name(name, kind)
-            named_helper_module_eval <<-end_eval # We use module_eval to avoid leaks
+
+            # We use module_eval to avoid leaks
+            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
               def #{selector}(options = nil)                                      # def hash_for_users_url(options = nil)
                 options ? #{options.inspect}.merge(options) : #{options.inspect}  #   options ? {:only_path=>false}.merge(options) : {:only_path=>false}
               end                                                                 # end
               protected :#{selector}                                              # protected :hash_for_users_url
-            end_eval
+            END_EVAL
             helpers << selector
           end
 
+          # Create a url helper allowing ordered parameters to be associated
+          # with corresponding dynamic segments, so you can do:
+          #
+          #   foo_url(bar, baz, bang)
+          #
+          # Instead of:
+          #
+          #   foo_url(:bar => bar, :baz => baz, :bang => bang)
+          #
+          # Also allow options hash, so you can do:
+          #
+          #   foo_url(bar, baz, bang, :sort_by => 'baz')
+          #
           def define_url_helper(route, name, kind, options)
             selector = url_helper_name(name, kind)
-            # The segment keys used for positional parameters
-
             hash_access_method = hash_access_name(name, kind)
 
-            # allow ordered parameters to be associated with corresponding
-            # dynamic segments, so you can do
-            #
-            #   foo_url(bar, baz, bang)
-            #
-            # instead of
-            #
-            #   foo_url(:bar => bar, :baz => baz, :bang => bang)
-            #
-            # Also allow options hash, so you can do
-            #
-            #   foo_url(bar, baz, bang, :sort_by => 'baz')
-            #
-            named_helper_module_eval <<-end_eval # We use module_eval to avoid leaks
+            # We use module_eval to avoid leaks
+            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
               def #{selector}(*args)                                                        # def users_url(*args)
                                                                                             #
                 opts = if args.empty? || Hash === args.first                                #   opts = if args.empty? || Hash === args.first
@@ -190,7 +187,7 @@ module ActionDispatch
                                                                                             #
               end                                                                           # end
               protected :#{selector}                                                        # protected :users_url
-            end_eval
+            END_EVAL
             helpers << selector
           end
       end
