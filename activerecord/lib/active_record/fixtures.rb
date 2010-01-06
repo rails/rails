@@ -822,8 +822,8 @@ module ActiveRecord
       superclass_delegating_accessor :pre_loaded_fixtures
 
       self.fixture_table_names = []
-      self.use_transactional_fixtures = false
-      self.use_instantiated_fixtures = true
+      self.use_transactional_fixtures = true
+      self.use_instantiated_fixtures = false
       self.pre_loaded_fixtures = false
 
       self.fixture_class_names = {}
