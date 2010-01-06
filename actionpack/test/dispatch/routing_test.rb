@@ -66,7 +66,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
         resources :people do
           nested do
-            namespace ":access_token" do
+            scope "/:access_token" do
               resource :avatar
             end
           end
@@ -433,12 +433,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/account/subscription'
       assert_equal 'subscriptions#show', @response.body
+      assert_equal '/account/subscription', account_subscription_path
 
       get '/account/credit'
       assert_equal 'credits#show', @response.body
+      assert_equal '/account/credit', account_credit_path
 
       get '/account/credit_card'
       assert_equal 'credit_cards#show', @response.body
+      assert_equal '/account/credit_card', account_credit_card_path
     end
   end
 

@@ -292,7 +292,7 @@ module ActionDispatch
         end
 
         def namespace(path)
-          scope("/#{path}") { yield }
+          scope("/#{path}", :name_prefix => path.to_s) { yield }
         end
 
         def constraints(constraints = {})
