@@ -164,7 +164,7 @@ class AppGeneratorTest < GeneratorsTestCase
   def test_dev_option
     run_generator [destination_root, "--dev"]
     rails_path = File.expand_path('../../..', Rails.root)
-    dev_gem = %(gem "rails", :path => #{rails_path.inspect})
+    dev_gem = %(directory #{rails_path.inspect}, :glob => "{*/,}*.gemspec")
     assert_file 'Gemfile', /^#{Regexp.escape(dev_gem)}$/
   end
 
