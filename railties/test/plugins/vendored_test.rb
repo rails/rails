@@ -191,5 +191,11 @@ module PluginsTest
       boot_rails
       assert_equal [:a, :c, :b], $arr
     end
+
+    test "plugin order array is strings" do
+      add_to_config "config.plugins = %w( c_plugin all )"
+      boot_rails
+      assert_equal [:c, :a, :b], $arr
+    end
   end
 end

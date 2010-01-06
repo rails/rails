@@ -91,9 +91,10 @@ module Rails
     # TODO: Fix this method
     def plugins
       @plugins ||= begin
-        plugin_names = config.plugins || [:all]
-        Railtie.plugins.select { |p| plugin_names.include?(:all) || plugin_names.include?(p.plugin_name) }.map { |p| p.new } +
-        Plugin.all(config.plugins || [:all], config.paths.vendor.plugins)
+        plugin_names = (config.plugins || [:all]).map { |p| p.to_sym }
+        Railtie.plugins.select { |p|
+          plugin_names.include?(:all) || plugin_names.include?(p.plugin_name)
+        }.map { |p| p.new } + Plugin.all(plugin_names, config.paths.vendor.plugins)
       end
     end
 
