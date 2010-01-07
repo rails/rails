@@ -11,6 +11,11 @@ module ActionView
     module UrlHelper
       include JavaScriptHelper
 
+      # Need to map default url options to controller one.
+      def default_url_options(*args) #:nodoc:
+        @controller.send(:default_url_options, *args)
+      end
+
       # Returns the URL for the set of +options+ provided. This takes the
       # same options as +url_for+ in Action Controller (see the
       # documentation for <tt>ActionController::Base#url_for</tt>). Note that by default

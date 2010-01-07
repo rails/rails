@@ -74,9 +74,8 @@ module ActionDispatch
           @routes = {}
           @helpers = []
 
-          @module ||= Module.new
-          @module.instance_methods.each do |selector|
-            @module.class_eval { remove_method selector }
+          @module ||= Module.new do
+            instance_methods.each { |selector| remove_method(selector) }
           end
         end
 
@@ -168,25 +167,56 @@ module ActionDispatch
             selector = url_helper_name(name, kind)
             hash_access_method = hash_access_name(name, kind)
 
-            # We use module_eval to avoid leaks
+            # We use module_eval to avoid leaks.
+            #
+            # def users_url(*args)
+            #   if args.empty? || Hash === args.first
+            #     options = hash_for_users_url(args.first || {})
+            #   else
+            #     options = hash_for_users_url(args.extract_options!)
+            #     default = default_url_options(options) if self.respond_to?(:default_url_options, true)
+            #     options = (default ||= {}).merge(options)
+            #
+            #     keys = []
+            #     keys -= options.keys unless keys.size == args.size
+            #
+            #     args = args.zip(keys).inject({}) do |h, (v, k)|
+            #       h[k] = v
+            #       h
+            #     end
+            #
+            #     # Tell url_for to skip default_url_options
+            #     options[:use_defaults] = false
+            #     options.merge!(args)
+            #   end
+            # 
+            #   url_for(options)
+            # end
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              def #{selector}(*args)                                                        # def users_url(*args)
-                                                                                            #
-                opts = if args.empty? || Hash === args.first                                #   opts = if args.empty? || Hash === args.first
-                  args.first || {}                                                          #     args.first || {}
-                else                                                                        #   else
-                  options = args.extract_options!                                           #     options = args.extract_options!
-                  args = args.zip(#{route.segment_keys.inspect}).inject({}) do |h, (v, k)|  #     args = args.zip([]).inject({}) do |h, (v, k)|
-                    h[k] = v                                                                #       h[k] = v
-                    h                                                                       #       h
-                  end                                                                       #     end
-                  options.merge(args)                                                       #     options.merge(args)
-                end                                                                         #   end
-                                                                                            #
-                url_for(#{hash_access_method}(opts))                                        #   url_for(hash_for_users_url(opts))
-                                                                                            #
-              end                                                                           # end
-              protected :#{selector}                                                        # protected :users_url
+              def #{selector}(*args)
+                if args.empty? || Hash === args.first 
+                  options = #{hash_access_method}(args.first || {})
+                else
+                  options = #{hash_access_method}(args.extract_options!)
+                  default = default_url_options(options) if self.respond_to?(:default_url_options, true)
+                  options = (default ||= {}).merge(options)
+
+                  keys = #{route.segment_keys.inspect}
+                  keys -= options.keys unless keys.size == args.size
+
+                  args = args.zip(keys).inject({}) do |h, (v, k)|
+                    h[k] = v
+                    h
+                  end
+
+                  # Tell url_for to skip default_url_options
+                  options[:use_defaults] = false
+                  options.merge!(args)
+                end
+
+                url_for(options)
+              end
+              protected :#{selector}
             END_EVAL
             helpers << selector
           end
