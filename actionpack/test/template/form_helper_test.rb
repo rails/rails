@@ -16,8 +16,8 @@ class FormHelperTest < ActionView::TestCase
           }
         }
       },
-      :views => {
-        :labels => {
+      :helpers => {
+        :label => {
           :post => {
             :body => "Write entire text here"
           }

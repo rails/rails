@@ -777,7 +777,7 @@ module ActionView
         options["for"] ||= name_and_id["id"]
 
         content = if text.blank?
-          I18n.t("views.labels.#{object_name}.#{method_name}", :default => "").presence
+          I18n.t("helpers.label.#{object_name}.#{method_name}", :default => "").presence
         else
           text.to_s
         end
