@@ -224,10 +224,10 @@ module ActiveRecord
     def associated_records_to_validate_or_save(association, new_record, autosave)
       if new_record
         association
-      elsif association.loaded?
-        autosave ? association : association.find_all { |record| record.new_record? }
+      elsif autosave
+        association.target.find_all { |record| record.new_record? || record.changed? || record.marked_for_destruction? }
       else
-        autosave ? association.target : association.target.find_all { |record| record.new_record? }
+        association.target.find_all { |record| record.new_record? }
       end
     end
 

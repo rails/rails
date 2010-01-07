@@ -701,23 +701,18 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
     define_method("test_should_rollback_destructions_if_an_exception_occurred_while_saving_#{association_name}") do
       2.times { |i| @pirate.send(association_name).create!(:name => "#{association_name}_#{i}") }
-      before = @pirate.send(association_name).map { |c| c }
+      before = @pirate.send(association_name).map { |c| c.mark_for_destruction ; c }
 
-      # Stub the save method of the first child to destroy and the second to raise an exception
-      class << before.first
-        def save(*args)
-          super
-          destroy
-        end
-      end
+      # Stub the destroy method of the the second child to raise an exception
       class << before.last
-        def save(*args)
+        def destroy(*args)
           super
           raise 'Oh noes!'
         end
       end
 
       assert_raise(RuntimeError) { assert !@pirate.save }
+      assert before.first.frozen? # the first child was indeed destroyed
       assert_equal before, @pirate.reload.send(association_name)
     end
 
