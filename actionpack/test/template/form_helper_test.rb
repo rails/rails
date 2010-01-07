@@ -96,8 +96,8 @@ class FormHelperTest < ActionView::TestCase
 
     # Create "label" locale for testing I18n label helpers
     I18n.backend.store_translations 'label', {
-      :views => {
-        :labels => {
+      :helpers => {
+        :label => {
           :post => {
             :body => "Write entire text here"
           }
