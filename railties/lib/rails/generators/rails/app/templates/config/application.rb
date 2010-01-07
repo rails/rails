@@ -1,6 +1,6 @@
 require File.expand_path('../boot', __FILE__)
 
-module <%= app_name.classify %>
+module <%= app_const_base %>
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers

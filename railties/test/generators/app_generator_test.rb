@@ -61,7 +61,8 @@ class AppGeneratorTest < GeneratorsTestCase
 
   def test_invalid_application_name_is_fixed
     silence(:stdout){ Rails::Generators::AppGenerator.start [File.join(destination_root, "things-43")] }
-    assert_file "things-43/config/environment.rb", /Things43::Application/
+    assert_file "things-43/config/environment.rb", /Things43::Application\.initialize!/
+    assert_file "things-43/config/application.rb", /^module Things43$/
   end
 
   def test_config_database_is_added_by_default

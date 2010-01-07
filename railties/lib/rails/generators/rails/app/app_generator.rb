@@ -193,8 +193,12 @@ module Rails::Generators
         @app_name ||= File.basename(destination_root)
       end
 
+      def app_const_base
+        @app_const_base ||= app_name.gsub(/\W/, '_').squeeze('_').classify
+      end
+
       def app_const
-        @app_const ||= "#{app_name.gsub(/\W/, '_').squeeze('_').classify}::Application"
+        @app_const ||= "#{app_const_base}::Application"
       end
 
       def valid_app_const?
