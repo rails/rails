@@ -1770,7 +1770,7 @@ module ActiveRecord
         end
 
         def using_limitable_reflections?(reflections)
-          reflections.reject { |r| [ :belongs_to, :has_one ].include?(r.macro) }.length.zero?
+          reflections.collect(&:collection_association?).length.zero?
         end
 
         def column_aliases(join_dependency)
@@ -1843,7 +1843,7 @@ module ActiveRecord
             case associations
               when Symbol, String
                 reflection = base.reflections[associations]
-                if reflection && [:has_many, :has_and_belongs_to_many].include?(reflection.macro)
+                if reflection && reflection.collection_association?
                   records.each { |record| record.send(reflection.name).target.uniq! }
                 end
               when Array
@@ -1853,12 +1853,11 @@ module ActiveRecord
               when Hash
                 associations.keys.each do |name|
                   reflection = base.reflections[name]
-                  is_collection = [:has_many, :has_and_belongs_to_many].include?(reflection.macro)
 
                   parent_records = []
                   records.each do |record|
                     if descendant = record.send(reflection.name)
-                      if is_collection
+                      if reflection.collection_association?
                         parent_records.concat descendant.target.uniq
                       else
                         parent_records << descendant
