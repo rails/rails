@@ -31,7 +31,7 @@ module ActiveModel
       #     attr_accessor :name, :email
       # 
       #     validates :name, :presence => true, :uniqueness => true, :length => { :maximum => 100 }
-      #     validates :email, :presence => true, :email => true
+      #     validates :email, :presence => true, :format => { :with => /@/ }
       #   end
       # 
       # Validator classes my also exist within the class being validated
@@ -44,21 +44,33 @@ module ActiveModel
       #       end
       #     end
       #   end
-      # 
+      #
       #   class Film
       #     include ActiveModel::Validations
       #     include MyValidators
       # 
       #     validates :name, :title => true
       #   end 
-      # 
+      #
+      # The options :if, :unless, :on, :allow_blank and :allow_nil can be given to one specific
+      # validator:
+      #
+      #   validates :password, :presence => { :if => :password_required? }, :confirmation => true
+      #
+      # Or to all at the same time:
+      #
+      #   validates :password, :presence => true, :confirmation => true, :if => :password_required?
+      #
       def validates(*attributes)
-        validations = attributes.extract_options!
+        defaults = attributes.extract_options!
+        validations = defaults.slice!(:if, :unless, :on, :allow_blank, :allow_nil)
 
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
         raise ArgumentError, "Attribute names must be symbols" if attributes.any?{ |attribute| !attribute.is_a?(Symbol) }
         raise ArgumentError, "You need to supply at least one validation" if validations.empty?
-        
+
+        defaults.merge!(:attributes => attributes)
+
         validations.each do |key, options|
           begin
             validator = const_get("#{key.to_s.camelize}Validator")
@@ -66,7 +78,7 @@ module ActiveModel
             raise ArgumentError, "Unknown validator: '#{key}'"
           end
 
-          validates_with(validator, (options == true ? {} : options).merge(:attributes => attributes))
+          validates_with(validator, defaults.merge(options == true ? {} : options))
         end
       end
     end

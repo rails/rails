@@ -121,9 +121,7 @@ module ActiveModel
     #     end
     #   end
     #
-    def read_attribute_for_validation(key)
-      send(key)
-    end
+    alias :read_attribute_for_validation :send
   end
 end
 
