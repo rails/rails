@@ -178,7 +178,7 @@ module ActionDispatch
             #     options = (default ||= {}).merge(options)
             #
             #     keys = []
-            #     keys -= options.keys unless keys.size == args.size
+            #     keys -= options.keys if args.size < keys.size - 1
             #
             #     args = args.zip(keys).inject({}) do |h, (v, k)|
             #       h[k] = v
@@ -202,7 +202,7 @@ module ActionDispatch
                   options = (default ||= {}).merge(options)
 
                   keys = #{route.segment_keys.inspect}
-                  keys -= options.keys unless keys.size == args.size
+                  keys -= options.keys if args.size < keys.size - 1 # take format into account
 
                   args = args.zip(keys).inject({}) do |h, (v, k)|
                     h[k] = v

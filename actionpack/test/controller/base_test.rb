@@ -172,8 +172,16 @@ class DefaultUrlOptionsTest < ActionController::TestCase
       get :from_view, :route => "description_path(1)"
 
       assert_equal '/en/descriptions/1', @response.body
+      assert_equal '/en/descriptions', @controller.send(:descriptions_path)
+      assert_equal '/pl/descriptions', @controller.send(:descriptions_path, "pl")
+      assert_equal '/pl/descriptions', @controller.send(:descriptions_path, :locale => "pl")
+      assert_equal '/pl/descriptions.xml', @controller.send(:descriptions_path, "pl", "xml")
+      assert_equal '/en/descriptions.xml', @controller.send(:descriptions_path, :format => "xml")
       assert_equal '/en/descriptions/1', @controller.send(:description_path, 1)
+      assert_equal '/pl/descriptions/1', @controller.send(:description_path, "pl", 1)
       assert_equal '/pl/descriptions/1', @controller.send(:description_path, 1, :locale => "pl")
+      assert_equal '/pl/descriptions/1.xml', @controller.send(:description_path, "pl", 1, "xml")
+      assert_equal '/en/descriptions/1.xml', @controller.send(:description_path, 1, :format => "xml")
     end
   end
 
