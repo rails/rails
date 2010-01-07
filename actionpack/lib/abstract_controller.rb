@@ -15,4 +15,5 @@ module AbstractController
   autoload :LocalizedCache
   autoload :Logger
   autoload :Rendering
+  autoload :UrlFor
 end

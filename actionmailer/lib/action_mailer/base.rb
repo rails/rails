@@ -259,10 +259,9 @@ module ActionMailer #:nodoc:
     include AbstractController::LocalizedCache
     include AbstractController::Layouts
     include AbstractController::Helpers
+    include AbstractController::UrlFor
 
     helper  ActionMailer::MailHelper
-
-    include ActionController::UrlWriter
     include ActionMailer::DeprecatedBody
 
     private_class_method :new #:nodoc:

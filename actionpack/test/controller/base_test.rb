@@ -205,7 +205,6 @@ class EnsureNamedRoutesWorksTicket22BugTest < ActionController::TestCase
       set.draw do |map|
         resources :things
       end
-      EmptyController.send :include, ActionController::UrlWriter
 
       assert_equal '/things', EmptyController.new.send(:things_path)
     end

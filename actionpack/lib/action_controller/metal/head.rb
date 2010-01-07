@@ -1,6 +1,7 @@
 module ActionController
   module Head
-    include UrlFor
+    extend ActiveSupport::Concern
+    include ActionController::UrlFor
 
     # Return a response that has no content (merely headers). The options
     # argument is interpreted to be a hash of header names and values.
