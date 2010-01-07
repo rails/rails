@@ -107,8 +107,7 @@ module ActiveModel
       #   count words as in above example.)
       #   Defaults to <tt>lambda{ |value| value.split(//) }</tt> which counts individual characters.
       def validates_length_of(*attr_names)
-        options = attr_names.extract_options!
-        validates_with LengthValidator, options.merge(:attributes => attr_names)
+        validates_with LengthValidator, _merge_attributes(attr_names)
       end
 
       alias_method :validates_size_of, :validates_length_of

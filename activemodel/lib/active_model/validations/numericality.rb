@@ -103,8 +103,7 @@ module ActiveModel
       #   end
       #
       def validates_numericality_of(*attr_names)
-        options = attr_names.extract_options!
-        validates_with NumericalityValidator, options.merge(:attributes => attr_names)
+        validates_with NumericalityValidator, _merge_attributes(attr_names)
       end
     end
   end
