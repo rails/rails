@@ -32,6 +32,8 @@ end
 RAILS_ENV = (ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development").dup unless defined?(RAILS_ENV)
 
 module Rails
+  autoload :Bootstrap, 'rails/bootstrap'
+
   # Needs to be duplicated from Active Support since its needed before Active
   # Support is available. Here both Options and Hash are namespaced to prevent
   # conflicts with other implementations AND with the classes residing in Active Support.
