@@ -1,5 +1,6 @@
 class Float
-  remove_method :round
+  alias precisionless_round round
+  private :precisionless_round
 
   # Rounds the float with the specified precision.
   #
@@ -12,7 +13,7 @@ class Float
       magnitude = 10.0 ** precision
       (self * magnitude).round / magnitude
     else
-      super()
+      precisionless_round
     end
   end
 end
