@@ -974,9 +974,9 @@ module AutosaveAssociationOnACollectionAssociationTests
   end
 
   def test_should_default_invalid_error_from_i18n
-    I18n.backend.store_translations(:en, :activerecord => { :errors => { :models =>
+    I18n.backend.store_translations(:en, :errors => { :models =>
       { @association_name.to_s.singularize.to_sym => { :blank => "cannot be blank" } }
-    }})
+    })
 
     @pirate.send(@association_name).build(:name => '')
 
@@ -985,9 +985,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     assert_equal ["#{@association_name.to_s.titleize} name cannot be blank"], @pirate.errors.full_messages
     assert @pirate.errors[@association_name].empty?
   ensure
-    I18n.backend.store_translations(:en, :activerecord => { :errors => { :models =>
-      { @association_name.to_s.singularize.to_sym => nil }
-    }})
+    I18n.backend = I18n::Backend::Simple.new
   end
 
   def test_should_merge_errors_on_the_associated_models_onto_the_parent_even_if_it_is_not_valid
