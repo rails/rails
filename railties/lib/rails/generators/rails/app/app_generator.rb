@@ -194,7 +194,7 @@ module Rails::Generators
       end
 
       def app_const_base
-        @app_const_base ||= app_name.gsub(/\W/, '_').squeeze('_').classify
+        @app_const_base ||= app_name.gsub(/\W/, '_').squeeze('_').camelize
       end
 
       def app_const
