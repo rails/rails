@@ -19,6 +19,11 @@ en:
       # custom blank validation message for login attribute of User model.
       #models:
 
+  # Attributes names common to most models
+  #attributes:
+    #created_at: "Created at"
+    #updated_at: "Updated at"
+
   # ActiveRecord models configuration
   #activerecord:
     # Translate model names. Used in Model.human_name().
