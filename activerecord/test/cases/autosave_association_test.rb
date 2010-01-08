@@ -830,6 +830,18 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     end
   end
 
+  def test_should_not_save_and_return_false_if_a_callback_cancelled_saving
+    pirate = Pirate.new(:catchphrase => 'Arr')
+    ship = pirate.build_ship(:name => 'The Vile Insanity')
+    ship.cancel_save_from_callback = true
+
+    assert_no_difference 'Pirate.count' do
+      assert_no_difference 'Ship.count' do
+        assert !pirate.save
+      end
+    end
+  end
+
   def test_should_rollback_any_changes_if_an_exception_occurred_while_saving
     before = [@pirate.catchphrase, @pirate.ship.name]
 
@@ -913,6 +925,18 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     end
   end
 
+  def test_should_not_save_and_return_false_if_a_callback_cancelled_saving
+    ship = Ship.new(:name => 'The Vile Insanity')
+    pirate = ship.build_pirate(:catchphrase => 'Arr')
+    pirate.cancel_save_from_callback = true
+
+    assert_no_difference 'Ship.count' do
+      assert_no_difference 'Pirate.count' do
+        assert !ship.save
+      end
+    end
+  end
+
   def test_should_rollback_any_changes_if_an_exception_occurred_while_saving
     before = [@ship.pirate.catchphrase, @ship.name]
 
@@ -928,7 +952,6 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     end
 
     assert_raise(RuntimeError) { assert !@ship.save }
-    # TODO: Why does using reload on @ship looses the associated pirate?
     assert_equal before, [@ship.pirate.reload.catchphrase, @ship.reload.name]
   end
 
@@ -1026,6 +1049,26 @@ module AutosaveAssociationOnACollectionAssociationTests
     assert_difference("#{ @association_name == :birds ? 'Bird' : 'Parrot' }.count", +2) do
       2.times { @pirate.send(@association_name).build }
       @pirate.save(false)
+    end
+  end
+
+  def test_should_not_save_and_return_false_if_a_callback_cancelled_saving_in_either_create_or_update
+    @pirate.catchphrase = 'Changed'
+    @child_1.name = 'Changed'
+    @child_1.cancel_save_from_callback = true
+
+    assert !@pirate.save
+    assert_equal "Don' botharrr talkin' like one, savvy?", @pirate.reload.catchphrase
+    assert_equal "Posideons Killer", @child_1.reload.name
+
+    new_pirate = Pirate.new(:catchphrase => 'Arr')
+    new_child = new_pirate.send(@association_name).build(:name => 'Grace OMalley')
+    new_child.cancel_save_from_callback = true
+
+    assert_no_difference 'Pirate.count' do
+      assert_no_difference "#{new_child.class.name}.count" do
+        assert !new_pirate.save
+      end
     end
   end
 
