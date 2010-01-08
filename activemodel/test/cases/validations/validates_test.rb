@@ -70,20 +70,20 @@ class ValidatesTest < ActiveModel::TestCase
   end
 
   def test_validates_with_array
-    Person.validates :genre, :inclusion => %w(m f)
+    Person.validates :gender, :inclusion => %w(m f)
     person = Person.new
     assert person.invalid?
-    assert_equal ['is not included in the list'], person.errors[:genre]
-    person.genre = "m"
+    assert_equal ['is not included in the list'], person.errors[:gender]
+    person.gender = "m"
     assert person.valid?
   end
 
   def test_validates_with_range
-    Person.validates :password, :length => 6..20
+    Person.validates :karma, :length => 6..20
     person = Person.new
     assert person.invalid?
-    assert_equal ['is too short (minimum is 6 characters)'], person.errors[:password]
-    person.password = '123456'
+    assert_equal ['is too short (minimum is 6 characters)'], person.errors[:karma]
+    person.karma = 'something'
     assert person.valid?
   end
 

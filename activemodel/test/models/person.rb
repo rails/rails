@@ -2,7 +2,7 @@ class Person
   include ActiveModel::Validations
   extend  ActiveModel::Translation
 
-  attr_accessor :title, :karma, :salary, :genre, :password
+  attr_accessor :title, :karma, :salary, :gender
 
   def condition_is_true
     true

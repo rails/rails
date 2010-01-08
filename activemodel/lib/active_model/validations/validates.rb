@@ -54,7 +54,7 @@ module ActiveModel
       # The validators hash can also handle regular expressions, ranges and arrays:
       #
       #   validates :email, :format => /@/
-      #   validates :genre, :inclusion => %w(mail female)
+      #   validates :gender, :inclusion => %w(mail female)
       #   validates :password, :length => 6..20
       #
       # Finally, the options :if, :unless, :on, :allow_blank and :allow_nil can be given
