@@ -7,6 +7,7 @@ module ActiveModel
       # custom validator classes in their place such as PresenceValidator.
       # 
       # Examples of using the default rails validators:
+      #
       #   validates :terms, :acceptance => true
       #   validates :password, :confirmation => true
       #   validates :username, :exclusion => { :in => %w(admin superuser) }
@@ -19,6 +20,7 @@ module ActiveModel
       # 
       # The power of the +validates+ method comes when using cusom validators
       # and default validators in one call for a given attribute e.g.
+      #
       #   class EmailValidator < ActiveModel::EachValidator
       #     def validate_each(record, attribute, value)
       #       record.errors[attribute] << (options[:message] || "is not an email") unless
@@ -31,29 +33,32 @@ module ActiveModel
       #     attr_accessor :name, :email
       # 
       #     validates :name, :presence => true, :uniqueness => true, :length => { :maximum => 100 }
-      #     validates :email, :presence => true, :format => { :with => /@/ }
+      #     validates :email, :presence => true, :email => true
       #   end
       # 
       # Validator classes my also exist within the class being validated
       # allowing custom modules of validators to be included as needed e.g.
-      # 
-      #   module MyValidators
+      #
+      #   class Film
+      #     include ActiveModel::Validations
+      #
       #     class TitleValidator < ActiveModel::EachValidator
       #       def validate_each(record, attribute, value)
       #         record.errors[attribute] << "must start with 'the'" unless =~ /^the/i
       #       end
       #     end
+      #
+      #     validates :name, :title => true
       #   end
       #
-      #   class Film
-      #     include ActiveModel::Validations
-      #     include MyValidators
-      # 
-      #     validates :name, :title => true
-      #   end 
+      # The validators hash can also handle regular expressions, ranges and arrays:
       #
-      # The options :if, :unless, :on, :allow_blank and :allow_nil can be given to one specific
-      # validator:
+      #   validates :email, :format => /@/
+      #   validates :genre, :inclusion => %w(mail female)
+      #   validates :password, :length => 6..20
+      #
+      # Finally, the options :if, :unless, :on, :allow_blank and :allow_nil can be given
+      # to one specific validator:
       #
       #   validates :password, :presence => { :if => :password_required? }, :confirmation => true
       #
@@ -78,7 +83,22 @@ module ActiveModel
             raise ArgumentError, "Unknown validator: '#{key}'"
           end
 
-          validates_with(validator, defaults.merge(options == true ? {} : options))
+          validates_with(validator, defaults.merge(_parse_validates_options(options)))
+        end
+      end
+
+    protected
+
+      def _parse_validates_options(options) #:nodoc:
+        case options
+        when TrueClass
+          {}
+        when Hash
+          options
+        when Regexp
+          { :with => options }
+        when Range, Array
+          { :in => options }
         end
       end
     end

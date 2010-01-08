@@ -10,43 +10,42 @@ class ValidatesTest < ActiveModel::TestCase
 
   def reset_callbacks
     Person.reset_callbacks(:validate)
+    PersonWithValidator.reset_callbacks(:validate)
   end
 
   def test_validates_with_built_in_validation
     Person.validates :title, :numericality => true
     person = Person.new
     person.valid?
-    assert person.errors[:title].include?('is not a number')
+    assert_equal ['is not a number'], person.errors[:title]
   end
 
   def test_validates_with_built_in_validation_and_options
-    Person.validates :title, :numericality => { :message => 'my custom message' }
+    Person.validates :salary, :numericality => { :message => 'my custom message' }
     person = Person.new
     person.valid?
-    assert person.errors[:title].include?('my custom message')
+    assert_equal ['my custom message'], person.errors[:salary]
   end
   
   def test_validates_with_validator_class
     Person.validates :karma, :email => true
     person = Person.new
     person.valid?
-    assert person.errors[:karma].include?('is not an email')
+    assert_equal ['is not an email'], person.errors[:karma]
   end
 
   def test_validates_with_if_as_local_conditions
     Person.validates :karma, :presence => true, :email => { :unless => :condition_is_true }
     person = Person.new
     person.valid?
-    assert !person.errors[:karma].include?('is not an email')
-    assert person.errors[:karma].include?('can\'t be blank')
+    assert_equal ["can't be blank"], person.errors[:karma]
   end
 
   def test_validates_with_if_as_shared_conditions
     Person.validates :karma, :presence => true, :email => true, :if => :condition_is_true
     person = Person.new
     person.valid?
-    assert person.errors[:karma].include?('is not an email')
-    assert person.errors[:karma].include?('can\'t be blank')
+    assert ["can't be blank", "is not an email"], person.errors[:karma].sort
   end
 
   def test_validates_with_unless_shared_conditions
@@ -61,11 +60,38 @@ class ValidatesTest < ActiveModel::TestCase
     assert person.valid?
   end
 
+  def test_validates_with_regexp
+    Person.validates :karma, :format => /positive|negative/
+    person = Person.new
+    assert person.invalid?
+    assert_equal ['is invalid'], person.errors[:karma]
+    person.karma = "positive"
+    assert person.valid?
+  end
+
+  def test_validates_with_array
+    Person.validates :genre, :inclusion => %w(m f)
+    person = Person.new
+    assert person.invalid?
+    assert_equal ['is not included in the list'], person.errors[:genre]
+    person.genre = "m"
+    assert person.valid?
+  end
+
+  def test_validates_with_range
+    Person.validates :password, :length => 6..20
+    person = Person.new
+    assert person.invalid?
+    assert_equal ['is too short (minimum is 6 characters)'], person.errors[:password]
+    person.password = '123456'
+    assert person.valid?
+  end
+
   def test_validates_with_validator_class_and_options
     Person.validates :karma, :email => { :message => 'my custom message' }
     person = Person.new
     person.valid?
-    assert person.errors[:karma].include?('my custom message')
+    assert_equal ['my custom message'], person.errors[:karma]
   end
   
   def test_validates_with_unknown_validator
@@ -76,13 +102,13 @@ class ValidatesTest < ActiveModel::TestCase
     PersonWithValidator.validates :title, :presence => true
     person = PersonWithValidator.new
     person.valid?
-    assert person.errors[:title].include?('Local validator')
+    assert_equal ['Local validator'], person.errors[:title]
   end
   
   def test_validates_with_included_validator_and_options
     PersonWithValidator.validates :title, :presence => { :custom => ' please' }
     person = PersonWithValidator.new
     person.valid?
-    assert person.errors[:title].include?('Local validator please')
+    assert_equal ['Local validator please'], person.errors[:title]
   end
 end

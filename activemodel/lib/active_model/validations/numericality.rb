@@ -10,9 +10,10 @@ module ActiveModel
       end
 
       def check_validity!
-        options.slice(*CHECKS.keys) do |option, value|
-          next if [:odd, :even].include?(option)
-          raise ArgumentError, ":#{option} must be a number, a symbol or a proc" unless value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
+        keys = CHECKS.keys - [:odd, :event]
+        options.slice(*keys) do |option, value|
+          next if value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
+          raise ArgumentError, ":#{option} must be a number, a symbol or a proc"
         end
       end
 
