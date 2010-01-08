@@ -1770,7 +1770,7 @@ module ActiveRecord
         end
 
         def using_limitable_reflections?(reflections)
-          reflections.collect(&:collection_association?).length.zero?
+          reflections.collect(&:collection?).length.zero?
         end
 
         def column_aliases(join_dependency)
@@ -1843,7 +1843,7 @@ module ActiveRecord
             case associations
               when Symbol, String
                 reflection = base.reflections[associations]
-                if reflection && reflection.collection_association?
+                if reflection && reflection.collection?
                   records.each { |record| record.send(reflection.name).target.uniq! }
                 end
               when Array
@@ -1857,7 +1857,7 @@ module ActiveRecord
                   parent_records = []
                   records.each do |record|
                     if descendant = record.send(reflection.name)
-                      if reflection.collection_association?
+                      if reflection.collection?
                         parent_records.concat descendant.target.uniq
                       else
                         parent_records << descendant

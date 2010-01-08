@@ -166,7 +166,7 @@ module ActiveRecord
       def add_autosave_association_callbacks(reflection)
         save_method = :"autosave_associated_records_for_#{reflection.name}"
         validation_method = :"validate_associated_records_for_#{reflection.name}"
-        collection = reflection.collection_association?
+        collection = reflection.collection?
 
         unless method_defined?(save_method)
           if collection

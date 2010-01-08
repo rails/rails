@@ -238,7 +238,7 @@ module ActiveRecord
             reflection.options[:autosave] = true
             add_autosave_association_callbacks(reflection)
             nested_attributes_options[association_name.to_sym] = options
-            type = (reflection.collection_association? ? :collection : :one_to_one)
+            type = (reflection.collection? ? :collection : :one_to_one)
 
             # def pirate_attributes=(attributes)
             #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes)
