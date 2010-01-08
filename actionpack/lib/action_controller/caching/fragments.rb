@@ -37,7 +37,7 @@ module ActionController #:nodoc:
       def fragment_for(buffer, name = {}, options = nil, &block) #:nodoc:
         if perform_caching
           if fragment_exist?(name,options)
-            buffer.concat(read_fragment(name, options))
+            buffer.concat(read_fragment(name, options).html_safe!)
           else
             pos = buffer.length
             block.call
