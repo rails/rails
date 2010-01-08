@@ -408,6 +408,10 @@ module ActiveRecord
         self.new(direction, migrations_path, target_version).run
       end
 
+      def migrations_path
+        'db/migrate'
+      end
+
       def schema_migrations_table_name
         Base.table_name_prefix + 'schema_migrations' + Base.table_name_suffix
       end
