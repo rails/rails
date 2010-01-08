@@ -51,7 +51,7 @@ module ActiveSupport
 
     def self.===(other) #:nodoc:
       other.is_a?(Duration)
-    rescue NoMethodError
+    rescue ::NoMethodError
       false
     end
 
