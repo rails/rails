@@ -297,13 +297,15 @@ module ActiveRecord
               association.destroy(record)
             elsif autosave != false && (@new_record_before_save || record.new_record?)
               if autosave
-                association.send(:insert_record, record, false, false)
+                saved = association.send(:insert_record, record, false, false)
               else
                 association.send(:insert_record, record)
               end
             elsif autosave
-              record.save(false)
+              saved = record.save(false)
             end
+
+            raise ActiveRecord::Rollback if saved == false
           end
         end
 
@@ -330,7 +332,9 @@ module ActiveRecord
           key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
           if autosave != false && (new_record? || association.new_record? || association[reflection.primary_key_name] != key || autosave)
             association[reflection.primary_key_name] = key
-            association.save(!autosave)
+            saved = association.save(!autosave)
+            raise ActiveRecord::Rollback if !saved && autosave
+            saved
           end
         end
       end
@@ -351,7 +355,7 @@ module ActiveRecord
         if autosave && association.marked_for_destruction?
           association.destroy
         elsif autosave != false
-          association.save(!autosave) if association.new_record? || autosave
+          saved = association.save(!autosave) if association.new_record? || autosave
 
           if association.updated?
             association_id = association.send(reflection.options[:primary_key] || :id)
@@ -361,6 +365,8 @@ module ActiveRecord
               self[reflection.options[:foreign_type]] = association.class.base_class.name.to_s
             end
           end
+
+          saved if autosave
         end
       end
     end
