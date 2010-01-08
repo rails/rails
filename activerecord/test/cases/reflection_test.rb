@@ -188,11 +188,11 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_collection_association
-    assert Pirate.reflect_on_association(:birds).collection_association?
-    assert Pirate.reflect_on_association(:parrots).collection_association?
+    assert Pirate.reflect_on_association(:birds).collection?
+    assert Pirate.reflect_on_association(:parrots).collection?
 
-    assert !Pirate.reflect_on_association(:ship).collection_association?
-    assert !Ship.reflect_on_association(:pirate).collection_association?
+    assert !Pirate.reflect_on_association(:ship).collection?
+    assert !Ship.reflect_on_association(:pirate).collection?
   end
 
   def test_default_association_validation

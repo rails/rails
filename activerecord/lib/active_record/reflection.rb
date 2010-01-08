@@ -257,11 +257,11 @@ module ActiveRecord
       # Returns whether or not this association reflection is for a collection
       # association. Returns +true+ if the +macro+ is one of +has_many+ or
       # +has_and_belongs_to_many+, +false+ otherwise.
-      def collection_association?
-        if @collection_association.nil?
-          @collection_association = [:has_many, :has_and_belongs_to_many].include?(macro)
+      def collection?
+        if @collection.nil?
+          @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
         end
-        @collection_association
+        @collection
       end
 
       # Returns whether or not the association should be validated as part of
@@ -280,7 +280,7 @@ module ActiveRecord
       private
         def derive_class_name
           class_name = name.to_s.camelize
-          class_name = class_name.singularize if collection_association?
+          class_name = class_name.singularize if collection?
           class_name
         end
 
