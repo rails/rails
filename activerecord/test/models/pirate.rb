@@ -51,6 +51,12 @@ class Pirate < ActiveRecord::Base
     attributes.delete('_reject_me_if_new').present? && new_record?
   end
 
+  attr_accessor :cancel_save_from_callback
+  before_save :cancel_save_callback_method, :if => :cancel_save_from_callback
+  def cancel_save_callback_method
+    false
+  end
+
   private
     def log_before_add(record)
       log(record, "before_adding_method")
