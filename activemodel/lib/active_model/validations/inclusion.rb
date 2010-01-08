@@ -2,7 +2,6 @@ module ActiveModel
   module Validations
     class InclusionValidator < EachValidator
       def check_validity!
-          options[:in] ||= options.delete(:within)
          raise ArgumentError, "An object with the method include? is required must be supplied as the " <<
                               ":in option of the configuration hash" unless options[:in].respond_to?(:include?)
        end

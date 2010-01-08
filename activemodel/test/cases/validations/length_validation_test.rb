@@ -221,10 +221,8 @@ class LengthValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_length_of_nasty_params
-    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :minimum=>6, :maximum=>9) }
-    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :within=>6, :maximum=>9) }
-    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :within=>6, :minimum=>9) }
-    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :within=>6, :is=>9) }
+    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :is=>-6) }
+    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :within=>6) }
     assert_raise(ArgumentError) { Topic.validates_length_of(:title, :minimum=>"a") }
     assert_raise(ArgumentError) { Topic.validates_length_of(:title, :maximum=>"a") }
     assert_raise(ArgumentError) { Topic.validates_length_of(:title, :within=>"a") }
