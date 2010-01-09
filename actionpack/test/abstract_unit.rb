@@ -19,8 +19,6 @@ require 'action_view'
 require 'action_view/base'
 require 'action_dispatch'
 require 'fixture_template'
-require 'active_support/test_case'
-require 'action_view/test_case'
 require 'active_support/dependencies'
 
 activemodel_path = File.expand_path('../../../activemodel/lib', __FILE__)
@@ -96,7 +94,6 @@ class ActiveSupport::TestCase
 end
 
 class MockLogger
-  attr_reader :logged
   attr_accessor :level
 
   def initialize
@@ -108,12 +105,15 @@ class MockLogger
     @logged << args.first
     @logged << blk.call if block_given?
   end
+
+  def logged
+    @logged.compact.map { |l| l.to_s.strip }
+  end
 end
 
 class ActionController::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
     ActionDispatch::MiddlewareStack.new { |middleware|
-      middleware.use "ActionDispatch::StringCoercion"
       middleware.use "ActionDispatch::ShowExceptions"
       middleware.use "ActionDispatch::Callbacks"
       middleware.use "ActionDispatch::ParamsParser"

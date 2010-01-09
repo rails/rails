@@ -86,6 +86,11 @@ module AbstractController
 
     abstract!
 
+    # Initialize controller with nil formats.
+    def initialize #:nodoc:
+      @_formats = nil
+    end
+
     # Calls the action going through the entire action dispatch stack.
     #
     # The actual method that is called is determined by calling

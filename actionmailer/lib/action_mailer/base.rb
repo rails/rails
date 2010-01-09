@@ -259,10 +259,9 @@ module ActionMailer #:nodoc:
     include AbstractController::LocalizedCache
     include AbstractController::Layouts
     include AbstractController::Helpers
+    include AbstractController::UrlFor
 
     helper  ActionMailer::MailHelper
-
-    include ActionController::UrlWriter
     include ActionMailer::DeprecatedBody
 
     private_class_method :new #:nodoc:
@@ -500,7 +499,7 @@ module ActionMailer #:nodoc:
         logger.debug "\n#{mail.encoded}"
       end
 
-      ActiveSupport::Notifications.instrument(:deliver_mail, :mail => mail) do
+      ActiveSupport::Notifications.instrument("action_mailer.deliver", :mail => self) do
         begin
           self.delivery_method.perform_delivery(mail) if perform_deliveries
         rescue Exception => e # Net::SMTP errors or sendmail pipe errors

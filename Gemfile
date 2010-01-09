@@ -8,7 +8,7 @@ gem "rails", "3.0.pre", :path => "railties"
 end
 
 # AS
-gem "i18n", ">= 0.3.0"
+gem "i18n", "0.3.3"
 
 # AR
 gem "arel", "0.2.pre", :git => "git://github.com/rails/arel.git"
@@ -20,7 +20,6 @@ only :test do
 end
 
 # AP
-gem "rack", "1.1.0", :git => "git://github.com/rack/rack.git"
 gem "rack-test", "0.5.3"
 gem "RedCloth", ">= 4.2.2"
 

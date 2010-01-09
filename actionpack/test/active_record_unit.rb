@@ -17,7 +17,6 @@ unless defined?(ActiveRecord) && defined?(Fixtures)
     raise LoadError, "#{PATH_TO_AR} doesn't exist" unless File.directory?(PATH_TO_AR)
     $LOAD_PATH.unshift PATH_TO_AR
     require 'active_record'
-    require 'active_record/fixtures'
   rescue LoadError => e
     $stderr.print "Failed to load Active Record. Skipping Active Record assertion tests: #{e}"
     ActiveRecordTestConnector.able_to_connect = false

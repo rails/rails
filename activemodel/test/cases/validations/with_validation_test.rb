@@ -120,6 +120,28 @@ class ValidatesWithTest < ActiveRecord::TestCase
     Topic.validates_with(validator, :if => "1 == 1", :foo => :bar)
     assert topic.valid?
   end
+ 
+  test "calls setup method of validator passing in self when validator has setup method" do
+    topic = Topic.new
+    validator = stub_everything
+    validator.stubs(:new).returns(validator)
+    validator.stubs(:validate)
+    validator.stubs(:respond_to?).with(:setup).returns(true)
+    validator.expects(:setup).with(Topic).once
+    Topic.validates_with(validator)
+    assert topic.valid?
+  end
+  
+  test "doesn't call setup method of validator when validator has no setup method" do
+    topic = Topic.new
+    validator = stub_everything
+    validator.stubs(:new).returns(validator)
+    validator.stubs(:validate)
+    validator.stubs(:respond_to?).with(:setup).returns(false)
+    validator.expects(:setup).with(Topic).never
+    Topic.validates_with(validator)
+    assert topic.valid?
+  end
 
   test "validates_with with options" do
     Topic.validates_with(ValidatorThatValidatesOptions, :field => :first_name)

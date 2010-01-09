@@ -55,13 +55,19 @@ class AppGeneratorTest < GeneratorsTestCase
   end
 
   def test_invalid_application_name_raises_an_error
-    content = capture(:stderr){ Rails::Generators::AppGenerator.start [File.join(destination_root, "43-things")] }
+    content = capture(:stderr){ run_generator [File.join(destination_root, "43-things")] }
     assert_equal "Invalid application name 43-things. Please give a name which does not start with numbers.\n", content
   end
 
   def test_invalid_application_name_is_fixed
-    silence(:stdout){ Rails::Generators::AppGenerator.start [File.join(destination_root, "things-43")] }
-    assert_file "things-43/config/environment.rb", /Things43::Application/
+    run_generator [File.join(destination_root, "things-43")]
+    assert_file "things-43/config/environment.rb", /Things43::Application\.initialize!/
+    assert_file "things-43/config/application.rb", /^module Things43$/
+  end
+
+  def test_application_names_are_not_singularized
+    run_generator [File.join(destination_root, "hats")]
+    assert_file "hats/config/environment.rb", /Hats::Application\.initialize!/
   end
 
   def test_config_database_is_added_by_default
@@ -164,7 +170,7 @@ class AppGeneratorTest < GeneratorsTestCase
   def test_dev_option
     run_generator [destination_root, "--dev"]
     rails_path = File.expand_path('../../..', Rails.root)
-    dev_gem = %(gem "rails", :path => #{rails_path.inspect})
+    dev_gem = %(directory #{rails_path.inspect}, :glob => "{*/,}*.gemspec")
     assert_file 'Gemfile', /^#{Regexp.escape(dev_gem)}$/
   end
 

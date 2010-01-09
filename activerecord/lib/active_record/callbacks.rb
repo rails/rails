@@ -9,7 +9,6 @@ module ActiveRecord
   # * (-) <tt>valid</tt>
   # * (1) <tt>before_validation</tt>
   # * (-) <tt>validate</tt>
-  # * (-) <tt>validate_on_create</tt>
   # * (2) <tt>after_validation</tt>
   # * (3) <tt>before_save</tt>
   # * (4) <tt>before_create</tt>
@@ -223,9 +222,10 @@ module ActiveRecord
 
       extend ActiveModel::Callbacks
 
+      define_callbacks :validation, :terminator => "result == false", :scope => [:kind, :name]
+
       define_model_callbacks :initialize, :find, :only => :after
       define_model_callbacks :save, :create, :update, :destroy
-      define_model_callbacks :validation, :only => [:before, :after]
     end
 
     module ClassMethods
@@ -235,6 +235,24 @@ module ActiveRecord
           ActiveSupport::Deprecation.warn("Base##{meth} has been deprecated, please use Base.#{meth} :method instead", caller[0,1])
           send(meth.to_sym, meth.to_sym)
         end
+      end
+
+      def before_validation(*args, &block)
+        options = args.last
+        if options.is_a?(Hash) && options[:on]
+          options[:if] = Array(options[:if])
+          options[:if] << "@_on_validate == :#{options[:on]}"
+        end
+        set_callback(:validation, :before, *args, &block)
+      end
+
+      def after_validation(*args, &block)
+        options = args.extract_options!
+        options[:prepend] = true
+        options[:if] = Array(options[:if])
+        options[:if] << "!halted && value != false"
+        options[:if] << "@_on_validate == :#{options[:on]}" if options[:on]
+        set_callback(:validation, :after, *(args << options), &block)
       end
     end
 

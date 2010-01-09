@@ -360,6 +360,20 @@ class TextHelperTest < ActionView::TestCase
     assert_equal %(<p>#{link10_result} Link</p>), auto_link("<p>#{link10_raw} Link</p>")
   end
 
+  def test_auto_link_other_protocols
+    silence_warnings do
+      begin
+        old_re_value = ActionView::Helpers::TextHelper::AUTO_LINK_RE
+        ActionView::Helpers::TextHelper.const_set :AUTO_LINK_RE, %r{(ftp://)[^\s<]+}
+        link_raw = 'ftp://example.com/file.txt'
+        link_result = generate_result(link_raw)
+        assert_equal %(Download #{link_result}), auto_link("Download #{link_raw}")
+      ensure
+        ActionView::Helpers::TextHelper.const_set :AUTO_LINK_RE, old_re_value
+      end
+    end
+  end
+
   def test_auto_link_already_linked
     linked1 = generate_result('Ruby On Rails', 'http://www.rubyonrails.com')
     linked2 = generate_result('www.rubyonrails.com', 'http://www.rubyonrails.com')

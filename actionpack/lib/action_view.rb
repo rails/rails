@@ -52,6 +52,8 @@ module ActionView
     autoload :TemplateHandler,   'action_view/template'
     autoload :TemplateHandlers,  'action_view/template'
   end
+
+  autoload :TestCase, 'action_view/test_case'
 end
 
 require 'action_view/erb/util'

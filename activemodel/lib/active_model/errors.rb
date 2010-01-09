@@ -105,8 +105,7 @@ module ActiveModel
         else
           attr_name = attribute.to_s.gsub('.', '_').humanize
           attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
-          options = { :default => "{{attribute}} {{message}}", :attribute => attr_name,
-                      :scope => @base.class.i18n_scope }
+          options = { :default => "{{attribute}} {{message}}", :attribute => attr_name }
 
           messages.each do |m|
             full_messages << I18n.t(:"errors.format", options.merge(:message => m))
@@ -153,7 +152,7 @@ module ActiveModel
         :model => @base.class.model_name.human,
         :attribute => @base.class.human_attribute_name(attribute),
         :value => value,
-        :scope => [@base.class.i18n_scope, :errors]
+        :scope => [:errors]
       }.merge(options)
 
       I18n.translate(key, options)

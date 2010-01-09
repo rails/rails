@@ -62,10 +62,21 @@ module ActiveRecord
     initializer "active_record.notifications" do
       require 'active_support/notifications'
 
-      ActiveSupport::Notifications.subscribe("sql") do |name, before, after, instrumenter_id, payload|
+      ActiveSupport::Notifications.subscribe("active_record.sql") do |name, before, after, instrumenter_id, payload|
         ActiveRecord::Base.connection.log_info(payload[:sql], payload[:name], (after - before) * 1000)
       end
     end
 
+    initializer "active_record.i18n_deprecation" do
+      require 'active_support/i18n'
+
+      begin
+        I18n.t(:"activerecord.errors", :raise => true)
+        warn "[DEPRECATION] \"activerecord.errors\" namespace is deprecated in I18n " << 
+          "yml files, please use just \"errors\" instead."
+      rescue Exception => e
+        # No message then.
+      end
+    end
   end
 end

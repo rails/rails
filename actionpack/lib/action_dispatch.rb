@@ -47,7 +47,6 @@ module ActionDispatch
     autoload :Rescue
     autoload :ShowExceptions
     autoload :Static
-    autoload :StringCoercion
   end
 
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'

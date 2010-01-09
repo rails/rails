@@ -1,5 +1,3 @@
-require "active_support/test_case"
-
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase #:nodoc:
     def assert_date_from_db(expected, actual, message = nil)

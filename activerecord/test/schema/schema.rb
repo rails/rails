@@ -191,6 +191,11 @@ ActiveRecord::Schema.define do
     t.string :info
   end
 
+  create_table :invoices, :force => true do |t|
+    t.integer :balance
+    t.datetime :updated_at
+  end
+
   create_table :items, :force => true do |t|
     t.column :name, :integer
   end
@@ -214,6 +219,11 @@ ActiveRecord::Schema.define do
   create_table :legacy_things, :force => true do |t|
     t.integer :tps_report_number
     t.integer :version, :null => false, :default => 0
+  end
+
+  create_table :line_items, :force => true do |t|
+    t.integer :invoice_id
+    t.integer :amount
   end
 
   create_table :lock_without_defaults, :force => true do |t|

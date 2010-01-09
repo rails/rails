@@ -9,7 +9,9 @@ module ActionController
 
   module Redirecting
     extend ActiveSupport::Concern
+
     include AbstractController::Logger
+    include ActionController::UrlFor
 
     # Redirects the browser to the target specified in +options+. This parameter can take one of three forms:
     #

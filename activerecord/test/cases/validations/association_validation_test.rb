@@ -10,33 +10,29 @@ require 'models/interest'
 class AssociationValidationTest < ActiveRecord::TestCase
   fixtures :topics, :owners
 
-  repair_validations(Topic, Reply)
+  repair_validations(Topic, Reply, Owner)
 
   def test_validates_size_of_association
-    repair_validations(Owner) do
-      assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
-      o = Owner.new('name' => 'nopets')
-      assert !o.save
-      assert o.errors[:pets].any?
-      pet = o.pets.build('name' => 'apet')
-      assert o.valid?
-    end
+    assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
+    o = Owner.new('name' => 'nopets')
+    assert !o.save
+    assert o.errors[:pets].any?
+    pet = o.pets.build('name' => 'apet')
+    assert o.valid?
   end
 
   def test_validates_size_of_association_using_within
-    repair_validations(Owner) do
-      assert_nothing_raised { Owner.validates_size_of :pets, :within => 1..2 }
-      o = Owner.new('name' => 'nopets')
-      assert !o.save
-      assert o.errors[:pets].any?
+    assert_nothing_raised { Owner.validates_size_of :pets, :within => 1..2 }
+    o = Owner.new('name' => 'nopets')
+    assert !o.save
+    assert o.errors[:pets].any?
 
-      pet = o.pets.build('name' => 'apet')
-      assert o.valid?
+    pet = o.pets.build('name' => 'apet')
+    assert o.valid?
 
-      2.times { o.pets.build('name' => 'apet') }
-      assert !o.save
-      assert o.errors[:pets].any?
-    end
+    2.times { o.pets.build('name' => 'apet') }
+    assert !o.save
+    assert o.errors[:pets].any?
   end
 
   def test_validates_associated_many
@@ -55,51 +51,43 @@ class AssociationValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_associated_one
-    repair_validations(Reply) do
-      Reply.validates_associated( :topic )
-      Topic.validates_presence_of( :content )
-      r = Reply.new("title" => "A reply", "content" => "with content!")
-      r.topic = Topic.create("title" => "uhohuhoh")
-      assert !r.valid?
-      assert r.errors[:topic].any?
-      r.topic.content = "non-empty"
-      assert r.valid?
-    end
+    Reply.validates :topic, :associated => true
+    Topic.validates_presence_of( :content )
+    r = Reply.new("title" => "A reply", "content" => "with content!")
+    r.topic = Topic.create("title" => "uhohuhoh")
+    assert !r.valid?
+    assert r.errors[:topic].any?
+    r.topic.content = "non-empty"
+    assert r.valid?
   end
 
   def test_validates_associated_with_custom_message_using_quotes
-    repair_validations(Reply) do
-      Reply.validates_associated :topic, :message=> "This string contains 'single' and \"double\" quotes"
-      Topic.validates_presence_of :content
-      r = Reply.create("title" => "A reply", "content" => "with content!")
-      r.topic = Topic.create("title" => "uhohuhoh")
-      assert !r.valid?
-      assert_equal ["This string contains 'single' and \"double\" quotes"], r.errors[:topic]
-    end
+    Reply.validates_associated :topic, :message=> "This string contains 'single' and \"double\" quotes"
+    Topic.validates_presence_of :content
+    r = Reply.create("title" => "A reply", "content" => "with content!")
+    r.topic = Topic.create("title" => "uhohuhoh")
+    assert !r.valid?
+    assert_equal ["This string contains 'single' and \"double\" quotes"], r.errors[:topic]
   end
 
   def test_validates_associated_missing
-    repair_validations(Reply) do
-      Reply.validates_presence_of(:topic)
-      r = Reply.create("title" => "A reply", "content" => "with content!")
-      assert !r.valid?
-      assert r.errors[:topic].any?
+    Reply.validates_presence_of(:topic)
+    r = Reply.create("title" => "A reply", "content" => "with content!")
+    assert !r.valid?
+    assert r.errors[:topic].any?
 
-      r.topic = Topic.find :first
-      assert r.valid?
-    end
+    r.topic = Topic.find :first
+    assert r.valid?
   end
 
   def test_validates_size_of_association_utf8
-    repair_validations(Owner) do
-      with_kcode('UTF8') do
-        assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
-        o = Owner.new('name' => 'あいうえおかきくけこ')
-        assert !o.save
-        assert o.errors[:pets].any?
-        o.pets.build('name' => 'あいうえおかきくけこ')
-        assert o.valid?
-      end
+    with_kcode('UTF8') do
+      assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
+      o = Owner.new('name' => 'あいうえおかきくけこ')
+      assert !o.save
+      assert o.errors[:pets].any?
+      o.pets.build('name' => 'あいうえおかきくけこ')
+      assert o.valid?
     end
   end
 

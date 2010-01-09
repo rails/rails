@@ -200,13 +200,22 @@ module ActionDispatch
           path      = args.shift || block
           path_proc = path.is_a?(Proc) ? path : proc { |params| path % params }
           status    = options[:status] || 301
+          body      = 'Moved Permanently'
 
           lambda do |env|
-            req    = Rack::Request.new(env)
-            params = path_proc.call(env["action_dispatch.request.path_parameters"])
-            url    = req.scheme + '://' + req.host + params
+            req = Request.new(env)
 
-            [ status, {'Location' => url, 'Content-Type' => 'text/html'}, ['Moved Permanently'] ]
+            uri = URI.parse(path_proc.call(req.params.symbolize_keys))
+            uri.scheme ||= req.scheme
+            uri.host   ||= req.host
+            uri.port   ||= req.port unless req.port == 80
+
+            headers = {
+              'Location' => uri.to_s,
+              'Content-Type' => 'text/html',
+              'Content-Length' => body.length.to_s
+            }
+            [ status, headers, [body] ]
           end
         end
 
@@ -283,7 +292,7 @@ module ActionDispatch
         end
 
         def namespace(path)
-          scope("/#{path}") { yield }
+          scope("/#{path}", :name_prefix => path.to_s) { yield }
         end
 
         def constraints(constraints = {})

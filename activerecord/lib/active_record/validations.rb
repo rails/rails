@@ -11,7 +11,7 @@ module ActiveRecord
     def initialize(record)
       @record = record
       errors = @record.errors.full_messages.join(I18n.t('support.array.words_connector', :default => ', '))
-      super(I18n.t('activerecord.errors.messages.record_invalid', :errors => errors))
+      super(I18n.t('errors.messages.record_invalid', :errors => errors))
     end
   end
 

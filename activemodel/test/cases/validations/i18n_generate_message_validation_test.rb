@@ -7,42 +7,6 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
   def setup
     Person.reset_callbacks(:validate)
     @person = Person.new
-
-    @old_load_path, @old_backend = I18n.load_path, I18n.backend
-    I18n.load_path.clear
-    I18n.backend = I18n::Backend::Simple.new
-
-    I18n.backend.store_translations :'en', {
-      :activemodel => {
-        :errors => {
-          :messages => {
-            :inclusion => "is not included in the list",
-            :exclusion => "is reserved",
-            :invalid => "is invalid",
-            :confirmation => "doesn't match confirmation",
-            :accepted  => "must be accepted",
-            :empty => "can't be empty",
-            :blank => "can't be blank",
-            :too_long => "is too long (maximum is {{count}} characters)",
-            :too_short => "is too short (minimum is {{count}} characters)",
-            :wrong_length => "is the wrong length (should be {{count}} characters)",
-            :not_a_number => "is not a number",
-            :greater_than => "must be greater than {{count}}",
-            :greater_than_or_equal_to => "must be greater than or equal to {{count}}",
-            :equal_to => "must be equal to {{count}}",
-            :less_than => "must be less than {{count}}",
-            :less_than_or_equal_to => "must be less than or equal to {{count}}",
-            :odd => "must be odd",
-            :even => "must be even"
-          }
-        }
-      }
-    }
-  end
-
-  def teardown
-    I18n.load_path.replace @old_load_path
-    I18n.backend = @old_backend
   end
 
   # validates_inclusion_of: generate_message(attr_name, :inclusion, :default => configuration[:message], :value => value)

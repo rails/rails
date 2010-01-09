@@ -6,7 +6,7 @@ module ActiveRecord
 
     attr_reader :relation, :klass
     attr_writer :readonly, :table
-    attr_accessor :preload_associations, :eager_load_associations, :includes_associations
+    attr_accessor :preload_associations, :eager_load_associations, :includes_associations, :create_with_attributes
 
     def initialize(klass, relation)
       @klass, @relation = klass, relation
@@ -124,7 +124,7 @@ module ActiveRecord
     end
 
     def reset
-      @first = @last = @create_scope = @to_sql = @order_clause = nil
+      @first = @last = @to_sql = @order_clause = @scope_for_create = nil
       @records = []
       self
     end
@@ -163,13 +163,15 @@ module ActiveRecord
     end
 
     def with_create_scope
-      @klass.send(:with_scope, :create => create_scope) { yield }
+      @klass.send(:with_scope, :create => scope_for_create) { yield }
     end
 
-    def create_scope
-      @create_scope ||= wheres.inject({}) do |hash, where|
-        hash[where.operand1.name] = where.operand2.value if where.is_a?(Arel::Predicates::Equality)
-        hash
+    def scope_for_create
+      @scope_for_create ||= begin
+        @create_with_attributes || wheres.inject({}) do |hash, where|
+          hash[where.operand1.name] = where.operand2.value if where.is_a?(Arel::Predicates::Equality)
+          hash
+        end
       end
     end
 

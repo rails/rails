@@ -46,7 +46,7 @@ namespace :db do
             $stderr.puts "Couldn't create database for #{config.inspect}"
           end
         end
-        return # Skip the else clause of begin/rescue    
+        return # Skip the else clause of begin/rescue
       else
         ActiveRecord::Base.establish_connection(config)
         ActiveRecord::Base.connection
@@ -246,6 +246,7 @@ namespace :db do
     desc "Load fixtures into the current environment's database.  Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task :load => :environment do
       require 'active_record/fixtures'
+
       ActiveRecord::Base.establish_connection(Rails.env)
       base_dir = ENV['FIXTURES_PATH'] ? File.join(Rails.root, ENV['FIXTURES_PATH']) : File.join(Rails.root, 'test', 'fixtures')
       fixtures_dir = ENV['FIXTURES_DIR'] ? File.join(base_dir, ENV['FIXTURES_DIR']) : base_dir
@@ -257,7 +258,7 @@ namespace :db do
 
     desc "Search for a fixture given a LABEL or ID. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task :identify => :environment do
-      require "active_record/fixtures"
+      require 'active_record/fixtures'
 
       label, id = ENV["LABEL"], ENV["ID"]
       raise "LABEL or ID required" if label.blank? && id.blank?
@@ -295,7 +296,7 @@ namespace :db do
       if File.exists?(file)
         load(file)
       else
-        abort %{#{file} doesn't exist yet. Run "rake db:migrate" to create it then try again. If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to prevent active_record from loading: config.frameworks -= [ :active_record ]}
+        abort %{#{file} doesn't exist yet. Run "rake db:migrate" to create it then try again. If you do not intend to use a database, you should instead alter #{Rails.root}/config/boot.rb to limit the frameworks that will be loaded}
       end
     end
   end

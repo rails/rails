@@ -4,9 +4,22 @@ module Rails
   # Temporarily separate the plugin configuration class from the main
   # configuration class while this bit is being cleaned up.
   class Railtie::Configuration
-
     def self.default
       @default ||= new
+    end
+
+    def self.default_middleware_stack
+      ActionDispatch::MiddlewareStack.new.tap do |middleware|
+        middleware.use('ActionDispatch::Static', lambda { Rails.public_path }, :if => lambda { Rails.application.config.serve_static_assets })
+        middleware.use('::Rack::Lock', :if => lambda { !ActionController::Base.allow_concurrency })
+        middleware.use('::Rack::Runtime')
+        middleware.use('ActionDispatch::ShowExceptions', lambda { ActionController::Base.consider_all_requests_local })
+        middleware.use('ActionDispatch::Callbacks', lambda { ActionController::Dispatcher.prepare_each_request })
+        middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
+        middleware.use('ActionDispatch::ParamsParser')
+        middleware.use('::Rack::MethodOverride')
+        middleware.use('::Rack::Head')
+      end
     end
 
     attr_reader :middleware
@@ -17,7 +30,7 @@ module Rails
         @middleware = base.middleware.dup
       else
         @options    = Hash.new { |h,k| h[k] = ActiveSupport::OrderedOptions.new }
-        @middleware = ActionDispatch::MiddlewareStack.new
+        @middleware = self.class.default_middleware_stack
       end
     end
 
@@ -120,8 +133,8 @@ module Rails
     end
 
     def frameworks(*args)
-      raise "config.frameworks in no longer supported. See the generated" \
-            "config/boot.rb for steps on how to limit the frameworks that" \
+      raise "config.frameworks in no longer supported. See the generated " \
+            "config/boot.rb for steps on how to limit the frameworks that " \
             "will be loaded"
     end
     alias frameworks= frameworks
@@ -229,6 +242,10 @@ module Rails
 
     def log_level
       @log_level ||= RAILS_ENV == 'production' ? :info : :debug
+    end
+
+    def time_zone
+      @time_zone ||= "UTC"
     end
 
     def i18n

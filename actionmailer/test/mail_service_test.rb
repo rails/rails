@@ -1110,10 +1110,15 @@ EOF
     assert_equal "another@somewhere.test", mail['return-path'].to_s
   end
 
+  def test_return_path_with_create
+    mail = TestMailer.create_return_path
+    assert_equal "another@somewhere.test", mail.return_path
+  end
+
   def test_return_path_with_deliver
     ActionMailer::Base.delivery_method = :smtp
     TestMailer.deliver_return_path
-    assert_match %r{^Return-Path: another@somewhere.test}, MockSMTP.deliveries[0][0]
+    assert_match %r{^Return-Path: <another@somewhere.test>}, MockSMTP.deliveries[0][0]
     assert_equal "another@somewhere.test", MockSMTP.deliveries[0][1].to_s
   end
 

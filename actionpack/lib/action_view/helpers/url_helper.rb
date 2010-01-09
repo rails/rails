@@ -11,6 +11,11 @@ module ActionView
     module UrlHelper
       include JavaScriptHelper
 
+      # Need to map default url options to controller one.
+      def default_url_options(*args) #:nodoc:
+        @controller.send(:default_url_options, *args)
+      end
+
       # Returns the URL for the set of +options+ provided. This takes the
       # same options as +url_for+ in Action Controller (see the
       # documentation for <tt>ActionController::Base#url_for</tt>). Note that by default
@@ -461,10 +466,10 @@ module ActionView
 
         string = ''
         extras = ''
-        extras << "cc=#{CGI.escape(cc).gsub("+", "%20")}&" unless cc.nil?
-        extras << "bcc=#{CGI.escape(bcc).gsub("+", "%20")}&" unless bcc.nil?
-        extras << "body=#{CGI.escape(body).gsub("+", "%20")}&" unless body.nil?
-        extras << "subject=#{CGI.escape(subject).gsub("+", "%20")}&" unless subject.nil?
+        extras << "cc=#{Rack::Utils.escape(cc).gsub("+", "%20")}&" unless cc.nil?
+        extras << "bcc=#{Rack::Utils.escape(bcc).gsub("+", "%20")}&" unless bcc.nil?
+        extras << "body=#{Rack::Utils.escape(body).gsub("+", "%20")}&" unless body.nil?
+        extras << "subject=#{Rack::Utils.escape(subject).gsub("+", "%20")}&" unless subject.nil?
         extras = "?" << extras.gsub!(/&?$/,"") unless extras.empty?
 
         email_address = email_address.to_s

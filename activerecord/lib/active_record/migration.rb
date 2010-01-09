@@ -339,6 +339,10 @@ module ActiveRecord
         self.verbose = save
       end
 
+      def connection
+        ActiveRecord::Base.connection
+      end
+
       def method_missing(method, *arguments, &block)
         arg_list = arguments.map(&:inspect) * ', '
 
@@ -346,7 +350,7 @@ module ActiveRecord
           unless arguments.empty? || method == :execute
             arguments[0] = Migrator.proper_table_name(arguments.first)
           end
-          Base.connection.send(method, *arguments, &block)
+          connection.send(method, *arguments, &block)
         end
       end
     end
@@ -401,6 +405,10 @@ module ActiveRecord
 
       def run(direction, migrations_path, target_version)
         self.new(direction, migrations_path, target_version).run
+      end
+
+      def migrations_path
+        'db/migrate'
       end
 
       def schema_migrations_table_name

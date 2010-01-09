@@ -6,6 +6,7 @@ module ActiveRecord
       relation.preload_associations = @preload_associations
       relation.eager_load_associations = @eager_load_associations
       relation.includes_associations = @includes_associations
+      relation.create_with_attributes = @create_with_attributes
       relation.table = table
       relation
     end
@@ -32,6 +33,14 @@ module ActiveRecord
       merged_order = relation_order.present? ? relation_order : order_clause
       merged_relation = merged_relation.order(merged_order)
 
+      merged_relation.create_with_attributes = @create_with_attributes
+
+      if @create_with_attributes && r.create_with_attributes
+        merged_relation.create_with_attributes = @create_with_attributes.merge(r.create_with_attributes)
+      else
+        merged_relation.create_with_attributes = r.create_with_attributes || @create_with_attributes
+      end
+
       merged_wheres = @relation.wheres
 
       r.wheres.each do |w|
@@ -56,6 +65,7 @@ module ActiveRecord
       end
 
       result.readonly = self.readonly unless skips.include?(:readonly)
+      result.create_with_attributes = @create_with_attributes unless skips.include?(:create_with)
 
       result = result.joins(@relation.joins(@relation)) unless skips.include?(:joins)
       result = result.group(@relation.groupings) unless skips.include?(:group)
