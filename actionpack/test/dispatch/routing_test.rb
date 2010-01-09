@@ -432,15 +432,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_account_namespace
     with_test_routes do
       get '/account/subscription'
-      assert_equal 'subscriptions#show', @response.body
+      assert_equal 'account/subscriptions#show', @response.body
       assert_equal '/account/subscription', account_subscription_path
 
       get '/account/credit'
-      assert_equal 'credits#show', @response.body
+      assert_equal 'account/credits#show', @response.body
       assert_equal '/account/credit', account_credit_path
 
       get '/account/credit_card'
-      assert_equal 'credit_cards#show', @response.body
+      assert_equal 'account/credit_cards#show', @response.body
       assert_equal '/account/credit_card', account_credit_card_path
     end
   end
