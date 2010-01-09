@@ -25,7 +25,7 @@ module Rails
         opt.parse!(ARGV)
       end
 
-      if env = ARGV.first
+      if env = ARGV.pop
         ENV['RAILS_ENV'] = ENVIRONMENTS.find { |e| e.index(env) } || env
       end
 
