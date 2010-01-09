@@ -22,15 +22,17 @@ module Rails
       end
     end
 
-    attr_reader :middleware
+    attr_reader :middleware, :generator_paths
 
     def initialize(base = nil)
       if base
-        @options    = base.options.dup
-        @middleware = base.middleware.dup
+        @options         = base.options.dup
+        @middleware      = base.middleware.dup
+        @generator_paths = base.generator_paths.dup
       else
-        @options    = Hash.new { |h,k| h[k] = ActiveSupport::OrderedOptions.new }
-        @middleware = self.class.default_middleware_stack
+        @options         = Hash.new { |h,k| h[k] = ActiveSupport::OrderedOptions.new }
+        @middleware      = self.class.default_middleware_stack
+        @generator_paths = []
       end
     end
 

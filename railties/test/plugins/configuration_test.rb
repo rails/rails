@@ -24,6 +24,12 @@ module PluginsTest
       assert_equal "hello", AppTemplate::Application.config.foo.greetings
     end
 
+    test "plugins can provide generators" do
+      class Foo < Rails::Railtie ; config.generator_paths << "/foo" ; end
+      require "#{app_path}/config/application"
+      assert_eqaul ["/foo"], AppTemplate::Application.config.generator_paths
+    end
+
     test "plugin config merges are deep" do
       class Foo < Rails::Railtie ; config.foo.greetings = 'hello' ; end
       class MyApp < Rails::Application
