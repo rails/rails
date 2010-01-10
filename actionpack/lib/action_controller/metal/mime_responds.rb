@@ -215,7 +215,10 @@ module ActionController #:nodoc:
     # a proc to it.
     #
     def respond_with(*resources, &block)
-      if response = retrieve_response_from_mimes([], &block)
+      raise "In order to use respond_with, first you need to declare the formats your " <<
+            "controller responds to in the class level" if mimes_for_respond_to.empty?
+
+      if response = retrieve_response_from_mimes(&block)
         options = resources.extract_options!
         options.merge!(:default_response => response)
         (options.delete(:responder) || responder).call(self, resources, options)
@@ -246,9 +249,9 @@ module ActionController #:nodoc:
     # Collects mimes and return the response for the negotiated format. Returns
     # nil if :not_acceptable was sent to the client.
     #
-    def retrieve_response_from_mimes(mimes, &block)
+    def retrieve_response_from_mimes(mimes=nil, &block)
       collector = Collector.new { default_render }
-      mimes = collect_mimes_from_class_level if mimes.empty?
+      mimes ||= collect_mimes_from_class_level
       mimes.each { |mime| collector.send(mime) }
       block.call(collector) if block_given?
 
