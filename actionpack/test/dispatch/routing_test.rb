@@ -99,6 +99,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       namespace :account do
         resource :subscription, :credit, :credit_card
+
+        namespace :admin do
+          resource :subscription
+        end
       end
 
       controller :articles do
@@ -442,6 +446,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/account/credit_card'
       assert_equal 'account/credit_cards#show', @response.body
       assert_equal '/account/credit_card', account_credit_card_path
+    end
+  end
+
+  def test_nested_namespace
+    with_test_routes do
+      get '/account/admin/subscription'
+      assert_equal 'account/admin/subscriptions#show', @response.body
+      assert_equal '/account/admin/subscription', account_admin_subscription_path
     end
   end
 
