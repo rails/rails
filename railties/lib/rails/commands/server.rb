@@ -38,14 +38,13 @@ module Rails
     end
 
     def start
+      ENV["RAILS_ENV"] = options[:environment]
+
       puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-      puts "=> Rails #{Rails.version} application starting on http://#{options[:Host]}:#{options[:Port]}"
+      puts "=> Rails #{Rails.version} application starting in #{Rails.env} on http://#{options[:Host]}:#{options[:Port]}"
       puts "=> Call with -d to detach" unless options[:daemonize]
       trap(:INT) { exit }
       puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
-
-      ENV["RAILS_ENV"] = options[:environment]
-      RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
 
       super
     ensure

@@ -129,7 +129,7 @@ module Rails
         paths.tmp.cache           "tmp/cache"
         paths.config              "config"
         paths.config.locales      "config/locales"
-        paths.config.environments "config/environments", :glob => "#{RAILS_ENV}.rb"
+        paths.config.environments "config/environments", :glob => "#{Rails.env}.rb"
         paths
       end
     end
@@ -212,7 +212,7 @@ module Rails
         paths = []
 
         # Add the old mock paths only if the directories exists
-        paths.concat(Dir["#{root}/test/mocks/#{RAILS_ENV}"]) if File.exists?("#{root}/test/mocks/#{RAILS_ENV}")
+        paths.concat(Dir["#{root}/test/mocks/#{Rails.env}"]) if File.exists?("#{root}/test/mocks/#{Rails.env}")
 
         # Add the app's controller directory
         paths.concat(Dir["#{root}/app/controllers/"])
@@ -235,15 +235,15 @@ module Rails
 
     def builtin_directories
       # Include builtins only in the development environment.
-      (RAILS_ENV == 'development') ? Dir["#{RAILTIES_PATH}/builtin/*/"] : []
+      Rails.env.development? ? Dir["#{RAILTIES_PATH}/builtin/*/"] : []
     end
 
     def log_path
-      @log_path ||= File.join(root, 'log', "#{RAILS_ENV}.log")
+      @log_path ||= File.join(root, 'log', "#{Rails.env}.log")
     end
 
     def log_level
-      @log_level ||= RAILS_ENV == 'production' ? :info : :debug
+      @log_level ||= Rails.env.production? ? :info : :debug
     end
 
     def time_zone
@@ -265,7 +265,7 @@ module Rails
     end
 
     def environment_path
-      "#{root}/config/environments/#{RAILS_ENV}.rb"
+      "#{root}/config/environments/#{Rails.env}.rb"
     end
 
     # Holds generators configuration:

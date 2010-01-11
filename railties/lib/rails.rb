@@ -29,8 +29,6 @@ else
   Encoding.default_external = Encoding::UTF_8
 end
 
-RAILS_ENV = (ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development").dup unless defined?(RAILS_ENV)
-
 module Rails
   autoload :Bootstrap, 'rails/bootstrap'
 
@@ -86,7 +84,7 @@ module Rails
     end
 
     def env
-      @_env ||= ActiveSupport::StringInquirer.new(RAILS_ENV)
+      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
     end
 
     def cache

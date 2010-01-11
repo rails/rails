@@ -38,6 +38,11 @@ module Rails
       config.load_once_paths.freeze
     end
 
+    # TODO: Wrap in deprecation warning, everyone should be using Rails.env now
+    initializer :set_rails_env do
+      silence_warnings { Object.const_set "RAILS_ENV", Rails.env }
+    end
+
     # Create tmp directories
     initializer :ensure_tmp_directories_exist do
       %w(cache pids sessions sockets).each do |dir_to_make|
@@ -71,7 +76,7 @@ module Rails
         begin
           logger = ActiveSupport::BufferedLogger.new(config.log_path)
           logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
-          if RAILS_ENV == "production"
+          if Rails.env.production?
             logger.auto_flushing = false
           end
         rescue StandardError => e

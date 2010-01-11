@@ -1,6 +1,6 @@
 # Make double-sure the RAILS_ENV is set to test,
 # so fixtures are loaded to the right database
-silence_warnings { RAILS_ENV = "test" }
+exit("Abort testing: Your Rails environment is not running in test mode!") unless Rails.env.test?
 
 require 'test/unit'
 require 'active_support/core_ext/kernel/requires'
