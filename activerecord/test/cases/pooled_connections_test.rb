@@ -61,12 +61,14 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     checkout_checkin_connections 1, 2
     assert_equal 2, @connection_count
     assert_equal 0, @timed_out
+    assert_equal 1, ActiveRecord::Base.connection_pool.connections.size
   end
 
   def test_pooled_connection_checkin_two
     checkout_checkin_connections 2, 3
     assert_equal 3, @connection_count
     assert_equal 0, @timed_out
+    assert_equal 1, ActiveRecord::Base.connection_pool.connections.size
   end
 
   def test_pooled_connection_checkout_existing_first
