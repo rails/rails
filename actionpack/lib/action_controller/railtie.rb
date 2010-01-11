@@ -37,11 +37,33 @@ module ActionController
       ActionController::Base.view_paths = view_path if ActionController::Base.view_paths.blank?
     end
 
-    initializer "action_controller.initialize_metal" do |app|
-      Rails::Rack::Metal.requested_metals = app.config.metals
+    class MetalMiddlewareBuilder
+      def initialize(metals)
+        @metals = metals
+      end
 
-      app.config.middleware.insert_before(:"ActionDispatch::ParamsParser",
-        Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
+      def new(app)
+        ActionDispatch::Cascade.new(@metals, app)
+      end
+
+      def name
+        ActionDispatch::Cascade.name
+      end
+      alias_method :to_s, :name
+    end
+
+    initializer "action_controller.initialize_metal" do |app|
+      metal_root = "#{Rails.root}/app/metal"
+      load_list = app.config.metals || Dir["#{metal_root}/**/*.rb"]
+
+      metals = load_list.map { |metal|
+        metal = File.basename(metal.gsub("#{metal_root}/", ''), '.rb')
+        require_dependency metal
+        metal.camelize.constantize
+      }.compact
+
+      middleware = MetalMiddlewareBuilder.new(metals)
+      app.config.middleware.insert_before(:"ActionDispatch::ParamsParser", middleware)
     end
 
     # # Prepare dispatcher callbacks and run 'prepare' callbacks

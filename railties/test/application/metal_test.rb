@@ -37,7 +37,7 @@ module ApplicationTests
       app_file 'app/metal/metal_a.rb', <<-RUBY
         class MetalA
           def self.call(env)
-            [404, { "Content-Type" => "text/html"}, ["Metal A"]]
+            [404, { "Content-Type" => "text/html", "X-Cascade" => "pass" }, ["Metal A"]]
           end
         end
       RUBY
@@ -59,7 +59,7 @@ module ApplicationTests
       app_file 'app/metal/foo_metal.rb', <<-RUBY
         class FooMetal
           def self.call(env)
-            [404, { "Content-Type" => "text/html"}, ["Not Found"]]
+            [404, { "Content-Type" => "text/html", "X-Cascade" => "pass" }, ["Not Found"]]
           end
         end
       RUBY
