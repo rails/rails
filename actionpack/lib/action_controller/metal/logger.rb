@@ -56,7 +56,7 @@ module ActionController
           controller   = payload[:controller]
           request      = controller.request
 
-          logger.info "\n\nProcessed #{controller.class.name}##{payload[:action]} " \
+          logger.info "\nProcessed #{controller.class.name}##{payload[:action]} " \
             "to #{request.formats} (for #{request.remote_ip} at #{before.to_s(:db)}) " \
             "[#{request.method.to_s.upcase}]"
 
@@ -64,14 +64,13 @@ module ActionController
 
           message = "Completed in %.0fms" % duration
           message << " | #{controller.response.status}"
-          message << " [#{request.request_uri rescue "unknown"}]"
+          message << " [#{request.request_uri rescue "unknown"}]\n\n"
 
           logger.info(message)
         elsif name == "action_view.render_template"
-          # TODO Make render_template logging work if you are using just ActionView
           duration = (after - before) * 1000
-          message = "Rendered #{payload[:identifier]}"
-          message << " within #{payload[:layout]}" if payload[:layout]
+          message = "Rendered #{from_rails_root(payload[:identifier])}"
+          message << " within #{from_rails_root(payload[:layout])}" if payload[:layout]
           message << (" (%.1fms)" % duration)
           logger.info(message)
         end
@@ -84,6 +83,10 @@ module ActionController
       def log_process_action(controller) #:nodoc:
         view_runtime = controller.send :view_runtime
         logger.info("  View runtime: %.1fms" % view_runtime.to_f) if view_runtime
+      end
+
+      def from_rails_root(string)
+        defined?(Rails.root) ? string.sub("#{Rails.root}/app/views/", "") : string
       end
     end
   end
