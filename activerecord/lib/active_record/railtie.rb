@@ -63,7 +63,7 @@ module ActiveRecord
       require 'active_support/notifications'
 
       ActiveSupport::Notifications.subscribe("active_record.sql") do |name, before, after, instrumenter_id, payload|
-        ActiveRecord::Base.connection.log_info(payload[:sql], payload[:name], (after - before) * 1000)
+        payload[:connection].log_info(payload[:sql], payload[:name], (after - before) * 1000)
       end
     end
 

@@ -193,15 +193,17 @@ module ActiveRecord
 
       def log_info(sql, name, ms)
         if @logger && @logger.debug?
-          name = '%s (%.1fms)' % [name || 'SQL', ms]
+          name = '%s (%.1fms)' % [name, ms]
           @logger.debug(format_log_entry(name, sql.squeeze(' ')))
         end
       end
 
       protected
         def log(sql, name)
+          name ||= "SQL"
           result = nil
-          ActiveSupport::Notifications.instrument("active_record.sql", :sql => sql, :name => name) do
+          ActiveSupport::Notifications.instrument("active_record.sql",
+            :sql => sql, :name => name, :connection => self) do
             @runtime += Benchmark.ms { result = yield }
           end
           result
