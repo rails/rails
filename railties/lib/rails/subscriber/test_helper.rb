@@ -1,5 +1,5 @@
-require 'rails'
 require 'rails/subscriber'
+require 'active_support/notifications'
 
 module Rails
   class Subscriber
@@ -100,6 +100,11 @@ module Rails
 
       def queue
         ActiveSupport::Notifications::Fanout.new(false)
+      end
+
+      def wait
+        sleep(0.01)
+        super
       end
     end
   end

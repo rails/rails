@@ -66,18 +66,6 @@ class FilterParamTest < ActionController::TestCase
     assert_raise(NoMethodError) { @controller.filter_parameters([{'password' => '[FILTERED]'}]) }
   end
 
-  def test_filter_parameters_inside_logs
-    FilterParamController.filter_parameter_logging(:lifo, :amount)
-
-    get :payment, :lifo => 'Pratik', :amount => '420', :step => '1'
-    ActiveSupport::Notifications.notifier.wait
-
-    filtered_params_logs = logs.detect {|l| l =~ /\AParameters/ }
-    assert filtered_params_logs.index('"amount"=>"[FILTERED]"')
-    assert filtered_params_logs.index('"lifo"=>"[FILTERED]"')
-    assert filtered_params_logs.index('"step"=>"1"')
-  end
-
   private
 
   def set_logger

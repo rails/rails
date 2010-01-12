@@ -629,20 +629,6 @@ class FragmentCachingTest < ActionController::TestCase
     assert_equal 'generated till now -> fragment content', buffer
   end
 
-  def test_fragment_for_logging
-    # Wait pending notifications to be published
-    ActiveSupport::Notifications.notifier.wait
-    @controller.logger = MockLogger.new
-
-    fragment_computed = false
-    @controller.fragment_for('buffer', 'expensive') { fragment_computed = true }
-    ActiveSupport::Notifications.notifier.wait
-
-    assert fragment_computed
-    assert_match /Exist fragment\? "views\/expensive"/, @controller.logger.logged[0]
-    assert_match /Write fragment "views\/expensive"/, @controller.logger.logged[1]
-  end
-
 end
 
 class FunctionalCachingController < ActionController::Base

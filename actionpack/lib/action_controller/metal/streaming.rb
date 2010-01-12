@@ -88,13 +88,11 @@ module ActionController #:nodoc:
         @performed_render = false
 
         if options[:x_sendfile]
-          logger.info "Sending #{X_SENDFILE_HEADER} header #{path}" if logger
           head options[:status], X_SENDFILE_HEADER => path
         else
           if options[:stream]
             # TODO : Make render :text => proc {} work with the new base
             render :status => options[:status], :text => Proc.new { |response, output|
-              logger.info "Streaming file #{path}" unless logger.nil?
               len = options[:buffer_size] || 4096
               File.open(path, 'rb') do |file|
                 while buf = file.read(len)
@@ -103,7 +101,6 @@ module ActionController #:nodoc:
               end
             }
           else
-            logger.info "Sending file #{path}" unless logger.nil?
             File.open(path, 'rb') { |file| render :status => options[:status], :text => file.read }
           end
         end
@@ -141,7 +138,6 @@ module ActionController #:nodoc:
       # data to the browser, then use <tt>render :text => proc { ... }</tt>
       # instead. See ActionController::Base#render for more information.
       def send_data(data, options = {}) #:doc:
-        logger.info "Sending data #{options[:filename]}" if logger
         send_file_headers! options.merge(:length => data.bytesize)
         render :status => options[:status], :text => data
       end

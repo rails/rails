@@ -57,8 +57,6 @@ module ActionController
       self.status        = _extract_redirect_to_status(options, response_status)
       self.location      = _compute_redirect_to_location(options)
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.h(location)}\">redirected</a>.</body></html>"
-
-      logger.info("Redirected to #{location}") if logger && logger.info?
     end
 
     private

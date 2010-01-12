@@ -48,14 +48,6 @@ ORIGINAL_LOCALES = I18n.available_locales.map {|locale| locale.to_s }.sort
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 FIXTURES = Pathname.new(FIXTURE_LOAD_PATH)
 
-# Turn on notifications
-require 'active_support/notifications'
-Thread.abort_on_exception = true
-
-ActiveSupport::Notifications.subscribe do |*args|
-  ActionController::Base.log_event(*args) if ActionController::Base.logger
-end
-
 module SetupOnce
   extend ActiveSupport::Concern
 
@@ -90,24 +82,6 @@ class ActiveSupport::TestCase
     ActionController::Routing::Routes.draw do |map|
       match ':controller(/:action(/:id))'
     end
-  end
-end
-
-class MockLogger
-  attr_accessor :level
-
-  def initialize
-    @level = Logger::DEBUG
-    @logged = []
-  end
-
-  def method_missing(method, *args, &blk)
-    @logged << args.first
-    @logged << blk.call if block_given?
-  end
-
-  def logged
-    @logged.compact.map { |l| l.to_s.strip }
   end
 end
 

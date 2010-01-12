@@ -5,6 +5,9 @@ module ActionController
   class Railtie < Rails::Railtie
     plugin_name :action_controller
 
+    require "action_controller/railties/subscriber"
+    subscriber ActionController::Railties::Subscriber.new
+
     initializer "action_controller.set_configs" do |app|
       app.config.action_controller.each do |k,v|
         ActionController::Base.send "#{k}=", v
@@ -83,14 +86,6 @@ module ActionController
           end
         end
         ActionDispatch::Callbacks.before_dispatch { |callbacks| reload_routes.call }
-      end
-    end
-
-    initializer "action_controller.notifications" do |app|
-      require 'active_support/notifications'
-
-      ActiveSupport::Notifications.subscribe do |*args|
-        ActionController::Base.log_event(*args) if ActionController::Base.logger
       end
     end
 

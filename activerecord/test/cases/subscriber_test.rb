@@ -6,7 +6,7 @@ require "active_record/railties/subscriber"
 module SubscriberTest
   Rails::Subscriber.add(:active_record, ActiveRecord::Railties::Subscriber.new)
 
-  def super
+  def setup
     @old_logger = ActiveRecord::Base.logger
     super
   end
@@ -17,7 +17,7 @@ module SubscriberTest
   end
 
   def set_logger(logger)
-    ActiveRecord::Base.logger = @logger
+    ActiveRecord::Base.logger = logger
   end
 
   def test_basic_query_logging
