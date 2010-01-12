@@ -138,14 +138,3 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection_pool.with_connection { Project.create! :name => name }
   end
 end unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
-
-class AllowConcurrencyDeprecatedTest < ActiveRecord::TestCase
-  def test_allow_concurrency_is_deprecated
-    assert_deprecated('ActiveRecord::Base.allow_concurrency') do
-      ActiveRecord::Base.allow_concurrency
-    end
-    assert_deprecated('ActiveRecord::Base.allow_concurrency=') do
-      ActiveRecord::Base.allow_concurrency = true
-    end
-  end
-end

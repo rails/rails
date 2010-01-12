@@ -75,7 +75,8 @@ module ActiveRecord
         def cache_sql(sql)
           result =
             if @query_cache.has_key?(sql)
-              log_info(sql, "CACHE", 0.0)
+              ActiveSupport::Notifications.instrument("active_record.sql", 
+                :sql => sql, :name => "CACHE", :connection_id => self.object_id)
               @query_cache[sql]
             else
               @query_cache[sql] = yield
