@@ -15,6 +15,7 @@ require 'rails/rack'
 require 'rails/paths'
 require 'rails/configuration'
 require 'rails/deprecation'
+require 'rails/subscriber'
 require 'rails/ruby_version_check'
 
 # For Ruby 1.8, this initialization sets $KCODE to 'u' to enable the

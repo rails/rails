@@ -25,6 +25,10 @@ module Rails
       Configuration.default
     end
 
+    def self.subscriber(subscriber)
+      Rails::Subscriber.add(plugin_name, subscriber)
+    end
+
     def self.rake_tasks(&blk)
       @rake_tasks ||= []
       @rake_tasks << blk if blk
