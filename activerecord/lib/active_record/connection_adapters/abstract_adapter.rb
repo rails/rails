@@ -39,7 +39,6 @@ module ActiveRecord
       def initialize(connection, logger = nil) #:nodoc:
         @connection, @logger = connection, logger
         @runtime = 0
-        @last_verification = 0
         @query_cache_enabled = false
       end
 
@@ -208,10 +207,6 @@ module ActiveRecord
           end
           result
         rescue Exception => e
-          # Log message and raise exception.
-          # Set last_verification to 0, so that connection gets verified
-          # upon reentering the request loop
-          @last_verification = 0
           message = "#{e.class.name}: #{e.message}: #{sql}"
           log_info(message, name, 0)
           raise translate_exception(e, message)
