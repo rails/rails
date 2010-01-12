@@ -52,8 +52,9 @@ module Arel
     end
 
     def ==(other)
-      Table      === other and
-      name       ==  other.name
+      Table       === other and
+      name        ==  other.name and
+      table_alias ==  other.table_alias
     end
   end
 end
