@@ -191,6 +191,7 @@ module ActiveRecord
       end
 
       protected
+
         def log(sql, name)
           name ||= "SQL"
           result = nil

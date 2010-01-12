@@ -1,25 +1,5 @@
 require 'abstract_unit'
-require 'rails/subscriber'
-
-Thread.abort_on_exception = true
-
-class MockLogger
-  def initialize
-    @logged = Hash.new { |h,k| h[k] = [] }
-  end
-
-  def method_missing(level, message)
-    @logged[level] << message
-  end
-
-  def logged(level)
-    @logged[level].compact.map { |l| l.to_s.strip }
-  end
-end
-
-ActiveSupport::Notifications.subscribe do |*args|
-  Rails::Subscriber.dispatch(args)
-end
+require 'rails/subscriber/test_helper'
 
 class MySubscriber < Rails::Subscriber
   attr_reader :event
@@ -40,25 +20,19 @@ class MySubscriber < Rails::Subscriber
   end
 end
 
-class SubscriberTest < ActiveSupport::TestCase
+module SubscriberTest
   def setup
-    @logger = MockLogger.new
-    @previous_logger, Rails.logger = Rails.logger, @logger
+    super
     @subscriber = MySubscriber.new
-    wait
   end
 
   def teardown
-    Rails.logger = @previous_logger
+    super
     Rails::Subscriber.subscribers.clear
   end
 
   def instrument(*args, &block)
     ActiveSupport::Notifications.instrument(*args, &block)
-  end
-
-  def wait
-    ActiveSupport::Notifications.notifier.wait
   end
 
   def test_proxies_method_to_rails_logger
@@ -69,16 +43,14 @@ class SubscriberTest < ActiveSupport::TestCase
   end
 
   def test_set_color_for_messages
+    Rails::Subscriber.colorize_logging = true
     @subscriber.bar(nil)
     assert_equal "\e[31mcool\e[0m, \e[1m\e[34misn't it?\e[0m", @logger.logged(:info).last
   end
 
   def test_does_not_set_color_if_colorize_logging_is_set_to_false
-    Rails::Subscriber.colorize_logging = false
     @subscriber.bar(nil)
     assert_equal "cool, isn't it?", @logger.logged(:info).last
-  ensure
-    Rails::Subscriber.colorize_logging = true
   end
 
   def test_event_is_sent_to_the_registered_class
@@ -109,4 +81,15 @@ class SubscriberTest < ActiveSupport::TestCase
     wait
     assert_equal [], @logger.logged(:info)
   end
+
+  class SyncSubscriberTest < ActiveSupport::TestCase
+    include Rails::Subscriber::SyncTestHelper
+    include SubscriberTest
+  end
+
+  class AsyncSubscriberTest < ActiveSupport::TestCase
+    include Rails::Subscriber::AsyncTestHelper
+    include SubscriberTest
+  end
+
 end
