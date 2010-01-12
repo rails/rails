@@ -64,17 +64,16 @@ module Rails
   end
 
   class Configuration < Railtie::Configuration
-    attr_accessor :after_initialize_blocks, :cache_classes,
-                  :consider_all_requests_local, :dependency_loading, :gems,
+    attr_accessor :after_initialize_blocks, :cache_classes, :colorize_logging,
+                  :consider_all_requests_local, :dependency_loading,
                   :load_once_paths, :logger, :metals, :plugins,
                   :preload_frameworks, :reload_plugins, :serve_static_assets,
                   :time_zone, :whiny_nils
 
     attr_writer :cache_store, :controller_paths,
                 :database_configuration_file, :eager_load_paths,
-                :i18n, :load_paths,
-                :log_level, :log_path, :paths, :routes_configuration_file,
-                :view_path
+                :i18n, :load_paths, :log_level, :log_path, :paths,
+                :routes_configuration_file, :view_path
 
     def initialize(base = nil)
       super
@@ -287,9 +286,13 @@ module Rails
       end
     end
 
-    # Allows Notifications queue to be modified.
+    # Allow Notifications queue to be modified or add subscriptions:
     #
     #   config.notifications.queue = MyNewQueue.new
+    #
+    #   config.notifications.subscribe /action_dispatch.show_exception/ do |*args|
+    #     ExceptionDeliver.deliver_exception(args)
+    #   end
     #
     def notifications
       ActiveSupport::Notifications

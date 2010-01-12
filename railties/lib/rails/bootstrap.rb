@@ -128,5 +128,18 @@ module Rails
         end
       end
     end
+
+    initializer :initialize_notifications do 
+      require 'active_support/notifications'
+
+      if config.colorize_logging == false
+        Rails::Subscriber.colorize_logging = false
+        config.generators.colorize_logging = false
+      end
+
+      ActiveSupport::Notifications.subscribe do |*args|
+        Rails::Subscriber.dispatch(args)
+      end
+    end
   end
 end

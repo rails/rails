@@ -22,7 +22,10 @@ ActiveSupport::Notifications.subscribe do |*args|
 end
 
 class MySubscriber < Rails::Subscriber
+  attr_reader :event
+
   def some_event(event)
+    @event = event
     info event.name
   end
 
@@ -83,6 +86,13 @@ class SubscriberTest < ActiveSupport::TestCase
     instrument "my_subscriber.some_event"
     wait
     assert_equal %w(my_subscriber.some_event), @logger.logged(:info)
+  end
+
+  def test_event_is_an_active_support_notifications_event
+    Rails::Subscriber.add :my_subscriber, @subscriber
+    instrument "my_subscriber.some_event"
+    wait
+    assert_kind_of ActiveSupport::Notifications::Event, @subscriber.event
   end
 
   def test_does_not_send_the_event_if_it_doesnt_match_the_class
