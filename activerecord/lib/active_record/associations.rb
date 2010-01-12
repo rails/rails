@@ -1955,7 +1955,7 @@ module ActiveRecord
 
           class JoinBase # :nodoc:
             attr_reader :active_record, :table_joins
-            delegate    :table_name, :column_names, :primary_key, :reflections, :sanitize_sql, :to => :active_record
+            delegate    :table_name, :column_names, :primary_key, :reflections, :sanitize_sql, :active_relation_engine, :to => :active_record
 
             def initialize(active_record, joins = nil)
               @active_record = active_record
@@ -2148,12 +2148,12 @@ module ActiveRecord
             end
 
             def relation
-              aliased = Arel::Table.new(table_name, :as => @aliased_table_name)
+              aliased = Arel::Table.new(table_name, :as => @aliased_table_name, :engine => active_relation_engine)
 
               if reflection.macro == :has_and_belongs_to_many
-                [Arel::Table.new(options[:join_table], :as => aliased_join_table_name), aliased]
+                [Arel::Table.new(options[:join_table], :as => aliased_join_table_name, :engine => active_relation_engine), aliased]
               elsif reflection.options[:through]
-                [Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name), aliased]
+                [Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name, :engine => active_relation_engine), aliased]
               else
                 aliased
               end
