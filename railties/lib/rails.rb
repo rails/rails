@@ -32,11 +32,6 @@ end
 module Rails
   autoload :Bootstrap, 'rails/bootstrap'
 
-  # Needs to be duplicated from Active Support since its needed before Active
-  # Support is available. Here both Options and Hash are namespaced to prevent
-  # conflicts with other implementations AND with the classes residing in Active Support.
-  # ---
-  # TODO: w0t?
   class << self
     def application
       @@application ||= nil
@@ -48,7 +43,7 @@ module Rails
 
     # The Configuration instance used to configure the Rails environment
     def configuration
-      application.configuration
+      application.config
     end
 
     def initialize!
@@ -56,19 +51,19 @@ module Rails
     end
 
     def initialized?
-      @initialized || false
+      @@initialized || false
     end
 
     def initialized=(initialized)
-      @initialized ||= initialized
+      @@initialized ||= initialized
     end
 
     def logger
-      if defined?(RAILS_DEFAULT_LOGGER)
-        RAILS_DEFAULT_LOGGER
-      else
-        nil
-      end
+      @@logger ||= nil
+    end
+
+    def logger=(logger)
+      @@logger = logger
     end
 
     def backtrace_cleaner
