@@ -518,14 +518,6 @@ module ActiveRecord #:nodoc:
 
     ##
     # :singleton-method:
-    # Determines whether to use ANSI codes to colorize the logging statements committed by the connection adapter. These colors
-    # make it much easier to overview things during debugging (when used through a reader like +tail+ and on a black background), but
-    # may complicate matters if you use software like syslog. This is true, by default.
-    cattr_accessor :colorize_logging, :instance_writer => false
-    @@colorize_logging = true
-
-    ##
-    # :singleton-method:
     # Determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling dates and times from the database.
     # This is set to :local by default.
     cattr_accessor :default_timezone, :instance_writer => false
@@ -557,6 +549,13 @@ module ActiveRecord #:nodoc:
     self.default_scoping = []
 
     class << self # Class methods
+      def colorize_logging(*args)
+        ActiveSupport::Deprecation.warn "ActiveRecord::Base.colorize_logging and " <<
+          "config.active_record.colorize_logging are deprecated. Please use " << 
+          "Rails::Subscriber.colorize_logging or config.colorize_logging instead", caller
+      end
+      alias :colorize_logging= :colorize_logging
+
       # Find operates with four different retrieval approaches:
       #
       # * Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
