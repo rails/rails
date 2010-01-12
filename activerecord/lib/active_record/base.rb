@@ -1663,7 +1663,7 @@ module ActiveRecord #:nodoc:
 
         def build_association_joins(joins)
           join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, joins, nil)
-          relation = active_relation.relation
+          relation = active_relation.table
           join_dependency.join_associations.map { |association|
             if (association_relation = association.relation).is_a?(Array)
               [Arel::InnerJoin.new(relation, association_relation.first, association.association_join.first).joins(relation),
@@ -2039,7 +2039,7 @@ module ActiveRecord #:nodoc:
         def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
-          table = Arel::Table.new(default_table_name, active_relation_engine)
+          table = Arel::Table.new(self.table_name, :engine => active_relation_engine, :as => default_table_name)
           builder = PredicateBuilder.new(active_relation_engine)
           builder.build_from_hash(attrs, table).map(&:to_sql).join(' AND ')
         end

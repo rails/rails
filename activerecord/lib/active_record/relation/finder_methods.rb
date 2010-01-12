@@ -93,15 +93,15 @@ module ActiveRecord
       result = where(primary_key.in(ids)).all
 
       expected_size =
-        if @relation.taken && ids.size > @relation.taken
-          @relation.taken
+        if arel.taken && ids.size > arel.taken
+          arel.taken
         else
           ids.size
         end
 
       # 11 ids with limit 3, offset 9 should give 2 results.
-      if @relation.skipped && (ids.size - @relation.skipped < expected_size)
-        expected_size = ids.size - @relation.skipped
+      if arel.skipped && (ids.size - arel.skipped < expected_size)
+        expected_size = ids.size - arel.skipped
       end
 
       if result.size == expected_size
