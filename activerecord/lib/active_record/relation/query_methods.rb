@@ -41,10 +41,9 @@ module ActiveRecord
     end
 
     def reverse_order
-      relation = spawn
-      relation.instance_variable_set(:@orders, nil)
-
       order_clause = arel.send(:order_clauses).join(', ')
+      relation = except(:order)
+
       if order_clause.present?
         relation.order(reverse_sql_order(order_clause))
       else
