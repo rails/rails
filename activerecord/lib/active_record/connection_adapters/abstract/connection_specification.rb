@@ -51,8 +51,8 @@ module ActiveRecord
     def self.establish_connection(spec = nil)
       case spec
         when nil
-          raise AdapterNotSpecified unless defined? RAILS_ENV
-          establish_connection(RAILS_ENV)
+          raise AdapterNotSpecified unless defined?(Rails.env)
+          establish_connection(Rails.env)
         when ConnectionSpecification
           @@connection_handler.establish_connection(name, spec)
         when Symbol, String

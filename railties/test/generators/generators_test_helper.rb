@@ -1,5 +1,3 @@
-# TODO: Fix this RAILS_ENV stuff
-RAILS_ENV = 'test' unless defined?(RAILS_ENV)
 require 'abstract_unit'
 
 module Rails

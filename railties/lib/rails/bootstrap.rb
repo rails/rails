@@ -38,11 +38,6 @@ module Rails
       config.load_once_paths.freeze
     end
 
-    # TODO: Wrap in deprecation warning, everyone should be using Rails.env now
-    initializer :set_rails_env do
-      silence_warnings { Object.const_set "RAILS_ENV", Rails.env }
-    end
-
     # Create tmp directories
     initializer :ensure_tmp_directories_exist do
       %w(cache pids sessions sockets).each do |dir_to_make|
@@ -83,9 +78,6 @@ module Rails
         )
         logger
       end
-
-      # TODO: Wrap it in a deprecation proxy
-      silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", Rails.logger }
     end
 
     # Sets the logger for Active Record, Action Controller, and Action Mailer
