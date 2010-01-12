@@ -44,6 +44,25 @@ module Arel
           })
         end
       end
+
+      it "does not apply alias if it's same as the table name" do
+        sql = @relation.as(:users).to_sql
+
+        adapter_is :mysql do
+          sql.should be_like(%Q{
+            SELECT `users`.`id`, `users`.`name`
+            FROM `users`
+          })
+        end
+
+        adapter_is_not :mysql do
+          sql.should be_like(%Q{
+            SELECT "users"."id", "users"."name"
+            FROM "users"
+          })
+        end
+      end
+
     end
 
     describe '#column_for' do
