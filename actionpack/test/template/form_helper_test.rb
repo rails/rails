@@ -25,6 +25,17 @@ class FormHelperTest < ActionView::TestCase
       }
     }
 
+    # Create "submit" locale for testing I18n submit helpers
+    I18n.backend.store_translations 'submit', {
+      :helpers => {
+        :submit => {
+          :create => 'Create {{model}}',
+          :update => 'Confirm {{model}} changes',
+          :submit => 'Save changes'
+        }
+      }
+    }
+
     @post = Post.new
     @comment = Comment.new
     def @post.errors()
@@ -475,6 +486,52 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_submit_with_object_as_new_record_and_locale_strings
+    old_locale, I18n.locale = I18n.locale, :submit
+
+    def @post.new_record?() true; end
+    form_for(:post, @post) do |f|
+      concat f.submit
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='commit' id='post_submit' type='submit' value='Create Post' />" +
+               "</form>"
+    assert_dom_equal expected, output_buffer
+  ensure
+    I18n.locale = old_locale
+  end
+
+  def test_submit_with_object_as_existing_record_and_locale_strings
+    old_locale, I18n.locale = I18n.locale, :submit
+
+    form_for(:post, @post) do |f|
+      concat f.submit
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='commit' id='post_submit' type='submit' value='Confirm Post changes' />" +
+               "</form>"
+    assert_dom_equal expected, output_buffer
+  ensure
+    I18n.locale = old_locale
+  end
+
+  def test_submit_without_object_and_locale_strings
+    old_locale, I18n.locale = I18n.locale, :submit
+
+    form_for(:post) do |f|
+      concat f.submit
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='commit' id='post_submit' type='submit' value='Save changes' />" +
+               "</form>"
+    assert_dom_equal expected, output_buffer
+  ensure
+    I18n.locale = old_locale
+  end
+
   def test_nested_fields_for
     form_for(:post, @post) do |f|
       f.fields_for(:comment, @post) do |c|
@@ -659,7 +716,7 @@ class FormHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, output_buffer
   end
-  
+
   def test_nested_fields_for_with_existing_records_on_a_nested_attributes_one_to_one_association_with_explicit_hidden_field_placement
     @post.author = Author.new(321)
 
@@ -670,7 +727,7 @@ class FormHelperTest < ActionView::TestCase
         concat af.text_field(:name)
       end
     end
-    
+
     expected = '<form action="http://www.example.com" method="post">' +
                '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
                '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />' +
@@ -715,7 +772,7 @@ class FormHelperTest < ActionView::TestCase
         end
       end
     end
-    
+
     expected = '<form action="http://www.example.com" method="post">' +
                '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
                '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" />' +

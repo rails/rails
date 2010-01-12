@@ -505,7 +505,7 @@ module ActionView
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
-      # is found in the current I18n locale (through helpers.label.<modelname>.<attribute>) or you specify it explicitly. 
+      # is found in the current I18n locale (through helpers.label.<modelname>.<attribute>) or you specify it explicitly.
       # Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
       # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
       # target labels for radio_button tags (where the value is used in the ID of the input tag).
@@ -1058,7 +1058,7 @@ module ActionView
       def radio_button(method, tag_value, options = {})
         @template.radio_button(@object_name, method, tag_value, objectify_options(options))
       end
-      
+
       def hidden_field(method, options = {})
         @emitted_hidden_id = true if method == :id
         @template.hidden_field(@object_name, method, objectify_options(options))
@@ -1072,7 +1072,18 @@ module ActionView
         @template.error_messages_for(@object_name, objectify_options(options))
       end
 
-      def submit(value = "Save changes", options = {})
+      def submit(value = nil, options = {})
+        value ||= begin
+          key   = @object ? (@object.new_record? ? :create : :update) : :submit
+          model = if @object.class.respond_to?(:model_name)
+            @object.class.model_name.human
+          else
+            @object_name.to_s.humanize
+          end
+
+          I18n.t(:"helpers.submit.#{key}", :model => model, :default => "#{key.to_s.humanize} #{model}")
+        end
+
         @template.submit_tag(value, options.reverse_merge(:id => "#{object_name}_submit"))
       end
 
