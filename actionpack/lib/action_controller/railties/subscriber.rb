@@ -12,9 +12,10 @@ module ActionController
         params = controller.send(:filter_parameters, request.params)
         info "  Parameters: #{params.inspect}" unless params.empty?
 
-        ActionController::Base.log_process_action(controller)
+        additions = ActionController::Base.log_process_action(controller)
 
         message = "Completed in %.0fms" % event.duration
+        message << " (#{additions.join(" | ")})" unless additions.blank?
         message << " | #{controller.response.status}"
         message << " [#{request.request_uri rescue "unknown"}]\n\n"
 

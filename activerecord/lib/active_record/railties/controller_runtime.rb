@@ -21,9 +21,9 @@ module ActiveRecord
 
       module ClassMethods
         def log_process_action(controller)
-          super
-          db_runtime = controller.send :db_runtime
-          logger.info("  ActiveRecord runtime: %.1fms" % db_runtime.to_f) if db_runtime
+          messages, db_runtime = super, controller.send(:db_runtime)
+          messages << ("ActiveRecord: %.1fms" % db_runtime.to_f) if db_runtime
+          messages
         end
       end
     end

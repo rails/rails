@@ -66,7 +66,7 @@ module ActionControllerSubscriberTest
   def test_process_action
     get :show
     wait
-    assert_equal 3, logs.size
+    assert_equal 2, logs.size
     assert_match /Processed\sAnother::SubscribersController#show/, logs[0]
   end
 
@@ -80,14 +80,14 @@ module ActionControllerSubscriberTest
     get :show, :id => '10'
     wait
 
-    assert_equal 4, logs.size
+    assert_equal 3, logs.size
     assert_equal 'Parameters: {"id"=>"10"}', logs[1]
   end
 
   def test_process_action_with_view_runtime
     get :show
     wait
-    assert_match /View runtime/, logs[1]
+    assert_match /\(Views: [\d\.]+ms\)/, logs[1]
   end
 
   def test_process_action_with_status_and_request_uri
@@ -123,7 +123,7 @@ module ActionControllerSubscriberTest
     get :data_sender
     wait
 
-    assert_equal 4, logs.size
+    assert_equal 3, logs.size
     assert_match /Sent data omg\.txt/, logs[0]
   end
 
@@ -131,7 +131,7 @@ module ActionControllerSubscriberTest
     get :file_sender
     wait
 
-    assert_equal 4, logs.size
+    assert_equal 3, logs.size
     assert_match /Sent file/, logs[0]
     assert_match /test\/fixtures\/company\.rb/, logs[0]
   end
@@ -150,7 +150,7 @@ module ActionControllerSubscriberTest
     get :with_fragment_cache
     wait
 
-    assert_equal 5, logs.size
+    assert_equal 4, logs.size
     assert_match /Exist fragment\? views\/foo/, logs[0]
     assert_match /Write fragment views\/foo/, logs[1]
   ensure
@@ -162,7 +162,7 @@ module ActionControllerSubscriberTest
     get :with_page_cache
     wait
 
-    assert_equal 4, logs.size
+    assert_equal 3, logs.size
     assert_match /Write page/, logs[0]
     assert_match /\/index\.html/, logs[0]
   ensure

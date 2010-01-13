@@ -66,11 +66,13 @@ module ActionController
 
     module ClassMethods
       # A hook which allows other frameworks to log what happened during
-      # controller process action.
+      # controller process action. This method should return an awway
+      # with the messages to be added.
       # :api: plugin
       def log_process_action(controller) #:nodoc:
-        view_runtime = controller.send :view_runtime
-        logger.info("  View runtime: %.1fms" % view_runtime.to_f) if view_runtime
+        messages, view_runtime = [], controller.send(:view_runtime)
+        messages << ("Views: %.1fms" % view_runtime.to_f) if view_runtime
+        messages
       end
     end
   end
