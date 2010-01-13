@@ -4,17 +4,18 @@ require "action_view/railties/subscriber"
 require "controller/fake_models"
 
 module ActionViewSubscriberTest
-  Rails::Subscriber.add(:action_view, ActionView::Railties::Subscriber.new)
 
   def setup
     @old_logger = ActionController::Base.logger
     @view = ActionView::Base.new(ActionController::Base.view_paths, {})
     Rails.stubs(:root).returns(File.expand_path(FIXTURE_LOAD_PATH))
+    Rails::Subscriber.add(:action_view, ActionView::Railties::Subscriber.new)
     super
   end
 
   def teardown
     super
+    Rails::Subscriber.subscribers.clear
     ActionController::Base.logger = @old_logger
   end
 

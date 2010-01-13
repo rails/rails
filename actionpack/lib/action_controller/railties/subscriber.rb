@@ -24,11 +24,11 @@ module ActionController
       def send_file(event)
         message = if event.payload[:x_sendfile]
           header = ActionController::Streaming::X_SENDFILE_HEADER
-          "Sending #{header} header %s"
+          "Sent #{header} header %s"
         elsif event.payload[:stream]
-          "Streaming file %s"
+          "Streamed file %s"
         else
-          "Sending file %s"
+          "Sent file %s"
         end
 
         message << " (%.1fms)"
@@ -40,7 +40,7 @@ module ActionController
       end
 
       def send_data(event)
-        info("Sending data %s (%.1fms)" % [event.payload[:filename], event.duration])
+        info("Sent data %s (%.1fms)" % [event.payload[:filename], event.duration])
       end
 
       %w(write_fragment read_fragment exist_fragment?
@@ -49,7 +49,7 @@ module ActionController
           def #{method}(event)
             key_or_path = event.payload[:key] || event.payload[:path]
             human_name  = #{method.to_s.humanize.inspect}
-            info("\#{human_name} \#{key_or_path.inspect} (%.1fms)" % event.duration)
+            info("\#{human_name} \#{key_or_path} (%.1fms)" % event.duration)
           end
         METHOD
       end
