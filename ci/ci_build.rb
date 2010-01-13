@@ -26,7 +26,7 @@ cd root_dir do
   puts
   puts "[CruiseControl] Bundling RubyGems"
   puts
-  build_results[:bundle] = system 'rm -rf vendor && env CI=1 gem bundle --update && chmod 755 bin vendor vendor/gems'
+  build_results[:bundle] = system 'rm -rf vendor && env CI=1 gem19 bundle --update && chmod 755 bin vendor vendor/gems'
 end
 
 cd "#{root_dir}/activesupport" do
@@ -105,11 +105,11 @@ puts "[CruiseControl]   #{`ruby19 -v`}"
 puts "[CruiseControl]   #{`mysql --version`}"
 # puts "[CruiseControl]   #{`pg_config --version`}"
 puts "[CruiseControl]   SQLite3: #{`sqlite3 -version`}"
-`gem env`.each_line {|line| print "[CruiseControl]   #{line}"}
+`gem19 env`.each_line {|line| print "[CruiseControl]   #{line}"}
 puts "[CruiseControl]   Bundled gems:"
-`gem bundle --list`.each_line {|line| print "[CruiseControl]     #{line}"}
+`gem19 bundle --list`.each_line {|line| print "[CruiseControl]     #{line}"}
 puts "[CruiseControl]   Local gems:"
-`gem list`.each_line {|line| print "[CruiseControl]     #{line}"}
+`gem19 list`.each_line {|line| print "[CruiseControl]     #{line}"}
 
 failures = build_results.select { |key, value| value == false }
 
