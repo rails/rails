@@ -521,11 +521,11 @@ class FormHelperTest < ActionView::TestCase
     old_locale, I18n.locale = I18n.locale, :submit
 
     form_for(:post) do |f|
-      concat f.submit
+      concat f.submit :class => "extra"
     end
 
     expected = "<form action='http://www.example.com' method='post'>" +
-               "<input name='commit' id='post_submit' type='submit' value='Save changes' />" +
+               "<input name='commit' class='extra' id='post_submit' type='submit' value='Save changes' />" +
                "</form>"
     assert_dom_equal expected, output_buffer
   ensure

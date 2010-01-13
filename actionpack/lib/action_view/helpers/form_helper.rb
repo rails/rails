@@ -1072,16 +1072,21 @@ module ActionView
         @template.error_messages_for(@object_name, objectify_options(options))
       end
 
-      def submit(value = nil, options = {})
-        value ||= begin
-          key   = @object ? (@object.new_record? ? :create : :update) : :submit
-          model = if @object.class.respond_to?(:model_name)
-            @object.class.model_name.human
+      def submit(value=nil, options={})
+        value, options = nil, value if value.is_a?(Hash)
+
+        unless value
+          object = @object.respond_to?(:to_model) ? @object.to_model : @object
+          key    = object ? (object.new_record? ? :create : :update) : :submit
+
+          model = if object.class.respond_to?(:model_name)
+            object.class.model_name.human
           else
             @object_name.to_s.humanize
           end
 
-          I18n.t(:"helpers.submit.#{key}", :model => model, :default => "#{key.to_s.humanize} #{model}")
+          value = I18n.t(:"helpers.submit.#{key}", :model => model,
+                                                   :default => "#{key.to_s.humanize} #{model}")
         end
 
         @template.submit_tag(value, options.reverse_merge(:id => "#{object_name}_submit"))
