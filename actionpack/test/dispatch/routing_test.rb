@@ -221,20 +221,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  # TODO: rackmount is broken
-  # def test_admin
-  #   with_test_routes do
-  #     get '/admin', {}, {'REMOTE_ADDR' => '192.168.1.100'}
-  #     assert_equal 'queenbee#index', @response.body
-  #
-  #     assert_raise(ActionController::RoutingError) { get '/admin', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
-  #
-  #     get '/admin/accounts', {}, {'REMOTE_ADDR' => '192.168.1.100'}
-  #     assert_equal 'queenbee#accounts', @response.body
-  #
-  #     assert_raise(ActionController::RoutingError) { get '/admin/accounts', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
-  #   end
-  # end
+  def test_admin
+    with_test_routes do
+      get '/admin', {}, {'REMOTE_ADDR' => '192.168.1.100'}
+      assert_equal 'queenbee#index', @response.body
+
+      assert_raise(ActionController::RoutingError) { get '/admin', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+
+      get '/admin/accounts', {}, {'REMOTE_ADDR' => '192.168.1.100'}
+      assert_equal 'queenbee#accounts', @response.body
+
+      assert_raise(ActionController::RoutingError) { get '/admin/accounts', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+    end
+  end
 
   def test_global
     with_test_routes do
