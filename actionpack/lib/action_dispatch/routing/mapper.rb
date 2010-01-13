@@ -321,6 +321,8 @@ module ActionDispatch
       end
 
       module Resources
+        CRUD_ACTIONS = [:index, :show, :new, :edit, :create, :update, :destroy]
+
         class Resource #:nodoc:
           attr_reader :plural, :singular
 
@@ -489,8 +491,13 @@ module ActionDispatch
           end
 
           if args.first.is_a?(Symbol)
-            with_exclusive_name_prefix(args.first) do
-              return match("/#{args.first}(.:format)", options.merge(:to => args.first.to_sym))
+            action = args.first
+            if CRUD_ACTIONS.include?(action)
+              return match("(.:format)", options.merge(:to => action))
+            else
+              with_exclusive_name_prefix(action) do
+                return match("/#{action}(.:format)", options.merge(:to => action))
+              end
             end
           end
 

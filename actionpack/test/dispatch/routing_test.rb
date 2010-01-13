@@ -22,6 +22,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         delete 'logout' => :destroy, :as => :logout
       end
 
+      resource :session do
+        get :create
+      end
+
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
 
@@ -167,6 +171,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 301, @response.status
       assert_equal 'http://www.example.com/logout', @response.headers['Location']
       assert_equal 'Moved Permanently', @response.body
+    end
+  end
+
+  def test_session_singleton_resource
+    with_test_routes do
+      get '/session'
+      assert_equal 'sessions#create', @response.body
+
+      post '/session'
+      assert_equal 'sessions#create', @response.body
+
+      get '/session/new'
+      assert_equal 'sessions#new', @response.body
     end
   end
 
