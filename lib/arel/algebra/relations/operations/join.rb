@@ -47,6 +47,10 @@ module Arel
   class InnerJoin  < Join; end
   class OuterJoin  < Join; end
   class StringJoin < Join
+    def externalizable?
+      relation1.externalizable?
+    end
+
     def attributes
       relation1.externalize.attributes
     end

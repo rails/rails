@@ -103,7 +103,36 @@ module Arel
             })
           end
         end
-      end
+
+        it "passes the string when there are multiple string joins" do
+          relation = StringJoin.new(@relation1, "INNER JOIN asdf ON fdsa")
+          relation = StringJoin.new(relation, "INNER JOIN lifo ON fifo")
+          sql = StringJoin.new(relation, "INNER JOIN hatful ON hallow").to_sql
+
+          adapter_is :mysql do
+            sql.should be_like(%Q{
+              SELECT `users`.`id`, `users`.`name`
+              FROM `users`
+                INNER JOIN asdf ON fdsa
+                INNER JOIN lifo ON fifo
+                INNER JOIN hatful ON hallow
+            })
+          end
+
+          adapter_is_not :mysql do
+            sql.should be_like(%Q{
+              SELECT "users"."id", "users"."name"
+              FROM "users"
+                INNER JOIN asdf ON fdsa
+                INNER JOIN lifo ON fifo
+                INNER JOIN hatful ON hallow
+            })
+          end
+        end
+
+    end
+
+
     end
   end
 end
