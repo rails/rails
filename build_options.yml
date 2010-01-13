@@ -1,0 +1,20 @@
+mysql:
+  mysql-config: /usr/bin/mysql_config
+  mysql-dir: /usr/share/mysql 
+  mysql-lib: /usr/lib/mysql 
+  mysql-include: /usr/include/mysql
+
+pg:
+  pg-dir: /usr/share/pgsql
+
+# mysql:
+#   mysql-config: /usr/local/mysql/bin/mysql_config
+#   mysql-dir: /usr/local/mysql 
+#   mysql-lib: /usr/local/mysql/lib 
+#   mysql-include: /usr/local/mysql/include
+#   
+# pg:
+#   pg-config: /usr/local/pgsql/bin/pg_config
+#   pg-dir: /usr/local/pgsql 
+#   pg-lib: /usr/local/pgsql/lib 
+#   pg-include: /usr/local/pgsql/include
