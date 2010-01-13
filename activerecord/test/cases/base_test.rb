@@ -992,7 +992,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_mass_assignment_protection_against_class_attribute_writers
-    [:logger, :configurations, :primary_key_prefix_type, :table_name_prefix, :table_name_suffix, :pluralize_table_names, :colorize_logging,
+    [:logger, :configurations, :primary_key_prefix_type, :table_name_prefix, :table_name_suffix, :pluralize_table_names,
       :default_timezone, :schema_format, :lock_optimistically, :record_timestamps].each do |method|
       assert  Task.respond_to?(method)
       assert  Task.respond_to?("#{method}=")

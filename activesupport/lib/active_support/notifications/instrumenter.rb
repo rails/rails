@@ -13,9 +13,9 @@ module ActiveSupport
 
       def instrument(name, payload={})
         time = Time.now
-        yield if block_given?
-      ensure
+        result = yield if block_given?
         @notifier.publish(name, time, Time.now, @id, payload)
+        result
       end
 
       private

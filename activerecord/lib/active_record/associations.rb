@@ -1955,7 +1955,7 @@ module ActiveRecord
 
           class JoinBase # :nodoc:
             attr_reader :active_record, :table_joins
-            delegate    :table_name, :column_names, :primary_key, :reflections, :sanitize_sql, :to => :active_record
+            delegate    :table_name, :column_names, :primary_key, :reflections, :sanitize_sql, :active_relation_engine, :to => :active_record
 
             def initialize(active_record, joins = nil)
               @active_record = active_record
@@ -2148,22 +2148,23 @@ module ActiveRecord
             end
 
             def relation
+              aliased = Arel::Table.new(table_name, :as => @aliased_table_name, :engine => active_relation_engine)
+
               if reflection.macro == :has_and_belongs_to_many
-                [Arel::Table.new(table_alias_for(options[:join_table], aliased_join_table_name)), Arel::Table.new(table_name_and_alias)]
+                [Arel::Table.new(options[:join_table], :as => aliased_join_table_name, :engine => active_relation_engine), aliased]
               elsif reflection.options[:through]
-                [Arel::Table.new(table_alias_for(through_reflection.klass.table_name, aliased_join_table_name)), Arel::Table.new(table_name_and_alias)]
+                [Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name, :engine => active_relation_engine), aliased]
               else
-                Arel::Table.new(table_name_and_alias)
+                aliased
               end
             end
 
             def join_relation(joining_relation, join = nil)
               if (relations = relation).is_a?(Array)
-                joining_relation.
-                  joins(relations.first, Arel::OuterJoin).on(association_join.first).
-                  joins(relations.last, Arel::OuterJoin).on(association_join.last)
+                joining_relation.joins(Relation::JoinOperation.new(relations.first, Arel::OuterJoin, association_join.first)).
+                  joins(Relation::JoinOperation.new(relations.last, Arel::OuterJoin, association_join.last))
               else
-                joining_relation.joins(relations, Arel::OuterJoin).on(association_join)
+                joining_relation.joins(Relation::JoinOperation.new(relations, Arel::OuterJoin, association_join))
               end
             end
 

@@ -64,28 +64,20 @@ module Rails
     end
 
     initializer :initialize_logger do
-      # if the environment has explicitly defined a logger, use it
-      next if Rails.logger
-
-      unless logger = config.logger
-        begin
-          logger = ActiveSupport::BufferedLogger.new(config.log_path)
-          logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
-          if RAILS_ENV == "production"
-            logger.auto_flushing = false
-          end
-        rescue StandardError => e
-          logger = ActiveSupport::BufferedLogger.new(STDERR)
-          logger.level = ActiveSupport::BufferedLogger::WARN
-          logger.warn(
-            "Rails Error: Unable to access log file. Please ensure that #{config.log_path} exists and is chmod 0666. " +
-            "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
-          )
-        end
+      Rails.logger ||= config.logger || begin
+        logger = ActiveSupport::BufferedLogger.new(config.log_path)
+        logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
+        logger.auto_flushing = false if Rails.env.production?
+        logger
+      rescue StandardError => e
+        logger = ActiveSupport::BufferedLogger.new(STDERR)
+        logger.level = ActiveSupport::BufferedLogger::WARN
+        logger.warn(
+          "Rails Error: Unable to access log file. Please ensure that #{config.log_path} exists and is chmod 0666. " +
+          "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
+        )
+        logger
       end
-
-      # TODO: Why are we silencing warning here?
-      silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
     end
 
     # Sets the logger for Active Record, Action Controller, and Action Mailer
@@ -134,6 +126,19 @@ module Rails
         else
           I18n.send("#{setting}=", value)
         end
+      end
+    end
+
+    initializer :initialize_notifications do 
+      require 'active_support/notifications'
+
+      if config.colorize_logging == false
+        Rails::Subscriber.colorize_logging = false
+        config.generators.colorize_logging = false
+      end
+
+      ActiveSupport::Notifications.subscribe do |*args|
+        Rails::Subscriber.dispatch(args)
       end
     end
   end

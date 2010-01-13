@@ -63,7 +63,7 @@ module InitializerTests
     end
 
     test "environments has a glob equal to the current environment" do
-      assert_equal "#{RAILS_ENV}.rb", @paths.config.environments.glob
+      assert_equal "#{Rails.env}.rb", @paths.config.environments.glob
     end
 
     test "load path includes each of the paths in config.paths as long as the directories exist" do
@@ -85,17 +85,17 @@ module InitializerTests
     end
 
     test "controller paths include builtin in development mode" do
-      RAILS_ENV.replace "development"
+      Rails.env.replace "development"
       assert Rails::Configuration.new.paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
     end
 
     test "controller paths does not have builtin_directories in test mode" do
-      RAILS_ENV.replace "test"
+      Rails.env.replace "test"
       assert !Rails::Configuration.new.paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
     end
 
     test "controller paths does not have builtin_directories in production mode" do
-      RAILS_ENV.replace "production"
+      Rails.env.replace "production"
       assert !Rails::Configuration.new.paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
     end
 

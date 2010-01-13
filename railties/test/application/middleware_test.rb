@@ -20,6 +20,7 @@ module ApplicationTests
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::Callbacks",
         "ActionDispatch::Session::CookieStore",
+        "ActionDispatch::Cascade",
         "ActionDispatch::ParamsParser",
         "Rack::MethodOverride",
         "Rack::Head",

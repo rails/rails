@@ -32,5 +32,14 @@ module PluginsTest
       assert_equal "hello", MyApp.config.foo.greetings
       assert_equal "bar",   MyApp.config.foo.bar
     end
+
+    test "plugin can add subscribers" do
+      begin
+        class Foo < Rails::Railtie; subscriber(Rails::Subscriber.new); end
+        assert_kind_of Rails::Subscriber, Rails::Subscriber.subscribers[:foo]
+      ensure
+        Rails::Subscriber.subscribers.clear
+      end
+    end
   end
 end

@@ -104,9 +104,6 @@ module Rails
       @app.call(env)
     end
 
-    # # bail out if gems are missing - note that check_gem_dependencies will have
-    # # already called abort() unless $gems_rake_task is set
-    # return unless gems_dependencies_loaded
     initializer :load_application_initializers do
       Dir["#{root}/config/initializers/**/*.rb"].sort.each do |initializer|
         load(initializer)

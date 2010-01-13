@@ -519,8 +519,8 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_identifies_consistently
-    assert_equal 1281023246, Fixtures.identify(:ruby)
-    assert_equal 2140105598, Fixtures.identify(:sapphire_2)
+    assert_equal 207281424, Fixtures.identify(:ruby)
+    assert_equal 1066363776, Fixtures.identify(:sapphire_2)
   end
 
   TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on)

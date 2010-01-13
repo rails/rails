@@ -12,7 +12,7 @@ module ActiveSupport
       end
 
       def default_behavior
-        Deprecation::DEFAULT_BEHAVIORS[defined?(Rails) ? Rails.env.to_s : 'test']
+        Deprecation::DEFAULT_BEHAVIORS[defined?(Rails.env) ? Rails.env.to_s : 'test']
       end
     end
 

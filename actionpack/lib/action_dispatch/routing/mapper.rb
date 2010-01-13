@@ -77,7 +77,6 @@ module ActionDispatch
             path
           end
 
-
           def app
             Constraints.new(
               to.respond_to?(:call) ? to : Routing::RouteSet::Dispatcher.new(:defaults => defaults),
@@ -122,7 +121,6 @@ module ActionDispatch
               defaults
             end
           end
-
 
           def blocks
             if @options[:constraints].present? && !@options[:constraints].is_a?(Hash)
@@ -259,9 +257,16 @@ module ActionDispatch
             name_prefix_set = false
           end
 
+          if namespace = options.delete(:namespace)
+            namespace_set = true
+            namespace, @scope[:namespace] = @scope[:namespace], (@scope[:namespace] ? "#{@scope[:namespace]}/#{namespace}" : namespace)
+          else
+            namespace_set = false
+          end
+
           if controller = options.delete(:controller)
             controller_set = true
-            controller, @scope[:controller] = @scope[:controller], controller
+            controller, @scope[:controller] = @scope[:controller], (@scope[:namespace] ? "#{@scope[:namespace]}/#{controller}" : controller)
           else
             controller_set = false
           end
@@ -270,17 +275,17 @@ module ActionDispatch
           unless constraints.is_a?(Hash)
             block, constraints = constraints, {}
           end
+
           constraints, @scope[:constraints] = @scope[:constraints], (@scope[:constraints] || {}).merge(constraints)
           blocks, @scope[:blocks] = @scope[:blocks], (@scope[:blocks] || []) + [block]
-
           options, @scope[:options] = @scope[:options], (@scope[:options] || {}).merge(options)
 
           yield
-
           self
         ensure
           @scope[:path]        = path        if path_set
           @scope[:name_prefix] = name_prefix if name_prefix_set
+          @scope[:namespace]   = namespace   if namespace_set
           @scope[:controller]  = controller  if controller_set
           @scope[:options]     = options
           @scope[:blocks]      = blocks
@@ -292,7 +297,7 @@ module ActionDispatch
         end
 
         def namespace(path)
-          scope("/#{path}", :name_prefix => path.to_s) { yield }
+          scope("/#{path}", :name_prefix => path.to_s, :namespace => path.to_s) { yield }
         end
 
         def constraints(constraints = {})

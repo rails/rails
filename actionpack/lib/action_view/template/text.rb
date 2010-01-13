@@ -13,7 +13,7 @@ module ActionView #:nodoc:
       end
 
       def identifier
-        self
+        'text template'
       end
 
       def inspect
