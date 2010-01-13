@@ -41,11 +41,6 @@ module ActionControllerSubscriberTest
     base.tests Another::SubscribersController
   end
 
-  def wait
-    sleep(0.01)
-    super
-  end
-
   def setup
     @old_logger = ActionController::Base.logger
 
