@@ -127,9 +127,9 @@ $ cd ~/.cruise/projects/rails/work
 $ sudo geminstaller --config=ci/geminstaller.yml # turn up debugging with these options: --geminstaller-output=all --rubygems-output=all
 
 * Create ActiveRecord test databases for mysql
-$ mysql -uroot -e 'grant all on *.* to rails@localhost;'
-$ mysql -urails -e 'create database activerecord_unittest;'
-$ mysql -urails -e 'create database activerecord_unittest2;'
+$ mysql -u root -e 'grant all on *.* to rails@localhost;'
+$ mysql -u rails -e 'create database activerecord_unittest;'
+$ mysql -u rails -e 'create database activerecord_unittest2;'
 
 * Create ActiveRecord test databases for postgres
 # cd to rails activerecord dir
