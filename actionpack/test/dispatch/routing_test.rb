@@ -109,6 +109,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      namespace :forum do
+        resources :products, :as => '' do
+          resources :questions
+        end
+      end
+
       controller :articles do
         scope '/articles', :name_prefix => 'article' do
           scope :path => '/:title', :title => /[a-z]+/, :as => :with_title do
@@ -438,6 +444,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'people#update', @response.body
 
       assert_equal '/projects/1/people/2/update', update_project_person_path(:project_id => 1, :id => 2)
+    end
+  end
+
+  def test_forum_products
+    with_test_routes do
+      get '/forum'
+      assert_equal 'forum/products#index', @response.body
+      assert_equal '/forum', forum_products_path
+
+      get '/forum/basecamp'
+      assert_equal 'forum/products#show', @response.body
+      assert_equal '/forum/basecamp', forum_product_path(:id => 'basecamp')
+
+      get '/forum/basecamp/questions'
+      assert_equal 'forum/questions#index', @response.body
+      assert_equal '/forum/basecamp/questions', forum_product_questions_path(:product_id => 'basecamp')
+
+      get '/forum/basecamp/questions/1'
+      assert_equal 'forum/questions#show', @response.body
+      assert_equal '/forum/basecamp/questions/1', forum_product_question_path(:product_id => 'basecamp', :id => 1)
     end
   end
 

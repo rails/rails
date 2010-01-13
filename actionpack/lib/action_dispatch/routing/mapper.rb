@@ -328,13 +328,14 @@ module ActionDispatch
 
           def initialize(entities, options = {})
             entities = entities.to_s
+            @options = options
 
             @plural   = entities.pluralize
             @singular = entities.singularize
           end
 
           def name
-            plural
+            @options[:as] || plural
           end
 
           def controller
@@ -360,7 +361,7 @@ module ActionDispatch
           end
 
           def name
-            singular
+            @options[:as] || singular
           end
         end
 
@@ -373,7 +374,7 @@ module ActionDispatch
             return self
           end
 
-          resource = SingletonResource.new(resources.pop)
+          resource = SingletonResource.new(resources.pop, options)
 
           if @scope[:scope_level] == :resources
             nested do
@@ -407,7 +408,7 @@ module ActionDispatch
             return self
           end
 
-          resource = Resource.new(resources.pop)
+          resource = Resource.new(resources.pop, options)
 
           if @scope[:scope_level] == :resources
             nested do
