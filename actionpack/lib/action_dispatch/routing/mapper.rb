@@ -324,7 +324,11 @@ module ActionDispatch
         CRUD_ACTIONS = [:index, :show, :new, :edit, :create, :update, :destroy]
 
         class Resource #:nodoc:
-          attr_reader :plural, :singular
+          def self.default_actions
+            [:index, :create, :new, :show, :update, :destroy, :edit]
+          end
+
+          attr_reader :plural, :singular, :options
 
           def initialize(entities, options = {})
             entities = entities.to_s
@@ -334,8 +338,22 @@ module ActionDispatch
             @singular = entities.singularize
           end
 
+          def default_actions
+            self.class.default_actions
+          end
+
+          def actions
+            if only = options[:only]
+              only.map(&:to_sym)
+            elsif except = options[:except]
+              default_actions - except.map(&:to_sym)
+            else
+              default_actions
+            end
+          end
+
           def name
-            @options[:as] || plural
+            options[:as] || plural
           end
 
           def controller
@@ -356,12 +374,16 @@ module ActionDispatch
         end
 
         class SingletonResource < Resource #:nodoc:
+          def self.default_actions
+            [:show, :create, :update, :destroy, :new, :edit]
+          end
+
           def initialize(entity, options = {})
             super
           end
 
           def name
-            @options[:as] || singular
+            options[:as] || singular
           end
         end
 
@@ -387,12 +409,12 @@ module ActionDispatch
             with_scope_level(:resource, resource) do
               yield if block_given?
 
-              get    "(.:format)",      :to => :show, :as => resource.member_name
-              post   "(.:format)",      :to => :create
-              put    "(.:format)",      :to => :update
-              delete "(.:format)",      :to => :destroy
-              get    "/new(.:format)",  :to => :new,  :as => "new_#{resource.singular}"
-              get    "/edit(.:format)", :to => :edit, :as => "edit_#{resource.singular}"
+              get    "(.:format)",      :to => :show, :as => resource.member_name if resource.actions.include?(:show)
+              post   "(.:format)",      :to => :create if resource.actions.include?(:create)
+              put    "(.:format)",      :to => :update if resource.actions.include?(:update)
+              delete "(.:format)",      :to => :destroy if resource.actions.include?(:destroy)
+              get    "/new(.:format)",  :to => :new,  :as => "new_#{resource.singular}" if resource.actions.include?(:new)
+              get    "/edit(.:format)", :to => :edit, :as => "edit_#{resource.singular}" if resource.actions.include?(:edit)
             end
           end
 
@@ -422,22 +444,22 @@ module ActionDispatch
               yield if block_given?
 
               with_scope_level(:collection) do
-                get  "(.:format)", :to => :index, :as => resource.collection_name
-                post "(.:format)", :to => :create
+                get  "(.:format)", :to => :index, :as => resource.collection_name if resource.actions.include?(:index)
+                post "(.:format)", :to => :create  if resource.actions.include?(:create)
 
                 with_exclusive_name_prefix :new do
-                  get "/new(.:format)", :to => :new, :as => resource.singular
+                  get "/new(.:format)", :to => :new, :as => resource.singular if resource.actions.include?(:new)
                 end
               end
 
               with_scope_level(:member) do
                 scope("/:id") do
-                  get    "(.:format)", :to => :show, :as => resource.member_name
-                  put    "(.:format)", :to => :update
-                  delete "(.:format)", :to => :destroy
+                  get    "(.:format)", :to => :show, :as => resource.member_name if resource.actions.include?(:show)
+                  put    "(.:format)", :to => :update if resource.actions.include?(:update)
+                  delete "(.:format)", :to => :destroy if resource.actions.include?(:destroy)
 
                   with_exclusive_name_prefix :edit do
-                    get "/edit(.:format)", :to => :edit, :as => resource.singular
+                    get "/edit(.:format)", :to => :edit, :as => resource.singular if resource.actions.include?(:edit)
                   end
                 end
               end

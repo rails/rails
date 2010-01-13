@@ -93,6 +93,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      resources :posts, :only => [:index, :show]
+
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
 
       match 'people/:id/update', :to => 'people#update', :as => :update_person
@@ -418,6 +420,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       post '/projects/1/posts/1/comments/preview'
       assert_equal 'comments#preview', @response.body
       assert_equal '/projects/1/posts/1/comments/preview', preview_project_post_comments_path(:project_id => '1', :post_id => '1')
+    end
+  end
+
+  def test_posts
+    with_test_routes do
+      get '/posts'
+      assert_equal 'posts#index', @response.body
+      assert_equal '/posts', posts_path
+
+      get '/posts/1'
+      assert_equal 'posts#show', @response.body
+      assert_equal '/posts/1', post_path(:id => 1)
+
+      assert_raise(ActionController::RoutingError) { post '/posts' }
+      assert_raise(ActionController::RoutingError) { put '/posts/1' }
+      assert_raise(ActionController::RoutingError) { delete '/posts/1' }
     end
   end
 
