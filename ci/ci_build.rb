@@ -103,7 +103,7 @@ puts "[CruiseControl]   #{`cat /etc/issue`}"
 puts "[CruiseControl]   #{`uname -a`}"
 puts "[CruiseControl]   #{`ruby19 -v`}"
 puts "[CruiseControl]   #{`mysql --version`}"
-# puts "[CruiseControl]   #{`pg_config --version`}"
+puts "[CruiseControl]   #{`pg_config --version`}"
 puts "[CruiseControl]   SQLite3: #{`sqlite3 -version`}"
 `gem19 env`.each_line {|line| print "[CruiseControl]   #{line}"}
 puts "[CruiseControl]   Bundled gems:"
