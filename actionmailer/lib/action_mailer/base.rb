@@ -399,9 +399,10 @@ module ActionMailer #:nodoc:
       #     end
       #   end
       def receive(raw_email)
-        logger.info "Received mail:\n #{raw_email}" unless logger.nil?
         mail = Mail.new(raw_email)
-        new.receive(mail)
+        ActiveSupport::Notifications.instrument("action_mailer.receive", :mail => mail) do
+          new.receive(mail)
+        end
       end
 
       # Deliver the given mail object directly. This can be used to deliver
@@ -494,17 +495,13 @@ module ActionMailer #:nodoc:
     def deliver!(mail = @mail)
       raise "no mail object available for delivery!" unless mail
 
-      if logger
-        logger.info  "Sent mail to #{Array(recipients).join(', ')}"
-        logger.debug "\n#{mail.encoded}"
-      end
-
-      ActiveSupport::Notifications.instrument("action_mailer.deliver", :mail => self) do
-        begin
+      begin
+        ActiveSupport::Notifications.instrument("action_mailer.deliver",
+          :mail => @mail, :mailer => self) do
           self.delivery_method.perform_delivery(mail) if perform_deliveries
-        rescue Exception => e # Net::SMTP errors or sendmail pipe errors
-          raise e if raise_delivery_errors
         end
+      rescue Exception => e # Net::SMTP errors or sendmail pipe errors
+        raise e if raise_delivery_errors
       end
 
       mail
