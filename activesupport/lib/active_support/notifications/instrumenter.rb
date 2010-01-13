@@ -11,11 +11,19 @@ module ActiveSupport
         @notifier = notifier
       end
 
-      def instrument(name, payload={})
+      # Instrument the given block by measuring the time taken to execute it
+      # and publish it.
+      def instrument(name, payload={}, add_result=false)
         time = Time.now
         result = yield if block_given?
+        payload.merge!(:result => result) if add_result
         @notifier.publish(name, time, Time.now, @id, payload)
         result
+      end
+
+      # The same as instrument, but adds the result as payload.
+      def instrument!(name, payload={}, &block)
+        instrument(name, payload, true, &block)
       end
 
       private
