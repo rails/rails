@@ -52,6 +52,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get 'admin/accounts' => "queenbee#accounts"
       end
 
+      scope 'es' do
+        resources :projects, :path_names => { :edit => 'cambiar' }, :as => 'projeto'
+      end
+
       resources :projects, :controller => :project do
         resources :involvements, :attachments
 
@@ -446,6 +450,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_raise(ActionController::RoutingError) { post '/posts' }
       assert_raise(ActionController::RoutingError) { put '/posts/1' }
       assert_raise(ActionController::RoutingError) { delete '/posts/1' }
+    end
+  end
+
+  def test_path_names
+    with_test_routes do
+      get '/es/projeto'
+      assert_equal 'projects#index', @response.body
+
+      get '/es/projeto/1/cambiar'
+      assert_equal 'projects#edit', @response.body
     end
   end
 

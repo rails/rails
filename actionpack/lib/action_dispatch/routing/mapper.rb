@@ -247,53 +247,35 @@ module ActionDispatch
             options[:controller] = args.first
           end
 
-          if path = options.delete(:path)
-            path_set = true
-            path, @scope[:path] = @scope[:path], Mapper.normalize_path(@scope[:path].to_s + path.to_s)
-          else
-            path_set = false
+          recover = {}
+
+          options[:constraints] ||= {}
+          unless options[:constraints].is_a?(Hash)
+            block, options[:constraints] = options[:constraints], {}
           end
 
-          if name_prefix = options.delete(:name_prefix)
-            name_prefix_set = true
-            name_prefix, @scope[:name_prefix] = @scope[:name_prefix], (@scope[:name_prefix] ? "#{@scope[:name_prefix]}_#{name_prefix}" : name_prefix)
-          else
-            name_prefix_set = false
+          scope_options.each do |option|
+            if value = options.delete(option)
+              recover[option] = @scope[option]
+              @scope[option]  = send("merge_#{option}_scope", @scope[option], value)
+            end
           end
 
-          if namespace = options.delete(:namespace)
-            namespace_set = true
-            namespace, @scope[:namespace] = @scope[:namespace], (@scope[:namespace] ? "#{@scope[:namespace]}/#{namespace}" : namespace)
-          else
-            namespace_set = false
-          end
+          recover[:block] = @scope[:blocks]
+          @scope[:blocks] = merge_blocks_scope(@scope[:blocks], block)
 
-          if controller = options.delete(:controller)
-            controller_set = true
-            controller, @scope[:controller] = @scope[:controller], (@scope[:namespace] ? "#{@scope[:namespace]}/#{controller}" : controller)
-          else
-            controller_set = false
-          end
-
-          constraints = options.delete(:constraints) || {}
-          unless constraints.is_a?(Hash)
-            block, constraints = constraints, {}
-          end
-
-          constraints, @scope[:constraints] = @scope[:constraints], (@scope[:constraints] || {}).merge(constraints)
-          blocks, @scope[:blocks] = @scope[:blocks], (@scope[:blocks] || []) + [block]
-          options, @scope[:options] = @scope[:options], (@scope[:options] || {}).merge(options)
+          recover[:options] = @scope[:options]
+          @scope[:options]  = merge_options_scope(@scope[:options], options)
 
           yield
           self
         ensure
-          @scope[:path]        = path        if path_set
-          @scope[:name_prefix] = name_prefix if name_prefix_set
-          @scope[:namespace]   = namespace   if namespace_set
-          @scope[:controller]  = controller  if controller_set
-          @scope[:options]     = options
-          @scope[:blocks]      = blocks
-          @scope[:constraints] = constraints
+          scope_options.each do |option|
+            @scope[option] = recover[option] if recover.has_key?(option)
+          end
+
+          @scope[:options] = recover[:options]
+          @scope[:blocks]  = recover[:block]
         end
 
         def controller(controller)
@@ -322,6 +304,43 @@ module ActionDispatch
           args.push(options)
           super(*args)
         end
+
+        private
+          def scope_options
+            @scope_options ||= private_methods.grep(/^merge_(.+)_scope$/) { $1.to_sym }
+          end
+
+          def merge_path_scope(parent, child)
+            Mapper.normalize_path(parent.to_s + child.to_s)
+          end
+
+          def merge_name_prefix_scope(parent, child)
+            parent ? "#{parent}_#{child}" : child
+          end
+
+          def merge_namespace_scope(parent, child)
+            parent ? "#{parent}/#{child}" : child
+          end
+
+          def merge_controller_scope(parent, child)
+            @scope[:namespace] ? "#{@scope[:namespace]}/#{child}" : child
+          end
+
+          def merge_resources_path_names_scope(parent, child)
+            merge_options_scope(parent, child)
+          end
+
+          def merge_constraints_scope(parent, child)
+            merge_options_scope(parent, child)
+          end
+
+          def merge_blocks_scope(parent, child)
+            (parent || []) + [child]
+          end
+
+          def merge_options_scope(parent, child)
+            (parent || {}).merge(child)
+          end
       end
 
       module Resources
@@ -391,12 +410,24 @@ module ActionDispatch
           end
         end
 
+        def initialize(*args)
+          super
+          @scope[:resources_path_names] = @set.resources_path_names
+        end
+
         def resource(*resources, &block)
           options = resources.extract_options!
 
           if resources.length > 1
             raise ArgumentError if block_given?
             resources.each { |r| resource(r, options) }
+            return self
+          end
+
+          if path_names = options.delete(:path_names)
+            scope(:resources_path_names => path_names) do
+              resource(resources, options)
+            end
             return self
           end
 
@@ -417,8 +448,8 @@ module ActionDispatch
               post   "(.:format)",      :to => :create if resource.actions.include?(:create)
               put    "(.:format)",      :to => :update if resource.actions.include?(:update)
               delete "(.:format)",      :to => :destroy if resource.actions.include?(:destroy)
-              get    "/new(.:format)",  :to => :new,  :as => "new_#{resource.singular}" if resource.actions.include?(:new)
-              get    "/edit(.:format)", :to => :edit, :as => "edit_#{resource.singular}" if resource.actions.include?(:edit)
+              get    "/#{action_path(:new)}(.:format)",  :to => :new,  :as => "new_#{resource.singular}" if resource.actions.include?(:new)
+              get    "/#{action_path(:edit)}(.:format)", :to => :edit, :as => "edit_#{resource.singular}" if resource.actions.include?(:edit)
             end
           end
 
@@ -431,6 +462,13 @@ module ActionDispatch
           if resources.length > 1
             raise ArgumentError if block_given?
             resources.each { |r| resources(r, options) }
+            return self
+          end
+
+          if path_names = options.delete(:path_names)
+            scope(:resources_path_names => path_names) do
+              resources(resources, options)
+            end
             return self
           end
 
@@ -452,7 +490,7 @@ module ActionDispatch
                 post "(.:format)", :to => :create  if resource.actions.include?(:create)
 
                 with_exclusive_name_prefix :new do
-                  get "/new(.:format)", :to => :new, :as => resource.singular if resource.actions.include?(:new)
+                  get "/#{action_path(:new)}(.:format)", :to => :new, :as => resource.singular if resource.actions.include?(:new)
                 end
               end
 
@@ -463,7 +501,7 @@ module ActionDispatch
                   delete "(.:format)", :to => :destroy if resource.actions.include?(:destroy)
 
                   with_exclusive_name_prefix :edit do
-                    get "/edit(.:format)", :to => :edit, :as => resource.singular if resource.actions.include?(:edit)
+                    get "/#{action_path(:edit)}(.:format)", :to => :edit, :as => resource.singular if resource.actions.include?(:edit)
                   end
                 end
               end
@@ -517,13 +555,15 @@ module ActionDispatch
             return self
           end
 
+          resources_path_names = options.delete(:path_names)
+
           if args.first.is_a?(Symbol)
             action = args.first
             if CRUD_ACTIONS.include?(action)
               return match("(.:format)", options.merge(:to => action))
             else
               with_exclusive_name_prefix(action) do
-                return match("/#{action}(.:format)", options.merge(:to => action))
+                return match("/#{action_path(action, resources_path_names)}(.:format)", options.merge(:to => action))
               end
             end
           end
@@ -550,6 +590,11 @@ module ActionDispatch
           end
 
         private
+          def action_path(name, path_names = nil)
+            path_names ||= @scope[:resources_path_names]
+            path_names[name.to_sym] || name.to_s
+          end
+
           def with_exclusive_name_prefix(prefix)
             begin
               old_name_prefix = @scope[:name_prefix]

@@ -294,27 +294,27 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  def test_member_when_changed_default_restful_actions_and_path_names_not_specified
-    default_path_names = ActionController::Base.resources_path_names
-    ActionController::Base.resources_path_names = {:new => 'nuevo', :edit => 'editar'}
-
-    with_restful_routing :messages do
-      new_options = { :action => 'new', :controller => 'messages' }
-      new_path = "/messages/nuevo"
-      edit_options = { :action => 'edit', :id => '1', :controller => 'messages' }
-      edit_path = "/messages/1/editar"
-
-      assert_restful_routes_for :messages do |options|
-        assert_recognizes(options.merge(new_options), :path => new_path, :method => :get)
-      end
-
-      assert_restful_routes_for :messages do |options|
-        assert_recognizes(options.merge(edit_options), :path => edit_path, :method => :get)
-      end
-    end
-  ensure
-    ActionController::Base.resources_path_names = default_path_names
-  end
+  # def test_member_when_changed_default_restful_actions_and_path_names_not_specified
+  #   default_path_names = ActionController::Base.resources_path_names
+  #   ActionController::Base.resources_path_names = {:new => 'nuevo', :edit => 'editar'}
+  #
+  #   with_restful_routing :messages do
+  #     new_options = { :action => 'new', :controller => 'messages' }
+  #     new_path = "/messages/nuevo"
+  #     edit_options = { :action => 'edit', :id => '1', :controller => 'messages' }
+  #     edit_path = "/messages/1/editar"
+  #
+  #     assert_restful_routes_for :messages do |options|
+  #       assert_recognizes(options.merge(new_options), :path => new_path, :method => :get)
+  #     end
+  #
+  #     assert_restful_routes_for :messages do |options|
+  #       assert_recognizes(options.merge(edit_options), :path => edit_path, :method => :get)
+  #     end
+  #   end
+  # ensure
+  #   ActionController::Base.resources_path_names = default_path_names
+  # end
 
   def test_with_two_member_actions_with_same_method
     [:put, :post].each do |method|

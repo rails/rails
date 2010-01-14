@@ -21,6 +21,8 @@ module ActionController
 
       class << self
         delegate :default_charset=, :to => "ActionDispatch::Response"
+        delegate :resources_path_names, :to => "ActionController::Routing::Routes"
+        delegate :resources_path_names=, :to => "ActionController::Routing::Routes"
       end
 
       # cattr_reader :protected_instance_variables
@@ -30,9 +32,6 @@ module ActionController
                                              @parent_controller @action_name
                                              @before_filter_chain_aborted @_headers @_params
                                              @_flash @_response)
-
-      cattr_accessor :resources_path_names
-      self.resources_path_names = { :new => 'new', :edit => 'edit' }
 
       # Controls the resource action separator
       cattr_accessor :resource_action_separator
