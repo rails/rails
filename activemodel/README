@@ -39,3 +39,22 @@ You can include functionality from the following modules:
     
     ...returns the class itself when sent :to_model
 
+* Tracking changes in your object
+
+    class MyClass
+      include ActiveModel::Dirty
+      
+    end
+    
+    ...provides all the value tracking features implemented by ActiveRecord
+    
+    person.name # => 'bill'
+    person.changed? # => false
+    person.name = 'bob'
+    person.changed? # => true
+    person.changed # => ['name']
+    person.changes # => { 'name' => ['bill', 'bob'] }
+    person.name = 'robert'
+    person.save
+    person.previous_changes # => {'name' => ['bob, 'robert']}
+    
