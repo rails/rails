@@ -56,6 +56,19 @@ module ActiveRecord
 
     initializer "active_record.load_observers" do
       ActiveRecord::Base.instantiate_observers
+
+      ActionDispatch::Callbacks.to_prepare(:activerecord_instantiate_observers) do
+        ActiveRecord::Base.instantiate_observers
+      end
+    end
+
+    initializer "active_record.set_dispatch_hooks", :before => :set_clear_dependencies_hook do |app|
+      unless app.config.cache_classes
+        ActionDispatch::Callbacks.after do
+          ActiveRecord::Base.reset_subclasses
+          ActiveRecord::Base.clear_reloadable_connections!
+        end
+      end
     end
 
     # TODO: ActiveRecord::Base.logger should delegate to its own config.logger

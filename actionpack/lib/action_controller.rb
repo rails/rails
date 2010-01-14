@@ -39,7 +39,7 @@ module ActionController
     autoload :Verification
   end
 
-  autoload :Dispatcher,      'action_controller/dispatch/dispatcher'
+  autoload :Dispatcher,      'action_controller/deprecated/dispatcher'
   autoload :Integration,     'action_controller/deprecated/integration_test'
   autoload :IntegrationTest, 'action_controller/deprecated/integration_test'
   autoload :PerformanceTest, 'action_controller/deprecated/performance_test'

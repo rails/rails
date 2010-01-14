@@ -66,7 +66,7 @@ module ActionController
 
     module ClassMethods
       # A hook which allows other frameworks to log what happened during
-      # controller process action. This method should return an awway
+      # controller process action. This method should return an array
       # with the messages to be added.
       # :api: plugin
       def log_process_action(controller) #:nodoc:

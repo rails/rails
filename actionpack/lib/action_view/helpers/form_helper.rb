@@ -1080,7 +1080,7 @@ module ActionView
       # Add the submit button for the given form. When no value is given, it checks
       # if the object is a new resource or not to create the proper label:
       #
-      #   <% form_for @post do %>
+      #   <% form_for @post do |f| %>
       #     <%= f.submit %>
       #   <% end %>
       # 
