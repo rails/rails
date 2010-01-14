@@ -13,7 +13,7 @@ to then present a common interface to the Action Pack helpers.
 
 You can include functionality from the following modules:
 
-* Callbacks
+* Adding callbacks to your class
 
    class MyClass
      extend ActiveModel::Callbacks
@@ -30,4 +30,12 @@ You can include functionality from the following modules:
    wrap your create method.
    
   {Learn more}[link:classes/ActiveModel/CallBacks.html]
+
+* For classes that already look like an Active Record object
+
+    class MyClass
+      include ActiveModel::Conversion
+    end
+    
+    ...returns the class itself when sent :to_model
 
