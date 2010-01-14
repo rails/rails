@@ -58,7 +58,10 @@ module Rails
       end
 
       class MockLogger
+        attr_reader :flush_count
+
         def initialize
+          @flush_count = 0
           @logged = Hash.new { |h,k| h[k] = [] }
         end
 
@@ -68,6 +71,10 @@ module Rails
 
         def logged(level)
           @logged[level].compact.map { |l| l.to_s.strip }
+        end
+
+        def flush
+          @flush_count += 1
         end
       end
 

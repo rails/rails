@@ -76,10 +76,31 @@ module SubscriberTest
 
   def test_does_not_send_the_event_if_logger_is_nil
     Rails.logger = nil
+    @subscriber.expects(:some_event).never
     Rails::Subscriber.add :my_subscriber, @subscriber
     instrument "my_subscriber.some_event"
     wait
-    assert_equal [], @logger.logged(:info)
+  end
+
+  def test_flushes_loggers
+    Rails::Subscriber.add :my_subscriber, @subscriber
+    Rails::Subscriber.flush_all!
+    assert_equal 1, @logger.flush_count
+  end
+
+  def test_flushes_loggers_when_action_dispatch_callback_is_received
+    Rails::Subscriber.add :my_subscriber, @subscriber
+    instrument "action_dispatch.callback"
+    wait
+    assert_equal 1, @logger.flush_count
+  end
+
+  def test_flushes_the_same_logger_just_once
+    Rails::Subscriber.add :my_subscriber, @subscriber
+    Rails::Subscriber.add :another, @subscriber
+    instrument "action_dispatch.callback"
+    wait
+    assert_equal 1, @logger.flush_count
   end
 
   class SyncSubscriberTest < ActiveSupport::TestCase
