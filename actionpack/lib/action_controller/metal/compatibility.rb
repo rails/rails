@@ -31,11 +31,6 @@ module ActionController
                                              @before_filter_chain_aborted @_headers @_params
                                              @_flash @_response)
 
-      # Indicates whether or not optimise the generated named
-      # route helper methods
-      cattr_accessor :optimise_named_routes
-      self.optimise_named_routes = true
-
       cattr_accessor :resources_path_names
       self.resources_path_names = { :new => 'new', :edit => 'edit' }
 

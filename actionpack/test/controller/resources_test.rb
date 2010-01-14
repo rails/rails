@@ -30,16 +30,6 @@ module Backoffice
 end
 
 class ResourcesTest < ActionController::TestCase
-  # The assertions in these tests are incompatible with the hash method
-  # optimisation.  This could indicate user level problems
-  def setup
-    ActionController::Base.optimise_named_routes = false
-  end
-
-  def teardown
-    ActionController::Base.optimise_named_routes = true
-  end
-
   def test_should_arrange_actions
     resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages,
       :collection => { :rss => :get, :reorder => :post, :csv => :post },
