@@ -260,7 +260,8 @@ module ActiveRecord
         if reflection.options[:autosave]
           association.errors.each do |attribute, message|
             attribute = "#{reflection.name}.#{attribute}"
-            errors[attribute] << message if errors[attribute].empty?
+            errors[attribute] << message
+            errors[attribute].uniq!
           end
         else
           errors.add(reflection.name)
