@@ -1077,23 +1077,28 @@ module ActionView
         @template.error_messages_for(@object_name, objectify_options(options))
       end
 
+      # Add the submit button for the given form. When no value is given, it checks
+      # if the object is a new resource or not to create the proper label:
+      #
+      #   <% form_for @post do %>
+      #     <%= f.submit %>
+      #   <% end %>
+      # 
+      # In the example above, if @post is a new record, it will use "Create Post" as
+      # submit button label, otherwise, it uses "Update Post".
+      #
+      # Those labels can be customized using I18n, under the helpers.submit key and accept
+      # the {{model}} as translation interpolation:
+      #
+      #   en:
+      #     helpers:
+      #       submit:
+      #         create: "Create a {{model}}"
+      #         update: "Confirm changes to {{model}}"
+      #
       def submit(value=nil, options={})
         value, options = nil, value if value.is_a?(Hash)
-
-        unless value
-          object = @object.respond_to?(:to_model) ? @object.to_model : @object
-          key    = object ? (object.new_record? ? :create : :update) : :submit
-
-          model = if object.class.respond_to?(:model_name)
-            object.class.model_name.human
-          else
-            @object_name.to_s.humanize
-          end
-
-          value = I18n.t(:"helpers.submit.#{key}", :model => model,
-                                                   :default => "#{key.to_s.humanize} #{model}")
-        end
-
+        value ||= submit_default_value
         @template.submit_tag(value, options.reverse_merge(:id => "#{object_name}_submit"))
       end
 
@@ -1104,6 +1109,20 @@ module ActionView
       private
         def objectify_options(options)
           @default_options.merge(options.merge(:object => @object))
+        end
+
+        def submit_default_value
+          object = @object.respond_to?(:to_model) ? @object.to_model : @object
+          key    = object ? (object.new_record? ? :create : :update) : :submit
+
+          model = if object.class.respond_to?(:model_name)
+            object.class.model_name.human
+          else
+            @object_name.to_s.humanize
+          end
+
+          I18n.t(:"helpers.submit.#{key}", :model => model,
+                 :default => "#{key.to_s.humanize} #{model}")
         end
 
         def nested_attributes_association?(association_name)
