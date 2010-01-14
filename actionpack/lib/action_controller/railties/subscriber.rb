@@ -6,7 +6,7 @@ module ActionController
         request    = controller.request
 
         info "\nProcessed #{controller.class.name}##{event.payload[:action]} " \
-          "to #{request.formats} (for #{request.remote_ip} at #{event.time.to_s(:db)}) " \
+          "to #{request.formats.join(', ')} (for #{request.remote_ip} at #{event.time.to_s(:db)}) " \
           "[#{request.method.to_s.upcase}]"
 
         params = controller.send(:filter_parameters, request.params)
@@ -37,7 +37,7 @@ module ActionController
       end
 
       def redirect_to(event)
-        info "Redirected to #{event.payload[:location]} with status #{event.payload[:status]}"
+        info "Redirected to #{event.payload[:location]}"
       end
 
       def send_data(event)

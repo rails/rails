@@ -70,6 +70,13 @@ module ActionControllerSubscriberTest
     assert_match /Processed\sAnother::SubscribersController#show/, logs[0]
   end
 
+  def test_process_action_formats
+    get :show
+    wait
+    assert_equal 2, logs.size
+    assert_match /text\/html/, logs[0]
+  end
+
   def test_process_action_without_parameters
     get :show
     wait
@@ -116,7 +123,7 @@ module ActionControllerSubscriberTest
     wait
 
     assert_equal 3, logs.size
-    assert_equal "Redirected to http://foo.bar/ with status 302", logs[0]
+    assert_equal "Redirected to http://foo.bar/", logs[0]
   end
 
   def test_send_data
