@@ -129,6 +129,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :rooms
       end
 
+      scope '(:locale)', :locale => /en|pl/ do
+        resources :descriptions
+      end
+
+      namespace :admin do
+        scope '(/:locale)', :locale => /en|pl/ do
+          resources :descriptions
+        end
+      end
+
       match '/info' => 'projects#info', :as => 'info'
 
       root :to => 'projects#index'
@@ -592,6 +602,48 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   ensure
     self.host = previous_host
+  end
+
+  def test_optional_scoped_path
+    with_test_routes do
+      assert_equal '/en/descriptions', descriptions_path("en")
+      assert_equal '/descriptions', descriptions_path(nil)
+      assert_equal '/en/descriptions/1', description_path("en", 1)
+      assert_equal '/descriptions/1', description_path(nil, 1)
+
+      get '/en/descriptions'
+      assert_equal 'descriptions#index', @response.body
+
+      get '/descriptions'
+      assert_equal 'descriptions#index', @response.body
+
+      get '/en/descriptions/1'
+      assert_equal 'descriptions#show', @response.body
+
+      get '/descriptions/1'
+      assert_equal 'descriptions#show', @response.body
+    end
+  end
+
+  def test_nested_optional_scoped_path
+    with_test_routes do
+      assert_equal '/admin/en/descriptions', admin_descriptions_path("en")
+      assert_equal '/admin/descriptions', admin_descriptions_path(nil)
+      assert_equal '/admin/en/descriptions/1', admin_description_path("en", 1)
+      assert_equal '/admin/descriptions/1', admin_description_path(nil, 1)
+
+      get '/admin/en/descriptions'
+      assert_equal 'admin/descriptions#index', @response.body
+
+      get '/admin/descriptions'
+      assert_equal 'admin/descriptions#index', @response.body
+
+      get '/admin/en/descriptions/1'
+      assert_equal 'admin/descriptions#show', @response.body
+
+      get '/admin/descriptions/1'
+      assert_equal 'admin/descriptions#show', @response.body
+    end
   end
 
   private

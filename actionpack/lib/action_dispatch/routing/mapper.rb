@@ -68,13 +68,9 @@ module ActionDispatch
           end
 
           def normalize_path(path)
-            path = nil if path == ""
-            path = "#{@scope[:path]}#{path}" if @scope[:path]
-            path = Rack::Mount::Utils.normalize_path(path) if path
-
-            raise ArgumentError, "path is required" unless path
-
-            path
+            path = "#{@scope[:path]}#{path}"
+            raise ArgumentError, "path is required" if path.empty?
+            Mapper.normalize_path(path)
           end
 
           def app
@@ -158,6 +154,14 @@ module ActionDispatch
           def default_controller
             @scope[:controller].to_s if @scope[:controller]
           end
+      end
+
+      # Invokes Rack::Mount::Utils.normalize path and ensure that
+      # (:locale) becomes (/:locale) instead of /(:locale).
+      def self.normalize_path(path)
+        path = Rack::Mount::Utils.normalize_path(path)
+        path.sub!(/^\/\(+\/?:/, '(/:')
+        path
       end
 
       module Base
@@ -245,7 +249,7 @@ module ActionDispatch
 
           if path = options.delete(:path)
             path_set = true
-            path, @scope[:path] = @scope[:path], Rack::Mount::Utils.normalize_path(@scope[:path].to_s + path.to_s)
+            path, @scope[:path] = @scope[:path], Mapper.normalize_path(@scope[:path].to_s + path.to_s)
           else
             path_set = false
           end
