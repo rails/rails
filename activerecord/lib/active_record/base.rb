@@ -644,7 +644,7 @@ module ActiveRecord #:nodoc:
         options = args.extract_options!
         set_readonly_option!(options)
 
-        relation = construct_finder_arel(options)
+        relation = construct_finder_arel(options, current_scoped_methods)
 
         case args.first
         when :first, :last, :all
@@ -870,20 +870,21 @@ module ActiveRecord #:nodoc:
       #   # Update all books that match our conditions, but limit it to 5 ordered by date
       #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
       def update_all(updates, conditions = nil, options = {})
-        scope = scope(:find)
-
         relation = active_relation
 
-        if conditions = construct_conditions(conditions, scope)
+        if conditions = construct_conditions(conditions, nil)
           relation = relation.where(Arel::SqlLiteral.new(conditions))
         end
 
-        relation = if options.has_key?(:limit) || (scope && scope[:limit])
+        relation = relation.limit(options[:limit]) if options[:limit].present?
+        relation = relation.order(options[:order]) if options[:order].present?
+
+        if current_scoped_methods && current_scoped_methods.limit_value.present? && current_scoped_methods.order_values.present?
           # Only take order from scope if limit is also provided by scope, this
           # is useful for updating a has_many association with a limit.
-          relation.order(construct_order(options[:order], scope)).limit(construct_limit(options[:limit], scope))
+          relation = current_scoped_methods.merge(relation) if current_scoped_methods
         else
-          relation.order(options[:order])
+          relation = current_scoped_methods.except(:limit, :order).merge(relation) if current_scoped_methods
         end
 
         relation.update(sanitize_sql_for_assignment(updates))
@@ -1572,26 +1573,26 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def construct_finder_arel(options = {}, scope = scope(:find))
+        def construct_finder_arel(options = {}, scope = nil)
           validate_find_options(options)
 
           relation = active_relation.
-            joins(construct_join(options[:joins], scope)).
-            where(construct_conditions(options[:conditions], scope)).
-            select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
-            group(options[:group] || (scope && scope[:group])).
-            having(options[:having] || (scope && scope[:having])).
-            order(construct_order(options[:order], scope)).
-            limit(construct_limit(options[:limit], scope)).
-            offset(construct_offset(options[:offset], scope)).
+            joins(options[:joins]).
+            where(options[:conditions]).
+            select(options[:select]).
+            group(options[:group]).
+            having(options[:having]).
+            order(options[:order]).
+            limit(options[:limit]).
+            offset(options[:offset]).
             from(options[:from]).
-            includes( merge_includes(scope && scope[:include], options[:include]))
+            includes(options[:include])
 
-          lock = (scope && scope[:lock]) || options[:lock]
-          relation = relation.lock if lock.present?
+          relation = relation.where(type_condition) if finder_needs_type_condition?
+          relation = relation.lock(options[:lock]) if options[:lock].present?
+          relation = relation.readonly(options[:readonly]) if options.has_key?(:readonly)
 
-          relation = relation.readonly if options[:readonly]
-
+          relation = scope.merge(relation) if scope
           relation
         end
 
@@ -1665,10 +1666,10 @@ module ActiveRecord #:nodoc:
           relation = active_relation.table
           join_dependency.join_associations.map { |association|
             if (association_relation = association.relation).is_a?(Array)
-              [Arel::InnerJoin.new(relation, association_relation.first, association.association_join.first).joins(relation),
-              Arel::InnerJoin.new(relation, association_relation.last, association.association_join.last).joins(relation)].join()
+              [Arel::InnerJoin.new(relation, association_relation.first, *association.association_join.first).joins(relation),
+              Arel::InnerJoin.new(relation, association_relation.last, *association.association_join.last).joins(relation)].join()
             else
-              Arel::InnerJoin.new(relation, association_relation, association.association_join).joins(relation)
+              Arel::InnerJoin.new(relation, association_relation, *association.association_join).joins(relation)
             end
           }.join(" ")
         end
@@ -1713,7 +1714,7 @@ module ActiveRecord #:nodoc:
             super unless all_attributes_exists?(attribute_names)
             if match.finder?
               options = arguments.extract_options!
-              relation = options.any? ? construct_finder_arel(options) : scoped
+              relation = options.any? ? construct_finder_arel(options, current_scoped_methods) : scoped
               relation.send :find_by_attributes, match, attribute_names, *arguments
             elsif match.instantiator?
               scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block
@@ -1830,52 +1831,49 @@ module ActiveRecord #:nodoc:
         def with_scope(method_scoping = {}, action = :merge, &block)
           method_scoping = method_scoping.method_scoping if method_scoping.respond_to?(:method_scoping)
 
-          # Dup first and second level of hash (method and params).
-          method_scoping = method_scoping.inject({}) do |hash, (method, params)|
-            hash[method] = (params == true) ? params : params.dup
-            hash
-          end
-
-          method_scoping.assert_valid_keys([ :find, :create ])
-
-          if f = method_scoping[:find]
-            f.assert_valid_keys(VALID_FIND_OPTIONS)
-            set_readonly_option! f
-          end
-
-          # Merge scopings
-          if [:merge, :reverse_merge].include?(action) && current_scoped_methods
-            method_scoping = current_scoped_methods.inject(method_scoping) do |hash, (method, params)|
-              case hash[method]
-                when Hash
-                  if method == :find
-                    (hash[method].keys + params.keys).uniq.each do |key|
-                      merge = hash[method][key] && params[key] # merge if both scopes have the same key
-                      if key == :conditions && merge
-                        if params[key].is_a?(Hash) && hash[method][key].is_a?(Hash)
-                          hash[method][key] = merge_conditions(hash[method][key].deep_merge(params[key]))
-                        else
-                          hash[method][key] = merge_conditions(params[key], hash[method][key])
-                        end
-                      elsif key == :include && merge
-                        hash[method][key] = merge_includes(hash[method][key], params[key]).uniq
-                      elsif key == :joins && merge
-                        hash[method][key] = merge_joins(params[key], hash[method][key])
-                      else
-                        hash[method][key] = hash[method][key] || params[key]
-                      end
-                    end
-                  else
-                    if action == :reverse_merge
-                      hash[method] = hash[method].merge(params)
-                    else
-                      hash[method] = params.merge(hash[method])
-                    end
-                  end
-                else
-                  hash[method] = params
-              end
+          if method_scoping.is_a?(Hash)
+            # Dup first and second level of hash (method and params).
+            method_scoping = method_scoping.inject({}) do |hash, (method, params)|
+              hash[method] = (params == true) ? params : params.dup
               hash
+            end
+
+            method_scoping.assert_valid_keys([ :find, :create ])
+
+            if f = method_scoping[:find]
+              f.assert_valid_keys(VALID_FIND_OPTIONS)
+              set_readonly_option! f
+            end
+
+            relation = construct_finder_arel(method_scoping[:find] || {})
+
+            if current_scoped_methods && current_scoped_methods.create_with_value && method_scoping[:create]
+              scope_for_create = case action
+              when :merge
+                current_scoped_methods.create_with_value.merge(method_scoping[:create])
+              when :reverse_merge
+                method_scoping[:create].merge(current_scoped_methods.create_with_value)
+              else
+                method_scoping[:create]
+              end
+
+              relation = relation.create_with(scope_for_create)
+            else
+              scope_for_create = method_scoping[:create]
+              scope_for_create ||= current_scoped_methods.create_with_value if current_scoped_methods
+              relation = relation.create_with(scope_for_create) if scope_for_create
+            end
+
+            method_scoping = relation
+          end
+
+          if current_scoped_methods
+            case action
+            when :merge
+              method_scoping = current_scoped_methods.merge(method_scoping)
+            when :reverse_merge
+              method_scoping = current_scoped_methods.except(:where).merge(method_scoping)
+              method_scoping = method_scoping.merge(current_scoped_methods.only(:where))
             end
           end
 
@@ -1904,20 +1902,22 @@ module ActiveRecord #:nodoc:
         #     default_scope :order => 'last_name, first_name'
         #   end
         def default_scope(options = {})
-          self.default_scoping << { :find => options, :create => options[:conditions].is_a?(Hash) ? options[:conditions] : {} }
+          self.default_scoping << construct_finder_arel(options)
         end
 
         # Test whether the given method and optional key are scoped.
         def scoped?(method, key = nil) #:nodoc:
-          if current_scoped_methods && (scope = current_scoped_methods[method])
-            !key || !scope[key].nil?
+          case method
+          when :create
+            current_scoped_methods.send(:scope_for_create).present? if current_scoped_methods
           end
         end
 
         # Retrieve the scope for the given method and optional key.
         def scope(method, key = nil) #:nodoc:
-          if current_scoped_methods && (scope = current_scoped_methods[method])
-            key ? scope[key] : scope
+          case method
+          when :create
+            current_scoped_methods.send(:scope_for_create) if current_scoped_methods
           end
         end
 

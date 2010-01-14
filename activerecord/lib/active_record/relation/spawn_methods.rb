@@ -19,21 +19,19 @@ module ActiveRecord
 
       merged_relation = spawn.eager_load(r.eager_load_values).preload(r.preload_values).includes(r.includes_values)
 
-      merged_relation.readonly_value = r.readonly_value unless merged_relation.readonly_value
-      merged_relation.limit_value = r.limit_value unless merged_relation.limit_value
+      merged_relation.readonly_value = r.readonly_value unless r.readonly_value.nil?
+      merged_relation.limit_value = r.limit_value if r.limit_value.present?
       merged_relation.lock_value = r.lock_value unless merged_relation.lock_value
+      merged_relation.offset_value = r.offset_value if r.offset_value.present?
 
       merged_relation = merged_relation.
         joins(r.joins_values).
         group(r.group_values).
-        offset(r.offset_value).
         select(r.select_values).
         from(r.from_value).
         having(r.having_values)
 
-      relation_order = r.order_values
-      merged_order = relation_order.present? ? relation_order : order_values
-      merged_relation.order_values = merged_order
+      merged_relation.order_values = Array.wrap(order_values) + Array.wrap(r.order_values)
 
       merged_relation.create_with_value = @create_with_value
 
@@ -50,7 +48,7 @@ module ActiveRecord
           merged_wheres = merged_wheres.reject {|p| p.is_a?(Arel::Predicates::Equality) && p.operand1.name == w.operand1.name }
         end
 
-        merged_wheres << w
+        merged_wheres += [w]
       end
 
       merged_relation.where_values = merged_wheres
@@ -69,6 +67,22 @@ module ActiveRecord
 
       Relation::SINGLE_VALUE_METHODS.each do |method|
         result.send(:"#{method}_value=", send(:"#{method}_value")) unless skips.include?(method)
+      end
+
+      result
+    end
+
+    def only(*onlies)
+      result = Relation.new(@klass, table)
+
+      onlies.each do |only|
+        if (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).include?(only)
+          result.send(:"#{only}_values=", send(:"#{only}_values"))
+        elsif Relation::SINGLE_VALUE_METHODS.include?(only)
+          result.send(:"#{only}_value=", send(:"#{only}_value"))
+        else
+          raise "Invalid argument : #{only}"
+        end
       end
 
       result

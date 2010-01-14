@@ -8,37 +8,9 @@ require 'models/categorization'
 class InnerJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments, :categories, :categories_posts, :categorizations
 
-  def test_construct_finder_sql_creates_inner_joins
-    sql = Author.joins(:posts).to_sql
-    assert_match /INNER JOIN .?posts.? ON .?posts.?.author_id = authors.id/, sql
-  end
-
-  def test_construct_finder_sql_cascades_inner_joins
-    sql = Author.joins(:posts => :comments).to_sql
-    assert_match /INNER JOIN .?posts.? ON .?posts.?.author_id = authors.id/, sql
-    assert_match /INNER JOIN .?comments.? ON .?comments.?.post_id = posts.id/, sql
-  end
-
-  def test_construct_finder_sql_inner_joins_through_associations
-    sql = Author.joins(:categorized_posts).to_sql
-    assert_match /INNER JOIN .?categorizations.?.*INNER JOIN .?posts.?/, sql
-  end
-
-  def test_construct_finder_sql_applies_association_conditions
-    sql = Author.joins(:categories_like_general).where("TERMINATING_MARKER").to_sql
-    assert_match /INNER JOIN .?categories.? ON.*AND.*.?General.?(.|\n)*TERMINATING_MARKER/, sql
-  end
-
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.joins(:thinking_posts, :welcome_posts).to_a
     assert_equal authors(:david), result.first
-  end
-
-  def test_construct_finder_sql_unpacks_nested_joins
-    sql = Author.joins(:posts => [[:comments]]).to_sql
-    assert_no_match /inner join.*inner join.*inner join/i, sql, "only two join clauses should be present"
-    assert_match /INNER JOIN .?posts.? ON .?posts.?.author_id = authors.id/, sql
-    assert_match /INNER JOIN .?comments.? ON .?comments.?.post_id = .?posts.?.id/, sql
   end
 
   def test_construct_finder_sql_ignores_empty_joins_hash

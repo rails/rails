@@ -47,17 +47,20 @@ module ActiveRecord
 
       @records = if find_with_associations
         begin
-          @klass.send(:find_with_associations, {
-            :select => arel.send(:select_clauses).join(', '),
+          options = {
+            :select => @select_values.any? ? @select_values.join(", ") : nil,
             :joins => arel.joins(arel),
-            :group => arel.send(:group_clauses).join(', '),
+            :group =>  @group_values.any? ? @group_values.join(", ") : nil,
             :order => order_clause,
             :conditions => where_clause,
             :limit => arel.taken,
             :offset => arel.skipped,
             :from => (arel.send(:from_clauses) if arel.send(:sources).present?)
-            },
-            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_values + @includes_values, nil))
+          }
+
+          including = (@eager_load_values + @includes_values).uniq
+          join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
+          @klass.send(:find_with_associations, options, join_dependency)
         rescue ThrowResult
           []
         end
@@ -161,7 +164,7 @@ module ActiveRecord
     end
 
     def with_create_scope
-      @klass.send(:with_scope, :create => scope_for_create) { yield }
+      @klass.send(:with_scope, :create => scope_for_create, :find => {}) { yield }
     end
 
     def scope_for_create

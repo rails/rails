@@ -6,8 +6,7 @@ module ActiveRecord
 
       def construct_scope
         { :create => construct_owner_attributes(@reflection),
-          :find   => { :from        => construct_from,
-                       :conditions  => construct_conditions,
+          :find   => { :conditions  => construct_conditions,
                        :joins       => construct_joins,
                        :include     => @reflection.options[:include] || @reflection.source_reflection.options[:include],
                        :select      => construct_select,
