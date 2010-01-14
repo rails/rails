@@ -1,21 +1,33 @@
-Active Model
-==============
+= Active Model - defined interfaces for Rails
 
-Totally experimental library that aims to extract common model mixins from
-ActiveRecord for use in ActiveResource (and other similar libraries).  
-This is in a very rough state (no autotest or spec rake tasks set up yet),
-so please excuse the mess.  
+Prior to Rails 3.0, if a plugin or gem developer wanted to be able to have
+an object interact with Action Pack helpers, it was required to either
+copy chunks of code from Rails, or monkey patch entire helpers to make them
+handle objects that did not look like Active Record.  This generated code
+duplication and fragile applications that broke on upgrades.
 
-Here's what I plan to extract:
-  * ActiveModel::Observing 
-  * ActiveModel::Callbacks
-  * ActiveModel::Validations
+Active Model is a solution for this problem.
 
-	# for ActiveResource params and ActiveRecord options
-  * ActiveModel::Scoping
+Active Model provides a known set of interfaces that your objects can implement
+to then present a common interface to the Action Pack helpers.
 
-	# to_json, to_xml, etc
-  * ActiveModel::Serialization
+You can include functionality from the following modules:
 
-I'm trying to keep ActiveRecord compatibility where possible, but I'm
-annotating the spots where I'm diverging a bit.
+* Callbacks
+
+   class MyClass
+     extend ActiveModel::Callbacks
+     define_model_callbacks :create
+
+     def create
+       _run_create_callbacks do
+         # Your create action methods here
+       end
+     end
+   end
+   
+   ...gives you before_create, around_create and after_create class methods that
+   wrap your create method.
+   
+  {Learn more}[link:classes/ActiveModel/CallBacks.html]
+
