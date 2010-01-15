@@ -93,19 +93,19 @@ module ActionView
     def _render_template(template, layout = nil, options = {})
       locals = options[:locals] || {}
 
-      content = ActiveSupport::Notifications.instrument("action_view.render_template",
-                :identifier => template.identifier, :layout => (layout ? layout.identifier : nil)) do
-        template.render(self, locals)
+      ActiveSupport::Notifications.instrument("action_view.render_template",
+        :identifier => template.identifier, :layout => layout.try(:identifier)) do
+
+        content = template.render(self, locals)
+        @_content_for[:layout] = content
+
+        if layout
+          @_layout = layout.identifier
+          content  = _render_layout(layout, locals)
+        end
+
+        content
       end
-
-      @_content_for[:layout] = content
-
-      if layout
-        @_layout = layout.identifier
-        content  = _render_layout(layout, locals)
-      end
-
-      content
     end
 
     def _render_layout(layout, locals, &block)
