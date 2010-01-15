@@ -1846,14 +1846,6 @@ module ActiveRecord #:nodoc:
           self.default_scoping << construct_finder_arel(options)
         end
 
-        # Test whether the given method and optional key are scoped.
-        def scoped?(method, key = nil) #:nodoc:
-          case method
-          when :create
-            current_scoped_methods.send(:scope_for_create).present? if current_scoped_methods
-          end
-        end
-
         def scoped_methods #:nodoc:
           Thread.current[:"#{self}_scoped_methods"] ||= self.default_scoping.dup
         end
@@ -2111,7 +2103,11 @@ module ActiveRecord #:nodoc:
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
-        self.class.send(:scope, :create).each { |att, value| self.send("#{att}=", value) } if self.class.send(:scoped?, :create)
+
+        if scope = self.class.send(:current_scoped_methods)
+          create_with = scope.scope_for_create
+          create_with.each { |att,value| self.send("#{att}=", value) } if create_with
+        end
       end
 
       # Returns a String, which Action Pack uses for constructing an URL to this
