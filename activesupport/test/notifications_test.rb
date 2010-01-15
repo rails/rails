@@ -90,8 +90,8 @@ module Notifications
       drain
     end
 
-    def test_instrument_with_band_adds_result_to_payload
-      assert_equal 2, instrument!(:awesome) { 1 + 1 }
+    def test_instrument_yields_the_paylod_for_further_modification
+      assert_equal 2, instrument(:awesome) { |p| p[:result] = 1 + 1 }
       drain
 
       assert_equal 1, @events.size
