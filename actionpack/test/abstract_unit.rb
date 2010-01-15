@@ -91,7 +91,7 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
       middleware.use "ActionDispatch::ShowExceptions"
       middleware.use "ActionDispatch::Callbacks"
       middleware.use "ActionDispatch::ParamsParser"
-      middleware.use "Rack::Head"
+      middleware.use "ActionDispatch::Head"
     }.build(routes || ActionController::Routing::Routes)
   end
 

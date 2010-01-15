@@ -35,7 +35,8 @@ module ActionDispatch
     # <tt>:get</tt>. If the request \method is not listed in the HTTP_METHODS
     # constant above, an UnknownHttpMethod exception is raised.
     def request_method
-      HTTP_METHOD_LOOKUP[super] || raise(ActionController::UnknownHttpMethod, "#{super}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
+      method = env["rack.methodoverride.original_method"] || env["REQUEST_METHOD"]
+      HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
     end
 
     # Returns the HTTP request \method used for action processing as a
@@ -43,7 +44,8 @@ module ActionDispatch
     # method returns <tt>:get</tt> for a HEAD request because the two are
     # functionally equivalent from the application's perspective.)
     def method
-      request_method == :head ? :get : request_method
+      method = env["REQUEST_METHOD"]
+      HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
     end
 
     # Is this a GET (or HEAD) request?  Equivalent to <tt>request.method == :get</tt>.
@@ -53,17 +55,17 @@ module ActionDispatch
 
     # Is this a POST request?  Equivalent to <tt>request.method == :post</tt>.
     def post?
-      request_method == :post
+      method == :post
     end
 
     # Is this a PUT request?  Equivalent to <tt>request.method == :put</tt>.
     def put?
-      request_method == :put
+      method == :put
     end
 
     # Is this a DELETE request?  Equivalent to <tt>request.method == :delete</tt>.
     def delete?
-      request_method == :delete
+      method == :delete
     end
 
     # Is this a HEAD request? Since <tt>request.method</tt> sees HEAD as <tt>:get</tt>,

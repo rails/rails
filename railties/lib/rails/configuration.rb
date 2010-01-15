@@ -18,7 +18,7 @@ module Rails
         middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
         middleware.use('ActionDispatch::ParamsParser')
         middleware.use('::Rack::MethodOverride')
-        middleware.use('::Rack::Head')
+        middleware.use('::ActionDispatch::Head')
       end
     end
 

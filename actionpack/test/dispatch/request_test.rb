@@ -319,7 +319,7 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "allow method hacking on post" do
-    [:get, :head, :options, :put, :post, :delete].each do |method|
+    [:get, :options, :put, :post, :delete].each do |method|
       request = stub_request "REQUEST_METHOD" => method.to_s.upcase
       assert_equal(method == :head ? :get : method, request.method)
     end
@@ -341,7 +341,7 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "head masquerading as get" do
-    request = stub_request 'REQUEST_METHOD' => 'HEAD'
+    request = stub_request 'REQUEST_METHOD' => 'GET', "rack.methodoverride.original_method" => "HEAD"
     assert_equal :get, request.method
     assert request.get?
     assert request.head?

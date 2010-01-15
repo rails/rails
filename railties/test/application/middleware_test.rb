@@ -23,7 +23,7 @@ module ApplicationTests
         "ActionDispatch::Cascade",
         "ActionDispatch::ParamsParser",
         "Rack::MethodOverride",
-        "Rack::Head",
+        "ActionDispatch::Head",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache"
       ], middleware
