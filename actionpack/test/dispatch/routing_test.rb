@@ -115,6 +115,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'articles/:year/:month/:day/:title', :to => "articles#show", :as => :article
 
       namespace :account do
+        match 'description', :to => "account#description", :as => "description"
         resource :subscription, :credit, :credit_card
 
         namespace :admin do
@@ -648,6 +649,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   ensure
     self.host = previous_host
+  end
+
+  def test_normalize_namespaced_matches
+    with_test_routes do
+      assert_equal '/account/description', account_description_path
+
+      get '/account/description'
+      assert_equal 'account#description', @response.body
+    end
   end
 
   def test_optional_scoped_path
