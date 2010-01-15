@@ -87,10 +87,12 @@ end
 
 class ActionController::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
+    ActionDispatch::Flash
     ActionDispatch::MiddlewareStack.new { |middleware|
       middleware.use "ActionDispatch::ShowExceptions"
       middleware.use "ActionDispatch::Callbacks"
       middleware.use "ActionDispatch::ParamsParser"
+      middleware.use "ActionDispatch::Flash"
       middleware.use "ActionDispatch::Head"
     }.build(routes || ActionController::Routing::Routes)
   end

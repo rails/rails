@@ -16,6 +16,7 @@ module Rails
         middleware.use('ActionDispatch::ShowExceptions', lambda { ActionController::Base.consider_all_requests_local })
         middleware.use('ActionDispatch::Callbacks', lambda { ActionController::Dispatcher.prepare_each_request })
         middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
+        middleware.use('ActionDispatch::Flash', :if => lambda { ActionController::Base.session_store })
         middleware.use('ActionDispatch::ParamsParser')
         middleware.use('::Rack::MethodOverride')
         middleware.use('::ActionDispatch::Head')

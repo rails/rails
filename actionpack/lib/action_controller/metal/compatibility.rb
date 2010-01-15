@@ -31,7 +31,7 @@ module ActionController
                                              @variables_added @request_origin @url
                                              @parent_controller @action_name
                                              @before_filter_chain_aborted @_headers @_params
-                                             @_flash @_response)
+                                             @_response)
 
       # Controls the resource action separator
       cattr_accessor :resource_action_separator

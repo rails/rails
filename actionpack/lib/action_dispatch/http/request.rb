@@ -463,10 +463,6 @@ EOM
       @env['rack.session.options'] = options
     end
 
-    def flash
-      session['flash'] || {}
-    end
-
     # Returns the authorization header regardless of whether it was specified directly or through one of the
     # proxy alternatives.
     def authorization
