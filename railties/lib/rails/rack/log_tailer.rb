@@ -13,11 +13,11 @@ module Rails
 
       def call(env)
         response = @app.call(env)
-        tail_log
+        tail!
         response
       end
 
-      def tail_log
+      def tail!
         @file.seek @cursor
 
         mod = @file.mtime.to_f

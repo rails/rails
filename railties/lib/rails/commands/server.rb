@@ -46,6 +46,7 @@ module Rails
       trap(:INT) { exit }
       puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
 
+      Rails::Subscriber.tail_log = true unless options[:daemonize]
       super
     ensure
       puts 'Exiting' unless options[:daemonize]
@@ -53,13 +54,8 @@ module Rails
 
     def middleware
       middlewares = []
-      middlewares << [Rails::Rack::LogTailer, log_path] unless options[:daemonize]
       middlewares << [Rails::Rack::Debugger]  if options[:debugger]
       Hash.new(middlewares)
-    end
-
-    def log_path
-      "log/#{options[:environment]}.log"
     end
 
     def default_options

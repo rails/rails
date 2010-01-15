@@ -24,11 +24,13 @@ module SubscriberTest
   def setup
     super
     @subscriber = MySubscriber.new
+    Rails::Subscriber.instance_variable_set(:@log_tailer, nil)
   end
 
   def teardown
     super
     Rails::Subscriber.subscribers.clear
+    Rails::Subscriber.instance_variable_set(:@log_tailer, nil)
   end
 
   def instrument(*args, &block)
@@ -101,6 +103,19 @@ module SubscriberTest
     instrument "action_dispatch.callback"
     wait
     assert_equal 1, @logger.flush_count
+  end
+
+  def test_tails_logs_when_action_dispatch_callback_is_received
+    log_tailer = mock()
+    log_tailer.expects(:tail!)
+    Rails::Rack::LogTailer.expects(:new).with(nil, "log/development.log").returns(log_tailer)
+
+    Rails::Subscriber.tail_log = true
+    Rails::Subscriber.add :my_subscriber, @subscriber
+    instrument "action_dispatch.callback"
+    wait
+  ensure
+    Rails::Subscriber.tail_log = false
   end
 
   class SyncSubscriberTest < ActiveSupport::TestCase
