@@ -142,6 +142,15 @@ module ActiveRecord
       @to_sql ||= arel.to_sql
     end
 
+    def scope_for_create
+      @scope_for_create ||= begin
+        @create_with_value || wheres.inject({}) do |hash, where|
+          hash[where.operand1.name] = where.operand2.value if where.is_a?(Arel::Predicates::Equality)
+          hash
+        end
+      end
+    end
+
     protected
 
     def method_missing(method, *args, &block)
@@ -165,15 +174,6 @@ module ActiveRecord
 
     def with_create_scope
       @klass.send(:with_scope, :create => scope_for_create, :find => {}) { yield }
-    end
-
-    def scope_for_create
-      @scope_for_create ||= begin
-        @create_with_value || wheres.inject({}) do |hash, where|
-          hash[where.operand1.name] = where.operand2.value if where.is_a?(Arel::Predicates::Equality)
-          hash
-        end
-      end
     end
 
     def where_clause(join_string = " AND ")

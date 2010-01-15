@@ -642,7 +642,6 @@ module ActiveRecord #:nodoc:
       #   end
       def find(*args)
         options = args.extract_options!
-        set_readonly_option!(options)
 
         relation = construct_finder_arel(options, current_scoped_methods)
 
@@ -815,7 +814,7 @@ module ActiveRecord #:nodoc:
       #   # Delete multiple rows
       #   Todo.delete([2,3,4])
       def delete(id_or_array)
-        active_relation.where(construct_conditions(nil, scope(:find))).delete(id_or_array)
+        active_relation.where(construct_conditions(nil, current_scoped_methods)).delete(id_or_array)
       end
 
       # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
@@ -938,7 +937,7 @@ module ActiveRecord #:nodoc:
       # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
       # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
-        active_relation.where(construct_conditions(conditions, scope(:find))).delete_all
+        active_relation.where(construct_conditions(conditions, current_scoped_methods)).delete_all
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
@@ -1842,7 +1841,6 @@ module ActiveRecord #:nodoc:
 
             if f = method_scoping[:find]
               f.assert_valid_keys(VALID_FIND_OPTIONS)
-              set_readonly_option! f
             end
 
             relation = construct_finder_arel(method_scoping[:find] || {})
@@ -1910,14 +1908,6 @@ module ActiveRecord #:nodoc:
           case method
           when :create
             current_scoped_methods.send(:scope_for_create).present? if current_scoped_methods
-          end
-        end
-
-        # Retrieve the scope for the given method and optional key.
-        def scope(method, key = nil) #:nodoc:
-          case method
-          when :create
-            current_scoped_methods.send(:scope_for_create) if current_scoped_methods
           end
         end
 
@@ -2129,18 +2119,6 @@ module ActiveRecord #:nodoc:
           options.assert_valid_keys(VALID_FIND_OPTIONS)
         end
 
-        def set_readonly_option!(options) #:nodoc:
-          # Inherit :readonly from finder scope if set.  Otherwise,
-          # if :joins is not blank then :readonly defaults to true.
-          unless options.has_key?(:readonly)
-            if scoped_readonly = scope(:find, :readonly)
-              options[:readonly] = scoped_readonly
-            elsif !options[:joins].blank? && !options[:select]
-              options[:readonly] = true
-            end
-          end
-        end
-
         def encode_quoted_value(value) #:nodoc:
           quoted_value = connection.quote(value)
           quoted_value = "'#{quoted_value[1..-2].gsub(/\'/, "\\\\'")}'" if quoted_value.include?("\\\'") # (for ruby mode) "
@@ -2159,7 +2137,12 @@ module ActiveRecord #:nodoc:
         @new_record = true
         ensure_proper_type
         self.attributes = attributes unless attributes.nil?
-        self.class.send(:scope, :create).each { |att,value| self.send("#{att}=", value) } if self.class.send(:scoped?, :create)
+
+        if scope = self.class.send(:current_scoped_methods)
+          create_with = scope.scope_for_create
+          create_with.each { |att,value| self.send("#{att}=", value) } if create_with
+        end
+
         result = yield self if block_given?
         _run_initialize_callbacks
         result
