@@ -68,7 +68,7 @@ module ActionDispatch
           end
 
           def normalize_path(path)
-            path = "#{@scope[:path]}#{path}"
+            path = "#{@scope[:path]}/#{path}"
             raise ArgumentError, "path is required" if path.empty?
             Mapper.normalize_path(path)
           end
@@ -160,7 +160,7 @@ module ActionDispatch
       # (:locale) becomes (/:locale) instead of /(:locale).
       def self.normalize_path(path)
         path = Rack::Mount::Utils.normalize_path(path)
-        path.sub!(/^\/\(+\/?:/, '(/:')
+        path.sub!(%r{/\(+/?:}, '(/:')
         path
       end
 
@@ -283,7 +283,7 @@ module ActionDispatch
         end
 
         def namespace(path)
-          scope("/#{path}", :name_prefix => path.to_s, :namespace => path.to_s) { yield }
+          scope(path.to_s, :name_prefix => path.to_s, :namespace => path.to_s) { yield }
         end
 
         def constraints(constraints = {})
@@ -311,7 +311,7 @@ module ActionDispatch
           end
 
           def merge_path_scope(parent, child)
-            Mapper.normalize_path(parent.to_s + child.to_s)
+            Mapper.normalize_path("#{parent}/#{child}")
           end
 
           def merge_name_prefix_scope(parent, child)
@@ -440,7 +440,7 @@ module ActionDispatch
             return self
           end
 
-          scope(:path => "/#{resource.name}", :controller => resource.controller) do
+          scope(:path => resource.name.to_s, :controller => resource.controller) do
             with_scope_level(:resource, resource) do
               yield if block_given?
 
@@ -481,7 +481,7 @@ module ActionDispatch
             return self
           end
 
-          scope(:path => "/#{resource.name}", :controller => resource.controller) do
+          scope(:path => resource.name.to_s, :controller => resource.controller) do
             with_scope_level(:resources, resource) do
               yield if block_given?
 
@@ -492,7 +492,7 @@ module ActionDispatch
               end
 
               with_scope_level(:member) do
-                scope("/:id") do
+                scope(':id') do
                   get    :show, :as => resource.member_name if resource.actions.include?(:show)
                   put    :update if resource.actions.include?(:update)
                   delete :destroy if resource.actions.include?(:destroy)
@@ -523,7 +523,7 @@ module ActionDispatch
           end
 
           with_scope_level(:member) do
-            scope("/:id", :name_prefix => parent_resource.member_name, :as => "") do
+            scope(':id', :name_prefix => parent_resource.member_name, :as => "") do
               yield
             end
           end
@@ -535,7 +535,7 @@ module ActionDispatch
           end
 
           with_scope_level(:nested) do
-            scope("/#{parent_resource.id_segment}", :name_prefix => parent_resource.member_name) do
+            scope(parent_resource.id_segment, :name_prefix => parent_resource.member_name) do
               yield
             end
           end
@@ -554,10 +554,16 @@ module ActionDispatch
           if args.first.is_a?(Symbol)
             action = args.first
             if CRUD_ACTIONS.include?(action)
-              return match("(.:format)", options.reverse_merge(:to => action))
+              begin
+                old_path = @scope[:path]
+                @scope[:path] = "#{@scope[:path]}(.:format)"
+                return match(options.reverse_merge(:to => action))
+              ensure
+                @scope[:path] = old_path
+              end
             else
               with_exclusive_name_prefix(action) do
-                return match("/#{action_path(action, resources_path_names)}(.:format)", options.reverse_merge(:to => action))
+                return match("#{action_path(action, resources_path_names)}(.:format)", options.reverse_merge(:to => action))
               end
             end
           end
