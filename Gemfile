@@ -7,9 +7,6 @@ gem "rails", "3.0.pre", :path => "railties"
   gem lib, '3.0.pre', :path => lib
 end
 
-# AS
-gem "i18n", "0.3.3"
-
 # AR
 gem "arel", "0.2.pre", :git => "git://github.com/rails/arel.git"
 gem "sqlite3-ruby", ">= 1.2.5"
