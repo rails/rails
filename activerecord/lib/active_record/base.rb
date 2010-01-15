@@ -1609,30 +1609,6 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def construct_order(order, scope)
-          orders = []
-
-          scoped_order = scope[:order] if scope
-          if order
-            orders << order
-            orders << scoped_order if scoped_order && scoped_order != order
-          elsif scoped_order
-            orders << scoped_order
-          end
-
-          orders.reject {|o| o.blank?}
-        end
-
-        def construct_limit(limit, scope)
-          limit ||= scope[:limit] if scope
-          limit
-        end
-
-        def construct_offset(offset, scope)
-          offset ||= scope[:offset] if scope
-          offset
-        end
-
         # Merges includes so that the result is a valid +include+
         def merge_includes(first, second)
          (Array.wrap(first) + Array.wrap(second)).uniq
