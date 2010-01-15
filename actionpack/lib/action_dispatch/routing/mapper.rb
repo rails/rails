@@ -560,10 +560,10 @@ module ActionDispatch
           if args.first.is_a?(Symbol)
             action = args.first
             if CRUD_ACTIONS.include?(action)
-              return match("(.:format)", options.merge(:to => action))
+              return match("(.:format)", options.reverse_merge(:to => action))
             else
               with_exclusive_name_prefix(action) do
-                return match("/#{action_path(action, resources_path_names)}(.:format)", options.merge(:to => action))
+                return match("/#{action_path(action, resources_path_names)}(.:format)", options.reverse_merge(:to => action))
               end
             end
           end

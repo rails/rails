@@ -97,6 +97,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      resources :replies do
+        member do
+          put :answer, :to => :mark_as_answer
+          delete :answer, :to => :unmark_as_answer
+        end
+      end
+
       resources :posts, :only => [:index, :show]
 
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
@@ -434,6 +441,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       post '/projects/1/posts/1/comments/preview'
       assert_equal 'comments#preview', @response.body
       assert_equal '/projects/1/posts/1/comments/preview', preview_project_post_comments_path(:project_id => '1', :post_id => '1')
+    end
+  end
+
+  def test_replies
+    with_test_routes do
+      put '/replies/1/answer'
+      assert_equal 'replies#mark_as_answer', @response.body
+
+      delete '/replies/1/answer'
+      assert_equal 'replies#unmark_as_answer', @response.body
     end
   end
 
