@@ -207,6 +207,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/session'
       assert_equal 'sessions#create', @response.body
+      assert_equal '/session', session_path
 
       post '/session'
       assert_equal 'sessions#create', @response.body
@@ -219,9 +220,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/session/new'
       assert_equal 'sessions#new', @response.body
+      assert_equal '/session/new', new_session_path
 
       get '/session/edit'
       assert_equal 'sessions#edit', @response.body
+      assert_equal '/session/edit', edit_session_path
     end
   end
 

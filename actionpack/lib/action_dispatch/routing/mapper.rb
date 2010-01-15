@@ -448,8 +448,8 @@ module ActionDispatch
               post   :create if resource.actions.include?(:create)
               put    :update if resource.actions.include?(:update)
               delete :destroy if resource.actions.include?(:destroy)
-              get    :new, :as => "new_#{resource.singular}" if resource.actions.include?(:new)
-              get    :edit, :as => "edit_#{resource.singular}" if resource.actions.include?(:edit)
+              get    :new, :as => resource.singular if resource.actions.include?(:new)
+              get    :edit, :as => resource.singular if resource.actions.include?(:edit)
             end
           end
 
