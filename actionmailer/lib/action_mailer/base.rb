@@ -398,9 +398,10 @@ module ActionMailer #:nodoc:
       #       ...
       #     end
       #   end
-      def receive(raw_email)
-        mail = Mail.new(raw_email)
-        ActiveSupport::Notifications.instrument("action_mailer.receive", :mail => mail) do
+      def receive(raw_mail)
+        ActiveSupport::Notifications.instrument("action_mailer.receive") do |payload|
+          mail = Mail.new(raw_mail)
+          set_payload_for_mail(payload, mail)
           new.receive(mail)
         end
       end
@@ -424,7 +425,20 @@ module ActionMailer #:nodoc:
         self.view_paths = ActionView::Base.process_view_paths(root)
       end
 
+      def set_payload_for_mail(payload, mail) #:nodoc:
+        payload[:subject]  = mail.subject
+        payload[:to]       = mail.to
+        payload[:from]     = mail.from
+        payload[:bcc]      = mail.bcc
+        payload[:cc]       = mail.cc
+        payload[:reply_to] = mail.reply_to
+        payload[:date]     = mail.date
+        payload[:body]     = mail.body.encoded
+        payload[:mail]     = mail.encoded
+      end
+
       private
+
         def matches_dynamic_method?(method_name) #:nodoc:
           method_name = method_name.to_s
           /^(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
@@ -497,7 +511,8 @@ module ActionMailer #:nodoc:
 
       begin
         ActiveSupport::Notifications.instrument("action_mailer.deliver",
-          :mail => @mail, :mailer => self) do
+          :template => template, :mailer_name => mailer_name) do |payload|
+          self.class.set_payload_for_mail(payload, mail)
           self.delivery_method.perform_delivery(mail) if perform_deliveries
         end
       rescue Exception => e # Net::SMTP errors or sendmail pipe errors

@@ -31,7 +31,7 @@ module SubscriberTest
     assert_match /Hello world/, @logger.logged(:debug).first
   end
 
-  def test_receive_is_notifier
+  def test_receive_is_notified
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email")
     TestMailer.receive(fixture)
     wait
