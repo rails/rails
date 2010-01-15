@@ -1562,14 +1562,6 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def default_select(qualified)
-          if qualified
-            quoted_table_name + '.*'
-          else
-            '*'
-          end
-        end
-
         def construct_finder_arel(options = {}, scope = nil)
           validate_find_options(options)
 
