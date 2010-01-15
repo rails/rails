@@ -1622,14 +1622,12 @@ module ActiveRecord #:nodoc:
           o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
         end
 
-        def type_condition(table_alias = nil)
-          table = Arel::Table.new(table_name, :engine => active_relation_engine, :as => table_alias)
-
-          sti_column = table[inheritance_column]
+        def type_condition
+          sti_column = active_relation_table[inheritance_column]
           condition = sti_column.eq(sti_name)
           subclasses.each{|subclass| condition = condition.or(sti_column.eq(subclass.sti_name)) }
 
-          condition.to_sql
+          condition
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.

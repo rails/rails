@@ -144,7 +144,7 @@ module ActiveRecord
       end
 
       def build_sti_condition
-        @reflection.through_reflection.klass.send(:type_condition)
+        @reflection.through_reflection.klass.send(:type_condition).to_sql
       end
 
       alias_method :sql_conditions, :conditions
