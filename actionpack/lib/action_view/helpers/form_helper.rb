@@ -1096,6 +1096,14 @@ module ActionView
       #         create: "Create a {{model}}"
       #         update: "Confirm changes to {{model}}"
       #
+      # It also searches for a key specific for the given object:
+      #
+      #   en:
+      #     helpers:
+      #       submit:
+      #         post:
+      #           create: "Add {{model}}"
+      #
       def submit(value=nil, options={})
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
@@ -1121,8 +1129,12 @@ module ActionView
             @object_name.to_s.humanize
           end
 
-          I18n.t(:"helpers.submit.#{key}", :model => model,
-                 :default => "#{key.to_s.humanize} #{model}")
+          defaults = []
+          defaults << :"helpers.submit.#{object_name}.#{key}"
+          defaults << :"helpers.submit.#{key}"
+          defaults << "#{key.to_s.humanize} #{model}"
+
+          I18n.t(defaults.shift, :model => model, :default => defaults)
         end
 
         def nested_attributes_association?(association_name)

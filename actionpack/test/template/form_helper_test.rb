@@ -31,7 +31,10 @@ class FormHelperTest < ActionView::TestCase
         :submit => {
           :create => 'Create {{model}}',
           :update => 'Confirm {{model}} changes',
-          :submit => 'Save changes'
+          :submit => 'Save changes',
+          :another_post => {
+            :update => 'Update your {{model}}'
+          }
         }
       }
     }
@@ -544,6 +547,21 @@ class FormHelperTest < ActionView::TestCase
 
     expected = "<form action='http://www.example.com' method='post'>" +
                "<input name='commit' class='extra' id='post_submit' type='submit' value='Save changes' />" +
+               "</form>"
+    assert_dom_equal expected, output_buffer
+  ensure
+    I18n.locale = old_locale
+  end
+
+  def test_submit_with_object_and_nested_lookup
+    old_locale, I18n.locale = I18n.locale, :submit
+
+    form_for(:another_post, @post) do |f|
+      concat f.submit
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='commit' id='another_post_submit' type='submit' value='Update your Post' />" +
                "</form>"
     assert_dom_equal expected, output_buffer
   ensure
