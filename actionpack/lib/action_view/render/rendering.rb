@@ -109,10 +109,7 @@ module ActionView
     end
 
     def _render_layout(layout, locals, &block)
-      ActiveSupport::Notifications.instrument("action_view.render_layout",
-        :identifier => layout.identifier) do
-        layout.render(self, locals){ |*name| _layout_for(*name, &block) }
-      end
+      layout.render(self, locals){ |*name| _layout_for(*name, &block) }
     end
   end
 end

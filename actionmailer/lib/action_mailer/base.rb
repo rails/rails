@@ -510,7 +510,7 @@ module ActionMailer #:nodoc:
 
       begin
         ActiveSupport::Notifications.instrument("action_mailer.deliver",
-          :template => template, :mailer_name => mailer_name) do |payload|
+          :template => template, :mailer => self.class.name) do |payload|
           self.class.set_payload_for_mail(payload, mail)
           self.delivery_method.perform_delivery(mail) if perform_deliveries
         end
