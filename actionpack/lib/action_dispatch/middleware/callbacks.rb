@@ -43,11 +43,10 @@ module ActionDispatch
     def call(env)
       run_callbacks(:call) do
         run_callbacks(:prepare) if @prepare_each_request
-
-        ActiveSupport::Notifications.instrument "action_dispatch.callback" do
-          @app.call(env)
-        end
+        @app.call(env)
       end
+    ensure
+      ActiveSupport::Notifications.instrument "action_dispatch.callback"
     end
   end
 end
