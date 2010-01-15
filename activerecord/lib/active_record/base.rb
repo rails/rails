@@ -871,10 +871,8 @@ module ActiveRecord #:nodoc:
       def update_all(updates, conditions = nil, options = {})
         relation = active_relation
 
-        if conditions = construct_conditions(conditions, nil)
-          relation = relation.where(Arel::SqlLiteral.new(conditions))
-        end
-
+        relation = relation.where(conditions) if conditions
+        relation = relation.where(type_condition) if finder_needs_type_condition?
         relation = relation.limit(options[:limit]) if options[:limit].present?
         relation = relation.order(options[:order]) if options[:order].present?
 
@@ -1633,13 +1631,6 @@ module ActiveRecord #:nodoc:
         def construct_offset(offset, scope)
           offset ||= scope[:offset] if scope
           offset
-        end
-
-        def construct_conditions(conditions, scope)
-          conditions = [conditions]
-          conditions << scope[:conditions] if scope
-          conditions << type_condition if finder_needs_type_condition?
-          merge_conditions(*conditions)
         end
 
         # Merges includes so that the result is a valid +include+
