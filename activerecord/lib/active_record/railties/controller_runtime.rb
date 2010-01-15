@@ -5,6 +5,8 @@ module ActiveRecord
     module ControllerRuntime
       extend ActiveSupport::Concern
 
+    protected
+
       attr_internal :db_runtime
 
       def cleanup_view_runtime
@@ -19,9 +21,14 @@ module ActiveRecord
         end
       end
 
+      def append_info_to_payload(payload)
+        super
+        payload[:db_runtime] = db_runtime
+      end
+
       module ClassMethods
-        def log_process_action(controller)
-          messages, db_runtime = super, controller.send(:db_runtime)
+        def log_process_action(payload)
+          messages, db_runtime = super, payload[:db_runtime]
           messages << ("ActiveRecord: %.1fms" % db_runtime.to_f) if db_runtime
           messages
         end
