@@ -160,7 +160,7 @@ module ActiveRecord
           if includes.any?
             merge_with_joins = merge_with_relation ? merge_with_relation.joins_values : []
             joins = (merge_with_joins + Array.wrap(options[:joins])).uniq
-            join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, includes, construct_join(joins, nil))
+            join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, includes, construct_join(joins))
             construct_calculation_arel_with_included_associations(options, join_dependency, merge_with_relation)
           else
             relation = active_relation.

@@ -1593,17 +1593,16 @@ module ActiveRecord #:nodoc:
           relation
         end
 
-        def construct_join(joins, scope)
-          merged_joins = scope && scope[:joins] && joins ? merge_joins(scope[:joins], joins) : (joins || scope && scope[:joins])
-          case merged_joins
+        def construct_join(joins)
+          case joins
           when Symbol, Hash, Array
-            if array_of_strings?(merged_joins)
-              merged_joins.join(' ') + " "
+            if array_of_strings?(joins)
+              joins.join(' ') + " "
             else
-              build_association_joins(merged_joins)
+              build_association_joins(joins)
             end
           when String
-            " #{merged_joins} "
+            " #{joins} "
           else
             ""
           end
@@ -1612,19 +1611,6 @@ module ActiveRecord #:nodoc:
         # Merges includes so that the result is a valid +include+
         def merge_includes(first, second)
          (Array.wrap(first) + Array.wrap(second)).uniq
-        end
-
-        def merge_joins(*joins)
-          if joins.any?{|j| j.is_a?(String) || array_of_strings?(j) }
-            joins = joins.collect do |join|
-              join = [join] if join.is_a?(String)
-              join = build_association_joins(join) unless array_of_strings?(join)
-              join
-            end
-            joins.flatten.map{|j| j.strip}.uniq
-          else
-            joins.collect{|j| Array.wrap(j)}.flatten.uniq
-          end
         end
 
         def build_association_joins(joins)
