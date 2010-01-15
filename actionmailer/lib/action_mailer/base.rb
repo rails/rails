@@ -426,15 +426,14 @@ module ActionMailer #:nodoc:
       end
 
       def set_payload_for_mail(payload, mail) #:nodoc:
-        payload[:subject]  = mail.subject
-        payload[:to]       = mail.to
-        payload[:from]     = mail.from
-        payload[:bcc]      = mail.bcc
-        payload[:cc]       = mail.cc
-        payload[:reply_to] = mail.reply_to
-        payload[:date]     = mail.date
-        payload[:body]     = mail.body.encoded
-        payload[:mail]     = mail.encoded
+        payload[:message_id] = mail.message_id
+        payload[:subject]    = mail.subject
+        payload[:to]         = mail.to
+        payload[:from]       = mail.from
+        payload[:bcc]        = mail.bcc if mail.bcc.present?
+        payload[:cc]         = mail.cc  if mail.cc.present?
+        payload[:date]       = mail.date
+        payload[:mail]       = mail.encoded
       end
 
       private
