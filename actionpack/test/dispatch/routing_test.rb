@@ -211,8 +211,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       post '/session'
       assert_equal 'sessions#create', @response.body
 
+      put '/session'
+      assert_equal 'sessions#update', @response.body
+
+      delete '/session'
+      assert_equal 'sessions#destroy', @response.body
+
       get '/session/new'
       assert_equal 'sessions#new', @response.body
+
+      get '/session/edit'
+      assert_equal 'sessions#edit', @response.body
     end
   end
 
@@ -283,6 +292,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/projects'
       assert_equal 'projects#index', @response.body
       assert_equal '/projects', projects_path
+
+      post '/projects'
+      assert_equal 'projects#create', @response.body
 
       get '/projects.xml'
       assert_equal 'projects#index', @response.body

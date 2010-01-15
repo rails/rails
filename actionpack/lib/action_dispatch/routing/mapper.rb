@@ -344,7 +344,7 @@ module ActionDispatch
       end
 
       module Resources
-        CRUD_ACTIONS = [:index, :show, :new, :edit, :create, :update, :destroy]
+        CRUD_ACTIONS = [:index, :show, :create, :update, :destroy]
 
         class Resource #:nodoc:
           def self.default_actions
@@ -444,12 +444,12 @@ module ActionDispatch
             with_scope_level(:resource, resource) do
               yield if block_given?
 
-              get    "(.:format)",      :to => :show, :as => resource.member_name if resource.actions.include?(:show)
-              post   "(.:format)",      :to => :create if resource.actions.include?(:create)
-              put    "(.:format)",      :to => :update if resource.actions.include?(:update)
-              delete "(.:format)",      :to => :destroy if resource.actions.include?(:destroy)
-              get    "/#{action_path(:new)}(.:format)",  :to => :new,  :as => "new_#{resource.singular}" if resource.actions.include?(:new)
-              get    "/#{action_path(:edit)}(.:format)", :to => :edit, :as => "edit_#{resource.singular}" if resource.actions.include?(:edit)
+              get    :show, :as => resource.member_name if resource.actions.include?(:show)
+              post   :create if resource.actions.include?(:create)
+              put    :update if resource.actions.include?(:update)
+              delete :destroy if resource.actions.include?(:destroy)
+              get    :new, :as => "new_#{resource.singular}" if resource.actions.include?(:new)
+              get    :edit, :as => "edit_#{resource.singular}" if resource.actions.include?(:edit)
             end
           end
 
@@ -486,23 +486,17 @@ module ActionDispatch
               yield if block_given?
 
               with_scope_level(:collection) do
-                get  "(.:format)", :to => :index, :as => resource.collection_name if resource.actions.include?(:index)
-                post "(.:format)", :to => :create  if resource.actions.include?(:create)
-
-                with_exclusive_name_prefix :new do
-                  get "/#{action_path(:new)}(.:format)", :to => :new, :as => resource.singular if resource.actions.include?(:new)
-                end
+                get  :index, :as => resource.collection_name if resource.actions.include?(:index)
+                post :create if resource.actions.include?(:create)
+                get  :new, :as => resource.singular if resource.actions.include?(:new)
               end
 
               with_scope_level(:member) do
                 scope("/:id") do
-                  get    "(.:format)", :to => :show, :as => resource.member_name if resource.actions.include?(:show)
-                  put    "(.:format)", :to => :update if resource.actions.include?(:update)
-                  delete "(.:format)", :to => :destroy if resource.actions.include?(:destroy)
-
-                  with_exclusive_name_prefix :edit do
-                    get "/#{action_path(:edit)}(.:format)", :to => :edit, :as => resource.singular if resource.actions.include?(:edit)
-                  end
+                  get    :show, :as => resource.member_name if resource.actions.include?(:show)
+                  put    :update if resource.actions.include?(:update)
+                  delete :destroy if resource.actions.include?(:destroy)
+                  get    :edit, :as => resource.singular if resource.actions.include?(:edit)
                 end
               end
             end
