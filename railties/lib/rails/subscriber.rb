@@ -33,9 +33,8 @@ module Rails
   # Subscriber also has some helpers to deal with logging and automatically flushes
   # all logs when the request finishes (via action_dispatch.callback notification).
   class Subscriber
-    mattr_accessor :colorize_logging, :tail_log
+    mattr_accessor :colorize_logging, :log_tailer
     self.colorize_logging = true
-    self.tail_log = false
 
     # Embed in a String to clear all previous ANSI sequences.
     CLEAR      = "\e[0m"
@@ -59,12 +58,6 @@ module Rails
       @subscribers ||= {}
     end
 
-    # Use Rails::Rack::LogTailer to do the log tailing.
-    # TODO Leave this as middleware or move inside Subscriber?
-    def self.log_tailer
-      @log_tailer ||= Rails::Rack::LogTailer.new(nil, "log/#{Rails.env}.log")
-    end
-
     def self.dispatch(args)
       namespace, name = args[0].split(".")
       subscriber = subscribers[namespace.to_sym]
@@ -75,7 +68,7 @@ module Rails
 
       if args[0] == "action_dispatch.callback" && !subscribers.empty?
         flush_all!
-        log_tailer.tail! if tail_log
+        log_tailer.tail! if log_tailer
       end
     end
 
