@@ -814,7 +814,7 @@ module ActiveRecord #:nodoc:
       #   # Delete multiple rows
       #   Todo.delete([2,3,4])
       def delete(id_or_array)
-        active_relation.where(construct_conditions(nil, current_scoped_methods)).delete(id_or_array)
+        scoped.delete(id_or_array)
       end
 
       # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
