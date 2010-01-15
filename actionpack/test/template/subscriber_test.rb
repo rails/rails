@@ -63,6 +63,16 @@ module ActionViewSubscriberTest
     assert_match /Rendered test\/_customer.erb/, @logger.logged(:info).last
   end
 
+  def test_render_collection_template_without_path
+    @view.stubs(:controller_path).returns("test")
+    @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], :greeting => "hi")
+    wait
+
+    assert_equal 1, @logger.logged(:info).size
+    assert_match /Rendered collection/, @logger.logged(:info).last
+  end
+
+
   class SyncSubscriberTest < ActiveSupport::TestCase
     include Rails::Subscriber::SyncTestHelper
     include ActionViewSubscriberTest

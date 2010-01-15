@@ -216,7 +216,7 @@ module ActionView
 
         if @collection
           ActiveSupport::Notifications.instrument("action_view.render_collection",
-            :identifier => identifier, :count => @collection.size) do
+            :identifier => identifier || "collection", :count => @collection.size) do
             render_collection
           end
         else
