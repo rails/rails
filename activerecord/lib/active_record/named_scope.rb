@@ -124,7 +124,7 @@ module ActiveRecord
         end
       end
 
-      delegate :scopes, :with_scope, :scoped_methods, :to => :proxy_scope
+      delegate :scopes, :with_scope, :scoped_methods, :unscoped, :to => :proxy_scope
 
       def initialize(proxy_scope, options, &block)
         options ||= {}
@@ -186,6 +186,11 @@ module ActiveRecord
       end
 
       protected
+
+      def relation
+        @relation ||= unscoped.apply_finder_options(proxy_options)
+      end
+
       def proxy_found
         @found || load_found
       end
@@ -195,7 +200,7 @@ module ActiveRecord
         if scopes.include?(method)
           scopes[method].call(self, *args)
         else
-          with_scope({:find => proxy_options, :create => proxy_options[:conditions].is_a?(Hash) ?  proxy_options[:conditions] : {}}, :reverse_merge) do
+          with_scope(relation, :reverse_merge) do
             method = :new if method == :build
             if current_scoped_methods_when_defined && !scoped_methods.include?(current_scoped_methods_when_defined)
               with_scope current_scoped_methods_when_defined do
