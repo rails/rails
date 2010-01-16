@@ -13,7 +13,12 @@ class JavaScriptHelperTest < ActionView::TestCase
 
   def setup
     super
+    ActiveSupport.escape_html_entities_in_json  = true
     @template = self
+  end
+  
+  def teardown
+    ActiveSupport.escape_html_entities_in_json  = false
   end
 
   def _evaluate_assigns_and_ivars() end

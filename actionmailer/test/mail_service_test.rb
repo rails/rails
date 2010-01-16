@@ -688,40 +688,6 @@ class ActionMailerTest < Test::Unit::TestCase
     TestMailer.deliver_signed_up(@recipient)
   end
 
-  class FakeLogger
-    attr_reader :info_contents, :debug_contents
-    
-    def initialize
-      @info_contents, @debug_contents = "", ""
-    end
-    
-    def info(str = nil, &blk)
-      @info_contents << str if str
-      @info_contents << blk.call if block_given?
-    end
-    
-    def debug(str = nil, &blk)
-      @debug_contents << str if str
-      @debug_contents << blk.call if block_given?
-    end
-  end
-
-  def test_delivery_logs_sent_mail
-    mail = TestMailer.create_signed_up(@recipient)
-    # logger = mock()
-    # logger.expects(:info).with("Sent mail to #{@recipient}")
-    # logger.expects(:debug).with("\n#{mail.encoded}")
-    TestMailer.logger = FakeLogger.new
-    TestMailer.deliver_signed_up(@recipient)
-    assert(TestMailer.logger.info_contents =~ /Sent mail to #{@recipient}/)
-    expected = TestMailer.logger.debug_contents
-    actual = "\n#{mail.encoded}"
-    expected.gsub!(/Message-ID:.*\r\n/, "Message-ID: <123@456>\r\n")
-    actual.gsub!(/Message-ID:.*\r\n/, "Message-ID: <123@456>\r\n")
-    
-    assert_equal(expected, actual)
-  end
-
   def test_unquote_quoted_printable_subject
     msg = <<EOF
 From: me@example.com
@@ -1110,10 +1076,15 @@ EOF
     assert_equal "another@somewhere.test", mail['return-path'].to_s
   end
 
+  def test_return_path_with_create
+    mail = TestMailer.create_return_path
+    assert_equal "another@somewhere.test", mail.return_path
+  end
+
   def test_return_path_with_deliver
     ActionMailer::Base.delivery_method = :smtp
     TestMailer.deliver_return_path
-    assert_match %r{^Return-Path: another@somewhere.test}, MockSMTP.deliveries[0][0]
+    assert_match %r{^Return-Path: <another@somewhere.test>}, MockSMTP.deliveries[0][0]
     assert_equal "another@somewhere.test", MockSMTP.deliveries[0][1].to_s
   end
 

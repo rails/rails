@@ -101,7 +101,7 @@ module RailsGuides
           view.content_tag(:li, l)
         end
 
-        children_ul = view.content_tag(:ul, children)
+        children_ul = view.content_tag(:ul, children.join(" "))
 
         index << view.content_tag(:li, link + children_ul)
       end

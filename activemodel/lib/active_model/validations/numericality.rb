@@ -10,9 +10,10 @@ module ActiveModel
       end
 
       def check_validity!
-        options.slice(*CHECKS.keys) do |option, value|
-          next if [:odd, :even].include?(option)
-          raise ArgumentError, ":#{option} must be a number, a symbol or a proc" unless value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
+        keys = CHECKS.keys - [:odd, :even]
+        options.slice(*keys).each do |option, value|
+          next if value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
+          raise ArgumentError, ":#{option} must be a number, a symbol or a proc"
         end
       end
 
@@ -103,8 +104,7 @@ module ActiveModel
       #   end
       #
       def validates_numericality_of(*attr_names)
-        options = attr_names.extract_options!
-        validates_with NumericalityValidator, options.merge(:attributes => attr_names)
+        validates_with NumericalityValidator, _merge_attributes(attr_names)
       end
     end
   end

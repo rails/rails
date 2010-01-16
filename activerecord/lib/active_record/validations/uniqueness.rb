@@ -2,13 +2,17 @@ module ActiveRecord
   module Validations
     class UniquenessValidator < ActiveModel::EachValidator
       def initialize(options)
-        @klass = options.delete(:klass)
         super(options.reverse_merge(:case_sensitive => true))
+      end
+
+      # Unfortunately, we have to tie Uniqueness validators to a class.
+      def setup(klass)
+        @klass = klass
       end
 
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
-        table = finder_class.active_relation
+        table = finder_class.unscoped
 
         table_name   = record.class.quoted_table_name
         sql, params  = mount_sql_and_params(finder_class, table_name, attribute, value)
@@ -170,8 +174,7 @@ module ActiveRecord
       #   such a case.
       #
       def validates_uniqueness_of(*attr_names)
-        options = attr_names.extract_options!
-        validates_with UniquenessValidator, options.merge(:attributes => attr_names, :klass => self)
+        validates_with UniquenessValidator, _merge_attributes(attr_names)
       end
     end
   end

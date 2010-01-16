@@ -4,9 +4,23 @@ module Rails
   # Temporarily separate the plugin configuration class from the main
   # configuration class while this bit is being cleaned up.
   class Railtie::Configuration
-
     def self.default
       @default ||= new
+    end
+
+    def self.default_middleware_stack
+      ActionDispatch::MiddlewareStack.new.tap do |middleware|
+        middleware.use('ActionDispatch::Static', lambda { Rails.public_path }, :if => lambda { Rails.application.config.serve_static_assets })
+        middleware.use('::Rack::Lock', :if => lambda { !ActionController::Base.allow_concurrency })
+        middleware.use('::Rack::Runtime')
+        middleware.use('ActionDispatch::ShowExceptions', lambda { ActionController::Base.consider_all_requests_local })
+        middleware.use('ActionDispatch::Callbacks', lambda { ActionController::Dispatcher.prepare_each_request })
+        middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
+        middleware.use('ActionDispatch::Flash', :if => lambda { ActionController::Base.session_store })
+        middleware.use('ActionDispatch::ParamsParser')
+        middleware.use('::Rack::MethodOverride')
+        middleware.use('::ActionDispatch::Head')
+      end
     end
 
     attr_reader :middleware
@@ -17,7 +31,7 @@ module Rails
         @middleware = base.middleware.dup
       else
         @options    = Hash.new { |h,k| h[k] = ActiveSupport::OrderedOptions.new }
-        @middleware = ActionDispatch::MiddlewareStack.new
+        @middleware = self.class.default_middleware_stack
       end
     end
 
@@ -51,17 +65,16 @@ module Rails
   end
 
   class Configuration < Railtie::Configuration
-    attr_accessor :after_initialize_blocks, :cache_classes,
-                  :consider_all_requests_local, :dependency_loading, :gems,
+    attr_accessor :after_initialize_blocks, :cache_classes, :colorize_logging,
+                  :consider_all_requests_local, :dependency_loading,
                   :load_once_paths, :logger, :metals, :plugins,
                   :preload_frameworks, :reload_plugins, :serve_static_assets,
                   :time_zone, :whiny_nils
 
     attr_writer :cache_store, :controller_paths,
                 :database_configuration_file, :eager_load_paths,
-                :i18n, :load_paths,
-                :log_level, :log_path, :paths, :routes_configuration_file,
-                :view_path
+                :i18n, :load_paths, :log_level, :log_path, :paths,
+                :routes_configuration_file, :view_path
 
     def initialize(base = nil)
       super
@@ -114,14 +127,14 @@ module Rails
         paths.tmp.cache           "tmp/cache"
         paths.config              "config"
         paths.config.locales      "config/locales"
-        paths.config.environments "config/environments", :glob => "#{RAILS_ENV}.rb"
+        paths.config.environments "config/environments", :glob => "#{Rails.env}.rb"
         paths
       end
     end
 
     def frameworks(*args)
-      raise "config.frameworks in no longer supported. See the generated" \
-            "config/boot.rb for steps on how to limit the frameworks that" \
+      raise "config.frameworks in no longer supported. See the generated " \
+            "config/boot.rb for steps on how to limit the frameworks that " \
             "will be loaded"
     end
     alias frameworks= frameworks
@@ -197,7 +210,7 @@ module Rails
         paths = []
 
         # Add the old mock paths only if the directories exists
-        paths.concat(Dir["#{root}/test/mocks/#{RAILS_ENV}"]) if File.exists?("#{root}/test/mocks/#{RAILS_ENV}")
+        paths.concat(Dir["#{root}/test/mocks/#{Rails.env}"]) if File.exists?("#{root}/test/mocks/#{Rails.env}")
 
         # Add the app's controller directory
         paths.concat(Dir["#{root}/app/controllers/"])
@@ -220,15 +233,19 @@ module Rails
 
     def builtin_directories
       # Include builtins only in the development environment.
-      (RAILS_ENV == 'development') ? Dir["#{RAILTIES_PATH}/builtin/*/"] : []
+      Rails.env.development? ? Dir["#{RAILTIES_PATH}/builtin/*/"] : []
     end
 
     def log_path
-      @log_path ||= File.join(root, 'log', "#{RAILS_ENV}.log")
+      @log_path ||= File.join(root, 'log', "#{Rails.env}.log")
     end
 
     def log_level
-      @log_level ||= RAILS_ENV == 'production' ? :info : :debug
+      @log_level ||= Rails.env.production? ? :info : :debug
+    end
+
+    def time_zone
+      @time_zone ||= "UTC"
     end
 
     def i18n
@@ -246,7 +263,7 @@ module Rails
     end
 
     def environment_path
-      "#{root}/config/environments/#{RAILS_ENV}.rb"
+      "#{root}/config/environments/#{Rails.env}.rb"
     end
 
     # Holds generators configuration:
@@ -270,9 +287,13 @@ module Rails
       end
     end
 
-    # Allows Notifications queue to be modified.
+    # Allow Notifications queue to be modified or add subscriptions:
     #
     #   config.notifications.queue = MyNewQueue.new
+    #
+    #   config.notifications.subscribe /action_dispatch.show_exception/ do |*args|
+    #     ExceptionDeliver.deliver_exception(args)
+    #   end
     #
     def notifications
       ActiveSupport::Notifications

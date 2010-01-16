@@ -1,5 +1,9 @@
 *Edge*
 
+* Removed config/initializers/new_rails_defaults.rb as all frameworks now follow the settings from it [DHH]
+
+* Set config.time_zone to UTC by default [DHH]
+
 * Added default .gitignore (this is just recognizing Git market share, don't throw a hissy if you use another SCM) [DHH]
 
 * Added cookies.permanent, cookies.signed, and cookies.permanent.signed accessor for common cookie actions [DHH]. Examples:

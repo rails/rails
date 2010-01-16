@@ -34,7 +34,6 @@ end
 ARGV.delete(code_or_file)
 
 ENV["RAILS_ENV"] = options[:environment]
-RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
 
 begin
   if code_or_file.nil?

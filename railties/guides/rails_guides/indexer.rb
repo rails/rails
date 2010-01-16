@@ -19,9 +19,9 @@ module RailsGuides
       level_hash = ActiveSupport::OrderedHash.new
 
       while !s.eos?
-        s.match?(/\h[0-9]\..*$/)
+        s.match?(/h[0-9]\..*$/)
         if matched = s.matched
-          matched =~ /\h([0-9])\.(.*)$/
+          matched =~ /h([0-9])\.(.*)$/
           level, title = $1.to_i, $2
 
           if level < current_level

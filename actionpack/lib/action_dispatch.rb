@@ -43,18 +43,27 @@ module ActionDispatch
   autoload_under 'middleware' do
     autoload :Callbacks
     autoload :Cascade
+    autoload :Flash
+    autoload :Head
     autoload :ParamsParser
     autoload :Rescue
     autoload :ShowExceptions
     autoload :Static
-    autoload :StringCoercion
   end
 
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
   autoload :Routing
 
   module Http
-    autoload :Headers, 'action_dispatch/http/headers'
+    extend ActiveSupport::Autoload
+
+    autoload :Cache
+    autoload :Headers
+    autoload :MimeNegotiation
+    autoload :Parameters
+    autoload :Upload
+    autoload :UploadedFile, 'action_dispatch/http/upload'
+    autoload :URL
   end
 
   module Session

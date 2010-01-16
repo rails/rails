@@ -1,19 +1,19 @@
 module ActiveRecord
   class Relation
-    include QueryMethods, FinderMethods, CalculationMethods, SpawnMethods
+    JoinOperation = Struct.new(:relation, :join_class, :on)
+    ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
+    MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having]
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :create_with, :from]
+
+    include FinderMethods, CalculationMethods, SpawnMethods, QueryMethods
 
     delegate :length, :collect, :map, :each, :all?, :to => :to_a
 
-    attr_reader :relation, :klass
-    attr_writer :readonly, :table
-    attr_accessor :preload_associations, :eager_load_associations, :includes_associations
+    attr_reader :table, :klass
 
-    def initialize(klass, relation)
-      @klass, @relation = klass, relation
-      @preload_associations = []
-      @eager_load_associations = []
-      @includes_associations = []
-      @loaded, @readonly = false
+    def initialize(klass, table)
+      @klass, @table = klass, table
+      (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
     end
 
     def new(*args, &block)
@@ -29,7 +29,7 @@ module ActiveRecord
     end
 
     def respond_to?(method, include_private = false)
-      return true if @relation.respond_to?(method, include_private) || Array.method_defined?(method)
+      return true if arel.respond_to?(method, include_private) || Array.method_defined?(method)
 
       if match = DynamicFinderMatch.match(method)
         return true if @klass.send(:all_attributes_exists?, match.attribute_names)
@@ -43,33 +43,38 @@ module ActiveRecord
     def to_a
       return @records if loaded?
 
-      find_with_associations = @eager_load_associations.any? || references_eager_loaded_tables?
+      find_with_associations = @eager_load_values.any? || (@includes_values.any? && references_eager_loaded_tables?)
 
       @records = if find_with_associations
         begin
-          @klass.send(:find_with_associations, {
-            :select => @relation.send(:select_clauses).join(', '),
-            :joins => @relation.joins(relation),
-            :group => @relation.send(:group_clauses).join(', '),
+          options = {
+            :select => @select_values.any? ? @select_values.join(", ") : nil,
+            :joins => arel.joins(arel),
+            :group =>  @group_values.any? ? @group_values.join(", ") : nil,
             :order => order_clause,
             :conditions => where_clause,
-            :limit => @relation.taken,
-            :offset => @relation.skipped,
-            :from => (@relation.send(:from_clauses) if @relation.send(:sources).present?)
-            },
-            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, @eager_load_associations + @includes_associations, nil))
+            :limit => arel.taken,
+            :offset => arel.skipped,
+            :from => (arel.send(:from_clauses) if arel.send(:sources).present?)
+          }
+
+          including = (@eager_load_values + @includes_values).uniq
+          join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
+          @klass.send(:find_with_associations, options, join_dependency)
         rescue ThrowResult
           []
         end
       else
-        @klass.find_by_sql(@relation.to_sql)
+        @klass.find_by_sql(arel.to_sql)
       end
 
-      preload = @preload_associations
-      preload +=  @includes_associations unless find_with_associations
+      preload = @preload_values
+      preload +=  @includes_values unless find_with_associations
       preload.each {|associations| @klass.send(:preload_associations, @records, associations) } 
 
-      @records.each { |record| record.readonly! } if @readonly
+      # @readonly_value is true only if set explicity. @implicit_readonly is true if there are JOINS and no explicit SELECT.
+      readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
+      @records.each { |record| record.readonly! } if readonly
 
       @loaded = true
       @records
@@ -97,7 +102,7 @@ module ActiveRecord
       if block_given?
         to_a.many? { |*block_args| yield(*block_args) }
       else
-        @relation.send(:taken).present? ? to_a.many? : size > 1
+        arel.send(:taken).present? ? to_a.many? : size > 1
       end
     end
 
@@ -107,7 +112,7 @@ module ActiveRecord
     end
 
     def delete_all
-      @relation.delete.tap { reset }
+      arel.delete.tap { reset }
     end
 
     def delete(id_or_array)
@@ -124,13 +129,9 @@ module ActiveRecord
     end
 
     def reset
-      @first = @last = @create_scope = @to_sql = @order_clause = nil
+      @first = @last = @to_sql = @order_clause = @scope_for_create = @arel = nil
       @records = []
       self
-    end
-
-    def table
-      @table ||= Arel::Table.new(@klass.table_name, :engine => @klass.active_relation_engine)
     end
 
     def primary_key
@@ -138,14 +139,23 @@ module ActiveRecord
     end
 
     def to_sql
-      @to_sql ||= @relation.to_sql
+      @to_sql ||= arel.to_sql
+    end
+
+    def scope_for_create
+      @scope_for_create ||= begin
+        @create_with_value || wheres.inject({}) do |hash, where|
+          hash[where.operand1.name] = where.operand2.value if where.is_a?(Arel::Predicates::Equality)
+          hash
+        end
+      end
     end
 
     protected
 
     def method_missing(method, *args, &block)
-      if @relation.respond_to?(method)
-        @relation.send(method, *args, &block)
+      if arel.respond_to?(method)
+        arel.send(method, *args, &block)
       elsif Array.method_defined?(method)
         to_a.send(method, *args, &block)
       elsif match = DynamicFinderMatch.match(method)
@@ -163,26 +173,19 @@ module ActiveRecord
     end
 
     def with_create_scope
-      @klass.send(:with_scope, :create => create_scope) { yield }
-    end
-
-    def create_scope
-      @create_scope ||= wheres.inject({}) do |hash, where|
-        hash[where.operand1.name] = where.operand2.value if where.is_a?(Arel::Predicates::Equality)
-        hash
-      end
+      @klass.send(:with_scope, :create => scope_for_create, :find => {}) { yield }
     end
 
     def where_clause(join_string = " AND ")
-      @relation.send(:where_clauses).join(join_string)
+      arel.send(:where_clauses).join(join_string)
     end
 
     def order_clause
-      @order_clause ||= @relation.send(:order_clauses).join(', ')
+      @order_clause ||= arel.send(:order_clauses).join(', ')
     end
 
     def references_eager_loaded_tables?
-      joined_tables = (tables_in_string(@relation.joins(relation)) + [table.name, table.table_alias]).compact.uniq
+      joined_tables = (tables_in_string(arel.joins(arel)) + [table.name, table.table_alias]).compact.uniq
       (tables_in_string(to_sql) - joined_tables).any?
     end
 

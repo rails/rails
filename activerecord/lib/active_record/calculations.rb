@@ -46,19 +46,19 @@ module ActiveRecord
       def count(*args)
         case args.size
         when 0
-          construct_calculation_arel.count
+          construct_calculation_arel({}, current_scoped_methods).count
         when 1
           if args[0].is_a?(Hash)
             options = args[0]
             distinct = options.has_key?(:distinct) ? options.delete(:distinct) : false
-            construct_calculation_arel(options).count(options[:select], :distinct => distinct)
+            construct_calculation_arel(options, current_scoped_methods).count(options[:select], :distinct => distinct)
           else
-            construct_calculation_arel.count(args[0])
+            construct_calculation_arel({}, current_scoped_methods).count(args[0])
           end
         when 2
           column_name, options = args
           distinct = options.has_key?(:distinct) ? options.delete(:distinct) : false
-          construct_calculation_arel(options).count(column_name, :distinct => distinct)
+          construct_calculation_arel(options, current_scoped_methods).count(column_name, :distinct => distinct)
         else
           raise ArgumentError, "Unexpected parameters passed to count(): #{args.inspect}"
         end
@@ -141,7 +141,7 @@ module ActiveRecord
       #   Person.minimum(:age, :having => 'min(age) > 17', :group => :last_name) # Selects the minimum age for any family without any minors
       #   Person.sum("2 * age")
       def calculate(operation, column_name, options = {})
-        construct_calculation_arel(options).calculate(operation, column_name, options.slice(:distinct))
+        construct_calculation_arel(options, current_scoped_methods).calculate(operation, column_name, options.slice(:distinct))
       rescue ThrowResult
         0
       end
@@ -151,49 +151,58 @@ module ActiveRecord
           options.assert_valid_keys(CALCULATIONS_OPTIONS)
         end
 
-        def construct_calculation_arel(options = {})
+        def construct_calculation_arel(options = {}, merge_with_relation = nil)
           validate_calculation_options(options)
           options = options.except(:distinct)
 
-          scope = scope(:find)
-          includes = merge_includes(scope ? scope[:include] : [], options[:include])
+          merge_with_includes = merge_with_relation ? merge_with_relation.includes_values : []
+          includes = (merge_with_includes + Array.wrap(options[:include])).uniq
 
           if includes.any?
-            join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, includes, construct_join(options[:joins], scope))
-            construct_calculation_arel_with_included_associations(options, join_dependency)
+            merge_with_joins = merge_with_relation ? merge_with_relation.joins_values : []
+            joins = (merge_with_joins + Array.wrap(options[:joins])).uniq
+            join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, includes, construct_join(joins))
+            construct_calculation_arel_with_included_associations(options, join_dependency, merge_with_relation)
           else
-            active_relation.
-              joins(construct_join(options[:joins], scope)).
-              from((scope && scope[:from]) || options[:from]).
-              where(construct_conditions(options[:conditions], scope)).
-              order(options[:order]).
-              limit(options[:limit]).
-              offset(options[:offset]).
-              group(options[:group]).
-              having(options[:having]).
-              select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins])))
+            relation = unscoped.apply_finder_options(options.slice(:joins, :conditions, :order, :limit, :offset, :group, :having))
+
+            if merge_with_relation
+              relation = merge_with_relation.except(:select, :order, :limit, :offset, :group, :from).merge(relation)
+            end
+
+            from = merge_with_relation.from_value if merge_with_relation && merge_with_relation.from_value.present?
+            from = options[:from] if from.blank? && options[:from].present?
+            relation = relation.from(from)
+
+            select = options[:select].presence || (merge_with_relation ? merge_with_relation.select_values.join(", ") : nil)
+            relation = relation.select(select)
+
+            relation
           end
         end
 
-        def construct_calculation_arel_with_included_associations(options, join_dependency)
-          scope = scope(:find)
-
-          relation = active_relation
+        def construct_calculation_arel_with_included_associations(options, join_dependency, merge_with_relation = nil)
+          relation = unscoped
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
           end
 
-          relation = relation.joins(construct_join(options[:joins], scope)).
-            select(column_aliases(join_dependency)).
-            group(options[:group]).
-            having(options[:having]).
-            order(options[:order]).
-            where(construct_conditions(options[:conditions], scope)).
-            from((scope && scope[:from]) || options[:from])
+          if merge_with_relation
+            relation.joins_values = (merge_with_relation.joins_values + relation.joins_values).uniq
+            relation.where_values = merge_with_relation.where_values
 
-          relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
-          relation = relation.limit(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)
+            merge_limit = merge_with_relation.taken
+          end
+
+          relation = relation.apply_finder_options(options.slice(:joins, :group, :having, :order, :conditions, :from)).
+            select(column_aliases(join_dependency))
+
+          if !using_limitable_reflections?(join_dependency.reflections) && (merge_limit || options[:limit])
+            relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency))
+          end
+
+          relation = relation.limit(options[:limit] || merge_limit) if using_limitable_reflections?(join_dependency.reflections)
 
           relation
         end

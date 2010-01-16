@@ -4,8 +4,6 @@ require "irb/completion"
 
 module Rails
   class Console
-    ENVIRONMENTS = %w(production development test)
-
     def self.start(app)
       new(app).start
     end
@@ -23,10 +21,6 @@ module Rails
         opt.on("--debugger", 'Enable ruby-debugging for the console.') { |v| options[:debugger] = v }
         opt.on('--irb') { |v| abort '--irb option is no longer supported. Invoke `/your/choice/of/ruby script/console` instead' }
         opt.parse!(ARGV)
-      end
-
-      if env = ARGV.first
-        ENV['RAILS_ENV'] = ENVIRONMENTS.find { |e| e.index(env) } || env
       end
 
       @app.initialize!
@@ -53,4 +47,9 @@ module Rails
       IRB.start
     end
   end
+end
+
+# Has to set the RAILS_ENV before config/application is required
+if ARGV.first && !ARGV.first.index("-") && env = ARGV.pop # has to pop the env ARGV so IRB doesn't freak
+  ENV['RAILS_ENV'] = %w(production development test).find { |e| e.index(env) } || env
 end

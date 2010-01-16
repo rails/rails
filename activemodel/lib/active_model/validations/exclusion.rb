@@ -33,9 +33,7 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_exclusion_of(*attr_names)
-        options = attr_names.extract_options!
-        options[:in] ||= options.delete(:within)
-        validates_with ExclusionValidator, options.merge(:attributes => attr_names)
+        validates_with ExclusionValidator, _merge_attributes(attr_names)
       end
     end
   end

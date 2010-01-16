@@ -129,12 +129,12 @@ module Rails
 
     # The current Rails environment (development, test, or production).
     property 'Environment' do
-      RAILS_ENV
+      Rails.env
     end
 
     # The name of the database adapter for the current environment.
     property 'Database adapter' do
-      ActiveRecord::Base.configurations[RAILS_ENV]['adapter']
+      ActiveRecord::Base.configurations[Rails.env]['adapter']
     end
 
     property 'Database schema version' do

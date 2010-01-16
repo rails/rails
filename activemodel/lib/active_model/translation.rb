@@ -25,13 +25,14 @@ module ActiveModel
     # Specify +options+ with additional translating options.
     def human_attribute_name(attribute, options = {})
       defaults = lookup_ancestors.map do |klass|
-        :"#{klass.model_name.underscore}.#{attribute}"
+        :"#{self.i18n_scope}.attributes.#{klass.model_name.underscore}.#{attribute}"
       end
 
+      defaults << :"attributes.#{attribute}"
       defaults << options.delete(:default) if options[:default]
       defaults << attribute.to_s.humanize
 
-      options.reverse_merge! :scope => [self.i18n_scope, :attributes], :count => 1, :default => defaults
+      options.reverse_merge! :count => 1, :default => defaults
       I18n.translate(defaults.shift, options)
     end
 

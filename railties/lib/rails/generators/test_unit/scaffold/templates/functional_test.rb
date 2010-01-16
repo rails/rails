@@ -16,7 +16,7 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
 
   test "should create <%= file_name %>" do
     assert_difference('<%= class_name %>.count') do
-      post :create, :<%= file_name %> => { }
+      post :create, :<%= file_name %> => <%= table_name %>(:one).attributes
     end
 
     assert_redirected_to <%= file_name %>_path(assigns(:<%= file_name %>))
@@ -33,7 +33,7 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
   end
 
   test "should update <%= file_name %>" do
-    put :update, :id => <%= table_name %>(:one).to_param, :<%= file_name %> => { }
+    put :update, :id => <%= table_name %>(:one).to_param, :<%= file_name %> => <%= table_name %>(:one).attributes
     assert_redirected_to <%= file_name %>_path(assigns(:<%= file_name %>))
   end
 

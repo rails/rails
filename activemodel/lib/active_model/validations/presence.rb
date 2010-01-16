@@ -34,8 +34,7 @@ module ActiveModel
       #   The method, proc or string should return or evaluate to a true or false value.
       #
       def validates_presence_of(*attr_names)
-        options = attr_names.extract_options!
-        validates_with PresenceValidator, options.merge(:attributes => attr_names)
+        validates_with PresenceValidator, _merge_attributes(attr_names)
       end
     end
   end

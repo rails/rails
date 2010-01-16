@@ -23,31 +23,32 @@ module ActionController
     autoload :Helpers
     autoload :HideActions
     autoload :HttpAuthentication
-    autoload :Logger
+    autoload :Instrumentation
     autoload :MimeResponds
     autoload :RackDelegation
     autoload :Redirecting
-    autoload :Rendering
     autoload :Renderers
+    autoload :Rendering
     autoload :RequestForgeryProtection
     autoload :Rescue
     autoload :Responder
     autoload :SessionManagement
     autoload :Streaming
+    autoload :Testing
     autoload :UrlFor
     autoload :Verification
   end
 
-  autoload :Dispatcher,      'action_controller/dispatch/dispatcher'
-  autoload :PerformanceTest, 'action_controller/deprecated/performance_test'
-  autoload :Routing,         'action_controller/deprecated'
+  autoload :Dispatcher,      'action_controller/deprecated/dispatcher'
   autoload :Integration,     'action_controller/deprecated/integration_test'
   autoload :IntegrationTest, 'action_controller/deprecated/integration_test'
+  autoload :PerformanceTest, 'action_controller/deprecated/performance_test'
+  autoload :Routing,         'action_controller/deprecated'
+  autoload :TestCase,        'action_controller/test_case'
 
   eager_autoload do
     autoload :RecordIdentifier
     autoload :UrlRewriter
-    autoload :UrlWriter,                'action_controller/url_rewriter'
 
     # TODO: Don't autoload exceptions, setup explicit
     # requires for files that need them

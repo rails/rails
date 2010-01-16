@@ -52,8 +52,8 @@ module ApplicationTests
         config.generators.test_framework :rspec
       RUBY
 
-      require "#{app_path}/config/environment"
       # Initialize the application
+      require "#{app_path}/config/environment"
       require "rails/generators"
       Rails::Generators.configure!
 

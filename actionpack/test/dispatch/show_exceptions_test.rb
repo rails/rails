@@ -104,4 +104,27 @@ class ShowExceptionsTest < ActionController::IntegrationTest
     assert_response 405
     assert_match /ActionController::MethodNotAllowed/, body
   end
+
+  test "publishes notifications" do
+    # Wait pending notifications to be published
+    ActiveSupport::Notifications.notifier.wait
+
+    @app, event = ProductionApp, nil
+    self.remote_addr = '127.0.0.1'
+
+    ActiveSupport::Notifications.subscribe('action_dispatch.show_exception') do |*args|
+      event = args
+    end
+
+    get "/"
+    assert_response 500
+    assert_match /puke/, body
+
+    ActiveSupport::Notifications.notifier.wait
+
+    assert_equal 'action_dispatch.show_exception', event.first
+    assert_kind_of Hash, event.last[:env]
+    assert_equal 'GET', event.last[:env]["REQUEST_METHOD"]
+    assert_kind_of RuntimeError, event.last[:exception]
+  end
 end

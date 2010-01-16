@@ -34,9 +34,8 @@ module Rails
         abort opt.to_s unless (0..1).include?(ARGV.size)
       end
 
-      env = ARGV.first || ENV['RAILS_ENV'] || 'development'
-      unless config = YAML::load(ERB.new(IO.read("#{@app.root}/config/database.yml")).result)[env]
-        abort "No database is configured for the environment '#{env}'"
+      unless config = YAML::load(ERB.new(IO.read("#{@app.root}/config/database.yml")).result)[Rails.env]
+        abort "No database is configured for the environment '#{Rails.env}'"
       end
 
 
@@ -97,4 +96,9 @@ module Rails
       end
     end
   end
+end
+
+# Has to set the RAILS_ENV before config/application is required
+if ARGV.first && !ARGV.first.index("-") && env = ARGV.first
+  ENV['RAILS_ENV'] = %w(production development test).find { |e| e.index(env) } || env
 end

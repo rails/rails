@@ -8,10 +8,6 @@
   </div>
 <% end -%>
   <div class="actions">
-    <%% if @<%= singular_name %>.new_record? %>
-      <%%= f.submit 'Create' %>
-    <%% else %>
-      <%%= f.submit 'Update' %>
-    <%% end %>
+    <%%= f.submit %>
   </div>
 <%% end %>

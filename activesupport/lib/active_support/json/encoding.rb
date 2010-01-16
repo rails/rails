@@ -114,7 +114,8 @@ module ActiveSupport
         end
       end
 
-      self.escape_html_entities_in_json = true
+      self.use_standard_json_time_format = true
+      self.escape_html_entities_in_json  = false
     end
 
     CircularReferenceError = Deprecation::DeprecatedConstantProxy.new('ActiveSupport::JSON::CircularReferenceError', Encoding::CircularReferenceError)

@@ -30,10 +30,12 @@ module ActiveModel
   extend ActiveSupport::Autoload
 
   autoload :AttributeMethods
+  autoload :BlockValidator, 'active_model/validator'
   autoload :Callbacks
   autoload :Conversion
   autoload :DeprecatedErrorMethods
   autoload :Dirty
+  autoload :EachValidator, 'active_model/validator'
   autoload :Errors
   autoload :Lint
   autoload :Name, 'active_model/naming'
@@ -42,12 +44,11 @@ module ActiveModel
   autoload :Observing
   autoload :Serialization
   autoload :StateMachine
+  autoload :TestCase
   autoload :Translation
+  autoload :VERSION
   autoload :Validations
   autoload :Validator
-  autoload :EachValidator, 'active_model/validator'
-  autoload :BlockValidator, 'active_model/validator'
-  autoload :VERSION
 
   module Serializers
     extend ActiveSupport::Autoload

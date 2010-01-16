@@ -87,7 +87,7 @@
   <div id="container">
     <div class="wrapper">
       <div id="mainCol">
-        <%= yield %>
+        <%= yield.html_safe! %>
       </div>
     </div>
   </div>

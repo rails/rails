@@ -17,12 +17,6 @@ module AbstractController
       self._view_paths ||= ActionView::PathSet.new
     end
 
-    # Initialize controller with nil formats.
-    def initialize(*) #:nodoc:
-      @_formats = nil
-      super
-    end
-
     # An instance of a view class. The default view class is ActionView::Base
     #
     # The view class must have the following methods:

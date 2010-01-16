@@ -1,3 +1,0 @@
-<%= shebang bin_file_name %>
-require File.join(File.dirname(__FILE__), "<%= path.join("environment").relative_path_from(Pathname.new(bin_dir)) %>")
-load File.join(File.dirname(__FILE__), "<%= path.join("gems", @spec.full_name, @spec.bindir, bin_file_name).relative_path_from(Pathname.new(bin_dir)) %>")

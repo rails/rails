@@ -14,6 +14,10 @@ module ActiveRecord
       load "active_record/railties/databases.rake"
     end
 
+    # TODO If we require the wrong file, the error never comes up.
+    require "active_record/railties/subscriber"
+    subscriber ActiveRecord::Railties::Subscriber.new
+
     initializer "active_record.set_configs" do |app|
       app.config.active_record.each do |k,v|
         ActiveRecord::Base.send "#{k}=", v
@@ -52,6 +56,19 @@ module ActiveRecord
 
     initializer "active_record.load_observers" do
       ActiveRecord::Base.instantiate_observers
+
+      ActionDispatch::Callbacks.to_prepare(:activerecord_instantiate_observers) do
+        ActiveRecord::Base.instantiate_observers
+      end
+    end
+
+    initializer "active_record.set_dispatch_hooks", :before => :set_clear_dependencies_hook do |app|
+      unless app.config.cache_classes
+        ActionDispatch::Callbacks.after do
+          ActiveRecord::Base.reset_subclasses
+          ActiveRecord::Base.clear_reloadable_connections!
+        end
+      end
     end
 
     # TODO: ActiveRecord::Base.logger should delegate to its own config.logger
@@ -59,13 +76,16 @@ module ActiveRecord
       ActiveRecord::Base.logger ||= ::Rails.logger
     end
 
-    initializer "active_record.notifications" do
-      require 'active_support/notifications'
+    initializer "active_record.i18n_deprecation" do
+      require 'active_support/i18n'
 
-      ActiveSupport::Notifications.subscribe("sql") do |name, before, after, instrumenter_id, payload|
-        ActiveRecord::Base.connection.log_info(payload[:sql], payload[:name], (after - before) * 1000)
+      begin
+        I18n.t(:"activerecord.errors", :raise => true)
+        warn "[DEPRECATION] \"activerecord.errors\" namespace is deprecated in I18n " << 
+          "yml files, please use just \"errors\" instead."
+      rescue Exception => e
+        # No message then.
       end
     end
-
   end
 end

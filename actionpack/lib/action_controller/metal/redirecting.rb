@@ -9,7 +9,9 @@ module ActionController
 
   module Redirecting
     extend ActiveSupport::Concern
+
     include AbstractController::Logger
+    include ActionController::UrlFor
 
     # Redirects the browser to the target specified in +options+. This parameter can take one of three forms:
     #
@@ -55,8 +57,6 @@ module ActionController
       self.status        = _extract_redirect_to_status(options, response_status)
       self.location      = _compute_redirect_to_location(options)
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.h(location)}\">redirected</a>.</body></html>"
-
-      logger.info("Redirected to #{location}") if logger && logger.info?
     end
 
     private

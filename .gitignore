@@ -1,4 +1,3 @@
-.DS_Store
 debug.log
 doc/rdoc
 activemodel/doc
@@ -17,10 +16,6 @@ railties/doc/guides/html/images
 railties/doc/guides/html/stylesheets
 benches
 railties/guides/output
-*.rbc
-*.swp
-*.swo
-*.tmproj
 bin
 vendor/gems/
 railties/tmp

@@ -9,7 +9,7 @@
       delimiter: ","
       # Number of decimals, behind the separator (the number 1 with a precision of 2 gives: 1.00)
       precision: 3
-      
+
     # Used in number_to_currency()
     currency:
       format:
@@ -20,15 +20,15 @@
         separator: "."
         delimiter: ","
         precision: 2
-        
+
     # Used in number_to_percentage()
     percentage:
       format:
         # These three are to override number.format and are optional
-        # separator: 
+        # separator:
         delimiter: ""
-        # precision: 
-        
+        # precision:
+
     # Used in number_to_precision()
     precision:
       format:
@@ -36,12 +36,12 @@
         # separator:
         delimiter: ""
         # precision:
-        
+
     # Used in number_to_human_size()
     human:
       format:
         # These three are to override number.format and are optional
-        # separator: 
+        # separator:
         delimiter: ""
         precision: 1
       storage_units:
@@ -102,16 +102,22 @@
       minute: "Minute"
       second: "Seconds"
 
-  activemodel:
-    errors:
-      template:
-        header:
-          one:    "1 error prohibited this {{model}} from being saved"
-          other:  "{{count}} errors prohibited this {{model}} from being saved"
-        # The variable :count is also available
-        body: "There were problems with the following fields:"
+  errors:
+    template:
+      header:
+        one:    "1 error prohibited this {{model}} from being saved"
+        other:  "{{count}} errors prohibited this {{model}} from being saved"
+      # The variable :count is also available
+      body: "There were problems with the following fields:"
 
-  support:
+  helpers:
     select:
-      # default value for :prompt => true in FormOptionsHelper
+      # Default value for :prompt => true in FormOptionsHelper
       prompt: "Please select"
+
+    # Default translation keys for submit FormHelper
+    submit:
+      create: 'Create {{model}}'
+      update: 'Update {{model}}'
+      submit: 'Save {{model}}'
+

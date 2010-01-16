@@ -51,8 +51,8 @@ module ActiveRecord
     def self.establish_connection(spec = nil)
       case spec
         when nil
-          raise AdapterNotSpecified unless defined? RAILS_ENV
-          establish_connection(RAILS_ENV)
+          raise AdapterNotSpecified unless defined?(Rails.env)
+          establish_connection(Rails.env)
         when ConnectionSpecification
           @@connection_handler.establish_connection(name, spec)
         when Symbol, String
@@ -88,26 +88,6 @@ module ActiveRecord
     end
 
     class << self
-      # Deprecated and no longer has any effect.
-      def allow_concurrency
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_concurrency has been deprecated and no longer has any effect. Please remove all references to allow_concurrency.")
-      end
-
-      # Deprecated and no longer has any effect.
-      def allow_concurrency=(flag)
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_concurrency= has been deprecated and no longer has any effect. Please remove all references to allow_concurrency=.")
-      end
-
-      # Deprecated and no longer has any effect.
-      def verification_timeout
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.verification_timeout has been deprecated and no longer has any effect. Please remove all references to verification_timeout.")
-      end
-
-      # Deprecated and no longer has any effect.
-      def verification_timeout=(flag)
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.verification_timeout= has been deprecated and no longer has any effect. Please remove all references to verification_timeout=.")
-      end
-
       # Returns the connection currently associated with the class. This can
       # also be used to "borrow" the connection to do database work unrelated
       # to any of the specific Active Records.

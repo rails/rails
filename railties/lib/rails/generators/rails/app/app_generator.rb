@@ -168,12 +168,14 @@ module Rails::Generators
       raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
     end
 
+    def bundle_if_dev_or_edge
+      run "gem bundle" if dev_or_edge?
+    end
+
     protected
       attr_accessor :rails_template
 
       def set_default_accessors!
-        app_name # Cache app name
-
         self.rails_template = case options[:template]
           when /^http:\/\//
             options[:template]
@@ -193,8 +195,12 @@ module Rails::Generators
         @app_name ||= File.basename(destination_root)
       end
 
+      def app_const_base
+        @app_const_base ||= app_name.gsub(/\W/, '_').squeeze('_').camelize
+      end
+
       def app_const
-        @app_const ||= "#{app_name.gsub(/\W/, '_').squeeze('_').classify}::Application"
+        @app_const ||= "#{app_const_base}::Application"
       end
 
       def valid_app_const?

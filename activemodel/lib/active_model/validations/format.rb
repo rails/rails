@@ -8,6 +8,20 @@ module ActiveModel
           record.errors.add(attribute, :invalid, :default => options[:message], :value => value)
         end
       end
+      
+      def check_validity!
+        unless options.include?(:with) ^ options.include?(:without)  # ^ == xor, or "exclusive or"
+          raise ArgumentError, "Either :with or :without must be supplied (but not both)"
+        end
+
+        if options[:with] && !options[:with].is_a?(Regexp)
+          raise ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash"
+        end
+
+        if options[:without] && !options[:without].is_a?(Regexp)
+          raise ArgumentError, "A regular expression must be supplied as the :without option of the configuration hash"
+        end
+      end
     end
 
     module ClassMethods
@@ -43,21 +57,7 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_format_of(*attr_names)
-        options = attr_names.extract_options!
-
-        unless options.include?(:with) ^ options.include?(:without)  # ^ == xor, or "exclusive or"
-          raise ArgumentError, "Either :with or :without must be supplied (but not both)"
-        end
-
-        if options[:with] && !options[:with].is_a?(Regexp)
-          raise ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash"
-        end
-
-        if options[:without] && !options[:without].is_a?(Regexp)
-          raise ArgumentError, "A regular expression must be supplied as the :without option of the configuration hash"
-        end
-
-        validates_with FormatValidator, options.merge(:attributes => attr_names)
+        validates_with FormatValidator, _merge_attributes(attr_names)
       end
     end
   end

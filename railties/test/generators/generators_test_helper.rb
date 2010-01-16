@@ -1,5 +1,3 @@
-# TODO: Fix this RAILS_ENV stuff
-RAILS_ENV = 'test' unless defined?(RAILS_ENV)
 require 'abstract_unit'
 
 module Rails
@@ -24,5 +22,9 @@ class GeneratorsTestCase < Rails::Generators::TestCase
     base.tests Rails::Generators.const_get(base.name.sub(/Test$/, ''))
   rescue
     # Do nothing.
+  end
+
+  def test_truth
+    # Don't cry test/unit
   end
 end

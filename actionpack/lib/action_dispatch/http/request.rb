@@ -2,14 +2,17 @@ require 'tempfile'
 require 'stringio'
 require 'strscan'
 
-require 'active_support/memoizable'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/string/access'
 require 'action_dispatch/http/headers'
 
 module ActionDispatch
   class Request < Rack::Request
+    include ActionDispatch::Http::Cache::Request
+    include ActionDispatch::Http::MimeNegotiation
+    include ActionDispatch::Http::Parameters
+    include ActionDispatch::Http::Upload
+    include ActionDispatch::Http::URL
 
     %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
@@ -19,9 +22,11 @@ module ActionDispatch
         HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
         HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
         HTTP_NEGOTIATE HTTP_PRAGMA ].each do |env|
-      define_method(env.sub(/^HTTP_/n, '').downcase) do
-        @env[env]
-      end
+      class_eval <<-METHOD, __FILE__, __LINE__ + 1
+        def #{env.sub(/^HTTP_/n, '').downcase}
+          @env["#{env}"]
+        end
+      METHOD
     end
 
     def key?(key)
@@ -35,7 +40,8 @@ module ActionDispatch
     # <tt>:get</tt>. If the request \method is not listed in the HTTP_METHODS
     # constant above, an UnknownHttpMethod exception is raised.
     def request_method
-      HTTP_METHOD_LOOKUP[super] || raise(ActionController::UnknownHttpMethod, "#{super}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
+      method = env["rack.methodoverride.original_method"] || env["REQUEST_METHOD"]
+      HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
     end
 
     # Returns the HTTP request \method used for action processing as a
@@ -43,7 +49,8 @@ module ActionDispatch
     # method returns <tt>:get</tt> for a HEAD request because the two are
     # functionally equivalent from the application's perspective.)
     def method
-      request_method == :head ? :get : request_method
+      method = env["REQUEST_METHOD"]
+      HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
     end
 
     # Is this a GET (or HEAD) request?  Equivalent to <tt>request.method == :get</tt>.
@@ -53,17 +60,17 @@ module ActionDispatch
 
     # Is this a POST request?  Equivalent to <tt>request.method == :post</tt>.
     def post?
-      request_method == :post
+      method == :post
     end
 
     # Is this a PUT request?  Equivalent to <tt>request.method == :put</tt>.
     def put?
-      request_method == :put
+      method == :put
     end
 
     # Is this a DELETE request?  Equivalent to <tt>request.method == :delete</tt>.
     def delete?
-      request_method == :delete
+      method == :delete
     end
 
     # Is this a HEAD request? Since <tt>request.method</tt> sees HEAD as <tt>:get</tt>,
@@ -79,25 +86,6 @@ module ActionDispatch
       Http::Headers.new(@env)
     end
 
-    # Returns the content length of the request as an integer.
-    def content_length
-      super.to_i
-    end
-
-    # The MIME type of the HTTP request, such as Mime::XML.
-    #
-    # For backward compatibility, the post \format is extracted from the
-    # X-Post-Data-Format HTTP header if present.
-    def content_type
-      @env["action_dispatch.request.content_type"] ||= begin
-        if @env['CONTENT_TYPE'] =~ /^([^,\;]*)/
-          Mime::Type.lookup($1.strip.downcase)
-        else
-          nil
-        end
-      end
-    end
-
     def forgery_whitelisted?
       method == :get || xhr? || content_type.nil? || !content_type.verify_request?
     end
@@ -106,104 +94,9 @@ module ActionDispatch
       content_type.to_s
     end
 
-    # Returns the accepted MIME type for the request.
-    def accepts
-      @env["action_dispatch.request.accepts"] ||= begin
-        header = @env['HTTP_ACCEPT'].to_s.strip
-
-        if header.empty?
-          [content_type]
-        else
-          Mime::Type.parse(header)
-        end
-      end
-    end
-
-    def if_modified_since
-      if since = env['HTTP_IF_MODIFIED_SINCE']
-        Time.rfc2822(since) rescue nil
-      end
-    end
-
-    def if_none_match
-      env['HTTP_IF_NONE_MATCH']
-    end
-
-    def not_modified?(modified_at)
-      if_modified_since && modified_at && if_modified_since >= modified_at
-    end
-
-    def etag_matches?(etag)
-      if_none_match && if_none_match == etag
-    end
-
-    # Check response freshness (Last-Modified and ETag) against request
-    # If-Modified-Since and If-None-Match conditions. If both headers are
-    # supplied, both must match, or the request is not considered fresh.
-    def fresh?(response)
-      last_modified = if_modified_since
-      etag          = if_none_match
-
-      return false unless last_modified || etag
-
-      success = true
-      success &&= not_modified?(response.last_modified) if last_modified
-      success &&= etag_matches?(response.etag) if etag
-      success
-    end
-
-    # Returns the Mime type for the \format used in the request.
-    #
-    #   GET /posts/5.xml   | request.format => Mime::XML
-    #   GET /posts/5.xhtml | request.format => Mime::HTML
-    #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first depending on the value of <tt>ActionController::Base.use_accept_header</tt>
-    #
-    def format(view_path = [])
-      formats.first
-    end
-
-    def formats
-      accept = @env['HTTP_ACCEPT']
-
-      @env["action_dispatch.request.formats"] ||=
-        if parameters[:format]
-          Array.wrap(Mime[parameters[:format]])
-        elsif xhr? || (accept && !accept.include?(?,))
-          accepts
-        else
-          [Mime::HTML]
-        end
-    end
-
-    # Sets the \format by string extension, which can be used to force custom formats
-    # that are not controlled by the extension.
-    #
-    #   class ApplicationController < ActionController::Base
-    #     before_filter :adjust_format_for_iphone
-    #
-    #     private
-    #       def adjust_format_for_iphone
-    #         request.format = :iphone if request.env["HTTP_USER_AGENT"][/iPhone/]
-    #       end
-    #   end
-    def format=(extension)
-      parameters[:format] = extension.to_s
-      @env["action_dispatch.request.formats"] = [Mime::Type.lookup_by_extension(parameters[:format])]
-    end
-
-    # Returns a symbolized version of the <tt>:format</tt> parameter of the request.
-    # If no \format is given it returns <tt>:js</tt>for Ajax requests and <tt>:html</tt>
-    # otherwise.
-    def template_format
-      parameter_format = parameters[:format]
-
-      if parameter_format
-        parameter_format
-      elsif xhr?
-        :js
-      else
-        :html
-      end
+    # Returns the content length of the request as an integer.
+    def content_length
+      super.to_i
     end
 
     # Returns true if the request's "X-Requested-With" header contains
@@ -236,7 +129,7 @@ module ActionDispatch
       if @env.include? 'HTTP_CLIENT_IP'
         if ActionController::Base.ip_spoofing_check && remote_ips && !remote_ips.include?(@env['HTTP_CLIENT_IP'])
           # We don't know which came from the proxy, and which from the user
-          raise ActionController::ActionControllerError.new(<<EOM)
+          raise ActionController::ActionControllerError.new <<EOM
 IP spoofing attack?!
 HTTP_CLIENT_IP=#{@env['HTTP_CLIENT_IP'].inspect}
 HTTP_X_FORWARDED_FOR=#{@env['HTTP_X_FORWARDED_FOR'].inspect}
@@ -262,124 +155,6 @@ EOM
       (@env['SERVER_SOFTWARE'] && /^([a-zA-Z]+)/ =~ @env['SERVER_SOFTWARE']) ? $1.downcase : nil
     end
 
-    # Returns the complete URL used for this request.
-    def url
-      protocol + host_with_port + request_uri
-    end
-
-    # Returns 'https://' if this is an SSL request and 'http://' otherwise.
-    def protocol
-      ssl? ? 'https://' : 'http://'
-    end
-
-    # Is this an SSL request?
-    def ssl?
-      @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
-    end
-
-    # Returns the \host for this request, such as "example.com".
-    def raw_host_with_port
-      if forwarded = env["HTTP_X_FORWARDED_HOST"]
-        forwarded.split(/,\s?/).last
-      else
-        env['HTTP_HOST'] || "#{env['SERVER_NAME'] || env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
-      end
-    end
-
-    # Returns the host for this request, such as example.com.
-    def host
-      raw_host_with_port.sub(/:\d+$/, '')
-    end
-
-    # Returns a \host:\port string for this request, such as "example.com" or
-    # "example.com:8080".
-    def host_with_port
-      "#{host}#{port_string}"
-    end
-
-    # Returns the port number of this request as an integer.
-    def port
-      if raw_host_with_port =~ /:(\d+)$/
-        $1.to_i
-      else
-        standard_port
-      end
-    end
-
-    # Returns the standard \port number for this request's protocol.
-    def standard_port
-      case protocol
-        when 'https://' then 443
-        else 80
-      end
-    end
-
-    # Returns a \port suffix like ":8080" if the \port number of this request
-    # is not the default HTTP \port 80 or HTTPS \port 443.
-    def port_string
-      port == standard_port ? '' : ":#{port}"
-    end
-
-    def server_port
-      @env['SERVER_PORT'].to_i
-    end
-
-    # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify
-    # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
-    def domain(tld_length = 1)
-      return nil unless named_host?(host)
-
-      host.split('.').last(1 + tld_length).join('.')
-    end
-
-    # Returns all the \subdomains as an array, so <tt>["dev", "www"]</tt> would be
-    # returned for "dev.www.rubyonrails.org". You can specify a different <tt>tld_length</tt>,
-    # such as 2 to catch <tt>["www"]</tt> instead of <tt>["www", "rubyonrails"]</tt>
-    # in "www.rubyonrails.co.uk".
-    def subdomains(tld_length = 1)
-      return [] unless named_host?(host)
-      parts = host.split('.')
-      parts[0..-(tld_length+2)]
-    end
-
-    # Returns the query string, accounting for server idiosyncrasies.
-    def query_string
-      @env['QUERY_STRING'].present? ? @env['QUERY_STRING'] : (@env['REQUEST_URI'].to_s.split('?', 2)[1] || '')
-    end
-
-    # Returns the request URI, accounting for server idiosyncrasies.
-    # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
-    def request_uri
-      if uri = @env['REQUEST_URI']
-        # Remove domain, which webrick puts into the request_uri.
-        (%r{^\w+\://[^/]+(/.*|$)$} =~ uri) ? $1 : uri
-      else
-        # Construct IIS missing REQUEST_URI from SCRIPT_NAME and PATH_INFO.
-        uri = @env['PATH_INFO'].to_s
-
-        if script_filename = @env['SCRIPT_NAME'].to_s.match(%r{[^/]+$})
-          uri = uri.sub(/#{script_filename}\//, '')
-        end
-
-        env_qs = @env['QUERY_STRING'].to_s
-        uri += "?#{env_qs}" unless env_qs.empty?
-
-        if uri.blank?
-          @env.delete('REQUEST_URI')
-        else
-          @env['REQUEST_URI'] = uri
-        end
-      end
-    end
-
-    # Returns the interpreted \path to requested resource after all the installation
-    # directory of this application was taken into account.
-    def path
-      path = request_uri.to_s[/\A[^\?]*/]
-      path.sub!(/\A#{ActionController::Base.relative_url_root}/, '')
-      path
-    end
-
     # Read the request \body. This is useful for web services that need to
     # work with raw requests directly.
     def raw_post
@@ -388,33 +163,6 @@ EOM
         body.rewind if body.respond_to?(:rewind)
       end
       @env['RAW_POST_DATA']
-    end
-
-    # Returns both GET and POST \parameters in a single hash.
-    def parameters
-      @env["action_dispatch.request.parameters"] ||= request_parameters.merge(query_parameters).update(path_parameters).with_indifferent_access
-    end
-    alias_method :params, :parameters
-
-    def path_parameters=(parameters) #:nodoc:
-      @env.delete("action_dispatch.request.symbolized_path_parameters")
-      @env.delete("action_dispatch.request.parameters")
-      @env["action_dispatch.request.path_parameters"] = parameters
-    end
-
-    # The same as <tt>path_parameters</tt> with explicitly symbolized keys.
-    def symbolized_path_parameters
-      @env["action_dispatch.request.symbolized_path_parameters"] ||= path_parameters.symbolize_keys
-    end
-
-    # Returns a hash with the \parameters used to form the \path of the request.
-    # Returned hash keys are strings:
-    #
-    #   {'action' => 'my_action', 'controller' => 'my_controller'}
-    #
-    # See <tt>symbolized_path_parameters</tt> for symbolized keys.
-    def path_parameters
-      @env["action_dispatch.request.path_parameters"] ||= {}
     end
 
     # The request body is an IO input stream. If the RAW_POST_DATA environment
@@ -431,18 +179,6 @@ EOM
     def form_data?
       FORM_DATA_MEDIA_TYPES.include?(content_type.to_s)
     end
-
-    # Override Rack's GET method to support indifferent access
-    def GET
-      @env["action_dispatch.request.query_parameters"] ||= normalize_parameters(super)
-    end
-    alias_method :query_parameters, :GET
-
-    # Override Rack's POST method to support indifferent access
-    def POST
-      @env["action_dispatch.request.request_parameters"] ||= normalize_parameters(super)
-    end
-    alias_method :request_parameters, :POST
 
     def body_stream #:nodoc:
       @env['rack.input']
@@ -461,9 +197,18 @@ EOM
       @env['rack.session.options'] = options
     end
 
-    def flash
-      session['flash'] || {}
+    # Override Rack's GET method to support indifferent access
+    def GET
+      @env["action_dispatch.request.query_parameters"] ||= normalize_parameters(super)
     end
+    alias :query_parameters :GET
+
+    # Override Rack's POST method to support indifferent access
+    def POST
+      @env["action_dispatch.request.request_parameters"] ||= normalize_parameters(super)
+    end
+    alias :request_parameters :POST
+
 
     # Returns the authorization header regardless of whether it was specified directly or through one of the
     # proxy alternatives.
@@ -473,77 +218,5 @@ EOM
       @env['X_HTTP_AUTHORIZATION'] ||
       @env['REDIRECT_X_HTTP_AUTHORIZATION']
     end
-
-    # Receives an array of mimes and return the first user sent mime that
-    # matches the order array.
-    #
-    def negotiate_mime(order)
-      formats.each do |priority|
-        if priority == Mime::ALL
-          return order.first
-        elsif order.include?(priority)
-          return priority
-        end
-      end
-
-      order.include?(Mime::ALL) ? formats.first : nil
-    end
-
-    private
-
-      def named_host?(host)
-        !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
-      end
-
-      module UploadedFile
-        def self.extended(object)
-          object.class_eval do
-            attr_accessor :original_path, :content_type
-            alias_method :local_path, :path if method_defined?(:path)
-          end
-        end
-
-        # Take the basename of the upload's original filename.
-        # This handles the full Windows paths given by Internet Explorer
-        # (and perhaps other broken user agents) without affecting
-        # those which give the lone filename.
-        # The Windows regexp is adapted from Perl's File::Basename.
-        def original_filename
-          unless defined? @original_filename
-            @original_filename =
-              unless original_path.blank?
-                if original_path =~ /^(?:.*[:\\\/])?(.*)/m
-                  $1
-                else
-                  File.basename original_path
-                end
-              end
-          end
-          @original_filename
-        end
-      end
-
-      # Convert nested Hashs to HashWithIndifferentAccess and replace
-      # file upload hashs with UploadedFile objects
-      def normalize_parameters(value)
-        case value
-        when Hash
-          if value.has_key?(:tempfile)
-            upload = value[:tempfile]
-            upload.extend(UploadedFile)
-            upload.original_path = value[:filename]
-            upload.content_type = value[:type]
-            upload
-          else
-            h = {}
-            value.each { |k, v| h[k] = normalize_parameters(v) }
-            h.with_indifferent_access
-          end
-        when Array
-          value.map { |e| normalize_parameters(e) }
-        else
-          value
-        end
-      end
   end
 end

@@ -5,7 +5,8 @@ module Notifications
     def setup
       Thread.abort_on_exception = true
 
-      @notifier = ActiveSupport::Notifications::Notifier.new
+      ActiveSupport::Notifications.notifier = nil
+      @notifier = ActiveSupport::Notifications.notifier
       @events = []
       @notifier.subscribe { |*args| @events << event(*args) }
     end
@@ -82,13 +83,29 @@ module Notifications
   end
 
   class InstrumentationTest < TestCase
+    delegate :instrument, :instrument!, :to => ActiveSupport::Notifications
+
     def test_instrument_returns_block_result
-      assert_equal 2, @notifier.instrument(:awesome) { 1 + 1 }
+      assert_equal 2, instrument(:awesome) { 1 + 1 }
+      drain
+    end
+
+    def test_instrument_yields_the_paylod_for_further_modification
+      assert_equal 2, instrument(:awesome) { |p| p[:result] = 1 + 1 }
+      drain
+
+      assert_equal 1, @events.size
+      assert_equal :awesome, @events.first.name
+      assert_equal Hash[:result => 2], @events.first.payload
+    end
+
+    def test_instrumenter_exposes_its_id
+      assert_equal 20, ActiveSupport::Notifications.instrumenter.id.size
     end
 
     def test_nested_events_can_be_instrumented
-      @notifier.instrument(:awesome, :payload => "notifications") do
-        @notifier.instrument(:wot, :payload => "child") do
+      instrument(:awesome, :payload => "notifications") do
+        instrument(:wot, :payload => "child") do
           1 + 1
         end
 
@@ -106,24 +123,21 @@ module Notifications
       assert_equal Hash[:payload => "notifications"], @events.last.payload
     end
 
-    def test_instrument_publishes_when_exception_is_raised
+    def test_instrument_does_not_publish_when_exception_is_raised
       begin
-        @notifier.instrument(:awesome, :payload => "notifications") do
+        instrument(:awesome, :payload => "notifications") do
           raise "OMG"
         end
-        flunk
-      rescue
+      rescue RuntimeError => e
+        assert_equal "OMG", e.message
       end
 
       drain
-
-      assert_equal 1, @events.size
-      assert_equal :awesome, @events.last.name
-      assert_equal Hash[:payload => "notifications"], @events.last.payload
+      assert_equal 0, @events.size
     end
 
     def test_event_is_pushed_even_without_block
-      @notifier.instrument(:awesome, :payload => "notifications")
+      instrument(:awesome, :payload => "notifications")
       drain
 
       assert_equal 1, @events.size

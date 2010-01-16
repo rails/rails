@@ -524,7 +524,7 @@ module ActionDispatch
 
         fix_content = lambda do |node|
           # Gets around a bug in the Rails 1.1 HTML parser.
-          node.content.gsub(/<!\[CDATA\[(.*)(\]\]>)?/m) { CGI.escapeHTML($1) }
+          node.content.gsub(/<!\[CDATA\[(.*)(\]\]>)?/m) { Rack::Utils.escapeHTML($1) }
         end
 
         selected = elements.map do |element|

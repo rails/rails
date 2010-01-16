@@ -1,5 +1,13 @@
 *Edge*
 
+* Fixed that PrototypeHelper#update_page should return html_safe [DHH]
+
+* Fixed that much of DateHelper wouldn't return html_safe? strings [DHH]
+
+* Fixed that fragment caching should return a cache hit as html_safe (or it would all just get escaped) [DHH]
+
+* Added that ActionController::Base now does helper :all instead of relying on the default ApplicationController in Rails to do it [DHH]
+
 * Added ActionDispatch::Request#authorization to access the http authentication header regardless of its proxy hiding [DHH]
 
 * Added :alert, :notice, and :flash as options to ActionController::Base#redirect_to that'll automatically set the proper flash before the redirection [DHH]. Examples:

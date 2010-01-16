@@ -28,6 +28,10 @@ module ActiveRecord
   class Schema < Migration
     private_class_method :new
 
+    def self.migrations_path
+      ActiveRecord::Migrator.migrations_path
+    end
+
     # Eval the given block. All methods available to the current connection
     # adapter are available within the block, so you can easily use the
     # database definition DSL to build up your schema (+create_table+,
@@ -44,7 +48,7 @@ module ActiveRecord
 
       unless info[:version].blank?
         initialize_schema_migrations_table
-        assume_migrated_upto_version info[:version]
+        assume_migrated_upto_version(info[:version], migrations_path)
       end
     end
   end

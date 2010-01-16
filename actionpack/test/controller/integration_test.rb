@@ -254,6 +254,10 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       render :text => "Created", :status => 201
     end
 
+    def method
+      render :text => "method: #{request.method}"
+    end
+
     def cookie_monster
       cookies["cookie_1"] = nil
       cookies["cookie_3"] = "chocolate"
@@ -379,6 +383,14 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       head '/post'
       assert_equal 201, status
       assert_equal "", body
+
+      get '/get/method'
+      assert_equal 200, status
+      assert_equal "method: get", body
+
+      head '/get/method'
+      assert_equal 200, status
+      assert_equal "", body
     end
   end
 
@@ -391,6 +403,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       with_routing do |set|
         set.draw do |map|
           match ':action', :to => ::IntegrationProcessTest::IntegrationController
+          get 'get/:action', :to => ::IntegrationProcessTest::IntegrationController
         end
         yield
       end

@@ -7,9 +7,6 @@ gem "rails", "3.0.pre", :path => "railties"
   gem lib, '3.0.pre', :path => lib
 end
 
-# AS
-gem "i18n", ">= 0.3.0"
-
 # AR
 gem "arel", "0.2.pre", :git => "git://github.com/rails/arel.git"
 gem "sqlite3-ruby", ">= 1.2.5"
@@ -20,7 +17,6 @@ only :test do
 end
 
 # AP
-gem "rack", "1.1.0", :git => "git://github.com/rack/rack.git"
 gem "rack-test", "0.5.3"
 gem "RedCloth", ">= 4.2.2"
 

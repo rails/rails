@@ -44,10 +44,15 @@ module ActiveSupport
 
     class << self
       attr_writer :notifier
-      delegate :publish, :subscribe, :instrument, :to => :notifier
+      delegate :publish, :subscribe, :to => :notifier
+      delegate :instrument, :to => :instrumenter
 
       def notifier
         @notifier ||= Notifier.new
+      end
+
+      def instrumenter
+        Thread.current[:"instrumentation_#{notifier.object_id}"] ||= Instrumenter.new(notifier)
       end
     end
 
@@ -67,13 +72,6 @@ module ActiveSupport
       def wait
         @queue.wait
       end
-
-      delegate :instrument, :to => :current_instrumenter
-
-      private
-        def current_instrumenter
-          Thread.current[:"instrumentation_#{object_id}"] ||= Notifications::Instrumenter.new(self)
-        end
     end
   end
 end

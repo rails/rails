@@ -74,9 +74,8 @@ module ActionDispatch
           @routes = {}
           @helpers = []
 
-          @module ||= Module.new
-          @module.instance_methods.each do |selector|
-            @module.class_eval { remove_method selector }
+          @module ||= Module.new do
+            instance_methods.each { |selector| remove_method(selector) }
           end
         end
 
@@ -138,67 +137,87 @@ module ActionDispatch
             end
           end
 
-          def named_helper_module_eval(code, *args)
-            @module.module_eval(code, *args)
-          end
-
           def define_hash_access(route, name, kind, options)
             selector = hash_access_name(name, kind)
-            named_helper_module_eval <<-end_eval # We use module_eval to avoid leaks
+
+            # We use module_eval to avoid leaks
+            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
               def #{selector}(options = nil)                                      # def hash_for_users_url(options = nil)
                 options ? #{options.inspect}.merge(options) : #{options.inspect}  #   options ? {:only_path=>false}.merge(options) : {:only_path=>false}
               end                                                                 # end
               protected :#{selector}                                              # protected :hash_for_users_url
-            end_eval
+            END_EVAL
             helpers << selector
           end
 
+          # Create a url helper allowing ordered parameters to be associated
+          # with corresponding dynamic segments, so you can do:
+          #
+          #   foo_url(bar, baz, bang)
+          #
+          # Instead of:
+          #
+          #   foo_url(:bar => bar, :baz => baz, :bang => bang)
+          #
+          # Also allow options hash, so you can do:
+          #
+          #   foo_url(bar, baz, bang, :sort_by => 'baz')
+          #
           def define_url_helper(route, name, kind, options)
             selector = url_helper_name(name, kind)
-            # The segment keys used for positional parameters
-
             hash_access_method = hash_access_name(name, kind)
 
-            # allow ordered parameters to be associated with corresponding
-            # dynamic segments, so you can do
+            # We use module_eval to avoid leaks.
             #
-            #   foo_url(bar, baz, bang)
+            # def users_url(*args)
+            #   if args.empty? || Hash === args.first
+            #     options = hash_for_users_url(args.first || {})
+            #   else
+            #     options = hash_for_users_url(args.extract_options!)
+            #     default = default_url_options(options) if self.respond_to?(:default_url_options, true)
+            #     options = (default ||= {}).merge(options)
             #
-            # instead of
+            #     keys = []
+            #     keys -= options.keys if args.size < keys.size - 1
             #
-            #   foo_url(:bar => bar, :baz => baz, :bang => bang)
+            #     args = args.zip(keys).inject({}) do |h, (v, k)|
+            #       h[k] = v
+            #       h
+            #     end
             #
-            # Also allow options hash, so you can do
+            #     # Tell url_for to skip default_url_options
+            #     options[:use_defaults] = false
+            #     options.merge!(args)
+            #   end
             #
-            #   foo_url(bar, baz, bang, :sort_by => 'baz')
-            #
-            named_helper_module_eval <<-end_eval # We use module_eval to avoid leaks
-              def #{selector}(*args)                                                        # def users_url(*args)
-                                                                                            #
-                opts = if args.empty? || Hash === args.first                                #   opts = if args.empty? || Hash === args.first
-                  args.first || {}                                                          #     args.first || {}
-                else                                                                        #   else
-                  options = args.extract_options!                                           #     options = args.extract_options!
-                  args = args.zip(#{route.segment_keys.inspect}).inject({}) do |h, (v, k)|  #     args = args.zip([]).inject({}) do |h, (v, k)|
-                    h[k] = v                                                                #       h[k] = v
-                    h                                                                       #       h
-                  end                                                                       #     end
-                  options.merge(args)                                                       #     options.merge(args)
-                end                                                                         #   end
-                                                                                            #
-                url_for(#{hash_access_method}(opts))                                        #   url_for(hash_for_users_url(opts))
-                                                                                            #
-              end                                                                           # end
-              #Add an alias to support the now deprecated formatted_* URL.                  # #Add an alias to support the now deprecated formatted_* URL.
-              def formatted_#{selector}(*args)                                              # def formatted_users_url(*args)
-                ActiveSupport::Deprecation.warn(                                            #   ActiveSupport::Deprecation.warn(
-                  "formatted_#{selector}() has been deprecated. " +                         #     "formatted_users_url() has been deprecated. " +
-                  "Please pass format to the standard " +                                   #     "Please pass format to the standard " +
-                  "#{selector} method instead.", caller)                                    #     "users_url method instead.", caller)
-                #{selector}(*args)                                                          #   users_url(*args)
-              end                                                                           # end
-              protected :#{selector}                                                        # protected :users_url
-            end_eval
+            #   url_for(options)
+            # end
+            @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+              def #{selector}(*args)
+                if args.empty? || Hash === args.first
+                  options = #{hash_access_method}(args.first || {})
+                else
+                  options = #{hash_access_method}(args.extract_options!)
+                  default = default_url_options(options) if self.respond_to?(:default_url_options, true)
+                  options = (default ||= {}).merge(options)
+
+                  keys = #{route.segment_keys.inspect}
+                  keys -= options.keys if args.size < keys.size - 1 # take format into account
+
+                  args = args.zip(keys).inject({}) do |h, (v, k)|
+                    h[k] = v
+                    h
+                  end
+
+                  # Tell url_for to skip default_url_options
+                  options[:use_defaults] = false
+                  options.merge!(args)
+                end
+
+                url_for(options)
+              end
+              protected :#{selector}
+            END_EVAL
             helpers << selector
           end
       end
@@ -206,9 +225,16 @@ module ActionDispatch
       attr_accessor :routes, :named_routes
       attr_accessor :disable_clear_and_finalize
 
+      def self.default_resources_path_names
+        { :new => 'new', :edit => 'edit' }
+      end
+
+      attr_accessor :resources_path_names
+
       def initialize
         self.routes = []
         self.named_routes = NamedRouteCollection.new
+        self.resources_path_names = self.class.default_resources_path_names
 
         @disable_clear_and_finalize = false
       end

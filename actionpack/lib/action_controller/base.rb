@@ -6,6 +6,8 @@ module ActionController
     include AbstractController::Layouts
 
     include ActionController::Helpers
+    helper :all # By default, all helpers should be included
+    
     include ActionController::HideActions
     include ActionController::UrlFor
     include ActionController::Redirecting
@@ -13,7 +15,6 @@ module ActionController
     include ActionController::Renderers::All
     include ActionController::ConditionalGet
     include ActionController::RackDelegation
-    include ActionController::Logger
     include ActionController::Configuration
 
     # Legacy modules
@@ -31,8 +32,12 @@ module ActionController
     include ActionController::Streaming
     include ActionController::HttpAuthentication::Basic::ControllerMethods
     include ActionController::HttpAuthentication::Digest::ControllerMethods
-    include ActionController::FilterParameterLogging
     include ActionController::Translation
+
+    # Add instrumentations hooks at the bottom, to ensure they instrument
+    # all the methods properly.
+    include ActionController::Instrumentation
+    include ActionController::FilterParameterLogging
 
     # TODO: Extract into its own module
     # This should be moved together with other normalizing behavior

@@ -2,6 +2,8 @@ module ActionController
   module FilterParameterLogging
     extend ActiveSupport::Concern
 
+    INTERNAL_PARAMS = %w(controller action format _method only_path)
+
     module ClassMethods
       # Replace sensitive parameter data from the request log.
       # Filters parameters that have any of the arguments as a substring.
@@ -48,26 +50,18 @@ module ActionController
             filtered_params[key] = value
           end
 
-          filtered_params
+          filtered_params.except!(*INTERNAL_PARAMS)
         end
         protected :filter_parameters
       end
-
-    protected
-
-      # Overwrite log_process_action to include parameters information.
-      # If this method is invoked, it means logger is defined, so don't
-      # worry with such scenario here.
-      def log_process_action(controller) #:nodoc:
-        params = controller.send(:filter_parameters, controller.request.params)
-        logger.info "  Parameters: #{params.inspect}" unless params.empty?
-        super
-      end
     end
 
-    INTERNAL_PARAMS = [:controller, :action, :format, :_method, :only_path]
-
   protected
+
+    def append_info_to_payload(payload)
+      super
+      payload[:params] = filter_parameters(request.params)
+    end
 
     def filter_parameters(params)
       params.dup.except!(*INTERNAL_PARAMS)

@@ -1,6 +1,5 @@
 require 'stringio'
 require 'uri'
-require 'active_support/test_case'
 require 'active_support/core_ext/object/metaclass'
 require 'rack/test'
 

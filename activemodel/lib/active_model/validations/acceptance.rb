@@ -10,6 +10,13 @@ module ActiveModel
           record.errors.add(attribute, :accepted, :default => options[:message])
         end
       end
+      
+      def setup(klass)
+        # Note: instance_methods.map(&:to_s) is important for 1.9 compatibility
+        # as instance_methods returns symbols unlike 1.8 which returns strings.
+        new_attributes = attributes.reject { |name| klass.instance_methods.map(&:to_s).include?("#{name}=") }
+        klass.send(:attr_accessor, *new_attributes)        
+      end
     end
 
     module ClassMethods
@@ -37,18 +44,7 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_acceptance_of(*attr_names)
-        options = attr_names.extract_options!
-
-        db_cols = begin
-          column_names
-        rescue Exception # To ignore both statement and connection errors
-          []
-        end
-
-        names = attr_names.reject { |name| db_cols.include?(name.to_s) }
-        attr_accessor(*names)
-
-        validates_with AcceptanceValidator, options.merge(:attributes => attr_names)
+        validates_with AcceptanceValidator, _merge_attributes(attr_names)
       end
     end
   end

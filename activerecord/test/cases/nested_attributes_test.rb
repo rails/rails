@@ -34,7 +34,10 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_should_add_a_proc_to_nested_attributes_options
-    [:parrots, :birds, :birds_with_reject_all_blank].each do |name|
+    assert_equal ActiveRecord::NestedAttributes::ClassMethods::REJECT_ALL_BLANK_PROC,
+                 Pirate.nested_attributes_options[:birds_with_reject_all_blank][:reject_if]
+    
+    [:parrots, :birds].each do |name|
       assert_instance_of Proc, Pirate.nested_attributes_options[name][:reject_if]
     end
   end
@@ -77,12 +80,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert !ship._destroy
     ship.mark_for_destruction
     assert ship._destroy
-  end
-
-  def test_underscore_delete_is_deprecated
-    ActiveSupport::Deprecation.expects(:warn)
-    ship = Ship.create!(:name => 'Nights Dirty Lightning')
-    ship._delete
   end
 
   def test_reject_if_method_without_arguments
@@ -174,6 +171,12 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
     assert_equal @ship, @pirate.ship
     assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
+  end
+
+  def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record
+    assert_raise_with_message ActiveRecord::RecordNotFound, "Couldn't find Ship with ID=1234567890 for Pirate with ID=#{@pirate.id}" do
+      @pirate.ship_attributes = { :id => 1234567890 }
+    end
   end
 
   def test_should_take_a_hash_with_string_keys_and_update_the_associated_model
@@ -269,6 +272,8 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 end
 
 class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
+  include AssertRaiseWithMessage
+
   def setup
     @ship = Ship.new(:name => 'Nights Dirty Lightning')
     @pirate = @ship.build_pirate(:catchphrase => 'Aye')
@@ -321,6 +326,12 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
     assert_equal @pirate, @ship.pirate
     assert_equal 'Arr', @ship.pirate.catchphrase
+  end
+
+  def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record
+    assert_raise_with_message ActiveRecord::RecordNotFound, "Couldn't find Pirate with ID=1234567890 for Ship with ID=#{@ship.id}" do
+      @ship.pirate_attributes = { :id => 1234567890 }
+    end
   end
 
   def test_should_take_a_hash_with_string_keys_and_update_the_associated_model
@@ -382,10 +393,6 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_automatically_enable_autosave_on_the_association
     assert Ship.reflect_on_association(:pirate).options[:autosave]
-  end
-
-  def test_should_accept_update_only_option
-    @ship.update_attribute(:update_only_pirate_attributes, { :id => @pirate.ship.id, :catchphrase => 'Arr' })
   end
 
   def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
@@ -458,6 +465,12 @@ module NestedAttributesOnACollectionAssociationTests
     }
 
     assert_equal ['Grace OMalley', 'Privateers Greed'], [@child_1.name, @child_2.name]
+  end
+
+  def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record
+    assert_raise_with_message ActiveRecord::RecordNotFound, "Couldn't find #{@child_1.class.name} with ID=1234567890 for Pirate with ID=#{@pirate.id}" do
+      @pirate.attributes = { association_getter => [{ :id => 1234567890 }] }
+    end
   end
 
   def test_should_automatically_build_new_associated_models_for_each_entry_in_a_hash_where_the_id_is_missing
@@ -565,7 +578,7 @@ module NestedAttributesOnACollectionAssociationTests
     assert Pirate.reflect_on_association(@association_name).options[:autosave]
   end
 
-  def test_validate_presence_of_parent__works_with_inverse_of
+  def test_validate_presence_of_parent_works_with_inverse_of
     Man.accepts_nested_attributes_for(:interests)
     assert_equal :man, Man.reflect_on_association(:interests).options[:inverse_of]
     assert_equal :interests, Interest.reflect_on_association(:man).options[:inverse_of]
@@ -582,7 +595,7 @@ module NestedAttributesOnACollectionAssociationTests
     end
   end
 
-  def test_validate_presence_of_parent__fails_without_inverse_of
+  def test_validate_presence_of_parent_fails_without_inverse_of
     Man.accepts_nested_attributes_for(:interests)
     Man.reflect_on_association(:interests).options.delete(:inverse_of)
     Interest.reflect_on_association(:man).options.delete(:inverse_of)
