@@ -41,20 +41,38 @@ You can include functionality from the following modules:
 
 * Tracking changes in your object
 
-    class MyClass
+    class Person
       include ActiveModel::Dirty
+
+      define_attribute_methods [:name]
+
+      def name
+        @name
+      end
+
+      def name=(val)
+        name_will_change!
+        @name = val
+      end
+      
+      def save
+        @previously_changed = changes
+        true
+      end
       
     end
     
     ...provides all the value tracking features implemented by ActiveRecord
     
-    person.name # => 'bill'
+    person = Person.new
+    person.name # => nil
     person.changed? # => false
     person.name = 'bob'
     person.changed? # => true
     person.changed # => ['name']
-    person.changes # => { 'name' => ['bill', 'bob'] }
+    person.changes # => { 'name' => [nil, 'bob'] }
     person.name = 'robert'
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
-    
+
+    {Learn more}[link:classes/ActiveModel/Dirty.html]
