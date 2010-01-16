@@ -12,21 +12,21 @@ Active Model provides a known set of interfaces that your objects can implement
 to then present a common interface to the Action Pack helpers.  You can include
 functionality from the following modules:
 
-* Adding callbacks to your class
+* Adding callbacks to your objects
 
-   class MyClass
-     extend ActiveModel::Callbacks
-     define_model_callbacks :create
-
-     def create
-       _run_create_callbacks do
-         # Your create action methods here
-       end
-     end
-   end
-   
-   ...gives you before_create, around_create and after_create class methods that
-   wrap your create method.
+    class MyClass
+      extend ActiveModel::Callbacks
+      define_model_callbacks :create
+    
+      def create
+        _run_create_callbacks do
+          # Your create action methods here
+        end
+      end
+    end
+    
+    ...gives you before_create, around_create and after_create class methods that
+    wrap your create method.
    
   {Learn more}[link:classes/ActiveModel/CallBacks.html]
 
@@ -37,6 +37,8 @@ functionality from the following modules:
     end
     
     ...returns the class itself when sent :to_model
+
+   {Learn more}[link:classes/ActiveModel/Conversion.html]
 
 * Tracking changes in your object
 
