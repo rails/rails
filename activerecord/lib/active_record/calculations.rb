@@ -163,14 +163,7 @@ module ActiveRecord
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, includes, construct_join(joins))
             construct_calculation_arel_with_included_associations(options, join_dependency, merge_with_relation)
           else
-            relation = active_relation.
-              joins(options[:joins]).
-              where(options[:conditions]).
-              order(options[:order]).
-              limit(options[:limit]).
-              offset(options[:offset]).
-              group(options[:group]).
-              having(options[:having])
+            relation = active_relation.apply_finder_options(options.slice(:joins, :conditions, :order, :limit, :offset, :group, :having))
 
             if merge_with_relation
               relation = merge_with_relation.except(:select, :order, :limit, :offset, :group, :from).merge(relation)
@@ -205,14 +198,8 @@ module ActiveRecord
             relation = relation.where(type_condition) if finder_needs_type_condition?
           end
 
-          relation = relation.joins(options[:joins]).
-            select(column_aliases(join_dependency)).
-            group(options[:group]).
-            having(options[:having]).
-            order(options[:order]).
-            where(options[:conditions]).
-            from(options[:from])
-
+          relation = relation.apply_finder_options(options.slice(:joins, :group, :having, :order, :conditions, :from)).
+            select(column_aliases(join_dependency))
 
           if !using_limitable_reflections?(join_dependency.reflections) && (merge_limit || options[:limit])
             relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency))
