@@ -9,9 +9,8 @@ duplication and fragile applications that broke on upgrades.
 Active Model is a solution for this problem.
 
 Active Model provides a known set of interfaces that your objects can implement
-to then present a common interface to the Action Pack helpers.
-
-You can include functionality from the following modules:
+to then present a common interface to the Action Pack helpers.  You can include
+functionality from the following modules:
 
 * Adding callbacks to your class
 
@@ -41,28 +40,7 @@ You can include functionality from the following modules:
 
 * Tracking changes in your object
 
-    class Person
-      include ActiveModel::Dirty
-
-      define_attribute_methods [:name]
-
-      def name
-        @name
-      end
-
-      def name=(val)
-        name_will_change!
-        @name = val
-      end
-      
-      def save
-        @previously_changed = changes
-        true
-      end
-      
-    end
-    
-    ...provides all the value tracking features implemented by ActiveRecord
+    Provides all the value tracking features implemented by ActiveRecord...
     
     person = Person.new
     person.name # => nil
@@ -75,4 +53,5 @@ You can include functionality from the following modules:
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
 
-    {Learn more}[link:classes/ActiveModel/Dirty.html]
+  {Learn more}[link:classes/ActiveModel/Dirty.html]
+
