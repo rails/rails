@@ -629,7 +629,7 @@ NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
 
 h4. Subclasses
 
-The +subclasses+ method returns the names of all subclasses of a given class as an array of strings. That comprises not only direct subclasses, but all descendants down the hierarchy:
+The +subclasses+ method returns the names of all the reachable descendants of its receiver as an array of strings:
 
 <ruby>
 class C; end
@@ -650,9 +650,9 @@ end
 M::A.subclasses # => ["N::C", "M::B2", "M::B1"]
 </ruby>
 
-The order in which these class names are returned is unspecified.
+WARNING: +ActiveRecord::Base+ redefines this method, it returns class objects, reachable or not, and it is protected.
 
-See also +Object#subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
+See aso +Object#subclasses_of+, explained in "Extensions to All Objects FIX THIS LINK":FIXME.
 
 NOTE: Defined in +active_support/core_ext/class/removal.rb+.
 
