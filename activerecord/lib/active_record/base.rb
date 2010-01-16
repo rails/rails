@@ -2193,7 +2193,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          self.class.unscoped.where(self.class.unscoped[self.class.primary_key].eq(id)).delete_all
+          self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
         end
 
         @destroyed = true
@@ -2480,7 +2480,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        self.class.unscoped.where(self.class.unscoped[self.class.primary_key].eq(id)).update(attributes_with_values)
+        self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes
@@ -2590,7 +2590,7 @@ module ActiveRecord #:nodoc:
               if value && ((self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))) || value.is_a?(Hash) || value.is_a?(Array))
                 value = value.to_yaml
               end
-              attrs[self.class.unscoped[name]] = value
+              attrs[self.class.arel_table[name]] = value
             end
           end
         end
