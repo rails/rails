@@ -32,12 +32,12 @@ module ActionController
     include ActionController::Streaming
     include ActionController::HttpAuthentication::Basic::ControllerMethods
     include ActionController::HttpAuthentication::Digest::ControllerMethods
-    include ActionController::FilterParameterLogging
     include ActionController::Translation
 
     # Add instrumentations hooks at the bottom, to ensure they instrument
     # all the methods properly.
     include ActionController::Instrumentation
+    include ActionController::FilterParameterLogging
 
     # TODO: Extract into its own module
     # This should be moved together with other normalizing behavior

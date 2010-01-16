@@ -144,7 +144,7 @@ class AppGeneratorTest < GeneratorsTestCase
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    generator([destination_root], :template => path, :database => "sqlite3").expects(:open).with(path).returns(template)
+    generator([destination_root], :template => path).expects(:open).with(path).returns(template)
     assert_match /It works!/, silence(:stdout){ generator.invoke }
   end
 
@@ -168,14 +168,16 @@ class AppGeneratorTest < GeneratorsTestCase
   end
 
   def test_dev_option
-    run_generator [destination_root, "--dev"]
+    generator([destination_root], :dev => true).expects(:run).with("gem bundle")
+    silence(:stdout){ generator.invoke }
     rails_path = File.expand_path('../../..', Rails.root)
     dev_gem = %(directory #{rails_path.inspect}, :glob => "{*/,}*.gemspec")
     assert_file 'Gemfile', /^#{Regexp.escape(dev_gem)}$/
   end
 
   def test_edge_option
-    run_generator [destination_root, "--edge"]
+    generator([destination_root], :edge => true).expects(:run).with("gem bundle")
+    silence(:stdout){ generator.invoke }
     edge_gem = %(gem "rails", :git => "git://github.com/rails/rails.git")
     assert_file 'Gemfile', /^#{Regexp.escape(edge_gem)}$/
   end

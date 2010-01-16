@@ -20,10 +20,11 @@ module ApplicationTests
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::Callbacks",
         "ActionDispatch::Session::CookieStore",
+        "ActionDispatch::Flash",
         "ActionDispatch::Cascade",
         "ActionDispatch::ParamsParser",
         "Rack::MethodOverride",
-        "Rack::Head",
+        "ActionDispatch::Head",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache"
       ], middleware

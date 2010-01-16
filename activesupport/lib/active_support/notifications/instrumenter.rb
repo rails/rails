@@ -11,9 +11,11 @@ module ActiveSupport
         @notifier = notifier
       end
 
+      # Instrument the given block by measuring the time taken to execute it
+      # and publish it.
       def instrument(name, payload={})
         time = Time.now
-        result = yield if block_given?
+        result = yield(payload) if block_given?
         @notifier.publish(name, time, Time.now, @id, payload)
         result
       end

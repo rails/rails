@@ -55,12 +55,39 @@ module ActionViewSubscriberTest
     assert_match /Rendered test\/_customer.erb/, @logger.logged(:info).last
   end
 
+  def test_render_partial_with_implicit_path
+    @view.stubs(:controller_path).returns("test")
+    @view.render(Customer.new("david"), :greeting => "hi")
+    wait
+
+    assert_equal 1, @logger.logged(:info).size
+    assert_match /Rendered customers\/_customer\.html\.erb/, @logger.logged(:info).last
+  end
+
   def test_render_collection_template
     @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), Customer.new("mary") ])
     wait
 
     assert_equal 1, @logger.logged(:info).size
     assert_match /Rendered test\/_customer.erb/, @logger.logged(:info).last
+  end
+
+  def test_render_collection_with_implicit_path
+    @view.stubs(:controller_path).returns("test")
+    @view.render([ Customer.new("david"), Customer.new("mary") ], :greeting => "hi")
+    wait
+
+    assert_equal 1, @logger.logged(:info).size
+    assert_match /Rendered customers\/_customer\.html\.erb/, @logger.logged(:info).last
+  end
+
+  def test_render_collection_template_without_path
+    @view.stubs(:controller_path).returns("test")
+    @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], :greeting => "hi")
+    wait
+
+    assert_equal 1, @logger.logged(:info).size
+    assert_match /Rendered collection/, @logger.logged(:info).last
   end
 
   class SyncSubscriberTest < ActiveSupport::TestCase

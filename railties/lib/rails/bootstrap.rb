@@ -80,10 +80,7 @@ module Rails
       end
     end
 
-    # Sets the logger for Active Record, Action Controller, and Action Mailer
-    # (but only for those frameworks that are to be loaded). If the framework's
-    # logger is already set, it is not changed, otherwise it is set to use
-    # RAILS_DEFAULT_LOGGER.
+    # Sets the logger for dependencies and cache store.
     initializer :initialize_framework_logging do
       ActiveSupport::Dependencies.logger ||= Rails.logger
       Rails.cache.logger ||= Rails.logger
@@ -99,7 +96,7 @@ module Rails
     # Loads support for "whiny nil" (noisy warnings when methods are invoked
     # on +nil+ values) if Configuration#whiny_nils is true.
     initializer :initialize_whiny_nils do
-      require('active_support/whiny_nil') if config.whiny_nils
+      require 'active_support/whiny_nil' if config.whiny_nils
     end
 
     # Sets the default value for Time.zone
@@ -120,11 +117,25 @@ module Rails
     # Set the i18n configuration from config.i18n but special-case for the load_path which should be
     # appended to what's already set instead of overwritten.
     initializer :initialize_i18n do
+      require 'active_support/i18n'
+
       config.i18n.each do |setting, value|
         if setting == :load_path
           I18n.load_path += value
         else
           I18n.send("#{setting}=", value)
+        end
+      end
+
+      ActionDispatch::Callbacks.to_prepare do
+        I18n.reload!
+      end
+    end
+
+    initializer :set_clear_dependencies_hook do
+      unless config.cache_classes
+        ActionDispatch::Callbacks.after do
+          ActiveSupport::Dependencies.clear
         end
       end
     end

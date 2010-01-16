@@ -168,12 +168,14 @@ module Rails::Generators
       raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
     end
 
+    def bundle_if_dev_or_edge
+      run "gem bundle" if dev_or_edge?
+    end
+
     protected
       attr_accessor :rails_template
 
       def set_default_accessors!
-        app_name # Cache app name
-
         self.rails_template = case options[:template]
           when /^http:\/\//
             options[:template]

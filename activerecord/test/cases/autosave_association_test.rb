@@ -794,6 +794,14 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     assert @pirate.errors[:catchphrase].any?
   end
 
+  def test_should_not_ignore_different_error_messages_on_the_same_attribute
+    Ship.validates_format_of :name, :with => /\w/
+    @pirate.ship.name   = ""
+    @pirate.catchphrase = nil
+    assert @pirate.invalid?
+    assert_equal ["can't be blank", "is invalid"], @pirate.errors[:"ship.name"]
+  end
+
   def test_should_still_allow_to_bypass_validations_on_the_associated_model
     @pirate.catchphrase = ''
     @pirate.ship.name = ''

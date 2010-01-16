@@ -189,12 +189,12 @@ module ActionDispatch
             #     options[:use_defaults] = false
             #     options.merge!(args)
             #   end
-            # 
+            #
             #   url_for(options)
             # end
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
               def #{selector}(*args)
-                if args.empty? || Hash === args.first 
+                if args.empty? || Hash === args.first
                   options = #{hash_access_method}(args.first || {})
                 else
                   options = #{hash_access_method}(args.extract_options!)
@@ -225,9 +225,16 @@ module ActionDispatch
       attr_accessor :routes, :named_routes
       attr_accessor :disable_clear_and_finalize
 
+      def self.default_resources_path_names
+        { :new => 'new', :edit => 'edit' }
+      end
+
+      attr_accessor :resources_path_names
+
       def initialize
         self.routes = []
         self.named_routes = NamedRouteCollection.new
+        self.resources_path_names = self.class.default_resources_path_names
 
         @disable_clear_and_finalize = false
       end

@@ -40,7 +40,7 @@ module ActiveRecord
       distinct = options[:distinct] || distinct
       column_name = :all if column_name.blank? && operation == "count"
 
-      if arel.send(:groupings).any?
+      if @group_values.any?
         return execute_grouped_calculation(operation, column_name)
       else
         return execute_simple_calculation(operation, column_name, distinct)
@@ -63,7 +63,7 @@ module ActiveRecord
     end
 
     def execute_grouped_calculation(operation, column_name) #:nodoc:
-      group_attr      = arel.send(:groupings).first.value
+      group_attr      = @group_values.first
       association     = @klass.reflect_on_association(group_attr.to_sym)
       associated      = association && association.macro == :belongs_to # only count belongs_to associations
       group_field     = associated ? association.primary_key_name : group_attr
@@ -106,7 +106,6 @@ module ActiveRecord
       column_name = :all
 
       # Handles count(), count(:column), count(:distinct => true), count(:column, :distinct => true)
-      # TODO : relation.projections only works when .select() was last in the chain. Fix it!
       case args.size
       when 0
         select = get_projection_name_from_chained_relations

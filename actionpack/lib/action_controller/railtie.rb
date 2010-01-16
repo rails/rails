@@ -69,12 +69,12 @@ module ActionController
       app.config.middleware.insert_before(:"ActionDispatch::ParamsParser", middleware)
     end
 
-    # # Prepare dispatcher callbacks and run 'prepare' callbacks
+    # Prepare dispatcher callbacks and run 'prepare' callbacks
     initializer "action_controller.prepare_dispatcher" do |app|
       # TODO: This used to say unless defined?(Dispatcher). Find out why and fix.
+      # Notice that at this point, ActionDispatch::Callbacks were already loaded.
       require 'rails/dispatcher'
-
-      Dispatcher.define_dispatcher_callbacks(app.config.cache_classes)
+      ActionController::Dispatcher.prepare_each_request = true unless app.config.cache_classes
 
       unless app.config.cache_classes
         # Setup dev mode route reloading
@@ -85,7 +85,7 @@ module ActionController
             app.reload_routes!
           end
         end
-        ActionDispatch::Callbacks.before_dispatch { |callbacks| reload_routes.call }
+        ActionDispatch::Callbacks.before { |callbacks| reload_routes.call }
       end
     end
 

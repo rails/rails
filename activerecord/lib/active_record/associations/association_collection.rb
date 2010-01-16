@@ -58,11 +58,14 @@ module ActiveRecord
           find_scope = construct_scope[:find].slice(:conditions, :order)
 
           with_scope(:find => find_scope) do
-            relation = @reflection.klass.send(:construct_finder_arel, options)
+            relation = @reflection.klass.send(:construct_finder_arel, options, @reflection.klass.send(:current_scoped_methods))
 
             case args.first
-            when :first, :last, :all
+            when :first, :last
               relation.send(args.first)
+            when :all
+              records = relation.all
+              @reflection.options[:uniq] ? uniq(records) : records
             else
               relation.find(*args)
             end
@@ -402,7 +405,7 @@ module ActiveRecord
             end
           elsif @reflection.klass.scopes.include?(method)
             @reflection.klass.scopes[method].call(self, *args)
-          else          
+          else
             with_scope(construct_scope) do
               if block_given?
                 @reflection.klass.send(method, *args) { |*block_args| yield(*block_args) }

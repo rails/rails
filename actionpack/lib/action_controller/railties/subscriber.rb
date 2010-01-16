@@ -2,21 +2,19 @@ module ActionController
   module Railties
     class Subscriber < Rails::Subscriber
       def process_action(event)
-        controller = event.payload[:controller]
-        request    = controller.request
+        payload = event.payload
 
-        info "\nProcessed #{controller.class.name}##{event.payload[:action]} " \
-          "to #{request.formats} (for #{request.remote_ip} at #{event.time.to_s(:db)}) " \
-          "[#{request.method.to_s.upcase}]"
+        info "\nProcessed #{payload[:controller]}##{payload[:action]} " \
+          "to #{payload[:formats].join(', ')} (for #{payload[:remote_ip]} at #{event.time.to_s(:db)}) " \
+          "[#{payload[:method].to_s.upcase}]"
 
-        params = controller.send(:filter_parameters, request.params)
-        info "  Parameters: #{params.inspect}" unless params.empty?
+        info "  Parameters: #{payload[:params].inspect}" unless payload[:params].blank?
 
-        ActionController::Base.log_process_action(controller)
+        additions = ActionController::Base.log_process_action(payload)
 
         message = "Completed in %.0fms" % event.duration
-        message << " | #{controller.response.status}"
-        message << " [#{request.request_uri rescue "unknown"}]\n\n"
+        message << " (#{additions.join(" | ")})" unless additions.blank?
+        message << " | #{payload[:status]} [#{payload[:request_uri]}]\n\n"
 
         info(message)
       end
@@ -36,7 +34,7 @@ module ActionController
       end
 
       def redirect_to(event)
-        info "Redirected to #{event.payload[:location]} with status #{event.payload[:status]}"
+        info "Redirected to #{event.payload[:location]}"
       end
 
       def send_data(event)

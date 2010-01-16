@@ -22,6 +22,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         delete 'logout' => :destroy, :as => :logout
       end
 
+      resource :session do
+        get :create
+      end
+
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
 
@@ -46,6 +50,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       constraints ::TestRoutingMapper::IpRestrictor do
         get 'admin/accounts' => "queenbee#accounts"
+      end
+
+      scope 'es' do
+        resources :projects, :path_names => { :edit => 'cambiar' }, :as => 'projeto'
       end
 
       resources :projects, :controller => :project do
@@ -89,6 +97,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
+      resources :replies do
+        member do
+          put :answer, :to => :mark_as_answer
+          delete :answer, :to => :unmark_as_answer
+        end
+      end
+
+      resources :posts, :only => [:index, :show]
+
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
 
       match 'people/:id/update', :to => 'people#update', :as => :update_person
@@ -98,10 +115,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'articles/:year/:month/:day/:title', :to => "articles#show", :as => :article
 
       namespace :account do
+        match 'description', :to => "account#description", :as => "description"
         resource :subscription, :credit, :credit_card
 
         namespace :admin do
           resource :subscription
+        end
+      end
+
+      namespace :forum do
+        resources :products, :as => '' do
+          resources :questions
         end
       end
 
@@ -115,6 +139,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       scope ':access_token', :constraints => { :access_token => /\w{5,5}/ } do
         resources :rooms
+      end
+
+      scope '(:locale)', :locale => /en|pl/ do
+        resources :descriptions
+      end
+
+      namespace :admin do
+        scope '(/:locale)', :locale => /en|pl/ do
+          resources :descriptions
+        end
       end
 
       match '/info' => 'projects#info', :as => 'info'
@@ -170,6 +204,31 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_session_singleton_resource
+    with_test_routes do
+      get '/session'
+      assert_equal 'sessions#create', @response.body
+      assert_equal '/session', session_path
+
+      post '/session'
+      assert_equal 'sessions#create', @response.body
+
+      put '/session'
+      assert_equal 'sessions#update', @response.body
+
+      delete '/session'
+      assert_equal 'sessions#destroy', @response.body
+
+      get '/session/new'
+      assert_equal 'sessions#new', @response.body
+      assert_equal '/session/new', new_session_path
+
+      get '/session/edit'
+      assert_equal 'sessions#edit', @response.body
+      assert_equal '/session/edit', edit_session_path
+    end
+  end
+
   def test_redirect_modulo
     with_test_routes do
       get '/account/modulo/name'
@@ -198,20 +257,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  # TODO: rackmount is broken
-  # def test_admin
-  #   with_test_routes do
-  #     get '/admin', {}, {'REMOTE_ADDR' => '192.168.1.100'}
-  #     assert_equal 'queenbee#index', @response.body
-  #
-  #     assert_raise(ActionController::RoutingError) { get '/admin', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
-  #
-  #     get '/admin/accounts', {}, {'REMOTE_ADDR' => '192.168.1.100'}
-  #     assert_equal 'queenbee#accounts', @response.body
-  #
-  #     assert_raise(ActionController::RoutingError) { get '/admin/accounts', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
-  #   end
-  # end
+  def test_admin
+    with_test_routes do
+      get '/admin', {}, {'REMOTE_ADDR' => '192.168.1.100'}
+      assert_equal 'queenbee#index', @response.body
+
+      assert_raise(ActionController::RoutingError) { get '/admin', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+
+      get '/admin/accounts', {}, {'REMOTE_ADDR' => '192.168.1.100'}
+      assert_equal 'queenbee#accounts', @response.body
+
+      assert_raise(ActionController::RoutingError) { get '/admin/accounts', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+    end
+  end
 
   def test_global
     with_test_routes do
@@ -238,6 +296,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/projects'
       assert_equal 'projects#index', @response.body
       assert_equal '/projects', projects_path
+
+      post '/projects'
+      assert_equal 'projects#create', @response.body
 
       get '/projects.xml'
       assert_equal 'projects#index', @response.body
@@ -399,6 +460,42 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_replies
+    with_test_routes do
+      put '/replies/1/answer'
+      assert_equal 'replies#mark_as_answer', @response.body
+
+      delete '/replies/1/answer'
+      assert_equal 'replies#unmark_as_answer', @response.body
+    end
+  end
+
+  def test_posts
+    with_test_routes do
+      get '/posts'
+      assert_equal 'posts#index', @response.body
+      assert_equal '/posts', posts_path
+
+      get '/posts/1'
+      assert_equal 'posts#show', @response.body
+      assert_equal '/posts/1', post_path(:id => 1)
+
+      assert_raise(ActionController::RoutingError) { post '/posts' }
+      assert_raise(ActionController::RoutingError) { put '/posts/1' }
+      assert_raise(ActionController::RoutingError) { delete '/posts/1' }
+    end
+  end
+
+  def test_path_names
+    with_test_routes do
+      get '/es/projeto'
+      assert_equal 'projects#index', @response.body
+
+      get '/es/projeto/1/cambiar'
+      assert_equal 'projects#edit', @response.body
+    end
+  end
+
   def test_sprockets
     with_test_routes do
       get '/sprockets.js'
@@ -421,6 +518,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'people#update', @response.body
 
       assert_equal '/projects/1/people/2/update', update_project_person_path(:project_id => 1, :id => 2)
+    end
+  end
+
+  def test_forum_products
+    with_test_routes do
+      get '/forum'
+      assert_equal 'forum/products#index', @response.body
+      assert_equal '/forum', forum_products_path
+
+      get '/forum/basecamp'
+      assert_equal 'forum/products#show', @response.body
+      assert_equal '/forum/basecamp', forum_product_path(:id => 'basecamp')
+
+      get '/forum/basecamp/questions'
+      assert_equal 'forum/questions#index', @response.body
+      assert_equal '/forum/basecamp/questions', forum_product_questions_path(:product_id => 'basecamp')
+
+      get '/forum/basecamp/questions/1'
+      assert_equal 'forum/questions#show', @response.body
+      assert_equal '/forum/basecamp/questions/1', forum_product_question_path(:product_id => 'basecamp', :id => 1)
     end
   end
 
@@ -532,6 +649,57 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   ensure
     self.host = previous_host
+  end
+
+  def test_normalize_namespaced_matches
+    with_test_routes do
+      assert_equal '/account/description', account_description_path
+
+      get '/account/description'
+      assert_equal 'account#description', @response.body
+    end
+  end
+
+  def test_optional_scoped_path
+    with_test_routes do
+      assert_equal '/en/descriptions', descriptions_path("en")
+      assert_equal '/descriptions', descriptions_path(nil)
+      assert_equal '/en/descriptions/1', description_path("en", 1)
+      assert_equal '/descriptions/1', description_path(nil, 1)
+
+      get '/en/descriptions'
+      assert_equal 'descriptions#index', @response.body
+
+      get '/descriptions'
+      assert_equal 'descriptions#index', @response.body
+
+      get '/en/descriptions/1'
+      assert_equal 'descriptions#show', @response.body
+
+      get '/descriptions/1'
+      assert_equal 'descriptions#show', @response.body
+    end
+  end
+
+  def test_nested_optional_scoped_path
+    with_test_routes do
+      assert_equal '/admin/en/descriptions', admin_descriptions_path("en")
+      assert_equal '/admin/descriptions', admin_descriptions_path(nil)
+      assert_equal '/admin/en/descriptions/1', admin_description_path("en", 1)
+      assert_equal '/admin/descriptions/1', admin_description_path(nil, 1)
+
+      get '/admin/en/descriptions'
+      assert_equal 'admin/descriptions#index', @response.body
+
+      get '/admin/descriptions'
+      assert_equal 'admin/descriptions#index', @response.body
+
+      get '/admin/en/descriptions/1'
+      assert_equal 'admin/descriptions#show', @response.body
+
+      get '/admin/descriptions/1'
+      assert_equal 'admin/descriptions#show', @response.body
+    end
   end
 
   private

@@ -21,6 +21,8 @@ module ActionController
 
       class << self
         delegate :default_charset=, :to => "ActionDispatch::Response"
+        delegate :resources_path_names, :to => "ActionController::Routing::Routes"
+        delegate :resources_path_names=, :to => "ActionController::Routing::Routes"
       end
 
       # cattr_reader :protected_instance_variables
@@ -29,15 +31,7 @@ module ActionController
                                              @variables_added @request_origin @url
                                              @parent_controller @action_name
                                              @before_filter_chain_aborted @_headers @_params
-                                             @_flash @_response)
-
-      # Indicates whether or not optimise the generated named
-      # route helper methods
-      cattr_accessor :optimise_named_routes
-      self.optimise_named_routes = true
-
-      cattr_accessor :resources_path_names
-      self.resources_path_names = { :new => 'new', :edit => 'edit' }
+                                             @_response)
 
       # Controls the resource action separator
       cattr_accessor :resource_action_separator

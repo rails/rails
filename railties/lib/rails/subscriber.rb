@@ -30,9 +30,10 @@ module Rails
   # purposes(which slows down the main thread). Besides of providing a centralized
   # facility on top of Rails.logger.
   # 
-  # Finally, Subscriber some helpers to deal with logging, like managing console colors.
+  # Subscriber also has some helpers to deal with logging and automatically flushes
+  # all logs when the request finishes (via action_dispatch.callback notification).
   class Subscriber
-    cattr_accessor :colorize_logging, :instance_writer => false
+    mattr_accessor :colorize_logging, :log_tailer
     self.colorize_logging = true
 
     # Embed in a String to clear all previous ANSI sequences.
@@ -64,6 +65,18 @@ module Rails
       if subscriber.respond_to?(name) && subscriber.logger
         subscriber.send(name, ActiveSupport::Notifications::Event.new(*args))
       end
+
+      if args[0] == "action_dispatch.callback" && !subscribers.empty?
+        flush_all!
+        log_tailer.tail! if log_tailer
+      end
+    end
+
+    # Flush all subscribers' logger.
+    def self.flush_all!
+      loggers = subscribers.values.map(&:logger)
+      loggers.uniq!
+      loggers.each { |l| l.flush if l.respond_to?(:flush) }
     end
 
     # By default, we use the Rails.logger for logging.

@@ -196,7 +196,7 @@ module ActiveRecord
           name ||= "SQL"
           result = nil
           ActiveSupport::Notifications.instrument("active_record.sql",
-            :sql => sql, :name => name, :connection => self) do
+            :sql => sql, :name => name, :connection_id => self.object_id) do
             @runtime += Benchmark.ms { result = yield }
           end
           result

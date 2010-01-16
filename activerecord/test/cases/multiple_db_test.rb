@@ -85,7 +85,7 @@ class MultipleDbTest < ActiveRecord::TestCase
   end
 
   def test_arel_table_engines
-    assert_not_equal Entrant.active_relation_engine, Course.active_relation_engine
-    assert_equal Entrant.active_relation_engine, Bird.active_relation_engine
+    assert_not_equal Entrant.arel_engine, Course.arel_engine
+    assert_equal Entrant.arel_engine, Bird.arel_engine
   end
 end

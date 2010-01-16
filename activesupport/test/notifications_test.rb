@@ -83,10 +83,20 @@ module Notifications
   end
 
   class InstrumentationTest < TestCase
-    delegate :instrument, :to => ActiveSupport::Notifications
+    delegate :instrument, :instrument!, :to => ActiveSupport::Notifications
 
     def test_instrument_returns_block_result
       assert_equal 2, instrument(:awesome) { 1 + 1 }
+      drain
+    end
+
+    def test_instrument_yields_the_paylod_for_further_modification
+      assert_equal 2, instrument(:awesome) { |p| p[:result] = 1 + 1 }
+      drain
+
+      assert_equal 1, @events.size
+      assert_equal :awesome, @events.first.name
+      assert_equal Hash[:result => 2], @events.first.payload
     end
 
     def test_instrumenter_exposes_its_id

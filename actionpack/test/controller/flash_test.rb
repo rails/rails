@@ -159,7 +159,7 @@ class FlashTest < ActionController::TestCase
   end
 
   def test_keep_and_discard_return_values
-    flash = ActionController::Flash::FlashHash.new
+    flash = ActionDispatch::Flash::FlashHash.new
     flash.update(:foo => :foo_indeed, :bar => :bar_indeed)
 
     assert_equal(:foo_indeed, flash.discard(:foo)) # valid key passed
@@ -187,4 +187,42 @@ class FlashTest < ActionController::TestCase
     get :redirect_with_other_flashes
     assert_equal "Horses!", @controller.send(:flash)[:joyride]
   end
+end
+
+class FlashIntegrationTest < ActionController::IntegrationTest
+  SessionKey = '_myapp_session'
+  SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
+
+  class TestController < ActionController::Base
+    def set_flash
+      flash["that"] = "hello"
+      head :ok
+    end
+
+    def use_flash
+      render :inline => "flash: #{flash["that"]}"
+    end
+  end
+
+  def test_flash
+    with_test_route_set do
+      get '/set_flash'
+      assert_response :success
+      assert_equal "hello", @request.flash["that"]
+
+      get '/use_flash'
+      assert_response :success
+      assert_equal "flash: hello", @response.body
+    end
+  end
+
+  private
+    def with_test_route_set
+      with_routing do |set|
+        set.draw do |map|
+          match ':action', :to => ActionDispatch::Session::CookieStore.new(TestController, :key => SessionKey, :secret => SessionSecret)
+        end
+        yield
+      end
+    end
 end

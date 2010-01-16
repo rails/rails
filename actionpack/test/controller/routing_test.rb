@@ -82,9 +82,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   attr_reader :rs
 
   def setup
-    # These tests assume optimisation is on, so re-enable it.
-    ActionController::Base.optimise_named_routes = true
-
     @rs = ::ActionController::Routing::RouteSet.new
   end
 
@@ -632,7 +629,6 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   end
 
   def test_routes_changed_correctly_after_clear
-    ActionController::Base.optimise_named_routes = true
     rs = ::ActionController::Routing::RouteSet.new
     rs.draw do |r|
       r.connect 'ca', :controller => 'ca', :action => "aa"
