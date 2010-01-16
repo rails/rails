@@ -1724,10 +1724,10 @@ module ActiveRecord #:nodoc:
         #   class Article < ActiveRecord::Base
         #     def self.find_with_scope
         #       with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }, :create => { :blog_id => 1 }) do
-        #         with_scope(:find => { :limit => 10 })
+        #         with_scope(:find => { :limit => 10 }) do
         #           find(:all) # => SELECT * from articles WHERE blog_id = 1 LIMIT 10
         #         end
-        #         with_scope(:find => { :conditions => "author_id = 3" })
+        #         with_scope(:find => { :conditions => "author_id = 3" }) do
         #           find(:all) # => SELECT * from articles WHERE blog_id = 1 AND author_id = 3 LIMIT 1
         #         end
         #       end

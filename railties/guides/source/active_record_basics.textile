@@ -1,49 +1,36 @@
 h2. Active Record Basics
 
-This guide will give you a strong grasp of the Active Record pattern and how it can be used with or without Rails. Hopefully, some of the philosophical and theoretical intentions discussed here will also make you a stronger and better developer.
+This guide is an introduction to Active Record. After reading this guide we hope that you'll learn:
 
-After reading this guide we hope that you'll be able to:
-
-* Understand the way Active Record fits into the MVC model.
-* Create basic Active Record models and map them with your database tables.
-* Use your models to execute CRUD (Create, Read, Update and Delete) database operations.
-* Follow the naming conventions used by Rails to make developing database applications easier and obvious.
-* Take advantage of the way Active Record maps it's attributes with the database tables' columns to implement your application's logic.
-* Use Active Record with legacy databases that do not follow the Rails naming conventions.
+* What Object Relational Mapping and Active Record are and how they are used in Rails
+* How Active Record fits into the Model-View-Controller paradigm
+* How to use Active Record models to manipulate data stored in a relational database
+* Active Record schema naming conventions
+* The concepts of database migrations, validations and callbacks
 
 endprologue.
 
-h3. What's Active Record?
+h3. What is Active Record?
 
-Rails' ActiveRecord is an implementation of Martin Fowler's "Active Record Design Pattern":http://martinfowler.com/eaaCatalog/activeRecord.html. This pattern is based on the idea of creating relations between the database and the application in the following way:
+Active Record is the M in "MVC":getting_started.html#the-mvc-architecture - the model - which is the layer of the system responsible for representing business data and logic. Active Record facilitates the creation and use of business objects whose data requires persistent storage to a database. It is an implementation of the Active Record pattern which itself is a description of an Object Relational Mapping system.
 
-* Each database table is mapped to a class.
-* Each table column is mapped to an attribute of this class.
-* Each instance of this class is mapped to a single row in the database table.
+h4. The Active Record Pattern
 
-The definition of the Active Record pattern in Martin Fowler's words:
+Active Record was described by Martin Fowler in his book _Patterns of Enterprise Application Architecture_. In Active Record, objects carry both persistent data and behavior which operates on that data. Active Record takes the opinion that ensuring data access logic is part of the object will educate users of that object on how to write to and read from the database. 
 
-??An object that wraps a row in a database table or view, encapsulates the database access, and adds domain logic on that data.??
+h4. Object Relational Mapping
 
-h3. Object Relational Mapping
+Object-Relational Mapping, commonly referred to as its abbreviation ORM, is a technique that connects the rich objects of an application to tables in a relational database management system. Using ORM, the properties and relationships of the objects in an application can be easily stored and retrieved from a database without writing SQL statements directly and with less overall database access code.
 
-The relation between databases and object-oriented software is called ORM, which is short for "Object Relational Mapping". The purpose of an ORM framework is to minimize the mismatch existent between relational databases and object-oriented software. In applications with a domain model, we have objects that represent both the state of the system and the behavior of the real world elements that were modeled through these objects. Since we need to store the system's state somehow, we can use relational databases, which are proven to be an excellent approach to data management. Usually this may become a very hard thing to do, since we need to create an object-oriented model of everything that lives in the database, from simple columns to complicated relations between different tables. Doing this kind of thing by hand is a tedious and error prone job. This is where an ORM framework comes in.
+h4. Active Record as an ORM Framework
 
-h3. ActiveRecord as an ORM Framework
+Active Record gives us several mechanisms, the most important being the ability to:
 
-ActiveRecord gives us several mechanisms, being the most important ones the ability to:
-
-* Represent models.
-* Represent associations between these models.
-* Represent inheritance hierarchies through related models.
-* Validate models before they get recorded to the database.
+* Represent models and their data
+* Represent associations between these models
+* Represent inheritance hierarchies through related models
+* Validate models before they get persisted to the database
 * Perform database operations in an object-oriented fashion.
-
-It's easy to see that the Rails Active Record implementation goes way beyond the basic description of the Active Record Pattern.
-
-h3. Active Record Inside the MVC Model
-
-Active Record plays the role of model inside the MVC structure followed by Rails applications. Since model objects should encapsulate both state and logic of your applications, it's ActiveRecord responsibility to deliver you the easiest possible way to recover this data from the database.
 
 h3. Convention over Configuration in ActiveRecord
 
@@ -125,11 +112,93 @@ class Product < ActiveRecord::Base
 end
 </ruby>
 
+h3. Reading and Writing Data
+
+CRUD is an acronym for the four verbs we use to operate on data: Create, Read, Update, Delete. Active Record automatically creates methods to allow an application to read and manipulate data stored within its tables. 
+
+h4. Create
+
+Active Record objects can be created from a hash, a block or have its attributes manually set after creation. The _new_ method will return a new object while _create_ will return the object and save it to the database. 
+
+For example, given a model +User+ with attributes of +name+ and +occupation+, the _create_ method call will create and save a new record into the database:
+
+<ruby>
+  user = User.create(:name => "David", :occupation => "Code Artist")
+</ruby>
+
+Using the _new_ method, an object can be created without being saved:
+
+<ruby>
+  user = User.new
+  user.name = "David"
+  user.occupation = "Code Artist"
+</ruby>
+
+A call to _user.save_ will commit the record to the database.
+
+Finally, passing a block to either create or new will return a new User object:
+
+<ruby>
+  user = User.new do |u|
+    u.name = "David"
+    u.occupation = "Code Artist"
+  end
+</ruby>
+
+h4. Read
+
+ActiveRecord provides a rich API for accessing data within a database. Below are a few examples of different data access methods provided by ActiveRecord.
+
+<ruby>
+  # return all records
+  users = User.all
+</ruby>
+
+<ruby>
+  # return first record
+  user = User.first
+</ruby>
+
+<ruby>
+  # return the first user named David
+  david = User.find_by_name('David')
+</ruby>
+
+<ruby>
+  # find all users named David who are Code Artists and sort by created_at in reverse chronological order
+  users = User.all(:conditions => { :name => 'David', :occupation => 'Code Artist'}, :order => 'created_at DESC')
+</ruby>
+
+You can learn more about querying an Active Record model in the "Active Record Query Interface":"active_record_querying.html" guide.
+
+h4. Update
+
+Once an Active Record object has been retrieved, its attributes can be modified and it can be saved to the database.
+
+<ruby>
+  user = User.find_by_name('David')
+  user.name = 'Dave'
+  user.save
+</ruby>
+
+h4. Delete
+
+Likewise, once retrieved an Active Record object can be destroyed which removes it from the database.
+
+<ruby>
+  user = User.find_by_name('David')
+  user.destroy
+</ruby>
+
+
 h3. Validations
 
-ActiveRecord gives the ability to validate the state of your models before they get recorded into the database. There are several methods that you can use to hook into the life-cycle of your models and validate that an attribute value is not empty or follow a specific format and so on. You can learn more about validations in the "Active Record Validations and Callbacks guide":activerecord_validations_callbacks.html#validations-overview.
+Active Record allows you to validate the state of a model before it gets written into the database. There are several methods that you can use to check your models and validate that an attribute value is not empty, is unique and not already in the database, follows a specific format and many more. You can learn more about validations in the "Active Record Validations and Callbacks guide":activerecord_validations_callbacks.html#validations-overview.
 
 h3. Callbacks
 
-ActiveRecord callbacks allow you to attach code to certain events in the life-cycle of your models. This way you can add behavior to your models by transparently executing code when those events occur, like when you create a new record, update it, destroy it and so on. You can learn more about callbacks in the "Active Record Validations and Callbacks guide":activerecord_validations_callbacks.html#callbacks-overview.
+Active Record callbacks allow you to attach code to certain events in the life-cycle of your models. This enables you to add behavior to your models by transparently executing code when those events occur, like when you create a new record, update it, destroy it and so on. You can learn more about callbacks in the "Active Record Validations and Callbacks guide":activerecord_validations_callbacks.html#callbacks-overview.
 
+h3. Migrations
+
+Rails provides a domain-specific language for managing a database schema called migrations. Migrations are stored in files which are executed against any database that Active Record support using rake. Rails keeps track of which files have been committed to the database and provides rollback features. You can learn more about migrations in the "Active Record Migrations guide":migrations.html
