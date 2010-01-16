@@ -355,20 +355,42 @@ module ActionMailer #:nodoc:
     alias :controller_path :mailer_name
 
     class << self
-      attr_writer :mailer_name
-
-      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::File, :prefix => :file
-      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::Sendmail, :prefix => :sendmail
-      delegate :settings, :settings=, :to => ActionMailer::DeliveryMethod::Smtp, :prefix => :smtp
 
       def mailer_name
         @mailer_name ||= name.underscore
       end
-      alias :controller_path :mailer_name
+      attr_writer :mailer_name
 
-      def delivery_method=(method_name)
-        @delivery_method = ActionMailer::DeliveryMethod.lookup_method(method_name)
+      def file_settings
+        @file_settings ||= {:location => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"}
       end
+      attr_writer :file_settings
+
+      def sendmail_settings
+        @sendmail_settings ||= { :location  => '/usr/sbin/sendmail',
+                                 :arguments => '-i -t' }
+      end
+      attr_writer :sendmail_settings
+
+      def smtp_settings
+        @smtp_settings ||= { :address              => "localhost",
+                             :port                 => 25,
+                             :domain               => 'localhost.localdomain',
+                             :user_name            => nil,
+                             :password             => nil,
+                             :authentication       => nil,
+                             :enable_starttls_auto => true }
+      end
+      attr_writer :smtp_settings
+
+      def custom_settings
+        @custom_settings ||= {}
+      end
+      attr_writer :custom_settings
+
+      attr_writer :delivery_method
+
+      alias :controller_path :mailer_name
 
       def respond_to?(method_symbol, include_private = false) #:nodoc:
         matches_dynamic_method?(method_symbol) || super
@@ -413,7 +435,35 @@ module ActionMailer #:nodoc:
       #   email.set_some_obscure_header "frobnicate"
       #   MyMailer.deliver(email)
       def deliver(mail)
-        new.deliver!(mail)
+        raise "no mail object available for delivery!" unless mail
+
+        begin
+          ActiveSupport::Notifications.instrument("action_mailer.deliver",
+            :mailer => self.name) do |payload|
+            set_payload_for_mail(payload, mail)
+            mail.delivery_method delivery_method, delivery_settings
+            if @@perform_deliveries
+              mail.deliver! 
+              self.deliveries << mail
+            end
+          end
+        rescue Exception => e # Net::SMTP errors or sendmail pipe errors
+          raise e if raise_delivery_errors
+        end
+
+        mail
+      end
+
+      # Get the delivery settings set.  This is set using the <tt>:smtp_settings</tt>,
+      # <tt>:sendmail_settings</tt>, <tt>:file_settings</tt> or <tt>:custom_setings</tt>
+      # options hashes.  You can set <tt>:custom_settings</tt> if you are providing
+      # your own Custom Delivery Method and want to pass options to it.
+      def delivery_settings
+        if [:smtp, :sendmail, :file].include?(delivery_method)
+          instance_variable_get("@#{delivery_method}_settings")
+        else
+          @custom_settings
+        end
       end
 
       def template_root
@@ -506,19 +556,7 @@ module ActionMailer #:nodoc:
     # object (from the <tt>create!</tt> method). If no cached mail object exists, and
     # no alternate has been given as the parameter, this will fail.
     def deliver!(mail = @mail)
-      raise "no mail object available for delivery!" unless mail
-
-      begin
-        ActiveSupport::Notifications.instrument("action_mailer.deliver",
-          :template => template, :mailer => self.class.name) do |payload|
-          self.class.set_payload_for_mail(payload, mail)
-          self.delivery_method.perform_delivery(mail) if perform_deliveries
-        end
-      rescue Exception => e # Net::SMTP errors or sendmail pipe errors
-        raise e if raise_delivery_errors
-      end
-
-      mail
+      self.class.deliver(mail)
     end
 
     private
@@ -533,6 +571,11 @@ module ActionMailer #:nodoc:
         @mime_version         ||= @@default_mime_version.dup if @@default_mime_version
 
         @mailer_name ||= self.class.mailer_name.dup
+        @delivery_method = self.class.delivery_method
+        @smtp_settings = self.class.smtp_settings.dup
+        @sendmail_settings = self.class.sendmail_settings.dup
+        @file_settings = self.class.file_settings.dup
+        @custom_settings = self.class.custom_settings.dup
         @template    ||= method_name
 
         @parts   ||= []

@@ -26,6 +26,7 @@ FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 ActionMailer::Base.template_root = FIXTURE_LOAD_PATH
 
 class MockSMTP
+  
   def self.deliveries
     @@deliveries
   end
@@ -41,6 +42,7 @@ class MockSMTP
   def start(*args)
     yield self
   end
+
 end
 
 class Net::SMTP
@@ -57,9 +59,9 @@ rescue LoadError
   $stderr.puts "Skipping #{test_name} tests. `gem install #{gem_name}` and try again."
 end
 
-def set_delivery_method(delivery_method)
+def set_delivery_method(method)
   @old_delivery_method = ActionMailer::Base.delivery_method
-  ActionMailer::Base.delivery_method = delivery_method
+  ActionMailer::Base.delivery_method = method
 end
 
 def restore_delivery_method

@@ -546,7 +546,7 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_not_nil mail
     mail, from, to = mail
 
-    assert_equal 'system@loudthinking.com', from.addresses.first
+    assert_equal 'system@loudthinking.com', from
   end
 
   def test_reply_to
@@ -675,16 +675,13 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def test_doesnt_raise_errors_when_raise_delivery_errors_is_false
     ActionMailer::Base.raise_delivery_errors = false
-    TestMailer.delivery_method.expects(:perform_delivery).raises(Exception)
+    Mail::Message.any_instance.expects(:deliver!).raises(Exception)
     assert_nothing_raised { TestMailer.deliver_signed_up(@recipient) }
   end
 
   def test_performs_delivery_via_sendmail
-    sm = mock()
-    sm.expects(:print).with(anything)
-    sm.expects(:flush)
-    IO.expects(:popen).once.with('/usr/sbin/sendmail -i -t', 'w+').yields(sm)
-    ActionMailer::Base.delivery_method = :sendmail
+    IO.expects(:popen).once.with('/usr/sbin/sendmail -i -t test@localhost', 'w+')
+    TestMailer.delivery_method = :sendmail
     TestMailer.deliver_signed_up(@recipient)
   end
 
@@ -1113,7 +1110,6 @@ EOF
   def test_starttls_is_not_enabled
     ActionMailer::Base.smtp_settings[:enable_starttls_auto] = false
     MockSMTP.any_instance.expects(:respond_to?).never
-    MockSMTP.any_instance.expects(:enable_starttls_auto).never
     ActionMailer::Base.delivery_method = :smtp
     TestMailer.deliver_signed_up(@recipient)
   ensure
