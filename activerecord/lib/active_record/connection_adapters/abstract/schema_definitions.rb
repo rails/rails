@@ -13,7 +13,6 @@ module ActiveRecord
       module Format
         ISO_DATE = /\A(\d{4})-(\d\d)-(\d\d)\z/
         ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
-        NEW_ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d+))?\z/
       end
 
       attr_reader :name, :default, :type, :limit, :null, :sql_type, :precision, :scale
@@ -168,11 +167,10 @@ module ActiveRecord
         end
 
         protected
-          # Rational(123456, 1_000_000) -> 123456
-          # The sec_fraction component returned by Date._parse is a Rational fraction of a second or nil
-          # NB: This method is optimized for performance by immediately converting away from Rational.
+          # '0.123456' -> 123456
+          # '1.123456' -> 123456
           def microseconds(time)
-            ((time[:sec_fraction].to_f % 1) * 1_000_000).round
+            ((time[:sec_fraction].to_f % 1) * 1_000_000).to_i
           end
 
           def new_date(year, mon, mday)
@@ -196,8 +194,9 @@ module ActiveRecord
 
           # Doesn't handle time zones.
           def fast_string_to_time(string)
-            if md = Format::NEW_ISO_DATETIME.match(string)
-              new_time *md.to_a[1..7].map(&:to_i)
+            if string =~ Format::ISO_DATETIME
+              microsec = ($7.to_f * 1_000_000).to_i
+              new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
             end
           end
 
