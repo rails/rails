@@ -1388,7 +1388,7 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         undefine_attribute_methods
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
-        @arel_engine = @unscoped = nil
+        @arel_engine = @unscoped = @arel_table = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -1506,8 +1506,8 @@ module ActiveRecord #:nodoc:
         finder_needs_type_condition? ? @unscoped.where(type_condition) : @unscoped
       end
 
-      def arel_table(table_name_alias = nil)
-        Arel::Table.new(table_name, :as => table_name_alias, :engine => arel_engine)
+      def arel_table
+        @arel_table ||= Arel::Table.new(table_name, :engine => arel_engine)
       end
 
       def arel_engine
