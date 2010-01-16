@@ -88,5 +88,28 @@ module ActiveRecord
       result
     end
 
+    VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,
+                           :order, :select, :readonly, :group, :having, :from, :lock ]
+
+    def apply_finder_options(options)
+      options.assert_valid_keys(VALID_FIND_OPTIONS)
+
+      relation = joins(options[:joins]).
+        where(options[:conditions]).
+        select(options[:select]).
+        group(options[:group]).
+        having(options[:having]).
+        order(options[:order]).
+        limit(options[:limit]).
+        offset(options[:offset]).
+        from(options[:from]).
+        includes(options[:include])
+
+      relation = relation.lock(options[:lock]) if options[:lock].present?
+      relation = relation.readonly(options[:readonly]) if options.has_key?(:readonly)
+
+      relation
+    end
+
   end
 end

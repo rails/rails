@@ -1563,24 +1563,8 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_arel(options = {}, scope = nil)
-          validate_find_options(options)
-
-          relation = active_relation.
-            joins(options[:joins]).
-            where(options[:conditions]).
-            select(options[:select]).
-            group(options[:group]).
-            having(options[:having]).
-            order(options[:order]).
-            limit(options[:limit]).
-            offset(options[:offset]).
-            from(options[:from]).
-            includes(options[:include])
-
+          relation = active_relation.apply_finder_options(options)
           relation = relation.where(type_condition) if finder_needs_type_condition?
-          relation = relation.lock(options[:lock]) if options[:lock].present?
-          relation = relation.readonly(options[:readonly]) if options.has_key?(:readonly)
-
           relation = scope.merge(relation) if scope
           relation
         end
@@ -1781,11 +1765,6 @@ module ActiveRecord #:nodoc:
             end
 
             method_scoping.assert_valid_keys([ :find, :create ])
-
-            if f = method_scoping[:find]
-              f.assert_valid_keys(VALID_FIND_OPTIONS)
-            end
-
             relation = construct_finder_arel(method_scoping[:find] || {})
 
             if current_scoped_methods && current_scoped_methods.create_with_value && method_scoping[:create]
@@ -2045,13 +2024,6 @@ module ActiveRecord #:nodoc:
           unless expected == provided
             raise PreparedStatementInvalid, "wrong number of bind variables (#{provided} for #{expected}) in: #{statement}"
           end
-        end
-
-        VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,
-                               :order, :select, :readonly, :group, :having, :from, :lock ]
-
-        def validate_find_options(options) #:nodoc:
-          options.assert_valid_keys(VALID_FIND_OPTIONS)
         end
 
         def encode_quoted_value(value) #:nodoc:
