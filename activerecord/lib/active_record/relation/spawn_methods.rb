@@ -15,7 +15,9 @@ module ActiveRecord
     end
 
     def merge(r)
-      raise ArgumentError, "Cannot merge a #{r.klass.name} relation with #{@klass.name} relation" if r.klass != @klass
+      if r.klass != @klass
+        raise ArgumentError, "Cannot merge a #{r.klass.name}(##{r.klass.object_id}) relation with #{@klass.name}(##{@klass.object_id}) relation"
+      end
 
       merged_relation = spawn.eager_load(r.eager_load_values).preload(r.preload_values).includes(r.includes_values)
 
