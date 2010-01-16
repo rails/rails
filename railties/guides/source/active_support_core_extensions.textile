@@ -331,7 +331,7 @@ The method +remove_subclasses_of+ receives an arbitrary number of class objects 
 
 h5. +subclasses_of+
 
-The method +subclasses_of+ receives an arbitrary number of class objects and returns all their reachable descendants as a single array:
+The method +subclasses_of+ receives an arbitrary number of class objects and returns all their anonymous or reachable descendants as a single array:
 
 <ruby>
 class C; end
@@ -629,7 +629,7 @@ NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
 
 h4. Subclasses
 
-The +subclasses+ method returns the names of all the reachable descendants of its receiver as an array of strings:
+The +subclasses+ method returns the names of all the anonymous or reachable descendants of its receiver as an array of strings:
 
 <ruby>
 class C; end
