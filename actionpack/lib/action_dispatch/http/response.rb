@@ -32,6 +32,8 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response < Rack::Response
+    include ActionDispatch::Http::Cache::Response
+
     attr_accessor :request, :blank
 
     attr_writer :header, :sending_file
@@ -53,10 +55,6 @@ module ActionDispatch # :nodoc:
       @etag = nil
 
       yield self if block_given?
-    end
-
-    def cache_control
-      @cache_control ||= {}
     end
 
     def status=(status)
@@ -113,33 +111,6 @@ module ActionDispatch # :nodoc:
     # the character set information will also be included in the content type
     # information.
     attr_accessor :charset, :content_type
-
-    def last_modified
-      if last = headers['Last-Modified']
-        Time.httpdate(last)
-      end
-    end
-
-    def last_modified?
-      headers.include?('Last-Modified')
-    end
-
-    def last_modified=(utc_time)
-      headers['Last-Modified'] = utc_time.httpdate
-    end
-
-    def etag
-      @etag
-    end
-
-    def etag?
-      @etag
-    end
-
-    def etag=(etag)
-      key = ActiveSupport::Cache.expand_cache_key(etag)
-      @etag = %("#{Digest::MD5.hexdigest(key)}")
-    end
 
     CONTENT_TYPE    = "Content-Type"
 
@@ -222,31 +193,6 @@ module ActionDispatch # :nodoc:
     end
 
     private
-      def handle_conditional_get!
-        if etag? || last_modified? || !@cache_control.empty?
-          set_conditional_cache_control!
-        elsif nonempty_ok_response?
-          self.etag = @body
-
-          if request && request.etag_matches?(etag)
-            self.status = 304
-            self.body = []
-          end
-
-          set_conditional_cache_control!
-        else
-          headers["Cache-Control"] = "no-cache"
-        end
-      end
-
-      def nonempty_ok_response?
-        @status == 200 && string_body?
-      end
-
-      def string_body?
-        !@blank && @body.respond_to?(:all?) && @body.all? { |part| part.is_a?(String) }
-      end
-
       def assign_default_content_type_and_charset!
         return if headers[CONTENT_TYPE].present?
 
@@ -259,27 +205,5 @@ module ActionDispatch # :nodoc:
         headers[CONTENT_TYPE] = type
       end
 
-      DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
-
-      def set_conditional_cache_control!
-        control = @cache_control
-
-        if control.empty?
-          headers["Cache-Control"] = DEFAULT_CACHE_CONTROL
-        elsif @cache_control[:no_cache]
-          headers["Cache-Control"] = "no-cache"
-        else
-          extras  = control[:extras]
-          max_age = control[:max_age]
-
-          options = []
-          options << "max-age=#{max_age.to_i}" if max_age
-          options << (control[:public] ? "public" : "private")
-          options << "must-revalidate" if control[:must_revalidate]
-          options.concat(extras) if extras
-
-          headers["Cache-Control"] = options.join(", ")
-        end
-      end
   end
 end

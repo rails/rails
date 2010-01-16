@@ -55,7 +55,15 @@ module ActionDispatch
   autoload :Routing
 
   module Http
-    autoload :Headers, 'action_dispatch/http/headers'
+    extend ActiveSupport::Autoload
+
+    autoload :Cache
+    autoload :Headers
+    autoload :MimeNegotiation
+    autoload :Parameters
+    autoload :Upload
+    autoload :UploadedFile, 'action_dispatch/http/upload'
+    autoload :URL
   end
 
   module Session
