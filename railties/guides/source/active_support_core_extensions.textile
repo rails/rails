@@ -705,7 +705,7 @@ NOTE: Defined in +active_support/core_ext/class/removal.rb+.
 
 h4. Reachable Classes
 
-By definition a class is reachable if its name constantized is defined, and the corresponding constant evaluates to +self+:
+By definition a non-anonymous class is reachable if its name constantized is defined, and the corresponding constant evaluates to +self+:
 
 <ruby>
 class C; end
