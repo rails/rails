@@ -155,7 +155,8 @@ module ActiveRecord
           validate_calculation_options(options)
           options = options.except(:distinct)
 
-          includes = merge_includes(merge_with_relation ? merge_with_relation.includes_values : [], options[:include])
+          merge_with_includes = merge_with_relation ? merge_with_relation.includes_values : []
+          includes = (merge_with_includes + Array.wrap(options[:include])).uniq
 
           if includes.any?
             merge_with_joins = merge_with_relation ? merge_with_relation.joins_values : []

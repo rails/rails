@@ -1583,11 +1583,6 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Merges includes so that the result is a valid +include+
-        def merge_includes(first, second)
-         (Array.wrap(first) + Array.wrap(second)).uniq
-        end
-
         def build_association_joins(joins)
           join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, joins, nil)
           relation = active_relation.table
