@@ -29,7 +29,7 @@ module ActiveRecord
           current_scope = current_scoped_methods
 
           unless current_scope
-            finder_needs_type_condition? ? active_relation.where(type_condition) : active_relation.spawn
+            active_relation.spawn
           else
             construct_finder_arel({}, current_scoped_methods)
           end

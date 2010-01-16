@@ -94,7 +94,9 @@ module ActiveRecord
     def apply_finder_options(options)
       options.assert_valid_keys(VALID_FIND_OPTIONS)
 
-      relation = joins(options[:joins]).
+      relation = spawn
+
+      relation = relation.joins(options[:joins]).
         where(options[:conditions]).
         select(options[:select]).
         group(options[:group]).

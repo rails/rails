@@ -872,7 +872,6 @@ module ActiveRecord #:nodoc:
         relation = active_relation
 
         relation = relation.where(conditions) if conditions
-        relation = relation.where(type_condition) if finder_needs_type_condition?
         relation = relation.limit(options[:limit]) if options[:limit].present?
         relation = relation.order(options[:order]) if options[:order].present?
 
@@ -1389,7 +1388,7 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         undefine_attribute_methods
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
-        @active_relation = @arel_engine = nil
+        @arel_engine = @active_relation = @arel_engine = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -1504,6 +1503,7 @@ module ActiveRecord #:nodoc:
 
       def active_relation
         @active_relation ||= Relation.new(self, arel_table)
+        finder_needs_type_condition? ? @active_relation.where(type_condition) : @active_relation
       end
 
       def arel_table(table_name_alias = nil)
@@ -1564,7 +1564,6 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_arel(options = {}, scope = nil)
           relation = active_relation.apply_finder_options(options)
-          relation = relation.where(type_condition) if finder_needs_type_condition?
           relation = scope.merge(relation) if scope
           relation
         end

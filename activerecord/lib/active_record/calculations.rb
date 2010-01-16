@@ -167,8 +167,6 @@ module ActiveRecord
 
             if merge_with_relation
               relation = merge_with_relation.except(:select, :order, :limit, :offset, :group, :from).merge(relation)
-            else
-              relation = relation.where(type_condition) if finder_needs_type_condition?
             end
 
             from = merge_with_relation.from_value if merge_with_relation && merge_with_relation.from_value.present?
@@ -194,8 +192,6 @@ module ActiveRecord
             relation.where_values = merge_with_relation.where_values
 
             merge_limit = merge_with_relation.taken
-          else
-            relation = relation.where(type_condition) if finder_needs_type_condition?
           end
 
           relation = relation.apply_finder_options(options.slice(:joins, :group, :having, :order, :conditions, :from)).
