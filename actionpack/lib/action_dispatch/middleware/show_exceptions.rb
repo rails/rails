@@ -20,7 +20,7 @@ module ActionDispatch
   # * :exception - The exception raised;
   #
   class ShowExceptions
-    LOCALHOST = '127.0.0.1'.freeze
+    LOCALHOST = ['127.0.0.1', '::1'].freeze
 
     RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
 
@@ -118,7 +118,7 @@ module ActionDispatch
 
       # True if the request came from localhost, 127.0.0.1.
       def local_request?(request)
-        request.remote_addr == LOCALHOST && request.remote_ip == LOCALHOST
+        LOCALHOST.any?{ |local_ip| request.remote_addr == local_ip && request.remote_ip == local_ip }
       end
 
       def status_code(exception)

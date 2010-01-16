@@ -53,19 +53,21 @@ class ShowExceptionsTest < ActionController::IntegrationTest
 
   test "rescue locally from a local request" do
     @app = ProductionApp
-    self.remote_addr = '127.0.0.1'
+    ['127.0.0.1', '::1'].each do |ip_address|
+      self.remote_addr = ip_address
 
-    get "/"
-    assert_response 500
-    assert_match /puke/, body
+      get "/"
+      assert_response 500
+      assert_match /puke/, body
 
-    get "/not_found"
-    assert_response 404
-    assert_match /#{ActionController::UnknownAction.name}/, body
+      get "/not_found"
+      assert_response 404
+      assert_match /#{ActionController::UnknownAction.name}/, body
 
-    get "/method_not_allowed"
-    assert_response 405
-    assert_match /ActionController::MethodNotAllowed/, body
+      get "/method_not_allowed"
+      assert_response 405
+      assert_match /ActionController::MethodNotAllowed/, body
+    end
   end
 
   test "localize public rescue message" do
