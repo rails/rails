@@ -1961,7 +1961,7 @@ module ActiveRecord
 
           class JoinBase # :nodoc:
             attr_reader :active_record, :table_joins
-            delegate    :table_name, :column_names, :primary_key, :reflections, :sanitize_sql, :active_relation_engine, :to => :active_record
+            delegate    :table_name, :column_names, :primary_key, :reflections, :sanitize_sql, :arel_engine, :to => :active_record
 
             def initialize(active_record, joins = nil)
               @active_record = active_record
@@ -2037,12 +2037,12 @@ module ActiveRecord
             def association_join
               return @join if @join
 
-              aliased_table = Arel::Table.new(table_name, :as => @aliased_table_name, :engine => active_relation_engine)
-              parent_table = Arel::Table.new(parent.table_name, :as => parent.aliased_table_name, :engine => active_relation_engine)
+              aliased_table = Arel::Table.new(table_name, :as => @aliased_table_name, :engine => arel_engine)
+              parent_table = Arel::Table.new(parent.table_name, :as => parent.aliased_table_name, :engine => arel_engine)
 
               @join = case reflection.macro
               when :has_and_belongs_to_many
-                join_table = Arel::Table.new(options[:join_table], :as => aliased_join_table_name, :engine => active_relation_engine)
+                join_table = Arel::Table.new(options[:join_table], :as => aliased_join_table_name, :engine => arel_engine)
                 fk = options[:foreign_key] || reflection.active_record.to_s.foreign_key
                 klass_fk = options[:association_foreign_key] || klass.to_s.foreign_key
 
@@ -2052,7 +2052,7 @@ module ActiveRecord
                 ]
               when :has_many, :has_one
                 if reflection.options[:through]
-                  join_table = Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name, :engine => active_relation_engine)
+                  join_table = Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name, :engine => arel_engine)
                   jt_foreign_key = jt_as_extra = jt_source_extra = jt_sti_extra = nil
                   first_key = second_key = as_extra = nil
 
@@ -2121,12 +2121,12 @@ module ActiveRecord
             end
 
             def relation
-              aliased = Arel::Table.new(table_name, :as => @aliased_table_name, :engine => active_relation_engine)
+              aliased = Arel::Table.new(table_name, :as => @aliased_table_name, :engine => arel_engine)
 
               if reflection.macro == :has_and_belongs_to_many
-                [Arel::Table.new(options[:join_table], :as => aliased_join_table_name, :engine => active_relation_engine), aliased]
+                [Arel::Table.new(options[:join_table], :as => aliased_join_table_name, :engine => arel_engine), aliased]
               elsif reflection.options[:through]
-                [Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name, :engine => active_relation_engine), aliased]
+                [Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name, :engine => arel_engine), aliased]
               else
                 aliased
               end
