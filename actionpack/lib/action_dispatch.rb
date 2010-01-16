@@ -43,6 +43,7 @@ module ActionDispatch
   autoload_under 'middleware' do
     autoload :Callbacks
     autoload :Cascade
+    autoload :Cookies
     autoload :Flash
     autoload :Head
     autoload :ParamsParser

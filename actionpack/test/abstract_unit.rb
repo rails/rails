@@ -92,6 +92,7 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
       middleware.use "ActionDispatch::ShowExceptions"
       middleware.use "ActionDispatch::Callbacks"
       middleware.use "ActionDispatch::ParamsParser"
+      middleware.use "ActionDispatch::Cookies"
       middleware.use "ActionDispatch::Flash"
       middleware.use "ActionDispatch::Head"
     }.build(routes || ActionController::Routing::Routes)
