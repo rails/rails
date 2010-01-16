@@ -68,10 +68,12 @@ class RelationTest < ActiveRecord::TestCase
 
     assert topics.loaded?
 
-    topics.reload
-    assert ! topics.loaded?
+    original_size = topics.to_a.size
+    Topic.create! :title => 'fake'
 
-    assert_queries(1) { topics.to_a }
+    assert_queries(1) { topics.reload }
+    assert_equal original_size + 1, topics.size
+    assert topics.loaded?
   end
 
   def test_finding_with_conditions
