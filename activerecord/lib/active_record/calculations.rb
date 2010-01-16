@@ -164,7 +164,7 @@ module ActiveRecord
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, includes, construct_join(joins))
             construct_calculation_arel_with_included_associations(options, join_dependency, merge_with_relation)
           else
-            relation = active_relation.apply_finder_options(options.slice(:joins, :conditions, :order, :limit, :offset, :group, :having))
+            relation = unscoped.apply_finder_options(options.slice(:joins, :conditions, :order, :limit, :offset, :group, :having))
 
             if merge_with_relation
               relation = merge_with_relation.except(:select, :order, :limit, :offset, :group, :from).merge(relation)
@@ -182,7 +182,7 @@ module ActiveRecord
         end
 
         def construct_calculation_arel_with_included_associations(options, join_dependency, merge_with_relation = nil)
-          relation = active_relation
+          relation = unscoped
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)

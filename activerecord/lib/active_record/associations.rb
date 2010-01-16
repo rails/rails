@@ -1703,7 +1703,7 @@ module ActiveRecord
         end
 
         def construct_finder_arel_with_included_associations(options, join_dependency)
-          relation = active_relation
+          relation = unscoped
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
@@ -1754,7 +1754,7 @@ module ActiveRecord
         end
 
         def construct_finder_sql_for_association_limiting(options, join_dependency)
-          relation = active_relation
+          relation = unscoped
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)

@@ -12,7 +12,7 @@ module ActiveRecord
 
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
-        table = finder_class.active_relation
+        table = finder_class.unscoped
 
         table_name   = record.class.quoted_table_name
         sql, params  = mount_sql_and_params(finder_class, table_name, attribute, value)

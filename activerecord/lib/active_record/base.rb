@@ -869,7 +869,7 @@ module ActiveRecord #:nodoc:
       #   # Update all books that match our conditions, but limit it to 5 ordered by date
       #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
       def update_all(updates, conditions = nil, options = {})
-        relation = active_relation
+        relation = unscoped
 
         relation = relation.where(conditions) if conditions
         relation = relation.limit(options[:limit]) if options[:limit].present?
@@ -1388,7 +1388,7 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         undefine_attribute_methods
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
-        @arel_engine = @active_relation = nil
+        @arel_engine = @unscoped = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -1501,9 +1501,9 @@ module ActiveRecord #:nodoc:
         "(#{segments.join(') AND (')})" unless segments.empty?
       end
 
-      def active_relation
-        @active_relation ||= Relation.new(self, arel_table)
-        finder_needs_type_condition? ? @active_relation.where(type_condition) : @active_relation
+      def unscoped
+        @unscoped ||= Relation.new(self, arel_table)
+        finder_needs_type_condition? ? @unscoped.where(type_condition) : @unscoped
       end
 
       def arel_table(table_name_alias = nil)
@@ -1563,7 +1563,7 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_arel(options = {}, scope = nil)
-          relation = active_relation.apply_finder_options(options)
+          relation = unscoped.apply_finder_options(options)
           relation = scope.merge(relation) if scope
           relation
         end
@@ -1585,7 +1585,7 @@ module ActiveRecord #:nodoc:
 
         def build_association_joins(joins)
           join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, joins, nil)
-          relation = active_relation.table
+          relation = unscoped.table
           join_dependency.join_associations.map { |association|
             if (association_relation = association.relation).is_a?(Array)
               [Arel::InnerJoin.new(relation, association_relation.first, *association.association_join.first).joins(relation),
@@ -2193,7 +2193,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          self.class.active_relation.where(self.class.active_relation[self.class.primary_key].eq(id)).delete_all
+          self.class.unscoped.where(self.class.unscoped[self.class.primary_key].eq(id)).delete_all
         end
 
         @destroyed = true
@@ -2480,7 +2480,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        self.class.active_relation.where(self.class.active_relation[self.class.primary_key].eq(id)).update(attributes_with_values)
+        self.class.unscoped.where(self.class.unscoped[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes
@@ -2493,9 +2493,9 @@ module ActiveRecord #:nodoc:
         attributes_values = arel_attributes_values
 
         new_id = if attributes_values.empty?
-          self.class.active_relation.insert connection.empty_insert_statement_value
+          self.class.unscoped.insert connection.empty_insert_statement_value
         else
-          self.class.active_relation.insert attributes_values
+          self.class.unscoped.insert attributes_values
         end
 
         self.id ||= new_id
@@ -2590,7 +2590,7 @@ module ActiveRecord #:nodoc:
               if value && ((self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))) || value.is_a?(Hash) || value.is_a?(Array))
                 value = value.to_yaml
               end
-              attrs[self.class.active_relation[name]] = value
+              attrs[self.class.unscoped[name]] = value
             end
           end
         end

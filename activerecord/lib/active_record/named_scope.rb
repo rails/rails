@@ -29,7 +29,7 @@ module ActiveRecord
           current_scope = current_scoped_methods
 
           unless current_scope
-            active_relation.spawn
+            unscoped.spawn
           else
             construct_finder_arel({}, current_scoped_methods)
           end
