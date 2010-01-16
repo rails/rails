@@ -380,7 +380,7 @@ module ActionDispatch
           end
 
           def controller
-            plural
+            options[:controller] || plural
           end
 
           def member_name
