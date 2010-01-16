@@ -26,13 +26,7 @@ module ActiveRecord
         if options.present?
           Scope.new(self, options, &block)
         else
-          current_scope = current_scoped_methods
-
-          unless current_scope
-            unscoped.spawn
-          else
-            construct_finder_arel({}, current_scoped_methods)
-          end
+          current_scoped_methods ? unscoped.merge(current_scoped_methods) : unscoped.spawn
         end
       end
 
