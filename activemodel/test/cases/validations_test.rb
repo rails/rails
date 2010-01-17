@@ -212,4 +212,12 @@ class ValidationsTest < ActiveModel::TestCase
     all_errors = t.errors.to_a
     assert_deprecated { assert_equal all_errors, t.errors.each_full{|err| err} }
   end
+
+  def test_validation_with_message_as_proc
+    Topic.validates_presence_of(:title, :message => proc { "no blanks here".upcase })
+
+    t = Topic.new
+    assert !t.valid?
+    assert ["NO BLANKS HERE"], t.errors[:title]
+  end
 end
