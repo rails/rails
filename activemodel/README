@@ -12,9 +12,30 @@ Active Model provides a known set of interfaces that your objects can implement
 to then present a common interface to the Action Pack helpers.  You can include
 functionality from the following modules:
 
+* Adding attribute magic to your objects
+
+    Add prefixes and suffixes to defined attribute methods...
+    
+    class Person
+      include ActiveModel::AttributeMethods
+      
+      attribute_method_prefix 'clear_'
+      define_attribute_methods [:name, :age]
+      
+      attr_accessor :name, :age
+    
+      def clear_attribute(attr)
+        send("#{attr}=", nil)
+      end
+    end
+    
+    ...gives you clear_name, clear_age.
+  
+  {Learn more}[link:classes/ActiveModel/AttributeMethods.html]
+  
 * Adding callbacks to your objects
 
-    class MyClass
+    class Person
       extend ActiveModel::Callbacks
       define_model_callbacks :create
     
@@ -32,7 +53,7 @@ functionality from the following modules:
 
 * For classes that already look like an Active Record object
 
-    class MyClass
+    class Person
       include ActiveModel::Conversion
     end
     
