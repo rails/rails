@@ -14,6 +14,7 @@ module Rails
         middleware.use('::Rack::Lock', :if => lambda { !ActionController::Base.allow_concurrency })
         middleware.use('::Rack::Runtime')
         middleware.use('ActionDispatch::ShowExceptions', lambda { ActionController::Base.consider_all_requests_local })
+        middleware.use('ActionDispatch::Notifications')
         middleware.use('ActionDispatch::Callbacks', lambda { ActionController::Dispatcher.prepare_each_request })
         middleware.use('ActionDispatch::Cookies')
         middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
