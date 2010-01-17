@@ -8,35 +8,6 @@ module ActionDispatch
     require "action_dispatch/railties/subscriber"
     subscriber ActionDispatch::Railties::Subscriber.new
 
-    class MetalMiddlewareBuilder
-      def initialize(metals)
-        @metals = metals
-      end
-
-      def new(app)
-        ActionDispatch::Cascade.new(@metals, app)
-      end
-
-      def name
-        ActionDispatch::Cascade.name
-      end
-      alias_method :to_s, :name
-    end
-
-    initializer "action_dispatch.initialize_metal" do |app|
-      metal_root = "#{Rails.root}/app/metal"
-      load_list = app.config.metals || Dir["#{metal_root}/**/*.rb"]
-
-      metals = load_list.map { |metal|
-        metal = File.basename(metal.gsub("#{metal_root}/", ''), '.rb')
-        require_dependency metal
-        metal.camelize.constantize
-      }.compact
-
-      middleware = MetalMiddlewareBuilder.new(metals)
-      app.config.middleware.insert_before(:"ActionDispatch::ParamsParser", middleware)
-    end
-
     # Prepare dispatcher callbacks and run 'prepare' callbacks
     initializer "action_dispatch.prepare_dispatcher" do |app|
       # TODO: This used to say unless defined?(Dispatcher). Find out why and fix.
