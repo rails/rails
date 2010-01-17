@@ -37,7 +37,7 @@ module ActiveRecord
             if force
               record.save!
             else
-              return false unless record.save(validate)
+              return false unless record.save(:validate => validate)
             end
           end
 

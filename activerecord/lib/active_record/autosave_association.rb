@@ -116,14 +116,14 @@ module ActiveRecord
   #   post = Post.find(1)
   #   post.author.name = ''
   #   post.save # => false
-  #   post.errors # => #<ActiveRecord::Errors:0x174498c @errors={"author_name"=>["can't be blank"]}, @base=#<Post ...>>
+  #   post.errors # => #<ActiveRecord::Errors:0x174498c @errors={"author.name"=>["can't be blank"]}, @base=#<Post ...>>
   #
   # No validations will be performed on the associated models when validations
   # are skipped for the parent:
   #
   #   post = Post.find(1)
   #   post.author.name = ''
-  #   post.save(false) # => true
+  #   post.save(:validate => false) # => true
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
@@ -302,7 +302,7 @@ module ActiveRecord
                 association.send(:insert_record, record)
               end
             elsif autosave
-              saved = record.save(false)
+              saved = record.save(:validate => false)
             end
 
             raise ActiveRecord::Rollback if saved == false
@@ -332,7 +332,7 @@ module ActiveRecord
           key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
           if autosave != false && (new_record? || association.new_record? || association[reflection.primary_key_name] != key || autosave)
             association[reflection.primary_key_name] = key
-            saved = association.save(!autosave)
+            saved = association.save(:validate => !autosave)
             raise ActiveRecord::Rollback if !saved && autosave
             saved
           end
@@ -355,7 +355,7 @@ module ActiveRecord
         if autosave && association.marked_for_destruction?
           association.destroy
         elsif autosave != false
-          saved = association.save(!autosave) if association.new_record? || autosave
+          saved = association.save(:validate => !autosave) if association.new_record? || autosave
 
           if association.updated?
             association_id = association.send(reflection.options[:primary_key] || :id)

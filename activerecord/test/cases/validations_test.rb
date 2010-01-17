@@ -124,7 +124,15 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_create_without_validation
     reply = WrongReply.new
     assert !reply.save
-    assert reply.save(false)
+    assert reply.save(:validate => false)
+  end
+
+  def test_deprecated_create_without_validation
+    reply = WrongReply.new
+    assert !reply.save
+    assert_deprecated do
+      assert reply.save(false)
+    end
   end
 
   def test_create_without_validation_bang

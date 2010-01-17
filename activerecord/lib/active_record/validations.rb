@@ -42,7 +42,17 @@ module ActiveRecord
     module InstanceMethods
       # The validation process on save can be skipped by passing false. The regular Base#save method is
       # replaced with this when the validations module is mixed in, which it is by default.
-      def save_with_validation(perform_validation = true)
+      def save_with_validation(options=nil)
+        perform_validation = case options
+          when NilClass
+            true
+          when Hash
+            options[:validate] != false
+          else
+            ActiveSupport::Deprecation.warn "save(#{options}) is deprecated, please give save(:validate => #{options}) instead", caller
+            options
+        end
+
         if perform_validation && valid? || !perform_validation
           save_without_validation
         else
