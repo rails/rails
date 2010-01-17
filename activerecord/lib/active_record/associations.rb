@@ -1701,24 +1701,30 @@ module ActiveRecord
         end
 
         def construct_finder_arel_with_included_associations(options, join_dependency)
-          scope = scope(:find)
-
-          relation = active_relation
+          relation = unscoped
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
           end
 
-          relation = relation.joins(construct_join(options[:joins], scope)).
+          relation = relation.joins(options[:joins]).
             select(column_aliases(join_dependency)).
-            group(options[:group] || (scope && scope[:group])).
-            having(options[:having] || (scope && scope[:having])).
-            order(construct_order(options[:order], scope)).
-            where(construct_conditions(options[:conditions], scope)).
-            from((scope && scope[:from]) || options[:from])
+            group(options[:group]).
+            having(options[:having]).
+            order(options[:order]).
+            where(options[:conditions]).
+            from(options[:from])
 
-          relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency)) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
-          relation = relation.limit(construct_limit(options[:limit], scope)) if using_limitable_reflections?(join_dependency.reflections)
+          scoped_relation = current_scoped_methods
+          scoped_relation_limit = scoped_relation.taken if scoped_relation
+
+          relation = current_scoped_methods.except(:limit).merge(relation) if current_scoped_methods
+
+          if !using_limitable_reflections?(join_dependency.reflections) && ((scoped_relation && scoped_relation.taken) || options[:limit])
+            relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency))
+          end
+
+          relation = relation.limit(options[:limit] || scoped_relation_limit) if using_limitable_reflections?(join_dependency.reflections)
 
           relation
         end
@@ -1746,29 +1752,29 @@ module ActiveRecord
         end
 
         def construct_finder_sql_for_association_limiting(options, join_dependency)
-          scope = scope(:find)
-
-          relation = active_relation
+          relation = unscoped
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
           end
 
-          relation = relation.joins(construct_join(options[:joins], scope)).
-            where(construct_conditions(options[:conditions], scope)).
-            group(options[:group] || (scope && scope[:group])).
-            having(options[:having] || (scope && scope[:having])).
-            order(construct_order(options[:order], scope)).
-            limit(construct_limit(options[:limit], scope)).
-            offset(construct_limit(options[:offset], scope)).
-            from(options[:from]).
-            select(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", construct_order(options[:order], scope(:find)).join(",")))
+          relation = relation.joins(options[:joins]).
+            where(options[:conditions]).
+            group(options[:group]).
+            having(options[:having]).
+            order(options[:order]).
+            limit(options[:limit]).
+            offset(options[:offset]).
+            from(options[:from])
+
+          relation = current_scoped_methods.except(:select, :includes, :eager_load).merge(relation) if current_scoped_methods
+          relation = relation.select(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", options[:order]))
 
           relation.to_sql
         end
 
         def using_limitable_reflections?(reflections)
-          reflections.reject { |r| [ :belongs_to, :has_one ].include?(r.macro) }.length.zero?
+          reflections.collect(&:collection?).length.zero?
         end
 
         def column_aliases(join_dependency)
@@ -1841,7 +1847,7 @@ module ActiveRecord
             case associations
               when Symbol, String
                 reflection = base.reflections[associations]
-                if reflection && [:has_many, :has_and_belongs_to_many].include?(reflection.macro)
+                if reflection && reflection.collection?
                   records.each { |record| record.send(reflection.name).target.uniq! }
                 end
               when Array
@@ -1851,12 +1857,11 @@ module ActiveRecord
               when Hash
                 associations.keys.each do |name|
                   reflection = base.reflections[name]
-                  is_collection = [:has_many, :has_and_belongs_to_many].include?(reflection.macro)
 
                   parent_records = []
                   records.each do |record|
                     if descendant = record.send(reflection.name)
-                      if is_collection
+                      if reflection.collection?
                         parent_records.concat descendant.target.uniq
                       else
                         parent_records << descendant
@@ -1954,7 +1959,7 @@ module ActiveRecord
 
           class JoinBase # :nodoc:
             attr_reader :active_record, :table_joins
-            delegate    :table_name, :column_names, :primary_key, :reflections, :sanitize_sql, :to => :active_record
+            delegate    :table_name, :column_names, :primary_key, :reflections, :sanitize_sql, :arel_engine, :to => :active_record
 
             def initialize(active_record, joins = nil)
               @active_record = active_record
@@ -2029,140 +2034,108 @@ module ActiveRecord
 
             def association_join
               return @join if @join
-              connection = reflection.active_record.connection
+
+              aliased_table = Arel::Table.new(table_name, :as => @aliased_table_name, :engine => arel_engine)
+              parent_table = Arel::Table.new(parent.table_name, :as => parent.aliased_table_name, :engine => arel_engine)
+
               @join = case reflection.macro
-                when :has_and_belongs_to_many
-                  ["%s.%s = %s.%s " % [
-                     connection.quote_table_name(aliased_join_table_name),
-                     options[:foreign_key] || reflection.active_record.to_s.foreign_key,
-                     connection.quote_table_name(parent.aliased_table_name),
-                     reflection.active_record.primary_key],
-                  "%s.%s = %s.%s " % [
-                     connection.quote_table_name(aliased_table_name),
-                     klass.primary_key,
-                     connection.quote_table_name(aliased_join_table_name),
-                     options[:association_foreign_key] || klass.to_s.foreign_key
-                     ]
-                  ]
-                when :has_many, :has_one
-                  if reflection.options[:through]
-                    jt_foreign_key = jt_as_extra = jt_source_extra = jt_sti_extra = nil
-                    first_key = second_key = as_extra = nil
+              when :has_and_belongs_to_many
+                join_table = Arel::Table.new(options[:join_table], :as => aliased_join_table_name, :engine => arel_engine)
+                fk = options[:foreign_key] || reflection.active_record.to_s.foreign_key
+                klass_fk = options[:association_foreign_key] || klass.to_s.foreign_key
 
-                    if through_reflection.options[:as] # has_many :through against a polymorphic join
-                      jt_foreign_key = through_reflection.options[:as].to_s + '_id'
-                      jt_as_extra = " AND %s.%s = %s" % [
-                        connection.quote_table_name(aliased_join_table_name),
-                        connection.quote_column_name(through_reflection.options[:as].to_s + '_type'),
-                        klass.quote_value(parent.active_record.base_class.name)
-                      ]
-                    else
-                      jt_foreign_key = through_reflection.primary_key_name
-                    end
+                [
+                  join_table[fk].eq(parent_table[reflection.active_record.primary_key]),
+                  aliased_table[klass.primary_key].eq(join_table[klass_fk])
+                ]
+              when :has_many, :has_one
+                if reflection.options[:through]
+                  join_table = Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name, :engine => arel_engine)
+                  jt_foreign_key = jt_as_extra = jt_source_extra = jt_sti_extra = nil
+                  first_key = second_key = as_extra = nil
 
-                    case source_reflection.macro
-                      when :has_many
-                        if source_reflection.options[:as]
-                          first_key   = "#{source_reflection.options[:as]}_id"
-                          second_key  = options[:foreign_key] || primary_key
-                          as_extra    = " AND %s.%s = %s" % [
-                            connection.quote_table_name(aliased_table_name),
-                            connection.quote_column_name("#{source_reflection.options[:as]}_type"),
-                            klass.quote_value(source_reflection.active_record.base_class.name)
-                          ]
-                        else
-                          first_key   = through_reflection.klass.base_class.to_s.foreign_key
-                          second_key  = options[:foreign_key] || primary_key
-                        end
-
-                        unless through_reflection.klass.descends_from_active_record?
-                          jt_sti_extra = " AND %s.%s = %s" % [
-                            connection.quote_table_name(aliased_join_table_name),
-                            connection.quote_column_name(through_reflection.active_record.inheritance_column),
-                            through_reflection.klass.quote_value(through_reflection.klass.sti_name)]
-                        end
-                      when :belongs_to
-                        first_key = primary_key
-                        if reflection.options[:source_type]
-                          second_key = source_reflection.association_foreign_key
-                          jt_source_extra = " AND %s.%s = %s" % [
-                            connection.quote_table_name(aliased_join_table_name),
-                            connection.quote_column_name(reflection.source_reflection.options[:foreign_type]),
-                            klass.quote_value(reflection.options[:source_type])
-                          ]
-                        else
-                          second_key = source_reflection.primary_key_name
-                        end
-                    end
-
-                    ["(%s.%s = %s.%s%s%s%s) " % [
-                      connection.quote_table_name(parent.aliased_table_name),
-                      connection.quote_column_name(parent.primary_key),
-                      connection.quote_table_name(aliased_join_table_name),
-                      connection.quote_column_name(jt_foreign_key),
-                      jt_as_extra, jt_source_extra, jt_sti_extra],
-                    "(%s.%s = %s.%s%s) " % [
-                      connection.quote_table_name(aliased_table_name),
-                      connection.quote_column_name(first_key),
-                      connection.quote_table_name(aliased_join_table_name),
-                      connection.quote_column_name(second_key),
-                      as_extra]
-                    ]
-
-                 elsif reflection.options[:as]
-                    "%s.%s = %s.%s AND %s.%s = %s" % [
-                      connection.quote_table_name(aliased_table_name),
-                      "#{reflection.options[:as]}_id",
-                      connection.quote_table_name(parent.aliased_table_name),
-                      parent.primary_key,
-                      connection.quote_table_name(aliased_table_name),
-                      "#{reflection.options[:as]}_type",
-                      klass.quote_value(parent.active_record.base_class.name)
-                    ]
-                 else
-                    foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
-                    "%s.%s = %s.%s " % [
-                      aliased_table_name,
-                      foreign_key,
-                      parent.aliased_table_name,
-                      reflection.options[:primary_key] || parent.primary_key
-                    ]
+                  if through_reflection.options[:as] # has_many :through against a polymorphic join
+                    jt_foreign_key = through_reflection.options[:as].to_s + '_id'
+                    jt_as_extra = join_table[through_reflection.options[:as].to_s + '_type'].eq(parent.active_record.base_class.name)
+                  else
+                    jt_foreign_key = through_reflection.primary_key_name
                   end
-                when :belongs_to
-                  "%s.%s = %s.%s " % [
-                   connection.quote_table_name(aliased_table_name),
-                   reflection.klass.primary_key,
-                   connection.quote_table_name(parent.aliased_table_name),
-                   options[:foreign_key] || reflection.primary_key_name
+
+                  case source_reflection.macro
+                  when :has_many
+                    if source_reflection.options[:as]
+                      first_key   = "#{source_reflection.options[:as]}_id"
+                      second_key  = options[:foreign_key] || primary_key
+                      as_extra    = aliased_table["#{source_reflection.options[:as]}_type"].eq(source_reflection.active_record.base_class.name)
+                    else
+                      first_key   = through_reflection.klass.base_class.to_s.foreign_key
+                      second_key  = options[:foreign_key] || primary_key
+                    end
+
+                    unless through_reflection.klass.descends_from_active_record?
+                      jt_sti_extra = join_table[through_reflection.active_record.inheritance_column].eq(through_reflection.klass.sti_name)
+                    end
+                  when :belongs_to
+                    first_key = primary_key
+                    if reflection.options[:source_type]
+                      second_key = source_reflection.association_foreign_key
+                      jt_source_extra = join_table[reflection.source_reflection.options[:foreign_type]].eq(reflection.options[:source_type])
+                    else
+                      second_key = source_reflection.primary_key_name
+                    end
+                  end
+
+                  [
+                    [parent_table[parent.primary_key].eq(join_table[jt_foreign_key]), jt_as_extra, jt_source_extra, jt_sti_extra].reject{|x| x.blank? },
+                    aliased_table[first_key].eq(join_table[second_key])
                   ]
+                elsif reflection.options[:as]
+                  id_rel = aliased_table["#{reflection.options[:as]}_id"].eq(parent_table[parent.primary_key])
+                  type_rel = aliased_table["#{reflection.options[:as]}_type"].eq(parent.active_record.base_class.name)
+                  [id_rel, type_rel]
+                else
+                  foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
+                  [aliased_table[foreign_key].eq(parent_table[reflection.options[:primary_key] || parent.primary_key])]
+                end
+              when :belongs_to
+                [aliased_table[reflection.klass.primary_key].eq(parent_table[options[:foreign_key] || reflection.primary_key_name])]
               end
-              @join << %(AND %s) % [
-                klass.send(:type_condition, aliased_table_name)] unless klass.descends_from_active_record?
+
+              unless klass.descends_from_active_record?
+                sti_column = aliased_table[klass.inheritance_column]
+                sti_condition = sti_column.eq(klass.sti_name)
+                klass.send(:subclasses).each {|subclass| sti_condition = sti_condition.or(sti_column.eq(subclass.sti_name)) }
+
+                @join << sti_condition
+              end
 
               [through_reflection, reflection].each do |ref|
-                @join << "AND #{interpolate_sql(sanitize_sql(ref.options[:conditions], aliased_table_name))} " if ref && ref.options[:conditions]
+                if ref && ref.options[:conditions]
+                  @join << interpolate_sql(sanitize_sql(ref.options[:conditions], aliased_table_name))
+                end
               end
 
               @join
             end
 
             def relation
+              aliased = Arel::Table.new(table_name, :as => @aliased_table_name, :engine => arel_engine)
+
               if reflection.macro == :has_and_belongs_to_many
-                [Arel::Table.new(table_alias_for(options[:join_table], aliased_join_table_name)), Arel::Table.new(table_name_and_alias)]
+                [Arel::Table.new(options[:join_table], :as => aliased_join_table_name, :engine => arel_engine), aliased]
               elsif reflection.options[:through]
-                [Arel::Table.new(table_alias_for(through_reflection.klass.table_name, aliased_join_table_name)), Arel::Table.new(table_name_and_alias)]
+                [Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name, :engine => arel_engine), aliased]
               else
-                Arel::Table.new(table_name_and_alias)
+                aliased
               end
             end
 
             def join_relation(joining_relation, join = nil)
               if (relations = relation).is_a?(Array)
-                joining_relation.
-                  joins(relations.first, Arel::OuterJoin).on(association_join.first).
-                  joins(relations.last, Arel::OuterJoin).on(association_join.last)
+                joining_relation.joins(Relation::JoinOperation.new(relations.first, Arel::OuterJoin, association_join.first)).
+                  joins(Relation::JoinOperation.new(relations.last, Arel::OuterJoin, association_join.last))
               else
-                joining_relation.joins(relations, Arel::OuterJoin).on(association_join)
+                joining_relation.joins(Relation::JoinOperation.new(relations, Arel::OuterJoin, association_join))
               end
             end
 

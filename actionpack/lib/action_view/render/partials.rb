@@ -212,34 +212,34 @@ module ActionView
       end
 
       def render
-        options = @options
+        identifier = ((@template = find_template) ? @template.identifier : @path)
 
         if @collection
-          ActiveSupport::Notifications.instrument(:render_collection, :path => @path,
-                                                  :count => @collection.size) do
+          ActiveSupport::Notifications.instrument("action_view.render_collection",
+            :identifier => identifier || "collection", :count => @collection.size) do
             render_collection
           end
         else
-          content = ActiveSupport::Notifications.instrument(:render_partial, :path => @path) do
+          content = ActiveSupport::Notifications.instrument("action_view.render_partial",
+            :identifier => identifier) do
             render_partial
           end
 
-          if !@block && options[:layout]
-            content = @view._render_layout(find_template(options[:layout]), @locals){ content }
+          if !@block && (layout = @options[:layout])
+            content = @view._render_layout(find_template(layout), @locals){ content }
           end
           content
         end
       end
 
       def render_collection
-        @template = template = find_template
         return nil if @collection.blank?
 
         if @options.key?(:spacer_template)
           spacer = find_template(@options[:spacer_template]).render(@view, @locals)
         end
 
-        result = template ? collection_with_template : collection_without_template
+        result = @template ? collection_with_template : collection_without_template
         result.join(spacer).html_safe!
       end
 
@@ -277,7 +277,6 @@ module ActionView
       end
 
       def render_partial(object = @object)
-        @template = template = find_template
         locals, view = @locals, @view
 
         object ||= locals[template.variable_name]

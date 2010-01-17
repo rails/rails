@@ -317,6 +317,11 @@ class JavaScriptGeneratorTest < PrototypeHelperBaseTest
   def setup
     super
     @generator = create_generator
+    ActiveSupport.escape_html_entities_in_json  = true
+  end
+
+  def teardown
+    ActiveSupport.escape_html_entities_in_json  = false
   end
 
   def _evaluate_assigns_and_ivars() end

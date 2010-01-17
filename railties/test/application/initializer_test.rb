@@ -83,6 +83,17 @@ module ApplicationTests
       assert_equal "congratulations", $test_after_initialize_block2
     end
 
+    test "after_initialize runs after frameworks have been initialized" do
+      $activerecord_configurations = nil
+      add_to_config <<-RUBY
+        config.after_initialize { $activerecord_configurations = ActiveRecord::Base.configurations }
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert $activerecord_configurations
+      assert $activerecord_configurations['development']
+    end
+
     # i18n
     test "setting another default locale" do
       add_to_config <<-RUBY

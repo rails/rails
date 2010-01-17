@@ -1,12 +1,13 @@
 module ActiveModel #:nodoc:
-  # A simple base class that can be used along with ActiveModel::Base.validates_with
+  # A simple base class that can be used along with ActiveModel::Validations::ClassMethods.validates_with
   #
-  #   class Person < ActiveModel::Base
+  #   class Person
+  #     include ActiveModel::Validations
   #     validates_with MyValidator
   #   end
   #
   #   class MyValidator < ActiveModel::Validator
-  #     def validate
+  #     def validate(record)
   #       if some_complex_logic
   #         record.errors[:base] = "This record is invalid"
   #       end
@@ -18,10 +19,11 @@ module ActiveModel #:nodoc:
   #       end
   #   end
   #
-  # Any class that inherits from ActiveModel::Validator will have access to <tt>record</tt>,
-  # which is an instance of the record being validated, and must implement a method called <tt>validate</tt>.
+  # Any class that inherits from ActiveModel::Validator must implement a method
+  # called <tt>validate</tt> which accepts a <tt>record</tt>.
   #
-  #   class Person < ActiveModel::Base
+  #   class Person
+  #     include ActiveModel::Validations
   #     validates_with MyValidator
   #   end
   #
@@ -36,7 +38,7 @@ module ActiveModel #:nodoc:
   # from within the validators message
   #
   #   class MyValidator < ActiveModel::Validator
-  #     def validate
+  #     def validate(record)
   #       record.errors[:base] << "This is some custom error message"
   #       record.errors[:first_name] << "This is some complex validation"
   #       # etc...
@@ -51,13 +53,47 @@ module ActiveModel #:nodoc:
   #       @my_custom_field = options[:field_name] || :first_name
   #     end
   #   end
+  # 
+  # The easiest way to add custom validators for validating individual attributes
+  # is with the convenient ActiveModel::EachValidator for example:
+  # 
+  #   class TitleValidator < ActiveModel::EachValidator
+  #     def validate_each(record, attribute, value)
+  #       record.errors[attribute] << 'must be Mr. Mrs. or Dr.' unless ['Mr.', 'Mrs.', 'Dr.'].include?(value)
+  #     end
+  #   end
+  # 
+  # This can now be used in combination with the +validates+ method
+  # (see ActiveModel::Validations::ClassMethods.validates for more on this)
+  # 
+  #   class Person
+  #     include ActiveModel::Validations
+  #     attr_accessor :title
+  # 
+  #     validates :title, :presence => true, :title => true
+  #   end
+  # 
+  # Validator may also define a +setup+ instance method which will get called
+  # with the class that using that validator as it's argument. This can be
+  # useful when there are prerequisites such as an attr_accessor being present
+  # for example:
+  # 
+  #   class MyValidator < ActiveModel::Validator
+  #     def setup(klass)
+  #       klass.send :attr_accessor, :custom_attribute
+  #     end
+  #   end
+  # 
   class Validator
     attr_reader :options
 
+    # Accepts options that will be made availible through the +options+ reader.
     def initialize(options)
       @options = options
     end
 
+    # Override this method in subclasses with validation logic, adding errors
+    # to the records +errors+ array where necessary.
     def validate(record)
       raise NotImplementedError
     end
@@ -70,7 +106,10 @@ module ActiveModel #:nodoc:
   # All ActiveModel validations are built on top of this Validator.
   class EachValidator < Validator
     attr_reader :attributes
-
+    
+    # Returns a new validator instance. All options will be available via the
+    # +options+ reader, however the <tt>:attributes</tt> option will be removed
+    # and instead be made available through the +attributes+ reader.
     def initialize(options)
       @attributes = Array(options.delete(:attributes))
       raise ":attributes cannot be blank" if @attributes.empty?
@@ -78,18 +117,26 @@ module ActiveModel #:nodoc:
       check_validity!
     end
 
+    # Performs validation on the supplied record. By default this will call
+    # +validates_each+ to determine validity therefore subclasses should
+    # override +validates_each+ with validation logic.
     def validate(record)
       attributes.each do |attribute|
-        value = record.send(:read_attribute_for_validation, attribute)
+        value = record.read_attribute_for_validation(attribute)
         next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
         validate_each(record, attribute, value)
       end
     end
 
+    # Override this method in subclasses with the validation logic, adding
+    # errors to the records +errors+ array where necessary.
     def validate_each(record, attribute, value)
       raise NotImplementedError
     end
 
+    # Hook method that gets called by the initializer allowing verification
+    # that the arguments supplied are valid. You could for example raise an
+    # ArgumentError when invalid options are supplied.
     def check_validity!
     end
   end
@@ -102,6 +149,8 @@ module ActiveModel #:nodoc:
       @block = block
       super
     end
+
+    private
 
     def validate_each(record, attribute, value)
       @block.call(record, attribute, value)

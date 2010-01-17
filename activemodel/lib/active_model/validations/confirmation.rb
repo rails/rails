@@ -6,6 +6,10 @@ module ActiveModel
         return if confirmed.nil? || value == confirmed
         record.errors.add(attribute, :confirmation, :default => options[:message])
       end
+      
+      def setup(klass)
+        klass.send(:attr_accessor, *attributes.map { |attribute| :"#{attribute}_confirmation" })        
+      end
     end
 
     module ClassMethods
@@ -38,9 +42,7 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_confirmation_of(*attr_names)
-        options = attr_names.extract_options!
-        attr_accessor(*(attr_names.map { |n| :"#{n}_confirmation" }))
-        validates_with ConfirmationValidator, options.merge(:attributes => attr_names)
+        validates_with ConfirmationValidator, _merge_attributes(attr_names)
       end
     end
   end

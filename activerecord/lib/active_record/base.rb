@@ -518,14 +518,6 @@ module ActiveRecord #:nodoc:
 
     ##
     # :singleton-method:
-    # Determines whether to use ANSI codes to colorize the logging statements committed by the connection adapter. These colors
-    # make it much easier to overview things during debugging (when used through a reader like +tail+ and on a black background), but
-    # may complicate matters if you use software like syslog. This is true, by default.
-    cattr_accessor :colorize_logging, :instance_writer => false
-    @@colorize_logging = true
-
-    ##
-    # :singleton-method:
     # Determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling dates and times from the database.
     # This is set to :local by default.
     cattr_accessor :default_timezone, :instance_writer => false
@@ -550,13 +542,20 @@ module ActiveRecord #:nodoc:
 
     # Determine whether to store the full constant name including namespace when using STI
     superclass_delegating_accessor :store_full_sti_class
-    self.store_full_sti_class = false
+    self.store_full_sti_class = true
 
     # Stores the default scope for the class
     class_inheritable_accessor :default_scoping, :instance_writer => false
     self.default_scoping = []
 
     class << self # Class methods
+      def colorize_logging(*args)
+        ActiveSupport::Deprecation.warn "ActiveRecord::Base.colorize_logging and " <<
+          "config.active_record.colorize_logging are deprecated. Please use " << 
+          "Rails::Subscriber.colorize_logging or config.colorize_logging instead", caller
+      end
+      alias :colorize_logging= :colorize_logging
+
       # Find operates with four different retrieval approaches:
       #
       # * Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
@@ -643,9 +642,8 @@ module ActiveRecord #:nodoc:
       #   end
       def find(*args)
         options = args.extract_options!
-        set_readonly_option!(options)
 
-        relation = construct_finder_arel(options)
+        relation = construct_finder_arel(options, current_scoped_methods)
 
         case args.first
         when :first, :last, :all
@@ -816,7 +814,7 @@ module ActiveRecord #:nodoc:
       #   # Delete multiple rows
       #   Todo.delete([2,3,4])
       def delete(id_or_array)
-        active_relation.where(construct_conditions(nil, scope(:find))).delete(id_or_array)
+        scoped.delete(id_or_array)
       end
 
       # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
@@ -871,20 +869,18 @@ module ActiveRecord #:nodoc:
       #   # Update all books that match our conditions, but limit it to 5 ordered by date
       #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
       def update_all(updates, conditions = nil, options = {})
-        scope = scope(:find)
+        relation = unscoped
 
-        relation = active_relation
+        relation = relation.where(conditions) if conditions
+        relation = relation.limit(options[:limit]) if options[:limit].present?
+        relation = relation.order(options[:order]) if options[:order].present?
 
-        if conditions = construct_conditions(conditions, scope)
-          relation = relation.where(Arel::SqlLiteral.new(conditions))
-        end
-
-        relation = if options.has_key?(:limit) || (scope && scope[:limit])
+        if current_scoped_methods && current_scoped_methods.limit_value.present? && current_scoped_methods.order_values.present?
           # Only take order from scope if limit is also provided by scope, this
           # is useful for updating a has_many association with a limit.
-          relation.order(construct_order(options[:order], scope)).limit(construct_limit(options[:limit], scope))
+          relation = current_scoped_methods.merge(relation) if current_scoped_methods
         else
-          relation.order(options[:order])
+          relation = current_scoped_methods.except(:limit, :order).merge(relation) if current_scoped_methods
         end
 
         relation.update(sanitize_sql_for_assignment(updates))
@@ -938,7 +934,7 @@ module ActiveRecord #:nodoc:
       # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
       # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
-        active_relation.where(construct_conditions(conditions, scope(:find))).delete_all
+        where(conditions).delete_all
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
@@ -1392,7 +1388,7 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         undefine_attribute_methods
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
-        @active_relation = @active_relation_engine = nil
+        @arel_engine = @unscoped = @arel_table = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -1505,20 +1501,21 @@ module ActiveRecord #:nodoc:
         "(#{segments.join(') AND (')})" unless segments.empty?
       end
 
-      def active_relation
-        @active_relation ||= Relation.new(self, active_relation_table)
+      def unscoped
+        @unscoped ||= Relation.new(self, arel_table)
+        finder_needs_type_condition? ? @unscoped.where(type_condition) : @unscoped
       end
 
-      def active_relation_table(table_name_alias = nil)
-        Arel::Table.new(table_name, :as => table_name_alias, :engine => active_relation_engine)
+      def arel_table
+        @arel_table ||= Arel::Table.new(table_name, :engine => arel_engine)
       end
 
-      def active_relation_engine
-        @active_relation_engine ||= begin
+      def arel_engine
+        @arel_engine ||= begin
           if self == ActiveRecord::Base
             Arel::Table.engine
           else
-            connection_handler.connection_pools[name] ? Arel::Sql::Engine.new(self) : superclass.active_relation_engine
+            connection_handler.connection_pools[name] ? Arel::Sql::Engine.new(self) : superclass.arel_engine
           end
         end
       end
@@ -1565,111 +1562,36 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def default_select(qualified)
-          if qualified
-            quoted_table_name + '.*'
-          else
-            '*'
-          end
-        end
-
-        def construct_finder_arel(options = {}, scope = scope(:find))
-          validate_find_options(options)
-
-          relation = active_relation.
-            joins(construct_join(options[:joins], scope)).
-            where(construct_conditions(options[:conditions], scope)).
-            select(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
-            group(options[:group] || (scope && scope[:group])).
-            having(options[:having] || (scope && scope[:having])).
-            order(construct_order(options[:order], scope)).
-            limit(construct_limit(options[:limit], scope)).
-            offset(construct_offset(options[:offset], scope)).
-            from(options[:from]).
-            includes( merge_includes(scope && scope[:include], options[:include]))
-
-          lock = (scope && scope[:lock]) || options[:lock]
-          relation = relation.lock if lock.present?
-
-          relation = relation.readonly if options[:readonly]
-
+        def construct_finder_arel(options = {}, scope = nil)
+          relation = unscoped.apply_finder_options(options)
+          relation = scope.merge(relation) if scope
           relation
         end
 
-        def construct_join(joins, scope)
-          merged_joins = scope && scope[:joins] && joins ? merge_joins(scope[:joins], joins) : (joins || scope && scope[:joins])
-          case merged_joins
+        def construct_join(joins)
+          case joins
           when Symbol, Hash, Array
-            if array_of_strings?(merged_joins)
-              merged_joins.join(' ') + " "
+            if array_of_strings?(joins)
+              joins.join(' ') + " "
             else
-              build_association_joins(merged_joins)
+              build_association_joins(joins)
             end
           when String
-            " #{merged_joins} "
+            " #{joins} "
           else
             ""
           end
         end
 
-        def construct_order(order, scope)
-          orders = []
-
-          scoped_order = scope[:order] if scope
-          if order
-            orders << order
-            orders << scoped_order if scoped_order && scoped_order != order
-          elsif scoped_order
-            orders << scoped_order
-          end
-
-          orders.reject {|o| o.blank?}
-        end
-
-        def construct_limit(limit, scope)
-          limit ||= scope[:limit] if scope
-          limit
-        end
-
-        def construct_offset(offset, scope)
-          offset ||= scope[:offset] if scope
-          offset
-        end
-
-        def construct_conditions(conditions, scope)
-          conditions = [conditions]
-          conditions << scope[:conditions] if scope
-          conditions << type_condition if finder_needs_type_condition?
-          merge_conditions(*conditions)
-        end
-
-        # Merges includes so that the result is a valid +include+
-        def merge_includes(first, second)
-         (Array.wrap(first) + Array.wrap(second)).uniq
-        end
-
-        def merge_joins(*joins)
-          if joins.any?{|j| j.is_a?(String) || array_of_strings?(j) }
-            joins = joins.collect do |join|
-              join = [join] if join.is_a?(String)
-              join = build_association_joins(join) unless array_of_strings?(join)
-              join
-            end
-            joins.flatten.map{|j| j.strip}.uniq
-          else
-            joins.collect{|j| Array.wrap(j)}.flatten.uniq
-          end
-        end
-
         def build_association_joins(joins)
           join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, joins, nil)
-          relation = active_relation.relation
+          relation = unscoped.table
           join_dependency.join_associations.map { |association|
             if (association_relation = association.relation).is_a?(Array)
-              [Arel::InnerJoin.new(relation, association_relation.first, association.association_join.first).joins(relation),
-              Arel::InnerJoin.new(relation, association_relation.last, association.association_join.last).joins(relation)].join()
+              [Arel::InnerJoin.new(relation, association_relation.first, *association.association_join.first).joins(relation),
+              Arel::InnerJoin.new(relation, association_relation.last, *association.association_join.last).joins(relation)].join()
             else
-              Arel::InnerJoin.new(relation, association_relation, association.association_join).joins(relation)
+              Arel::InnerJoin.new(relation, association_relation, *association.association_join).joins(relation)
             end
           }.join(" ")
         end
@@ -1678,14 +1600,12 @@ module ActiveRecord #:nodoc:
           o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
         end
 
-        def type_condition(table_alias = nil)
-          table = Arel::Table.new(table_name, :engine => active_relation_engine, :as => table_alias)
-
-          sti_column = table[inheritance_column]
+        def type_condition
+          sti_column = arel_table[inheritance_column]
           condition = sti_column.eq(sti_name)
           subclasses.each{|subclass| condition = condition.or(sti_column.eq(subclass.sti_name)) }
 
-          condition.to_sql
+          condition
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
@@ -1714,7 +1634,7 @@ module ActiveRecord #:nodoc:
             super unless all_attributes_exists?(attribute_names)
             if match.finder?
               options = arguments.extract_options!
-              relation = options.any? ? construct_finder_arel(options) : scoped
+              relation = options.any? ? construct_finder_arel(options, current_scoped_methods) : scoped
               relation.send :find_by_attributes, match, attribute_names, *arguments
             elsif match.instantiator?
               scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block
@@ -1804,10 +1724,10 @@ module ActiveRecord #:nodoc:
         #   class Article < ActiveRecord::Base
         #     def self.find_with_scope
         #       with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }, :create => { :blog_id => 1 }) do
-        #         with_scope(:find => { :limit => 10 })
+        #         with_scope(:find => { :limit => 10 }) do
         #           find(:all) # => SELECT * from articles WHERE blog_id = 1 LIMIT 10
         #         end
-        #         with_scope(:find => { :conditions => "author_id = 3" })
+        #         with_scope(:find => { :conditions => "author_id = 3" }) do
         #           find(:all) # => SELECT * from articles WHERE blog_id = 1 AND author_id = 3 LIMIT 1
         #         end
         #       end
@@ -1831,52 +1751,43 @@ module ActiveRecord #:nodoc:
         def with_scope(method_scoping = {}, action = :merge, &block)
           method_scoping = method_scoping.method_scoping if method_scoping.respond_to?(:method_scoping)
 
-          # Dup first and second level of hash (method and params).
-          method_scoping = method_scoping.inject({}) do |hash, (method, params)|
-            hash[method] = (params == true) ? params : params.dup
-            hash
-          end
-
-          method_scoping.assert_valid_keys([ :find, :create ])
-
-          if f = method_scoping[:find]
-            f.assert_valid_keys(VALID_FIND_OPTIONS)
-            set_readonly_option! f
-          end
-
-          # Merge scopings
-          if [:merge, :reverse_merge].include?(action) && current_scoped_methods
-            method_scoping = current_scoped_methods.inject(method_scoping) do |hash, (method, params)|
-              case hash[method]
-                when Hash
-                  if method == :find
-                    (hash[method].keys + params.keys).uniq.each do |key|
-                      merge = hash[method][key] && params[key] # merge if both scopes have the same key
-                      if key == :conditions && merge
-                        if params[key].is_a?(Hash) && hash[method][key].is_a?(Hash)
-                          hash[method][key] = merge_conditions(hash[method][key].deep_merge(params[key]))
-                        else
-                          hash[method][key] = merge_conditions(params[key], hash[method][key])
-                        end
-                      elsif key == :include && merge
-                        hash[method][key] = merge_includes(hash[method][key], params[key]).uniq
-                      elsif key == :joins && merge
-                        hash[method][key] = merge_joins(params[key], hash[method][key])
-                      else
-                        hash[method][key] = hash[method][key] || params[key]
-                      end
-                    end
-                  else
-                    if action == :reverse_merge
-                      hash[method] = hash[method].merge(params)
-                    else
-                      hash[method] = params.merge(hash[method])
-                    end
-                  end
-                else
-                  hash[method] = params
-              end
+          if method_scoping.is_a?(Hash)
+            # Dup first and second level of hash (method and params).
+            method_scoping = method_scoping.inject({}) do |hash, (method, params)|
+              hash[method] = (params == true) ? params : params.dup
               hash
+            end
+
+            method_scoping.assert_valid_keys([ :find, :create ])
+            relation = construct_finder_arel(method_scoping[:find] || {})
+
+            if current_scoped_methods && current_scoped_methods.create_with_value && method_scoping[:create]
+              scope_for_create = case action
+              when :merge
+                current_scoped_methods.create_with_value.merge(method_scoping[:create])
+              when :reverse_merge
+                method_scoping[:create].merge(current_scoped_methods.create_with_value)
+              else
+                method_scoping[:create]
+              end
+
+              relation = relation.create_with(scope_for_create)
+            else
+              scope_for_create = method_scoping[:create]
+              scope_for_create ||= current_scoped_methods.create_with_value if current_scoped_methods
+              relation = relation.create_with(scope_for_create) if scope_for_create
+            end
+
+            method_scoping = relation
+          end
+
+          if current_scoped_methods
+            case action
+            when :merge
+              method_scoping = current_scoped_methods.merge(method_scoping)
+            when :reverse_merge
+              method_scoping = current_scoped_methods.except(:where).merge(method_scoping)
+              method_scoping = method_scoping.merge(current_scoped_methods.only(:where))
             end
           end
 
@@ -1905,21 +1816,7 @@ module ActiveRecord #:nodoc:
         #     default_scope :order => 'last_name, first_name'
         #   end
         def default_scope(options = {})
-          self.default_scoping << { :find => options, :create => options[:conditions].is_a?(Hash) ? options[:conditions] : {} }
-        end
-
-        # Test whether the given method and optional key are scoped.
-        def scoped?(method, key = nil) #:nodoc:
-          if current_scoped_methods && (scope = current_scoped_methods[method])
-            !key || !scope[key].nil?
-          end
-        end
-
-        # Retrieve the scope for the given method and optional key.
-        def scope(method, key = nil) #:nodoc:
-          if current_scoped_methods && (scope = current_scoped_methods[method])
-            key ? scope[key] : scope
-          end
+          self.default_scoping << construct_finder_arel(options)
         end
 
         def scoped_methods #:nodoc:
@@ -2039,8 +1936,8 @@ module ActiveRecord #:nodoc:
         def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
-          table = Arel::Table.new(default_table_name, active_relation_engine)
-          builder = PredicateBuilder.new(active_relation_engine)
+          table = Arel::Table.new(self.table_name, :engine => arel_engine, :as => default_table_name)
+          builder = PredicateBuilder.new(arel_engine)
           builder.build_from_hash(attrs, table).map(&:to_sql).join(' AND ')
         end
         alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
@@ -2123,25 +2020,6 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,
-                               :order, :select, :readonly, :group, :having, :from, :lock ]
-
-        def validate_find_options(options) #:nodoc:
-          options.assert_valid_keys(VALID_FIND_OPTIONS)
-        end
-
-        def set_readonly_option!(options) #:nodoc:
-          # Inherit :readonly from finder scope if set.  Otherwise,
-          # if :joins is not blank then :readonly defaults to true.
-          unless options.has_key?(:readonly)
-            if scoped_readonly = scope(:find, :readonly)
-              options[:readonly] = scoped_readonly
-            elsif !options[:joins].blank? && !options[:select]
-              options[:readonly] = true
-            end
-          end
-        end
-
         def encode_quoted_value(value) #:nodoc:
           quoted_value = connection.quote(value)
           quoted_value = "'#{quoted_value[1..-2].gsub(/\'/, "\\\\'")}'" if quoted_value.include?("\\\'") # (for ruby mode) "
@@ -2160,7 +2038,12 @@ module ActiveRecord #:nodoc:
         @new_record = true
         ensure_proper_type
         self.attributes = attributes unless attributes.nil?
-        self.class.send(:scope, :create).each { |att,value| self.send("#{att}=", value) } if self.class.send(:scoped?, :create)
+
+        if scope = self.class.send(:current_scoped_methods)
+          create_with = scope.scope_for_create
+          create_with.each { |att,value| self.send("#{att}=", value) } if create_with
+        end
+
         result = yield self if block_given?
         _run_initialize_callbacks
         result
@@ -2186,7 +2069,11 @@ module ActiveRecord #:nodoc:
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
-        self.class.send(:scope, :create).each { |att, value| self.send("#{att}=", value) } if self.class.send(:scoped?, :create)
+
+        if scope = self.class.send(:current_scoped_methods)
+          create_with = scope.scope_for_create
+          create_with.each { |att,value| self.send("#{att}=", value) } if create_with
+        end
       end
 
       # Returns a String, which Action Pack uses for constructing an URL to this
@@ -2306,7 +2193,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          self.class.active_relation.where(self.class.active_relation[self.class.primary_key].eq(id)).delete_all
+          self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
         end
 
         @destroyed = true
@@ -2593,7 +2480,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        self.class.active_relation.where(self.class.active_relation[self.class.primary_key].eq(id)).update(attributes_with_values)
+        self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes
@@ -2606,9 +2493,9 @@ module ActiveRecord #:nodoc:
         attributes_values = arel_attributes_values
 
         new_id = if attributes_values.empty?
-          self.class.active_relation.insert connection.empty_insert_statement_value
+          self.class.unscoped.insert connection.empty_insert_statement_value
         else
-          self.class.active_relation.insert attributes_values
+          self.class.unscoped.insert attributes_values
         end
 
         self.id ||= new_id
@@ -2703,7 +2590,7 @@ module ActiveRecord #:nodoc:
               if value && ((self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))) || value.is_a?(Hash) || value.is_a?(Array))
                 value = value.to_yaml
               end
-              attrs[self.class.active_relation[name]] = value
+              attrs[self.class.arel_table[name]] = value
             end
           end
         end

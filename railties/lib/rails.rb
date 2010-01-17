@@ -15,6 +15,7 @@ require 'rails/rack'
 require 'rails/paths'
 require 'rails/configuration'
 require 'rails/deprecation'
+require 'rails/subscriber'
 require 'rails/ruby_version_check'
 
 # For Ruby 1.8, this initialization sets $KCODE to 'u' to enable the
@@ -29,14 +30,9 @@ else
   Encoding.default_external = Encoding::UTF_8
 end
 
-RAILS_ENV = (ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development").dup unless defined?(RAILS_ENV)
-
 module Rails
-  # Needs to be duplicated from Active Support since its needed before Active
-  # Support is available. Here both Options and Hash are namespaced to prevent
-  # conflicts with other implementations AND with the classes residing in Active Support.
-  # ---
-  # TODO: w0t?
+  autoload :Bootstrap, 'rails/bootstrap'
+
   class << self
     def application
       @@application ||= nil
@@ -48,7 +44,7 @@ module Rails
 
     # The Configuration instance used to configure the Rails environment
     def configuration
-      application.configuration
+      application.config
     end
 
     def initialize!
@@ -56,19 +52,19 @@ module Rails
     end
 
     def initialized?
-      @initialized || false
+      @@initialized || false
     end
 
     def initialized=(initialized)
-      @initialized ||= initialized
+      @@initialized ||= initialized
     end
 
     def logger
-      if defined?(RAILS_DEFAULT_LOGGER)
-        RAILS_DEFAULT_LOGGER
-      else
-        nil
-      end
+      @@logger ||= nil
+    end
+
+    def logger=(logger)
+      @@logger = logger
     end
 
     def backtrace_cleaner
@@ -84,7 +80,7 @@ module Rails
     end
 
     def env
-      @_env ||= ActiveSupport::StringInquirer.new(RAILS_ENV)
+      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
     end
 
     def cache

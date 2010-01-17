@@ -39,7 +39,6 @@ module ActiveRecord
       def initialize(connection, logger = nil) #:nodoc:
         @connection, @logger = connection, logger
         @runtime = 0
-        @last_verification = 0
         @query_cache_enabled = false
       end
 
@@ -191,27 +190,19 @@ module ActiveRecord
         "active_record_#{open_transactions}"
       end
 
-      def log_info(sql, name, ms)
-        if @logger && @logger.debug?
-          name = '%s (%.1fms)' % [name || 'SQL', ms]
-          @logger.debug(format_log_entry(name, sql.squeeze(' ')))
-        end
-      end
-
       protected
+
         def log(sql, name)
+          name ||= "SQL"
           result = nil
-          ActiveSupport::Notifications.instrument(:sql, :sql => sql, :name => name) do
+          ActiveSupport::Notifications.instrument("active_record.sql",
+            :sql => sql, :name => name, :connection_id => self.object_id) do
             @runtime += Benchmark.ms { result = yield }
           end
           result
         rescue Exception => e
-          # Log message and raise exception.
-          # Set last_verification to 0, so that connection gets verified
-          # upon reentering the request loop
-          @last_verification = 0
           message = "#{e.class.name}: #{e.message}: #{sql}"
-          log_info(message, name, 0)
+          @logger.debug message if @logger
           raise translate_exception(e, message)
         end
 
@@ -220,23 +211,6 @@ module ActiveRecord
           ActiveRecord::StatementInvalid.new(message)
         end
 
-        def format_log_entry(message, dump = nil)
-          if ActiveRecord::Base.colorize_logging
-            if @@row_even
-              @@row_even = false
-              message_color, dump_color = "4;36;1", "0;1"
-            else
-              @@row_even = true
-              message_color, dump_color = "4;35;1", "0"
-            end
-
-            log_entry = "  \e[#{message_color}m#{message}\e[0m   "
-            log_entry << "\e[#{dump_color}m%#{String === dump ? 's' : 'p'}\e[0m" % dump if dump
-            log_entry
-          else
-            "%s  %s" % [message, dump]
-          end
-        end
     end
   end
 end

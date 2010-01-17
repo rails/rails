@@ -7,4 +7,4 @@ if ARGV.size == 0
 end
 
 name = ARGV.shift
-Rails::Generators.invoke name, ARGV, :behavior => :revoke
+Rails::Generators.invoke name, ARGV, :behavior => :revoke, :destination_root => Rails.root

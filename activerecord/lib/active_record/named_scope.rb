@@ -26,10 +26,12 @@ module ActiveRecord
         if options.present?
           Scope.new(self, options, &block)
         else
-          unless scoped?(:find)
-            finder_needs_type_condition? ? active_relation.where(type_condition) : active_relation.spawn
+          current_scope = current_scoped_methods
+
+          unless current_scope
+            unscoped.spawn
           else
-            construct_finder_arel
+            construct_finder_arel({}, current_scoped_methods)
           end
         end
       end

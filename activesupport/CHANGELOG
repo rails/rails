@@ -1,5 +1,8 @@
 *Edge*
 
+* Changed the default ActiveSupport.use_standard_json_time_format from false to true and
+ActiveSupport.escape_html_entities_in_json from true to false to match previously announced Rails 3 defaults [DHH]
+
 * Added Object#presence that returns the object if it's #present? otherwise returns nil [DHH/Colin Kelley]
 
 * Add Enumerable#exclude? to bring parity to Enumerable#include? and avoid if !x.include?/else calls [DHH]

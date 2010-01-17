@@ -4,16 +4,20 @@ require 'active_support/core_ext/module/delegation'
 module ActiveSupport
   module Notifications
     class Instrumenter
+      attr_reader :id
+
       def initialize(notifier)
         @id = unique_id
         @notifier = notifier
       end
 
+      # Instrument the given block by measuring the time taken to execute it
+      # and publish it.
       def instrument(name, payload={})
         time = Time.now
-        yield if block_given?
-      ensure
+        result = yield(payload) if block_given?
         @notifier.publish(name, time, Time.now, @id, payload)
+        result
       end
 
       private

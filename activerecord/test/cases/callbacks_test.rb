@@ -113,6 +113,26 @@ class ImmutableMethodDeveloper < ActiveRecord::Base
   end
 end
 
+class OnCallbacksDeveloper < ActiveRecord::Base
+  set_table_name 'developers'
+
+  before_validation { history << :before_validation }
+  before_validation(:on => :create){ history << :before_validation_on_create }
+  before_validation(:on => :update){ history << :before_validation_on_update }
+
+  validate do
+    history << :validate
+  end
+
+  after_validation { history << :after_validation }
+  after_validation(:on => :create){ history << :after_validation_on_create }
+  after_validation(:on => :update){ history << :after_validation_on_update }
+
+  def history
+    @history ||= []
+  end
+end
+
 class CallbackCancellationDeveloper < ActiveRecord::Base
   set_table_name 'developers'
 
@@ -250,7 +270,18 @@ class CallbacksTest < ActiveRecord::TestCase
     ], david.history
   end
 
-  def test_save
+  def test_validate_on_create
+    david = OnCallbacksDeveloper.create('name' => 'David', 'salary' => 1000000)
+    assert_equal [
+      :before_validation,
+      :before_validation_on_create,
+      :validate,
+      :after_validation,
+      :after_validation_on_create
+    ], david.history
+  end
+
+  def test_update
     david = CallbackDeveloper.find(1)
     david.save
     assert_equal [
@@ -294,6 +325,18 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :after_save,                  :proc   ],
       [ :after_save,                  :object ],
       [ :after_save,                  :block  ]
+    ], david.history
+  end
+
+  def test_validate_on_update
+    david = OnCallbacksDeveloper.find(1)
+    david.save
+    assert_equal [
+      :before_validation,
+      :before_validation_on_update,
+      :validate,
+      :after_validation,
+      :after_validation_on_update
     ], david.history
   end
 

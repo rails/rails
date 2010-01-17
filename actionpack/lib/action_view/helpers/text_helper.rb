@@ -565,7 +565,7 @@ module ActionView
               end
 
               link_text = block_given?? yield(href) : href
-              href = 'http://' + href unless href.index('http') == 0
+              href = 'http://' + href unless href =~ %r{^[a-z]+://}i
 
               content_tag(:a, h(link_text), link_attributes.merge('href' => href)) + punctuation.reverse.join('')
             end

@@ -25,7 +25,7 @@ module ActiveRecord
       operation = operation.to_s.downcase
 
       if operation == "count"
-        joins = @relation.joins(relation)
+        joins = arel.joins(arel)
         if joins.present? && joins =~ /LEFT OUTER/i
           distinct = true
           column_name = @klass.primary_key if column_name == :all
@@ -40,7 +40,7 @@ module ActiveRecord
       distinct = options[:distinct] || distinct
       column_name = :all if column_name.blank? && operation == "count"
 
-      if @relation.send(:groupings).any?
+      if @group_values.any?
         return execute_grouped_calculation(operation, column_name)
       else
         return execute_simple_calculation(operation, column_name, distinct)
@@ -53,7 +53,7 @@ module ActiveRecord
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
       column = if @klass.column_names.include?(column_name.to_s)
-        Arel::Attribute.new(@klass.active_relation, column_name)
+        Arel::Attribute.new(@klass.unscoped, column_name)
       else
         Arel::SqlLiteral.new(column_name == :all ? "*" : column_name.to_s)
       end
@@ -63,7 +63,7 @@ module ActiveRecord
     end
 
     def execute_grouped_calculation(operation, column_name) #:nodoc:
-      group_attr      = @relation.send(:groupings).first.value
+      group_attr      = @group_values.first
       association     = @klass.reflect_on_association(group_attr.to_sym)
       associated      = association && association.macro == :belongs_to # only count belongs_to associations
       group_field     = associated ? association.primary_key_name : group_attr
@@ -77,7 +77,7 @@ module ActiveRecord
       select_statement = if operation == 'count' && column_name == :all
         "COUNT(*) AS count_all"
       else
-        Arel::Attribute.new(@klass.active_relation, column_name).send(operation).as(aggregate_alias).to_sql
+        Arel::Attribute.new(@klass.unscoped, column_name).send(operation).as(aggregate_alias).to_sql
       end
 
       select_statement <<  ", #{group_field} AS #{group_alias}"
@@ -106,7 +106,6 @@ module ActiveRecord
       column_name = :all
 
       # Handles count(), count(:column), count(:distinct => true), count(:column, :distinct => true)
-      # TODO : relation.projections only works when .select() was last in the chain. Fix it!
       case args.size
       when 0
         select = get_projection_name_from_chained_relations
@@ -165,12 +164,8 @@ module ActiveRecord
       column ? column.type_cast(value) : value
     end
 
-    def get_projection_name_from_chained_relations(relation = @relation)
-      if relation.respond_to?(:projections) && relation.projections.present?
-        relation.send(:select_clauses).join(', ')
-      elsif relation.respond_to?(:relation)
-        get_projection_name_from_chained_relations(relation.relation)
-      end
+    def get_projection_name_from_chained_relations
+      @select_values.join(", ") if @select_values.present?
     end
 
   end

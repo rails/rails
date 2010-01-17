@@ -1,39 +1,53 @@
 require 'active_record_unit'
 require 'active_record/railties/controller_runtime'
 require 'fixtures/project'
+require 'rails/subscriber/test_helper'
+require 'action_controller/railties/subscriber'
 
 ActionController::Base.send :include, ActiveRecord::Railties::ControllerRuntime
 
-class ARLoggingController < ActionController::Base
-  def show
-    render :inline => "<%= Project.all %>"
+module ControllerRuntimeSubscriberTest
+  class SubscriberController < ActionController::Base
+    def show
+      render :inline => "<%= Project.all %>"
+    end
   end
-end
 
-class ARLoggingTest < ActionController::TestCase
-  tests ARLoggingController
+  def self.included(base)
+    base.tests SubscriberController
+  end
 
   def setup
+    @old_logger = ActionController::Base.logger
+    Rails::Subscriber.add(:action_controller, ActionController::Railties::Subscriber.new)
     super
-    set_logger
   end
 
-  def wait
-    ActiveSupport::Notifications.notifier.wait
+  def teardown
+    super
+    Rails::Subscriber.subscribers.clear
+    ActionController::Base.logger = @old_logger
   end
 
+  def set_logger(logger)
+    ActionController::Base.logger = logger
+  end
+ 
   def test_log_with_active_record
     get :show
     wait
-    assert_match /ActiveRecord runtime/, logs[3]
+
+    assert_equal 2, @logger.logged(:info).size
+    assert_match /\(Views: [\d\.]+ms | ActiveRecord: [\d\.]+ms\)/, @logger.logged(:info)[1]
   end
 
-  private
-    def set_logger
-      @controller.logger = MockLogger.new
-    end
+  class SyncSubscriberTest < ActionController::TestCase
+    include Rails::Subscriber::SyncTestHelper
+    include ControllerRuntimeSubscriberTest
+  end
 
-    def logs
-      @logs ||= @controller.logger.logged.compact.map {|l| l.to_s.strip}
-    end
+  class AsyncSubscriberTest < ActionController::TestCase
+    include Rails::Subscriber::AsyncTestHelper
+    include ControllerRuntimeSubscriberTest
+  end
 end

@@ -505,7 +505,7 @@ module ActionView
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
-      # is found in the current I18n locale (through views.labels.<modelname>.<attribute>) or you specify it explicitly. 
+      # is found in the current I18n locale (through helpers.label.<modelname>.<attribute>) or you specify it explicitly.
       # Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
       # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
       # target labels for radio_button tags (where the value is used in the ID of the input tag).
@@ -517,8 +517,8 @@ module ActionView
       #   You can localize your labels based on model and attribute names.
       #   For example you can define the following in your locale (e.g. en.yml)
       #
-      #   views:
-      #     labels:
+      #   helpers:
+      #     label:
       #       post:
       #         body: "Write your entire text here"
       #
@@ -777,7 +777,7 @@ module ActionView
         options["for"] ||= name_and_id["id"]
 
         content = if text.blank?
-          I18n.t("views.labels.#{object_name}.#{method_name}", :default => "").presence
+          I18n.t("helpers.label.#{object_name}.#{method_name}", :default => "").presence
         else
           text.to_s
         end
@@ -798,7 +798,7 @@ module ActionView
         if field_type == "hidden"
           options.delete("size")
         end
-        options["type"] = field_type
+        options["type"]  ||= field_type
         options["value"] ||= value_before_type_cast(object) unless field_type == "file"
         options["value"] &&= html_escape(options["value"])
         add_default_name_and_id(options)
@@ -842,7 +842,12 @@ module ActionView
           checked = self.class.check_box_checked?(value(object), checked_value)
         end
         options["checked"] = "checked" if checked
-        add_default_name_and_id(options)
+        if options["multiple"]
+          add_default_name_and_id_for_value(checked_value, options)
+          options.delete("multiple")
+        else
+          add_default_name_and_id(options)
+        end
         hidden = tag("input", "name" => options["name"], "type" => "hidden", "value" => options['disabled'] && checked ? checked_value : unchecked_value)
         checkbox = tag("input", options)
         (hidden + checkbox).html_safe!
@@ -1058,7 +1063,7 @@ module ActionView
       def radio_button(method, tag_value, options = {})
         @template.radio_button(@object_name, method, tag_value, objectify_options(options))
       end
-      
+
       def hidden_field(method, options = {})
         @emitted_hidden_id = true if method == :id
         @template.hidden_field(@object_name, method, objectify_options(options))
@@ -1072,7 +1077,36 @@ module ActionView
         @template.error_messages_for(@object_name, objectify_options(options))
       end
 
-      def submit(value = "Save changes", options = {})
+      # Add the submit button for the given form. When no value is given, it checks
+      # if the object is a new resource or not to create the proper label:
+      #
+      #   <% form_for @post do |f| %>
+      #     <%= f.submit %>
+      #   <% end %>
+      # 
+      # In the example above, if @post is a new record, it will use "Create Post" as
+      # submit button label, otherwise, it uses "Update Post".
+      #
+      # Those labels can be customized using I18n, under the helpers.submit key and accept
+      # the {{model}} as translation interpolation:
+      #
+      #   en:
+      #     helpers:
+      #       submit:
+      #         create: "Create a {{model}}"
+      #         update: "Confirm changes to {{model}}"
+      #
+      # It also searches for a key specific for the given object:
+      #
+      #   en:
+      #     helpers:
+      #       submit:
+      #         post:
+      #           create: "Add {{model}}"
+      #
+      def submit(value=nil, options={})
+        value, options = nil, value if value.is_a?(Hash)
+        value ||= submit_default_value
         @template.submit_tag(value, options.reverse_merge(:id => "#{object_name}_submit"))
       end
 
@@ -1083,6 +1117,24 @@ module ActionView
       private
         def objectify_options(options)
           @default_options.merge(options.merge(:object => @object))
+        end
+
+        def submit_default_value
+          object = @object.respond_to?(:to_model) ? @object.to_model : @object
+          key    = object ? (object.new_record? ? :create : :update) : :submit
+
+          model = if object.class.respond_to?(:model_name)
+            object.class.model_name.human
+          else
+            @object_name.to_s.humanize
+          end
+
+          defaults = []
+          defaults << :"helpers.submit.#{object_name}.#{key}"
+          defaults << :"helpers.submit.#{key}"
+          defaults << "#{key.to_s.humanize} #{model}"
+
+          I18n.t(defaults.shift, :model => model, :default => defaults)
         end
 
         def nested_attributes_association?(association_name)

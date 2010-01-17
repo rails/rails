@@ -10,19 +10,17 @@ module ActiveModel
       included do
         extend ActiveModel::Naming
 
-        cattr_accessor :include_root_in_json, :instance_writer => false
+        cattr_accessor :include_root_in_json, :instance_writer => true
       end
 
       # Returns a JSON string representing the model. Some configuration is
       # available through +options+.
       #
-      # The option <tt>ActiveRecord::Base.include_root_in_json</tt> controls the
-      # top-level behavior of to_json. In a new Rails application, it is set to 
-      # <tt>true</tt> in initializers/new_rails_defaults.rb. When it is <tt>true</tt>,
+      # The option <tt>ActiveModel::Base.include_root_in_json</tt> controls the
+      # top-level behavior of to_json. It is true by default. When it is <tt>true</tt>,
       # to_json will emit a single root node named after the object's type. For example:
       #
       #   konata = User.find(1)
-      #   ActiveRecord::Base.include_root_in_json = true
       #   konata.to_json
       #   # => { "user": {"id": 1, "name": "Konata Izumi", "age": 16,
       #                   "created_at": "2006/08/01", "awesome": true} }

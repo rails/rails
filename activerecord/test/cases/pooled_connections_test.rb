@@ -61,12 +61,14 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     checkout_checkin_connections 1, 2
     assert_equal 2, @connection_count
     assert_equal 0, @timed_out
+    assert_equal 1, ActiveRecord::Base.connection_pool.connections.size
   end
 
   def test_pooled_connection_checkin_two
     checkout_checkin_connections 2, 3
     assert_equal 3, @connection_count
     assert_equal 0, @timed_out
+    assert_equal 1, ActiveRecord::Base.connection_pool.connections.size
   end
 
   def test_pooled_connection_checkout_existing_first
@@ -136,14 +138,3 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection_pool.with_connection { Project.create! :name => name }
   end
 end unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
-
-class AllowConcurrencyDeprecatedTest < ActiveRecord::TestCase
-  def test_allow_concurrency_is_deprecated
-    assert_deprecated('ActiveRecord::Base.allow_concurrency') do
-      ActiveRecord::Base.allow_concurrency
-    end
-    assert_deprecated('ActiveRecord::Base.allow_concurrency=') do
-      ActiveRecord::Base.allow_concurrency = true
-    end
-  end
-end

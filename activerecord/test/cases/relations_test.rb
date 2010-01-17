@@ -545,6 +545,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'hen', hen.name
   end
 
+  def test_explicit_create_scope
+    hens = Bird.where(:name => 'hen')
+    assert_equal 'hen', hens.new.name
+
+    hens = hens.create_with(:name => 'cock')
+    assert_equal 'cock', hens.new.name
+  end
+
   def test_except
     relation = Post.where(:author_id => 1).order('id ASC').limit(1)
     assert_equal [posts(:welcome)], relation.all

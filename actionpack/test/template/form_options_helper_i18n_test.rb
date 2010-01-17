@@ -6,7 +6,7 @@ class FormOptionsHelperI18nTests < ActionView::TestCase
   def setup
     @prompt_message = 'Select!'
     I18n.backend.send(:init_translations)
-    I18n.backend.store_translations :en, :support => { :select => { :prompt => @prompt_message } }
+    I18n.backend.store_translations :en, :helpers => { :select => { :prompt => @prompt_message } }
   end
 
   def teardown
@@ -14,7 +14,7 @@ class FormOptionsHelperI18nTests < ActionView::TestCase
   end
 
   def test_select_with_prompt_true_translates_prompt_message
-    I18n.expects(:translate).with('support.select.prompt', { :default => 'Please select' })
+    I18n.expects(:translate).with('helpers.select.prompt', { :default => 'Please select' })
     select('post', 'category', [], :prompt => true)
   end
 

@@ -69,7 +69,7 @@ class Post < Struct.new(:title, :author_name, :body, :secret, :written_on, :cost
   attr_accessor :author
   def author_attributes=(attributes); end
 
-  attr_accessor :comments
+  attr_accessor :comments, :comment_ids
   def comments_attributes=(attributes); end
 
   attr_accessor :tags

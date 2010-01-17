@@ -5,6 +5,9 @@ module ActionController
   class Railtie < Rails::Railtie
     plugin_name :action_controller
 
+    require "action_controller/railties/subscriber"
+    subscriber ActionController::Railties::Subscriber.new
+
     initializer "action_controller.set_configs" do |app|
       app.config.action_controller.each do |k,v|
         ActionController::Base.send "#{k}=", v
@@ -23,26 +26,6 @@ module ActionController
       app.reload_routes!
     end
 
-    # Include middleware to serve up static assets
-    initializer "action_controller.initialize_static_server" do |app|
-      if app.config.serve_static_assets
-        app.config.middleware.use(ActionDispatch::Static, Rails.public_path)
-      end
-    end
-
-    initializer "action_controller.initialize_middleware_stack" do |app|
-      middleware = app.config.middleware
-      middleware.use(::Rack::Lock, :if => lambda { ActionController::Base.allow_concurrency })
-      middleware.use(::Rack::Runtime)
-      middleware.use(ActionDispatch::ShowExceptions, lambda { ActionController::Base.consider_all_requests_local })
-      middleware.use(ActionDispatch::Callbacks, lambda { ActionController::Dispatcher.prepare_each_request })
-      middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
-      middleware.use(ActionDispatch::ParamsParser)
-      middleware.use(::Rack::MethodOverride)
-      middleware.use(::Rack::Head)
-      middleware.use(ActionDispatch::StringCoercion)
-    end
-
     initializer "action_controller.initialize_framework_caches" do
       ActionController::Base.cache_store ||= RAILS_CACHE
     end
@@ -57,19 +40,41 @@ module ActionController
       ActionController::Base.view_paths = view_path if ActionController::Base.view_paths.blank?
     end
 
-    initializer "action_controller.initialize_metal" do |app|
-      Rails::Rack::Metal.requested_metals = app.config.metals
+    class MetalMiddlewareBuilder
+      def initialize(metals)
+        @metals = metals
+      end
 
-      app.config.middleware.insert_before(:"ActionDispatch::ParamsParser",
-        Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
+      def new(app)
+        ActionDispatch::Cascade.new(@metals, app)
+      end
+
+      def name
+        ActionDispatch::Cascade.name
+      end
+      alias_method :to_s, :name
     end
 
-    # # Prepare dispatcher callbacks and run 'prepare' callbacks
+    initializer "action_controller.initialize_metal" do |app|
+      metal_root = "#{Rails.root}/app/metal"
+      load_list = app.config.metals || Dir["#{metal_root}/**/*.rb"]
+
+      metals = load_list.map { |metal|
+        metal = File.basename(metal.gsub("#{metal_root}/", ''), '.rb')
+        require_dependency metal
+        metal.camelize.constantize
+      }.compact
+
+      middleware = MetalMiddlewareBuilder.new(metals)
+      app.config.middleware.insert_before(:"ActionDispatch::ParamsParser", middleware)
+    end
+
+    # Prepare dispatcher callbacks and run 'prepare' callbacks
     initializer "action_controller.prepare_dispatcher" do |app|
       # TODO: This used to say unless defined?(Dispatcher). Find out why and fix.
+      # Notice that at this point, ActionDispatch::Callbacks were already loaded.
       require 'rails/dispatcher'
-
-      Dispatcher.define_dispatcher_callbacks(app.config.cache_classes)
+      ActionController::Dispatcher.prepare_each_request = true unless app.config.cache_classes
 
       unless app.config.cache_classes
         # Setup dev mode route reloading
@@ -80,15 +85,7 @@ module ActionController
             app.reload_routes!
           end
         end
-        ActionDispatch::Callbacks.before_dispatch { |callbacks| reload_routes.call }
-      end
-    end
-
-    initializer "action_controller.notifications" do |app|
-      require 'active_support/notifications'
-
-      ActiveSupport::Notifications.subscribe do |*args|
-        ActionController::Base.log_event(*args) if ActionController::Base.logger
+        ActionDispatch::Callbacks.before { |callbacks| reload_routes.call }
       end
     end
 

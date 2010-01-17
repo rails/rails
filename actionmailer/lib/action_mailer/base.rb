@@ -259,10 +259,9 @@ module ActionMailer #:nodoc:
     include AbstractController::LocalizedCache
     include AbstractController::Layouts
     include AbstractController::Helpers
+    include AbstractController::UrlFor
 
     helper  ActionMailer::MailHelper
-
-    include ActionController::UrlWriter
     include ActionMailer::DeprecatedBody
 
     private_class_method :new #:nodoc:
@@ -399,10 +398,12 @@ module ActionMailer #:nodoc:
       #       ...
       #     end
       #   end
-      def receive(raw_email)
-        logger.info "Received mail:\n #{raw_email}" unless logger.nil?
-        mail = Mail.new(raw_email)
-        new.receive(mail)
+      def receive(raw_mail)
+        ActiveSupport::Notifications.instrument("action_mailer.receive") do |payload|
+          mail = Mail.new(raw_mail)
+          set_payload_for_mail(payload, mail)
+          new.receive(mail)
+        end
       end
 
       # Deliver the given mail object directly. This can be used to deliver
@@ -424,7 +425,19 @@ module ActionMailer #:nodoc:
         self.view_paths = ActionView::Base.process_view_paths(root)
       end
 
+      def set_payload_for_mail(payload, mail) #:nodoc:
+        payload[:message_id] = mail.message_id
+        payload[:subject]    = mail.subject
+        payload[:to]         = mail.to
+        payload[:from]       = mail.from
+        payload[:bcc]        = mail.bcc if mail.bcc.present?
+        payload[:cc]         = mail.cc  if mail.cc.present?
+        payload[:date]       = mail.date
+        payload[:mail]       = mail.encoded
+      end
+
       private
+
         def matches_dynamic_method?(method_name) #:nodoc:
           method_name = method_name.to_s
           /^(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
@@ -495,17 +508,14 @@ module ActionMailer #:nodoc:
     def deliver!(mail = @mail)
       raise "no mail object available for delivery!" unless mail
 
-      if logger
-        logger.info  "Sent mail to #{Array(recipients).join(', ')}"
-        logger.debug "\n#{mail.encoded}"
-      end
-
-      ActiveSupport::Notifications.instrument(:deliver_mail, :mail => mail) do
-        begin
+      begin
+        ActiveSupport::Notifications.instrument("action_mailer.deliver",
+          :template => template, :mailer => self.class.name) do |payload|
+          self.class.set_payload_for_mail(payload, mail)
           self.delivery_method.perform_delivery(mail) if perform_deliveries
-        rescue Exception => e # Net::SMTP errors or sendmail pipe errors
-          raise e if raise_delivery_errors
         end
+      rescue Exception => e # Net::SMTP errors or sendmail pipe errors
+        raise e if raise_delivery_errors
       end
 
       mail

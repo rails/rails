@@ -38,15 +38,15 @@ module Rails
     end
 
     def start
+      ENV["RAILS_ENV"] = options[:environment]
+
       puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-      puts "=> Rails #{Rails.version} application starting on http://#{options[:Host]}:#{options[:Port]}"
+      puts "=> Rails #{Rails.version} application starting in #{Rails.env} on http://#{options[:Host]}:#{options[:Port]}"
       puts "=> Call with -d to detach" unless options[:daemonize]
       trap(:INT) { exit }
       puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
 
-      ENV["RAILS_ENV"] = options[:environment]
-      RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
-
+      initialize_log_tailer! unless options[:daemonize]
       super
     ensure
       puts 'Exiting' unless options[:daemonize]
@@ -54,7 +54,6 @@ module Rails
 
     def middleware
       middlewares = []
-      middlewares << [Rails::Rack::LogTailer, log_path] unless options[:daemonize]
       middlewares << [Rails::Rack::Debugger]  if options[:debugger]
       Hash.new(middlewares)
     end
@@ -71,6 +70,15 @@ module Rails
         :debugger    => false,
         :pid         => "tmp/pids/server.pid"
       })
+    end
+
+  protected
+
+    # LogTailer should not be used as a middleware since the logging happens
+    # async in a request and the middleware calls are sync. So we send it
+    # to subscriber which will be responsible for calling tail! in the log tailer.
+    def initialize_log_tailer!
+      Rails::Subscriber.log_tailer = Rails::Rack::LogTailer.new(nil, log_path)
     end
   end
 end

@@ -64,7 +64,7 @@ module ActionController #:nodoc:
           return unless perform_caching
           path = page_cache_path(path)
 
-          ActiveSupport::Notifications.instrument(:expire_page, :path => path) do
+          instrument_page_cache :expire_page, path do
             File.delete(path) if File.exist?(path)
           end
         end
@@ -75,7 +75,7 @@ module ActionController #:nodoc:
           return unless perform_caching
           path = page_cache_path(path)
 
-          ActiveSupport::Notifications.instrument(:cache_page, :path => path) do
+          instrument_page_cache :write_page, path do
             FileUtils.makedirs(File.dirname(path))
             File.open(path, "wb+") { |f| f.write(content) }
           end
@@ -106,6 +106,10 @@ module ActionController #:nodoc:
 
           def page_cache_path(path)
             page_cache_directory + page_cache_file(path)
+          end
+
+          def instrument_page_cache(name, path)
+            ActiveSupport::Notifications.instrument("action_controller.#{name}", :path => path){ yield }
           end
       end
 

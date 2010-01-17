@@ -36,8 +36,8 @@ module ActionController #:nodoc:
 
       def fragment_for(buffer, name = {}, options = nil, &block) #:nodoc:
         if perform_caching
-          if fragment_exist?(name,options)
-            buffer.concat(read_fragment(name, options))
+          if fragment_exist?(name, options)
+            buffer.safe_concat(read_fragment(name, options))
           else
             pos = buffer.length
             block.call
@@ -53,7 +53,7 @@ module ActionController #:nodoc:
         return content unless cache_configured?
         key = fragment_cache_key(key)
 
-        ActiveSupport::Notifications.instrument(:write_fragment, :key => key) do
+        instrument_fragment_cache :write_fragment, key do
           cache_store.write(key, content, options)
         end
         content
@@ -64,7 +64,7 @@ module ActionController #:nodoc:
         return unless cache_configured?
         key = fragment_cache_key(key)
 
-        ActiveSupport::Notifications.instrument(:read_fragment, :key => key) do
+        instrument_fragment_cache :read_fragment, key do
           cache_store.read(key, options)
         end
       end
@@ -74,7 +74,7 @@ module ActionController #:nodoc:
         return unless cache_configured?
         key = fragment_cache_key(key)
 
-        ActiveSupport::Notifications.instrument(:exist_fragment?, :key => key) do
+        instrument_fragment_cache :exist_fragment?, key do
           cache_store.exist?(key, options)
         end
       end
@@ -101,15 +101,17 @@ module ActionController #:nodoc:
         key = fragment_cache_key(key) unless key.is_a?(Regexp)
         message = nil
 
-        ActiveSupport::Notifications.instrument(:expire_fragment, :key => key) do
+        instrument_fragment_cache :expire_fragment, key do
           if key.is_a?(Regexp)
-            message = "Expired fragments matching: #{key.source}"
             cache_store.delete_matched(key, options)
           else
-            message = "Expired fragment: #{key}"
             cache_store.delete(key, options)
           end
         end
+      end
+
+      def instrument_fragment_cache(name, key)
+        ActiveSupport::Notifications.instrument("action_controller.#{name}", :key => key){ yield }
       end
     end
   end

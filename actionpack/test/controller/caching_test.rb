@@ -629,20 +629,6 @@ class FragmentCachingTest < ActionController::TestCase
     assert_equal 'generated till now -> fragment content', buffer
   end
 
-  def test_fragment_for_logging
-    fragment_computed = false
-    events = []
-    ActiveSupport::Notifications.subscribe { |*args| events << args }
-
-    buffer = 'generated till now -> '
-    @controller.fragment_for(buffer, 'expensive') { fragment_computed = true }
-
-    assert fragment_computed
-    assert_equal 'generated till now -> ', buffer
-    ActiveSupport::Notifications.notifier.wait
-    assert_equal [:exist_fragment?, :write_fragment], events.map(&:first)
-  end
-
 end
 
 class FunctionalCachingController < ActionController::Base

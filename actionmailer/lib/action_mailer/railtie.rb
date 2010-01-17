@@ -5,6 +5,9 @@ module ActionMailer
   class Railtie < Rails::Railtie
     plugin_name :action_mailer
 
+    require "action_mailer/railties/subscriber"
+    subscriber ActionMailer::Railties::Subscriber.new
+
     initializer "action_mailer.set_configs" do |app|
       app.config.action_mailer.each do |k,v|
         ActionMailer::Base.send "#{k}=", v

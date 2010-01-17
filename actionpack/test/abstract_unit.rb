@@ -19,8 +19,6 @@ require 'action_view'
 require 'action_view/base'
 require 'action_dispatch'
 require 'fixture_template'
-require 'active_support/test_case'
-require 'action_view/test_case'
 require 'active_support/dependencies'
 
 activemodel_path = File.expand_path('../../../activemodel/lib', __FILE__)
@@ -49,14 +47,6 @@ ORIGINAL_LOCALES = I18n.available_locales.map {|locale| locale.to_s }.sort
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 FIXTURES = Pathname.new(FIXTURE_LOAD_PATH)
-
-# Turn on notifications
-require 'active_support/notifications'
-Thread.abort_on_exception = true
-
-ActiveSupport::Notifications.subscribe do |*args|
-  ActionController::Base.log_event(*args) if ActionController::Base.logger
-end
 
 module SetupOnce
   extend ActiveSupport::Concern
@@ -95,29 +85,15 @@ class ActiveSupport::TestCase
   end
 end
 
-class MockLogger
-  attr_reader :logged
-  attr_accessor :level
-
-  def initialize
-    @level = Logger::DEBUG
-    @logged = []
-  end
-
-  def method_missing(method, *args, &blk)
-    @logged << args.first
-    @logged << blk.call if block_given?
-  end
-end
-
 class ActionController::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
+    ActionDispatch::Flash
     ActionDispatch::MiddlewareStack.new { |middleware|
-      middleware.use "ActionDispatch::StringCoercion"
       middleware.use "ActionDispatch::ShowExceptions"
       middleware.use "ActionDispatch::Callbacks"
       middleware.use "ActionDispatch::ParamsParser"
-      middleware.use "Rack::Head"
+      middleware.use "ActionDispatch::Flash"
+      middleware.use "ActionDispatch::Head"
     }.build(routes || ActionController::Routing::Routes)
   end
 

@@ -78,7 +78,7 @@ module ActiveRecord
           attribute_names.uniq!
 
           begin
-            relation = self.class.active_relation
+            relation = self.class.unscoped
 
             affected_rows = relation.where(
               relation[self.class.primary_key].eq(quoted_id).and(

@@ -4,10 +4,13 @@ require 'models/customer'
 require 'models/company'
 require 'models/company_in_module'
 require 'models/subscriber'
+require 'models/ship'
 require 'models/pirate'
 require 'models/price_estimate'
 
 class ReflectionTest < ActiveRecord::TestCase
+  include ActiveRecord::Reflection
+
   fixtures :topics, :customers, :companies, :subscribers, :price_estimates
 
   def setup
@@ -68,22 +71,22 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_klass_for_nested_class_name
-    reflection = ActiveRecord::Reflection::MacroReflection.new(nil, nil, { :class_name => 'MyApplication::Business::Company' }, nil)
+    reflection = MacroReflection.new(nil, nil, { :class_name => 'MyApplication::Business::Company' }, nil)
     assert_nothing_raised do
       assert_equal MyApplication::Business::Company, reflection.klass
     end
   end
 
   def test_aggregation_reflection
-    reflection_for_address = ActiveRecord::Reflection::AggregateReflection.new(
+    reflection_for_address = AggregateReflection.new(
       :composed_of, :address, { :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer
     )
 
-    reflection_for_balance = ActiveRecord::Reflection::AggregateReflection.new(
+    reflection_for_balance = AggregateReflection.new(
       :composed_of, :balance, { :class_name => "Money", :mapping => %w(balance amount) }, Customer
     )
 
-    reflection_for_gps_location = ActiveRecord::Reflection::AggregateReflection.new(
+    reflection_for_gps_location = AggregateReflection.new(
       :composed_of, :gps_location, { }, Customer
     )
 
@@ -108,7 +111,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_has_many_reflection
-    reflection_for_clients = ActiveRecord::Reflection::AssociationReflection.new(:has_many, :clients, { :order => "id", :dependent => :destroy }, Firm)
+    reflection_for_clients = AssociationReflection.new(:has_many, :clients, { :order => "id", :dependent => :destroy }, Firm)
 
     assert_equal reflection_for_clients, Firm.reflect_on_association(:clients)
 
@@ -120,7 +123,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_has_one_reflection
-    reflection_for_account = ActiveRecord::Reflection::AssociationReflection.new(:has_one, :account, { :foreign_key => "firm_id", :dependent => :destroy }, Firm)
+    reflection_for_account = AssociationReflection.new(:has_one, :account, { :foreign_key => "firm_id", :dependent => :destroy }, Firm)
     assert_equal reflection_for_account, Firm.reflect_on_association(:account)
 
     assert_equal Account, Firm.reflect_on_association(:account).klass
@@ -137,6 +140,8 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_association_reflection_in_modules
+    ActiveRecord::Base.store_full_sti_class = false
+    
     assert_reflection MyApplication::Business::Firm,
       :clients_of_firm,
       :klass      => MyApplication::Business::Client,
@@ -172,6 +177,8 @@ class ReflectionTest < ActiveRecord::TestCase
       :klass      => MyApplication::Billing::Nested::Firm,
       :class_name => 'Nested::Firm',
       :table_name => 'companies'
+  ensure
+    ActiveRecord::Base.store_full_sti_class = true
   end
 
   def test_reflection_of_all_associations
@@ -187,7 +194,44 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_reflection
-    assert_kind_of ActiveRecord::Reflection::ThroughReflection, Subscriber.reflect_on_association(:books)
+    assert_kind_of ThroughReflection, Subscriber.reflect_on_association(:books)
+  end
+
+  def test_collection_association
+    assert Pirate.reflect_on_association(:birds).collection?
+    assert Pirate.reflect_on_association(:parrots).collection?
+
+    assert !Pirate.reflect_on_association(:ship).collection?
+    assert !Ship.reflect_on_association(:pirate).collection?
+  end
+
+  def test_default_association_validation
+    assert AssociationReflection.new(:has_many, :clients, {}, Firm).validate?
+
+    assert !AssociationReflection.new(:has_one, :client, {}, Firm).validate?
+    assert !AssociationReflection.new(:belongs_to, :client, {}, Firm).validate?
+    assert !AssociationReflection.new(:has_and_belongs_to_many, :clients, {}, Firm).validate?
+  end
+
+  def test_always_validate_association_if_explicit
+    assert AssociationReflection.new(:has_one, :client, { :validate => true }, Firm).validate?
+    assert AssociationReflection.new(:belongs_to, :client, { :validate => true }, Firm).validate?
+    assert AssociationReflection.new(:has_many, :clients, { :validate => true }, Firm).validate?
+    assert AssociationReflection.new(:has_and_belongs_to_many, :clients, { :validate => true }, Firm).validate?
+  end
+
+  def test_validate_association_if_autosave
+    assert AssociationReflection.new(:has_one, :client, { :autosave => true }, Firm).validate?
+    assert AssociationReflection.new(:belongs_to, :client, { :autosave => true }, Firm).validate?
+    assert AssociationReflection.new(:has_many, :clients, { :autosave => true }, Firm).validate?
+    assert AssociationReflection.new(:has_and_belongs_to_many, :clients, { :autosave => true }, Firm).validate?
+  end
+
+  def test_never_validate_association_if_explicit
+    assert !AssociationReflection.new(:has_one, :client, { :autosave => true, :validate => false }, Firm).validate?
+    assert !AssociationReflection.new(:belongs_to, :client, { :autosave => true, :validate => false }, Firm).validate?
+    assert !AssociationReflection.new(:has_many, :clients, { :autosave => true, :validate => false }, Firm).validate?
+    assert !AssociationReflection.new(:has_and_belongs_to_many, :clients, { :autosave => true, :validate => false }, Firm).validate?
   end
 
   private

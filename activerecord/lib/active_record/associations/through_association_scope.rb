@@ -6,8 +6,7 @@ module ActiveRecord
 
       def construct_scope
         { :create => construct_owner_attributes(@reflection),
-          :find   => { :from        => construct_from,
-                       :conditions  => construct_conditions,
+          :find   => { :conditions  => construct_conditions,
                        :joins       => construct_joins,
                        :include     => @reflection.options[:include] || @reflection.source_reflection.options[:include],
                        :select      => construct_select,
@@ -145,7 +144,7 @@ module ActiveRecord
       end
 
       def build_sti_condition
-        @reflection.through_reflection.klass.send(:type_condition)
+        @reflection.through_reflection.klass.send(:type_condition).to_sql
       end
 
       alias_method :sql_conditions, :conditions

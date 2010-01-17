@@ -1,72 +1,61 @@
 module ActiveRecord
   module QueryMethods
+    extend ActiveSupport::Concern
 
-    def preload(*associations)
-      spawn.tap {|r| r.preload_associations += Array.wrap(associations) }
-    end
+    included do
+      (ActiveRecord::Relation::ASSOCIATION_METHODS + ActiveRecord::Relation::MULTI_VALUE_METHODS).each do |query_method|
+        attr_accessor :"#{query_method}_values"
 
-    def includes(*associations)
-      spawn.tap {|r| r.includes_associations += Array.wrap(associations) }
-    end
-
-    def eager_load(*associations)
-      spawn.tap {|r| r.eager_load_associations += Array.wrap(associations) }
-    end
-
-    def readonly(status = true)
-      spawn.tap {|r| r.readonly = status }
-    end
-
-    def select(selects)
-      if selects.present?
-        relation = spawn(@relation.project(selects))
-        relation.readonly = @relation.joins(relation).present? ? false : @readonly
-        relation
-      else
-        spawn
-      end
-    end
-
-    def from(from)
-      from.present? ? spawn(@relation.from(from)) : spawn
-    end
-
-    def having(*args)
-      return spawn if args.blank?
-
-      if [String, Hash, Array].include?(args.first.class)
-        havings = @klass.send(:merge_conditions, args.size > 1 ? Array.wrap(args) : args.first)
-      else
-        havings = args.first
+        class_eval <<-CEVAL
+          def #{query_method}(*args)
+            spawn.tap do |new_relation|
+              new_relation.#{query_method}_values ||= []
+              value = Array.wrap(args.flatten).reject {|x| x.blank? }
+              new_relation.#{query_method}_values += value if value.present?
+            end
+          end
+        CEVAL
       end
 
-      spawn(@relation.having(havings))
-    end
+      [:where, :having].each do |query_method|
+        class_eval <<-CEVAL
+          def #{query_method}(*args)
+            spawn.tap do |new_relation|
+              new_relation.#{query_method}_values ||= []
+              value = build_where(*args)
+              new_relation.#{query_method}_values += [*value] if value.present?
+            end
+          end
+        CEVAL
+      end
 
-    def group(groups)
-      groups.present? ? spawn(@relation.group(groups)) : spawn
-    end
+      ActiveRecord::Relation::SINGLE_VALUE_METHODS.each do |query_method|
+        attr_accessor :"#{query_method}_value"
 
-    def order(orders)
-      orders.present? ? spawn(@relation.order(orders)) : spawn
+        class_eval <<-CEVAL
+          def #{query_method}(value = true)
+            spawn.tap do |new_relation|
+              new_relation.#{query_method}_value = value
+            end
+          end
+        CEVAL
+      end
     end
 
     def lock(locks = true)
+      relation = spawn
       case locks
-      when String
-        spawn(@relation.lock(locks))
-      when TrueClass, NilClass
-        spawn(@relation.lock)
+      when String, TrueClass, NilClass
+        spawn.tap {|new_relation| new_relation.lock_value = locks || true }
       else
-        spawn
+        spawn.tap {|new_relation| new_relation.lock_value = false }
       end
     end
 
     def reverse_order
-      relation = spawn
-      relation.instance_variable_set(:@orders, nil)
+      order_clause = arel.send(:order_clauses).join(', ')
+      relation = except(:order)
 
-      order_clause = @relation.send(:order_clauses).join(', ')
       if order_clause.present?
         relation.order(reverse_sql_order(order_clause))
       else
@@ -74,41 +63,108 @@ module ActiveRecord
       end
     end
 
-    def limit(limits)
-      limits.present? ? spawn(@relation.take(limits)) : spawn
+    def arel
+      @arel ||= build_arel
     end
 
-    def offset(offsets)
-      offsets.present? ? spawn(@relation.skip(offsets)) : spawn
-    end
+    def build_arel
+      arel = table
 
-    def on(join)
-      spawn(@relation.on(join))
-    end
+      joined_associations = []
+      association_joins = []
 
-    def joins(join, join_type = nil)
-      return spawn if join.blank?
+      joins = @joins_values.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
 
-      join_relation = case join
-      when String
-        @relation.join(join)
-      when Hash, Array, Symbol
-        if @klass.send(:array_of_strings?, join)
-          @relation.join(join.join(' '))
-        else
-          @relation.join(@klass.send(:build_association_joins, join))
-        end
-      else
-        @relation.join(join, join_type)
+      # Build association joins first
+      joins.each do |join|
+        association_joins << join if [Hash, Array, Symbol].include?(join.class) && !@klass.send(:array_of_strings?, join)
       end
 
-      spawn(join_relation).tap { |r| r.readonly = true }
+      if association_joins.any?
+        join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins.uniq, nil)
+        to_join = []
+
+        join_dependency.join_associations.each do |association|
+          if (association_relation = association.relation).is_a?(Array)
+            to_join << [association_relation.first, association.association_join.first]
+            to_join << [association_relation.last, association.association_join.last]
+          else
+            to_join << [association_relation, association.association_join]
+          end
+        end
+
+        to_join.each do |tj|
+          unless joined_associations.detect {|ja| ja[0] == tj[0] && ja[1] == tj[1] }
+            joined_associations << tj
+            arel = arel.join(tj[0]).on(*tj[1])
+          end
+        end
+      end
+
+      joins.each do |join|
+        next if join.blank?
+
+        @implicit_readonly = true
+
+        case join
+        when Relation::JoinOperation
+          arel = arel.join(join.relation, join.join_class).on(*join.on)
+        when Hash, Array, Symbol
+          if @klass.send(:array_of_strings?, join)
+            join_string = join.join(' ')
+            arel = arel.join(join_string)
+          end
+        else
+          arel = arel.join(join)
+        end
+      end
+
+      @where_values.uniq.each do |w|
+        arel = w.is_a?(String) ? arel.where(w) : arel.where(*w)
+      end
+
+      @having_values.uniq.each do |h|
+        arel = h.is_a?(String) ? arel.having(h) : arel.having(*h)
+      end
+
+      arel = arel.take(@limit_value) if @limit_value.present?
+      arel = arel.skip(@offset_value) if @offset_value.present?
+
+      @group_values.uniq.each do |g|
+        arel = arel.group(g) if g.present?
+      end
+
+      @order_values.uniq.each do |o|
+        arel = arel.order(o) if o.present?
+      end
+
+      selects = @select_values.uniq
+
+      if selects.present?
+        selects.each do |s|
+          @implicit_readonly = false
+          arel = arel.project(s) if s.present?
+        end
+      elsif joins.present?
+        arel = arel.project(@klass.quoted_table_name + '.*')
+      end
+
+      arel = arel.from(@from_value) if @from_value.present?
+
+      case @lock_value
+      when TrueClass
+        arel = arel.lock
+      when String
+        arel = arel.lock(@lock_value)
+      end
+
+      arel
     end
 
-    def where(*args)
-      return spawn if args.blank?
+    def build_where(*args)
+      return if args.blank?
 
-      builder = PredicateBuilder.new(Arel::Sql::Engine.new(@klass))
+      builder = PredicateBuilder.new(table.engine)
 
       conditions = if [String, Array].include?(args.first.class)
         merged = @klass.send(:merge_conditions, args.size > 1 ? Array.wrap(args) : args.first)
@@ -120,7 +176,7 @@ module ActiveRecord
         args.first
       end
 
-      conditions.is_a?(String) ? spawn(@relation.where(conditions)) : spawn(@relation.where(*conditions))
+      conditions
     end
 
     private

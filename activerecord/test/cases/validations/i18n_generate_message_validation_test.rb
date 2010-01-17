@@ -6,15 +6,7 @@ class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
   def setup
     Topic.reset_callbacks(:validate)
     @topic = Topic.new
-    I18n.backend.store_translations :'en', {
-      :activerecord => {
-        :errors => {
-          :messages => {
-            :taken => "has already been taken",
-          }
-        }
-      }
-    }
+    I18n.backend = I18n::Backend::Simple.new
   end
 
   # validates_associated: generate_message(attr_name, :invalid, :default => configuration[:message], :value => value)

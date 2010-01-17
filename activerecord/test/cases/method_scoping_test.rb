@@ -11,7 +11,7 @@ class MethodScopingTest < ActiveRecord::TestCase
 
   def test_set_conditions
     Developer.send(:with_scope, :find => { :conditions => 'just a test...' }) do
-      assert_equal 'just a test...', Developer.send(:current_scoped_methods)[:find][:conditions]
+      assert_equal '(just a test...)', Developer.scoped.send(:where_clause)
     end
   end
 
@@ -207,7 +207,7 @@ class MethodScopingTest < ActiveRecord::TestCase
     new_comment = nil
 
     VerySpecialComment.send(:with_scope, :create => { :post_id => 1 }) do
-      assert_equal({ :post_id => 1 }, VerySpecialComment.send(:current_scoped_methods)[:create])
+      assert_equal({:post_id => 1}, VerySpecialComment.scoped.send(:scope_for_create))
       new_comment = VerySpecialComment.create :body => "Wonderful world"
     end
 
@@ -256,8 +256,9 @@ class NestedScopingTest < ActiveRecord::TestCase
   def test_merge_options
     Developer.send(:with_scope, :find => { :conditions => 'salary = 80000' }) do
       Developer.send(:with_scope, :find => { :limit => 10 }) do
-        merged_option = Developer.instance_eval('current_scoped_methods')[:find]
-        assert_equal({ :conditions => 'salary = 80000', :limit => 10 }, merged_option)
+        devs = Developer.scoped
+        assert_equal '(salary = 80000)', devs.send(:where_clause)
+        assert_equal 10, devs.taken
       end
     end
   end
@@ -265,26 +266,26 @@ class NestedScopingTest < ActiveRecord::TestCase
   def test_merge_inner_scope_has_priority
     Developer.send(:with_scope, :find => { :limit => 5 }) do
       Developer.send(:with_scope, :find => { :limit => 10 }) do
-        merged_option = Developer.instance_eval('current_scoped_methods')[:find]
-        assert_equal({ :limit => 10 }, merged_option)
+        assert_equal 10, Developer.scoped.taken
       end
     end
   end
 
   def test_replace_options
-    Developer.send(:with_scope, :find => { :conditions => "name = 'David'" }) do
-      Developer.send(:with_exclusive_scope, :find => { :conditions => "name = 'Jamis'" }) do
-        assert_equal({:find => { :conditions => "name = 'Jamis'" }}, Developer.instance_eval('current_scoped_methods'))
-        assert_equal({:find => { :conditions => "name = 'Jamis'" }}, Developer.send(:scoped_methods)[-1])
+    Developer.send(:with_scope, :find => { :conditions => {:name => 'David'} }) do
+      Developer.send(:with_exclusive_scope, :find => { :conditions => {:name => 'Jamis'} }) do
+        assert_equal 'Jamis', Developer.scoped.send(:scope_for_create)[:name]
       end
+
+      assert_equal 'David', Developer.scoped.send(:scope_for_create)[:name]
     end
   end
 
   def test_append_conditions
     Developer.send(:with_scope, :find => { :conditions => "name = 'David'" }) do
       Developer.send(:with_scope, :find => { :conditions => 'salary = 80000' }) do
-        appended_condition = Developer.instance_eval('current_scoped_methods')[:find][:conditions]
-        assert_equal("(name = 'David') AND (salary = 80000)", appended_condition)
+        devs = Developer.scoped
+        assert_equal "(name = 'David') AND (salary = 80000)", devs.send(:where_clause)
         assert_equal(1, Developer.count)
       end
       Developer.send(:with_scope, :find => { :conditions => "name = 'Maiha'" }) do
@@ -296,8 +297,9 @@ class NestedScopingTest < ActiveRecord::TestCase
   def test_merge_and_append_options
     Developer.send(:with_scope, :find => { :conditions => 'salary = 80000', :limit => 10 }) do
       Developer.send(:with_scope, :find => { :conditions => "name = 'David'" }) do
-        merged_option = Developer.instance_eval('current_scoped_methods')[:find]
-        assert_equal({ :conditions => "(salary = 80000) AND (name = 'David')", :limit => 10 }, merged_option)
+        devs = Developer.scoped
+        assert_equal "(salary = 80000) AND (name = 'David')", devs.send(:where_clause)
+        assert_equal 10, devs.taken
       end
     end
   end
@@ -325,15 +327,15 @@ class NestedScopingTest < ActiveRecord::TestCase
     # :include's remain unique and don't "double up" when merging
     Developer.send(:with_scope, :find => { :include => :projects, :conditions => "projects.id = 2" }) do
       Developer.send(:with_scope, :find => { :include => :projects }) do
-        assert_equal 1, Developer.instance_eval('current_scoped_methods')[:find][:include].length
-        assert_equal('David', Developer.find(:first).name)
+        assert_equal 1, Developer.scoped.includes_values.uniq.length
+        assert_equal 'David', Developer.find(:first).name
       end
     end
 
     # the nested scope doesn't remove the first :include
     Developer.send(:with_scope, :find => { :include => :projects, :conditions => "projects.id = 2" }) do
       Developer.send(:with_scope, :find => { :include => [] }) do
-        assert_equal 1, Developer.instance_eval('current_scoped_methods')[:find][:include].length
+        assert_equal 1, Developer.scoped.includes_values.uniq.length
         assert_equal('David', Developer.find(:first).name)
       end
     end
@@ -341,7 +343,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     # mixing array and symbol include's will merge correctly
     Developer.send(:with_scope, :find => { :include => [:projects], :conditions => "projects.id = 2" }) do
       Developer.send(:with_scope, :find => { :include => :projects }) do
-        assert_equal 1, Developer.instance_eval('current_scoped_methods')[:find][:include].length
+        assert_equal 1, Developer.scoped.includes_values.uniq.length
         assert_equal('David', Developer.find(:first).name)
       end
     end
@@ -350,7 +352,7 @@ class NestedScopingTest < ActiveRecord::TestCase
   def test_nested_scoped_find_replace_include
     Developer.send(:with_scope, :find => { :include => :projects }) do
       Developer.send(:with_exclusive_scope, :find => { :include => [] }) do
-        assert_equal 0, Developer.instance_eval('current_scoped_methods')[:find][:include].length
+        assert_equal 0, Developer.scoped.includes_values.length
       end
     end
   end
@@ -416,7 +418,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     comment = nil
     Comment.send(:with_scope, :create => { :post_id => 1}) do
       Comment.send(:with_scope, :create => { :post_id => 2}) do
-        assert_equal({ :post_id => 2 }, Comment.send(:current_scoped_methods)[:create])
+        assert_equal({:post_id => 2}, Comment.scoped.send(:scope_for_create))
         comment = Comment.create :body => "Hey guys, nested scopes are broken. Please fix!"
       end
     end
@@ -425,9 +427,11 @@ class NestedScopingTest < ActiveRecord::TestCase
 
   def test_nested_exclusive_scope_for_create
     comment = nil
+
     Comment.send(:with_scope, :create => { :body => "Hey guys, nested scopes are broken. Please fix!" }) do
       Comment.send(:with_exclusive_scope, :create => { :post_id => 1 }) do
-        assert_equal({ :post_id => 1 }, Comment.send(:current_scoped_methods)[:create])
+        assert_equal({:post_id => 1}, Comment.scoped.send(:scope_for_create))
+        assert Comment.new.body.blank?
         comment = Comment.create :body => "Hey guys"
       end
     end
@@ -603,44 +607,39 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scoping_with_threads
-    scope = [{ :create => {}, :find => { :order => 'salary DESC' } }]
-
     2.times do
-      Thread.new { assert_equal scope, DeveloperOrderedBySalary.send(:scoped_methods) }.join
+      Thread.new { assert_equal 'salary DESC', DeveloperOrderedBySalary.scoped.send(:order_clause) }.join
     end
   end
 
   def test_default_scoping_with_inheritance
-    scope = [{ :create => {}, :find => { :order => 'salary DESC' } }]
-
     # Inherit a class having a default scope and define a new default scope
     klass = Class.new(DeveloperOrderedBySalary)
     klass.send :default_scope, {}
 
     # Scopes added on children should append to parent scope
-    expected_klass_scope = [{ :create => {}, :find => { :order => 'salary DESC' }}, { :create => {}, :find => {} }]
-    assert_equal expected_klass_scope, klass.send(:scoped_methods)
+    assert klass.scoped.send(:order_clause).blank?
 
     # Parent should still have the original scope
-    assert_equal scope, DeveloperOrderedBySalary.send(:scoped_methods)
+    assert_equal 'salary DESC', DeveloperOrderedBySalary.scoped.send(:order_clause)
   end
 
   def test_method_scope
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
+    expected = Developer.find(:all, :order => 'name DESC, salary DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.all_ordered_by_name.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 
   def test_nested_scope
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
+    expected = Developer.find(:all, :order => 'name DESC, salary DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.send(:with_scope, :find => { :order => 'name DESC'}) do
       DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
     end
     assert_equal expected, received
   end
 
-  def test_named_scope_overwrites_default
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.name }
+  def test_named_scope_order_appended_to_default_scope_order
+    expected = Developer.find(:all, :order => 'name DESC, salary DESC').collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.by_name.find(:all).collect { |dev| dev.name }
     assert_equal expected, received
   end

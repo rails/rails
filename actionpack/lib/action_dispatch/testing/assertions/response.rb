@@ -2,6 +2,15 @@ module ActionDispatch
   module Assertions
     # A small suite of assertions that test responses from Rails applications.
     module ResponseAssertions
+      extend ActiveSupport::Concern
+
+      included do
+        # TODO: Need to pull in AV::Template monkey patches that track which
+        # templates are rendered. assert_template should probably be part
+        # of AV instead of AD.
+        require 'action_view/test_case'
+      end
+
       # Asserts that the response is one of the following types:
       #
       # * <tt>:success</tt>   - Status code was 200
