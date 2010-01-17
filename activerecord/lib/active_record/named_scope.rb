@@ -106,7 +106,7 @@ module ActiveRecord
 
         scopes[name] = lambda do |parent_scope, *args|
           Scope.new(parent_scope, case options
-            when Hash
+            when Hash, Relation
               options
             when Proc
               options.call(*args)
@@ -132,13 +132,21 @@ module ActiveRecord
       delegate :scopes, :with_scope, :scoped_methods, :unscoped, :to => :proxy_scope
 
       def initialize(proxy_scope, options, &block)
-        options ||= {}
-        [options[:extend]].flatten.each { |extension| extend extension } if options[:extend]
         extend Module.new(&block) if block_given?
+
+        options ||= {}
+        if options.is_a?(Hash)
+          Array.wrap(options[:extend]).each {|extension| extend extension }
+          @proxy_options = options.except(:extend)
+        else
+          @proxy_options = options
+        end
+
         unless Scope === proxy_scope
           @current_scoped_methods_when_defined = proxy_scope.send(:current_scoped_methods)
         end
-        @proxy_scope, @proxy_options = proxy_scope, options.except(:extend)
+
+        @proxy_scope = proxy_scope
       end
 
       def reload
@@ -193,7 +201,13 @@ module ActiveRecord
       protected
 
       def relation
-        @relation ||= unscoped.apply_finder_options(proxy_options)
+        @relation ||= begin
+          if proxy_options.is_a?(Hash)
+            unscoped.apply_finder_options(proxy_options)
+          else
+            unscoped.merge(proxy_options)
+          end
+        end
       end
 
       def proxy_found
@@ -201,6 +215,7 @@ module ActiveRecord
       end
 
       private
+
       def method_missing(method, *args, &block)
         if scopes.include?(method)
           scopes[method].call(self, *args)
@@ -221,6 +236,7 @@ module ActiveRecord
       def load_found
         @found = find(:all)
       end
+
     end
   end
 end

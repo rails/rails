@@ -19,7 +19,10 @@ module ActiveRecord
         raise ArgumentError, "Cannot merge a #{r.klass.name}(##{r.klass.object_id}) relation with #{@klass.name}(##{@klass.object_id}) relation"
       end
 
-      merged_relation = spawn.eager_load(r.eager_load_values).preload(r.preload_values).includes(r.includes_values)
+      merged_relation = spawn
+      return merged_relation unless r
+
+      merged_relation = merged_relation.eager_load(r.eager_load_values).preload(r.preload_values).includes(r.includes_values)
 
       merged_relation.readonly_value = r.readonly_value unless r.readonly_value.nil?
       merged_relation.limit_value = r.limit_value if r.limit_value.present?
@@ -94,9 +97,10 @@ module ActiveRecord
                            :order, :select, :readonly, :group, :having, :from, :lock ]
 
     def apply_finder_options(options)
-      options.assert_valid_keys(VALID_FIND_OPTIONS)
-
       relation = spawn
+      return relation unless options
+
+      options.assert_valid_keys(VALID_FIND_OPTIONS)
 
       relation = relation.joins(options[:joins]).
         where(options[:conditions]).
