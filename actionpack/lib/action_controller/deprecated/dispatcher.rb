@@ -1,8 +1,5 @@
 module ActionController
   class Dispatcher
-    cattr_accessor :prepare_each_request
-    self.prepare_each_request = false
-
     class << self
       def before_dispatch(*args, &block)
         ActiveSupport::Deprecation.warn "ActionController::Dispatcher.before_dispatch is deprecated. " <<

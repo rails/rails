@@ -73,7 +73,6 @@ module ActionController
       # TODO: This used to say unless defined?(Dispatcher). Find out why and fix.
       # Notice that at this point, ActionDispatch::Callbacks were already loaded.
       require 'rails/dispatcher'
-      ActionController::Dispatcher.prepare_each_request = true unless app.config.cache_classes
 
       unless app.config.cache_classes
         # Setup dev mode route reloading
