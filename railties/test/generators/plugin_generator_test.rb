@@ -6,12 +6,27 @@ class PluginGeneratorTest < GeneratorsTestCase
 
   def test_plugin_skeleton_is_created
     run_generator
+    year = Date.today.year
 
     %w(
       vendor/plugins
       vendor/plugins/plugin_fu
+      vendor/plugins/plugin_fu/init.rb
+      vendor/plugins/plugin_fu/install.rb
+      vendor/plugins/plugin_fu/uninstall.rb
       vendor/plugins/plugin_fu/lib
+      vendor/plugins/plugin_fu/lib/plugin_fu.rb
     ).each{ |path| assert_file path }
+
+    %w(
+      vendor/plugins/plugin_fu/README
+      vendor/plugins/plugin_fu/Rakefile
+    ).each{ |path| assert_file path, /PluginFu/ }
+
+    %w(
+      vendor/plugins/plugin_fu/README
+      vendor/plugins/plugin_fu/MIT-LICENSE
+    ).each{ |path| assert_file path, /#{year}/ }
   end
 
   def test_check_class_collision
