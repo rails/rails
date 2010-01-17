@@ -13,8 +13,7 @@
 module ActiveModel
   module Lint
     module Tests
-      # valid?
-      # ------
+      # == Responds to <tt>valid?</tt>
       #
       # Returns a boolean that specifies whether the object is in a valid or invalid
       # state.
@@ -23,8 +22,7 @@ module ActiveModel
         assert_boolean model.valid?, "valid?"
       end
 
-      # new_record?
-      # -----------
+      # == Responds to <tt>new_record?</tt>
       #
       # Returns a boolean that specifies whether the object has been persisted yet.
       # This is used when calculating the URL for an object. If the object is
@@ -41,8 +39,7 @@ module ActiveModel
         assert_boolean model.destroyed?, "destroyed?"
       end
 
-      # naming
-      # ------
+      # == Naming
       #
       # Model.model_name must returns a string with some convenience methods as
       # :human and :partial_path. Check ActiveModel::Naming for more information.
@@ -55,9 +52,8 @@ module ActiveModel
         assert_kind_of String, model_name.partial_path
       end
 
-      # errors
-      # ------
-      #
+      # == Errors Testing
+      # 
       # Returns an object that has :[] and :full_messages defined on it. See below
       # for more details.
 

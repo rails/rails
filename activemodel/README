@@ -110,3 +110,10 @@ functionality from the following modules:
     # => ["Name Can not be nil"]
 
   {Learn more}[link:classes/ActiveModel/Errors.html]
+
+* Testing the compliance of your object
+
+    User ActiveModel::Lint to test the compliance of your object to the
+    basic ActiveModel API...
+    
+  {Learn more}[link:classes/ActiveModel/Lint/Tests.html]
