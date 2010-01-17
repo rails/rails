@@ -1865,7 +1865,9 @@ class BasicsTest < ActiveRecord::TestCase
     end
     assert scoped_developers.include?(developers(:poor_jamis))
     assert scoped_developers.include?(developers(:david))
-    assert scoped_developers.include?(developers(:dev_10))
+    assert ! scoped_developers.include?(developers(:jamis))
+    assert_equal 3, scoped_developers.size
+
     # Test without scoped find conditions to ensure we get the right thing
     developers = Developer.find(:all, :order => 'id', :limit => 1)
     assert scoped_developers.include?(developers(:david))

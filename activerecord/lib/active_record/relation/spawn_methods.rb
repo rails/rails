@@ -33,7 +33,7 @@ module ActiveRecord
         from(r.from_value).
         having(r.having_values)
 
-      merged_relation.order_values = Array.wrap(order_values) + Array.wrap(r.order_values)
+      merged_relation.order_values = r.order_values if r.order_values.present?
 
       merged_relation.create_with_value = @create_with_value
 
