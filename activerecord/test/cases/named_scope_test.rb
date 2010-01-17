@@ -372,8 +372,12 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_named_scopes_with_reserved_names
     [:where, :with_scope].each do |protected_method|
-      assert_raises(ArgumentError) { Topic.named_scope protected_method }
+      assert_raises(ArgumentError) { Topic.scope protected_method }
     end
+  end
+
+  def test_deprecated_named_scope_method
+    assert_deprecated('named_scope has been deprecated') { Topic.named_scope :deprecated_named_scope }
   end
 end
 

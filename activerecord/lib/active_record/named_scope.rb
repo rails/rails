@@ -38,11 +38,11 @@ module ActiveRecord
       # such as <tt>:conditions => {:color => :red}, :select => 'shirts.*', :include => :washing_instructions</tt>.
       #
       #   class Shirt < ActiveRecord::Base
-      #     named_scope :red, :conditions => {:color => 'red'}
-      #     named_scope :dry_clean_only, :joins => :washing_instructions, :conditions => ['washing_instructions.dry_clean_only = ?', true]
+      #     scope :red, :conditions => {:color => 'red'}
+      #     scope :dry_clean_only, :joins => :washing_instructions, :conditions => ['washing_instructions.dry_clean_only = ?', true]
       #   end
       # 
-      # The above calls to <tt>named_scope</tt> define class methods Shirt.red and Shirt.dry_clean_only. Shirt.red, 
+      # The above calls to <tt>scope</tt> define class methods Shirt.red and Shirt.dry_clean_only. Shirt.red, 
       # in effect, represents the query <tt>Shirt.find(:all, :conditions => {:color => 'red'})</tt>.
       #
       # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by Shirt.red is not an Array; it resembles the association object
@@ -68,7 +68,7 @@ module ActiveRecord
       # Named \scopes can also be procedural:
       #
       #   class Shirt < ActiveRecord::Base
-      #     named_scope :colored, lambda { |color|
+      #     scope :colored, lambda { |color|
       #       { :conditions => { :color => color } }
       #     }
       #   end
@@ -78,7 +78,7 @@ module ActiveRecord
       # Named \scopes can also have extensions, just as with <tt>has_many</tt> declarations:
       #
       #   class Shirt < ActiveRecord::Base
-      #     named_scope :red, :conditions => {:color => 'red'} do
+      #     scope :red, :conditions => {:color => 'red'} do
       #       def dom_id
       #         'red_shirts'
       #       end
@@ -90,14 +90,14 @@ module ActiveRecord
       # <tt>proxy_options</tt> method on the proxy itself.
       #
       #   class Shirt < ActiveRecord::Base
-      #     named_scope :colored, lambda { |color|
+      #     scope :colored, lambda { |color|
       #       { :conditions => { :color => color } }
       #     }
       #   end
       #
       #   expected_options = { :conditions => { :colored => 'red' } }
       #   assert_equal expected_options, Shirt.colored('red').proxy_options
-      def named_scope(name, options = {}, &block)
+      def scope(name, options = {}, &block)
         name = name.to_sym
 
         if !scopes[name] && respond_to?(name, true)
@@ -117,6 +117,11 @@ module ActiveRecord
             scopes[name].call(self, *args)
           end
         end
+      end
+
+      def named_scope(*args, &block)
+        ActiveSupport::Deprecation.warn("Base#named_scope has been deprecated, please use Base.scope instead.", caller)
+        scope(*args, &block)
       end
     end
 
