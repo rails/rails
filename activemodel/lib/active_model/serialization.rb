@@ -2,6 +2,64 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
 
 module ActiveModel
+  
+  # Provides a basic serialization to a serializable_hash for your object.
+  # 
+  # A minimal implementation could be:
+  #   
+  #   class Person
+  #   
+  #     include ActiveModel::Serialization
+  #   
+  #     attr_accessor :name
+  #   
+  #     def attributes
+  #       @attributes ||= {'name' => 'nil'}
+  #     end
+  #   
+  #   end
+  # 
+  # Which would provide you with:
+  # 
+  #   person = Person.new
+  #   person.serializable_hash   # => {"name"=>nil}
+  #   person.name = "Bob"
+  #   person.serializable_hash   # => {"name"=>"Bob"}
+  #
+  # You need to declare some sort of attributes hash which contains the attributes
+  # you want to serialize and their current value.
+  # 
+  # Most of the time though, you will want to include the JSON or XML 
+  # serializations.  Both of these modules automatically include the 
+  # ActiveModel::Serialization module, so there is no need to explicitly
+  # include it.
+  # 
+  # So a minimal implementation including XML and JSON would be:
+  #   
+  #   class Person
+  #   
+  #     include ActiveModel::Serializers::JSON
+  #     include ActiveModel::Serializers::Xml
+  #   
+  #     attr_accessor :name
+  #   
+  #     def attributes
+  #       @attributes ||= {'name' => 'nil'}
+  #     end
+  #   
+  #   end
+  # 
+  # Which would provide you with:
+  # 
+  #   person = Person.new
+  #   person.serializable_hash   # => {"name"=>nil}
+  #   person.to_json             # => "{\"name\":null}"
+  #   person.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
+  # 
+  #   person.name = "Bob"
+  #   person.serializable_hash   # => {"name"=>"Bob"}
+  #   person.to_json             # => "{\"name\":\"Bob\"}"
+  #   person.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
   module Serialization
     def serializable_hash(options = nil)
       options ||= {}

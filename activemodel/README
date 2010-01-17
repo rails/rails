@@ -141,4 +141,16 @@ functionality from the following modules:
     functions.
   
   {Learn more}[link:classes/ActiveModel/Observer.html]
+
+* Making your object serializable
+
+    ActiveModel::Serialization provides a standard interface for your object
+    to provide to_json or to_xml serialization...
+    
+    s = SerialPerson.new
+    s.serializable_hash   # => {"name"=>nil}
+    s.to_json             # => "{\"name\":null}"
+    s.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
   
+  {Learn more}[link:classes/ActiveModel/Serialization.html]
+    
