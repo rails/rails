@@ -420,10 +420,6 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_invalid_merge
-    assert_raises(ArgumentError) { Post.scoped & Developer.scoped }
-  end
-
   def test_count
     posts = Post.scoped
 

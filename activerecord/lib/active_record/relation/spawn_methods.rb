@@ -15,10 +15,6 @@ module ActiveRecord
     end
 
     def merge(r)
-      if r.klass != @klass
-        raise ArgumentError, "Cannot merge a #{r.klass.name}(##{r.klass.object_id}) relation with #{@klass.name}(##{@klass.object_id}) relation"
-      end
-
       merged_relation = spawn
       return merged_relation unless r
 
