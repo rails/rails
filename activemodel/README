@@ -113,7 +113,24 @@ functionality from the following modules:
 
 * Testing the compliance of your object
 
-    User ActiveModel::Lint to test the compliance of your object to the
+    Use ActiveModel::Lint to test the compliance of your object to the
     basic ActiveModel API...
     
   {Learn more}[link:classes/ActiveModel/Lint/Tests.html]
+
+* Providing a human face to your object
+
+    ActiveModel::Naming provides your model with the model_name convention
+    and a human_name attribute...
+    
+    class NamedPerson
+      extend ActiveModel::Naming
+    end
+    
+    ...gives you...
+    
+    NamedPerson.model_name        #=> "NamedPerson"
+    NamedPerson.model_name.human  #=> "Named person"
+
+  {Learn more}[link:classes/ActiveModel/Naming.html]
+

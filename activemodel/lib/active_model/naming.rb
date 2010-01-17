@@ -1,6 +1,7 @@
 require 'active_support/inflector'
 
 module ActiveModel
+
   class Name < String
     attr_reader :singular, :plural, :element, :collection, :partial_path
     alias_method :cache_key, :collection
@@ -35,6 +36,21 @@ module ActiveModel
     end
   end
 
+  # ActiveModel::Naming is a module that creates a +model_name+ method on your
+  # object.
+  # 
+  # To implement, just extend ActiveModel::Naming in your object:
+  # 
+  #   class BookCover
+  #     exten ActiveModel::Naming
+  #   end
+  # 
+  #   BookCover.model_name        #=> "BookCover"
+  #   BookCover.model_name.human  #=> "Book cover"
+  # 
+  # Providing the functionality that ActiveModel::Naming provides in your object
+  # is required to pass the ActiveModel Lint test.  So either extending the provided
+  # method below, or rolling your own is required..
   module Naming
     # Returns an ActiveModel::Name object for module. It can be
     # used to retrieve all kinds of naming-related information.
@@ -42,4 +58,5 @@ module ActiveModel
       @_model_name ||= ActiveModel::Name.new(self)
     end
   end
+  
 end
