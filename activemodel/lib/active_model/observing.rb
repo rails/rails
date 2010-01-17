@@ -149,7 +149,7 @@ module ActiveModel
       #
       #   class AuditObserver < ActiveModel::Observer
       #     def self.observed_classes
-      #       [AccountObserver, BalanceObserver]
+      #       [Account, Balance]
       #     end
       #   end
       def observed_classes
