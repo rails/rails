@@ -2,9 +2,66 @@ require 'active_support/core_ext/string/inflections'
 require 'active_support/ordered_hash'
 
 module ActiveModel
+  # Provides a modified +OrderedHash+ that you can include in your object
+  # for handling error messages and interacting with Action Pack helpers.
+  # 
+  # A minimal implementation could be:
+  # 
+  #   class Person
+  #   
+  #     def initialize
+  #       @errors = ActiveModel::Errors.new(self)
+  #     end
+  #   
+  #     attr_accessor :name
+  #     attr_reader   :errors
+  #   
+  #     def validate!
+  #       errors.add(:name, "can not be nil") if name == nil
+  #     end
+  #   
+  #     # The following methods are needed to be minimally implemented
+  #
+  #     def read_attribute_for_validation(attr)
+  #       send(attr)
+  #     end
+  #   
+  #     def ErrorsPerson.human_attribute_name(attr, options = {})
+  #       attr
+  #     end
+  #   
+  #     def ErrorsPerson.lookup_ancestors
+  #       [self]
+  #     end
+  #   
+  #     def ErrorsPerson.model_name
+  #       ActiveModel::Name.new(ErrorsPerson)
+  #     end
+  #   
+  #   end
+  # 
+  # The last four methods are required in your object for Errors to be
+  # able to generate error messages correctly and also handle multiple
+  # languages.
+  # 
+  # The above allows you to do:
+  # 
+  #   p = Person.new
+  #   p.validate!             # => ["can not be nil"]
+  #   p.errors.full_messages  # => ["name can not be nil"]
+  #   # etc..
   class Errors < ActiveSupport::OrderedHash
     include DeprecatedErrorMethods
 
+    # Pass in the instance of the object that is using the errors object.
+    # 
+    #   class Person
+    #     def initialize
+    #       @errors = ActiveModel::Errors.new(self)
+    #     end
+    #   end
+    # 
+    # 
     def initialize(base)
       @base = base
       super()
@@ -13,6 +70,10 @@ module ActiveModel
     alias_method :get, :[]
     alias_method :set, :[]=
 
+    # When passed a symbol or a name of a method, returns an array of errors for the method.
+    # 
+    #   p.errors[:name]   #=> ["can not be nil"]
+    #   p.errors['name']  #=> ["can not be nil"]
     def [](attribute)
       if errors = get(attribute.to_sym)
         errors
@@ -21,28 +82,73 @@ module ActiveModel
       end
     end
 
+    # Adds to the supplied attribute the supplied error message.
+    # 
+    #   p.errors[:name] = "must be set"
+    #   p.errors[:name] #=> ['must be set']
     def []=(attribute, error)
       self[attribute.to_sym] << error
     end
 
+    # Iterates through each error key, value pair in the error messages hash.
+    # Yields the attribute and the error for that attribute.  If the attribute
+    # has more than one error message, yields once for each error message.
+    # 
+    #   p.errors.add(:name, "can't be blank")
+    #   p.errors.each do |attribute, errors_array|
+    #     # Will yield :name and "can't be blank"
+    #   end
+    # 
+    #   p.errors.add(:name, "must be specified")
+    #   p.errors.each do |attribute, errors_array|
+    #     # Will yield :name and "can't be blank"
+    #     # then yield :name and "must be specified"
+    #   end
     def each
       each_key do |attribute|
         self[attribute].each { |error| yield attribute, error }
       end
     end
 
+    # Returns the number of error messages.
+    # 
+    #   p.errors.add(:name, "can't be blank")
+    #   p.errors.size #=> 1
+    #   p.errors.add(:name, "must be specified")
+    #   p.errors.size #=> 2
     def size
       values.flatten.size
     end
 
+    # Returns an array of error messages, with the attribute name included
+    # 
+    #   p.errors.add(:name, "can't be blank")
+    #   p.errors.add(:name, "must be specified")
+    #   p.errors.to_a   #=>   ["name can't be blank", "name must be specified"]
     def to_a
       full_messages
     end
 
+    # Returns the number of error messages.
+    #   p.errors.add(:name, "can't be blank")
+    #   p.errors.count #=> 1
+    #   p.errors.add(:name, "must be specified")
+    #   p.errors.count #=> 2
     def count
       to_a.size
     end
 
+    # Returns an xml formatted representation of the Errors hash.
+    # 
+    #   p.errors.add(:name, "can't be blank")
+    #   p.errors.add(:name, "must be specified")
+    #   p.errors.to_xml   #=> Produces:
+    # 
+    #   #  <?xml version=\"1.0\" encoding=\"UTF-8\"?>
+    #   #  <errors>
+    #   #    <error>name can't be blank</error>
+    #   #    <error>name must be specified</error>
+    #   #  </errors>
     def to_xml(options={})
       require 'builder' unless defined? ::Builder
       options[:root]    ||= "errors"
@@ -59,6 +165,7 @@ module ActiveModel
     # for the same attribute and ensure that this error object returns false when asked if <tt>empty?</tt>. More than one
     # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
     # If no +messsage+ is supplied, :invalid is assumed.
+    # 
     # If +message+ is a Symbol, it will be translated, using the appropriate scope (see translate_error).
     def add(attribute, message = nil, options = {})
       message ||= :invalid

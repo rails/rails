@@ -78,3 +78,35 @@ functionality from the following modules:
 
   {Learn more}[link:classes/ActiveModel/Dirty.html]
 
+* Adding +errors+ support to your object
+
+    Provides the error messages to allow your object to interact with Action Pack
+    helpers seamlessly...
+    
+    class Person
+
+      def initialize
+        @errors = ActiveModel::Errors.new(self)
+      end
+
+      attr_accessor :name
+      attr_reader   :errors
+
+      def validate!
+        errors.add(:name, "can not be nil") if name == nil
+      end
+
+      def ErrorsPerson.human_attribute_name(attr, options = {})
+        "Name"
+      end
+
+    end
+    
+    ... gives you...
+    
+    person.errors.full_messages
+    # => ["Name Can not be nil"]
+    person.errors.full_messages
+    # => ["Name Can not be nil"]
+
+  {Learn more}[link:classes/ActiveModel/Errors.html]
