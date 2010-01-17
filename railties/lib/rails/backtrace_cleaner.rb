@@ -3,17 +3,7 @@ require 'active_support/backtrace_cleaner'
 module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner
     ERB_METHOD_SIG = /:in `_run_erb_.*/
-
-    RAILS_GEMS   = %w( actionpack activerecord actionmailer activesupport activeresource rails )
-
-    VENDOR_DIRS  = %w( vendor/rails )
-    SERVER_DIRS  = %w( lib/mongrel bin/mongrel
-                       lib/passenger bin/passenger-spawn-server
-                       lib/rack )
-    RAILS_NOISE  = %w( script/server )
-    RUBY_NOISE   = %w( rubygems/custom_require benchmark.rb )
-
-    ALL_NOISE    = VENDOR_DIRS + SERVER_DIRS + RAILS_NOISE + RUBY_NOISE
+    APP_DIRS = %w( app config lib test )
 
     def initialize
       super
@@ -22,10 +12,9 @@ module Rails
       add_filter   { |line| line.sub('./', '/') } # for tests
 
       add_gem_filters
+      add_bundler_filters
 
-      add_silencer { |line| ALL_NOISE.any? { |dir| line.include?(dir) } }
-      add_silencer { |line| RAILS_GEMS.any? { |gem| line =~ /^#{gem} / } }
-      add_silencer { |line| line =~ %r(vendor/plugins/[^\/]+/lib) }
+      add_silencer { |line| !APP_DIRS.any? { |dir| line =~ /^#{dir}/ } }
     end
 
     private
@@ -33,8 +22,20 @@ module Rails
         return unless defined? Gem
         (Gem.path + [Gem.default_dir]).uniq.each do |path|
           # http://gist.github.com/30430
-          add_filter { |line| line.sub(/(#{path})\/gems\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) \4')}
+          add_filter { |line|
+            line.sub(%r{(#{path})/gems/([^/]+)-([0-9.]+)/(.*)}, '\2 (\3) \4')
+          }
         end
+      end
+
+      def add_bundler_filters
+        return unless defined? Bundler
+        add_filter { |line|
+          line.sub(%r{vendor/gems/[^/]+/[^/]+/gems/([^/]+)-([0-9.]+)/(.*)}, '\1 (\2) \3')
+        }
+        add_filter { |line|
+          line.sub(%r{vendor/gems/[^/]+/[^/]+/dirs/([^/]+)/(.*)}, '\1 \2')
+        }
       end
   end
 

@@ -30,7 +30,7 @@ module ActiveSupport
     #
     #   ActiveSupport::Cache.lookup_store(:memory_store)
     #   # => returns a new ActiveSupport::Cache::MemoryStore object
-    #   
+    #
     #   ActiveSupport::Cache.lookup_store(:mem_cache_store)
     #   # => returns a new ActiveSupport::Cache::MemCacheStore object
     #
@@ -97,7 +97,7 @@ module ActiveSupport
     # Ruby objects, but don't count on every cache store to be able to do that.
     #
     #   cache = ActiveSupport::Cache::MemoryStore.new
-    #   
+    #
     #   cache.read("city")   # => nil
     #   cache.write("city", "Duckburgh")
     #   cache.read("city")   # => "Duckburgh"
@@ -139,7 +139,7 @@ module ActiveSupport
       #
       #   cache.write("today", "Monday")
       #   cache.fetch("today")  # => "Monday"
-      #   
+      #
       #   cache.fetch("city")   # => nil
       #   cache.fetch("city") do
       #     "Duckburgh"
@@ -198,7 +198,7 @@ module ActiveSupport
       # You may also specify additional options via the +options+ argument.
       # The specific cache store implementation will decide what to do with
       # +options+.
-      # 
+      #
       # For example, MemCacheStore supports the +:expires_in+ option, which
       # tells the memcached server to automatically expire the cache item after
       # a certain period:
