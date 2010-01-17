@@ -754,9 +754,9 @@ Many apps grow beyond simple forms editing a single object. For example when cre
 
 * Ryan Bates' series of Railscasts on "complex forms":http://railscasts.com/episodes/75
 * Handle Multiple Models in One Form from "Advanced Rails Recipes":http://media.pragprog.com/titles/fr_arr/multiple_models_one_form.pdf
-* Eloy Duran's "nested_params":http://github.com/alloy/complex-form-examples/tree/alloy-nested_params plugin
+* Eloy Duran's "complex-forms-examples":http://github.com/alloy/complex-form-examples/ application
 * Lance Ivy's "nested_assignment":http://github.com/cainlevy/nested_assignment/tree/master plugin and "sample application":http://github.com/cainlevy/complex-form-examples/tree/cainlevy
-* James Golick's "attribute_fu":http://github.com/giraffesoft/attribute_fu/tree plugin
+* James Golick's "attribute_fu":http://github.com/jamesgolick/attribute_fu plugin
 
 h3. Changelog
 

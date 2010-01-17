@@ -124,12 +124,13 @@ module ActiveRecord
     end
 
     def reload
-      @loaded = false
       reset
+      to_a # force reload
+      self
     end
 
     def reset
-      @first = @last = @to_sql = @order_clause = @scope_for_create = @arel = nil
+      @first = @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
       @records = []
       self
     end

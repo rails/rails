@@ -53,7 +53,7 @@ module ActiveRecord
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
       column = if @klass.column_names.include?(column_name.to_s)
-        Arel::Attribute.new(@klass.active_relation, column_name)
+        Arel::Attribute.new(@klass.unscoped, column_name)
       else
         Arel::SqlLiteral.new(column_name == :all ? "*" : column_name.to_s)
       end
@@ -77,7 +77,7 @@ module ActiveRecord
       select_statement = if operation == 'count' && column_name == :all
         "COUNT(*) AS count_all"
       else
-        Arel::Attribute.new(@klass.active_relation, column_name).send(operation).as(aggregate_alias).to_sql
+        Arel::Attribute.new(@klass.unscoped, column_name).send(operation).as(aggregate_alias).to_sql
       end
 
       select_statement <<  ", #{group_field} AS #{group_alias}"

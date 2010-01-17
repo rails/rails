@@ -774,13 +774,12 @@ module ActiveRecord
       # [collection.build(attributes = {}, ...)]
       #   Returns one or more new objects of the collection type that have been instantiated
       #   with +attributes+ and linked to this object through a foreign key, but have not yet
-      #   been saved. <b>Note:</b> This only works if an associated object already exists, not if
-      #   it's +nil+!
+      #   been saved.
       # [collection.create(attributes = {})]
       #   Returns a new object of the collection type that has been instantiated
       #   with +attributes+, linked to this object through a foreign key, and that has already
-      #   been saved (if it passed the validation). <b>Note:</b> This only works if an associated
-      #   object already exists, not if it's +nil+!
+      #   been saved (if it passed the validation). *Note*: This only works if the base model
+      #   already exists in the DB, not if it is a new (unsaved) record!
       #
       # (*Note*: +collection+ is replaced with the symbol passed as the first argument, so
       # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.)
@@ -1040,7 +1039,6 @@ module ActiveRecord
       # A Post class declares <tt>belongs_to :author</tt>, which will add:
       # * <tt>Post#author</tt> (similar to <tt>Author.find(author_id)</tt>)
       # * <tt>Post#author=(author)</tt> (similar to <tt>post.author_id = author.id</tt>)
-      # * <tt>Post#author?</tt> (similar to <tt>post.author == some_author</tt>)
       # * <tt>Post#build_author</tt> (similar to <tt>post.author = Author.new</tt>)
       # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
@@ -1703,7 +1701,7 @@ module ActiveRecord
         end
 
         def construct_finder_arel_with_included_associations(options, join_dependency)
-          relation = active_relation
+          relation = unscoped
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
@@ -1754,7 +1752,7 @@ module ActiveRecord
         end
 
         def construct_finder_sql_for_association_limiting(options, join_dependency)
-          relation = active_relation
+          relation = unscoped
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)

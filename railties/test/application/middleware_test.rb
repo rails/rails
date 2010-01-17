@@ -19,6 +19,7 @@ module ApplicationTests
         "Rack::Runtime",
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::Callbacks",
+        "ActionDispatch::Cookies",
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
         "ActionDispatch::Cascade",

@@ -1406,7 +1406,7 @@ rake rdoc
 
 h3. Appendix
 
-If you prefer to use RSpec instead of Test::Unit, you may be interested in the "RSpec Plugin Generator":http://github.com/pat-maddox/rspec-plugin-generator/tree/master.
+If you prefer to use RSpec instead of Test::Unit, you may be interested in the "RSpec Plugin Generator":http://github.com/patmaddox/rspec-plugin-generator.
 
 h4. References
 

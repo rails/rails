@@ -385,7 +385,7 @@ module ActiveSupport #:nodoc:
       # Convert characters in the string to uppercase.
       #
       # Example:
-      #   'Laurent, òu sont les tests?'.mb_chars.upcase.to_s #=> "LAURENT, ÒU SONT LES TESTS?"
+      #   'Laurent, où sont les tests ?'.mb_chars.upcase.to_s #=> "LAURENT, OÙ SONT LES TESTS ?"
       def upcase
         apply_mapping :uppercase_mapping
       end

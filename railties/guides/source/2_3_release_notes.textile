@@ -81,7 +81,7 @@ accepts_nested_attributes_for :author,
   :reject_if => proc { |attributes| attributes['name'].blank? }
 </ruby>
 
-* Lead Contributor: "Eloy Duran":http://www.superalloy.nl/blog/
+* Lead Contributor: "Eloy Duran":http://superalloy.nl/
 * More Information: "Nested Model Forms":http://weblog.rubyonrails.org/2009/1/26/nested-model-forms
 
 h4. Nested Transactions
@@ -365,10 +365,10 @@ You can write this view in Rails 2.3:
 <% end %>
 </erb>
 
-* Lead Contributor: "Eloy Duran":http://www.superalloy.nl/blog/
+* Lead Contributor: "Eloy Duran":http://superalloy.nl/
 * More Information:
 ** "Nested Model Forms":http://weblog.rubyonrails.org/2009/1/26/nested-model-forms
-** "complex-form-examples":http://github.com/alloy/complex-form-examples/tree/nested_attributes
+** "complex-form-examples":http://github.com/alloy/complex-form-examples
 ** "What's New in Edge Rails: Nested Object Forms":http://ryandaigle.com/articles/2009/2/1/what-s-new-in-edge-rails-nested-attributes
 
 h4. Smart Rendering of Partials

@@ -1,7 +1,7 @@
 module ActionController #:nodoc:
-  # Responder is responsible to expose a resource for different mime requests,
+  # Responder is responsible for exposing a resource to different mime requests,
   # usually depending on the HTTP verb. The responder is triggered when
-  # respond_with is called. The simplest case to study is a GET request:
+  # <code>respond_with</code> is called. The simplest case to study is a GET request:
   #
   #   class PeopleController < ApplicationController
   #     respond_to :html, :xml, :json
@@ -12,17 +12,17 @@ module ActionController #:nodoc:
   #     end
   #   end
   #
-  # When a request comes, for example with format :xml, three steps happen:
+  # When a request comes in, for example for an XML response, three steps happen:
   #
-  #   1) responder searches for a template at people/index.xml;
+  #   1) the responder searches for a template at people/index.xml;
   #
-  #   2) if the template is not available, it will invoke :to_xml in the given resource;
+  #   2) if the template is not available, it will invoke <code>#to_xml</code> on the given resource;
   #
-  #   3) if the responder does not respond_to :to_xml, call :to_format on it.
+  #   3) if the responder does not <code>respond_to :to_xml</code>, call <code>#to_format</code> on it.
   #
   # === Builtin HTTP verb semantics
   #
-  # Rails default responder holds semantics for each HTTP verb. Depending on the
+  # The default Rails responder holds semantics for each HTTP verb. Depending on the
   # content type, verb and the resource status, it will behave differently.
   #
   # Using Rails default responder, a POST request for creating an object could
@@ -55,7 +55,7 @@ module ActionController #:nodoc:
   #
   # === Nested resources
   #
-  # You can given nested resource as you do in form_for and polymorphic_url.
+  # You can supply nested resources as you do in <code>form_for</code> and <code>polymorphic_url</code>.
   # Consider the project has many tasks example. The create action for
   # TasksController would be like:
   #
@@ -67,15 +67,15 @@ module ActionController #:nodoc:
   #   end
   #
   # Giving an array of resources, you ensure that the responder will redirect to
-  # project_task_url instead of task_url.
+  # <code>project_task_url</code> instead of <code>task_url</code>.
   #
-  # Namespaced and singleton resources requires a symbol to be given, as in
+  # Namespaced and singleton resources require a symbol to be given, as in
   # polymorphic urls. If a project has one manager which has many tasks, it
   # should be invoked as:
   #
   #   respond_with(@project, :manager, @task)
   #
-  # Check polymorphic_url documentation for more examples.
+  # Check <code>polymorphic_url</code> documentation for more examples.
   #
   class Responder
     attr_reader :controller, :request, :format, :resource, :resources, :options
@@ -126,7 +126,7 @@ module ActionController #:nodoc:
       navigation_behavior(e)
     end
 
-    # All others formats follow the procedure below. First we try to render a
+    # All other formats follow the procedure below. First we try to render a
     # template, if the template is not available, we verify if the resource
     # responds to :to_format and display it.
     #
@@ -183,11 +183,11 @@ module ActionController #:nodoc:
       @default_response.call
     end
 
-    # display is just a shortcut to render a resource with the current format.
+    # Display is just a shortcut to render a resource with the current format.
     #
     #   display @user, :status => :ok
     #
-    # For xml request is equivalent to:
+    # For XML requests it's equivalent to:
     #
     #   render :xml => @user, :status => :ok
     #
@@ -204,14 +204,14 @@ module ActionController #:nodoc:
       controller.render given_options.merge!(options).merge!(format => resource)
     end
 
-    # Check if the resource has errors or not.
+    # Check whether the resource has errors.
     #
     def has_errors?
       resource.respond_to?(:errors) && !resource.errors.empty?
     end
 
-    # By default, render the :edit action for html requests with failure, unless
-    # the verb is post.
+    # By default, render the <code>:edit</code> action for HTML requests with failure, unless
+    # the verb is POST.
     #
     def default_action
       @action ||= ACTIONS_FOR_VERBS[request.method]

@@ -99,15 +99,25 @@ module Rails
       end
     end
 
+    def app
+      @app ||= begin
+        reload_routes!
+        middleware.build(routes)
+      end
+    end
+
     def call(env)
-      @app ||= middleware.build(routes)
-      @app.call(env)
+      app.call(env)
     end
 
     initializer :load_application_initializers do
       Dir["#{root}/config/initializers/**/*.rb"].sort.each do |initializer|
         load(initializer)
       end
+    end
+
+    initializer :build_middleware_stack do
+      app
     end
 
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)

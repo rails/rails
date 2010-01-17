@@ -973,7 +973,7 @@ h6. +:source_type+
 
 The +:source_type+ option specifies the source association type for a +has_one :through+ association that proceeds through a polymorphic association.
 
-h6. :through
+h6. +:through+
 
 The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations were discussed in detail <a href="#the-has-one-through-association">earlier in this guide</a>.
 

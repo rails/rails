@@ -23,7 +23,6 @@ module ActionController
     initializer "action_controller.initialize_routing" do |app|
       app.route_configuration_files << app.config.routes_configuration_file
       app.route_configuration_files << app.config.builtin_routes_configuration_file
-      app.reload_routes!
     end
 
     initializer "action_controller.initialize_framework_caches" do
