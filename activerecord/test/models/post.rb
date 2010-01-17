@@ -1,7 +1,7 @@
 class Post < ActiveRecord::Base
   named_scope :containing_the_letter_a, :conditions => "body LIKE '%a%'"
   named_scope :ranked_by_comments, :order => "comments_count DESC"
-  named_scope :limit, lambda {|limit| {:limit => limit} }
+  named_scope :limit_by, lambda {|limit| {:limit => limit} }
   named_scope :with_authors_at_address, lambda { |address| {
       :conditions => [ 'authors.author_address_id = ?', address.id ],
       :joins => 'JOIN authors ON authors.id = posts.author_id'
@@ -73,7 +73,7 @@ class Post < ActiveRecord::Base
   has_many :impatient_people, :through => :skimmers, :source => :person
 
   def self.top(limit)
-    ranked_by_comments.limit(limit)
+    ranked_by_comments.limit_by(limit)
   end
 
   def self.reset_log

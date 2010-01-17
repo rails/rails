@@ -99,6 +99,11 @@ module ActiveRecord
       #   assert_equal expected_options, Shirt.colored('red').proxy_options
       def named_scope(name, options = {}, &block)
         name = name.to_sym
+
+        if !scopes[name] && respond_to?(name, true)
+          raise ArgumentError, "Cannot define named_scope :#{name} because #{self.name}.#{name} method already exists."
+        end
+
         scopes[name] = lambda do |parent_scope, *args|
           Scope.new(parent_scope, case options
             when Hash
