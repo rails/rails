@@ -9,6 +9,9 @@ module ActiveModel
   # 
   #   class Person
   #   
+  #     # Required dependency for ActiveModel::Errors
+  #     extend ActiveModel::Naming
+  # 
   #     def initialize
   #       @errors = ActiveModel::Errors.new(self)
   #     end
@@ -34,13 +37,9 @@ module ActiveModel
   #       [self]
   #     end
   #   
-  #     def ErrorsPerson.model_name
-  #       ActiveModel::Name.new(ErrorsPerson)
-  #     end
-  #   
   #   end
   # 
-  # The last four methods are required in your object for Errors to be
+  # The last three methods are required in your object for Errors to be
   # able to generate error messages correctly and also handle multiple
   # languages.
   # 
