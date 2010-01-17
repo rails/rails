@@ -1,8 +1,8 @@
 <%
   traces = [
-    ["Application Trace", @exception.application_backtrace],
-    ["Framework Trace", @exception.framework_backtrace],
-    ["Full Trace", @exception.clean_backtrace]
+    ["Application Trace", @application_trace],
+    ["Framework Trace", @framework_trace],
+    ["Full Trace", @full_trace]
   ]
   names = traces.collect {|name, trace| name}
 %>

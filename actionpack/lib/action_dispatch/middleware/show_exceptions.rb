@@ -88,7 +88,10 @@ module ActionDispatch
       def rescue_action_locally(request, exception)
         template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
           :request => request,
-          :exception => exception
+          :exception => exception,
+          :application_trace => application_trace(exception),
+          :framework_trace => framework_trace(exception),
+          :full_trace => full_trace(exception)
         )
         file = "rescues/#{@@rescue_templates[exception.class.name]}.erb"
         body = template.render(:file => file, :layout => 'rescues/layout.erb')
@@ -148,9 +151,21 @@ module ActionDispatch
         end
       end
 
-      def clean_backtrace(exception)
+      def application_trace(exception)
+        clean_backtrace(exception, :silent)
+      end
+
+      def framework_trace(exception)
+        clean_backtrace(exception, :noise)
+      end
+
+      def full_trace(exception)
+        clean_backtrace(exception, :all)
+      end
+
+      def clean_backtrace(exception, *args)
         defined?(Rails) && Rails.respond_to?(:backtrace_cleaner) ?
-          Rails.backtrace_cleaner.clean(exception.backtrace) :
+          Rails.backtrace_cleaner.clean(exception.backtrace, *args) :
           exception.backtrace
       end
 
