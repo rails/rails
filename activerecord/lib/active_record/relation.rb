@@ -20,6 +20,8 @@ module ActiveRecord
       with_create_scope { @klass.new(*args, &block) }
     end
 
+    alias build new
+
     def create(*args, &block)
       with_create_scope { @klass.create(*args, &block) }
     end

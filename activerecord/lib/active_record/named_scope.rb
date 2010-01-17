@@ -121,7 +121,7 @@ module ActiveRecord
     end
 
     class Scope
-      attr_reader :proxy_scope, :proxy_options, :current_scoped_methods_when_defined
+      attr_reader :klass, :proxy_options, :current_scoped_methods_when_defined
       NON_DELEGATE_METHODS = %w(nil? send object_id class extend find size count sum average maximum minimum paginate first last empty? any? many? respond_to?).to_set
       [].methods.each do |m|
         unless m =~ /^__/ || NON_DELEGATE_METHODS.include?(m.to_s)
@@ -129,9 +129,10 @@ module ActiveRecord
         end
       end
 
-      delegate :scopes, :with_scope, :scoped_methods, :unscoped, :to => :proxy_scope
+      delegate :scopes, :with_scope, :with_exclusive_scope, :scoped_methods, :scoped, :to => :klass
+      delegate :new, :build, :all, :to => :relation
 
-      def initialize(proxy_scope, options, &block)
+      def initialize(klass, options, &block)
         extend Module.new(&block) if block_given?
 
         options ||= {}
@@ -142,11 +143,11 @@ module ActiveRecord
           @proxy_options = options
         end
 
-        unless Scope === proxy_scope
-          @current_scoped_methods_when_defined = proxy_scope.send(:current_scoped_methods)
+        unless Scope === klass
+          @current_scoped_methods_when_defined = klass.send(:current_scoped_methods)
         end
 
-        @proxy_scope = proxy_scope
+        @klass = klass
       end
 
       def reload
@@ -178,7 +179,7 @@ module ActiveRecord
       end
 
       def respond_to?(method, include_private = false)
-        super || @proxy_scope.respond_to?(method, include_private)
+        super || @klass.respond_to?(method, include_private)
       end
 
       def any?
@@ -198,14 +199,12 @@ module ActiveRecord
         end
       end
 
-      protected
-
       def relation
         @relation ||= begin
           if proxy_options.is_a?(Hash)
-            unscoped.apply_finder_options(proxy_options)
+            scoped.apply_finder_options(proxy_options)
           else
-            unscoped.merge(proxy_options)
+            scoped.merge(proxy_options)
           end
         end
       end
@@ -217,18 +216,13 @@ module ActiveRecord
       private
 
       def method_missing(method, *args, &block)
-        if scopes.include?(method)
-          scopes[method].call(self, *args)
-        else
-          with_scope(relation, :reverse_merge) do
-            method = :new if method == :build
-            if current_scoped_methods_when_defined && !scoped_methods.include?(current_scoped_methods_when_defined)
-              with_scope current_scoped_methods_when_defined do
-                proxy_scope.send(method, *args, &block)
-              end
-            else
-              proxy_scope.send(method, *args, &block)
+        with_scope(relation, :reverse_merge) do
+          if current_scoped_methods_when_defined && !scoped_methods.include?(current_scoped_methods_when_defined) && !scopes.include?(method)
+            with_scope current_scoped_methods_when_defined do
+              klass.send(method, *args, &block)
             end
+          else
+            klass.send(method, *args, &block)
           end
         end
       end
