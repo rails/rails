@@ -134,3 +134,11 @@ functionality from the following modules:
 
   {Learn more}[link:classes/ActiveModel/Naming.html]
 
+* Adding observer support to your objects
+
+    ActiveModel::Observers allows your object to implement the Observer
+    pattern in a Rails App and take advantage of all the standard observer
+    functions.
+  
+  {Learn more}[link:classes/ActiveModel/Observer.html]
+  
