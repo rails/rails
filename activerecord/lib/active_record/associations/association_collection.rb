@@ -403,8 +403,6 @@ module ActiveRecord
             else
               super
             end
-          elsif @reflection.klass.scopes.include?(method)
-            @reflection.klass.scopes[method].call(self, *args)
           else
             with_scope(construct_scope) do
               if block_given?

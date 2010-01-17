@@ -1,7 +1,7 @@
 module ActiveRecord
   module SpawnMethods
     def spawn(arel_table = self.table)
-      relation = Relation.new(@klass, arel_table)
+      relation = self.class.new(@klass, arel_table)
 
       (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).each do |query_method|
         relation.send(:"#{query_method}_values=", send(:"#{query_method}_values"))
@@ -64,7 +64,7 @@ module ActiveRecord
     alias :& :merge
 
     def except(*skips)
-      result = Relation.new(@klass, table)
+      result = self.class.new(@klass, table)
 
       (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).each do |method|
         result.send(:"#{method}_values=", send(:"#{method}_values")) unless skips.include?(method)
@@ -78,7 +78,7 @@ module ActiveRecord
     end
 
     def only(*onlies)
-      result = Relation.new(@klass, table)
+      result = self.class.new(@klass, table)
 
       onlies.each do |only|
         if (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).include?(only)

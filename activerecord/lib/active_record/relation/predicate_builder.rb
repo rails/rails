@@ -24,7 +24,7 @@ module ActiveRecord
 
           case value
           when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope
-            attribute.in(value)
+            attribute.in(value.to_a)
           when Range
             # TODO : Arel should handle ranges with excluded end.
             if value.exclude_end?

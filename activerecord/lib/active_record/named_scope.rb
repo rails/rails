@@ -24,7 +24,7 @@ module ActiveRecord
       # You can define a scope that applies to all finders using ActiveRecord::Base.default_scope.
       def scoped(options = {}, &block)
         if options.present?
-          Scope.new(self, options, &block)
+          Scope.init(self, options, &block)
         else
           current_scoped_methods ? unscoped.merge(current_scoped_methods) : unscoped.spawn
         end
@@ -105,7 +105,7 @@ module ActiveRecord
         end
 
         scopes[name] = lambda do |parent_scope, *args|
-          Scope.new(parent_scope, case options
+          Scope.init(parent_scope, case options
             when Hash, Relation
               options
             when Proc
@@ -120,117 +120,83 @@ module ActiveRecord
       end
     end
 
-    class Scope
-      attr_reader :klass, :proxy_options, :current_scoped_methods_when_defined
-      NON_DELEGATE_METHODS = %w(nil? send object_id class extend find size count sum average maximum minimum paginate first last empty? any? many? respond_to?).to_set
-      [].methods.each do |m|
-        unless m =~ /^__/ || NON_DELEGATE_METHODS.include?(m.to_s)
-          delegate m, :to => :proxy_found
-        end
-      end
+    class Scope < Relation
+      attr_accessor :current_scoped_methods_when_defined
 
       delegate :scopes, :with_scope, :with_exclusive_scope, :scoped_methods, :scoped, :to => :klass
-      delegate :new, :build, :all, :to => :relation
 
-      def initialize(klass, options, &block)
-        extend Module.new(&block) if block_given?
+      def self.init(klass, options, &block)
+        relation = new(klass, klass.arel_table)
 
-        options ||= {}
-        if options.is_a?(Hash)
-          Array.wrap(options[:extend]).each {|extension| extend extension }
-          @proxy_options = options.except(:extend)
+        scope = if options.is_a?(Hash)
+          klass.scoped.apply_finder_options(options.except(:extend))
         else
-          @proxy_options = options
+          options ? klass.scoped.merge(options) : klass.scoped
         end
 
-        unless Scope === klass
-          @current_scoped_methods_when_defined = klass.send(:current_scoped_methods)
-        end
+        relation = relation.merge(scope)
 
-        @klass = klass
+        Array.wrap(options[:extend]).each {|extension| relation.send(:extend, extension) } if options.is_a?(Hash)
+        relation.send(:extend, Module.new(&block)) if block_given?
+
+        relation.current_scoped_methods_when_defined = klass.send(:current_scoped_methods)
+        relation
       end
 
-      def reload
-        load_found; self
+      def find(*args)
+        options = args.extract_options!
+        relation = options.present? ? apply_finder_options(options) : self
+
+        case args.first
+        when :first, :last, :all
+          relation.send(args.first)
+        else
+          options.present? ? relation.find(*args) : super
+        end
       end
 
       def first(*args)
-        if args.first.kind_of?(Integer) || (@found && !args.first.kind_of?(Hash))
-          proxy_found.first(*args)
+        if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
+          to_a.first(*args)
         else
-          find(:first, *args)
+          args.first.present? ? apply_finder_options(args.first).first : super
         end
       end
 
       def last(*args)
-        if args.first.kind_of?(Integer) || (@found && !args.first.kind_of?(Hash))
-          proxy_found.last(*args)
+        if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
+          to_a.last(*args)
         else
-          find(:last, *args)
+          args.first.present? ? apply_finder_options(args.first).last : super
         end
       end
 
-      def size
-        @found ? @found.length : count
+      def count(*args)
+        options = args.extract_options!
+        options.present? ? apply_finder_options(options).count(*args) : super
       end
 
-      def empty?
-        @found ? @found.empty? : count.zero?
-      end
-
-      def respond_to?(method, include_private = false)
-        super || @klass.respond_to?(method, include_private)
-      end
-
-      def any?
-        if block_given?
-          proxy_found.any? { |*block_args| yield(*block_args) }
-        else
-          !empty?
-        end
-      end
-
-      # Returns true if the named scope has more than 1 matching record.
-      def many?
-        if block_given?
-          proxy_found.many? { |*block_args| yield(*block_args) }
-        else
-          size > 1
-        end
-      end
-
-      def relation
-        @relation ||= begin
-          if proxy_options.is_a?(Hash)
-            scoped.apply_finder_options(proxy_options)
-          else
-            scoped.merge(proxy_options)
-          end
-        end
-      end
-
-      def proxy_found
-        @found || load_found
+      def ==(other)
+        to_a == other.to_a
       end
 
       private
 
       def method_missing(method, *args, &block)
-        with_scope(relation, :reverse_merge) do
-          if current_scoped_methods_when_defined && !scoped_methods.include?(current_scoped_methods_when_defined) && !scopes.include?(method)
-            with_scope current_scoped_methods_when_defined do
+        if klass.respond_to?(method)
+          with_scope(self) do
+            if current_scoped_methods_when_defined && !scoped_methods.include?(current_scoped_methods_when_defined) && !scopes.include?(method)
+              with_scope(current_scoped_methods_when_defined) { klass.send(method, *args, &block) }
+            else
               klass.send(method, *args, &block)
             end
-          else
-            klass.send(method, *args, &block)
           end
+        else
+          super
         end
       end
 
-      def load_found
-        @found = find(:all)
-      end
-
     end
+
   end
 end
