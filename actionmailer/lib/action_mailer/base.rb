@@ -361,39 +361,26 @@ module ActionMailer #:nodoc:
       end
       attr_writer :mailer_name
 
-      def file_settings
-        @file_settings ||= {:location => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"}
+      def delivery_settings
+        @delivery_settings ||= { :file     => { :location   => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails" },
+                                 :smtp     => { :address    => "localhost",
+                                                :port       => 25,
+                                                :domain     => 'localhost.localdomain',
+                                                :user_name  => nil,
+                                                :password   => nil,
+                                                :authentication       => nil,
+                                                :enable_starttls_auto => true },
+                                 :sendmail => { :location   => '/usr/sbin/sendmail',
+                                                :arguments  => '-i -t' }
+                                }
       end
-      attr_writer :file_settings
-
-      def sendmail_settings
-        @sendmail_settings ||= { :location  => '/usr/sbin/sendmail',
-                                 :arguments => '-i -t' }
-      end
-      attr_writer :sendmail_settings
-
-      def smtp_settings
-        @smtp_settings ||= { :address              => "localhost",
-                             :port                 => 25,
-                             :domain               => 'localhost.localdomain',
-                             :user_name            => nil,
-                             :password             => nil,
-                             :authentication       => nil,
-                             :enable_starttls_auto => true }
-      end
-      attr_writer :smtp_settings
-
-      def custom_settings
-        @custom_settings ||= {}
-      end
-      attr_writer :custom_settings
 
       attr_writer :delivery_method
 
       alias :controller_path :mailer_name
 
       def respond_to?(method_symbol, include_private = false) #:nodoc:
-        matches_dynamic_method?(method_symbol) || super
+        matches_dynamic_method?(method_symbol) || matches_settings_method?(method_symbol) || super
       end
 
       def method_missing(method_symbol, *parameters) #:nodoc:
@@ -404,6 +391,8 @@ module ActionMailer #:nodoc:
             when 'new'     then nil
             else super
           end
+        elsif match = matches_settings_method?(method_symbol)
+          delivery_settings[match[1].to_sym] = parameters[0]
         else
           super
         end
@@ -441,7 +430,8 @@ module ActionMailer #:nodoc:
           ActiveSupport::Notifications.instrument("action_mailer.deliver",
             :mailer => self.name) do |payload|
             set_payload_for_mail(payload, mail)
-            mail.delivery_method delivery_method, delivery_settings
+            
+            mail.delivery_method delivery_method, get_delivery_settings(delivery_method)
             if @@perform_deliveries
               mail.deliver! 
               self.deliveries << mail
@@ -452,18 +442,6 @@ module ActionMailer #:nodoc:
         end
 
         mail
-      end
-
-      # Get the delivery settings set.  This is set using the <tt>:smtp_settings</tt>,
-      # <tt>:sendmail_settings</tt>, <tt>:file_settings</tt> or <tt>:custom_setings</tt>
-      # options hashes.  You can set <tt>:custom_settings</tt> if you are providing
-      # your own Custom Delivery Method and want to pass options to it.
-      def delivery_settings
-        if [:smtp, :sendmail, :file].include?(delivery_method)
-          instance_variable_get("@#{delivery_method}_settings")
-        else
-          @custom_settings
-        end
       end
 
       def template_root
@@ -487,6 +465,16 @@ module ActionMailer #:nodoc:
       end
 
       private
+      
+        def get_delivery_settings(method) #:nodoc:
+          method.is_a?(Symbol) ? delivery_settings[method] : delivery_settings[:custom]
+        end
+
+        def matches_settings_method?(method_name) #:nodoc:
+          method_name = method_name.to_s
+          delivery_method.is_a?(Symbol) ? method = delivery_method : method = :custom
+          /(file|sendmail|smtp)_settings$/.match(method_name)
+        end
 
         def matches_dynamic_method?(method_name) #:nodoc:
           method_name = method_name.to_s
@@ -572,10 +560,6 @@ module ActionMailer #:nodoc:
 
         @mailer_name ||= self.class.mailer_name.dup
         @delivery_method = self.class.delivery_method
-        @smtp_settings = self.class.smtp_settings.dup
-        @sendmail_settings = self.class.sendmail_settings.dup
-        @file_settings = self.class.file_settings.dup
-        @custom_settings = self.class.custom_settings.dup
         @template    ||= method_name
 
         @parts   ||= []
