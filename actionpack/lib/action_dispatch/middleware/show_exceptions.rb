@@ -61,11 +61,8 @@ module ActionDispatch
     def call(env)
       @app.call(env)
     rescue Exception => exception
-      ActiveSupport::Notifications.instrument 'action_dispatch.show_exception',
-        :env => env, :exception => exception do
-        raise exception if env['action_dispatch.show_exceptions'] == false
-        render_exception(env, exception)
-      end
+      raise exception if env['action_dispatch.show_exceptions'] == false
+      render_exception(env, exception)
     end
 
     private

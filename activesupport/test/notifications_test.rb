@@ -90,6 +90,22 @@ module Notifications
       drain
     end
 
+    def test_instrument_with_bang_returns_result_even_on_failure
+      begin
+        instrument!(:awesome, :payload => "notifications") do
+          raise "OMG"
+        end
+        flunk
+      rescue
+      end
+
+      drain
+
+      assert_equal 1, @events.size
+      assert_equal :awesome, @events.last.name
+      assert_equal Hash[:payload => "notifications"], @events.last.payload
+    end
+
     def test_instrument_yields_the_paylod_for_further_modification
       assert_equal 2, instrument(:awesome) { |p| p[:result] = 1 + 1 }
       drain
