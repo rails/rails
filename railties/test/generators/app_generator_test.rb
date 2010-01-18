@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/app/app_generator'
+require 'generators/rails/app/app_generator'
 
 class AppGeneratorTest < GeneratorsTestCase
   arguments [destination_root]
@@ -158,7 +158,7 @@ class AppGeneratorTest < GeneratorsTestCase
   end
 
   def test_default_namespace
-    assert_match "rails:generators:app", Rails::Generators::AppGenerator.namespace
+    assert_match "rails:app", Rails::Generators::AppGenerator.namespace
   end
 
   def test_file_is_added_for_backwards_compatibility

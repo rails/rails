@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/integration_test/integration_test_generator'
+require 'generators/rails/integration_test/integration_test_generator'
 
 class IntegrationTestGeneratorTest < GeneratorsTestCase
   arguments %w(integration)

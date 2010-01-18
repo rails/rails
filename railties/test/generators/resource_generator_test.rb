@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/resource/resource_generator'
+require 'generators/rails/resource/resource_generator'
 
 class ResourceGeneratorTest < GeneratorsTestCase
   arguments %w(account)

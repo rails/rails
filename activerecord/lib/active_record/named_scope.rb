@@ -9,7 +9,7 @@ module ActiveRecord
     module ClassMethods
       # Returns a relation if invoked without any arguments.
       #
-      #   posts = Post.scoped 
+      #   posts = Post.scoped
       #   posts.size # Fires "select count(*) from  posts" and returns the count
       #   posts.each {|p| puts p.name } # Fires "select * from posts" and loads post objects
       #
@@ -41,8 +41,8 @@ module ActiveRecord
       #     scope :red, :conditions => {:color => 'red'}
       #     scope :dry_clean_only, :joins => :washing_instructions, :conditions => ['washing_instructions.dry_clean_only = ?', true]
       #   end
-      # 
-      # The above calls to <tt>scope</tt> define class methods Shirt.red and Shirt.dry_clean_only. Shirt.red, 
+      #
+      # The above calls to <tt>scope</tt> define class methods Shirt.red and Shirt.dry_clean_only. Shirt.red,
       # in effect, represents the query <tt>Shirt.find(:all, :conditions => {:color => 'red'})</tt>.
       #
       # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by Shirt.red is not an Array; it resembles the association object
@@ -101,7 +101,7 @@ module ActiveRecord
         name = name.to_sym
 
         if !scopes[name] && respond_to?(name, true)
-          raise ArgumentError, "Cannot define named_scope :#{name} because #{self.name}.#{name} method already exists."
+          raise ArgumentError, "Cannot define scope :#{name} because #{self.name}.#{name} method already exists."
         end
 
         scopes[name] = lambda do |parent_scope, *args|
@@ -120,7 +120,7 @@ module ActiveRecord
       end
 
       def named_scope(*args, &block)
-        ActiveSupport::Deprecation.warn("Base.named_scope has been deprecated, please use Base.scope instead.", caller)
+        ActiveSupport::Deprecation.warn("Base.named_scope has been deprecated, please use Base.scope instead", caller)
         scope(*args, &block)
       end
     end

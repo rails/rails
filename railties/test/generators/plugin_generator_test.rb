@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/plugin/plugin_generator'
+require 'generators/rails/plugin/plugin_generator'
 
 class PluginGeneratorTest < GeneratorsTestCase
   arguments %w(plugin_fu)
