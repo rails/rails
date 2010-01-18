@@ -85,19 +85,20 @@ class GeneratorsTest < GeneratorsTestCase
     assert_match /Rails 2\.x generator/, output
   end
 
-  def test_builtin_generators
-    assert Rails::Generators.builtin.include?("rails:model")
-  end
-
   def test_rails_generators_help_with_builtin_information
     output = capture(:stdout){ Rails::Generators.help }
-    assert_match /model/, output
-    assert_match /scaffold_controller/, output
+    assert_match /Rails:/, output
+    assert_match /^  model$/, output
+    assert_match /^  scaffold_controller$/, output
   end
 
   def test_rails_generators_with_others_information
-    output = capture(:stdout){ Rails::Generators.help }.split("\n").last
-    assert_equal "Others: active_record:fixjour, fixjour, foobar:foobar, mspec, rails:javascripts, xspec.", output
+    output = capture(:stdout){ Rails::Generators.help }
+    assert_match /ActiveRecord:/, output
+    assert_match /Fixjour:/, output
+    assert_match /^  active_record:model$/, output
+    assert_match /^  active_record:fixjour$/, output
+    assert_match /^  fixjour$/, output
   end
 
   def test_no_color_sets_proper_shell

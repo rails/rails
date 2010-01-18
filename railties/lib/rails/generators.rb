@@ -138,17 +138,17 @@ module Rails
       lookups << "#{name}"
       lookups << "rails:#{name}"      unless base || context || name.to_s.include?(?:)
 
-      # Check if generator happens to be loaded
-      klass = subclasses.find { |k| lookups.include?(k.namespace) }
-      return klass if klass
-
-      # Try to load generator from $LOAD_PATH
-      checked = subclasses.dup
       lookup(lookups)
 
-      unchecked = subclasses - checked
-      klass     = unchecked.find { |k| lookups.include?(k.namespace) }
-      return klass if klass
+      namespaces = subclasses.inject({}) do |hash, klass|
+        hash[klass.namespace] = klass
+        hash
+      end
+
+      lookups.each do |namespace|
+        klass = namespaces[namespace]
+        return klass if klass
+      end
 
       invoke_fallbacks_for(name, base) || invoke_fallbacks_for(context, name)
     end
@@ -168,27 +168,36 @@ module Rails
 
     # Show help message with available generators.
     def self.help
-      builtin = Rails::Generators.builtin.each { |n| n.sub!(/^rails:/, '') }
-      builtin.sort!
+      traverse_load_paths!
 
-      # TODO Fix me
-      # lookup("*")
-      others  = subclasses.map{ |k| k.namespace }
-      others -= Rails::Generators.builtin
-      others.sort!
+      namespaces = subclasses.map{ |k| k.namespace }
+      namespaces.sort!
 
-      puts "Please select a generator."
-      puts "Builtin: #{builtin.join(', ')}."
-      puts "Others: #{others.join(', ')}." unless others.empty?
+      groups = Hash.new { |h,k| h[k] = [] }
+      namespaces.each do |namespace|
+        base = namespace.split(':').first
+        groups[base] << namespace
+      end
+
+      puts "Please select a generator:"
+      puts
+
+      # Print Rails defaults first.
+      rails = groups.delete("rails")
+      rails.map! { |n| n.sub(/^rails:/, '') }
+      print_list("rails", rails)
+
+      groups.sort.each { |b, n| print_list(b, n) }
     end
 
     protected
 
-      # Keep builtin generators in an Array.
-      def self.builtin #:nodoc:
-        Dir[File.dirname(__FILE__) + '/generators/*/*'].collect do |file|
-          file.split('/')[-2, 2].join(':')
-        end
+      # Prints a list of generators.
+      def self.print_list(base, namespaces) #:nodoc:
+        return if namespaces.empty?
+        puts "#{base.camelize}:"
+        namespaces.each { |namespace| puts("  #{namespace}") }
+        puts
       end
 
       # Try fallbacks for the given base.
@@ -205,6 +214,19 @@ module Rails
         end
 
         nil
+      end
+
+      # This will try to load any generator in the load path to show in help.
+      def self.traverse_load_paths! #:nodoc:
+        $LOAD_PATH.each do |base|
+          Dir[File.join(base, "{generators,rails_generators}", "**", "*_generator.rb")].each do |path|
+            begin
+              require path
+            rescue Exception => e
+              # No problem
+            end
+          end
+        end
       end
 
       # Receives namespaces in an array and tries to find matching generators
