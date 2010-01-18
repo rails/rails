@@ -1701,30 +1701,19 @@ module ActiveRecord
         end
 
         def construct_finder_arel_with_included_associations(options, join_dependency)
-          relation = unscoped
+          relation = scoped
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
           end
 
-          relation = relation.joins(options[:joins]).
-            select(column_aliases(join_dependency)).
-            group(options[:group]).
-            having(options[:having]).
-            order(options[:order]).
-            where(options[:conditions]).
-            from(options[:from])
+          relation = relation.apply_finder_options(options).select(column_aliases(join_dependency))
 
-          scoped_relation = current_scoped_methods
-          scoped_relation_limit = scoped_relation.taken if scoped_relation
-
-          relation = current_scoped_methods.except(:limit).merge(relation) if current_scoped_methods
-
-          if !using_limitable_reflections?(join_dependency.reflections) && ((scoped_relation && scoped_relation.taken) || options[:limit])
+          if !using_limitable_reflections?(join_dependency.reflections) && relation.limit_value
             relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency))
           end
 
-          relation = relation.limit(options[:limit] || scoped_relation_limit) if using_limitable_reflections?(join_dependency.reflections)
+          relation = relation.except(:limit, :offset) unless using_limitable_reflections?(join_dependency.reflections)
 
           relation
         end
@@ -1752,23 +1741,14 @@ module ActiveRecord
         end
 
         def construct_finder_sql_for_association_limiting(options, join_dependency)
-          relation = unscoped
+          relation = scoped
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
           end
 
-          relation = relation.joins(options[:joins]).
-            where(options[:conditions]).
-            group(options[:group]).
-            having(options[:having]).
-            order(options[:order]).
-            limit(options[:limit]).
-            offset(options[:offset]).
-            from(options[:from])
-
-          relation = current_scoped_methods.except(:select, :includes, :eager_load).merge(relation) if current_scoped_methods
-          relation = relation.select(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", options[:order]))
+          relation = relation.apply_finder_options(options).except(:select)
+          relation = relation.select(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", relation.order_values.join(", ")))
 
           relation.to_sql
         end
