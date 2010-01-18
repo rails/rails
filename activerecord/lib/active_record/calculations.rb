@@ -162,7 +162,7 @@ module ActiveRecord
             merge_with_joins = current_scoped_methods ? current_scoped_methods.joins_values : []
             joins = (merge_with_joins + Array.wrap(options[:joins])).uniq
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, includes, construct_join(joins))
-            construct_calculation_arel_with_included_associations(options, join_dependency)
+            construct_finder_arel_with_included_associations(options, join_dependency)
           else
             relation = unscoped.apply_finder_options(options.slice(:joins, :conditions, :order, :limit, :offset, :group, :having))
 
@@ -179,32 +179,6 @@ module ActiveRecord
 
             relation
           end
-        end
-
-        def construct_calculation_arel_with_included_associations(options, join_dependency)
-          relation = unscoped
-
-          for association in join_dependency.join_associations
-            relation = association.join_relation(relation)
-          end
-
-          if current_scoped_methods
-            relation.joins_values = (current_scoped_methods.joins_values + relation.joins_values).uniq
-            relation.where_values = current_scoped_methods.where_values
-
-            merge_limit = current_scoped_methods.taken
-          end
-
-          relation = relation.apply_finder_options(options.slice(:joins, :group, :having, :order, :conditions, :from)).
-            select(column_aliases(join_dependency))
-
-          if !using_limitable_reflections?(join_dependency.reflections) && (merge_limit || options[:limit])
-            relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency))
-          end
-
-          relation = relation.limit(options[:limit] || merge_limit) if using_limitable_reflections?(join_dependency.reflections)
-
-          relation
         end
 
     end
