@@ -1,5 +1,15 @@
 *Edge*
 
+* Allow relations to be used as scope.
+
+  class Item
+    scope :red, where(:colour => 'red')
+  end
+
+  Item.red.limit(10) # Ten red items
+
+* Rename named_scope to scope. [Pratik Naik]
+
 * Changed ActiveRecord::Base.store_full_sti_class to be true by default reflecting the previously announced Rails 3 default [DHH]
 
 * Add Relation#except. [Pratik Naik]

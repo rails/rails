@@ -87,7 +87,7 @@ module Rails::Generators
     end
 
     def create_boot_file
-      copy_file "config/boot.rb"
+      template "config/boot.rb"
     end
 
     def create_activerecord_files

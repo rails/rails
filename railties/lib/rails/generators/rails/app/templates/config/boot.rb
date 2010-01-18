@@ -13,7 +13,9 @@ else
   require 'rubygems'
 end
 
+<% unless options[:skip_activerecord] -%>
 require 'rails/all'
+
 # To pick the frameworks you want, remove 'require "rails/all"'
 # and list the framework railties that you want:
 #
@@ -23,3 +25,12 @@ require 'rails/all'
 # require "action_view/railtie"
 # require "action_mailer/railtie"
 # require "active_resource/railtie"
+<% else -%>
+# Pick the frameworks you want:
+# require "active_record/railtie"
+require "active_model/railtie"
+require "action_controller/railtie"
+require "action_view/railtie"
+require "action_mailer/railtie"
+require "active_resource/railtie"
+<% end -%>

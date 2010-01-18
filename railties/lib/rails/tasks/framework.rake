@@ -85,8 +85,9 @@ namespace :rails do
     template = ENV["LOCATION"]
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
 
-    require 'generators'
-    generator = Rails::Generators::App.new [ Rails.root ], {}, :destination_root => Rails.root
+    require 'rails/generators'
+    require 'rails/generators/rails/app/app_generator'
+    generator = Rails::Generators::AppGenerator.new [ Rails.root ], {}, :destination_root => Rails.root
     generator.apply template, :verbose => false
   end
 

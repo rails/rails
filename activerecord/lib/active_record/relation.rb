@@ -7,7 +7,7 @@ module ActiveRecord
 
     include FinderMethods, CalculationMethods, SpawnMethods, QueryMethods
 
-    delegate :length, :collect, :map, :each, :all?, :to => :to_a
+    delegate :length, :collect, :map, :each, :all?, :include?, :to => :to_a
 
     attr_reader :table, :klass
 
@@ -19,6 +19,8 @@ module ActiveRecord
     def new(*args, &block)
       with_create_scope { @klass.new(*args, &block) }
     end
+
+    alias build new
 
     def create(*args, &block)
       with_create_scope { @klass.create(*args, &block) }
@@ -172,6 +174,8 @@ module ActiveRecord
         super
       end
     end
+
+    private
 
     def with_create_scope
       @klass.send(:with_scope, :create => scope_for_create, :find => {}) { yield }

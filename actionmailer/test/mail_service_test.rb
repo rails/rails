@@ -1078,7 +1078,7 @@ EOF
 
   def test_return_path_with_create
     mail = TestMailer.create_return_path
-    assert_equal "another@somewhere.test", mail.return_path
+    assert_equal ["another@somewhere.test"], mail.return_path
   end
 
   def test_return_path_with_deliver

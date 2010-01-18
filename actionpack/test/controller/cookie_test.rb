@@ -141,6 +141,11 @@ class CookieTest < ActionController::TestCase
     assert_equal 45, @controller.send(:cookies).signed[:user_id]
   end
 
+  def test_accessing_nonexistant_signed_cookie_should_not_raise_an_invalid_signature
+    get :set_signed_cookie
+    assert_nil @controller.send(:cookies).signed[:non_existant_attribute]
+  end
+
   def test_permanent_signed_cookie
     get :set_permanent_signed_cookie
     assert_match %r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"]

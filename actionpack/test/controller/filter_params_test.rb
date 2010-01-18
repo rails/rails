@@ -9,23 +9,6 @@ end
 class FilterParamTest < ActionController::TestCase
   tests FilterParamController
 
-  class MockLogger
-    attr_reader :logged
-    attr_accessor :level
-    
-    def initialize
-      @level = Logger::DEBUG
-    end
-    
-    def method_missing(method, *args)
-      @logged ||= []
-      @logged << args.first unless block_given?
-      @logged << yield if block_given?
-    end
-  end
-
-  setup :set_logger
-
   def test_filter_parameters_must_have_one_word
     assert_raises RuntimeError do
       FilterParamController.filter_parameter_logging
@@ -64,15 +47,5 @@ class FilterParamTest < ActionController::TestCase
     FilterParamController.filter_parameter_logging(:foo)
     assert !FilterParamController.action_methods.include?('filter_parameters')
     assert_raise(NoMethodError) { @controller.filter_parameters([{'password' => '[FILTERED]'}]) }
-  end
-
-  private
-
-  def set_logger
-    @controller.logger = MockLogger.new
-  end
-  
-  def logs
-    @logs ||= @controller.logger.logged.compact.map {|l| l.to_s.strip}
   end
 end
