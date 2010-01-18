@@ -101,7 +101,7 @@ module ActiveRecord
         name = name.to_sym
 
         if !scopes[name] && respond_to?(name, true)
-          raise ArgumentError, "Cannot define named_scope :#{name} because #{self.name}.#{name} method already exists."
+          raise ArgumentError, "Cannot define scope :#{name} because #{self.name}.#{name} method already exists."
         end
 
         scopes[name] = lambda do |parent_scope, *args|
