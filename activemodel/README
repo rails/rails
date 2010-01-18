@@ -167,3 +167,12 @@ functionality from the following modules:
 
   {Learn more}[link:classes/ActiveModel/StateMachine.html]
 
+* Integrating with Rail's internationalization (i18n) handling through
+  ActiveModel::Translations...
+
+    class Person
+      extend ActiveModel::Translation
+    end
+  
+  {Learn more}[link:classes/ActiveModel/Translation.html]
+  
