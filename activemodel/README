@@ -154,3 +154,16 @@ functionality from the following modules:
   
   {Learn more}[link:classes/ActiveModel/Serialization.html]
     
+
+* Turning your object into a finite State Machine
+
+    ActiveModel::StateMachine provides a clean way to include all the methods
+    you need to transform your object into a finite State Machine...
+
+    light = TrafficLight.new
+    light.current_state       #=> :red
+    light.change_color!       #=> true
+    light.current_state       #=> :green
+
+  {Learn more}[link:classes/ActiveModel/StateMachine.html]
+
