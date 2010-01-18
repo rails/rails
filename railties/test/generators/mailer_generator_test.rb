@@ -7,7 +7,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
   def test_mailer_skeleton_is_created
     run_generator
-    assert_file "app/models/notifier.rb", /class Notifier < ActionMailer::Base/
+    assert_file "app/mailers/notifier.rb", /class Notifier < ActionMailer::Base/
   end
 
   def test_check_class_collision
@@ -17,7 +17,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/unit/notifier_test.rb", /class NotifierTest < ActionMailer::TestCase/
+    assert_file "test/functional/notifier_test.rb", /class NotifierTest < ActionMailer::TestCase/
     assert_file "test/fixtures/notifier/foo", /app\/views\/notifier\/foo/
     assert_file "test/fixtures/notifier/bar", /app\/views\/notifier\/bar/
   end
@@ -40,7 +40,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
   def test_actions_are_turned_into_methods
     run_generator
-    assert_file "app/models/notifier.rb", /def foo/
-    assert_file "app/models/notifier.rb", /def bar/
+    assert_file "app/mailers/notifier.rb", /def foo/
+    assert_file "app/mailers/notifier.rb", /def bar/
   end
 end
