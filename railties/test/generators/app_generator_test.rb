@@ -2,7 +2,8 @@ require 'abstract_unit'
 require 'generators/generators_test_helper'
 require 'generators/rails/app/app_generator'
 
-class AppGeneratorTest < GeneratorsTestCase
+class AppGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments [destination_root]
 
   def setup

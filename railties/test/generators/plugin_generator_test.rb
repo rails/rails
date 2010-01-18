@@ -1,7 +1,8 @@
 require 'generators/generators_test_helper'
 require 'generators/rails/plugin/plugin_generator'
 
-class PluginGeneratorTest < GeneratorsTestCase
+class PluginGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments %w(plugin_fu)
 
   def test_plugin_skeleton_is_created

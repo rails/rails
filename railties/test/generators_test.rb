@@ -3,7 +3,8 @@ require 'generators/rails/model/model_generator'
 require 'generators/test_unit/model/model_generator'
 require 'mocha'
 
-class GeneratorsTest < GeneratorsTestCase
+class GeneratorsTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
 
   def setup
     @path = File.expand_path("lib", Rails.root)

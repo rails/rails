@@ -1,7 +1,8 @@
 require 'generators/generators_test_helper'
 require 'generators/rails/mailer/mailer_generator'
 
-class MailerGeneratorTest < GeneratorsTestCase
+class MailerGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments %w(notifier foo bar)
 
   def test_mailer_skeleton_is_created
