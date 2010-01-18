@@ -62,15 +62,19 @@ module AbstractController
       # Array[String]:: A list of all methods that should be considered
       #                 actions.
       def action_methods
-        @action_methods ||=
+        @action_methods ||= begin
           # All public instance methods of this class, including ancestors
-          public_instance_methods(true).map { |m| m.to_s }.to_set -
-          # Except for public instance methods of Base and its ancestors
-          internal_methods.map { |m| m.to_s } +
-          # Be sure to include shadowed public instance methods of this class
-          public_instance_methods(false).map { |m| m.to_s } -
-          # And always exclude explicitly hidden actions
-          hidden_actions
+          methods = public_instance_methods(true).map { |m| m.to_s }.to_set -
+            # Except for public instance methods of Base and its ancestors
+            internal_methods.map { |m| m.to_s } +
+            # Be sure to include shadowed public instance methods of this class
+            public_instance_methods(false).map { |m| m.to_s } -
+            # And always exclude explicitly hidden actions
+            hidden_actions
+
+          # Clear out AS callback method pollution
+          methods.reject { |method| method =~ /_one_time_conditions/ }
+        end
       end
 
       # Returns the full controller name, underscored, without the ending Controller.
