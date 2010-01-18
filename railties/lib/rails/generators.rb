@@ -219,7 +219,7 @@ module Rails
       builtin.sort!
 
       lookup("*")
-      others  = subclasses.map{ |k| k.namespace.gsub(':generators:', ':') }
+      others  = subclasses.map{ |k| k.namespace }
       others -= Rails::Generators.builtin
       others.sort!
 

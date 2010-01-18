@@ -20,7 +20,7 @@ class ActionsTest < GeneratorsTestCase
   end
 
   def test_invoke_other_generator_with_full_namespace
-    action :invoke, 'rails:generators:model', ['my_model']
+    action :invoke, 'rails:model', ['my_model']
     assert_file 'app/models/my_model.rb', /MyModel/
   end
 

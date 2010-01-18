@@ -42,7 +42,7 @@ module Rails
       #
       def self.namespace(name=nil)
         return super if name
-        @namespace ||= super.sub(/_generator$/, '')
+        @namespace ||= super.sub(/_generator$/, '').sub(/:generators:/, ':')
       end
 
       # Invoke a generator based on the value supplied by the user to the

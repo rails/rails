@@ -41,13 +41,13 @@ class GeneratorsTest < GeneratorsTestCase
   def test_find_by_namespace_with_base
     klass = Rails::Generators.find_by_namespace(:model, :rails)
     assert klass
-    assert_equal "rails:generators:model", klass.namespace
+    assert_equal "rails:model", klass.namespace
   end
 
   def test_find_by_namespace_with_context
     klass = Rails::Generators.find_by_namespace(:test_unit, nil, :model)
     assert klass
-    assert_equal "test_unit:generators:model", klass.namespace
+    assert_equal "test_unit:model", klass.namespace
   end
 
   def test_find_by_namespace_with_duplicated_name
@@ -65,13 +65,13 @@ class GeneratorsTest < GeneratorsTestCase
   def test_find_by_namespace_lookup_to_deep_rails_root_folders
     klass = Rails::Generators.find_by_namespace(:fixjour, :active_record)
     assert klass
-    assert_equal "active_record:generators:fixjour", klass.namespace
+    assert_equal "active_record:fixjour", klass.namespace
   end
 
   def test_find_by_namespace_lookup_traverse_folders
     klass = Rails::Generators.find_by_namespace(:javascripts, :rails)
     assert klass
-    assert_equal "rails:generators:javascripts", klass.namespace
+    assert_equal "rails:javascripts", klass.namespace
   end
 
   def test_find_by_namespace_lookup_to_vendor_folders
@@ -146,14 +146,14 @@ class GeneratorsTest < GeneratorsTestCase
     Rails::Generators.fallbacks[:remarkable] = :test_unit
     klass = Rails::Generators.find_by_namespace(:plugin, :remarkable)
     assert klass
-    assert_equal "test_unit:generators:plugin", klass.namespace
+    assert_equal "test_unit:plugin", klass.namespace
   end
 
   def test_fallbacks_for_generators_on_find_by_namespace_with_context
     Rails::Generators.fallbacks[:remarkable] = :test_unit
     klass = Rails::Generators.find_by_namespace(:remarkable, :rails, :plugin)
     assert klass
-    assert_equal "test_unit:generators:plugin", klass.namespace
+    assert_equal "test_unit:plugin", klass.namespace
   end
 
   def test_fallbacks_for_generators_on_invoke
