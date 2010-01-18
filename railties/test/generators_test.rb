@@ -1,15 +1,20 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/model/model_generator'
-require 'rails/generators/test_unit/model/model_generator'
+require 'generators/rails/model/model_generator'
+require 'generators/test_unit/model/model_generator'
 require 'mocha'
 
 class GeneratorsTest < GeneratorsTestCase
+
   def setup
-    Rails::Generators.instance_variable_set(:@load_paths, nil)
-    Gem.stubs(:respond_to?).with(:loaded_specs).returns(false)
+    @path = File.expand_path("lib", Rails.root)
+    $LOAD_PATH.unshift(@path)
   end
 
-  def test_invoke_add_generators_to_raw_lookups
+  def teardown
+    $LOAD_PATH.delete(@path)
+  end
+
+  def test_simple_invoke
     TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
     Rails::Generators.invoke("test_unit:model", ["Account"])
   end
@@ -34,8 +39,10 @@ class GeneratorsTest < GeneratorsTestCase
     Rails::Generators.invoke :model, ["Account"], :behavior => :skip
   end
 
-  def test_find_by_namespace_without_base_or_context_looks_into_rails_namespace
-    assert Rails::Generators.find_by_namespace(:model)
+  def test_find_by_namespace
+    klass = Rails::Generators.find_by_namespace("rails:model")
+    assert klass
+    assert_equal "rails:model", klass.namespace
   end
 
   def test_find_by_namespace_with_base
@@ -50,48 +57,32 @@ class GeneratorsTest < GeneratorsTestCase
     assert_equal "test_unit:model", klass.namespace
   end
 
+  def test_find_by_namespace_with_generator_on_root
+    klass = Rails::Generators.find_by_namespace(:fixjour)
+    assert klass
+    assert_equal "fixjour", klass.namespace
+  end
+
+  def test_find_by_namespace_in_subfolder
+    klass = Rails::Generators.find_by_namespace(:fixjour, :active_record)
+    assert klass
+    assert_equal "active_record:fixjour", klass.namespace
+  end
+
   def test_find_by_namespace_with_duplicated_name
     klass = Rails::Generators.find_by_namespace(:foobar)
     assert klass
     assert_equal "foobar:foobar", klass.namespace
   end
 
-  def test_find_by_namespace_lookup_to_the_rails_root_folder
-    klass = Rails::Generators.find_by_namespace(:fixjour)
-    assert klass
-    assert_equal "fixjour", klass.namespace
+  def test_find_by_namespace_without_base_or_context_looks_into_rails_namespace
+    assert Rails::Generators.find_by_namespace(:model)
   end
 
-  def test_find_by_namespace_lookup_to_deep_rails_root_folders
-    klass = Rails::Generators.find_by_namespace(:fixjour, :active_record)
-    assert klass
-    assert_equal "active_record:fixjour", klass.namespace
-  end
-
-  def test_find_by_namespace_lookup_traverse_folders
-    klass = Rails::Generators.find_by_namespace(:javascripts, :rails)
-    assert klass
-    assert_equal "rails:javascripts", klass.namespace
-  end
-
-  def test_find_by_namespace_lookup_to_vendor_folders
-    klass = Rails::Generators.find_by_namespace(:mspec)
-    assert klass
-    assert_equal "mspec", klass.namespace
-  end
-
-  def test_find_by_namespace_lookup_with_gem_specification
-    assert_nil Rails::Generators.find_by_namespace(:xspec)
-    Rails::Generators.instance_variable_set(:@load_paths, nil)
-
-    spec = Gem::Specification.new
-    spec.expects(:full_gem_path).returns(File.join(Rails.root, 'vendor', 'another_gem_path', 'xspec'))
-    Gem.expects(:respond_to?).with(:loaded_specs).returns(true)
-    Gem.expects(:loaded_specs).returns(:spec => spec)
-
-    klass = Rails::Generators.find_by_namespace(:xspec)
-    assert klass
-    assert_equal "xspec", klass.namespace
+  def test_find_by_namespace_show_warning_if_generator_cant_be_loaded
+    output = capture(:stderr) { Rails::Generators.find_by_namespace(:wrong) }
+    assert_match /\[WARNING\] Could not load generator/, output
+    assert_match /Rails 2\.x generator/, output
   end
 
   def test_builtin_generators
@@ -109,37 +100,11 @@ class GeneratorsTest < GeneratorsTestCase
     assert_equal "Others: active_record:fixjour, fixjour, foobar:foobar, mspec, rails:javascripts, xspec.", output
   end
 
-  def test_warning_is_shown_if_generator_cant_be_loaded
-    Rails::Generators.load_paths << File.join(Rails.root, "vendor", "gems", "gems", "wrong")
-    output = capture(:stderr){ Rails::Generators.find_by_namespace(:wrong) }
-
-    assert_match /\[WARNING\] Could not load generator at/, output
-    assert_match /Rails 2\.x generator/, output
-  end
-
   def test_no_color_sets_proper_shell
     Rails::Generators.no_color!
     assert_equal Thor::Shell::Basic, Thor::Base.shell
   ensure
     Thor::Base.shell = Thor::Shell::Color
-  end
-
-  def test_rails_root_templates
-    template = File.join(Rails.root, "lib", "templates", "active_record", "model", "model.rb")
-
-    # Create template
-    mkdir_p(File.dirname(template))
-    File.open(template, 'w'){ |f| f.write "empty" }
-
-    output = capture(:stdout) do
-      Rails::Generators.invoke :model, ["user"], :destination_root => destination_root
-    end
-
-    assert_file "app/models/user.rb" do |content|
-      assert_equal "empty", content
-    end
-  ensure
-    rm_rf File.dirname(template)
   end
 
   def test_fallbacks_for_generators_on_find_by_namespace
@@ -181,8 +146,26 @@ class GeneratorsTest < GeneratorsTestCase
     Rails::Generators.subclasses.delete(klass)
   end
 
+  def test_rails_root_templates
+    template = File.join(Rails.root, "lib", "templates", "active_record", "model", "model.rb")
+
+    # Create template
+    mkdir_p(File.dirname(template))
+    File.open(template, 'w'){ |f| f.write "empty" }
+
+    output = capture(:stdout) do
+      Rails::Generators.invoke :model, ["user"], :destination_root => destination_root
+    end
+
+    assert_file "app/models/user.rb" do |content|
+      assert_equal "empty", content
+    end
+  ensure
+    rm_rf File.dirname(template)
+  end
+
   def test_source_paths_for_not_namespaced_generators
-    mspec = Rails::Generators.find_by_namespace :mspec
-    assert mspec.source_paths.include?(File.join(Rails.root, "lib", "templates", "mspec"))
+    mspec = Rails::Generators.find_by_namespace :fixjour
+    assert mspec.source_paths.include?(File.join(Rails.root, "lib", "templates", "fixjour"))
   end
 end
