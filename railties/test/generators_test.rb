@@ -34,8 +34,8 @@ class GeneratorsTest < GeneratorsTestCase
     Rails::Generators.invoke :model, ["Account"], :behavior => :skip
   end
 
-  def test_find_by_namespace_without_base_or_context
-    assert_nil Rails::Generators.find_by_namespace(:model)
+  def test_find_by_namespace_without_base_or_context_looks_into_rails_namespace
+    assert Rails::Generators.find_by_namespace(:model)
   end
 
   def test_find_by_namespace_with_base

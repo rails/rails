@@ -1,6 +1,9 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/app/app_generator'
 
+# TODO This line shouldn't be required
+require 'rails/generators/rails/model/model_generator'
+
 class ActionsTest < GeneratorsTestCase
   tests Rails::Generators::AppGenerator
   arguments [destination_root]
@@ -9,6 +12,16 @@ class ActionsTest < GeneratorsTestCase
     super
     @git_plugin_uri = 'git://github.com/technoweenie/restful-authentication.git'
     @svn_plugin_uri = 'svn://svnhub.com/technoweenie/restful-authentication/trunk'
+  end
+
+  def test_invoke_other_generator_with_shortcut
+    action :invoke, 'model', ['my_model']
+    assert_file 'app/models/my_model.rb', /MyModel/
+  end
+
+  def test_invoke_other_generator_with_full_namespace
+    action :invoke, 'rails:generators:model', ['my_model']
+    assert_file 'app/models/my_model.rb', /MyModel/
   end
 
   def test_create_file_should_write_data_to_file_path

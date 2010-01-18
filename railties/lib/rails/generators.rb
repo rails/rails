@@ -168,6 +168,8 @@ module Rails
     # Rails looks for is the first and last parts of the namespace.
     #
     def self.find_by_namespace(name, base=nil, context=nil) #:nodoc:
+      base = "rails" unless base || context || name.to_s.include?(?:)
+
       # Mount regexps to lookup
       regexps = []
       regexps << /^#{base}:[\w:]*#{name}$/    if base
@@ -203,8 +205,7 @@ module Rails
     # commands.
     def self.invoke(namespace, args=ARGV, config={})
       names = namespace.to_s.split(':')
-
-      if klass = find_by_namespace(names.pop, names.shift || "rails")
+      if klass = find_by_namespace(names.pop, names.shift)
         args << "--help" if klass.arguments.any? { |a| a.required? } && args.empty?
         klass.start(args, config)
       else

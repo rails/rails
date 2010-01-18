@@ -9,10 +9,14 @@ module Rails
       mattr_accessor :skip_warn
 
       def self.included(base) #:nodoc:
-        base.send :attr_reader, :controller_name, :controller_class_name, :controller_file_name,
-                                :controller_class_path, :controller_file_path
+        base.class_eval do
+          class_option :force_plural, :type => :boolean, :desc => "Forces the use of a plural ModelName"
 
-        base.send :class_option, :force_plural, :type => :boolean, :desc => "Forces the use of a plural ModelName"
+          no_tasks {
+            attr_reader :controller_name, :controller_class_name, :controller_file_name,
+                        :controller_class_path, :controller_file_path
+          }
+        end
       end
 
       # Set controller variables on initialization.
