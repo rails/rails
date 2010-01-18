@@ -175,4 +175,21 @@ functionality from the following modules:
     end
   
   {Learn more}[link:classes/ActiveModel/Translation.html]
+
+* Providing a full Validation stack for your objects...
+
+   class Person
+     include ActiveModel::Validations
+
+     attr_accessor :first_name, :last_name
+
+     validates_each :first_name, :last_name do |record, attr, value|
+       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+     end
+   end
+
+   person = Person.new(:first_name => 'zoolander')
+   person.valid?          #=> false
+
+  {Learn more}[link:classes/ActiveModel/Validations.html]
   
