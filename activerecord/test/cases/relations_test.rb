@@ -339,6 +339,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { authors.find(['42', 43]) }
   end
 
+  def test_find_in_empty_array
+    authors = Author.scoped.where(:id => [])
+    assert authors.all.blank?
+  end
+
   def test_exists
     davids = Author.where(:name => 'David')
     assert davids.exists?
