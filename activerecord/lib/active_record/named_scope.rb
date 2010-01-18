@@ -120,7 +120,7 @@ module ActiveRecord
       end
 
       def named_scope(*args, &block)
-        ActiveSupport::Deprecation.warn("Base#named_scope has been deprecated, please use Base.scope instead.", caller)
+        ActiveSupport::Deprecation.warn("Base.named_scope has been deprecated, please use Base.scope instead.", caller)
         scope(*args, &block)
       end
     end
