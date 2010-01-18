@@ -11,7 +11,7 @@ RAILS_ROOT = (Class.new(ActiveSupport::Deprecation::DeprecationProxy) do
   end
 
   def warn(callstack, called, args)
-    msg = "RAILS_ROOT is deprecated! Use Rails.root instead."
+    msg = "RAILS_ROOT is deprecated! Use Rails.root instead"
     ActiveSupport::Deprecation.warn(msg, callstack)
   end
 end).new
@@ -26,7 +26,7 @@ RAILS_ENV = (Class.new(ActiveSupport::Deprecation::DeprecationProxy) do
   end
 
   def warn(callstack, called, args)
-    msg = "RAILS_ENV is deprecated! Use Rails.env instead."
+    msg = "RAILS_ENV is deprecated! Use Rails.env instead"
     ActiveSupport::Deprecation.warn(msg, callstack)
   end
 end).new
@@ -41,7 +41,7 @@ RAILS_DEFAULT_LOGGER = (Class.new(ActiveSupport::Deprecation::DeprecationProxy) 
   end
 
   def warn(callstack, called, args)
-    msg = "RAILS_DEFAULT_LOGGER is deprecated! Use Rails.logger instead."
+    msg = "RAILS_DEFAULT_LOGGER is deprecated! Use Rails.logger instead"
     ActiveSupport::Deprecation.warn(msg, callstack)
   end
 end).new
