@@ -25,7 +25,7 @@ class Post < ActiveRecord::Base
     { :joins => :comments, :conditions => {:comments => {:post_id => post_id} } }
   }
 
-  has_many   :comments, :order => "body" do
+  has_many   :comments do
     def find_most_recent
       find(:first, :order => "id DESC")
     end
