@@ -159,4 +159,10 @@ class NumericExtConversionsTest < Test::Unit::TestCase
     assert_equal "+0000", 0.to_utc_offset_s(false)
     assert_equal "+0500", 18_000.to_utc_offset_s(false)
   end
+  
+  def test_to_utc_offset_s_with_negative_offset
+    assert_equal "-01:00", -3_600.to_utc_offset_s
+    assert_equal "-00:59", -3_599.to_utc_offset_s
+    assert_equal "-05:30", -19_800.to_utc_offset_s
+  end
 end
