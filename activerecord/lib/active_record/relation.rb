@@ -50,14 +50,14 @@ module ActiveRecord
       @records = if find_with_associations
         begin
           options = {
-            :select => @select_values.any? ? @select_values.join(", ") : nil,
+            :select => @select_values.join(", "),
             :joins => arel.joins(arel),
-            :group =>  @group_values.any? ? @group_values.join(", ") : nil,
-            :order => order_clause,
+            :group =>  @group_values.join(", "),
+            :order => @order_values.join(', '),
             :conditions => where_clause,
-            :limit => arel.taken,
-            :offset => arel.skipped,
-            :from => (arel.send(:from_clauses) if arel.send(:sources).present?)
+            :limit => @limit_value,
+            :offset => @offset_value,
+            :from => @from_value
           }
 
           including = (@eager_load_values + @includes_values).uniq
@@ -183,10 +183,6 @@ module ActiveRecord
 
     def where_clause(join_string = " AND ")
       arel.send(:where_clauses).join(join_string)
-    end
-
-    def order_clause
-      @order_clause ||= arel.send(:order_clauses).join(', ')
     end
 
     def references_eager_loaded_tables?
