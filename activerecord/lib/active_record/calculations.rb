@@ -46,19 +46,19 @@ module ActiveRecord
       def count(*args)
         case args.size
         when 0
-          construct_calculation_arel({}, current_scoped_methods).count
+          construct_calculation_arel.count
         when 1
           if args[0].is_a?(Hash)
             options = args[0]
             distinct = options.has_key?(:distinct) ? options.delete(:distinct) : false
-            construct_calculation_arel(options, current_scoped_methods).count(options[:select], :distinct => distinct)
+            construct_calculation_arel(options).count(options[:select], :distinct => distinct)
           else
-            construct_calculation_arel({}, current_scoped_methods).count(args[0])
+            construct_calculation_arel.count(args[0])
           end
         when 2
           column_name, options = args
           distinct = options.has_key?(:distinct) ? options.delete(:distinct) : false
-          construct_calculation_arel(options, current_scoped_methods).count(column_name, :distinct => distinct)
+          construct_calculation_arel(options).count(column_name, :distinct => distinct)
         else
           raise ArgumentError, "Unexpected parameters passed to count(): #{args.inspect}"
         end
@@ -141,7 +141,7 @@ module ActiveRecord
       #   Person.minimum(:age, :having => 'min(age) > 17', :group => :last_name) # Selects the minimum age for any family without any minors
       #   Person.sum("2 * age")
       def calculate(operation, column_name, options = {})
-        construct_calculation_arel(options, current_scoped_methods).calculate(operation, column_name, options.slice(:distinct))
+        construct_calculation_arel(options).calculate(operation, column_name, options.slice(:distinct))
       rescue ThrowResult
         0
       end
@@ -151,48 +151,48 @@ module ActiveRecord
           options.assert_valid_keys(CALCULATIONS_OPTIONS)
         end
 
-        def construct_calculation_arel(options = {}, merge_with_relation = nil)
+        def construct_calculation_arel(options = {})
           validate_calculation_options(options)
           options = options.except(:distinct)
 
-          merge_with_includes = merge_with_relation ? merge_with_relation.includes_values : []
+          merge_with_includes = current_scoped_methods ? current_scoped_methods.includes_values : []
           includes = (merge_with_includes + Array.wrap(options[:include])).uniq
 
           if includes.any?
-            merge_with_joins = merge_with_relation ? merge_with_relation.joins_values : []
+            merge_with_joins = current_scoped_methods ? current_scoped_methods.joins_values : []
             joins = (merge_with_joins + Array.wrap(options[:joins])).uniq
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, includes, construct_join(joins))
-            construct_calculation_arel_with_included_associations(options, join_dependency, merge_with_relation)
+            construct_calculation_arel_with_included_associations(options, join_dependency)
           else
             relation = unscoped.apply_finder_options(options.slice(:joins, :conditions, :order, :limit, :offset, :group, :having))
 
-            if merge_with_relation
-              relation = merge_with_relation.except(:select, :order, :limit, :offset, :group, :from).merge(relation)
+            if current_scoped_methods
+              relation = current_scoped_methods.except(:select, :order, :limit, :offset, :group, :from).merge(relation)
             end
 
-            from = merge_with_relation.from_value if merge_with_relation && merge_with_relation.from_value.present?
+            from = current_scoped_methods.from_value if current_scoped_methods && current_scoped_methods.from_value.present?
             from = options[:from] if from.blank? && options[:from].present?
             relation = relation.from(from)
 
-            select = options[:select].presence || (merge_with_relation ? merge_with_relation.select_values.join(", ") : nil)
+            select = options[:select].presence || (current_scoped_methods ? current_scoped_methods.select_values.join(", ") : nil)
             relation = relation.select(select)
 
             relation
           end
         end
 
-        def construct_calculation_arel_with_included_associations(options, join_dependency, merge_with_relation = nil)
+        def construct_calculation_arel_with_included_associations(options, join_dependency)
           relation = unscoped
 
           for association in join_dependency.join_associations
             relation = association.join_relation(relation)
           end
 
-          if merge_with_relation
-            relation.joins_values = (merge_with_relation.joins_values + relation.joins_values).uniq
-            relation.where_values = merge_with_relation.where_values
+          if current_scoped_methods
+            relation.joins_values = (current_scoped_methods.joins_values + relation.joins_values).uniq
+            relation.where_values = current_scoped_methods.where_values
 
-            merge_limit = merge_with_relation.taken
+            merge_limit = current_scoped_methods.taken
           end
 
           relation = relation.apply_finder_options(options.slice(:joins, :group, :having, :order, :conditions, :from)).
