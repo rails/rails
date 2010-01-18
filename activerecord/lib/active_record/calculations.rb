@@ -164,20 +164,7 @@ module ActiveRecord
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, includes, construct_join(joins))
             construct_finder_arel_with_included_associations(options, join_dependency)
           else
-            relation = unscoped.apply_finder_options(options.slice(:joins, :conditions, :order, :limit, :offset, :group, :having))
-
-            if current_scoped_methods
-              relation = current_scoped_methods.except(:select, :order, :limit, :offset, :group, :from).merge(relation)
-            end
-
-            from = current_scoped_methods.from_value if current_scoped_methods && current_scoped_methods.from_value.present?
-            from = options[:from] if from.blank? && options[:from].present?
-            relation = relation.from(from)
-
-            select = options[:select].presence || (current_scoped_methods ? current_scoped_methods.select_values.join(", ") : nil)
-            relation = relation.select(select)
-
-            relation
+            scoped.apply_finder_options(options)
           end
         end
 
