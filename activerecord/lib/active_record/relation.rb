@@ -45,33 +45,12 @@ module ActiveRecord
     def to_a
       return @records if loaded?
 
-      find_with_associations = @eager_load_values.any? || (@includes_values.any? && references_eager_loaded_tables?)
+      eager_loading = @eager_load_values.any? || (@includes_values.any? && references_eager_loaded_tables?)
 
-      @records = if find_with_associations
-        begin
-          options = {
-            :select => @select_values.join(", "),
-            :joins => arel.joins(arel),
-            :group =>  @group_values.join(", "),
-            :order => @order_values.join(', '),
-            :conditions => where_clause,
-            :limit => @limit_value,
-            :offset => @offset_value,
-            :from => @from_value
-          }
-
-          including = (@eager_load_values + @includes_values).uniq
-          join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
-          @klass.send(:find_with_associations, options, join_dependency)
-        rescue ThrowResult
-          []
-        end
-      else
-        @klass.find_by_sql(arel.to_sql)
-      end
+      @records = eager_loading ? find_with_associations : @klass.find_by_sql(arel.to_sql)
 
       preload = @preload_values
-      preload +=  @includes_values unless find_with_associations
+      preload +=  @includes_values unless eager_loading
       preload.each {|associations| @klass.send(:preload_associations, @records, associations) } 
 
       # @readonly_value is true only if set explicity. @implicit_readonly is true if there are JOINS and no explicit SELECT.
