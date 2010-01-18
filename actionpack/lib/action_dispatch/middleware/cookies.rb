@@ -176,7 +176,9 @@ module ActionDispatch
       end
 
       def [](name)
-        @verifier.verify(@parent_jar[name])
+        if value = @parent_jar[name]
+          @verifier.verify(value)
+        end
       end
 
       def []=(key, options)
