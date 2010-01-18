@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/session_migration/session_migration_generator'
+require 'generators/rails/session_migration/session_migration_generator'
 
 class SessionMigrationGeneratorTest < GeneratorsTestCase
   def test_session_migration_with_default_name

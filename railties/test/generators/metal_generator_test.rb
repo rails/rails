@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/metal/metal_generator'
+require 'generators/rails/metal/metal_generator'
 
 class MetalGeneratorTest < GeneratorsTestCase
   arguments %w(foo)

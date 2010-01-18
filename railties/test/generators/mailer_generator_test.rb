@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/mailer/mailer_generator'
+require 'generators/rails/mailer/mailer_generator'
 
 class MailerGeneratorTest < GeneratorsTestCase
   arguments %w(notifier foo bar)

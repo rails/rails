@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/model/model_generator'
+require 'generators/rails/model/model_generator'
 
 class ModelGeneratorTest < GeneratorsTestCase
   arguments %w(Account name:string age:integer)

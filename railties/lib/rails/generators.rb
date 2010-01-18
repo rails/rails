@@ -87,18 +87,6 @@ module Rails
       @options ||= DEFAULT_OPTIONS.dup
     end
 
-    def self.gems_generators_paths #:nodoc:
-      return [] unless defined?(Gem) && Gem.respond_to?(:loaded_specs)
-      Gem.loaded_specs.inject([]) do |paths, (name, spec)|
-        paths += Dir[File.join(spec.full_gem_path, "lib/{generators,rails_generators}")]
-      end
-    end
-
-    def self.plugins_generators_paths #:nodoc:
-      return [] unless defined?(Rails.root) && Rails.root
-      Dir[File.join(Rails.root, "vendor", "plugins", "*", "lib", "{generators,rails_generators}")]
-    end
-
     # Hold configured generators fallbacks. If a plugin developer wants a
     # generator group to fallback to another group in case of missing generators,
     # they can add a fallback.
@@ -126,31 +114,6 @@ module Rails
       @subclasses ||= []
     end
 
-    # Generators load paths used on lookup. The lookup happens as:
-    #
-    #   1) lib generators
-    #   2) vendor/plugin generators
-    #   3) vendor/gems generators
-    #   4) ~/rails/generators
-    #   5) rubygems generators
-    #   6) builtin generators
-    #
-    # TODO Remove hardcoded paths for all, except (6).
-    #
-    def self.load_paths
-      @load_paths ||= begin
-        paths = []
-        paths += Dir[File.join(Rails.root, "lib", "{generators,rails_generators}")] if defined?(Rails.root) && Rails.root
-        paths += Dir[File.join(Thor::Util.user_home, ".rails", "{generators,rails_generators}")]
-        paths += self.plugins_generators_paths
-        paths += self.gems_generators_paths
-        paths << File.expand_path(File.join(File.dirname(__FILE__), "generators"))
-        paths.uniq!
-        paths
-      end
-    end
-    load_paths # Cache load paths. Needed to avoid __FILE__ pointing to wrong paths.
-
     # Rails finds namespaces similar to thor, it only adds one rule:
     #
     # Generators names must end with "_generator.rb". This is required because Rails
@@ -170,6 +133,12 @@ module Rails
     def self.find_by_namespace(name, base=nil, context=nil) #:nodoc:
       base = "rails" unless base || context || name.to_s.include?(?:)
 
+      lookups = []
+      lookups << "#{base}:#{name}"    if base
+      lookups << "#{name}:#{context}" if context
+      lookups << "#{name}"
+      lookups << "rails:#{name}"      unless base || context || name.to_s.include?(?:)
+
       # Mount regexps to lookup
       regexps = []
       regexps << /^#{base}:[\w:]*#{name}$/    if base
@@ -183,7 +152,7 @@ module Rails
       return klass if klass
 
       # Try to require other generators by looking in load_paths
-      lookup(name, context)
+      lookup(lookups)
       unchecked = subclasses - checked
       klass = find_by_regexps(regexps, unchecked)
       return klass if klass
@@ -255,22 +224,27 @@ module Rails
 
       # Receives namespaces in an array and tries to find matching generators
       # in the load path.
-      def self.lookup(*attempts) #:nodoc:
+      def self.lookup(attempts) #:nodoc:
         attempts.compact!
         attempts.uniq!
-        attempts = "{#{attempts.join(',')}}_generator.rb"
 
-        self.load_paths.each do |path|
-          Dir[File.join(path, '**', attempts)].each do |file|
-            begin
-              require file
-            rescue NameError => e
-              raise unless e.message =~ /Rails::Generator/
-              warn "[WARNING] Could not load generator at #{file.inspect} because it's a Rails 2.x generator, which is not supported anymore"
-            rescue Exception => e
-              warn "[WARNING] Could not load generator at #{file.inspect}. Error: #{e.message}"
-            end
-          end
+        attempts.each do |attempt|
+          last = attempt.split(':').last
+
+          # TODO Support rails_generators
+          require_generator "generators/#{attempt.gsub(':', '/')}/#{last}_generator"
+          require_generator "generators/#{attempt.gsub(':', '/')}_generator"
+        end
+      end
+
+      def self.require_generator(path)
+        begin
+          require path
+        rescue LoadError => e
+          raise unless e.message =~ /#{Regexp.escape(path)}$/
+        rescue NameError => e
+          raise unless e.message =~ /Rails::Generator/
+          warn "[WARNING] Could not load generator at #{path.inspect} because it's a Rails 2.x generator, which is not supported anymore. Error: #{e.message}"
         end
       end
 

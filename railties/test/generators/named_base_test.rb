@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/scaffold_controller/scaffold_controller_generator'
+require 'generators/rails/scaffold_controller/scaffold_controller_generator'
 
 # Mock out what we need from AR::Base.
 module ActiveRecord

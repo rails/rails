@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/app/app_generator'
+require 'generators/rails/app/app_generator'
 
 class AppGeneratorTest < GeneratorsTestCase
   arguments [destination_root]

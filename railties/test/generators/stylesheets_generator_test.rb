@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/stylesheets/stylesheets_generator'
+require 'generators/rails/stylesheets/stylesheets_generator'
 
 class StylesheetsGeneratorTest < GeneratorsTestCase
   def test_copy_stylesheets

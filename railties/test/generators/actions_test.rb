@@ -1,8 +1,8 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/app/app_generator'
+require 'generators/rails/app/app_generator'
 
 # TODO This line shouldn't be required
-require 'rails/generators/rails/model/model_generator'
+require 'generators/rails/model/model_generator'
 
 class ActionsTest < GeneratorsTestCase
   tests Rails::Generators::AppGenerator

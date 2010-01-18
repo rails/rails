@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/generator/generator_generator'
+require 'generators/rails/generator/generator_generator'
 
 class GeneratorGeneratorTest < GeneratorsTestCase
   arguments %w(awesome)
