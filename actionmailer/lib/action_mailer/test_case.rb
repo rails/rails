@@ -56,7 +56,7 @@ module ActionMailer
       end
 
       def read_fixture(action)
-        IO.readlines(File.join(RAILS_ROOT, 'test', 'fixtures', self.class.mailer_class.name.underscore, action))
+        IO.readlines(File.join(Rails.root, 'test', 'fixtures', self.class.mailer_class.name.underscore, action))
       end
   end
 end
