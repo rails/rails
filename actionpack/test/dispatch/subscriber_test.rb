@@ -78,9 +78,8 @@ module DispatcherSubscriberTest
     log = @logger.logged(:info).first
     assert_equal 1, @logger.logged(:info).size
 
-    assert_match %r{^Processing "/" to text/html}, log
-    assert_match %r{\(for 127\.0\.0\.1}, log
-    assert_match %r{\[GET\]}, log
+    assert_match %r{^Started GET "/"}, log
+    assert_match %r{for 127\.0\.0\.1}, log
   end
 
   def test_subscriber_has_its_logged_flushed_after_request
