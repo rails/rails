@@ -120,11 +120,11 @@ class TestMailer < ActionMailer::Base
     content_type "multipart/alternative"
 
     part "text/plain" do |p|
-      p.body = "blah"
+      p.body = render_message(:text => "blah")
     end
 
     part "text/html" do |p|
-      p.body = "<b>blah</b>"
+      p.body = render_message(:inline => "<%= content_tag(:b, 'blah') %>")
     end
   end
 
