@@ -354,7 +354,8 @@ module ActionMailer #:nodoc:
     # Alias controller_path to mailer_name so render :partial in views work.
     alias :controller_path :mailer_name
 
-    class_inheritable_accessor :delivery_method
+    superclass_delegating_accessor :delivery_method
+    self.delivery_method = :smtp
 
     class << self
 
@@ -367,12 +368,6 @@ module ActionMailer #:nodoc:
       # save location so we just add this here.
       def delivery_settings
         @delivery_settings ||= {:file => {:location   => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"}}
-      end
-
-      # Setup the default settings for Mail delivery
-      Mail.defaults do
-        method = ActionMailer::Base.delivery_method ||= :smtp
-        delivery_method method
       end
 
       alias :controller_path :mailer_name
@@ -390,6 +385,7 @@ module ActionMailer #:nodoc:
             else super
           end
         elsif match = matches_settings_method?(method_symbol)
+          # TODO Deprecation warning
           delivery_settings[match[1].to_sym] = parameters[0]
         else
           super
@@ -463,7 +459,7 @@ module ActionMailer #:nodoc:
       end
 
       private
-      
+
         def get_delivery_settings(method) #:nodoc:
           method.is_a?(Symbol) ? delivery_settings[method] : delivery_settings[:custom]
         end
