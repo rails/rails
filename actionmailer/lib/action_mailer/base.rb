@@ -367,7 +367,29 @@ module ActionMailer #:nodoc:
       # Mail uses the same defaults as Rails, except for the file delivery method
       # save location so we just add this here.
       def delivery_settings
-        @delivery_settings ||= {:file => {:location   => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"}}
+        @@delivery_settings ||= begin
+          hash = Hash.new { |h,k| h[k] = {} }
+          hash[:file] = {
+            :location => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"
+          }
+
+          hash[:smtp] = { 
+            :address    => "localhost",
+            :port       => 25,
+            :domain     => 'localhost.localdomain',
+            :user_name  => nil,
+            :password   => nil,
+            :authentication       => nil,
+            :enable_starttls_auto => true
+          }
+
+          hash[:sendmail] = {
+            :location   => '/usr/sbin/sendmail',
+            :arguments  => '-i -t'
+          }
+
+          hash
+        end
       end
 
       alias :controller_path :mailer_name
@@ -386,7 +408,11 @@ module ActionMailer #:nodoc:
           end
         elsif match = matches_settings_method?(method_symbol)
           # TODO Deprecation warning
-          delivery_settings[match[1].to_sym] = parameters[0]
+          if match[2]
+            delivery_settings[match[1].to_sym] = parameters[0]
+          else
+            delivery_settings[match[1].to_sym]
+          end
         else
           super
         end
@@ -461,13 +487,11 @@ module ActionMailer #:nodoc:
       private
 
         def get_delivery_settings(method) #:nodoc:
-          method.is_a?(Symbol) ? delivery_settings[method] : delivery_settings[:custom]
+          delivery_settings[method]
         end
 
         def matches_settings_method?(method_name) #:nodoc:
-          method_name = method_name.to_s
-          delivery_method.is_a?(Symbol) ? method = delivery_method : method = :custom
-          /(file|sendmail|smtp)_settings$/.match(method_name)
+          /(\w+)_settings(=)?$/.match(method_name.to_s)
         end
 
         def matches_dynamic_method?(method_name) #:nodoc:

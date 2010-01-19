@@ -680,7 +680,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def test_performs_delivery_via_sendmail
     IO.expects(:popen).once.with('/usr/sbin/sendmail -i -t test@localhost', 'w+')
-    TestMailer.delivery_method = :sendmail
+    ActionMailer::Base.delivery_method = :sendmail
     TestMailer.deliver_signed_up(@recipient)
   end
 
@@ -1069,12 +1069,7 @@ EOF
 
   def test_return_path_with_create
     mail = TestMailer.create_return_path
-    assert_equal "another@somewhere.test", mail['return-path'].to_s
-  end
-
-  def test_return_path_with_create
-    mail = TestMailer.create_return_path
-    assert_equal ["another@somewhere.test"], mail.return_path
+    assert_equal "another@somewhere.test", mail.return_path
   end
 
   def test_return_path_with_deliver
