@@ -17,7 +17,10 @@
 <p><b>Parameters</b>: <pre><%=h request_dump %></pre></p>
 
 <p><a href="#" onclick="document.getElementById('session_dump').style.display='block'; return false;">Show session dump</a></p>
-<div id="session_dump" style="display:none"><%= debug(@request.session.instance_variable_get("@data")) %></div>
+<div id="session_dump" style="display:none"><%= debug(@request.session) %></div>
+
+<p><a href="#" onclick="document.getElementById('env_dump').style.display='block'; return false;">Show Rack ENV</a></p>
+<div id="env_dump" style="display:none"><%= debug(@request.env) %></div>
 
 
 <h2 style="margin-top: 30px">Response</h2>
