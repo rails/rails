@@ -54,12 +54,12 @@ class CookieTest < ActionController::TestCase
       cookies.permanent[:user_name] = "Jamie"
       head :ok
     end
-    
+
     def set_signed_cookie
       cookies.signed[:user_id] = 45
       head :ok
     end
-    
+
     def set_permanent_signed_cookie
       cookies.permanent.signed[:remember_me] = 100
       head :ok
@@ -120,28 +120,6 @@ class CookieTest < ActionController::TestCase
     assert_equal({"user_name" => nil}, @response.cookies)
   end
 
-  def test_cookiejar_accessor
-    @request.cookies["user_name"] = "david"
-    @controller.request = @request
-    jar = ActionController::CookieJar.build(@controller.request, @controller.response)
-    assert_equal "david", jar["user_name"]
-    assert_equal nil, jar["something_else"]
-  end
-
-  def test_cookiejar_accessor_with_array_value
-    @request.cookies["pages"] = %w{1 2 3}
-    @controller.request = @request
-    jar = ActionController::CookieJar.build(@controller.request, @controller.response)
-    assert_equal %w{1 2 3}, jar["pages"]
-  end
-
-  def test_cookiejar_delete_removes_item_and_returns_its_value
-    @request.cookies["user_name"] = "david"
-    @controller.response = @response
-    jar = ActionController::CookieJar.build(@controller.request, @controller.response)
-    assert_equal "david", jar.delete("user_name")
-  end
-
   def test_delete_cookie_with_path
     get :delete_cookie_with_path
     assert_cookie_header "user_name=; path=/beaten; expires=Thu, 01-Jan-1970 00:00:00 GMT"
@@ -157,19 +135,24 @@ class CookieTest < ActionController::TestCase
     assert_match /Jamie/, @response.headers["Set-Cookie"]
     assert_match %r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"]
   end
-  
+
   def test_signed_cookie
     get :set_signed_cookie
     assert_equal 45, @controller.send(:cookies).signed[:user_id]
   end
-  
+
+  def test_accessing_nonexistant_signed_cookie_should_not_raise_an_invalid_signature
+    get :set_signed_cookie
+    assert_nil @controller.send(:cookies).signed[:non_existant_attribute]
+  end
+
   def test_permanent_signed_cookie
     get :set_permanent_signed_cookie
     assert_match %r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"]
     assert_equal 100, @controller.send(:cookies).signed[:remember_me]
   end
 
-  
+
   private
     def assert_cookie_header(expected)
       header = @response.headers["Set-Cookie"]

@@ -1,8 +1,9 @@
 require 'abstract_unit'
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/app/app_generator'
+require 'generators/rails/app/app_generator'
 
-class AppGeneratorTest < GeneratorsTestCase
+class AppGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments [destination_root]
 
   def setup
@@ -80,11 +81,10 @@ class AppGeneratorTest < GeneratorsTestCase
     assert_no_file "config/database.yml"
   end
 
-  # TODO: Bring this back using requires
-  # def test_activerecord_is_removed_from_frameworks_if_skip_activerecord_is_given
-  #   run_generator ["--skip-activerecord"]
-  #   assert_file "config/application.rb", /config\.frameworks \-= \[ :active_record \]/
-  # end
+  def test_activerecord_is_removed_from_frameworks_if_skip_activerecord_is_given
+    run_generator [destination_root, "--skip-activerecord"]
+    assert_file "config/boot.rb", /# require "active_record\/railtie"/
+  end
 
   def test_prototype_and_test_unit_are_added_by_default
     run_generator
@@ -159,7 +159,7 @@ class AppGeneratorTest < GeneratorsTestCase
   end
 
   def test_default_namespace
-    assert_match "rails:generators:app", Rails::Generators::AppGenerator.namespace
+    assert_match "rails:app", Rails::Generators::AppGenerator.namespace
   end
 
   def test_file_is_added_for_backwards_compatibility

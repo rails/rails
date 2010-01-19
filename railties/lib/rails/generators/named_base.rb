@@ -6,10 +6,12 @@ module Rails
     class NamedBase < Base
       argument :name, :type => :string
 
-      attr_reader :class_name, :singular_name, :plural_name, :table_name,
-                  :class_path, :file_path, :class_nesting_depth
+      no_tasks {
+        attr_reader :class_name, :singular_name, :plural_name, :table_name,
+                    :class_path, :file_path, :class_nesting_depth
 
-      alias :file_name :singular_name
+        alias :file_name :singular_name
+      }
 
       def initialize(args, *options) #:nodoc:
         # Unfreeze name in case it's given as a frozen string

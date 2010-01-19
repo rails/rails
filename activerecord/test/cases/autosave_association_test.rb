@@ -805,7 +805,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_still_allow_to_bypass_validations_on_the_associated_model
     @pirate.catchphrase = ''
     @pirate.ship.name = ''
-    @pirate.save(false)
+    @pirate.save(:validate => false)
     # Oracle saves empty string as NULL
     if current_adapter?(:OracleAdapter)
       assert_equal [nil, nil], [@pirate.reload.catchphrase, @pirate.ship.name]
@@ -820,7 +820,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.catchphrase = ''
     @pirate.ship.name = ''
     @pirate.ship.parts.each { |part| part.name = '' }
-    @pirate.save(false)
+    @pirate.save(:validate => false)
 
     values = [@pirate.reload.catchphrase, @pirate.ship.name, *@pirate.ship.parts.map(&:name)]
     # Oracle saves empty string as NULL
@@ -917,7 +917,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_still_allow_to_bypass_validations_on_the_associated_model
     @ship.pirate.catchphrase = ''
     @ship.name = ''
-    @ship.save(false)
+    @ship.save(:validate => false)
     # Oracle saves empty string as NULL
     if current_adapter?(:OracleAdapter)
       assert_equal [nil, nil], [@ship.reload.name, @ship.pirate.catchphrase]
@@ -1029,7 +1029,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.catchphrase = ''
     @pirate.send(@association_name).each { |child| child.name = '' }
 
-    assert @pirate.save(false)
+    assert @pirate.save(:validate => false)
     # Oracle saves empty string as NULL
     if current_adapter?(:OracleAdapter)
       assert_equal [nil, nil, nil], [
@@ -1049,14 +1049,14 @@ module AutosaveAssociationOnACollectionAssociationTests
   def test_should_validation_the_associated_models_on_create
     assert_no_difference("#{ @association_name == :birds ? 'Bird' : 'Parrot' }.count") do
       2.times { @pirate.send(@association_name).build }
-      @pirate.save(true)
+      @pirate.save
     end
   end
 
   def test_should_allow_to_bypass_validations_on_the_associated_models_on_create
     assert_difference("#{ @association_name == :birds ? 'Bird' : 'Parrot' }.count", +2) do
       2.times { @pirate.send(@association_name).build }
-      @pirate.save(false)
+      @pirate.save(:validate => false)
     end
   end
 

@@ -85,18 +85,6 @@ class DispatcherTest < Test::Unit::TestCase
     assert_equal 4, Foo.b
   end
 
-  def test_should_send_an_instrumentation_callback_for_async_processing
-    ActiveSupport::Notifications.expects(:instrument).with("action_dispatch.callback")
-    dispatch
-  end
-
-  def test_should_send_an_instrumentation_callback_for_async_processing_even_on_failure
-    ActiveSupport::Notifications.notifier.expects(:publish)
-    assert_raise RuntimeError do
-      dispatch { |env| raise "OMG" }
-    end
-  end
-
   private
 
     def dispatch(cache_classes = true, &block)

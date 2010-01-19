@@ -12,7 +12,7 @@ module ActiveRecord
           name = color(name, :magenta, true)
         end
 
-        debug "#{name}  #{sql}"
+        debug "  #{name}  #{sql}"
       end
 
       def odd?

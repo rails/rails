@@ -3,18 +3,13 @@ module ActionController
     class Subscriber < Rails::Subscriber
       def process_action(event)
         payload = event.payload
-
-        info "\nProcessed #{payload[:controller]}##{payload[:action]} " \
-          "to #{payload[:formats].join(', ')} (for #{payload[:remote_ip]} at #{event.time.to_s(:db)}) " \
-          "[#{payload[:method].to_s.upcase}]"
-
         info "  Parameters: #{payload[:params].inspect}" unless payload[:params].blank?
 
         additions = ActionController::Base.log_process_action(payload)
 
         message = "Completed in %.0fms" % event.duration
         message << " (#{additions.join(" | ")})" unless additions.blank?
-        message << " | #{payload[:status]} [#{payload[:request_uri]}]\n\n"
+        message << " by #{payload[:controller]}##{payload[:action]} [#{payload[:status]}]"
 
         info(message)
       end

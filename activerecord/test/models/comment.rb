@@ -1,7 +1,7 @@
 class Comment < ActiveRecord::Base
-  named_scope :containing_the_letter_e, :conditions => "comments.body LIKE '%e%'"
-  named_scope :for_first_post, :conditions => { :post_id => 1 }
-  named_scope :for_first_author,
+  scope :containing_the_letter_e, :conditions => "comments.body LIKE '%e%'"
+  scope :for_first_post, :conditions => { :post_id => 1 }
+  scope :for_first_author,
               :joins => :post,
               :conditions => { "posts.author_id" => 1 }
 

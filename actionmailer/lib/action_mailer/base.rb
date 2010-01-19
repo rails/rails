@@ -23,8 +23,7 @@ module ActionMailer #:nodoc:
   #      bcc        ["bcc@example.com", "Order Watcher <watcher@example.com>"]
   #      from       "system@example.com"
   #      subject    "New account information"
-  #
-  #      @account = recipient
+  #      body       :account => recipient
   #    end
   #  end
   #
@@ -144,12 +143,13 @@ module ActionMailer #:nodoc:
   #       subject         "New account information"
   #       from            "system@example.com"
   #       content_type    "multipart/alternative"
+  #       body            :account => recipient
   #
   #       part :content_type => "text/html",
-  #         :body => render_message("signup-as-html", :account => recipient)
+  #         :data => render_message("signup-as-html")
   #
   #       part "text/plain" do |p|
-  #         p.body = render_message("signup-as-plain", :account => recipient)
+  #         p.body = render_message("signup-as-plain")
   #         p.content_transfer_encoding = "base64"
   #       end
   #     end
@@ -454,11 +454,13 @@ module ActionMailer #:nodoc:
     # body, headers, etc.) can be set on it.
     def part(params)
       params = {:content_type => params} if String === params
+
       if custom_headers = params.delete(:headers)
         ActiveSupport::Deprecation.warn('Passing custom headers with :headers => {} is deprecated. ' <<
                                         'Please just pass in custom headers directly.', caller[0,10])
         params.merge!(custom_headers)
       end
+
       part = Mail::Part.new(params)
       yield part if block_given?
       @parts << part
@@ -474,6 +476,20 @@ module ActionMailer #:nodoc:
                  :content_transfer_encoding => "base64" }.merge(params)
 
       part(params, &block)
+    end
+
+    # Allow you to set assigns for your template:
+    #
+    #   body :greetings => "Hi"
+    #
+    # Will make @greetings available in the template to be rendered.
+    def body(object=nil)
+      returning(super) do # Run deprecation hooks
+        if object.is_a?(Hash)
+          @assigns_set = true
+          object.each { |k, v| instance_variable_set(:"@#{k}", v) }
+        end
+      end
     end
 
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
@@ -522,6 +538,23 @@ module ActionMailer #:nodoc:
     end
 
     private
+
+      # Render a message but does not set it as mail body. Useful for rendering
+      # data for part and attachments.
+      #
+      # Examples:
+      #
+      #   render_message "special_message"
+      #   render_message :template => "special_message"
+      #   render_message :inline => "<%= 'Hi!' %>"
+      def render_message(object)
+        case object
+        when String
+          render_to_body(:template => object)
+        else
+          render_to_body(object)
+        end
+      end
 
       # Set up the default values for the various instance variables of this
       # mailer. Subclasses may override this method to provide different

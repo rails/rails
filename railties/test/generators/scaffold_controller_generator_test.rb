@@ -1,12 +1,13 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/scaffold_controller/scaffold_controller_generator'
+require 'generators/rails/scaffold_controller/scaffold_controller_generator'
 
 module Unknown
   module Generators
   end
 end
 
-class ScaffoldControllerGeneratorTest < GeneratorsTestCase
+class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments %w(User name:string age:integer)
 
   def test_controller_skeleton_is_created

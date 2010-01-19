@@ -20,11 +20,7 @@ module ActionController
         result = super
         payload[:controller]  = self.class.name
         payload[:action]      = self.action_name
-        payload[:formats]     = request.formats.map(&:to_s)
-        payload[:remote_ip]   = request.remote_ip
-        payload[:method]      = request.method
         payload[:status]      = response.status
-        payload[:request_uri] = request.request_uri rescue "unknown"
         append_info_to_payload(payload)
         result
       end

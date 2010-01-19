@@ -1,7 +1,8 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/scaffold/scaffold_generator'
+require 'generators/rails/scaffold/scaffold_generator'
 
-class ScaffoldGeneratorTest < GeneratorsTestCase
+class ScaffoldGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments %w(product_line title:string price:integer)
 
   def setup

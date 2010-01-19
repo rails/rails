@@ -1,7 +1,8 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/generator/generator_generator'
+require 'generators/rails/generator/generator_generator'
 
-class GeneratorGeneratorTest < GeneratorsTestCase
+class GeneratorGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments %w(awesome)
 
   def test_generator_skeleton_is_created

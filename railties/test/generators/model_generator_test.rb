@@ -1,7 +1,8 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/model/model_generator'
+require 'generators/rails/model/model_generator'
 
-class ModelGeneratorTest < GeneratorsTestCase
+class ModelGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments %w(Account name:string age:integer)
 
   def test_help_shows_invoked_generators_options

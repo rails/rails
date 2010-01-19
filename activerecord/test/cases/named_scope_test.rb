@@ -31,7 +31,7 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_reload_expires_cache_of_found_items
     all_posts = Topic.base
-    all_posts.inspect
+    all_posts.all
 
     new_post = Topic.create!
     assert !all_posts.include?(new_post)
@@ -48,14 +48,14 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_scope_should_respond_to_own_methods_and_methods_of_the_proxy
-    assert Topic.approved.respond_to?(:proxy_found)
+    assert Topic.approved.respond_to?(:limit)
     assert Topic.approved.respond_to?(:count)
     assert Topic.approved.respond_to?(:length)
   end
 
   def test_respond_to_respects_include_private_parameter
-    assert !Topic.approved.respond_to?(:load_found)
-    assert Topic.approved.respond_to?(:load_found, true)
+    assert !Topic.approved.respond_to?(:with_create_scope)
+    assert Topic.approved.respond_to?(:with_create_scope, true)
   end
 
   def test_subclasses_inherit_scopes
@@ -150,13 +150,13 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_named_scopes_honor_current_scopes_from_when_defined
-    assert !Post.ranked_by_comments.limit(5).empty?
-    assert !authors(:david).posts.ranked_by_comments.limit(5).empty?
-    assert_not_equal Post.ranked_by_comments.limit(5), authors(:david).posts.ranked_by_comments.limit(5)
+    assert !Post.ranked_by_comments.limit_by(5).empty?
+    assert !authors(:david).posts.ranked_by_comments.limit_by(5).empty?
+    assert_not_equal Post.ranked_by_comments.limit_by(5), authors(:david).posts.ranked_by_comments.limit_by(5)
     assert_not_equal Post.top(5), authors(:david).posts.top(5)
     # Oracle sometimes sorts differently if WHERE condition is changed
-    assert_equal authors(:david).posts.ranked_by_comments.limit(5).sort_by(&:id), authors(:david).posts.top(5).sort_by(&:id)
-    assert_equal Post.ranked_by_comments.limit(5), Post.top(5)
+    assert_equal authors(:david).posts.ranked_by_comments.limit_by(5).to_a.sort_by(&:id), authors(:david).posts.top(5).to_a.sort_by(&:id)
+    assert_equal Post.ranked_by_comments.limit_by(5), Post.top(5)
   end
 
   def test_active_records_have_scope_named__all__
@@ -169,11 +169,6 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert !Topic.find(:all, scope = {:conditions => "content LIKE '%Have%'"}).empty?
 
     assert_equal Topic.find(:all, scope), Topic.scoped(scope)
-  end
-
-  def test_proxy_options
-    expected_proxy_options = { :conditions => { :approved => true } }
-    assert_equal expected_proxy_options, Topic.approved.proxy_options
   end
 
   def test_first_and_last_should_support_find_options
@@ -297,7 +292,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_find_all_should_behave_like_select
-    assert_equal Topic.base.select(&:approved), Topic.base.find_all(&:approved)
+    assert_equal Topic.base.to_a.select(&:approved), Topic.base.to_a.find_all(&:approved)
   end
 
   def test_rand_should_select_a_random_object_from_proxy
@@ -345,14 +340,14 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_chaining_should_use_latest_conditions_when_searching
     # Normal hash conditions
-    assert_equal Topic.where(:approved => true).to_a, Topic.rejected.approved.all.to_a
-    assert_equal Topic.where(:approved => false).to_a, Topic.approved.rejected.all.to_a
+    assert_equal Topic.where(:approved => true).to_a, Topic.rejected.approved.all
+    assert_equal Topic.where(:approved => false).to_a, Topic.approved.rejected.all
 
     # Nested hash conditions with same keys
-    assert_equal [posts(:sti_comments)], Post.with_special_comments.with_very_special_comments.all.to_a
+    assert_equal [posts(:sti_comments)], Post.with_special_comments.with_very_special_comments.all
 
     # Nested hash conditions with different keys
-    assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).all.to_a.uniq
+    assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).all.uniq
   end
 
   def test_named_scopes_batch_finders
@@ -373,6 +368,16 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_nothing_raised do
       Comment.for_first_post.for_first_author.all
     end
+  end
+
+  def test_named_scopes_with_reserved_names
+    [:where, :with_scope].each do |protected_method|
+      assert_raises(ArgumentError) { Topic.scope protected_method }
+    end
+  end
+
+  def test_deprecated_named_scope_method
+    assert_deprecated('named_scope has been deprecated') { Topic.named_scope :deprecated_named_scope }
   end
 end
 
