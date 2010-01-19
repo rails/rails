@@ -168,7 +168,8 @@ module ActiveRecord
         Arel::SqlLiteral.new(column_name == :all ? "*" : column_name.to_s)
       end
 
-      relation = select(operation == 'count' ? column.count(distinct) : column.send(operation))
+      # Postgresql doesn't like ORDER BY when there are no GROUP BY
+      relation = except(:order).select(operation == 'count' ? column.count(distinct) : column.send(operation))
       type_cast_calculated_value(@klass.connection.select_value(relation.to_sql), column_for(column_name), operation)
     end
 
