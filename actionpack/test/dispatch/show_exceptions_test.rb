@@ -38,15 +38,15 @@ class ShowExceptionsTest < ActionController::IntegrationTest
     @app = ProductionApp
     self.remote_addr = '208.77.188.166'
 
-    get "/"
+    get "/", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 500
     assert_equal "500 error fixture\n", body
 
-    get "/not_found"
+    get "/not_found", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 404
     assert_equal "404 error fixture\n", body
 
-    get "/method_not_allowed"
+    get "/method_not_allowed", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 405
     assert_equal "", body
   end
@@ -56,15 +56,15 @@ class ShowExceptionsTest < ActionController::IntegrationTest
     ['127.0.0.1', '::1'].each do |ip_address|
       self.remote_addr = ip_address
 
-      get "/"
+      get "/", {}, {'action_dispatch.show_exceptions' => true}
       assert_response 500
       assert_match /puke/, body
 
-      get "/not_found"
+      get "/not_found", {}, {'action_dispatch.show_exceptions' => true}
       assert_response 404
       assert_match /#{ActionController::UnknownAction.name}/, body
 
-      get "/method_not_allowed"
+      get "/method_not_allowed", {}, {'action_dispatch.show_exceptions' => true}
       assert_response 405
       assert_match /ActionController::MethodNotAllowed/, body
     end
@@ -78,11 +78,11 @@ class ShowExceptionsTest < ActionController::IntegrationTest
       @app = ProductionApp
       self.remote_addr = '208.77.188.166'
 
-      get "/"
+      get "/", {}, {'action_dispatch.show_exceptions' => true}
       assert_response 500
       assert_equal "500 localized error fixture\n", body
 
-      get "/not_found"
+      get "/not_found", {}, {'action_dispatch.show_exceptions' => true}
       assert_response 404
       assert_equal "404 error fixture\n", body
     ensure
@@ -94,15 +94,15 @@ class ShowExceptionsTest < ActionController::IntegrationTest
     @app = DevelopmentApp
     self.remote_addr = '208.77.188.166'
 
-    get "/"
+    get "/", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 500
     assert_match /puke/, body
 
-    get "/not_found"
+    get "/not_found", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 404
     assert_match /#{ActionController::UnknownAction.name}/, body
 
-    get "/method_not_allowed"
+    get "/method_not_allowed", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 405
     assert_match /ActionController::MethodNotAllowed/, body
   end

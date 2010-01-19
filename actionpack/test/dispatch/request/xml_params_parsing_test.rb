@@ -43,7 +43,7 @@ class XmlParamsParsingTest < ActionController::IntegrationTest
       begin
         $stderr = StringIO.new
         xml = "<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{ActiveSupport::Base64.encode64('ABC')}</avatar></pineapple>"
-        post "/parse", xml, default_headers
+        post "/parse", xml, default_headers.merge('action_dispatch.show_exceptions' => true)
         assert_response :error
         $stderr.rewind && err = $stderr.read
         assert err =~ /Error occurred while parsing request parameters/

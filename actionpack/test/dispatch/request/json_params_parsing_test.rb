@@ -35,7 +35,7 @@ class JsonParamsParsingTest < ActionController::IntegrationTest
       begin
         $stderr = StringIO.new
         json = "[\"person]\": {\"name\": \"David\"}}"
-        post "/parse", json, {'CONTENT_TYPE' => 'application/json'}
+        post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => true}
         assert_response :error
         $stderr.rewind && err = $stderr.read
         assert err =~ /Error occurred while parsing request parameters/
