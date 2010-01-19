@@ -168,7 +168,7 @@ module Rails
 
     # Show help message with available generators.
     def self.help
-      traverse_load_paths!
+      lookup!
 
       namespaces = subclasses.map{ |k| k.namespace }
       namespaces.sort!
@@ -226,22 +226,10 @@ module Rails
         nil
       end
 
-      # This will try to load any generator in the load path to show in help.
-      def self.traverse_load_paths! #:nodoc:
-        $LOAD_PATH.each do |base|
-          Dir[File.join(base, "{generators,rails_generators}", "**", "*_generator.rb")].each do |path|
-            begin
-              require path
-            rescue Exception => e
-              # No problem
-            end
-          end
-        end
-      end
-
       # Receives namespaces in an array and tries to find matching generators
       # in the load path.
       def self.lookup(namespaces) #:nodoc:
+        load_generators_from_railties!
         paths = namespaces_to_paths(namespaces)
 
         paths.each do |path|
@@ -259,6 +247,28 @@ module Rails
             end
           end
         end
+      end
+
+      # This will try to load any generator in the load path to show in help.
+      def self.lookup! #:nodoc:
+        load_generators_from_railties!
+
+        $LOAD_PATH.each do |base|
+          Dir[File.join(base, "{generators,rails_generators}", "**", "*_generator.rb")].each do |path|
+            begin
+              require path
+            rescue Exception => e
+              # No problem
+            end
+          end
+        end
+      end
+
+      # Allow generators to be loaded from custom paths.
+      def self.load_generators_from_railties! #:nodoc:
+        return if defined?(@generators_from_railties) || Rails.application.nil?
+        @generators_from_railties = true
+        Rails.application.load_generators
       end
 
       # Convert namespaces to paths by replacing ":" for "/" and adding

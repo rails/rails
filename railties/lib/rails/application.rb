@@ -8,7 +8,7 @@ module Rails
     class << self
       attr_writer :config
       alias configure class_eval
-      delegate :initialize!, :load_tasks, :root, :to => :instance
+      delegate :initialize!, :load_tasks, :load_generators, :root, :to => :instance
 
       private :new
       def instance
@@ -80,6 +80,10 @@ module Rails
         $rails_rake_task = true
         initialize!
       end
+    end
+
+    def load_generators
+      plugins.each { |p| p.load_generators }
     end
 
     def initializers
