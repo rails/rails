@@ -937,7 +937,15 @@ NOTE: Defined in +active_support/core_ext/integer/inflections.rb+.
 
 h3. Extensions to +Float+
 
-...
+h4. +round+
+
+The builtin method +Float#round+ rounds a float to the nearest integer. Active Support adds an optional parameter to let you specify a precision:
+
+<ruby>
+Math::E.round(4) # => 2.7183
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/float/rounding.rb+.
 
 h3. Extensions to +BigDecimal+
 
