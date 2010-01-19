@@ -1763,11 +1763,8 @@ module ActiveRecord #:nodoc:
             relation = construct_finder_arel(method_scoping[:find] || {})
 
             if current_scoped_methods && current_scoped_methods.create_with_value && method_scoping[:create]
-              scope_for_create = case action
-              when :merge
+              scope_for_create = if action == :merge
                 current_scoped_methods.create_with_value.merge(method_scoping[:create])
-              when :reverse_merge
-                method_scoping[:create].merge(current_scoped_methods.create_with_value)
               else
                 method_scoping[:create]
               end
@@ -1782,15 +1779,7 @@ module ActiveRecord #:nodoc:
             method_scoping = relation
           end
 
-          if current_scoped_methods
-            case action
-            when :merge
-              method_scoping = current_scoped_methods.merge(method_scoping)
-            when :reverse_merge
-              method_scoping = current_scoped_methods.except(:where).merge(method_scoping)
-              method_scoping = method_scoping.merge(current_scoped_methods.only(:where))
-            end
-          end
+          method_scoping = current_scoped_methods.merge(method_scoping) if current_scoped_methods && action ==  :merge
 
           self.scoped_methods << method_scoping
           begin
