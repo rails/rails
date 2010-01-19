@@ -654,6 +654,7 @@ module ActiveRecord #:nodoc:
       end
 
       delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
+      delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
       # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
       # same arguments to this method as you can to <tt>find(:first)</tt>.
@@ -2742,7 +2743,7 @@ module ActiveRecord #:nodoc:
     # #save_with_autosave_associations to be wrapped inside a transaction.
     include AutosaveAssociation, NestedAttributes
 
-    include Aggregations, Transactions, Reflection, Batches, Calculations, Serialization
+    include Aggregations, Transactions, Reflection, Batches, Serialization
 
   end
 end

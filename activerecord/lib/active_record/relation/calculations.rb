@@ -1,5 +1,5 @@
 module ActiveRecord
-  module CalculationMethods
+  module Calculations
     # Count operates using three different approaches.
     #
     # * Count all: By not passing any parameters to count, it will return a count of all the rows for the model.

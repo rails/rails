@@ -5,7 +5,7 @@ module ActiveRecord
     MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having]
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :create_with, :from]
 
-    include FinderMethods, CalculationMethods, SpawnMethods, QueryMethods
+    include FinderMethods, Calculations, SpawnMethods, QueryMethods
 
     delegate :length, :collect, :map, :each, :all?, :include?, :to => :to_a
 

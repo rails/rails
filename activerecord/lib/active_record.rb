@@ -53,14 +53,13 @@ module ActiveRecord
     autoload_under 'relation' do
       autoload :QueryMethods
       autoload :FinderMethods
-      autoload :CalculationMethods
+      autoload :Calculations
       autoload :PredicateBuilder
       autoload :SpawnMethods
     end
 
     autoload :Base
     autoload :Batches
-    autoload :Calculations
     autoload :Callbacks
     autoload :DynamicFinderMatch
     autoload :DynamicScopeMatch
