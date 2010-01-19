@@ -128,7 +128,7 @@ module ActiveRecord
       record = where(primary_key.eq(id)).first
 
       unless record
-        conditions = where_clause(', ')
+        conditions = arel.send(:where_clauses).join(', ')
         conditions = " [WHERE #{conditions}]" if conditions.present?
         raise RecordNotFound, "Couldn't find #{@klass.name} with ID=#{id}#{conditions}"
       end
@@ -154,7 +154,7 @@ module ActiveRecord
       if result.size == expected_size
         result
       else
-        conditions = where_clause(', ')
+        conditions = arel.send(:where_clauses).join(', ')
         conditions = " [WHERE #{conditions}]" if conditions.present?
 
         error = "Couldn't find all #{@klass.name.pluralize} with IDs "

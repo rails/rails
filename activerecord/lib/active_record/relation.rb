@@ -8,7 +8,7 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods
 
     delegate :length, :collect, :map, :each, :all?, :include?, :to => :to_a
-    delegate :insert, :update, :where_clause, :to => :arel
+    delegate :insert, :update, :to => :arel
 
     attr_reader :table, :klass
 
@@ -162,10 +162,6 @@ module ActiveRecord
 
     def with_create_scope
       @klass.send(:with_scope, :create => scope_for_create, :find => {}) { yield }
-    end
-
-    def where_clause(join_string = " AND ")
-      arel.send(:where_clauses).join(join_string)
     end
 
     def references_eager_loaded_tables?
