@@ -40,16 +40,7 @@ module ActiveRecord
     # Note: <tt>Person.count(:all)</tt> will not work because it will use <tt>:all</tt> as the condition.  Use Person.count instead.
     def count(column_name = nil, options = {})
       column_name, options = nil, column_name if column_name.is_a?(Hash)
-      column_name = select_for_count unless column_name
-      distinct = options.delete(:distinct)
-
-      if options.any?
-        calculation_relation(options).count(column_name, :distinct => distinct)
-      else
-        relation_for_association_calculations.calculate(:count, column_name || :all, :distinct => distinct)
-      end
-    rescue ThrowResult
-      0
+      calculate(:count, column_name, options)
     end
 
     # Calculates the average value on a given column. The value is returned as
@@ -58,7 +49,7 @@ module ActiveRecord
     #
     #   Person.average('age') # => 35.8
     def average(column_name, options = {})
-      calculation_relation(options).calculate(:average, column_name)
+      calculate(:average, column_name, options)
     end
 
     # Calculates the minimum value on a given column.  The value is returned
@@ -67,7 +58,7 @@ module ActiveRecord
     #
     #   Person.minimum('age') # => 7
     def minimum(column_name, options = {})
-      calculation_relation(options).calculate(:minimum, column_name)
+      calculate(:minimum, column_name, options)
     end
 
     # Calculates the maximum value on a given column. The value is returned
@@ -76,7 +67,7 @@ module ActiveRecord
     #
     #   Person.maximum('age') # => 93
     def maximum(column_name, options = {})
-      calculation_relation(options).calculate(:maximum, column_name)
+      calculate(:maximum, column_name, options)
     end
 
     # Calculates the sum of values on a given column. The value is returned
@@ -85,13 +76,69 @@ module ActiveRecord
     #
     #   Person.sum('age') # => 4562
     def sum(column_name, options = {})
-      calculation_relation(options).calculate(:sum, column_name)
+      calculate(:sum, column_name, options)
     end
 
+    # This calculates aggregate values in the given column.  Methods for count, sum, average, minimum, and maximum have been added as shortcuts.
+    # Options such as <tt>:conditions</tt>, <tt>:order</tt>, <tt>:group</tt>, <tt>:having</tt>, and <tt>:joins</tt> can be passed to customize the query.
+    #
+    # There are two basic forms of output:
+    #   * Single aggregate value: The single value is type cast to Fixnum for COUNT, Float for AVG, and the given column's type for everything else.
+    #   * Grouped values: This returns an ordered hash of the values and groups them by the <tt>:group</tt> option.  It takes either a column name, or the name
+    #     of a belongs_to association.
+    #
+    #       values = Person.maximum(:age, :group => 'last_name')
+    #       puts values["Drake"]
+    #       => 43
+    #
+    #       drake  = Family.find_by_last_name('Drake')
+    #       values = Person.maximum(:age, :group => :family) # Person belongs_to :family
+    #       puts values[drake]
+    #       => 43
+    #
+    #       values.each do |family, max_age|
+    #       ...
+    #       end
+    #
+    # Options:
+    # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro to ActiveRecord::Base.
+    # * <tt>:include</tt>: Eager loading, see Associations for details.  Since calculations don't load anything, the purpose of this is to access fields on joined tables in your conditions, order, or group clauses.
+    # * <tt>:joins</tt> - An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
+    #   The records will be returned read-only since they will have attributes that do not correspond to the table's columns.
+    # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name" (really only used with GROUP BY calculations).
+    # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
+    # * <tt>:select</tt> - By default, this is * as in SELECT * FROM, but can be changed if you for example want to do a join, but not
+    #   include the joined columns.
+    # * <tt>:distinct</tt> - Set this to true to make this a distinct calculation, such as SELECT COUNT(DISTINCT posts.id) ...
+    #
+    # Examples:
+    #   Person.calculate(:count, :all) # The same as Person.count
+    #   Person.average(:age) # SELECT AVG(age) FROM people...
+    #   Person.minimum(:age, :conditions => ['last_name != ?', 'Drake']) # Selects the minimum age for everyone with a last name other than 'Drake'
+    #   Person.minimum(:age, :having => 'min(age) > 17', :group => :last_name) # Selects the minimum age for any family without any minors
+    #   Person.sum("2 * age")
     def calculate(operation, column_name, options = {})
+      if options.except(:distinct).present?
+        apply_finder_options(options.except(:distinct)).calculate(operation, column_name, :distinct => options[:distinct])
+      else
+        if eager_loading? || includes_values.present?
+          construct_relation_for_association_calculations.calculate(operation, column_name, options)
+        else
+          perform_calculation(operation, column_name, options)
+        end
+      end
+    rescue ThrowResult
+      0
+    end
+
+    private
+
+    def perform_calculation(operation, column_name, options = {})
       operation = operation.to_s.downcase
 
       if operation == "count"
+        column_name ||= (select_for_count || :all)
+
         joins = arel.joins(arel)
         if joins.present? && joins =~ /LEFT OUTER/i
           distinct = true
@@ -112,22 +159,6 @@ module ActiveRecord
       else
         return execute_simple_calculation(operation, column_name, distinct)
       end
-    rescue ThrowResult
-      0
-    end
-
-    def calculation_relation(options = {})
-      if options.present?
-        apply_finder_options(options.except(:distinct)).calculation_relation
-      else
-        relation_for_association_calculations
-      end
-    end
-
-    private
-
-    def relation_for_association_calculations
-      (eager_loading? || includes_values.present?) ? construct_relation_for_association_calculations : self
     end
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
