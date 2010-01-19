@@ -23,8 +23,7 @@ module ActionMailer #:nodoc:
   #      bcc        ["bcc@example.com", "Order Watcher <watcher@example.com>"]
   #      from       "system@example.com"
   #      subject    "New account information"
-  #
-  #      @account = recipient
+  #      body       :account => recipient
   #    end
   #  end
   #
@@ -522,6 +521,20 @@ module ActionMailer #:nodoc:
     end
 
     private
+
+      # Allow you to set assigns for your template:
+      #
+      #   body :greetings => "Hi"
+      #
+      # Will make @greetings available in the template to be rendered.
+      def body(object=nil)
+        super # Run deprecation hooks
+
+        if object.is_a?(Hash)
+          @assigns_set = true
+          object.each { |k, v| instance_variable_set(:"@#{k}", v) }
+        end
+      end
 
       # Set up the default values for the various instance variables of this
       # mailer. Subclasses may override this method to provide different
