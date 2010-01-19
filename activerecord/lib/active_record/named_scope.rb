@@ -182,7 +182,7 @@ module ActiveRecord
       end
 
       def ==(other)
-        to_a == other.to_a
+        other.respond_to?(:to_a) ? to_a == other.to_a : false
       end
 
       private

@@ -64,41 +64,7 @@ module ActiveRecord
         0
       end
 
-      # Calculates the average value on a given column. The value is returned as
-      # a float, or +nil+ if there's no row. See +calculate+ for examples with
-      # options.
-      #
-      #   Person.average('age') # => 35.8
-      def average(column_name, options = {})
-        calculate(:average, column_name, options)
-      end
-
-      # Calculates the minimum value on a given column.  The value is returned
-      # with the same data type of the column, or +nil+ if there's no row. See
-      # +calculate+ for examples with options.
-      #
-      #   Person.minimum('age') # => 7
-      def minimum(column_name, options = {})
-        calculate(:minimum, column_name, options)
-      end
-
-      # Calculates the maximum value on a given column. The value is returned
-      # with the same data type of the column, or +nil+ if there's no row. See
-      # +calculate+ for examples with options.
-      #
-      #   Person.maximum('age') # => 93
-      def maximum(column_name, options = {})
-        calculate(:maximum, column_name, options)
-      end
-
-      # Calculates the sum of values on a given column. The value is returned
-      # with the same data type of the column, 0 if there's no row. See
-      # +calculate+ for examples with options.
-      #
-      #   Person.sum('age') # => 4562
-      def sum(column_name, options = {})
-        calculate(:sum, column_name, options)
-      end
+      delegate :average, :minimum, :maximum, :sum, :to => :scoped
 
       # This calculates aggregate values in the given column.  Methods for count, sum, average, minimum, and maximum have been added as shortcuts.
       # Options such as <tt>:conditions</tt>, <tt>:order</tt>, <tt>:group</tt>, <tt>:having</tt>, and <tt>:joins</tt> can be passed to customize the query.

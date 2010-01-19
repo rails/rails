@@ -5,20 +5,40 @@ module ActiveRecord
       calculate(:count, *construct_count_options_from_args(*args))
     end
 
-    def average(column_name)
-      calculate(:average, column_name)
+    # Calculates the average value on a given column. The value is returned as
+    # a float, or +nil+ if there's no row. See +calculate+ for examples with
+    # options.
+    #
+    #   Person.average('age') # => 35.8
+    def average(column_name, options = {})
+      calculation_relation(options).calculate(:average, column_name)
     end
 
-    def minimum(column_name)
-      calculate(:minimum, column_name)
+    # Calculates the minimum value on a given column.  The value is returned
+    # with the same data type of the column, or +nil+ if there's no row. See
+    # +calculate+ for examples with options.
+    #
+    #   Person.minimum('age') # => 7
+    def minimum(column_name, options = {})
+      calculation_relation(options).calculate(:minimum, column_name)
     end
 
-    def maximum(column_name)
-      calculate(:maximum, column_name)
+    # Calculates the maximum value on a given column. The value is returned
+    # with the same data type of the column, or +nil+ if there's no row. See
+    # +calculate+ for examples with options.
+    #
+    #   Person.maximum('age') # => 93
+    def maximum(column_name, options = {})
+      calculation_relation(options).calculate(:maximum, column_name)
     end
 
-    def sum(column_name)
-      calculate(:sum, column_name)
+    # Calculates the sum of values on a given column. The value is returned
+    # with the same data type of the column, 0 if there's no row. See
+    # +calculate+ for examples with options.
+    #
+    #   Person.sum('age') # => 4562
+    def sum(column_name, options = {})
+      calculation_relation(options).calculate(:sum, column_name)
     end
 
     def calculate(operation, column_name, options = {})
@@ -47,6 +67,14 @@ module ActiveRecord
       end
     rescue ThrowResult
       0
+    end
+
+    def calculation_relation(options = {})
+      if options.present?
+        apply_finder_options(options.except(:distinct)).calculation_relation
+      else
+        (eager_loading? || includes_values.present?) ? construct_relation_for_association_calculations : self
+      end
     end
 
     private
