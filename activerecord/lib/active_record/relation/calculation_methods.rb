@@ -180,32 +180,6 @@ module ActiveRecord
       end
     end
 
-    def construct_count_options_from_args(*args)
-      options     = {}
-      column_name = :all
-
-      # Handles count(), count(:column), count(:distinct => true), count(:column, :distinct => true)
-      case args.size
-      when 0
-        select = get_projection_name_from_chained_relations
-        column_name = select if select !~ /(,|\*)/
-      when 1
-        if args[0].is_a?(Hash)
-          select = get_projection_name_from_chained_relations
-          column_name = select if select !~ /(,|\*)/
-          options = args[0]
-        else
-          column_name = args[0]
-        end
-      when 2
-        column_name, options = args
-      else
-        raise ArgumentError, "Unexpected parameters passed to count(): #{args.inspect}"
-      end
-
-      [column_name || :all, options]
-    end
-
     # Converts the given keys to the value that the database adapter returns as
     # a usable column name:
     #
@@ -241,10 +215,6 @@ module ActiveRecord
 
     def type_cast_using_column(value, column)
       column ? column.type_cast(value) : value
-    end
-
-    def get_projection_name_from_chained_relations
-      @select_values.join(", ") if @select_values.present?
     end
 
     def select_for_count
