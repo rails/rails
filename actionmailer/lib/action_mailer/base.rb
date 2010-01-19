@@ -354,6 +354,8 @@ module ActionMailer #:nodoc:
     # Alias controller_path to mailer_name so render :partial in views work.
     alias :controller_path :mailer_name
 
+    class_inheritable_accessor :delivery_method
+
     class << self
 
       def mailer_name
@@ -361,21 +363,17 @@ module ActionMailer #:nodoc:
       end
       attr_writer :mailer_name
 
+      # Mail uses the same defaults as Rails, except for the file delivery method
+      # save location so we just add this here.
       def delivery_settings
-        @delivery_settings ||= { :file     => { :location   => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails" },
-                                 :smtp     => { :address    => "localhost",
-                                                :port       => 25,
-                                                :domain     => 'localhost.localdomain',
-                                                :user_name  => nil,
-                                                :password   => nil,
-                                                :authentication       => nil,
-                                                :enable_starttls_auto => true },
-                                 :sendmail => { :location   => '/usr/sbin/sendmail',
-                                                :arguments  => '-i -t' }
-                                }
+        @delivery_settings ||= {:file => {:location   => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"}}
       end
 
-      attr_writer :delivery_method
+      # Setup the default settings for Mail delivery
+      Mail.defaults do
+        method = ActionMailer::Base.delivery_method ||= :smtp
+        delivery_method method
+      end
 
       alias :controller_path :mailer_name
 

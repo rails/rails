@@ -1,6 +1,7 @@
 require 'abstract_unit'
 
 class AutoLayoutMailer < ActionMailer::Base
+  
   def hello(recipient)
     recipients recipient
     subject    "You have a mail"
