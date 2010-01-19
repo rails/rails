@@ -1,8 +1,55 @@
 module ActiveRecord
   module CalculationMethods
+    # Count operates using three different approaches.
+    #
+    # * Count all: By not passing any parameters to count, it will return a count of all the rows for the model.
+    # * Count using column: By passing a column name to count, it will return a count of all the rows for the model with supplied column present
+    # * Count using options will find the row count matched by the options used.
+    #
+    # The third approach, count using options, accepts an option hash as the only parameter. The options are:
+    #
+    # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro to ActiveRecord::Base.
+    # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed)
+    #   or named associations in the same form used for the <tt>:include</tt> option, which will perform an INNER JOIN on the associated table(s).
+    #   If the value is a string, then the records will be returned read-only since they will have attributes that do not correspond to the table's columns.
+    #   Pass <tt>:readonly => false</tt> to override.
+    # * <tt>:include</tt>: Named associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
+    #   to already defined associations. When using named associations, count returns the number of DISTINCT items for the model you're counting.
+    #   See eager loading under Associations.
+    # * <tt>:order</tt>: An SQL fragment like "created_at DESC, name" (really only used with GROUP BY calculations).
+    # * <tt>:group</tt>: An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
+    # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you, for example, want to do a join but not
+    #   include the joined columns.
+    # * <tt>:distinct</tt>: Set this to true to make this a distinct calculation, such as SELECT COUNT(DISTINCT posts.id) ...
+    # * <tt>:from</tt> - By default, this is the table name of the class, but can be changed to an alternate table name (or even the name
+    #   of a database view).
+    #
+    # Examples for counting all:
+    #   Person.count         # returns the total count of all people
+    #
+    # Examples for counting by column:
+    #   Person.count(:age)  # returns the total count of all people whose age is present in database
+    #
+    # Examples for count with options:
+    #   Person.count(:conditions => "age > 26")
+    #   Person.count(:conditions => "age > 26 AND job.salary > 60000", :include => :job) # because of the named association, it finds the DISTINCT count using LEFT OUTER JOIN.
+    #   Person.count(:conditions => "age > 26 AND job.salary > 60000", :joins => "LEFT JOIN jobs on jobs.person_id = person.id") # finds the number of rows matching the conditions and joins.
+    #   Person.count('id', :conditions => "age > 26") # Performs a COUNT(id)
+    #   Person.count(:all, :conditions => "age > 26") # Performs a COUNT(*) (:all is an alias for '*')
+    #
+    # Note: <tt>Person.count(:all)</tt> will not work because it will use <tt>:all</tt> as the condition.  Use Person.count instead.
+    def count(column_name = nil, options = {})
+      column_name, options = nil, column_name if column_name.is_a?(Hash)
+      column_name = select_for_count unless column_name
+      distinct = options.delete(:distinct)
 
-    def count(*args)
-      calculate(:count, *construct_count_options_from_args(*args))
+      if options.any?
+        calculation_relation(options).count(column_name, :distinct => distinct)
+      else
+        relation_for_association_calculations.calculate(:count, column_name || :all, :distinct => distinct)
+      end
+    rescue ThrowResult
+      0
     end
 
     # Calculates the average value on a given column. The value is returned as
@@ -73,11 +120,15 @@ module ActiveRecord
       if options.present?
         apply_finder_options(options.except(:distinct)).calculation_relation
       else
-        (eager_loading? || includes_values.present?) ? construct_relation_for_association_calculations : self
+        relation_for_association_calculations
       end
     end
 
     private
+
+    def relation_for_association_calculations
+      (eager_loading? || includes_values.present?) ? construct_relation_for_association_calculations : self
+    end
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
       column = if @klass.column_names.include?(column_name.to_s)
@@ -196,5 +247,11 @@ module ActiveRecord
       @select_values.join(", ") if @select_values.present?
     end
 
+    def select_for_count
+      if @select_values.present?
+        select = @select_values.join(", ") 
+        select if select !~ /(,|\*)/
+      end
+    end
   end
 end
