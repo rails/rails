@@ -1,7 +1,8 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/metal/metal_generator'
+require 'generators/rails/metal/metal_generator'
 
-class MetalGeneratorTest < GeneratorsTestCase
+class MetalGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments %w(foo)
 
   def test_metal_skeleton_is_created

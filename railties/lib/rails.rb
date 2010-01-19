@@ -1,9 +1,8 @@
-require "pathname"
+require 'pathname'
 
 require 'active_support'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/logger'
-require 'action_dispatch'
 
 require 'rails/initializable'
 require 'rails/application'
@@ -17,6 +16,8 @@ require 'rails/configuration'
 require 'rails/deprecation'
 require 'rails/subscriber'
 require 'rails/ruby_version_check'
+
+require 'action_dispatch/railtie'
 
 # For Ruby 1.8, this initialization sets $KCODE to 'u' to enable the
 # multibyte safe operations. Plugin authors supporting other encodings

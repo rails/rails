@@ -1,7 +1,9 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/stylesheets/stylesheets_generator'
+require 'generators/rails/stylesheets/stylesheets_generator'
 
-class StylesheetsGeneratorTest < GeneratorsTestCase
+class StylesheetsGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
+
   def test_copy_stylesheets
     run_generator
     assert_file "public/stylesheets/scaffold.css"

@@ -608,7 +608,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scoping_with_threads
     2.times do
-      Thread.new { assert_equal 'salary DESC', DeveloperOrderedBySalary.scoped.send(:order_clause) }.join
+      Thread.new { assert_equal ['salary DESC'], DeveloperOrderedBySalary.scoped.order_values }.join
     end
   end
 
@@ -618,28 +618,28 @@ class DefaultScopingTest < ActiveRecord::TestCase
     klass.send :default_scope, {}
 
     # Scopes added on children should append to parent scope
-    assert klass.scoped.send(:order_clause).blank?
+    assert klass.scoped.order_values.blank?
 
     # Parent should still have the original scope
-    assert_equal 'salary DESC', DeveloperOrderedBySalary.scoped.send(:order_clause)
+    assert_equal ['salary DESC'], DeveloperOrderedBySalary.scoped.order_values
   end
 
   def test_method_scope
-    expected = Developer.find(:all, :order => 'name DESC, salary DESC').collect { |dev| dev.salary }
+    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.all_ordered_by_name.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 
   def test_nested_scope
-    expected = Developer.find(:all, :order => 'name DESC, salary DESC').collect { |dev| dev.salary }
+    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.send(:with_scope, :find => { :order => 'name DESC'}) do
       DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
     end
     assert_equal expected, received
   end
 
-  def test_named_scope_order_appended_to_default_scope_order
-    expected = Developer.find(:all, :order => 'name DESC, salary DESC').collect { |dev| dev.name }
+  def test_named_scope_overwrites_default
+    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.by_name.find(:all).collect { |dev| dev.name }
     assert_equal expected, received
   end

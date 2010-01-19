@@ -169,9 +169,11 @@ module ActiveModel
     # If no +messsage+ is supplied, :invalid is assumed.
     # 
     # If +message+ is a Symbol, it will be translated, using the appropriate scope (see translate_error).
+    # If +message+ is a Proc, it will be called, allowing for things like Time.now to be used within an error
     def add(attribute, message = nil, options = {})
       message ||= :invalid
       message = generate_message(attribute, message, options) if message.is_a?(Symbol)
+      message = message.call if message.is_a?(Proc)
       self[attribute] << message
     end
 

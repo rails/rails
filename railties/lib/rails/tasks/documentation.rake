@@ -55,7 +55,7 @@ namespace :doc do
   desc "Generate Rails guides"
   task :guides do
     require File.join(RAILTIES_PATH, "guides/rails_guides")
-    RailsGuides::Generator.new(File.join(RAILS_ROOT, "doc/guides")).generate
+    RailsGuides::Generator.new(Rails.root.join("doc/guides")).generate
   end
 
   namespace :plugins do

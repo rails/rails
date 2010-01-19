@@ -66,7 +66,7 @@ module Rails
         subscriber.send(name, ActiveSupport::Notifications::Event.new(*args))
       end
 
-      if args[0] == "action_dispatch.callback" && !subscribers.empty?
+      if args[0] == "action_dispatch.after_dispatch" && !subscribers.empty?
         flush_all!
         log_tailer.tail! if log_tailer
       end

@@ -418,27 +418,11 @@ module ActionDispatch
         def resource(*resources, &block)
           options = resources.extract_options!
 
-          if resources.length > 1
-            raise ArgumentError if block_given?
-            resources.each { |r| resource(r, options) }
-            return self
-          end
-
-          if path_names = options.delete(:path_names)
-            scope(:resources_path_names => path_names) do
-              resource(resources, options)
-            end
+          if verify_common_behavior_for(:resource, resources, options, &block)
             return self
           end
 
           resource = SingletonResource.new(resources.pop, options)
-
-          if @scope[:scope_level] == :resources
-            nested do
-              resource(resource.name, options, &block)
-            end
-            return self
-          end
 
           scope(:path => resource.name.to_s, :controller => resource.controller) do
             with_scope_level(:resource, resource) do
@@ -459,27 +443,11 @@ module ActionDispatch
         def resources(*resources, &block)
           options = resources.extract_options!
 
-          if resources.length > 1
-            raise ArgumentError if block_given?
-            resources.each { |r| resources(r, options) }
-            return self
-          end
-
-          if path_names = options.delete(:path_names)
-            scope(:resources_path_names => path_names) do
-              resources(resources, options)
-            end
+          if verify_common_behavior_for(:resources, resources, options, &block)
             return self
           end
 
           resource = Resource.new(resources.pop, options)
-
-          if @scope[:scope_level] == :resources
-            nested do
-              resources(resource.name, options, &block)
-            end
-            return self
-          end
 
           scope(:path => resource.name.to_s, :controller => resource.controller) do
             with_scope_level(:resources, resource) do
@@ -593,6 +561,29 @@ module ActionDispatch
           def action_path(name, path_names = nil)
             path_names ||= @scope[:resources_path_names]
             path_names[name.to_sym] || name.to_s
+          end
+
+          def verify_common_behavior_for(method, resources, options, &block)
+            if resources.length > 1
+              resources.each { |r| send(method, r, options, &block) }
+              return true
+            end
+
+            if path_names = options.delete(:path_names)
+              scope(:resources_path_names => path_names) do
+                send(method, resources.pop, options, &block)
+              end
+              return true
+            end
+
+            if @scope[:scope_level] == :resources
+              nested do
+                send(method, resources.pop, options, &block)
+              end
+              return true
+            end
+
+            false
           end
 
           def with_exclusive_name_prefix(prefix)

@@ -19,7 +19,7 @@ end
 class DeprecatedPerson < ActiveRecord::Base
   set_table_name 'people'
 
-  protected
+  private
 
   def validate
     errors[:name] << "always invalid"
@@ -124,7 +124,15 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_create_without_validation
     reply = WrongReply.new
     assert !reply.save
-    assert reply.save(false)
+    assert reply.save(:validate => false)
+  end
+
+  def test_deprecated_create_without_validation
+    reply = WrongReply.new
+    assert !reply.save
+    assert_deprecated do
+      assert reply.save(false)
+    end
   end
 
   def test_create_without_validation_bang
@@ -152,5 +160,22 @@ class ValidationsTest < ActiveRecord::TestCase
     Topic.validates_acceptance_of(:author_name)
     topic = Topic.create("author_name" => "Dan Brown")
     assert_equal "Dan Brown", topic["author_name"]
+  end
+
+  def test_validate_is_deprecated_on_create
+    p = DeprecatedPerson.new
+    assert_deprecated do
+      assert !p.valid?
+    end
+    assert_equal ["always invalid", "invalid on create"], p.errors[:name]
+  end
+
+  def test_validate_is_deprecated_on_update
+    p = DeprecatedPerson.new(:first_name => "David")
+    assert p.save(:validate => false)
+    assert_deprecated do
+      assert !p.valid?
+    end
+    assert_equal ["always invalid", "invalid on update"], p.errors[:name]
   end
 end

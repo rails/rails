@@ -43,7 +43,7 @@ class Developer < ActiveRecord::Base
 
   has_many :audit_logs
 
-  named_scope :jamises, :conditions => {:name => 'Jamis'}
+  scope :jamises, :conditions => {:name => 'Jamis'}
 
   validates_inclusion_of :salary, :in => 50000..200000
   validates_length_of    :name, :within => 3..20
@@ -81,7 +81,7 @@ end
 class DeveloperOrderedBySalary < ActiveRecord::Base
   self.table_name = 'developers'
   default_scope :order => 'salary DESC'
-  named_scope :by_name, :order => 'name DESC'
+  scope :by_name, :order => 'name DESC'
 
   def self.all_ordered_by_name
     with_scope(:find => { :order => 'name DESC' }) do

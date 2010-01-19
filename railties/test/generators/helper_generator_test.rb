@@ -1,10 +1,11 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/helper/helper_generator'
+require 'generators/rails/helper/helper_generator'
 
 ObjectHelper = Class.new
 AnotherObjectHelperTest = Class.new
 
-class HelperGeneratorTest < GeneratorsTestCase
+class HelperGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments %w(admin)
 
   def test_helper_skeleton_is_created

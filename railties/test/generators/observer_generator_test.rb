@@ -1,7 +1,8 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/observer/observer_generator'
+require 'generators/rails/observer/observer_generator'
 
-class ObserverGeneratorTest < GeneratorsTestCase
+class ObserverGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments %w(account)
 
   def test_invokes_default_orm

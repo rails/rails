@@ -1,7 +1,9 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/migration/migration_generator'
+require 'generators/rails/migration/migration_generator'
 
-class MigrationGeneratorTest < GeneratorsTestCase
+class MigrationGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
+
   def test_migration
     migration = "change_title_body_from_posts"
     run_generator [migration]

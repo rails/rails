@@ -1,7 +1,8 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/integration_test/integration_test_generator'
+require 'generators/rails/integration_test/integration_test_generator'
 
-class IntegrationTestGeneratorTest < GeneratorsTestCase
+class IntegrationTestGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments %w(integration)
 
   def test_integration_test_skeleton_is_created

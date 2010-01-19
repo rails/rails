@@ -45,8 +45,6 @@ module ActionDispatch
         run_callbacks(:prepare) if @prepare_each_request
         @app.call(env)
       end
-    ensure
-      ActiveSupport::Notifications.instrument "action_dispatch.callback"
     end
   end
 end

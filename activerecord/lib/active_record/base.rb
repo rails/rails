@@ -2136,16 +2136,16 @@ module ActiveRecord #:nodoc:
       end
 
       # :call-seq:
-      #   save(perform_validation = true)
+      #   save(options)
       #
       # Saves the model.
       #
       # If the model is new a record gets created in the database, otherwise
       # the existing record gets updated.
       #
-      # If +perform_validation+ is true validations run. If any of them fail
-      # the action is cancelled and +save+ returns +false+. If the flag is
-      # false validations are bypassed altogether. See
+      # By default, save always run validations. If any of them fail the action
+      # is cancelled and +save+ returns +false+. However, if you supply
+      # :validate => false, validations are bypassed altogether. See
       # ActiveRecord::Validations for more information.
       #
       # There's a series of callbacks associated with +save+. If any of the
@@ -2220,7 +2220,7 @@ module ActiveRecord #:nodoc:
       # in Base is replaced with this when the validations module is mixed in, which it is by default.
       def update_attribute(name, value)
         send(name.to_s + '=', value)
-        save(false)
+        save(:validate => false)
       end
 
       # Updates all the attributes from the passed-in Hash and saves the record. If the object is invalid, the saving will

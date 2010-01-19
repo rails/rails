@@ -1,7 +1,7 @@
 module ActiveRecord
   module SpawnMethods
     def spawn(arel_table = self.table)
-      relation = Relation.new(@klass, arel_table)
+      relation = self.class.new(@klass, arel_table)
 
       (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).each do |query_method|
         relation.send(:"#{query_method}_values=", send(:"#{query_method}_values"))
@@ -15,11 +15,10 @@ module ActiveRecord
     end
 
     def merge(r)
-      if r.klass != @klass
-        raise ArgumentError, "Cannot merge a #{r.klass.name}(##{r.klass.object_id}) relation with #{@klass.name}(##{@klass.object_id}) relation"
-      end
+      merged_relation = spawn
+      return merged_relation unless r
 
-      merged_relation = spawn.eager_load(r.eager_load_values).preload(r.preload_values).includes(r.includes_values)
+      merged_relation = merged_relation.eager_load(r.eager_load_values).preload(r.preload_values).includes(r.includes_values)
 
       merged_relation.readonly_value = r.readonly_value unless r.readonly_value.nil?
       merged_relation.limit_value = r.limit_value if r.limit_value.present?
@@ -33,7 +32,7 @@ module ActiveRecord
         from(r.from_value).
         having(r.having_values)
 
-      merged_relation.order_values = Array.wrap(order_values) + Array.wrap(r.order_values)
+      merged_relation.order_values = r.order_values if r.order_values.present?
 
       merged_relation.create_with_value = @create_with_value
 
@@ -61,7 +60,7 @@ module ActiveRecord
     alias :& :merge
 
     def except(*skips)
-      result = Relation.new(@klass, table)
+      result = self.class.new(@klass, table)
 
       (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).each do |method|
         result.send(:"#{method}_values=", send(:"#{method}_values")) unless skips.include?(method)
@@ -75,7 +74,7 @@ module ActiveRecord
     end
 
     def only(*onlies)
-      result = Relation.new(@klass, table)
+      result = self.class.new(@klass, table)
 
       onlies.each do |only|
         if (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).include?(only)
@@ -94,9 +93,10 @@ module ActiveRecord
                            :order, :select, :readonly, :group, :having, :from, :lock ]
 
     def apply_finder_options(options)
-      options.assert_valid_keys(VALID_FIND_OPTIONS)
-
       relation = spawn
+      return relation unless options
+
+      options.assert_valid_keys(VALID_FIND_OPTIONS)
 
       relation = relation.joins(options[:joins]).
         where(options[:conditions]).

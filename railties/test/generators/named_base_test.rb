@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/scaffold_controller/scaffold_controller_generator'
+require 'generators/rails/scaffold_controller/scaffold_controller_generator'
 
 # Mock out what we need from AR::Base.
 module ActiveRecord
@@ -11,7 +11,8 @@ module ActiveRecord
   end
 end
 
-class NamedBaseTest < GeneratorsTestCase
+class NamedBaseTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   tests Rails::Generators::ScaffoldControllerGenerator
 
   def test_named_generator_attributes

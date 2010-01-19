@@ -1,19 +1,19 @@
 class Topic < ActiveRecord::Base
-  named_scope :base
-  named_scope :written_before, lambda { |time|
+  scope :base
+  scope :written_before, lambda { |time|
     if time
       { :conditions => ['written_on < ?', time] }
     end
   }
-  named_scope :approved, :conditions => {:approved => true}
-  named_scope :rejected, :conditions => {:approved => false}
+  scope :approved, :conditions => {:approved => true}
+  scope :rejected, :conditions => {:approved => false}
 
-  named_scope :by_lifo, :conditions => {:author_name => 'lifo'}
+  scope :by_lifo, :conditions => {:author_name => 'lifo'}
   
-  named_scope :approved_as_hash_condition, :conditions => {:topics => {:approved => true}}
-  named_scope 'approved_as_string', :conditions => {:approved => true}
-  named_scope :replied, :conditions => ['replies_count > 0']
-  named_scope :anonymous_extension do
+  scope :approved_as_hash_condition, :conditions => {:topics => {:approved => true}}
+  scope 'approved_as_string', :conditions => {:approved => true}
+  scope :replied, :conditions => ['replies_count > 0']
+  scope :anonymous_extension do
     def one
       1
     end
@@ -33,8 +33,8 @@ class Topic < ActiveRecord::Base
       2
     end
   end
-  named_scope :named_extension, :extend => NamedExtension
-  named_scope :multiple_extensions, :extend => [MultipleExtensionTwo, MultipleExtensionOne]
+  scope :named_extension, :extend => NamedExtension
+  scope :multiple_extensions, :extend => [MultipleExtensionTwo, MultipleExtensionOne]
 
   has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
   has_many :replies_with_primary_key, :class_name => "Reply", :dependent => :destroy, :primary_key => "title", :foreign_key => "parent_title"

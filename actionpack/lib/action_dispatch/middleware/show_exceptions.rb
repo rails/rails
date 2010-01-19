@@ -20,7 +20,7 @@ module ActionDispatch
   # * :exception - The exception raised;
   #
   class ShowExceptions
-    LOCALHOST = '127.0.0.1'.freeze
+    LOCALHOST = ['127.0.0.1', '::1'].freeze
 
     RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
 
@@ -61,11 +61,8 @@ module ActionDispatch
     def call(env)
       @app.call(env)
     rescue Exception => exception
-      ActiveSupport::Notifications.instrument 'action_dispatch.show_exception',
-        :env => env, :exception => exception do
-        raise exception if env['action_dispatch.show_exceptions'] == false
-        render_exception(env, exception)
-      end
+      raise exception if env['action_dispatch.show_exceptions'] == false
+      render_exception(env, exception)
     end
 
     private
@@ -88,7 +85,10 @@ module ActionDispatch
       def rescue_action_locally(request, exception)
         template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
           :request => request,
-          :exception => exception
+          :exception => exception,
+          :application_trace => application_trace(exception),
+          :framework_trace => framework_trace(exception),
+          :full_trace => full_trace(exception)
         )
         file = "rescues/#{@@rescue_templates[exception.class.name]}.erb"
         body = template.render(:file => file, :layout => 'rescues/layout.erb')
@@ -118,7 +118,7 @@ module ActionDispatch
 
       # True if the request came from localhost, 127.0.0.1.
       def local_request?(request)
-        request.remote_addr == LOCALHOST && request.remote_ip == LOCALHOST
+        LOCALHOST.any?{ |local_ip| request.remote_addr == local_ip && request.remote_ip == local_ip }
       end
 
       def status_code(exception)
@@ -148,9 +148,21 @@ module ActionDispatch
         end
       end
 
-      def clean_backtrace(exception)
+      def application_trace(exception)
+        clean_backtrace(exception, :silent)
+      end
+
+      def framework_trace(exception)
+        clean_backtrace(exception, :noise)
+      end
+
+      def full_trace(exception)
+        clean_backtrace(exception, :all)
+      end
+
+      def clean_backtrace(exception, *args)
         defined?(Rails) && Rails.respond_to?(:backtrace_cleaner) ?
-          Rails.backtrace_cleaner.clean(exception.backtrace) :
+          Rails.backtrace_cleaner.clean(exception.backtrace, *args) :
           exception.backtrace
       end
 

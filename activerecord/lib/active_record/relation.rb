@@ -7,7 +7,7 @@ module ActiveRecord
 
     include FinderMethods, CalculationMethods, SpawnMethods, QueryMethods
 
-    delegate :length, :collect, :map, :each, :all?, :to => :to_a
+    delegate :length, :collect, :map, :each, :all?, :include?, :to => :to_a
 
     attr_reader :table, :klass
 
@@ -19,6 +19,8 @@ module ActiveRecord
     def new(*args, &block)
       with_create_scope { @klass.new(*args, &block) }
     end
+
+    alias build new
 
     def create(*args, &block)
       with_create_scope { @klass.create(*args, &block) }
@@ -43,33 +45,12 @@ module ActiveRecord
     def to_a
       return @records if loaded?
 
-      find_with_associations = @eager_load_values.any? || (@includes_values.any? && references_eager_loaded_tables?)
+      eager_loading = @eager_load_values.any? || (@includes_values.any? && references_eager_loaded_tables?)
 
-      @records = if find_with_associations
-        begin
-          options = {
-            :select => @select_values.any? ? @select_values.join(", ") : nil,
-            :joins => arel.joins(arel),
-            :group =>  @group_values.any? ? @group_values.join(", ") : nil,
-            :order => order_clause,
-            :conditions => where_clause,
-            :limit => arel.taken,
-            :offset => arel.skipped,
-            :from => (arel.send(:from_clauses) if arel.send(:sources).present?)
-          }
-
-          including = (@eager_load_values + @includes_values).uniq
-          join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
-          @klass.send(:find_with_associations, options, join_dependency)
-        rescue ThrowResult
-          []
-        end
-      else
-        @klass.find_by_sql(arel.to_sql)
-      end
+      @records = eager_loading ? find_with_associations : @klass.find_by_sql(arel.to_sql)
 
       preload = @preload_values
-      preload +=  @includes_values unless find_with_associations
+      preload +=  @includes_values unless eager_loading
       preload.each {|associations| @klass.send(:preload_associations, @records, associations) } 
 
       # @readonly_value is true only if set explicity. @implicit_readonly is true if there are JOINS and no explicit SELECT.
@@ -124,12 +105,13 @@ module ActiveRecord
     end
 
     def reload
-      @loaded = false
       reset
+      to_a # force reload
+      self
     end
 
     def reset
-      @first = @last = @to_sql = @order_clause = @scope_for_create = @arel = nil
+      @first = @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
       @records = []
       self
     end
@@ -172,16 +154,14 @@ module ActiveRecord
       end
     end
 
+    private
+
     def with_create_scope
       @klass.send(:with_scope, :create => scope_for_create, :find => {}) { yield }
     end
 
     def where_clause(join_string = " AND ")
       arel.send(:where_clauses).join(join_string)
-    end
-
-    def order_clause
-      @order_clause ||= arel.send(:order_clauses).join(', ')
     end
 
     def references_eager_loaded_tables?

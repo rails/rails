@@ -44,6 +44,42 @@ module ActiveRecord
 
     protected
 
+    def find_with_associations
+      including = (@eager_load_values + @includes_values).uniq
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
+      rows = construct_relation_for_association_find(join_dependency).to_a
+      join_dependency.instantiate(rows)
+    rescue ThrowResult
+      []
+    end
+
+    def construct_relation_for_association_find(join_dependency)
+      relation = except(:includes, :eager_load, :preload, :select).select(@klass.send(:column_aliases, join_dependency))
+
+      for association in join_dependency.join_associations
+        relation = association.join_relation(relation)
+      end
+
+      limitable_reflections = @klass.send(:using_limitable_reflections?, join_dependency.reflections)
+
+      if !limitable_reflections && relation.limit_value
+        limited_id_condition = construct_limited_ids_condition(relation.except(:select))
+        relation = relation.where(limited_id_condition)
+      end
+
+      relation = relation.except(:limit, :offset) unless limitable_reflections
+
+      relation
+    end
+
+    def construct_limited_ids_condition(relation)
+      orders = relation.order_values.join(", ")
+      values = @klass.connection.distinct("#{@klass.connection.quote_table_name @klass.table_name}.#{@klass.primary_key}", orders)
+
+      ids_array = relation.select(values).collect {|row| row[@klass.primary_key]}
+      ids_array.empty? ? raise(ThrowResult) : primary_key.in(ids_array)
+    end
+
     def find_by_attributes(match, attributes, *args)
       conditions = attributes.inject({}) {|h, a| h[a] = args[attributes.index(a)]; h}
       result = where(conditions).send(match.finder)

@@ -92,7 +92,7 @@ module SubscriberTest
 
   def test_flushes_loggers_when_action_dispatch_callback_is_received
     Rails::Subscriber.add :my_subscriber, @subscriber
-    instrument "action_dispatch.callback"
+    instrument "action_dispatch.after_dispatch"
     wait
     assert_equal 1, @logger.flush_count
   end
@@ -100,7 +100,7 @@ module SubscriberTest
   def test_flushes_the_same_logger_just_once
     Rails::Subscriber.add :my_subscriber, @subscriber
     Rails::Subscriber.add :another, @subscriber
-    instrument "action_dispatch.callback"
+    instrument "action_dispatch.after_dispatch"
     wait
     assert_equal 1, @logger.flush_count
   end
@@ -111,7 +111,7 @@ module SubscriberTest
     Rails::Subscriber.log_tailer = log_tailer
 
     Rails::Subscriber.add :my_subscriber, @subscriber
-    instrument "action_dispatch.callback"
+    instrument "action_dispatch.after_dispatch"
     wait
   ensure
     Rails::Subscriber.log_tailer = nil
