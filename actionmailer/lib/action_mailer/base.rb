@@ -264,6 +264,8 @@ module ActionMailer #:nodoc:
     helper  ActionMailer::MailHelper
     include ActionMailer::DeprecatedBody
 
+    include ActionMailer::DeliveryMethods
+
     private_class_method :new #:nodoc:
 
     @@raise_delivery_errors = true
@@ -354,9 +356,6 @@ module ActionMailer #:nodoc:
     # Alias controller_path to mailer_name so render :partial in views work.
     alias :controller_path :mailer_name
 
-    superclass_delegating_accessor :delivery_method
-    self.delivery_method = :smtp
-
     class << self
 
       def mailer_name
@@ -364,38 +363,10 @@ module ActionMailer #:nodoc:
       end
       attr_writer :mailer_name
 
-      # Mail uses the same defaults as Rails, except for the file delivery method
-      # save location so we just add this here.
-      def delivery_settings
-        @@delivery_settings ||= begin
-          hash = Hash.new { |h,k| h[k] = {} }
-          hash[:file] = {
-            :location => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"
-          }
-
-          hash[:smtp] = { 
-            :address    => "localhost",
-            :port       => 25,
-            :domain     => 'localhost.localdomain',
-            :user_name  => nil,
-            :password   => nil,
-            :authentication       => nil,
-            :enable_starttls_auto => true
-          }
-
-          hash[:sendmail] = {
-            :location   => '/usr/sbin/sendmail',
-            :arguments  => '-i -t'
-          }
-
-          hash
-        end
-      end
-
       alias :controller_path :mailer_name
 
       def respond_to?(method_symbol, include_private = false) #:nodoc:
-        matches_dynamic_method?(method_symbol) || matches_settings_method?(method_symbol) || super
+        matches_dynamic_method?(method_symbol) || super
       end
 
       def method_missing(method_symbol, *parameters) #:nodoc:
@@ -405,13 +376,6 @@ module ActionMailer #:nodoc:
             when 'deliver' then new(match[2], *parameters).deliver!
             when 'new'     then nil
             else super
-          end
-        elsif match = matches_settings_method?(method_symbol)
-          # TODO Deprecation warning
-          if match[2]
-            delivery_settings[match[1].to_sym] = parameters[0]
-          else
-            delivery_settings[match[1].to_sym]
           end
         else
           super
@@ -447,11 +411,13 @@ module ActionMailer #:nodoc:
         raise "no mail object available for delivery!" unless mail
 
         begin
-          ActiveSupport::Notifications.instrument("action_mailer.deliver",
-            :mailer => self.name) do |payload|
+          ActiveSupport::Notifications.instrument("action_mailer.deliver", :mailer => self.name) do |payload|
             set_payload_for_mail(payload, mail)
-            
-            mail.delivery_method delivery_method, get_delivery_settings(delivery_method)
+
+            # TODO Move me to the instance
+            mail.delivery_method delivery_methods[delivery_method],
+                                 delivery_settings[delivery_method]
+
             if @@perform_deliveries
               mail.deliver! 
               self.deliveries << mail
@@ -486,24 +452,11 @@ module ActionMailer #:nodoc:
 
       private
 
-        def get_delivery_settings(method) #:nodoc:
-          delivery_settings[method]
-        end
-
-        def matches_settings_method?(method_name) #:nodoc:
-          /(\w+)_settings(=)?$/.match(method_name.to_s)
-        end
-
         def matches_dynamic_method?(method_name) #:nodoc:
           method_name = method_name.to_s
           /^(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
         end
     end
-
-    # Configure delivery method. Check ActionMailer::DeliveryMethod for more
-    # instructions.
-    superclass_delegating_reader :delivery_method
-    self.delivery_method = :smtp
 
     # Add a part to a multipart message, with the given content-type. The
     # part itself is yielded to the block so that other properties (charset,
@@ -532,20 +485,6 @@ module ActionMailer #:nodoc:
                  :content_transfer_encoding => "base64" }.merge(params)
 
       part(params, &block)
-    end
-
-    # Allow you to set assigns for your template:
-    #
-    #   body :greetings => "Hi"
-    #
-    # Will make @greetings available in the template to be rendered.
-    def body(object=nil)
-      returning(super) do # Run deprecation hooks
-        if object.is_a?(Hash)
-          @assigns_set = true
-          object.each { |k, v| instance_variable_set(:"@#{k}", v) }
-        end
-      end
     end
 
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
@@ -591,6 +530,8 @@ module ActionMailer #:nodoc:
       #   render_message "special_message"
       #   render_message :template => "special_message"
       #   render_message :inline => "<%= 'Hi!' %>"
+      #
+      # TODO Deprecate me
       def render_message(object)
         case object
         when String

@@ -1,6 +1,6 @@
 module ActionMailer
   # TODO Remove this module all together in a next release. Ensure that super
-  # hooks and @assigns_set in ActionMailer::Base are removed as well.
+  # hooks in ActionMailer::Base are removed as well.
   module DeprecatedBody
     extend ActionMailer::AdvAttrAccessor
 
@@ -22,12 +22,14 @@ module ActionMailer
     end
 
     def create_parts
-      if String === @body && !defined?(@assigns_set)
+      if String === @body
         ActiveSupport::Deprecation.warn('body(String) is deprecated. To set the body with a text ' <<
                                         'call render(:text => "body")', caller[0,10])
         self.response_body = @body
-      elsif self.response_body
-        @body = self.response_body
+      elsif @body.is_a?(Hash) && !@body.empty?
+        ActiveSupport::Deprecation.warn('body(Hash) is deprecated. Use instance variables to define ' <<
+                                        'assigns in your view', caller[0,10])
+        @body.each { |k, v| instance_variable_set(:"@#{k}", v) }
       end
     end
 
