@@ -1,0 +1,51 @@
+h2. Ruby on Rails 3.0 Release Notes
+
+Rails 3.0 is a landmark release as it delivers on the Merb/Rails merge promise made in December, 2008.  Rails 3.0 provides many major upgrades to all of the major components of Rails, and now adds Active Model ORM abstraction as well as a consistent Plugin API giving developers full access to all the Rails internals that make Action Mailer, Action Controller, Action View, Active Record and Active Resource work.  These release notes cover the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the "list of commits":http://github.com/rails/rails/commits/master in the main Rails repository on GitHub or review the +CHANGELOG+ files for the individual Rails components.
+
+endprologue.
+
+h3. Application Creation
+
+
+h3. Application Architecture
+
+
+h3. Documentation
+
+
+h3. Ruby 1.9.1 Support
+
+
+h3. Railties
+
+
+h3. Action Controller
+
+
+h3. Action Dispatch
+
+
+h3. Action Pack
+
+
+h3. Action View
+
+
+h3. Active Model
+
+
+h3. Active Record
+
+
+h3. Active Resource
+
+
+h3. Action Mailer
+
+
+h3. Deprecated
+
+
+h3. Credits
+
+Release notes compiled by "Mikel Lindsaar":http://lindsaar.net. This version of the Rails 3.0 release notes was compiled based on Rails version... 
