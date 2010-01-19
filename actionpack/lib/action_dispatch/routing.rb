@@ -193,9 +193,10 @@ module ActionDispatch
   #
   # With conditions you can define restrictions on routes. Currently the only valid condition is <tt>:method</tt>.
   #
-  # * <tt>:method</tt> - Allows you to specify which method can access the route. Possible values are <tt>:post</tt>,
-  #   <tt>:get</tt>, <tt>:put</tt>, <tt>:delete</tt> and <tt>:any</tt>. The default value is <tt>:any</tt>,
-  #   <tt>:any</tt> means that any method can access the route.
+  # * <tt>:method</tt> - Allows you to specify which HTTP method(s) can access the route. Possible values are
+  #   <tt>:post</tt>, <tt>:get</tt>, <tt>:put</tt>, <tt>:delete</tt> and <tt>:any</tt>. Use an array to specify more
+  #   than one method, e.g. <tt>[ :get, :post ]</tt>. The default value is <tt>:any</tt>, <tt>:any</tt> means that any
+  #   method can access the route.
   #
   # Example:
   #

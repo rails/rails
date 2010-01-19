@@ -18,7 +18,7 @@ Rails 2.2 supplies an easy system for internationalization (or i18n, for those o
 * More information :
 ** "Official Rails i18 website":http://rails-i18n.org
 ** "Finally. Ruby on Rails gets internationalized":http://www.artweb-design.de/2008/7/18/finally-ruby-on-rails-gets-internationalized
-** "Localizing Rails : Demo application":http://i18n-demo.phusion.nl
+** "Localizing Rails : Demo application":http://github.com/clemens/i18n_demo_app
 
 h4. Compatibility with Ruby 1.9 and JRuby
 
@@ -28,20 +28,20 @@ h3. Documentation
 
 The internal documentation of Rails, in the form of code comments, has been improved in numerous places. In addition, the "Ruby on Rails Guides":http://guides.rubyonrails.org/ project is the definitive source for information on major Rails components. In its first official release, the Guides page includes:
 
-* "Getting Started with Rails":http://guides.rubyonrails.org/getting_started_with_rails.html
+* "Getting Started with Rails":http://guides.rubyonrails.org/getting_started.html
 * "Rails Database Migrations":http://guides.rubyonrails.org/migrations.html
 * "Active Record Associations":http://guides.rubyonrails.org/association_basics.html
-* "Active Record Finders":http://guides.rubyonrails.org/finders.html
+* "Active Record Query Interface":http://guides.rubyonrails.org/active_record_querying.html
 * "Layouts and Rendering in Rails":http://guides.rubyonrails.org/layouts_and_rendering.html
 * "Action View Form Helpers":http://guides.rubyonrails.org/form_helpers.html
-* "Rails Routing from the Outside In":http://guides.rubyonrails.org/routing_outside_in.html
-* "Basics of Action Controller":http://guides.rubyonrails.org/actioncontroller_basics.html
+* "Rails Routing from the Outside In":http://guides.rubyonrails.org/routing.html
+* "Action Controller Overview":http://guides.rubyonrails.org/action_controller_overview.html
 * "Rails Caching":http://guides.rubyonrails.org/caching_with_rails.html
-* "Testing Rails Applications":http://guides.rubyonrails.org/testing_rails_applications.html
+* "A Guide to Testing Rails Applications":http://guides.rubyonrails.org/testing.html
 * "Securing Rails Applications":http://guides.rubyonrails.org/security.html
 * "Debugging Rails Applications":http://guides.rubyonrails.org/debugging_rails_applications.html
-* "Benchmarking and Profiling Rails Applications":http://guides.rubyonrails.org/benchmarking_and_profiling.html
-* "The Basics of Creating Rails Plugins":http://guides.rubyonrails.org/creating_plugins.html
+* "Performance Testing Rails Applications":http://guides.rubyonrails.org/performance_testing.html
+* "The Basics of Creating Rails Plugins":http://guides.rubyonrails.org/plugins.html
 
 All told, the Guides provide tens of thousands of words of guidance for beginning and intermediate Rails developers.
 
@@ -229,7 +229,7 @@ This will enable recognition of (among others) these routes:
 
 * Lead Contributor: "S. Brent Faulkner":http://www.unwwwired.net/
 * More information:
-** "Rails Routing from the Outside In":http://guides.rails.info/routing/routing_outside_in.html#_nested_resources
+** "Rails Routing from the Outside In":http://guides.rubyonrails.org/routing.html#_nested_resources
 ** "What's New in Edge Rails: Shallow Routes":http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-shallow-routes
 
 h4. Method Arrays for Member or Collection Routes

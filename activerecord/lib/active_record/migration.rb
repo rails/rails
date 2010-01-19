@@ -1,7 +1,8 @@
 require 'active_support/core_ext/object/metaclass'
 
 module ActiveRecord
-  class IrreversibleMigration < ActiveRecordError#:nodoc:
+  # Exception that can be raised to stop migrations from going backwards.
+  class IrreversibleMigration < ActiveRecordError
   end
 
   class DuplicateMigrationVersionError < ActiveRecordError#:nodoc:

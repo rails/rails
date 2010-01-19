@@ -20,6 +20,15 @@ module ActiveSupport
         result
       end
 
+      # The same as instrument, but sends the notification even if the yielded
+      # block raises an error.
+      def instrument!(name, payload={})
+        time = Time.now
+        yield(payload) if block_given?
+      ensure
+        @notifier.publish(name, time, Time.now, @id, payload)
+      end
+
       private
         def unique_id
           SecureRandom.hex(10)

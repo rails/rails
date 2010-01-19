@@ -65,7 +65,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
         resources :companies do
           resources :people
-          resource  :avatar
+          resource  :avatar, :controller => :avatar
         end
 
         resources :images do
@@ -294,34 +294,34 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_projects
     with_test_routes do
       get '/projects'
-      assert_equal 'projects#index', @response.body
+      assert_equal 'project#index', @response.body
       assert_equal '/projects', projects_path
 
       post '/projects'
-      assert_equal 'projects#create', @response.body
+      assert_equal 'project#create', @response.body
 
       get '/projects.xml'
-      assert_equal 'projects#index', @response.body
+      assert_equal 'project#index', @response.body
       assert_equal '/projects.xml', projects_path(:format => 'xml')
 
       get '/projects/new'
-      assert_equal 'projects#new', @response.body
+      assert_equal 'project#new', @response.body
       assert_equal '/projects/new', new_project_path
 
       get '/projects/new.xml'
-      assert_equal 'projects#new', @response.body
+      assert_equal 'project#new', @response.body
       assert_equal '/projects/new.xml', new_project_path(:format => 'xml')
 
       get '/projects/1'
-      assert_equal 'projects#show', @response.body
+      assert_equal 'project#show', @response.body
       assert_equal '/projects/1', project_path(:id => '1')
 
       get '/projects/1.xml'
-      assert_equal 'projects#show', @response.body
+      assert_equal 'project#show', @response.body
       assert_equal '/projects/1.xml', project_path(:id => '1', :format => 'xml')
 
       get '/projects/1/edit'
-      assert_equal 'projects#edit', @response.body
+      assert_equal 'project#edit', @response.body
       assert_equal '/projects/1/edit', edit_project_path(:id => '1')
     end
   end
@@ -383,7 +383,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/projects/1/companies/1/people', project_company_people_path(:project_id => '1', :company_id => '1')
 
       get '/projects/1/companies/1/avatar'
-      assert_equal 'avatars#show', @response.body
+      assert_equal 'avatar#show', @response.body
       assert_equal '/projects/1/companies/1/avatar', project_company_avatar_path(:project_id => '1', :company_id => '1')
     end
   end

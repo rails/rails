@@ -252,10 +252,13 @@ class Thor::Group
       shell.padding += 1
 
       result = if block_given?
-        if block.arity == 2
-          block.call(self, klass)
-        else
+        case block.arity
+        when 3
           block.call(self, klass, task)
+        when 2
+          block.call(self, klass)
+        when 1
+          instance_exec(klass, &block)
         end
       else
         invoke klass, task, *args

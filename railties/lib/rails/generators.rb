@@ -87,18 +87,6 @@ module Rails
       @options ||= DEFAULT_OPTIONS.dup
     end
 
-    def self.gems_generators_paths #:nodoc:
-      return [] unless defined?(Gem) && Gem.respond_to?(:loaded_specs)
-      Gem.loaded_specs.inject([]) do |paths, (name, spec)|
-        paths += Dir[File.join(spec.full_gem_path, "lib/{generators,rails_generators}")]
-      end
-    end
-
-    def self.plugins_generators_paths #:nodoc:
-      return [] unless defined?(Rails.root) && Rails.root
-      Dir[File.join(Rails.root, "vendor", "plugins", "*", "lib", "{generators,rails_generators}")]
-    end
-
     # Hold configured generators fallbacks. If a plugin developer wants a
     # generator group to fallback to another group in case of missing generators,
     # they can add a fallback.
@@ -126,31 +114,6 @@ module Rails
       @subclasses ||= []
     end
 
-    # Generators load paths used on lookup. The lookup happens as:
-    #
-    #   1) lib generators
-    #   2) vendor/plugin generators
-    #   3) vendor/gems generators
-    #   4) ~/rails/generators
-    #   5) rubygems generators
-    #   6) builtin generators
-    #
-    # TODO Remove hardcoded paths for all, except (6).
-    #
-    def self.load_paths
-      @load_paths ||= begin
-        paths = []
-        paths += Dir[File.join(Rails.root, "lib", "{generators,rails_generators}")] if defined?(Rails.root) && Rails.root
-        paths += Dir[File.join(Thor::Util.user_home, ".rails", "{generators,rails_generators}")]
-        paths += self.plugins_generators_paths
-        paths += self.gems_generators_paths
-        paths << File.expand_path(File.join(File.dirname(__FILE__), "generators"))
-        paths.uniq!
-        paths
-      end
-    end
-    load_paths # Cache load paths. Needed to avoid __FILE__ pointing to wrong paths.
-
     # Rails finds namespaces similar to thor, it only adds one rule:
     #
     # Generators names must end with "_generator.rb". This is required because Rails
@@ -168,34 +131,26 @@ module Rails
     # Rails looks for is the first and last parts of the namespace.
     #
     def self.find_by_namespace(name, base=nil, context=nil) #:nodoc:
-      # Mount regexps to lookup
-      regexps = []
-      regexps << /^#{base}:[\w:]*#{name}$/    if base
-      regexps << /^#{name}:[\w:]*#{context}$/ if context
-      regexps << /^[(#{name}):]+$/
-      regexps.uniq!
+      lookups = []
+      lookups << "#{base}:#{name}"    if base
+      lookups << "#{name}:#{context}" if context
+      lookups << "#{name}:#{name}"    unless name.to_s.include?(?:)
+      lookups << "#{name}"
+      lookups << "rails:#{name}"      unless base || context || name.to_s.include?(?:)
 
-      # Check if generator happens to be loaded
-      checked = subclasses.dup
-      klass   = find_by_regexps(regexps, checked)
-      return klass if klass
+      lookup(lookups)
 
-      # Try to require other generators by looking in load_paths
-      lookup(name, context)
-      unchecked = subclasses - checked
-      klass = find_by_regexps(regexps, unchecked)
-      return klass if klass
-
-      # Invoke fallbacks
-      invoke_fallbacks_for(name, base) || invoke_fallbacks_for(context, name)
-    end
-
-    # Tries to find a generator which the namespace match the regexp.
-    def self.find_by_regexps(regexps, klasses)
-      klasses.find do |klass|
-        namespace = klass.namespace
-        regexps.find { |r| namespace =~ r }
+      namespaces = subclasses.inject({}) do |hash, klass|
+        hash[klass.namespace] = klass
+        hash
       end
+
+      lookups.each do |namespace|
+        klass = namespaces[namespace]
+        return klass if klass
+      end
+
+      invoke_fallbacks_for(name, base) || invoke_fallbacks_for(context, name)
     end
 
     # Receives a namespace, arguments and the behavior to invoke the generator.
@@ -203,9 +158,8 @@ module Rails
     # commands.
     def self.invoke(namespace, args=ARGV, config={})
       names = namespace.to_s.split(':')
-
-      if klass = find_by_namespace(names.pop, names.shift || "rails")
-        args << "--help" if klass.arguments.any? { |a| a.required? } && args.empty?
+      if klass = find_by_namespace(names.pop, names.shift)
+        args << "--help" if args.empty? && klass.arguments.any? { |a| a.required? }
         klass.start(args, config)
       else
         puts "Could not find generator #{namespace}."
@@ -214,26 +168,46 @@ module Rails
 
     # Show help message with available generators.
     def self.help
-      builtin = Rails::Generators.builtin.each { |n| n.sub!(/^rails:/, '') }
-      builtin.sort!
+      traverse_load_paths!
 
-      lookup("*")
-      others  = subclasses.map{ |k| k.namespace.gsub(':generators:', ':') }
-      others -= Rails::Generators.builtin
-      others.sort!
+      namespaces = subclasses.map{ |k| k.namespace }
+      namespaces.sort!
 
-      puts "Please select a generator."
-      puts "Builtin: #{builtin.join(', ')}."
-      puts "Others: #{others.join(', ')}." unless others.empty?
+      groups = Hash.new { |h,k| h[k] = [] }
+      namespaces.each do |namespace|
+        base = namespace.split(':').first
+        groups[base] << namespace
+      end
+
+      puts "Usage:"
+      puts "  script/generate GENERATOR [args] [options]"
+      puts
+      puts "General options:"
+      puts "  -h, [--help]     # Print generators options and usage"
+      puts "  -p, [--pretend]  # Run but do not make any changes"
+      puts "  -f, [--force]    # Overwrite files that already exist"
+      puts "  -s, [--skip]     # Skip files that already exist"
+      puts "  -q, [--quiet]    # Supress status output"
+      puts
+      puts "Please choose a generator below."
+      puts
+
+      # Print Rails defaults first.
+      rails = groups.delete("rails")
+      rails.map! { |n| n.sub(/^rails:/, '') }
+      print_list("rails", rails)
+
+      groups.sort.each { |b, n| print_list(b, n) }
     end
 
     protected
 
-      # Keep builtin generators in an Array.
-      def self.builtin #:nodoc:
-        Dir[File.dirname(__FILE__) + '/generators/*/*'].collect do |file|
-          file.split('/')[-2, 2].join(':')
-        end
+      # Prints a list of generators.
+      def self.print_list(base, namespaces) #:nodoc:
+        return if namespaces.empty?
+        puts "#{base.camelize}:"
+        namespaces.each { |namespace| puts("  #{namespace}") }
+        puts
       end
 
       # Try fallbacks for the given base.
@@ -252,25 +226,53 @@ module Rails
         nil
       end
 
-      # Receives namespaces in an array and tries to find matching generators
-      # in the load path.
-      def self.lookup(*attempts) #:nodoc:
-        attempts.compact!
-        attempts.uniq!
-        attempts = "{#{attempts.join(',')}}_generator.rb"
-
-        self.load_paths.each do |path|
-          Dir[File.join(path, '**', attempts)].each do |file|
+      # This will try to load any generator in the load path to show in help.
+      def self.traverse_load_paths! #:nodoc:
+        $LOAD_PATH.each do |base|
+          Dir[File.join(base, "{generators,rails_generators}", "**", "*_generator.rb")].each do |path|
             begin
-              require file
-            rescue NameError => e
-              raise unless e.message =~ /Rails::Generator/
-              warn "[WARNING] Could not load generator at #{file.inspect} because it's a Rails 2.x generator, which is not supported anymore"
+              require path
             rescue Exception => e
-              warn "[WARNING] Could not load generator at #{file.inspect}. Error: #{e.message}"
+              # No problem
             end
           end
         end
+      end
+
+      # Receives namespaces in an array and tries to find matching generators
+      # in the load path.
+      def self.lookup(namespaces) #:nodoc:
+        paths = namespaces_to_paths(namespaces)
+
+        paths.each do |path|
+          ["generators", "rails_generators"].each do |base|
+            path = "#{base}/#{path}_generator"
+
+            begin
+              require path
+              return
+            rescue LoadError => e
+              raise unless e.message =~ /#{Regexp.escape(path)}$/
+            rescue NameError => e
+              raise unless e.message =~ /Rails::Generator([\s(::)]|$)/
+              warn "[WARNING] Could not load generator #{path.inspect} because it's a Rails 2.x generator, which is not supported anymore. Error: #{e.message}"
+            end
+          end
+        end
+      end
+
+      # Convert namespaces to paths by replacing ":" for "/" and adding
+      # an extra lookup. For example, "rails:model" should be searched
+      # in both: "rails/model/model_generator" and "rails/model_generator".
+      def self.namespaces_to_paths(namespaces) #:nodoc:
+        paths = []
+        namespaces.each do |namespace|
+          pieces = namespace.split(":")
+          paths << pieces.dup.push(pieces.last).join("/")
+          paths << pieces.join("/")
+        end
+        paths.uniq!
+        paths
       end
 
   end

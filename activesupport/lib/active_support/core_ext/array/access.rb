@@ -4,7 +4,7 @@ class Array
   #   %w( a b c d ).from(0)  # => %w( a b c d )
   #   %w( a b c d ).from(2)  # => %w( c d )
   #   %w( a b c d ).from(10) # => nil
-  #   %w().from(0)           # => nil
+  #   %w().from(0)           # => %w()
   def from(position)
     self[position..-1]
   end

@@ -192,8 +192,8 @@ module ActiveRecord
       with_transaction_returning_status(:destroy_without_transactions)
     end
 
-    def save_with_transactions(perform_validation = true) #:nodoc:
-      rollback_active_record_state! { with_transaction_returning_status(:save_without_transactions, perform_validation) }
+    def save_with_transactions(*args) #:nodoc:
+      rollback_active_record_state! { with_transaction_returning_status(:save_without_transactions, *args) }
     end
 
     def save_with_transactions! #:nodoc:

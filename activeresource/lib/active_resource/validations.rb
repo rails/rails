@@ -58,9 +58,8 @@ module ActiveResource
   #   person.save                   # => true (and person is now saved to the remote service)
   #
   module Validations
-    extend ActiveSupport::Concern
+    extend  ActiveSupport::Concern
     include ActiveModel::Validations
-    extend ActiveModel::Validations::ClassMethods
 
     included do
       alias_method_chain :save, :validation
@@ -68,7 +67,17 @@ module ActiveResource
 
     # Validate a resource and save (POST) it to the remote web service.
     # If any local validations fail - the save (POST) will not be attempted.
-    def save_with_validation(perform_validation = true)
+    def save_with_validation(options=nil)
+      perform_validation = case options
+        when Hash
+          options[:validate] != false
+        when NilClass
+          true
+        else
+          ActiveSupport::Deprecation.warn "save(#{options}) is deprecated, please give save(:validate => #{options}) instead", caller
+          options
+      end
+
       # clear the remote validations so they don't interfere with the local
       # ones. Otherwise we get an endless loop and can never change the
       # fields so as to make the resource valid

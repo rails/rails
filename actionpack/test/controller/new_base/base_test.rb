@@ -3,6 +3,8 @@ require 'abstract_unit'
 # Tests the controller dispatching happy path
 module Dispatching
   class SimpleController < ActionController::Base
+    before_filter :authenticate
+
     def index
       render :text => "success"
     end
@@ -12,12 +14,20 @@ module Dispatching
     end
 
     def modify_response_body_twice
-      ret = (self.response_body = "success") 
+      ret = (self.response_body = "success")
       self.response_body = "#{ret}!"
     end
 
     def modify_response_headers
     end
+
+    def show_actions
+      render :text => "actions: #{action_methods.to_a.join(', ')}"
+    end
+
+    protected
+      def authenticate
+      end
   end
 
   class EmptyController < ActionController::Base ; end
@@ -63,6 +73,22 @@ module Dispatching
     test "controller name" do
       assert_equal 'empty', EmptyController.controller_name
       assert_equal 'contained_empty', Submodule::ContainedEmptyController.controller_name
+    end
+
+    test "action methods" do
+      assert_equal Set.new(%w(
+        modify_response_headers
+        modify_response_body_twice
+        index
+        modify_response_body
+        show_actions
+      )), SimpleController.action_methods
+
+      assert_equal Set.new, EmptyController.action_methods
+      assert_equal Set.new, Submodule::ContainedEmptyController.action_methods
+
+      get "/dispatching/simple/show_actions"
+      assert_body "actions: modify_response_headers, modify_response_body_twice, index, modify_response_body, show_actions"
     end
   end
 end

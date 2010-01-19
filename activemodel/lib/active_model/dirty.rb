@@ -1,5 +1,43 @@
 module ActiveModel
-  # Track unsaved attribute changes.
+  # <tt>ActiveModel::Dirty</tt> provides a way to track changes in your
+  # object in the same way as ActiveRecord does.
+  # 
+  # The requirements to implement ActiveModel::Dirty are:
+  #
+  # * <tt>include ActiveModel::Dirty</tt> in your object
+  # * Call <tt>define_attribute_methods</tt> passing each method you want to track
+  # * Call <tt>attr_name_will_change!</tt> before each change to the tracked attribute
+  # 
+  # If you wish to also track previous changes on save or update, you need to add
+  # 
+  #   @previously_changed = changes
+  # 
+  # inside of your save or update method.
+  # 
+  # A minimal implementation could be:
+  # 
+  #   class Person
+  #   
+  #     include ActiveModel::Dirty
+  #   
+  #     define_attribute_methods [:name]
+  #   
+  #     def name
+  #       @name
+  #     end
+  #   
+  #     def name=(val)
+  #       name_will_change!
+  #       @name = val
+  #     end
+  #   
+  #     def save
+  #       @previously_changed = changes
+  #     end
+  #   
+  #   end
+  # 
+  # == Examples:
   #
   # A newly instantiated object is unchanged:
   #   person = Person.find_by_name('Uncle Bob')

@@ -17,7 +17,7 @@ module Rails
       def self.source_root
         @_rails_source_root ||= begin
           if base_name && generator_name
-            File.expand_path(File.join(File.dirname(__FILE__), base_name, generator_name, 'templates'))
+            File.expand_path(File.join("../../generators", base_name, generator_name, 'templates'), File.dirname(__FILE__))
           end
         end
       end
@@ -42,7 +42,7 @@ module Rails
       #
       def self.namespace(name=nil)
         return super if name
-        @namespace ||= super.sub(/_generator$/, '')
+        @namespace ||= super.sub(/_generator$/, '').sub(/:generators:/, ':')
       end
 
       # Invoke a generator based on the value supplied by the user to the
@@ -324,9 +324,13 @@ module Rails
         # added hook is being used.
         #
         def self.prepare_for_invocation(name, value) #:nodoc:
+          return super unless value.is_a?(String) || value.is_a?(Symbol)
+
           if value && constants = self.hooks[name]
             value = name if TrueClass === value
             Rails::Generators.find_by_namespace(value, *constants)
+          elsif klass = Rails::Generators.find_by_namespace(value)
+            klass
           else
             super
           end

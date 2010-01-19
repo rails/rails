@@ -13,8 +13,7 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal({
       "Content-Type" => "text/html; charset=utf-8",
       "Cache-Control" => "max-age=0, private, must-revalidate",
-      "ETag" => '"65a8e27d8879283831b664bd8b7f0ad4"',
-      "Set-Cookie" => ""
+      "ETag" => '"65a8e27d8879283831b664bd8b7f0ad4"'
     }, headers)
 
     parts = []
@@ -30,8 +29,7 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal({
       "Content-Type" => "text/html; charset=utf-8",
       "Cache-Control" => "max-age=0, private, must-revalidate",
-      "ETag" => '"ebb5e89e8a94e9dd22abf5d915d112b2"',
-      "Set-Cookie" => ""
+      "ETag" => '"ebb5e89e8a94e9dd22abf5d915d112b2"'
     }, headers)
   end
 
@@ -44,8 +42,7 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal 200, status
     assert_equal({
       "Content-Type" => "text/html; charset=utf-8",
-      "Cache-Control" => "no-cache",
-      "Set-Cookie" => ""
+      "Cache-Control" => "no-cache"
     }, headers)
 
     parts = []

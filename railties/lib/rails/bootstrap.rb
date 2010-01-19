@@ -23,8 +23,8 @@ module Rails
     # the load_once paths.
     initializer :set_autoload_paths do
       require 'active_support/dependencies'
-      ActiveSupport::Dependencies.load_paths = config.load_paths.uniq
-      ActiveSupport::Dependencies.load_once_paths = config.load_once_paths.uniq
+      ActiveSupport::Dependencies.load_paths = expand_load_path(config.load_paths)
+      ActiveSupport::Dependencies.load_once_paths = expand_load_path(config.load_once_paths)
 
       extra = ActiveSupport::Dependencies.load_once_paths - ActiveSupport::Dependencies.load_paths
       unless extra.empty?
@@ -140,7 +140,7 @@ module Rails
       end
     end
 
-    initializer :initialize_notifications do 
+    initializer :initialize_notifications do
       require 'active_support/notifications'
 
       if config.colorize_logging == false
@@ -152,5 +152,10 @@ module Rails
         Rails::Subscriber.dispatch(args)
       end
     end
+
+    private
+      def expand_load_path(load_paths)
+        load_paths.map { |path| Dir.glob(path.to_s) }.flatten.uniq
+      end
   end
 end

@@ -68,10 +68,12 @@ class RelationTest < ActiveRecord::TestCase
 
     assert topics.loaded?
 
-    topics.reload
-    assert ! topics.loaded?
+    original_size = topics.to_a.size
+    Topic.create! :title => 'fake'
 
-    assert_queries(1) { topics.to_a }
+    assert_queries(1) { topics.reload }
+    assert_equal original_size + 1, topics.size
+    assert topics.loaded?
   end
 
   def test_finding_with_conditions
@@ -337,6 +339,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { authors.find(['42', 43]) }
   end
 
+  def test_find_in_empty_array
+    authors = Author.scoped.where(:id => [])
+    assert authors.all.blank?
+  end
+
   def test_exists
     davids = Author.where(:name => 'David')
     assert davids.exists?
@@ -416,10 +423,6 @@ class RelationTest < ActiveRecord::TestCase
     [Post.scoped & Post.preload(:author), Post.preload(:author) & Post.scoped].each do |posts|
       assert_queries(2) { assert posts.first.author }
     end
-  end
-
-  def test_invalid_merge
-    assert_raises(ArgumentError) { Post.scoped & Developer.scoped }
   end
 
   def test_count

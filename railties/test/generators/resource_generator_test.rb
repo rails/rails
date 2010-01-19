@@ -1,7 +1,8 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/resource/resource_generator'
+require 'generators/rails/resource/resource_generator'
 
-class ResourceGeneratorTest < GeneratorsTestCase
+class ResourceGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   arguments %w(account)
 
   def setup

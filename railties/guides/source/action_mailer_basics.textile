@@ -402,8 +402,6 @@ Testing mailers normally involves two things: One is that the mail was queued, a
 
 <ruby>
 class UserMailerTest < ActionMailer::TestCase
-  tests UserMailer
-
   def test_welcome_email
     user = users(:some_user_in_your_fixtures)
 
@@ -412,7 +410,7 @@ class UserMailerTest < ActionMailer::TestCase
     assert !ActionMailer::Base.deliveries.empty?
 
     # Test the body of the sent email contains what we expect it to
-    assert_equal [@user.email], email.to
+    assert_equal [user.email], email.to
     assert_equal "Welcome to My Awesome Site", email.subject
     assert_match /Welcome to example.com, #{user.first_name}/, email.body
   end

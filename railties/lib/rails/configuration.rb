@@ -14,9 +14,12 @@ module Rails
         middleware.use('::Rack::Lock', :if => lambda { !ActionController::Base.allow_concurrency })
         middleware.use('::Rack::Runtime')
         middleware.use('ActionDispatch::ShowExceptions', lambda { ActionController::Base.consider_all_requests_local })
-        middleware.use('ActionDispatch::Callbacks', lambda { ActionController::Dispatcher.prepare_each_request })
+        middleware.use('ActionDispatch::Notifications')
+        middleware.use('ActionDispatch::Callbacks', lambda { !Rails.application.config.cache_classes })
+        middleware.use('ActionDispatch::Cookies')
         middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
         middleware.use('ActionDispatch::Flash', :if => lambda { ActionController::Base.session_store })
+        middleware.use(lambda { Rails::Rack::Metal.new(Rails.application.config.paths.app.metals.to_a, Rails.application.config.metals) })
         middleware.use('ActionDispatch::ParamsParser')
         middleware.use('::Rack::MethodOverride')
         middleware.use('::ActionDispatch::Head')
@@ -197,12 +200,7 @@ module Rails
     end
 
     def eager_load_paths
-      @eager_load_paths ||= %w(
-        app/metal
-        app/models
-        app/controllers
-        app/helpers
-      ).map { |dir| "#{root}/#{dir}" }.select { |dir| File.directory?(dir) }
+      @eager_load_paths ||= ["#{root}/app/*"]
     end
 
     def load_paths
@@ -212,20 +210,13 @@ module Rails
         # Add the old mock paths only if the directories exists
         paths.concat(Dir["#{root}/test/mocks/#{Rails.env}"]) if File.exists?("#{root}/test/mocks/#{Rails.env}")
 
-        # Add the app's controller directory
-        paths.concat(Dir["#{root}/app/controllers/"])
-
         # Followed by the standard includes.
         paths.concat %w(
           app
-          app/metal
-          app/models
-          app/controllers
-          app/helpers
-          app/services
+          app/*
           lib
           vendor
-        ).map { |dir| "#{root}/#{dir}" }.select { |dir| File.directory?(dir) }
+        ).map { |dir| "#{root}/#{dir}" }
 
         paths.concat builtin_directories
       end

@@ -869,10 +869,9 @@ module ActiveRecord #:nodoc:
       #   # Update all books that match our conditions, but limit it to 5 ordered by date
       #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
       def update_all(updates, conditions = nil, options = {})
-        relation = active_relation
+        relation = unscoped
 
         relation = relation.where(conditions) if conditions
-        relation = relation.where(type_condition) if finder_needs_type_condition?
         relation = relation.limit(options[:limit]) if options[:limit].present?
         relation = relation.order(options[:order]) if options[:order].present?
 
@@ -1389,7 +1388,7 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         undefine_attribute_methods
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
-        @active_relation = @arel_engine = nil
+        @arel_engine = @unscoped = @arel_table = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -1502,12 +1501,13 @@ module ActiveRecord #:nodoc:
         "(#{segments.join(') AND (')})" unless segments.empty?
       end
 
-      def active_relation
-        @active_relation ||= Relation.new(self, arel_table)
+      def unscoped
+        @unscoped ||= Relation.new(self, arel_table)
+        finder_needs_type_condition? ? @unscoped.where(type_condition) : @unscoped
       end
 
-      def arel_table(table_name_alias = nil)
-        Arel::Table.new(table_name, :as => table_name_alias, :engine => arel_engine)
+      def arel_table
+        @arel_table ||= Arel::Table.new(table_name, :engine => arel_engine)
       end
 
       def arel_engine
@@ -1563,24 +1563,7 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_arel(options = {}, scope = nil)
-          validate_find_options(options)
-
-          relation = active_relation.
-            joins(options[:joins]).
-            where(options[:conditions]).
-            select(options[:select]).
-            group(options[:group]).
-            having(options[:having]).
-            order(options[:order]).
-            limit(options[:limit]).
-            offset(options[:offset]).
-            from(options[:from]).
-            includes(options[:include])
-
-          relation = relation.where(type_condition) if finder_needs_type_condition?
-          relation = relation.lock(options[:lock]) if options[:lock].present?
-          relation = relation.readonly(options[:readonly]) if options.has_key?(:readonly)
-
+          relation = unscoped.apply_finder_options(options)
           relation = scope.merge(relation) if scope
           relation
         end
@@ -1600,14 +1583,9 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Merges includes so that the result is a valid +include+
-        def merge_includes(first, second)
-         (Array.wrap(first) + Array.wrap(second)).uniq
-        end
-
         def build_association_joins(joins)
           join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, joins, nil)
-          relation = active_relation.table
+          relation = unscoped.table
           join_dependency.join_associations.map { |association|
             if (association_relation = association.relation).is_a?(Array)
               [Arel::InnerJoin.new(relation, association_relation.first, *association.association_join.first).joins(relation),
@@ -1746,10 +1724,10 @@ module ActiveRecord #:nodoc:
         #   class Article < ActiveRecord::Base
         #     def self.find_with_scope
         #       with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }, :create => { :blog_id => 1 }) do
-        #         with_scope(:find => { :limit => 10 })
+        #         with_scope(:find => { :limit => 10 }) do
         #           find(:all) # => SELECT * from articles WHERE blog_id = 1 LIMIT 10
         #         end
-        #         with_scope(:find => { :conditions => "author_id = 3" })
+        #         with_scope(:find => { :conditions => "author_id = 3" }) do
         #           find(:all) # => SELECT * from articles WHERE blog_id = 1 AND author_id = 3 LIMIT 1
         #         end
         #       end
@@ -1781,11 +1759,6 @@ module ActiveRecord #:nodoc:
             end
 
             method_scoping.assert_valid_keys([ :find, :create ])
-
-            if f = method_scoping[:find]
-              f.assert_valid_keys(VALID_FIND_OPTIONS)
-            end
-
             relation = construct_finder_arel(method_scoping[:find] || {})
 
             if current_scoped_methods && current_scoped_methods.create_with_value && method_scoping[:create]
@@ -2047,13 +2020,6 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,
-                               :order, :select, :readonly, :group, :having, :from, :lock ]
-
-        def validate_find_options(options) #:nodoc:
-          options.assert_valid_keys(VALID_FIND_OPTIONS)
-        end
-
         def encode_quoted_value(value) #:nodoc:
           quoted_value = connection.quote(value)
           quoted_value = "'#{quoted_value[1..-2].gsub(/\'/, "\\\\'")}'" if quoted_value.include?("\\\'") # (for ruby mode) "
@@ -2170,16 +2136,16 @@ module ActiveRecord #:nodoc:
       end
 
       # :call-seq:
-      #   save(perform_validation = true)
+      #   save(options)
       #
       # Saves the model.
       #
       # If the model is new a record gets created in the database, otherwise
       # the existing record gets updated.
       #
-      # If +perform_validation+ is true validations run. If any of them fail
-      # the action is cancelled and +save+ returns +false+. If the flag is
-      # false validations are bypassed altogether. See
+      # By default, save always run validations. If any of them fail the action
+      # is cancelled and +save+ returns +false+. However, if you supply
+      # :validate => false, validations are bypassed altogether. See
       # ActiveRecord::Validations for more information.
       #
       # There's a series of callbacks associated with +save+. If any of the
@@ -2227,7 +2193,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          self.class.active_relation.where(self.class.active_relation[self.class.primary_key].eq(id)).delete_all
+          self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
         end
 
         @destroyed = true
@@ -2254,7 +2220,7 @@ module ActiveRecord #:nodoc:
       # in Base is replaced with this when the validations module is mixed in, which it is by default.
       def update_attribute(name, value)
         send(name.to_s + '=', value)
-        save(false)
+        save(:validate => false)
       end
 
       # Updates all the attributes from the passed-in Hash and saves the record. If the object is invalid, the saving will
@@ -2514,7 +2480,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        self.class.active_relation.where(self.class.active_relation[self.class.primary_key].eq(id)).update(attributes_with_values)
+        self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes
@@ -2527,9 +2493,9 @@ module ActiveRecord #:nodoc:
         attributes_values = arel_attributes_values
 
         new_id = if attributes_values.empty?
-          self.class.active_relation.insert connection.empty_insert_statement_value
+          self.class.unscoped.insert connection.empty_insert_statement_value
         else
-          self.class.active_relation.insert attributes_values
+          self.class.unscoped.insert attributes_values
         end
 
         self.id ||= new_id
@@ -2624,7 +2590,7 @@ module ActiveRecord #:nodoc:
               if value && ((self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))) || value.is_a?(Hash) || value.is_a?(Array))
                 value = value.to_yaml
               end
-              attrs[self.class.active_relation[name]] = value
+              attrs[self.class.arel_table[name]] = value
             end
           end
         end

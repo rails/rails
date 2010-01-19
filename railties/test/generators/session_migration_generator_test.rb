@@ -1,7 +1,9 @@
 require 'generators/generators_test_helper'
-require 'rails/generators/rails/session_migration/session_migration_generator'
+require 'generators/rails/session_migration/session_migration_generator'
 
-class SessionMigrationGeneratorTest < GeneratorsTestCase
+class SessionMigrationGeneratorTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
+
   def test_session_migration_with_default_name
     run_generator
     assert_migration "db/migrate/add_sessions_table.rb", /class AddSessionsTable < ActiveRecord::Migration/

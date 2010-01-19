@@ -37,8 +37,8 @@ module ControllerRuntimeSubscriberTest
     get :show
     wait
 
-    assert_equal 2, @logger.logged(:info).size
-    assert_match /\(Views: [\d\.]+ms | ActiveRecord: [\d\.]+ms\)/, @logger.logged(:info)[1]
+    assert_equal 1, @logger.logged(:info).size
+    assert_match /\(Views: [\d\.]+ms | ActiveRecord: [\d\.]+ms\)/, @logger.logged(:info)[0]
   end
 
   class SyncSubscriberTest < ActionController::TestCase

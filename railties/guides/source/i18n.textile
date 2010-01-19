@@ -243,7 +243,7 @@ map.dashboard '/:locale', :controller => "dashboard"
 
 Do take special care about the *order of your routes*, so this route declaration does not "eat" other ones. (You may want to add it directly before the +map.root+ declaration.)
 
-IMPORTANT: This solution has currently one rather big *downside*. Due to the _default_url_options_ implementation, you have to pass the +:id+ option explicitly, like this: +link_to 'Show', book_url(:id => book)+ and not depend on Rails' magic in code like +link_to 'Show', book+. If this should be a problem, have a look at two plugins which simplify work with routes in this way: Sven Fuchs's "routing_filter":http://github.com/svenfuchs/routing-filter/tree/master and Raul Murciano's "translate_routes":http://github.com/raul/translate_routes/tree/master. See also the page "How to encode the current locale in the URL":http://rails-i18n.org/wiki/pages/how-to-encode-the-current-locale-in-the-url in the Rails i18n Wiki.
+IMPORTANT: This solution has currently one rather big *downside*. Due to the _default_url_options_ implementation, you have to pass the +:id+ option explicitly, like this: +link_to 'Show', book_url(:id => book)+ and not depend on Rails' magic in code like +link_to 'Show', book+. If this should be a problem, have a look at two plugins which simplify work with routes in this way: Sven Fuchs's "routing_filter":http://github.com/svenfuchs/routing-filter/tree/master and Raul Murciano's "translate_routes":http://github.com/raul/translate_routes/tree/master. See also the page "How to encode the current locale in the URL":http://rails-i18n.org/wiki/wikipages/how-to-encode-the-current-locale-in-the-url in the Rails i18n Wiki.
 
 h4. Setting the Locale from the Client Supplied Information
 
