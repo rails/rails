@@ -193,3 +193,26 @@ functionality from the following modules:
 
   {Learn more}[link:classes/ActiveModel/Validations.html]
   
+* Make custom validators
+
+   class Person
+     include ActiveModel::Validations
+     validates_with HasNameValidator
+     attr_accessor :name
+   end
+   
+   class HasNameValidator < ActiveModel::Validator
+     def validate(record)
+      record.errors[:name] = "must exist" if record.name.blank?
+     end
+   end
+  
+   p = ValidatorPerson.new
+   p.valid?                  #=>  false
+   p.errors.full_messages    #=> ["Name must exist"]
+   p.name = "Bob"
+   p.valid?                  #=>  true
+
+  {Learn more}[link:classes/ActiveModel/Validator.html]
+  
+  
