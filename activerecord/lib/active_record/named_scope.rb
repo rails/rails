@@ -176,11 +176,6 @@ module ActiveRecord
         end
       end
 
-      def count(*args)
-        options = args.extract_options!
-        options.present? ? apply_finder_options(options).count(*args) : super
-      end
-
       def ==(other)
         other.respond_to?(:to_a) ? to_a == other.to_a : false
       end
