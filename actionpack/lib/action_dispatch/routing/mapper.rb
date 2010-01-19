@@ -375,6 +375,15 @@ module ActionDispatch
             end
           end
 
+          def action_type(action)
+            case action
+            when :index, :create
+              :collection
+            when :show, :update, :destroy
+              :member
+            end
+          end
+
           def name
             options[:as] || plural
           end
@@ -391,6 +400,15 @@ module ActionDispatch
             plural
           end
 
+          def name_for_action(action)
+            case action_type(action)
+            when :collection
+              collection_name
+            when :member
+              member_name
+            end
+          end
+
           def id_segment
             ":#{singular}_id"
           end
@@ -403,6 +421,13 @@ module ActionDispatch
 
           def initialize(entity, options = {})
             super
+          end
+
+          def action_type(action)
+            case action
+            when :show, :create, :update, :destroy
+              :member
+            end
           end
 
           def name
@@ -428,7 +453,7 @@ module ActionDispatch
             with_scope_level(:resource, resource) do
               yield if block_given?
 
-              get    :show, :as => resource.member_name if resource.actions.include?(:show)
+              get    :show if resource.actions.include?(:show)
               post   :create if resource.actions.include?(:create)
               put    :update if resource.actions.include?(:update)
               delete :destroy if resource.actions.include?(:destroy)
@@ -454,14 +479,14 @@ module ActionDispatch
               yield if block_given?
 
               with_scope_level(:collection) do
-                get  :index, :as => resource.collection_name if resource.actions.include?(:index)
+                get  :index if resource.actions.include?(:index)
                 post :create if resource.actions.include?(:create)
                 get  :new, :as => resource.singular if resource.actions.include?(:new)
               end
 
               with_scope_level(:member) do
                 scope(':id') do
-                  get    :show, :as => resource.member_name if resource.actions.include?(:show)
+                  get    :show if resource.actions.include?(:show)
                   put    :update if resource.actions.include?(:update)
                   delete :destroy if resource.actions.include?(:destroy)
                   get    :edit, :as => resource.singular if resource.actions.include?(:edit)
@@ -525,7 +550,10 @@ module ActionDispatch
               begin
                 old_path = @scope[:path]
                 @scope[:path] = "#{@scope[:path]}(.:format)"
-                return match(options.reverse_merge(:to => action))
+                return match(options.reverse_merge(
+                  :to => action,
+                  :as => parent_resource.name_for_action(action)
+                ))
               ensure
                 @scope[:path] = old_path
               end
