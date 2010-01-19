@@ -2,8 +2,6 @@ module ActiveRecord
   module Calculations #:nodoc:
     extend ActiveSupport::Concern
 
-    CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct, :limit, :offset, :include, :from]
-
     module ClassMethods
       # Count operates using three different approaches.
       #
@@ -147,26 +145,11 @@ module ActiveRecord
       end
 
       private
-        def validate_calculation_options(options = {})
-          options.assert_valid_keys(CALCULATIONS_OPTIONS)
-        end
 
-        def construct_calculation_arel(options = {})
-          validate_calculation_options(options)
-          options = options.except(:distinct)
-
-          merge_with_includes = current_scoped_methods ? current_scoped_methods.includes_values : []
-          includes = (merge_with_includes + Array.wrap(options[:include])).uniq
-
-          if includes.any?
-            merge_with_joins = current_scoped_methods ? current_scoped_methods.joins_values : []
-            joins = (merge_with_joins + Array.wrap(options[:joins])).uniq
-            join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, includes, construct_join(joins))
-            construct_finder_arel_with_included_associations(options, join_dependency)
-          else
-            scoped.apply_finder_options(options)
-          end
-        end
+      def construct_calculation_arel(options = {})
+        relation = scoped.apply_finder_options(options.except(:distinct))
+        (relation.eager_loading? || relation.includes_values.present?) ? relation.send(:construct_relation_for_association_calculations) : relation
+      end
 
     end
   end

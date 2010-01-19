@@ -45,12 +45,10 @@ module ActiveRecord
     def to_a
       return @records if loaded?
 
-      eager_loading = @eager_load_values.any? || (@includes_values.any? && references_eager_loaded_tables?)
-
-      @records = eager_loading ? find_with_associations : @klass.find_by_sql(arel.to_sql)
+      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql)
 
       preload = @preload_values
-      preload +=  @includes_values unless eager_loading
+      preload +=  @includes_values unless eager_loading?
       preload.each {|associations| @klass.send(:preload_associations, @records, associations) } 
 
       # @readonly_value is true only if set explicity. @implicit_readonly is true if there are JOINS and no explicit SELECT.
@@ -112,6 +110,7 @@ module ActiveRecord
 
     def reset
       @first = @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
+      @should_eager_load = @join_dependency = nil
       @records = []
       self
     end
@@ -131,6 +130,10 @@ module ActiveRecord
           hash
         end
       end
+    end
+
+    def eager_loading?
+      @should_eager_load ||= (@eager_load_values.any? || (@includes_values.any? && references_eager_loaded_tables?))
     end
 
     protected
