@@ -8,6 +8,7 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods
 
     delegate :length, :collect, :map, :each, :all?, :include?, :to => :to_a
+    delegate :insert, :update, :where_clause, :to => :arel
 
     attr_reader :table, :klass
 
@@ -139,10 +140,10 @@ module ActiveRecord
     protected
 
     def method_missing(method, *args, &block)
-      if arel.respond_to?(method)
-        arel.send(method, *args, &block)
-      elsif Array.method_defined?(method)
+      if Array.method_defined?(method)
         to_a.send(method, *args, &block)
+      elsif arel.respond_to?(method)
+        arel.send(method, *args, &block)
       elsif match = DynamicFinderMatch.match(method)
         attributes = match.attribute_names
         super unless @klass.send(:all_attributes_exists?, attributes)
