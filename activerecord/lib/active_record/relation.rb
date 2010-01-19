@@ -60,8 +60,6 @@ module ActiveRecord
       @records
     end
 
-    alias all to_a
-
     def size
       loaded? ? @records.length : count
     end
