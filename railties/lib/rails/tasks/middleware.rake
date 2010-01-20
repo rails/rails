@@ -3,5 +3,5 @@ task :middleware => :environment do
   Rails.configuration.middleware.active.each do |middleware|
     puts "use #{middleware.inspect}"
   end
-  puts "run ActionController::Routing::Routes"
+  puts "run #{Rails.application.class.name}"
 end

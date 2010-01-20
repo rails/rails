@@ -60,9 +60,7 @@ module ActionDispatch
       end
 
       def inspect
-        str = klass.to_s
-        args.each { |arg| str += ", #{build_args.inspect}" }
-        str
+        klass.to_s
       end
 
       def build(app)
