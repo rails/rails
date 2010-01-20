@@ -556,7 +556,7 @@ module ActiveRecord #:nodoc:
       end
       alias :colorize_logging= :colorize_logging
 
-      delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :to => :scoped
+      delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :to => :scoped
       delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
@@ -686,27 +686,6 @@ module ActiveRecord #:nodoc:
         end
 
         relation.update(sanitize_sql_for_assignment(updates))
-      end
-
-      # Deletes the records matching +conditions+ without instantiating the records first, and hence not
-      # calling the +destroy+ method nor invoking callbacks. This is a single SQL DELETE statement that
-      # goes straight to the database, much more efficient than +destroy_all+. Be careful with relations
-      # though, in particular <tt>:dependent</tt> rules defined on associations are not honored.  Returns
-      # the number of rows affected.
-      #
-      # ==== Parameters
-      #
-      # * +conditions+ - Conditions are specified the same way as with +find+ method.
-      #
-      # ==== Example
-      #
-      #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
-      #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
-      #
-      # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
-      # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
-      def delete_all(conditions = nil)
-        where(conditions).delete_all
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
