@@ -74,17 +74,14 @@ module ActionController
       @subclasses ||= []
     end
 
-    def _normalize_options(action = nil, options = {}, &blk)
-      if action.is_a?(Hash)
-        options, action = action, nil
-      elsif action.is_a?(String) || action.is_a?(Symbol)
-        key = case action = action.to_s
-        when %r{^/} then :file
-        when %r{/}  then :template
-        else             :action
-        end
-        options.merge! key => action
-      elsif action
+    def _normalize_options(action=nil, options={}, &blk)
+      case action
+      when NilClass
+      when Hash, String
+        options = super
+      when Symbol
+        options.merge! :action => action
+      else
         options.merge! :partial => action
       end
 
@@ -98,16 +95,6 @@ module ActionController
 
       options[:update] = blk if block_given?
       options
-    end
-
-    def render(action = nil, options = {}, &blk)
-      options = _normalize_options(action, options, &blk)
-      super(options)
-    end
-
-    def render_to_string(action = nil, options = {}, &blk)
-      options = _normalize_options(action, options, &blk)
-      super(options)
     end
   end
 end

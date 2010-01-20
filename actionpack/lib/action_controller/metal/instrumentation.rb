@@ -32,18 +32,12 @@ module ActionController
       end
     end
 
-    def render(*args, &block)
-      if logger
-        render_output = nil
-
-        self.view_runtime = cleanup_view_runtime do
-          Benchmark.ms { render_output = super }
-        end
-
-        render_output
-      else
-        super
+    def render(*args)
+      render_output = nil
+      self.view_runtime = cleanup_view_runtime do
+        Benchmark.ms { render_output = super }
       end
+      render_output
     end
 
     def send_file(path, options={})

@@ -40,12 +40,13 @@ module AbstractController
 
     # Mostly abstracts the fact that calling render twice is a DoubleRenderError.
     # Delegates render_to_body and sticks the result in self.response_body.
-    def render(*args)
+    def render(*args, &block)
       if response_body
         raise AbstractController::DoubleRenderError, "Can only render or redirect once per action"
       end
 
-      self.response_body = render_to_body(*args)
+      options = _normalize_options(*args, &block)
+      self.response_body = render_to_body(options)
     end
 
     # Raw rendering of a template to a Rack-compatible body.
@@ -69,7 +70,8 @@ module AbstractController
     # render_to_body into a String.
     #
     # :api: plugin
-    def render_to_string(options = {})
+    def render_to_string(*args)
+      options = _normalize_options(*args)
       AbstractController::Rendering.body_to_s(render_to_body(options))
     end
 
@@ -94,6 +96,20 @@ module AbstractController
     # more details about writing custom view paths.
     def view_paths
       _view_paths
+    end
+
+    # Normalize options, by converting render "foo" to render :template => "foo"
+    # and render "/foo" to render :file => "/foo".
+    def _normalize_options(action=nil, options={})
+      case action
+      when Hash
+        options, action = action, nil
+      when String
+        key = (action.index("/") == 0 ? :file : :template)
+        options.merge!(key => action)
+      end
+
+      options
     end
 
     # Return a string representation of a Rack-compatible response body.

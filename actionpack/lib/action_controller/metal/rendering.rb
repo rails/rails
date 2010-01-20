@@ -12,9 +12,10 @@ module ActionController
       super
     end
 
-    def render(options)
-      super
-      self.content_type ||= options[:_template].mime_type.to_s
+    def render(*args)
+      args << {} unless args.last.is_a?(Hash)
+      super(*args)
+      self.content_type ||= args.last[:_template].mime_type.to_s
       response_body
     end
 
