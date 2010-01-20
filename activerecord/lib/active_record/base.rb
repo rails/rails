@@ -685,7 +685,7 @@ module ActiveRecord #:nodoc:
           relation = current_scoped_methods.except(:limit, :order).merge(relation) if current_scoped_methods
         end
 
-        relation.update(sanitize_sql_for_assignment(updates))
+        relation.arel.update(sanitize_sql_for_assignment(updates))
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
@@ -2188,7 +2188,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
+        self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).arel.update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes

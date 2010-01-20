@@ -8,7 +8,7 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods
 
     delegate :length, :collect, :map, :each, :all?, :include?, :to => :to_a
-    delegate :insert, :update, :to => :arel
+    delegate :insert, :to => :arel
 
     attr_reader :table, :klass
 
