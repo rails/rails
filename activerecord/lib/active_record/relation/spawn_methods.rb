@@ -1,17 +1,7 @@
 module ActiveRecord
   module SpawnMethods
-    def spawn(arel_table = self.table)
-      relation = self.class.new(@klass, arel_table)
-
-      (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).each do |query_method|
-        relation.send(:"#{query_method}_values=", send(:"#{query_method}_values"))
-      end
-
-      Relation::SINGLE_VALUE_METHODS.each do |query_method|
-        relation.send(:"#{query_method}_value=", send(:"#{query_method}_value"))
-      end
-
-      relation
+    def spawn
+      clone.reset
     end
 
     def merge(r)
