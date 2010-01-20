@@ -679,7 +679,7 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def test_performs_delivery_via_sendmail
-    IO.expects(:popen).once.with('/usr/sbin/sendmail -i -t test@localhost', 'w+')
+    IO.expects(:popen).once.with('/usr/sbin/sendmail -i -t -f "system@loudthinking.com" test@localhost', 'w+')
     ActionMailer::Base.delivery_method = :sendmail
     TestMailer.deliver_signed_up(@recipient)
   end
