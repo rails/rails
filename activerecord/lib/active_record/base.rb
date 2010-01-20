@@ -1238,20 +1238,6 @@ module ActiveRecord #:nodoc:
         store_full_sti_class ? name : name.demodulize
       end
 
-      # Merges conditions so that the result is a valid +condition+
-      def merge_conditions(*conditions)
-        segments = []
-
-        conditions.each do |condition|
-          unless condition.blank?
-            sql = sanitize_sql(condition)
-            segments << sql unless sql.blank?
-          end
-        end
-
-        "(#{segments.join(') AND (')})" unless segments.empty?
-      end
-
       def unscoped
         @unscoped ||= Relation.new(self, arel_table)
         finder_needs_type_condition? ? @unscoped.where(type_condition) : @unscoped
