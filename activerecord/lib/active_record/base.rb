@@ -556,7 +556,7 @@ module ActiveRecord #:nodoc:
       end
       alias :colorize_logging= :colorize_logging
 
-      delegate :find, :first, :last, :all, :destroy_all, :to => :scoped
+      delegate :find, :first, :last, :all, :destroy_all, :exists?, :to => :scoped
       delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
@@ -584,40 +584,6 @@ module ActiveRecord #:nodoc:
       #   > [#<Post:0x36bff9c @attributes={"first_name"=>"The Cheap Man Buys Twice"}>, ...]
       def find_by_sql(sql)
         connection.select_all(sanitize_sql(sql), "#{name} Load").collect! { |record| instantiate(record) }
-      end
-
-      # Returns true if a record exists in the table that matches the +id+ or
-      # conditions given, or false otherwise. The argument can take five forms:
-      #
-      # * Integer - Finds the record with this primary key.
-      # * String - Finds the record with a primary key corresponding to this
-      #   string (such as <tt>'5'</tt>).
-      # * Array - Finds the record that matches these +find+-style conditions
-      #   (such as <tt>['color = ?', 'red']</tt>).
-      # * Hash - Finds the record that matches these +find+-style conditions
-      #   (such as <tt>{:color => 'red'}</tt>).
-      # * No args - Returns false if the table is empty, true otherwise.
-      #
-      # For more information about specifying conditions as a Hash or Array,
-      # see the Conditions section in the introduction to ActiveRecord::Base.
-      #
-      # Note: You can't pass in a condition as a string (like <tt>name =
-      # 'Jamie'</tt>), since it would be sanitized and then queried against
-      # the primary key column, like <tt>id = 'name = \'Jamie\''</tt>.
-      #
-      # ==== Examples
-      #   Person.exists?(5)
-      #   Person.exists?('5')
-      #   Person.exists?(:name => "David")
-      #   Person.exists?(['name LIKE ?', "%#{query}%"])
-      #   Person.exists?
-      def exists?(id_or_conditions = nil)
-        case id_or_conditions
-        when Array, Hash
-          where(id_or_conditions).exists?
-        else
-          scoped.exists?(id_or_conditions)
-        end
       end
 
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
