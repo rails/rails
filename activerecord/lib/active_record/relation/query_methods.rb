@@ -140,16 +140,18 @@ module ActiveRecord
 
       selects = @select_values.uniq
 
+      quoted_table_name = @klass.quoted_table_name
+
       if selects.present?
         selects.each do |s|
           @implicit_readonly = false
           arel = arel.project(s) if s.present?
         end
       else
-        arel = arel.project(@klass.quoted_table_name + '.*')
+        arel = arel.project(quoted_table_name + '.*')
       end
 
-      arel = arel.from(@from_value) if @from_value.present?
+      arel = @from_value.present? ? arel.from(@from_value) : arel.from(quoted_table_name)
 
       case @lock_value
       when TrueClass
