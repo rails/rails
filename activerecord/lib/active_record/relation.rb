@@ -123,6 +123,26 @@ module ActiveRecord
       arel.delete.tap { reset }
     end
 
+    # Deletes the row with a primary key matching the +id+ argument, using a
+    # SQL +DELETE+ statement, and returns the number of rows deleted. Active
+    # Record objects are not instantiated, so the object's callbacks are not
+    # executed, including any <tt>:dependent</tt> association options or
+    # Observer methods.
+    #
+    # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
+    #
+    # Note: Although it is often much faster than the alternative,
+    # <tt>#destroy</tt>, skipping callbacks might bypass business logic in
+    # your application that ensures referential integrity or performs other
+    # essential jobs.
+    #
+    # ==== Examples
+    #
+    #   # Delete a single row
+    #   Todo.delete(1)
+    #
+    #   # Delete multiple rows
+    #   Todo.delete([2,3,4])
     def delete(id_or_array)
       where(@klass.primary_key => id_or_array).delete_all
     end
