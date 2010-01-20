@@ -34,6 +34,7 @@ module ActionMailer
   autoload :Base
   autoload :DeliveryMethods
   autoload :DeprecatedBody
+  autoload :DeprecatedApi
   autoload :MailHelper
   autoload :Quoting
   autoload :TestCase
