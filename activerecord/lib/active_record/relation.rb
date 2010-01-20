@@ -84,9 +84,39 @@ module ActiveRecord
       end
     end
 
-    def destroy_all
-      to_a.each {|object| object.destroy}
-      reset
+    # Destroys the records matching +conditions+ by instantiating each
+    # record and calling its +destroy+ method. Each object's callbacks are
+    # executed (including <tt>:dependent</tt> association options and
+    # +before_destroy+/+after_destroy+ Observer methods). Returns the
+    # collection of objects that were destroyed; each will be frozen, to
+    # reflect that no changes should be made (since they can't be
+    # persisted).
+    #
+    # Note: Instantiation, callback execution, and deletion of each
+    # record can be time consuming when you're removing many records at
+    # once. It generates at least one SQL +DELETE+ query per record (or
+    # possibly more, to enforce your callbacks). If you want to delete many
+    # rows quickly, without concern for their associations or callbacks, use
+    # +delete_all+ instead.
+    #
+    # ==== Parameters
+    #
+    # * +conditions+ - A string, array, or hash that specifies which records
+    #   to destroy. If omitted, all records are destroyed. See the
+    #   Conditions section in the introduction to ActiveRecord::Base for
+    #   more information.
+    #
+    # ==== Examples
+    #
+    #   Person.destroy_all("last_login < '2004-04-04'")
+    #   Person.destroy_all(:status => "inactive")
+    def destroy_all(conditions = nil)
+      if conditions
+        where(conditions).destroy_all
+      else
+        to_a.each {|object| object.destroy}
+        reset
+      end
     end
 
     def delete_all
