@@ -453,6 +453,40 @@ class RequestTest < ActiveSupport::TestCase
     request.expects(:parameters).at_least_once.returns({})
     assert_equal Mime::XML, request.negotiate_mime([Mime::XML, Mime::CSV])
   end
+  
+  test "filter_parameters" do
+    request = stub_request
+    request.stubs(:request_parameters).returns({ "foo" => 1 })
+    request.stubs(:query_parameters).returns({ "bar" => 2 })
+    
+    assert_raises RuntimeError do
+      ActionDispatch::Http::ParametersFilter.filter_parameters
+    end
+    
+    test_hashes = [
+    [{'foo'=>'bar'},{'foo'=>'bar'},%w'food'],
+    [{'foo'=>'bar'},{'foo'=>'[FILTERED]'},%w'foo'],
+    [{'foo'=>'bar', 'bar'=>'foo'},{'foo'=>'[FILTERED]', 'bar'=>'foo'},%w'foo baz'],
+    [{'foo'=>'bar', 'baz'=>'foo'},{'foo'=>'[FILTERED]', 'baz'=>'[FILTERED]'},%w'foo baz'],
+    [{'bar'=>{'foo'=>'bar','bar'=>'foo'}},{'bar'=>{'foo'=>'[FILTERED]','bar'=>'foo'}},%w'fo'],
+    [{'foo'=>{'foo'=>'bar','bar'=>'foo'}},{'foo'=>'[FILTERED]'},%w'f banana'],
+    [{'baz'=>[{'foo'=>'baz'}]}, {'baz'=>[{'foo'=>'[FILTERED]'}]}, %w(foo)]]
+
+    test_hashes.each do |before_filter, after_filter, filter_words|
+      ActionDispatch::Http::ParametersFilter.filter_parameters(*filter_words)
+      assert_equal after_filter, request.__send__(:process_parameter_filter, before_filter)
+
+      filter_words.push('blah')
+      ActionDispatch::Http::ParametersFilter.filter_parameters(*filter_words) do |key, value|
+        value.reverse! if key =~ /bargain/
+      end
+
+      before_filter['barg'] = {'bargain'=>'gain', 'blah'=>'bar', 'bar'=>{'bargain'=>{'blah'=>'foo'}}}
+      after_filter['barg'] = {'bargain'=>'niag', 'blah'=>'[FILTERED]', 'bar'=>{'bargain'=>{'blah'=>'[FILTERED]'}}}
+
+      assert_equal after_filter, request.__send__(:process_parameter_filter, before_filter)
+    end
+  end
 
 protected
 

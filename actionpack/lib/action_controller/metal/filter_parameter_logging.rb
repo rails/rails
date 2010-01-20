@@ -2,8 +2,6 @@ module ActionController
   module FilterParameterLogging
     extend ActiveSupport::Concern
 
-    INTERNAL_PARAMS = %w(controller action format _method only_path)
-
     module ClassMethods
       # Replace sensitive parameter data from the request log.
       # Filters parameters that have any of the arguments as a substring.
@@ -27,40 +25,14 @@ module ActionController
       #   => reverses the value to all keys matching /secret/i, and
       #      replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
       def filter_parameter_logging(*filter_words, &block)
-        raise "You must filter at least one word from logging" if filter_words.empty?
-
-        parameter_filter = Regexp.new(filter_words.join('|'), true)
-
-        define_method(:filter_parameters) do |original_params|
-          filtered_params = {}
-
-          original_params.each do |key, value|
-            if key =~ parameter_filter
-              value = '[FILTERED]'
-            elsif value.is_a?(Hash)
-              value = filter_parameters(value)
-            elsif value.is_a?(Array)
-              value = value.map { |item| filter_parameters(item) }
-            elsif block_given?
-              key = key.dup
-              value = value.dup if value.duplicable?
-              yield key, value
-            end
-
-            filtered_params[key] = value
-          end
-
-          filtered_params.except!(*INTERNAL_PARAMS)
-        end
-        protected :filter_parameters
+        ActionDispatch::Http::ParametersFilter.filter_parameters(*filter_words, &block)
       end
     end
-
+    
   protected
-
+    
     def filter_parameters(params)
-      params.dup.except!(*INTERNAL_PARAMS)
+      request.send(:process_parameter_filter, params)
     end
-
   end
 end

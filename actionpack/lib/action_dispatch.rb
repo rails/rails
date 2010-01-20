@@ -63,6 +63,7 @@ module ActionDispatch
     autoload :Headers
     autoload :MimeNegotiation
     autoload :Parameters
+    autoload :ParametersFilter
     autoload :Upload
     autoload :UploadedFile, 'action_dispatch/http/upload'
     autoload :URL

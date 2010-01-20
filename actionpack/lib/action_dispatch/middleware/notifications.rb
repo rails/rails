@@ -10,7 +10,7 @@ module ActionDispatch
 
     def call(env)
       request = Request.new(env)
-      payload = retrieve_payload_from_env(request.filter_env)
+      payload = retrieve_payload_from_env(request.filtered_env)
 
       ActiveSupport::Notifications.instrument("action_dispatch.before_dispatch", payload)
 
