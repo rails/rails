@@ -1455,34 +1455,6 @@ module ActiveRecord #:nodoc:
           relation
         end
 
-        def construct_join(joins)
-          case joins
-          when Symbol, Hash, Array
-            if array_of_strings?(joins)
-              joins.join(' ') + " "
-            else
-              build_association_joins(joins)
-            end
-          when String
-            " #{joins} "
-          else
-            ""
-          end
-        end
-
-        def build_association_joins(joins)
-          join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, joins, nil)
-          relation = unscoped.table
-          join_dependency.join_associations.map { |association|
-            if (association_relation = association.relation).is_a?(Array)
-              [Arel::InnerJoin.new(relation, association_relation.first, *association.association_join.first).joins(relation),
-              Arel::InnerJoin.new(relation, association_relation.last, *association.association_join.last).joins(relation)].join()
-            else
-              Arel::InnerJoin.new(relation, association_relation, *association.association_join).joins(relation)
-            end
-          }.join(" ")
-        end
-
         def array_of_strings?(o)
           o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
         end
