@@ -1455,10 +1455,6 @@ module ActiveRecord #:nodoc:
           relation
         end
 
-        def array_of_strings?(o)
-          o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
-        end
-
         def type_condition
           sti_column = arel_table[inheritance_column]
           condition = sti_column.eq(sti_name)
