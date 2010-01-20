@@ -556,7 +556,7 @@ module ActiveRecord #:nodoc:
       end
       alias :colorize_logging= :colorize_logging
 
-      delegate :find, :first, :last, :all, :destroy_all, :exists?, :delete, :to => :scoped
+      delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :to => :scoped
       delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
@@ -643,33 +643,6 @@ module ActiveRecord #:nodoc:
           object = find(id)
           object.update_attributes(attributes)
           object
-        end
-      end
-
-      # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
-      # therefore all callbacks and filters are fired off before the object is deleted.  This method is
-      # less efficient than ActiveRecord#delete but allows cleanup methods and other actions to be run.
-      #
-      # This essentially finds the object (or multiple objects) with the given id, creates a new object
-      # from the attributes, and then calls destroy on it.
-      #
-      # ==== Parameters
-      #
-      # * +id+ - Can be either an Integer or an Array of Integers.
-      #
-      # ==== Examples
-      #
-      #   # Destroy a single object
-      #   Todo.destroy(1)
-      #
-      #   # Destroy multiple objects
-      #   todos = [1,2,3]
-      #   Todo.destroy(todos)
-      def destroy(id)
-        if id.is_a?(Array)
-          id.map { |one_id| destroy(one_id) }
-        else
-          find(id).destroy
         end
       end
 
