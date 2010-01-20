@@ -906,6 +906,10 @@ module ActiveRecord #:nodoc:
         reset_table_name
       end
 
+      def quoted_table_name
+        @quoted_table_name ||= connection.quote_table_name(table_name)
+      end
+
       def reset_table_name #:nodoc:
         base = base_class
 
@@ -923,6 +927,7 @@ module ActiveRecord #:nodoc:
             name = "#{table_name_prefix}#{contained}#{undecorated_table_name(base.name)}#{table_name_suffix}"
           end
 
+        @quoted_table_name = nil
         set_table_name(name)
         name
       end
@@ -2327,10 +2332,6 @@ module ActiveRecord #:nodoc:
       # Returns a comma-separated pair list, like "key1 = val1, key2 = val2".
       def comma_pair_list(hash)
         hash.inject([]) { |list, pair| list << "#{pair.first} = #{pair.last}" }.join(", ")
-      end
-
-      def self.quoted_table_name
-        self.connection.quote_table_name(self.table_name)
       end
 
       def quote_columns(quoter, hash)
