@@ -77,7 +77,7 @@ module ActiveRecord
 
       # Build association joins first
       joins.each do |join|
-        association_joins << join if [Hash, Array, Symbol].include?(join.class) && !@klass.send(:array_of_strings?, join)
+        association_joins << join if [Hash, Array, Symbol].include?(join.class) && !array_of_strings?(join)
       end
 
       if association_joins.any?
@@ -110,7 +110,7 @@ module ActiveRecord
         when Relation::JoinOperation
           arel = arel.join(join.relation, join.join_class).on(*join.on)
         when Hash, Array, Symbol
-          if @klass.send(:array_of_strings?, join)
+          if array_of_strings?(join)
             join_string = join.join(' ')
             arel = arel.join(join_string)
           end
@@ -191,6 +191,10 @@ module ActiveRecord
           s.concat(' DESC')
         end
       }.join(',')
+    end
+
+    def array_of_strings?(o)
+      o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
     end
 
   end

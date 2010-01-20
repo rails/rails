@@ -18,6 +18,10 @@ class MySubscriber < Rails::Subscriber
   def bar(event)
     info "#{color("cool", :red)}, #{color("isn't it?", :blue, true)}"
   end
+
+  def puke(event)
+    raise "puke"
+  end
 end
 
 module SubscriberTest
@@ -103,6 +107,16 @@ module SubscriberTest
     instrument "action_dispatch.after_dispatch"
     wait
     assert_equal 1, @logger.flush_count
+  end
+
+  def test_logging_thread_does_not_die_on_failures
+    Rails::Subscriber.add :my_subscriber, @subscriber
+    instrument "my_subscriber.puke"
+    instrument "action_dispatch.after_dispatch"
+    wait
+    assert_equal 1, @logger.flush_count
+    assert_equal 1, @logger.logged(:error).size
+    assert_equal 'Could not log "my_subscriber.puke" event. RuntimeError: puke', @logger.logged(:error).last
   end
 
   def test_tails_logs_when_action_dispatch_callback_is_received

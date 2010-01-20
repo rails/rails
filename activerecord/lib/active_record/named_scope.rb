@@ -148,18 +148,6 @@ module ActiveRecord
         relation
       end
 
-      def find(*args)
-        options = args.extract_options!
-        relation = options.present? ? apply_finder_options(options) : self
-
-        case args.first
-        when :first, :last, :all
-          relation.send(args.first)
-        else
-          options.present? ? relation.find(*args) : super
-        end
-      end
-
       def first(*args)
         if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
           to_a.first(*args)
@@ -174,11 +162,6 @@ module ActiveRecord
         else
           args.first.present? ? apply_finder_options(args.first).last : super
         end
-      end
-
-      def count(*args)
-        options = args.extract_options!
-        options.present? ? apply_finder_options(options).count(*args) : super
       end
 
       def ==(other)

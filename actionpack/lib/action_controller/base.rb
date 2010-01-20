@@ -26,6 +26,7 @@ module ActionController
     include ActionController::Compatibility
 
     include ActionController::Cookies
+    include ActionController::FilterParameterLogging
     include ActionController::Flash
     include ActionController::Verification
     include ActionController::RequestForgeryProtection
@@ -37,7 +38,6 @@ module ActionController
     # Add instrumentations hooks at the bottom, to ensure they instrument
     # all the methods properly.
     include ActionController::Instrumentation
-    include ActionController::FilterParameterLogging
 
     # TODO: Extract into its own module
     # This should be moved together with other normalizing behavior

@@ -410,21 +410,22 @@ module ActionMailer #:nodoc:
       def deliver(mail)
         raise "no mail object available for delivery!" unless mail
 
-        begin
-          ActiveSupport::Notifications.instrument("action_mailer.deliver", :mailer => self.name) do |payload|
-            set_payload_for_mail(payload, mail)
+        ActiveSupport::Notifications.instrument("action_mailer.deliver", :mailer => self.name) do |payload|
 
+          self.set_payload_for_mail(payload, mail)
+
+          mail.delivery_method delivery_methods[delivery_method],
+                               delivery_settings[delivery_method]
+
+          begin
             # TODO Move me to the instance
-            mail.delivery_method delivery_methods[delivery_method],
-                                 delivery_settings[delivery_method]
-
             if @@perform_deliveries
               mail.deliver! 
               self.deliveries << mail
             end
+          rescue Exception => e # Net::SMTP errors or sendmail pipe errors
+            raise e if raise_delivery_errors
           end
-        rescue Exception => e # Net::SMTP errors or sendmail pipe errors
-          raise e if raise_delivery_errors
         end
 
         mail

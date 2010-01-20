@@ -236,7 +236,7 @@ module ActiveSupport #:nodoc:
     rescue LoadError => load_error
       unless swallow_load_errors
         if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
-          raise MissingSourceFile.new(message % file_name, load_error.path).copy_blame!(load_error)
+          raise LoadError.new(message % file_name).copy_blame!(load_error)
         end
         raise
       end

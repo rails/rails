@@ -58,11 +58,6 @@ module ActionController
 
   protected
 
-    def append_info_to_payload(payload)
-      super
-      payload[:params] = filter_parameters(request.params)
-    end
-
     def filter_parameters(params)
       params.dup.except!(*INTERNAL_PARAMS)
     end

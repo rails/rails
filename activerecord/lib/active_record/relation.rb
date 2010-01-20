@@ -5,9 +5,10 @@ module ActiveRecord
     MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having]
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :create_with, :from]
 
-    include FinderMethods, CalculationMethods, SpawnMethods, QueryMethods
+    include FinderMethods, Calculations, SpawnMethods, QueryMethods
 
     delegate :length, :collect, :map, :each, :all?, :include?, :to => :to_a
+    delegate :insert, :update, :to => :arel
 
     attr_reader :table, :klass
 
@@ -58,8 +59,6 @@ module ActiveRecord
       @loaded = true
       @records
     end
-
-    alias all to_a
 
     def size
       loaded? ? @records.length : count
@@ -139,10 +138,10 @@ module ActiveRecord
     protected
 
     def method_missing(method, *args, &block)
-      if arel.respond_to?(method)
-        arel.send(method, *args, &block)
-      elsif Array.method_defined?(method)
+      if Array.method_defined?(method)
         to_a.send(method, *args, &block)
+      elsif arel.respond_to?(method)
+        arel.send(method, *args, &block)
       elsif match = DynamicFinderMatch.match(method)
         attributes = match.attribute_names
         super unless @klass.send(:all_attributes_exists?, attributes)
@@ -161,10 +160,6 @@ module ActiveRecord
 
     def with_create_scope
       @klass.send(:with_scope, :create => scope_for_create, :find => {}) { yield }
-    end
-
-    def where_clause(join_string = " AND ")
-      arel.send(:where_clauses).join(join_string)
     end
 
     def references_eager_loaded_tables?

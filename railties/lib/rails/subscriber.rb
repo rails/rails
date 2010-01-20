@@ -63,7 +63,11 @@ module Rails
       subscriber = subscribers[namespace.to_sym]
 
       if subscriber.respond_to?(name) && subscriber.logger
-        subscriber.send(name, ActiveSupport::Notifications::Event.new(*args))
+        begin
+          subscriber.send(name, ActiveSupport::Notifications::Event.new(*args))
+        rescue Exception => e
+          Rails.logger.error "Could not log #{args[0].inspect} event. #{e.class}: #{e.message}"
+        end
       end
 
       if args[0] == "action_dispatch.after_dispatch" && !subscribers.empty?

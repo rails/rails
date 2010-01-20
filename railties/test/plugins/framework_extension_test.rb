@@ -30,6 +30,22 @@ module PluginsTest
       AppTemplate::Application.load_tasks
       assert $ran_block
     end
+
+    test "generators block is executed when MyApp.load_generators is called" do
+      $ran_block = false
+
+      class MyTie < Rails::Railtie
+        generators do
+          $ran_block = true
+        end
+      end
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      AppTemplate::Application.load_generators
+      assert $ran_block
+    end
   end
 
   class ActiveRecordExtensionTest < Test::Unit::TestCase

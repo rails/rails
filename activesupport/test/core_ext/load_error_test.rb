@@ -15,3 +15,18 @@ class TestMissingSourceFile < Test::Unit::TestCase
     end
   end
 end
+
+class TestLoadError < Test::Unit::TestCase
+  def test_with_require
+    assert_raise(LoadError) { require 'no_this_file_don\'t_exist' }
+  end
+  def test_with_load
+    assert_raise(LoadError) { load 'nor_does_this_one' }
+  end
+  def test_path
+    begin load 'nor/this/one.rb'
+    rescue LoadError => e
+      assert_equal 'nor/this/one.rb', e.path
+    end
+  end
+end
