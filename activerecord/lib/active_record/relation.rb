@@ -84,6 +84,70 @@ module ActiveRecord
       end
     end
 
+    # Updates all records with details given if they match a set of conditions supplied, limits and order can
+    # also be supplied. This method constructs a single SQL UPDATE statement and sends it straight to the
+    # database. It does not instantiate the involved models and it does not trigger Active Record callbacks
+    # or validations.
+    #
+    # ==== Parameters
+    #
+    # * +updates+ - A string, array, or hash representing the SET part of an SQL statement.
+    # * +conditions+ - A string, array, or hash representing the WHERE part of an SQL statement. See conditions in the intro.
+    # * +options+ - Additional options are <tt>:limit</tt> and <tt>:order</tt>, see the examples for usage.
+    #
+    # ==== Examples
+    #
+    #   # Update all customers with the given attributes
+    #   Customer.update_all :wants_email => true
+    #
+    #   # Update all books with 'Rails' in their title
+    #   Book.update_all "author = 'David'", "title LIKE '%Rails%'"
+    #
+    #   # Update all avatars migrated more than a week ago
+    #   Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
+    #
+    #   # Update all books that match our conditions, but limit it to 5 ordered by date
+    #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
+    def update_all(updates, conditions = nil, options = {})
+      if conditions || options.present?
+        where(conditions).apply_finder_options(options.slice(:limit, :order)).update_all(updates)
+      else
+        # Apply limit and order only if they're both present
+        if @limit_value.present? == @order_values.present?
+          arel.update(@klass.send(:sanitize_sql_for_assignment, updates))
+        else
+          except(:limit, :order).update_all(updates)
+        end
+      end
+    end
+
+    # Updates an object (or multiple objects) and saves it to the database, if validations pass.
+    # The resulting object is returned whether the object was saved successfully to the database or not.
+    #
+    # ==== Parameters
+    #
+    # * +id+ - This should be the id or an array of ids to be updated.
+    # * +attributes+ - This should be a hash of attributes to be set on the object, or an array of hashes.
+    #
+    # ==== Examples
+    #
+    #   # Updating one record:
+    #   Person.update(15, :user_name => 'Samuel', :group => 'expert')
+    #
+    #   # Updating multiple records:
+    #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
+    #   Person.update(people.keys, people.values)
+    def update(id, attributes)
+      if id.is_a?(Array)
+        idx = -1
+        id.collect { |one_id| idx += 1; update(one_id, attributes[idx]) }
+      else
+        object = find(id)
+        object.update_attributes(attributes)
+        object
+      end
+    end
+
     # Destroys the records matching +conditions+ by instantiating each
     # record and calling its +destroy+ method. Each object's callbacks are
     # executed (including <tt>:dependent</tt> association options and
