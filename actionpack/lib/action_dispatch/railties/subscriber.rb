@@ -5,8 +5,8 @@ module ActionDispatch
         request = Request.new(event.payload[:env])
         path    = request.request_uri.inspect rescue "unknown"
 
-        info "\n\nProcessing #{path} to #{request.formats.join(', ')} " <<
-             "(for #{request.remote_ip} at #{event.time.to_s(:db)}) [#{request.method.to_s.upcase}]"
+        info "\n\nStarted #{request.method.to_s.upcase} #{path} " <<
+             "for #{request.remote_ip} at #{event.time.to_s(:db)}"
       end
 
       def logger

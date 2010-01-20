@@ -13,17 +13,16 @@ require 'rails/generators/test_case'
 require 'active_record'
 require 'action_dispatch'
 
-class GeneratorsTestCase < Rails::Generators::TestCase
-  destination File.join(Rails.root, "tmp")
-  setup :prepare_destination
+module GeneratorsTestHelper
+  def self.included(base)
+    base.class_eval do
+      destination File.join(Rails.root, "tmp")
+      setup :prepare_destination
 
-  def self.inherited(base)
-    base.tests Rails::Generators.const_get(base.name.sub(/Test$/, ''))
-  rescue
-    # Do nothing.
-  end
-
-  def test_truth
-    # Don't cry test/unit
+      begin
+        base.tests Rails::Generators.const_get(base.name.sub(/Test$/, ''))
+      rescue
+      end
+    end
   end
 end

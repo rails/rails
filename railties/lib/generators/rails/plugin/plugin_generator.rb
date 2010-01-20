@@ -20,15 +20,15 @@ module Rails
         directory 'tasks', plugin_dir('tasks')
       end
 
-      hook_for :generator do |instance, generator|
-        instance.inside instance.send(:plugin_dir), :verbose => true do
-          instance.invoke generator, [ instance.name ], :namespace => false
+      hook_for :generator do |generator|
+        inside plugin_dir, :verbose => true do
+          invoke generator, [ name ], :namespace => false
         end
       end
 
-      hook_for :test_framework do |instance, test_framework|
-        instance.inside instance.send(:plugin_dir), :verbose => true do
-          instance.invoke test_framework
+      hook_for :test_framework do |test_framework|
+        inside plugin_dir, :verbose => true do
+          invoke test_framework
         end
       end
 

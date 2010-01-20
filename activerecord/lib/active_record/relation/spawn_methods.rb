@@ -98,19 +98,12 @@ module ActiveRecord
 
       options.assert_valid_keys(VALID_FIND_OPTIONS)
 
-      relation = relation.joins(options[:joins]).
-        where(options[:conditions]).
-        select(options[:select]).
-        group(options[:group]).
-        having(options[:having]).
-        order(options[:order]).
-        limit(options[:limit]).
-        offset(options[:offset]).
-        from(options[:from]).
-        includes(options[:include])
+      [:joins, :select, :group, :having, :order, :limit, :offset, :from, :lock, :readonly].each do |finder|
+        relation = relation.send(finder, options[finder]) if options.has_key?(finder)
+      end
 
-      relation = relation.lock(options[:lock]) if options[:lock].present?
-      relation = relation.readonly(options[:readonly]) if options.has_key?(:readonly)
+      relation = relation.where(options[:conditions]) if options.has_key?(:conditions)
+      relation = relation.includes(options[:include]) if options.has_key?(:include)
 
       relation
     end

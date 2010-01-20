@@ -732,21 +732,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [projects(:active_record), projects(:action_controller)].map(&:id).sort, developer.project_ids.sort
   end
 
-  def test_select_limited_ids_array
-    # Set timestamps
-    Developer.transaction do
-      Developer.find(:all, :order => 'id').each_with_index do |record, i|
-        record.update_attributes(:created_at => 5.years.ago + (i * 5.minutes))
-      end
-    end
-
-    join_base = ActiveRecord::Associations::ClassMethods::JoinDependency::JoinBase.new(Project)
-    join_dep  = ActiveRecord::Associations::ClassMethods::JoinDependency.new(join_base, :developers, nil)
-    projects  = Project.send(:select_limited_ids_array, {:order => 'developers.created_at'}, join_dep)
-    assert !projects.include?("'"), projects
-    assert_equal ["1", "2"], projects.sort
-  end
-
   def test_scoped_find_on_through_association_doesnt_return_read_only_records
     tag = Post.find(1).tags.find_by_name("General")
 

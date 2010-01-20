@@ -8,17 +8,24 @@ module ActionDispatch
       @app = app
     end
 
-    def call(stack_env)
-      env = stack_env.dup
-      ActiveSupport::Notifications.instrument("action_dispatch.before_dispatch", :env => env)
+    def call(env)
+      payload = retrieve_payload_from_env(env)
+      ActiveSupport::Notifications.instrument("action_dispatch.before_dispatch", payload)
 
-      ActiveSupport::Notifications.instrument!("action_dispatch.after_dispatch", :env => env) do
-        @app.call(stack_env)
+      ActiveSupport::Notifications.instrument!("action_dispatch.after_dispatch", payload) do
+        @app.call(env)
       end
     rescue Exception => exception
       ActiveSupport::Notifications.instrument('action_dispatch.exception',
-        :env => stack_env, :exception => exception)
+        :env => env, :exception => exception)
       raise exception
+    end
+
+  protected
+
+    # Remove any rack related constants from the env, like rack.input.
+    def retrieve_payload_from_env(env)
+      Hash[:env => env.except(*env.keys.select { |k| k.to_s.index("rack.") == 0 })]
     end
   end
 end

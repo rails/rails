@@ -259,7 +259,9 @@ module ActionDispatch
             "HTTP_HOST"      => host,
             "REMOTE_ADDR"    => remote_addr,
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
-            "HTTP_ACCEPT"    => accept
+            "HTTP_ACCEPT"    => accept,
+
+            "action_dispatch.show_exceptions" => false
           }
 
           (rack_environment || {}).each do |key, value|

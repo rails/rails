@@ -556,122 +556,9 @@ module ActiveRecord #:nodoc:
       end
       alias :colorize_logging= :colorize_logging
 
-      # Find operates with four different retrieval approaches:
-      #
-      # * Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
-      #   If no record can be found for all of the listed ids, then RecordNotFound will be raised.
-      # * Find first - This will return the first record matched by the options used. These options can either be specific
-      #   conditions or merely an order. If no record can be matched, +nil+ is returned. Use
-      #   <tt>Model.find(:first, *args)</tt> or its shortcut <tt>Model.first(*args)</tt>.
-      # * Find last - This will return the last record matched by the options used. These options can either be specific
-      #   conditions or merely an order. If no record can be matched, +nil+ is returned. Use
-      #   <tt>Model.find(:last, *args)</tt> or its shortcut <tt>Model.last(*args)</tt>.
-      # * Find all - This will return all the records matched by the options used.
-      #   If no records are found, an empty array is returned. Use
-      #   <tt>Model.find(:all, *args)</tt> or its shortcut <tt>Model.all(*args)</tt>.
-      #
-      # All approaches accept an options hash as their last parameter.
-      #
-      # ==== Parameters
-      #
-      # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1", <tt>[ "user_name = ?", username ]</tt>, or <tt>["user_name = :user_name", { :user_name => user_name }]</tt>. See conditions in the intro.
-      # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
-      # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
-      # * <tt>:having</tt> - Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> returns. Uses the <tt>HAVING</tt> SQL-clause.
-      # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
-      # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
-      # * <tt>:joins</tt> - Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed),
-      #   named associations in the same form used for the <tt>:include</tt> option, which will perform an <tt>INNER JOIN</tt> on the associated table(s),
-      #   or an array containing a mixture of both strings and named associations.
-      #   If the value is a string, then the records will be returned read-only since they will have attributes that do not correspond to the table's columns.
-      #   Pass <tt>:readonly => false</tt> to override.
-      # * <tt>:include</tt> - Names associations that should be loaded alongside. The symbols named refer
-      #   to already defined associations. See eager loading under Associations.
-      # * <tt>:select</tt> - By default, this is "*" as in "SELECT * FROM", but can be changed if you, for example, want to do a join but not
-      #   include the joined columns. Takes a string with the SELECT SQL fragment (e.g. "id, name").
-      # * <tt>:from</tt> - By default, this is the table name of the class, but can be changed to an alternate table name (or even the name
-      #   of a database view).
-      # * <tt>:readonly</tt> - Mark the returned records read-only so they cannot be saved or updated.
-      # * <tt>:lock</tt> - An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
-      #   <tt>:lock => true</tt> gives connection's default exclusive lock, usually "FOR UPDATE".
-      #
-      # ==== Examples
-      #
-      #   # find by id
-      #   Person.find(1)       # returns the object for ID = 1
-      #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
-      #   Person.find([7, 17]) # returns an array for objects with IDs in (7, 17)
-      #   Person.find([1])     # returns an array for the object with ID = 1
-      #   Person.find(1, :conditions => "administrator = 1", :order => "created_on DESC")
-      #
-      # Note that returned records may not be in the same order as the ids you
-      # provide since database rows are unordered. Give an explicit <tt>:order</tt>
-      # to ensure the results are sorted.
-      #
-      # ==== Examples
-      #
-      #   # find first
-      #   Person.find(:first) # returns the first object fetched by SELECT * FROM people
-      #   Person.find(:first, :conditions => [ "user_name = ?", user_name])
-      #   Person.find(:first, :conditions => [ "user_name = :u", { :u => user_name }])
-      #   Person.find(:first, :order => "created_on DESC", :offset => 5)
-      #
-      #   # find last
-      #   Person.find(:last) # returns the last object fetched by SELECT * FROM people
-      #   Person.find(:last, :conditions => [ "user_name = ?", user_name])
-      #   Person.find(:last, :order => "created_on DESC", :offset => 5)
-      #
-      #   # find all
-      #   Person.find(:all) # returns an array of objects for all the rows fetched by SELECT * FROM people
-      #   Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
-      #   Person.find(:all, :conditions => { :friends => ["Bob", "Steve", "Fred"] }
-      #   Person.find(:all, :offset => 10, :limit => 10)
-      #   Person.find(:all, :include => [ :account, :friends ])
-      #   Person.find(:all, :group => "category")
-      #
-      # Example for find with a lock: Imagine two concurrent transactions:
-      # each will read <tt>person.visits == 2</tt>, add 1 to it, and save, resulting
-      # in two saves of <tt>person.visits = 3</tt>.  By locking the row, the second
-      # transaction has to wait until the first is finished; we get the
-      # expected <tt>person.visits == 4</tt>.
-      #
-      #   Person.transaction do
-      #     person = Person.find(1, :lock => true)
-      #     person.visits += 1
-      #     person.save!
-      #   end
-      def find(*args)
-        options = args.extract_options!
-
-        relation = construct_finder_arel(options, current_scoped_methods)
-
-        case args.first
-        when :first, :last, :all
-          relation.send(args.first)
-        else
-          relation.find(*args)
-        end
-      end
-
+      delegate :find, :first, :last, :all, :to => :scoped
       delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
-
-      # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
-      # same arguments to this method as you can to <tt>find(:first)</tt>.
-      def first(*args)
-        find(:first, *args)
-      end
-
-      # A convenience wrapper for <tt>find(:last, *args)</tt>. You can pass in all the
-      # same arguments to this method as you can to <tt>find(:last)</tt>.
-      def last(*args)
-        find(:last, *args)
-      end
-
-      # A convenience wrapper for <tt>find(:all, *args)</tt>. You can pass in all the
-      # same arguments to this method as you can to <tt>find(:all)</tt>.
-      def all(*args)
-        find(:all, *args)
-      end
+      delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
@@ -1568,38 +1455,6 @@ module ActiveRecord #:nodoc:
           relation
         end
 
-        def construct_join(joins)
-          case joins
-          when Symbol, Hash, Array
-            if array_of_strings?(joins)
-              joins.join(' ') + " "
-            else
-              build_association_joins(joins)
-            end
-          when String
-            " #{joins} "
-          else
-            ""
-          end
-        end
-
-        def build_association_joins(joins)
-          join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, joins, nil)
-          relation = unscoped.table
-          join_dependency.join_associations.map { |association|
-            if (association_relation = association.relation).is_a?(Array)
-              [Arel::InnerJoin.new(relation, association_relation.first, *association.association_join.first).joins(relation),
-              Arel::InnerJoin.new(relation, association_relation.last, *association.association_join.last).joins(relation)].join()
-            else
-              Arel::InnerJoin.new(relation, association_relation, *association.association_join).joins(relation)
-            end
-          }.join(" ")
-        end
-
-        def array_of_strings?(o)
-          o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
-        end
-
         def type_condition
           sti_column = arel_table[inheritance_column]
           condition = sti_column.eq(sti_name)
@@ -1762,11 +1617,8 @@ module ActiveRecord #:nodoc:
             relation = construct_finder_arel(method_scoping[:find] || {})
 
             if current_scoped_methods && current_scoped_methods.create_with_value && method_scoping[:create]
-              scope_for_create = case action
-              when :merge
+              scope_for_create = if action == :merge
                 current_scoped_methods.create_with_value.merge(method_scoping[:create])
-              when :reverse_merge
-                method_scoping[:create].merge(current_scoped_methods.create_with_value)
               else
                 method_scoping[:create]
               end
@@ -1781,15 +1633,7 @@ module ActiveRecord #:nodoc:
             method_scoping = relation
           end
 
-          if current_scoped_methods
-            case action
-            when :merge
-              method_scoping = current_scoped_methods.merge(method_scoping)
-            when :reverse_merge
-              method_scoping = current_scoped_methods.except(:where).merge(method_scoping)
-              method_scoping = method_scoping.merge(current_scoped_methods.only(:where))
-            end
-          end
+          method_scoping = current_scoped_methods.merge(method_scoping) if current_scoped_methods && action ==  :merge
 
           self.scoped_methods << method_scoping
           begin
@@ -2742,7 +2586,7 @@ module ActiveRecord #:nodoc:
     # #save_with_autosave_associations to be wrapped inside a transaction.
     include AutosaveAssociation, NestedAttributes
 
-    include Aggregations, Transactions, Reflection, Batches, Calculations, Serialization
+    include Aggregations, Transactions, Reflection, Batches, Serialization
 
   end
 end

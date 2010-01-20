@@ -9,18 +9,24 @@ module ActionController
   module Instrumentation
     extend ActiveSupport::Concern
 
-    included do
-      include AbstractController::Logger
-    end
+    include AbstractController::Logger
+    include ActionController::FilterParameterLogging
 
     attr_internal :view_runtime
 
     def process_action(action, *args)
-      ActiveSupport::Notifications.instrument("action_controller.process_action") do |payload|
+      raw_payload = {
+        :controller => self.class.name,
+        :action     => self.action_name,
+        :params     => filter_parameters(params),
+        :formats    => request.formats.map(&:to_sym)
+      }
+
+      ActiveSupport::Notifications.instrument("action_controller.start_processing", raw_payload.dup)
+
+      ActiveSupport::Notifications.instrument("action_controller.process_action", raw_payload) do |payload|
         result = super
-        payload[:controller]  = self.class.name
-        payload[:action]      = self.action_name
-        payload[:status]      = response.status
+        payload[:status] = response.status
         append_info_to_payload(payload)
         result
       end

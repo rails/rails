@@ -11,7 +11,8 @@ module ActiveRecord
   end
 end
 
-class NamedBaseTest < GeneratorsTestCase
+class NamedBaseTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
   tests Rails::Generators::ScaffoldControllerGenerator
 
   def test_named_generator_attributes

@@ -120,11 +120,11 @@ class TestMailer < ActionMailer::Base
     content_type "multipart/alternative"
 
     part "text/plain" do |p|
-      p.body = "blah"
+      p.body = render_message(:text => "blah")
     end
 
     part "text/html" do |p|
-      p.body = "<b>blah</b>"
+      p.body = render_message(:inline => "<%= content_tag(:b, 'blah') %>")
     end
   end
 
@@ -301,7 +301,6 @@ class TestMailer < ActionMailer::Base
     render :text => "testing"
   end
 
-  # This tests body calls accepeting a hash, which is deprecated.
   def body_ivar(recipient)
     recipients   recipient
     subject      "Body as a local variable"
@@ -1089,8 +1088,7 @@ EOF
   end
 
   def test_body_is_stored_as_an_ivar
-    mail = nil
-    ActiveSupport::Deprecation.silence { mail = TestMailer.create_body_ivar(@recipient) }
+    mail = TestMailer.create_body_ivar(@recipient)
     assert_equal "body: foo\nbar: baz", mail.body.to_s
   end
 

@@ -246,23 +246,6 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 8, c['Jadedpixel']
   end
 
-  def test_should_reject_invalid_options
-    assert_nothing_raised do
-      # empty options are valid
-      Company.send(:validate_calculation_options)
-      # these options are valid for all calculations
-      [:select, :conditions, :joins, :order, :group, :having, :distinct].each do |opt|
-        Company.send(:validate_calculation_options, opt => true)
-      end
-
-      # :include is only valid on :count
-      Company.send(:validate_calculation_options, :include => true)
-    end
-
-    assert_raise(ArgumentError) { Company.send(:validate_calculation_options, :sum,   :foo => :bar) }
-    assert_raise(ArgumentError) { Company.send(:validate_calculation_options, :count, :foo => :bar) }
-  end
-
   def test_should_count_selected_field_with_include
     assert_equal 6, Account.count(:distinct => true, :include => :firm)
     assert_equal 4, Account.count(:distinct => true, :include => :firm, :select => :credit_limit)

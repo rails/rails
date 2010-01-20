@@ -3,7 +3,8 @@ require 'generators/rails/model/model_generator'
 require 'generators/test_unit/model/model_generator'
 require 'mocha'
 
-class GeneratorsTest < GeneratorsTestCase
+class GeneratorsTest < Rails::Generators::TestCase
+  include GeneratorsTestHelper
 
   def setup
     @path = File.expand_path("lib", Rails.root)
@@ -145,6 +146,13 @@ class GeneratorsTest < GeneratorsTestCase
     assert_equal false, klass.class_options[:generate].default
   ensure
     Rails::Generators.subclasses.delete(klass)
+  end
+
+  def test_load_generators_from_railties
+    Rails::Generators::ModelGenerator.expects(:start).with(["Account"], {})
+    Rails::Generators.send(:remove_instance_variable, :@generators_from_railties)
+    Rails.application.expects(:load_generators)
+    Rails::Generators.invoke("model", ["Account"])
   end
 
   def test_rails_root_templates

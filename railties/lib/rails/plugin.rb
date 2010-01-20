@@ -27,7 +27,7 @@ module Rails
     end
 
     def load_tasks
-      Dir["#{path}/**/tasks/**/*.rake"].sort.each { |ext| load ext }
+      Dir["#{path}/{tasks,lib/tasks,rails/tasks}/**/*.rake"].sort.each { |ext| load ext }
     end
 
     initializer :add_to_load_path, :after => :set_autoload_paths do |app|
@@ -50,7 +50,11 @@ module Rails
     end
 
     initializer :add_view_paths, :after => :initialize_framework_views do
-      ActionController::Base.view_paths.concat ["#{path}/app/views"] if File.directory?("#{path}/app/views")
+      plugin_views = "#{path}/app/views"
+      if File.directory?(plugin_views)
+        ActionController::Base.view_paths.concat([plugin_views]) if defined? ActionController
+        ActionMailer::Base.view_paths.concat([plugin_views])     if defined? ActionMailer
+      end
     end
 
     # TODO Isn't it supposed to be :after => "action_controller.initialize_routing" ?

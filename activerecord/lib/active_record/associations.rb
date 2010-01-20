@@ -1463,13 +1463,6 @@ module ActiveRecord
           after_destroy(method_name)
         end
 
-        def find_with_associations(options, join_dependency)
-          rows = select_all_rows(options, join_dependency)
-          join_dependency.instantiate(rows)
-        rescue ThrowResult
-          []
-        end
-
         # Creates before_destroy callback methods that nullify, delete or destroy
         # has_many associated objects, according to the defined :dependent rule.
         #
@@ -1691,66 +1684,6 @@ module ActiveRecord
           end
 
           reflection
-        end
-
-        def select_all_rows(options, join_dependency)
-          connection.select_all(
-            construct_finder_sql_with_included_associations(options, join_dependency),
-            "#{name} Load Including Associations"
-          )
-        end
-
-        def construct_finder_arel_with_included_associations(options, join_dependency)
-          relation = scoped
-
-          for association in join_dependency.join_associations
-            relation = association.join_relation(relation)
-          end
-
-          relation = relation.apply_finder_options(options).select(column_aliases(join_dependency))
-
-          if !using_limitable_reflections?(join_dependency.reflections) && relation.limit_value
-            relation = relation.where(construct_arel_limited_ids_condition(options, join_dependency))
-          end
-
-          relation = relation.except(:limit, :offset) unless using_limitable_reflections?(join_dependency.reflections)
-
-          relation
-        end
-
-        def construct_finder_sql_with_included_associations(options, join_dependency)
-          construct_finder_arel_with_included_associations(options, join_dependency).to_sql
-        end
-
-        def construct_arel_limited_ids_condition(options, join_dependency)
-          if (ids_array = select_limited_ids_array(options, join_dependency)).empty?
-            raise ThrowResult
-          else
-            Arel::Predicates::In.new(
-              Arel::SqlLiteral.new("#{connection.quote_table_name table_name}.#{primary_key}"),
-              ids_array
-            )
-          end
-        end
-
-        def select_limited_ids_array(options, join_dependency)
-          connection.select_all(
-            construct_finder_sql_for_association_limiting(options, join_dependency),
-            "#{name} Load IDs For Limited Eager Loading"
-          ).collect { |row| row[primary_key] }
-        end
-
-        def construct_finder_sql_for_association_limiting(options, join_dependency)
-          relation = scoped
-
-          for association in join_dependency.join_associations
-            relation = association.join_relation(relation)
-          end
-
-          relation = relation.apply_finder_options(options).except(:select)
-          relation = relation.select(connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", relation.order_values.join(", ")))
-
-          relation.to_sql
         end
 
         def using_limitable_reflections?(reflections)

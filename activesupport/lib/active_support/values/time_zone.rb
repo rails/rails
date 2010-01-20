@@ -172,7 +172,7 @@ module ActiveSupport
       MAPPING.freeze
     end
 
-    UTC_OFFSET_WITH_COLON = '%+03d:%02d'
+    UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.sub(':', '')
 
     # Assumes self represents an offset from UTC in seconds (as returned from Time#utc_offset)
@@ -181,9 +181,10 @@ module ActiveSupport
     #   TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
     def self.seconds_to_utc_offset(seconds, colon = true)
       format = colon ? UTC_OFFSET_WITH_COLON : UTC_OFFSET_WITHOUT_COLON
-      hours = seconds / 3600
+      sign = (seconds < 0 ? '-' : '+')
+      hours = seconds.abs / 3600
       minutes = (seconds.abs % 3600) / 60
-      format % [hours, minutes]
+      format % [sign, hours, minutes]
     end
 
     include Comparable

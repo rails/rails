@@ -200,12 +200,7 @@ module Rails
     end
 
     def eager_load_paths
-      @eager_load_paths ||= %w(
-        app/metal
-        app/models
-        app/controllers
-        app/helpers
-      ).map { |dir| "#{root}/#{dir}" }.select { |dir| File.directory?(dir) }
+      @eager_load_paths ||= ["#{root}/app/*"]
     end
 
     def load_paths
@@ -215,20 +210,13 @@ module Rails
         # Add the old mock paths only if the directories exists
         paths.concat(Dir["#{root}/test/mocks/#{Rails.env}"]) if File.exists?("#{root}/test/mocks/#{Rails.env}")
 
-        # Add the app's controller directory
-        paths.concat(Dir["#{root}/app/controllers/"])
-
         # Followed by the standard includes.
         paths.concat %w(
           app
-          app/metal
-          app/models
-          app/controllers
-          app/helpers
-          app/services
+          app/*
           lib
           vendor
-        ).map { |dir| "#{root}/#{dir}" }.select { |dir| File.directory?(dir) }
+        ).map { |dir| "#{root}/#{dir}" }
 
         paths.concat builtin_directories
       end

@@ -114,7 +114,7 @@ module Rails
     end
 
     property 'Middleware' do
-      Rails.configuration.middleware.active.map { |middle| middle.inspect }
+      Rails.configuration.middleware.active.map(&:inspect)
     end
 
     # The Rails Git revision, if it's checked out into vendor/rails.
