@@ -1,3 +1,6 @@
+# encoding: utf-8
+require 'abstract_unit'
+
 #  class Notifier < ActionMailer::Base
 #    delivers_from 'notifications@example.com'
 #    
@@ -30,10 +33,45 @@
 #    end
 #  end
 #   
-#  Notifier.welcome(user)         # => returns a Mail object
+#  mail = Notifier.welcome(user)         # => returns a Mail object
+#  mail.deliver
+# 
 #  Notifier.welcome(user).deliver # => creates and sends the Mail in one step
-class BaseTest < ActionMailer::Base
+class BaseTest < Test::Unit::TestCase
   
-  
+  class TestMailer < ActionMailer::Base
+    def welcome(hash = {})
+      hash = {:to => 'mikel@test.lindsaar.net', :from => 'jose@test.plataformatec.com',
+              :subject => 'The first email on new API!'}.merge!(hash)
+      mail(hash)
+    end
+  end
+
+  def test_the_method_call_to_mail_does_not_raise_error
+    assert_nothing_raised { TestMailer.deliver_welcome }
+  end
+
+  def test_should_set_the_headers_of_the_mail_message
+    email = TestMailer.deliver_welcome
+    assert_equal(email.to,      ['mikel@test.lindsaar.net'])
+    assert_equal(email.from,    ['jose@test.plataformatec.com'])
+    assert_equal(email.subject, 'The first email on new API!')
+  end
+
+  def test_calling_mail_should_pass_the_header_hash_to_the_new_mail_object
+    
+  end
+
+  def test_it_should_guard_against_old_api_if_mail_method_called
+    
+  end
+
+  # def test_that_class_defaults_are_set_on_instantiation
+  #   pending
+  # end
+  # 
+  # def test_should_set_the_subject_from_i18n
+  #   pending
+  # end
   
 end

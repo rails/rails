@@ -38,7 +38,7 @@ module ActionMailer
     private
     
     def create_mail #:nodoc:
-      m = @mail
+      m = @message
 
       m.subject,     = quote_any_if_necessary(charset, subject)
       m.to, m.from   = quote_any_address_if_necessary(charset, recipients, from)
@@ -72,7 +72,7 @@ module ActionMailer
 
       m.content_transfer_encoding = '8bit' unless m.body.only_us_ascii?
       
-      @mail
+      @message
     end
 
     # Render a message but does not set it as mail body. Useful for rendering

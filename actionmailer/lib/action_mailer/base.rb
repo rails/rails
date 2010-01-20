@@ -297,7 +297,7 @@ module ActionMailer #:nodoc:
     @@default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
     cattr_accessor :default_implicit_parts_order
 
-    @@protected_instance_variables = %w(@parts @mail)
+    @@protected_instance_variables = %w(@parts @message)
     cattr_reader :protected_instance_variables
 
     # Specify the BCC addresses for the message
@@ -352,8 +352,8 @@ module ActionMailer #:nodoc:
     # location, you can use this to specify that location.
     adv_attr_accessor :mailer_name
 
-    # Expose the internal mail
-    attr_reader :mail
+    # Expose the internal Mail message
+    attr_reader :message
 
     # Alias controller_path to mailer_name so render :partial in views work.
     alias :controller_path :mailer_name
@@ -374,7 +374,7 @@ module ActionMailer #:nodoc:
       def method_missing(method_symbol, *parameters) #:nodoc:
         if match = matches_dynamic_method?(method_symbol)
           case match[1]
-            when 'create'  then new(match[2], *parameters).mail
+            when 'create'  then new(match[2], *parameters).message
             when 'deliver' then new(match[2], *parameters).deliver!
             when 'new'     then nil
             else super
@@ -461,13 +461,40 @@ module ActionMailer #:nodoc:
         end
     end
 
+    def mail(headers = {})
+      # Guard flag to prevent both the old and the new API from firing
+      # TODO - Move this @mail_was_called flag into deprecated_api.rb
+      @mail_was_called = true
+
+      m = @message
+      
+      m.content_type ||= headers[:content_type] || @@default_content_type
+      m.charset      ||= headers[:charset]      || @@default_charset
+      m.mime_version ||= headers[:mime_version] || @@default_mime_version
+
+      m.subject      = quote_if_necessary(headers[:subject], m.charset)          if headers[:subject]
+      m.to           = quote_address_if_necessary(headers[:to], m.charset)       if headers[:to]
+      m.from         = quote_address_if_necessary(headers[:from], m.charset)     if headers[:from]
+      m.cc           = quote_address_if_necessary(headers[:cc], m.charset)       if headers[:cc]
+      m.bcc          = quote_address_if_necessary(headers[:bcc], m.charset)      if headers[:bcc]
+      m.reply_to     = quote_address_if_necessary(headers[:reply_to], m.charset) if headers[:reply_to]
+      m.mime_version = headers[:mime_version]                                    if headers[:mime_version]
+      m.date         = headers[:date]                                            if headers[:date]
+
+      m.body.set_sort_order(headers[:parts_order] || @@default_implicit_parts_order)
+
+      # TODO: m.body.sort_parts!
+      m
+    end
+
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
     def initialize(method_name=nil, *args)
       super()
-      @mail = Mail.new
+      @mail_was_called = false
+      @message = Mail.new
       process(method_name, *args) if method_name
     end
 
@@ -475,23 +502,27 @@ module ActionMailer #:nodoc:
     # rendered and a new Mail object created.
     def process(method_name, *args)
       initialize_defaults(method_name)
+      
       super
+      
+      unless @mail_was_called
+        # Create e-mail parts
+        create_parts
 
-      # Create e-mail parts
-      create_parts
+        # Set the subject if not set yet
+        @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
+                                      :default => method_name.humanize)
 
-      # Set the subject if not set yet
-      @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
-                                    :default => method_name.humanize)
-
-      # Build the mail object itself
-      create_mail
+        # Build the mail object itself
+        create_mail
+      end
+      @message
     end
 
     # Delivers a Mail object. By default, it delivers the cached mail
     # object (from the <tt>create!</tt> method). If no cached mail object exists, and
     # no alternate has been given as the parameter, this will fail.
-    def deliver!(mail = @mail)
+    def deliver!(mail = @message)
       self.class.deliver(mail)
     end
 
