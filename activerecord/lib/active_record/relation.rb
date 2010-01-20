@@ -80,7 +80,7 @@ module ActiveRecord
       if block_given?
         to_a.many? { |*block_args| yield(*block_args) }
       else
-        arel.send(:taken).present? ? to_a.many? : size > 1
+        @limit_value.present? ? to_a.many? : size > 1
       end
     end
 
