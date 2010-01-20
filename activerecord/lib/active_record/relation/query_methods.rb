@@ -145,7 +145,7 @@ module ActiveRecord
           @implicit_readonly = false
           arel = arel.project(s) if s.present?
         end
-      elsif joins.present?
+      else
         arel = arel.project(@klass.quoted_table_name + '.*')
       end
 
