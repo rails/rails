@@ -42,7 +42,7 @@ module AbstractController
     # Delegates render_to_body and sticks the result in self.response_body.
     def render(*args, &block)
       if response_body
-        raise AbstractController::DoubleRenderError, "Can only render or redirect once per action"
+        raise AbstractController::DoubleRenderError
       end
 
       options = _normalize_options(*args, &block)

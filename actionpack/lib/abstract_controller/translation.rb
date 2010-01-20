@@ -1,4 +1,4 @@
-module ActionController
+module AbstractController
   module Translation
     def translate(*args)
       I18n.translate(*args)

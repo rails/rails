@@ -4,6 +4,7 @@ module ActionController
 
     include AbstractController::Callbacks
     include AbstractController::Layouts
+    include AbstractController::Translation
 
     include ActionController::Helpers
     helper :all # By default, all helpers should be included
@@ -33,7 +34,6 @@ module ActionController
     include ActionController::Streaming
     include ActionController::HttpAuthentication::Basic::ControllerMethods
     include ActionController::HttpAuthentication::Digest::ControllerMethods
-    include ActionController::Translation
 
     # Add instrumentations hooks at the bottom, to ensure they instrument
     # all the methods properly.
