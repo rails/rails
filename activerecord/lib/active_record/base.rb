@@ -556,7 +556,7 @@ module ActiveRecord #:nodoc:
       end
       alias :colorize_logging= :colorize_logging
 
-      delegate :find, :first, :last, :all, :to => :scoped
+      delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :to => :scoped
       delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
@@ -584,40 +584,6 @@ module ActiveRecord #:nodoc:
       #   > [#<Post:0x36bff9c @attributes={"first_name"=>"The Cheap Man Buys Twice"}>, ...]
       def find_by_sql(sql)
         connection.select_all(sanitize_sql(sql), "#{name} Load").collect! { |record| instantiate(record) }
-      end
-
-      # Returns true if a record exists in the table that matches the +id+ or
-      # conditions given, or false otherwise. The argument can take five forms:
-      #
-      # * Integer - Finds the record with this primary key.
-      # * String - Finds the record with a primary key corresponding to this
-      #   string (such as <tt>'5'</tt>).
-      # * Array - Finds the record that matches these +find+-style conditions
-      #   (such as <tt>['color = ?', 'red']</tt>).
-      # * Hash - Finds the record that matches these +find+-style conditions
-      #   (such as <tt>{:color => 'red'}</tt>).
-      # * No args - Returns false if the table is empty, true otherwise.
-      #
-      # For more information about specifying conditions as a Hash or Array,
-      # see the Conditions section in the introduction to ActiveRecord::Base.
-      #
-      # Note: You can't pass in a condition as a string (like <tt>name =
-      # 'Jamie'</tt>), since it would be sanitized and then queried against
-      # the primary key column, like <tt>id = 'name = \'Jamie\''</tt>.
-      #
-      # ==== Examples
-      #   Person.exists?(5)
-      #   Person.exists?('5')
-      #   Person.exists?(:name => "David")
-      #   Person.exists?(['name LIKE ?', "%#{query}%"])
-      #   Person.exists?
-      def exists?(id_or_conditions = nil)
-        case id_or_conditions
-        when Array, Hash
-          where(id_or_conditions).exists?
-        else
-          scoped.exists?(id_or_conditions)
-        end
       end
 
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -680,57 +646,6 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Deletes the row with a primary key matching the +id+ argument, using a
-      # SQL +DELETE+ statement, and returns the number of rows deleted. Active
-      # Record objects are not instantiated, so the object's callbacks are not
-      # executed, including any <tt>:dependent</tt> association options or
-      # Observer methods.
-      #
-      # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
-      #
-      # Note: Although it is often much faster than the alternative,
-      # <tt>#destroy</tt>, skipping callbacks might bypass business logic in
-      # your application that ensures referential integrity or performs other
-      # essential jobs.
-      #
-      # ==== Examples
-      #
-      #   # Delete a single row
-      #   Todo.delete(1)
-      #
-      #   # Delete multiple rows
-      #   Todo.delete([2,3,4])
-      def delete(id_or_array)
-        scoped.delete(id_or_array)
-      end
-
-      # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
-      # therefore all callbacks and filters are fired off before the object is deleted.  This method is
-      # less efficient than ActiveRecord#delete but allows cleanup methods and other actions to be run.
-      #
-      # This essentially finds the object (or multiple objects) with the given id, creates a new object
-      # from the attributes, and then calls destroy on it.
-      #
-      # ==== Parameters
-      #
-      # * +id+ - Can be either an Integer or an Array of Integers.
-      #
-      # ==== Examples
-      #
-      #   # Destroy a single object
-      #   Todo.destroy(1)
-      #
-      #   # Destroy multiple objects
-      #   todos = [1,2,3]
-      #   Todo.destroy(todos)
-      def destroy(id)
-        if id.is_a?(Array)
-          id.map { |one_id| destroy(one_id) }
-        else
-          find(id).destroy
-        end
-      end
-
       # Updates all records with details given if they match a set of conditions supplied, limits and order can
       # also be supplied. This method constructs a single SQL UPDATE statement and sends it straight to the
       # database. It does not instantiate the involved models and it does not trigger Active Record callbacks
@@ -770,58 +685,7 @@ module ActiveRecord #:nodoc:
           relation = current_scoped_methods.except(:limit, :order).merge(relation) if current_scoped_methods
         end
 
-        relation.update(sanitize_sql_for_assignment(updates))
-      end
-
-      # Destroys the records matching +conditions+ by instantiating each
-      # record and calling its +destroy+ method. Each object's callbacks are
-      # executed (including <tt>:dependent</tt> association options and
-      # +before_destroy+/+after_destroy+ Observer methods). Returns the
-      # collection of objects that were destroyed; each will be frozen, to
-      # reflect that no changes should be made (since they can't be
-      # persisted).
-      #
-      # Note: Instantiation, callback execution, and deletion of each
-      # record can be time consuming when you're removing many records at
-      # once. It generates at least one SQL +DELETE+ query per record (or
-      # possibly more, to enforce your callbacks). If you want to delete many
-      # rows quickly, without concern for their associations or callbacks, use
-      # +delete_all+ instead.
-      #
-      # ==== Parameters
-      #
-      # * +conditions+ - A string, array, or hash that specifies which records
-      #   to destroy. If omitted, all records are destroyed. See the
-      #   Conditions section in the introduction to ActiveRecord::Base for
-      #   more information.
-      #
-      # ==== Examples
-      #
-      #   Person.destroy_all("last_login < '2004-04-04'")
-      #   Person.destroy_all(:status => "inactive")
-      def destroy_all(conditions = nil)
-        where(conditions).destroy_all
-      end
-
-      # Deletes the records matching +conditions+ without instantiating the records first, and hence not
-      # calling the +destroy+ method nor invoking callbacks. This is a single SQL DELETE statement that
-      # goes straight to the database, much more efficient than +destroy_all+. Be careful with relations
-      # though, in particular <tt>:dependent</tt> rules defined on associations are not honored.  Returns
-      # the number of rows affected.
-      #
-      # ==== Parameters
-      #
-      # * +conditions+ - Conditions are specified the same way as with +find+ method.
-      #
-      # ==== Example
-      #
-      #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
-      #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
-      #
-      # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
-      # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
-      def delete_all(conditions = nil)
-        where(conditions).delete_all
+        relation.arel.update(sanitize_sql_for_assignment(updates))
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
@@ -1372,20 +1236,6 @@ module ActiveRecord #:nodoc:
 
       def sti_name
         store_full_sti_class ? name : name.demodulize
-      end
-
-      # Merges conditions so that the result is a valid +condition+
-      def merge_conditions(*conditions)
-        segments = []
-
-        conditions.each do |condition|
-          unless condition.blank?
-            sql = sanitize_sql(condition)
-            segments << sql unless sql.blank?
-          end
-        end
-
-        "(#{segments.join(') AND (')})" unless segments.empty?
       end
 
       def unscoped
@@ -2324,7 +2174,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
+        self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).arel.update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes

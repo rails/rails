@@ -93,13 +93,12 @@ module Rails
       initializers
     end
 
-    # TODO: Fix this method
+    # TODO: Fix this method. It loads all railties independent if :all is given
+    # or not, otherwise frameworks are never loaded.
     def plugins
       @plugins ||= begin
         plugin_names = (config.plugins || [:all]).map { |p| p.to_sym }
-        Railtie.plugins.select { |p|
-          plugin_names.include?(:all) || plugin_names.include?(p.plugin_name)
-        }.map { |p| p.new } + Plugin.all(plugin_names, config.paths.vendor.plugins)
+        Railtie.plugins.map(&:new) + Plugin.all(plugin_names, config.paths.vendor.plugins)
       end
     end
 

@@ -60,6 +60,7 @@ module ActionController
     # :api: private
     def dispatch(name, env)
       @_env = env
+      @_env['action_controller.instance'] = self
       process(name)
       to_a
     end

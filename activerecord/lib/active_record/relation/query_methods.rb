@@ -167,8 +167,8 @@ module ActiveRecord
       builder = PredicateBuilder.new(table.engine)
 
       conditions = if [String, Array].include?(args.first.class)
-        merged = @klass.send(:merge_conditions, args.size > 1 ? Array.wrap(args) : args.first)
-        Arel::SqlLiteral.new(merged) if merged
+        sql = @klass.send(:sanitize_sql, args.size > 1 ? args : args.first)
+        Arel::SqlLiteral.new("(#{sql})") if sql.present?
       elsif args.first.is_a?(Hash)
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, args.first)
         builder.build_from_hash(attributes, table)
