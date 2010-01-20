@@ -22,7 +22,7 @@ module Dispatching
     end
 
     def show_actions
-      render :text => "actions: #{action_methods.to_a.join(', ')}"
+      render :text => "actions: #{action_methods.to_a.sort.join(', ')}"
     end
 
     protected
