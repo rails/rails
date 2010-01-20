@@ -35,14 +35,14 @@ module ActionDispatch
         when Proc
           strategy.call(request.raw_post)
         when :xml_simple, :xml_node
-          request.body.size == 0 ? {} : Hash.from_xml(request.body).with_indifferent_access
+          request.body.size == 0 ? {} : Hash.from_xml(request.raw_post).with_indifferent_access
         when :yaml
-          YAML.load(request.body)
+          YAML.load(request.raw_post)
         when :json
           if request.body.size == 0
             {}
           else
-            data = ActiveSupport::JSON.decode(request.body)
+            data = ActiveSupport::JSON.decode(request.raw_post)
             data = {:_json => data} unless data.is_a?(Hash)
             data.with_indifferent_access
           end
