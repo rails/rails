@@ -1,4 +1,5 @@
 require 'active_support/core_ext/class'
+require "active_support/core_ext/module/delegation"
 require 'mail'
 require 'action_mailer/tmail_compat'
 
@@ -267,7 +268,6 @@ module ActionMailer #:nodoc:
 
     include ActionMailer::DeliveryMethods
 
-
     private_class_method :new #:nodoc:
 
     @@raise_delivery_errors = true
@@ -355,6 +355,9 @@ module ActionMailer #:nodoc:
     # Expose the internal Mail message
     attr_reader :message
 
+    # Pass calls to headers and attachment to the Mail#Message instance
+    delegate :headers, :attachments, :to => :@message
+    
     # Alias controller_path to mailer_name so render :partial in views work.
     alias :controller_path :mailer_name
 
@@ -478,7 +481,6 @@ module ActionMailer #:nodoc:
       m.cc           = quote_address_if_necessary(headers[:cc], m.charset)       if headers[:cc]
       m.bcc          = quote_address_if_necessary(headers[:bcc], m.charset)      if headers[:bcc]
       m.reply_to     = quote_address_if_necessary(headers[:reply_to], m.charset) if headers[:reply_to]
-      m.mime_version = headers[:mime_version]                                    if headers[:mime_version]
       m.date         = headers[:date]                                            if headers[:date]
 
       m.body.set_sort_order(headers[:parts_order] || @@default_implicit_parts_order)

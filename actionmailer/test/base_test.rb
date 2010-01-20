@@ -11,7 +11,7 @@ require 'abstract_unit'
 #    end
 #    
 #    def goodbye(user)
-#      headers["Reply-To"] = 'cancelations@example.com'
+#      headers["X-SPAM"] = 'Not-SPAM'
 #      mail(:subject => 'Goodbye', :to => user.email_address) do |format|
 #        format.html { render "shared_template "}
 #        format.text # goodbye.text.erb
@@ -40,11 +40,14 @@ require 'abstract_unit'
 class BaseTest < Test::Unit::TestCase
   
   class TestMailer < ActionMailer::Base
+    
     def welcome(hash = {})
+      headers['X-SPAM'] = "Not SPAM"
       hash = {:to => 'mikel@test.lindsaar.net', :from => 'jose@test.plataformatec.com',
               :subject => 'The first email on new API!'}.merge!(hash)
       mail(hash)
     end
+    
   end
 
   def test_the_method_call_to_mail_does_not_raise_error
@@ -57,12 +60,31 @@ class BaseTest < Test::Unit::TestCase
     assert_equal(email.from,    ['jose@test.plataformatec.com'])
     assert_equal(email.subject, 'The first email on new API!')
   end
-
-  def test_calling_mail_should_pass_the_header_hash_to_the_new_mail_object
-    
+  
+  def test_should_allow_all_headers_set
+    @time = Time.now
+    email = TestMailer.deliver_welcome(:bcc => 'bcc@test.lindsaar.net',
+                                       :cc  => 'cc@test.lindsaar.net',
+                                       :content_type => 'multipart/mixed',
+                                       :charset => 'iso-8559-1',
+                                       :mime_version => '2.0',
+                                       :reply_to => 'reply-to@test.lindsaar.net',
+                                       :date => @time)
+    assert_equal(email.bcc,           ['bcc@test.lindsaar.net'])
+    assert_equal(email.cc,            ['cc@test.lindsaar.net'])
+    assert_equal(email.content_type,  'multipart/mixed')
+    assert_equal(email.charset,       'iso-8559-1')
+    assert_equal(email.mime_version,  '2.0')
+    assert_equal(email.reply_to,      ['reply-to@test.lindsaar.net'])
+    assert_equal(email.date,          @time)
   end
 
-  def test_it_should_guard_against_old_api_if_mail_method_called
+#  def test_should_allow_custom_headers_to_be_set
+#    email = TestMailer.deliver_welcome
+#    assert_equal("Not SPAM", email['X-SPAM'])
+#  end
+
+  def test_should_use_class_defaults
     
   end
 
