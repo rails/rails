@@ -35,11 +35,9 @@ module Another
   end
 end
 
-module ActionControllerSubscriberTest
-
-  def self.included(base)
-    base.tests Another::SubscribersController
-  end
+class ACSubscriberTest < ActionController::TestCase
+  tests Another::SubscribersController
+  include Rails::Subscriber::TestHelper
 
   def setup
     @old_logger = ActionController::Base.logger
@@ -173,15 +171,5 @@ module ActionControllerSubscriberTest
 
   def logs
     @logs ||= @logger.logged(:info)
-  end
-
-  class SyncSubscriberTest < ActionController::TestCase
-    include Rails::Subscriber::SyncTestHelper
-    include ActionControllerSubscriberTest
-  end
-
-  class AsyncSubscriberTest < ActionController::TestCase
-    include Rails::Subscriber::AsyncTestHelper
-    include ActionControllerSubscriberTest
   end
 end

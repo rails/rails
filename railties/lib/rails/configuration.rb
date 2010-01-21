@@ -10,15 +10,15 @@ module Rails
 
     def self.default_middleware_stack
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
-        middleware.use('ActionDispatch::Static', lambda { Rails.public_path }, :if => lambda { Rails.application.config.serve_static_assets })
+        middleware.use('::ActionDispatch::Static', lambda { Rails.public_path }, :if => lambda { Rails.application.config.serve_static_assets })
         middleware.use('::Rack::Lock', :if => lambda { !ActionController::Base.allow_concurrency })
         middleware.use('::Rack::Runtime')
-        middleware.use('ActionDispatch::ShowExceptions', lambda { ActionController::Base.consider_all_requests_local })
-        middleware.use('ActionDispatch::Notifications')
-        middleware.use('ActionDispatch::Callbacks', lambda { !Rails.application.config.cache_classes })
-        middleware.use('ActionDispatch::Cookies')
+        middleware.use('::Rails::Rack::Logger')
+        middleware.use('::ActionDispatch::ShowExceptions', lambda { ActionController::Base.consider_all_requests_local })
+        middleware.use('::ActionDispatch::Callbacks', lambda { !Rails.application.config.cache_classes })
+        middleware.use('::ActionDispatch::Cookies')
         middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
-        middleware.use('ActionDispatch::Flash', :if => lambda { ActionController::Base.session_store })
+        middleware.use('::ActionDispatch::Flash', :if => lambda { ActionController::Base.session_store })
         middleware.use(lambda { Rails::Rack::Metal.new(Rails.application.config.paths.app.metals.to_a, Rails.application.config.metals) })
         middleware.use('ActionDispatch::ParamsParser')
         middleware.use('::Rack::MethodOverride')

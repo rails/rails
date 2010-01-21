@@ -3,7 +3,8 @@ require "models/developer"
 require "rails/subscriber/test_helper"
 require "active_record/railties/subscriber"
 
-module SubscriberTest
+class SubscriberTest < ActiveSupport::TestCase
+  include Rails::Subscriber::TestHelper
   Rails::Subscriber.add(:active_record, ActiveRecord::Railties::Subscriber.new)
 
   def setup
@@ -37,15 +38,5 @@ module SubscriberTest
     assert_equal 2, @logger.logged(:debug).size
     assert_match /CACHE/, @logger.logged(:debug).last
     assert_match /SELECT .*?FROM .?developers.?/, @logger.logged(:debug).last
-  end
-
-  class SyncSubscriberTest < ActiveSupport::TestCase
-    include Rails::Subscriber::SyncTestHelper
-    include SubscriberTest
-  end
-
-  class AsyncSubscriberTest < ActiveSupport::TestCase
-    include Rails::Subscriber::AsyncTestHelper
-    include SubscriberTest
   end
 end

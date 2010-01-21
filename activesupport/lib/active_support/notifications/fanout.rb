@@ -3,11 +3,9 @@ require 'thread'
 module ActiveSupport
   module Notifications
     # This is a default queue implementation that ships with Notifications. It
-    # consumes events in a thread and publish them to all registered subscribers.
-    #
+    # just pushes events to all registered subscribers.
     class Fanout
-      def initialize(sync = false)
-        @subscriber_klass = sync ? Subscriber : AsyncSubscriber
+      def initialize
         @subscribers = []
       end
 
@@ -16,7 +14,7 @@ module ActiveSupport
       end
 
       def subscribe(pattern = nil, &block)
-        @subscribers << @subscriber_klass.new(pattern, &block)
+        @subscribers << Subscriber.new(pattern, &block)
       end
 
       def publish(*args)
@@ -66,34 +64,6 @@ module ActiveSupport
 
           def push(*args)
             @block.call(*args)
-          end
-      end
-
-      # Used for internal implementation only.
-      class AsyncSubscriber < Subscriber #:nodoc:
-        def initialize(pattern, &block)
-          super
-          @events = Queue.new
-          start_consumer
-        end
-
-        def drained?
-          @events.empty?
-        end
-
-        private
-          def start_consumer
-            Thread.new { consume }
-          end
-
-          def consume
-            while args = @events.shift
-              @block.call(*args)
-            end
-          end
-
-          def push(*args)
-            @events << args
           end
       end
     end

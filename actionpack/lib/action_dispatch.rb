@@ -46,7 +46,6 @@ module ActionDispatch
     autoload :Cookies
     autoload :Flash
     autoload :Head
-    autoload :Notifications
     autoload :ParamsParser
     autoload :Rescue
     autoload :ShowExceptions
