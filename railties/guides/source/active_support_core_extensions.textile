@@ -1928,20 +1928,11 @@ NOTE: Defined in +active_support/core_ext/name_error.rb+.
 
 h3. Extensions to +LoadError+
 
-Rails hijacks +LoadError.new+ to return a +MissingSourceFile+ exception:
+Active Support adds +is_missing?+ to +LoadError+, and also assigns that class to the constant +MissingSourceFile+ for backwards compatibility.
 
-<shell>
-$ ruby -e 'require "nonexistent"'
-...: no such file to load -- nonexistent (LoadError)
-...
-$ script/runner 'require "nonexistent"'
-...: no such file to load -- nonexistent (MissingSourceFile)
-...
-</shell>
+Given a path name +is_missing?+ tests whether the exception was raised due to that particular file (except perhaps for the ".rb" extension).
 
-The class +MissingSourceFile+ is a subclass of +LoadError+, so any code that rescues +LoadError+ as usual still works as expected. Point is these exception objects respond to +is_missing?+, which given a path name tests whether the exception was raised due to that particular file (except perhaps for the ".rb" extension).
-
-For example, when an action of +PostsController+ is called Rails tries to load +posts_helper.rb+, but that file may not exist. That's fine, the helper module is not mandatory so Rails silences a load error. But it could be the case that the helper module does exist, but it in turn requires another library that is missing. In that case Rails must reraise the exception. The method +is_missing?+ provides a way to distinguish both cases:
+For example, when an action of +PostsController+ is called Rails tries to load +posts_helper.rb+, but that file may not exist. That's fine, the helper module is not mandatory so Rails silences a load error. But it could be the case that the helper module does exist and in turn requires another library that is missing. In that case Rails must reraise the exception. The method +is_missing?+ provides a way to distinguish both cases:
 
 <ruby>
 def default_helper_module!
@@ -1949,7 +1940,7 @@ def default_helper_module!
   module_path = module_name.underscore
   helper module_path
 rescue MissingSourceFile => e
-  raise e unless e.is_missing? "#{module_path}_helper"
+  raise e unless e.is_missing? "helpers/#{module_path}_helper"
 rescue NameError => e
   raise e unless e.missing_name? "#{module_name}Helper"
 end
