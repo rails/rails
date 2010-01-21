@@ -122,5 +122,17 @@ module ApplicationTests
         require "#{app_path}/config/environment"
       end
     end
+    
+    test "filter_parameters should be able to set via config.filter_parameters" do
+      add_to_config <<-RUBY
+        config.filter_parameters :foo, 'bar' do |key, value|
+          value = value.reverse if key =~ /baz/
+        end
+      RUBY
+      
+      assert_nothing_raised do
+        require "#{app_path}/config/application"
+      end
+    end
   end
 end

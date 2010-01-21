@@ -252,6 +252,10 @@ module Rails
         i18n
       end
     end
+    
+    def filter_parameters(*filter_words, &block)
+      ActionDispatch::Http::ParametersFilter.filter_parameters(*filter_words, &block)
+    end
 
     def environment_path
       "#{root}/config/environments/#{Rails.env}.rb"
