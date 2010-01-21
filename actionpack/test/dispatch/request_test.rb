@@ -454,18 +454,7 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal Mime::XML, request.negotiate_mime([Mime::XML, Mime::CSV])
   end
 
-  class FilterRequest < ActionDispatch::Request
-  end
-
-  test "filter_parameters raises error without arguments" do
-    assert_raises RuntimeError do
-      FilterRequest.filter_parameters
-    end
-  end
-  
   test "process parameter filter" do
-    request = FilterRequest.new({})
-
     test_hashes = [
     [{'foo'=>'bar'},{'foo'=>'bar'},%w'food'],
     [{'foo'=>'bar'},{'foo'=>'[FILTERED]'},%w'foo'],
@@ -473,18 +462,18 @@ class RequestTest < ActiveSupport::TestCase
     [{'foo'=>'bar', 'baz'=>'foo'},{'foo'=>'[FILTERED]', 'baz'=>'[FILTERED]'},%w'foo baz'],
     [{'bar'=>{'foo'=>'bar','bar'=>'foo'}},{'bar'=>{'foo'=>'[FILTERED]','bar'=>'foo'}},%w'fo'],
     [{'foo'=>{'foo'=>'bar','bar'=>'foo'}},{'foo'=>'[FILTERED]'},%w'f banana'],
-    [{'baz'=>[{'foo'=>'baz'}]}, {'baz'=>[{'foo'=>'[FILTERED]'}]}, %w(foo)]]
+    [{'baz'=>[{'foo'=>'baz'}]}, {'baz'=>[{'foo'=>'[FILTERED]'}]}, [/foo/]]]
 
     test_hashes.each do |before_filter, after_filter, filter_words|
-      FilterRequest.filter_parameters(*filter_words)
+      request = stub_request('action_dispatch.parameter_filter' => filter_words)
       assert_equal after_filter, request.send(:process_parameter_filter, before_filter)
 
-      filter_words.push('blah')
-
-      FilterRequest.filter_parameters(*filter_words) do |key, value|
+      filter_words << 'blah'
+      filter_words << lambda { |key, value|
         value.reverse! if key =~ /bargain/
-      end
+      }
 
+      request = stub_request('action_dispatch.parameter_filter' => filter_words)
       before_filter['barg'] = {'bargain'=>'gain', 'blah'=>'bar', 'bar'=>{'bargain'=>{'blah'=>'foo'}}}
       after_filter['barg']  = {'bargain'=>'niag', 'blah'=>'[FILTERED]', 'bar'=>{'bargain'=>{'blah'=>'[FILTERED]'}}}
 
@@ -493,10 +482,9 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "filtered_parameters returns params filtered" do
-    FilterRequest.filter_parameters(:lifo, :amount)
-
-    request = FilterRequest.new('action_dispatch.request.parameters' =>
-      { 'lifo' => 'Pratik', 'amount' => '420', 'step' => '1' })
+    request = stub_request('action_dispatch.request.parameters' =>
+      { 'lifo' => 'Pratik', 'amount' => '420', 'step' => '1' },
+      'action_dispatch.parameter_filter' => [:lifo, :amount])
 
     params = request.filtered_parameters
     assert_equal "[FILTERED]", params["lifo"]
@@ -505,12 +493,11 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "filtered_env filters env as a whole" do
-    FilterRequest.filter_parameters(:lifo, :amount)
+    request = stub_request('action_dispatch.request.parameters' =>
+      { 'amount' => '420', 'step' => '1' }, "RAW_POST_DATA" => "yada yada",
+      'action_dispatch.parameter_filter' => [:lifo, :amount])
 
-    request = FilterRequest.new('action_dispatch.request.parameters' =>
-      { 'amount' => '420', 'step' => '1' }, "RAW_POST_DATA" => "yada yada")
-
-    request = FilterRequest.new(request.filtered_env)
+    request = stub_request(request.filtered_env)
 
     assert_equal "[FILTERED]", request.raw_post
     assert_equal "[FILTERED]", request.params["amount"]

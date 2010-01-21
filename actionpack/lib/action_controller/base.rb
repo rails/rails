@@ -74,8 +74,12 @@ module ActionController
     end
 
     # This method has been moved to ActionDispatch::Request.filter_parameters
-    def self.filter_parameter_logging(*)
+    def self.filter_parameter_logging(*args, &block)
       ActiveSupport::Deprecation.warn("Setting filter_parameter_logging in ActionController is deprecated and has no longer effect, please set 'config.filter_parameters' in config/application.rb instead", caller)
+      filter = Rails.application.config.filter_parameters
+      filter.concat(args)
+      filter << block if block
+      filter
     end
 
     def _normalize_options(action=nil, options={}, &blk)

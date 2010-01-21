@@ -1,10 +1,14 @@
 module ActionController
   module Railties
     class Subscriber < Rails::Subscriber
+      INTERNAL_PARAMS = %w(controller action format _method only_path)
+
       def start_processing(event)
         payload = event.payload
+        params  = payload[:params].except(*INTERNAL_PARAMS)
+
         info "  Processing by #{payload[:controller]}##{payload[:action]} as #{payload[:formats].first.to_s.upcase}"
-        info "  Parameters: #{payload[:params].inspect}" unless payload[:params].blank?
+        info "  Parameters: #{params.inspect}" unless params.empty?
       end
 
       def process_action(event)

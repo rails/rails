@@ -97,8 +97,7 @@ class ACSubscriberTest < ActionController::TestCase
   end
 
   def test_process_action_with_filter_parameters
-    ActionDispatch::Request.class_eval "alias :safe_process_parameter_filter :process_parameter_filter"
-    ActionDispatch::Request.filter_parameters(:lifo, :amount)
+    @request.env["action_dispatch.parameter_filter"] = [:lifo, :amount]
 
     get :show, :lifo => 'Pratik', :amount => '420', :step => '1'
     wait
@@ -107,8 +106,6 @@ class ACSubscriberTest < ActionController::TestCase
     assert_match /"amount"=>"\[FILTERED\]"/, params
     assert_match /"lifo"=>"\[FILTERED\]"/, params
     assert_match /"step"=>"1"/, params
-  ensure
-    ActionDispatch::Request.class_eval "alias :process_parameter_filter :safe_process_parameter_filter"
   end
 
   def test_redirect_to

@@ -69,7 +69,7 @@ module Rails
 
   class Configuration < Railtie::Configuration
     attr_accessor :after_initialize_blocks, :cache_classes, :colorize_logging,
-                  :consider_all_requests_local, :dependency_loading,
+                  :consider_all_requests_local, :dependency_loading, :filter_parameters,
                   :load_once_paths, :logger, :metals, :plugins,
                   :preload_frameworks, :reload_plugins, :serve_static_assets,
                   :time_zone, :whiny_nils
@@ -83,6 +83,7 @@ module Rails
       super
       @load_once_paths              = []
       @after_initialize_blocks      = []
+      @filter_parameters            = []
       @dependency_loading           = true
       @serve_static_assets          = true
     end
@@ -251,10 +252,6 @@ module Rails
 
         i18n
       end
-    end
-    
-    def filter_parameters(*filter_words, &block)
-      ActionDispatch::Request.filter_parameters(*filter_words, &block)
     end
 
     def environment_path
