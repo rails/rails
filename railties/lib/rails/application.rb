@@ -1,14 +1,12 @@
 require "fileutils"
-require 'active_support/core_ext/module/delegation'
 
 module Rails
-  class Application
+  class Application < Engine
     include Initializable
 
     class << self
-      attr_writer :config
-      alias configure class_eval
-      delegate :initialize!, :load_tasks, :load_generators, :root, :to => :instance
+      alias    :configure :class_eval
+      delegate :initialize!, :load_tasks, :load_generators, :to => :instance
 
       private :new
       def instance
@@ -16,7 +14,16 @@ module Rails
       end
 
       def config
-        @config ||= Configuration.new(Plugin::Configuration.default)
+        @config ||= Configuration.new(root)
+      end
+
+      def root
+        @root ||= find_root_with_file_flag("config.ru", Dir.pwd)
+      end
+
+      def inherited(base)
+        super
+        Railtie.plugins.delete(base)
       end
 
       def routes
@@ -24,8 +31,7 @@ module Rails
       end
     end
 
-    delegate :config, :routes, :to => :'self.class'
-    delegate :root, :middleware, :to => :config
+    delegate :routes, :to => :'self.class'
     attr_reader :route_configuration_files
 
     def initialize
@@ -38,12 +44,7 @@ module Rails
       run_initializers(self)
       self
     end
-
-    def require_environment
-      require config.environment_path
-    rescue LoadError
-    end
-
+    
     def routes_changed_at
       routes_changed_at = nil
 
@@ -59,6 +60,7 @@ module Rails
     end
 
     def reload_routes!
+      routes = Rails::Application.routes
       routes.disable_clear_and_finalize = true
 
       routes.clear!
@@ -68,6 +70,12 @@ module Rails
       nil
     ensure
       routes.disable_clear_and_finalize = false
+    end
+
+
+    def require_environment
+      require config.environment_path
+    rescue LoadError
     end
 
     def load_tasks
@@ -114,34 +122,20 @@ module Rails
       app.call(env)
     end
 
-    initializer :load_application_initializers do
-      Dir["#{root}/config/initializers/**/*.rb"].sort.each do |initializer|
-        load(initializer)
-      end
-    end
-
-    initializer :build_middleware_stack do
+    initializer :build_middleware_stack, :after => :load_application_initializers do
       app
     end
 
-    # Fires the user-supplied after_initialize block (Configuration#after_initialize)
-    initializer :after_initialize do
-      config.after_initialize_blocks.each do |block|
-        block.call
+    initializer :add_builtin_route do |app|
+      if Rails.env.development?
+        app.route_configuration_files << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
       end
     end
 
-    # Eager load application classes
-    initializer :load_application_classes do
-      next if $rails_rake_task
-
-      if config.cache_classes
-        config.eager_load_paths.each do |load_path|
-          matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
-          Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
-            require_dependency file.sub(matcher, '\1')
-          end
-        end
+    # Fires the user-supplied after_initialize block (Configuration#after_initialize)
+    initializer :after_initialize, :after => :build_middleware_stack do
+      config.after_initialize_blocks.each do |block|
+        block.call
       end
     end
 

@@ -12,30 +12,25 @@ module Rails
       require "active_support/all" unless config.active_support.bare
     end
 
-    # Set the <tt>$LOAD_PATH</tt> based on the value of
-    # Configuration#load_paths. Duplicates are removed.
-    initializer :set_load_path do
-      config.paths.add_to_load_path
-      $LOAD_PATH.uniq!
+    initializer :initialize_logger do
+      Rails.logger ||= config.logger || begin
+        logger = ActiveSupport::BufferedLogger.new(config.paths.log.to_a.first)
+        logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
+        logger.auto_flushing = false if Rails.env.production?
+        logger
+      rescue StandardError => e
+        logger = ActiveSupport::BufferedLogger.new(STDERR)
+        logger.level = ActiveSupport::BufferedLogger::WARN
+        logger.warn(
+          "Rails Error: Unable to access log file. Please ensure that #{config.log_path} exists and is chmod 0666. " +
+          "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
+        )
+        logger
+      end
     end
 
-    # Set the paths from which Rails will automatically load source files, and
-    # the load_once paths.
-    initializer :set_autoload_paths do
-      require 'active_support/dependencies'
-      ActiveSupport::Dependencies.load_paths = expand_load_path(config.load_paths)
-      ActiveSupport::Dependencies.load_once_paths = expand_load_path(config.load_once_paths)
-
-      extra = ActiveSupport::Dependencies.load_once_paths - ActiveSupport::Dependencies.load_paths
-      unless extra.empty?
-        abort <<-end_error
-          load_once_paths must be a subset of the load_paths.
-          Extra items in load_once_paths: #{extra * ','}
-        end_error
-      end
-
-      # Freeze the arrays so future modifications will fail rather than do nothing mysteriously
-      config.load_once_paths.freeze
+    initializer :container do
+      # FIXME This is just a dumb initializer used as hook
     end
 
     # Create tmp directories
@@ -61,29 +56,6 @@ module Rails
           config.middleware.insert_after(:"Rack::Lock", RAILS_CACHE.middleware)
         end
       end
-    end
-
-    initializer :initialize_logger do
-      Rails.logger ||= config.logger || begin
-        logger = ActiveSupport::BufferedLogger.new(config.log_path)
-        logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
-        logger.auto_flushing = false if Rails.env.production?
-        logger
-      rescue StandardError => e
-        logger = ActiveSupport::BufferedLogger.new(STDERR)
-        logger.level = ActiveSupport::BufferedLogger::WARN
-        logger.warn(
-          "Rails Error: Unable to access log file. Please ensure that #{config.log_path} exists and is chmod 0666. " +
-          "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
-        )
-        logger
-      end
-    end
-
-    # Sets the logger for dependencies and cache store.
-    initializer :initialize_framework_logging do
-      ActiveSupport::Dependencies.logger ||= Rails.logger
-      Rails.cache.logger ||= Rails.logger
     end
 
     # Sets the dependency loading mechanism based on the value of

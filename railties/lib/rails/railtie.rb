@@ -2,43 +2,51 @@ module Rails
   class Railtie
     include Initializable
 
-    def self.plugin_name(plugin_name = nil)
-      @plugin_name ||= name.demodulize.underscore
-      @plugin_name = plugin_name if plugin_name
-      @plugin_name
-    end
+    ABSTRACT_RAILTIES = %w(Rails::Plugin Rails::Engine Rails::Application)
 
-    def self.inherited(klass)
-      @plugins ||= []
-      @plugins << klass unless klass == Plugin
-    end
+    class << self
+      def abstract_railtie?(base)
+        ABSTRACT_RAILTIES.include?(base.name)
+      end
 
-    def self.plugins
-      @plugins
-    end
+      def inherited(base)
+        @@plugins ||= []
+        @@plugins << base unless abstract_railtie?(base)
+      end
 
-    def self.plugin_names
-      plugins.map { |p| p.plugin_name }
-    end
+      def plugin_name(plugin_name = nil)
+        @plugin_name ||= name.demodulize.underscore
+        @plugin_name = plugin_name if plugin_name
+        @plugin_name
+      end
 
-    def self.config
-      Configuration.default
-    end
+      def plugins
+        @@plugins
+      end
 
-    def self.subscriber(subscriber)
-      Rails::Subscriber.add(plugin_name, subscriber)
-    end
+      def plugin_names
+        plugins.map { |p| p.plugin_name }
+      end
 
-    def self.rake_tasks(&blk)
-      @rake_tasks ||= []
-      @rake_tasks << blk if blk
-      @rake_tasks
-    end
+      def config
+        Configuration.default
+      end
 
-    def self.generators(&blk)
-      @generators ||= []
-      @generators << blk if blk
-      @generators
+      def subscriber(subscriber)
+        Rails::Subscriber.add(plugin_name, subscriber)
+      end
+
+      def rake_tasks(&blk)
+        @rake_tasks ||= []
+        @rake_tasks << blk if blk
+        @rake_tasks
+      end
+
+      def generators(&blk)
+        @generators ||= []
+        @generators << blk if blk
+        @generators
+      end
     end
 
     def rake_tasks

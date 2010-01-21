@@ -19,12 +19,6 @@ module ActionController
       ActionController::Base.logger ||= Rails.logger
     end
 
-    # Routing must be initialized after plugins to allow the former to extend the routes
-    initializer "action_controller.initialize_routing" do |app|
-      app.route_configuration_files << app.config.routes_configuration_file
-      app.route_configuration_files << app.config.builtin_routes_configuration_file
-    end
-
     initializer "action_controller.initialize_framework_caches" do
       ActionController::Base.cache_store ||= RAILS_CACHE
     end

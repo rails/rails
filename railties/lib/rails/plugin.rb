@@ -57,7 +57,6 @@ module Rails
       end
     end
 
-    # TODO Isn't it supposed to be :after => "action_controller.initialize_routing" ?
     initializer :add_routing_file, :after => :initialize_routing do |app|
       routing_file = "#{path}/config/routes.rb"
       if File.exist?(routing_file)

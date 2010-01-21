@@ -1,15 +1,9 @@
 require 'active_support/ordered_options'
 
 module Rails
-  # Temporarily separate the plugin configuration class from the main
-  # configuration class while this bit is being cleaned up.
-  class Railtie::Configuration
-    def self.default
-      @default ||= new
-    end
-
-    def self.default_middleware_stack
-      ActionDispatch::MiddlewareStack.new.tap do |middleware|
+  module SharedConfiguration
+    def self.middleware_stack
+      @default_middleware_stack ||= ActionDispatch::MiddlewareStack.new.tap do |middleware|
         middleware.use('::ActionDispatch::Static', lambda { Rails.public_path }, :if => lambda { Rails.application.config.serve_static_assets })
         middleware.use('::Rack::Lock', :if => lambda { !ActionController::Base.allow_concurrency })
         middleware.use('::Rack::Runtime')
@@ -26,16 +20,23 @@ module Rails
       end
     end
 
+    def self.options
+      @options ||= Hash.new { |h,k| h[k] = ActiveSupport::OrderedOptions.new }
+    end
+  end
+
+  # Temporarily separate the plugin configuration class from the main
+  # configuration class while this bit is being cleaned up.
+  class Railtie::Configuration
+    def self.default
+      @default ||= new
+    end
+
     attr_reader :middleware
 
-    def initialize(base = nil)
-      if base
-        @options    = base.options.dup
-        @middleware = base.middleware.dup
-      else
-        @options    = Hash.new { |h,k| h[k] = ActiveSupport::OrderedOptions.new }
-        @middleware = self.class.default_middleware_stack
-      end
+    def initialize
+      @options    = SharedConfiguration.options
+      @middleware = SharedConfiguration.middleware_stack
     end
 
     def respond_to?(name)
@@ -61,27 +62,65 @@ module Rails
       /^(#{bits})(?:=)?$/
     end
 
+    # TODO Remove :active_support as special case by adding a railtie
+    # for it and for I18n
     def config_keys
-      ([ :active_support, :action_view ] +
-        Railtie.plugin_names).map { |n| n.to_s }.uniq
+      ([:active_support] + Railtie.plugin_names).map { |n| n.to_s }.uniq
     end
   end
 
-  class Configuration < Railtie::Configuration
+  class Engine::Configuration < Railtie::Configuration
+    attr_reader :root
+
+    def initialize(root)
+      @root = root
+      super()
+    end
+
+    def paths
+      @paths ||= begin
+        paths = Rails::Application::Root.new(root)
+        paths.app                 "app",             :load_path => true
+        paths.app_glob            "app/*",           :load_path => true, :eager_load => true
+        paths.app.controllers     "app/controllers"
+        paths.app.metals          "app/metal"
+        paths.app.views           "app/views"
+        paths.lib                 "lib",             :load_path => true
+        paths.config              "config"
+        paths.config.environments "config/environments", :glob => "#{Rails.env}.rb"
+        paths.config.initializers "config/initializers"
+        paths.config.locales      "config/locales"
+        paths.config.routes       "config/routes.rb"
+        paths
+      end
+    end
+
+    def eager_load_paths
+      @eager_load_paths ||= paths.eager_load
+    end
+
+    def load_once_paths
+      @eager_load_paths ||= paths.load_once
+    end
+
+    def load_paths
+      @load_paths ||= paths.load_paths
+    end
+  end
+
+  class Configuration < Engine::Configuration
     attr_accessor :after_initialize_blocks, :cache_classes, :colorize_logging,
                   :consider_all_requests_local, :dependency_loading, :filter_parameters,
-                  :load_once_paths, :logger, :metals, :plugins,
+                  :logger, :metals, :plugins,
                   :preload_frameworks, :reload_plugins, :serve_static_assets,
                   :time_zone, :whiny_nils
 
     attr_writer :cache_store, :controller_paths,
-                :database_configuration_file, :eager_load_paths,
-                :i18n, :load_paths, :log_level, :log_path, :paths,
-                :routes_configuration_file, :view_path
+                :database_configuration_file,
+                :i18n, :log_level, :log_path
 
-    def initialize(base = nil)
+    def initialize(*)
       super
-      @load_once_paths              = []
       @after_initialize_blocks      = []
       @filter_parameters            = []
       @dependency_loading           = true
@@ -92,46 +131,23 @@ module Rails
       @after_initialize_blocks << blk if blk
     end
 
-    def root
-      @root ||= begin
-        call_stack = caller.map { |p| p.split(':').first }
-        root_path  = call_stack.detect { |p| p !~ %r[railties/lib/rails|rack/lib/rack] }
-        root_path  = File.dirname(root_path)
-
-        while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/config.ru")
-          parent = File.dirname(root_path)
-          root_path = parent != root_path && parent
-        end
-
-        root = File.exist?("#{root_path}/config.ru") ? root_path : Dir.pwd
-
-        RUBY_PLATFORM =~ /(:?mswin|mingw)/ ?
-          Pathname.new(root).expand_path :
-          Pathname.new(root).realpath
-      end
-    end
-
-    def root=(root)
-      @root = Pathname.new(root).expand_path
-    end
-
     def paths
       @paths ||= begin
-        paths = Rails::Application::Root.new(root)
-        paths.app                 "app",             :load_path => true
-        paths.app.metals          "app/metal",       :eager_load => true
-        paths.app.models          "app/models",      :eager_load => true
-        paths.app.controllers     "app/controllers", builtin_directories, :eager_load => true
-        paths.app.helpers         "app/helpers",     :eager_load => true
-        paths.app.services        "app/services",    :load_path => true
-        paths.lib                 "lib",             :load_path => true
-        paths.vendor              "vendor",          :load_path => true
-        paths.vendor.plugins      "vendor/plugins"
-        paths.tmp                 "tmp"
-        paths.tmp.cache           "tmp/cache"
-        paths.config              "config"
-        paths.config.locales      "config/locales"
-        paths.config.environments "config/environments", :glob => "#{Rails.env}.rb"
+        paths = super
+        paths.builtin_controller builtin_directories, :eager_load => true
+        paths.config.database    "config/database.yml"
+        paths.log                "log/#{Rails.env}.log"
+        paths.tmp                "tmp"
+        paths.tmp.cache          "tmp/cache"
+        paths.vendor             "vendor",            :load_path => true
+        paths.vendor.plugins     "vendor/plugins"
+
+        if File.exists?("#{root}/test/mocks/#{Rails.env}")
+          ActiveSupport::Deprecation.warn "\"RAILS_ROOT/test/mocks/#{Rails.env}\" won't be added " <<
+            "automatically to load paths anymore in next releases."
+          paths.mocks_path  "test/mocks/#{Rails.env}", :load_path => true
+        end
+
         paths
       end
     end
@@ -163,17 +179,61 @@ module Rails
     # YAML::load.
     def database_configuration
       require 'erb'
-      YAML::load(ERB.new(IO.read(database_configuration_file)).result)
+      YAML::load(ERB.new(IO.read(paths.config.database.to_a.first)).result)
+    end
+
+    def view_path=(value)
+      ActiveSupport::Deprecation.warn "config.view_path= is deprecated, " <<
+        "please do config.paths.app.views= instead", caller
+      paths.app.views = value
+    end
+
+    def view_path
+      ActiveSupport::Deprecation.warn "config.view_path is deprecated, " <<
+        "please do config.paths.app.views instead", caller
+      paths.app.views.to_a.first
+    end
+
+    def routes_configuration_file=(value)
+      ActiveSupport::Deprecation.warn "config.routes_configuration_file= is deprecated, " <<
+        "please do config.paths.config.routes= instead", caller
+      paths.config.routes = value
     end
 
     def routes_configuration_file
-      @routes_configuration_file ||= File.join(root, 'config', 'routes.rb')
+      ActiveSupport::Deprecation.warn "config.routes_configuration_file is deprecated, " <<
+        "please do config.paths.config.routes instead", caller
+      paths.config.routes.to_a.first
     end
 
-    def builtin_routes_configuration_file
-      @builtin_routes_configuration_file ||= File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
+    def database_configuration_file=(value)
+      ActiveSupport::Deprecation.warn "config.database_configuration_file= is deprecated, " <<
+        "please do config.paths.config.database= instead", caller
+      paths.config.database = value
     end
 
+    def database_configuration_file
+      ActiveSupport::Deprecation.warn "config.database_configuration_file is deprecated, " <<
+        "please do config.paths.config.database instead", caller
+      paths.config.database.to_a.first
+    end
+
+    def log_path=(value)
+      ActiveSupport::Deprecation.warn "config.log_path= is deprecated, " <<
+        "please do config.paths.log= instead", caller
+      paths.config.log = value
+    end
+
+    def log_path
+      ActiveSupport::Deprecation.warn "config.log_path is deprecated, " <<
+        "please do config.paths.log instead", caller
+      paths.config.log.to_a.first
+    end
+
+
+
+    # TODO Router needs this, but this wouldn't work with engines.
+    # There is a high chance of plugins routes to be broken.
     def controller_paths
       @controller_paths ||= begin
         paths = [File.join(root, 'app', 'controllers')]
@@ -192,44 +252,9 @@ module Rails
       end
     end
 
-    def database_configuration_file
-      @database_configuration_file ||= File.join(root, 'config', 'database.yml')
-    end
-
-    def view_path
-      @view_path ||= File.join(root, 'app', 'views')
-    end
-
-    def eager_load_paths
-      @eager_load_paths ||= ["#{root}/app/*"]
-    end
-
-    def load_paths
-      @load_paths ||= begin
-        paths = []
-
-        # Add the old mock paths only if the directories exists
-        paths.concat(Dir["#{root}/test/mocks/#{Rails.env}"]) if File.exists?("#{root}/test/mocks/#{Rails.env}")
-
-        # Followed by the standard includes.
-        paths.concat %w(
-          app
-          app/*
-          lib
-          vendor
-        ).map { |dir| "#{root}/#{dir}" }
-
-        paths.concat builtin_directories
-      end
-    end
-
+    # Include builtins only in the development environment.
     def builtin_directories
-      # Include builtins only in the development environment.
       Rails.env.development? ? Dir["#{RAILTIES_PATH}/builtin/*/"] : []
-    end
-
-    def log_path
-      @log_path ||= File.join(root, 'log', "#{Rails.env}.log")
     end
 
     def log_level
