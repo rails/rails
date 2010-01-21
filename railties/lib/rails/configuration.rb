@@ -254,7 +254,7 @@ module Rails
     end
     
     def filter_parameters(*filter_words, &block)
-      ActionDispatch::Http::ParametersFilter.filter_parameters(*filter_words, &block)
+      ActionDispatch::Request.filter_parameters(*filter_words, &block)
     end
 
     def environment_path

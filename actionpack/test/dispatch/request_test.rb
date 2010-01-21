@@ -453,16 +453,19 @@ class RequestTest < ActiveSupport::TestCase
     request.expects(:parameters).at_least_once.returns({})
     assert_equal Mime::XML, request.negotiate_mime([Mime::XML, Mime::CSV])
   end
-  
-  test "filter_parameters" do
-    request = stub_request
-    request.stubs(:request_parameters).returns({ "foo" => 1 })
-    request.stubs(:query_parameters).returns({ "bar" => 2 })
-    
+
+  class FilterRequest < ActionDispatch::Request
+  end
+
+  test "filter_parameters raises error without arguments" do
     assert_raises RuntimeError do
-      ActionDispatch::Http::ParametersFilter.filter_parameters
+      FilterRequest.filter_parameters
     end
-    
+  end
+  
+  test "process parameter filter" do
+    request = FilterRequest.new({})
+
     test_hashes = [
     [{'foo'=>'bar'},{'foo'=>'bar'},%w'food'],
     [{'foo'=>'bar'},{'foo'=>'[FILTERED]'},%w'foo'],
@@ -473,19 +476,45 @@ class RequestTest < ActiveSupport::TestCase
     [{'baz'=>[{'foo'=>'baz'}]}, {'baz'=>[{'foo'=>'[FILTERED]'}]}, %w(foo)]]
 
     test_hashes.each do |before_filter, after_filter, filter_words|
-      ActionDispatch::Http::ParametersFilter.filter_parameters(*filter_words)
-      assert_equal after_filter, request.__send__(:process_parameter_filter, before_filter)
+      FilterRequest.filter_parameters(*filter_words)
+      assert_equal after_filter, request.send(:process_parameter_filter, before_filter)
 
       filter_words.push('blah')
-      ActionDispatch::Http::ParametersFilter.filter_parameters(*filter_words) do |key, value|
+
+      FilterRequest.filter_parameters(*filter_words) do |key, value|
         value.reverse! if key =~ /bargain/
       end
 
       before_filter['barg'] = {'bargain'=>'gain', 'blah'=>'bar', 'bar'=>{'bargain'=>{'blah'=>'foo'}}}
-      after_filter['barg'] = {'bargain'=>'niag', 'blah'=>'[FILTERED]', 'bar'=>{'bargain'=>{'blah'=>'[FILTERED]'}}}
+      after_filter['barg']  = {'bargain'=>'niag', 'blah'=>'[FILTERED]', 'bar'=>{'bargain'=>{'blah'=>'[FILTERED]'}}}
 
-      assert_equal after_filter, request.__send__(:process_parameter_filter, before_filter)
+      assert_equal after_filter, request.send(:process_parameter_filter, before_filter)
     end
+  end
+
+  test "filtered_parameters returns params filtered" do
+    FilterRequest.filter_parameters(:lifo, :amount)
+
+    request = FilterRequest.new('action_dispatch.request.parameters' =>
+      { 'lifo' => 'Pratik', 'amount' => '420', 'step' => '1' })
+
+    params = request.filtered_parameters
+    assert_equal "[FILTERED]", params["lifo"]
+    assert_equal "[FILTERED]", params["amount"]
+    assert_equal "1", params["step"]
+  end
+
+  test "filtered_env filters env as a whole" do
+    FilterRequest.filter_parameters(:lifo, :amount)
+
+    request = FilterRequest.new('action_dispatch.request.parameters' =>
+      { 'amount' => '420', 'step' => '1' }, "RAW_POST_DATA" => "yada yada")
+
+    request = FilterRequest.new(request.filtered_env)
+
+    assert_equal "[FILTERED]", request.raw_post
+    assert_equal "[FILTERED]", request.params["amount"]
+    assert_equal "1", request.params["step"]    
   end
 
 protected

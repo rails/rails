@@ -10,7 +10,6 @@ module ActionController
     extend ActiveSupport::Concern
 
     include AbstractController::Logger
-    include ActionController::FilterParameterLogging
 
     attr_internal :view_runtime
 

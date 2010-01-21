@@ -27,7 +27,6 @@ module ActionController
     include ActionController::Compatibility
 
     include ActionController::Cookies
-    include ActionController::FilterParameterLogging
     include ActionController::Flash
     include ActionController::Verification
     include ActionController::RequestForgeryProtection
@@ -72,6 +71,11 @@ module ActionController
 
     def self.subclasses
       @subclasses ||= []
+    end
+
+    # This method has been moved to ActionDispatch::Request.filter_parameters
+    def self.filter_parameter_logging(*)
+      ActiveSupport::Deprecation.warn("Setting filter_parameter_logging in ActionController is deprecated and has no longer effect, please set 'config.filter_parameters' in config/application.rb instead", caller)
     end
 
     def _normalize_options(action=nil, options={}, &blk)

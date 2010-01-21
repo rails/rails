@@ -16,7 +16,6 @@ module ActionController
     autoload :ConditionalGet
     autoload :Configuration
     autoload :Cookies
-    autoload :FilterParameterLogging
     autoload :Flash
     autoload :Head
     autoload :Helpers
