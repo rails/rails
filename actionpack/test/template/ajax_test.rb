@@ -54,11 +54,11 @@ class LinkToRemoteTest < AjaxTestCase
   end
 
   test "with no update" do
-    assert_html link, %w(href="/blog/destroy/4" Delete\ this\ post data-remote="true")
+    assert_html link, %w(href="/blog/destroy/3" Delete\ this\ post data-remote="true")
   end
 
   test "with :html options" do
-    expected = %{<a href="/blog/destroy/4" data-custom="me" data-remote="true" data-update-success="#posts">Delete this post</a>}
+    expected = %{<a href="/blog/destroy/3" data-custom="me" data-remote="true" data-update-success="#posts">Delete this post</a>}
     assert_equal expected, link(:update => "#posts", :html => {"data-custom" => "me"})
   end
 
@@ -86,9 +86,9 @@ class LinkToRemoteTest < AjaxTestCase
     end
 
     test "basic link_to_remote with :url =>" do
-      expected = %{<a href="/blog/destroy/3" data-remote="true" data-update-success="#posts">Delete this post</a>}
+      expected = %{<a href="/blog/destroy/4" data-remote="true" data-update-success="#posts">Delete this post</a>}
       assert_equal expected,
-        link_to_remote("Delete this post", :url => "/blog/destroy/3", :update => "#posts")
+        link_to_remote("Delete this post", :url => "/blog/destroy/4", :update => "#posts")
     end
 
     assert_callbacks_work do |callback|
@@ -102,24 +102,10 @@ class ButtonToRemoteTest < AjaxTestCase
     button_to_remote("Remote outpost", options, html)
   end
 
-<<<<<<< HEAD:actionpack/test/template/ajax_test.rb
-  def url_for(*)
-    "/whatnot"
-  end
-
-  class StandardTest < ButtonToRemoteTest
-    test "basic" do
-      button = button({:url => {:action => "whatnot"}}, {:class => "fine"})
-      [/input/, /class="fine"/, /type="button"/, /value="Remote outpost"/,
-       /data-url="\/whatnot"/].each do |match|
-         assert_match(match, button)
-      end
-=======
   class StandardTest < ButtonToRemoteTest
     test "basic" do
       assert_html button({:url => {:action => "whatnot"}}, {:class => "fine"}),
         %w(input class="fine" type="button" value="Remote outpost" data-url="/url/hash")
->>>>>>> ea876bd... Implemented a fuller stub in AjaxTestCase for url_for because link_to calls url_for on all urls passed to it.  Tests that were testing different input types for the url were failing because of this.:actionpack/test/javascript/ajax_test.rb
     end
   end
 
