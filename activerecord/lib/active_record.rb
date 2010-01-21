@@ -45,7 +45,6 @@ module ActiveRecord
     autoload :AssociationPreload
     autoload :Associations
     autoload :AttributeMethods
-    autoload :Attributes
     autoload :AutosaveAssociation
 
     autoload :Relation
@@ -77,7 +76,6 @@ module ActiveRecord
     autoload :StateMachine
     autoload :Timestamp
     autoload :Transactions
-    autoload :Types
     autoload :Validations
   end
 
@@ -92,28 +90,6 @@ module ActiveRecord
       autoload :Read
       autoload :TimeZoneConversion
       autoload :Write
-    end
-  end
-
-  module Attributes
-    extend ActiveSupport::Autoload
-
-    eager_autoload do
-      autoload :Aliasing
-      autoload :Store
-      autoload :Typecasting
-    end
-  end
-
-  module Type
-    extend ActiveSupport::Autoload
-
-    eager_autoload do
-      autoload :Number, 'active_record/types/number'
-      autoload :Object, 'active_record/types/object'
-      autoload :Serialize, 'active_record/types/serialize'
-      autoload :TimeWithZone, 'active_record/types/time_with_zone'
-      autoload :Unknown, 'active_record/types/unknown'
     end
   end
 
