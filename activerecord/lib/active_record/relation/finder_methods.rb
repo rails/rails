@@ -119,10 +119,40 @@ module ActiveRecord
       args.any? ? apply_finder_options(args.first).to_a : to_a
     end
 
+    # Returns true if a record exists in the table that matches the +id+ or
+    # conditions given, or false otherwise. The argument can take five forms:
+    #
+    # * Integer - Finds the record with this primary key.
+    # * String - Finds the record with a primary key corresponding to this
+    #   string (such as <tt>'5'</tt>).
+    # * Array - Finds the record that matches these +find+-style conditions
+    #   (such as <tt>['color = ?', 'red']</tt>).
+    # * Hash - Finds the record that matches these +find+-style conditions
+    #   (such as <tt>{:color => 'red'}</tt>).
+    # * No args - Returns false if the table is empty, true otherwise.
+    #
+    # For more information about specifying conditions as a Hash or Array,
+    # see the Conditions section in the introduction to ActiveRecord::Base.
+    #
+    # Note: You can't pass in a condition as a string (like <tt>name =
+    # 'Jamie'</tt>), since it would be sanitized and then queried against
+    # the primary key column, like <tt>id = 'name = \'Jamie\''</tt>.
+    #
+    # ==== Examples
+    #   Person.exists?(5)
+    #   Person.exists?('5')
+    #   Person.exists?(:name => "David")
+    #   Person.exists?(['name LIKE ?', "%#{query}%"])
+    #   Person.exists?
     def exists?(id = nil)
-      relation = select(primary_key).limit(1)
-      relation = relation.where(primary_key.eq(id)) if id
-      relation.first ? true : false
+      case id
+      when Array, Hash
+        where(id).exists?
+      else
+        relation = select(primary_key).limit(1)
+        relation = relation.where(primary_key.eq(id)) if id
+        relation.first ? true : false
+      end
     end
 
     protected
@@ -242,15 +272,15 @@ module ActiveRecord
       result = where(primary_key.in(ids)).all
 
       expected_size =
-        if arel.taken && ids.size > arel.taken
-          arel.taken
+        if @limit_value && ids.size > @limit_value
+          @limit_value
         else
           ids.size
         end
 
       # 11 ids with limit 3, offset 9 should give 2 results.
-      if arel.skipped && (ids.size - arel.skipped < expected_size)
-        expected_size = ids.size - arel.skipped
+      if @offset_value && (ids.size - @offset_value < expected_size)
+        expected_size = ids.size - @offset_value
       end
 
       if result.size == expected_size

@@ -34,7 +34,7 @@ module AbstractController
       end
     end
 
-    def render(options)
+    def render(*args)
       Thread.current[:format_locale_key] = HashKey.get(self.class, formats, I18n.locale)
       super
     end

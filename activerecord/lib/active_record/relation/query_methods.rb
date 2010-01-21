@@ -140,16 +140,18 @@ module ActiveRecord
 
       selects = @select_values.uniq
 
+      quoted_table_name = @klass.quoted_table_name
+
       if selects.present?
         selects.each do |s|
           @implicit_readonly = false
           arel = arel.project(s) if s.present?
         end
-      elsif joins.present?
-        arel = arel.project(@klass.quoted_table_name + '.*')
+      else
+        arel = arel.project(quoted_table_name + '.*')
       end
 
-      arel = arel.from(@from_value) if @from_value.present?
+      arel = @from_value.present? ? arel.from(@from_value) : arel.from(quoted_table_name)
 
       case @lock_value
       when TrueClass
@@ -167,8 +169,8 @@ module ActiveRecord
       builder = PredicateBuilder.new(table.engine)
 
       conditions = if [String, Array].include?(args.first.class)
-        merged = @klass.send(:merge_conditions, args.size > 1 ? Array.wrap(args) : args.first)
-        Arel::SqlLiteral.new(merged) if merged
+        sql = @klass.send(:sanitize_sql, args.size > 1 ? args : args.first)
+        Arel::SqlLiteral.new("(#{sql})") if sql.present?
       elsif args.first.is_a?(Hash)
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, args.first)
         builder.build_from_hash(attributes, table)

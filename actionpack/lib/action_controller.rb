@@ -8,7 +8,6 @@ module ActionController
   autoload :Base
   autoload :Caching
   autoload :PolymorphicRoutes
-  autoload :Translation
   autoload :Metal
   autoload :Middleware
 

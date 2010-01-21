@@ -9,7 +9,9 @@ module ActionDispatch
     end
 
     def call(env)
-      payload = retrieve_payload_from_env(env)
+      request = Request.new(env)
+      payload = retrieve_payload_from_env(request.filter_env)
+
       ActiveSupport::Notifications.instrument("action_dispatch.before_dispatch", payload)
 
       ActiveSupport::Notifications.instrument!("action_dispatch.after_dispatch", payload) do
@@ -21,11 +23,10 @@ module ActionDispatch
       raise exception
     end
 
-  protected
-
-    # Remove any rack related constants from the env, like rack.input.
-    def retrieve_payload_from_env(env)
-      Hash[:env => env.except(*env.keys.select { |k| k.to_s.index("rack.") == 0 })]
-    end
+    protected
+      # Remove any rack related constants from the env, like rack.input.
+      def retrieve_payload_from_env(env)
+        Hash[:env => env.except(*env.keys.select { |k| k.to_s.index("rack.") == 0 })]
+      end
   end
 end
