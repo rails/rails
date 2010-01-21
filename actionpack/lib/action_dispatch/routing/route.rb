@@ -44,6 +44,12 @@ module ActionDispatch
       def to_a
         [@app, @conditions, @defaults, @name]
       end
+
+      def to_s
+        @to_s ||= begin
+          "%-6s %-40s %s" % [(verb || :any).to_s.upcase, path, requirements.inspect]
+        end
+      end
     end
   end
 end
