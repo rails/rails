@@ -72,9 +72,9 @@ class Module
   #   invoice.customer_name    # => "John Doe"
   #   invoice.customer_address # => "Vimmersvej 13"
   #
-  # If the object to which you delegate can be nil, you may want to use the
-  # :allow_nil option. In that case, it returns nil instead of raising a
-  # NoMethodError exception:
+  # If the delegate object is +nil+ an exception is raised, and that happens
+  # no matter whether +nil+ responds to the delegated method). You can get a
+  # +nil+ instead with the +:allow_nil+ option.
   #
   #  class Foo
   #    attr_accessor :bar
@@ -124,7 +124,7 @@ class Module
           #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
         rescue NoMethodError                                # rescue NoMethodError
           if #{to}.nil?                                     #   if client.nil?
-            #{on_nil}
+            #{on_nil}                                       #     return # depends on :allow_nil
           else                                              #   else
             raise                                           #     raise
           end                                               #   end
