@@ -9,6 +9,10 @@ module Arel
         @ar.connection
       end
 
+      def adapter_name
+        @adapter_name ||= connection.adapter_name
+      end
+
       def method_missing(method, *args, &block)
         @ar.connection.send(method, *args, &block)
       end
