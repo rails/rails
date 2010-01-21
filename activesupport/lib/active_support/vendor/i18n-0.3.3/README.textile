@@ -1,0 +1,81 @@
+h1. Ruby I18n
+
+Ruby Internationalization and localization solution.
+
+Features:
+
+* translation and localization
+* interpolation of values to translations (Ruby 1.9 compatible syntax)
+* pluralization (CLDR compatible)
+* flexible defaults
+* bulk lookup
+* lambdas as translation data
+* custom key/scope separator
+* custom exception handlers
+* extensible architecture with a swappable backend
+
+Pluggable features:
+
+* Cache
+* Pluralization: lambda pluralizers stored as translation data
+* Locale fallbacks, RFC4647 compliant (optionally: RFC4646 locale validation)
+* Gettext support
+* Translation metadata
+
+Alternative backends:
+
+* Chain
+* ActiveRecord (optionally: ActiveRecordMissing)
+
+For more information and lots of resources see: "http://rails-i18n.org/wiki":http://rails-i18n.org/wiki
+
+h2. Installation
+
+gem install i18n
+
+h3. Installation on Rails < 2.3.5 (deprecated)
+
+Up to version 2.3.4 Rails will not accept i18n gems > 0.1.3. There is an unpacked 
+gem inside of active_support/lib/vendor which gets loaded unless gem 'i18n', '~> 0.1.3'. 
+This requirement is relaxed in "6da03653":http://github.com/rails/rails/commit/6da03653
+
+The new i18n gem can be loaded from vendor/plugins like this:
+
+  def reload_i18n!
+    raise "Move to i18n version 0.2.0 or greater" if Rails.version > "2.3.4"
+  
+    $:.grep(/i18n/).each { |path| $:.delete(path) }
+    I18n::Backend.send :remove_const, "Simple"
+    $: << Rails.root.join('vendor', 'plugins', 'i18n', 'lib').to_s
+  end
+
+Then you can `reload_i18n!` inside an i18n initializer. 
+
+h2. Authors
+
+* "Sven Fuchs":http://www.artweb-design.de
+* "Joshua Harvey":http://www.workingwithrails.com/person/759-joshua-harvey
+* "Stephan Soller":http://www.arkanis-development.de
+* "Saimon Moore":http://saimonmoore.net
+* "Matt Aimonetti":http://railsontherun.com
+
+h2. Contributors
+
+* Akira Matsuda
+* Andrew Briening
+* Clemens Kofler
+* Frederick Cheung
+* Jeremy Kemper
+* José Valim
+* Lawrence Pit
+* Luca Guidi
+* M4SSIVE
+* Marko Seppae
+* Mathias Meyer
+* Michael Lang
+* Theo Cushion
+* Yaroslav Markin
+
+h2. License
+
+MIT License. See the included MIT-LICENCE file.
