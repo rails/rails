@@ -8,11 +8,10 @@ module ActiveRecord
 
         class_eval <<-CEVAL
           def #{query_method}(*args)
-            spawn.tap do |new_relation|
-              new_relation.#{query_method}_values ||= []
-              value = Array.wrap(args.flatten).reject {|x| x.blank? }
-              new_relation.#{query_method}_values += value if value.present?
-            end
+            new_relation = spawn
+            value = Array.wrap(args.flatten).reject {|x| x.blank? }
+            new_relation.#{query_method}_values += value if value.present?
+            new_relation
           end
         CEVAL
       end
@@ -20,11 +19,10 @@ module ActiveRecord
       [:where, :having].each do |query_method|
         class_eval <<-CEVAL
           def #{query_method}(*args)
-            spawn.tap do |new_relation|
-              new_relation.#{query_method}_values ||= []
-              value = build_where(*args)
-              new_relation.#{query_method}_values += [*value] if value.present?
-            end
+            new_relation = spawn
+            value = build_where(*args)
+            new_relation.#{query_method}_values += [*value] if value.present?
+            new_relation
           end
         CEVAL
       end
@@ -34,9 +32,9 @@ module ActiveRecord
 
         class_eval <<-CEVAL
           def #{query_method}(value = true)
-            spawn.tap do |new_relation|
-              new_relation.#{query_method}_value = value
-            end
+            new_relation = spawn
+            new_relation.#{query_method}_value = value
+            new_relation
           end
         CEVAL
       end
