@@ -898,6 +898,7 @@ EOF
     assert_equal "iso-8859-1", mail.parts[1].charset
 
     assert_equal "image/jpeg", mail.parts[2].mime_type
+    
     assert_equal "attachment", mail.parts[2][:content_disposition].disposition_type
     assert_equal "foo.jpg", mail.parts[2][:content_disposition].filename
     assert_equal "foo.jpg", mail.parts[2][:content_type].filename

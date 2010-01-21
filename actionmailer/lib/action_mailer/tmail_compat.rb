@@ -16,5 +16,10 @@ module Mail
       end
     end
     
+    def original_filename
+      STDERR.puts("Message#original_filename is deprecated, please call Message#filename.\n#{caller}")
+      filename
+    end
+    
   end
 end

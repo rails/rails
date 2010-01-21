@@ -42,9 +42,15 @@ class BaseTest < Test::Unit::TestCase
   class TestMailer < ActionMailer::Base
     
     def welcome(hash = {})
-      headers['X-SPAM'] = "Not SPAM"
       hash = {:to => 'mikel@test.lindsaar.net', :from => 'jose@test.plataformatec.com',
               :subject => 'The first email on new API!'}.merge!(hash)
+      mail(hash)
+    end
+    
+    def invoice(hash = {})
+      attachments['invoice.pdf'] = 'This is test File content'
+      hash = {:to => 'mikel@test.lindsaar.net', :from => 'jose@test.plataformatec.com',
+              :subject => 'Your invoice is attached'}.merge!(hash)
       mail(hash)
     end
     
@@ -83,6 +89,25 @@ class BaseTest < Test::Unit::TestCase
 #    email = TestMailer.deliver_welcome
 #    assert_equal("Not SPAM", email['X-SPAM'])
 #  end
+
+  def test_should_allow_you_to_send_an_attachment
+    assert_nothing_raised { TestMailer.deliver_invoice }
+  end
+
+  def test_should_allow_you_to_send_an_attachment
+    email = TestMailer.deliver_invoice
+    assert_equal(1, email.attachments.length)
+  end
+
+  def test_should_allow_you_to_send_an_attachment
+    email = TestMailer.deliver_invoice
+    assert_equal('invoice.pdf', email.attachments[0].filename)
+  end
+
+  def test_should_allow_you_to_send_an_attachment
+    email = TestMailer.deliver_invoice
+    assert_equal('This is test File content', email.attachments['invoice.pdf'].decoded)
+  end
 
   def test_should_use_class_defaults
     

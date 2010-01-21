@@ -19,6 +19,7 @@ module ActionMailer
       end
 
       part = Mail::Part.new(params)
+
       yield part if block_given?
       @parts << part
     end
@@ -29,7 +30,16 @@ module ActionMailer
       super # Run deprecation hooks
 
       params = { :content_type => params } if String === params
-      params = { :content_disposition => "attachment",
+      
+      if filename = params.delete(:filename)
+        content_disposition = "attachment; filename=\"#{File.basename(filename)}\""
+      else
+        content_disposition = "attachment"
+      end
+      
+      params[:content] = params.delete(:data) if params[:data]
+      
+      params = { :content_disposition => content_disposition,
                  :content_transfer_encoding => "base64" }.merge(params)
 
       part(params, &block)
