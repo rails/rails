@@ -745,4 +745,19 @@ class TimeExtMarshalingTest < Test::Unit::TestCase
     assert_equal t, unmarshaled
     assert_equal t.zone, unmarshaled.zone
   end
+
+  def test_marshaling_does_not_modify_source_object
+    t = Time.local(2000)
+    Marshal.dump t
+    assert_equal false, t.instance_variable_defined?('@marshal_with_utc_coercion')
+  end
+
+  def test_marshaling_does_not_affect_yaml_dump
+    t = Time.local(2000)
+    t2 = t.dup
+    marshaled = Marshal.dump t2
+    unmarshaled = Marshal.load marshaled
+    assert_equal t.to_yaml, unmarshaled.to_yaml
+  end
+
 end
