@@ -73,7 +73,7 @@ class Module
   #   invoice.customer_address # => "Vimmersvej 13"
   #
   # If the delegate object is +nil+ an exception is raised, and that happens
-  # no matter whether +nil+ responds to the delegated method). You can get a
+  # no matter whether +nil+ responds to the delegated method. You can get a
   # +nil+ instead with the +:allow_nil+ option.
   #
   #  class Foo
