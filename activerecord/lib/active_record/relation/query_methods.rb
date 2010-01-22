@@ -8,11 +8,10 @@ module ActiveRecord
 
         class_eval <<-CEVAL
           def #{query_method}(*args)
-            spawn.tap do |new_relation|
-              new_relation.#{query_method}_values ||= []
-              value = Array.wrap(args.flatten).reject {|x| x.blank? }
-              new_relation.#{query_method}_values += value if value.present?
-            end
+            new_relation = spawn
+            value = Array.wrap(args.flatten).reject {|x| x.blank? }
+            new_relation.#{query_method}_values += value if value.present?
+            new_relation
           end
         CEVAL
       end
@@ -20,11 +19,10 @@ module ActiveRecord
       [:where, :having].each do |query_method|
         class_eval <<-CEVAL
           def #{query_method}(*args)
-            spawn.tap do |new_relation|
-              new_relation.#{query_method}_values ||= []
-              value = build_where(*args)
-              new_relation.#{query_method}_values += [*value] if value.present?
-            end
+            new_relation = spawn
+            value = build_where(*args)
+            new_relation.#{query_method}_values += [*value] if value.present?
+            new_relation
           end
         CEVAL
       end
@@ -34,9 +32,9 @@ module ActiveRecord
 
         class_eval <<-CEVAL
           def #{query_method}(value = true)
-            spawn.tap do |new_relation|
-              new_relation.#{query_method}_value = value
-            end
+            new_relation = spawn
+            new_relation.#{query_method}_value = value
+            new_relation
           end
         CEVAL
       end
@@ -119,8 +117,16 @@ module ActiveRecord
         end
       end
 
-      @where_values.uniq.each do |w|
-        arel = w.is_a?(String) ? arel.where(w) : arel.where(*w)
+      @where_values.uniq.each do |where|
+        next if where.blank?
+
+        case where
+        when Arel::SqlLiteral
+          arel = arel.where(where)
+        else
+          sql = where.is_a?(String) ? where : where.to_sql
+          arel = arel.where(Arel::SqlLiteral.new("(#{sql})"))
+        end
       end
 
       @having_values.uniq.each do |h|
@@ -135,7 +141,7 @@ module ActiveRecord
       end
 
       @order_values.uniq.each do |o|
-        arel = arel.order(o) if o.present?
+        arel = arel.order(Arel::SqlLiteral.new(o.to_s)) if o.present?
       end
 
       selects = @select_values.uniq
@@ -169,8 +175,7 @@ module ActiveRecord
       builder = PredicateBuilder.new(table.engine)
 
       conditions = if [String, Array].include?(args.first.class)
-        sql = @klass.send(:sanitize_sql, args.size > 1 ? args : args.first)
-        Arel::SqlLiteral.new("(#{sql})") if sql.present?
+        @klass.send(:sanitize_sql, args.size > 1 ? args : args.first)
       elsif args.first.is_a?(Hash)
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, args.first)
         builder.build_from_hash(attributes, table)

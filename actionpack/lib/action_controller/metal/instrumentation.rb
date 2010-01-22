@@ -10,7 +10,6 @@ module ActionController
     extend ActiveSupport::Concern
 
     include AbstractController::Logger
-    include ActionController::FilterParameterLogging
 
     attr_internal :view_runtime
 
@@ -18,7 +17,7 @@ module ActionController
       raw_payload = {
         :controller => self.class.name,
         :action     => self.action_name,
-        :params     => filter_parameters(params),
+        :params     => request.filtered_parameters,
         :formats    => request.formats.map(&:to_sym)
       }
 

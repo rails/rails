@@ -30,29 +30,6 @@ module ActionDispatch
         @env["action_dispatch.request.path_parameters"] ||= {}
       end
 
-      def filter_parameters
-        # TODO: Remove dependency on controller
-        if controller = @env['action_controller.instance']
-          controller.send(:filter_parameters, params)
-        else
-          params
-        end
-      end
-
-      def filter_env
-        if controller = @env['action_controller.instance']
-          @env.map do |key, value|
-            if (key =~ /RAW_POST_DATA/i)
-              '[FILTERED]'
-            else
-              controller.send(:filter_parameters, {key => value}).values[0]
-            end
-          end
-        else
-          env
-        end
-      end
-
     private
       # Convert nested Hashs to HashWithIndifferentAccess
       def normalize_parameters(value)

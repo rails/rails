@@ -110,6 +110,7 @@ module Rails
     end
 
     def call(env)
+      env["action_dispatch.parameter_filter"] = config.filter_parameters
       app.call(env)
     end
 

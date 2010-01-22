@@ -1,12 +1,12 @@
 require 'rails/subscriber'
-require 'active_support/notifications'
 
 module Rails
   class Subscriber
     # Provides some helpers to deal with testing subscribers by setting up
     # notifications. Take for instance ActiveRecord subscriber tests:
     #
-    #   module SubscriberTest
+    #   class SyncSubscriberTest < ActiveSupport::TestCase
+    #     include Rails::Subscriber::TestHelper
     #     Rails::Subscriber.add(:active_record, ActiveRecord::Railties::Subscriber.new)
     # 
     #     def test_basic_query_logging
@@ -39,8 +39,6 @@ module Rails
     #
     module TestHelper
       def setup
-        Thread.abort_on_exception = true
-
         @logger   = MockLogger.new
         @notifier = ActiveSupport::Notifications::Notifier.new(queue)
 
@@ -54,7 +52,6 @@ module Rails
       def teardown
         set_logger(nil)
         ActiveSupport::Notifications.notifier = nil
-        Thread.abort_on_exception = false
       end
 
       class MockLogger
@@ -92,26 +89,9 @@ module Rails
       def set_logger(logger)
         Rails.logger = logger
       end
-    end
-    
-    module SyncTestHelper
-      include TestHelper
 
       def queue
-        ActiveSupport::Notifications::Fanout.new(true)
-      end
-    end
-
-    module AsyncTestHelper
-      include TestHelper
-
-      def queue
-        ActiveSupport::Notifications::Fanout.new(false)
-      end
-
-      def wait
-        sleep(0.01)
-        super
+        ActiveSupport::Notifications::Fanout.new
       end
     end
   end

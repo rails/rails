@@ -8,7 +8,23 @@ module ActiveRecord
       end
 
       def query_attribute(attr_name)
-        _attributes.has?(attr_name)
+        unless value = read_attribute(attr_name)
+          false
+        else
+          column = self.class.columns_hash[attr_name]
+          if column.nil?
+            if Numeric === value || value !~ /[^0-9]/
+              !value.to_i.zero?
+            else
+              return false if ActiveRecord::ConnectionAdapters::Column::FALSE_VALUES.include?(value)
+              !value.blank?
+            end
+          elsif column.number?
+            !value.zero?
+          else
+            !value.blank?
+          end
+        end
       end
 
       private
@@ -19,5 +35,3 @@ module ActiveRecord
     end
   end
 end
-
-

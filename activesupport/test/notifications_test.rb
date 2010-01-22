@@ -3,16 +3,10 @@ require 'abstract_unit'
 module Notifications
   class TestCase < ActiveSupport::TestCase
     def setup
-      Thread.abort_on_exception = true
-
       ActiveSupport::Notifications.notifier = nil
       @notifier = ActiveSupport::Notifications.notifier
       @events = []
       @notifier.subscribe { |*args| @events << event(*args) }
-    end
-
-    def teardown
-      Thread.abort_on_exception = false
     end
 
     private
@@ -25,7 +19,7 @@ module Notifications
       end
   end
 
-  class PubSubTest < TestCase
+  class SyncPubSubTest < TestCase
     def test_events_are_published_to_a_listener
       @notifier.publish :foo
       @notifier.wait
@@ -70,16 +64,6 @@ module Notifications
       def event(*args)
         args
       end
-  end
-
-  class SyncPubSubTest < PubSubTest
-    def setup
-      Thread.abort_on_exception = true
-
-      @notifier = ActiveSupport::Notifications::Notifier.new(ActiveSupport::Notifications::Fanout.new(true))
-      @events = []
-      @notifier.subscribe { |*args| @events << event(*args) }
-    end
   end
 
   class InstrumentationTest < TestCase

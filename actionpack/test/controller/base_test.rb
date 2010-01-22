@@ -2,6 +2,9 @@ require 'abstract_unit'
 require 'logger'
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
+module Rails
+end
+
 # Provide some controller to run the tests on.
 module Submodule
   class ContainedEmptyController < ActionController::Base
@@ -63,7 +66,7 @@ class DefaultUrlOptionsController < ActionController::Base
   end
 end
 
-class ControllerClassTests < Test::Unit::TestCase
+class ControllerClassTests < ActiveSupport::TestCase
   def test_controller_path
     assert_equal 'empty', EmptyController.controller_path
     assert_equal EmptyController.controller_path, EmptyController.new.controller_path
@@ -74,7 +77,21 @@ class ControllerClassTests < Test::Unit::TestCase
   def test_controller_name
     assert_equal 'empty', EmptyController.controller_name
     assert_equal 'contained_empty', Submodule::ContainedEmptyController.controller_name
- end
+  end
+ 
+  def test_filter_parameter_logging
+    parameters = []
+    config = mock(:config => mock(:filter_parameters => parameters))
+    Rails.expects(:application).returns(config)
+
+    assert_deprecated do
+      Class.new(ActionController::Base) do
+        filter_parameter_logging :password
+      end
+    end
+
+    assert_equal [:password], parameters
+  end
 end
 
 class ControllerInstanceTests < Test::Unit::TestCase

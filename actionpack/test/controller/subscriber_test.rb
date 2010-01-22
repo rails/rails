@@ -35,11 +35,9 @@ module Another
   end
 end
 
-module ActionControllerSubscriberTest
-
-  def self.included(base)
-    base.tests Another::SubscribersController
-  end
+class ACSubscriberTest < ActionController::TestCase
+  tests Another::SubscribersController
+  include Rails::Subscriber::TestHelper
 
   def setup
     @old_logger = ActionController::Base.logger
@@ -99,7 +97,7 @@ module ActionControllerSubscriberTest
   end
 
   def test_process_action_with_filter_parameters
-    Another::SubscribersController.filter_parameter_logging(:lifo, :amount)
+    @request.env["action_dispatch.parameter_filter"] = [:lifo, :amount]
 
     get :show, :lifo => 'Pratik', :amount => '420', :step => '1'
     wait
@@ -170,15 +168,5 @@ module ActionControllerSubscriberTest
 
   def logs
     @logs ||= @logger.logged(:info)
-  end
-
-  class SyncSubscriberTest < ActionController::TestCase
-    include Rails::Subscriber::SyncTestHelper
-    include ActionControllerSubscriberTest
-  end
-
-  class AsyncSubscriberTest < ActionController::TestCase
-    include Rails::Subscriber::AsyncTestHelper
-    include ActionControllerSubscriberTest
   end
 end
