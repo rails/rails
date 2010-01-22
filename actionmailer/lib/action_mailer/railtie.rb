@@ -18,10 +18,5 @@ module ActionMailer
     initializer "action_mailer.logger" do
       ActionMailer::Base.logger ||= Rails.logger
     end
-
-    initializer "action_mailer.view_paths" do |app|
-      # TODO: this should be combined with the logic for default config.action_mailer.view_paths
-      ActionMailer::Base.template_root = [] if ActionMailer::Base.view_paths.blank?
-    end
   end
 end

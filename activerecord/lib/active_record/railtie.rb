@@ -18,6 +18,11 @@ module ActiveRecord
     require "active_record/railties/subscriber"
     subscriber ActiveRecord::Railties::Subscriber.new
 
+    initializer "active_record.initialize_timezone" do
+      ActiveRecord::Base.time_zone_aware_attributes = true
+      ActiveRecord::Base.default_timezone = :utc
+    end
+
     initializer "active_record.set_configs" do |app|
       app.config.active_record.each do |k,v|
         ActiveRecord::Base.send "#{k}=", v
@@ -29,11 +34,6 @@ module ActiveRecord
     initializer "active_record.initialize_database" do |app|
       ActiveRecord::Base.configurations = app.config.database_configuration
       ActiveRecord::Base.establish_connection
-    end
-
-    initializer "active_record.initialize_timezone" do
-      ActiveRecord::Base.time_zone_aware_attributes = true
-      ActiveRecord::Base.default_timezone = :utc
     end
 
     # Expose database runtime to controller for logging.

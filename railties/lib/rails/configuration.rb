@@ -62,10 +62,8 @@ module Rails
       /^(#{bits})(?:=)?$/
     end
 
-    # TODO Remove :active_support as special case by adding a railtie
-    # for it and for I18n
     def config_keys
-      ([:active_support] + Railtie.plugin_names).map { |n| n.to_s }.uniq
+      Railtie.plugin_names.map { |n| n.to_s }.uniq
     end
   end
 

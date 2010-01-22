@@ -22,15 +22,5 @@ module ActionController
     initializer "action_controller.initialize_framework_caches" do
       ActionController::Base.cache_store ||= RAILS_CACHE
     end
-
-    # Sets +ActionController::Base#view_paths+ and +ActionMailer::Base#template_root+
-    # (but only for those frameworks that are to be loaded). If the framework's
-    # paths have already been set, it is not changed, otherwise it is
-    # set to use Configuration#view_path.
-    initializer "action_controller.initialize_framework_views" do |app|
-      # TODO: this should be combined with the logic for default config.action_controller.view_paths
-      ActionController::Base.view_paths = [] if ActionController::Base.view_paths.blank?
-    end
-
   end
 end

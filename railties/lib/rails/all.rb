@@ -1,6 +1,7 @@
 require "rails"
 
 %w(
+  active_support
   active_model
   active_record
   action_controller

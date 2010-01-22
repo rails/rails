@@ -137,6 +137,45 @@ module Rails
       end
     end
 
+    # Set the i18n configuration from config.i18n but special-case for the load_path which should be
+    # appended to what's already set instead of overwritten.
+    initializer :initialize_i18n do
+      require 'active_support/i18n'
+
+      config.i18n.each do |setting, value|
+        if setting == :load_path
+          I18n.load_path += value
+        else
+          I18n.send("#{setting}=", value)
+        end
+      end
+
+      ActionDispatch::Callbacks.to_prepare do
+        I18n.reload!
+      end
+    end
+
+    initializer :set_clear_dependencies_hook do
+      unless config.cache_classes
+        ActionDispatch::Callbacks.after do
+          ActiveSupport::Dependencies.clear
+        end
+      end
+    end
+
+    initializer :initialize_notifications do
+      require 'active_support/notifications'
+
+      if config.colorize_logging == false
+        Rails::Subscriber.colorize_logging = false
+        config.generators.colorize_logging = false
+      end
+
+      ActiveSupport::Notifications.subscribe do |*args|
+        Rails::Subscriber.dispatch(args)
+      end
+    end
+
     # Disable dependency loading during request cycle
     initializer :disable_dependency_loading do
       if config.cache_classes && !config.dependency_loading
