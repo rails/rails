@@ -91,6 +91,18 @@ module Rails
         args << config['database']
 
         exec(find_cmd('sqlite3'), *args)
+
+      when "oracle", "oracle_enhanced"
+        logon = ""
+
+        if config['username']
+          logon = config['username']
+          logon << "/#{config['password']}" if config['password'] && include_password
+          logon << "@#{config['database']}" if config['database']
+        end
+
+        exec(find_cmd('sqlplus'), logon)
+
       else
         abort "Unknown command-line client for #{config['database']}. Submit a Rails patch to add support!"
       end
