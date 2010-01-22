@@ -7,7 +7,7 @@ class <%= class_name %>Test < ActionMailer::TestCase
     @expected.body    = read_fixture('<%= action %>')
     @expected.date    = Time.now
 
-    assert_equal @expected.encoded, <%= class_name %>.create_<%= action %>(@expected.date).encoded
+    assert_equal @expected, <%= class_name %>.create_<%= action %>(@expected.date)
   end
 
 <% end -%>
