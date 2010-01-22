@@ -98,18 +98,9 @@ module AbstractController
       _view_paths
     end
 
-    # Normalize options, by converting render "foo" to render :template => "foo"
-    # and render "/foo" to render :file => "/foo".
-    def _normalize_options(action=nil, options={})
-      case action
-      when Hash
-        options, action = action, nil
-      when String
-        key = (action.index("/") == 0 ? :file : :template)
-        options.merge!(key => action)
-      end
-
-      options
+    # The prefix used in render "foo" shortcuts.
+    def _prefix
+      controller_path
     end
 
     # Return a string representation of a Rack-compatible response body.
@@ -125,6 +116,28 @@ module AbstractController
     end
 
   private
+
+    # Normalize options, by converting render "foo" to render :template => "prefix/foo"
+    # and render "/foo" to render :file => "/foo".
+    def _normalize_options(action=nil, options={})
+      case action
+      when Hash
+        options, action = action, nil
+      when String, Symbol
+        action = action.to_s
+        case action.index("/")
+        when NilClass
+          options[:_prefix] = _prefix
+          options[:_template_name] = action
+        when 0
+          options[:file] = action
+        else
+          options[:template] = action
+        end
+      end
+
+      options
+    end
 
     # Take in a set of options and determine the template to render
     #
