@@ -390,6 +390,7 @@ module ActionMailer #:nodoc:
       end
     end
 
+    # TODO Add new delivery method goodness
     def mail(headers = {})
       # Guard flag to prevent both the old and the new API from firing
       # Should be removed when old API is deprecated
@@ -402,9 +403,8 @@ module ActionMailer #:nodoc:
 
       # Give preference to headers and fallbacks to the ones set in mail
       content_type = headers[:content_type] || m.content_type
-      charset      = headers[:charset]      || m.charset
-      mime_version = headers[:mime_version] || m.mime_version
-      body = nil
+      charset      = headers[:charset]      || m.charset      || self.class.default_charset.dup
+      mime_version = headers[:mime_version] || m.mime_version || self.class.default_mime_version.dup
 
       m.subject   ||= quote_if_necessary(headers[:subject], charset)          if headers[:subject]
       m.to        ||= quote_address_if_necessary(headers[:to], charset)       if headers[:to]
@@ -420,35 +420,41 @@ module ActionMailer #:nodoc:
         # TODO Ensure that we don't need to pass I18n.locale as detail
         templates = self.class.template_root.find_all(action_name, {}, mailer_name)
 
-        if templates.size == 1
+        if templates.size == 1 && !m.has_attachments?
           content_type ||= templates[0].mime_type.to_s
           m.body = render_to_body(:_template => templates[0])
+        elsif templates.size > 1 && m.has_attachments? 
+          container = Mail::Part.new
+          container.content_type = "multipart/alternate"
+          templates.each { |t| insert_part(container, t, charset) }
+          m.add_part(container)
         else
-          content_type ||= "multipart/alternate"
-
-          templates.each do |template|
-            part = Mail::Part.new
-            part.content_type = template.mime_type.to_s
-            part.charset = charset
-            part.body = render_to_body(:_template => template)
-            m.add_part(part)
-          end
+          templates.each { |t| insert_part(m, t, charset) }
         end
+
+        content_type ||= (m.has_attachments? ? "multipart/mixed" : "multipart/alternate")
       end
-                       
+
+      # Check if the content_type was not overwriten along the way and if so,
+      # fallback to default.
       m.content_type = content_type || self.class.default_content_type.dup
-      m.charset      = charset      || self.class.default_charset.dup
-      m.mime_version = mime_version || self.class.default_mime_version.dup
-                       
-      # TODO Add me and test me
-      # m.body.set_sort_order(headers[:parts_order] || self.class.default_implicit_parts_order.dup)
-      # m.body.sort_parts!
+      m.charset      = charset
+      m.mime_version = mime_version
+
+      unless m.parts.empty?
+        m.body.set_sort_order(headers[:parts_order] || self.class.default_implicit_parts_order.dup)
+        m.body.sort_parts!
+      end
 
       m
     end
 
-    def fill_in_part(part, template, charset)
-      
+    def insert_part(container, template, charset)
+      part = Mail::Part.new
+      part.content_type = template.mime_type.to_s
+      part.charset = charset
+      part.body = render_to_body(:_template => template)
+      container.add_part(part)
     end
 
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer

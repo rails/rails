@@ -3,13 +3,13 @@ require 'abstract_unit'
 
 #  class Notifier < ActionMailer::Base
 #    delivers_from 'notifications@example.com'
-#    
+#
 #    def welcome(user)
 #      @user = user # available to the view
 #      mail(:subject => 'Welcome!', :to => user.email_address)
 #      # auto renders both welcome.text.erb and welcome.html.erb
 #    end
-#    
+#
 #    def goodbye(user)
 #      headers["X-SPAM"] = 'Not-SPAM'
 #      mail(:subject => 'Goodbye', :to => user.email_address) do |format|
@@ -17,7 +17,7 @@ require 'abstract_unit'
 #        format.text # goodbye.text.erb
 #      end
 #    end
-#    
+#
 #    def surprise(user, gift)
 #      attachments[gift.name] = File.read(gift.path)
 #      mail(:subject => 'Surprise!', :to => user.email_address) do |format|
@@ -25,17 +25,17 @@ require 'abstract_unit'
 #        format.text(:transfer_encoding => "base64") # surprise.text.erb
 #      end
 #    end
-#    
+#
 #    def special_surprise(user, gift)
 #      attachments[gift.name] = { :content_type => "application/x-gzip", :content => File.read(gift.path) }
 #      mail(:to => 'special@example.com') # subject not required
 #      # auto renders both special_surprise.text.erb and special_surprise.html.erb
 #    end
 #  end
-#   
+#
 #  mail = Notifier.welcome(user)         # => returns a Mail object
 #  mail.deliver
-# 
+#
 #  Notifier.welcome(user).deliver # => creates and sends the Mail in one step
 class BaseTest < ActiveSupport::TestCase
   DEFAULT_HEADERS = {
@@ -44,6 +44,8 @@ class BaseTest < ActiveSupport::TestCase
     :subject => 'The first email on new API!'
   }
 
+  # TODO Think on the simple case where I want to send an e-mail
+  # with attachment and small text (without need to add a template).
   class BaseMailer < ActionMailer::Base
     self.mailer_name = "base_mailer"
 
@@ -63,8 +65,9 @@ class BaseTest < ActiveSupport::TestCase
       mail(DEFAULT_HEADERS)
     end
 
-    def implicit_multipart
-      mail(DEFAULT_HEADERS)
+    def implicit_multipart(hash = {})
+      attachments['invoice.pdf'] = 'This is test File content' if hash.delete(:attachments)
+      mail(DEFAULT_HEADERS.merge(hash))
     end
   end
 
@@ -72,6 +75,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_nothing_raised { BaseMailer.deliver_welcome }
   end
 
+  # Basic mail usage without block
   test "mail() should set the headers of the mail message" do
     email = BaseMailer.deliver_welcome
     assert_equal(email.to,      ['mikel@test.lindsaar.net'])
@@ -102,11 +106,13 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Welcome", email.body.encoded)
   end
 
+  # Custom headers
   test "custom headers" do
     email = BaseMailer.deliver_welcome
     assert_equal("Not SPAM", email['X-SPAM'].decoded)
   end
 
+  # Attachments
   test "attachment with content" do
     email = BaseMailer.deliver_attachment_with_content
     assert_equal(1, email.attachments.length)
@@ -126,12 +132,22 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("\312\213\254\232)b", email.attachments['invoice.jpg'].decoded)
   end
 
-  # test "mail sets proper content type when attachment is included" do
-  #   email = BaseMailer.deliver_attachment_with_content
-  #   assert_equal(1, email.attachments.length)
-  #   assert_equal("multipart/mixed", email.content_type)
-  # end
+  test "sets mime type to multipart/mixed when attachment is included" do
+    email = BaseMailer.deliver_attachment_with_content
+    assert_equal(1, email.attachments.length)
+    assert_equal("multipart/mixed", email.mime_type)
+  end
 
+  test "adds the rendered template as part" do
+    email = BaseMailer.deliver_attachment_with_content
+    assert_equal(2, email.parts.length)
+    assert_equal("text/html", email.parts[0].mime_type)
+    assert_equal("Attachment with content", email.parts[0].body.encoded)
+    assert_equal("application/pdf", email.parts[1].mime_type)
+    assert_equal("VGhpcyBpcyB0ZXN0IEZpbGUgY29udGVudA==\r\n", email.parts[1].body.encoded)
+  end
+
+  # Defaults values
   test "uses default charset from class" do
     swap BaseMailer, :default_charset => "US-ASCII" do
       email = BaseMailer.deliver_welcome
@@ -139,6 +155,16 @@ class BaseTest < ActiveSupport::TestCase
 
       email = BaseMailer.deliver_welcome(:charset => "iso-8559-1")
       assert_equal("iso-8559-1", email.charset)
+    end
+  end
+
+  test "uses default content type from class" do
+    swap BaseMailer, :default_content_type => "text/html" do
+      email = BaseMailer.deliver_welcome
+      assert_equal("text/html", email.mime_type)
+
+      email = BaseMailer.deliver_welcome(:content_type => "text/plain")
+      assert_equal("text/plain", email.mime_type)
     end
   end
 
@@ -161,17 +187,51 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal "New Subject!", email.subject
   end
 
+  # Implicit multipart
   test "implicit multipart tests" do
-    require 'ruby-debug'
-    $BREAK = true
     email = BaseMailer.deliver_implicit_multipart
-
     assert_equal(2, email.parts.size)
-
     assert_equal("multipart/alternate", email.mime_type)
     assert_equal("text/plain", email.parts[0].mime_type)
-    assert_equal("text/html",  email.parts[1].mime_type)    
+    assert_equal("TEXT Implicit Multipart", email.parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("HTML Implicit Multipart", email.parts[1].body.encoded)
   end
+
+  test "implicit multipart tests with sort order" do
+    order = ["text/html", "text/plain"]
+    swap BaseMailer, :default_implicit_parts_order => order do
+      email = BaseMailer.deliver_implicit_multipart
+      assert_equal("text/html",  email.parts[0].mime_type)
+      assert_equal("text/plain", email.parts[1].mime_type)
+
+      email = BaseMailer.deliver_implicit_multipart(:parts_order => order.reverse)
+      assert_equal("text/plain", email.parts[0].mime_type)
+      assert_equal("text/html",  email.parts[1].mime_type)
+    end
+  end
+
+  test "implicit multipart with attachments creates nested parts" do
+    email = BaseMailer.deliver_implicit_multipart(:attachments => true)
+    assert_equal("application/pdf", email.parts[0].mime_type)
+    assert_equal("multipart/alternate", email.parts[1].mime_type)
+    assert_equal("text/plain", email.parts[1].parts[0].mime_type)
+    assert_equal("TEXT Implicit Multipart", email.parts[1].parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].parts[1].mime_type)
+    assert_equal("HTML Implicit Multipart", email.parts[1].parts[1].body.encoded)
+  end
+
+  # TODO This should be fixed in mail. Sort parts should be recursive.
+  # test "implicit multipart with attachments and sort order" do
+  #   order = ["text/html", "text/plain"]
+  #   swap BaseMailer, :default_implicit_parts_order => order do
+  #     email = BaseMailer.deliver_implicit_multipart(:attachments => true)
+  #     assert_equal("application/pdf", email.parts[0].mime_type)
+  #     assert_equal("multipart/alternate", email.parts[1].mime_type)
+  #     assert_equal("text/plain", email.parts[1].parts[1].mime_type)
+  #     assert_equal("text/html", email.parts[1].parts[0].mime_type)
+  #   end
+  # end
 
   protected
 

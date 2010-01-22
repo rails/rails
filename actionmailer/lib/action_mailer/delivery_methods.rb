@@ -27,6 +27,7 @@ module ActionMailer
     end
 
     module ClassMethods
+      # TODO Make me class inheritable
       def delivery_settings
         @@delivery_settings ||= Hash.new { |h,k| h[k] = {} }
       end
@@ -51,6 +52,7 @@ module ActionMailer
 
     protected
 
+      # TODO Get rid of this method missing magic
       def method_missing(method_symbol, *parameters) #:nodoc:
         if match = matches_settings_method?(method_symbol)
           if match[2]
