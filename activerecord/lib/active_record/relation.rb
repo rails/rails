@@ -301,6 +301,8 @@ module ActiveRecord
     def method_missing(method, *args, &block)
       if Array.method_defined?(method)
         to_a.send(method, *args, &block)
+      elsif @klass.respond_to?(method)
+        @klass.send(:with_scope, self) { @klass.send(method, *args, &block) }
       elsif arel.respond_to?(method)
         arel.send(method, *args, &block)
       elsif match = DynamicFinderMatch.match(method)
