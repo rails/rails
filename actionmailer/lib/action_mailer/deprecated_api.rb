@@ -120,18 +120,11 @@ module ActionMailer
       initialize_defaults(method_name)
       super
       unless @mail_was_called
-        # Create e-mail parts
         create_parts
-
-        # Set the subject if not set yet
-        @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
-                                      :default => method_name.humanize)
-
-        # Build the mail object itself
         create_mail
       end
+      @message
     end
-
 
     # Add a part to a multipart message, with the given content-type. The
     # part itself is yielded to the block so that other properties (charset,

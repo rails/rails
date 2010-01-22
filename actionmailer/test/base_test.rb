@@ -44,7 +44,9 @@ class BaseTest < ActiveSupport::TestCase
     :subject => 'The first email on new API!'
   }
 
-  class TestMailer < ActionMailer::Base
+  class BaseMailer < ActionMailer::Base
+    self.mailer_name = "base_mailer"
+
     def welcome(hash = {})
       headers['X-SPAM'] = "Not SPAM"
       mail(DEFAULT_HEADERS.merge(hash))
@@ -63,11 +65,11 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "method call to mail does not raise error" do
-    assert_nothing_raised { TestMailer.deliver_welcome }
+    assert_nothing_raised { BaseMailer.deliver_welcome }
   end
 
   test "mail() should set the headers of the mail message" do
-    email = TestMailer.deliver_welcome
+    email = BaseMailer.deliver_welcome
     assert_equal(email.to,      ['mikel@test.lindsaar.net'])
     assert_equal(email.from,    ['jose@test.plataformatec.com'])
     assert_equal(email.subject, 'The first email on new API!')
@@ -75,7 +77,7 @@ class BaseTest < ActiveSupport::TestCase
 
   test "mail() with bcc, cc, content_type, charset, mime_version, reply_to and date" do
     @time = Time.now
-    email = TestMailer.deliver_welcome(:bcc => 'bcc@test.lindsaar.net',
+    email = BaseMailer.deliver_welcome(:bcc => 'bcc@test.lindsaar.net',
                                        :cc  => 'cc@test.lindsaar.net',
                                        :content_type => 'multipart/mixed',
                                        :charset => 'iso-8559-1',
@@ -91,68 +93,70 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(email.date,          @time)
   end
 
+  test "mail() renders the template using the method being processed" do
+    email = BaseMailer.deliver_welcome
+    assert_equal("Welcome", email.body.encoded)
+  end
+
   test "custom headers" do
-    email = TestMailer.deliver_welcome
+    email = BaseMailer.deliver_welcome
     assert_equal("Not SPAM", email['X-SPAM'].decoded)
   end
 
   test "attachment with content" do
-    email = TestMailer.deliver_attachment_with_content
+    email = BaseMailer.deliver_attachment_with_content
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.pdf', email.attachments[0].filename)
     assert_equal('This is test File content', email.attachments['invoice.pdf'].decoded)
   end
 
   test "attachment gets content type from filename" do
-    email = TestMailer.deliver_attachment_with_content
+    email = BaseMailer.deliver_attachment_with_content
     assert_equal('invoice.pdf', email.attachments[0].filename)
   end
 
   test "attachment with hash" do
-    email = TestMailer.deliver_attachment_with_hash
+    email = BaseMailer.deliver_attachment_with_hash
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.jpg', email.attachments[0].filename)
     assert_equal("\312\213\254\232)b", email.attachments['invoice.jpg'].decoded)
   end
 
+  # test "mail sets proper content type when attachment is included" do
+  #   email = BaseMailer.deliver_attachment_with_content
+  #   assert_equal(1, email.attachments.length)
+  #   assert_equal("multipart/mixed", email.content_type)
+  # end
+
   test "uses default charset from class" do
-    swap TestMailer, :default_charset => "US-ASCII" do
-      email = TestMailer.deliver_welcome
+    swap BaseMailer, :default_charset => "US-ASCII" do
+      email = BaseMailer.deliver_welcome
       assert_equal("US-ASCII", email.charset)
 
-      email = TestMailer.deliver_welcome(:charset => "iso-8559-1")
+      email = BaseMailer.deliver_welcome(:charset => "iso-8559-1")
       assert_equal("iso-8559-1", email.charset)
     end
   end
 
-  test "uses default content type from class" do
-    swap TestMailer, :default_content_type => "text/html" do
-      email = TestMailer.deliver_welcome
-      assert_equal("text/html", email.mime_type)
-
-      email = TestMailer.deliver_welcome(:content_type => "application/xml")
-      assert_equal("application/xml", email.mime_type)
-    end
-  end
-
   test "uses default mime version from class" do
-    swap TestMailer, :default_mime_version => "2.0" do
-      email = TestMailer.deliver_welcome
+    swap BaseMailer, :default_mime_version => "2.0" do
+      email = BaseMailer.deliver_welcome
       assert_equal("2.0", email.mime_version)
 
-      email = TestMailer.deliver_welcome(:mime_version => "1.0")
+      email = BaseMailer.deliver_welcome(:mime_version => "1.0")
       assert_equal("1.0", email.mime_version)
     end
   end
 
-  # def test_that_class_defaults_are_set_on_instantiation
-  #   pending
-  # end
-  # 
-  # def test_should_set_the_subject_from_i18n
-  #   pending
-  # end
+  test "subject gets default from I18n" do
+    email = BaseMailer.deliver_welcome(:subject => nil)
+    assert_equal "Welcome", email.subject
 
+    I18n.backend.store_translations('en', :actionmailer => {:base_mailer => {:welcome => {:subject => "New Subject!"}}})
+    email = BaseMailer.deliver_welcome(:subject => nil)
+    assert_equal "New Subject!", email.subject
+  end
+  
   protected
 
     # Execute the block setting the given values and restoring old values after

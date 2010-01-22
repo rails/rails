@@ -280,6 +280,7 @@ module ActionMailer #:nodoc:
     extlib_inheritable_accessor :default_charset
     self.default_charset = "utf-8"
 
+    # TODO This should be used when calling render
     extlib_inheritable_accessor :default_content_type
     self.default_content_type = "text/plain"
 
@@ -357,7 +358,7 @@ module ActionMailer #:nodoc:
           begin
             # TODO Move me to the instance
             if @@perform_deliveries
-              mail.deliver! 
+              mail.deliver!
               self.deliveries << mail
             end
           rescue Exception => e # Net::SMTP errors or sendmail pipe errors
@@ -393,30 +394,60 @@ module ActionMailer #:nodoc:
       # Guard flag to prevent both the old and the new API from firing
       # Should be removed when old API is deprecated
       @mail_was_called = true
-
       m = @message
-      
-      m.content_type ||= headers[:content_type] || self.class.default_content_type
-      m.charset      ||= headers[:charset]      || self.class.default_charset
-      m.mime_version ||= headers[:mime_version] || self.class.default_mime_version
 
-      m.subject      = quote_if_necessary(headers[:subject], m.charset)          if headers[:subject]
-      m.to           = quote_address_if_necessary(headers[:to], m.charset)       if headers[:to]
-      m.from         = quote_address_if_necessary(headers[:from], m.charset)     if headers[:from]
-      m.cc           = quote_address_if_necessary(headers[:cc], m.charset)       if headers[:cc]
-      m.bcc          = quote_address_if_necessary(headers[:bcc], m.charset)      if headers[:bcc]
-      m.reply_to     = quote_address_if_necessary(headers[:reply_to], m.charset) if headers[:reply_to]
-      m.date         = headers[:date]                                            if headers[:date]
+      # Get default subject from I18n if none is set
+      headers[:subject] ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, action_name],
+                                             :default => action_name.humanize)
 
-      m.body.set_sort_order(headers[:parts_order] || self.class.default_implicit_parts_order)
+      # Give preference to headers and fallbacks to the ones set in mail
+      headers[:content_type] ||= m.content_type
+      headers[:charset]      ||= m.charset
+      headers[:mime_version] ||= m.mime_version
 
-      # # Set the subject if not set yet
-      # @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
-      #                               :default => method_name.humanize)
+      m.content_type = headers[:content_type] || self.class.default_content_type.dup
+      m.charset      = headers[:charset]      || self.class.default_charset.dup
+      m.mime_version = headers[:mime_version] || self.class.default_mime_version.dup
 
+      m.subject   ||= quote_if_necessary(headers[:subject], m.charset)          if headers[:subject]
+      m.to        ||= quote_address_if_necessary(headers[:to], m.charset)       if headers[:to]
+      m.from      ||= quote_address_if_necessary(headers[:from], m.charset)     if headers[:from]
+      m.cc        ||= quote_address_if_necessary(headers[:cc], m.charset)       if headers[:cc]
+      m.bcc       ||= quote_address_if_necessary(headers[:bcc], m.charset)      if headers[:bcc]
+      m.reply_to  ||= quote_address_if_necessary(headers[:reply_to], m.charset) if headers[:reply_to]
+      m.date      ||= headers[:date]                                            if headers[:date]
+
+      if block_given?
+        # Do something
+      else
+        # TODO Ensure that we don't need to pass I18n.locale as detail
+        templates = self.class.template_root.find_all(action_name, {}, mailer_name)
+
+        if templates.size == 1
+          unless headers[:content_type]
+            proper_charset = m.charset
+            m.content_type = templates[0].mime_type.to_s
+            m.charset = proper_charset
+          end
+          m.body = render_to_body(:_template => templates[0])
+        else
+          templates.each do |template|
+            part = Mail::Part.new
+            part.content_type = template.mime_type.to_s
+            part.charset = m.charset
+            part.body = render_to_body(:_template => template)
+          end
+        end
+      end
+
+      m.body.set_sort_order(headers[:parts_order] || self.class.default_implicit_parts_order.dup)
 
       # TODO: m.body.sort_parts!
       m
+    end
+
+    def fill_in_part(part, template, charset)
+      
     end
 
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
