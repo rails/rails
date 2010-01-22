@@ -14,10 +14,15 @@ module ActionMailer
     end
 
     def attachment(params, &block)
+      if params[:data]
+        ActiveSupport::Deprecation.warn('attachment :data => "string" is deprecated. To set the body of an attachment ' <<
+                                        'please use :content instead, like attachment :content => "string"', caller[0,10])
+        params[:content] = params.delete(:data)
+      end
       if params[:body]
-        ActiveSupport::Deprecation.warn('attachment :body => "string" is deprecated. To set the body of an attachment ' <<
-                                        'please use :data instead, like attachment :data => "string"', caller[0,10])
-        params[:data] = params.delete(:body)
+        ActiveSupport::Deprecation.warn('attachment :data => "string" is deprecated. To set the body of an attachment ' <<
+                                        'please use :content instead, like attachment :content => "string"', caller[0,10])
+        params[:content] = params.delete(:body)
       end
     end
 
