@@ -33,6 +33,10 @@ module AbstractController
         render
       end
 
+      def shortcut
+        render "template"
+      end
+
       def template_name
         render :_template_name => :template_name
       end
@@ -71,6 +75,11 @@ module AbstractController
       def test_render_default
         @controller.process(:default)
         assert_equal "With Default", @controller.response_body
+      end
+
+      def test_render_template_through_shortcut
+        @controller.process(:shortcut)
+        assert_equal "With Template", @controller.response_body
       end
 
       def test_render_template_name

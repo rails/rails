@@ -282,8 +282,11 @@ module ActiveRecord
 
     def scope_for_create
       @scope_for_create ||= begin
-        @create_with_value || wheres.inject({}) do |hash, where|
-          hash[where.operand1.name] = where.operand2.value if where.is_a?(Arel::Predicates::Equality)
+        @create_with_value || @where_values.inject({}) do |hash, where|
+          if where.is_a?(Arel::Predicates::Equality)
+            hash[where.operand1.name] = where.operand2.respond_to?(:value) ? where.operand2.value : where.operand2
+          end
+
           hash
         end
       end

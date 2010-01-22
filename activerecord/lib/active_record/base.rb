@@ -1200,7 +1200,7 @@ module ActiveRecord #:nodoc:
         def instantiate(record)
           object = find_sti_class(record[inheritance_column]).allocate
 
-          object.send(:initialize_attribute_store, record)
+          object.instance_variable_set(:'@attributes', record)
           object.instance_variable_set(:'@attributes_cache', {})
 
           object.send(:_run_find_callbacks)
@@ -1663,7 +1663,7 @@ module ActiveRecord #:nodoc:
       # In both instances, valid attribute keys are determined by the column names of the associated table --
       # hence you can't have attributes that aren't part of the table columns.
       def initialize(attributes = nil)
-        initialize_attribute_store(attributes_from_column_definition)
+        @attributes = attributes_from_column_definition
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
@@ -1694,7 +1694,7 @@ module ActiveRecord #:nodoc:
         callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
-        initialize_attribute_store(cloned_attributes)
+        @attributes = cloned_attributes
         clear_aggregation_cache
         @attributes_cache = {}
         @new_record = true
@@ -1924,9 +1924,19 @@ module ActiveRecord #:nodoc:
       def reload(options = nil)
         clear_aggregation_cache
         clear_association_cache
-        _attributes.update(self.class.find(self.id, options).instance_variable_get('@attributes'))
+        @attributes.update(self.class.find(self.id, options).instance_variable_get('@attributes'))
         @attributes_cache = {}
         self
+      end
+
+      # Returns true if the given attribute is in the attributes hash
+      def has_attribute?(attr_name)
+        @attributes.has_key?(attr_name.to_s)
+      end
+
+      # Returns an array of names for the attributes available on this object sorted alphabetically.
+      def attribute_names
+        @attributes.keys.sort
       end
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
@@ -2262,7 +2272,7 @@ module ActiveRecord #:nodoc:
       end
 
       def instantiate_time_object(name, values)
-        if self.class.send(:time_zone_aware?, name)
+        if self.class.send(:create_time_zone_conversion_attribute?, name, column_for_attribute(name))
           Time.zone.local(*values)
         else
           Time.time_with_datetime_fallback(@@default_timezone, *values)
@@ -2345,6 +2355,22 @@ module ActiveRecord #:nodoc:
         comma_pair_list(quote_columns(quoter, hash))
       end
 
+      def convert_number_column_value(value)
+        if value == false
+          0
+        elsif value == true
+          1
+        elsif value.is_a?(String) && value.blank?
+          nil
+        else
+          value
+        end
+      end
+
+      def object_from_yaml(string)
+        return string unless string.is_a?(String) && string =~ /^---/
+        YAML::load(string) rescue string
+      end
   end
 
   Base.class_eval do
@@ -2359,7 +2385,6 @@ module ActiveRecord #:nodoc:
     include AttributeMethods::PrimaryKey
     include AttributeMethods::TimeZoneConversion
     include AttributeMethods::Dirty
-    include Attributes, Types
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
     include ActiveModel::Conversion

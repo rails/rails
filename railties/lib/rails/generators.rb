@@ -134,9 +134,14 @@ module Rails
       lookups = []
       lookups << "#{base}:#{name}"    if base
       lookups << "#{name}:#{context}" if context
-      lookups << "#{name}:#{name}"    unless name.to_s.include?(?:)
-      lookups << "#{name}"
-      lookups << "rails:#{name}"      unless base || context || name.to_s.include?(?:)
+
+      unless base || context
+        unless name.to_s.include?(?:)
+          lookups << "#{name}:#{name}"
+          lookups << "rails:#{name}"
+        end
+        lookups << "#{name}"
+      end
 
       lookup(lookups)
 
@@ -232,9 +237,9 @@ module Rails
         load_generators_from_railties!
         paths = namespaces_to_paths(namespaces)
 
-        paths.each do |path|
-          ["generators", "rails_generators"].each do |base|
-            path = "#{base}/#{path}_generator"
+        paths.each do |raw_path|
+          ["rails_generators", "generators"].each do |base|
+            path = "#{base}/#{raw_path}_generator"
 
             begin
               require path
@@ -243,7 +248,9 @@ module Rails
               raise unless e.message =~ /#{Regexp.escape(path)}$/
             rescue NameError => e
               raise unless e.message =~ /Rails::Generator([\s(::)]|$)/
-              warn "[WARNING] Could not load generator #{path.inspect} because it's a Rails 2.x generator, which is not supported anymore. Error: #{e.message}"
+              warn "[WARNING] Could not load generator #{path.inspect} because it's a Rails 2.x generator, which is not supported anymore. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
+            rescue Exception => e
+              warn "[WARNING] Could not load generator #{path.inspect}. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
             end
           end
         end
@@ -278,7 +285,7 @@ module Rails
         paths = []
         namespaces.each do |namespace|
           pieces = namespace.split(":")
-          paths << pieces.dup.push(pieces.last).join("/")
+          paths << pieces.dup.push(pieces.last).join("/") unless pieces.uniq.size == 1
           paths << pieces.join("/")
         end
         paths.uniq!

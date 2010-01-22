@@ -5,9 +5,6 @@ module ActionDispatch
   class Railtie < Rails::Railtie
     plugin_name :action_dispatch
 
-    require "action_dispatch/railties/subscriber"
-    subscriber ActionDispatch::Railties::Subscriber.new
-
     # Prepare dispatcher callbacks and run 'prepare' callbacks
     initializer "action_dispatch.prepare_dispatcher" do |app|
       # TODO: This used to say unless defined?(Dispatcher). Find out why and fix.
