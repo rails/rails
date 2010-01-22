@@ -263,7 +263,6 @@ module ActionMailer #:nodoc:
     include AbstractController::UrlFor
 
     helper  ActionMailer::MailHelper
-    include ActionMailer::DeprecatedBody
     include ActionMailer::DeprecatedApi
 
     include ActionMailer::DeliveryMethods
@@ -297,69 +296,11 @@ module ActionMailer #:nodoc:
     @@default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
     cattr_accessor :default_implicit_parts_order
 
-    @@protected_instance_variables = %w(@parts @message)
-    cattr_reader :protected_instance_variables
-
-    # Specify the BCC addresses for the message
-    adv_attr_accessor :bcc
-
-    # Specify the CC addresses for the message.
-    adv_attr_accessor :cc
-
-    # Specify the charset to use for the message. This defaults to the
-    # +default_charset+ specified for ActionMailer::Base.
-    adv_attr_accessor :charset
-
-    # Specify the content type for the message. This defaults to <tt>text/plain</tt>
-    # in most cases, but can be automatically set in some situations.
-    adv_attr_accessor :content_type
-
-    # Specify the from address for the message.
-    adv_attr_accessor :from
-
-    # Specify the address (if different than the "from" address) to direct
-    # replies to this message.
-    adv_attr_accessor :reply_to
-
-    # Specify additional headers to be added to the message.
-    adv_attr_accessor :headers
-
-    # Specify the order in which parts should be sorted, based on content-type.
-    # This defaults to the value for the +default_implicit_parts_order+.
-    adv_attr_accessor :implicit_parts_order
-
-    # Defaults to "1.0", but may be explicitly given if needed.
-    adv_attr_accessor :mime_version
-
-    # The recipient addresses for the message, either as a string (for a single
-    # address) or an array (for multiple addresses).
-    adv_attr_accessor :recipients
-
-    # The date on which the message was sent. If not set (the default), the
-    # header will be set by the delivery agent.
-    adv_attr_accessor :sent_on
-
-    # Specify the subject of the message.
-    adv_attr_accessor :subject
-
-    # Specify the template name to use for current message. This is the "base"
-    # template name, without the extension or directory, and may be used to
-    # have multiple mailer methods share the same template.
-    adv_attr_accessor :template
-
-    # Override the mailer name, which defaults to an inflected version of the
-    # mailer's class name. If you want to use a template in a non-standard
-    # location, you can use this to specify that location.
-    adv_attr_accessor :mailer_name
-
     # Expose the internal Mail message
     attr_reader :message
 
     # Pass calls to headers and attachment to the Mail#Message instance
     delegate :headers, :attachments, :to => :@message
-    
-    # Alias controller_path to mailer_name so render :partial in views work.
-    alias :controller_path :mailer_name
 
     class << self
 
@@ -504,9 +445,7 @@ module ActionMailer #:nodoc:
     # rendered and a new Mail object created.
     def process(method_name, *args)
       initialize_defaults(method_name)
-      
       super
-      
       unless @mail_was_called
         # Create e-mail parts
         create_parts

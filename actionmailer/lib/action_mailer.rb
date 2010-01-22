@@ -33,7 +33,6 @@ module ActionMailer
   autoload :AdvAttrAccessor
   autoload :Base
   autoload :DeliveryMethods
-  autoload :DeprecatedBody
   autoload :DeprecatedApi
   autoload :MailHelper
   autoload :Quoting
