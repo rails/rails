@@ -32,7 +32,7 @@ module ActionView
       #      <i>Topics listed alphabetically</i>
       #    <% end %>
       def cache(name = {}, options = nil, &block)
-        @controller.fragment_for(output_buffer, name, options, &block)
+        controller.fragment_for(output_buffer, name, options, &block)
       end
     end
   end

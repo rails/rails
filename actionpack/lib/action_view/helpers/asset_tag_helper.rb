@@ -634,8 +634,8 @@ module ActionView
         # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
         # roots. Rewrite the asset path for cache-busting asset ids. Include
         # asset host, if configured, with the correct request protocol.
-        def compute_public_path(source, dir, ext = nil, include_host = true)          
-          has_request = @controller.respond_to?(:request)
+        def compute_public_path(source, dir, ext = nil, include_host = true)
+          has_request = controller.respond_to?(:request)
 
           source_ext = File.extname(source)[1..-1]
           if ext && !is_uri?(source) && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(config.assets_dir, dir, "#{source}.#{ext}"))))
@@ -658,7 +658,7 @@ module ActionView
             host = compute_asset_host(source)
 
             if has_request && !host.blank? && !is_uri?(host)
-              host = "#{@controller.request.protocol}#{host}"
+              host = "#{controller.request.protocol}#{host}"
             end
 
             "#{host}#{source}"
@@ -681,7 +681,7 @@ module ActionView
             if host.is_a?(Proc) || host.respond_to?(:call)
               case host.is_a?(Proc) ? host.arity : host.method(:call).arity
               when 2
-                request = @controller.respond_to?(:request) && @controller.request
+                request = controller.respond_to?(:request) && controller.request
                 host.call(source, request)
               else
                 host.call(source)
