@@ -1,18 +1,19 @@
 require 'active_support/core_ext/module/delegation'
 
 module Rails
-  # TODO Move I18n and views path setup
+  # TODO Move I18n here
+  # TODO Set routes namespaces
   class Engine < Railtie
 
     class << self
       attr_accessor :called_from
 
-      def root
-        @root ||= find_root_with_file_flag("lib")
+      def original_root
+        @original_root ||= find_root_with_file_flag("lib")
       end
 
       def config
-        @config ||= Configuration.new(root)
+        @config ||= Configuration.new(original_root)
       end
 
       def inherited(base)
@@ -20,6 +21,7 @@ module Rails
           call_stack = caller.map { |p| p.split(':').first }
           File.dirname(call_stack.detect { |p| p !~ %r[railties/lib/rails|rack/lib/rack] })
         end
+
         super
       end
 
@@ -33,7 +35,7 @@ module Rails
           root_path = parent != root_path && parent
         end
 
-        root = File.exist?("#{root_path}/flag") ? root_path : default
+        root = File.exist?("#{root_path}/#{flag}") ? root_path : default
 
         raise "Could not find root path for #{self}" unless root
 
@@ -43,8 +45,8 @@ module Rails
       end
     end
 
-    delegate :root, :config, :to => :'self.class'
-    delegate :middleware,    :to => :config
+    delegate :config, :to => :'self.class'
+    delegate :middleware, :root, :to => :config
 
     # Add configured load paths to ruby load paths and remove duplicates.
     initializer :set_load_path, :before => :container do
@@ -57,10 +59,11 @@ module Rails
     initializer :set_autoload_paths, :before => :container do
       require 'active_support/dependencies'
 
-      ActiveSupport::Dependencies.load_paths = expand_load_path(config.load_paths)
+      ActiveSupport::Dependencies.load_paths      = expand_load_path(config.load_paths)
       ActiveSupport::Dependencies.load_once_paths = expand_load_path(config.load_once_paths)
 
-      extra = ActiveSupport::Dependencies.load_once_paths - ActiveSupport::Dependencies.load_paths
+      extra = ActiveSupport::Dependencies.load_once_paths -
+              ActiveSupport::Dependencies.load_paths
 
       unless extra.empty?
         abort <<-end_error
@@ -73,15 +76,24 @@ module Rails
       config.load_once_paths.freeze
     end
 
-    initializer :load_application_initializers do
-      Dir["#{root}/config/initializers/**/*.rb"].sort.each do |initializer|
-        load(initializer)
-      end
+    # Routing must be initialized after plugins to allow the former to extend the routes
+    initializer :add_routing_files do |app|
+      routes = select_existing(config.paths.config.routes)
+      app.route_configuration_files.concat(routes)
     end
 
-    # Routing must be initialized after plugins to allow the former to extend the routes
-    initializer :initialize_routing do |app|
-      app.route_configuration_files.concat(config.paths.config.routes.to_a)
+    initializer :add_view_paths do
+      views = select_existing(config.paths.app.views)
+      ActionController::Base.view_paths.concat(views) if defined? ActionController
+      ActionMailer::Base.view_paths.concat(views)     if defined? ActionMailer
+    end
+
+    initializer :load_application_initializers do
+      select_existing(config.paths.config.initializers).each do |initializers|
+        Dir["#{initializers}/**/*.rb"].sort.each do |initializer|
+          load(initializer)
+        end
+      end
     end
 
     # Eager load application classes
@@ -99,6 +111,10 @@ module Rails
     end
 
   private
+
+    def select_existing(paths)
+      paths.to_a.select { |path| File.exists?(path) }.uniq
+    end
 
     def expand_load_path(load_paths)
       load_paths.map { |path| Dir.glob(path.to_s) }.flatten.uniq

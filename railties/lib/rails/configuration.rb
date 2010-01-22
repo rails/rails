@@ -70,7 +70,8 @@ module Rails
   end
 
   class Engine::Configuration < Railtie::Configuration
-    attr_reader :root
+    attr_reader   :root
+    attr_accessor :eager_load_paths, :load_once_paths, :load_paths
 
     def initialize(root)
       @root = root
@@ -79,20 +80,25 @@ module Rails
 
     def paths
       @paths ||= begin
-        paths = Rails::Application::Root.new(root)
+        paths = Rails::Application::Root.new(@root)
         paths.app                 "app",             :load_path => true
         paths.app_glob            "app/*",           :load_path => true, :eager_load => true
-        paths.app.controllers     "app/controllers"
+        paths.app.controllers     "app/controllers",                     :eager_load => true
         paths.app.metals          "app/metal"
         paths.app.views           "app/views"
         paths.lib                 "lib",             :load_path => true
         paths.config              "config"
+        paths.config.environment  "config/environments/#{Rails.env}.rb"
         paths.config.environments "config/environments", :glob => "#{Rails.env}.rb"
         paths.config.initializers "config/initializers"
         paths.config.locales      "config/locales"
         paths.config.routes       "config/routes.rb"
         paths
       end
+    end
+
+    def root=(value)
+      @root = paths.path = Pathname.new(value).expand_path
     end
 
     def eager_load_paths
@@ -106,6 +112,10 @@ module Rails
     def load_paths
       @load_paths ||= paths.load_paths
     end
+
+    def controller_paths
+      paths.app.controllers.to_a.uniq
+    end
   end
 
   class Configuration < Engine::Configuration
@@ -115,9 +125,7 @@ module Rails
                   :preload_frameworks, :reload_plugins, :serve_static_assets,
                   :time_zone, :whiny_nils
 
-    attr_writer :cache_store, :controller_paths,
-                :database_configuration_file,
-                :i18n, :log_level, :log_path
+    attr_writer :cache_store, :controller_paths, :i18n, :log_level
 
     def initialize(*)
       super
@@ -134,7 +142,7 @@ module Rails
     def paths
       @paths ||= begin
         paths = super
-        paths.builtin_controller builtin_directories, :eager_load => true
+        paths.app.controllers << builtin_directories
         paths.config.database    "config/database.yml"
         paths.log                "log/#{Rails.env}.log"
         paths.tmp                "tmp"
@@ -144,7 +152,7 @@ module Rails
 
         if File.exists?("#{root}/test/mocks/#{Rails.env}")
           ActiveSupport::Deprecation.warn "\"RAILS_ROOT/test/mocks/#{Rails.env}\" won't be added " <<
-            "automatically to load paths anymore in next releases."
+            "automatically to load paths anymore in future releases"
           paths.mocks_path  "test/mocks/#{Rails.env}", :load_path => true
         end
 
@@ -228,18 +236,6 @@ module Rails
       ActiveSupport::Deprecation.warn "config.log_path is deprecated, " <<
         "please do config.paths.log instead", caller
       paths.config.log.to_a.first
-    end
-
-
-
-    # TODO Router needs this, but this wouldn't work with engines.
-    # There is a high chance of plugins routes to be broken.
-    def controller_paths
-      @controller_paths ||= begin
-        paths = [File.join(root, 'app', 'controllers')]
-        paths.concat builtin_directories
-        paths
-      end
     end
 
     def cache_store

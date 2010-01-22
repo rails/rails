@@ -29,8 +29,7 @@ module ActionController
     # set to use Configuration#view_path.
     initializer "action_controller.initialize_framework_views" do |app|
       # TODO: this should be combined with the logic for default config.action_controller.view_paths
-      view_path = ActionView::PathSet.type_cast(app.config.view_path, app.config.cache_classes)
-      ActionController::Base.view_paths = view_path if ActionController::Base.view_paths.blank?
+      ActionController::Base.view_paths = [] if ActionController::Base.view_paths.blank?
     end
 
   end

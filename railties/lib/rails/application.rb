@@ -1,4 +1,4 @@
-require "fileutils"
+require 'fileutils'
 
 module Rails
   class Application < Engine
@@ -6,7 +6,7 @@ module Rails
 
     class << self
       alias    :configure :class_eval
-      delegate :initialize!, :load_tasks, :load_generators, :to => :instance
+      delegate :initialize!, :load_tasks, :load_generators, :root, :to => :instance
 
       private :new
       def instance
@@ -14,11 +14,11 @@ module Rails
       end
 
       def config
-        @config ||= Configuration.new(root)
+        @config ||= Configuration.new(original_root)
       end
 
-      def root
-        @root ||= find_root_with_file_flag("config.ru", Dir.pwd)
+      def original_root
+        @original_root ||= find_root_with_file_flag("config.ru", Dir.pwd)
       end
 
       def inherited(base)
@@ -122,14 +122,14 @@ module Rails
       app.call(env)
     end
 
-    initializer :build_middleware_stack, :after => :load_application_initializers do
-      app
-    end
-
     initializer :add_builtin_route do |app|
       if Rails.env.development?
         app.route_configuration_files << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
       end
+    end
+
+    initializer :build_middleware_stack, :after => :load_application_initializers do
+      app
     end
 
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)

@@ -21,8 +21,7 @@ module ActionMailer
 
     initializer "action_mailer.view_paths" do |app|
       # TODO: this should be combined with the logic for default config.action_mailer.view_paths
-      view_path = ActionView::PathSet.type_cast(app.config.view_path, app.config.cache_classes)
-      ActionMailer::Base.template_root = view_path if ActionMailer::Base.view_paths.blank?
+      ActionMailer::Base.template_root = [] if ActionMailer::Base.view_paths.blank?
     end
   end
 end

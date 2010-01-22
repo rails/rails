@@ -14,6 +14,7 @@ module Rails
         @@plugins << base unless abstract_railtie?(base)
       end
 
+      # This should be called railtie_name and engine_name
       def plugin_name(plugin_name = nil)
         @plugin_name ||= name.demodulize.underscore
         @plugin_name = plugin_name if plugin_name
