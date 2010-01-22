@@ -3,8 +3,135 @@ module ActionMailer
   # hooks in ActionMailer::Base are removed as well.
   # 
   # Moved here to allow us to add the new Mail API
-  module DeprecatedApi
-    extend ActionMailer::AdvAttrAccessor
+  module DeprecatedApi #:nodoc:
+    extend ActiveSupport::Concern
+
+    included do
+      extend ActionMailer::AdvAttrAccessor
+
+      @@protected_instance_variables = %w(@parts)
+      cattr_reader :protected_instance_variables
+
+      # Specify the BCC addresses for the message
+      adv_attr_accessor :bcc
+
+      # Specify the CC addresses for the message.
+      adv_attr_accessor :cc
+
+      # Specify the charset to use for the message. This defaults to the
+      # +default_charset+ specified for ActionMailer::Base.
+      adv_attr_accessor :charset
+
+      # Specify the content type for the message. This defaults to <tt>text/plain</tt>
+      # in most cases, but can be automatically set in some situations.
+      adv_attr_accessor :content_type
+
+      # Specify the from address for the message.
+      adv_attr_accessor :from
+
+      # Specify the address (if different than the "from" address) to direct
+      # replies to this message.
+      adv_attr_accessor :reply_to
+
+      # Specify additional headers to be added to the message.
+      adv_attr_accessor :headers
+
+      # Specify the order in which parts should be sorted, based on content-type.
+      # This defaults to the value for the +default_implicit_parts_order+.
+      adv_attr_accessor :implicit_parts_order
+
+      # Defaults to "1.0", but may be explicitly given if needed.
+      adv_attr_accessor :mime_version
+
+      # The recipient addresses for the message, either as a string (for a single
+      # address) or an array (for multiple addresses).
+      adv_attr_accessor :recipients
+
+      # The date on which the message was sent. If not set (the default), the
+      # header will be set by the delivery agent.
+      adv_attr_accessor :sent_on
+
+      # Specify the subject of the message.
+      adv_attr_accessor :subject
+
+      # Specify the template name to use for current message. This is the "base"
+      # template name, without the extension or directory, and may be used to
+      # have multiple mailer methods share the same template.
+      adv_attr_accessor :template
+
+      # Override the mailer name, which defaults to an inflected version of the
+      # mailer's class name. If you want to use a template in a non-standard
+      # location, you can use this to specify that location.
+      adv_attr_accessor :mailer_name
+
+      # Define the body of the message. This is either a Hash (in which case it
+      # specifies the variables to pass to the template when it is rendered),
+      # or a string, in which case it specifies the actual text of the message.
+      adv_attr_accessor :body
+
+      # Alias controller_path to mailer_name so render :partial in views work.
+      alias :controller_path :mailer_name
+    end
+
+    module ClassMethods
+      def respond_to?(method_symbol, include_private = false) #:nodoc:
+        matches_dynamic_method?(method_symbol) || super
+      end
+
+      def method_missing(method_symbol, *parameters) #:nodoc:
+        if match = matches_dynamic_method?(method_symbol)
+          case match[1]
+            when 'create'  then new(match[2], *parameters).message
+            when 'deliver' then new(match[2], *parameters).deliver!
+            when 'new'     then nil
+            else super
+          end
+        else
+          super
+        end
+      end
+
+    private
+
+      def matches_dynamic_method?(method_name) #:nodoc:
+        method_name = method_name.to_s
+        /^(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
+      end
+    end
+
+    def initialize(*)
+      super()
+      @mail_was_called = false
+    end
+
+    def render(*args)
+      options = args.last.is_a?(Hash) ? args.last : {}
+      if options[:body]
+        ActiveSupport::Deprecation.warn(':body in render deprecated. Please call body ' <<
+                                        'with a hash instead', caller[0,1])
+
+        body options.delete(:body)
+      end
+
+      super
+    end
+
+    def process(method_name, *args)
+      initialize_defaults(method_name)
+      super
+      unless @mail_was_called
+        # Create e-mail parts
+        create_parts
+
+        # Set the subject if not set yet
+        @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
+                                      :default => method_name.humanize)
+
+        # Build the mail object itself
+        create_mail
+      end
+    end
+
 
     # Add a part to a multipart message, with the given content-type. The
     # part itself is yielded to the block so that other properties (charset,
@@ -13,8 +140,6 @@ module ActionMailer
       params = {:content_type => params} if String === params
 
       if custom_headers = params.delete(:headers)
-        ActiveSupport::Deprecation.warn('Passing custom headers with :headers => {} is deprecated. ' <<
-                                        'Please just pass in custom headers directly.', caller[0,10])
         params.merge!(custom_headers)
       end
 
@@ -27,19 +152,38 @@ module ActionMailer
     # Add an attachment to a multipart message. This is simply a part with the
     # content-disposition set to "attachment".
     def attachment(params, &block)
-      super # Run deprecation hooks
-
       params = { :content_type => params } if String === params
+
+      params[:content] ||= params.delete(:data) || params.delete(:body)
 
       if params[:filename]
         params = normalize_file_hash(params)
       else
         params = normalize_nonfile_hash(params)
       end
+
       part(params, &block)
     end
 
-    private
+    # Render a message but does not set it as mail body. Useful for rendering
+    # data for part and attachments.
+    #
+    # Examples:
+    #
+    #   render_message "special_message"
+    #   render_message :template => "special_message"
+    #   render_message :inline => "<%= 'Hi!' %>"
+    #
+    def render_message(object)
+      case object
+      when String
+        render_to_body(:template => object)
+      else
+        render_to_body(object)
+      end
+    end
+
+  private
     
     def normalize_nonfile_hash(params)
       content_disposition = "attachment;"
@@ -109,25 +253,6 @@ module ActionMailer
       
       @message
     end
-
-    # Render a message but does not set it as mail body. Useful for rendering
-    # data for part and attachments.
-    #
-    # Examples:
-    #
-    #   render_message "special_message"
-    #   render_message :template => "special_message"
-    #   render_message :inline => "<%= 'Hi!' %>"
-    #
-    # TODO Deprecate me
-    def render_message(object)
-      case object
-      when String
-        render_to_body(:template => object)
-      else
-        render_to_body(object)
-      end
-    end
     
     # Set up the default values for the various instance variables of this
     # mailer. Subclasses may override this method to provide different
@@ -139,18 +264,20 @@ module ActionMailer
       @mime_version         ||= self.class.default_mime_version.dup if self.class.default_mime_version
 
       @mailer_name ||= self.class.mailer_name.dup
-      @delivery_method = self.class.delivery_method
       @template    ||= method_name
 
       @parts   ||= []
       @headers ||= {}
       @sent_on ||= Time.now
-
-      super # Run deprecation hooks
+      @body ||= {}
     end
 
     def create_parts #:nodoc:
-      super # Run deprecation hooks
+      if String === @body
+        self.response_body = @body
+      elsif @body.is_a?(Hash) && !@body.empty?
+        @body.each { |k, v| instance_variable_set(:"@#{k}", v) }
+      end
 
       if String === response_body
         @parts.unshift create_inline_part(response_body)
@@ -179,7 +306,7 @@ module ActionMailer
         :body => body
       )
     end
-    
+
     def split_content_type(ct) #:nodoc:
       ct.to_s.split("/")
     end

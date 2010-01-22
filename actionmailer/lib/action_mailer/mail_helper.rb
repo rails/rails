@@ -20,5 +20,10 @@ module ActionMailer
     def mailer #:nodoc:
       @controller
     end
+
+    # Access the message instance.
+    def message
+      @message
+    end
   end
 end

@@ -253,7 +253,6 @@ module ActionMailer #:nodoc:
   #   +implicit_parts_order+.
   class Base < AbstractController::Base
     include Quoting
-    extend  AdvAttrAccessor
 
     include AbstractController::Logger
     include AbstractController::Rendering
@@ -263,7 +262,6 @@ module ActionMailer #:nodoc:
     include AbstractController::UrlFor
 
     helper  ActionMailer::MailHelper
-    include ActionMailer::DeprecatedBody
     include ActionMailer::DeprecatedApi
 
     include ActionMailer::DeliveryMethods
@@ -297,69 +295,11 @@ module ActionMailer #:nodoc:
     @@default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
     cattr_accessor :default_implicit_parts_order
 
-    @@protected_instance_variables = %w(@parts @message)
-    cattr_reader :protected_instance_variables
-
-    # Specify the BCC addresses for the message
-    adv_attr_accessor :bcc
-
-    # Specify the CC addresses for the message.
-    adv_attr_accessor :cc
-
-    # Specify the charset to use for the message. This defaults to the
-    # +default_charset+ specified for ActionMailer::Base.
-    adv_attr_accessor :charset
-
-    # Specify the content type for the message. This defaults to <tt>text/plain</tt>
-    # in most cases, but can be automatically set in some situations.
-    adv_attr_accessor :content_type
-
-    # Specify the from address for the message.
-    adv_attr_accessor :from
-
-    # Specify the address (if different than the "from" address) to direct
-    # replies to this message.
-    adv_attr_accessor :reply_to
-
-    # Specify additional headers to be added to the message.
-    adv_attr_accessor :headers
-
-    # Specify the order in which parts should be sorted, based on content-type.
-    # This defaults to the value for the +default_implicit_parts_order+.
-    adv_attr_accessor :implicit_parts_order
-
-    # Defaults to "1.0", but may be explicitly given if needed.
-    adv_attr_accessor :mime_version
-
-    # The recipient addresses for the message, either as a string (for a single
-    # address) or an array (for multiple addresses).
-    adv_attr_accessor :recipients
-
-    # The date on which the message was sent. If not set (the default), the
-    # header will be set by the delivery agent.
-    adv_attr_accessor :sent_on
-
-    # Specify the subject of the message.
-    adv_attr_accessor :subject
-
-    # Specify the template name to use for current message. This is the "base"
-    # template name, without the extension or directory, and may be used to
-    # have multiple mailer methods share the same template.
-    adv_attr_accessor :template
-
-    # Override the mailer name, which defaults to an inflected version of the
-    # mailer's class name. If you want to use a template in a non-standard
-    # location, you can use this to specify that location.
-    adv_attr_accessor :mailer_name
-
     # Expose the internal Mail message
     attr_reader :message
 
     # Pass calls to headers and attachment to the Mail#Message instance
     delegate :headers, :attachments, :to => :@message
-    
-    # Alias controller_path to mailer_name so render :partial in views work.
-    alias :controller_path :mailer_name
 
     class << self
 
@@ -369,23 +309,6 @@ module ActionMailer #:nodoc:
       attr_writer :mailer_name
 
       alias :controller_path :mailer_name
-
-      def respond_to?(method_symbol, include_private = false) #:nodoc:
-        matches_dynamic_method?(method_symbol) || super
-      end
-
-      def method_missing(method_symbol, *parameters) #:nodoc:
-        if match = matches_dynamic_method?(method_symbol)
-          case match[1]
-            when 'create'  then new(match[2], *parameters).message
-            when 'deliver' then new(match[2], *parameters).deliver!
-            when 'new'     then nil
-            else super
-          end
-        else
-          super
-        end
-      end
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
@@ -416,7 +339,6 @@ module ActionMailer #:nodoc:
         raise "no mail object available for delivery!" unless mail
 
         ActiveSupport::Notifications.instrument("action_mailer.deliver", :mailer => self.name) do |payload|
-
           self.set_payload_for_mail(payload, mail)
 
           mail.delivery_method delivery_methods[delivery_method],
@@ -455,18 +377,11 @@ module ActionMailer #:nodoc:
         payload[:date]       = mail.date
         payload[:mail]       = mail.encoded
       end
-
-      private
-
-        def matches_dynamic_method?(method_name) #:nodoc:
-          method_name = method_name.to_s
-          /^(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
-        end
     end
 
     def mail(headers = {})
       # Guard flag to prevent both the old and the new API from firing
-      # TODO - Move this @mail_was_called flag into deprecated_api.rb
+      # Should be removed when old API is deprecated
       @mail_was_called = true
 
       m = @message
@@ -485,6 +400,11 @@ module ActionMailer #:nodoc:
 
       m.body.set_sort_order(headers[:parts_order] || @@default_implicit_parts_order)
 
+      # # Set the subject if not set yet
+      # @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
+      #                               :default => method_name.humanize)
+
+
       # TODO: m.body.sort_parts!
       m
     end
@@ -495,30 +415,8 @@ module ActionMailer #:nodoc:
     # method, for instance).
     def initialize(method_name=nil, *args)
       super()
-      @mail_was_called = false
       @message = Mail.new
       process(method_name, *args) if method_name
-    end
-
-    # Process the mailer via the given +method_name+. The body will be
-    # rendered and a new Mail object created.
-    def process(method_name, *args)
-      initialize_defaults(method_name)
-      
-      super
-      
-      unless @mail_was_called
-        # Create e-mail parts
-        create_parts
-
-        # Set the subject if not set yet
-        @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
-                                      :default => method_name.humanize)
-
-        # Build the mail object itself
-        create_mail
-      end
-      @message
     end
 
     # Delivers a Mail object. By default, it delivers the cached mail

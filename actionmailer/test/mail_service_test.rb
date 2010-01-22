@@ -301,13 +301,6 @@ class TestMailer < ActionMailer::Base
     render :text => "testing"
   end
 
-  def body_ivar(recipient)
-    recipients   recipient
-    subject      "Body as a local variable"
-    from         "test@example.com"
-    body         :body => "foo", :bar => "baz"
-  end
-
   def subject_with_i18n(recipient)
     recipients recipient
     from       "system@loudthinking.com"
@@ -1078,11 +1071,6 @@ EOF
     TestMailer.deliver_return_path
     assert_match %r{^Return-Path: <another@somewhere.test>}, MockSMTP.deliveries[0][0]
     assert_equal "another@somewhere.test", MockSMTP.deliveries[0][1].to_s
-  end
-
-  def test_body_is_stored_as_an_ivar
-    mail = TestMailer.create_body_ivar(@recipient)
-    assert_equal "body: foo\nbar: baz", mail.body.to_s
   end
 
   def test_starttls_is_enabled_if_supported
