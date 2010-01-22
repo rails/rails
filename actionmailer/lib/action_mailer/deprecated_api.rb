@@ -73,6 +73,37 @@ module ActionMailer
       alias :controller_path :mailer_name
     end
 
+    module ClassMethods
+      def respond_to?(method_symbol, include_private = false) #:nodoc:
+        matches_dynamic_method?(method_symbol) || super
+      end
+
+      def method_missing(method_symbol, *parameters) #:nodoc:
+        if match = matches_dynamic_method?(method_symbol)
+          case match[1]
+            when 'create'  then new(match[2], *parameters).message
+            when 'deliver' then new(match[2], *parameters).deliver!
+            when 'new'     then nil
+            else super
+          end
+        else
+          super
+        end
+      end
+
+    private
+
+      def matches_dynamic_method?(method_name) #:nodoc:
+        method_name = method_name.to_s
+        /^(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
+      end
+    end
+
+    def initialize(*)
+      super()
+      @mail_was_called = false
+    end
+
     def render(*args)
       options = args.last.is_a?(Hash) ? args.last : {}
       if options[:body]
@@ -84,6 +115,23 @@ module ActionMailer
 
       super
     end
+
+    def process(method_name, *args)
+      initialize_defaults(method_name)
+      super
+      unless @mail_was_called
+        # Create e-mail parts
+        create_parts
+
+        # Set the subject if not set yet
+        @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
+                                      :default => method_name.humanize)
+
+        # Build the mail object itself
+        create_mail
+      end
+    end
+
 
     # Add a part to a multipart message, with the given content-type. The
     # part itself is yielded to the block so that other properties (charset,

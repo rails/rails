@@ -253,7 +253,6 @@ module ActionMailer #:nodoc:
   #   +implicit_parts_order+.
   class Base < AbstractController::Base
     include Quoting
-    extend  AdvAttrAccessor
 
     include AbstractController::Logger
     include AbstractController::Rendering
@@ -311,23 +310,6 @@ module ActionMailer #:nodoc:
 
       alias :controller_path :mailer_name
 
-      def respond_to?(method_symbol, include_private = false) #:nodoc:
-        matches_dynamic_method?(method_symbol) || super
-      end
-
-      def method_missing(method_symbol, *parameters) #:nodoc:
-        if match = matches_dynamic_method?(method_symbol)
-          case match[1]
-            when 'create'  then new(match[2], *parameters).message
-            when 'deliver' then new(match[2], *parameters).deliver!
-            when 'new'     then nil
-            else super
-          end
-        else
-          super
-        end
-      end
-
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
       # object's +receive+ method. If you want your mailer to be able to
@@ -357,7 +339,6 @@ module ActionMailer #:nodoc:
         raise "no mail object available for delivery!" unless mail
 
         ActiveSupport::Notifications.instrument("action_mailer.deliver", :mailer => self.name) do |payload|
-
           self.set_payload_for_mail(payload, mail)
 
           mail.delivery_method delivery_methods[delivery_method],
@@ -396,18 +377,11 @@ module ActionMailer #:nodoc:
         payload[:date]       = mail.date
         payload[:mail]       = mail.encoded
       end
-
-      private
-
-        def matches_dynamic_method?(method_name) #:nodoc:
-          method_name = method_name.to_s
-          /^(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
-        end
     end
 
     def mail(headers = {})
       # Guard flag to prevent both the old and the new API from firing
-      # TODO - Move this @mail_was_called flag into deprecated_api.rb
+      # Should be removed when old API is deprecated
       @mail_was_called = true
 
       m = @message
@@ -426,6 +400,11 @@ module ActionMailer #:nodoc:
 
       m.body.set_sort_order(headers[:parts_order] || @@default_implicit_parts_order)
 
+      # # Set the subject if not set yet
+      # @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
+      #                               :default => method_name.humanize)
+
+
       # TODO: m.body.sort_parts!
       m
     end
@@ -436,28 +415,8 @@ module ActionMailer #:nodoc:
     # method, for instance).
     def initialize(method_name=nil, *args)
       super()
-      @mail_was_called = false
       @message = Mail.new
       process(method_name, *args) if method_name
-    end
-
-    # Process the mailer via the given +method_name+. The body will be
-    # rendered and a new Mail object created.
-    def process(method_name, *args)
-      initialize_defaults(method_name)
-      super
-      unless @mail_was_called
-        # Create e-mail parts
-        create_parts
-
-        # Set the subject if not set yet
-        @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
-                                      :default => method_name.humanize)
-
-        # Build the mail object itself
-        create_mail
-      end
-      @message
     end
 
     # Delivers a Mail object. By default, it delivers the cached mail
