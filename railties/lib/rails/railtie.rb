@@ -8,7 +8,7 @@ module Rails
   # 
   # In fact, every major component of Rails (Action Mailer, Action Controller,
   # Action View, Active Record and Active Resource) are all now just plain
-  # old plugins.
+  # old plugins, so anything they can do, your plugin can do.
   # 
   # Developing a plugin for Rails does not _require_ any implementation of
   # Railtie, there is no fixed rule, but as a guideline, if your plugin works
@@ -33,41 +33,80 @@ module Rails
   # way to do it through Railtie, if there isn't, then you have found a lacking
   # feature of Railtie, please lodge a ticket.
   # 
-  # Implementing Railtie in your plugin is done with the following:
+  # Implementing Railtie in your plugin is by creating a class Railtie in your
+  # application that has your plugin name and making sure that this gets loaded
+  # durng boot time of the Rails stack.
   # 
-  # * Create a class Railtie which inherits from Rails::Railtie and is namespaced
-  #   to your plugin
-  #
-  #   module MyPlugin
-  #     class Railtie < Rails::Railtie
-  #     end
-  #   end
+  # You can do this however you wish, but three straight forward ways are:
   # 
-  # * Require your own plugin as well as rails in this file.
+  # == For gems or plugins that are not used outside of Rails
   # 
-  #   require 'my_plugin'
-  #   require 'rails'
-  # 
-  #   module MyPlugin
-  #     class Railtie < Rails::Railtie
-  #     end
-  #   end
+  # * Create a Railtie subclass within your lib/my_plugin.rb file:
   #   
-  # * Give your plugin a unique name
+  #   # lib/my_plugin.rb
+  #   module MyPlugin
+  #     class Railtie < Rails::Railtie
+  #     end
+  #   end
   # 
-  #   require 'my_plugin'
-  #   require 'rails'
+  # * Pass in your plugin name
   # 
+  #   # lib/my_plugin.rb
   #   module MyPlugin
   #     class Railtie < Rails::Railtie
   #       plugin_name :my_plugin
   #     end
   #   end
+  #   
+  # == For gems that could be used without Rails
   # 
-  # * Then start implementing the components of Railtie you need to
-  #   get your plugin working!
+  # * Create a file (say, lib/my_gem/railtie.rb) which contains class Railtie inheriting from
+  #   Rails::Railtie and is namespaced to your gem:
+  #
+  #   # lib/my_gem/railtie.rb
+  #   module MyGem
+  #     class Railtie < Rails::Railtie
+  #     end
+  #   end
   # 
+  # * Require your own gem as well as rails in this file:
   # 
+  #   # lib/my_gem/railtie.rb
+  #   require 'my_gem'
+  #   require 'rails'
+  # 
+  #   module MyGem
+  #     class Railtie < Rails::Railtie
+  #     end
+  #   end
+  #   
+  # * Give your gem a unique name:
+  # 
+  #   # lib/my_gem/railtie.rb
+  #   require 'my_gem'
+  #   require 'rails'
+  # 
+  #   module MyGem
+  #     class Railtie < Rails::Railtie
+  #       plugin_name :my_gem
+  #     end
+  #   end
+  # 
+  # * Make sure your Gem loads the railtie.rb file if Rails is loaded first, an easy
+  #   way to check is by checking for the Rails constant which will exist if Rails
+  #   has started:
+  # 
+  #   # lib/my_gem.rb
+  #   module MyGem
+  #     require 'lib/railtie' if defined?(Rails)
+  #   end
+  # 
+  # * Or instead of doing the require automatically, you can ask your users to require
+  #   it for you in their Gemfile:
+  # 
+  #   # #{USER_RAILS_ROOT}/Gemfile
+  #   gem "my_gem", :require_as => ["my_gem", "my_gem/railtie"]
+  #
   class Railtie
     include Initializable
 
