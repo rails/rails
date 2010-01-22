@@ -401,21 +401,18 @@ module ActionMailer #:nodoc:
                                              :default => action_name.humanize)
 
       # Give preference to headers and fallbacks to the ones set in mail
-      headers[:content_type] ||= m.content_type
-      headers[:charset]      ||= m.charset
-      headers[:mime_version] ||= m.mime_version
+      content_type = headers[:content_type] || m.content_type
+      charset      = headers[:charset]      || m.charset
+      mime_version = headers[:mime_version] || m.mime_version
+      body = nil
 
-      m.content_type = headers[:content_type] || self.class.default_content_type.dup
-      m.charset      = headers[:charset]      || self.class.default_charset.dup
-      m.mime_version = headers[:mime_version] || self.class.default_mime_version.dup
-
-      m.subject   ||= quote_if_necessary(headers[:subject], m.charset)          if headers[:subject]
-      m.to        ||= quote_address_if_necessary(headers[:to], m.charset)       if headers[:to]
-      m.from      ||= quote_address_if_necessary(headers[:from], m.charset)     if headers[:from]
-      m.cc        ||= quote_address_if_necessary(headers[:cc], m.charset)       if headers[:cc]
-      m.bcc       ||= quote_address_if_necessary(headers[:bcc], m.charset)      if headers[:bcc]
-      m.reply_to  ||= quote_address_if_necessary(headers[:reply_to], m.charset) if headers[:reply_to]
-      m.date      ||= headers[:date]                                            if headers[:date]
+      m.subject   ||= quote_if_necessary(headers[:subject], charset)          if headers[:subject]
+      m.to        ||= quote_address_if_necessary(headers[:to], charset)       if headers[:to]
+      m.from      ||= quote_address_if_necessary(headers[:from], charset)     if headers[:from]
+      m.cc        ||= quote_address_if_necessary(headers[:cc], charset)       if headers[:cc]
+      m.bcc       ||= quote_address_if_necessary(headers[:bcc], charset)      if headers[:bcc]
+      m.reply_to  ||= quote_address_if_necessary(headers[:reply_to], charset) if headers[:reply_to]
+      m.date      ||= headers[:date]                                          if headers[:date]
 
       if block_given?
         # Do something
@@ -424,25 +421,29 @@ module ActionMailer #:nodoc:
         templates = self.class.template_root.find_all(action_name, {}, mailer_name)
 
         if templates.size == 1
-          unless headers[:content_type]
-            proper_charset = m.charset
-            m.content_type = templates[0].mime_type.to_s
-            m.charset = proper_charset
-          end
+          content_type ||= templates[0].mime_type.to_s
           m.body = render_to_body(:_template => templates[0])
         else
+          content_type ||= "multipart/alternate"
+
           templates.each do |template|
             part = Mail::Part.new
             part.content_type = template.mime_type.to_s
-            part.charset = m.charset
+            part.charset = charset
             part.body = render_to_body(:_template => template)
+            m.add_part(part)
           end
         end
       end
+                       
+      m.content_type = content_type || self.class.default_content_type.dup
+      m.charset      = charset      || self.class.default_charset.dup
+      m.mime_version = mime_version || self.class.default_mime_version.dup
+                       
+      # TODO Add me and test me
+      # m.body.set_sort_order(headers[:parts_order] || self.class.default_implicit_parts_order.dup)
+      # m.body.sort_parts!
 
-      m.body.set_sort_order(headers[:parts_order] || self.class.default_implicit_parts_order.dup)
-
-      # TODO: m.body.sort_parts!
       m
     end
 

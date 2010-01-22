@@ -62,6 +62,10 @@ class BaseTest < ActiveSupport::TestCase
         :transfer_encoding => "base64" }
       mail(DEFAULT_HEADERS)
     end
+
+    def implicit_multipart
+      mail(DEFAULT_HEADERS)
+    end
   end
 
   test "method call to mail does not raise error" do
@@ -156,7 +160,19 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.deliver_welcome(:subject => nil)
     assert_equal "New Subject!", email.subject
   end
-  
+
+  test "implicit multipart tests" do
+    require 'ruby-debug'
+    $BREAK = true
+    email = BaseMailer.deliver_implicit_multipart
+
+    assert_equal(2, email.parts.size)
+
+    assert_equal("multipart/alternate", email.mime_type)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("text/html",  email.parts[1].mime_type)    
+  end
+
   protected
 
     # Execute the block setting the given values and restoring old values after
