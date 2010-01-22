@@ -30,22 +30,47 @@ module ActionMailer
       super # Run deprecation hooks
 
       params = { :content_type => params } if String === params
-      
-      if filename = params.delete(:filename)
-        content_disposition = "attachment; filename=\"#{File.basename(filename)}\""
-      else
-        content_disposition = "attachment"
-      end
-      
-      params[:content] = params.delete(:data) if params[:data]
-      
-      params = { :content_disposition => content_disposition,
-                 :content_transfer_encoding => "base64" }.merge(params)
 
+      if params[:filename]
+        params = normalize_file_hash(params)
+      else
+        params = normalize_nonfile_hash(params)
+      end
       part(params, &block)
     end
 
     private
+    
+    def normalize_nonfile_hash(params)
+      content_disposition = "attachment;"
+      
+      mime_type = params.delete(:mime_type)
+      
+      if content_type = params.delete(:content_type)
+        content_type = "#{mime_type || content_type};"
+      end
+
+      params[:body] = params.delete(:data) if params[:data]
+      
+      { :content_type => content_type,
+        :content_disposition => content_disposition }.merge(params)
+    end
+    
+    def normalize_file_hash(params)
+      filename = File.basename(params.delete(:filename))
+      content_disposition = "attachment; filename=\"#{File.basename(filename)}\""
+      
+      mime_type = params.delete(:mime_type)
+      
+      if (content_type = params.delete(:content_type)) && (content_type !~ /filename=/)
+        content_type = "#{mime_type || content_type}; filename=\"#{filename}\""
+      end
+      
+      params[:body] = params.delete(:data) if params[:data]
+      
+      { :content_type => content_type,
+        :content_disposition => content_disposition }.merge(params)
+    end
     
     def create_mail #:nodoc:
       m = @message
