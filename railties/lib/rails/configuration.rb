@@ -81,15 +81,13 @@ module Rails
     def paths
       @paths ||= begin
         paths = Rails::Application::Root.new(@root)
-        paths.app                 "app",             :load_path => true
-        paths.app_glob            "app/*",           :load_path => true, :eager_load => true
-        paths.app.controllers     "app/controllers",                     :eager_load => true
-        paths.app.metals          "app/metal"
+        paths.app                 "app",             :eager_load => true, :glob => "*"
+        paths.app.controllers     "app/controllers", :eager_load => true
+        paths.app.metals          "app/metal",       :eager_load => true
         paths.app.views           "app/views"
         paths.lib                 "lib",             :load_path => true
         paths.config              "config"
-        paths.config.environment  "config/environments/#{Rails.env}.rb"
-        paths.config.environments "config/environments", :glob => "#{Rails.env}.rb"
+        paths.config.environment  "config/environments", :glob => "#{Rails.env}.rb"
         paths.config.initializers "config/initializers"
         paths.config.locales      "config/locales"
         paths.config.routes       "config/routes.rb"
@@ -111,10 +109,6 @@ module Rails
 
     def load_paths
       @load_paths ||= paths.load_paths
-    end
-
-    def controller_paths
-      paths.app.controllers.to_a.uniq
     end
   end
 
@@ -142,7 +136,7 @@ module Rails
     def paths
       @paths ||= begin
         paths = super
-        paths.app.controllers << builtin_directories
+        paths.app.controllers.concat(builtin_directories)
         paths.config.database    "config/database.yml"
         paths.log                "log/#{Rails.env}.log"
         paths.tmp                "tmp"
@@ -236,6 +230,18 @@ module Rails
       ActiveSupport::Deprecation.warn "config.log_path is deprecated, " <<
         "please do config.paths.log instead", caller
       paths.config.log.to_a.first
+    end
+
+    def controller_paths=(value)
+      ActiveSupport::Deprecation.warn "config.controller_paths= is deprecated, " <<
+        "please do config.paths.app.controllers= instead", caller
+      paths.app.controllers = value
+    end
+
+    def controller_paths
+      ActiveSupport::Deprecation.warn "config.controller_paths is deprecated, " <<
+        "please do config.paths.app.controllers instead", caller
+      paths.app.controllers.to_a.uniq
     end
 
     def cache_store

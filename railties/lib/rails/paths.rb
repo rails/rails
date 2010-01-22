@@ -39,6 +39,7 @@ module Rails
         all_paths.map { |path| path.paths if path.eager_load? }.compact.flatten.uniq
       end
 
+      # TODO Discover why do we need to call uniq! here
       def all_paths
         @all_paths.uniq!
         @all_paths
@@ -46,12 +47,6 @@ module Rails
 
       def load_paths
         all_paths.map { |path| path.paths if path.load_path? }.compact.flatten.uniq
-      end
-
-      def add_to_load_path
-        load_paths.reverse_each do |path|
-          $LOAD_PATH.unshift(path) if File.directory?(path)
-        end
       end
 
       def push(*)
@@ -74,7 +69,7 @@ module Rails
         @children = {}
         @root     = root
         @paths    = paths.flatten
-        @glob     = @options[:glob] || "**/*.rb"
+        @glob     = @options.delete(:glob)
 
         @load_once  = @options[:load_once]
         @eager_load = @options[:eager_load]
@@ -128,10 +123,13 @@ module Rails
 
       def paths
         raise "You need to set a path root" unless @root.path
-
-        @paths.map do |path|
-          path.index('/') == 0 ? path : File.expand_path(File.join(@root.path, path))
+        result = @paths.map do |p|
+          path = File.expand_path(p, @root.path)
+          @glob ? Dir[File.join(path, @glob)] : path
         end
+        result.flatten!
+        result.uniq!
+        result
       end
 
       alias to_a paths

@@ -193,12 +193,7 @@ class PathsTest < ActiveSupport::TestCase
     assert_equal 2, @root.eager_load.size
   end
 
-  test "a path should have a glob that defaults to **/*.rb" do
-    @root.app = "/app"
-    assert_equal "**/*.rb", @root.app.glob
-  end
-
-  test "it should be possible to override a path's default glob" do
+  test "it should be possible to add a path's default glob" do
     @root.app = "/app"
     @root.app.glob = "*.rb"
     assert_equal "*.rb", @root.app.glob

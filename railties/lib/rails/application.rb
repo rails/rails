@@ -2,8 +2,6 @@ require 'fileutils'
 
 module Rails
   class Application < Engine
-    include Initializable
-
     class << self
       alias    :configure :class_eval
       delegate :initialize!, :load_tasks, :load_generators, :root, :to => :instance
@@ -122,7 +120,7 @@ module Rails
       app.call(env)
     end
 
-    initializer :add_builtin_route do |app|
+    initializer :add_builtin_route, :before => :build_middleware_stack do |app|
       if Rails.env.development?
         app.route_configuration_files << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
       end

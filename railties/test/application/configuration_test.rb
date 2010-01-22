@@ -34,9 +34,9 @@ module ApplicationTests
       add_to_config <<-RUBY
         config.root = '#{new_app}'
       RUBY
-    
+
       use_frameworks []
-    
+
       require "#{app_path}/config/environment"
       assert_equal Pathname.new(new_app), Rails.application.root
     end

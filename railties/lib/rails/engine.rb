@@ -50,7 +50,9 @@ module Rails
 
     # Add configured load paths to ruby load paths and remove duplicates.
     initializer :set_load_path, :before => :container do
-      config.paths.add_to_load_path
+      expand_load_path(config.load_paths).reverse_each do |path|
+        $LOAD_PATH.unshift(path) if File.directory?(path)
+      end
       $LOAD_PATH.uniq!
     end
 
