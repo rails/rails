@@ -6,7 +6,7 @@ class <%= class_name %>
     if env["PATH_INFO"] =~ /^\/<%= file_name %>/
       [200, {"Content-Type" => "text/html"}, ["Hello, World!"]]
     else
-      [404, {"Content-Type" => "text/html"}, ["Not Found"]]
+      [404, {"Content-Type" => "text/html", "X-Cascade" => "pass"}, ["Not Found"]]
     end
   end
 end
