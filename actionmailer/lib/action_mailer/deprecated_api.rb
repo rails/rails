@@ -227,7 +227,7 @@ module ActionMailer
       m.mime_version = mime_version unless mime_version.nil?
       m.date         = sent_on.to_time rescue sent_on if sent_on
 
-      headers.each { |k, v| m[k] = v }
+      @headers.each { |k, v| m[k] = v }
 
       real_content_type, ctype_attrs = parse_content_type
       main_type, sub_type = split_content_type(real_content_type)

@@ -277,14 +277,14 @@ module ActionMailer #:nodoc:
     @@deliveries = []
     cattr_accessor :deliveries
 
-    @@default_charset = "utf-8"
-    cattr_accessor :default_charset
+    extlib_inheritable_accessor :default_charset
+    self.default_charset = "utf-8"
 
-    @@default_content_type = "text/plain"
-    cattr_accessor :default_content_type
+    extlib_inheritable_accessor :default_content_type
+    self.default_content_type = "text/plain"
 
-    @@default_mime_version = "1.0"
-    cattr_accessor :default_mime_version
+    extlib_inheritable_accessor :default_mime_version
+    self.default_mime_version = "1.0"
 
     # This specifies the order that the parts of a multipart email will be.  Usually you put
     # text/plain at the top so someone without a MIME capable email reader can read the plain
@@ -292,14 +292,24 @@ module ActionMailer #:nodoc:
     #
     # Any content type that is not listed here will be inserted in the order you add them to
     # the email after the content types you list here.
-    @@default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
-    cattr_accessor :default_implicit_parts_order
+    extlib_inheritable_accessor :default_implicit_parts_order
+    self.default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
 
     # Expose the internal Mail message
     attr_reader :message
 
-    # Pass calls to headers and attachment to the Mail#Message instance
-    delegate :headers, :attachments, :to => :@message
+    def headers(args=nil)
+      if args
+        ActiveSupport::Deprecation.warn "headers(Hash) is deprecated, please do headers[key] = value instead", caller
+        @headers = args
+      else
+        @message
+      end
+    end
+
+    def attachments
+      @message.attachments
+    end
 
     class << self
 
@@ -386,9 +396,9 @@ module ActionMailer #:nodoc:
 
       m = @message
       
-      m.content_type ||= headers[:content_type] || @@default_content_type
-      m.charset      ||= headers[:charset]      || @@default_charset
-      m.mime_version ||= headers[:mime_version] || @@default_mime_version
+      m.content_type ||= headers[:content_type] || self.class.default_content_type
+      m.charset      ||= headers[:charset]      || self.class.default_charset
+      m.mime_version ||= headers[:mime_version] || self.class.default_mime_version
 
       m.subject      = quote_if_necessary(headers[:subject], m.charset)          if headers[:subject]
       m.to           = quote_address_if_necessary(headers[:to], m.charset)       if headers[:to]
@@ -398,7 +408,7 @@ module ActionMailer #:nodoc:
       m.reply_to     = quote_address_if_necessary(headers[:reply_to], m.charset) if headers[:reply_to]
       m.date         = headers[:date]                                            if headers[:date]
 
-      m.body.set_sort_order(headers[:parts_order] || @@default_implicit_parts_order)
+      m.body.set_sort_order(headers[:parts_order] || self.class.default_implicit_parts_order)
 
       # # Set the subject if not set yet
       # @subject ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, method_name],
