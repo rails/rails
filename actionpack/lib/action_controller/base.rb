@@ -81,28 +81,5 @@ module ActionController
       filter << block if block
       filter
     end
-
-    def _normalize_options(action=nil, options={}, &blk)
-      case action
-      when NilClass
-      when Hash, String
-        options = super
-      when Symbol
-        options.merge! :action => action
-      else
-        options.merge! :partial => action
-      end
-
-      if options.key?(:action) && options[:action].to_s.index("/")
-        options[:template] = options.delete(:action)
-      end
-
-      if options[:status]
-        options[:status] = Rack::Utils.status_code(options[:status])
-      end
-
-      options[:update] = blk if block_given?
-      options
-    end
   end
 end
