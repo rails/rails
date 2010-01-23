@@ -125,19 +125,19 @@ module Rails
     attr_reader :root
     attr_writer :eager_load_paths, :load_once_paths, :load_paths
 
-    def initialize(root)
+    def initialize(root=nil)
       @root = root
-      super()
     end
 
     def paths
       @paths ||= begin
         paths = Rails::Application::Root.new(@root)
-        paths.app                 "app",             :eager_load => true, :glob => "*"
-        paths.app.controllers     "app/controllers", :eager_load => true
-        paths.app.metals          "app/metal",       :eager_load => true
+        paths.app                 "app",                 :eager_load => true, :glob => "*"
+        paths.app.controllers     "app/controllers",     :eager_load => true
+        paths.app.metals          "app/metal",           :eager_load => true
         paths.app.views           "app/views"
-        paths.lib                 "lib",             :load_path => true
+        paths.lib                 "lib",                 :load_path => true
+        paths.lib.tasks           "lib/tasks",           :glob => "**/*.rake"
         paths.config              "config"
         paths.config.environment  "config/environments", :glob => "#{Rails.env}.rb"
         paths.config.initializers "config/initializers", :glob => "**/*.rb"
@@ -183,7 +183,6 @@ module Rails
         paths = super
         paths.app.controllers << builtin_controller if builtin_controller
         paths.config.database    "config/database.yml"
-        paths.lib.tasks          "lib/tasks", :glob => "**/*.rake"
         paths.log                "log/#{Rails.env}.log"
         paths.tmp                "tmp"
         paths.tmp.cache          "tmp/cache"
@@ -215,7 +214,7 @@ module Rails
       self.preload_frameworks = true
       self.cache_classes = true
       self.dependency_loading = false
-      action_controller.allow_concurrency = true if respond_to?(:action_controller)
+      self.action_controller.allow_concurrency = true if respond_to?(:action_controller)
       self
     end
 

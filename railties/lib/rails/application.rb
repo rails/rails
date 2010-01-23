@@ -36,7 +36,6 @@ module Rails
 
         base.rake_tasks do
           require "rails/tasks"
-          paths.lib.tasks.to_a.sort.each { |r| load(rake) }
           task :environment do
             $rails_rake_task = true
             initialize!

@@ -40,10 +40,19 @@ module Rails
       end
     end
 
-    delegate :middleware, :paths, :root, :config, :to => :'self.class'
+    delegate :middleware, :paths, :root, :to => :config
+
+    def config
+      self.class.config
+    end
 
     def reloadable?(app)
       app.config.reload_plugins
+    end
+
+    def load_tasks
+      super 
+      config.paths.lib.tasks.to_a.sort.each { |ext| load(ext) }
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.
