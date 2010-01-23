@@ -58,7 +58,7 @@ class LinkToRemoteTest < AjaxTestCase
   end
 
   test "with :html options" do
-    expected = %{<a href="/blog/destroy/3" data-custom="me" data-remote="true" data-update-success="#posts">Delete this post</a>}
+    expected = %{<a data-custom="me" data-remote="true" data-update-success="#posts" href="/blog/destroy/3">Delete this post</a>}
     assert_equal expected, link(:update => "#posts", :html => {"data-custom" => "me"})
   end
 
@@ -86,7 +86,7 @@ class LinkToRemoteTest < AjaxTestCase
     end
 
     test "basic link_to_remote with :url =>" do
-      expected = %{<a href="/blog/destroy/4" data-remote="true" data-update-success="#posts">Delete this post</a>}
+      expected = %{<a data-remote="true" data-update-success="#posts" href="/blog/destroy/4">Delete this post</a>}
       assert_equal expected,
         link_to_remote("Delete this post", :url => "/blog/destroy/4", :update => "#posts")
     end
