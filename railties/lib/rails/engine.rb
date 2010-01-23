@@ -42,6 +42,10 @@ module Rails
 
     delegate :middleware, :paths, :root, :config, :to => :'self.class'
 
+    def reloadable?(app)
+      app.config.reload_plugins
+    end
+
     # Add configured load paths to ruby load paths and remove duplicates.
     initializer :set_load_path do
       config.load_paths.reverse_each do |path|
@@ -52,21 +56,17 @@ module Rails
 
     # Set the paths from which Rails will automatically load source files,
     # and the load_once paths.
-    initializer :set_autoload_paths do
+    initializer :set_autoload_paths do |app|
       ActiveSupport::Dependencies.load_paths.concat(config.load_paths)
-      ActiveSupport::Dependencies.load_once_paths.concat(config.load_once_paths)
 
-      extra = ActiveSupport::Dependencies.load_once_paths -
-              ActiveSupport::Dependencies.load_paths
-
-      unless extra.empty?
-        abort <<-end_error
-          load_once_paths must be a subset of the load_paths.
-          Extra items in load_once_paths: #{extra * ','}
-        end_error
+      if reloadable?(app)
+        ActiveSupport::Dependencies.load_once_paths.concat(config.load_once_paths)
+      else
+        ActiveSupport::Dependencies.load_once_paths.concat(config.load_paths)
       end
 
       # Freeze so future modifications will fail rather than do nothing mysteriously
+      config.load_paths.freeze
       config.load_once_paths.freeze
     end
 

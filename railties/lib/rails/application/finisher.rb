@@ -3,6 +3,18 @@ module Rails
     module Finisher
       include Initializable
 
+      initializer :ensure_load_once_paths_as_subset do
+        extra = ActiveSupport::Dependencies.load_once_paths -
+                ActiveSupport::Dependencies.load_paths
+
+        unless extra.empty?
+          abort <<-end_error
+            load_once_paths must be a subset of the load_paths.
+            Extra items in load_once_paths: #{extra * ','}
+          end_error
+        end
+      end
+
       initializer :add_builtin_route do |app|
         if Rails.env.development?
           app.config.action_dispatch.route_files << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')

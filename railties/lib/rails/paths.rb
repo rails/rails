@@ -73,7 +73,7 @@ module Rails
 
         @load_once  = @options[:load_once]
         @eager_load = @options[:eager_load]
-        @load_path  = @options[:load_path] || @eager_load
+        @load_path  = @options[:load_path] || @eager_load || @load_once
 
         @root.all_paths << self
       end
@@ -98,6 +98,7 @@ module Rails
 
       def load_once!
         @load_once = true
+        @load_path = true
       end
 
       def load_once?

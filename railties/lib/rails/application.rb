@@ -51,6 +51,11 @@ module Rails
       end
     end
 
+    # Application is always reloadable when config.cache_classes is false.
+    def reloadable?(app)
+      true
+    end
+
     def initialize
       environment = config.paths.config.environment.to_a.first
       require environment if environment

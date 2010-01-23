@@ -222,4 +222,11 @@ class PathsTest < ActiveSupport::TestCase
     @root.app.eager_load!
     assert_equal ["/foo/bar/app"], @root.load_paths
   end
+
+  test "adding a path to the load once paths also adds it to the load path" do
+    @root.app = "app"
+    @root.app.load_once!
+    assert_equal ["/foo/bar/app"], @root.load_paths
+  end
+
 end
