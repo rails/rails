@@ -182,7 +182,6 @@ module ActionView
       end
       
       def button_to_remote(name, options = {}, html_options = {})
-        html_options.merge!(:testing => true)
         set_callbacks(options, html_options)
         super
       end
