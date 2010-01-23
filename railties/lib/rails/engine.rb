@@ -1,8 +1,6 @@
 require 'active_support/core_ext/module/delegation'
 
 module Rails
-  # TODO Move I18n here
-  # TODO Set routes namespaces
   class Engine < Railtie
     class << self
       attr_accessor :called_from
@@ -75,9 +73,9 @@ module Rails
       config.load_once_paths.freeze
     end
 
-    initializer :add_routing_files do |app|
+    initializer :add_routing_files do
       config.paths.config.routes.to_a.each do |route|
-        app.route_configuration_files.unshift(route) if File.exists?(route)
+        config.action_dispatch.route_files.unshift(route) if File.exists?(route)
       end
     end
 

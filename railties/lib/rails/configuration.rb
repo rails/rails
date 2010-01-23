@@ -213,10 +213,7 @@ module Rails
       self.preload_frameworks = true
       self.cache_classes = true
       self.dependency_loading = false
-
-      if respond_to?(:action_controller)
-        action_controller.allow_concurrency = true
-      end
+      action_controller.allow_concurrency = true if respond_to?(:action_controller)
       self
     end
 

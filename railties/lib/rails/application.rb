@@ -2,25 +2,20 @@ require 'fileutils'
 
 module Rails
   class Application < Engine
-    # TODO Clear up 2 way delegation flow between App class and instance.
-    # Infact just add a method_missing on the class.
-    #
-    # TODO I'd like to track the "default app" different using an inherited hook.
-    #
+    autoload :RoutesReloader, 'rails/application/routes_reloader'
+
     # TODO Check helpers works as expected
-    #
     # TODO Check routes namespaces
     class << self
-      alias    :configure :class_eval
-      delegate :initialize!, :load_tasks, :load_generators, :root, :to => :instance
-
       private :new
+      alias   :configure :class_eval
+
       def instance
         @instance ||= new
       end
 
       def config
-        @config ||= Configuration.new(original_root)
+        @config ||= Configuration.new(self.original_root)
       end
 
       def original_root
@@ -30,52 +25,35 @@ module Rails
       def inherited(base)
         super
         Railtie.plugins.delete(base)
+        Rails.application = base.instance
       end
 
-      def routes
-        ActionController::Routing::Routes
+    protected
+
+      def method_missing(*args, &block)
+        instance.send(*args, &block)
       end
     end
 
-    delegate :routes, :to => :'self.class'
-    attr_reader :route_configuration_files
-
     def initialize
       require_environment
-      Rails.application ||= self
-      @route_configuration_files = []
+    end
+
+    def routes
+      ActionController::Routing::Routes
+    end
+
+    def routes_reloader
+      @routes_reloader ||= RoutesReloader.new(config)
+    end
+
+    def reload_routes!
+      routes_reloader.reload!
     end
 
     def initialize!
       run_initializers(self)
       self
-    end
-    
-    def routes_changed_at
-      routes_changed_at = nil
-
-      route_configuration_files.each do |config|
-        config_changed_at = File.stat(config).mtime
-
-        if routes_changed_at.nil? || config_changed_at > routes_changed_at
-          routes_changed_at = config_changed_at
-        end
-      end
-
-      routes_changed_at
-    end
-
-    def reload_routes!
-      routes = Rails::Application.routes
-      routes.disable_clear_and_finalize = true
-
-      routes.clear!
-      route_configuration_files.each { |config| load(config) }
-      routes.finalize!
-
-      nil
-    ensure
-      routes.disable_clear_and_finalize = false
     end
 
     def require_environment
@@ -109,10 +87,7 @@ module Rails
     end
 
     def app
-      @app ||= begin
-        reload_routes!
-        middleware.build(routes)
-      end
+      @app ||= middleware.build(routes)
     end
 
     def call(env)
@@ -207,7 +182,7 @@ module Rails
 
       initializer :add_builtin_route do |app|
         if Rails.env.development?
-          app.route_configuration_files << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
+          app.config.action_dispatch.route_files << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
         end
       end
 

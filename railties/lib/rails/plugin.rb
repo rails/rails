@@ -60,8 +60,7 @@ module Rails
     initializer :add_routing_file, :after => :initialize_routing do |app|
       routing_file = "#{path}/config/routes.rb"
       if File.exist?(routing_file)
-        app.route_configuration_files << routing_file
-        app.reload_routes!
+        app.config.action_dispatch.route_files.unshift(routing_file)
       end
     end
   end

@@ -26,7 +26,6 @@ end
 #reloads the environment
 def reload!
   puts "Reloading..."
-  ActionDispatch::Callbacks.new(lambda {}, true)
-  Rails.application.reload_routes!
+  ActionDispatch::Callbacks.new(lambda {}, true).call({})
   true
 end
