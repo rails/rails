@@ -13,7 +13,7 @@ module ActionView
 
       # Need to map default url options to controller one.
       def default_url_options(*args) #:nodoc:
-        @controller.send(:default_url_options, *args)
+        controller.send(:default_url_options, *args)
       end
 
       # Returns the URL for the set of +options+ provided. This takes the
@@ -89,10 +89,10 @@ module ActionView
         when Hash
           options = { :only_path => options[:host].nil? }.update(options.symbolize_keys)
           escape  = options.key?(:escape) ? options.delete(:escape) : false
-          @controller.send(:url_for, options)
+          controller.send(:url_for, options)
         when :back
           escape = false
-          @controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
+          controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
         else
           escape = false
           polymorphic_path(options)
@@ -546,10 +546,10 @@ module ActionView
       #   # => false
       def current_page?(options)
         url_string = CGI.unescapeHTML(url_for(options))
-        request = @controller.request
-        # We ignore any extra parameters in the request_uri if the 
+        request = controller.request
+        # We ignore any extra parameters in the request_uri if the
         # submitted url doesn't have any either.  This lets the function
-        # work with things like ?order=asc 
+        # work with things like ?order=asc
         if url_string.index("?")
           request_uri = request.request_uri
         else

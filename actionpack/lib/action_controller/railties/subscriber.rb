@@ -1,15 +1,23 @@
 module ActionController
   module Railties
     class Subscriber < Rails::Subscriber
-      def process_action(event)
-        payload = event.payload
-        info "  Parameters: #{payload[:params].inspect}" unless payload[:params].blank?
+      INTERNAL_PARAMS = %w(controller action format _method only_path)
 
+      def start_processing(event)
+        payload = event.payload
+        params  = payload[:params].except(*INTERNAL_PARAMS)
+
+        info "  Processing by #{payload[:controller]}##{payload[:action]} as #{payload[:formats].first.to_s.upcase}"
+        info "  Parameters: #{params.inspect}" unless params.empty?
+      end
+
+      def process_action(event)
+        payload   = event.payload
         additions = ActionController::Base.log_process_action(payload)
 
         message = "Completed in %.0fms" % event.duration
         message << " (#{additions.join(" | ")})" unless additions.blank?
-        message << " by #{payload[:controller]}##{payload[:action]} [#{payload[:status]}]"
+        message << " with #{payload[:status]}"
 
         info(message)
       end

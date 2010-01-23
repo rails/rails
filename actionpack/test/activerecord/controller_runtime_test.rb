@@ -6,16 +6,15 @@ require 'action_controller/railties/subscriber'
 
 ActionController::Base.send :include, ActiveRecord::Railties::ControllerRuntime
 
-module ControllerRuntimeSubscriberTest
+class ControllerRuntimeSubscriberTest < ActionController::TestCase
   class SubscriberController < ActionController::Base
     def show
       render :inline => "<%= Project.all %>"
     end
   end
-
-  def self.included(base)
-    base.tests SubscriberController
-  end
+  
+  include Rails::Subscriber::TestHelper
+  tests SubscriberController
 
   def setup
     @old_logger = ActionController::Base.logger
@@ -37,17 +36,7 @@ module ControllerRuntimeSubscriberTest
     get :show
     wait
 
-    assert_equal 1, @logger.logged(:info).size
-    assert_match /\(Views: [\d\.]+ms | ActiveRecord: [\d\.]+ms\)/, @logger.logged(:info)[0]
-  end
-
-  class SyncSubscriberTest < ActionController::TestCase
-    include Rails::Subscriber::SyncTestHelper
-    include ControllerRuntimeSubscriberTest
-  end
-
-  class AsyncSubscriberTest < ActionController::TestCase
-    include Rails::Subscriber::AsyncTestHelper
-    include ControllerRuntimeSubscriberTest
+    assert_equal 2, @logger.logged(:info).size
+    assert_match /\(Views: [\d\.]+ms | ActiveRecord: [\d\.]+ms\)/, @logger.logged(:info)[1]
   end
 end

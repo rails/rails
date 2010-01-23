@@ -11,7 +11,7 @@ class MethodScopingTest < ActiveRecord::TestCase
 
   def test_set_conditions
     Developer.send(:with_scope, :find => { :conditions => 'just a test...' }) do
-      assert_equal '(just a test...)', Developer.scoped.send(:where_clause)
+      assert_equal '(just a test...)', Developer.scoped.arel.send(:where_clauses).join(' AND ')
     end
   end
 
@@ -257,7 +257,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     Developer.send(:with_scope, :find => { :conditions => 'salary = 80000' }) do
       Developer.send(:with_scope, :find => { :limit => 10 }) do
         devs = Developer.scoped
-        assert_equal '(salary = 80000)', devs.send(:where_clause)
+        assert_equal '(salary = 80000)', devs.arel.send(:where_clauses).join(' AND ')
         assert_equal 10, devs.taken
       end
     end
@@ -285,7 +285,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     Developer.send(:with_scope, :find => { :conditions => "name = 'David'" }) do
       Developer.send(:with_scope, :find => { :conditions => 'salary = 80000' }) do
         devs = Developer.scoped
-        assert_equal "(name = 'David') AND (salary = 80000)", devs.send(:where_clause)
+        assert_equal "(name = 'David') AND (salary = 80000)", devs.arel.send(:where_clauses).join(' AND ')
         assert_equal(1, Developer.count)
       end
       Developer.send(:with_scope, :find => { :conditions => "name = 'Maiha'" }) do
@@ -298,7 +298,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     Developer.send(:with_scope, :find => { :conditions => 'salary = 80000', :limit => 10 }) do
       Developer.send(:with_scope, :find => { :conditions => "name = 'David'" }) do
         devs = Developer.scoped
-        assert_equal "(salary = 80000) AND (name = 'David')", devs.send(:where_clause)
+        assert_equal "(salary = 80000) AND (name = 'David')", devs.arel.send(:where_clauses).join(' AND ')
         assert_equal 10, devs.taken
       end
     end
@@ -588,7 +588,7 @@ class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
 end
 
 class DefaultScopingTest < ActiveRecord::TestCase
-  fixtures :developers
+  fixtures :developers, :posts
 
   def test_default_scope
     expected = Developer.find(:all, :order => 'salary DESC').collect { |dev| dev.salary }
@@ -656,6 +656,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
     expected = Developer.find(:all, :order => 'salary').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.find(:all, :order => 'salary').collect { |dev| dev.salary }
     assert_equal expected, received
+  end
+
+  def test_default_scope_using_relation
+    posts = PostWithComment.scoped
+    assert_equal 2, posts.count
+    assert_equal posts(:thinking), posts.first
   end
 end
 

@@ -16,6 +16,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_simple_invoke
+    assert File.exists?(File.join(@path, 'generators', 'model_generator.rb'))
     TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
     Rails::Generators.invoke("test_unit:model", ["Account"])
   end
@@ -28,6 +29,13 @@ class GeneratorsTest < Rails::Generators::TestCase
   def test_help_when_a_generator_with_required_arguments_is_invoked_without_arguments
     output = capture(:stdout){ Rails::Generators.invoke :model, [] }
     assert_match /Description:/, output
+  end
+
+  def test_should_give_higher_preference_to_rails_generators
+    assert File.exists?(File.join(@path, 'generators', 'model_generator.rb'))
+    Rails::Generators::ModelGenerator.expects(:start).with(["Account"], {})
+    warnings = capture(:stderr){ Rails::Generators.invoke :model, ["Account"] }
+    assert warnings.empty?
   end
 
   def test_invoke_with_default_values
@@ -146,6 +154,13 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert_equal false, klass.class_options[:generate].default
   ensure
     Rails::Generators.subclasses.delete(klass)
+  end
+
+  def test_load_generators_from_railties
+    Rails::Generators::ModelGenerator.expects(:start).with(["Account"], {})
+    Rails::Generators.send(:remove_instance_variable, :@generators_from_railties)
+    Rails.application.expects(:load_generators)
+    Rails::Generators.invoke("model", ["Account"])
   end
 
   def test_rails_root_templates

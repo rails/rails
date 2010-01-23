@@ -29,9 +29,8 @@ module ActionDispatch
       def path_parameters
         @env["action_dispatch.request.path_parameters"] ||= {}
       end
-  
-    private
 
+    private
       # Convert nested Hashs to HashWithIndifferentAccess
       def normalize_parameters(value)
         case value

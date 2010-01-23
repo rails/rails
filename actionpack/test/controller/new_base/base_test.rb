@@ -22,7 +22,7 @@ module Dispatching
     end
 
     def show_actions
-      render :text => "actions: #{action_methods.to_a.join(', ')}"
+      render :text => "actions: #{action_methods.to_a.sort.join(', ')}"
     end
 
     protected
@@ -77,9 +77,9 @@ module Dispatching
 
     test "action methods" do
       assert_equal Set.new(%w(
+        index
         modify_response_headers
         modify_response_body_twice
-        index
         modify_response_body
         show_actions
       )), SimpleController.action_methods
@@ -88,7 +88,7 @@ module Dispatching
       assert_equal Set.new, Submodule::ContainedEmptyController.action_methods
 
       get "/dispatching/simple/show_actions"
-      assert_body "actions: modify_response_headers, modify_response_body_twice, index, modify_response_body, show_actions"
+      assert_body "actions: index, modify_response_body, modify_response_body_twice, modify_response_headers, show_actions"
     end
   end
 end

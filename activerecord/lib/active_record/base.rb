@@ -556,122 +556,9 @@ module ActiveRecord #:nodoc:
       end
       alias :colorize_logging= :colorize_logging
 
-      # Find operates with four different retrieval approaches:
-      #
-      # * Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
-      #   If no record can be found for all of the listed ids, then RecordNotFound will be raised.
-      # * Find first - This will return the first record matched by the options used. These options can either be specific
-      #   conditions or merely an order. If no record can be matched, +nil+ is returned. Use
-      #   <tt>Model.find(:first, *args)</tt> or its shortcut <tt>Model.first(*args)</tt>.
-      # * Find last - This will return the last record matched by the options used. These options can either be specific
-      #   conditions or merely an order. If no record can be matched, +nil+ is returned. Use
-      #   <tt>Model.find(:last, *args)</tt> or its shortcut <tt>Model.last(*args)</tt>.
-      # * Find all - This will return all the records matched by the options used.
-      #   If no records are found, an empty array is returned. Use
-      #   <tt>Model.find(:all, *args)</tt> or its shortcut <tt>Model.all(*args)</tt>.
-      #
-      # All approaches accept an options hash as their last parameter.
-      #
-      # ==== Parameters
-      #
-      # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1", <tt>[ "user_name = ?", username ]</tt>, or <tt>["user_name = :user_name", { :user_name => user_name }]</tt>. See conditions in the intro.
-      # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
-      # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
-      # * <tt>:having</tt> - Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> returns. Uses the <tt>HAVING</tt> SQL-clause.
-      # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
-      # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
-      # * <tt>:joins</tt> - Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed),
-      #   named associations in the same form used for the <tt>:include</tt> option, which will perform an <tt>INNER JOIN</tt> on the associated table(s),
-      #   or an array containing a mixture of both strings and named associations.
-      #   If the value is a string, then the records will be returned read-only since they will have attributes that do not correspond to the table's columns.
-      #   Pass <tt>:readonly => false</tt> to override.
-      # * <tt>:include</tt> - Names associations that should be loaded alongside. The symbols named refer
-      #   to already defined associations. See eager loading under Associations.
-      # * <tt>:select</tt> - By default, this is "*" as in "SELECT * FROM", but can be changed if you, for example, want to do a join but not
-      #   include the joined columns. Takes a string with the SELECT SQL fragment (e.g. "id, name").
-      # * <tt>:from</tt> - By default, this is the table name of the class, but can be changed to an alternate table name (or even the name
-      #   of a database view).
-      # * <tt>:readonly</tt> - Mark the returned records read-only so they cannot be saved or updated.
-      # * <tt>:lock</tt> - An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
-      #   <tt>:lock => true</tt> gives connection's default exclusive lock, usually "FOR UPDATE".
-      #
-      # ==== Examples
-      #
-      #   # find by id
-      #   Person.find(1)       # returns the object for ID = 1
-      #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
-      #   Person.find([7, 17]) # returns an array for objects with IDs in (7, 17)
-      #   Person.find([1])     # returns an array for the object with ID = 1
-      #   Person.find(1, :conditions => "administrator = 1", :order => "created_on DESC")
-      #
-      # Note that returned records may not be in the same order as the ids you
-      # provide since database rows are unordered. Give an explicit <tt>:order</tt>
-      # to ensure the results are sorted.
-      #
-      # ==== Examples
-      #
-      #   # find first
-      #   Person.find(:first) # returns the first object fetched by SELECT * FROM people
-      #   Person.find(:first, :conditions => [ "user_name = ?", user_name])
-      #   Person.find(:first, :conditions => [ "user_name = :u", { :u => user_name }])
-      #   Person.find(:first, :order => "created_on DESC", :offset => 5)
-      #
-      #   # find last
-      #   Person.find(:last) # returns the last object fetched by SELECT * FROM people
-      #   Person.find(:last, :conditions => [ "user_name = ?", user_name])
-      #   Person.find(:last, :order => "created_on DESC", :offset => 5)
-      #
-      #   # find all
-      #   Person.find(:all) # returns an array of objects for all the rows fetched by SELECT * FROM people
-      #   Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
-      #   Person.find(:all, :conditions => { :friends => ["Bob", "Steve", "Fred"] }
-      #   Person.find(:all, :offset => 10, :limit => 10)
-      #   Person.find(:all, :include => [ :account, :friends ])
-      #   Person.find(:all, :group => "category")
-      #
-      # Example for find with a lock: Imagine two concurrent transactions:
-      # each will read <tt>person.visits == 2</tt>, add 1 to it, and save, resulting
-      # in two saves of <tt>person.visits = 3</tt>.  By locking the row, the second
-      # transaction has to wait until the first is finished; we get the
-      # expected <tt>person.visits == 4</tt>.
-      #
-      #   Person.transaction do
-      #     person = Person.find(1, :lock => true)
-      #     person.visits += 1
-      #     person.save!
-      #   end
-      def find(*args)
-        options = args.extract_options!
-
-        relation = construct_finder_arel(options, current_scoped_methods)
-
-        case args.first
-        when :first, :last, :all
-          relation.send(args.first)
-        else
-          relation.find(*args)
-        end
-      end
-
+      delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
       delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
-
-      # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
-      # same arguments to this method as you can to <tt>find(:first)</tt>.
-      def first(*args)
-        find(:first, *args)
-      end
-
-      # A convenience wrapper for <tt>find(:last, *args)</tt>. You can pass in all the
-      # same arguments to this method as you can to <tt>find(:last)</tt>.
-      def last(*args)
-        find(:last, *args)
-      end
-
-      # A convenience wrapper for <tt>find(:all, *args)</tt>. You can pass in all the
-      # same arguments to this method as you can to <tt>find(:all)</tt>.
-      def all(*args)
-        find(:all, *args)
-      end
+      delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
@@ -697,40 +584,6 @@ module ActiveRecord #:nodoc:
       #   > [#<Post:0x36bff9c @attributes={"first_name"=>"The Cheap Man Buys Twice"}>, ...]
       def find_by_sql(sql)
         connection.select_all(sanitize_sql(sql), "#{name} Load").collect! { |record| instantiate(record) }
-      end
-
-      # Returns true if a record exists in the table that matches the +id+ or
-      # conditions given, or false otherwise. The argument can take five forms:
-      #
-      # * Integer - Finds the record with this primary key.
-      # * String - Finds the record with a primary key corresponding to this
-      #   string (such as <tt>'5'</tt>).
-      # * Array - Finds the record that matches these +find+-style conditions
-      #   (such as <tt>['color = ?', 'red']</tt>).
-      # * Hash - Finds the record that matches these +find+-style conditions
-      #   (such as <tt>{:color => 'red'}</tt>).
-      # * No args - Returns false if the table is empty, true otherwise.
-      #
-      # For more information about specifying conditions as a Hash or Array,
-      # see the Conditions section in the introduction to ActiveRecord::Base.
-      #
-      # Note: You can't pass in a condition as a string (like <tt>name =
-      # 'Jamie'</tt>), since it would be sanitized and then queried against
-      # the primary key column, like <tt>id = 'name = \'Jamie\''</tt>.
-      #
-      # ==== Examples
-      #   Person.exists?(5)
-      #   Person.exists?('5')
-      #   Person.exists?(:name => "David")
-      #   Person.exists?(['name LIKE ?', "%#{query}%"])
-      #   Person.exists?
-      def exists?(id_or_conditions = nil)
-        case id_or_conditions
-        when Array, Hash
-          where(id_or_conditions).exists?
-        else
-          scoped.exists?(id_or_conditions)
-        end
       end
 
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -764,177 +617,6 @@ module ActiveRecord #:nodoc:
           object.save
           object
         end
-      end
-
-      # Updates an object (or multiple objects) and saves it to the database, if validations pass.
-      # The resulting object is returned whether the object was saved successfully to the database or not.
-      #
-      # ==== Parameters
-      #
-      # * +id+ - This should be the id or an array of ids to be updated.
-      # * +attributes+ - This should be a hash of attributes to be set on the object, or an array of hashes.
-      #
-      # ==== Examples
-      #
-      #   # Updating one record:
-      #   Person.update(15, :user_name => 'Samuel', :group => 'expert')
-      #
-      #   # Updating multiple records:
-      #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
-      #   Person.update(people.keys, people.values)
-      def update(id, attributes)
-        if id.is_a?(Array)
-          idx = -1
-          id.collect { |one_id| idx += 1; update(one_id, attributes[idx]) }
-        else
-          object = find(id)
-          object.update_attributes(attributes)
-          object
-        end
-      end
-
-      # Deletes the row with a primary key matching the +id+ argument, using a
-      # SQL +DELETE+ statement, and returns the number of rows deleted. Active
-      # Record objects are not instantiated, so the object's callbacks are not
-      # executed, including any <tt>:dependent</tt> association options or
-      # Observer methods.
-      #
-      # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
-      #
-      # Note: Although it is often much faster than the alternative,
-      # <tt>#destroy</tt>, skipping callbacks might bypass business logic in
-      # your application that ensures referential integrity or performs other
-      # essential jobs.
-      #
-      # ==== Examples
-      #
-      #   # Delete a single row
-      #   Todo.delete(1)
-      #
-      #   # Delete multiple rows
-      #   Todo.delete([2,3,4])
-      def delete(id_or_array)
-        scoped.delete(id_or_array)
-      end
-
-      # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
-      # therefore all callbacks and filters are fired off before the object is deleted.  This method is
-      # less efficient than ActiveRecord#delete but allows cleanup methods and other actions to be run.
-      #
-      # This essentially finds the object (or multiple objects) with the given id, creates a new object
-      # from the attributes, and then calls destroy on it.
-      #
-      # ==== Parameters
-      #
-      # * +id+ - Can be either an Integer or an Array of Integers.
-      #
-      # ==== Examples
-      #
-      #   # Destroy a single object
-      #   Todo.destroy(1)
-      #
-      #   # Destroy multiple objects
-      #   todos = [1,2,3]
-      #   Todo.destroy(todos)
-      def destroy(id)
-        if id.is_a?(Array)
-          id.map { |one_id| destroy(one_id) }
-        else
-          find(id).destroy
-        end
-      end
-
-      # Updates all records with details given if they match a set of conditions supplied, limits and order can
-      # also be supplied. This method constructs a single SQL UPDATE statement and sends it straight to the
-      # database. It does not instantiate the involved models and it does not trigger Active Record callbacks
-      # or validations.
-      #
-      # ==== Parameters
-      #
-      # * +updates+ - A string, array, or hash representing the SET part of an SQL statement.
-      # * +conditions+ - A string, array, or hash representing the WHERE part of an SQL statement. See conditions in the intro.
-      # * +options+ - Additional options are <tt>:limit</tt> and <tt>:order</tt>, see the examples for usage.
-      #
-      # ==== Examples
-      #
-      #   # Update all customers with the given attributes
-      #   Customer.update_all :wants_email => true
-      #
-      #   # Update all books with 'Rails' in their title
-      #   Book.update_all "author = 'David'", "title LIKE '%Rails%'"
-      #
-      #   # Update all avatars migrated more than a week ago
-      #   Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
-      #
-      #   # Update all books that match our conditions, but limit it to 5 ordered by date
-      #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
-      def update_all(updates, conditions = nil, options = {})
-        relation = unscoped
-
-        relation = relation.where(conditions) if conditions
-        relation = relation.limit(options[:limit]) if options[:limit].present?
-        relation = relation.order(options[:order]) if options[:order].present?
-
-        if current_scoped_methods && current_scoped_methods.limit_value.present? && current_scoped_methods.order_values.present?
-          # Only take order from scope if limit is also provided by scope, this
-          # is useful for updating a has_many association with a limit.
-          relation = current_scoped_methods.merge(relation) if current_scoped_methods
-        else
-          relation = current_scoped_methods.except(:limit, :order).merge(relation) if current_scoped_methods
-        end
-
-        relation.update(sanitize_sql_for_assignment(updates))
-      end
-
-      # Destroys the records matching +conditions+ by instantiating each
-      # record and calling its +destroy+ method. Each object's callbacks are
-      # executed (including <tt>:dependent</tt> association options and
-      # +before_destroy+/+after_destroy+ Observer methods). Returns the
-      # collection of objects that were destroyed; each will be frozen, to
-      # reflect that no changes should be made (since they can't be
-      # persisted).
-      #
-      # Note: Instantiation, callback execution, and deletion of each
-      # record can be time consuming when you're removing many records at
-      # once. It generates at least one SQL +DELETE+ query per record (or
-      # possibly more, to enforce your callbacks). If you want to delete many
-      # rows quickly, without concern for their associations or callbacks, use
-      # +delete_all+ instead.
-      #
-      # ==== Parameters
-      #
-      # * +conditions+ - A string, array, or hash that specifies which records
-      #   to destroy. If omitted, all records are destroyed. See the
-      #   Conditions section in the introduction to ActiveRecord::Base for
-      #   more information.
-      #
-      # ==== Examples
-      #
-      #   Person.destroy_all("last_login < '2004-04-04'")
-      #   Person.destroy_all(:status => "inactive")
-      def destroy_all(conditions = nil)
-        where(conditions).destroy_all
-      end
-
-      # Deletes the records matching +conditions+ without instantiating the records first, and hence not
-      # calling the +destroy+ method nor invoking callbacks. This is a single SQL DELETE statement that
-      # goes straight to the database, much more efficient than +destroy_all+. Be careful with relations
-      # though, in particular <tt>:dependent</tt> rules defined on associations are not honored.  Returns
-      # the number of rows affected.
-      #
-      # ==== Parameters
-      #
-      # * +conditions+ - Conditions are specified the same way as with +find+ method.
-      #
-      # ==== Example
-      #
-      #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
-      #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
-      #
-      # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
-      # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
-      def delete_all(conditions = nil)
-        where(conditions).delete_all
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
@@ -1224,6 +906,10 @@ module ActiveRecord #:nodoc:
         reset_table_name
       end
 
+      def quoted_table_name
+        @quoted_table_name ||= connection.quote_table_name(table_name)
+      end
+
       def reset_table_name #:nodoc:
         base = base_class
 
@@ -1241,6 +927,7 @@ module ActiveRecord #:nodoc:
             name = "#{table_name_prefix}#{contained}#{undecorated_table_name(base.name)}#{table_name_suffix}"
           end
 
+        @quoted_table_name = nil
         set_table_name(name)
         name
       end
@@ -1487,20 +1174,6 @@ module ActiveRecord #:nodoc:
         store_full_sti_class ? name : name.demodulize
       end
 
-      # Merges conditions so that the result is a valid +condition+
-      def merge_conditions(*conditions)
-        segments = []
-
-        conditions.each do |condition|
-          unless condition.blank?
-            sql = sanitize_sql(condition)
-            segments << sql unless sql.blank?
-          end
-        end
-
-        "(#{segments.join(') AND (')})" unless segments.empty?
-      end
-
       def unscoped
         @unscoped ||= Relation.new(self, arel_table)
         finder_needs_type_condition? ? @unscoped.where(type_condition) : @unscoped
@@ -1527,7 +1200,7 @@ module ActiveRecord #:nodoc:
         def instantiate(record)
           object = find_sti_class(record[inheritance_column]).allocate
 
-          object.send(:initialize_attribute_store, record)
+          object.instance_variable_set(:'@attributes', record)
           object.instance_variable_set(:'@attributes_cache', {})
 
           object.send(:_run_find_callbacks)
@@ -1563,41 +1236,9 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_arel(options = {}, scope = nil)
-          relation = unscoped.apply_finder_options(options)
+          relation = options.is_a?(Hash) ? unscoped.apply_finder_options(options) : unscoped.merge(options)
           relation = scope.merge(relation) if scope
           relation
-        end
-
-        def construct_join(joins)
-          case joins
-          when Symbol, Hash, Array
-            if array_of_strings?(joins)
-              joins.join(' ') + " "
-            else
-              build_association_joins(joins)
-            end
-          when String
-            " #{joins} "
-          else
-            ""
-          end
-        end
-
-        def build_association_joins(joins)
-          join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, joins, nil)
-          relation = unscoped.table
-          join_dependency.join_associations.map { |association|
-            if (association_relation = association.relation).is_a?(Array)
-              [Arel::InnerJoin.new(relation, association_relation.first, *association.association_join.first).joins(relation),
-              Arel::InnerJoin.new(relation, association_relation.last, *association.association_join.last).joins(relation)].join()
-            else
-              Arel::InnerJoin.new(relation, association_relation, *association.association_join).joins(relation)
-            end
-          }.join(" ")
-        end
-
-        def array_of_strings?(o)
-          o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
         end
 
         def type_condition
@@ -1762,11 +1403,8 @@ module ActiveRecord #:nodoc:
             relation = construct_finder_arel(method_scoping[:find] || {})
 
             if current_scoped_methods && current_scoped_methods.create_with_value && method_scoping[:create]
-              scope_for_create = case action
-              when :merge
+              scope_for_create = if action == :merge
                 current_scoped_methods.create_with_value.merge(method_scoping[:create])
-              when :reverse_merge
-                method_scoping[:create].merge(current_scoped_methods.create_with_value)
               else
                 method_scoping[:create]
               end
@@ -1781,15 +1419,7 @@ module ActiveRecord #:nodoc:
             method_scoping = relation
           end
 
-          if current_scoped_methods
-            case action
-            when :merge
-              method_scoping = current_scoped_methods.merge(method_scoping)
-            when :reverse_merge
-              method_scoping = current_scoped_methods.except(:where).merge(method_scoping)
-              method_scoping = method_scoping.merge(current_scoped_methods.only(:where))
-            end
-          end
+          method_scoping = current_scoped_methods.merge(method_scoping) if current_scoped_methods && action ==  :merge
 
           self.scoped_methods << method_scoping
           begin
@@ -1820,7 +1450,8 @@ module ActiveRecord #:nodoc:
         end
 
         def scoped_methods #:nodoc:
-          Thread.current[:"#{self}_scoped_methods"] ||= self.default_scoping.dup
+          key = :"#{self}_scoped_methods"
+          Thread.current[key] = Thread.current[key].presence || self.default_scoping.dup
         end
 
         def current_scoped_methods #:nodoc:
@@ -2033,7 +1664,7 @@ module ActiveRecord #:nodoc:
       # In both instances, valid attribute keys are determined by the column names of the associated table --
       # hence you can't have attributes that aren't part of the table columns.
       def initialize(attributes = nil)
-        initialize_attribute_store(attributes_from_column_definition)
+        @attributes = attributes_from_column_definition
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
@@ -2064,7 +1695,7 @@ module ActiveRecord #:nodoc:
         callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
         cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
         cloned_attributes.delete(self.class.primary_key)
-        initialize_attribute_store(cloned_attributes)
+        @attributes = cloned_attributes
         clear_aggregation_cache
         @attributes_cache = {}
         @new_record = true
@@ -2294,9 +1925,19 @@ module ActiveRecord #:nodoc:
       def reload(options = nil)
         clear_aggregation_cache
         clear_association_cache
-        _attributes.update(self.class.find(self.id, options).instance_variable_get('@attributes'))
+        @attributes.update(self.class.find(self.id, options).instance_variable_get('@attributes'))
         @attributes_cache = {}
         self
+      end
+
+      # Returns true if the given attribute is in the attributes hash
+      def has_attribute?(attr_name)
+        @attributes.has_key?(attr_name.to_s)
+      end
+
+      # Returns an array of names for the attributes available on this object sorted alphabetically.
+      def attribute_names
+        @attributes.keys.sort
       end
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
@@ -2480,7 +2121,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
+        self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).arel.update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes
@@ -2632,7 +2273,7 @@ module ActiveRecord #:nodoc:
       end
 
       def instantiate_time_object(name, values)
-        if self.class.send(:time_zone_aware?, name)
+        if self.class.send(:create_time_zone_conversion_attribute?, name, column_for_attribute(name))
           Time.zone.local(*values)
         else
           Time.time_with_datetime_fallback(@@default_timezone, *values)
@@ -2704,10 +2345,6 @@ module ActiveRecord #:nodoc:
         hash.inject([]) { |list, pair| list << "#{pair.first} = #{pair.last}" }.join(", ")
       end
 
-      def self.quoted_table_name
-        self.connection.quote_table_name(self.table_name)
-      end
-
       def quote_columns(quoter, hash)
         hash.inject({}) do |quoted, (name, value)|
           quoted[quoter.quote_column_name(name)] = value
@@ -2719,6 +2356,22 @@ module ActiveRecord #:nodoc:
         comma_pair_list(quote_columns(quoter, hash))
       end
 
+      def convert_number_column_value(value)
+        if value == false
+          0
+        elsif value == true
+          1
+        elsif value.is_a?(String) && value.blank?
+          nil
+        else
+          value
+        end
+      end
+
+      def object_from_yaml(string)
+        return string unless string.is_a?(String) && string =~ /^---/
+        YAML::load(string) rescue string
+      end
   end
 
   Base.class_eval do
@@ -2733,7 +2386,6 @@ module ActiveRecord #:nodoc:
     include AttributeMethods::PrimaryKey
     include AttributeMethods::TimeZoneConversion
     include AttributeMethods::Dirty
-    include Attributes, Types
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
     include ActiveModel::Conversion
@@ -2742,7 +2394,7 @@ module ActiveRecord #:nodoc:
     # #save_with_autosave_associations to be wrapped inside a transaction.
     include AutosaveAssociation, NestedAttributes
 
-    include Aggregations, Transactions, Reflection, Batches, Calculations, Serialization
+    include Aggregations, Transactions, Reflection, Batches, Serialization
 
   end
 end

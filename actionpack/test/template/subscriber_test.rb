@@ -3,7 +3,8 @@ require "rails/subscriber/test_helper"
 require "action_view/railties/subscriber"
 require "controller/fake_models"
 
-module ActionViewSubscriberTest
+class AVSubscriberTest < ActiveSupport::TestCase
+  include Rails::Subscriber::TestHelper
 
   def setup
     @old_logger = ActionController::Base.logger
@@ -88,15 +89,5 @@ module ActionViewSubscriberTest
 
     assert_equal 1, @logger.logged(:info).size
     assert_match /Rendered collection/, @logger.logged(:info).last
-  end
-
-  class SyncSubscriberTest < ActiveSupport::TestCase
-    include Rails::Subscriber::SyncTestHelper
-    include ActionViewSubscriberTest
-  end
-
-  class AsyncSubscriberTest < ActiveSupport::TestCase
-    include Rails::Subscriber::AsyncTestHelper
-    include ActionViewSubscriberTest
   end
 end

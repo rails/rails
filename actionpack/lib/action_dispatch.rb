@@ -46,7 +46,6 @@ module ActionDispatch
     autoload :Cookies
     autoload :Flash
     autoload :Head
-    autoload :Notifications
     autoload :ParamsParser
     autoload :Rescue
     autoload :ShowExceptions
@@ -63,6 +62,7 @@ module ActionDispatch
     autoload :Headers
     autoload :MimeNegotiation
     autoload :Parameters
+    autoload :FilterParameters
     autoload :Upload
     autoload :UploadedFile, 'action_dispatch/http/upload'
     autoload :URL

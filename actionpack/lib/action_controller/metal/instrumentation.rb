@@ -9,35 +9,34 @@ module ActionController
   module Instrumentation
     extend ActiveSupport::Concern
 
-    included do
-      include AbstractController::Logger
-    end
+    include AbstractController::Logger
 
     attr_internal :view_runtime
 
     def process_action(action, *args)
-      ActiveSupport::Notifications.instrument("action_controller.process_action") do |payload|
+      raw_payload = {
+        :controller => self.class.name,
+        :action     => self.action_name,
+        :params     => request.filtered_parameters,
+        :formats    => request.formats.map(&:to_sym)
+      }
+
+      ActiveSupport::Notifications.instrument("action_controller.start_processing", raw_payload.dup)
+
+      ActiveSupport::Notifications.instrument("action_controller.process_action", raw_payload) do |payload|
         result = super
-        payload[:controller]  = self.class.name
-        payload[:action]      = self.action_name
-        payload[:status]      = response.status
+        payload[:status] = response.status
         append_info_to_payload(payload)
         result
       end
     end
 
-    def render(*args, &block)
-      if logger
-        render_output = nil
-
-        self.view_runtime = cleanup_view_runtime do
-          Benchmark.ms { render_output = super }
-        end
-
-        render_output
-      else
-        super
+    def render(*args)
+      render_output = nil
+      self.view_runtime = cleanup_view_runtime do
+        Benchmark.ms { render_output = super }
       end
+      render_output
     end
 
     def send_file(path, options={})

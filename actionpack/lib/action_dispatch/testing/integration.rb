@@ -240,9 +240,9 @@ module ActionDispatch
             path = location.query ? "#{location.path}?#{location.query}" : location.path
           end
 
-          [ControllerCapture, ActionController::Testing].each do |mod|
-            unless ActionController::Base < mod
-              ActionController::Base.class_eval { include mod }
+          unless ActionController::Base < ActionController::Testing
+            ActionController::Base.class_eval do
+              include ActionController::Testing
             end
           end
 
@@ -259,7 +259,9 @@ module ActionDispatch
             "HTTP_HOST"      => host,
             "REMOTE_ADDR"    => remote_addr,
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
-            "HTTP_ACCEPT"    => accept
+            "HTTP_ACCEPT"    => accept,
+
+            "action_dispatch.show_exceptions" => false
           }
 
           (rack_environment || {}).each do |key, value|
@@ -267,15 +269,14 @@ module ActionDispatch
           end
 
           session = Rack::Test::Session.new(@mock_session)
-
-          @controller = ActionController::Base.capture_instantiation do
-            session.request(path, env)
-          end
+          session.request(path, env)
 
           @request_count += 1
           @request  = ActionDispatch::Request.new(session.last_request.env)
           @response = ActionDispatch::TestResponse.from_response(@mock_session.last_response)
           @html_document = nil
+
+          @controller = session.last_request.env['action_controller.instance']
 
           return response.status
         end
@@ -292,31 +293,6 @@ module ActionDispatch
           }
           ActionController::UrlRewriter.new(ActionDispatch::Request.new(env), {})
         end
-    end
-
-    # A module used to extend ActionController::Base, so that integration tests
-    # can capture the controller used to satisfy a request.
-    module ControllerCapture #:nodoc:
-      extend ActiveSupport::Concern
-
-      included do
-        alias_method_chain :initialize, :capture
-      end
-
-      def initialize_with_capture(*args)
-        initialize_without_capture
-        self.class.last_instantiation ||= self
-      end
-
-      module ClassMethods #:nodoc:
-        mattr_accessor :last_instantiation
-
-        def capture_instantiation
-          self.last_instantiation = nil
-          yield
-          return last_instantiation
-        end
-      end
     end
 
     module Runner

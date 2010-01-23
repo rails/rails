@@ -176,5 +176,33 @@ module ApplicationTests
       get '/foo'
       assert_equal 'baz', last_response.body
     end
+
+    test 'resource routing with irrigular inflection' do
+      app_file 'config/initializers/inflection.rb', <<-RUBY
+        ActiveSupport::Inflector.inflections do |inflect|
+          inflect.irregular 'yazi', 'yazilar'
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do |map|
+          resources :yazilar
+        end
+      RUBY
+
+      controller 'yazilar', <<-RUBY
+        class YazilarController < ActionController::Base
+          def index
+            render :text => 'yazilar#index'
+          end
+        end
+      RUBY
+
+      get '/yazilars'
+      assert_equal 404, last_response.status
+
+      get '/yazilar'
+      assert_equal 200, last_response.status
+    end
   end
 end

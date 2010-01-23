@@ -1,17 +1,7 @@
 module ActiveRecord
   module SpawnMethods
-    def spawn(arel_table = self.table)
-      relation = self.class.new(@klass, arel_table)
-
-      (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).each do |query_method|
-        relation.send(:"#{query_method}_values=", send(:"#{query_method}_values"))
-      end
-
-      Relation::SINGLE_VALUE_METHODS.each do |query_method|
-        relation.send(:"#{query_method}_value=", send(:"#{query_method}_value"))
-      end
-
-      relation
+    def spawn
+      clone.reset
     end
 
     def merge(r)
@@ -98,19 +88,12 @@ module ActiveRecord
 
       options.assert_valid_keys(VALID_FIND_OPTIONS)
 
-      relation = relation.joins(options[:joins]).
-        where(options[:conditions]).
-        select(options[:select]).
-        group(options[:group]).
-        having(options[:having]).
-        order(options[:order]).
-        limit(options[:limit]).
-        offset(options[:offset]).
-        from(options[:from]).
-        includes(options[:include])
+      [:joins, :select, :group, :having, :order, :limit, :offset, :from, :lock, :readonly].each do |finder|
+        relation = relation.send(finder, options[finder]) if options.has_key?(finder)
+      end
 
-      relation = relation.lock(options[:lock]) if options[:lock].present?
-      relation = relation.readonly(options[:readonly]) if options.has_key?(:readonly)
+      relation = relation.where(options[:conditions]) if options.has_key?(:conditions)
+      relation = relation.includes(options[:include]) if options.has_key?(:include)
 
       relation
     end

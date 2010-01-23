@@ -50,6 +50,8 @@ module ActiveModel
         assert_kind_of String, model_name
         assert_kind_of String, model_name.human
         assert_kind_of String, model_name.partial_path
+        assert_kind_of String, model_name.singular
+        assert_kind_of String, model_name.plural
       end
 
       # == Errors Testing

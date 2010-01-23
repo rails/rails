@@ -134,9 +134,14 @@ module Rails
       lookups = []
       lookups << "#{base}:#{name}"    if base
       lookups << "#{name}:#{context}" if context
-      lookups << "#{name}:#{name}"    unless name.to_s.include?(?:)
-      lookups << "#{name}"
-      lookups << "rails:#{name}"      unless base || context || name.to_s.include?(?:)
+
+      unless base || context
+        unless name.to_s.include?(?:)
+          lookups << "#{name}:#{name}"
+          lookups << "rails:#{name}"
+        end
+        lookups << "#{name}"
+      end
 
       lookup(lookups)
 
@@ -168,7 +173,7 @@ module Rails
 
     # Show help message with available generators.
     def self.help
-      traverse_load_paths!
+      lookup!
 
       namespaces = subclasses.map{ |k| k.namespace }
       namespaces.sort!
@@ -226,8 +231,35 @@ module Rails
         nil
       end
 
+      # Receives namespaces in an array and tries to find matching generators
+      # in the load path.
+      def self.lookup(namespaces) #:nodoc:
+        load_generators_from_railties!
+        paths = namespaces_to_paths(namespaces)
+
+        paths.each do |raw_path|
+          ["rails_generators", "generators"].each do |base|
+            path = "#{base}/#{raw_path}_generator"
+
+            begin
+              require path
+              return
+            rescue LoadError => e
+              raise unless e.message =~ /#{Regexp.escape(path)}$/
+            rescue NameError => e
+              raise unless e.message =~ /Rails::Generator([\s(::)]|$)/
+              warn "[WARNING] Could not load generator #{path.inspect} because it's a Rails 2.x generator, which is not supported anymore. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
+            rescue Exception => e
+              warn "[WARNING] Could not load generator #{path.inspect}. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
+            end
+          end
+        end
+      end
+
       # This will try to load any generator in the load path to show in help.
-      def self.traverse_load_paths! #:nodoc:
+      def self.lookup! #:nodoc:
+        load_generators_from_railties!
+
         $LOAD_PATH.each do |base|
           Dir[File.join(base, "{generators,rails_generators}", "**", "*_generator.rb")].each do |path|
             begin
@@ -239,26 +271,11 @@ module Rails
         end
       end
 
-      # Receives namespaces in an array and tries to find matching generators
-      # in the load path.
-      def self.lookup(namespaces) #:nodoc:
-        paths = namespaces_to_paths(namespaces)
-
-        paths.each do |path|
-          ["generators", "rails_generators"].each do |base|
-            path = "#{base}/#{path}_generator"
-
-            begin
-              require path
-              return
-            rescue LoadError => e
-              raise unless e.message =~ /#{Regexp.escape(path)}$/
-            rescue NameError => e
-              raise unless e.message =~ /Rails::Generator([\s(::)]|$)/
-              warn "[WARNING] Could not load generator #{path.inspect} because it's a Rails 2.x generator, which is not supported anymore. Error: #{e.message}"
-            end
-          end
-        end
+      # Allow generators to be loaded from custom paths.
+      def self.load_generators_from_railties! #:nodoc:
+        return if defined?(@generators_from_railties) || Rails.application.nil?
+        @generators_from_railties = true
+        Rails.application.load_generators
       end
 
       # Convert namespaces to paths by replacing ":" for "/" and adding
@@ -268,7 +285,7 @@ module Rails
         paths = []
         namespaces.each do |namespace|
           pieces = namespace.split(":")
-          paths << pieces.dup.push(pieces.last).join("/")
+          paths << pieces.dup.push(pieces.last).join("/") unless pieces.uniq.size == 1
           paths << pieces.join("/")
         end
         paths.uniq!

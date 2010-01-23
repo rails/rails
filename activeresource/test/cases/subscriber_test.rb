@@ -3,7 +3,8 @@ require "fixtures/person"
 require "rails/subscriber/test_helper"
 require "active_resource/railties/subscriber"
 
-module SubscriberTest
+class SubscriberTest < ActiveSupport::TestCase
+  include Rails::Subscriber::TestHelper
   Rails::Subscriber.add(:active_resource, ActiveResource::Railties::Subscriber.new)
 
   def setup
@@ -25,15 +26,5 @@ module SubscriberTest
     assert_equal 2, @logger.logged(:info).size
     assert_equal "GET http://somewhere.else:80/people/1.xml", @logger.logged(:info)[0] 
     assert_match /\-\-\> 200 200 106/, @logger.logged(:info)[1]
-  end
-
-  class SyncSubscriberTest < ActiveSupport::TestCase
-    include Rails::Subscriber::SyncTestHelper
-    include SubscriberTest
-  end
-
-  class AsyncSubscriberTest < ActiveSupport::TestCase
-    include Rails::Subscriber::AsyncTestHelper
-    include SubscriberTest
   end
 end

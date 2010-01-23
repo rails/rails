@@ -176,14 +176,15 @@ module ActiveRecord
       # be used for the query. If no +:counter_sql+ was supplied, but +:finder_sql+ was set, the
       # descendant's +construct_sql+ method will have set :counter_sql automatically.
       # Otherwise, construct options and pass them with scope to the target class's +count+.
-      def count(*args)
+      def count(column_name = nil, options = {})
         if @reflection.options[:counter_sql]
           @reflection.klass.count_by_sql(@counter_sql)
         else
-          column_name, options = @reflection.klass.scoped.send(:construct_count_options_from_args, *args)
+          column_name, options = nil, column_name if column_name.is_a?(Hash)
+
           if @reflection.options[:uniq]
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
-            column_name = "#{@reflection.quoted_table_name}.#{@reflection.klass.primary_key}" if column_name == :all
+            column_name = "#{@reflection.quoted_table_name}.#{@reflection.klass.primary_key}" unless column_name
             options.merge!(:distinct => true)
           end
 

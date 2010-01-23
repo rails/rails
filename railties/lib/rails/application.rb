@@ -8,7 +8,13 @@ module Rails
     class << self
       attr_writer :config
       alias configure class_eval
-      delegate :initialize!, :load_tasks, :root, :to => :instance
+      delegate :call,
+        :initialize!,
+        :load_generators,
+        :load_tasks,
+        :middleware,
+        :root,
+        :to => :instance
 
       private :new
       def instance
@@ -82,6 +88,10 @@ module Rails
       end
     end
 
+    def load_generators
+      plugins.each { |p| p.load_generators }
+    end
+
     def initializers
       initializers = Bootstrap.new(self).initializers
       plugins.each { |p| initializers += p.initializers }
@@ -89,13 +99,12 @@ module Rails
       initializers
     end
 
-    # TODO: Fix this method
+    # TODO: Fix this method. It loads all railties independent if :all is given
+    # or not, otherwise frameworks are never loaded.
     def plugins
       @plugins ||= begin
         plugin_names = (config.plugins || [:all]).map { |p| p.to_sym }
-        Railtie.plugins.select { |p|
-          plugin_names.include?(:all) || plugin_names.include?(p.plugin_name)
-        }.map { |p| p.new } + Plugin.all(plugin_names, config.paths.vendor.plugins)
+        Railtie.plugins.map(&:new) + Plugin.all(plugin_names, config.paths.vendor.plugins)
       end
     end
 
@@ -107,6 +116,7 @@ module Rails
     end
 
     def call(env)
+      env["action_dispatch.parameter_filter"] = config.filter_parameters
       app.call(env)
     end
 

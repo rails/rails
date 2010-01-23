@@ -81,10 +81,10 @@ module ActiveRecord
             relation = self.class.unscoped
 
             affected_rows = relation.where(
-              relation[self.class.primary_key].eq(quoted_id).and(
-                relation[self.class.locking_column].eq(quote_value(previous_value))
+              relation.table[self.class.primary_key].eq(quoted_id).and(
+                relation.table[self.class.locking_column].eq(quote_value(previous_value))
               )
-            ).update(arel_attributes_values(false, false, attribute_names))
+            ).arel.update(arel_attributes_values(false, false, attribute_names))
 
 
             unless affected_rows == 1

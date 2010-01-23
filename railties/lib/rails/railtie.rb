@@ -150,13 +150,28 @@ module Rails
       @rake_tasks
     end
 
+    def self.generators(&blk)
+      @generators ||= []
+      @generators << blk if blk
+      @generators
+    end
+
     def rake_tasks
       self.class.rake_tasks
+    end
+
+    def generators
+      self.class.generators
     end
 
     def load_tasks
       return unless rake_tasks
       rake_tasks.each { |blk| blk.call }
+    end
+
+    def load_generators
+      return unless generators
+      generators.each { |blk| blk.call }
     end
   end
 end

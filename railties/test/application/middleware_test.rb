@@ -17,8 +17,8 @@ module ApplicationTests
         "ActionDispatch::Static",
         "Rack::Lock",
         "Rack::Runtime",
+        "Rails::Rack::Logger",
         "ActionDispatch::ShowExceptions",
-        "ActionDispatch::Notifications",
         "ActionDispatch::Callbacks",
         "ActionDispatch::Cookies",
         "ActionDispatch::Session::CookieStore",
@@ -76,7 +76,7 @@ module ApplicationTests
       end
 
       def middleware
-        AppTemplate::Application.instance.middleware.active.map(&:klass).map(&:name)
+        AppTemplate::Application.middleware.active.map(&:klass).map(&:name)
       end
   end
 end

@@ -8,11 +8,10 @@ module ActiveRecord
 
         class_eval <<-CEVAL
           def #{query_method}(*args)
-            spawn.tap do |new_relation|
-              new_relation.#{query_method}_values ||= []
-              value = Array.wrap(args.flatten).reject {|x| x.blank? }
-              new_relation.#{query_method}_values += value if value.present?
-            end
+            new_relation = spawn
+            value = Array.wrap(args.flatten).reject {|x| x.blank? }
+            new_relation.#{query_method}_values += value if value.present?
+            new_relation
           end
         CEVAL
       end
@@ -20,11 +19,10 @@ module ActiveRecord
       [:where, :having].each do |query_method|
         class_eval <<-CEVAL
           def #{query_method}(*args)
-            spawn.tap do |new_relation|
-              new_relation.#{query_method}_values ||= []
-              value = build_where(*args)
-              new_relation.#{query_method}_values += [*value] if value.present?
-            end
+            new_relation = spawn
+            value = build_where(*args)
+            new_relation.#{query_method}_values += [*value] if value.present?
+            new_relation
           end
         CEVAL
       end
@@ -34,9 +32,9 @@ module ActiveRecord
 
         class_eval <<-CEVAL
           def #{query_method}(value = true)
-            spawn.tap do |new_relation|
-              new_relation.#{query_method}_value = value
-            end
+            new_relation = spawn
+            new_relation.#{query_method}_value = value
+            new_relation
           end
         CEVAL
       end
@@ -77,7 +75,7 @@ module ActiveRecord
 
       # Build association joins first
       joins.each do |join|
-        association_joins << join if [Hash, Array, Symbol].include?(join.class) && !@klass.send(:array_of_strings?, join)
+        association_joins << join if [Hash, Array, Symbol].include?(join.class) && !array_of_strings?(join)
       end
 
       if association_joins.any?
@@ -110,7 +108,7 @@ module ActiveRecord
         when Relation::JoinOperation
           arel = arel.join(join.relation, join.join_class).on(*join.on)
         when Hash, Array, Symbol
-          if @klass.send(:array_of_strings?, join)
+          if array_of_strings?(join)
             join_string = join.join(' ')
             arel = arel.join(join_string)
           end
@@ -119,8 +117,16 @@ module ActiveRecord
         end
       end
 
-      @where_values.uniq.each do |w|
-        arel = w.is_a?(String) ? arel.where(w) : arel.where(*w)
+      @where_values.uniq.each do |where|
+        next if where.blank?
+
+        case where
+        when Arel::SqlLiteral
+          arel = arel.where(where)
+        else
+          sql = where.is_a?(String) ? where : where.to_sql
+          arel = arel.where(Arel::SqlLiteral.new("(#{sql})"))
+        end
       end
 
       @having_values.uniq.each do |h|
@@ -135,21 +141,23 @@ module ActiveRecord
       end
 
       @order_values.uniq.each do |o|
-        arel = arel.order(o) if o.present?
+        arel = arel.order(Arel::SqlLiteral.new(o.to_s)) if o.present?
       end
 
       selects = @select_values.uniq
+
+      quoted_table_name = @klass.quoted_table_name
 
       if selects.present?
         selects.each do |s|
           @implicit_readonly = false
           arel = arel.project(s) if s.present?
         end
-      elsif joins.present?
-        arel = arel.project(@klass.quoted_table_name + '.*')
+      else
+        arel = arel.project(quoted_table_name + '.*')
       end
 
-      arel = arel.from(@from_value) if @from_value.present?
+      arel = @from_value.present? ? arel.from(@from_value) : arel.from(quoted_table_name)
 
       case @lock_value
       when TrueClass
@@ -167,8 +175,7 @@ module ActiveRecord
       builder = PredicateBuilder.new(table.engine)
 
       conditions = if [String, Array].include?(args.first.class)
-        merged = @klass.send(:merge_conditions, args.size > 1 ? Array.wrap(args) : args.first)
-        Arel::SqlLiteral.new(merged) if merged
+        @klass.send(:sanitize_sql, args.size > 1 ? args : args.first)
       elsif args.first.is_a?(Hash)
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, args.first)
         builder.build_from_hash(attributes, table)
@@ -191,6 +198,10 @@ module ActiveRecord
           s.concat(' DESC')
         end
       }.join(',')
+    end
+
+    def array_of_strings?(o)
+      o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
     end
 
   end

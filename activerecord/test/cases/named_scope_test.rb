@@ -379,6 +379,21 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_deprecated_named_scope_method
     assert_deprecated('named_scope has been deprecated') { Topic.named_scope :deprecated_named_scope }
   end
+
+  def test_named_scopes_on_relations
+    # Topic.replied
+    approved_topics = Topic.scoped.approved.order('id DESC')
+    assert_equal topics(:fourth), approved_topics.first
+
+    replied_approved_topics = approved_topics.replied
+    assert_equal topics(:third), replied_approved_topics.first
+  end
+
+  def test_index_on_named_scope
+    approved = Topic.approved.order('id ASC')
+    assert_equal topics(:second), approved[0]
+    assert approved.loaded?
+  end
 end
 
 class DynamicScopeMatchTest < ActiveRecord::TestCase

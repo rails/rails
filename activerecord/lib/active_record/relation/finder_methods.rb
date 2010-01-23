@@ -1,44 +1,157 @@
 module ActiveRecord
   module FinderMethods
-
-    def find(*ids, &block)
+    # Find operates with four different retrieval approaches:
+    #
+    # * Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
+    #   If no record can be found for all of the listed ids, then RecordNotFound will be raised.
+    # * Find first - This will return the first record matched by the options used. These options can either be specific
+    #   conditions or merely an order. If no record can be matched, +nil+ is returned. Use
+    #   <tt>Model.find(:first, *args)</tt> or its shortcut <tt>Model.first(*args)</tt>.
+    # * Find last - This will return the last record matched by the options used. These options can either be specific
+    #   conditions or merely an order. If no record can be matched, +nil+ is returned. Use
+    #   <tt>Model.find(:last, *args)</tt> or its shortcut <tt>Model.last(*args)</tt>.
+    # * Find all - This will return all the records matched by the options used.
+    #   If no records are found, an empty array is returned. Use
+    #   <tt>Model.find(:all, *args)</tt> or its shortcut <tt>Model.all(*args)</tt>.
+    #
+    # All approaches accept an options hash as their last parameter.
+    #
+    # ==== Parameters
+    #
+    # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1", <tt>[ "user_name = ?", username ]</tt>, or <tt>["user_name = :user_name", { :user_name => user_name }]</tt>. See conditions in the intro.
+    # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
+    # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
+    # * <tt>:having</tt> - Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> returns. Uses the <tt>HAVING</tt> SQL-clause.
+    # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
+    # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
+    # * <tt>:joins</tt> - Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed),
+    #   named associations in the same form used for the <tt>:include</tt> option, which will perform an <tt>INNER JOIN</tt> on the associated table(s),
+    #   or an array containing a mixture of both strings and named associations.
+    #   If the value is a string, then the records will be returned read-only since they will have attributes that do not correspond to the table's columns.
+    #   Pass <tt>:readonly => false</tt> to override.
+    # * <tt>:include</tt> - Names associations that should be loaded alongside. The symbols named refer
+    #   to already defined associations. See eager loading under Associations.
+    # * <tt>:select</tt> - By default, this is "*" as in "SELECT * FROM", but can be changed if you, for example, want to do a join but not
+    #   include the joined columns. Takes a string with the SELECT SQL fragment (e.g. "id, name").
+    # * <tt>:from</tt> - By default, this is the table name of the class, but can be changed to an alternate table name (or even the name
+    #   of a database view).
+    # * <tt>:readonly</tt> - Mark the returned records read-only so they cannot be saved or updated.
+    # * <tt>:lock</tt> - An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
+    #   <tt>:lock => true</tt> gives connection's default exclusive lock, usually "FOR UPDATE".
+    #
+    # ==== Examples
+    #
+    #   # find by id
+    #   Person.find(1)       # returns the object for ID = 1
+    #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
+    #   Person.find([7, 17]) # returns an array for objects with IDs in (7, 17)
+    #   Person.find([1])     # returns an array for the object with ID = 1
+    #   Person.find(1, :conditions => "administrator = 1", :order => "created_on DESC")
+    #
+    # Note that returned records may not be in the same order as the ids you
+    # provide since database rows are unordered. Give an explicit <tt>:order</tt>
+    # to ensure the results are sorted.
+    #
+    # ==== Examples
+    #
+    #   # find first
+    #   Person.find(:first) # returns the first object fetched by SELECT * FROM people
+    #   Person.find(:first, :conditions => [ "user_name = ?", user_name])
+    #   Person.find(:first, :conditions => [ "user_name = :u", { :u => user_name }])
+    #   Person.find(:first, :order => "created_on DESC", :offset => 5)
+    #
+    #   # find last
+    #   Person.find(:last) # returns the last object fetched by SELECT * FROM people
+    #   Person.find(:last, :conditions => [ "user_name = ?", user_name])
+    #   Person.find(:last, :order => "created_on DESC", :offset => 5)
+    #
+    #   # find all
+    #   Person.find(:all) # returns an array of objects for all the rows fetched by SELECT * FROM people
+    #   Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
+    #   Person.find(:all, :conditions => { :friends => ["Bob", "Steve", "Fred"] }
+    #   Person.find(:all, :offset => 10, :limit => 10)
+    #   Person.find(:all, :include => [ :account, :friends ])
+    #   Person.find(:all, :group => "category")
+    #
+    # Example for find with a lock: Imagine two concurrent transactions:
+    # each will read <tt>person.visits == 2</tt>, add 1 to it, and save, resulting
+    # in two saves of <tt>person.visits = 3</tt>.  By locking the row, the second
+    # transaction has to wait until the first is finished; we get the
+    # expected <tt>person.visits == 4</tt>.
+    #
+    #   Person.transaction do
+    #     person = Person.find(1, :lock => true)
+    #     person.visits += 1
+    #     person.save!
+    #   end
+    def find(*args, &block)
       return to_a.find(&block) if block_given?
 
-      expects_array = ids.first.kind_of?(Array)
-      return ids.first if expects_array && ids.first.empty?
+      options = args.extract_options!
 
-      ids = ids.flatten.compact.uniq
-
-      case ids.size
-      when 0
-        raise RecordNotFound, "Couldn't find #{@klass.name} without an ID"
-      when 1
-        result = find_one(ids.first)
-        expects_array ? [ result ] : result
+      if options.present?
+        apply_finder_options(options).find(*args)
       else
-        find_some(ids)
+        case args.first
+        when :first, :last, :all
+          send(args.first)
+        else
+          find_with_ids(*args)
+        end
       end
     end
 
+    # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
+    # same arguments to this method as you can to <tt>find(:first)</tt>.
+    def first(*args)
+      args.any? ? apply_finder_options(args.first).first : find_first
+    end
+
+    # A convenience wrapper for <tt>find(:last, *args)</tt>. You can pass in all the
+    # same arguments to this method as you can to <tt>find(:last)</tt>.
+    def last(*args)
+      args.any? ? apply_finder_options(args.first).last : find_last
+    end
+
+    # A convenience wrapper for <tt>find(:all, *args)</tt>. You can pass in all the
+    # same arguments to this method as you can to <tt>find(:all)</tt>.
+    def all(*args)
+      args.any? ? apply_finder_options(args.first).to_a : to_a
+    end
+
+    # Returns true if a record exists in the table that matches the +id+ or
+    # conditions given, or false otherwise. The argument can take five forms:
+    #
+    # * Integer - Finds the record with this primary key.
+    # * String - Finds the record with a primary key corresponding to this
+    #   string (such as <tt>'5'</tt>).
+    # * Array - Finds the record that matches these +find+-style conditions
+    #   (such as <tt>['color = ?', 'red']</tt>).
+    # * Hash - Finds the record that matches these +find+-style conditions
+    #   (such as <tt>{:color => 'red'}</tt>).
+    # * No args - Returns false if the table is empty, true otherwise.
+    #
+    # For more information about specifying conditions as a Hash or Array,
+    # see the Conditions section in the introduction to ActiveRecord::Base.
+    #
+    # Note: You can't pass in a condition as a string (like <tt>name =
+    # 'Jamie'</tt>), since it would be sanitized and then queried against
+    # the primary key column, like <tt>id = 'name = \'Jamie\''</tt>.
+    #
+    # ==== Examples
+    #   Person.exists?(5)
+    #   Person.exists?('5')
+    #   Person.exists?(:name => "David")
+    #   Person.exists?(['name LIKE ?', "%#{query}%"])
+    #   Person.exists?
     def exists?(id = nil)
-      relation = select(primary_key).limit(1)
-      relation = relation.where(primary_key.eq(id)) if id
-      relation.first ? true : false
-    end
-
-    def first
-      if loaded?
-        @records.first
+      case id
+      when Array, Hash
+        where(id).exists?
       else
-        @first ||= limit(1).to_a[0]
-      end
-    end
-
-    def last
-      if loaded?
-        @records.last
-      else
-        @last ||= reverse_order.limit(1).to_a[0]
+        relation = select(primary_key).limit(1)
+        relation = relation.where(primary_key.eq(id)) if id
+        relation.first ? true : false
       end
     end
 
@@ -53,9 +166,20 @@ module ActiveRecord
       []
     end
 
+    def construct_relation_for_association_calculations
+      including = (@eager_load_values + @includes_values).uniq
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, arel.joins(arel))
+
+      relation = except(:includes, :eager_load, :preload)
+      apply_join_dependency(relation, join_dependency)
+    end
+
     def construct_relation_for_association_find(join_dependency)
       relation = except(:includes, :eager_load, :preload, :select).select(@klass.send(:column_aliases, join_dependency))
+      apply_join_dependency(relation, join_dependency)
+    end
 
+    def apply_join_dependency(relation, join_dependency)
       for association in join_dependency.join_associations
         relation = association.join_relation(relation)
       end
@@ -113,11 +237,30 @@ module ActiveRecord
       record
     end
 
+    def find_with_ids(*ids, &block)
+      return to_a.find(&block) if block_given?
+
+      expects_array = ids.first.kind_of?(Array)
+      return ids.first if expects_array && ids.first.empty?
+
+      ids = ids.flatten.compact.uniq
+
+      case ids.size
+      when 0
+        raise RecordNotFound, "Couldn't find #{@klass.name} without an ID"
+      when 1
+        result = find_one(ids.first)
+        expects_array ? [ result ] : result
+      else
+        find_some(ids)
+      end
+    end
+
     def find_one(id)
       record = where(primary_key.eq(id)).first
 
       unless record
-        conditions = where_clause(', ')
+        conditions = arel.send(:where_clauses).join(', ')
         conditions = " [WHERE #{conditions}]" if conditions.present?
         raise RecordNotFound, "Couldn't find #{@klass.name} with ID=#{id}#{conditions}"
       end
@@ -129,26 +272,42 @@ module ActiveRecord
       result = where(primary_key.in(ids)).all
 
       expected_size =
-        if arel.taken && ids.size > arel.taken
-          arel.taken
+        if @limit_value && ids.size > @limit_value
+          @limit_value
         else
           ids.size
         end
 
       # 11 ids with limit 3, offset 9 should give 2 results.
-      if arel.skipped && (ids.size - arel.skipped < expected_size)
-        expected_size = ids.size - arel.skipped
+      if @offset_value && (ids.size - @offset_value < expected_size)
+        expected_size = ids.size - @offset_value
       end
 
       if result.size == expected_size
         result
       else
-        conditions = where_clause(', ')
+        conditions = arel.send(:where_clauses).join(', ')
         conditions = " [WHERE #{conditions}]" if conditions.present?
 
         error = "Couldn't find all #{@klass.name.pluralize} with IDs "
         error << "(#{ids.join(", ")})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"
         raise RecordNotFound, error
+      end
+    end
+
+    def find_first
+      if loaded?
+        @records.first
+      else
+        @first ||= limit(1).to_a[0]
+      end
+    end
+
+    def find_last
+      if loaded?
+        @records.last
+      else
+        @last ||= reverse_order.limit(1).to_a[0]
       end
     end
 

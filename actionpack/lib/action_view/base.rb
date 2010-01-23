@@ -181,7 +181,6 @@ module ActionView #:nodoc:
     extend ActiveSupport::Memoizable
 
     attr_accessor :base_path, :assigns, :template_extension, :formats
-    attr_accessor :controller
     attr_internal :captures
 
     def reset_formats(formats)
@@ -277,13 +276,13 @@ module ActionView #:nodoc:
       @config = nil
       @formats = formats
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
-      @controller = controller
+      @_controller = controller
       @helpers = self.class.helpers || Module.new
       @_content_for = Hash.new {|h,k| h[k] = ActionView::SafeBuffer.new }
       self.view_paths = view_paths
     end
 
-    attr_internal :template
+    attr_internal :controller, :template
     attr_reader :view_paths
 
     def view_paths=(paths)
@@ -298,12 +297,11 @@ module ActionView #:nodoc:
 
     # Evaluates the local assigns and controller ivars, pushes them to the view.
     def _evaluate_assigns_and_ivars #:nodoc:
-      if @controller
-        variables = @controller.instance_variable_names
-        variables -= @controller.protected_instance_variables if @controller.respond_to?(:protected_instance_variables)
-        variables.each { |name| instance_variable_set(name, @controller.instance_variable_get(name)) }
+      if controller
+        variables = controller.instance_variable_names
+        variables -= controller.protected_instance_variables if controller.respond_to?(:protected_instance_variables)
+        variables.each { |name| instance_variable_set(name, controller.instance_variable_get(name)) }
       end
     end
-
   end
 end

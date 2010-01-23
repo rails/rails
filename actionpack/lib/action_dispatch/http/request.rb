@@ -11,6 +11,7 @@ module ActionDispatch
     include ActionDispatch::Http::Cache::Request
     include ActionDispatch::Http::MimeNegotiation
     include ActionDispatch::Http::Parameters
+    include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::Upload
     include ActionDispatch::Http::URL
 

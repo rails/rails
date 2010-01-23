@@ -33,7 +33,7 @@ module Rails
   # Subscriber also has some helpers to deal with logging and automatically flushes
   # all logs when the request finishes (via action_dispatch.callback notification).
   class Subscriber
-    mattr_accessor :colorize_logging, :log_tailer
+    mattr_accessor :colorize_logging
     self.colorize_logging = true
 
     # Embed in a String to clear all previous ANSI sequences.
@@ -63,12 +63,11 @@ module Rails
       subscriber = subscribers[namespace.to_sym]
 
       if subscriber.respond_to?(name) && subscriber.logger
-        subscriber.send(name, ActiveSupport::Notifications::Event.new(*args))
-      end
-
-      if args[0] == "action_dispatch.after_dispatch" && !subscribers.empty?
-        flush_all!
-        log_tailer.tail! if log_tailer
+        begin
+          subscriber.send(name, ActiveSupport::Notifications::Event.new(*args))
+        rescue Exception => e
+          Rails.logger.error "Could not log #{args[0].inspect} event. #{e.class}: #{e.message}"
+        end
       end
     end
 

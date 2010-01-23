@@ -2,7 +2,8 @@ require "abstract_unit"
 require "rails/subscriber/test_helper"
 require "action_mailer/railties/subscriber"
 
-module SubscriberTest
+class AMSubscriberTest < ActionMailer::TestCase
+  include Rails::Subscriber::TestHelper
   Rails::Subscriber.add(:action_mailer, ActionMailer::Railties::Subscriber.new)
 
   class TestMailer < ActionMailer::Base
@@ -39,15 +40,5 @@ module SubscriberTest
     assert_match /Received mail/, @logger.logged(:info).first
     assert_equal 1, @logger.logged(:debug).size
     assert_match /Jamis/, @logger.logged(:debug).first
-  end
-
-  class SyncSubscriberTest < ActionMailer::TestCase
-    include Rails::Subscriber::SyncTestHelper
-    include SubscriberTest
-  end
-
-  class AsyncSubscriberTest < ActionMailer::TestCase
-    include Rails::Subscriber::AsyncTestHelper
-    include SubscriberTest
   end
 end

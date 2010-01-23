@@ -164,6 +164,11 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_respond_to_class_methods_and_named_scopes
+    assert DeveloperOrderedBySalary.scoped.respond_to?(:all_ordered_by_name)
+    assert Topic.scoped.respond_to?(:by_lifo)
+  end
+
   def test_find_with_readonly_option
     Developer.scoped.each { |d| assert !d.readonly? }
     Developer.scoped.readonly.each { |d| assert d.readonly? }
