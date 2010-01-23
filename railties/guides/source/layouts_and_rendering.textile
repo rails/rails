@@ -180,7 +180,7 @@ render :text => "OK"
 
 TIP: Rendering pure text is most useful when you're responding to AJAX or web service requests that are expecting something other than proper HTML.
 
-NOTE: By default, if you use the +:text+ option, the file is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the +:layout => true+ option
+NOTE: By default, if you use the +:text+ option the text is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the +:layout => true+ option.
 
 h5. Rendering JSON
 
