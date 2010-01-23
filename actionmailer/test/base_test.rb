@@ -304,16 +304,15 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("HTML Explicit Multipart", email.parts[1].parts[1].body.encoded)
   end
 
-  # TODO Seems Mail is sorting the templates automatically, and not on demand
-  # test "explicit multipart with templates" do
-  #   email = BaseMailer.deliver_explicit_multipart_templates
-  #   assert_equal(2, email.parts.size)
-  #   assert_equal("multipart/alternate", email.mime_type)
-  #   assert_equal("text/html", email.parts[0].mime_type)
-  #   assert_equal("HTML Explicit Multipart Templates", email.parts[0].body.encoded)
-  #   assert_equal("text/plain", email.parts[1].mime_type)
-  #   assert_equal("TEXT Explicit Multipart Templates", email.parts[1].body.encoded)
-  # end
+  test "explicit multipart with templates" do
+    email = BaseMailer.deliver_explicit_multipart_templates
+    assert_equal(2, email.parts.size)
+    assert_equal("multipart/alternate", email.mime_type)
+    assert_equal("text/html", email.parts[0].mime_type)
+    assert_equal("HTML Explicit Multipart Templates", email.parts[0].body.encoded)
+    assert_equal("text/plain", email.parts[1].mime_type)
+    assert_equal("TEXT Explicit Multipart Templates", email.parts[1].body.encoded)
+  end
 
   test "explicit multipart with any" do
     email = BaseMailer.deliver_explicit_multipart_with_any

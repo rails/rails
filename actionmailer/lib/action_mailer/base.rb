@@ -415,7 +415,7 @@ module ActionMailer #:nodoc:
       # Should be removed when old API is deprecated
       @mail_was_called = true
 
-      m, sort_parts = @message, true
+      m = @message
 
       # Give preference to headers and fallback to the ones set in mail
       content_type = headers[:content_type] || m.content_type
@@ -425,12 +425,16 @@ module ActionMailer #:nodoc:
       headers[:subject] ||= default_subject
       quote_fields(m, headers, charset)
 
+      sort_order = headers[:parts_order] || self.class.default_implicit_parts_order.dup
+
       responses = if headers[:body]
         [ { :body => headers[:body], :content_type => self.class.default_content_type.dup } ]
       elsif block_given?
-        sort_parts = false
         collector = ActionMailer::Collector.new(self) { render(action_name) }
         yield(collector)
+        # Collect the sort order of the parts from the collector as Mail will always
+        # sort parts on encode into a "sane" sequence.
+        sort_order = collector.responses.map { |r| r[:content_type] }
         collector.responses
       else
         # TODO Ensure that we don't need to pass I18n.locale as detail
@@ -447,8 +451,8 @@ module ActionMailer #:nodoc:
       m.charset      = charset
       m.mime_version = mime_version
 
-      if sort_parts && m.parts.present?
-        m.body.set_sort_order(headers[:parts_order] || self.class.default_implicit_parts_order.dup)
+      if m.multipart?
+        m.body.set_sort_order(sort_order)
         m.body.sort_parts!
       end
 
