@@ -77,7 +77,19 @@ class BaseTest < ActiveSupport::TestCase
         format.html { render :text => "HTML Explicit Multipart" }
       end
     end
-    
+
+    def explicit_multipart_templates(hash = {})
+      mail(DEFAULT_HEADERS.merge(hash)) do |format|
+        format.html
+        format.text
+      end
+    end
+
+    def explicit_multipart_with_any(hash = {})
+      mail(DEFAULT_HEADERS.merge(hash)) do |format|
+        format.any(:text, :html){ render :text => "Format with any!" }
+      end
+    end
   end
 
   test "method call to mail does not raise error" do
@@ -214,7 +226,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   # Implicit multipart
-  test "implicit multipart tests" do
+  test "implicit multipart" do
     email = BaseMailer.deliver_implicit_multipart
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternate", email.mime_type)
@@ -224,7 +236,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("HTML Implicit Multipart", email.parts[1].body.encoded)
   end
 
-  test "implicit multipart tests with sort order" do
+  test "implicit multipart with sort order" do
     order = ["text/html", "text/plain"]
     swap BaseMailer, :default_implicit_parts_order => order do
       email = BaseMailer.deliver_implicit_multipart
@@ -258,7 +270,8 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
-  test "explicit multipart tests" do
+  # Explicit multipart
+  test "explicit multipart" do
     email = BaseMailer.deliver_explicit_multipart
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternate", email.mime_type)
@@ -282,14 +295,36 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "explicit multipart with attachments creates nested parts" do
-   email = BaseMailer.deliver_explicit_multipart(:attachments => true)
-   assert_equal("application/pdf", email.parts[0].mime_type)
-   assert_equal("multipart/alternate", email.parts[1].mime_type)
-   assert_equal("text/plain", email.parts[1].parts[0].mime_type)
-   assert_equal("TEXT Explicit Multipart", email.parts[1].parts[0].body.encoded)
-   assert_equal("text/html", email.parts[1].parts[1].mime_type)
-   assert_equal("HTML Explicit Multipart", email.parts[1].parts[1].body.encoded)
+    email = BaseMailer.deliver_explicit_multipart(:attachments => true)
+    assert_equal("application/pdf", email.parts[0].mime_type)
+    assert_equal("multipart/alternate", email.parts[1].mime_type)
+    assert_equal("text/plain", email.parts[1].parts[0].mime_type)
+    assert_equal("TEXT Explicit Multipart", email.parts[1].parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].parts[1].mime_type)
+    assert_equal("HTML Explicit Multipart", email.parts[1].parts[1].body.encoded)
   end
+
+  # TODO Seems Mail is sorting the templates automatically, and not on demand
+  # test "explicit multipart with templates" do
+  #   email = BaseMailer.deliver_explicit_multipart_templates
+  #   assert_equal(2, email.parts.size)
+  #   assert_equal("multipart/alternate", email.mime_type)
+  #   assert_equal("text/html", email.parts[0].mime_type)
+  #   assert_equal("HTML Explicit Multipart Templates", email.parts[0].body.encoded)
+  #   assert_equal("text/plain", email.parts[1].mime_type)
+  #   assert_equal("TEXT Explicit Multipart Templates", email.parts[1].body.encoded)
+  # end
+
+  test "explicit multipart with any" do
+    email = BaseMailer.deliver_explicit_multipart_with_any
+    assert_equal(2, email.parts.size)
+    assert_equal("multipart/alternate", email.mime_type)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("Format with any!", email.parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("Format with any!", email.parts[1].body.encoded)
+  end
+
 
   protected
 

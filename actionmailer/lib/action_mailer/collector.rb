@@ -14,11 +14,10 @@ module ActionMailer #:nodoc:
       @default_formats = context.formats
     end
 
-    # TODO Test me
     def any(*args, &block)
       options = args.extract_options!
       raise "You have to supply at least one format" if args.empty?
-      args.each { |type| send(type, options, &block) }
+      args.each { |type| send(type, options.dup, &block) }
     end
     alias :all :any
 

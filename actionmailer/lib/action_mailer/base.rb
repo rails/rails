@@ -2,6 +2,7 @@ require 'active_support/core_ext/class'
 require 'active_support/core_ext/module/delegation'
 require 'mail'
 require 'action_mailer/tmail_compat'
+require 'action_mailer/collector'
 
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -442,7 +443,6 @@ module ActionMailer #:nodoc:
       end
 
       content_type ||= create_parts_from_responses(m, responses, charset)
-
       m.content_type = content_type
       m.charset      = charset
       m.mime_version = mime_version
