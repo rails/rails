@@ -1,7 +1,6 @@
 require "abstract_unit"
 
 class AjaxTestCase < ActiveSupport::TestCase
-  include ActionView::Helpers::AjaxHelper
   include ActionView::Helpers::TagHelper
 
   def url_for(url)
@@ -34,6 +33,8 @@ class AjaxTestCase < ActiveSupport::TestCase
 end
 
 class LinkToRemoteTest < AjaxTestCase
+  include ActionView::Helpers::AjaxHelperCompat
+
   def link(options = {})
     link_to_remote("Delete this post", "/blog/destroy/3", options)
   end
@@ -79,7 +80,7 @@ class LinkToRemoteTest < AjaxTestCase
   end
 
   class LegacyLinkToRemoteTest < AjaxTestCase
-    include ActionView::Helpers::AjaxHelper::Rails2Compatibility
+    include ActionView::Helpers::AjaxHelperCompat
 
     def link(options)
       link_to_remote("Delete this post", "/blog/destroy/3", options)
@@ -98,6 +99,8 @@ class LinkToRemoteTest < AjaxTestCase
 end
 
 class ButtonToRemoteTest < AjaxTestCase
+  include ActionView::Helpers::AjaxHelperCompat
+
   def button(options, html = {})
     button_to_remote("Remote outpost", options, html)
   end
@@ -110,7 +113,7 @@ class ButtonToRemoteTest < AjaxTestCase
   end
 
   class LegacyButtonToRemoteTest < ButtonToRemoteTest
-    include ActionView::Helpers::AjaxHelper::Rails2Compatibility
+    include ActionView::Helpers::AjaxHelperCompat
 
     assert_callbacks_work do |callback|
       button(callback => "undoRequestCompleted(request)")
@@ -119,6 +122,8 @@ class ButtonToRemoteTest < AjaxTestCase
 end
 
 class ObserveFieldTest < AjaxTestCase
+  include ActionView::Helpers::AjaxHelperCompat
+
   def url_for(hash)
     "/blog/update"
   end

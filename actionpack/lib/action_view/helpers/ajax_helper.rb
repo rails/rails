@@ -574,6 +574,8 @@ module ActionView
         if !options && url.is_a?(Hash) && url.key?(:url)
           url, options = url.delete(:url), url
         end
+        options = {} if options.nil?
+
         set_callbacks(options, options[:html] ||= {})
         
         super
