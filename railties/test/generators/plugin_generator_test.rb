@@ -17,11 +17,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       vendor/plugins/plugin_fu/uninstall.rb
       vendor/plugins/plugin_fu/lib
       vendor/plugins/plugin_fu/lib/plugin_fu.rb
+      vendor/plugins/plugin_fu/Rakefile
     ).each{ |path| assert_file path }
 
     %w(
       vendor/plugins/plugin_fu/README
-      vendor/plugins/plugin_fu/Rakefile
     ).each{ |path| assert_file path, /PluginFu/ }
 
     %w(
