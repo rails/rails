@@ -1,7 +1,9 @@
 module ActionView
   module Helpers
     module AjaxHelper
-      include PrototypeHelper
+      # Included for backwards compatibility / RJS functionality
+      # Rails classes should not be aware of individual JS frameworks
+      include PrototypeHelper 
 
       def remote_form_for(record_or_name_or_array, *args, &proc)
         options = args.extract_options!
@@ -19,6 +21,7 @@ module ActionView
         attributes.merge!(options)
 
         url = attributes.delete("data-url")
+        attributes.delete(:builder)
         form_tag(attributes.delete(:action) || url, attributes, &block)
       end
 

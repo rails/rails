@@ -15,7 +15,7 @@ module ActionView #:nodoc:
     autoload :FormTagHelper, 'action_view/helpers/form_tag_helper'
     autoload :JavaScriptHelper, 'action_view/helpers/javascript_helper'
     autoload :NumberHelper, 'action_view/helpers/number_helper'
-    autoload :PrototypeHelper, 'action_view/helpers/prototype_helper'
+    autoload :AjaxHelper, 'action_view/helpers/ajax_helper'
     autoload :RawOutputHelper, 'action_view/helpers/raw_output_helper'
     autoload :RecordIdentificationHelper, 'action_view/helpers/record_identification_helper'
     autoload :RecordTagHelper, 'action_view/helpers/record_tag_helper'
@@ -48,7 +48,7 @@ module ActionView #:nodoc:
     include FormTagHelper
     include JavaScriptHelper
     include NumberHelper
-    include PrototypeHelper
+    include AjaxHelper
     include RawOutputHelper
     include RecordIdentificationHelper
     include RecordTagHelper
