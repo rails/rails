@@ -588,7 +588,7 @@ class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
 end
 
 class DefaultScopingTest < ActiveRecord::TestCase
-  fixtures :developers
+  fixtures :developers, :posts
 
   def test_default_scope
     expected = Developer.find(:all, :order => 'salary DESC').collect { |dev| dev.salary }
@@ -656,6 +656,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
     expected = Developer.find(:all, :order => 'salary').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.find(:all, :order => 'salary').collect { |dev| dev.salary }
     assert_equal expected, received
+  end
+
+  def test_default_scope_using_relation
+    posts = PostWithComment.scoped
+    assert_equal 2, posts.count
+    assert_equal posts(:thinking), posts.first
   end
 end
 

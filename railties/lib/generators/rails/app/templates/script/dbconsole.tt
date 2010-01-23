@@ -2,4 +2,4 @@ require File.expand_path('../../config/boot',  __FILE__)
 require 'rails/commands/dbconsole'
 require File.expand_path('../../config/application',  __FILE__)
 
-Rails::DBConsole.start(<%= app_const %>.instance)
+Rails::DBConsole.start(<%= app_const %>)

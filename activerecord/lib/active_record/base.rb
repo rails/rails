@@ -1236,7 +1236,7 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_arel(options = {}, scope = nil)
-          relation = unscoped.apply_finder_options(options)
+          relation = options.is_a?(Hash) ? unscoped.apply_finder_options(options) : unscoped.merge(options)
           relation = scope.merge(relation) if scope
           relation
         end
@@ -1450,7 +1450,8 @@ module ActiveRecord #:nodoc:
         end
 
         def scoped_methods #:nodoc:
-          Thread.current[:"#{self}_scoped_methods"] ||= self.default_scoping.dup
+          key = :"#{self}_scoped_methods"
+          Thread.current[key] = Thread.current[key].presence || self.default_scoping.dup
         end
 
         def current_scoped_methods #:nodoc:
