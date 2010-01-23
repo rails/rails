@@ -3,16 +3,6 @@ module ActionView
     module AjaxHelper
       include UrlHelper
 
-      def extract_remote_attributes!(options)
-        attributes = options.delete(:html) || {}
-
-        attributes.merge!(extract_update_attributes!(options))
-        attributes.merge!(extract_request_attributes!(options))
-        attributes["data-js-type"] = options.delete(:js_type) || "remote"
-
-        attributes
-      end
-
       def remote_form_for(record_or_name_or_array, *args, &proc)
         options = args.extract_options!
         object_name = extract_object_name_for_form!(args, options, record_or_name_or_array)
@@ -118,6 +108,16 @@ module ActionView
       end
 
       private
+
+      def extract_remote_attributes!(options)
+        attributes = options.delete(:html) || {}
+
+        attributes.merge!(extract_update_attributes!(options))
+        attributes.merge!(extract_request_attributes!(options))
+        attributes["data-js-type"] = options.delete(:js_type) || "remote"
+
+        attributes
+      end
 
       def extract_request_attributes!(options)
         attributes = {}
