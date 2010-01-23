@@ -45,7 +45,7 @@ module InitializerTests
       assert_path @paths.tmp, "tmp"
       assert_path @paths.tmp.cache, "tmp", "cache"
       assert_path @paths.config, "config"
-      assert_path @paths.config.locales, "config", "locales"
+      assert_path @paths.config.locales, "config", "locales", "en.yml"
       assert_path @paths.config.environment, "config", "environments", "development.rb"
 
       assert_equal root("app", "controllers"), @paths.app.controllers.to_a.first

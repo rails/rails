@@ -29,7 +29,7 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-        config.eager_load_paths = "#{app_path}/lib"
+        config.eager_load_paths << "#{app_path}/lib"
       RUBY
 
       require "#{app_path}/config/environment"
@@ -132,7 +132,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       assert_equal [
-        "#{app_path}/config/locales/en.yml", "my/other/locale.yml"
+        "my/other/locale.yml", "#{app_path}/config/locales/en.yml"
       ], Rails.application.config.i18n.load_path
     end
 

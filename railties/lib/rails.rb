@@ -8,6 +8,7 @@ require 'rails/initializable'
 require 'rails/railtie'
 require 'rails/plugin'
 require 'rails/engine'
+require 'rails/bootstrap'
 require 'rails/application'
 require 'rails/railties_path'
 require 'rails/version'
@@ -33,8 +34,6 @@ else
 end
 
 module Rails
-  autoload :Bootstrap, 'rails/bootstrap'
-
   class << self
     def application
       @@application ||= nil

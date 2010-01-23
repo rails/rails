@@ -2,6 +2,11 @@ require 'fileutils'
 
 module Rails
   class Application < Engine
+  
+    # TODO Clear up 2 way delegation flow between App class and instance.
+    # Infact just add a method_missing on the class.
+    #
+    # TODO I'd like to track the "default app" different using an inherited hook.
     class << self
       alias    :configure :class_eval
       delegate :initialize!, :load_tasks, :load_generators, :root, :to => :instance
@@ -70,10 +75,9 @@ module Rails
       routes.disable_clear_and_finalize = false
     end
 
-
     def require_environment
-      require config.environment_path
-    rescue LoadError
+      environment = config.paths.config.environment.to_a.first
+      require environment if environment
     end
 
     def load_tasks
@@ -90,13 +94,6 @@ module Rails
 
     def load_generators
       plugins.each { |p| p.load_generators }
-    end
-
-    def initializers
-      initializers = Bootstrap.new(self).initializers
-      plugins.each { |p| initializers += p.initializers }
-      initializers += super
-      initializers
     end
 
     # TODO: Fix this method. It loads all railties independent if :all is given
@@ -120,59 +117,30 @@ module Rails
       app.call(env)
     end
 
-    initializer :add_builtin_route, :before => :build_middleware_stack do |app|
+    def initializers
+      my = super
+      hook = my.index { |i| i.name == :set_autoload_paths } + 1
+      initializers = Bootstrap.new(self).initializers
+      initializers += my[0...hook]
+      plugins.each { |p| initializers += p.initializers }
+      initializers += my[hook..-1]
+      initializers
+    end
+
+    initializer :add_builtin_route do |app|
       if Rails.env.development?
         app.route_configuration_files << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
       end
     end
 
-    initializer :build_middleware_stack, :after => :load_application_initializers do
+    initializer :build_middleware_stack do
       app
     end
 
-    # Fires the user-supplied after_initialize block (Configuration#after_initialize)
-    initializer :after_initialize, :after => :build_middleware_stack do
+    # Fires the user-supplied after_initialize block (config#after_initialize)
+    initializer :after_initialize do
       config.after_initialize_blocks.each do |block|
-        block.call
-      end
-    end
-
-    # Set the i18n configuration from config.i18n but special-case for the load_path which should be
-    # appended to what's already set instead of overwritten.
-    initializer :initialize_i18n do
-      require 'active_support/i18n'
-
-      config.i18n.each do |setting, value|
-        if setting == :load_path
-          I18n.load_path += value
-        else
-          I18n.send("#{setting}=", value)
-        end
-      end
-
-      ActionDispatch::Callbacks.to_prepare do
-        I18n.reload!
-      end
-    end
-
-    initializer :set_clear_dependencies_hook do
-      unless config.cache_classes
-        ActionDispatch::Callbacks.after do
-          ActiveSupport::Dependencies.clear
-        end
-      end
-    end
-
-    initializer :initialize_notifications do
-      require 'active_support/notifications'
-
-      if config.colorize_logging == false
-        Rails::Subscriber.colorize_logging = false
-        config.generators.colorize_logging = false
-      end
-
-      ActiveSupport::Notifications.subscribe do |*args|
-        Rails::Subscriber.dispatch(args)
+        block.call(self)
       end
     end
 

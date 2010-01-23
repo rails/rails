@@ -4,7 +4,6 @@ module Rails
   # TODO Move I18n here
   # TODO Set routes namespaces
   class Engine < Railtie
-
     class << self
       attr_accessor :called_from
 
@@ -49,8 +48,8 @@ module Rails
     delegate :middleware, :root, :to => :config
 
     # Add configured load paths to ruby load paths and remove duplicates.
-    initializer :set_load_path, :before => :container do
-      expand_load_path(config.load_paths).reverse_each do |path|
+    initializer :set_load_path do
+      config.load_paths.reverse_each do |path|
         $LOAD_PATH.unshift(path) if File.directory?(path)
       end
       $LOAD_PATH.uniq!
@@ -58,11 +57,9 @@ module Rails
 
     # Set the paths from which Rails will automatically load source files,
     # and the load_once paths.
-    initializer :set_autoload_paths, :before => :container do
-      require 'active_support/dependencies'
-
-      ActiveSupport::Dependencies.load_paths      = expand_load_path(config.load_paths)
-      ActiveSupport::Dependencies.load_once_paths = expand_load_path(config.load_once_paths)
+    initializer :set_autoload_paths do
+      ActiveSupport::Dependencies.load_paths.concat(config.load_paths)
+      ActiveSupport::Dependencies.load_once_paths.concat(config.load_once_paths)
 
       extra = ActiveSupport::Dependencies.load_once_paths -
               ActiveSupport::Dependencies.load_paths
@@ -74,31 +71,32 @@ module Rails
         end_error
       end
 
-      # Freeze the arrays so future modifications will fail rather than do nothing mysteriously
+      # Freeze so future modifications will fail rather than do nothing mysteriously
       config.load_once_paths.freeze
     end
 
-    # Routing must be initialized after plugins to allow the former to extend the routes
     initializer :add_routing_files do |app|
-      routes = select_existing(config.paths.config.routes)
-      app.route_configuration_files.concat(routes)
-    end
-
-    initializer :add_view_paths do
-      views = select_existing(config.paths.app.views)
-      ActionController::Base.view_paths.concat(views) if defined? ActionController
-      ActionMailer::Base.view_paths.concat(views)     if defined? ActionMailer
-    end
-
-    initializer :load_application_initializers do
-      select_existing(config.paths.config.initializers).each do |initializers|
-        Dir["#{initializers}/**/*.rb"].sort.each do |initializer|
-          load(initializer)
-        end
+      config.paths.config.routes.to_a.each do |route|
+        app.route_configuration_files << route if File.exists?(route)
       end
     end
 
-    # Eager load application classes
+    initializer :add_locales do
+      config.i18n.load_path.concat(config.paths.config.locales.to_a)
+    end
+
+    initializer :add_view_paths do
+      views = config.paths.app.views.to_a
+      ActionController::Base.view_paths.concat(views) if defined?(ActionController)
+      ActionMailer::Base.view_paths.concat(views)     if defined?(ActionMailer)
+    end
+
+    initializer :load_application_initializers do
+      config.paths.config.initializers.each do |initializer|
+        load(initializer)
+      end
+    end
+
     initializer :load_application_classes do |app|
       next if $rails_rake_task
 
@@ -110,16 +108,6 @@ module Rails
           end
         end
       end
-    end
-
-  private
-
-    def select_existing(paths)
-      paths.to_a.select { |path| File.exists?(path) }.uniq
-    end
-
-    def expand_load_path(load_paths)
-      load_paths.map { |path| Dir.glob(path.to_s) }.flatten.uniq
     end
   end
 end

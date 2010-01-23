@@ -1,6 +1,35 @@
 require "active_support"
 require "rails"
 
+module I18n
+  class Railtie < Rails::Railtie
+    plugin_name :i18n
+
+    # Initialize I18n load paths to an array
+    config.i18n.load_path = []
+
+    initializer :initialize_i18n do
+      require 'active_support/i18n'
+
+      ActionDispatch::Callbacks.to_prepare do
+        I18n.reload!
+      end
+    end
+
+    # Set the i18n configuration from config.i18n but special-case for
+    # the load_path which should be appended to what's already set instead of overwritten.
+    config.after_initialize do |app|
+      app.config.i18n.each do |setting, value|
+        if setting == :load_path
+          I18n.load_path += value
+        else
+          I18n.send("#{setting}=", value)
+        end
+      end
+    end
+  end
+end
+
 module ActiveSupport
   class Railtie < Rails::Railtie
     plugin_name :active_support

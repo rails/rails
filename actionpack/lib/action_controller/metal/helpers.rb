@@ -51,6 +51,8 @@ module ActionController
 
     included do
       # Set the default directory for helpers
+      # TODO This should support multiple directories in order
+      # to work with engines
       extlib_inheritable_accessor(:helpers_dir) do
         defined?(Rails.root) ? "#{Rails.root}/app/helpers" : "app/helpers"
       end
