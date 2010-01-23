@@ -1,19 +1,21 @@
 module Rails
   class Railtie
+    autoload :Configurable, "rails/railtie/configurable"
+
     include Initializable
 
     ABSTRACT_RAILTIES = %w(Rails::Plugin Rails::Engine Rails::Application)
 
     class << self
-      attr_reader :subclasses
-
-      def abstract_railtie?(base)
-        ABSTRACT_RAILTIES.include?(base.name)
+      def subclasses
+        @subclasses ||= []
       end
 
       def inherited(base)
-        @subclasses ||= []
-        @subclasses << base unless abstract_railtie?(base)
+        unless abstract_railtie?(base)
+          base.send(:include, self::Configurable) if add_configurable?(base)
+          subclasses << base
+        end
       end
 
       # TODO This should be called railtie_name and engine_name
@@ -25,16 +27,12 @@ module Rails
 
       # TODO Deprecate me
       def plugins
-        @subclasses
+        subclasses
       end
 
       # TODO Deprecate me
       def plugin_names
         plugins.map { |p| p.plugin_name }
-      end
-
-      def config
-        Configuration.default
       end
 
       def subscriber(subscriber)
@@ -51,6 +49,20 @@ module Rails
         @generators ||= []
         @generators << blk if blk
         @generators
+      end
+
+    protected
+
+      def abstract_railtie?(base)
+        ABSTRACT_RAILTIES.include?(base.name)
+      end
+
+      # Just add configurable behavior if a Configurable module is defined
+      # and the class is a direct child from self. This is required to avoid
+      # application or plugins getting class configuration method from Railties
+      # and/or Engines.
+      def add_configurable?(base)
+        defined?(self::Configurable) && base.ancestors[1] == self
       end
     end
 

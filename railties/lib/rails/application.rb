@@ -9,6 +9,8 @@ module Rails
 
     # TODO Check helpers works as expected
     # TODO Check routes namespaces
+    # TODO raise "You cannot have more than one Rails::Application" if Rails.application
+    # TODO Ensure production settings are read properly
     class << self
       private :new
       alias   :configure :class_eval
@@ -17,30 +19,10 @@ module Rails
         @instance ||= new
       end
 
-      def config
-        @config ||= Configuration.new(self.original_root)
-      end
-
-      def original_root
-        @original_root ||= find_root_with_file_flag("config.ru", Dir.pwd)
-      end
-
       def inherited(base)
-        # TODO Add this check
-        # raise "You cannot have more than one Rails::Application" if Rails.application
         super
-
-        # TODO Add a test which ensures me
-        # Railtie.plugins.delete(base)
-        Rails.application ||= base.instance
-
-        base.rake_tasks do
-          require "rails/tasks"
-          task :environment do
-            $rails_rake_task = true
-            initialize!
-          end
-        end
+        Rails.application = base.instance
+        base.require_environment!
       end
 
     protected
@@ -50,14 +32,13 @@ module Rails
       end
     end
 
-    # Application is always reloadable when config.cache_classes is false.
-    def reloadable?(app)
-      true
-    end
-
-    def initialize
+    def require_environment!
       environment = config.paths.config.environment.to_a.first
       require environment if environment
+    end
+
+    def config
+      @config ||= ::Rails::Configuration.new(self.class.find_root_with_flag("config.ru", Dir.pwd))
     end
 
     def routes
@@ -82,12 +63,14 @@ module Rails
     end
 
     def load_tasks
+      initialize_tasks
       super
       railties.all { |r| r.load_tasks }
       self
     end
 
     def load_generators
+      initialize_generators
       super
       railties.all { |r| r.load_generators }
       self
@@ -108,6 +91,25 @@ module Rails
       railties.all { |r| initializers += r.initializers }
       initializers += Finisher.initializers
       initializers
+    end
+
+  protected
+
+    def initialize_tasks
+      require "rails/tasks"
+      task :environment do
+        $rails_rake_task = true
+        initialize!
+      end
+    end
+
+    def initialize_generators
+      require "rails/generators"
+    end
+
+    # Application is always reloadable when config.cache_classes is false.
+    def reloadable?(app)
+      true
     end
   end
 end

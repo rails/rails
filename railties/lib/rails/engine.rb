@@ -2,29 +2,23 @@ require 'active_support/core_ext/module/delegation'
 
 module Rails
   class Engine < Railtie
+    autoload :Configurable, "rails/engine/configurable"
+
     class << self
       attr_accessor :called_from
-      delegate :middleware, :root, :paths, :to => :config
-
-      def original_root
-        @original_root ||= find_root_with_file_flag("lib")
-      end
-
-      def config
-        @config ||= Configuration.new(original_root)
-      end
 
       def inherited(base)
-        base.called_from = begin
-          call_stack = caller.map { |p| p.split(':').first }
-          File.dirname(call_stack.detect { |p| p !~ %r[railties/lib/rails|rack/lib/rack] })
+        unless abstract_railtie?(base)
+          base.called_from = begin
+            call_stack = caller.map { |p| p.split(':').first }
+            File.dirname(call_stack.detect { |p| p !~ %r[railties/lib/rails|rack/lib/rack] })
+          end
         end
+
         super
       end
 
-    protected
-
-      def find_root_with_file_flag(flag, default=nil)
+      def find_root_with_flag(flag, default=nil)
         root_path = self.called_from
 
         while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
@@ -41,14 +35,6 @@ module Rails
     end
 
     delegate :middleware, :paths, :root, :to => :config
-
-    def config
-      self.class.config
-    end
-
-    def reloadable?(app)
-      app.config.reload_plugins
-    end
 
     def load_tasks
       super 
@@ -112,6 +98,12 @@ module Rails
           end
         end
       end
+    end
+
+  protected
+
+    def reloadable?(app)
+      app.config.reload_plugins
     end
   end
 end

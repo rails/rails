@@ -1,27 +1,21 @@
 module Rails
   class Plugin < Engine
-    class << self
-      def inherited(base)
-        raise "You should not inherit from Rails::Plugin"
+    def self.inherited(base)
+      raise "You cannot inherit from Rails::Plugin"
+    end
+
+    def self.all(list, paths)
+      plugins = []
+      paths.each do |path|
+        Dir["#{path}/*"].each do |plugin_path|
+          plugin = new(plugin_path)
+          next unless list.include?(plugin.name) || list.include?(:all)
+          plugins << plugin
+        end
       end
 
-      def config
-        raise "Plugins does not provide configuration at the class level"
-      end
-
-      def all(list, paths)
-        plugins = []
-        paths.each do |path|
-          Dir["#{path}/*"].each do |plugin_path|
-            plugin = new(plugin_path)
-            next unless list.include?(plugin.name) || list.include?(:all)
-            plugins << plugin
-          end
-        end
-
-        plugins.sort_by do |p|
-          [list.index(p.name) || list.index(:all), p.name.to_s]
-        end
+      plugins.sort_by do |p|
+        [list.index(p.name) || list.index(:all), p.name.to_s]
       end
     end
 
