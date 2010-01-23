@@ -1,9 +1,13 @@
+require 'rails/engine'
+
 module Rails
   class Plugin < Engine
     def self.inherited(base)
       raise "You cannot inherit from Rails::Plugin"
     end
 
+    # TODO Right now, if a plugin has an Engine or a Railtie inside it,
+    # the initializers for this plugin will be executed twice.
     def self.all(list, paths)
       plugins = []
       paths.each do |path|

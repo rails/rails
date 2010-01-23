@@ -1,7 +1,7 @@
 require 'set'
 
 module Rails
-  class Application
+  module Paths
     module PathParent
       def method_missing(id, *args)
         name = id.to_s

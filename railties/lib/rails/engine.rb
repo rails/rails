@@ -1,8 +1,10 @@
 require 'active_support/core_ext/module/delegation'
+require 'rails/railtie'
 
 module Rails
   class Engine < Railtie
-    autoload :Configurable, "rails/engine/configurable"
+    autoload :Configurable,  "rails/engine/configurable"
+    autoload :Configuration, "rails/engine/configuration"
 
     class << self
       attr_accessor :called_from

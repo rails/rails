@@ -79,17 +79,17 @@ module InitializerTests
 
     test "controller paths include builtin in development mode" do
       Rails.env.replace "development"
-      assert Rails::Configuration.new("/").paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
+      assert Rails::Application::Configuration.new("/").paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
     end
 
     test "controller paths does not have builtin_directories in test mode" do
       Rails.env.replace "test"
-      assert !Rails::Configuration.new("/").paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
+      assert !Rails::Application::Configuration.new("/").paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
     end
 
     test "controller paths does not have builtin_directories in production mode" do
       Rails.env.replace "production"
-      assert !Rails::Configuration.new("/").paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
+      assert !Rails::Application::Configuration.new("/").paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
     end
 
   end

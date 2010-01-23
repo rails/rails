@@ -1,6 +1,10 @@
+require 'rails/initializable'
+require 'rails/configuration'
+
 module Rails
   class Railtie
-    autoload :Configurable, "rails/railtie/configurable"
+    autoload :Configurable,  "rails/railtie/configurable"
+    autoload :Configuration, "rails/railtie/configuration"
 
     include Initializable
 

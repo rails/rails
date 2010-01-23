@@ -7,7 +7,7 @@ module Rails
 
       module ClassMethods
         def config
-          @config ||= Configuration.new
+          @config ||= Railtie::Configuration.new
         end
 
         def inherited(base)

@@ -8,7 +8,7 @@ module Rails
 
       module ClassMethods
         def config
-          @config ||= Configuration.new(find_root_with_flag("lib"))
+          @config ||= Engine::Configuration.new(find_root_with_flag("lib"))
         end
 
         def inherited(base)

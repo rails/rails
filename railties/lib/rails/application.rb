@@ -1,8 +1,13 @@
 require 'fileutils'
+require 'rails/railties_path'
+require 'rails/railtie'
+require 'rails/engine'
+require 'rails/plugin'
 
 module Rails
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
+    autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
     autoload :Railties,       'rails/application/railties'
     autoload :RoutesReloader, 'rails/application/routes_reloader'
@@ -38,7 +43,7 @@ module Rails
     end
 
     def config
-      @config ||= ::Rails::Configuration.new(self.class.find_root_with_flag("config.ru", Dir.pwd))
+      @config ||= Application::Configuration.new(self.class.find_root_with_flag("config.ru", Dir.pwd))
     end
 
     def routes
