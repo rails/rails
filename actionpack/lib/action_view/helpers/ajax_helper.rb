@@ -60,7 +60,6 @@ module ActionView
       def observe_field(name, options = {})
         options[:observed] = name
         attributes = extract_observer_attributes!(options)
-        attributes["data-observe"] = true
 
         script_decorator(attributes)
       end
@@ -68,7 +67,6 @@ module ActionView
       def observe_form(name, options = {})
         options[:observed] = name
         attributes = extract_observer_attributes!(options)
-        attributes["data-js-type"] = "form_observer"
 
         script_decorator(attributes)
       end
@@ -130,6 +128,7 @@ module ActionView
 
         def extract_observer_attributes!(options)
           attributes = extract_remote_attributes!(options)
+          attributes["data-observe"] = true
           attributes["data-observed"] = options.delete(:observed)
 
           callback = options.delete(:function)
