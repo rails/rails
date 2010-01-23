@@ -100,3 +100,8 @@ end
 class SubStiPost < StiPost
   self.table_name = Post.table_name
 end
+
+class PostWithComment < ActiveRecord::Base
+  self.table_name = 'posts'
+  default_scope where("posts.comments_count > 0").order("posts.comments_count ASC")
+end
