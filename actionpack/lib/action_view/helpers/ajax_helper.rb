@@ -154,34 +154,37 @@ module ActionView
         def create_js_function(statements, *arguments)
           "function(#{arguments.join(", ")}) {#{statements}}"
         end
+    end
 
-      # TODO: All evaled goes here per wycat
-      module Rails2Compatibility
-        def set_callbacks(options, html)
-          [:complete, :failure, :success, :interactive, :loaded, :loading].each do |type|
-            html["data-#{type}-code"]  = options.delete(type.to_sym)
-          end
+    # TODO: All evaled goes here per wycat
+    module AjaxHelperCompat
+      include AjaxHelper
 
-          options.each do |option, value|
-            if option.is_a?(Integer)
-              html["data-#{option}-code"] = options.delete(option)
-            end
+      def set_callbacks(options, html)
+        [:complete, :failure, :success, :interactive, :loaded, :loading].each do |type|
+          html["data-#{type}-code"]  = options.delete(type.to_sym)
+        end
+
+        options.each do |option, value|
+          if option.is_a?(Integer)
+            html["data-#{option}-code"] = options.delete(option)
           end
         end
-        
-        def link_to_remote(name, url, options = nil)
-          if !options && url.is_a?(Hash) && url.key?(:url)
-            url, options = url.delete(:url), url
-          end
-          set_callbacks(options, options[:html] ||= {})
-          
-          super
+      end
+      
+      def link_to_remote(name, url, options = nil)
+        if !options && url.is_a?(Hash) && url.key?(:url)
+          url, options = url.delete(:url), url
         end
+        set_callbacks(options, options[:html] ||= {})
         
-        def button_to_remote(name, options = {}, html_options = {})
-          set_callbacks(options, html_options)
-          super
-        end
+        super
+      end
+      
+      def button_to_remote(name, options = {}, html_options = {})
+        html_options.merge!(:testing => true)
+        set_callbacks(options, html_options)
+        super
       end
     end
   end
