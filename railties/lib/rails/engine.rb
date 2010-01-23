@@ -77,12 +77,12 @@ module Rails
 
     initializer :add_routing_files do |app|
       config.paths.config.routes.to_a.each do |route|
-        app.route_configuration_files << route if File.exists?(route)
+        app.route_configuration_files.unshift(route) if File.exists?(route)
       end
     end
 
     initializer :add_locales do
-      config.i18n.load_path.concat(config.paths.config.locales.to_a)
+      config.i18n.load_path.unshift(*config.paths.config.locales.to_a)
     end
 
     initializer :add_view_paths do

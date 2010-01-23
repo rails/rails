@@ -132,7 +132,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       assert_equal [
-        "my/other/locale.yml", "#{app_path}/config/locales/en.yml"
+        "#{app_path}/config/locales/en.yml", "my/other/locale.yml"
       ], Rails.application.config.i18n.load_path
     end
 

@@ -170,13 +170,12 @@ module Rails
                   :plugins, :preload_frameworks, :reload_plugins,
                   :serve_static_assets, :time_zone, :whiny_nils
 
-
     def initialize(*)      
       super
       @filter_parameters   = []
       @dependency_loading  = true
       @serve_static_assets = true
-    end                    
+    end
 
     def paths
       @paths ||= begin

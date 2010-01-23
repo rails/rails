@@ -24,8 +24,8 @@ module InitializerTests
         #{RAILS_FRAMEWORK_ROOT}/activemodel/lib/active_model/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/activerecord/lib/active_record/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/actionpack/lib/action_view/locale/en.yml
-        my/other/locale.yml
         #{RAILS_FRAMEWORK_ROOT}/railties/tmp/app/config/locales/en.yml
+        my/other/locale.yml
       ).map { |path| File.expand_path(path) }, I18n.load_path.map { |path| File.expand_path(path) }
     end
 
