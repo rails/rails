@@ -104,8 +104,8 @@ class ButtonToRemoteTest < AjaxTestCase
 
   class StandardTest < ButtonToRemoteTest
     test "basic" do
-      assert_html button({:url => {:action => "whatnot"}}, {:class => "fine"}),
-        %w(input class="fine" type="button" value="Remote outpost" data-url="/url/hash")
+      expected = %{<input class="fine" data-remote="true" data-url="/url/hash" type="button" value="Remote outpost" />}
+      assert_equal expected, button({:url => "/url/hash"}, {:class => "fine"})
     end
   end
 

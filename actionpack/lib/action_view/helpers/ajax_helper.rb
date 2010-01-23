@@ -32,8 +32,9 @@ module ActionView
       end
 
       def button_to_remote(name, options = {}, html_options = {})
-        attributes = html_options.merge!(:type => "button")
+        attributes = html_options.merge!(:type => "button", :value => name)
         attributes.merge!(extract_remote_attributes!(options))
+        attributes.merge!(extract_request_attributes!(options))
 
         tag(:input, attributes)
       end
@@ -59,7 +60,7 @@ module ActionView
       def observe_field(name, options = {})
         options[:observed] = name
         attributes = extract_observer_attributes!(options)
-        attributes["data-js-type"] = "field_observer"
+        attributes["data-observe"] = true
 
         script_decorator(attributes)
       end
@@ -85,7 +86,7 @@ module ActionView
 
           attributes.merge!(extract_update_attributes!(options))
           attributes.merge!(extract_request_attributes!(options))
-          attributes["data-js-type"] = options.delete(:js_type) || "remote"
+          attributes["data-remote"] = true 
 
           attributes
         end
