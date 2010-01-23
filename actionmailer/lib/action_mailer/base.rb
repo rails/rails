@@ -297,8 +297,9 @@ module ActionMailer #:nodoc:
     self.default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
 
     # Expose the internal Mail message
+    # TODO: Make this an _internal ivar? 
     attr_reader :message
-
+    
     def headers(args=nil)
       if args
         ActiveSupport::Deprecation.warn "headers(Hash) is deprecated, please do headers[key] = value instead", caller
@@ -413,12 +414,25 @@ module ActionMailer #:nodoc:
       m.reply_to  ||= quote_address_if_necessary(headers[:reply_to], charset) if headers[:reply_to]
       m.date      ||= headers[:date]                                          if headers[:date]
 
-      if block_given?
-        # Do something
+      if headers[:body]
+        templates = [ActionView::Template::Text.new(headers[:body], format_for_text)]
+      elsif block_given?
+        collector = ActionMailer::Collector.new(self, {:charset => charset}) do
+          render action_name
+        end
+        yield collector
+        
+        collector.responses.each do |response|
+          part = Mail::Part.new(response)
+          m.add_part(part)
+        end
+        
       else
         # TODO Ensure that we don't need to pass I18n.locale as detail
         templates = self.class.template_root.find_all(action_name, {}, self.class.mailer_name)
-
+      end
+      
+      if templates
         if templates.size == 1 && !m.has_attachments?
           content_type ||= templates[0].mime_type.to_s
           m.body = render_to_body(:_template => templates[0])
@@ -430,9 +444,9 @@ module ActionMailer #:nodoc:
         else
           templates.each { |t| insert_part(m, t, charset) }
         end
-
-        content_type ||= (m.has_attachments? ? "multipart/mixed" : "multipart/alternate")
       end
+
+      content_type ||= (m.has_attachments? ? "multipart/mixed" : "multipart/alternate")
 
       # Check if the content_type was not overwriten along the way and if so,
       # fallback to default.
@@ -440,7 +454,7 @@ module ActionMailer #:nodoc:
       m.charset      = charset
       m.mime_version = mime_version
 
-      unless m.parts.empty?
+      if m.parts.present? && templates
         m.body.set_sort_order(headers[:parts_order] || self.class.default_implicit_parts_order.dup)
         m.body.sort_parts!
       end

@@ -31,6 +31,7 @@ module ActionMailer
   extend ::ActiveSupport::Autoload
 
   autoload :AdvAttrAccessor
+  autoload :Collector
   autoload :Base
   autoload :DeliveryMethods
   autoload :DeprecatedApi
