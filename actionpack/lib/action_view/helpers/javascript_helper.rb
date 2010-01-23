@@ -39,7 +39,7 @@ module ActionView
         JAVASCRIPT_PATH = File.join(File.dirname(__FILE__), 'javascripts')
       end
 
-      include PrototypeHelper
+      include AjaxHelper::Rails2Compatibility
 
       # Returns a link of the given +name+ that will trigger a JavaScript +function+ using the
       # onclick handler and return false after the fact.

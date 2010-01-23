@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
     module AjaxHelper
-      include UrlHelper
+      include PrototypeHelper
 
       def remote_form_for(record_or_name_or_array, *args, &proc)
         options = args.extract_options!
@@ -28,7 +28,7 @@ module ActionView
         attributes.merge!(options)
 
         url = url_for(url) if url.is_a?(Hash)
-        link_to(name, url, attributes)
+        content_tag(:a, name, attributes.merge(:href => url))
       end
 
       def button_to_remote(name, options = {}, html_options = {})
