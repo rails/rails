@@ -398,8 +398,7 @@ module ActionMailer #:nodoc:
       m = @message
 
       # Get default subject from I18n if none is set
-      headers[:subject] ||= I18n.t(:subject, :scope => [:actionmailer, mailer_name, action_name],
-                                             :default => action_name.humanize)
+      headers[:subject] ||= default_subject
 
       # Give preference to headers and fallbacks to the ones set in mail
       content_type = headers[:content_type] || m.content_type
@@ -418,7 +417,7 @@ module ActionMailer #:nodoc:
         # Do something
       else
         # TODO Ensure that we don't need to pass I18n.locale as detail
-        templates = self.class.template_root.find_all(action_name, {}, mailer_name)
+        templates = self.class.template_root.find_all(action_name, {}, self.class.mailer_name)
 
         if templates.size == 1 && !m.has_attachments?
           content_type ||= templates[0].mime_type.to_s
@@ -447,6 +446,11 @@ module ActionMailer #:nodoc:
       end
 
       m
+    end
+
+    def default_subject
+      mailer_scope = self.class.mailer_name.gsub('/', '.')
+      I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
     end
 
     def insert_part(container, template, charset)
