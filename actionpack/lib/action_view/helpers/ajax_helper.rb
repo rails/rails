@@ -78,7 +78,81 @@ module ActionView
         "<script " + attributes.join(" ") + "></script>"
       end
 
-      # TODO: All evaled goes here per wycats
+      private
+
+        def extract_remote_attributes!(options)
+          attributes = options.delete(:html) || {}
+
+          attributes.merge!(extract_update_attributes!(options))
+          attributes.merge!(extract_request_attributes!(options))
+          attributes["data-js-type"] = options.delete(:js_type) || "remote"
+
+          attributes
+        end
+
+        def extract_request_attributes!(options)
+          attributes = {}
+          attributes["data-method"] = options.delete(:method)
+
+          url = options.delete(:url)
+          attributes["data-url"] = url.is_a?(Hash) ? url_for(url) : url
+
+          #TODO: Remove all references to prototype - BR
+          if options.delete(:form)
+            attributes["data-parameters"] = 'Form.serialize(this)'
+          elsif submit = options.delete(:submit)
+            attributes["data-parameters"] = "Form.serialize('#{submit}')"
+          elsif with = options.delete(:with)
+            if with !~ /[\{=(.]/
+              attributes["data-with"] = "'#{with}=' + encodeURIComponent(value)"
+            else
+              attributes["data-with"] = with
+            end
+          end
+
+          purge_unused_attributes!(attributes)
+        end
+
+        def extract_update_attributes!(options)
+          attributes = {}
+          update = options.delete(:update)
+          if update.is_a?(Hash)
+            attributes["data-update-success"] = update[:success]
+            attributes["data-update-failure"] = update[:failure]
+          else
+            attributes["data-update-success"] = update
+          end
+          attributes["data-update-position"] = options.delete(:position)
+
+          purge_unused_attributes!(attributes)
+        end
+
+        def extract_observer_attributes!(options)
+          attributes = extract_remote_attributes!(options)
+          attributes["data-observed"] = options.delete(:observed)
+
+          callback = options.delete(:function)
+          frequency = options.delete(:frequency)
+          if callback
+            attributes["data-observer-code"] = create_js_function(callback, "element", "value")
+          end
+          if frequency && frequency != 0
+            attributes["data-frequency"] = frequency.to_i
+          end
+
+          purge_unused_attributes!(attributes)
+        end
+
+        def purge_unused_attributes!(attributes)
+          attributes.delete_if {|key, value| value.nil? }
+          attributes
+        end
+
+        def create_js_function(statements, *arguments)
+          "function(#{arguments.join(", ")}) {#{statements}}"
+        end
+
+      # TODO: All evaled goes here per wycat
       module Rails2Compatibility
         def set_callbacks(options, html)
           [:complete, :failure, :success, :interactive, :loaded, :loading].each do |type|
@@ -106,81 +180,6 @@ module ActionView
           super
         end
       end
-
-      private
-
-      def extract_remote_attributes!(options)
-        attributes = options.delete(:html) || {}
-
-        attributes.merge!(extract_update_attributes!(options))
-        attributes.merge!(extract_request_attributes!(options))
-        attributes["data-js-type"] = options.delete(:js_type) || "remote"
-
-        attributes
-      end
-
-      def extract_request_attributes!(options)
-        attributes = {}
-        attributes["data-method"] = options.delete(:method)
-
-        url = options.delete(:url)
-        attributes["data-url"] = url.is_a?(Hash) ? url_for(url) : url
-
-        #TODO: Remove all references to prototype - BR
-        if options.delete(:form)
-          attributes["data-parameters"] = 'Form.serialize(this)'
-        elsif submit = options.delete(:submit)
-          attributes["data-parameters"] = "Form.serialize('#{submit}')"
-        elsif with = options.delete(:with)
-          if with !~ /[\{=(.]/
-            attributes["data-with"] = "'#{with}=' + encodeURIComponent(value)"
-          else
-            attributes["data-with"] = with
-          end
-        end
-
-        purge_unused_attributes!(attributes)
-      end
-
-      def extract_update_attributes!(options)
-        attributes = {}
-        update = options.delete(:update)
-        if update.is_a?(Hash)
-          attributes["data-update-success"] = update[:success]
-          attributes["data-update-failure"] = update[:failure]
-        else
-          attributes["data-update-success"] = update
-        end
-        attributes["data-update-position"] = options.delete(:position)
-
-        purge_unused_attributes!(attributes)
-      end
-
-      def extract_observer_attributes!(options)
-        attributes = extract_remote_attributes!(options)
-        attributes["data-observed"] = options.delete(:observed)
-
-        callback = options.delete(:function)
-        frequency = options.delete(:frequency)
-        if callback
-          attributes["data-observer-code"] = create_js_function(callback, "element", "value")
-        end
-        if frequency && frequency != 0
-          attributes["data-frequency"] = frequency.to_i
-        end
-
-        purge_unused_attributes!(attributes)
-      end
-
-      def purge_unused_attributes!(attributes)
-        attributes.delete_if {|key, value| value.nil? }
-        attributes
-      end
-
-      def create_js_function(statements, *arguments)
-        "function(#{arguments.join(", ")}) {#{statements}}"
-      end
-
     end
   end
 end
