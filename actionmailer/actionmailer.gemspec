@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://www.rubyonrails.org"
 
   s.add_dependency('actionpack', '= 3.0.pre')
-  s.add_dependency('mail', '~> 2.0.2')
+  s.add_dependency('mail', '~> 2.0.3')
 
   s.files = Dir['CHANGELOG', 'README', 'MIT-LICENSE', 'lib/**/*']
   s.has_rdoc = true
