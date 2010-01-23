@@ -1,5 +1,5 @@
 require 'active_support/core_ext/class'
-require "active_support/core_ext/module/delegation"
+require 'active_support/core_ext/module/delegation'
 require 'mail'
 require 'action_mailer/tmail_compat'
 
@@ -391,90 +391,6 @@ module ActionMailer #:nodoc:
       end
     end
 
-    # TODO Add new delivery method goodness
-    def mail(headers = {})
-      # Guard flag to prevent both the old and the new API from firing
-      # Should be removed when old API is deprecated
-      @mail_was_called = true
-      m = @message
-
-      # Get default subject from I18n if none is set
-      headers[:subject] ||= default_subject
-
-      # Give preference to headers and fallbacks to the ones set in mail
-      content_type = headers[:content_type] || m.content_type
-      charset      = headers[:charset]      || m.charset      || self.class.default_charset.dup
-      mime_version = headers[:mime_version] || m.mime_version || self.class.default_mime_version.dup
-
-      m.subject   ||= quote_if_necessary(headers[:subject], charset)          if headers[:subject]
-      m.to        ||= quote_address_if_necessary(headers[:to], charset)       if headers[:to]
-      m.from      ||= quote_address_if_necessary(headers[:from], charset)     if headers[:from]
-      m.cc        ||= quote_address_if_necessary(headers[:cc], charset)       if headers[:cc]
-      m.bcc       ||= quote_address_if_necessary(headers[:bcc], charset)      if headers[:bcc]
-      m.reply_to  ||= quote_address_if_necessary(headers[:reply_to], charset) if headers[:reply_to]
-      m.date      ||= headers[:date]                                          if headers[:date]
-
-      if headers[:body]
-        templates = [ActionView::Template::Text.new(headers[:body], format_for_text)]
-      elsif block_given?
-        collector = ActionMailer::Collector.new(self, {:charset => charset}) do
-          render action_name
-        end
-        yield collector
-        
-        collector.responses.each do |response|
-          part = Mail::Part.new(response)
-          m.add_part(part)
-        end
-        
-      else
-        # TODO Ensure that we don't need to pass I18n.locale as detail
-        templates = self.class.template_root.find_all(action_name, {}, self.class.mailer_name)
-      end
-      
-      if templates
-        if templates.size == 1 && !m.has_attachments?
-          content_type ||= templates[0].mime_type.to_s
-          m.body = render_to_body(:_template => templates[0])
-        elsif templates.size > 1 && m.has_attachments? 
-          container = Mail::Part.new
-          container.content_type = "multipart/alternate"
-          templates.each { |t| insert_part(container, t, charset) }
-          m.add_part(container)
-        else
-          templates.each { |t| insert_part(m, t, charset) }
-        end
-      end
-
-      content_type ||= (m.has_attachments? ? "multipart/mixed" : "multipart/alternate")
-
-      # Check if the content_type was not overwriten along the way and if so,
-      # fallback to default.
-      m.content_type = content_type || self.class.default_content_type.dup
-      m.charset      = charset
-      m.mime_version = mime_version
-
-      if m.parts.present? && templates
-        m.body.set_sort_order(headers[:parts_order] || self.class.default_implicit_parts_order.dup)
-        m.body.sort_parts!
-      end
-
-      m
-    end
-
-    def default_subject
-      mailer_scope = self.class.mailer_name.gsub('/', '.')
-      I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
-    end
-
-    def insert_part(container, template, charset)
-      part = Mail::Part.new
-      part.content_type = template.mime_type.to_s
-      part.charset = charset
-      part.body = render_to_body(:_template => template)
-      container.add_part(part)
-    end
-
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
@@ -490,6 +406,92 @@ module ActionMailer #:nodoc:
     # no alternate has been given as the parameter, this will fail.
     def deliver!(mail = @message)
       self.class.deliver(mail)
+    end
+
+    # TODO Add new delivery method goodness
+    def mail(headers = {})
+      # Guard flag to prevent both the old and the new API from firing
+      # Should be removed when old API is deprecated
+      @mail_was_called = true
+
+      m, sort_parts = @message, true
+
+      # Give preference to headers and fallback to the ones set in mail
+      content_type = headers[:content_type] || m.content_type
+      charset      = headers[:charset]      || m.charset      || self.class.default_charset.dup
+      mime_version = headers[:mime_version] || m.mime_version || self.class.default_mime_version.dup
+
+      headers[:subject] ||= default_subject
+      quote_fields(m, headers, charset)
+
+      responses = if headers[:body]
+        [ { :body => headers[:body], :content_type => self.class.default_content_type.dup } ]
+      elsif block_given?
+        sort_parts = false
+        collector = ActionMailer::Collector.new(self) { render(action_name) }
+        yield(collector)
+        collector.responses
+      else
+        # TODO Ensure that we don't need to pass I18n.locale as detail
+        templates = self.class.template_root.find_all(action_name, {}, self.class.mailer_name)
+
+        templates.map do |template|
+          { :body => render_to_body(:_template => template),
+            :content_type => template.mime_type.to_s }
+        end
+      end
+
+      content_type ||= create_parts_from_responses(m, responses, charset)
+
+      m.content_type = content_type
+      m.charset      = charset
+      m.mime_version = mime_version
+
+      if sort_parts && m.parts.present?
+        m.body.set_sort_order(headers[:parts_order] || self.class.default_implicit_parts_order.dup)
+        m.body.sort_parts!
+      end
+
+      m
+    end
+
+  protected
+
+    def default_subject #:nodoc:
+      mailer_scope = self.class.mailer_name.gsub('/', '.')
+      I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
+    end
+
+    def quote_fields(m, headers, charset) #:nodoc:
+      m.subject   ||= quote_if_necessary(headers[:subject], charset)          if headers[:subject]
+      m.to        ||= quote_address_if_necessary(headers[:to], charset)       if headers[:to]
+      m.from      ||= quote_address_if_necessary(headers[:from], charset)     if headers[:from]
+      m.cc        ||= quote_address_if_necessary(headers[:cc], charset)       if headers[:cc]
+      m.bcc       ||= quote_address_if_necessary(headers[:bcc], charset)      if headers[:bcc]
+      m.reply_to  ||= quote_address_if_necessary(headers[:reply_to], charset) if headers[:reply_to]
+      m.date      ||= headers[:date]                                          if headers[:date]
+    end
+
+    def create_parts_from_responses(m, responses, charset) #:nodoc:
+      if responses.size == 1 && !m.has_attachments?
+        m.body = responses[0][:body]
+        return responses[0][:content_type]
+      elsif responses.size > 1 && m.has_attachments? 
+        container = Mail::Part.new
+        container.content_type = "multipart/alternate"
+        responses.each { |r| insert_part(container, r, charset) }
+        m.add_part(container)
+      else
+        responses.each { |r| insert_part(m, r, charset) }
+      end
+
+      m.has_attachments? ? "multipart/mixed" : "multipart/alternate"
+    end
+
+    def insert_part(container, response, charset) #:nodoc:
+      response[:charset] ||= charset
+      part = Mail::Part.new(response)
+      container.add_part(part)
     end
 
   end

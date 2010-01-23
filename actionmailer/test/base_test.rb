@@ -54,9 +54,9 @@ class BaseTest < ActiveSupport::TestCase
       mail(DEFAULT_HEADERS.merge(hash))
     end
 
-    def attachment_with_content
+    def attachment_with_content(hash = {})
       attachments['invoice.pdf'] = 'This is test File content'
-      mail(DEFAULT_HEADERS)
+      mail(DEFAULT_HEADERS.merge(hash))
     end
 
     def attachment_with_hash
@@ -69,8 +69,9 @@ class BaseTest < ActiveSupport::TestCase
       attachments['invoice.pdf'] = 'This is test File content' if hash.delete(:attachments)
       mail(DEFAULT_HEADERS.merge(hash))
     end
-    
+
     def explicit_multipart(hash = {})
+      attachments['invoice.pdf'] = 'This is test File content' if hash.delete(:attachments)
       mail(DEFAULT_HEADERS.merge(hash)) do |format|
         format.text { render :text => "TEXT Explicit Multipart" }
         format.html { render :text => "HTML Explicit Multipart" }
@@ -116,6 +117,7 @@ class BaseTest < ActiveSupport::TestCase
 
   test "can pass in :body to the mail method hash" do
     email = BaseMailer.deliver_welcome(:body => "Hello there")
+    assert_equal("text/plain", email.mime_type)
     assert_equal("Hello there", email.body.encoded)
   end
 
@@ -154,8 +156,19 @@ class BaseTest < ActiveSupport::TestCase
   test "adds the rendered template as part" do
     email = BaseMailer.deliver_attachment_with_content
     assert_equal(2, email.parts.length)
+    assert_equal("multipart/mixed", email.mime_type)
     assert_equal("text/html", email.parts[0].mime_type)
     assert_equal("Attachment with content", email.parts[0].body.encoded)
+    assert_equal("application/pdf", email.parts[1].mime_type)
+    assert_equal("VGhpcyBpcyB0ZXN0IEZpbGUgY29udGVudA==\r\n", email.parts[1].body.encoded)
+  end
+
+  test "adds the given :body as part" do
+    email = BaseMailer.deliver_attachment_with_content(:body => "I'm the eggman")
+    assert_equal(2, email.parts.length)
+    assert_equal("multipart/mixed", email.mime_type)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("I'm the eggman", email.parts[0].body.encoded)
     assert_equal("application/pdf", email.parts[1].mime_type)
     assert_equal("VGhpcyBpcyB0ZXN0IEZpbGUgY29udGVudA==\r\n", email.parts[1].body.encoded)
   end
@@ -268,15 +281,15 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
-  #test "explicit multipart with attachments creates nested parts" do
-  #  email = BaseMailer.deliver_explicit_multipart(:attachments => true)
-  #  assert_equal("application/pdf", email.parts[0].mime_type)
-  #  assert_equal("multipart/alternate", email.parts[1].mime_type)
-  #  assert_equal("text/plain", email.parts[1].parts[0].mime_type)
-  #  assert_equal("TEXT Implicit Multipart", email.parts[1].parts[0].body.encoded)
-  #  assert_equal("text/html", email.parts[1].parts[1].mime_type)
-  #  assert_equal("HTML Implicit Multipart", email.parts[1].parts[1].body.encoded)
-  #end
+  test "explicit multipart with attachments creates nested parts" do
+   email = BaseMailer.deliver_explicit_multipart(:attachments => true)
+   assert_equal("application/pdf", email.parts[0].mime_type)
+   assert_equal("multipart/alternate", email.parts[1].mime_type)
+   assert_equal("text/plain", email.parts[1].parts[0].mime_type)
+   assert_equal("TEXT Explicit Multipart", email.parts[1].parts[0].body.encoded)
+   assert_equal("text/html", email.parts[1].parts[1].mime_type)
+   assert_equal("HTML Explicit Multipart", email.parts[1].parts[1].body.encoded)
+  end
 
   protected
 
