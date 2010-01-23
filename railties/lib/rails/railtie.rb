@@ -5,26 +5,30 @@ module Rails
     ABSTRACT_RAILTIES = %w(Rails::Plugin Rails::Engine Rails::Application)
 
     class << self
+      attr_reader :subclasses
+
       def abstract_railtie?(base)
         ABSTRACT_RAILTIES.include?(base.name)
       end
 
       def inherited(base)
-        @@plugins ||= []
-        @@plugins << base unless abstract_railtie?(base)
+        @subclasses ||= []
+        @subclasses << base unless abstract_railtie?(base)
       end
 
-      # This should be called railtie_name and engine_name
+      # TODO This should be called railtie_name and engine_name
       def plugin_name(plugin_name = nil)
         @plugin_name ||= name.demodulize.underscore
         @plugin_name = plugin_name if plugin_name
         @plugin_name
       end
 
+      # TODO Deprecate me
       def plugins
-        @@plugins
+        @subclasses
       end
 
+      # TODO Deprecate me
       def plugin_names
         plugins.map { |p| p.plugin_name }
       end
@@ -59,12 +63,10 @@ module Rails
     end
 
     def load_tasks
-      return unless rake_tasks
       rake_tasks.each { |blk| blk.call }
     end
 
     def load_generators
-      return unless generators
       generators.each { |blk| blk.call }
     end
   end

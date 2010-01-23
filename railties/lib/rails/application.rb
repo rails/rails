@@ -4,6 +4,7 @@ module Rails
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
     autoload :Finisher,       'rails/application/finisher'
+    autoload :Railties,       'rails/application/railties'
     autoload :RoutesReloader, 'rails/application/routes_reloader'
 
     # TODO Check helpers works as expected
@@ -25,9 +26,22 @@ module Rails
       end
 
       def inherited(base)
+        # TODO Add this check
+        # raise "You cannot have more than one Rails::Application" if Rails.application
         super
-        Railtie.plugins.delete(base)
-        Rails.application = base.instance
+
+        # TODO Add a test which ensures me
+        # Railtie.plugins.delete(base)
+        Rails.application ||= base.instance
+
+        base.rake_tasks do
+          require "rails/tasks"
+          paths.lib.tasks.to_a.sort.each { |r| load(rake) }
+          task :environment do
+            $rails_rake_task = true
+            initialize!
+          end
+        end
       end
 
     protected
@@ -38,11 +52,16 @@ module Rails
     end
 
     def initialize
-      require_environment
+      environment = config.paths.config.environment.to_a.first
+      require environment if environment
     end
 
     def routes
-      ActionController::Routing::Routes
+      ::ActionController::Routing::Routes
+    end
+
+    def railties
+      @railties ||= Railties.new(config)
     end
 
     def routes_reloader
@@ -58,34 +77,16 @@ module Rails
       self
     end
 
-    def require_environment
-      environment = config.paths.config.environment.to_a.first
-      require environment if environment
-    end
-
     def load_tasks
-      require "rails/tasks"
-      plugins.each { |p| p.load_tasks }
-      # Load all application tasks
-      # TODO: extract out the path to the rake tasks
-      Dir["#{root}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }
-      task :environment do
-        $rails_rake_task = true
-        initialize!
-      end
+      super
+      railties.all { |r| r.load_tasks }
+      self
     end
 
     def load_generators
-      plugins.each { |p| p.load_generators }
-    end
-
-    # TODO: Fix this method. It loads all railties independent if :all is given
-    # or not, otherwise frameworks are never loaded.
-    def plugins
-      @plugins ||= begin
-        plugin_names = (config.plugins || [:all]).map { |p| p.to_sym }
-        Railtie.plugins.map(&:new) + Plugin.all(plugin_names, config.paths.vendor.plugins)
-      end
+      super
+      railties.all { |r| r.load_generators }
+      self
     end
 
     def app
@@ -100,7 +101,7 @@ module Rails
     def initializers
       initializers = Bootstrap.initializers
       initializers += super
-      plugins.each { |p| initializers += p.initializers }
+      railties.all { |r| initializers += r.initializers }
       initializers += Finisher.initializers
       initializers
     end

@@ -4,6 +4,7 @@ module Rails
   class Engine < Railtie
     class << self
       attr_accessor :called_from
+      delegate :middleware, :root, :paths, :to => :config
 
       def original_root
         @original_root ||= find_root_with_file_flag("lib")
@@ -18,7 +19,6 @@ module Rails
           call_stack = caller.map { |p| p.split(':').first }
           File.dirname(call_stack.detect { |p| p !~ %r[railties/lib/rails|rack/lib/rack] })
         end
-
         super
       end
 
@@ -33,17 +33,14 @@ module Rails
         end
 
         root = File.exist?("#{root_path}/#{flag}") ? root_path : default
-
         raise "Could not find root path for #{self}" unless root
 
         RUBY_PLATFORM =~ /(:?mswin|mingw)/ ?
-          Pathname.new(root).expand_path :
-          Pathname.new(root).realpath
+          Pathname.new(root).expand_path : Pathname.new(root).realpath
       end
     end
 
-    delegate :config, :to => :'self.class'
-    delegate :middleware, :root, :to => :config
+    delegate :middleware, :paths, :root, :config, :to => :'self.class'
 
     # Add configured load paths to ruby load paths and remove duplicates.
     initializer :set_load_path do

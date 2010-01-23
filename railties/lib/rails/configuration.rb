@@ -115,6 +115,7 @@ module Rails
       /^(#{bits})(?:=)?$/
     end
 
+    # TODO Fix me
     def config_keys
       Railtie.plugin_names.map { |n| n.to_s }.uniq
     end
@@ -182,6 +183,7 @@ module Rails
         paths = super
         paths.app.controllers << builtin_controller if builtin_controller
         paths.config.database    "config/database.yml"
+        paths.lib.tasks          "lib/tasks", :glob => "**/*.rake"
         paths.log                "log/#{Rails.env}.log"
         paths.tmp                "tmp"
         paths.tmp.cache          "tmp/cache"
