@@ -86,6 +86,11 @@ class AjaxHelperTest < AjaxHelperBaseTest
       link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :position => :bottom)
   end
 
+  test "link_to_remote with before/after callbacks" do
+    assert_dom_equal %(<a href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-onbefore=\"before();\" data-onafter=\"after();\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :before => "before();", :after => "after();")
+  end
+
   test "link_to_remote with method delete" do
     assert_dom_equal %(<a class=\"fine\" href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-method=\"delete\" rel=\"nofollow\">Remote outauthor</a>),
       link_to_remote("Remote outauthor", { :url => { :action => "whatnot" }, :method => "delete"}, { :class => "fine"  })

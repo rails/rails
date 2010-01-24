@@ -600,7 +600,7 @@ module ActionView
 
       private
         def set_callbacks(options, html)
-          [:uninitialized, :complete, :failure, :success, :interactive, :loaded, :loading].each do |type|
+          [:before, :after, :uninitialized, :complete, :failure, :success, :interactive, :loaded, :loading].each do |type|
             html["data-on#{type}"]  = options.delete(type.to_sym)
           end
 
