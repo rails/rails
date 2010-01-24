@@ -256,7 +256,6 @@ module ActionMailer #:nodoc:
     include DeliveryMethods, Quoting
     abstract!
 
-    # TODO Add some sanity tests for the included modules
     include AbstractController::Logger
     include AbstractController::Rendering
     include AbstractController::LocalizedCache
