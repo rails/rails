@@ -215,10 +215,7 @@ module ActionView
       end
 
       def add_method_to_attributes!(html_options, method, url = nil)
-<<<<<<< HEAD
         html_options["rel"] = "nofollow" if method.to_s.downcase == "delete"
-=======
->>>>>>> making non remote versions of link_to, button_to, submit_tag and image_submit_tag output data attributes for things like :confirm, :method, :popup, and :disable_with
         html_options["data-method"] = method
         if url.size > 0
           html_options["data-url"] = url
