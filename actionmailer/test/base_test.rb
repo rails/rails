@@ -238,6 +238,48 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
+  test "implicit multipart with default locale" do
+    email = BaseMailer.implicit_with_locale.deliver
+    assert_equal(2, email.parts.size)
+    assert_equal("multipart/alternate", email.mime_type)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("Implicit with locale TEXT", email.parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("Implicit with locale EN HTML", email.parts[1].body.encoded)
+  end
+
+  test "implicit multipart with other locale" do
+    swap I18n, :locale => :pl do
+      email = BaseMailer.implicit_with_locale.deliver
+      assert_equal(2, email.parts.size)
+      assert_equal("multipart/alternate", email.mime_type)
+      assert_equal("text/plain", email.parts[0].mime_type)
+      assert_equal("Implicit with locale PL TEXT", email.parts[0].body.encoded)
+      assert_equal("text/html", email.parts[1].mime_type)
+      assert_equal("Implicit with locale HTML", email.parts[1].body.encoded)
+    end
+  end
+
+  test "implicit multipart with several view paths uses the first one with template" do
+    begin
+      BaseMailer.view_paths.unshift(File.join(FIXTURE_LOAD_PATH, "another.path"))
+      email = BaseMailer.welcome.deliver
+      assert_equal("Welcome from another path", email.body.encoded)
+    ensure
+      BaseMailer.view_paths.shift
+    end
+  end
+
+  test "implicit multipart with inexistent templates uses the next view path" do
+    begin
+      BaseMailer.view_paths.unshift(File.join(FIXTURE_LOAD_PATH, "unknown"))
+      email = BaseMailer.welcome.deliver
+      assert_equal("Welcome", email.body.encoded)
+    ensure
+      BaseMailer.view_paths.shift
+    end
+  end
+
   # Explicit multipart
   test "explicit multipart" do
     email = BaseMailer.explicit_multipart.deliver
@@ -313,29 +355,6 @@ class BaseTest < ActiveSupport::TestCase
     BaseMailer.welcome.deliver
     assert_equal(1, BaseMailer.deliveries.length)
   end
-
-  test "implicit multipart with default locale" do
-    email = BaseMailer.implicit_with_locale.deliver
-    assert_equal(2, email.parts.size)
-    assert_equal("multipart/alternate", email.mime_type)
-    assert_equal("text/plain", email.parts[0].mime_type)
-    assert_equal("Implicit with locale TEXT", email.parts[0].body.encoded)
-    assert_equal("text/html", email.parts[1].mime_type)
-    assert_equal("Implicit with locale EN HTML", email.parts[1].body.encoded)
-  end
-
-  test "implicit multipart with other locale" do
-    swap I18n, :locale => :pl do
-      email = BaseMailer.implicit_with_locale.deliver
-      assert_equal(2, email.parts.size)
-      assert_equal("multipart/alternate", email.mime_type)
-      assert_equal("text/plain", email.parts[0].mime_type)
-      assert_equal("Implicit with locale PL TEXT", email.parts[0].body.encoded)
-      assert_equal("text/html", email.parts[1].mime_type)
-      assert_equal("Implicit with locale HTML", email.parts[1].body.encoded)
-    end
-  end
-
 
   protected
 
