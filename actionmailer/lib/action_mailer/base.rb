@@ -267,6 +267,7 @@ module ActionMailer #:nodoc:
     helper  ActionMailer::MailHelper
 
     extend  ActionMailer::DeliveryMethods
+    include ActionMailer::OldApi
     include ActionMailer::DeprecatedApi
 
     add_delivery_method :smtp, Mail::SMTP,
