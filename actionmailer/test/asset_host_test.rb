@@ -12,7 +12,7 @@ class AssetHostTest < Test::Unit::TestCase
   def setup
     set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries = []
+    ActionMailer::Base.deliveries.clear
 
     @recipient = 'test@localhost'
   end

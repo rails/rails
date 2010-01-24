@@ -337,7 +337,7 @@ class ActionMailerTest < Test::Unit::TestCase
     set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
     ActionMailer::Base.raise_delivery_errors = true
-    ActionMailer::Base.deliveries = []
+    ActionMailer::Base.deliveries.clear
 
     @original_logger = TestMailer.logger
     @recipient = 'test@localhost'
@@ -658,7 +658,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def test_doesnt_raise_errors_when_raise_delivery_errors_is_false
     ActionMailer::Base.raise_delivery_errors = false
-    Mail::Message.any_instance.expects(:deliver!).raises(Exception)
+    Mail::TestMailer.any_instance.expects(:deliver!).raises(Exception)
     assert_nothing_raised { TestMailer.deliver_signed_up(@recipient) }
   end
 
@@ -1113,7 +1113,7 @@ class MethodNamingTest < Test::Unit::TestCase
   def setup
     set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries = []
+    ActionMailer::Base.deliveries.clear
   end
 
   def teardown

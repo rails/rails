@@ -324,6 +324,15 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Format with any!", email.parts[1].body.encoded)
   end
 
+  test "ActionMailer should be told when Mail gets delivered" do
+    BaseMailer.expects(:delivered_email).once
+    email = BaseMailer.deliver_welcome
+  end
+
+  # test "ActionMailer should be told when Mail gets delivered using new API" do
+  #   BaseMailer.expects(:delivered_email).once
+  #   email = BaseMailer.welcome.deliver
+  # end
 
   protected
 

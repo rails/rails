@@ -71,9 +71,34 @@ module ActionMailer
 
       # Alias controller_path to mailer_name so render :partial in views work.
       alias :controller_path :mailer_name
+      
     end
 
     module ClassMethods
+
+      # Deliver the given mail object directly. This can be used to deliver
+      # a preconstructed mail object, like:
+      #
+      #   email = MyMailer.create_some_mail(parameters)
+      #   email.set_some_obscure_header "frobnicate"
+      #   MyMailer.deliver(email)
+      def deliver(mail)
+        raise "no mail object available for delivery!" unless mail
+
+        ActiveSupport::Notifications.instrument("action_mailer.deliver", :mailer => self.name) do |payload|
+          self.set_payload_for_mail(payload, mail)
+
+          mail.delivery_method delivery_methods[delivery_method],
+                               delivery_settings[delivery_method]
+
+          mail.raise_delivery_errors = raise_delivery_errors
+          mail.perform_deliveries = perform_deliveries
+          mail.deliver
+        end
+
+        mail
+      end
+
       def respond_to?(method_symbol, include_private = false) #:nodoc:
         matches_dynamic_method?(method_symbol) || super
       end
@@ -102,6 +127,13 @@ module ActionMailer
     def initialize(*)
       super()
       @mail_was_called = false
+    end
+
+    # Delivers a Mail object. By default, it delivers the cached mail
+    # object (from the <tt>create!</tt> method). If no cached mail object exists, and
+    # no alternate has been given as the parameter, this will fail.
+    def deliver!(mail = @message)
+      self.class.deliver(mail)
     end
 
     def render(*args)

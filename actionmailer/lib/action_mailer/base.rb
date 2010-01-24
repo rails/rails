@@ -275,8 +275,16 @@ module ActionMailer #:nodoc:
     @@perform_deliveries = true
     cattr_accessor :perform_deliveries
 
-    @@deliveries = []
-    cattr_accessor :deliveries
+    # Provides a list of emails that have been delivered by Mail
+    def self.deliveries
+      Mail.deliveries
+    end
+
+    # Allows you to over write the default deliveries store from an array to some
+    # other object.  If you just want to clear the store, call Mail.deliveries.clear.
+    def self.deliveries=(val)
+      Mail.deliveries = val
+    end
 
     extlib_inheritable_accessor :default_charset
     self.default_charset = "utf-8"
@@ -342,35 +350,6 @@ module ActionMailer #:nodoc:
         end
       end
 
-      # Deliver the given mail object directly. This can be used to deliver
-      # a preconstructed mail object, like:
-      #
-      #   email = MyMailer.create_some_mail(parameters)
-      #   email.set_some_obscure_header "frobnicate"
-      #   MyMailer.deliver(email)
-      def deliver(mail)
-        raise "no mail object available for delivery!" unless mail
-
-        ActiveSupport::Notifications.instrument("action_mailer.deliver", :mailer => self.name) do |payload|
-          self.set_payload_for_mail(payload, mail)
-
-          mail.delivery_method delivery_methods[delivery_method],
-                               delivery_settings[delivery_method]
-
-          begin
-            # TODO Move me to the instance
-            if @@perform_deliveries
-              mail.deliver!
-              self.deliveries << mail
-            end
-          rescue Exception => e # Net::SMTP errors or sendmail pipe errors
-            raise e if raise_delivery_errors
-          end
-        end
-
-        mail
-      end
-
       def template_root
         self.view_paths && self.view_paths.first
       end
@@ -378,6 +357,12 @@ module ActionMailer #:nodoc:
       # Should template root overwrite the whole view_paths?
       def template_root=(root)
         self.view_paths = ActionView::Base.process_view_paths(root)
+      end
+
+      def delivered_email(mail)
+        ActiveSupport::Notifications.instrument("action_mailer.deliver", :mailer => self.name) do |payload|
+          self.set_payload_for_mail(payload, mail)
+        end
       end
 
       def set_payload_for_mail(payload, mail) #:nodoc:
@@ -402,13 +387,6 @@ module ActionMailer #:nodoc:
       process(method_name, *args) if method_name
     end
 
-    # Delivers a Mail object. By default, it delivers the cached mail
-    # object (from the <tt>create!</tt> method). If no cached mail object exists, and
-    # no alternate has been given as the parameter, this will fail.
-    def deliver!(mail = @message)
-      self.class.deliver(mail)
-    end
-
     # TODO Add new delivery method goodness
     def mail(headers = {})
       # Guard flag to prevent both the old and the new API from firing
@@ -416,6 +394,8 @@ module ActionMailer #:nodoc:
       @mail_was_called = true
 
       m = @message
+
+      m.register_for_delivery_notification(self.class)
 
       # Give preference to headers and fallback to the ones set in mail
       content_type = headers[:content_type] || m.content_type
