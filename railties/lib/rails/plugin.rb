@@ -49,10 +49,9 @@ module Rails
       eval(File.read(file), binding, file) if file && File.file?(file)
     end
 
-    # TODO Write tests for this sanity check
     initializer :sanity_check_railties_collision do
       if Engine.subclasses.map { |k| k.root.to_s }.include?(root.to_s)
-        raise "The plugin #{name.inspect} is a Railtie or an Engine and cannot be installed as Plugin"
+        raise "\"#{name}\" is a Railtie/Engine and cannot be installed as plugin"
       end
     end
   end

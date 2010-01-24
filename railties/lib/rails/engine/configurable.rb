@@ -3,10 +3,11 @@ module Rails
     module Configurable
       def self.included(base)
         base.extend ClassMethods
-        base.delegate :middleware, :root, :paths, :to => :config
       end
 
       module ClassMethods
+        delegate :middleware, :root, :paths, :to => :config
+
         def config
           @config ||= Engine::Configuration.new(find_root_with_flag("lib"))
         end
