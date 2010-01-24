@@ -256,6 +256,7 @@ module ActionMailer #:nodoc:
     include DeliveryMethods, Quoting
     abstract!
 
+    # TODO Add some sanity tests for the included modules
     include AbstractController::Logger
     include AbstractController::Rendering
     include AbstractController::LocalizedCache
@@ -269,12 +270,6 @@ module ActionMailer #:nodoc:
     include ActionMailer::DeprecatedApi
 
     private_class_method :new #:nodoc:
-
-    cattr_accessor :raise_delivery_errors
-    @@raise_delivery_errors = true
-
-    cattr_accessor :perform_deliveries
-    @@perform_deliveries = true
 
     extlib_inheritable_accessor :default_charset
     self.default_charset = "utf-8"
@@ -295,9 +290,6 @@ module ActionMailer #:nodoc:
     self.default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
 
     class << self
-      # Provides a list of emails that have been delivered by Mail
-      delegate :deliveries, :deliveries=, :to => Mail
-
       def mailer_name
         @mailer_name ||= name.underscore
       end

@@ -1,13 +1,21 @@
 require 'tmpdir'
 
 module ActionMailer
-  # Provides a DSL for adding delivery methods to ActionMailer.
+  # This modules handles everything related to the delivery, from registering new
+  # delivery methods to configuring the mail object to be send.
   module DeliveryMethods
     extend ActiveSupport::Concern
 
     included do
       extlib_inheritable_accessor :delivery_methods, :delivery_method,
                                   :instance_writer => false
+
+      # Do not make this inheritable, because we always want it to propagate
+      cattr_accessor :raise_delivery_errors
+      self.raise_delivery_errors = true
+
+      cattr_accessor :perform_deliveries
+      self.perform_deliveries = true
 
       self.delivery_methods = {}
       self.delivery_method  = :smtp
@@ -32,6 +40,9 @@ module ActionMailer
     end
 
     module ClassMethods
+      # Provides a list of emails that have been delivered by Mail
+      delegate :deliveries, :deliveries=, :to => Mail
+
       # Adds a new delivery method through the given class using the given symbol
       # as alias and the default options supplied:
       #
@@ -50,7 +61,8 @@ module ActionMailer
         self.delivery_methods[symbol.to_sym] = klass
       end
 
-      def wrap_delivery_behavior(mail, method=delivery_method) #:nodoc:
+      def wrap_delivery_behavior(mail, method=nil) #:nodoc:
+        method ||= self.delivery_method
         mail.register_for_delivery_notification(self)
 
         if method.is_a?(Symbol)

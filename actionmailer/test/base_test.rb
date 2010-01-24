@@ -310,14 +310,6 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, BaseMailer.deliveries.length)
   end
 
-  # Delivery hooks
-  test "ActionMailer should be told when Mail gets delivered" do
-    BaseMailer.deliveries.clear
-    BaseMailer.expects(:delivered_email).once
-    BaseMailer.welcome.deliver
-    assert_equal(1, BaseMailer.deliveries.length)
-  end
-
   protected
 
     # Execute the block setting the given values and restoring old values after

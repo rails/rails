@@ -23,7 +23,7 @@ module ActionMailer
 
     # Access the message instance.
     def message #:nodoc:
-      @message
+      @_message
     end
   end
 end

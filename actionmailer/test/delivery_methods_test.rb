@@ -4,20 +4,17 @@ require 'mail'
 class MyCustomDelivery
 end
 
-class DefaultsDeliveryMethodsTest < ActionMailer::TestCase
-  def setup
-    set_delivery_method :smtp
+class BogusDelivery
+  def initialize(*)
   end
 
-  def teardown
-    restore_delivery_method
+  def deliver!(mail)
+    raise "failed"
   end
+end
 
-  def test_should_be_the_default_smtp
-    assert_equal :smtp, ActionMailer::Base.delivery_method
-  end
-
-  def test_should_have_default_smtp_delivery_method_settings
+class DefaultsDeliveryMethodsTest < ActiveSupport::TestCase
+  test "default smtp settings" do
     settings = { :address              => "localhost",
                  :port                 => 25,
                  :domain               => 'localhost.localdomain',
@@ -28,45 +25,126 @@ class DefaultsDeliveryMethodsTest < ActionMailer::TestCase
     assert_equal settings, ActionMailer::Base.smtp_settings
   end
 
-  def test_should_have_default_file_delivery_method_settings
+  test "default file delivery settings" do
     settings = {:location => "#{Dir.tmpdir}/mails"}
     assert_equal settings, ActionMailer::Base.file_settings
   end
 
-  def test_should_have_default_sendmail_delivery_method_settings
+  test "default sendmail settings" do
     settings = {:location       => '/usr/sbin/sendmail',
                 :arguments      => '-i -t'}
     assert_equal settings, ActionMailer::Base.sendmail_settings
   end
 end
 
-class CustomDeliveryMethodsTest < ActionMailer::TestCase
+class CustomDeliveryMethodsTest < ActiveSupport::TestCase
   def setup
+    @old_delivery_method = ActionMailer::Base.delivery_method
     ActionMailer::Base.add_delivery_method :custom, MyCustomDelivery
   end
 
   def teardown
+    ActionMailer::Base.delivery_method = @old_delivery_method
     ActionMailer::Base.delivery_methods.delete(:custom)
   end
 
-  def test_allow_to_add_a_custom_delivery_method
+  test "allow to add custom delivery method" do
     ActionMailer::Base.delivery_method = :custom
     assert_equal :custom, ActionMailer::Base.delivery_method
   end
 
-  def test_allow_to_customize_custom_settings
+  test "allow to customize custom settings" do
     ActionMailer::Base.custom_settings = { :foo => :bar }
     assert_equal Hash[:foo => :bar], ActionMailer::Base.custom_settings
   end
 
-  def test_respond_to_custom_method_settings
+  test "respond to custom settings" do
     assert_respond_to ActionMailer::Base, :custom_settings
     assert_respond_to ActionMailer::Base, :custom_settings=
   end
 
-  def test_should_not_respond_for_invalid_method_settings
+  test "does not respond to unknown settings" do
     assert_raise NoMethodError do
       ActionMailer::Base.another_settings
     end
+  end
+end
+
+class MailDeliveryTest < ActiveSupport::TestCase
+  class DeliverMail < ActionMailer::Base
+    DEFAULT_HEADERS = {
+      :to => 'mikel@test.lindsaar.net',
+      :from => 'jose@test.plataformatec.com'
+    }
+
+    def welcome(hash={})
+      mail(DEFAULT_HEADERS.merge(hash))
+    end
+  end
+
+  def setup
+    ActionMailer::Base.delivery_method = :smtp
+  end
+
+  def teardown
+    DeliverMail.delivery_method = :smtp
+    DeliverMail.perform_deliveries = true
+    DeliverMail.raise_delivery_errors = true
+  end
+
+  test "ActionMailer should be told when Mail gets delivered" do
+    DeliverMail.deliveries.clear
+    DeliverMail.expects(:delivered_email).once
+    DeliverMail.welcome.deliver
+    assert_equal(1, DeliverMail.deliveries.length)
+  end
+
+  test "delivery method can be customized per instance" do
+    email = DeliverMail.welcome.deliver
+    assert_instance_of Mail::SMTP, email.delivery_method
+    email = DeliverMail.welcome(:delivery_method => :test).deliver
+    assert_instance_of Mail::TestMailer, email.delivery_method
+  end
+
+  test "delivery method can be customized in subclasses not changing the parent" do
+    DeliverMail.delivery_method = :test
+    assert_equal :smtp, ActionMailer::Base.delivery_method
+    $BREAK = true
+    email = DeliverMail.welcome.deliver
+    assert_instance_of Mail::TestMailer, email.delivery_method
+  end
+
+  test "non registered delivery methods raises errors" do
+    DeliverMail.delivery_method = :unknown
+    assert_raise RuntimeError do
+      DeliverMail.welcome.deliver
+    end
+  end
+
+  test "does not perform deliveries if requested" do
+    DeliverMail.perform_deliveries = false
+    DeliverMail.deliveries.clear
+    DeliverMail.expects(:delivered_email).never
+    DeliverMail.welcome.deliver
+    assert_equal(0, DeliverMail.deliveries.length)
+  end
+
+  test "raise errors on bogus deliveries" do
+    DeliverMail.delivery_method = BogusDelivery
+    DeliverMail.deliveries.clear
+    DeliverMail.expects(:delivered_email).never
+    assert_raise RuntimeError do
+      DeliverMail.welcome.deliver
+    end
+    assert_equal(0, DeliverMail.deliveries.length)
+  end
+
+  test "does not raise errors on bogus deliveries if set" do
+    DeliverMail.delivery_method = BogusDelivery
+    DeliverMail.raise_delivery_errors = false
+    DeliverMail.deliveries.clear
+    DeliverMail.expects(:delivered_email).once
+    DeliverMail.welcome.deliver
+    assert_equal(1, DeliverMail.deliveries.length)
   end
 end

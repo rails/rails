@@ -2,7 +2,7 @@
 require 'abstract_unit'
 
 class FunkyPathMailer < ActionMailer::Base
-  self.template_root = "#{File.dirname(__FILE__)}/fixtures/path.with.dots"
+  self.view_paths = "#{File.dirname(__FILE__)}/../fixtures/path.with.dots"
 
   def multipart_with_template_path_with_dots(recipient)
     recipients recipient
@@ -799,13 +799,13 @@ EOF
   end
 
   def test_receive_decodes_base64_encoded_mail
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email")
+    fixture = File.read(File.dirname(__FILE__) + "/../fixtures/raw_email")
     TestMailer.receive(fixture)
     assert_match(/Jamis/, TestMailer.received_body.to_s)
   end
 
   def test_receive_attachments
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email2")
+    fixture = File.read(File.dirname(__FILE__) + "/../fixtures/raw_email2")
     mail = Mail.new(fixture)
     attachment = mail.attachments.last
     assert_equal "smime.p7s", attachment.filename
@@ -813,21 +813,21 @@ EOF
   end
 
   def test_decode_attachment_without_charset
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email3")
+    fixture = File.read(File.dirname(__FILE__) + "/../fixtures/raw_email3")
     mail = Mail.new(fixture)
     attachment = mail.attachments.last
     assert_equal 1026, attachment.read.length
   end
 
   def test_attachment_using_content_location
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email12")
+    fixture = File.read(File.dirname(__FILE__) + "/../fixtures/raw_email12")
     mail = Mail.new(fixture)
     assert_equal 1, mail.attachments.length
     assert_equal "Photo25.jpg", mail.attachments.first.filename
   end
 
   def test_attachment_with_text_type
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email13")
+    fixture = File.read(File.dirname(__FILE__) + "/../fixtures/raw_email13")
     mail = Mail.new(fixture)
     assert mail.has_attachments?
     assert_equal 1, mail.attachments.length
@@ -835,19 +835,19 @@ EOF
   end
 
   def test_decode_part_without_content_type
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email4")
+    fixture = File.read(File.dirname(__FILE__) + "/../fixtures/raw_email4")
     mail = Mail.new(fixture)
     assert_nothing_raised { mail.body }
   end
 
   def test_decode_message_without_content_type
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email5")
+    fixture = File.read(File.dirname(__FILE__) + "/../fixtures/raw_email5")
     mail = Mail.new(fixture)
     assert_nothing_raised { mail.body }
   end
 
   def test_decode_message_with_incorrect_charset
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email6")
+    fixture = File.read(File.dirname(__FILE__) + "/../fixtures/raw_email6")
     mail = Mail.new(fixture)
     assert_nothing_raised { mail.body }
   end
@@ -979,7 +979,7 @@ EOF
    end
 
   def test_recursive_multipart_processing
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email7")
+    fixture = File.read(File.dirname(__FILE__) + "/../fixtures/raw_email7")
     mail = Mail.new(fixture)
     assert_equal(2, mail.parts.length)
     assert_equal(4, mail.parts.first.parts.length)
@@ -990,7 +990,7 @@ EOF
   end
 
   def test_decode_encoded_attachment_filename
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email8")
+    fixture = File.read(File.dirname(__FILE__) + "/../fixtures/raw_email8")
     mail = Mail.new(fixture)
     attachment = mail.attachments.last
 
@@ -1007,7 +1007,7 @@ EOF
   end
 
   def test_decode_message_with_unknown_charset
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email10")
+    fixture = File.read(File.dirname(__FILE__) + "/../fixtures/raw_email10")
     mail = Mail.new(fixture)
     assert_nothing_raised { mail.body }
   end
@@ -1087,7 +1087,7 @@ end
 
 class InheritableTemplateRootTest < ActiveSupport::TestCase
   def test_attr
-    expected = File.expand_path("#{File.dirname(__FILE__)}/fixtures/path.with.dots")
+    expected = File.expand_path("#{File.dirname(__FILE__)}/../fixtures/path.with.dots")
     assert_equal expected, FunkyPathMailer.template_root.to_s
 
     sub = Class.new(FunkyPathMailer)

@@ -8,7 +8,6 @@ class MailTest < Test::Unit::TestCase
     quoted_body = [expected].pack('*M')
     m.body = quoted_body
     assert_equal "something_with_underscores=\r\n", m.body.encoded
-    # CHANGED: body returns object, not string, Changed m.body to m.body.to_s
     assert_equal expected, m.body.to_s
   end
 
@@ -20,5 +19,4 @@ class MailTest < Test::Unit::TestCase
     assert_equal 1902, mail.attachments.first.decoded.length
     assert_equal "application/pkcs7-signature", mail.attachments.last.mime_type
   end
-  
 end
