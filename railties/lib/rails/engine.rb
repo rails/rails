@@ -71,13 +71,13 @@ module Rails
     end
 
     initializer :add_routing_paths do
-      config.paths.config.routes.to_a.each do |route|
-        config.action_dispatch.route_paths.unshift(route) if File.exists?(route)
+      paths.config.routes.to_a.each do |route|
+        Rails::Application::RoutesReloader.paths.unshift(route) if File.exists?(route)
       end
     end
 
     initializer :add_routing_namespaces do |app|
-      config.paths.app.controllers.to_a.each do |load_path|
+      paths.app.controllers.to_a.each do |load_path|
         load_path = File.expand_path(load_path)
         Dir["#{load_path}/*/*_controller.rb"].collect do |path|
           namespace = File.dirname(path).sub(/#{load_path}\/?/, '')
@@ -87,17 +87,21 @@ module Rails
     end
 
     initializer :add_locales do
-      config.i18n.load_path.unshift(*config.paths.config.locales.to_a)
+      config.i18n.load_path.unshift(*paths.config.locales.to_a)
     end
 
     initializer :add_view_paths do
-      views = config.paths.app.views.to_a
+      views = paths.app.views.to_a
       ActionController::Base.view_paths.concat(views) if defined?(ActionController)
       ActionMailer::Base.view_paths.concat(views)     if defined?(ActionMailer)
     end
 
+    initializer :add_metals do
+      Rails::Rack::Metal.paths.concat(paths.app.metals.to_a)
+    end
+
     initializer :load_application_initializers do
-      config.paths.config.initializers.each do |initializer|
+      paths.config.initializers.to_a.sort.each do |initializer|
         load(initializer)
       end
     end
@@ -107,7 +111,7 @@ module Rails
 
       if app.config.cache_classes
         config.eager_load_paths.each do |load_path|
-          matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
+          matcher = /\A#{Regexp.escape(load_path)}\/(.*)\.rb\Z/
           Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
             require_dependency file.sub(matcher, '\1')
           end

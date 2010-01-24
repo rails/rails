@@ -38,6 +38,7 @@ module InitializerTests
 
     test "booting up Rails yields a valid paths object" do
       assert_path @paths.app.metals, "app", "metal"
+      assert_path @paths.app.helpers, "app", "helpers"
       assert_path @paths.app.views, "app", "views"
       assert_path @paths.lib, "lib"
       assert_path @paths.vendor, "vendor"
@@ -56,7 +57,7 @@ module InitializerTests
     test "booting up Rails yields a list of paths that are eager" do
       assert @paths.app.eager_load?
       assert @paths.app.controllers.eager_load?
-      assert @paths.app.metals.eager_load?
+      assert @paths.app.helpers.eager_load?
     end
 
     test "environments has a glob equal to the current environment" do
@@ -70,6 +71,7 @@ module InitializerTests
       assert_in_load_path "lib"
       assert_in_load_path "vendor"
 
+      assert_not_in_load_path "app", "metal"
       assert_not_in_load_path "config"
       assert_not_in_load_path "config", "locales"
       assert_not_in_load_path "config", "environments"
