@@ -1,8 +1,8 @@
 require 'abstract_unit'
 
 class AssetHostMailer < ActionMailer::Base
-  def email_with_asset(recipient)
-    recipients recipient
+  def email_with_asset
+    recipients 'test@localhost'
     subject    "testing email containing asset path while asset_host is set"
     from       "tester@example.com"
   end
@@ -13,8 +13,6 @@ class AssetHostTest < Test::Unit::TestCase
     set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
     ActionMailer::Base.deliveries.clear
-
-    @recipient = 'test@localhost'
   end
 
   def teardown
@@ -23,7 +21,7 @@ class AssetHostTest < Test::Unit::TestCase
 
   def test_asset_host_as_string
     ActionController::Base.asset_host = "http://www.example.com"
-    mail = AssetHostMailer.deliver_email_with_asset(@recipient)
+    mail = AssetHostMailer.email_with_asset
     assert_equal "<img alt=\"Somelogo\" src=\"http://www.example.com/images/somelogo.png\" />", mail.body.to_s.strip
   end
 
@@ -35,7 +33,7 @@ class AssetHostTest < Test::Unit::TestCase
         "http://assets.example.com"
       end
     }
-    mail = AssetHostMailer.deliver_email_with_asset(@recipient)
+    mail = AssetHostMailer.email_with_asset
     assert_equal "<img alt=\"Somelogo\" src=\"http://images.example.com/images/somelogo.png\" />", mail.body.to_s.strip
   end
 
@@ -48,7 +46,7 @@ class AssetHostTest < Test::Unit::TestCase
       end
     }
     mail = nil
-    assert_nothing_raised { mail = AssetHostMailer.deliver_email_with_asset(@recipient) }
+    assert_nothing_raised { mail = AssetHostMailer.email_with_asset }
     assert_equal "<img alt=\"Somelogo\" src=\"http://www.example.com/images/somelogo.png\" />", mail.body.to_s.strip
   end
 end

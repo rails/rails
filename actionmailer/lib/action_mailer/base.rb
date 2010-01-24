@@ -253,6 +253,8 @@ module ActionMailer #:nodoc:
   #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
   #   +implicit_parts_order+.
   class Base < AbstractController::Base
+    abstract!
+
     include Quoting
 
     include AbstractController::Logger
@@ -264,8 +266,8 @@ module ActionMailer #:nodoc:
 
     helper  ActionMailer::MailHelper
 
-    include ActionMailer::DeprecatedApi
     extend  ActionMailer::DeliveryMethods
+    include ActionMailer::DeprecatedApi
 
     add_delivery_method :smtp, Mail::SMTP,
       :address              => "localhost",
@@ -369,6 +371,20 @@ module ActionMailer #:nodoc:
         payload[:cc]         = mail.cc  if mail.cc.present?
         payload[:date]       = mail.date
         payload[:mail]       = mail.encoded
+      end
+
+      def respond_to?(method, *args)
+        super || action_methods.include?(method.to_s)
+      end
+
+    protected
+
+      def method_missing(method, *args)
+        if action_methods.include?(method.to_s)
+          new(method, *args).message
+        else
+          super
+        end
       end
     end
 

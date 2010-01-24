@@ -10,22 +10,22 @@ class HelperMailer < ActionMailer::Base
   helper MailerHelper
   helper :example
 
-  def use_helper(recipient)
-    recipients recipient
+  def use_helper
+    recipients 'test@localhost'
     subject    "using helpers"
     from       "tester@example.com"
   end
 
-  def use_example_helper(recipient)
-    recipients recipient
+  def use_example_helper
+    recipients 'test@localhost'
     subject    "using helpers"
     from       "tester@example.com"
 
     @text = "emphasize me!"
   end
 
-  def use_mail_helper(recipient)
-    recipients recipient
+  def use_mail_helper
+    recipients 'test@localhost'
     subject    "using mailing helpers"
     from       "tester@example.com"
 
@@ -37,8 +37,8 @@ class HelperMailer < ActionMailer::Base
             "it off!"
   end
 
-  def use_helper_method(recipient)
-    recipients recipient
+  def use_helper_method
+    recipients 'test@localhost'
     subject    "using helpers"
     from       "tester@example.com"
 
@@ -53,7 +53,7 @@ class HelperMailer < ActionMailer::Base
     helper_method :name_of_the_mailer_class
 end
 
-class MailerHelperTest < Test::Unit::TestCase
+class MailerHelperTest < ActiveSupport::TestCase
   def new_mail( charset="utf-8" )
     mail = Mail.new
     mail.set_content_type "text", "plain", { "charset" => charset } if charset
@@ -64,8 +64,6 @@ class MailerHelperTest < Test::Unit::TestCase
     set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
     ActionMailer::Base.deliveries.clear
-
-    @recipient = 'test@localhost'
   end
   
   def teardown
@@ -73,22 +71,22 @@ class MailerHelperTest < Test::Unit::TestCase
   end
   
   def test_use_helper
-    mail = HelperMailer.create_use_helper(@recipient)
+    mail = HelperMailer.use_helper
     assert_match %r{Mr. Joe Person}, mail.encoded
   end
 
   def test_use_example_helper
-    mail = HelperMailer.create_use_example_helper(@recipient)
+    mail = HelperMailer.use_example_helper
     assert_match %r{<em><strong><small>emphasize me!}, mail.encoded
   end
 
   def test_use_helper_method
-    mail = HelperMailer.create_use_helper_method(@recipient)
+    mail = HelperMailer.use_helper_method
     assert_match %r{HelperMailer}, mail.encoded
   end
 
   def test_use_mail_helper
-    mail = HelperMailer.create_use_mail_helper(@recipient)
+    mail = HelperMailer.use_mail_helper
     assert_match %r{  But soft!}, mail.encoded
     assert_match %r{east, and\r\n  Juliet}, mail.encoded
   end

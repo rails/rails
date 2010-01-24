@@ -67,14 +67,14 @@ class ActionMailerUrlTest < Test::Unit::TestCase
     expected.date    = Time.local(2004, 12, 12)
 
     created = nil
-    assert_nothing_raised { created = TestMailer.create_signed_up_with_url(@recipient) }
+    assert_nothing_raised { created = TestMailer.signed_up_with_url(@recipient) }
     assert_not_nil created
 
     expected.message_id = '<123@456>'
     created.message_id = '<123@456>'
     assert_equal expected.encoded, created.encoded
 
-    assert_nothing_raised { TestMailer.deliver_signed_up_with_url(@recipient) }
+    assert_nothing_raised { TestMailer.signed_up_with_url(@recipient).deliver }
     assert_not_nil ActionMailer::Base.deliveries.first
     delivered = ActionMailer::Base.deliveries.first
     

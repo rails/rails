@@ -1,8 +1,8 @@
 module ActionMailer
-  # TODO Remove this module all together in Rails 3.1. Ensure that super
-  # hooks in ActionMailer::Base are removed as well.
-  # 
-  # Moved here to allow us to add the new Mail API
+  # Part of this API is deprecated and is going to be removed in Rails 3.1 (just check
+  # the methods which give you a warning).
+  # All the rest will be deprecated after 3.1 release instead, this allows a smoother
+  # migration path.
   module DeprecatedApi #:nodoc:
     extend ActiveSupport::Concern
 
@@ -83,8 +83,8 @@ module ActionMailer
       #   MyMailer.deliver(email)
       def deliver(mail, show_warning=true)
         if show_warning
-          ActiveSupport::Deprecation.warn "ActionMailer::Base.deliver is deprecated, just call " <<
-            "deliver in the instance instead", caller
+          ActiveSupport::Deprecation.warn "#{self}.deliver is deprecated, call " <<
+            "deliver in the mailer instance instead", caller[0,2]
         end
 
         raise "no mail object available for delivery!" unless mail
@@ -100,9 +100,14 @@ module ActionMailer
       def method_missing(method_symbol, *parameters) #:nodoc:
         if match = matches_dynamic_method?(method_symbol)
           case match[1]
-            when 'create'  then new(match[2], *parameters).message
-            when 'deliver' then new(match[2], *parameters).deliver!
-            when 'new'     then nil
+            when 'create'
+              ActiveSupport::Deprecation.warn "#{self}.create_#{match[2]} is deprecated, " <<
+                "use #{self}.#{match[2]} instead", caller[0,2]
+              new(match[2], *parameters).message
+            when 'deliver'
+              ActiveSupport::Deprecation.warn "#{self}.deliver_#{match[2]} is deprecated, " <<
+                "use #{self}.#{match[2]}.deliver instead", caller[0,2]
+              new(match[2], *parameters).deliver
             else super
           end
         else
@@ -167,7 +172,6 @@ module ActionMailer
     # Add an attachment to a multipart message. This is simply a part with the
     # content-disposition set to "attachment".
     def attachment(params, &block)
-      ActiveSupport::Deprecation.warn "attachment is deprecated, please use the attachments API instead", caller[0,2]
       params = { :content_type => params } if String === params
 
       params[:content] ||= params.delete(:data) || params.delete(:body)
@@ -259,6 +263,7 @@ module ActionMailer
         end
       end
 
+      wrap_delivery_behavior!
       m.content_transfer_encoding = '8bit' unless m.body.only_us_ascii?
       
       @_message
