@@ -111,6 +111,7 @@ module ActionController
           extract  = /^#{Regexp.quote(path)}\/?(.*)_helper.rb$/
           helpers += Dir["#{path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
         end
+        helpers.sort!
         helpers.uniq!
         helpers
       end

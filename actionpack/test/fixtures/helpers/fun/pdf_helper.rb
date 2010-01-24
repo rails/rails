@@ -1,3 +1,5 @@
-module Fun::PdfHelper
-  def foobar() 'baz' end
+module Fun
+  module PdfHelper
+    def foobar() 'baz' end
+  end
 end
