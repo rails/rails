@@ -1,5 +1,5 @@
 module ActionMailer
-  module OldApi
+  module OldApi #:nodoc:
     extend ActiveSupport::Concern
 
     included do
@@ -144,7 +144,7 @@ module ActionMailer
         :content_disposition => content_disposition }.merge(params)
     end
     
-    def create_mail #:nodoc:
+    def create_mail 
       m = @_message
 
       quote_fields!({:subject => subject, :to => recipients, :from => from,
@@ -184,7 +184,7 @@ module ActionMailer
     # Set up the default values for the various instance variables of this
     # mailer. Subclasses may override this method to provide different
     # defaults.
-    def initialize_defaults(method_name) #:nodoc:
+    def initialize_defaults(method_name) 
       @charset              ||= self.class.default_charset.dup
       @content_type         ||= self.class.default_content_type.dup
       @implicit_parts_order ||= self.class.default_implicit_parts_order.dup
@@ -200,7 +200,7 @@ module ActionMailer
       @body ||= {}
     end
 
-    def create_parts #:nodoc:
+    def create_parts 
       if String === @body
         self.response_body = @body
       end
@@ -208,7 +208,7 @@ module ActionMailer
       if String === response_body
         @parts.unshift create_inline_part(response_body)
       else
-        self.class.template_root.find_all(@template, {}, @mailer_name).each do |template|
+        self.class.view_paths.first.find_all(@template, {}, @mailer_name).each do |template|
           @parts << create_inline_part(render_to_body(:_template => template), template.mime_type)
         end
 
@@ -222,7 +222,7 @@ module ActionMailer
       end
     end
 
-    def create_inline_part(body, mime_type=nil) #:nodoc:
+    def create_inline_part(body, mime_type=nil) 
       ct = mime_type || "text/plain"
       main_type, sub_type = split_content_type(ct.to_s)
 
@@ -233,11 +233,11 @@ module ActionMailer
       )
     end
 
-    def split_content_type(ct) #:nodoc:
+    def split_content_type(ct) 
       ct.to_s.split("/")
     end
 
-    def parse_content_type(defaults=nil) #:nodoc:
+    def parse_content_type(defaults=nil) 
       if @content_type.blank?
         [ nil, {} ]
       else

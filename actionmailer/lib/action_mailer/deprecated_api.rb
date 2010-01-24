@@ -25,11 +25,20 @@ module ActionMailer
         mail
       end
 
-      def respond_to?(method_symbol, include_private = false) #:nodoc:
+      def template_root
+        self.view_paths && self.view_paths.first
+      end
+
+      def template_root=(root)
+        ActiveSupport::Deprecation.warn "template_root= is deprecated, use view_paths.unshift instead", caller[0,2]
+        self.view_paths = ActionView::Base.process_view_paths(root)
+      end
+
+      def respond_to?(method_symbol, include_private = false)
         matches_dynamic_method?(method_symbol) || super
       end
 
-      def method_missing(method_symbol, *parameters) #:nodoc:
+      def method_missing(method_symbol, *parameters)
         if match = matches_dynamic_method?(method_symbol)
           case match[1]
             when 'create'
@@ -49,7 +58,7 @@ module ActionMailer
 
     private
 
-      def matches_dynamic_method?(method_name) #:nodoc:
+      def matches_dynamic_method?(method_name)
         method_name = method_name.to_s
         /^(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
       end
@@ -70,10 +79,8 @@ module ActionMailer
       if options[:body]
         ActiveSupport::Deprecation.warn(':body in render deprecated. Please use instance ' <<
                                         'variables as assigns instead', caller[0,1])
-
         body options.delete(:body)
       end
-
       super
     end
 
@@ -93,13 +100,11 @@ module ActionMailer
 
   private
     
-
-    def create_parts #:nodoc:
+    def create_parts
       if @body.is_a?(Hash) && !@body.empty?
         ActiveSupport::Deprecation.warn "Giving a hash to body is deprecated, please use instance variables instead", caller[0,2]
         @body.each { |k, v| instance_variable_set(:"@#{k}", v) }
       end
-
       super
     end
 

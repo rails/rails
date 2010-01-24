@@ -1,8 +1,6 @@
 module ActionMailer
   module AdvAttrAccessor #:nodoc:
     def adv_attr_accessor(*names)
-      
-      # TODO: ActiveSupport::Deprecation.warn()
       names.each do |name|
         ivar = "@#{name}"
 

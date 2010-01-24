@@ -302,7 +302,6 @@ module ActionMailer #:nodoc:
         @mailer_name ||= name.underscore
       end
       attr_writer :mailer_name
-
       alias :controller_path :mailer_name
 
       # Receives a raw email, parses it into an email object, decodes it,
@@ -324,23 +323,21 @@ module ActionMailer #:nodoc:
         end
       end
 
-      def template_root
-        self.view_paths && self.view_paths.first
-      end
-
-      # Should template root overwrite the whole view_paths?
-      def template_root=(root)
-        self.view_paths = ActionView::Base.process_view_paths(root)
-      end
-
       # TODO The delivery should happen inside the instrument block
       def delivered_email(mail)
-        ActiveSupport::Notifications.instrument("action_mailer.deliver", :mailer => self.name) do |payload|
+        ActiveSupport::Notifications.instrument("action_mailer.deliver") do |payload|
           self.set_payload_for_mail(payload, mail)
         end
       end
 
+      def respond_to?(method, *args) #:nodoc:
+        super || action_methods.include?(method.to_s)
+      end
+
+    protected
+
       def set_payload_for_mail(payload, mail) #:nodoc:
+        payload[:mailer]     = self.name
         payload[:message_id] = mail.message_id
         payload[:subject]    = mail.subject
         payload[:to]         = mail.to
@@ -351,13 +348,7 @@ module ActionMailer #:nodoc:
         payload[:mail]       = mail.encoded
       end
 
-      def respond_to?(method, *args)
-        super || action_methods.include?(method.to_s)
-      end
-
-    protected
-
-      def method_missing(method, *args)
+      def method_missing(method, *args) #:nodoc:
         if action_methods.include?(method.to_s)
           new(method, *args).message
         else
@@ -459,7 +450,7 @@ module ActionMailer #:nodoc:
           :content_type => self.class.default_content_type.dup
         }
       else
-        self.class.template_root.find_all(action_name, {}, self.class.mailer_name).each do |template|
+        each_template do |template|
           responses << {
             :body => render_to_body(:_template => template),
             :content_type => template.mime_type.to_s
@@ -468,6 +459,16 @@ module ActionMailer #:nodoc:
       end
 
       [responses, sort_order]
+    end
+
+    def each_template(&block) #:nodoc:
+      self.class.view_paths.each do |load_paths|
+        templates = load_paths.find_all(action_name, {}, self.class.mailer_name)
+        unless templates.empty?
+          templates.each(&block)
+          return
+        end
+      end
     end
 
     def create_parts_from_responses(m, responses, charset) #:nodoc:
