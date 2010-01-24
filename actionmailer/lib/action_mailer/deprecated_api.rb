@@ -83,19 +83,17 @@ module ActionMailer
       #   email.set_some_obscure_header "frobnicate"
       #   MyMailer.deliver(email)
       def deliver(mail)
+        return if @mail_was_called
         raise "no mail object available for delivery!" unless mail
 
-        ActiveSupport::Notifications.instrument("action_mailer.deliver", :mailer => self.name) do |payload|
-          self.set_payload_for_mail(payload, mail)
+        mail.register_for_delivery_notification(self)
 
-          mail.delivery_method delivery_methods[delivery_method],
-                               delivery_settings[delivery_method]
+        mail.delivery_method delivery_methods[delivery_method],
+                             delivery_settings[delivery_method]
 
-          mail.raise_delivery_errors = raise_delivery_errors
-          mail.perform_deliveries = perform_deliveries
-          mail.deliver
-        end
-
+        mail.raise_delivery_errors = raise_delivery_errors
+        mail.perform_deliveries = perform_deliveries
+        mail.deliver
         mail
       end
 

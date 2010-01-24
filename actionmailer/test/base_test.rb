@@ -325,14 +325,11 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "ActionMailer should be told when Mail gets delivered" do
+    BaseMailer.deliveries.clear
     BaseMailer.expects(:delivered_email).once
     email = BaseMailer.deliver_welcome
+    assert_equal(1, BaseMailer.deliveries.length)
   end
-
-  # test "ActionMailer should be told when Mail gets delivered using new API" do
-  #   BaseMailer.expects(:delivered_email).once
-  #   email = BaseMailer.welcome.deliver
-  # end
 
   protected
 
