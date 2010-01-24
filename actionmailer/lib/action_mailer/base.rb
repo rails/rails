@@ -387,7 +387,8 @@ module ActionMailer #:nodoc:
       process(method_name, *args) if method_name
     end
 
-    # TODO Add new delivery method goodness
+    # TODO: Clean this up and refactor before Rails 3.0 release.
+    # This works for now, but not neat
     def mail(headers = {})
       # Guard flag to prevent both the old and the new API from firing
       # Should be removed when old API is deprecated
@@ -446,6 +447,7 @@ module ActionMailer #:nodoc:
       I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
     end
 
+    # TODO: Move this into Mail
     def quote_fields(m, headers, charset) #:nodoc:
       m.subject   ||= quote_if_necessary(headers[:subject], charset)          if headers[:subject]
       m.to        ||= quote_address_if_necessary(headers[:to], charset)       if headers[:to]

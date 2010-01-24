@@ -327,7 +327,21 @@ class BaseTest < ActiveSupport::TestCase
   test "ActionMailer should be told when Mail gets delivered" do
     BaseMailer.deliveries.clear
     BaseMailer.expects(:delivered_email).once
-    email = BaseMailer.deliver_welcome
+    BaseMailer.deliver_welcome
+    assert_equal(1, BaseMailer.deliveries.length)
+  end
+
+  test "Calling just the action should return the generated mail object" do
+    BaseMailer.deliveries.clear
+    email = BaseMailer.welcome
+    assert_equal(0, BaseMailer.deliveries.length)
+    assert_equal('The first email on new API!', email.subject)
+  end
+
+  test "Calling deliver on the action should deliver the mail object" do
+    BaseMailer.deliveries.clear
+    BaseMailer.expects(:delivered_email).once
+    BaseMailer.welcome.deliver
     assert_equal(1, BaseMailer.deliveries.length)
   end
 
