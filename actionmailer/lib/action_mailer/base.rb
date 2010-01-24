@@ -1,5 +1,8 @@
 require 'active_support/core_ext/class'
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/array/uniq_by'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/string/inflections'
 require 'mail'
 require 'action_mailer/tmail_compat'
 require 'action_mailer/collector'
@@ -455,6 +458,8 @@ module ActionMailer #:nodoc:
     def each_template(&block) #:nodoc:
       self.class.view_paths.each do |load_paths|
         templates = load_paths.find_all(action_name, {}, self.class.mailer_name)
+        templates = templates.uniq_by { |t| t.details[:formats] }
+
         unless templates.empty?
           templates.each(&block)
           return

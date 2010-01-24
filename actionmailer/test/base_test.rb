@@ -34,6 +34,10 @@ class BaseTest < ActiveSupport::TestCase
       mail(DEFAULT_HEADERS.merge(hash))
     end
 
+    def implicit_with_locale(hash = {})
+      mail(DEFAULT_HEADERS.merge(hash))
+    end
+
     def explicit_multipart(hash = {})
       attachments['invoice.pdf'] = 'This is test File content' if hash.delete(:attachments)
       mail(DEFAULT_HEADERS.merge(hash)) do |format|
@@ -309,6 +313,29 @@ class BaseTest < ActiveSupport::TestCase
     BaseMailer.welcome.deliver
     assert_equal(1, BaseMailer.deliveries.length)
   end
+
+  test "implicit multipart with default locale" do
+    email = BaseMailer.implicit_with_locale.deliver
+    assert_equal(2, email.parts.size)
+    assert_equal("multipart/alternate", email.mime_type)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("Implicit with locale TEXT", email.parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("Implicit with locale EN HTML", email.parts[1].body.encoded)
+  end
+
+  test "implicit multipart with other locale" do
+    swap I18n, :locale => :pl do
+      email = BaseMailer.implicit_with_locale.deliver
+      assert_equal(2, email.parts.size)
+      assert_equal("multipart/alternate", email.mime_type)
+      assert_equal("text/plain", email.parts[0].mime_type)
+      assert_equal("Implicit with locale PL TEXT", email.parts[0].body.encoded)
+      assert_equal("text/html", email.parts[1].mime_type)
+      assert_equal("Implicit with locale HTML", email.parts[1].body.encoded)
+    end
+  end
+
 
   protected
 
