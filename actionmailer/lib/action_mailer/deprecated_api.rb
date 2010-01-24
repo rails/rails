@@ -71,7 +71,6 @@ module ActionMailer
 
       # Alias controller_path to mailer_name so render :partial in views work.
       alias :controller_path :mailer_name
-      
     end
 
     module ClassMethods
@@ -82,17 +81,14 @@ module ActionMailer
       #   email = MyMailer.create_some_mail(parameters)
       #   email.set_some_obscure_header "frobnicate"
       #   MyMailer.deliver(email)
-      def deliver(mail)
-        return if @mail_was_called
+      def deliver(mail, show_warning=true)
+        if show_warning
+          ActiveSupport::Deprecation.warn "ActionMailer::Base.deliver is deprecated, just call " <<
+            "deliver in the instance instead", caller
+        end
+
         raise "no mail object available for delivery!" unless mail
-
-        mail.register_for_delivery_notification(self)
-
-        mail.delivery_method delivery_methods[delivery_method],
-                             delivery_settings[delivery_method]
-
-        mail.raise_delivery_errors = raise_delivery_errors
-        mail.perform_deliveries = perform_deliveries
+        wrap_delivery_behavior(mail)
         mail.deliver
         mail
       end
@@ -122,23 +118,19 @@ module ActionMailer
       end
     end
 
-    def initialize(*)
-      super()
-      @mail_was_called = false
-    end
-
     # Delivers a Mail object. By default, it delivers the cached mail
     # object (from the <tt>create!</tt> method). If no cached mail object exists, and
     # no alternate has been given as the parameter, this will fail.
-    def deliver!(mail = @message)
-      self.class.deliver(mail)
+    def deliver!(mail = @_message)
+      self.class.deliver(mail, false)
     end
+    alias :deliver :deliver!
 
     def render(*args)
       options = args.last.is_a?(Hash) ? args.last : {}
       if options[:body]
-        ActiveSupport::Deprecation.warn(':body in render deprecated. Please call body ' <<
-                                        'with a hash instead', caller[0,1])
+        ActiveSupport::Deprecation.warn(':body in render deprecated. Please use instance ' <<
+                                        'variables as assigns instead', caller[0,1])
 
         body options.delete(:body)
       end
@@ -153,7 +145,7 @@ module ActionMailer
         create_parts
         create_mail
       end
-      @message
+      @_message
     end
 
     # Add a part to a multipart message, with the given content-type. The
@@ -175,6 +167,7 @@ module ActionMailer
     # Add an attachment to a multipart message. This is simply a part with the
     # content-disposition set to "attachment".
     def attachment(params, &block)
+      ActiveSupport::Deprecation.warn "attachment is deprecated, please use the attachments API instead", caller[0,2]
       params = { :content_type => params } if String === params
 
       params[:content] ||= params.delete(:data) || params.delete(:body)
@@ -197,13 +190,9 @@ module ActionMailer
     #   render_message :template => "special_message"
     #   render_message :inline => "<%= 'Hi!' %>"
     #
-    def render_message(object)
-      case object
-      when String
-        render_to_body(:template => object)
-      else
-        render_to_body(object)
-      end
+    def render_message(*args)
+      ActiveSupport::Deprecation.warn "render_message is deprecated, use render instead", caller[0,2]
+      render(*args)
     end
 
   private
@@ -240,14 +229,12 @@ module ActionMailer
     end
     
     def create_mail #:nodoc:
-      m = @message
+      m = @_message
 
-      m.subject,     = quote_any_if_necessary(charset, subject)
-      m.to, m.from   = quote_any_address_if_necessary(charset, recipients, from)
-      m.bcc          = quote_address_if_necessary(bcc, charset) unless bcc.nil?
-      m.cc           = quote_address_if_necessary(cc, charset) unless cc.nil?
-      m.reply_to     = quote_address_if_necessary(reply_to, charset) unless reply_to.nil?
-      m.mime_version = mime_version unless mime_version.nil?
+      quote_fields!({:subject => subject, :to => recipients, :from => from,
+                    :bcc => bcc, :cc => cc, :reply_to => reply_to}, charset)
+
+      m.mime_version = mime_version    unless mime_version.nil?
       m.date         = sent_on.to_time rescue sent_on if sent_on
 
       @headers.each { |k, v| m[k] = v }
@@ -274,7 +261,7 @@ module ActionMailer
 
       m.content_transfer_encoding = '8bit' unless m.body.only_us_ascii?
       
-      @message
+      @_message
     end
     
     # Set up the default values for the various instance variables of this
@@ -286,8 +273,9 @@ module ActionMailer
       @implicit_parts_order ||= self.class.default_implicit_parts_order.dup
       @mime_version         ||= self.class.default_mime_version.dup if self.class.default_mime_version
 
-      @mailer_name ||= self.class.mailer_name.dup
-      @template    ||= method_name
+      @mailer_name   ||= self.class.mailer_name.dup
+      @template      ||= method_name
+      @mail_was_called = false
 
       @parts   ||= []
       @headers ||= {}

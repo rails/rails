@@ -263,33 +263,42 @@ module ActionMailer #:nodoc:
     include AbstractController::UrlFor
 
     helper  ActionMailer::MailHelper
-    include ActionMailer::DeprecatedApi
 
-    include ActionMailer::DeliveryMethods
+    include ActionMailer::DeprecatedApi
+    extend  ActionMailer::DeliveryMethods
+
+    add_delivery_method :smtp, Mail::SMTP,
+      :address              => "localhost",
+      :port                 => 25,
+      :domain               => 'localhost.localdomain',
+      :user_name            => nil,
+      :password             => nil,
+      :authentication       => nil,
+      :enable_starttls_auto => true
+
+    add_delivery_method :file, Mail::FileDelivery,
+      :location => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"
+
+    add_delivery_method :sendmail, Mail::Sendmail,
+      :location   => '/usr/sbin/sendmail',
+      :arguments  => '-i -t'
+
+    add_delivery_method :test, Mail::TestMailer
+
+    superclass_delegating_reader :delivery_method
+    self.delivery_method = :smtp
 
     private_class_method :new #:nodoc:
 
-    @@raise_delivery_errors = true
     cattr_accessor :raise_delivery_errors
+    @@raise_delivery_errors = true
 
-    @@perform_deliveries = true
     cattr_accessor :perform_deliveries
-
-    # Provides a list of emails that have been delivered by Mail
-    def self.deliveries
-      Mail.deliveries
-    end
-
-    # Allows you to over write the default deliveries store from an array to some
-    # other object.  If you just want to clear the store, call Mail.deliveries.clear.
-    def self.deliveries=(val)
-      Mail.deliveries = val
-    end
+    @@perform_deliveries = true
 
     extlib_inheritable_accessor :default_charset
     self.default_charset = "utf-8"
 
-    # TODO This should be used when calling render
     extlib_inheritable_accessor :default_content_type
     self.default_content_type = "text/plain"
 
@@ -305,24 +314,9 @@ module ActionMailer #:nodoc:
     extlib_inheritable_accessor :default_implicit_parts_order
     self.default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
 
-    # Expose the internal Mail message
-    # TODO: Make this an _internal ivar? 
-    attr_reader :message
-    
-    def headers(args=nil)
-      if args
-        ActiveSupport::Deprecation.warn "headers(Hash) is deprecated, please do headers[key] = value instead", caller
-        @headers = args
-      else
-        @message
-      end
-    end
-
-    def attachments
-      @message.attachments
-    end
-
     class << self
+      # Provides a list of emails that have been delivered by Mail
+      delegate :deliveries, :deliveries=, :to => Mail
 
       def mailer_name
         @mailer_name ||= name.underscore
@@ -359,6 +353,7 @@ module ActionMailer #:nodoc:
         self.view_paths = ActionView::Base.process_view_paths(root)
       end
 
+      # TODO The delivery should happen inside the instrument block
       def delivered_email(mail)
         ActiveSupport::Notifications.instrument("action_mailer.deliver", :mailer => self.name) do |payload|
           self.set_payload_for_mail(payload, mail)
@@ -377,66 +372,63 @@ module ActionMailer #:nodoc:
       end
     end
 
+    attr_internal :message
+
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
     def initialize(method_name=nil, *args)
       super()
-      @message = Mail.new
+      @_message = Mail.new
       process(method_name, *args) if method_name
     end
 
-    # TODO: Clean this up and refactor before Rails 3.0 release.
-    # This works for now, but not neat
-    def mail(headers = {})
+    def headers(args=nil)
+      if args
+        ActiveSupport::Deprecation.warn "headers(Hash) is deprecated, please do headers[key] = value instead", caller[0,2]
+        @headers = args
+      else
+        @_message
+      end
+    end
+
+    def attachments
+      @_message.attachments
+    end
+
+    def mail(headers={}, &block)
       # Guard flag to prevent both the old and the new API from firing
-      # Should be removed when old API is deprecated
+      # Should be removed when old API is removed
       @mail_was_called = true
-
-      m = @message
-
-      m.register_for_delivery_notification(self.class)
+      m = @_message
 
       # Give preference to headers and fallback to the ones set in mail
       content_type = headers[:content_type] || m.content_type
       charset      = headers[:charset]      || m.charset      || self.class.default_charset.dup
       mime_version = headers[:mime_version] || m.mime_version || self.class.default_mime_version.dup
 
+      # Set subjects and fields quotings
       headers[:subject] ||= default_subject
-      quote_fields(m, headers, charset)
+      quote_fields!(headers, charset)
 
-      sort_order = headers[:parts_order] || self.class.default_implicit_parts_order.dup
-
-      responses = if headers[:body]
-        [ { :body => headers[:body], :content_type => self.class.default_content_type.dup } ]
-      elsif block_given?
-        collector = ActionMailer::Collector.new(self) { render(action_name) }
-        yield(collector)
-        # Collect the sort order of the parts from the collector as Mail will always
-        # sort parts on encode into a "sane" sequence.
-        sort_order = collector.responses.map { |r| r[:content_type] }
-        collector.responses
-      else
-        # TODO Ensure that we don't need to pass I18n.locale as detail
-        templates = self.class.template_root.find_all(action_name, {}, self.class.mailer_name)
-
-        templates.map do |template|
-          { :body => render_to_body(:_template => template),
-            :content_type => template.mime_type.to_s }
-        end
-      end
-
+      # Render the templates and blocks
+      responses, sort_order = collect_responses_and_sort_order(headers, &block)
       content_type ||= create_parts_from_responses(m, responses, charset)
+
+      # Tidy up content type, charset, mime version and sort order
       m.content_type = content_type
       m.charset      = charset
       m.mime_version = mime_version
+      sort_order     = headers[:parts_order] || sort_order || self.class.default_implicit_parts_order.dup
 
       if m.multipart?
         m.body.set_sort_order(sort_order)
         m.body.sort_parts!
       end
 
+      # Finaly set delivery behavior configured in class
+      wrap_delivery_behavior!(headers[:delivery_method])
       m
     end
 
@@ -448,14 +440,44 @@ module ActionMailer #:nodoc:
     end
 
     # TODO: Move this into Mail
-    def quote_fields(m, headers, charset) #:nodoc:
-      m.subject   ||= quote_if_necessary(headers[:subject], charset)          if headers[:subject]
-      m.to        ||= quote_address_if_necessary(headers[:to], charset)       if headers[:to]
-      m.from      ||= quote_address_if_necessary(headers[:from], charset)     if headers[:from]
-      m.cc        ||= quote_address_if_necessary(headers[:cc], charset)       if headers[:cc]
-      m.bcc       ||= quote_address_if_necessary(headers[:bcc], charset)      if headers[:bcc]
-      m.reply_to  ||= quote_address_if_necessary(headers[:reply_to], charset) if headers[:reply_to]
-      m.date      ||= headers[:date]                                          if headers[:date]
+    def quote_fields!(headers, charset) #:nodoc:
+      m = @_message
+      m.subject  ||= quote_if_necessary(headers[:subject], charset)          if headers[:subject]
+      m.to       ||= quote_address_if_necessary(headers[:to], charset)       if headers[:to]
+      m.from     ||= quote_address_if_necessary(headers[:from], charset)     if headers[:from]
+      m.cc       ||= quote_address_if_necessary(headers[:cc], charset)       if headers[:cc]
+      m.bcc      ||= quote_address_if_necessary(headers[:bcc], charset)      if headers[:bcc]
+      m.reply_to ||= quote_address_if_necessary(headers[:reply_to], charset) if headers[:reply_to]
+      m.date     ||= headers[:date]                                          if headers[:date]
+    end
+
+    def collect_responses_and_sort_order(headers) #:nodoc:
+      responses, sort_order = [], nil
+
+      if block_given?
+        collector = ActionMailer::Collector.new(self) { render(action_name) }
+        yield(collector)
+        sort_order = collector.responses.map { |r| r[:content_type] }
+        responses  = collector.responses
+      elsif headers[:body]
+        responses << {
+          :body => headers[:body],
+          :content_type => self.class.default_content_type.dup
+        }
+      else
+        self.class.template_root.find_all(action_name, {}, self.class.mailer_name).each do |template|
+          responses << {
+            :body => render_to_body(:_template => template),
+            :content_type => template.mime_type.to_s
+          }
+        end
+      end
+
+      [responses, sort_order]
+    end
+
+    def wrap_delivery_behavior!(method=nil) #:nodoc:
+      self.class.wrap_delivery_behavior(@_message, method)
     end
 
     def create_parts_from_responses(m, responses, charset) #:nodoc:
