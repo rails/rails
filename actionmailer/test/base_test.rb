@@ -1,16 +1,14 @@
 # encoding: utf-8
 require 'abstract_unit'
 
-#  class Notifier < ActionMailer::Base
-#    delivers_from 'notifications@example.com'
 class BaseTest < ActiveSupport::TestCase
   DEFAULT_HEADERS = {
     :to => 'mikel@test.lindsaar.net',
-    :from => 'jose@test.plataformatec.com',
     :subject => 'The first email on new API!'
   }
 
   class BaseMailer < ActionMailer::Base
+    delivers_from 'jose@test.plataformatec.com'
     self.mailer_name = "base_mailer"
 
     def welcome(hash = {})
@@ -70,6 +68,11 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(email.to,      ['mikel@test.lindsaar.net'])
     assert_equal(email.from,    ['jose@test.plataformatec.com'])
     assert_equal(email.subject, 'The first email on new API!')
+  end
+
+  test "mail() with from overwrites the class level default" do
+    email = BaseMailer.welcome(:from => 'someone@else.com').deliver
+    assert_equal(email.from,    ['someone@else.com'])
   end
 
   test "mail() with bcc, cc, content_type, charset, mime_version, reply_to and date" do

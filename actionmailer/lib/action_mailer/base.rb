@@ -273,6 +273,9 @@ module ActionMailer #:nodoc:
 
     private_class_method :new #:nodoc:
 
+    extlib_inheritable_accessor :default_from
+    self.default_from = nil
+
     extlib_inheritable_accessor :default_charset
     self.default_charset = "utf-8"
 
@@ -298,6 +301,12 @@ module ActionMailer #:nodoc:
       attr_writer :mailer_name
       alias :controller_path :mailer_name
 
+      # Sets who is the default sender for the e-mail
+      def delivers_from(value = nil)
+        self.default_from = value if value
+        self.default_from
+      end
+
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
       # object's +receive+ method. If you want your mailer to be able to
@@ -318,7 +327,7 @@ module ActionMailer #:nodoc:
       end
 
       # TODO The delivery should happen inside the instrument block
-      def delivered_email(mail)
+      def delivered_email(mail) #:nodoc:
         ActiveSupport::Notifications.instrument("action_mailer.deliver") do |payload|
           self.set_payload_for_mail(payload, mail)
         end
@@ -387,8 +396,9 @@ module ActionMailer #:nodoc:
       charset      = headers[:charset]      || m.charset      || self.class.default_charset.dup
       mime_version = headers[:mime_version] || m.mime_version || self.class.default_mime_version.dup
 
-      # Set subjects and fields quotings
+      # Set fields quotings
       headers[:subject] ||= default_subject
+      headers[:from]    ||= self.class.default_from.dup
       quote_fields!(headers, charset)
 
       # Render the templates and blocks
