@@ -47,7 +47,6 @@ class CustomDeliveryMethodsTest < ActionMailer::TestCase
 
   def teardown
     ActionMailer::Base.delivery_methods.delete(:custom)
-    ActionMailer::Base.delivery_settings.delete(:custom)
   end
 
   def test_allow_to_add_a_custom_delivery_method

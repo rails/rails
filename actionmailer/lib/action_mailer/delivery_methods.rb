@@ -1,63 +1,75 @@
+require 'tmpdir'
+
 module ActionMailer
-  # This modules makes a DSL for adding delivery methods to ActionMailer
+  # Provides a DSL for adding delivery methods to ActionMailer.
   module DeliveryMethods
-    # TODO Make me class inheritable
-    def delivery_settings
-      @@delivery_settings ||= Hash.new { |h,k| h[k] = {} }
+    extend ActiveSupport::Concern
+
+    included do
+      extlib_inheritable_accessor :delivery_methods, :delivery_method,
+                                  :instance_writer => false
+
+      self.delivery_methods = {}
+      self.delivery_method  = :smtp
+
+      add_delivery_method :smtp, Mail::SMTP,
+        :address              => "localhost",
+        :port                 => 25,
+        :domain               => 'localhost.localdomain',
+        :user_name            => nil,
+        :password             => nil,
+        :authentication       => nil,
+        :enable_starttls_auto => true
+
+      add_delivery_method :file, Mail::FileDelivery,
+        :location => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"
+
+      add_delivery_method :sendmail, Mail::Sendmail,
+        :location   => '/usr/sbin/sendmail',
+        :arguments  => '-i -t'
+
+      add_delivery_method :test, Mail::TestMailer
     end
 
-    def delivery_methods
-      @@delivery_methods ||= {}
-    end
-
-    def delivery_method=(method)
-      raise ArgumentError, "Unknown delivery method #{method.inspect}" unless delivery_methods[method]
-      @delivery_method = method
-    end
-
-    def add_delivery_method(symbol, klass, default_options={})
-      self.delivery_methods[symbol]  = klass
-      self.delivery_settings[symbol] = default_options
-    end
-
-    def wrap_delivery_behavior(mail, method=nil)
-      method ||= delivery_method
-
-      mail.register_for_delivery_notification(self)
-
-      if method.is_a?(Symbol)
-        mail.delivery_method(delivery_methods[method],
-                             delivery_settings[method])
-      else
-        mail.delivery_method(method)
-      end
-
-      mail.perform_deliveries    = perform_deliveries
-      mail.raise_delivery_errors = raise_delivery_errors
-    end
-
-
-    def respond_to?(method_symbol, include_private = false) #:nodoc:
-      matches_settings_method?(method_symbol) || super
-    end
-
-  protected
-
-    # TODO Get rid of this method missing magic
-    def method_missing(method_symbol, *parameters) #:nodoc:
-      if match = matches_settings_method?(method_symbol)
-        if match[2]
-          delivery_settings[match[1].to_sym] = parameters[0]
-        else
-          delivery_settings[match[1].to_sym]
+    module ClassMethods
+      # Adds a new delivery method through the given class using the given symbol
+      # as alias and the default options supplied:
+      #
+      # Example:
+      # 
+      #   add_delivery_method :sendmail, Mail::Sendmail,
+      #     :location   => '/usr/sbin/sendmail',
+      #     :arguments  => '-i -t'
+      # 
+      def add_delivery_method(symbol, klass, default_options={})
+        unless respond_to?(:"#{symbol}_settings")
+          extlib_inheritable_accessor(:"#{symbol}_settings", :instance_writer => false)
         end
-      else
-        super
+
+        send(:"#{symbol}_settings=", default_options)
+        self.delivery_methods[symbol.to_sym] = klass
+      end
+
+      def wrap_delivery_behavior(mail, method=delivery_method) #:nodoc:
+        mail.register_for_delivery_notification(self)
+
+        if method.is_a?(Symbol)
+          if klass = delivery_methods[method.to_sym]
+            mail.delivery_method(klass, send(:"#{method}_settings"))
+          else
+            raise "Invalid delivery method #{method.inspect}"
+          end
+        else
+          mail.delivery_method(method)
+        end
+
+        mail.perform_deliveries    = perform_deliveries
+        mail.raise_delivery_errors = raise_delivery_errors
       end
     end
 
-    def matches_settings_method?(method_name) #:nodoc:
-      /(#{delivery_methods.keys.join('|')})_settings(=)?$/.match(method_name.to_s)
+    def wrap_delivery_behavior!(*args) #:nodoc:
+      self.class.wrap_delivery_behavior(message, *args)
     end
   end
 end

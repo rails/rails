@@ -511,7 +511,7 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def test_from_without_name_for_smtp
-    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.delivery_method = :smtp
     TestMailer.from_without_name.deliver
 
     mail = MockSMTP.deliveries.first
@@ -522,7 +522,7 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def test_from_with_name_for_smtp
-    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.delivery_method = :smtp
     TestMailer.from_with_name.deliver
 
     mail = MockSMTP.deliveries.first
@@ -659,7 +659,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def test_performs_delivery_via_sendmail
     IO.expects(:popen).once.with('/usr/sbin/sendmail -i -t -f "system@loudthinking.com" test@localhost', 'w+')
-    ActionMailer::Base.delivery_method = :sendmail
+    TestMailer.delivery_method = :sendmail
     TestMailer.signed_up(@recipient).deliver
   end
 
@@ -956,7 +956,7 @@ EOF
   end
 
   def test_headers_removed_on_smtp_delivery
-    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.delivery_method = :smtp
     TestMailer.cc_bcc(@recipient).deliver
     assert MockSMTP.deliveries[0][2].include?("root@loudthinking.com")
     assert MockSMTP.deliveries[0][2].include?("nobody@loudthinking.com")
@@ -1053,35 +1053,35 @@ EOF
   end
 
   def test_return_path_with_deliver
-    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.delivery_method = :smtp
     TestMailer.return_path.deliver
     assert_match %r{^Return-Path: <another@somewhere.test>}, MockSMTP.deliveries[0][0]
     assert_equal "another@somewhere.test", MockSMTP.deliveries[0][1].to_s
   end
 
   def test_starttls_is_enabled_if_supported
-    ActionMailer::Base.delivery_settings[:smtp].merge!(:enable_starttls_auto => true)
+    TestMailer.smtp_settings.merge!(:enable_starttls_auto => true)
     MockSMTP.any_instance.expects(:respond_to?).with(:enable_starttls_auto).returns(true)
     MockSMTP.any_instance.expects(:enable_starttls_auto)
-    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.delivery_method = :smtp
     TestMailer.signed_up(@recipient).deliver
   end
 
   def test_starttls_is_disabled_if_not_supported
-    ActionMailer::Base.delivery_settings[:smtp].merge!(:enable_starttls_auto => true)
+    TestMailer.smtp_settings.merge!(:enable_starttls_auto => true)
     MockSMTP.any_instance.expects(:respond_to?).with(:enable_starttls_auto).returns(false)
     MockSMTP.any_instance.expects(:enable_starttls_auto).never
-    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.delivery_method = :smtp
     TestMailer.signed_up(@recipient).deliver
   end
 
   def test_starttls_is_not_enabled
-    TestMailer.delivery_settings[:smtp].merge!(:enable_starttls_auto => false)
+    TestMailer.smtp_settings.merge!(:enable_starttls_auto => false)
     MockSMTP.any_instance.expects(:respond_to?).never
     TestMailer.delivery_method = :smtp
     TestMailer.signed_up(@recipient).deliver
   ensure
-    TestMailer.delivery_settings[:smtp].merge!(:enable_starttls_auto => true)
+    TestMailer.smtp_settings.merge!(:enable_starttls_auto => true)
   end
 end
 

@@ -253,9 +253,8 @@ module ActionMailer #:nodoc:
   #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
   #   +implicit_parts_order+.
   class Base < AbstractController::Base
+    include DeliveryMethods, Quoting
     abstract!
-
-    include Quoting
 
     include AbstractController::Logger
     include AbstractController::Rendering
@@ -266,30 +265,8 @@ module ActionMailer #:nodoc:
 
     helper  ActionMailer::MailHelper
 
-    extend  ActionMailer::DeliveryMethods
     include ActionMailer::OldApi
     include ActionMailer::DeprecatedApi
-
-    add_delivery_method :smtp, Mail::SMTP,
-      :address              => "localhost",
-      :port                 => 25,
-      :domain               => 'localhost.localdomain',
-      :user_name            => nil,
-      :password             => nil,
-      :authentication       => nil,
-      :enable_starttls_auto => true
-
-    add_delivery_method :file, Mail::FileDelivery,
-      :location => defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"
-
-    add_delivery_method :sendmail, Mail::Sendmail,
-      :location   => '/usr/sbin/sendmail',
-      :arguments  => '-i -t'
-
-    add_delivery_method :test, Mail::TestMailer
-
-    superclass_delegating_reader :delivery_method
-    self.delivery_method = :smtp
 
     private_class_method :new #:nodoc:
 
@@ -491,10 +468,6 @@ module ActionMailer #:nodoc:
       end
 
       [responses, sort_order]
-    end
-
-    def wrap_delivery_behavior!(method=nil) #:nodoc:
-      self.class.wrap_delivery_behavior(@_message, method)
     end
 
     def create_parts_from_responses(m, responses, charset) #:nodoc:
