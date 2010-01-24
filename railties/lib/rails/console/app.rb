@@ -23,10 +23,11 @@ def new_session
   session
 end
 
-#reloads the environment
-def reload!
-  puts "Reloading..."
-  ActionDispatch::Callbacks.new(lambda {}, true)
-  Rails.application.reload_routes!
+# reloads the environment
+def reload!(print=true)
+  puts "Reloading..." if print
+  ActionDispatch::Callbacks.new(lambda {}, false)
   true
 end
+
+reload!(false)

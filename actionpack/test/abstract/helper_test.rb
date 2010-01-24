@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-ActionController::Base.helpers_dir = File.dirname(__FILE__) + '/../fixtures/helpers'
+ActionController::Base.helpers_path = [File.dirname(__FILE__) + '/../fixtures/helpers']
 
 module AbstractController
   module Testing

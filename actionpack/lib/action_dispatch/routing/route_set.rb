@@ -222,19 +222,18 @@ module ActionDispatch
           end
       end
 
-      attr_accessor :routes, :named_routes
-      attr_accessor :disable_clear_and_finalize
+      attr_accessor :routes, :named_routes, :controller_namespaces
+      attr_accessor :disable_clear_and_finalize, :resources_path_names
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
       end
 
-      attr_accessor :resources_path_names
-
       def initialize
         self.routes = []
         self.named_routes = NamedRouteCollection.new
-        self.resources_path_names = self.class.default_resources_path_names
+        self.resources_path_names = self.class.default_resources_path_names.dup
+        self.controller_namespaces = Set.new
 
         @disable_clear_and_finalize = false
       end
@@ -281,32 +280,19 @@ module ActionDispatch
 
       def controller_constraints
         @controller_constraints ||= begin
-          source = controller_namespaces.map { |ns| "#{Regexp.escape(ns)}/#{CONTROLLER_REGEXP.source}" }
+          namespaces = controller_namespaces + in_memory_controller_namespaces
+          source = namespaces.map { |ns| "#{Regexp.escape(ns)}/#{CONTROLLER_REGEXP.source}" }
           source << CONTROLLER_REGEXP.source
           Regexp.compile(source.sort.reverse.join('|'))
         end
       end
 
-      def controller_namespaces
+      def in_memory_controller_namespaces
         namespaces = Set.new
-
-        # Find any nested controllers already in memory
         ActionController::Base.subclasses.each do |klass|
           controller_name = klass.underscore
           namespaces << controller_name.split('/')[0...-1].join('/')
         end
-
-        # TODO: Move this into Railties
-        if defined?(Rails.application)
-          # Find namespaces in controllers/ directory
-          Rails.application.config.controller_paths.each do |load_path|
-            load_path = File.expand_path(load_path)
-            Dir["#{load_path}/**/*_controller.rb"].collect do |path|
-              namespaces << File.dirname(path).sub(/#{load_path}\/?/, '')
-            end
-          end
-        end
-
         namespaces.delete('')
         namespaces
       end

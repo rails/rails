@@ -50,9 +50,8 @@ module ActionController
     include AbstractController::Helpers
 
     included do
-      # Set the default directory for helpers
-      extlib_inheritable_accessor(:helpers_dir) do
-        defined?(Rails.root) ? "#{Rails.root}/app/helpers" : "app/helpers"
+      extlib_inheritable_accessor(:helpers_path) do
+        defined?(Rails::Application) ? Rails::Application.paths.app.helpers.to_a : []
       end
     end
 
@@ -105,10 +104,16 @@ module ActionController
         raise e unless e.missing_name? "#{module_name}Helper"
       end
 
-      # Extract helper names from files in app/helpers/**/*.rb
+      # Extract helper names from files in app/helpers/**/*_helper.rb
       def all_application_helpers
-        extract = /^#{Regexp.quote(helpers_dir)}\/?(.*)_helper.rb$/
-        Dir["#{helpers_dir}/**/*_helper.rb"].map { |file| file.sub extract, '\1' }
+        helpers = []
+        helpers_path.each do |path|
+          extract  = /^#{Regexp.quote(path)}\/?(.*)_helper.rb$/
+          helpers += Dir["#{path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+        end
+        helpers.sort!
+        helpers.uniq!
+        helpers
       end
     end
   end
