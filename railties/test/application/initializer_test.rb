@@ -38,13 +38,24 @@ module ApplicationTests
     end
 
     test "load environment with global" do
-      app_file "config/environments/development.rb", "$initialize_test_set_from_env = 'success'"
+      app_file "config/environments/development.rb", <<-RUBY
+        $initialize_test_set_from_env = 'success'
+        AppTemplate::Application.configure do
+          config.cache_classes = true
+          config.time_zone = "Brasilia"
+        end
+      RUBY
+
       assert_nil $initialize_test_set_from_env
       add_to_config <<-RUBY
         config.root = "#{app_path}"
+          config.time_zone = "UTC"
       RUBY
+
       require "#{app_path}/config/environment"
       assert_equal "success", $initialize_test_set_from_env
+      assert AppTemplate::Application.config.cache_classes
+      assert_equal "Brasilia", AppTemplate::Application.config.time_zone
     end
 
     test "action_controller load paths set only if action controller in use" do

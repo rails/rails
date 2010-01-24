@@ -11,7 +11,6 @@ module Rails
     autoload :Railties,       'rails/application/railties'
     autoload :RoutesReloader, 'rails/application/routes_reloader'
 
-    # TODO Ensure production settings are read properly
     class << self
       private :new
       alias   :configure :class_eval
@@ -24,7 +23,6 @@ module Rails
         raise "You cannot have more than one Rails::Application" if Rails.application
         super
         Rails.application = base.instance
-        base.require_environment!
       end
 
     protected

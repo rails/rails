@@ -3,6 +3,10 @@ module Rails
     module Bootstrap
       include Initializable
 
+      initializer :load_environment_config do |app|
+        app.require_environment!
+      end
+
       initializer :load_all_active_support do |app|
         require "active_support/all" unless app.config.active_support.bare
       end
