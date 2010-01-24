@@ -17,6 +17,10 @@ module PluginsTest
       require "#{app_path}/config/environment"
     end
 
+    def app
+      @app ||= Rails.application
+    end
+
     test "it loads the plugin's init.rb file" do
       boot_rails
       assert_equal "loaded", BUKKITS
@@ -202,7 +206,6 @@ en:
 YAML
 
       boot_rails
-      require "#{app_path}/config/environment"
 
       assert_equal %W(
         #{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/locale/en.yml
@@ -216,6 +219,33 @@ YAML
 
       assert_equal "2", I18n.t(:foo)
       assert_equal "1", I18n.t(:bar)
+    end
+
+    test "namespaced controllers with namespaced routes" do
+      @plugin.write "config/routes.rb", <<-RUBY
+        ActionController::Routing::Routes.draw do
+          namespace :admin do
+            match "index", :to => "admin/foo#index"
+          end
+        end
+      RUBY
+
+      @plugin.write "app/controllers/admin/foo_controller.rb", <<-RUBY
+        class Admin::FooController < ApplicationController
+          def index
+            render :text => "Rendered from namespace"
+          end
+        end
+      RUBY
+
+      boot_rails
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get "/admin/index"
+      assert_equal 200, last_response.status
+      assert_equal "Rendered from namespace", last_response.body
     end
   end
 
