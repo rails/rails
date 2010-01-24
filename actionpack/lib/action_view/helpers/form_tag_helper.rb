@@ -352,33 +352,24 @@ module ActionView
       #   # => <input disabled="disabled" name="commit" type="submit" value="Save edits" />
       #
       #   submit_tag "Complete sale", :disable_with => "Please wait..."
-      #   # => <input name="commit" onclick="this.disabled=true;this.value='Please wait...';this.form.submit();"
+      #   # => <input name="commit" data-disable-with="Please wait..."
       #   #    type="submit" value="Complete sale" />
       #
       #   submit_tag nil, :class => "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
       #   submit_tag "Edit", :disable_with => "Editing...", :class => "edit-button"
-      #   # => <input class="edit-button" onclick="this.disabled=true;this.value='Editing...';this.form.submit();"
+      #   # => <input class="edit-button" data-disable-with="Editing..."
       #   #    name="commit" type="submit" value="Edit" />
       def submit_tag(value = "Save changes", options = {})
         options.stringify_keys!
 
         if disable_with = options.delete("disable_with")
-          disable_with = "this.value='#{disable_with}'"
-          disable_with << ";#{options.delete('onclick')}" if options['onclick']
-          
-          options["onclick"]  = "if (window.hiddenCommit) { window.hiddenCommit.setAttribute('value', this.value); }"
-          options["onclick"] << "else { hiddenCommit = document.createElement('input');hiddenCommit.type = 'hidden';"
-          options["onclick"] << "hiddenCommit.value = this.value;hiddenCommit.name = this.name;this.form.appendChild(hiddenCommit); }"
-          options["onclick"] << "this.setAttribute('originalValue', this.value);this.disabled = true;#{disable_with};"
-          options["onclick"] << "result = (this.form.onsubmit ? (this.form.onsubmit() ? this.form.submit() : false) : this.form.submit());"
-          options["onclick"] << "if (result == false) { this.value = this.getAttribute('originalValue');this.disabled = false; }return result;"
+          add_disable_with_to_attributes!(options, disable_with)
         end
 
         if confirm = options.delete("confirm")
-          options["onclick"] ||= 'return true;'
-          options["onclick"] = "if (!#{confirm_javascript_function(confirm)}) return false; #{options['onclick']}"
+          add_confirm_to_attributes!(options, confirm)
         end
 
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
@@ -411,8 +402,7 @@ module ActionView
         options.stringify_keys!
 
         if confirm = options.delete("confirm")
-          options["onclick"] ||= ''
-          options["onclick"] += "return #{confirm_javascript_function(confirm)};"
+          add_confirm_to_attributes!(options, confirm)
         end
 
         tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options.stringify_keys)
