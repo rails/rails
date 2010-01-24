@@ -218,14 +218,14 @@ class UrlHelperTest < ActionView::TestCase
 
   def test_link_tag_using_delete_javascript
     assert_dom_equal(
-      "<a href='http://www.example.com' data-url='http://www.example.com' data-method=\"delete\">Destroy</a>",
+      "<a href='http://www.example.com' data-url='http://www.example.com' rel=\"nofollow\" data-method=\"delete\">Destroy</a>",
       link_to("Destroy", "http://www.example.com", :method => :delete)
     )
   end
 
   def test_link_tag_using_delete_javascript_and_href
     assert_dom_equal(
-      "<a href='\#' data-url='http://www.example.com' data-method=\"delete\">Destroy</a>",
+      "<a href='\#' data-url='http://www.example.com' rel=\"nofollow\" data-method=\"delete\">Destroy</a>",
       link_to("Destroy", "http://www.example.com", :method => :delete, :href => '#')
     )
   end
@@ -239,7 +239,7 @@ class UrlHelperTest < ActionView::TestCase
 
   def test_link_tag_using_delete_javascript_and_href_and_confirm
     assert_dom_equal(
-      "<a href=\"#\" data-url='http://www.example.com' data-method=\"delete\" data-confirm=\"Are you serious?\">Destroy</a>",
+      "<a href=\"#\" data-url='http://www.example.com' rel=\"nofollow\" data-method=\"delete\" data-confirm=\"Are you serious?\">Destroy</a>",
       link_to("Destroy", "http://www.example.com", :method => :delete, :href => '#', :confirm => "Are you serious?"),
       "When specifying url, form should be generated with it, but not this.href"
     )
