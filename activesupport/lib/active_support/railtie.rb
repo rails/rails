@@ -3,7 +3,7 @@ require "rails"
 
 module I18n
   class Railtie < Rails::Railtie
-    plugin_name :i18n
+    railtie_name :i18n
 
     # Initialize I18n load paths to an array
     config.i18n.load_path = []
@@ -34,7 +34,7 @@ end
 
 module ActiveSupport
   class Railtie < Rails::Railtie
-    plugin_name :active_support
+    railtie_name :active_support
 
     # Loads support for "whiny nil" (noisy warnings when methods are invoked
     # on +nil+ values) if Configuration#whiny_nils is true.

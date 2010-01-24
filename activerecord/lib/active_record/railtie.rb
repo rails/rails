@@ -8,7 +8,7 @@ require "rails"
 
 module ActiveRecord
   class Railtie < Rails::Railtie
-    plugin_name :active_record
+    railtie_name :active_record
 
     rake_tasks do
       load "active_record/railties/databases.rake"

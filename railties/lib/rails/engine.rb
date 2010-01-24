@@ -9,6 +9,9 @@ module Rails
     class << self
       attr_accessor :called_from
 
+      alias :engine_name  :railtie_name
+      alias :engine_names :railtie_names
+
       def inherited(base)
         unless abstract_railtie?(base)
           base.called_from = begin

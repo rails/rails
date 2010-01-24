@@ -3,7 +3,7 @@ require "rails"
 
 module ActionMailer
   class Railtie < Rails::Railtie
-    plugin_name :action_mailer
+    railtie_name :action_mailer
 
     require "action_mailer/railties/subscriber"
     subscriber ActionMailer::Railties::Subscriber.new

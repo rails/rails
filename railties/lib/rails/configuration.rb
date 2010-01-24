@@ -71,7 +71,7 @@ module Rails
       end
 
       def config_keys
-        (Railtie.plugin_names + Engine.plugin_names).map { |n| n.to_s }.uniq
+        (Railtie.railtie_names + Engine.engine_names).map { |n| n.to_s }.uniq
       end
 
       def options

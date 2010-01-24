@@ -3,7 +3,7 @@ require "rails"
 
 module ActionDispatch
   class Railtie < Rails::Railtie
-    plugin_name :action_dispatch
+    railtie_name :action_dispatch
 
     # Initialize route files to an array
     config.action_dispatch.route_paths = []

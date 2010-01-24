@@ -22,25 +22,18 @@ module Rails
         end
       end
 
-      # TODO This should be called railtie_name and engine_name
-      def plugin_name(plugin_name = nil)
-        @plugin_name ||= name.demodulize.underscore
-        @plugin_name = plugin_name if plugin_name
-        @plugin_name
+      def railtie_name(railtie_name = nil)
+        @railtie_name ||= name.demodulize.underscore
+        @railtie_name = railtie_name if railtie_name
+        @railtie_name
       end
 
-      # TODO Deprecate me
-      def plugins
-        subclasses
-      end
-
-      # TODO Deprecate me
-      def plugin_names
-        plugins.map { |p| p.plugin_name }
+      def railtie_names
+        subclasses.map { |p| p.railtie_name }
       end
 
       def subscriber(subscriber)
-        Rails::Subscriber.add(plugin_name, subscriber)
+        Rails::Subscriber.add(railtie_name, subscriber)
       end
 
       def rake_tasks(&blk)
