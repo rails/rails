@@ -16,7 +16,11 @@ module Rails
       alias   :configure :class_eval
 
       def instance
-        @instance ||= new
+        if instance_of?(Rails::Application)
+          Rails.application.instance
+        else
+          @instance ||= new
+        end
       end
 
       def inherited(base)
