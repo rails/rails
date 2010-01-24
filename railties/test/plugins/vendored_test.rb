@@ -179,6 +179,44 @@ module PluginsTest
       Rake::Task[:foo].invoke
       assert $executed
     end
+
+    test "i18n files are added with lower priority than application ones" do
+      add_to_config <<-RUBY
+        config.i18n.load_path << "#{app_path}/app/locales/en.yml"
+      RUBY
+
+      app_file 'app/locales/en.yml', <<-YAML
+en:
+  bar: "1"
+YAML
+
+      app_file 'config/locales/en.yml', <<-YAML
+en:
+  foo: "2"
+  bar: "2"
+YAML
+
+      @plugin.write 'config/locales/en.yml', <<-YAML
+en:
+  foo: "3"
+YAML
+
+      boot_rails
+      require "#{app_path}/config/environment"
+
+      assert_equal %W(
+        #{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/locale/en.yml
+        #{RAILS_FRAMEWORK_ROOT}/activemodel/lib/active_model/locale/en.yml
+        #{RAILS_FRAMEWORK_ROOT}/activerecord/lib/active_record/locale/en.yml
+        #{RAILS_FRAMEWORK_ROOT}/actionpack/lib/action_view/locale/en.yml
+        #{app_path}/vendor/plugins/bukkits/config/locales/en.yml
+        #{app_path}/config/locales/en.yml
+        #{app_path}/app/locales/en.yml
+      ).map { |path| File.expand_path(path) }, I18n.load_path.map { |path| File.expand_path(path) }
+
+      assert_equal "2", I18n.t(:foo)
+      assert_equal "1", I18n.t(:bar)
+    end
   end
 
   class VendoredOrderingTest < Test::Unit::TestCase

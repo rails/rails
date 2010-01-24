@@ -26,6 +26,8 @@ module I18n
           I18n.send("#{setting}=", value)
         end
       end
+
+      I18n.reload!
     end
   end
 end
