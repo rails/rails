@@ -3,7 +3,7 @@ require "rails"
 
 module ActionMailer
   class Railtie < Rails::Railtie
-    plugin_name :action_mailer
+    railtie_name :action_mailer
 
     require "action_mailer/railties/subscriber"
     subscriber ActionMailer::Railties::Subscriber.new
@@ -17,12 +17,6 @@ module ActionMailer
     # TODO: ActionController::Base.logger should delegate to its own config.logger
     initializer "action_mailer.logger" do
       ActionMailer::Base.logger ||= Rails.logger
-    end
-
-    initializer "action_mailer.view_paths" do |app|
-      # TODO: this should be combined with the logic for default config.action_mailer.view_paths
-      view_path = ActionView::PathSet.type_cast(app.config.view_path, app.config.cache_classes)
-      ActionMailer::Base.template_root = view_path if ActionMailer::Base.view_paths.blank?
     end
   end
 end

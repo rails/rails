@@ -9,8 +9,8 @@ class ConsoleTest < Test::Unit::TestCase
 
     # Load steps taken from rails/commands/console.rb
     require "#{rails_root}/config/environment"
-    require 'rails/console_app'
-    require 'rails/console_with_helpers'
+    require 'rails/console/app'
+    require 'rails/console/helpers'
   end
 
   def test_app_method_should_return_integration_session

@@ -17,6 +17,10 @@ module PluginsTest
       require "#{app_path}/config/environment"
     end
 
+    def app
+      @app ||= Rails.application
+    end
+
     test "it loads the plugin's init.rb file" do
       boot_rails
       assert_equal "loaded", BUKKITS
@@ -144,6 +148,156 @@ module PluginsTest
       require "rack/mock"
       response = Rails.application.call(Rack::MockRequest.env_for("/sprokkit"))
       assert_equal "I am a Sprokkit", response[2].join
+    end
+
+    test "tasks are loaded by default" do
+      $executed = false
+      @plugin.write "lib/tasks/foo.rake", <<-RUBY
+        task :foo do
+          $executed = true
+        end
+      RUBY
+
+      boot_rails
+      require 'rake'
+      require 'rake/rdoctask'
+      require 'rake/testtask'
+      Rails.application.load_tasks
+      Rake::Task[:foo].invoke
+      assert $executed
+    end
+
+    test "deprecated tasks are also loaded" do
+      $executed = false
+      @plugin.write "tasks/foo.rake", <<-RUBY
+        task :foo do
+          $executed = true
+        end
+      RUBY
+
+      boot_rails
+      require 'rake'
+      require 'rake/rdoctask'
+      require 'rake/testtask'
+      Rails.application.load_tasks
+      Rake::Task[:foo].invoke
+      assert $executed
+    end
+
+    test "i18n files are added with lower priority than application ones" do
+      add_to_config <<-RUBY
+        config.i18n.load_path << "#{app_path}/app/locales/en.yml"
+      RUBY
+
+      app_file 'app/locales/en.yml', <<-YAML
+en:
+  bar: "1"
+YAML
+
+      app_file 'config/locales/en.yml', <<-YAML
+en:
+  foo: "2"
+  bar: "2"
+YAML
+
+      @plugin.write 'config/locales/en.yml', <<-YAML
+en:
+  foo: "3"
+YAML
+
+      boot_rails
+
+      assert_equal %W(
+        #{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/locale/en.yml
+        #{RAILS_FRAMEWORK_ROOT}/activemodel/lib/active_model/locale/en.yml
+        #{RAILS_FRAMEWORK_ROOT}/activerecord/lib/active_record/locale/en.yml
+        #{RAILS_FRAMEWORK_ROOT}/actionpack/lib/action_view/locale/en.yml
+        #{app_path}/vendor/plugins/bukkits/config/locales/en.yml
+        #{app_path}/config/locales/en.yml
+        #{app_path}/app/locales/en.yml
+      ).map { |path| File.expand_path(path) }, I18n.load_path.map { |path| File.expand_path(path) }
+
+      assert_equal "2", I18n.t(:foo)
+      assert_equal "1", I18n.t(:bar)
+    end
+
+    test "plugin metals are added to the middleware stack" do
+      @plugin.write 'app/metal/foo_metal.rb', <<-RUBY
+        class FooMetal
+          def self.call(env)
+            [200, { "Content-Type" => "text/html"}, ["FooMetal"]]
+          end
+        end
+      RUBY
+
+      boot_rails
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get "/"
+      assert_equal 200, last_response.status
+      assert_equal "FooMetal", last_response.body
+    end
+
+    test "namespaced controllers with namespaced routes" do
+      @plugin.write "config/routes.rb", <<-RUBY
+        ActionController::Routing::Routes.draw do
+          namespace :admin do
+            match "index", :to => "admin/foo#index"
+          end
+        end
+      RUBY
+
+      @plugin.write "app/controllers/admin/foo_controller.rb", <<-RUBY
+        class Admin::FooController < ApplicationController
+          def index
+            render :text => "Rendered from namespace"
+          end
+        end
+      RUBY
+
+      boot_rails
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get "/admin/index"
+      assert_equal 200, last_response.status
+      assert_equal "Rendered from namespace", last_response.body
+    end
+
+    test "plugin with initializers" do
+      $plugin_initializer = false
+      @plugin.write "config/initializers/foo.rb", <<-RUBY
+        $plugin_initializer = true
+      RUBY
+
+      boot_rails
+      assert $plugin_initializer
+    end
+
+    test "plugin cannot declare an engine for it" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          class Engine < Rails::Engine
+          end
+        end
+      RUBY
+
+      @plugin.write "init.rb", <<-RUBY
+        require "bukkits"
+      RUBY
+
+      rescued = false
+
+      begin
+        boot_rails
+      rescue Exception => e
+        rescued = true
+        assert_equal '"bukkits" is a Railtie/Engine and cannot be installed as plugin', e.message
+      end
+
+      assert rescued, "Expected boot rails to fail"
     end
   end
 
