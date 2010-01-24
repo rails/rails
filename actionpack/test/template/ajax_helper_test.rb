@@ -92,9 +92,18 @@ class AjaxHelperTest < AjaxHelperBaseTest
   end
   
   test "link_to_remote using :with expression" do
-    expected = %(<a href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-with=\"'id=' + encodeURIComponent(value)\">Remote outauthor</a>)
-    assert_dom_equal expected, link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :with => "id")
-    assert_dom_equal expected, link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :with => "'id=' + encodeURIComponent(value)")
+    expected = %(<a href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-with=\"id=123\">Remote outauthor</a>)
+    assert_dom_equal expected, link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :with => "id=123")
+  end
+
+  test "link_to_remote using :condition expression" do
+    expected = %(<a href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-condition=\"$('foo').val() == true\">Remote outauthor</a>)
+    assert_dom_equal expected, link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :condition => '$(\'foo\').val() == true')
+  end
+
+  test "link_to_remote using :submit" do
+    expected = %(<a href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-submit=\"myForm\">Remote outauthor</a>)
+    assert_dom_equal expected, link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :submit => 'myForm')
   end
 
   test "link_to_remote with method delete" do
@@ -133,6 +142,11 @@ class AjaxHelperTest < AjaxHelperBaseTest
   test "button_to_remote with confirm" do
     assert_dom_equal %(<input class=\"fine\" type=\"button\" value=\"Remote outpost\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-confirm="Are you sure?" />),
       button_to_remote("Remote outpost", { :url => { :action => "whatnot" }, :confirm => "Are you sure?"}, { :class => "fine"  })
+  end
+
+  test "button_to_remote with :submit" do
+    assert_dom_equal %(<input class=\"fine\" type=\"button\" value=\"Remote outpost\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-submit="myForm" />),
+      button_to_remote("Remote outpost", { :url => { :action => "whatnot" }, :submit => "myForm"}, { :class => "fine"  })
   end
 
   test "periodically_call_remote" do
@@ -258,9 +272,13 @@ class AjaxHelperTest < AjaxHelperBaseTest
   end
 
   test "observe_field using with option" do
-    expected = %(<script type=\"text/javascript\" data-observe=\"true\" data-observed=\"glass\" data-frequency=\"300\" type=\"application/json\" data-url=\"http://www.example.com/check_value\" data-with=\"'id=' + encodeURIComponent(value)\"></script>)
-    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :with => 'id')
-    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :with => "'id=' + encodeURIComponent(value)")
+    expected = %(<script type=\"text/javascript\" data-observe=\"true\" data-observed=\"glass\" data-frequency=\"300\" type=\"application/json\" data-url=\"http://www.example.com/check_value\" data-with=\"id=123\"></script>)
+    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :with => 'id=123')
+  end
+
+  test "observe_field using condition option" do
+    expected = %(<script type=\"text/javascript\" data-observe=\"true\" data-observed=\"glass\" data-frequency=\"300\" type=\"application/json\" data-url=\"http://www.example.com/check_value\" data-condition=\"$('foo').val() == true\"></script>)
+    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :condition => '$(\'foo\').val() == true')
   end
 
   test "observe_field using json in with option" do

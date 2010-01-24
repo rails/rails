@@ -503,6 +503,10 @@ module ActionView
           attributes.merge!(extract_request_attributes!(options))
           attributes["data-remote"] = true 
 
+          if submit = options.delete(:submit)
+            attributes["data-submit"] = submit
+          end
+
           attributes
         end
 
@@ -563,12 +567,13 @@ module ActionView
 
       def link_to_remote(name, options, html_options = {})
         set_callbacks(options, html_options)
-        set_conditions(options, html_options)
+        set_with_and_condition_attributes(options, html_options)
         super
       end
       
       def button_to_remote(name, options = {}, html_options = {})
         set_callbacks(options, html_options)
+        set_with_and_condition_attributes(options, html_options)
         super
       end
 
@@ -581,7 +586,7 @@ module ActionView
 
       def observe_field(name, options = {})
         html = {}
-        set_conditions(options, html)
+        set_with_and_condition_attributes(options, html)
         options.merge!(:callbacks => html)
         super
       end
@@ -599,18 +604,13 @@ module ActionView
           end
         end
 
-        def set_conditions(options, html)
-          #TODO: Remove all references to prototype - BR
-          if options.delete(:form)
-            html["data-parameters"] = 'Form.serialize(this)'
-          elsif submit = options.delete(:submit)
-            html["data-parameters"] = "Form.serialize('#{submit}')"
-          elsif with = options.delete(:with)
-            if with !~ /[\{=(.]/
-              html["data-with"] = "'#{with}=' + encodeURIComponent(value)"
-            else
-              html["data-with"] = with
-            end
+        def set_with_and_condition_attributes(options, html)
+          if with = options.delete(:with)
+            html["data-with"] = with
+          end
+
+          if condition = options.delete(:condition)
+            html["data-condition"] = condition
           end
         end
     end
