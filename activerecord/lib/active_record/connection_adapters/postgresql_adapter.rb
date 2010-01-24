@@ -998,7 +998,7 @@ module ActiveRecord
           configure_connection
         end
 
-        # Configures the encoding, verbosity, and schema search path of the connection.
+        # Configures the encoding, verbosity, schema search path, and time zone of the connection.
         # This is called by #connect and should not be called manually.
         def configure_connection
           if @config[:encoding]
@@ -1010,6 +1010,10 @@ module ActiveRecord
           end
           self.client_min_messages = @config[:min_messages] if @config[:min_messages]
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
+          
+          # If using ActiveRecord's time zone support configure the connection to return
+          # TIMESTAMP WITH ZONE types in UTC.
+          execute("SET time zone 'UTC'") if ActiveRecord::Base.default_timezone == :utc
         end
 
         # Returns the current ID of a table's sequence.

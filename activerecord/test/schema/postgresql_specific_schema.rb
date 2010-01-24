@@ -1,7 +1,7 @@
 ActiveRecord::Schema.define do
 
   %w(postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings
-      postgresql_oids postgresql_xml_data_type defaults geometrics).each do |table_name|
+      postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones).each do |table_name|
     execute "DROP TABLE  IF EXISTS #{quote_table_name table_name}"
   end
 
@@ -98,6 +98,13 @@ _SQL
   CREATE TABLE postgresql_oids (
     id SERIAL PRIMARY KEY,
     obj_id OID
+  );
+_SQL
+  
+  execute <<_SQL
+  CREATE TABLE postgresql_timestamp_with_zones (
+    id SERIAL PRIMARY KEY,
+    time TIMESTAMP WITH TIME ZONE
   );
 _SQL
 
