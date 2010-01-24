@@ -493,6 +493,16 @@ module ActionView
 
       private
 
+        def extract_confirm_attributes!(options)
+          attributes = {}
+
+          if options && options[:confirm] 
+            attributes["data-confirm"] = options.delete(:confirm)
+          end
+
+          attributes
+        end
+
         def extract_remote_attributes!(options)
           attributes = options.delete(:html) || {}
 
