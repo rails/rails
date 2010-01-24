@@ -1,6 +1,7 @@
 require 'set'
 require 'active_support/json'
 require 'active_support/core_ext/object/returning'
+require 'action_view/helpers/scriptaculous_helper'
 
 module ActionView
   module Helpers
@@ -73,6 +74,8 @@ module ActionView
     # See JavaScriptGenerator for information on updating multiple elements
     # on the page in an Ajax response.
     module PrototypeHelper
+      include ScriptaculousHelper
+
       unless const_defined? :CALLBACKS
         CALLBACKS    = Set.new([ :create, :uninitialized, :loading, :loaded,
                          :interactive, :complete, :failure, :success ] +
