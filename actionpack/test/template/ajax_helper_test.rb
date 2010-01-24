@@ -1,179 +1,281 @@
-require "abstract_unit"
+require 'abstract_unit'
+require 'active_model'
 
-class AjaxTestCase < ActiveSupport::TestCase
-  include ActionView::Helpers::TagHelper
+class Author
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
 
-  def url_for(url)
-    case url
-      when Hash
-        "/url/hash"
-      when String
-        url
-      else
-        raise TypeError.new("Unsupported url type (#{url.class}) for this test helper")
-    end
+  attr_reader :id
+  def save; @id = 1 end
+  def new_record?; @id.nil? end
+  def name
+    @id.nil? ? 'new author' : "author ##{@id}"
+  end
+end
+
+class Article
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+  attr_reader :id
+  attr_reader :author_id
+  def save; @id = 1; @author_id = 1 end
+  def new_record?; @id.nil? end
+  def name
+    @id.nil? ? 'new article' : "article ##{@id}"
+  end
+end
+
+class AjaxHelperBaseTest < ActionView::TestCase
+  attr_accessor :formats, :output_buffer
+
+  def reset_formats(format)
+    @format = format
   end
 
-  def assert_html(html, matches)
-    matches.each do |match|
-      assert_match(Regexp.new(Regexp.escape(match)), html)
-    end
-  end
-
-  def self.assert_callbacks_work(&blk)
-    define_method(:assert_callbacks_work, &blk)
-
-    [:complete, :failure, :success, :interactive, :loaded, :loading, 404].each do |callback|
-      test "#{callback} callback" do
-        markup = assert_callbacks_work(callback)
-        assert_html markup, %W(data-#{callback}-code="undoRequestCompleted\(request\)")
+  def setup
+    super
+    @template = self
+    @controller = Class.new do
+      def url_for(options)
+        if options.is_a?(String)
+          options
+        else
+          url =  "http://www.example.com/"
+          url << options[:action].to_s if options and options[:action]
+          url << "?a=#{options[:a]}" if options && options[:a]
+          url << "&b=#{options[:b]}" if options && options[:a] && options[:b]
+          url
+        end
       end
-    end
+    end.new
   end
+
+  protected
+    def request_forgery_protection_token
+      nil
+    end
+
+    def protect_against_forgery?
+      false
+    end
 end
 
-class LinkToRemoteTest < AjaxTestCase
-  include ActionView::Helpers::AjaxHelperCompat
+class AjaxHelperTest < AjaxHelperBaseTest
+  def _evaluate_assigns_and_ivars() end
 
-  def link(options = {})
-    link_to_remote("Delete this post", "/blog/destroy/3", options)
+  def setup
+    @record = @author = Author.new
+    @article = Article.new
+    super
   end
 
-  test "basic" do
-    assert_html link(:update => "#posts"),
-      %w(data-update-success="#posts")
+  test "link_to_remote" do
+    assert_dom_equal %(<a class=\"fine\" href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", { :url => { :action => "whatnot" }}, { :class => "fine"  })
+    assert_dom_equal %(<a href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-oncomplete=\"alert(request.responseText)\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :complete => "alert(request.responseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<a href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-onsuccess=\"alert(request.responseText)\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :success => "alert(request.responseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<a href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-onfailure=\"alert(request.responseText)\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :failure => "alert(request.responseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<a href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot?a=10&amp;b=20\" data-onfailure=\"alert(request.responseText)\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :failure => "alert(request.responseText)", :url => { :action => "whatnot", :a => '10', :b => '20' })
+    assert_dom_equal %(<a href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-remote-type=\"synchronous\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :type => :synchronous)
+    assert_dom_equal %(<a href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-update-position=\"bottom\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :position => :bottom)
   end
 
-  test "using a url string" do
-    assert_html link_to_remote("Test", "/blog/update/1"),
-      %w(href="/blog/update/1")
+  test "link_to_remote html options" do
+    assert_dom_equal %(<a class=\"fine\" href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", { :url => { :action => "whatnot"  }, :html => { :class => "fine" } })
   end
 
-  test "using a url hash" do
-    link = link_to_remote("Delete this post", {:controller => :blog}, :update => "#posts")
-    assert_html link, %w(href="/url/hash" data-update-success="#posts")
+  test "link_to_remote url quote escaping" do
+    assert_dom_equal %(<a href="#" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\\\'s\">Remote</a>),
+      link_to_remote("Remote", { :url => { :action => "whatnot's" } })
   end
 
-  test "with no update" do
-    assert_html link, %w(href="/blog/destroy/3" Delete\ this\ post data-remote="true")
+  test "button_to_remote" do
+    assert_dom_equal %(<input class=\"fine\" type=\"button\" value=\"Remote outpost\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" />),
+      button_to_remote("Remote outpost", { :url => { :action => "whatnot" }}, { :class => "fine"  })
+    assert_dom_equal %(<input type=\"button\" value=\"Remote outpost\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-oncomplete=\"alert(request.reponseText)\" />),
+      button_to_remote("Remote outpost", :complete => "alert(request.reponseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<input type=\"button\" value=\"Remote outpost\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-onsuccess=\"alert(request.reponseText)\" />),
+      button_to_remote("Remote outpost", :success => "alert(request.reponseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<input type=\"button\" value=\"Remote outpost\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-onfailure=\"alert(request.reponseText)\" />),
+      button_to_remote("Remote outpost", :failure => "alert(request.reponseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<input type=\"button\" value=\"Remote outpost\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot?a=10&amp;b=20\" data-onfailure=\"alert(request.reponseText)\" />),
+      button_to_remote("Remote outpost", :failure => "alert(request.reponseText)", :url => { :action => "whatnot", :a => '10', :b => '20' })
   end
 
-  test "with :html options" do
-    expected = %{<a data-custom="me" data-remote="true" data-update-success="#posts" href="/blog/destroy/3">Delete this post</a>}
-    assert_equal expected, link(:update => "#posts", :html => {"data-custom" => "me"})
+  test "periodically_call_remote" do
+    assert_dom_equal %(<script data-url=\"http://www.example.com/mehr_bier\" data-observe=\"true\" data-update-success=\"schremser_bier\" type=\"application/json\" data-periodical=\"true\"></script>),
+      periodically_call_remote(:update => "schremser_bier", :url => { :action => "mehr_bier" })
   end
 
-  test "with a hash for :update" do
-    link = link(:update => {:success => "#posts", :failure => "#error"})
-    assert_match(/data-update-success="#posts"/, link)
-    assert_match(/data-update-failure="#error"/, link)
+  test "periodically_call_remote_with_frequency" do
+    assert_dom_equal(
+      "<script data-periodical=\"true\" data-url=\"http://www.example.com/\" data-observe=\"true\" type=\"application/json\" data-frequency=\"2\"></script>",
+      periodically_call_remote(:frequency => 2)
+    )
   end
 
-  test "with positional parameters" do
-    link = link(:position => :top, :update => "#posts")
-    assert_match(/data\-update\-position="top"/, link)
+  test "form_remote_tag" do
+    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-success=\"glass_of_beer\">),
+      form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  })
+    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-success=\"glass_of_beer\">),
+      form_remote_tag(:update => { :success => "glass_of_beer" }, :url => { :action => :fast  })
+    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-failure=\"glass_of_water\">),
+      form_remote_tag(:update => { :failure => "glass_of_water" }, :url => { :action => :fast  })
+    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-success=\"glass_of_beer\" data-update-failure=\"glass_of_water\">),
+      form_remote_tag(:update => { :success => 'glass_of_beer', :failure => "glass_of_water" }, :url => { :action => :fast  })
   end
 
-  test "with an optional method" do
-    link = link(:method => "delete")
-    assert_match(/data-method="delete"/, link)
+  test "form_remote_tag with method" do
+    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-success=\"glass_of_beer\"><div style='margin:0;padding:0;display:inline'><input name='_method' type='hidden' value='put' /></div>),
+      form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }, :html => { :method => :put })
   end
 
-  class LegacyLinkToRemoteTest < AjaxTestCase
-    include ActionView::Helpers::AjaxHelperCompat
+  test "form_remote_tag with block in erb" do
+    __in_erb_template = ''
+    form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }) { concat "Hello world!" }
+    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-success=\"glass_of_beer\">Hello world!</form>), output_buffer
+  end
 
-    def link(options)
-      link_to_remote("Delete this post", "/blog/destroy/3", options)
+  test "remote_form_for with record identification with new record" do
+    remote_form_for(@record, {:html => { :id => 'create-author' }}) {}
+
+    expected = %(<form action='#{authors_path}' data-remote=\"true\" class='new_author' id='create-author' method='post'></form>)
+    assert_dom_equal expected, output_buffer
+  end
+
+  test "remote_form_for with record identification without html options" do
+    remote_form_for(@record) {}
+
+    expected = %(<form action='#{authors_path}' data-remote=\"true\" class='new_author' method='post' id='new_author'></form>)
+    assert_dom_equal expected, output_buffer
+  end
+
+  test "remote_form_for with record identification with existing record" do
+    @record.save
+    remote_form_for(@record) {}
+
+    expected = %(<form action='#{author_path(@record)}' id='edit_author_1' method='post' data-remote=\"true\" class='edit_author'><div style='margin:0;padding:0;display:inline'><input name='_method' type='hidden' value='put' /></div></form>)
+    assert_dom_equal expected, output_buffer
+  end
+
+  test "remote_form_for with new object in list" do
+    remote_form_for([@author, @article]) {}
+
+    expected = %(<form action='#{author_articles_path(@author)}' data-remote=\"true\" class='new_article' method='post' id='new_article'></form>)
+    assert_dom_equal expected, output_buffer
+  end
+
+  test "remote_form_for with existing object in list" do
+    @author.save
+    @article.save
+    remote_form_for([@author, @article]) {}
+
+    expected = %(<form action='#{author_article_path(@author, @article)}' id='edit_article_1' method='post' data-remote=\"true\" class='edit_article'><div style='margin:0;padding:0;display:inline'><input name='_method' type='hidden' value='put' /></div></form>)
+    assert_dom_equal expected, output_buffer
+  end
+
+  test "on callbacks" do
+    callbacks = [:uninitialized, :loading, :loaded, :interactive, :complete, :success, :failure]
+    callbacks.each do |callback|
+      assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-success=\"glass_of_beer\" data-on#{callback}=\"monkeys();\">),
+        form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }, callback=>"monkeys();")
+      assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-success=\"glass_of_beer\" data-on#{callback}=\"monkeys();\">),
+        form_remote_tag(:update => { :success => "glass_of_beer" }, :url => { :action => :fast  }, callback=>"monkeys();")
+      assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-failure=\"glass_of_beer\" data-on#{callback}=\"monkeys();\">),
+        form_remote_tag(:update => { :failure => "glass_of_beer" }, :url => { :action => :fast  }, callback=>"monkeys();")
+      assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-failure=\"glass_of_water\" data-update-success=\"glass_of_beer\" data-on#{callback}=\"monkeys();\">),
+        form_remote_tag(:update => { :success => "glass_of_beer", :failure => "glass_of_water" }, :url => { :action => :fast  }, callback=>"monkeys();")
     end
 
-    test "basic link_to_remote with :url =>" do
-      expected = %{<a data-remote="true" data-update-success="#posts" href="/blog/destroy/4">Delete this post</a>}
-      assert_equal expected,
-        link_to_remote("Delete this post", :url => "/blog/destroy/4", :update => "#posts")
+    #HTTP status codes 200 up to 599 have callbacks
+    #these should work
+    100.upto(599) do |callback|
+      assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-success=\"glass_of_beer\" data-on#{callback}=\"monkeys();\">),
+        form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }, callback=>"monkeys();")
     end
 
-    assert_callbacks_work do |callback|
-      link(callback => "undoRequestCompleted(request)")
+    #test 200 and 404
+    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-success=\"glass_of_beer\" data-on200=\"monkeys();\" data-on404=\"bananas();\">),
+      form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }, 200=>"monkeys();", 404=>"bananas();")
+
+    #these shouldn't
+    1.upto(99) do |callback|
+      assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-success=\"glass_of_beer\" data-on#{callback}=\"monkeys();\">),
+        form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }, callback=>"monkeys();")
     end
-  end
-end
-
-class ButtonToRemoteTest < AjaxTestCase
-  include ActionView::Helpers::AjaxHelperCompat
-
-  def button(options, html = {})
-    button_to_remote("Remote outpost", options, html)
-  end
-
-  class StandardTest < ButtonToRemoteTest
-    test "basic" do
-      expected = %{<input class="fine" data-remote="true" data-url="/url/hash" type="button" value="Remote outpost" />}
-      assert_equal expected, button({:url => "/url/hash"}, {:class => "fine"})
+    600.upto(999) do |callback|
+      assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-success=\"glass_of_beer\" data-on#{callback}=\"monkeys();\">),
+        form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }, callback=>"monkeys();")
     end
+
+    #test ultimate combo
+    assert_dom_equal %(<form data-on404=\"bananas();\" method=\"post\" data-onsuccess=\"s()\" action=\"http://www.example.com/fast\" data-oncomplete=\"c();\" data-update-success=\"glass_of_beer\" data-on200=\"monkeys();\" data-onloading=\"c1()\" data-remote=\"true\" data-onfailure=\"f();\">),
+      form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }, :loading => "c1()", :success => "s()", :failure => "f();", :complete => "c();", 200=>"monkeys();", 404=>"bananas();")
+
   end
 
-  class LegacyButtonToRemoteTest < ButtonToRemoteTest
-    include ActionView::Helpers::AjaxHelperCompat
+  test "submit_to_remote" do
+    assert_dom_equal %(<input name=\"More beer!\" type=\"button\" value=\"1000000\" data-url=\"http://www.example.com/\" data-submit=\"true\" data-update-success=\"empty_bottle\" />),
+      submit_to_remote("More beer!", 1_000_000, :update => "empty_bottle")
+  end
 
-    assert_callbacks_work do |callback|
-      button(callback => "undoRequestCompleted(request)")
+  test "observe_field" do
+    assert_dom_equal %(<script type=\"text/javascript\" data-observe=\"true\" data-observed=\"glass\" data-frequency=\"300\" type=\"application/json\" data-url=\"http://www.example.com/reorder_if_empty\"></script>),
+      observe_field("glass", :frequency => 5.minutes, :url => { :action => "reorder_if_empty" })
+  end
+
+  test "observe_field using with option" do
+    expected = %(<script type=\"text/javascript\" data-observe=\"true\" data-observed=\"glass\" data-frequency=\"300\" type=\"application/json\" data-url=\"http://www.example.com/check_value\" data-with=\"'id=' + encodeURIComponent(value)\"></script>)
+    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :with => 'id')
+    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :with => "'id=' + encodeURIComponent(value)")
+  end
+
+  test "observe_field using json in with option" do
+    expected = %(<script data-with=\"{'id':value}\" data-observed=\"glass\" data-url=\"http://www.example.com/check_value\" data-observe=\"true\" type=\"application/json\" data-frequency=\"300\"></script>)
+    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :with => "{'id':value}")
+  end
+
+  test "observe_field using function for callback" do
+    assert_dom_equal %(<script data-observed=\"glass\" data-url=\"http://www.example.com/\" data-onobserve=\"function(element, value) {alert('Element changed')}\" data-observe=\"true\" type=\"application/json\" data-frequency=\"300\"></script>),
+      observe_field("glass", :frequency => 5.minutes, :function => "alert('Element changed')")
+  end
+
+  test "observe_form" do
+    assert_dom_equal %(<script data-observed=\"cart\" data-url=\"http://www.example.com/cart_changed\" data-observe=\"true\" type=\"application/json\" data-frequency=\"2\"></script>),
+      observe_form("cart", :frequency => 2, :url => { :action => "cart_changed" })
+  end
+
+  test "observe_form using function for callback" do
+    assert_dom_equal %(<script data-observed=\"cart\" data-url=\"http://www.example.com/\" data-onobserve=\"function(element, value) {alert('Form changed')}\" data-observe=\"true\" type=\"application/json\" data-frequency=\"2\"></script>),
+      observe_form("cart", :frequency => 2, :function => "alert('Form changed')")
+  end
+
+  test "observe_field without frequency" do
+    assert_dom_equal %(<script data-observed=\"glass\" data-url=\"http://www.example.com/\" data-observe=\"true\" type=\"application/json\"></script>),
+      observe_field("glass")
+  end
+
+  protected
+    def author_path(record)
+      "/authors/#{record.id}"
     end
-  end
-end
 
-class ObserveFieldTest < AjaxTestCase
-  include ActionView::Helpers::AjaxHelperCompat
+    def authors_path
+      "/authors"
+    end
 
-  def url_for(hash)
-    "/blog/update"
-  end
+    def author_articles_path(author)
+      "/authors/#{author.id}/articles"
+    end
 
-  def protect_against_forgery?
-    false
-  end
-
-  def field(options = {})
-    observe_field("title", options)
-  end
-
-  test "basic" do
-    assert_html field,
-      %w(data-observe="true")
-  end
-
-  test "with a :frequency option" do
-    assert_html field(:frequency => 5.minutes),
-      %w(data-observe="true" data-frequency="300")
-  end
-
-  test "using a url string" do
-    assert_html field(:url => "/some/other/url"),
-      %w(data-observe="true" data-url="/some/other/url")
-  end
-
-  test "using a url hash" do
-    assert_html field(:url => {:controller => :blog, :action => :update}),
-      %w(data-observe="true" data-url="/blog/update")
-  end
-
-#  def test_observe_field
-#    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Form.Element.Observer('glass', 300, function(element, value) {new Ajax.Request('http://www.example.com/reorder_if_empty', {asynchronous:true, evalScripts:true, parameters:value})})\n//]]>\n</script>),
-#      observe_field("glass", :frequency => 5.minutes, :url => { :action => "reorder_if_empty" })
-#  end
-#
-#  def test_observe_field_using_with_option
-#    expected = %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Form.Element.Observer('glass', 300, function(element, value) {new Ajax.Request('http://www.example.com/check_value', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(value)})})\n//]]>\n</script>)
-#    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :with => 'id')
-#    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :with => "'id=' + encodeURIComponent(value)")
-#  end
-#
-#  def test_observe_field_using_json_in_with_option
-#    expected = %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Form.Element.Observer('glass', 300, function(element, value) {new Ajax.Request('http://www.example.com/check_value', {asynchronous:true, evalScripts:true, parameters:{'id':value}})})\n//]]>\n</script>)
-#    assert_dom_equal expected, observe_field("glass", :frequency => 5.minutes, :url => { :action => "check_value" }, :with => "{'id':value}")
-#  end
-#
-#  def test_observe_field_using_function_for_callback
-#    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Form.Element.Observer('glass', 300, function(element, value) {alert('Element changed')})\n//]]>\n</script>),
-#      observe_field("glass", :frequency => 5.minutes, :function => "alert('Element changed')")
-#  end
+    def author_article_path(author, article)
+      "/authors/#{author.id}/articles/#{article.id}"
+    end
 end

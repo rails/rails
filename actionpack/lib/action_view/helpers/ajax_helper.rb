@@ -105,13 +105,15 @@ module ActionView
       #   <% end -%>
 
       def form_remote_tag(options = {}, &block)
+        html_options = options.delete(:callbacks)
+
         attributes = {}
         attributes.merge!(extract_remote_attributes!(options))
+        attributes.merge!(html_options) if html_options
         attributes.merge!(options)
-
-        url = attributes.delete("data-url")
         attributes.delete(:builder)
-        form_tag(attributes.delete(:action) || url, attributes, &block)
+
+        form_tag(attributes.delete(:action) || attributes.delete("data-url"), attributes, &block)
       end
 
       # Returns a link to a remote action defined by <tt>options[:url]</tt>
@@ -287,13 +289,12 @@ module ActionView
       #   link_to_remote "Delete this post",
       #     { :update => "posts", :url => { :action => "destroy", :id => post.id } },
       #     :href => url_for(:action => "destroy", :id => post.id)
-      def link_to_remote(name, url, options = {})
+      def link_to_remote(name, options, html_options = {})
         attributes = {}
         attributes.merge!(extract_remote_attributes!(options))
-        attributes.merge!(options)
+        attributes.merge!(html_options)
 
-        url = url_for(url) if url.is_a?(Hash)
-        content_tag(:a, name, attributes.merge(:href => url))
+        content_tag(:a, name, attributes.merge(:href => "#"))
       end
   
       # Creates a button with an onclick event which calls a remote action
@@ -303,7 +304,6 @@ module ActionView
       def button_to_remote(name, options = {}, html_options = {})
         attributes = html_options.merge!(:type => "button", :value => name)
         attributes.merge!(extract_remote_attributes!(options))
-        attributes.merge!(extract_request_attributes!(options))
 
         tag(:input, attributes)
       end
@@ -341,10 +341,12 @@ module ActionView
       # <tt>options</tt> argument is the same as in form_remote_tag.
       def submit_to_remote(name, value, options = {})
         html_options = options.delete(:html) || {}
-        html_options.merge!(:name => name, :value => value, :type => "submit")
+        html_options.merge!(:name => name, :value => value, :type => "button")
 
         attributes = extract_remote_attributes!(options)
         attributes.merge!(html_options)
+        attributes["data-submit"] = true
+        attributes.delete("data-remote")
 
         tag(:input, attributes)
       end
@@ -376,7 +378,7 @@ module ActionView
       #
       def periodically_call_remote(options = {})
         attributes = extract_observer_attributes!(options)
-        attributes["data-js-type"] = "periodical_executer"
+        attributes["data-periodical"] = true 
 
         script_decorator(attributes)
       end
@@ -493,9 +495,11 @@ module ActionView
         def extract_request_attributes!(options)
           attributes = {}
           attributes["data-method"] = options.delete(:method)
+          attributes["data-remote-type"] = options.delete(:type)
 
-          url = options.delete(:url)
-          attributes["data-url"] = url.is_a?(Hash) ? url_for(url) : url
+          url_options = options.delete(:url)
+          url_options = url_options.merge(:escape => false) if url_options.is_a?(Hash)
+          attributes["data-url"] = escape_javascript(url_for(url_options)) 
 
           #TODO: Remove all references to prototype - BR
           if options.delete(:form)
@@ -528,18 +532,16 @@ module ActionView
         end
 
         def extract_observer_attributes!(options)
+          callback = options.delete(:function)
+          frequency = options.delete(:frequency)
+
+
           attributes = extract_remote_attributes!(options)
           attributes["data-observe"] = true
           attributes["data-observed"] = options.delete(:observed)
-
-          callback = options.delete(:function)
-          frequency = options.delete(:frequency)
-          if callback
-            attributes["data-observer-code"] = create_js_function(callback, "element", "value")
-          end
-          if frequency && frequency != 0
-            attributes["data-frequency"] = frequency.to_i
-          end
+          attributes["data-onobserve"] = create_js_function(callback, "element", "value") if callback
+          attributes["data-frequency"] = frequency.to_i if frequency && frequency != 0
+          attributes.delete("data-remote")
 
           purge_unused_attributes!(attributes)
         end
@@ -558,26 +560,8 @@ module ActionView
     module AjaxHelperCompat
       include AjaxHelper
 
-      def set_callbacks(options, html)
-        [:complete, :failure, :success, :interactive, :loaded, :loading].each do |type|
-          html["data-#{type}-code"]  = options.delete(type.to_sym)
-        end
-
-        options.each do |option, value|
-          if option.is_a?(Integer)
-            html["data-#{option}-code"] = options.delete(option)
-          end
-        end
-      end
-      
-      def link_to_remote(name, url, options = nil)
-        if !options && url.is_a?(Hash) && url.key?(:url)
-          url, options = url.delete(:url), url
-        end
-        options = {} if options.nil?
-
-        set_callbacks(options, options[:html] ||= {})
-        
+      def link_to_remote(name, options, html_options = {})
+        set_callbacks(options, html_options)
         super
       end
       
@@ -585,6 +569,26 @@ module ActionView
         set_callbacks(options, html_options)
         super
       end
+
+      def form_remote_tag(options, &block)
+        html = {}
+        set_callbacks(options, html)
+        options.merge!(:callbacks => html)
+        super
+      end
+
+      private
+        def set_callbacks(options, html)
+          [:uninitialized, :complete, :failure, :success, :interactive, :loaded, :loading].each do |type|
+            html["data-on#{type}"]  = options.delete(type.to_sym)
+          end
+
+          options.each do |option, value|
+            if option.is_a?(Integer)
+              html["data-on#{option}"] = options.delete(option)
+            end
+          end
+        end
     end
   end
 end
