@@ -17,7 +17,7 @@ module Rails
 
       initializer :add_builtin_route do |app|
         if Rails.env.development?
-          RoutesReloader.paths << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
+          Rails::Application::RoutesReloader.paths << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
         end
       end
 
