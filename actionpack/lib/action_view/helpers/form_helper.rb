@@ -395,7 +395,7 @@ module ActionView
       #     accepts_nested_attributes_for :address, :allow_destroy => true
       #   end
       #
-      # Now, when you use a form element with the <tt>_delete</tt> parameter,
+      # Now, when you use a form element with the <tt>_destroy</tt> parameter,
       # with a value that evaluates to +true+, you will destroy the associated
       # model (eg. 1, '1', true, or 'true'):
       #
@@ -403,7 +403,7 @@ module ActionView
       #     ...
       #     <% person_form.fields_for :address do |address_fields| %>
       #       ...
-      #       Delete: <%= address_fields.check_box :_delete %>
+      #       Delete: <%= address_fields.check_box :_destroy %>
       #     <% end %>
       #   <% end %>
       #
@@ -476,14 +476,14 @@ module ActionView
       #   end
       #
       # This will allow you to specify which models to destroy in the
-      # attributes hash by adding a form element for the <tt>_delete</tt>
+      # attributes hash by adding a form element for the <tt>_destroy</tt>
       # parameter with a value that evaluates to +true+
       # (eg. 1, '1', true, or 'true'):
       #
       #   <% form_for @person, :url => { :action => "update" } do |person_form| %>
       #     ...
       #     <% person_form.fields_for :projects do |project_fields| %>
-      #       Delete: <%= project_fields.check_box :_delete %>
+      #       Delete: <%= project_fields.check_box :_destroy %>
       #     <% end %>
       #   <% end %>
       def fields_for(record_or_name_or_array, *args, &block)
