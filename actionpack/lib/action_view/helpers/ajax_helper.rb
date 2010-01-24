@@ -291,6 +291,7 @@ module ActionView
       #     :href => url_for(:action => "destroy", :id => post.id)
       def link_to_remote(name, options, html_options = {})
         attributes = {}
+        attributes.merge!(:rel => "nofollow") if options[:method] && options[:method].downcase == "delete"
         attributes.merge!(extract_remote_attributes!(options))
         attributes.merge!(html_options)
 
