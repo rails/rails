@@ -11,8 +11,6 @@ module Rails
     autoload :Railties,       'rails/application/railties'
     autoload :RoutesReloader, 'rails/application/routes_reloader'
 
-    # TODO Check helpers works as expected
-    # TODO Check routes namespaces
     # TODO Ensure production settings are read properly
     class << self
       private :new
