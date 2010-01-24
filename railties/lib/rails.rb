@@ -4,15 +4,8 @@ require 'active_support'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/logger'
 
-require 'rails/initializable'
 require 'rails/application'
-require 'rails/railtie'
-require 'rails/plugin'
-require 'rails/railties_path'
 require 'rails/version'
-require 'rails/rack'
-require 'rails/paths'
-require 'rails/configuration'
 require 'rails/deprecation'
 require 'rails/subscriber'
 require 'rails/ruby_version_check'
@@ -32,8 +25,6 @@ else
 end
 
 module Rails
-  autoload :Bootstrap, 'rails/bootstrap'
-
   class << self
     def application
       @@application ||= nil

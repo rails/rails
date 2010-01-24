@@ -7,7 +7,6 @@ module ActionController
     include AbstractController::Translation
 
     include ActionController::Helpers
-    helper :all # By default, all helpers should be included
     
     include ActionController::HideActions
     include ActionController::UrlFor
@@ -67,6 +66,7 @@ module ActionController
     def self.inherited(klass)
       ::ActionController::Base.subclasses << klass.to_s
       super
+      klass.helper :all
     end
 
     def self.subclasses

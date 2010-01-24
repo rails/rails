@@ -26,11 +26,11 @@ module PluginsTest
 
     test "plugin config merges are deep" do
       class Foo < Rails::Railtie ; config.foo.greetings = 'hello' ; end
-      class MyApp < Rails::Application
+      class Bar < Rails::Railtie
         config.foo.bar = "bar"
       end
-      assert_equal "hello", MyApp.config.foo.greetings
-      assert_equal "bar",   MyApp.config.foo.bar
+      assert_equal "hello", Bar.config.foo.greetings
+      assert_equal "bar",   Bar.config.foo.bar
     end
 
     test "plugin can add subscribers" do

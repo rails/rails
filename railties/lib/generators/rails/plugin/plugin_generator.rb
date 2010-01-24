@@ -17,7 +17,7 @@ module Rails
 
       def create_tasks_files
         return unless options[:tasks]
-        directory 'tasks', plugin_dir('tasks')
+        directory 'lib/tasks', plugin_dir('lib/tasks')
       end
 
       hook_for :generator do |generator|

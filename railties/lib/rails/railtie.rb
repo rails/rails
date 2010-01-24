@@ -1,44 +1,66 @@
+require 'rails/initializable'
+require 'rails/configuration'
+
 module Rails
   class Railtie
+    autoload :Configurable,  "rails/railtie/configurable"
+    autoload :Configuration, "rails/railtie/configuration"
+
     include Initializable
 
-    def self.plugin_name(plugin_name = nil)
-      @plugin_name ||= name.demodulize.underscore
-      @plugin_name = plugin_name if plugin_name
-      @plugin_name
-    end
+    ABSTRACT_RAILTIES = %w(Rails::Plugin Rails::Engine Rails::Application)
 
-    def self.inherited(klass)
-      @plugins ||= []
-      @plugins << klass unless klass == Plugin
-    end
+    class << self
+      def subclasses
+        @subclasses ||= []
+      end
 
-    def self.plugins
-      @plugins
-    end
+      def inherited(base)
+        unless abstract_railtie?(base)
+          base.send(:include, self::Configurable) if add_configurable?(base)
+          subclasses << base
+        end
+      end
 
-    def self.plugin_names
-      plugins.map { |p| p.plugin_name }
-    end
+      def railtie_name(railtie_name = nil)
+        @railtie_name ||= name.demodulize.underscore
+        @railtie_name = railtie_name if railtie_name
+        @railtie_name
+      end
 
-    def self.config
-      Configuration.default
-    end
+      def railtie_names
+        subclasses.map { |p| p.railtie_name }
+      end
 
-    def self.subscriber(subscriber)
-      Rails::Subscriber.add(plugin_name, subscriber)
-    end
+      def subscriber(subscriber)
+        Rails::Subscriber.add(railtie_name, subscriber)
+      end
 
-    def self.rake_tasks(&blk)
-      @rake_tasks ||= []
-      @rake_tasks << blk if blk
-      @rake_tasks
-    end
+      def rake_tasks(&blk)
+        @rake_tasks ||= []
+        @rake_tasks << blk if blk
+        @rake_tasks
+      end
 
-    def self.generators(&blk)
-      @generators ||= []
-      @generators << blk if blk
-      @generators
+      def generators(&blk)
+        @generators ||= []
+        @generators << blk if blk
+        @generators
+      end
+
+    protected
+
+      def abstract_railtie?(base)
+        ABSTRACT_RAILTIES.include?(base.name)
+      end
+
+      # Just add configurable behavior if a Configurable module is defined
+      # and the class is a direct child from self. This is required to avoid
+      # application or plugins getting class configuration method from Railties
+      # and/or Engines.
+      def add_configurable?(base)
+        defined?(self::Configurable) && base.ancestors[1] == self
+      end
     end
 
     def rake_tasks
@@ -50,12 +72,10 @@ module Rails
     end
 
     def load_tasks
-      return unless rake_tasks
       rake_tasks.each { |blk| blk.call }
     end
 
     def load_generators
-      return unless generators
       generators.each { |blk| blk.call }
     end
   end

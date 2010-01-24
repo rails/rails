@@ -3,22 +3,23 @@ require 'rails/paths'
 
 class PathsTest < ActiveSupport::TestCase
   def setup
-    @root = Rails::Application::Root.new("/foo/bar")
+    File.stubs(:exists?).returns(true)
+    @root = Rails::Paths::Root.new("/foo/bar")
   end
 
   test "the paths object is initialized with the root path" do
-    root = Rails::Application::Root.new("/fiz/baz")
+    root = Rails::Paths::Root.new("/fiz/baz")
     assert_equal "/fiz/baz", root.path
   end
 
   test "the paths object can be initialized with nil" do
     assert_nothing_raised do
-      Rails::Application::Root.new(nil)
+      Rails::Paths::Root.new(nil)
     end
   end
 
   test "a paths object initialized with nil can be updated" do
-    root = Rails::Application::Root.new(nil)
+    root = Rails::Paths::Root.new(nil)
     root.app = "app"
     root.path = "/root"
     assert_equal ["/root/app"], root.app.to_a
@@ -30,7 +31,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "raises exception if root path never set" do
-    root = Rails::Application::Root.new(nil)
+    root = Rails::Paths::Root.new(nil)
     root.app = "app"
     assert_raises RuntimeError do
       root.app.to_a
@@ -110,7 +111,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "the root can only have one physical path" do
-    assert_raise(RuntimeError) { Rails::Application::Root.new(["/fiz", "/biz"]) }
+    assert_raise(RuntimeError) { Rails::Paths::Root.new(["/fiz", "/biz"]) }
     assert_raise(RuntimeError) { @root.push "/biz"    }
     assert_raise(RuntimeError) { @root.unshift "/biz" }
     assert_raise(RuntimeError) { @root.concat ["/biz"]}
@@ -193,12 +194,7 @@ class PathsTest < ActiveSupport::TestCase
     assert_equal 2, @root.eager_load.size
   end
 
-  test "a path should have a glob that defaults to **/*.rb" do
-    @root.app = "/app"
-    assert_equal "**/*.rb", @root.app.glob
-  end
-
-  test "it should be possible to override a path's default glob" do
+  test "it should be possible to add a path's default glob" do
     @root.app = "/app"
     @root.app.glob = "*.rb"
     assert_equal "*.rb", @root.app.glob
@@ -227,4 +223,11 @@ class PathsTest < ActiveSupport::TestCase
     @root.app.eager_load!
     assert_equal ["/foo/bar/app"], @root.load_paths
   end
+
+  test "adding a path to the load once paths also adds it to the load path" do
+    @root.app = "app"
+    @root.app.load_once!
+    assert_equal ["/foo/bar/app"], @root.load_paths
+  end
+
 end

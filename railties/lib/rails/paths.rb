@@ -1,7 +1,7 @@
 require 'set'
 
 module Rails
-  class Application
+  module Paths
     module PathParent
       def method_missing(id, *args)
         name = id.to_s
@@ -31,27 +31,21 @@ module Rails
         @all_paths = []
       end
 
-      def load_once
-        all_paths.map { |path| path.paths if path.load_once? }.compact.flatten.uniq
-      end
-
-      def eager_load
-        all_paths.map { |path| path.paths if path.eager_load? }.compact.flatten.uniq
-      end
-
       def all_paths
         @all_paths.uniq!
         @all_paths
       end
 
-      def load_paths
-        all_paths.map { |path| path.paths if path.load_path? }.compact.flatten.uniq
+      def load_once
+        filter { |path| path.paths if path.load_once? }
       end
 
-      def add_to_load_path
-        load_paths.reverse_each do |path|
-          $LOAD_PATH.unshift(path) if File.directory?(path)
-        end
+      def eager_load
+        filter { |path| path.paths if path.eager_load? }
+      end
+
+      def load_paths
+        filter { |path| path.paths if path.load_path? }
       end
 
       def push(*)
@@ -61,6 +55,12 @@ module Rails
       alias unshift push
       alias << push
       alias concat push
+
+    protected
+
+      def filter(&block)
+        all_paths.map(&block).compact.flatten.uniq.select { |p| File.exists?(p) }
+      end
     end
 
     class Path
@@ -74,11 +74,11 @@ module Rails
         @children = {}
         @root     = root
         @paths    = paths.flatten
-        @glob     = @options[:glob] || "**/*.rb"
+        @glob     = @options.delete(:glob)
 
         @load_once  = @options[:load_once]
         @eager_load = @options[:eager_load]
-        @load_path  = @options[:load_path] || @eager_load
+        @load_path  = @options[:load_path] || @eager_load || @load_once
 
         @root.all_paths << self
       end
@@ -103,6 +103,7 @@ module Rails
 
       def load_once!
         @load_once = true
+        @load_path = true
       end
 
       def load_once?
@@ -128,10 +129,13 @@ module Rails
 
       def paths
         raise "You need to set a path root" unless @root.path
-
-        @paths.map do |path|
-          path.index('/') == 0 ? path : File.expand_path(File.join(@root.path, path))
+        result = @paths.map do |p|
+          path = File.expand_path(p, @root.path)
+          @glob ? Dir[File.join(path, @glob)] : path
         end
+        result.flatten!
+        result.uniq!
+        result
       end
 
       alias to_a paths
