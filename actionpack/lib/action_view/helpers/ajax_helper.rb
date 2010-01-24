@@ -464,8 +464,11 @@ module ActionView
       #
       #
       def observe_field(name, options = {})
+        html_options = options.delete(:callbacks)
+
         options[:observed] = name
         attributes = extract_observer_attributes!(options)
+        attributes.merge!(html_options) if html_options
 
         script_decorator(attributes)
       end
@@ -511,19 +514,6 @@ module ActionView
           url_options = options.delete(:url)
           url_options = url_options.merge(:escape => false) if url_options.is_a?(Hash)
           attributes["data-url"] = escape_javascript(url_for(url_options)) 
-
-          #TODO: Remove all references to prototype - BR
-          if options.delete(:form)
-            attributes["data-parameters"] = 'Form.serialize(this)'
-          elsif submit = options.delete(:submit)
-            attributes["data-parameters"] = "Form.serialize('#{submit}')"
-          elsif with = options.delete(:with)
-            if with !~ /[\{=(.]/
-              attributes["data-with"] = "'#{with}=' + encodeURIComponent(value)"
-            else
-              attributes["data-with"] = with
-            end
-          end
 
           purge_unused_attributes!(attributes)
         end
@@ -573,6 +563,7 @@ module ActionView
 
       def link_to_remote(name, options, html_options = {})
         set_callbacks(options, html_options)
+        set_conditions(options, html_options)
         super
       end
       
@@ -588,6 +579,13 @@ module ActionView
         super
       end
 
+      def observe_field(name, options = {})
+        html = {}
+        set_conditions(options, html)
+        options.merge!(:callbacks => html)
+        super
+      end
+
       private
         def set_callbacks(options, html)
           [:before, :after, :uninitialized, :complete, :failure, :success, :interactive, :loaded, :loading].each do |type|
@@ -597,6 +595,21 @@ module ActionView
           options.each do |option, value|
             if option.is_a?(Integer)
               html["data-on#{option}"] = options.delete(option)
+            end
+          end
+        end
+
+        def set_conditions(options, html)
+          #TODO: Remove all references to prototype - BR
+          if options.delete(:form)
+            html["data-parameters"] = 'Form.serialize(this)'
+          elsif submit = options.delete(:submit)
+            html["data-parameters"] = "Form.serialize('#{submit}')"
+          elsif with = options.delete(:with)
+            if with !~ /[\{=(.]/
+              html["data-with"] = "'#{with}=' + encodeURIComponent(value)"
+            else
+              html["data-with"] = with
             end
           end
         end
