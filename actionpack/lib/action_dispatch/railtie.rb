@@ -6,7 +6,7 @@ module ActionDispatch
     plugin_name :action_dispatch
 
     # Initialize route files to an array
-    config.action_dispatch.route_files = []
+    config.action_dispatch.route_paths = []
 
     # Prepare dispatcher callbacks and run 'prepare' callbacks
     initializer "action_dispatch.prepare_dispatcher" do |app|

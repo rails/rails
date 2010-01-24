@@ -31,22 +31,21 @@ module Rails
         @all_paths = []
       end
 
-      def load_once
-        all_paths.map { |path| path.paths if path.load_once? }.compact.flatten.uniq
-      end
-
-      def eager_load
-        all_paths.map { |path| path.paths if path.eager_load? }.compact.flatten.uniq
-      end
-
-      # TODO Discover why do we need to call uniq! here
       def all_paths
         @all_paths.uniq!
         @all_paths
       end
 
+      def load_once
+        filter { |path| path.paths if path.load_once? }
+      end
+
+      def eager_load
+        filter { |path| path.paths if path.eager_load? }
+      end
+
       def load_paths
-        all_paths.map { |path| path.paths if path.load_path? }.compact.flatten.uniq
+        filter { |path| path.paths if path.load_path? }
       end
 
       def push(*)
@@ -56,6 +55,12 @@ module Rails
       alias unshift push
       alias << push
       alias concat push
+
+    protected
+
+      def filter(&block)
+        all_paths.map(&block).compact.flatten.uniq.select { |p| File.exists?(p) }
+      end
     end
 
     class Path

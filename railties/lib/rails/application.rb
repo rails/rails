@@ -1,8 +1,7 @@
 require 'fileutils'
 require 'rails/railties_path'
-require 'rails/railtie'
-require 'rails/engine'
 require 'rails/plugin'
+require 'rails/engine'
 
 module Rails
   class Application < Engine
@@ -14,7 +13,6 @@ module Rails
 
     # TODO Check helpers works as expected
     # TODO Check routes namespaces
-    # TODO raise "You cannot have more than one Rails::Application" if Rails.application
     # TODO Ensure production settings are read properly
     class << self
       private :new
@@ -25,6 +23,7 @@ module Rails
       end
 
       def inherited(base)
+        raise "You cannot have more than one Rails::Application" if Rails.application
         super
         Rails.application = base.instance
         base.require_environment!

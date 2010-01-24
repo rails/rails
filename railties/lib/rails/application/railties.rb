@@ -1,7 +1,7 @@
 module Rails
   class Application
     class Railties
-      # TODO Write tests
+      # TODO Write tests for this behavior extracted from Application
       def initialize(config)
         @config = config
       end

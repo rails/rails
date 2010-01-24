@@ -1,8 +1,7 @@
 module Rails
   class Application
     class RoutesReloader
-      # TODO Change config.action_dispatch.route_files to config.action_dispatch.routes_path
-      # TODO Write tests
+      # TODO Write tests for this behavior extracted from Application
       def initialize(config)
         @config, @last_change_at = config, nil
       end
@@ -10,8 +9,8 @@ module Rails
       def changed_at
         routes_changed_at = nil
 
-        files.each do |file|
-          config_changed_at = File.stat(file).mtime
+        paths.each do |path|
+          config_changed_at = File.stat(path).mtime
 
           if routes_changed_at.nil? || config_changed_at > routes_changed_at
             routes_changed_at = config_changed_at
@@ -26,7 +25,7 @@ module Rails
         routes.disable_clear_and_finalize = true
 
         routes.clear!
-        files.each { |file| load(file) }
+        paths.each { |path| load(path) }
         routes.finalize!
 
         nil
@@ -42,8 +41,8 @@ module Rails
         end
       end
 
-      def files
-        @config.action_dispatch.route_files
+      def paths
+        @config.action_dispatch.route_paths
       end
     end
   end

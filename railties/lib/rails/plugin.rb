@@ -6,8 +6,6 @@ module Rails
       raise "You cannot inherit from Rails::Plugin"
     end
 
-    # TODO Right now, if a plugin has an Engine or a Railtie inside it,
-    # the initializers for this plugin will be executed twice.
     def self.all(list, paths)
       plugins = []
       paths.each do |path|
@@ -38,6 +36,13 @@ module Rails
       file   = Dir["#{root}/{rails/init,init}.rb"].first
       config = app.config
       eval(File.read(file), binding, file) if file && File.file?(file)
+    end
+
+    # TODO Write tests for this sanity check
+    initializer :sanity_check_railties_collision do
+      if Engine.subclasses.map { |k| k.root.to_s }.include?(root.to_s)
+        raise "The plugin #{name.inspect} is a Railtie or an Engine and cannot be installed as Plugin"
+      end
     end
   end
 end

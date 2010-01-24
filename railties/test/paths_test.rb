@@ -3,6 +3,7 @@ require 'rails/paths'
 
 class PathsTest < ActiveSupport::TestCase
   def setup
+    File.stubs(:exists?).returns(true)
     @root = Rails::Paths::Root.new("/foo/bar")
   end
 

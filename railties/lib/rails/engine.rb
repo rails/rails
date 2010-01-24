@@ -67,9 +67,9 @@ module Rails
       config.load_once_paths.freeze
     end
 
-    initializer :add_routing_files do
+    initializer :add_routing_paths do
       config.paths.config.routes.to_a.each do |route|
-        config.action_dispatch.route_files.unshift(route) if File.exists?(route)
+        config.action_dispatch.route_paths.unshift(route) if File.exists?(route)
       end
     end
 
