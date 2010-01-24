@@ -23,6 +23,17 @@ module Rails
 
     attr_reader :name, :path
 
+    def load_tasks
+      super
+      extra_tasks = Dir["#{root}/{tasks,rails/tasks}/**/*.rake"]
+
+      unless extra_tasks.empty?
+        ActiveSupport::Deprecation.warn "Having rake tasks in PLUGIN_PATH/tasks or " <<
+          "PLUGIN_PATH/rails/tasks is deprecated. Use to PLUGIN_PATH/lib/tasks instead"
+        extra_tasks.sort.each { |ext| load(ext) }
+      end
+    end
+
     def initialize(root)
       @name = File.basename(root).to_sym
       config.root = root

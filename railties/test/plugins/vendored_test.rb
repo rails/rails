@@ -145,6 +145,40 @@ module PluginsTest
       response = Rails.application.call(Rack::MockRequest.env_for("/sprokkit"))
       assert_equal "I am a Sprokkit", response[2].join
     end
+
+    test "tasks are loaded by default" do
+      $executed = false
+      @plugin.write "lib/tasks/foo.rake", <<-RUBY
+        task :foo do
+          $executed = true
+        end
+      RUBY
+
+      boot_rails
+      require 'rake'
+      require 'rake/rdoctask'
+      require 'rake/testtask'
+      Rails.application.load_tasks
+      Rake::Task[:foo].invoke
+      assert $executed
+    end
+
+    test "deprecated tasks are also loaded" do
+      $executed = false
+      @plugin.write "tasks/foo.rake", <<-RUBY
+        task :foo do
+          $executed = true
+        end
+      RUBY
+
+      boot_rails
+      require 'rake'
+      require 'rake/rdoctask'
+      require 'rake/testtask'
+      Rails.application.load_tasks
+      Rake::Task[:foo].invoke
+      assert $executed
+    end
   end
 
   class VendoredOrderingTest < Test::Unit::TestCase
