@@ -293,6 +293,7 @@ module ActionView
         attributes = {}
         attributes.merge!(:rel => "nofollow") if options[:method] && options[:method].downcase == "delete"
         attributes.merge!(extract_remote_attributes!(options))
+        attributes.merge!(extract_confirm_attributes!(options))
         attributes.merge!(html_options)
 
         content_tag(:a, name, attributes.merge(:href => "#"))
@@ -304,6 +305,7 @@ module ActionView
       # and defining callbacks is the same as link_to_remote.
       def button_to_remote(name, options = {}, html_options = {})
         attributes = html_options.merge!(:type => "button", :value => name)
+        attributes.merge!(extract_confirm_attributes!(options))
         attributes.merge!(extract_remote_attributes!(options))
 
         tag(:input, attributes)
@@ -482,6 +484,16 @@ module ActionView
       end
 
       private
+
+        def extract_confirm_attributes!(options)
+          attributes = {}
+
+          if options && options[:confirm] 
+            attributes["data-confirm"] = options.delete(:confirm)
+          end
+
+          attributes
+        end
 
         def extract_remote_attributes!(options)
           attributes = options.delete(:html) || {}

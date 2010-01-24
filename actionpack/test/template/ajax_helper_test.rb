@@ -101,6 +101,11 @@ class AjaxHelperTest < AjaxHelperBaseTest
       link_to_remote("Remote", { :url => { :action => "whatnot's" } })
   end
 
+  test "link_to_remote with confirm" do
+    assert_dom_equal %(<a class=\"fine\" href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-method=\"delete\" rel=\"nofollow\" data-confirm="Are you sure?">Remote confirm</a>),
+      link_to_remote("Remote confirm", { :url => { :action => "whatnot" }, :method => "delete", :confirm => "Are you sure?"}, { :class => "fine"  })
+  end
+
   test "button_to_remote" do
     assert_dom_equal %(<input class=\"fine\" type=\"button\" value=\"Remote outpost\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" />),
       button_to_remote("Remote outpost", { :url => { :action => "whatnot" }}, { :class => "fine"  })
@@ -112,6 +117,11 @@ class AjaxHelperTest < AjaxHelperBaseTest
       button_to_remote("Remote outpost", :failure => "alert(request.reponseText)", :url => { :action => "whatnot"  })
     assert_dom_equal %(<input type=\"button\" value=\"Remote outpost\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot?a=10&amp;b=20\" data-onfailure=\"alert(request.reponseText)\" />),
       button_to_remote("Remote outpost", :failure => "alert(request.reponseText)", :url => { :action => "whatnot", :a => '10', :b => '20' })
+  end
+
+  test "button_to_remote with confirm" do
+    assert_dom_equal %(<input class=\"fine\" type=\"button\" value=\"Remote outpost\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-confirm="Are you sure?" />),
+      button_to_remote("Remote outpost", { :url => { :action => "whatnot" }, :confirm => "Are you sure?"}, { :class => "fine"  })
   end
 
   test "periodically_call_remote" do
