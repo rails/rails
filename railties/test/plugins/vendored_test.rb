@@ -382,5 +382,22 @@ YAML
       boot_rails
       assert_equal [:c, :a, :b], $arr
     end
+
+    test "can require lib file from a different plugin" do
+      plugin "foo", "require 'bar'" do |plugin|
+        plugin.write "lib/foo.rb", "$foo = true"
+      end
+
+      plugin "bar", "require 'foo'" do |plugin|
+        plugin.write "lib/bar.rb", "$bar = true"
+      end
+
+      add_to_config "config.plugins = [:foo, :bar]"
+
+      boot_rails
+
+      assert $foo
+      assert $bar
+    end
   end
 end
