@@ -479,7 +479,9 @@ created_at: nil, updated_at: nil>
 >> p.save
 => false
 >> p.errors
-=> #<OrderedHash {:title=>["can't be blank", "is too short (minimum is 5 characters)"], :name=>["can't be blank"]}>
+=> #<OrderedHash {:title=>["can't be blank", 
+                  "is too short (minimum is 5 characters)"],
+                  :name=>["can't be blank"]}>
 </shell>
 
 This code shows creating a new +Post+ instance, attempting to save it and getting +false+ for a return value (indicating that the save failed), and inspecting the +errors+ of the post.
