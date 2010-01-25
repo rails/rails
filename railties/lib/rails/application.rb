@@ -90,10 +90,10 @@ module Rails
     end
 
     def initializers
-      initializers = Bootstrap.initializers
+      initializers = Bootstrap.initializers_for(self)
       railties.all { |r| initializers += r.initializers }
       initializers += super
-      initializers += Finisher.initializers
+      initializers += Finisher.initializers_for(self)
       initializers
     end
 
