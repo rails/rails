@@ -23,6 +23,10 @@ module ActiveRecord
       ActiveRecord::Base.default_timezone = :utc
     end
 
+    initializer "active_record.logger" do
+      ActiveRecord::Base.logger ||= ::Rails.logger
+    end
+
     initializer "active_record.set_configs" do |app|
       app.config.active_record.each do |k,v|
         ActiveRecord::Base.send "#{k}=", v
@@ -69,11 +73,6 @@ module ActiveRecord
           ActiveRecord::Base.clear_reloadable_connections!
         end
       end
-    end
-
-    # TODO: ActiveRecord::Base.logger should delegate to its own config.logger
-    initializer "active_record.logger" do
-      ActiveRecord::Base.logger ||= ::Rails.logger
     end
 
     initializer "active_record.i18n_deprecation" do

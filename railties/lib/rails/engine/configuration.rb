@@ -16,6 +16,7 @@ module Rails
           paths.app                 "app",                 :eager_load => true, :glob => "*"
           paths.app.controllers     "app/controllers",     :eager_load => true
           paths.app.helpers         "app/helpers",         :eager_load => true
+          paths.app.models          "app/models",          :eager_load => true
           paths.app.metals          "app/metal"
           paths.app.views           "app/views"
           paths.lib                 "lib",                 :load_path => true
