@@ -967,10 +967,10 @@ EOF
   end
 
    def test_file_delivery_should_create_a_file
-     ActionMailer::Base.delivery_method = :file
-     tmp_location = ActionMailer::Base.file_settings[:location]
+     TestMailer.delivery_method = :file
+     tmp_location = TestMailer.file_settings[:location]
 
-    TestMailer.cc_bcc(@recipient).deliver
+     result = TestMailer.cc_bcc(@recipient).deliver
      assert File.exists?(tmp_location)
      assert File.directory?(tmp_location)
      assert File.exists?(File.join(tmp_location, @recipient))
