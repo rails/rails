@@ -1,6 +1,6 @@
 require "isolation/abstract_unit"
 
-module PluginsTest
+module RailtiesTest
   class ConfigurationTest < Test::Unit::TestCase
     def setup
       build_app

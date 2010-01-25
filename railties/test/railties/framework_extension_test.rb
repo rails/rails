@@ -1,6 +1,6 @@
 require "isolation/abstract_unit"
 
-module PluginsTest
+module RailtiesTest
   class FrameworkExtensionTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
 
