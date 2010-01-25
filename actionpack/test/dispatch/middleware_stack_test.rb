@@ -87,4 +87,10 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     end
     assert_equal [:foo], @stack.last.send(:build_args)
   end
+
+  test "lazy compares so unloaded constants can be loaded" do
+    @stack.use "UnknownMiddleware"
+    @stack.use :"MiddlewareStackTest::BazMiddleware"
+    assert @stack.include?("::MiddlewareStackTest::BazMiddleware")
+  end
 end

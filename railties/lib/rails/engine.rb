@@ -47,7 +47,7 @@ module Rails
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.
-    initializer :set_load_path do
+    initializer :set_load_path, :before => :bootstrap_load_path do
       config.load_paths.reverse_each do |path|
         $LOAD_PATH.unshift(path) if File.directory?(path)
       end
@@ -56,7 +56,7 @@ module Rails
 
     # Set the paths from which Rails will automatically load source files,
     # and the load_once paths.
-    initializer :set_autoload_paths do |app|
+    initializer :set_autoload_paths, :before => :bootstrap_load_path do |app|
       ActiveSupport::Dependencies.load_paths.unshift(*config.load_paths)
 
       if reloadable?(app)

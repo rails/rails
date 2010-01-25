@@ -49,9 +49,9 @@ module ActiveRecord
     # Setup database middleware after initializers have run
     initializer "active_record.initialize_database_middleware" do |app|
       middleware = app.config.middleware
-      if middleware.include?(ActiveRecord::SessionStore)
-        middleware.insert_before ActiveRecord::SessionStore, ActiveRecord::ConnectionAdapters::ConnectionManagement
-        middleware.insert_before ActiveRecord::SessionStore, ActiveRecord::QueryCache
+      if middleware.include?("ActiveRecord::SessionStore")
+        middleware.insert_before "ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
+        middleware.insert_before "ActiveRecord::SessionStore", ActiveRecord::QueryCache
       else
         middleware.use ActiveRecord::ConnectionAdapters::ConnectionManagement
         middleware.use ActiveRecord::QueryCache

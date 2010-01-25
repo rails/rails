@@ -76,6 +76,10 @@ module Rails
       initializer :initialize_dependency_mechanism do |app|
         ActiveSupport::Dependencies.mechanism = app.config.cache_classes ? :require : :load
       end
+
+      initializer :bootstrap_load_path do
+        # This is just an initializer used as hook so all load paths are loaded together
+      end
     end
   end
 end

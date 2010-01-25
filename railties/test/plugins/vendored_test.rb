@@ -48,6 +48,7 @@ module PluginsTest
       RUBY
 
       boot_rails
+      assert $foo
     end
 
     test "plugin paths get added to the AS::Dependency list" do
@@ -252,26 +253,6 @@ YAML
       assert_equal "FooMetal", last_response.body
     end
 
-    test "use plugin middleware in application config" do
-      plugin "foo" do |plugin|
-        plugin.write "lib/foo.rb", <<-RUBY
-          class Foo
-            def initialize(app)
-              @app = app
-            end
-
-            def call(env)
-              @app.call(env)
-            end
-          end
-        RUBY
-      end
-
-      add_to_config "config.middleware.use :Foo"
-
-      boot_rails
-    end
-
     test "namespaced controllers with namespaced routes" do
       @plugin.write "config/routes.rb", <<-RUBY
         ActionController::Routing::Routes.draw do
@@ -331,6 +312,23 @@ YAML
       end
 
       assert rescued, "Expected boot rails to fail"
+    end
+
+    test "use plugin middleware in application config" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          def initialize(app)
+            @app = app
+          end
+
+          def call(env)
+            @app.call(env)
+          end
+        end
+      RUBY
+
+      add_to_config "config.middleware.use \"Bukkits\""
+      boot_rails
     end
   end
 
