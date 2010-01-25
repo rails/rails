@@ -56,6 +56,18 @@ module ActionController
     end
 
     module ClassMethods
+      def helpers_dir
+        ActiveSupport::Deprecation.warn "ActionController::Base.helpers_dir is deprecated. " <<
+          "Please use ActionController::Base.helpers_path (which returns an array)"
+        self.helpers_path
+      end
+
+      def helpers_dir=(value)
+        ActiveSupport::Deprecation.warn "ActionController::Base.helpers_dir= is deprecated. " <<
+          "Please use ActionController::Base.helpers_path= (which is an array)"
+        self.helpers_path = Array(value)
+      end
+
       def inherited(klass)
         klass.class_eval { default_helper_module! unless name.blank? }
         super
