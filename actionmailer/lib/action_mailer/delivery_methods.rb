@@ -63,7 +63,7 @@ module ActionMailer
 
       def wrap_delivery_behavior(mail, method=nil) #:nodoc:
         method ||= self.delivery_method
-        mail.register_for_delivery_notification(self)
+        mail.delivery_handler = self
 
         if method.is_a?(Symbol)
           if klass = delivery_methods[method.to_sym]

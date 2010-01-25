@@ -326,10 +326,19 @@ module ActionMailer #:nodoc:
         end
       end
 
-      # TODO The delivery should happen inside the instrument block
-      def delivered_email(mail) #:nodoc:
+      def deliver_mail(mail) #:nodoc:
         ActiveSupport::Notifications.instrument("action_mailer.deliver") do |payload|
           self.set_payload_for_mail(payload, mail)
+
+          if mail.perform_deliveries
+            begin
+              mail.deliver!
+            rescue Exception => e
+              raise e if mail.raise_delivery_errors
+            end
+            Mail.deliveries << mail
+          end
+
         end
       end
 

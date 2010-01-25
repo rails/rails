@@ -94,9 +94,8 @@ class MailDeliveryTest < ActiveSupport::TestCase
 
   test "ActionMailer should be told when Mail gets delivered" do
     DeliveryMailer.deliveries.clear
-    DeliveryMailer.expects(:delivered_email).once
+    DeliveryMailer.expects(:deliver_mail).once
     DeliveryMailer.welcome.deliver
-    assert_equal(1, DeliveryMailer.deliveries.length)
   end
 
   test "delivery method can be customized per instance" do
@@ -124,7 +123,13 @@ class MailDeliveryTest < ActiveSupport::TestCase
   test "does not perform deliveries if requested" do
     DeliveryMailer.perform_deliveries = false
     DeliveryMailer.deliveries.clear
-    DeliveryMailer.expects(:delivered_email).never
+    Mail::Message.any_instance.expects(:deliver!).never
+    DeliveryMailer.welcome.deliver
+  end
+  
+  test "does not append the deliveries collection if told not to perform the delivery" do
+    DeliveryMailer.perform_deliveries = false
+    DeliveryMailer.deliveries.clear
     DeliveryMailer.welcome.deliver
     assert_equal(0, DeliveryMailer.deliveries.length)
   end
@@ -132,7 +137,14 @@ class MailDeliveryTest < ActiveSupport::TestCase
   test "raise errors on bogus deliveries" do
     DeliveryMailer.delivery_method = BogusDelivery
     DeliveryMailer.deliveries.clear
-    DeliveryMailer.expects(:delivered_email).never
+    assert_raise RuntimeError do
+      DeliveryMailer.welcome.deliver
+    end
+  end
+
+  test "does not increment the deliveries collection on error" do
+    DeliveryMailer.delivery_method = BogusDelivery
+    DeliveryMailer.deliveries.clear
     assert_raise RuntimeError do
       DeliveryMailer.welcome.deliver
     end
@@ -142,9 +154,17 @@ class MailDeliveryTest < ActiveSupport::TestCase
   test "does not raise errors on bogus deliveries if set" do
     DeliveryMailer.delivery_method = BogusDelivery
     DeliveryMailer.raise_delivery_errors = false
+    assert_nothing_raised do
+      DeliveryMailer.welcome.deliver
+    end
+  end
+  
+  test "increments the deliveries collection on bogus deliveries if set to ignore" do
+    DeliveryMailer.delivery_method = BogusDelivery
+    DeliveryMailer.raise_delivery_errors = false
     DeliveryMailer.deliveries.clear
-    DeliveryMailer.expects(:delivered_email).once
     DeliveryMailer.welcome.deliver
     assert_equal(1, DeliveryMailer.deliveries.length)
   end
+  
 end

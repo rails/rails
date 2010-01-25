@@ -354,7 +354,12 @@ class BaseTest < ActiveSupport::TestCase
 
   test "calling deliver on the action should deliver the mail object" do
     BaseMailer.deliveries.clear
-    BaseMailer.expects(:delivered_email).once
+    BaseMailer.expects(:deliver_mail).once
+    BaseMailer.welcome.deliver
+  end
+
+  test "calling deliver on the action should increment the deliveries collection" do
+    BaseMailer.deliveries.clear
     BaseMailer.welcome.deliver
     assert_equal(1, BaseMailer.deliveries.length)
   end
