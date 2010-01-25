@@ -10,6 +10,7 @@ require 'rails/deprecation'
 require 'rails/subscriber'
 require 'rails/ruby_version_check'
 
+require 'active_support/railtie'
 require 'action_dispatch/railtie'
 
 # For Ruby 1.8, this initialization sets $KCODE to 'u' to enable the

@@ -20,6 +20,7 @@ require 'rails/all'
 # and list the framework railties that you want:
 #
 # require "active_support/railtie"
+# require "active_model/railtie"
 # require "active_record/railtie"
 # require "action_controller/railtie"
 # require "action_view/railtie"
@@ -27,6 +28,7 @@ require 'rails/all'
 # require "active_resource/railtie"
 <% else -%>
 # Pick the frameworks you want:
+# require "active_model/railtie"
 # require "active_record/railtie"
 require "active_support/railtie"
 require "action_controller/railtie"

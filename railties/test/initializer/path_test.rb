@@ -37,6 +37,7 @@ module InitializerTests
     end
 
     test "booting up Rails yields a valid paths object" do
+      assert_path @paths.app.models, "app", "models"
       assert_path @paths.app.metals, "app", "metal"
       assert_path @paths.app.helpers, "app", "helpers"
       assert_path @paths.app.views, "app", "views"
