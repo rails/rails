@@ -55,7 +55,6 @@ module ActionMailer #:nodoc:
   # 
   #   mail(:to => user.emai) do |format|
   #     format.text
-  #     format.enriched, {:content_type => 'text/rtf'}
   #     format.html
   #   end
   #
