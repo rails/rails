@@ -33,6 +33,7 @@ module I18n
     railtie_name :i18n
 
     # Initialize I18n load paths to an array
+    config.i18n.engines_load_path = []
     config.i18n.load_path = []
 
     initializer :initialize_i18n do
@@ -47,7 +48,10 @@ module I18n
     # the load_path which should be appended to what's already set instead of overwritten.
     config.after_initialize do |app|
       app.config.i18n.each do |setting, value|
-        if setting == :load_path
+        case setting
+        when :engines_load_path
+          app.config.i18n.load_path.unshift(*value)
+        when :load_path
           I18n.load_path += value
         else
           I18n.send("#{setting}=", value)
