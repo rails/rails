@@ -580,6 +580,7 @@ module ActionView
       def form_remote_tag(options, &block)
         html = {}
         set_callbacks(options, html)
+        set_with_and_condition_attributes(options, html)
         options.merge!(:callbacks => html)
         super
       end
