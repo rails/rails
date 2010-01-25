@@ -159,12 +159,12 @@ class MailDeliveryTest < ActiveSupport::TestCase
     end
   end
   
-  test "increments the deliveries collection on bogus deliveries if set to ignore" do
+  test "does not increment the deliveries collection on bogus deliveries" do
     DeliveryMailer.delivery_method = BogusDelivery
     DeliveryMailer.raise_delivery_errors = false
     DeliveryMailer.deliveries.clear
     DeliveryMailer.welcome.deliver
-    assert_equal(1, DeliveryMailer.deliveries.length)
+    assert_equal(0, DeliveryMailer.deliveries.length)
   end
   
 end

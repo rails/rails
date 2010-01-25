@@ -387,6 +387,8 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def test_signed_up
+    TestMailer.delivery_method = :test
+
     Time.stubs(:now => Time.now)
 
     expected = new_mail
@@ -533,6 +535,8 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def test_reply_to
+    TestMailer.delivery_method = :test
+
     expected = new_mail
 
     expected.to       = @recipient
@@ -567,6 +571,8 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def test_iso_charset
+    TestMailer.delivery_method = :test
+
     expected = new_mail( "iso-8859-1" )
     expected.to      = @recipient
     expected.subject = encode "testing isø charsets", "iso-8859-1"
@@ -601,6 +607,7 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def test_unencoded_subject
+    TestMailer.delivery_method = :test
     expected = new_mail
     expected.to      = @recipient
     expected.subject = "testing unencoded subject"
@@ -1029,6 +1036,7 @@ EOF
   end
 
   def test_with_mail_object_deliver
+    TestMailer.delivery_method = :test
     mail = TestMailer.headers_with_nonalpha_chars(@recipient)
     assert_nothing_raised { mail.deliver }
     assert_equal 1, TestMailer.deliveries.length

@@ -363,6 +363,13 @@ class BaseTest < ActiveSupport::TestCase
     BaseMailer.welcome.deliver
     assert_equal(1, BaseMailer.deliveries.length)
   end
+  
+  test "calling deliver, ActionMailer should yield back to mail to let it call :do_delivery on itself" do
+    mail = Mail::Message.new
+    mail.expects(:do_delivery).once
+    BaseMailer.expects(:welcome).returns(mail)
+    BaseMailer.welcome.deliver
+  end
 
   protected
 

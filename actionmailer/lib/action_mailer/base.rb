@@ -330,14 +330,7 @@ module ActionMailer #:nodoc:
         ActiveSupport::Notifications.instrument("action_mailer.deliver") do |payload|
           self.set_payload_for_mail(payload, mail)
 
-          if mail.perform_deliveries
-            begin
-              mail.deliver!
-            rescue Exception => e
-              raise e if mail.raise_delivery_errors
-            end
-            Mail.deliveries << mail
-          end
+          yield # Let Mail do the delivery actions
 
         end
       end
