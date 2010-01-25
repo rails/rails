@@ -91,8 +91,8 @@ module Rails
 
     def initializers
       initializers = Bootstrap.initializers
-      initializers += super
       railties.all { |r| initializers += r.initializers }
+      initializers += super
       initializers += Finisher.initializers
       initializers
     end

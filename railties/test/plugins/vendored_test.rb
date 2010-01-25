@@ -37,6 +37,19 @@ module PluginsTest
       assert_equal "Bukkits", Bukkits.name
     end
 
+    test "plugin init is ran before application initializers" do
+      plugin "foo", "$foo = true" do |plugin|
+        plugin.write "lib/foo.rb", "module Foo; end"
+      end
+
+      app_file 'config/initializers/foo.rb', <<-RUBY
+        raise "no $foo" unless $foo
+        raise "no Foo" unless Foo
+      RUBY
+
+      boot_rails
+    end
+
     test "plugin paths get added to the AS::Dependency list" do
       boot_rails
       assert_equal "Bukkits", Bukkits.name
