@@ -252,6 +252,26 @@ YAML
       assert_equal "FooMetal", last_response.body
     end
 
+    test "use plugin middleware in application config" do
+      plugin "foo" do |plugin|
+        plugin.write "lib/foo.rb", <<-RUBY
+          class Foo
+            def initialize(app)
+              @app = app
+            end
+
+            def call(env)
+              @app.call(env)
+            end
+          end
+        RUBY
+      end
+
+      add_to_config "config.middleware.use :Foo"
+
+      boot_rails
+    end
+
     test "namespaced controllers with namespaced routes" do
       @plugin.write "config/routes.rb", <<-RUBY
         ActionController::Routing::Routes.draw do
