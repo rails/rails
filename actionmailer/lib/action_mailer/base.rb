@@ -270,18 +270,6 @@ module ActionMailer #:nodoc:
       :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
     }
 
-    extlib_inheritable_accessor :default_charset
-    self.default_charset = self.default_params[:charset]
-
-    extlib_inheritable_accessor :default_content_type
-    self.default_content_type = self.default_params[:content_type]
-
-    extlib_inheritable_accessor :default_mime_version
-    self.default_mime_version = self.default_params[:mime_version]
-
-    extlib_inheritable_accessor :default_implicit_parts_order
-    self.default_implicit_parts_order = self.default_params[:parts_order]
-
     class << self
 
       def mailer_name
@@ -505,7 +493,7 @@ module ActionMailer #:nodoc:
       quote_fields!(headers, charset)
 
       # Render the templates and blocks
-      responses, explicit_order = collect_responses_and_sort_order(headers, &block)
+      responses, explicit_order = collect_responses_and_parts_order(headers, &block)
       create_parts_from_responses(m, responses, charset)
 
       # Finally setup content type and parts order
@@ -561,18 +549,18 @@ module ActionMailer #:nodoc:
       m.reply_to ||= quote_address_if_necessary(headers[:reply_to], charset) if headers[:reply_to]
     end
 
-    def collect_responses_and_sort_order(headers) #:nodoc:
-      responses, sort_order = [], nil
+    def collect_responses_and_parts_order(headers) #:nodoc:
+      responses, parts_order = [], nil
 
       if block_given?
         collector = ActionMailer::Collector.new(self) { render(action_name) }
         yield(collector)
-        sort_order = collector.responses.map { |r| r[:content_type] }
+        parts_order = collector.responses.map { |r| r[:content_type] }
         responses  = collector.responses
       elsif headers[:body]
         responses << {
           :body => headers[:body],
-          :content_type => self.class.default_content_type.dup
+          :content_type => self.class.defaults[:content_type] || "text/plain"
         }
       else
         each_template do |template|
@@ -583,7 +571,7 @@ module ActionMailer #:nodoc:
         end
       end
 
-      [responses, sort_order]
+      [responses, parts_order]
     end
 
     def each_template(&block) #:nodoc:
@@ -601,7 +589,6 @@ module ActionMailer #:nodoc:
     def create_parts_from_responses(m, responses, charset) #:nodoc:
       if responses.size == 1 && !m.has_attachments?
         responses[0].each { |k,v| m[k] = v }
-        return responses[0][:content_type]
       elsif responses.size > 1 && m.has_attachments?
         container = Mail::Part.new
         container.content_type = "multipart/alternative"
