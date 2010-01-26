@@ -23,7 +23,6 @@ module ApplicationTests
         "ActionDispatch::Cookies",
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
-        "ActionDispatch::Cascade",
         "ActionDispatch::ParamsParser",
         "Rack::MethodOverride",
         "ActionDispatch::Head",
@@ -68,6 +67,12 @@ module ApplicationTests
       add_to_config "config.middleware.insert_before ActionDispatch::Static, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.first
+    end
+
+    test "shows cascade if any metal exists" do
+      app_file "app/metal/foo.rb", "class Foo; end"
+      boot!
+      assert middleware.include?("ActionDispatch::Cascade")
     end
 
     private

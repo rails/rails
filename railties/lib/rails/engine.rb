@@ -99,7 +99,7 @@ module Rails
     end
 
     initializer :add_metals do
-      Rails::Rack::Metal.paths.unshift(*paths.app.metals.to_a)
+      Rails::Application::Metal.paths.unshift(*paths.app.metals.to_a)
     end
 
     initializer :load_application_initializers do

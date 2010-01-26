@@ -1,10 +1,14 @@
 require 'action_dispatch'
 
 module Rails
-  module Rack
+  class Application
     class Metal
       def self.paths
         @paths ||= []
+      end
+
+      def self.metals
+        @metals ||= []
       end
 
       def initialize(list=nil)
@@ -26,6 +30,7 @@ module Rails
         end
 
         @metals = metals.map { |m| m.to_s.camelize.constantize }
+        self.class.metals.concat(@metals)
       end
 
       def new(app)
