@@ -86,6 +86,20 @@ class AjaxHelperTest < AjaxHelperBaseTest
       link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :position => :bottom)
   end
 
+  test "link_to_remote using both url and href" do
+      expected = '<a href="http://www.example.com/destroy" data-url="http://www.example.com/destroy" data-update-success="posts" data-remote="true">Delete this Post</a>'
+      assert_dom_equal expected, link_to_remote( "Delete this Post",
+                                                  { :update => "posts",   
+                                                    :url    => { :action => "destroy" } },
+                                                    :href   => url_for(:action => "destroy"))
+  end
+
+  test "link_to_remote with update-success and url" do
+    expected = '<a href="#" data-url="http://www.example.com/destroy" data-update-success="posts" data-update-failure="error" data-remote="true">Delete this Post</a>'
+    assert_dom_equal expected, link_to_remote( "Delete this Post", :url    => { :action => "destroy", :id => 5 },
+                                                                   :update => { :success => "posts", :failure => "error" })
+  end
+
   test "link_to_remote with before/after callbacks" do
     assert_dom_equal %(<a href=\"#\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-onbefore=\"before();\" data-onafter=\"after();\">Remote outauthor</a>),
       link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :before => "before();", :after => "after();")
