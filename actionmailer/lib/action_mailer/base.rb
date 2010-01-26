@@ -254,8 +254,8 @@ module ActionMailer #:nodoc:
 
     private_class_method :new #:nodoc:
 
-    extlib_inheritable_accessor :default_from
-    self.default_from = nil
+    extlib_inheritable_accessor :defaults
+    self.defaults = {}
 
     extlib_inheritable_accessor :default_charset
     self.default_charset = "utf-8"
@@ -276,17 +276,12 @@ module ActionMailer #:nodoc:
     self.default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
 
     class << self
+
       def mailer_name
         @mailer_name ||= name.underscore
       end
       attr_writer :mailer_name
       alias :controller_path :mailer_name
-
-      # Sets who is the default sender for the e-mail
-      def delivers_from(value = nil)
-        self.default_from = value if value
-        self.default_from
-      end
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
@@ -419,14 +414,22 @@ module ActionMailer #:nodoc:
     #   humanized version of the <tt>action_name</tt>
     # * <tt>:to</tt> - Who the message is destined for, can be a string of addresses, or an array
     #   of addresses.
-    # * <tt>:from</tt> - Who the message is from, if missing, will use the <tt>:delivers_from</tt>
-    #   value in the class (if it exists)
+    # * <tt>:from</tt> - Who the message is from
     # * <tt>:cc</tt> - Who you would like to Carbon-Copy on this email, can be a string of addresses,
     #   or an array of addresses.
     # * <tt>:bcc</tt> - Who you would like to Blind-Carbon-Copy on this email, can be a string of
     #   addresses, or an array of addresses.
     # * <tt>:reply_to</tt> - Who to set the Reply-To header of the email to.
     # * <tt>:date</tt> - The date to say the email was sent on.
+    # 
+    # You can set default values for any of the above headers (except :date) by using the <tt>defaults</tt> 
+    # class method:
+    # 
+    #  class Notifier
+    #    self.defaults = {:from => 'no-reply@test.lindsaar.net',
+    #                     :bcc => 'email_logger@test.lindsaar.net',
+    #                     :reply_to => 'bounces@test.lindsaar.net' }
+    #  end
     # 
     # If you need other headers not listed above, use the <tt>headers['name'] = value</tt> method.
     #
@@ -478,8 +481,8 @@ module ActionMailer #:nodoc:
       mime_version = headers[:mime_version] || m.mime_version || self.class.default_mime_version.dup
 
       # Set fields quotings
-      headers[:subject] ||= default_subject
-      headers[:from]    ||= self.class.default_from.dup
+      headers = set_defaults(headers)
+
       quote_fields!(headers, charset)
 
       # Render the templates and blocks
@@ -519,9 +522,19 @@ module ActionMailer #:nodoc:
       end
     end
 
+    def set_defaults(headers)
+      headers[:subject]  ||= default_subject
+      headers[:to]       ||= self.class.defaults[:to].to_s.dup
+      headers[:from]     ||= self.class.defaults[:from].to_s.dup
+      headers[:cc]       ||= self.class.defaults[:cc].to_s.dup
+      headers[:bcc]      ||= self.class.defaults[:bcc].to_s.dup
+      headers[:reply_to] ||= self.class.defaults[:reply_to].to_s.dup
+      headers
+    end
+
     def default_subject #:nodoc:
       mailer_scope = self.class.mailer_name.gsub('/', '.')
-      I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
+      self.class.defaults[:subject] || I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
     end
 
     # TODO: Move this into Mail

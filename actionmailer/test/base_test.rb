@@ -8,8 +8,17 @@ class BaseTest < ActiveSupport::TestCase
   }
 
   class BaseMailer < ActionMailer::Base
-    delivers_from 'jose@test.plataformatec.com'
+    
+    self.defaults = {:to => 'system@test.lindsaar.net',
+                     :from => 'jose@test.plataformatec.com',
+                     :reply_to => 'mikel@test.lindsaar.net',
+                     :subject => 'Default Subject!'}
+    
     self.mailer_name = "base_mailer"
+
+    def empty(hash = {})
+      mail(hash)
+    end
 
     def welcome(hash = {})
       headers['X-SPAM'] = "Not SPAM"
@@ -77,9 +86,19 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(email.subject, 'The first email on new API!')
   end
 
+  test "mail() should pull the defaults from the class if nothing is specified" do
+    email = BaseMailer.empty.deliver
+    assert_equal(['system@test.lindsaar.net'],    email.to)
+    assert_equal(['jose@test.plataformatec.com'], email.from)
+    assert_equal(['mikel@test.lindsaar.net'],     email.reply_to)
+    assert_equal('Default Subject!',              email.subject)
+  end
+
   test "mail() with from overwrites the class level default" do
-    email = BaseMailer.welcome(:from => 'someone@else.com').deliver
-    assert_equal(email.from,    ['someone@else.com'])
+    email = BaseMailer.welcome(:from => 'someone@example.com',
+                               :to   => 'another@example.org').deliver
+    assert_equal(['someone@example.com'], email.from)
+    assert_equal(['another@example.org'], email.to)
   end
 
   test "mail() with bcc, cc, content_type, charset, mime_version, reply_to and date" do
@@ -195,6 +214,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "subject gets default from I18n" do
+    BaseMailer.defaults[:subject] = nil
     email = BaseMailer.welcome(:subject => nil).deliver
     assert_equal "Welcome", email.subject
 
