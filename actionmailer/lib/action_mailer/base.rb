@@ -40,13 +40,17 @@ module ActionMailer #:nodoc:
   # * <tt>headers[]=</tt> - Allows you to specify non standard headers in your email such
   #   as <tt>headers['X-No-Spam'] = 'True'</tt>
   #
+  # * <tt>headers(hash)</tt> - Allows you to specify multiple headers in your email such
+  #   as <tt>headers({'X-No-Spam' => 'True', 'In-Reply-To' => '1234@message.id'})</tt>
+  #
   # * <tt>mail</tt> - Allows you to specify your email to send.
   # 
-  # The hash passed to the mail method allows you to specify the most used headers in an email
-  # message, such as <tt>Subject</tt>, <tt>To</tt>, <tt>From</tt>, <tt>Cc</tt>, <tt>Bcc</tt>,
-  # <tt>Reply-To</tt> and <tt>Date</tt>. See the <tt>ActionMailer#mail</tt> method for more details.
-  # 
-  # If you need other headers not listed above, use the <tt>headers['name'] = value</tt> method.
+  # The hash passed to the mail method allows you to specify any header that a Mail::Message
+  # will accept (any valid Email header including optional fields).  Obviously if you specify
+  # the same header in the headers method and then again in the mail method, the last one
+  # will over write the first, unless you are specifying a header field that can appear more
+  # than once per RFC, in which case, both will be inserted (X-value headers for example can
+  # appear multiple times.)
   #
   # The mail method, if not passed a block, will inspect your views and send all the views with
   # the same name as the method, so the above action would send the +welcome.plain.erb+ view file
@@ -263,13 +267,13 @@ module ActionMailer #:nodoc:
     }
 
     extlib_inheritable_accessor :default_charset
-    self.default_charset = "utf-8"
+    self.default_charset = self.default_params[:charset]
 
     extlib_inheritable_accessor :default_content_type
-    self.default_content_type = "text/plain"
+    self.default_content_type = self.default_params[:content_type]
 
     extlib_inheritable_accessor :default_mime_version
-    self.default_mime_version = "1.0"
+    self.default_mime_version = self.default_params[:mime_version]
 
     # This specifies the order that the parts of a multipart email will be.  Usually you put
     # text/plain at the top so someone without a MIME capable email reader can read the plain
@@ -278,7 +282,7 @@ module ActionMailer #:nodoc:
     # Any content type that is not listed here will be inserted in the order you add them to
     # the email after the content types you list here.
     extlib_inheritable_accessor :default_implicit_parts_order
-    self.default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
+    self.default_implicit_parts_order = self.default_params[:parts_order]
 
     class << self
 
@@ -366,13 +370,18 @@ module ActionMailer #:nodoc:
     # 
     #   headers['X-Special-Domain-Specific-Header'] = "SecretValue"
     # 
+    # You can also pass a hash into headers of header field names and values, which
+    # will then be set on the Mail::Message object:
+    # 
+    #   headers {'X-Special-Domain-Specific-Header' => "SecretValue",
+    #            'In-Reply-To' => incoming.message_id }
+    # 
     # The resulting Mail::Message will have the following in it's header:
     # 
     #   X-Special-Domain-Specific-Header: SecretValue
     def headers(args=nil)
       if args
-        ActiveSupport::Deprecation.warn "headers(Hash) is deprecated, please do headers[key] = value instead", caller[0,2]
-        @headers = args
+        @_message.headers(args)
       else
         @_message
       end

@@ -5,13 +5,22 @@ class BaseTest < ActiveSupport::TestCase
   class BaseMailer < ActionMailer::Base
     self.mailer_name = "base_mailer"
 
-    self.defaults :to => 'system@test.lindsaar.net',
-                  :from => 'jose@test.plataformatec.com',
-                  :reply_to => 'mikel@test.lindsaar.net'
+    defaults({:to => 'system@test.lindsaar.net',
+              :from => 'jose@test.plataformatec.com',
+              :reply_to => 'mikel@test.lindsaar.net'})
 
     def welcome(hash = {})
       headers['X-SPAM'] = "Not SPAM"
       mail({:subject => "The first email on new API!"}.merge!(hash))
+    end
+
+    def simple(hash = {})
+      mail(hash)
+    end
+    
+    def simple_with_headers(hash = {})
+      headers hash
+      mail
     end
 
     def attachment_with_content(hash = {})
@@ -194,9 +203,9 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
-  test "uses default headers from class" do
+  test "uses random default headers from class" do
     with_default BaseMailer, "X-SPAM" => "Not spam" do
-      email = BaseMailer.welcome.deliver
+      email = BaseMailer.simple
       assert_equal("Not spam", email["X-SPAM"].decoded)
     end
   end
@@ -406,6 +415,22 @@ class BaseTest < ActiveSupport::TestCase
   test "explicit multipart should be multipart" do
     mail = BaseMailer.explicit_multipart
     assert_not_nil(mail.content_type_parameters[:boundary])
+  end
+  
+  test "can pass random headers in as a hash" do
+    hash = {'X-Special-Domain-Specific-Header' => "SecretValue",
+            'In-Reply-To' => '1234@mikel.me.com' }
+    mail = BaseMailer.simple_with_headers(hash)
+    assert_equal('SecretValue', mail['X-Special-Domain-Specific-Header'].decoded)
+    assert_equal('1234@mikel.me.com', mail['In-Reply-To'].decoded)
+  end
+  
+  test "can pass random headers in as a hash to mail" do
+    hash = {'X-Special-Domain-Specific-Header' => "SecretValue",
+            'In-Reply-To' => '1234@mikel.me.com' }
+    mail = BaseMailer.simple(hash)
+    assert_equal('SecretValue', mail['X-Special-Domain-Specific-Header'].decoded)
+    assert_equal('1234@mikel.me.com', mail['In-Reply-To'].decoded)
   end
 
   protected
