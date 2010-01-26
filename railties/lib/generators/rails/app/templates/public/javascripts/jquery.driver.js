@@ -4,7 +4,7 @@ jQuery(function ($) {
         var el          = $(this),
             data        = [],
             condition   = el.attr('data-condition') ? eval(el.attr('data-condition')) : true,
-            method      = el.attr('method') || el.attr('data-method') || 'POST',
+            method      = el.attr('method') || el.attr('data-method') || 'GET',
             url         = el.attr('action') || el.attr('data-url') || '#',
             async       = el.attr('data-remote-type') === 'synchronous' ? false : true,
             update      = el.attr('data-update-success'),
