@@ -496,8 +496,11 @@ module ActionView
       # +observe_field+. The JavaScript variable +value+ available to the
       # <tt>:with</tt> option is set to the serialized form by default.
       def observe_form(name, options = {})
+        html_options = options.delete(:callbacks)
+
         options[:observed] = name
         attributes = extract_observer_attributes!(options)
+        attributes.merge!(html_options) if html_options
 
         script_decorator(attributes).html_safe!
       end
@@ -604,6 +607,13 @@ module ActionView
       end
 
       def observe_field(name, options = {})
+        html = {}
+        set_with_and_condition_attributes(options, html)
+        options.merge!(:callbacks => html)
+        super
+      end
+      
+      def observe_form(name, options = {})
         html = {}
         set_with_and_condition_attributes(options, html)
         options.merge!(:callbacks => html)
