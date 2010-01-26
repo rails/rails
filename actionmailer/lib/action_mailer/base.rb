@@ -360,8 +360,8 @@ module ActionMailer #:nodoc:
     # You can also pass a hash into headers of header field names and values, which
     # will then be set on the Mail::Message object:
     # 
-    #   headers {'X-Special-Domain-Specific-Header' => "SecretValue",
-    #            'In-Reply-To' => incoming.message_id }
+    #   headers 'X-Special-Domain-Specific-Header' => "SecretValue",
+    #           'In-Reply-To' => incoming.message_id
     # 
     # The resulting Mail::Message will have the following in it's header:
     # 
