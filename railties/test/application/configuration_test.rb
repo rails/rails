@@ -19,6 +19,13 @@ module ApplicationTests
       FileUtils.rm_rf("#{app_path}/config/environments")
     end
 
+    test "Rails::Application.instance is nil until app is initialized" do
+      require 'rails'
+      assert_nil Rails::Application.instance
+      require "#{app_path}/config/environment"
+      assert_equal AppTemplate::Application.instance, Rails::Application.instance
+    end
+
     test "the application root is set correctly" do
       require "#{app_path}/config/environment"
       assert_equal Pathname.new(app_path), Rails.application.root

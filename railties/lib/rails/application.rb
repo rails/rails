@@ -16,10 +16,10 @@ module Rails
       alias   :configure :class_eval
 
       def instance
-        if instance_of?(Rails::Application)
-          Rails.application.instance
+        if self == Rails::Application
+          Rails.application
         else
-          @instance ||= new
+          @@instance ||= new
         end
       end
 
