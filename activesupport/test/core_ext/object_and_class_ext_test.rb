@@ -40,13 +40,6 @@ class Foo
 end
 
 class ObjectTests < Test::Unit::TestCase
-  def test_extended_by
-    foo = Foo.new
-    assert foo.extended_by.include?(Bar)
-    foo.extend(Baz)
-    assert(([Bar, Baz] - foo.extended_by).empty?, "Expected Bar, Baz in #{foo.extended_by.inspect}")
-  end
-
   class DuckTime
     def acts_like_time?
       true
