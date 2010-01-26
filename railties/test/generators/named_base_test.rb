@@ -67,6 +67,14 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'admin.foos',  :controller_i18n_scope
   end
 
+  def test_application_name
+    g = generator ['Admin::Foo']
+    Rails.stubs(:application).returns(Object.new)
+    assert_name g, "object", :application_name
+    Rails.stubs(:application).returns(nil)
+    assert_name g, "application", :application_name
+  end
+
   protected
 
     def assert_name(generator, value, method)

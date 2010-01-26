@@ -1,5 +1,5 @@
 class <%= class_name %> < ActionMailer::Base
-  delivers_from "mail@<%= application_name %>.com"
+  delivers_from "from@example.com"
 <% for action in actions -%>
 
   # Subject can be set in your I18n file at config/locales/en.yml
@@ -9,7 +9,7 @@ class <%= class_name %> < ActionMailer::Base
   #
   def <%= action %>
     @greeting = "Hi"
-    mail(:to => "")
+    mail(:to => "to@example.com")
   end
 <% end -%>
 end

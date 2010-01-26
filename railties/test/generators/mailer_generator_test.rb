@@ -6,11 +6,10 @@ class MailerGeneratorTest < Rails::Generators::TestCase
   arguments %w(notifier foo bar)
 
   def test_mailer_skeleton_is_created
-    Rails.stubs(:application).returns(Object.new)
     run_generator
     assert_file "app/mailers/notifier.rb" do |mailer|
       assert_match /class Notifier < ActionMailer::Base/, mailer
-      assert_match /delivers_from "mail@object.com"/, mailer
+      assert_match /delivers_from "from@example.com"/, mailer
     end
   end
 
@@ -36,12 +35,12 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_template_engine
     run_generator
-    assert_file "app/views/notifier/foo.erb" do |view|
+    assert_file "app/views/notifier/foo.text.erb" do |view|
       assert_match /app\/views\/notifier\/foo/, view
       assert_match /<%= @greeting %>/, view
     end
 
-    assert_file "app/views/notifier/bar.erb" do |view|
+    assert_file "app/views/notifier/bar.text.erb" do |view|
       assert_match /app\/views\/notifier\/bar/, view
       assert_match /<%= @greeting %>/, view
     end
@@ -62,12 +61,12 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/mailers/notifier.rb" do |mailer|
       assert_instance_method :foo, mailer do |foo|
-        assert_match /mail\(:to => ""\)/, foo
+        assert_match /mail\(:to => "to@example.com"\)/, foo
         assert_match /@greeting = "Hi"/, foo
       end
 
       assert_instance_method :bar, mailer do |bar|
-        assert_match /mail\(:to => ""\)/, bar
+        assert_match /mail\(:to => "to@example.com"\)/, bar
         assert_match /@greeting = "Hi"/, bar
       end
     end

@@ -3,17 +3,13 @@ require 'test_helper'
 class <%= class_name %>Test < ActionMailer::TestCase
 <% for action in actions -%>
   test "<%= action %>" do
-    @actual = <%= class_name %>.<%= action %>
-
     @expected.subject = <%= action.to_s.humanize.inspect %>
+    @expected.to      = "to@example.com"
+    @expected.from    = "from@example.com"
     @expected.body    = read_fixture("<%= action %>")
     @expected.date    = Time.now
 
-    assert_difference "<%= class_name %>.deliveries.size" do
-      @actual.deliver
-    end
-
-    assert_equal @expected.encoded, @actual.encoded
+    assert_equal @expected, <%= class_name %>.<%= action %>
   end
 
 <% end -%>

@@ -12,7 +12,7 @@ module Erb
       def create_view_files
         actions.each do |action|
           @action, @path = action, File.join(file_path, action)
-          template "view.erb", File.join("app/views", "#{@path}.erb")
+          template "view.text.erb", File.join("app/views", "#{@path}.text.erb")
         end
       end
     end
