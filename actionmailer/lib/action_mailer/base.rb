@@ -23,7 +23,8 @@ module ActionMailer #:nodoc:
   # Examples:
   #
   #  class Notifier < ActionMailer::Base
-  #    delivers_from 'system@example.com'
+  #    defaults :from => 'no-reply@example.com',
+  #             :return_path => 'system@example.com'
   # 
   #    def welcome(recipient)
   #      @account = recipient
@@ -40,13 +41,17 @@ module ActionMailer #:nodoc:
   # * <tt>headers[]=</tt> - Allows you to specify non standard headers in your email such
   #   as <tt>headers['X-No-Spam'] = 'True'</tt>
   #
+  # * <tt>headers(hash)</tt> - Allows you to specify multiple headers in your email such
+  #   as <tt>headers({'X-No-Spam' => 'True', 'In-Reply-To' => '1234@message.id'})</tt>
+  #
   # * <tt>mail</tt> - Allows you to specify your email to send.
   # 
-  # The hash passed to the mail method allows you to specify the most used headers in an email
-  # message, such as <tt>Subject</tt>, <tt>To</tt>, <tt>From</tt>, <tt>Cc</tt>, <tt>Bcc</tt>,
-  # <tt>Reply-To</tt> and <tt>Date</tt>. See the <tt>ActionMailer#mail</tt> method for more details.
-  # 
-  # If you need other headers not listed above, use the <tt>headers['name'] = value</tt> method.
+  # The hash passed to the mail method allows you to specify any header that a Mail::Message
+  # will accept (any valid Email header including optional fields).  Obviously if you specify
+  # the same header in the headers method and then again in the mail method, the last one
+  # will over write the first, unless you are specifying a header field that can appear more
+  # than once per RFC, in which case, both will be inserted (X-value headers for example can
+  # appear multiple times.)
   #
   # The mail method, if not passed a block, will inspect your views and send all the views with
   # the same name as the method, so the above action would send the +welcome.plain.erb+ view file
@@ -186,9 +191,14 @@ module ActionMailer #:nodoc:
   #
   # These options are specified on the class level, like <tt>ActionMailer::Base.template_root = "/my/templates"</tt>
   #
-  # * <tt>delivers_from</tt> - Pass this the address that then defaults as the +from+ address on all the
-  #   emails sent.  Can be overridden on a per mail basis by passing <tt>:from => 'another@address'</tt> in
-  #   the +mail+ method.
+  # * <tt>defaults</tt> - This is a class wide hash of <tt>:key => value</tt> pairs containing
+  #   default values for the specified header fields of the <tt>Mail::Message</tt>.  You can 
+  #   specify a default for any valid header for <tt>Mail::Message</tt> and it will be used if
+  #   you do not override it.  The defaults set by Action Mailer are:
+  #   * <tt>:mime_version => "1.0"</tt>
+  #   * <tt>:charset      => "utf-8",</tt>
+  #   * <tt>:content_type => "text/plain",</tt>
+  #   * <tt>:parts_order  => [ "text/plain", "text/enriched", "text/html" ]</tt>
   #
   # * <tt>logger</tt> - the logger is used for generating information on the mailing run if available.
   #   Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
@@ -222,20 +232,19 @@ module ActionMailer #:nodoc:
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with <tt>delivery_method :test</tt>. Most useful
   #   for unit and functional testing.
   #
-  # * <tt>default_charset</tt> - The default charset used for the body and to encode the subject. Defaults to UTF-8. You can also
-  #   pick a different charset from inside a method with +charset+.
+  # * <tt>default_charset</tt> - This is now deprecated, use the +defaults+ method above to 
+  #   set the default +:charset+.
   #
-  # * <tt>default_content_type</tt> - The default content type used for the main part of the message. Defaults to "text/plain". You
-  #   can also pick a different content type from inside a method with +content_type+.
+  # * <tt>default_content_type</tt> - This is now deprecated, use the +defaults+ method above 
+  #   to set the default +:content_type+.
   #
-  # * <tt>default_mime_version</tt> - The default mime version used for the message. Defaults to <tt>1.0</tt>. You
-  #   can also pick a different value from inside a method with +mime_version+.
+  # * <tt>default_mime_version</tt> - This is now deprecated, use the +defaults+ method above 
+  #   to set the default +:mime_version+.
   #
-  # * <tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assembled from templates
-  #   which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
-  #   <tt>["text/html", "text/enriched", "text/plain"]</tt>. Items that appear first in the array have higher priority in the mail client
-  #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
-  #   +implicit_parts_order+.
+  # * <tt>default_implicit_parts_order</tt> - This is now deprecated, use the +defaults+ method above 
+  #   to set the default +:parts_order+.  Parts Order is used when a message is built implicitly
+  #   (i.e. multiple parts are assembled from templates which specify the content type in their
+  #   filenames) this variable controls how the parts are ordered.
   class Base < AbstractController::Base
     include DeliveryMethods, Quoting
     abstract!
@@ -254,38 +263,25 @@ module ActionMailer #:nodoc:
 
     private_class_method :new #:nodoc:
 
-    extlib_inheritable_accessor :default_from
-    self.default_from = nil
-
-    extlib_inheritable_accessor :default_charset
-    self.default_charset = "utf-8"
-
-    extlib_inheritable_accessor :default_content_type
-    self.default_content_type = "text/plain"
-
-    extlib_inheritable_accessor :default_mime_version
-    self.default_mime_version = "1.0"
-
-    # This specifies the order that the parts of a multipart email will be.  Usually you put
-    # text/plain at the top so someone without a MIME capable email reader can read the plain
-    # text of your email first.
-    #
-    # Any content type that is not listed here will be inserted in the order you add them to
-    # the email after the content types you list here.
-    extlib_inheritable_accessor :default_implicit_parts_order
-    self.default_implicit_parts_order = [ "text/plain", "text/enriched", "text/html" ]
+    extlib_inheritable_accessor :default_params
+    self.default_params = {
+      :mime_version => "1.0",
+      :charset      => "utf-8",
+      :content_type => "text/plain",
+      :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
+    }
 
     class << self
+
       def mailer_name
         @mailer_name ||= name.underscore
       end
       attr_writer :mailer_name
       alias :controller_path :mailer_name
 
-      # Sets who is the default sender for the e-mail
-      def delivers_from(value = nil)
-        self.default_from = value if value
-        self.default_from
+      def defaults(value=nil)
+        self.default_params.merge!(value) if value
+        self.default_params
       end
 
       # Receives a raw email, parses it into an email object, decodes it,
@@ -361,13 +357,18 @@ module ActionMailer #:nodoc:
     # 
     #   headers['X-Special-Domain-Specific-Header'] = "SecretValue"
     # 
+    # You can also pass a hash into headers of header field names and values, which
+    # will then be set on the Mail::Message object:
+    # 
+    #   headers 'X-Special-Domain-Specific-Header' => "SecretValue",
+    #           'In-Reply-To' => incoming.message_id
+    # 
     # The resulting Mail::Message will have the following in it's header:
     # 
     #   X-Special-Domain-Specific-Header: SecretValue
     def headers(args=nil)
       if args
-        ActiveSupport::Deprecation.warn "headers(Hash) is deprecated, please do headers[key] = value instead", caller[0,2]
-        @headers = args
+        @_message.headers(args)
       else
         @_message
       end
@@ -419,14 +420,22 @@ module ActionMailer #:nodoc:
     #   humanized version of the <tt>action_name</tt>
     # * <tt>:to</tt> - Who the message is destined for, can be a string of addresses, or an array
     #   of addresses.
-    # * <tt>:from</tt> - Who the message is from, if missing, will use the <tt>:delivers_from</tt>
-    #   value in the class (if it exists)
+    # * <tt>:from</tt> - Who the message is from
     # * <tt>:cc</tt> - Who you would like to Carbon-Copy on this email, can be a string of addresses,
     #   or an array of addresses.
     # * <tt>:bcc</tt> - Who you would like to Blind-Carbon-Copy on this email, can be a string of
     #   addresses, or an array of addresses.
     # * <tt>:reply_to</tt> - Who to set the Reply-To header of the email to.
     # * <tt>:date</tt> - The date to say the email was sent on.
+    # 
+    # You can set default values for any of the above headers (except :date) by using the <tt>defaults</tt> 
+    # class method:
+    # 
+    #  class Notifier < ActionMailer::Base
+    #    self.defaults :from => 'no-reply@test.lindsaar.net',
+    #                  :bcc => 'email_logger@test.lindsaar.net',
+    #                  :reply_to => 'bounces@test.lindsaar.net'
+    #  end
     # 
     # If you need other headers not listed above, use the <tt>headers['name'] = value</tt> method.
     #
@@ -472,40 +481,46 @@ module ActionMailer #:nodoc:
       @mail_was_called = true
       m = @_message
 
-      # Give preference to headers and fallback to the ones set in mail
-      content_type = headers[:content_type] || m.content_type
-      charset      = headers[:charset]      || m.charset      || self.class.default_charset.dup
-      mime_version = headers[:mime_version] || m.mime_version || self.class.default_mime_version.dup
+      # At the beginning, do not consider class default for parts order neither content_type
+      content_type = headers[:content_type]
+      parts_order  = headers[:parts_order]
 
-      # Set fields quotings
-      headers[:subject] ||= default_subject
-      headers[:from]    ||= self.class.default_from.dup
+      # Merge defaults from class
+      headers = headers.reverse_merge(self.class.defaults)
+      charset = headers[:charset]
+
+      # Quote fields
+      headers[:subject] ||= default_i18n_subject
       quote_fields!(headers, charset)
 
       # Render the templates and blocks
-      responses, sort_order = collect_responses_and_sort_order(headers, &block)
-      
+      responses, explicit_order = collect_responses_and_parts_order(headers, &block)
       create_parts_from_responses(m, responses, charset)
 
-      # Tidy up content type, charset, mime version and sort order
-      m.content_type = set_content_type(m, content_type)
+      # Finally setup content type and parts order
+      m.content_type = set_content_type(m, content_type, headers[:content_type])
       m.charset      = charset
-      m.mime_version = mime_version
-      sort_order     = headers[:parts_order] || sort_order || self.class.default_implicit_parts_order.dup
 
       if m.multipart?
-        m.body.set_sort_order(sort_order)
+        parts_order ||= explicit_order || headers[:parts_order]
+        m.body.set_sort_order(parts_order)
         m.body.sort_parts!
       end
 
-      # Finaly set delivery behavior configured in class
+      # Set configure delivery behavior
       wrap_delivery_behavior!(headers[:delivery_method])
+
+      # Remove headers already treated and assign all others
+      headers.except!(:subject, :to, :from, :cc, :bcc, :reply_to)
+      headers.except!(:body, :parts_order, :content_type, :charset, :delivery_method)
+      headers.each { |k, v| m[k] = v }
+
       m
     end
 
   protected
 
-    def set_content_type(m, user_content_type)
+    def set_content_type(m, user_content_type, class_default)
       params = m.content_type_parameters || {}
       case
       when user_content_type.present?
@@ -515,11 +530,11 @@ module ActionMailer #:nodoc:
       when m.multipart?
         ["multipart", "alternative", params]
       else
-        self.class.default_content_type.dup
+        class_default
       end
     end
 
-    def default_subject #:nodoc:
+    def default_i18n_subject #:nodoc:
       mailer_scope = self.class.mailer_name.gsub('/', '.')
       I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
     end
@@ -533,21 +548,20 @@ module ActionMailer #:nodoc:
       m.cc       ||= quote_address_if_necessary(headers[:cc], charset)       if headers[:cc]
       m.bcc      ||= quote_address_if_necessary(headers[:bcc], charset)      if headers[:bcc]
       m.reply_to ||= quote_address_if_necessary(headers[:reply_to], charset) if headers[:reply_to]
-      m.date     ||= headers[:date]                                          if headers[:date]
     end
 
-    def collect_responses_and_sort_order(headers) #:nodoc:
-      responses, sort_order = [], nil
+    def collect_responses_and_parts_order(headers) #:nodoc:
+      responses, parts_order = [], nil
 
       if block_given?
         collector = ActionMailer::Collector.new(self) { render(action_name) }
         yield(collector)
-        sort_order = collector.responses.map { |r| r[:content_type] }
+        parts_order = collector.responses.map { |r| r[:content_type] }
         responses  = collector.responses
       elsif headers[:body]
         responses << {
           :body => headers[:body],
-          :content_type => self.class.default_content_type.dup
+          :content_type => self.class.defaults[:content_type] || "text/plain"
         }
       else
         each_template do |template|
@@ -558,7 +572,7 @@ module ActionMailer #:nodoc:
         end
       end
 
-      [responses, sort_order]
+      [responses, parts_order]
     end
 
     def each_template(&block) #:nodoc:
@@ -575,9 +589,7 @@ module ActionMailer #:nodoc:
 
     def create_parts_from_responses(m, responses, charset) #:nodoc:
       if responses.size == 1 && !m.has_attachments?
-        headers = responses[0]
-        headers.each { |k,v| m[k] = v }
-        return responses[0][:content_type]
+        responses[0].each { |k,v| m[k] = v }
       elsif responses.size > 1 && m.has_attachments?
         container = Mail::Part.new
         container.content_type = "multipart/alternative"
