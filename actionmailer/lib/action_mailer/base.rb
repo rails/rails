@@ -254,8 +254,13 @@ module ActionMailer #:nodoc:
 
     private_class_method :new #:nodoc:
 
-    extlib_inheritable_accessor :defaults
-    self.defaults = {}
+    extlib_inheritable_accessor :default_params
+    self.default_params = {
+      :mime_version => "1.0",
+      :charset      => "utf-8",
+      :content_type => "text/plain",
+      :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
+    }
 
     extlib_inheritable_accessor :default_charset
     self.default_charset = "utf-8"
@@ -282,6 +287,11 @@ module ActionMailer #:nodoc:
       end
       attr_writer :mailer_name
       alias :controller_path :mailer_name
+
+      def defaults(value=nil)
+        self.default_params.merge!(value) if value
+        self.default_params
+      end
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
@@ -425,10 +435,10 @@ module ActionMailer #:nodoc:
     # You can set default values for any of the above headers (except :date) by using the <tt>defaults</tt> 
     # class method:
     # 
-    #  class Notifier
-    #    self.defaults = {:from => 'no-reply@test.lindsaar.net',
-    #                     :bcc => 'email_logger@test.lindsaar.net',
-    #                     :reply_to => 'bounces@test.lindsaar.net' }
+    #  class Notifier < ActionMailer::Base
+    #    self.defaults :from => 'no-reply@test.lindsaar.net',
+    #                  :bcc => 'email_logger@test.lindsaar.net',
+    #                  :reply_to => 'bounces@test.lindsaar.net'
     #  end
     # 
     # If you need other headers not listed above, use the <tt>headers['name'] = value</tt> method.
@@ -475,40 +485,46 @@ module ActionMailer #:nodoc:
       @mail_was_called = true
       m = @_message
 
-      # Give preference to headers and fallback to the ones set in mail
-      content_type = headers[:content_type] || m.content_type
-      charset      = headers[:charset]      || m.charset      || self.class.default_charset.dup
-      mime_version = headers[:mime_version] || m.mime_version || self.class.default_mime_version.dup
+      # At the beginning, do not consider class default for parts order neither content_type
+      content_type = headers[:content_type]
+      parts_order  = headers[:parts_order]
 
-      # Set fields quotings
-      headers = set_defaults(headers)
+      # Merge defaults from class
+      headers = headers.reverse_merge(self.class.defaults)
+      charset = headers[:charset]
 
+      # Quote fields
+      headers[:subject] ||= default_i18n_subject
       quote_fields!(headers, charset)
 
       # Render the templates and blocks
-      responses, sort_order = collect_responses_and_sort_order(headers, &block)
-      
+      responses, explicit_order = collect_responses_and_sort_order(headers, &block)
       create_parts_from_responses(m, responses, charset)
 
-      # Tidy up content type, charset, mime version and sort order
-      m.content_type = set_content_type(m, content_type)
+      # Finally setup content type and parts order
+      m.content_type = set_content_type(m, content_type, headers[:content_type])
       m.charset      = charset
-      m.mime_version = mime_version
-      sort_order     = headers[:parts_order] || sort_order || self.class.default_implicit_parts_order.dup
 
       if m.multipart?
-        m.body.set_sort_order(sort_order)
+        parts_order ||= explicit_order || headers[:parts_order]
+        m.body.set_sort_order(parts_order)
         m.body.sort_parts!
       end
 
-      # Finaly set delivery behavior configured in class
+      # Set configure delivery behavior
       wrap_delivery_behavior!(headers[:delivery_method])
+
+      # Remove headers already treated and assign all others
+      headers.except!(:subject, :to, :from, :cc, :bcc, :reply_to)
+      headers.except!(:body, :parts_order, :content_type, :charset, :delivery_method)
+      headers.each { |k, v| m[k] = v }
+
       m
     end
 
   protected
 
-    def set_content_type(m, user_content_type)
+    def set_content_type(m, user_content_type, class_default)
       params = m.content_type_parameters || {}
       case
       when user_content_type.present?
@@ -518,23 +534,13 @@ module ActionMailer #:nodoc:
       when m.multipart?
         ["multipart", "alternative", params]
       else
-        self.class.default_content_type.dup
+        class_default
       end
     end
 
-    def set_defaults(headers)
-      headers[:subject]  ||= default_subject
-      headers[:to]       ||= self.class.defaults[:to].to_s.dup
-      headers[:from]     ||= self.class.defaults[:from].to_s.dup
-      headers[:cc]       ||= self.class.defaults[:cc].to_s.dup
-      headers[:bcc]      ||= self.class.defaults[:bcc].to_s.dup
-      headers[:reply_to] ||= self.class.defaults[:reply_to].to_s.dup
-      headers
-    end
-
-    def default_subject #:nodoc:
+    def default_i18n_subject #:nodoc:
       mailer_scope = self.class.mailer_name.gsub('/', '.')
-      self.class.defaults[:subject] || I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
+      I18n.t(:subject, :scope => [:actionmailer, mailer_scope, action_name], :default => action_name.humanize)
     end
 
     # TODO: Move this into Mail
@@ -546,7 +552,6 @@ module ActionMailer #:nodoc:
       m.cc       ||= quote_address_if_necessary(headers[:cc], charset)       if headers[:cc]
       m.bcc      ||= quote_address_if_necessary(headers[:bcc], charset)      if headers[:bcc]
       m.reply_to ||= quote_address_if_necessary(headers[:reply_to], charset) if headers[:reply_to]
-      m.date     ||= headers[:date]                                          if headers[:date]
     end
 
     def collect_responses_and_sort_order(headers) #:nodoc:
@@ -588,8 +593,7 @@ module ActionMailer #:nodoc:
 
     def create_parts_from_responses(m, responses, charset) #:nodoc:
       if responses.size == 1 && !m.has_attachments?
-        headers = responses[0]
-        headers.each { |k,v| m[k] = v }
+        responses[0].each { |k,v| m[k] = v }
         return responses[0][:content_type]
       elsif responses.size > 1 && m.has_attachments?
         container = Mail::Part.new

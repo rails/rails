@@ -2,72 +2,61 @@
 require 'abstract_unit'
 
 class BaseTest < ActiveSupport::TestCase
-  DEFAULT_HEADERS = {
-    :to => 'mikel@test.lindsaar.net',
-    :subject => 'The first email on new API!'
-  }
-
   class BaseMailer < ActionMailer::Base
-    
-    self.defaults = {:to => 'system@test.lindsaar.net',
-                     :from => 'jose@test.plataformatec.com',
-                     :reply_to => 'mikel@test.lindsaar.net',
-                     :subject => 'Default Subject!'}
-    
     self.mailer_name = "base_mailer"
 
-    def empty(hash = {})
-      mail(hash)
-    end
+    self.defaults :to => 'system@test.lindsaar.net',
+                  :from => 'jose@test.plataformatec.com',
+                  :reply_to => 'mikel@test.lindsaar.net'
 
     def welcome(hash = {})
       headers['X-SPAM'] = "Not SPAM"
-      mail(DEFAULT_HEADERS.merge(hash))
+      mail({:subject => "The first email on new API!"}.merge!(hash))
     end
 
     def attachment_with_content(hash = {})
       attachments['invoice.pdf'] = 'This is test File content'
-      mail(DEFAULT_HEADERS.merge(hash))
+      mail(hash)
     end
 
     def attachment_with_hash
       attachments['invoice.jpg'] = { :data => "you smiling", :mime_type => "image/x-jpg",
         :transfer_encoding => "base64" }
-      mail(DEFAULT_HEADERS)
+      mail
     end
 
     def implicit_multipart(hash = {})
       attachments['invoice.pdf'] = 'This is test File content' if hash.delete(:attachments)
-      mail(DEFAULT_HEADERS.merge(hash))
+      mail(hash)
     end
 
     def implicit_with_locale(hash = {})
-      mail(DEFAULT_HEADERS.merge(hash))
+      mail(hash)
     end
 
     def explicit_multipart(hash = {})
       attachments['invoice.pdf'] = 'This is test File content' if hash.delete(:attachments)
-      mail(DEFAULT_HEADERS.merge(hash)) do |format|
+      mail(hash) do |format|
         format.text { render :text => "TEXT Explicit Multipart" }
         format.html { render :text => "HTML Explicit Multipart" }
       end
     end
 
     def explicit_multipart_templates(hash = {})
-      mail(DEFAULT_HEADERS.merge(hash)) do |format|
+      mail(hash) do |format|
         format.html
         format.text
       end
     end
 
     def explicit_multipart_with_any(hash = {})
-      mail(DEFAULT_HEADERS.merge(hash)) do |format|
+      mail(hash) do |format|
         format.any(:text, :html){ render :text => "Format with any!" }
       end
     end
 
     def custom_block(include_html=false)
-      mail(DEFAULT_HEADERS) do |format|
+      mail do |format|
         format.text(:content_transfer_encoding => "base64"){ render "welcome" }
         format.html{ render "welcome" } if include_html
       end
@@ -81,17 +70,9 @@ class BaseTest < ActiveSupport::TestCase
   # Basic mail usage without block
   test "mail() should set the headers of the mail message" do
     email = BaseMailer.welcome.deliver
-    assert_equal(['mikel@test.lindsaar.net'],     email.to)
+    assert_equal(['system@test.lindsaar.net'],     email.to)
     assert_equal(['jose@test.plataformatec.com'], email.from)
     assert_equal('The first email on new API!',   email.subject)
-  end
-
-  test "mail() should pull the defaults from the class if nothing is specified" do
-    email = BaseMailer.empty.deliver
-    assert_equal(['system@test.lindsaar.net'],    email.to)
-    assert_equal(['jose@test.plataformatec.com'], email.from)
-    assert_equal(['mikel@test.lindsaar.net'],     email.reply_to)
-    assert_equal('Default Subject!',              email.subject)
   end
 
   test "mail() with from overwrites the class level default" do
@@ -184,7 +165,7 @@ class BaseTest < ActiveSupport::TestCase
 
   # Defaults values
   test "uses default charset from class" do
-    swap BaseMailer, :default_charset => "US-ASCII" do
+    with_default BaseMailer, :charset => "US-ASCII" do
       email = BaseMailer.welcome.deliver
       assert_equal("US-ASCII", email.charset)
 
@@ -194,7 +175,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "uses default content type from class" do
-    swap BaseMailer, :default_content_type => "text/html" do
+    with_default BaseMailer, :content_type => "text/html" do
       email = BaseMailer.welcome.deliver
       assert_equal("text/html", email.mime_type)
 
@@ -204,12 +185,19 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "uses default mime version from class" do
-    swap BaseMailer, :default_mime_version => "2.0" do
+    with_default BaseMailer, :mime_version => "2.0" do
       email = BaseMailer.welcome.deliver
       assert_equal("2.0", email.mime_version)
 
       email = BaseMailer.welcome(:mime_version => "1.0").deliver
       assert_equal("1.0", email.mime_version)
+    end
+  end
+
+  test "uses default headers from class" do
+    with_default BaseMailer, "X-SPAM" => "Not spam" do
+      email = BaseMailer.welcome.deliver
+      assert_equal("Not spam", email["X-SPAM"].decoded)
     end
   end
 
@@ -236,7 +224,7 @@ class BaseTest < ActiveSupport::TestCase
 
   test "implicit multipart with sort order" do
     order = ["text/html", "text/plain"]
-    swap BaseMailer, :default_implicit_parts_order => order do
+    with_default BaseMailer, :parts_order => order do
       email = BaseMailer.implicit_multipart.deliver
       assert_equal("text/html",  email.parts[0].mime_type)
       assert_equal("text/plain", email.parts[1].mime_type)
@@ -259,7 +247,7 @@ class BaseTest < ActiveSupport::TestCase
 
   test "implicit multipart with attachments and sort order" do
     order = ["text/html", "text/plain"]
-    swap BaseMailer, :default_implicit_parts_order => order do
+    with_default BaseMailer, :parts_order => order do
       email = BaseMailer.implicit_multipart(:attachments => true).deliver
       assert_equal("application/pdf", email.parts[0].mime_type)
       assert_equal("multipart/alternative", email.parts[1].mime_type)
@@ -323,7 +311,7 @@ class BaseTest < ActiveSupport::TestCase
 
   test "explicit multipart does not sort order" do
     order = ["text/html", "text/plain"]
-    swap BaseMailer, :default_implicit_parts_order => order do
+    with_default BaseMailer, :parts_order => order do
       email = BaseMailer.explicit_multipart.deliver
       assert_equal("text/plain", email.parts[0].mime_type)
       assert_equal("text/html",  email.parts[1].mime_type)
@@ -424,17 +412,30 @@ class BaseTest < ActiveSupport::TestCase
 
     # Execute the block setting the given values and restoring old values after
     # the block is executed.
-    def swap(object, new_values)
+    def swap(klass, new_values)
       old_values = {}
       new_values.each do |key, value|
-        old_values[key] = object.send key
-        object.send :"#{key}=", value
+        old_values[key] = klass.send key
+        klass.send :"#{key}=", value
       end
       yield
     ensure
       old_values.each do |key, value|
-        object.send :"#{key}=", value
+        klass.send :"#{key}=", value
       end
     end
 
+    def with_default(klass, new_values)
+      hash = klass.defaults
+      old_values = {}
+      new_values.each do |key, value|
+        old_values[key] = hash[key]
+        hash[key] = value
+      end
+      yield
+    ensure
+      old_values.each do |key, value|
+        hash[key] = value
+      end
+    end
 end
