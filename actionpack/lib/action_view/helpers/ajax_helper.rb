@@ -5,23 +5,26 @@ module ActionView
       # Rails classes should not be aware of individual JS frameworks
       include PrototypeHelper 
 
-      # Creates a form that will submit using XMLHttpRequest in the background
-      # instead of the regular reloading POST arrangement and a scope around a
-      # specific resource that is used as a base for questioning about
-      # values for the fields.
+      # Returns a form that will allow the unobtrusive JavaScript drivers to submit the 
+      # form the dynamic nature of their choice. The default behaviour is an XMLHttpRequest
+      # in the background instead of the regular POST arrangement. Even though it's using 
+      # JavaScript to serialize the form elements, the form submission will work just like 
+      # a regular submission as viewed by the receiving side (all elements available in 
+      # <tt>params</tt>). The options for specifying the target with <tt>:url</tt> and
+      # defining callbacks is the same as +link_to_remote+.
       #
       # === Resource
       #
       # Example:
       #
       #   # Generates:
-      #   #     <form class='edit_post' 
-      #   #           id='edit_post_1' 
-      #   #           action='/posts/1/edit' 
-      #   #           method='post'
-      #   #           data-remote='true'>...</div>
+      #   #     <form action='/authors' 
+      #   #           data-remote='true'
+      #   #           class='new_author' 
+      #   #           id='create-author' 
+      #   #           method='post'> ... </form>
       #   #
-      #   <% remote_form_for(@post) do |f| %>
+      #   <% remote_form_for(@record, {:html => { :id => 'create-author' }}) do |f| %>
       #     ...
       #   <% end %>
       #
@@ -47,7 +50,10 @@ module ActionView
       #
       # This will expand to be the same as:
       #
-      #   <% remote_form_for :comment, @comment, :url => post_comment_path(@post, @comment), :html => { :method => :put, :class => "edit_comment", :id => "edit_comment_45" } do |f| %>
+      #   <% remote_form_for :comment, @comment, :url => post_comment_path(@post, @comment), 
+      #                                          :html => { :method => :put, 
+      #                                                     :class  => "edit_comment", 
+      #                                                     :id     => "edit_comment_45" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -69,13 +75,14 @@ module ActionView
       end
       alias_method :form_remote_for, :remote_form_for
 
-      # Returns a form tag that will submit using XMLHttpRequest in the
-      # background instead of the regular reloading POST arrangement. Even
-      # though it's using JavaScript to serialize the form elements, the form
-      # submission will work just like a regular submission as viewed by the
-      # receiving side (all elements available in <tt>params</tt>). The options for
-      # specifying the target with <tt>:url</tt> and defining callbacks is the same as
-      # +link_to_remote+.
+      # Returns a form tag that will allow the unobtrusive JavaScript drivers to submit the 
+      # form via the dynamic behaviour of choice. The default behaviour is an XMLHttpRequest 
+      # in the background instead of the regular POST arrangement. Even though it's using 
+      # JavaScript to serialize the form elements, the form submission will work just like
+      # a regular submission as viewed by the receiving side (all elements available in 
+      # <tt>params</tt>). The options for specifying the target with <tt>:url</tt> and 
+      # defining callbacks is the same as +link_to_remote+.
+      #
       #
       # A "fall-through" target for browsers that doesn't do JavaScript can be
       # specified with the <tt>:action</tt>/<tt>:method</tt> options on <tt>:html</tt>.
@@ -83,13 +90,12 @@ module ActionView
       # Example:
       #
       #   # Generates:
-      #   #      <form action='/some/place'
-      #   #            method='post'
-      #   #            data-remote='true'>...</div>
+      #   #     <form action="http://www.example.com/fast" 
+      #   #           method="post" 
+      #   #           data-remote="true" 
+      #   #           data-update-success="glass_of_beer">
       #   #
-      #   form_remote_tag :html => { :action =>
-      #     url_for(:controller => "some", :action => "place") }
-      #     < form data-remote action="/some/place" method="post" >
+      #   form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  })
       #
       # The Hash passed to the <tt>:html</tt> key is equivalent to the options (2nd)
       # argument in the FormTagHelper.form_tag method.
@@ -108,7 +114,17 @@ module ActionView
       #   <% form_remote_tag :url => '/posts' do -%>
       #     <div><%= submit_tag 'Save' %></div>
       #   <% end -%>
-
+      #
+      #   # Generates:
+      #   #     <form action="http://www.example.com/fast" 
+      #   #           method="post" 
+      #   #           data-remote="true" 
+      #   #           data-update-success="glass_of_beer">Hello world!</form>
+      #   #
+      #   <% form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }) do -%>
+      #     <% concat "Hello world!" %>
+      #   <% end -%>
+      #
       def form_remote_tag(options = {}, &block)
         html_options = options.delete(:callbacks)
 
@@ -121,43 +137,40 @@ module ActionView
         form_tag(attributes.delete(:action) || attributes.delete("data-url"), attributes, &block)
       end
 
-      # Returns a link to a remote action defined by <tt>options[:url]</tt>
-      # (using the url_for format) that's called in the background using
-      # XMLHttpRequest. The result of that request can then be inserted into a
-      # DOM object whose id can be specified with <tt>options[:update]</tt>.
-      # Usually, the result would be a partial prepared by the controller with
-      # render :partial.
+      # Returns a link that will allow unobtrusive JavaScript to dynamical adjust its
+      # behaviour. The default behaviour is an XMLHttpRequest in the background instead 
+      # of the regular GET arrangement. The result of that request  can then be inserted 
+      # into a DOM object whose id can be specified with <tt>options[:update]</tt>. Usually, 
+      # the result would be a partial prepared by the controller with render :partial.
       #
       # Examples:
       #
-      #   # Generates: 
-      #   #     <a href='/blog/3'
-      #   #        rel='nofollow'
-      #   #        data-remote='true'
-      #   #        data-method='delete' >Delete this post</ a>
+      #   # Generates:
+      #   #     <a href="#" 
+      #   #        data-remote="true" 
+      #   #        data-url="http://www.example.com/whatnot" 
+      #   #        data-method="delete" 
+      #   #        rel="nofollow">Remove Author</a>
       #   #
-      #   link_to_remote "Delete this post", :update => "posts",
-      #     :url => { :action => "destroy", :id => post.id }
+      #   link_to_remote("Remove Author", { :url    => { :action => "whatnot" }, 
+      #                                     :method => "delete"})
       #
-      #   # Generates:  
-      #   #   <a data-remote='true' href="/mail/list_emails" rel="nofollow" >
-      #   #     <img src='/images/refresh.png'/>
-      #   #   </ a>
-      #   link_to_remote(image_tag("refresh"), :update => "emails",
-      #     :url => { :action => "list_emails" })
       #
       # You can override the generated HTML options by specifying a hash in
       # <tt>options[:html]</tt>.
       #
-      #   # Generates:  
-      #   #     <a class='destructive' 
-      #   #        href='/mail/list_emails' 
-      #   #        rel="nofollow" 
-      #   #        data-remote='true'>Delete this post</a>
+      #   # Generates:
+      #   #     <a class="fine" 
+      #   #        href="#" 
+      #   #        data-remote="true" 
+      #   #        data-url="http://www.example.com/whatnot"
+      #   #        data-method="delete"
+      #   #        rel="nofollow">Remove Author</a>
       #   #
-      #   link_to_remote "Delete this post", :update => "posts",
-      #     :url  => post_url(@post), :method => :delete,
-      #     :html => { :class  => "destructive" }
+      #   link_to_remote("Remove Author", { :url    => { :action => "whatnot"  }, 
+      #                                     :method => "delete",
+      #                                     :html   => { :class  => "fine"    }})
+      #
       #
       # You can also specify a hash for <tt>options[:update]</tt> to allow for
       # easy redirection of output to an other DOM element if a server-side
@@ -210,7 +223,7 @@ module ActionView
       #     :url => { :action => "undo", :n => word_counter },
       #     :complete => "undoRequestCompleted(request)"
       #
-      # The callbacks that may be specified are (in order): (deprecated)
+      # The callbacks that may be specified are (in order): 
       #
       # <tt>:loading</tt>::       Called when the remote document is being
       #                           loaded with data by the browser.
@@ -292,8 +305,8 @@ module ActionView
       #   #        data-method='delete'> Delete this post</a>
       #   #
       #   link_to_remote "Delete this post",
-      #     { :update => "posts", :url => { :action => "destroy", :id => post.id } },
-      #     :href => url_for(:action => "destroy", :id => post.id)
+      #     { :update => "posts", :url => { :action => "destroy", :id => post.id } }
+      #     
       def link_to_remote(name, options, html_options = {})
         attributes = {}
         attributes.merge!(:rel => "nofollow") if options[:method] && options[:method].to_s.downcase == "delete"
@@ -310,10 +323,23 @@ module ActionView
         content_tag(:a, name, attributes)
       end
   
-      # Creates a button with an onclick event which calls a remote action
-      # via XMLHttpRequest
-      # The options for specifying the target with :url
-      # and defining callbacks is the same as link_to_remote.
+      # Returns an input of type button, which allows the unobtrusive JavaScript driver 
+      # to dynamically adjust its behaviour. The default driver behaviour is to call a
+      # remote action via XMLHttpRequest in the background.
+      # The options for specifying the target with :url and defining callbacks is the same
+      # as link_to_remote.
+      #
+      # Example:
+      #   
+      #   # Generates:
+      #   #     <input class="fine"
+      #   #            type="button" 
+      #   #            value="Remote outpost" 
+      #   #            data-remote="true" 
+      #   #            data-url="http://www.example.com/whatnot" />
+      #   #
+      #   button_to_remote("Remote outpost", { :url => { :action => "whatnot" }}, { :class => "fine"  })
+      #
       def button_to_remote(name, options = {}, html_options = {})
         attributes = html_options.merge!(:type => "button", :value => name)
 
@@ -330,9 +356,11 @@ module ActionView
         tag(:input, attributes)
       end
 
-      # Returns a button input tag with the element name of +name+ and a value (i.e., display text) of +value+
-      # that will submit form using XMLHttpRequest in the background instead of a regular POST request that
-      # reloads the page.
+      # Returns an input tag of type button, with the element name of +name+ and a value (i.e., display text) 
+      # of +value+  which will allow the unobtrusive JavaScript driver to dynamically adjust its behaviour 
+      # The default behaviour is to call a remote action via XMLHttpRequest in the background.
+      #
+      # request that reloads the page.
       #
       #  # Create a button that submits to the create action
       #  #
