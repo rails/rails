@@ -361,7 +361,7 @@ module ActionView
 
         attributes = extract_remote_attributes!(options)
         attributes.merge!(html_options)
-        attributes["data-submit"] = true
+        attributes["data-remote-submit"] = true
         attributes.delete("data-remote")
 
         tag(:input, attributes)

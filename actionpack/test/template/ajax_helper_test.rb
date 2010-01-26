@@ -267,8 +267,8 @@ class AjaxHelperTest < AjaxHelperBaseTest
   end
 
   test "submit_to_remote" do
-    assert_dom_equal %(<input name=\"More beer!\" type=\"button\" value=\"1000000\" data-url=\"http://www.example.com/\" data-submit=\"true\" data-update-success=\"empty_bottle\" />),
-      submit_to_remote("More beer!", 1_000_000, :update => "empty_bottle")
+    assert_dom_equal %(<input name=\"More beer!\" type=\"button\" value=\"1000000\" data-url=\"http://www.example.com/empty_bottle\" data-remote-submit=\"true\" data-update-success=\"empty_bottle\" />),
+      submit_to_remote("More beer!", 1_000_000, :url => { :action => 'empty_bottle' }, :update => "empty_bottle")
   end
 
   test "observe_field" do
