@@ -1,5 +1,5 @@
 Event.observe(document, 'dom:loaded', function() {
-  function handleRemote(e, el){
+  function handle_remote(el, e){
     var data        = null,
         method      = el.readAttribute('method') || el.readAttribute('data-method') || 'GET',
         url         = el.readAttribute('action') || el.readAttribute('data-url') || '#',
@@ -13,14 +13,28 @@ Event.observe(document, 'dom:loaded', function() {
         data = submit_el.serialize();
       }
     } else if (el.readAttribute('data-with')) {
-        data = el.readAttribute('data-with');
+        // It seems there is a big inconsistency between what :with means depending on the element type
+        // so this is going to look a bit crazy
+        if(el.tagName.toUpperCase() === 'SCRIPT' && el.readAttribute('data-observed') !== null){
+          // Handle observe_field and observe_form
+          var observed_element = $(el.readAttribute('data-observed'));
+
+          if(observed_element.tagName.toUpperCase() === 'FORM'){
+            data = el.readAttribute('data-with') + '=' + observed_element.serialize();
+          } else if(observed_element.tagName.toUpperCase() === 'INPUT' && observed_element.readAttribute('type').toUpperCase() !== "BUTTON" && observed_element.readAttribute('type').toUpperCase() !== "SUBMIT") {
+            data = el.readAttribute('data-with') + '=' + observed_element.getValue();
+          }
+        } else {
+          // Handle link_to and button_to
+          data = evalAttribute(el, 'data-with');
+        }
     } else if(el.tagName.toUpperCase() === 'FORM') {
         data = el.serialize();
     }
 
     document.fire('rails:before');
 
-    new Ajax.Request(url, {
+    var request = new Ajax.Request(url, {
       method: method,
       asynchronous: async,
       parameters: data,
@@ -55,7 +69,7 @@ Event.observe(document, 'dom:loaded', function() {
   }
 
   function getEventProperty(e, property){
-    if(e.memo !== undefined && e.memo[property] !== undefined){
+    if(e !== null && e.memo !== undefined && e.memo[property] !== undefined){
       return e.memo[property];
     }
   }
@@ -117,9 +131,37 @@ Event.observe(document, 'dom:loaded', function() {
     }
   }
 
+  $$("script[data-periodical=true]").each(function(el){
+    var executor = new PeriodicalExecuter(function() { handle_remote(el);}, el.readAttribute('data-frequency'));
+  });
+
+  $$("script[data-observe=true]").each(function(el){
+      var observed_element = $(el.readAttribute('data-observed'));
+      var original_value =  observed_element.tagName.toUpperCase() === 'FORM' ? observed_element.serialize() : observed_element.getValue();
+      var callback = el.readAttribute('data-onobserve');
+      var executor = new PeriodicalExecuter(function() { 
+        var value = observed_element.tagName.toUpperCase() === 'FORM' ? observed_element.serialize() : observed_element.getValue();
+
+        if(original_value !== value){
+          original_value = value;
+
+          if(callback !== null){
+            evalAttribute(el, 'onobserve');
+          } else if(el.readAttribute('data-url') !== null){
+            handle_remote(el);
+          }
+        }
+      }, el.readAttribute('data-frequency'));
+
+  });
+
   /**
    *
    * Event Listeners
+   *
+   * the original element is contained inside the event,
+   * for some reason prototype wont let me listen for custom events on document
+   * if the event wasn't fired on document
    *
    */
 
@@ -135,7 +177,7 @@ Event.observe(document, 'dom:loaded', function() {
 
       if(form.readAttribute('data-remote') === 'true'){
         Event.stop(e);
-        handleRemote(e, form);
+        handle_remote(form, e);
       }
     }
   });
@@ -160,15 +202,13 @@ Event.observe(document, 'dom:loaded', function() {
 
       if(el.readAttribute('data-remote') === 'true'){
         Event.stop(e);
-        handleRemote(e, el);
+        handle_remote(el, e);
       } else if(el.readAttribute('data-popup') !== null){
         Event.stop(e);
-        console.log('firing rails:popup');
         document.fire('rails:popup', {element: el});
       }
     }
   });
-
 
   /**
    *
@@ -180,7 +220,6 @@ Event.observe(document, 'dom:loaded', function() {
   });
 
   Event.observe(document, 'rails:popup', function(e){
-    console.log('in rails:popup');
     var el = getEventProperty(e, 'element');
     var url = el.readAttribute('href') || el.readAttribute('data-url');
     
@@ -249,31 +288,37 @@ Event.observe(document, 'dom:loaded', function() {
   }
 
   Event.observe(document, 'rails:success', function(e){
-    evalAttribute('onsuccess');
+    evalAttribute(el, 'onsuccess');
   });
 
   Event.observe(document, 'rails:failure', function(e){
-    evalAttribute('onfailure');
+    evalAttribute(el, 'onfailure');
   });
 
   Event.observe(document, 'rails:complete', function(e){
-    evalAttribute('oncomplete');
-    evalAttribute(this, 'on' + getEventProperty('xhr', xhr.status)); 
+    var el  = getEventProperty(e, 'element');
+
+    evalAttribute(el, 'oncomplete');
+    evalAttribute(el, 'on' + getEventProperty('xhr', xhr.status)); 
+
+    if(el.readAttribute('data-periodical') === 'true'){
+      evalAttribute(el, 'onobserve');
+    }
   });
 
   Event.observe(document, 'rails:loading', function(e){
-    evalAttribute('onloading');
+    evalAttribute(el, 'onloading');
   });
 
   Event.observe(document, 'rails:loaded', function(e){
-    evalAttribute('onloaded');
+    evalAttribute(el, 'onloaded');
   });
 
   Event.observe(document, 'rails:before', function(e){
-    evalAttribute('onbefore');
+    evalAttribute(el, 'onbefore');
   });
 
   Event.observe(document, 'rails:after', function(e){
-    evalAttribute('onafter');
+    evalAttribute(el, 'onafter');
   });
 });
