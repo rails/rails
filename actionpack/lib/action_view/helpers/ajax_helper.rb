@@ -291,7 +291,7 @@ module ActionView
       #     :href => url_for(:action => "destroy", :id => post.id)
       def link_to_remote(name, options, html_options = {})
         attributes = {}
-        attributes.merge!(:rel => "nofollow") if options[:method] && options[:method].downcase == "delete"
+        attributes.merge!(:rel => "nofollow") if options[:method] && options[:method].to_s.downcase == "delete"
         attributes.merge!(extract_remote_attributes!(options))
         
         if confirm = options.delete(:confirm)
@@ -512,8 +512,13 @@ module ActionView
 
         def extract_request_attributes!(options)
           attributes = {}
-          attributes["data-method"] = options.delete(:method)
-          attributes["data-remote-type"] = options.delete(:type)
+          if method  = options.delete(:method)
+            attributes["data-method"] = method.to_s
+          end
+          
+          if type = options.delete(:type)
+            attributes["data-remote-type"] = type.to_s 
+          end
 
           url_options = options.delete(:url)
           url_options = url_options.merge(:escape => false) if url_options.is_a?(Hash)
@@ -531,7 +536,10 @@ module ActionView
           else
             attributes["data-update-success"] = update
           end
-          attributes["data-update-position"] = options.delete(:position)
+
+          if position = options.delete(:position)
+            attributes["data-update-position"] = position.to_s 
+          end
 
           purge_unused_attributes!(attributes)
         end
