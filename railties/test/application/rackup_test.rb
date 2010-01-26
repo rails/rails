@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class LoadTest < Test::Unit::TestCase
+  class RackupTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
 
     def rackup

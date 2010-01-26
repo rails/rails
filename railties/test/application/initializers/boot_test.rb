@@ -1,6 +1,6 @@
 require "isolation/abstract_unit"
 
-module BootTests
+module ApplicationTests
   class GemBooting < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
 

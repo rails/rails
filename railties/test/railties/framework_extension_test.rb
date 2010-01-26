@@ -46,6 +46,20 @@ module RailtiesTest
       AppTemplate::Application.load_generators
       assert $ran_block
     end
+
+    test "railtie initializer" do
+      $ran_block = false
+
+      class MyTie < Rails::Railtie
+        initializer :something_nice do
+          $ran_block = true
+        end
+      end
+
+      assert !$ran_block
+      require "#{app_path}/config/environment"
+      assert $ran_block
+    end
   end
 
   class ActiveRecordExtensionTest < Test::Unit::TestCase

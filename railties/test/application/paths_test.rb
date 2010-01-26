@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
-module InitializerTests
-  class PathTest < Test::Unit::TestCase
+module ApplicationTests
+  class PathsTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup

@@ -92,18 +92,5 @@ module ApplicationTests
         assert_equal({ :plugin => { :generator => "-g" } }, c.generators.aliases)
       end
     end
-
-    test "generators with hashes are deep merged" do
-      with_config do |c|
-        c.generators do |g|
-          g.orm    :datamapper, :migration => false
-          g.plugin :aliases => { :generator => "-g" },
-                   :generator => true
-        end
-      end
-
-      assert Rails::Generators.aliases.size >= 1
-      assert Rails::Generators.options.size >= 1
-    end
   end
 end

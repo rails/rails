@@ -1,6 +1,6 @@
 require "isolation/abstract_unit"
 
-module InitializerTests
+module ApplicationTests
   class CheckRubyVersionTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
 
