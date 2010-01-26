@@ -73,12 +73,12 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "method call to mail does not raise error" do
-    assert_nothing_raised { BaseMailer.welcome.deliver }
+    assert_nothing_raised { BaseMailer.welcome }
   end
 
   # Basic mail usage without block
   test "mail() should set the headers of the mail message" do
-    email = BaseMailer.welcome.deliver
+    email = BaseMailer.welcome
     assert_equal(['system@test.lindsaar.net'],     email.to)
     assert_equal(['jose@test.plataformatec.com'], email.from)
     assert_equal('The first email on new API!',   email.subject)
@@ -86,7 +86,7 @@ class BaseTest < ActiveSupport::TestCase
 
   test "mail() with from overwrites the class level default" do
     email = BaseMailer.welcome(:from => 'someone@example.com',
-                               :to   => 'another@example.org').deliver
+                               :to   => 'another@example.org')
     assert_equal(['someone@example.com'], email.from)
     assert_equal(['another@example.org'], email.to)
   end
@@ -99,7 +99,7 @@ class BaseTest < ActiveSupport::TestCase
                                :charset => 'iso-8559-1',
                                :mime_version => '2.0',
                                :reply_to => 'reply-to@test.lindsaar.net',
-                               :date => @time).deliver
+                               :date => @time)
     assert_equal(['bcc@test.lindsaar.net'],      email.bcc)
     assert_equal(['cc@test.lindsaar.net'],       email.cc)
     assert_equal('multipart/mixed',              email.content_type)
@@ -110,50 +110,50 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "mail() renders the template using the method being processed" do
-    email = BaseMailer.welcome.deliver
+    email = BaseMailer.welcome
     assert_equal("Welcome", email.body.encoded)
   end
 
   test "can pass in :body to the mail method hash" do
-    email = BaseMailer.welcome(:body => "Hello there").deliver
+    email = BaseMailer.welcome(:body => "Hello there")
     assert_equal("text/plain", email.mime_type)
     assert_equal("Hello there", email.body.encoded)
   end
 
   # Custom headers
   test "custom headers" do
-    email = BaseMailer.welcome.deliver
+    email = BaseMailer.welcome
     assert_equal("Not SPAM", email['X-SPAM'].decoded)
   end
 
   # Attachments
   test "attachment with content" do
-    email = BaseMailer.attachment_with_content.deliver
+    email = BaseMailer.attachment_with_content
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.pdf', email.attachments[0].filename)
     assert_equal('This is test File content', email.attachments['invoice.pdf'].decoded)
   end
 
   test "attachment gets content type from filename" do
-    email = BaseMailer.attachment_with_content.deliver
+    email = BaseMailer.attachment_with_content
     assert_equal('invoice.pdf', email.attachments[0].filename)
   end
 
   test "attachment with hash" do
-    email = BaseMailer.attachment_with_hash.deliver
+    email = BaseMailer.attachment_with_hash
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.jpg', email.attachments[0].filename)
     assert_equal("\312\213\254\232)b", email.attachments['invoice.jpg'].decoded)
   end
 
   test "sets mime type to multipart/mixed when attachment is included" do
-    email = BaseMailer.attachment_with_content.deliver
+    email = BaseMailer.attachment_with_content
     assert_equal(1, email.attachments.length)
     assert_equal("multipart/mixed", email.mime_type)
   end
 
   test "adds the rendered template as part" do
-    email = BaseMailer.attachment_with_content.deliver
+    email = BaseMailer.attachment_with_content
     assert_equal(2, email.parts.length)
     assert_equal("multipart/mixed", email.mime_type)
     assert_equal("text/html", email.parts[0].mime_type)
@@ -163,7 +163,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "adds the given :body as part" do
-    email = BaseMailer.attachment_with_content(:body => "I'm the eggman").deliver
+    email = BaseMailer.attachment_with_content(:body => "I'm the eggman")
     assert_equal(2, email.parts.length)
     assert_equal("multipart/mixed", email.mime_type)
     assert_equal("text/plain", email.parts[0].mime_type)
@@ -175,30 +175,30 @@ class BaseTest < ActiveSupport::TestCase
   # Defaults values
   test "uses default charset from class" do
     with_default BaseMailer, :charset => "US-ASCII" do
-      email = BaseMailer.welcome.deliver
+      email = BaseMailer.welcome
       assert_equal("US-ASCII", email.charset)
 
-      email = BaseMailer.welcome(:charset => "iso-8559-1").deliver
+      email = BaseMailer.welcome(:charset => "iso-8559-1")
       assert_equal("iso-8559-1", email.charset)
     end
   end
 
   test "uses default content type from class" do
     with_default BaseMailer, :content_type => "text/html" do
-      email = BaseMailer.welcome.deliver
+      email = BaseMailer.welcome
       assert_equal("text/html", email.mime_type)
 
-      email = BaseMailer.welcome(:content_type => "text/plain").deliver
+      email = BaseMailer.welcome(:content_type => "text/plain")
       assert_equal("text/plain", email.mime_type)
     end
   end
 
   test "uses default mime version from class" do
     with_default BaseMailer, :mime_version => "2.0" do
-      email = BaseMailer.welcome.deliver
+      email = BaseMailer.welcome
       assert_equal("2.0", email.mime_version)
 
-      email = BaseMailer.welcome(:mime_version => "1.0").deliver
+      email = BaseMailer.welcome(:mime_version => "1.0")
       assert_equal("1.0", email.mime_version)
     end
   end
@@ -212,17 +212,17 @@ class BaseTest < ActiveSupport::TestCase
 
   test "subject gets default from I18n" do
     BaseMailer.defaults[:subject] = nil
-    email = BaseMailer.welcome(:subject => nil).deliver
+    email = BaseMailer.welcome(:subject => nil)
     assert_equal "Welcome", email.subject
 
     I18n.backend.store_translations('en', :actionmailer => {:base_mailer => {:welcome => {:subject => "New Subject!"}}})
-    email = BaseMailer.welcome(:subject => nil).deliver
+    email = BaseMailer.welcome(:subject => nil)
     assert_equal "New Subject!", email.subject
   end
 
   # Implicit multipart
   test "implicit multipart" do
-    email = BaseMailer.implicit_multipart.deliver
+    email = BaseMailer.implicit_multipart
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
     assert_equal("text/plain", email.parts[0].mime_type)
@@ -234,18 +234,18 @@ class BaseTest < ActiveSupport::TestCase
   test "implicit multipart with sort order" do
     order = ["text/html", "text/plain"]
     with_default BaseMailer, :parts_order => order do
-      email = BaseMailer.implicit_multipart.deliver
+      email = BaseMailer.implicit_multipart
       assert_equal("text/html",  email.parts[0].mime_type)
       assert_equal("text/plain", email.parts[1].mime_type)
 
-      email = BaseMailer.implicit_multipart(:parts_order => order.reverse).deliver
+      email = BaseMailer.implicit_multipart(:parts_order => order.reverse)
       assert_equal("text/plain", email.parts[0].mime_type)
       assert_equal("text/html",  email.parts[1].mime_type)
     end
   end
 
   test "implicit multipart with attachments creates nested parts" do
-    email = BaseMailer.implicit_multipart(:attachments => true).deliver
+    email = BaseMailer.implicit_multipart(:attachments => true)
     assert_equal("application/pdf", email.parts[0].mime_type)
     assert_equal("multipart/alternative", email.parts[1].mime_type)
     assert_equal("text/plain", email.parts[1].parts[0].mime_type)
@@ -257,7 +257,7 @@ class BaseTest < ActiveSupport::TestCase
   test "implicit multipart with attachments and sort order" do
     order = ["text/html", "text/plain"]
     with_default BaseMailer, :parts_order => order do
-      email = BaseMailer.implicit_multipart(:attachments => true).deliver
+      email = BaseMailer.implicit_multipart(:attachments => true)
       assert_equal("application/pdf", email.parts[0].mime_type)
       assert_equal("multipart/alternative", email.parts[1].mime_type)
       assert_equal("text/plain", email.parts[1].parts[1].mime_type)
@@ -266,7 +266,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "implicit multipart with default locale" do
-    email = BaseMailer.implicit_with_locale.deliver
+    email = BaseMailer.implicit_with_locale
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
     assert_equal("text/plain", email.parts[0].mime_type)
@@ -277,7 +277,7 @@ class BaseTest < ActiveSupport::TestCase
 
   test "implicit multipart with other locale" do
     swap I18n, :locale => :pl do
-      email = BaseMailer.implicit_with_locale.deliver
+      email = BaseMailer.implicit_with_locale
       assert_equal(2, email.parts.size)
       assert_equal("multipart/alternative", email.mime_type)
       assert_equal("text/plain", email.parts[0].mime_type)
@@ -290,7 +290,7 @@ class BaseTest < ActiveSupport::TestCase
   test "implicit multipart with several view paths uses the first one with template" do
     begin
       BaseMailer.view_paths.unshift(File.join(FIXTURE_LOAD_PATH, "another.path"))
-      email = BaseMailer.welcome.deliver
+      email = BaseMailer.welcome
       assert_equal("Welcome from another path", email.body.encoded)
     ensure
       BaseMailer.view_paths.shift
@@ -300,7 +300,7 @@ class BaseTest < ActiveSupport::TestCase
   test "implicit multipart with inexistent templates uses the next view path" do
     begin
       BaseMailer.view_paths.unshift(File.join(FIXTURE_LOAD_PATH, "unknown"))
-      email = BaseMailer.welcome.deliver
+      email = BaseMailer.welcome
       assert_equal("Welcome", email.body.encoded)
     ensure
       BaseMailer.view_paths.shift
@@ -309,7 +309,7 @@ class BaseTest < ActiveSupport::TestCase
 
   # Explicit multipart
   test "explicit multipart" do
-    email = BaseMailer.explicit_multipart.deliver
+    email = BaseMailer.explicit_multipart
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
     assert_equal("text/plain", email.parts[0].mime_type)
@@ -321,18 +321,18 @@ class BaseTest < ActiveSupport::TestCase
   test "explicit multipart does not sort order" do
     order = ["text/html", "text/plain"]
     with_default BaseMailer, :parts_order => order do
-      email = BaseMailer.explicit_multipart.deliver
+      email = BaseMailer.explicit_multipart
       assert_equal("text/plain", email.parts[0].mime_type)
       assert_equal("text/html",  email.parts[1].mime_type)
 
-      email = BaseMailer.explicit_multipart(:parts_order => order.reverse).deliver
+      email = BaseMailer.explicit_multipart(:parts_order => order.reverse)
       assert_equal("text/plain", email.parts[0].mime_type)
       assert_equal("text/html",  email.parts[1].mime_type)
     end
   end
 
   test "explicit multipart with attachments creates nested parts" do
-    email = BaseMailer.explicit_multipart(:attachments => true).deliver
+    email = BaseMailer.explicit_multipart(:attachments => true)
     assert_equal("application/pdf", email.parts[0].mime_type)
     assert_equal("multipart/alternative", email.parts[1].mime_type)
     assert_equal("text/plain", email.parts[1].parts[0].mime_type)
@@ -342,7 +342,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "explicit multipart with templates" do
-    email = BaseMailer.explicit_multipart_templates.deliver
+    email = BaseMailer.explicit_multipart_templates
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
     assert_equal("text/html", email.parts[0].mime_type)
@@ -352,7 +352,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "explicit multipart with any" do
-    email = BaseMailer.explicit_multipart_with_any.deliver
+    email = BaseMailer.explicit_multipart_with_any
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
     assert_equal("text/plain", email.parts[0].mime_type)
@@ -362,7 +362,8 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "explicit multipart with options" do
-    email = BaseMailer.custom_block(true).deliver
+    email = BaseMailer.custom_block(true)
+    email.ready_to_send!
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
     assert_equal("text/plain", email.parts[0].mime_type)
@@ -372,7 +373,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "explicit multipart with one part is rendered as body" do
-    email = BaseMailer.custom_block.deliver
+    email = BaseMailer.custom_block
     assert_equal(0, email.parts.size)
     assert_equal("text/plain", email.mime_type)
     assert_equal("base64", email.content_transfer_encoding)

@@ -23,7 +23,7 @@ module ActionMailer #:nodoc:
   # Examples:
   #
   #  class Notifier < ActionMailer::Base
-  #    delivers_from 'system@example.com'
+  #    defaults({:from => 'system@example.com'})
   # 
   #    def welcome(recipient)
   #      @account = recipient
@@ -190,9 +190,14 @@ module ActionMailer #:nodoc:
   #
   # These options are specified on the class level, like <tt>ActionMailer::Base.template_root = "/my/templates"</tt>
   #
-  # * <tt>delivers_from</tt> - Pass this the address that then defaults as the +from+ address on all the
-  #   emails sent.  Can be overridden on a per mail basis by passing <tt>:from => 'another@address'</tt> in
-  #   the +mail+ method.
+  # * <tt>defaults</tt> - This is a class wide hash of <tt>:key => value</tt> pairs containing
+  #   default values for the specified header fields of the <tt>Mail::Message</tt>.  You can 
+  #   specify a default for any valid header for <tt>Mail::Message</tt> and it will be used if
+  #   you do not override it.  The defaults set by Action Mailer are:
+  #   * <tt>:mime_version => "1.0"</tt>
+  #   * <tt>:charset      => "utf-8",</tt>
+  #   * <tt>:content_type => "text/plain",</tt>
+  #   * <tt>:parts_order  => [ "text/plain", "text/enriched", "text/html" ]</tt>
   #
   # * <tt>logger</tt> - the logger is used for generating information on the mailing run if available.
   #   Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
@@ -226,20 +231,19 @@ module ActionMailer #:nodoc:
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with <tt>delivery_method :test</tt>. Most useful
   #   for unit and functional testing.
   #
-  # * <tt>default_charset</tt> - The default charset used for the body and to encode the subject. Defaults to UTF-8. You can also
-  #   pick a different charset from inside a method with +charset+.
+  # * <tt>default_charset</tt> - This is now deprecated, use the +defaults+ method above to 
+  #   set the default +:charset+.
   #
-  # * <tt>default_content_type</tt> - The default content type used for the main part of the message. Defaults to "text/plain". You
-  #   can also pick a different content type from inside a method with +content_type+.
+  # * <tt>default_content_type</tt> - This is now deprecated, use the +defaults+ method above 
+  #   to set the default +:content_type+.
   #
-  # * <tt>default_mime_version</tt> - The default mime version used for the message. Defaults to <tt>1.0</tt>. You
-  #   can also pick a different value from inside a method with +mime_version+.
+  # * <tt>default_mime_version</tt> - This is now deprecated, use the +defaults+ method above 
+  #   to set the default +:mime_version+.
   #
-  # * <tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assembled from templates
-  #   which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
-  #   <tt>["text/html", "text/enriched", "text/plain"]</tt>. Items that appear first in the array have higher priority in the mail client
-  #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
-  #   +implicit_parts_order+.
+  # * <tt>default_implicit_parts_order</tt> - This is now deprecated, use the +defaults+ method above 
+  #   to set the default +:parts_order+.  Parts Order is used when a message is built implicitly
+  #   (i.e. multiple parts are assembled from templates which specify the content type in their
+  #   filenames) this variable controls how the parts are ordered.
   class Base < AbstractController::Base
     include DeliveryMethods, Quoting
     abstract!
@@ -275,12 +279,6 @@ module ActionMailer #:nodoc:
     extlib_inheritable_accessor :default_mime_version
     self.default_mime_version = self.default_params[:mime_version]
 
-    # This specifies the order that the parts of a multipart email will be.  Usually you put
-    # text/plain at the top so someone without a MIME capable email reader can read the plain
-    # text of your email first.
-    #
-    # Any content type that is not listed here will be inserted in the order you add them to
-    # the email after the content types you list here.
     extlib_inheritable_accessor :default_implicit_parts_order
     self.default_implicit_parts_order = self.default_params[:parts_order]
 
