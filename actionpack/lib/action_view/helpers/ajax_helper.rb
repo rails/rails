@@ -566,7 +566,7 @@ module ActionView
           attributes = extract_remote_attributes!(options)
           attributes["data-observe"] = true
           attributes["data-observed"] = options.delete(:observed)
-          attributes["data-onobserve"] = create_js_function(callback, "element", "value") if callback
+          attributes["data-onobserve"] = callback if callback
           attributes["data-frequency"] = frequency.to_i if frequency && frequency != 0
           attributes.delete("data-remote")
 
@@ -576,10 +576,6 @@ module ActionView
         def purge_unused_attributes!(attributes)
           attributes.delete_if {|key, value| value.nil? }
           attributes
-        end
-
-        def create_js_function(statements, *arguments)
-          "function(#{arguments.join(", ")}) {#{statements}}"
         end
     end
 

@@ -171,6 +171,13 @@ class AjaxHelperTest < AjaxHelperBaseTest
     )
   end
 
+  test "periodically_call_remote_with_function" do
+    assert_dom_equal(
+      "<script data-periodical=\"true\" data-url=\"http://www.example.com/\" type=\"application/json\" data-onobserve=\"alert('test')\" data-frequency=\"2\"></script>",
+      periodically_call_remote(:frequency => 2, :function => "alert('test')")
+    )
+  end
+
   test "form_remote_tag" do
     assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" data-remote=\"true\" data-update-success=\"glass_of_beer\">),
       form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  })
@@ -297,7 +304,7 @@ class AjaxHelperTest < AjaxHelperBaseTest
   end
 
   test "observe_field using function for callback" do
-    assert_dom_equal %(<script data-observed=\"glass\" data-url=\"http://www.example.com/\" data-onobserve=\"function(element, value) {alert('Element changed')}\" data-observe=\"true\" type=\"application/json\" data-frequency=\"300\"></script>),
+    assert_dom_equal %(<script data-observed=\"glass\" data-url=\"http://www.example.com/\" data-observe=\"true\" type=\"application/json\" data-onobserve=\"alert('Element changed')\" data-frequency=\"300\"></script>),
       observe_field("glass", :frequency => 5.minutes, :function => "alert('Element changed')")
   end
 
@@ -307,7 +314,7 @@ class AjaxHelperTest < AjaxHelperBaseTest
   end
 
   test "observe_form using function for callback" do
-    assert_dom_equal %(<script data-observed=\"cart\" data-url=\"http://www.example.com/\" data-onobserve=\"function(element, value) {alert('Form changed')}\" data-observe=\"true\" type=\"application/json\" data-frequency=\"2\"></script>),
+    assert_dom_equal %(<script data-observed=\"cart\" data-url=\"http://www.example.com/\" data-observe=\"true\" type=\"application/json\" data-onobserve=\"alert('Form changed')\" data-frequency=\"2\"></script>),
       observe_form("cart", :frequency => 2, :function => "alert('Form changed')")
   end
 
