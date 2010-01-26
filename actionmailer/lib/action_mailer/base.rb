@@ -23,7 +23,8 @@ module ActionMailer #:nodoc:
   # Examples:
   #
   #  class Notifier < ActionMailer::Base
-  #    defaults({:from => 'system@example.com'})
+  #    defaults :from => 'no-reply@example.com',
+  #             :return_path => 'system@example.com'
   # 
   #    def welcome(recipient)
   #      @account = recipient

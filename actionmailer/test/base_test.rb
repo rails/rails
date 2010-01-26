@@ -5,9 +5,9 @@ class BaseTest < ActiveSupport::TestCase
   class BaseMailer < ActionMailer::Base
     self.mailer_name = "base_mailer"
 
-    defaults({:to => 'system@test.lindsaar.net',
-              :from => 'jose@test.plataformatec.com',
-              :reply_to => 'mikel@test.lindsaar.net'})
+    defaults :to => 'system@test.lindsaar.net',
+             :from => 'jose@test.plataformatec.com',
+             :reply_to => 'mikel@test.lindsaar.net'
 
     def welcome(hash = {})
       headers['X-SPAM'] = "Not SPAM"
