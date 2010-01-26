@@ -16,13 +16,6 @@ class Class #:nodoc:
     Object.remove_subclasses_of(self)
   end
 
-  # Returns an array with the names of the subclasses of +self+ as strings.
-  #
-  #   Integer.subclasses # => ["Bignum", "Fixnum"]
-  def subclasses
-    Object.subclasses_of(self).map { |o| o.to_s }
-  end
-
   # Removes the classes in +klasses+ from their parent module.
   #
   # Ordinary classes belong to some module via a constant. This method computes
