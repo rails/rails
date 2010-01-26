@@ -117,15 +117,18 @@ module ActionView
     # # :api: plugin
     def path_to_details(path)
       # [:erb, :format => :html, :locale => :en, :partial => true/false]
-      if m = path.match(%r'(?:^|/)(_)?[\w-]+((?:\.[\w-]+)*)\.(\w+)$')
-        partial = m[1] == '_'
-        details = (m[2]||"").split('.').reject { |e| e.empty? }
-        handler = Template.handler_class_for_extension(m[3])
+      if m = path.match(%r'((^|.*/)(_)?[\w-]+)((?:\.[\w-]+)*)\.(\w+)$')
+        partial = m[3] == '_'
+        details = (m[4]||"").split('.').reject { |e| e.empty? }
+        handler = Template.handler_class_for_extension(m[5])
 
         format  = Mime[details.last] && details.pop.to_sym
         locale  = details.last && details.pop.to_sym
 
-        return handler, :format => format, :locale => locale, :partial => partial
+        virtual_path = (m[1].gsub("#{@path}/", "") << details.join("."))
+
+        return handler, :format => format, :locale => locale, :partial => partial,
+                        :virtual_path => virtual_path
       end
     end
   end

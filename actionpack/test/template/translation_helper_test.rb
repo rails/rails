@@ -1,9 +1,9 @@
 require 'abstract_unit'
 
-class TranslationHelperTest < Test::Unit::TestCase
+class TranslationHelperTest < ActiveSupport::TestCase
   include ActionView::Helpers::TagHelper
   include ActionView::Helpers::TranslationHelper
-  
+
   attr_reader :request
   def setup
   end
@@ -25,8 +25,8 @@ class TranslationHelperTest < Test::Unit::TestCase
   end
   
   def test_scoping_by_partial
-    expects(:template).returns(stub(:path_without_format_and_extension => "people/index"))
-    I18n.expects(:translate).with("people.index.foo", :locale => 'en', :raise => true).returns("")
-    translate ".foo", :locale => 'en'
+    I18n.expects(:translate).with("test.translation.helper", :raise => true).returns("helper")
+    @view = ActionView::Base.new(ActionController::Base.view_paths, {})
+    assert_equal "helper", @view.render(:file => "test/translation")
   end
 end
