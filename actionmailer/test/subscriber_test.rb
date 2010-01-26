@@ -11,7 +11,7 @@ class AMSubscriberTest < ActionMailer::TestCase
       recipients "somewhere@example.com"
       subject    "basic"
       from       "basic@example.com"
-      render :text => "Hello world"
+      body       "Hello world"
     end
 
     def receive(mail)

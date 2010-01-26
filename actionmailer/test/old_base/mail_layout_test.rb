@@ -14,7 +14,7 @@ class AutoLayoutMailer < ActionMailer::Base
     from       "tester@example.com"
 
     @world = "Earth"
-    render(:inline => "Hello, <%= @world %>", :layout => 'spam')
+    body render(:inline => "Hello, <%= @world %>", :layout => 'spam')
   end
 
   def nolayout
@@ -23,7 +23,7 @@ class AutoLayoutMailer < ActionMailer::Base
     from       "tester@example.com"
 
     @world = "Earth"
-    render(:inline => "Hello, <%= @world %>", :layout => false)
+    body render(:inline => "Hello, <%= @world %>", :layout => false)
   end
 
   def multipart(type = nil)
