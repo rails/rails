@@ -402,6 +402,9 @@ module ActionView
         attributes = extract_observer_attributes!(options)
         attributes["data-periodical"] = true 
 
+        # periodically_call_remote does not need data-observe=true
+        attributes.delete('data-observe')
+
         script_decorator(attributes)
       end
 

@@ -160,13 +160,13 @@ class AjaxHelperTest < AjaxHelperBaseTest
   end
 
   test "periodically_call_remote" do
-    assert_dom_equal %(<script data-url=\"http://www.example.com/mehr_bier\" data-observe=\"true\" data-update-success=\"schremser_bier\" type=\"application/json\" data-periodical=\"true\"></script>),
+    assert_dom_equal %(<script data-url=\"http://www.example.com/mehr_bier\" data-update-success=\"schremser_bier\" type=\"application/json\" data-periodical=\"true\"></script>),
       periodically_call_remote(:update => "schremser_bier", :url => { :action => "mehr_bier" })
   end
 
   test "periodically_call_remote_with_frequency" do
     assert_dom_equal(
-      "<script data-periodical=\"true\" data-url=\"http://www.example.com/\" data-observe=\"true\" type=\"application/json\" data-frequency=\"2\"></script>",
+      "<script data-periodical=\"true\" data-url=\"http://www.example.com/\" type=\"application/json\" data-frequency=\"2\"></script>",
       periodically_call_remote(:frequency => 2)
     )
   end
