@@ -57,14 +57,10 @@ module ActionController
 
     module ClassMethods
       def helpers_dir
-        ActiveSupport::Deprecation.warn "ActionController::Base.helpers_dir is deprecated. " <<
-          "Please use ActionController::Base.helpers_path (which returns an array)"
         self.helpers_path
       end
 
       def helpers_dir=(value)
-        ActiveSupport::Deprecation.warn "ActionController::Base.helpers_dir= is deprecated. " <<
-          "Please use ActionController::Base.helpers_path= (which is an array)"
         self.helpers_path = Array(value)
       end
 
@@ -91,42 +87,42 @@ module ActionController
         @helper_proxy ||= ActionView::Base.new.extend(_helpers)
       end
 
-    private
-      # Overwrite _modules_for_helpers to accept :all as argument, which loads
-      # all helpers in helpers_dir.
-      #
-      # ==== Parameters
-      # args<Array[String, Symbol, Module, all]>:: A list of helpers
-      #
-      # ==== Returns
-      # Array[Module]:: A normalized list of modules for the list of
-      #   helpers provided.
-      def _modules_for_helpers(args)
-        args += all_application_helpers if args.delete(:all)
-        super(args)
-      end
-
-      def default_helper_module!
-        module_name = name.sub(/Controller$/, '')
-        module_path = module_name.underscore
-        helper module_path
-      rescue MissingSourceFile => e
-        raise e unless e.is_missing? "helpers/#{module_path}_helper"
-      rescue NameError => e
-        raise e unless e.missing_name? "#{module_name}Helper"
-      end
-
-      # Extract helper names from files in app/helpers/**/*_helper.rb
-      def all_application_helpers
-        helpers = []
-        helpers_path.each do |path|
-          extract  = /^#{Regexp.quote(path)}\/?(.*)_helper.rb$/
-          helpers += Dir["#{path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+      private
+        # Overwrite _modules_for_helpers to accept :all as argument, which loads
+        # all helpers in helpers_dir.
+        #
+        # ==== Parameters
+        # args<Array[String, Symbol, Module, all]>:: A list of helpers
+        #
+        # ==== Returns
+        # Array[Module]:: A normalized list of modules for the list of
+        #   helpers provided.
+        def _modules_for_helpers(args)
+          args += all_application_helpers if args.delete(:all)
+          super(args)
         end
-        helpers.sort!
-        helpers.uniq!
-        helpers
-      end
+
+        def default_helper_module!
+          module_name = name.sub(/Controller$/, '')
+          module_path = module_name.underscore
+          helper module_path
+        rescue MissingSourceFile => e
+          raise e unless e.is_missing? "helpers/#{module_path}_helper"
+        rescue NameError => e
+          raise e unless e.missing_name? "#{module_name}Helper"
+        end
+
+        # Extract helper names from files in app/helpers/**/*_helper.rb
+        def all_application_helpers
+          helpers = []
+          helpers_path.each do |path|
+            extract  = /^#{Regexp.quote(path)}\/?(.*)_helper.rb$/
+            helpers += Dir["#{path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+          end
+          helpers.sort!
+          helpers.uniq!
+          helpers
+        end
     end
   end
 end
