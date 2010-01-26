@@ -15,26 +15,26 @@ module Rails
         end
       end
 
-      initializer :add_builtin_route do |app|
+      initializer :add_builtin_route do
         if Rails.env.development?
           Rails::Application::RoutesReloader.paths << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
         end
       end
 
-      initializer :build_middleware_stack do |app|
-        app.app
+      initializer :build_middleware_stack do
+        app
       end
 
       # Fires the user-supplied after_initialize block (config#after_initialize)
-      initializer :after_initialize do |app|
-        app.config.after_initialize_blocks.each do |block|
-          block.call(app)
+      initializer :after_initialize do
+        config.after_initialize_blocks.each do |block|
+          block.call(self)
         end
       end
 
       # Disable dependency loading during request cycle
-      initializer :disable_dependency_loading do |app|
-        if app.config.cache_classes && !app.config.dependency_loading
+      initializer :disable_dependency_loading do
+        if config.cache_classes && !config.dependency_loading
           ActiveSupport::Dependencies.unhook!
         end
       end

@@ -16,7 +16,7 @@ module Rails
           middleware.use('::ActionDispatch::Cookies')
           middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
           middleware.use('::ActionDispatch::Flash', :if => lambda { ActionController::Base.session_store })
-          middleware.use(lambda { Rails::Rack::Metal.new(Rails.application.config.metals) })
+          middleware.use(lambda { Rails::Application::Metal.new(Rails.application.config.metals) }, :if => lambda { Rails::Application::Metal.metals.any? })
           middleware.use('ActionDispatch::ParamsParser')
           middleware.use('::Rack::MethodOverride')
           middleware.use('::ActionDispatch::Head')

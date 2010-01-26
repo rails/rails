@@ -9,14 +9,7 @@ module Rails
       mattr_accessor :skip_warn
 
       def self.included(base) #:nodoc:
-        base.class_eval do
-          class_option :force_plural, :type => :boolean, :desc => "Forces the use of a plural ModelName"
-
-          no_tasks {
-            attr_reader :controller_name, :controller_class_name, :controller_file_name,
-                        :controller_class_path, :controller_file_path
-          }
-        end
+        base.class_option :force_plural, :type => :boolean, :desc => "Forces the use of a plural ModelName"
       end
 
       # Set controller variables on initialization.
@@ -29,29 +22,40 @@ module Rails
             say "Plural version of the model detected, using singularized version. Override with --force-plural."
             ResourceHelpers.skip_warn = true
           end
-
           name.replace name.singularize
-          assign_names!(self.name)
+          assign_names!(name)
         end
 
         @controller_name = name.pluralize
-
-        base_name, @controller_class_path, @controller_file_path, class_nesting, class_nesting_depth = extract_modules(@controller_name)
-        class_name_without_nesting, @controller_file_name, controller_plural_name = inflect_names(base_name)
-
-        @controller_class_name = if class_nesting.empty?
-          class_name_without_nesting
-        else
-          "#{class_nesting}::#{class_name_without_nesting}"
-        end
       end
 
       protected
 
+        attr_reader :controller_name
+
+        def controller_class_path
+          @class_path
+        end
+
+        def controller_file_name
+          @controller_file_name ||= file_name.pluralize
+        end
+
+        def controller_file_path
+          @controller_file_path ||= (controller_class_path + [controller_file_name]).join('/')
+        end
+
+        def controller_class_name
+          @controller_class_name ||= (controller_class_path + [controller_file_name]).map!{ |m| m.camelize }.join('::')
+        end
+
+        def controller_i18n_scope
+          @controller_i18n_scope ||= controller_file_path.gsub('/', '.')
+        end
+
         # Loads the ORM::Generators::ActiveModel class. This class is responsable
         # to tell scaffold entities how to generate an specific method for the
         # ORM. Check Rails::Generators::ActiveModel for more information.
-        #
         def orm_class
           @orm_class ||= begin
             # Raise an error if the class_option :orm was not defined.
@@ -68,7 +72,6 @@ module Rails
         end
 
         # Initialize ORM::Generators::ActiveModel to access instance methods.
-        #
         def orm_instance(name=file_name)
           @orm_instance ||= @orm_class.new(name)
         end

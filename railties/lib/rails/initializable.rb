@@ -64,10 +64,7 @@ module Rails
     end
 
     def initializers
-      @initializers ||= begin
-        initializers = self.class.initializers_chain
-        Collection.new(initializers.map { |i| i.bind(self) })
-      end
+      @initializers ||= self.class.initializers_for(self)
     end
 
     module ClassMethods
@@ -82,6 +79,10 @@ module Rails
           initializers = initializers + klass.initializers
         end
         initializers
+      end
+
+      def initializers_for(binding)
+        Collection.new(initializers_chain.map { |i| i.bind(binding) })
       end
 
       def initializer(name, opts = {}, &blk)

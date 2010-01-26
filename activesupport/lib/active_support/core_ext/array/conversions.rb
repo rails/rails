@@ -13,19 +13,6 @@ class Array
     default_two_words_connector = I18n.translate(:'support.array.two_words_connector', :locale => options[:locale])
     default_last_word_connector = I18n.translate(:'support.array.last_word_connector', :locale => options[:locale])
 
-    # Try to emulate to_sentences previous to 2.3
-    if options.has_key?(:connector) || options.has_key?(:skip_last_comma)
-      ::ActiveSupport::Deprecation.warn(":connector has been deprecated. Use :words_connector instead", caller) if options.has_key? :connector
-      ::ActiveSupport::Deprecation.warn(":skip_last_comma has been deprecated. Use :last_word_connector instead", caller) if options.has_key? :skip_last_comma
-
-      skip_last_comma = options.delete :skip_last_comma
-      if connector = options.delete(:connector)
-        options[:last_word_connector] ||= skip_last_comma ? connector : ", #{connector}"
-      else
-        options[:last_word_connector] ||= skip_last_comma ? default_two_words_connector : default_last_word_connector
-      end
-    end
-
     options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
     options.reverse_merge! :words_connector => default_words_connector, :two_words_connector => default_two_words_connector, :last_word_connector => default_last_word_connector
 

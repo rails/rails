@@ -157,10 +157,11 @@ module ActionDispatch
       end
 
       # Invokes Rack::Mount::Utils.normalize path and ensure that
-      # (:locale) becomes (/:locale) instead of /(:locale).
+      # (:locale) becomes (/:locale) instead of /(:locale). Except
+      # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
         path = Rack::Mount::Utils.normalize_path(path)
-        path.sub!(%r{/\(+/?:}, '(/:')
+        path.sub!(%r{/(\(+)/?:}, '\1/:') unless path =~ %r{^/\(+:.*\)$}
         path
       end
 

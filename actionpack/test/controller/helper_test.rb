@@ -31,7 +31,7 @@ module LocalAbcHelper
   def c() end
 end
 
-class HelperTest < Test::Unit::TestCase
+class HelperTest < ActiveSupport::TestCase
   class TestController < ActionController::Base
     attr_accessor :delegate_attr
     def delegate_method() end
@@ -135,6 +135,17 @@ class HelperTest < Test::Unit::TestCase
     assert methods.include?('foobar')
   end
 
+  def test_deprecation
+    assert_deprecated do
+      ActionController::Base.helpers_dir = "some/foo/bar"
+    end
+    assert_deprecated do
+      assert_equal ["some/foo/bar"], ActionController::Base.helpers_dir
+    end
+  ensure
+    ActionController::Base.helpers_path = [File.dirname(__FILE__) + '/../fixtures/helpers']
+  end
+
   private
     def expected_helper_methods
       TestHelper.instance_methods.map {|m| m.to_s }
@@ -154,7 +165,7 @@ class HelperTest < Test::Unit::TestCase
 end
 
 
-class IsolatedHelpersTest < Test::Unit::TestCase
+class IsolatedHelpersTest < ActiveSupport::TestCase
   class A < ActionController::Base
     def index
       render :inline => '<%= shout %>'

@@ -24,21 +24,21 @@ class AMSubscriberTest < ActionMailer::TestCase
   end
 
   def test_deliver_is_notified
-    TestMailer.deliver_basic
+    TestMailer.basic.deliver
     wait
-    assert_equal 1, @logger.logged(:info).size
-    assert_match /Sent mail to somewhere@example.com/, @logger.logged(:info).first
-    assert_equal 1, @logger.logged(:debug).size
-    assert_match /Hello world/, @logger.logged(:debug).first
+    assert_equal(1, @logger.logged(:info).size)
+    assert_match(/Sent mail to somewhere@example.com/, @logger.logged(:info).first)
+    assert_equal(1, @logger.logged(:debug).size)
+    assert_match(/Hello world/, @logger.logged(:debug).first)
   end
 
   def test_receive_is_notified
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email")
     TestMailer.receive(fixture)
     wait
-    assert_equal 1, @logger.logged(:info).size
-    assert_match /Received mail/, @logger.logged(:info).first
-    assert_equal 1, @logger.logged(:debug).size
-    assert_match /Jamis/, @logger.logged(:debug).first
+    assert_equal(1, @logger.logged(:info).size)
+    assert_match(/Received mail/, @logger.logged(:info).first)
+    assert_equal(1, @logger.logged(:debug).size)
+    assert_match(/Jamis/, @logger.logged(:debug).first)
   end
 end

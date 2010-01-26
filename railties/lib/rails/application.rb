@@ -6,8 +6,10 @@ require 'rails/engine'
 module Rails
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
+    autoload :Configurable,   'rails/application/configurable'
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
+    autoload :Metal,          'rails/application/metal'
     autoload :Railties,       'rails/application/railties'
     autoload :RoutesReloader, 'rails/application/routes_reloader'
 
@@ -16,10 +18,10 @@ module Rails
       alias   :configure :class_eval
 
       def instance
-        if instance_of?(Rails::Application)
-          Rails.application.instance
+        if self == Rails::Application
+          Rails.application
         else
-          @instance ||= new
+          @@instance ||= new
         end
       end
 
@@ -39,10 +41,6 @@ module Rails
     def require_environment!
       environment = config.paths.config.environment.to_a.first
       require environment if environment
-    end
-
-    def config
-      @config ||= Application::Configuration.new(self.class.find_root_with_flag("config.ru", Dir.pwd))
     end
 
     def routes
@@ -90,10 +88,10 @@ module Rails
     end
 
     def initializers
-      initializers = Bootstrap.initializers
-      initializers += super
+      initializers = Bootstrap.initializers_for(self)
       railties.all { |r| initializers += r.initializers }
-      initializers += Finisher.initializers
+      initializers += super
+      initializers += Finisher.initializers_for(self)
       initializers
     end
 

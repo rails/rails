@@ -99,6 +99,7 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert_match /Rails:/, output
     assert_match /^  model$/, output
     assert_match /^  scaffold_controller$/, output
+    assert_no_match /^  app$/, output
   end
 
   def test_rails_generators_with_others_information

@@ -47,7 +47,7 @@ module Rails
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.
-    initializer :set_load_path do
+    initializer :set_load_path, :before => :bootstrap_load_path do
       config.load_paths.reverse_each do |path|
         $LOAD_PATH.unshift(path) if File.directory?(path)
       end
@@ -56,13 +56,13 @@ module Rails
 
     # Set the paths from which Rails will automatically load source files,
     # and the load_once paths.
-    initializer :set_autoload_paths do |app|
-      ActiveSupport::Dependencies.load_paths.concat(config.load_paths)
+    initializer :set_autoload_paths, :before => :bootstrap_load_path do |app|
+      ActiveSupport::Dependencies.load_paths.unshift(*config.load_paths)
 
       if reloadable?(app)
-        ActiveSupport::Dependencies.load_once_paths.concat(config.load_once_paths)
+        ActiveSupport::Dependencies.load_once_paths.unshift(*config.load_once_paths)
       else
-        ActiveSupport::Dependencies.load_once_paths.concat(config.load_paths)
+        ActiveSupport::Dependencies.load_once_paths.unshift(*config.load_paths)
       end
 
       # Freeze so future modifications will fail rather than do nothing mysteriously
@@ -86,18 +86,20 @@ module Rails
       end
     end
 
+    # I18n load paths are a special case since the ones added
+    # later have higher priority.
     initializer :add_locales do
-      config.i18n.load_path.unshift(*paths.config.locales.to_a)
+      config.i18n.engines_load_path.concat(paths.config.locales.to_a)
     end
 
     initializer :add_view_paths do
       views = paths.app.views.to_a
-      ActionController::Base.view_paths.concat(views) if defined?(ActionController)
-      ActionMailer::Base.view_paths.concat(views)     if defined?(ActionMailer)
+      ActionController::Base.view_paths.unshift(*views) if defined?(ActionController)
+      ActionMailer::Base.view_paths.unshift(*views)     if defined?(ActionMailer)
     end
 
     initializer :add_metals do
-      Rails::Rack::Metal.paths.concat(paths.app.metals.to_a)
+      Rails::Application::Metal.paths.unshift(*paths.app.metals.to_a)
     end
 
     initializer :load_application_initializers do
