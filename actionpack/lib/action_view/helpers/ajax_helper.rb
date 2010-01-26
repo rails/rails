@@ -304,7 +304,7 @@ module ActionView
         end
 
         attributes.merge!(html_options)
-        href = options[:href].nil? ? "#" : options[:href]
+        href = html_options[:href].nil? ? "#" : html_options[:href]
         attributes.merge!(:href => href)
 
         content_tag(:a, name, attributes)

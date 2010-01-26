@@ -103,7 +103,7 @@ class AjaxHelperTest < AjaxHelperBaseTest
 
   test "link_to_remote using explicit :href" do
     expected = %(<a href=\"http://www.example.com/testhref\" data-remote=\"true\" data-url=\"http://www.example.com/whatnot\" data-condition=\"$('foo').val() == true\">Remote outauthor</a>)
-    assert_dom_equal expected, link_to_remote("Remote outauthor", :href => 'http://www.example.com/testhref', :url => { :action => "whatnot" }, :condition => '$(\'foo\').val() == true')
+    assert_dom_equal expected, link_to_remote("Remote outauthor", {:url => { :action => "whatnot" }, :condition => '$(\'foo\').val() == true'}, :href => 'http://www.example.com/testhref')
   end
 
   test "link_to_remote using :submit" do
