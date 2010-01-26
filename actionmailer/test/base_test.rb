@@ -81,9 +81,9 @@ class BaseTest < ActiveSupport::TestCase
   # Basic mail usage without block
   test "mail() should set the headers of the mail message" do
     email = BaseMailer.welcome.deliver
-    assert_equal(email.to,      ['mikel@test.lindsaar.net'])
-    assert_equal(email.from,    ['jose@test.plataformatec.com'])
-    assert_equal(email.subject, 'The first email on new API!')
+    assert_equal(['mikel@test.lindsaar.net'],     email.to)
+    assert_equal(['jose@test.plataformatec.com'], email.from)
+    assert_equal('The first email on new API!',   email.subject)
   end
 
   test "mail() should pull the defaults from the class if nothing is specified" do
@@ -110,13 +110,13 @@ class BaseTest < ActiveSupport::TestCase
                                :mime_version => '2.0',
                                :reply_to => 'reply-to@test.lindsaar.net',
                                :date => @time).deliver
-    assert_equal(email.bcc,           ['bcc@test.lindsaar.net'])
-    assert_equal(email.cc,            ['cc@test.lindsaar.net'])
-    assert_equal(email.content_type,  'multipart/mixed')
-    assert_equal(email.charset,       'iso-8559-1')
-    assert_equal(email.mime_version,  '2.0')
-    assert_equal(email.reply_to,      ['reply-to@test.lindsaar.net'])
-    assert_equal(email.date,          @time)
+    assert_equal(['bcc@test.lindsaar.net'],      email.bcc)
+    assert_equal(['cc@test.lindsaar.net'],       email.cc)
+    assert_equal('multipart/mixed',              email.content_type)
+    assert_equal('iso-8559-1',                   email.charset)
+    assert_equal('2.0',                          email.mime_version)
+    assert_equal(['reply-to@test.lindsaar.net'], email.reply_to)
+    assert_equal(@time,                          email.date)
   end
 
   test "mail() renders the template using the method being processed" do
