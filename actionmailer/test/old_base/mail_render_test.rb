@@ -68,7 +68,9 @@ class RenderMailer < ActionMailer::Base
     end
 
     def build_body_part(content_type, assigns, options = {})
-      render "#{template}.#{content_type}", :body => assigns
+      ActiveSupport::Deprecation.silence do
+        render "#{template}.#{content_type}", :body => assigns
+      end
     end
 end
 
