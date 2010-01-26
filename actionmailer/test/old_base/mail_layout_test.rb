@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
 class AutoLayoutMailer < ActionMailer::Base
-  
+
   def hello
     recipients 'test@localhost'
     subject    "You have a mail"
@@ -51,6 +51,16 @@ class ExplicitLayoutMailer < ActionMailer::Base
   end
 end
 
+class NestedLayoutMailer < ActionMailer::Base
+  layout 'nested/layouts/spam'
+
+  def signup
+    recipients 'test@localhost'
+    subject    "You have a mail"
+    from       "tester@example.com"
+  end
+end
+
 class LayoutMailerTest < Test::Unit::TestCase
   def setup
     set_delivery_method :test
@@ -77,7 +87,7 @@ class LayoutMailerTest < Test::Unit::TestCase
     # CHANGED: content_type returns an object
     # assert_equal 'text/plain', mail.parts.first.content_type
     assert_equal 'text/plain', mail.parts.first.mime_type
-    
+
     # CHANGED: body returns an object
     # assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body
     assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body.to_s
@@ -144,5 +154,10 @@ class LayoutMailerTest < Test::Unit::TestCase
   def test_explicit_layout_exceptions
     mail = ExplicitLayoutMailer.logout
     assert_equal "You logged out", mail.body.to_s.strip
+  end
+
+  def test_nested_class_layout
+    mail = NestedLayoutMailer.signup
+    assert_equal "Nested Spammer layout We do not spam", mail.body.to_s.strip
   end
 end
