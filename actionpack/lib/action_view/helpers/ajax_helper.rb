@@ -502,7 +502,7 @@ module ActionView
       def script_decorator(options)
         attributes = %w(type="application/json")
         attributes += options.map{|k, v| k + '="' + v.to_s + '"'}
-        "<script " + attributes.join(" ") + "></script>"
+        "<script " + attributes.join(" ") + "></script>".html_safe!
       end
 
       private
