@@ -2,11 +2,6 @@ require 'active_support/core_ext/object/extending'
 require 'active_support/core_ext/module/introspection'
 
 class Class #:nodoc:
-
-  def reachable?
-    eval("defined?(::#{self}) && ::#{self}.equal?(self)")
-  end
-
   # Removes the classes in +klasses+ from their parent module.
   #
   # Ordinary classes belong to some module via a constant. This method computes
