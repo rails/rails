@@ -270,6 +270,9 @@ module AbstractController
               end
             end
           ruby_eval
+        when Proc
+          define_method :_layout_from_proc, &@_layout
+          self.class_eval %{def _layout(details) _layout_from_proc(self) end}
         when false
           self.class_eval %{def _layout(details) end}
         when true

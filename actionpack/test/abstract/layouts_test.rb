@@ -67,7 +67,15 @@ module AbstractControllerTests
     
     class WithChildOfImplied < WithStringImpliedChild
     end
-    
+
+    class WithProc < Base
+      layout proc { |c| "omg" }
+
+      def index
+        render :_template => ActionView::Template::Text.new("Hello proc!")
+      end
+    end
+
     class WithSymbol < Base
       layout :hello
       
@@ -197,6 +205,12 @@ module AbstractControllerTests
         controller = WithNilLayout.new
         controller.process(:index)
         assert_equal "Hello nil!", controller.response_body
+      end
+
+      test "when layout is specified as a proc, call it and use the layout returned" do
+        controller = WithProc.new
+        controller.process(:index)
+        assert_equal "OMGHI2U Hello proc!", controller.response_body
       end
       
       test "when layout is specified as a symbol, call the requested method and use the layout returned" do
