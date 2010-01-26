@@ -347,7 +347,7 @@ class BaseTest < ActiveSupport::TestCase
   test "explicit multipart with options" do
     email = BaseMailer.custom_block(true).deliver
     assert_equal(2, email.parts.size)
-    assert_equal("multipart/alternate", email.mime_type)
+    assert_equal("multipart/alternative", email.mime_type)
     assert_equal("text/plain", email.parts[0].mime_type)
     assert_equal("base64", email.parts[0].content_transfer_encoding)
     assert_equal("text/html", email.parts[1].mime_type)
