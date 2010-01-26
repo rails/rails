@@ -47,21 +47,6 @@ class ObjectTests < Test::Unit::TestCase
     assert(([Bar, Baz] - foo.extended_by).empty?, "Expected Bar, Baz in #{foo.extended_by.inspect}")
   end
 
-  def test_extend_with_included_modules_from
-    foo, object = Foo.new, Object.new
-    assert !object.respond_to?(:bar)
-    assert !object.respond_to?(:baz)
-
-    object.extend_with_included_modules_from(foo)
-    assert object.respond_to?(:bar)
-    assert !object.respond_to?(:baz)
-
-    foo.extend(Baz)
-    object.extend_with_included_modules_from(foo)
-    assert object.respond_to?(:bar)
-    assert object.respond_to?(:baz)
-  end
-
   class DuckTime
     def acts_like_time?
       true
