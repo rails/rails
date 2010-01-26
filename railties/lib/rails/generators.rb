@@ -200,6 +200,7 @@ module Rails
       # Print Rails defaults first.
       rails = groups.delete("rails")
       rails.map! { |n| n.sub(/^rails:/, '') }
+      rails.delete("app")
       print_list("rails", rails)
 
       groups.sort.each { |b, n| print_list(b, n) }
