@@ -27,9 +27,8 @@ module ActionMailer #:nodoc:
   # 
   #    def welcome(recipient)
   #      @account = recipient
-  #      mail { :to => recipient.email_address_with_name,
-  #             :bcc => ["bcc@example.com", "Order Watcher <watcher@example.com>"],
-  #             :subject => "New account information" }
+  #      mail(:to => recipient.email_address_with_name,
+  #           :bcc => ["bcc@example.com", "Order Watcher <watcher@example.com>"])
   #      end
   #    end
   # 
@@ -37,13 +36,15 @@ module ActionMailer #:nodoc:
   # 
   # * <tt>attachments[]=</tt> - Allows you to add attachments to your email in an intuitive
   #   manner; <tt>attachments['filename.png'] = File.read('path/to/filename.png')</tt>
+  #
   # * <tt>headers[]=</tt> - Allows you to specify non standard headers in your email such
   #   as <tt>headers['X-No-Spam'] = 'True'</tt>
+  #
   # * <tt>mail</tt> - Allows you to specify your email to send.
   # 
   # The hash passed to the mail method allows you to specify the most used headers in an email
   # message, such as <tt>Subject</tt>, <tt>To</tt>, <tt>From</tt>, <tt>Cc</tt>, <tt>Bcc</tt>,
-  # <tt>Reply-To</tt> and <tt>Date</tt>.  See the <tt>ActionMailer#mail</tt> method for more details.
+  # <tt>Reply-To</tt> and <tt>Date</tt>. See the <tt>ActionMailer#mail</tt> method for more details.
   # 
   # If you need other headers not listed above, use the <tt>headers['name'] = value</tt> method.
   #
@@ -56,6 +57,20 @@ module ActionMailer #:nodoc:
   #   mail(:to => user.emai) do |format|
   #     format.text
   #     format.html
+  #   end
+  #
+  # The block syntax is useful if also need to specify information specific to a part:
+  #
+  #   mail(:to => user.emai) do |format|
+  #     format.text(:content_transfer_encoding => "base64")
+  #     format.html
+  #   end
+  #
+  # Or even to renderize a special view:
+  #
+  #   mail(:to => user.emai) do |format|
+  #     format.text
+  #     format.html { render "some_other_template" }
   #   end
   #
   # = Mailer views
@@ -79,9 +94,9 @@ module ActionMailer #:nodoc:
   #   You got a new note!
   #   <%= truncate(@note.body, 25) %>
   #
-  # If you need to access the subject, from or the recipients in the view, you can do that through mailer object:
+  # If you need to access the subject, from or the recipients in the view, you can do that through message object:
   #
-  #   You got a new note from <%= mailer.from %>!
+  #   You got a new note from <%= message.from %>!
   #   <%= truncate(@note.body, 25) %>
   #
   #
@@ -137,7 +152,7 @@ module ActionMailer #:nodoc:
   # * signup_notification.text.plain.erb
   # * signup_notification.text.html.erb
   # * signup_notification.text.xml.builder
-  # * signup_notification.text.x-yaml.erb
+  # * signup_notification.text.yaml.erb
   #
   # Each would be rendered and added as a separate part to the message, with the corresponding content
   # type. The content type for the entire message is automatically set to <tt>multipart/alternative</tt>,
@@ -174,8 +189,6 @@ module ActionMailer #:nodoc:
   # * <tt>delivers_from</tt> - Pass this the address that then defaults as the +from+ address on all the
   #   emails sent.  Can be overridden on a per mail basis by passing <tt>:from => 'another@address'</tt> in
   #   the +mail+ method.
-  # 
-  # * <tt>template_root</tt> - Determines the base from which template references will be made.
   #
   # * <tt>logger</tt> - the logger is used for generating information on the mailing run if available.
   #   Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
@@ -300,9 +313,7 @@ module ActionMailer #:nodoc:
       def deliver_mail(mail) #:nodoc:
         ActiveSupport::Notifications.instrument("action_mailer.deliver") do |payload|
           self.set_payload_for_mail(payload, mail)
-
           yield # Let Mail do the delivery actions
-
         end
       end
 
@@ -399,7 +410,7 @@ module ActionMailer #:nodoc:
     # The main method that creates the message and renders the email templates. There are
     # two ways to call this method, with a block, or without a block.
     # 
-    # Both methods accept a headers hash.  This hash allows you to specify the most used headers
+    # Both methods accept a headers hash. This hash allows you to specify the most used headers
     # in an email message, these are:
     # 
     # * <tt>:subject</tt> - The subject of the message, if this is omitted, ActionMailer will
@@ -419,7 +430,7 @@ module ActionMailer #:nodoc:
     # 
     # If you need other headers not listed above, use the <tt>headers['name'] = value</tt> method.
     #
-    # When a <tt>:return_path</tt> is specified, that value will be used as the 'envelope from'
+    # When a <tt>:return_path</tt> is specified as header, that value will be used as the 'envelope from'
     # address for the Mail message.  Setting this is useful when you want delivery notifications
     # sent to a different address than the one in <tt>:from</tt>.  Mail will actually use the 
     # <tt>:return_path</tt> in preference to the <tt>:sender</tt> in preference to the <tt>:from</tt>
@@ -447,6 +458,14 @@ module ActionMailer #:nodoc:
     # 
     # Which will render a <tt>multipart/alternate</tt> email with <tt>text/plain</tt> and
     # <tt>text/html</tt> parts.
+    #
+    # The block syntax also allows you to customize the part headers if desired:
+    #
+    #   mail(:to => 'mikel@test.lindsaar.net') do |format|
+    #     format.text(:content_transfer_encoding => "base64")
+    #     format.html
+    #   end
+    #
     def mail(headers={}, &block)
       # Guard flag to prevent both the old and the new API from firing
       # Should be removed when old API is removed
@@ -541,7 +560,8 @@ module ActionMailer #:nodoc:
 
     def create_parts_from_responses(m, responses, charset) #:nodoc:
       if responses.size == 1 && !m.has_attachments?
-        m.body = responses[0][:body]
+        headers = responses[0]
+        headers.each { |k,v| m[k] = v }
         return responses[0][:content_type]
       elsif responses.size > 1 && m.has_attachments? 
         container = Mail::Part.new

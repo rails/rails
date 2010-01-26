@@ -56,6 +56,13 @@ class BaseTest < ActiveSupport::TestCase
         format.any(:text, :html){ render :text => "Format with any!" }
       end
     end
+
+    def custom_block(include_html=false)
+      mail(DEFAULT_HEADERS) do |format|
+        format.text(:content_transfer_encoding => "base64"){ render "welcome" }
+        format.html{ render "welcome" } if include_html
+      end
+    end
   end
 
   test "method call to mail does not raise error" do
@@ -335,6 +342,23 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Format with any!", email.parts[0].body.encoded)
     assert_equal("text/html", email.parts[1].mime_type)
     assert_equal("Format with any!", email.parts[1].body.encoded)
+  end
+
+  test "explicit multipart with options" do
+    email = BaseMailer.custom_block(true).deliver
+    assert_equal(2, email.parts.size)
+    assert_equal("multipart/alternate", email.mime_type)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("base64", email.parts[0].content_transfer_encoding)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("7bit", email.parts[1].content_transfer_encoding)
+  end
+
+  test "explicit multipart with one part is rendered as body" do
+    email = BaseMailer.custom_block.deliver
+    assert_equal(0, email.parts.size)
+    assert_equal("text/plain", email.mime_type)
+    assert_equal("base64", email.content_transfer_encoding)
   end
 
   # Class level API with method missing

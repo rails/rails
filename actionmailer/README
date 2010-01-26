@@ -22,7 +22,6 @@ the email.
 This can be as simple as:
 
   class Notifier < ActionMailer::Base
-  
     delivers_from 'system@loudthinking.com'
   
     def welcome(recipient)
@@ -30,7 +29,6 @@ This can be as simple as:
       mail(:to => recipient,
            :subject => "[Signed up] Welcome #{recipient}")
     end
-
   end
 
 The body of the email is created by using an Action View template (regular
