@@ -1,6 +1,5 @@
 require 'set'
 require 'active_support/json'
-require 'active_support/core_ext/object/extending'
 require 'active_support/core_ext/object/returning'
 
 module ActionView
