@@ -50,7 +50,7 @@ module ActionMailer #:nodoc:
   #
   # The mail method, if not passed a block, will inspect your views and send all the views with
   # the same name as the method, so the above action would send the +welcome.plain.erb+ view file
-  # as well as the +welcome.html.erb+ view file in a +multipart/alternate+ email.
+  # as well as the +welcome.html.erb+ view file in a +multipart/alternative+ email.
   # 
   # If you want to explicitly render only certain templates, pass a block:
   # 
@@ -177,7 +177,7 @@ module ActionMailer #:nodoc:
   # 
   # Which will (if it had both a <tt>.text.erb</tt> and <tt>.html.erb</tt> tempalte in the view
   # directory), send a complete <tt>multipart/mixed</tt> email with two parts, the first part being
-  # a <tt>multipart/alternate</tt> with the text and HTML email parts inside, and the second being
+  # a <tt>multipart/alternative</tt> with the text and HTML email parts inside, and the second being
   # a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book with the filename
   # +free_book.pdf+.
   #
@@ -456,7 +456,7 @@ module ActionMailer #:nodoc:
     #     format.html { render :text => "<h1>Hello Mikel!</h1>" }
     #   end
     # 
-    # Which will render a <tt>multipart/alternate</tt> email with <tt>text/plain</tt> and
+    # Which will render a <tt>multipart/alternative</tt> email with <tt>text/plain</tt> and
     # <tt>text/html</tt> parts.
     #
     # The block syntax also allows you to customize the part headers if desired:
@@ -484,10 +484,11 @@ module ActionMailer #:nodoc:
 
       # Render the templates and blocks
       responses, sort_order = collect_responses_and_sort_order(headers, &block)
-      content_type ||= create_parts_from_responses(m, responses, charset)
+      
+      create_parts_from_responses(m, responses, charset)
 
       # Tidy up content type, charset, mime version and sort order
-      m.content_type = content_type
+      m.content_type = set_content_type(m, content_type)
       m.charset      = charset
       m.mime_version = mime_version
       sort_order     = headers[:parts_order] || sort_order || self.class.default_implicit_parts_order.dup
@@ -503,6 +504,20 @@ module ActionMailer #:nodoc:
     end
 
   protected
+
+    def set_content_type(m, user_content_type)
+      params = m.content_type_parameters || {}
+      case
+      when user_content_type.present?
+        user_content_type
+      when m.has_attachments?
+        ["multipart", "mixed", params]
+      when m.multipart?
+        ["multipart", "alternative", params]
+      else
+        self.class.default_content_type.dup
+      end
+    end
 
     def default_subject #:nodoc:
       mailer_scope = self.class.mailer_name.gsub('/', '.')
@@ -563,16 +578,14 @@ module ActionMailer #:nodoc:
         headers = responses[0]
         headers.each { |k,v| m[k] = v }
         return responses[0][:content_type]
-      elsif responses.size > 1 && m.has_attachments? 
+      elsif responses.size > 1 && m.has_attachments?
         container = Mail::Part.new
-        container.content_type = "multipart/alternate"
+        container.content_type = "multipart/alternative"
         responses.each { |r| insert_part(container, r, charset) }
         m.add_part(container)
       else
         responses.each { |r| insert_part(m, r, charset) }
       end
-
-      m.has_attachments? ? "multipart/mixed" : "multipart/alternate"
     end
 
     def insert_part(container, response, charset) #:nodoc:
