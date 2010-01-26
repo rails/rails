@@ -31,10 +31,12 @@ module ActionMailer
   extend ::ActiveSupport::Autoload
 
   autoload :AdvAttrAccessor
+  autoload :Collector
   autoload :Base
-  autoload :DeliveryMethod
-  autoload :DeprecatedBody
+  autoload :DeliveryMethods
+  autoload :DeprecatedApi
   autoload :MailHelper
+  autoload :OldApi
   autoload :Quoting
   autoload :TestCase
   autoload :TestHelper

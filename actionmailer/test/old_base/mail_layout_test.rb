@@ -1,14 +1,15 @@
 require 'abstract_unit'
 
 class AutoLayoutMailer < ActionMailer::Base
-  def hello(recipient)
-    recipients recipient
+  
+  def hello
+    recipients 'test@localhost'
     subject    "You have a mail"
     from       "tester@example.com"
   end
 
-  def spam(recipient)
-    recipients recipient
+  def spam
+    recipients 'test@localhost'
     subject    "You have a mail"
     from       "tester@example.com"
 
@@ -16,8 +17,8 @@ class AutoLayoutMailer < ActionMailer::Base
     render(:inline => "Hello, <%= @world %>", :layout => 'spam')
   end
 
-  def nolayout(recipient)
-    recipients recipient
+  def nolayout
+    recipients 'test@localhost'
     subject    "You have a mail"
     from       "tester@example.com"
 
@@ -25,8 +26,8 @@ class AutoLayoutMailer < ActionMailer::Base
     render(:inline => "Hello, <%= @world %>", :layout => false)
   end
 
-  def multipart(recipient, type = nil)
-    recipients recipient
+  def multipart(type = nil)
+    recipients 'test@localhost'
     subject    "You have a mail"
     from       "tester@example.com"
 
@@ -37,14 +38,14 @@ end
 class ExplicitLayoutMailer < ActionMailer::Base
   layout 'spam', :except => [:logout]
 
-  def signup(recipient)
-    recipients recipient
+  def signup
+    recipients 'test@localhost'
     subject    "You have a mail"
     from       "tester@example.com"
   end
 
-  def logout(recipient)
-    recipients recipient
+  def logout
+    recipients 'test@localhost'
     subject    "You have a mail"
     from       "tester@example.com"
   end
@@ -54,9 +55,7 @@ class LayoutMailerTest < Test::Unit::TestCase
   def setup
     set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries = []
-
-    @recipient = 'test@localhost'
+    ActionMailer::Base.deliveries.clear
   end
 
   def teardown
@@ -64,12 +63,12 @@ class LayoutMailerTest < Test::Unit::TestCase
   end
 
   def test_should_pickup_default_layout
-    mail = AutoLayoutMailer.create_hello(@recipient)
+    mail = AutoLayoutMailer.hello
     assert_equal "Hello from layout Inside", mail.body.to_s.strip
   end
 
   def test_should_pickup_multipart_layout
-    mail = AutoLayoutMailer.create_multipart(@recipient)
+    mail = AutoLayoutMailer.multipart
     # CHANGED: content_type returns an object
     # assert_equal "multipart/alternative", mail.content_type
     assert_equal "multipart/alternative", mail.mime_type
@@ -93,7 +92,7 @@ class LayoutMailerTest < Test::Unit::TestCase
   end
 
   def test_should_pickup_multipartmixed_layout
-    mail = AutoLayoutMailer.create_multipart(@recipient, "multipart/mixed")
+    mail = AutoLayoutMailer.multipart("multipart/mixed")
     # CHANGED: content_type returns an object
     # assert_equal "multipart/mixed", mail.content_type
     assert_equal "multipart/mixed", mail.mime_type
@@ -115,7 +114,7 @@ class LayoutMailerTest < Test::Unit::TestCase
   end
 
   def test_should_fix_multipart_layout
-    mail = AutoLayoutMailer.create_multipart(@recipient, "text/plain")
+    mail = AutoLayoutMailer.multipart("text/plain")
     assert_equal "multipart/alternative", mail.mime_type
     assert_equal 2, mail.parts.size
 
@@ -128,22 +127,22 @@ class LayoutMailerTest < Test::Unit::TestCase
 
 
   def test_should_pickup_layout_given_to_render
-    mail = AutoLayoutMailer.create_spam(@recipient)
+    mail = AutoLayoutMailer.spam
     assert_equal "Spammer layout Hello, Earth", mail.body.to_s.strip
   end
 
   def test_should_respect_layout_false
-    mail = AutoLayoutMailer.create_nolayout(@recipient)
+    mail = AutoLayoutMailer.nolayout
     assert_equal "Hello, Earth", mail.body.to_s.strip
   end
 
   def test_explicit_class_layout
-    mail = ExplicitLayoutMailer.create_signup(@recipient)
+    mail = ExplicitLayoutMailer.signup
     assert_equal "Spammer layout We do not spam", mail.body.to_s.strip
   end
 
   def test_explicit_layout_exceptions
-    mail = ExplicitLayoutMailer.create_logout(@recipient)
+    mail = ExplicitLayoutMailer.logout
     assert_equal "You logged out", mail.body.to_s.strip
   end
 end

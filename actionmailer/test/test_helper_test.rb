@@ -12,7 +12,7 @@ end
 
 class TestHelperMailerTest < ActionMailer::TestCase
   def test_setup_sets_right_action_mailer_options
-    assert_instance_of ActionMailer::DeliveryMethod::Test, ActionMailer::Base.delivery_method
+    assert_equal :test, ActionMailer::Base.delivery_method
     assert ActionMailer::Base.perform_deliveries
     assert_equal [], ActionMailer::Base.deliveries
   end
@@ -44,7 +44,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_assert_emails
     assert_nothing_raised do
       assert_emails 1 do
-        TestHelperMailer.deliver_test
+        TestHelperMailer.test.deliver
       end
     end
   end
@@ -52,27 +52,27 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_repeated_assert_emails_calls
     assert_nothing_raised do
       assert_emails 1 do
-        TestHelperMailer.deliver_test
+        TestHelperMailer.test.deliver
       end
     end
     
     assert_nothing_raised do
       assert_emails 2 do
-        TestHelperMailer.deliver_test
-        TestHelperMailer.deliver_test
+        TestHelperMailer.test.deliver
+        TestHelperMailer.test.deliver
       end
     end
   end
   
   def test_assert_emails_with_no_block
     assert_nothing_raised do
-      TestHelperMailer.deliver_test
+      TestHelperMailer.test.deliver
       assert_emails 1
     end
     
     assert_nothing_raised do
-      TestHelperMailer.deliver_test
-      TestHelperMailer.deliver_test
+      TestHelperMailer.test.deliver
+      TestHelperMailer.test.deliver
       assert_emails 3
     end
   end
@@ -80,7 +80,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_assert_no_emails
     assert_nothing_raised do
       assert_no_emails do
-        TestHelperMailer.create_test
+        TestHelperMailer.test
       end
     end
   end
@@ -88,7 +88,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_assert_emails_too_few_sent
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_emails 2 do
-        TestHelperMailer.deliver_test
+        TestHelperMailer.test.deliver
       end
     end
     
@@ -98,8 +98,8 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_assert_emails_too_many_sent
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_emails 1 do
-        TestHelperMailer.deliver_test
-        TestHelperMailer.deliver_test
+        TestHelperMailer.test.deliver
+        TestHelperMailer.test.deliver
       end
     end
     
@@ -109,7 +109,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_assert_no_emails_failure
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_no_emails do
-        TestHelperMailer.deliver_test
+        TestHelperMailer.test.deliver
       end
     end
     

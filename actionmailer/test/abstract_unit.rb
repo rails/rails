@@ -8,7 +8,6 @@ $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
 require 'rubygems'
 require 'test/unit'
-
 require 'action_mailer'
 
 # Show backtraces for deprecated behavior for quicker cleanup.
@@ -18,14 +17,10 @@ ActiveSupport::Deprecation.debug = true
 ActionView::Template.register_template_handler :haml, lambda { |template| "Look its HAML!".inspect }
 ActionView::Template.register_template_handler :bak, lambda { |template| "Lame backup".inspect }
 
-ActionView::Base::DEFAULT_CONFIG = { :assets_dir => '/nowhere' }
+FIXTURE_LOAD_PATH = File.expand_path('fixtures', File.dirname(__FILE__))
+ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
 
-$:.unshift "#{File.dirname(__FILE__)}/fixtures/helpers"
-
-FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
-ActionMailer::Base.template_root = FIXTURE_LOAD_PATH
-
-class MockSMTP
+class MockSMTP  
   def self.deliveries
     @@deliveries
   end
@@ -49,17 +44,9 @@ class Net::SMTP
   end
 end
 
-def uses_gem(gem_name, test_name, version = '> 0')
-  gem gem_name.to_s, version
-  require gem_name.to_s
-  yield
-rescue LoadError
-  $stderr.puts "Skipping #{test_name} tests. `gem install #{gem_name}` and try again."
-end
-
-def set_delivery_method(delivery_method)
+def set_delivery_method(method)
   @old_delivery_method = ActionMailer::Base.delivery_method
-  ActionMailer::Base.delivery_method = delivery_method
+  ActionMailer::Base.delivery_method = method
 end
 
 def restore_delivery_method

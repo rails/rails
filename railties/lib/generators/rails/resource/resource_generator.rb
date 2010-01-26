@@ -6,8 +6,8 @@ module Rails
     class ResourceGenerator < ModelGenerator #metagenerator
       include ResourceHelpers
 
-      hook_for :resource_controller, :required => true do |base, controller|
-        base.invoke controller, [ base.controller_name, base.options[:actions] ]
+      hook_for :resource_controller, :required => true do |controller|
+        invoke controller, [ controller_name, options[:actions] ]
       end
 
       class_option :actions, :type => :array, :banner => "ACTION ACTION", :default => [],
