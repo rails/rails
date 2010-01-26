@@ -304,8 +304,10 @@ module ActionView
         end
 
         attributes.merge!(html_options)
+        href = options[:href].nil? ? "#" : options[:href]
+        attributes.merge!(:href => href)
 
-        content_tag(:a, name, attributes.merge(:href => "#"))
+        content_tag(:a, name, attributes)
       end
   
       # Creates a button with an onclick event which calls a remote action
