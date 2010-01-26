@@ -405,7 +405,7 @@ module ActionView
         # periodically_call_remote does not need data-observe=true
         attributes.delete('data-observe')
 
-        script_decorator(attributes)
+        script_decorator(attributes).html_safe!
       end
 
       # Observes the field with the DOM ID specified by +field_id+ and calls a
@@ -484,7 +484,7 @@ module ActionView
         attributes = extract_observer_attributes!(options)
         attributes.merge!(html_options) if html_options
 
-        script_decorator(attributes)
+        script_decorator(attributes).html_safe!
       end
   
       # Observes the form with the DOM ID specified by +form_id+ and calls a
@@ -499,13 +499,13 @@ module ActionView
         options[:observed] = name
         attributes = extract_observer_attributes!(options)
 
-        script_decorator(attributes)
+        script_decorator(attributes).html_safe!
       end
 
       def script_decorator(options)
         attributes = %w(type="application/json")
         attributes += options.map{|k, v| k + '="' + v.to_s + '"'}
-        "<script " + attributes.join(" ") + "></script>".html_safe!
+        "<script " + attributes.join(" ") + "></script>"
       end
 
       private
