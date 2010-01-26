@@ -72,6 +72,25 @@ module RailtiesTest
       assert_equal "Hello bukkits\n", response[2].body
     end
 
+    def test_plugin_adds_its_views_to_view_paths_with_lower_proriority
+      @plugin.write "app/controllers/bukkit_controller.rb", <<-RUBY
+        class BukkitController < ActionController::Base
+          def index
+          end
+        end
+      RUBY
+
+      @plugin.write "app/views/bukkit/index.html.erb", "Hello bukkits"
+      app_file "app/views/bukkit/index.html.erb", "Hi bukkits"
+
+      boot_rails
+
+      require "action_controller"
+      require "rack/mock"
+      response = BukkitController.action(:index).call(Rack::MockRequest.env_for("/"))
+      assert_equal "Hi bukkits\n", response[2].body
+    end
+
     def test_plugin_adds_helpers_to_controller_views
       @plugin.write "app/controllers/bukkit_controller.rb", <<-RUBY
         class BukkitController < ActionController::Base
