@@ -62,6 +62,33 @@ class RenderMailer < ActionMailer::Base
     super
     mailer_name "test_mailer"
   end
+
+  def multipart_alternative
+    recipients 'test@localhost'
+    subject    'multipart/alternative'
+    from       'tester@example.com'
+
+    build_multipart_message(:foo => "bar")
+  end
+
+  private
+    def build_multipart_message(assigns = {})
+      content_type "multipart/alternative"
+
+      part "text/plain" do |p|
+        p.body = build_body_part('plain', assigns, :layout => false)
+      end
+
+      part "text/html" do |p|
+        p.body = build_body_part('html', assigns)
+        p.transfer_encoding = "base64"
+      end
+    end
+
+    def build_body_part(content_type, assigns, options = {})
+      render "#{template}.#{content_type}", :body => assigns
+      # render options.merge(:file => "#{template}.#{content_type}", :body => assigns)
+    end
 end
 
 class FirstMailer < ActionMailer::Base
@@ -128,6 +155,16 @@ class RenderHelperTest < Test::Unit::TestCase
   def test_no_instance_variable
     mail = RenderMailer.no_instance_variable.deliver
     assert_equal "Look, subject.nil? is true!", mail.body.to_s.strip
+  end
+
+  def test_legacy_multipart_alternative
+    mail = RenderMailer.multipart_alternative.deliver
+    assert_equal(2, email.parts.size)
+    assert_equal("multipart/alternative", email.mime_type)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("foo: bar", email.parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("<strong>foo</strong> bar", email.parts[1].body.encoded)
   end
 end
 
