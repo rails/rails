@@ -12,35 +12,21 @@ module RailtiesTest
 
     def test_plugin_puts_its_lib_directory_on_load_path
       boot_rails
-      require "bukkits"
-      assert_equal "Bukkits", Bukkits.name
-    end
-
-    def test_plugin_init_is_ran_before_application_ones
-      plugin "foo", "$foo = true" do |plugin|
-        plugin.write "lib/foo.rb", "module Foo; end"
-      end
-
-      app_file 'config/initializers/foo.rb', <<-RUBY
-        raise "no $foo" unless $foo
-        raise "no Foo" unless Foo
-      RUBY
-
-      boot_rails
-      assert $foo
+      require "another"
+      assert_equal "Another", Another.name
     end
 
     def test_plugin_paths_get_added_to_as_dependency_list
       boot_rails
-      assert_equal "Bukkits", Bukkits.name
+      assert_equal "Another", Another.name
     end
 
     def test_plugins_constants_are_not_reloaded_by_default
       boot_rails
-      assert_equal "Bukkits", Bukkits.name
+      assert_equal "Another", Another.name
       ActiveSupport::Dependencies.clear
-      @plugin.delete("lib/bukkits.rb")
-      assert_nothing_raised { Bukkits }
+      @plugin.delete("lib/another.rb")
+      assert_nothing_raised { Another }
     end
 
     def test_plugin_constants_get_reloaded_if_config_reload_plugins
@@ -50,10 +36,10 @@ module RailtiesTest
 
       boot_rails
 
-      assert_equal "Bukkits", Bukkits.name
+      assert_equal "Another", Another.name
       ActiveSupport::Dependencies.clear
-      @plugin.delete("lib/bukkits.rb")
-      assert_raises(NameError) { Bukkits }
+      @plugin.delete("lib/another.rb")
+      assert_raises(NameError) { Another }
     end
 
     def test_plugin_puts_its_models_directory_on_load_path
@@ -190,23 +176,6 @@ module RailtiesTest
       assert $executed
     end
 
-    def test_deprecated_tasks_are_also_loaded
-      $executed = false
-      @plugin.write "tasks/foo.rake", <<-RUBY
-        task :foo do
-          $executed = true
-        end
-      RUBY
-
-      boot_rails
-      require 'rake'
-      require 'rake/rdoctask'
-      require 'rake/testtask'
-      Rails.application.load_tasks
-      Rake::Task[:foo].invoke
-      assert $executed
-    end
-
     def test_i18n_files_have_lower_priority_than_application_ones
       add_to_config <<-RUBY
         config.i18n.load_path << "#{app_path}/app/locales/en.yml"
@@ -235,7 +204,7 @@ YAML
         #{RAILS_FRAMEWORK_ROOT}/activemodel/lib/active_model/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/activerecord/lib/active_record/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/actionpack/lib/action_view/locale/en.yml
-        #{app_path}/vendor/plugins/bukkits/config/locales/en.yml
+        #{@plugin.path}/config/locales/en.yml
         #{app_path}/config/locales/en.yml
         #{app_path}/app/locales/en.yml
       ).map { |path| File.expand_path(path) }, I18n.load_path.map { |path| File.expand_path(path) }

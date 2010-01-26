@@ -6,6 +6,7 @@ require 'rails/engine'
 module Rails
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
+    autoload :Configurable,   'rails/application/configurable'
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
     autoload :Railties,       'rails/application/railties'
@@ -39,10 +40,6 @@ module Rails
     def require_environment!
       environment = config.paths.config.environment.to_a.first
       require environment if environment
-    end
-
-    def config
-      @config ||= Application::Configuration.new(self.class.find_root_with_flag("config.ru", Dir.pwd))
     end
 
     def routes

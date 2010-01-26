@@ -17,7 +17,7 @@ module Rails
 
       def inherited(base)
         unless abstract_railtie?(base)
-          base.send(:include, self::Configurable) if add_configurable?(base)
+          base.send(:include, self::Configurable)
           subclasses << base
         end
       end
@@ -52,14 +52,6 @@ module Rails
 
       def abstract_railtie?(base)
         ABSTRACT_RAILTIES.include?(base.name)
-      end
-
-      # Just add configurable behavior if a Configurable module is defined
-      # and the class is a direct child from self. This is required to avoid
-      # application or plugins getting class configuration method from Railties
-      # and/or Engines.
-      def add_configurable?(base)
-        defined?(self::Configurable) && base.ancestors[1] == self
       end
     end
 
