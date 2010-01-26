@@ -1,4 +1,3 @@
-require 'active_support/core_ext/class/removal'
 require 'active_support/core_ext/object/blank'
 
 class Object
