@@ -56,6 +56,11 @@ module ActionView
       # See FormHelper#form_for for additional semantics.
       def remote_form_for(record_or_name_or_array, *args, &proc)
         options = args.extract_options!
+
+        if confirm = options.delete(:confirm)
+          add_confirm_to_attributes!(options, confirm)
+        end
+
         object_name = extract_object_name_for_form!(args, options, record_or_name_or_array)
 
         concat(form_remote_tag(options))
