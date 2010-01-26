@@ -1,48 +1,78 @@
 jQuery(function ($) {
-    $('form[data-remote="true"]').live('submit', function (e) {
-        var form        = $(this),
+
+    function handleRemote (e) {
+        var el          = $(this),
             data        = [],
-            condition   = form.attr('data-condition') ? eval(form.attr('data-condition')) : true;
+            condition   = el.attr('data-condition') ? eval(el.attr('data-condition')) : true,
+            method      = el.attr('method') || el.attr('data-method') || 'POST',
+            url         = el.attr('action') || el.attr('data-url') || '#',
+            async       = el.attr('data-remote-type') === 'synchronous' ? false : true,
+            update      = el.attr('data-update-success'),
+            position    = el.attr('data-update-position');
 
+        console.log(e);
 
-        if (form.attr('data-submit')) {
-            data = $('#' + form.attr('data-submit')).serializeArray();
-        } else if (form.attr('data-with')) {
-            data = form.attr('data-with');
-        } else {
-            data = form.serializeArray();
+        if (el.attr('data-submit')) {
+            data = $('#' + el.attr('data-submit')).serializeArray();
+        } else if (el.attr('data-with')) {
+            data = el.attr('data-with');
+        } else if(e.target.tagName.toUpperCase() == 'FORM') {
+            data = el.serializeArray();
         }
 
         if(condition) {
-            form.trigger('before');
+            el.trigger('before');
 
             $.ajax({
-                async: form.attr('data-remote-type') === 'synchronous' ? false : true,
-                url: form.attr('action'),
-                method: form.attr('method'),
+                async: async,
+                url: url,
                 data: data,
+                type: method.toUpperCase(),
                 beforeSend: function (xhr) {
-                    form.trigger('after', xhr);
-                    form.trigger('loading', xhr);
+                    el.trigger('after', xhr);
+                    el.trigger('loading', xhr);
                 },
                 success: function (data, status, xhr) {
-                    var update = form.attr('data-update-success');
-                    form.trigger('success', [data, status, xhr]);
+                    el.trigger('success', [data, status, xhr]);
                     
                     if (update) {
-                        $(update + ', #' + update).html(data); 
+                        var element = update.charAt(0) == '#' ? update : '#' + update;
+                        if(position) {
+                            switch(el.attr('data-update-position')) {
+                                case "before":
+                                    $(element).before(data); 
+                                    break;
+                                case "after":
+                                    $(element).after(data); 
+                                    break;
+                                case "top":
+                                    $(element).prepend(data); 
+                                    break;
+                                case "bottom":
+                                    $(element).append(data); 
+                                    break;
+                                default:
+                                    $(element).append(data); 
+                                    break;
+                            }
+                        } else {
+                            $(element).html(data); 
+                        }
                     }
                 },
                 complete: function (xhr) {
-                    form.trigger('complete', xhr);
-                    form.trigger('loaded', xhr);
+                    el.trigger('complete', xhr);
+                    el.trigger('loaded', xhr);
                 },
                 error: function (xhr, status, error) {
-                    form.trigger('failure', [xhr, status, error]);
+                    el.trigger('failure', [xhr, status, error]);
                 }
             });
         }
 
         e.preventDefault();
-    });
+    }
+
+    $('form[data-remote="true"]').live('submit', handleRemote);
+    $('a[data-remote="true"],input[data-remote="true"]').live('click', handleRemote);
 });

@@ -2,13 +2,12 @@ jQuery(function ($) {
     function evalAttribute(element, attribute) {
         var el = $(element); 
         var attr = el.attr('data-' + attribute);
-        
         if(attr) {
             eval(attr);
         }
     }
 
-    $('form[data-remote="true"]')
+    $('form[data-remote="true"],a[data-remote="true"],input[data-remote="true"]')
         .live('before', function (e) {
             evalAttribute(this, 'onbefore'); 
         })
