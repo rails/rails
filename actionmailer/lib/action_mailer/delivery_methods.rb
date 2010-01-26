@@ -65,7 +65,10 @@ module ActionMailer
         method ||= self.delivery_method
         mail.delivery_handler = self
 
-        if method.is_a?(Symbol)
+        case method
+        when NilClass
+          raise "Delivery method cannot be nil"
+        when Symbol
           if klass = delivery_methods[method.to_sym]
             mail.delivery_method(klass, send(:"#{method}_settings"))
           else

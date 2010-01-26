@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/try'
+
 module ActionMailer
   module OldApi #:nodoc:
     extend ActiveSupport::Concern
@@ -185,10 +187,10 @@ module ActionMailer
     # mailer. Subclasses may override this method to provide different
     # defaults.
     def initialize_defaults(method_name) 
-      @charset              ||= self.class.default_charset.dup
-      @content_type         ||= self.class.default_content_type.dup
-      @implicit_parts_order ||= self.class.default_implicit_parts_order.dup
-      @mime_version         ||= self.class.default_mime_version.dup if self.class.default_mime_version
+      @charset              ||= self.class.defaults[:charset].try(:dup)
+      @content_type         ||= self.class.defaults[:content_type].try(:dup)
+      @implicit_parts_order ||= self.class.defaults[:parts_order].try(:dup)
+      @mime_version         ||= self.class.defaults[:mime_version].try(:dup)
 
       @mailer_name   ||= self.class.mailer_name.dup
       @template      ||= method_name
