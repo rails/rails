@@ -41,27 +41,6 @@ class Foo
 end
 
 class ClassExtTest < Test::Unit::TestCase
-  def test_methods
-    assert defined?(ClassB)
-    assert defined?(ClassC)
-    assert defined?(ClassD)
-
-    ClassA.remove_subclasses
-
-    assert !defined?(ClassB)
-    assert !defined?(ClassC)
-    assert !defined?(ClassD)
-  end
-
-  def test_subclasses_of
-    cj = ClassJ
-    assert_equal [ClassJ], Object.subclasses_of(ClassI)
-    ClassI.remove_subclasses
-    assert_equal [], Object.subclasses_of(ClassI)
-  ensure
-    Object.const_set :ClassJ, cj
-  end
-
   def test_subclasses_of_should_find_nested_classes
     assert Object.subclasses_of(ClassK).include?(Nested::ClassL)
   end

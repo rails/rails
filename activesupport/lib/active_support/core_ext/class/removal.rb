@@ -7,15 +7,6 @@ class Class #:nodoc:
     eval("defined?(::#{self}) && ::#{self}.equal?(self)")
   end
 
-  # Unassociates the class with its subclasses and removes the subclasses
-  # themselves.
-  #
-  #   Integer.remove_subclasses # => [Bignum, Fixnum]
-  #   Fixnum                    # => NameError: uninitialized constant Fixnum
-  def remove_subclasses
-    Object.remove_subclasses_of(self)
-  end
-
   # Removes the classes in +klasses+ from their parent module.
   #
   # Ordinary classes belong to some module via a constant. This method computes
