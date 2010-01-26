@@ -10,14 +10,14 @@ jQuery(function ($) {
             update      = el.attr('data-update-success'),
             position    = el.attr('data-update-position');
 
-        console.log(e);
-
         if (el.attr('data-submit')) {
             data = $('#' + el.attr('data-submit')).serializeArray();
         } else if (el.attr('data-with')) {
             data = el.attr('data-with');
         } else if(e.target.tagName.toUpperCase() == 'FORM') {
             data = el.serializeArray();
+        } else if(e.target.tagName.toUpperCase() == 'INPUT') {
+            data = el.closest('form').serializeArray();
         }
 
         if(condition) {
@@ -74,5 +74,5 @@ jQuery(function ($) {
     }
 
     $('form[data-remote="true"]').live('submit', handleRemote);
-    $('a[data-remote="true"],input[data-remote="true"]').live('click', handleRemote);
+    $('a[data-remote="true"],input[data-remote="true"],input[data-remote-submit="true"]').live('click', handleRemote);
 });
