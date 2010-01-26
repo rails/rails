@@ -319,6 +319,10 @@ module ActionView
           add_confirm_to_attributes!(attributes, confirm)
         end
 
+        if disable_with = options.delete(:disable_with)
+          add_disable_with_to_attributes!(attributes, disable_with)
+        end
+
         attributes.merge!(extract_remote_attributes!(options))
 
         tag(:input, attributes)
