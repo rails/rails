@@ -12,6 +12,10 @@ module ApplicationTests
       FileUtils.cp_r(app_path, new_app)
     end
 
+    def app
+      @app ||= Rails.application
+    end
+
     def setup
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
       build_app
@@ -131,6 +135,25 @@ module ApplicationTests
       assert_nothing_raised do
         require "#{app_path}/config/application"
       end
+    end
+
+    test "config.to_prepare is forwarded to ActionDispatch" do
+      $prepared = false
+
+      add_to_config <<-RUBY
+        config.to_prepare do
+          $prepared = true
+        end
+      RUBY
+
+      assert !$prepared
+
+      require "#{app_path}/config/environment"
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get "/"
+      assert $prepared
     end
   end
 end

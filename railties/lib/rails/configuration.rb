@@ -52,6 +52,14 @@ module Rails
         after_initialize_blocks << blk if blk
       end
 
+      def to_prepare_blocks
+        @@to_prepare_blocks ||= []
+      end
+
+      def to_prepare(&blk)
+        to_prepare_blocks << blk if blk
+      end
+
       def respond_to?(name)
         super || name.to_s =~ config_key_regexp
       end
