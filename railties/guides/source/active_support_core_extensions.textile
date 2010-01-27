@@ -666,53 +666,6 @@ See aso +Object#subclasses_of+, explained in "Extensions to All Objects FIX THIS
 
 NOTE: Defined in +active_support/core_ext/class/removal.rb+.
 
-h4. Class Removal
-
-Roughly speaking, the +remove_class+ method removes the class objects passed as arguments:
-
-<ruby>
-Class.remove_class(Hash, Dir) # => [Hash, Dir]
-Hash # => NameError: uninitialized constant Hash
-Dir  # => NameError: uninitialized constant Dir
-</ruby>
-
-More specifically, +remove_class+ attempts to remove constants with the same name as the passed class objects from their parent modules. So technically this method does not guarantee the class objects themselves are not still valid and alive somewhere after the method call:
-
-<ruby>
-module M
-  class A; end
-  class B < A; end
-end
-
-A2 = M::A
-
-M::A.object_id            # => 13053950
-Class.remove_class(M::A)
-
-M::B.superclass.object_id # => 13053950 (same object as before)
-A2.name                   # => "M::A" (name is hard-coded in object)
-</ruby>
-
-WARNING: Removing fundamental classes like +String+ can result in really funky behaviour.
-
-The method +remove_subclasses+ provides a shortcut for removing all descendants of a given class, where "removing" has the meaning explained above:
-
-<ruby>
-class A; end
-class B1 < A; end
-class B2 < A; end
-class C < A; end
-
-A.subclasses        # => ["C", "B2", "B1"]
-A.remove_subclasses
-A.subclasses        # => []
-C                   # => NameError: uninitialized constant C
-</ruby>
-
-See also +Object#remove_subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
-
-NOTE: Defined in +active_support/core_ext/class/removal.rb+.
-
 h4. Reachable Classes
 
 By definition a non-anonymous class is reachable if its name constantized is defined, and the corresponding constant evaluates to +self+:
