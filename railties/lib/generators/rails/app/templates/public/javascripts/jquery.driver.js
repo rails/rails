@@ -4,27 +4,27 @@
 jQuery(function ($) {
     var rails = {
         update: function (selector, content, position) {
-            var element = selector.charAt(0) == '#' ? selector : '#' + selector;
+            var element = $('#' + selector);
             if (position) {
                 switch (position) {
                     case "before":
-                        $(element).before(content); 
+                        element.before(content); 
                         break;
                     case "after":
-                        $(element).after(content); 
+                        element.after(content); 
                         break;
                     case "top":
-                        $(element).prepend(content); 
+                        element.prepend(content); 
                         break;
                     case "bottom":
-                        $(element).append(content); 
+                        element.append(content); 
                         break;
                     default:
-                        $(element).append(content); 
+                        element.append(content); 
                         break;
                 }
             } else {
-                $(element).html(content); 
+                element.html(content); 
             }
         },
         remote: function (e) {
@@ -38,7 +38,18 @@ jQuery(function ($) {
             if (el.attr('data-submit')) {
                 data = $('#' + el.attr('data-submit')).serializeArray();
             } else if (el.attr('data-with')) {
-                data = el.attr('data-with');
+
+                if (e && e.target.tagName.toUpperCase() == 'SCRIPT' && el.attr('data-observed') !== null) {
+                    var observed = $('#' + el.attr('data-observed'));
+                    if(observed[0].tagName.toUpperCase() === 'FORM'){
+                        data = el.attr('data-with') + '=' + observed.serialize();
+                    } else if(observed[0].tagName.toUpperCase() === 'INPUT' && observed.attr('type').toUpperCase() !== "BUTTON" && observed.attr('type').toUpperCase() !== "SUBMIT") {
+                        data = el.attr('data-with') + '=' + observed.val();
+                    }
+                } else {
+                    // TODO: remove eval when deprecated
+                    data = eval(el.attr('data-with'));
+                }
             } else if (e && e.target.tagName.toUpperCase() == 'FORM') {
                 data = el.serializeArray();
             } else if (e && e.target.tagName.toUpperCase() == 'INPUT') {
@@ -54,6 +65,7 @@ jQuery(function ($) {
                     data: data,
                     type: method.toUpperCase(),
                     beforeSend: function (xhr) {
+                        xhr.setRequestHeader("Accept", "text/javascript")
                         el.trigger('rails:after', xhr);
                         el.trigger('rails:loading', xhr);
                     },
@@ -70,7 +82,7 @@ jQuery(function ($) {
                     error: function (xhr, status, error) {
                         el.trigger('rails:failure', [xhr, status, error]);
                         if (el.attr('data-update-failure')) {
-                           rails.update(el.attr('data-update-failure'), data, el.attr('data-update-position')); 
+                           rails.update(el.attr('data-update-failure'), xhr.responseText, el.attr('data-update-position')); 
                         }
                     }
                 });
@@ -82,8 +94,27 @@ jQuery(function ($) {
     /**
      * observe_form, and observe_field
      */
-    $('script[data-observe="true"]').each(function (index, el) {
-        // TODO: hook to onchange event of field or form being observed
+    $('script[data-observe="true"]').each(function (index, e) {
+        var el          = $(e),
+            observed    = $('#' + $(e).attr('data-observed'));
+            frequency   = el.attr('data-frequency') ? el.attr('data-frequency') : 10,
+            value       = observed[0].tagName.toUpperCase() === 'FORM' ? observed.serialize() : observed.val();
+
+        var observe = function (observed, frequency, value, e) {
+            return function () {
+                var event       = new jQuery.Event('periodical'),
+                    newValue    = observed[0].tagName.toUpperCase() === 'FORM' ? observed.serialize() : observed.val();
+                event.target = e;
+
+                if(value !== newValue) {
+                    value = newValue;
+                    $(e).trigger('rails:observe');
+                    rails.remote.call(el, event);
+                }
+            }
+        }(observed, frequency, value, e);
+
+        setInterval(observe, frequency * 1000);
     });
 
     /**
@@ -91,15 +122,16 @@ jQuery(function ($) {
      */
     $('script[data-periodical="true"]').each(function (index, e) {
         var el          = $(e),
-            frequency   = el.attr('data-frequency') ? el.attr('data-frequency') : 10,
-            remote      = function() {
+            frequency   = el.attr('data-frequency') ? el.attr('data-frequency') : 10;
+            
+        setInterval(function () {
+            return function () {
                 var event = new jQuery.Event('periodical');
                 event.target = e;
 
                 rails.remote.call(el, event);
-            };
-
-        setInterval(remote, frequency * 1000);
+            }
+        }(e, el), frequency * 1000);
     });
 
     /**
@@ -128,7 +160,7 @@ jQuery(function ($) {
         }
     };
 
-    $('form[data-remote="true"],a[data-remote="true"],input[data-remote="true"]')
+    $('form[data-remote="true"],a[data-remote="true"],input[data-remote="true"],script[data-observe="true"]')
         .live('rails:before', function (e) {
             rails.compat.evalAttribute(this, 'onbefore'); 
         })
@@ -150,5 +182,8 @@ jQuery(function ($) {
         })
         .live('rails:failure', function (e, xhr, status, error) {
             rails.compat.evalAttribute(this, 'onfailure'); 
+        })
+        .live('rails:observe', function (e) {
+            rails.compat.evalAttribute(this, 'onobserve'); 
         });
 });
