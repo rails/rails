@@ -323,12 +323,6 @@ TIP: Since +with_options+ forwards calls to its receiver they can be nested. Eac
 
 NOTE: Defined in +active_support/core_ext/object/with_options.rb+.
 
-h4. Modules and Classes
-
-h5. +remove_subclasses_of+
-
-The method +remove_subclasses_of+ receives an arbitrary number of class objects and removes their subclasses. It is a wrapper of +Class#remove_class+ explained with more details in "Class Removal FIX THIS LINK":FIXME.
-
 h4. Instance Variables
 
 Active Support provides several methods to ease access to instance variables.
