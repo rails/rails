@@ -6,12 +6,11 @@ module ActionView
       include PrototypeHelper 
 
       # Returns a form that will allow the unobtrusive JavaScript drivers to submit the 
-      # form the dynamic nature of their choice. The default behaviour is an XMLHttpRequest
-      # in the background instead of the regular POST arrangement. Even though it's using 
-      # JavaScript to serialize the form elements, the form submission will work just like 
-      # a regular submission as viewed by the receiving side (all elements available in 
-      # <tt>params</tt>). The options for specifying the target with <tt>:url</tt> and
-      # defining callbacks is the same as +link_to_remote+.
+      # form dynamically. The default driver behaviour is an XMLHttpRequest in the background
+      # instead of the regular POST arrangement. Even though it's using JavaScript to serialize 
+      # the form elements, the form submission will work just like a regular submission as
+      # viewed by the receiving side (all elements available in <tt>params</tt>). The options 
+      # for specifying the target with <tt>:url</tt> anddefining callbacks is the same as +link_to_remote+.
       #
       # === Resource
       #
@@ -30,7 +29,10 @@ module ActionView
       #
       # This will expand to be the same as:
       #
-      #   <% remote_form_for :post, @post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
+      #   <% remote_form_for :post, @post, :url => post_path(@post), 
+      #                                    :html => { :method => :put, 
+      #                                               :class => "edit_post", 
+      #                                               :id => "edit_post_45" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -38,22 +40,22 @@ module ActionView
       #
       # Example:
       #   # Generates:
-      #   #     <form class='edit_post_comment' 
-      #   #           id='edit_comment_1' 
-      #   #           action='/posts/1/comments/1/edit' 
+      #   #     <form action='/authors/1/articles' 
+      #   #           data-remote="true" 
+      #   #           class='new_article' 
       #   #           method='post' 
-      #   #           data-remote='true'>...</div>
+      #   #           id='new_article'></form>
       #   #
-      #   <% remote_form_for([@post, @comment]) do |f| %>
+      #   <% remote_form_for([@author, @article]) do |f| %>
       #     ...
       #   <% end %>
       #
       # This will expand to be the same as:
       #
-      #   <% remote_form_for :comment, @comment, :url => post_comment_path(@post, @comment), 
+      #   <% remote_form_for :article, @article, :url => author_article_path(@author, @article), 
       #                                          :html => { :method => :put, 
-      #                                                     :class  => "edit_comment", 
-      #                                                     :id     => "edit_comment_45" } do |f| %>
+      #                                                     :class  => "new_article", 
+      #                                                     :id     => "new_comment" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -76,13 +78,12 @@ module ActionView
       alias_method :form_remote_for, :remote_form_for
 
       # Returns a form tag that will allow the unobtrusive JavaScript drivers to submit the 
-      # form via the dynamic behaviour of choice. The default behaviour is an XMLHttpRequest 
+      # form dynamically. The default JavaScript driver behaviour is an XMLHttpRequest 
       # in the background instead of the regular POST arrangement. Even though it's using 
       # JavaScript to serialize the form elements, the form submission will work just like
       # a regular submission as viewed by the receiving side (all elements available in 
       # <tt>params</tt>). The options for specifying the target with <tt>:url</tt> and 
       # defining callbacks is the same as +link_to_remote+.
-      #
       #
       # A "fall-through" target for browsers that doesn't do JavaScript can be
       # specified with the <tt>:action</tt>/<tt>:method</tt> options on <tt>:html</tt>.
@@ -93,9 +94,9 @@ module ActionView
       #   #     <form action="http://www.example.com/fast" 
       #   #           method="post" 
       #   #           data-remote="true" 
-      #   #           data-update-success="glass_of_beer">
+      #   #           data-update-success="glass_of_beer"></form>
       #   #
-      #   form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  })
+      #   form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }) {}
       #
       # The Hash passed to the <tt>:html</tt> key is equivalent to the options (2nd)
       # argument in the FormTagHelper.form_tag method.
@@ -105,14 +106,14 @@ module ActionView
       #
       # form_remote_tag also takes a block, like form_tag:
       #   # Generates:
-      #   #     <form action='/'
+      #   #     <form action='/posts'
       #   #           method='post'
       #   #           data-remote='true'> 
-      #   #       <div><input name="commit" type="submit" value="Save" /></div>
+      #   #       <input name="commit" type="submit" value="Save" />
       #   #     </form>
       #   #
       #   <% form_remote_tag :url => '/posts' do -%>
-      #     <div><%= submit_tag 'Save' %></div>
+      #     <%= submit_tag 'Save' %>
       #   <% end -%>
       #
       #   # Generates:
@@ -122,7 +123,7 @@ module ActionView
       #   #           data-update-success="glass_of_beer">Hello world!</form>
       #   #
       #   <% form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }) do -%>
-      #     <% concat "Hello world!" %>
+      #     "Hello world!" 
       #   <% end -%>
       #
       def form_remote_tag(options = {}, &block)
@@ -178,27 +179,38 @@ module ActionView
       #
       # Example:
       #   # Generates: 
-      #   #     <a href='/blog/5' 
-      #   #        rel='nofollow'
-      #   #        data-remote='true' 
-      #   #        data-method='delete' 
-      #   #        data-success='posts' 
-      #   #        data-failure='error' >Delete this post</a>
+      #   #
+      #   #     <a href="#" 
+      #   #        data-url="http://www.example.com/destroy" 
+      #   #        data-update-success="posts" 
+      #   #        data-update-failure="error" 
+      #   #        data-remote="true">Delete this Post</a>'
       #   #
       #   link_to_remote "Delete this post",
-      #     :url => { :action => "destroy", :id => post.id },
+      #     :url => { :action => "destroy"},
       #     :update => { :success => "posts", :failure => "error" }
       #
       # Optionally, you can use the <tt>options[:position]</tt> parameter to
       # influence how the target DOM element is updated. It must be one of
       # <tt>:before</tt>, <tt>:top</tt>, <tt>:bottom</tt>, or <tt>:after</tt>.
       #
+      # Example:
+      #   # Generates:
+      #   #     <a href="#" 
+      #   #        data-remote="true" 
+      #   #        data-url="http://www.example.com/whatnot" 
+      #   #        data-update-position="bottom">Remove Author</a>
+      #   #
+      #   link_to_remote("Remove Author", :url => { :action => "whatnot" }, :position => :bottom)
+      #
+      #
       # The method used is by default POST. You can also specify GET or you
       # can simulate PUT or DELETE over POST. All specified with <tt>options[:method]</tt>
       #
       # Example:
       #   # Generates: 
-      #   #     <a href='/person/4' 
+      #   #     <a href='#'
+      #   #        data-url='/person/4' 
       #   #        rel='nofollow' 
       #   #        data-remote='true' 
       #   #        data-method='delete'>Destroy</a>
@@ -215,12 +227,14 @@ module ActionView
       #
       # Example:
       #   # Generates: 
-      #   #     <a href='/words/undo?n=33'
-      #   #        data-remote='true' >hello</a>
       #   #
-      #   word = 'hello'
-      #   link_to_remote word,
-      #     :url => { :action => "undo", :n => word_counter },
+      #   #     <a href='#' 
+      #   #        data-url='http://www.example.com/undo?n=5' 
+      #   #        data-oncomplete='undoRequestCompleted(request)' 
+      #   #        data-remote='true'>undo</a>
+      #   #
+      #   link_to_remote "undo",
+      #     :url => { :controller => "words", :action => "undo", :n => word_counter },
       #     :complete => "undoRequestCompleted(request)"
       #
       # The callbacks that may be specified are (in order): 
@@ -290,7 +304,7 @@ module ActionView
       #
       #                            :with => "'name=' + $('name').value"
       #
-      # You can generate a link that uses AJAX in the general case, while
+      # You can generate a link that uses the UJS drivers in the general case, while
       # degrading gracefully to plain link behavior in the absence of
       # JavaScript by setting <tt>html_options[:href]</tt> to an alternate URL.
       # Note the extra curly braces around the <tt>options</tt> hash separate
@@ -309,6 +323,7 @@ module ActionView
       #     
       def link_to_remote(name, options, html_options = {})
         attributes = {}
+
         attributes.merge!(:rel => "nofollow") if options[:method] && options[:method].to_s.downcase == "delete"
         attributes.merge!(extract_remote_attributes!(options))
         
@@ -369,7 +384,7 @@ module ActionView
       #  #             type='button'
       #  #             value='Create'
       #  #             data-remote='true' 
-      #  #             data-url='/testing/create' />
+      #  #             data-url='/create' />
       #  #
       #  <%= submit_to_remote 'create_btn', 'Create', :url => { :action => 'create' } %>
       #
@@ -380,7 +395,7 @@ module ActionView
       #  #    <input name='update_btn'
       #  #           type='button'
       #  #           value='Update'
-      #  #           date-remote='true' 
+      #  #           date-remote-submit='true' 
       #  #           data-url='/testing/update' 
       #  #           data-success='succeed' 
       #  #           data-failure='fail' />
@@ -401,34 +416,49 @@ module ActionView
         tag(:input, attributes)
       end
 
-      # Periodically calls the specified url (<tt>options[:url]</tt>) every
-      # <tt>options[:frequency]</tt> seconds (default is 10). Usually used to
+      # Periodically provides the UJS driver with the information to call the specified 
+      # url (<tt>options[:url]</tt>) every <tt>options[:frequency]</tt> seconds (default is 10). Usually used to
       # update a specified div (<tt>options[:update]</tt>) with the results
       # of the remote call. The options for specifying the target with <tt>:url</tt>
       # and defining callbacks is the same as link_to_remote.
       # Examples:
       #  # Call get_averages and put its results in 'avg' every 10 seconds
       #  # Generates:
-      #  #      new PeriodicalExecuter(function() {new Ajax.Updater('avg', '/grades/get_averages',
-      #  #      {asynchronous:true, evalScripts:true})}, 10)
+      #  #      <script data-periodical='true' 
+      #  #              data-url='/get_averages' 
+      #  #              type='application/json' 
+      #  #              data-update-success='avg'
+      #  #              data-frequency='10'></script>
+      #  #
       #  periodically_call_remote(:url => { :action => 'get_averages' }, :update => 'avg')
       #
       #  # Call invoice every 10 seconds with the id of the customer
       #  # If it succeeds, update the invoice DIV; if it fails, update the error DIV
       #  # Generates:
-      #  #      new PeriodicalExecuter(function() {new Ajax.Updater({success:'invoice',failure:'error'},
-      #  #      '/testing/invoice/16', {asynchronous:true, evalScripts:true})}, 10)
-      #  periodically_call_remote(:url => { :action => 'invoice', :id => customer.id },
+      #  #      <script data-periodical='true' 
+      #  #              data-url='/invoice/1' 
+      #  #              type='application/json' 
+      #  #              data-update-success='invoice' 
+      #  #              data-update-failure='error'
+      #  #              data-frequency='10'></script>"
+      #  #
+      #  periodically_call_remote(:url => { :action => 'invoice', :id => 1 },
       #     :update => { :success => "invoice", :failure => "error" }
       #
       #  # Call update every 20 seconds and update the new_block DIV
       #  # Generates:
-      #  # new PeriodicalExecuter(function() {new Ajax.Updater('news_block', 'update', {asynchronous:true, evalScripts:true})}, 20)
+      #  #      <script data-periodical='true' 
+      #  #              data-url='update' 
+      #  #              type='application/json' 
+      #  #              data-update-success='news_block'
+      #  #              data-frequency='20'></script>
+      #  #
       #  periodically_call_remote(:url => 'update', :frequency => '20', :update => 'news_block')
       #
       def periodically_call_remote(options = {})
         attributes = extract_observer_attributes!(options)
         attributes["data-periodical"] = true 
+        attributes["data-frequency"] ||= 10
 
         # periodically_call_remote does not need data-observe=true
         attributes.delete('data-observe')
@@ -442,8 +472,16 @@ module ActionView
       # parameter with the Ajax call.
       #
       # Example:
-      #  # Generates: new Form.Element.Observer('suggest', 0.25, function(element, value) {new Ajax.Updater('suggest',
-      #  #         '/testing/find_suggestion', {asynchronous:true, evalScripts:true, parameters:'q=' + value})})
+      #  # Generates: 
+      #  #      "<script type='text/javascript' 
+      #  #               data-observe='true' 
+      #  #               data-observed='suggest' 
+      #  #               data-frequency='0.25' 
+      #  #               type='application/json' 
+      #  #               data-url='/find_suggestion' 
+      #  #               data-update-success='suggest' 
+      #  #               data-with='q'></script>"
+      #  # 
       #  <%= observe_field :suggest, :url => { :action => :find_suggestion },
       #       :frequency => 0.25,
       #       :update => :suggest,
@@ -567,7 +605,7 @@ module ActionView
 
           url_options = options.delete(:url)
           url_options = url_options.merge(:escape => false) if url_options.is_a?(Hash)
-          attributes["data-url"] = escape_javascript(url_for(url_options)) 
+          attributes["data-url"] = escape_javascript(url_for(url_options))  if url_options
 
           purge_unused_attributes!(attributes)
         end
@@ -591,14 +629,14 @@ module ActionView
 
         def extract_observer_attributes!(options)
           callback = options.delete(:function)
-          frequency = options.delete(:frequency)
+          frequency = options.delete(:frequency) || 10
 
 
           attributes = extract_remote_attributes!(options)
           attributes["data-observe"] = true
           attributes["data-observed"] = options.delete(:observed)
           attributes["data-onobserve"] = callback if callback
-          attributes["data-frequency"] = frequency.to_i if frequency && frequency != 0
+          attributes["data-frequency"] = frequency if frequency && frequency.to_f != 0
           attributes.delete("data-remote")
 
           purge_unused_attributes!(attributes)
