@@ -110,7 +110,7 @@ module RailtiesTest
         boot_rails
       rescue Exception => e
         rescued = true
-        assert_equal '"bukkits" is a Railtie/Engine and cannot be installed as plugin', e.message
+        assert_equal '"bukkits" is a Railtie/Engine and cannot be installed as a plugin', e.message
       end
 
       assert rescued, "Expected boot rails to fail"
