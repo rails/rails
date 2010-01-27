@@ -116,6 +116,15 @@ module RailtiesTest
       assert_equal "Hello bukkits\n", response[2].body
     end
 
+    def test_plugin_eager_load_any_path_under_app
+      @plugin.write "app/anything/foo.rb", <<-RUBY
+        module Foo; end
+      RUBY
+
+      boot_rails
+      assert Foo
+    end
+
     def test_routes_are_added_to_router
       @plugin.write "config/routes.rb", <<-RUBY
         class Sprokkit

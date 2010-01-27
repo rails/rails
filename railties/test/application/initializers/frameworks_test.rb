@@ -71,6 +71,12 @@ module ApplicationTests
       assert_equal expects, middleware & expects
     end
 
+    test "active_record extensions are applied to ActiveRecord" do
+      add_to_config "config.active_record.table_name_prefix = 'tbl_'"
+      require "#{app_path}/config/environment"
+      assert_equal 'tbl_', ActiveRecord::Base.table_name_prefix
+    end
+
     test "database middleware doesn't initialize when activerecord is not in frameworks" do
       use_frameworks []
       require "#{app_path}/config/environment"

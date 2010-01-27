@@ -19,6 +19,17 @@ module RailtiesTest
       :reload_plugins
     end
 
+    test "Rails::Plugin itself does not respond to config" do
+      assert !Rails::Plugin.respond_to?(:config)
+    end
+
+    test "cannot inherit from Rails::Plugin" do
+      boot_rails
+      assert_raise RuntimeError do
+        class Foo < Rails::Plugin; end
+      end
+    end
+
     test "plugin can load the file with the same name in lib" do
       boot_rails
       require "bukkits"

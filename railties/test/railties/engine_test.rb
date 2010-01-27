@@ -23,5 +23,9 @@ module RailtiesTest
     def reload_config
       :reload_engines
     end
+
+    test "Rails::Engine itself does not respond to config" do
+      assert !Rails::Engine.respond_to?(:config)
+    end
   end
 end

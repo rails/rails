@@ -17,10 +17,13 @@ module ApplicationTests
     end
 
     def setup
-      FileUtils.rm_rf(new_app) if File.directory?(new_app)
       build_app
       boot_rails
       FileUtils.rm_rf("#{app_path}/config/environments")
+    end
+
+    def teardown
+      FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
     test "Rails::Application.instance is nil until app is initialized" do
@@ -28,6 +31,12 @@ module ApplicationTests
       assert_nil Rails::Application.instance
       require "#{app_path}/config/environment"
       assert_equal AppTemplate::Application.instance, Rails::Application.instance
+    end
+
+    test "Rails::Application responds to all instance methods" do
+      require "#{app_path}/config/environment"
+      assert_respond_to Rails::Application, :routes_reloader
+      assert_equal Rails::Application.routes_reloader, Rails.application.routes_reloader
     end
 
     test "the application root is set correctly" do

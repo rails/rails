@@ -31,6 +31,10 @@ module Rails
         Rails.application = base.instance
       end
 
+      def respond_to?(*args)
+        super || instance.respond_to?(*args)
+      end
+
     protected
 
       def method_missing(*args, &block)
