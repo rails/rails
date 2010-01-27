@@ -666,31 +666,6 @@ See aso +Object#subclasses_of+, explained in "Extensions to All Objects FIX THIS
 
 NOTE: Defined in +active_support/core_ext/class/removal.rb+.
 
-h4. Reachable Classes
-
-By definition a non-anonymous class is reachable if its name constantized is defined, and the corresponding constant evaluates to +self+:
-
-<ruby>
-class C; end
-C.reachable? # => true
-
-phantom = Object.send(:remove_const, :C)
-
-# The class object is orphan now but it still has a name.
-phantom.name # => "C"
-
-# Class name no longer available as a constant.
-phantom.reachable? # => nil
-
-# Let's define a class named "C" again.
-class C; end
-
-# Class name available as a constant, but different class object.
-phantom.reachable? # => false
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/class/removal.rb+.
-
 h3. Extensions to +String+
 
 h4. +squish+
