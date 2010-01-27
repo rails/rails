@@ -587,35 +587,6 @@ If for whatever reason an application loads the definition of a mailer class and
 
 NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
 
-h4. Descendants
-
-h5. +subclasses+
-
-The +subclasses+ method returns the names of all the anonymous or reachable descendants of its receiver as an array of strings:
-
-<ruby>
-class C; end
-C.subclasses # => []
-
-Integer.subclasses # => ["Bignum", "Fixnum"]
-
-module M
-  class A; end
-  class B1 < A; end
-  class B2 < A; end
-end
-
-module N
-  class C < M::B1; end
-end
-
-M::A.subclasses # => ["N::C", "M::B2", "M::B1"]
-</ruby>
-
-WARNING: +ActiveRecord::Base+ redefines +subclasses+, it returns class objects, reachable or not, and it is protected.
-
-NOTE: Defined in +active_support/core_ext/class/removal.rb+.
-
 h3. Extensions to +String+
 
 h4. +squish+
