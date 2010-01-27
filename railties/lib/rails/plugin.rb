@@ -84,7 +84,7 @@ module Rails
 
     initializer :sanity_check_railties_collision do
       if Engine.subclasses.map { |k| k.root.to_s }.include?(root.to_s)
-        raise "\"#{name}\" is a Railtie/Engine and cannot be installed as plugin"
+        raise "\"#{name}\" is a Railtie/Engine and cannot be installed as a plugin"
       end
     end
   end
