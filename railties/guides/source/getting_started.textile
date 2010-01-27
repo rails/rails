@@ -355,9 +355,9 @@ The scaffold generator will build 14 files in your application, along with some 
 |app/models/post.rb                           |The Post model|
 |db/migrate/20100123083454_create_posts.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
 |app/views/posts/index.html.erb|              |A view to display an index of all posts |
-|app/views/posts/edit.html.erb                |A view to display a single post|
-|app/views/posts/show.html.erb                |A view to create a new post|
-|app/views/posts/new.html.erb                 |A view to edit an existing post|
+|app/views/posts/edit.html.erb                |A view to edit an existing post|
+|app/views/posts/show.html.erb                |A view to display a single post|
+|app/views/posts/new.html.erb                 |A view to create a new post|
 |app/views/posts/_form.html.erb               |A view to control the overall look and feel of the other posts views|
 |app/views/layouts/posts.html.erb             |A view to control the overall look and feel of the other posts views|
 |public/stylesheets/scaffold.css              |Cascading style sheet to make the scaffolded views look better|
