@@ -1,19 +1,16 @@
 module Rails
   class Application
-    # TODO Write tests for this behavior extracted from Application
     class RoutesReloader
-      def self.paths
-        @paths ||= []
-      end
+      attr_reader :paths
 
-      def initialize(config)
-        @config, @last_change_at = config, nil
+      def initialize
+        @paths, @last_change_at = [], nil
       end
 
       def changed_at
         routes_changed_at = nil
 
-        self.class.paths.each do |path|
+        paths.each do |path|
           config_changed_at = File.stat(path).mtime
 
           if routes_changed_at.nil? || config_changed_at > routes_changed_at
@@ -29,7 +26,7 @@ module Rails
         routes.disable_clear_and_finalize = true
 
         routes.clear!
-        self.class.paths.each { |path| load(path) }
+        paths.each { |path| load(path) }
         routes.finalize!
 
         nil

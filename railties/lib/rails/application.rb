@@ -9,7 +9,7 @@ module Rails
     autoload :Configurable,   'rails/application/configurable'
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
-    autoload :Metal,          'rails/application/metal'
+    autoload :MetalLoader,    'rails/application/metal_loader'
     autoload :Railties,       'rails/application/railties'
     autoload :RoutesReloader, 'rails/application/routes_reloader'
 
@@ -51,8 +51,12 @@ module Rails
       @railties ||= Railties.new(config)
     end
 
+    def metal_loader
+      @metal_laoder ||= MetalLoader.new
+    end
+
     def routes_reloader
-      @routes_reloader ||= RoutesReloader.new(config)
+      @routes_reloader ||= RoutesReloader.new
     end
 
     def reload_routes!

@@ -70,9 +70,9 @@ module Rails
       config.load_once_paths.freeze
     end
 
-    initializer :add_routing_paths do
+    initializer :add_routing_paths do |app|
       paths.config.routes.to_a.each do |route|
-        Rails::Application::RoutesReloader.paths.unshift(route) if File.exists?(route)
+        app.routes_reloader.paths.unshift(route) if File.exists?(route)
       end
     end
 
@@ -98,8 +98,8 @@ module Rails
       ActionMailer::Base.view_paths.unshift(*views)     if defined?(ActionMailer)
     end
 
-    initializer :add_metals do
-      Rails::Application::Metal.paths.unshift(*paths.app.metals.to_a)
+    initializer :add_metals do |app|
+      app.metal_loader.paths.unshift(*paths.app.metals.to_a)
     end
 
     initializer :load_application_initializers do
