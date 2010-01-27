@@ -87,9 +87,9 @@ module ActionView
 
         source = <<-end_src
           def #{method_name}(local_assigns)
-            old_output_buffer = output_buffer;#{locals_code};#{code}
+            _old_virtual_path, @_virtual_path = @_virtual_path, #{@details[:virtual_path].inspect};_old_output_buffer = output_buffer;#{locals_code};#{code}
           ensure
-            self.output_buffer = old_output_buffer
+            @_virtual_path, self.output_buffer = _old_virtual_path, _old_output_buffer
           end
         end_src
 

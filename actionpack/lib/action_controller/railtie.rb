@@ -21,5 +21,9 @@ module ActionController
     initializer "action_controller.initialize_framework_caches" do
       ActionController::Base.cache_store ||= RAILS_CACHE
     end
+
+    initializer "action_controller.set_helpers_path" do |app|
+      ActionController::Base.helpers_path = app.config.paths.app.helpers.to_a
+    end
   end
 end

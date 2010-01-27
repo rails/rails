@@ -50,9 +50,8 @@ module ActionController
     include AbstractController::Helpers
 
     included do
-      extlib_inheritable_accessor(:helpers_path) do
-        defined?(Rails::Application) ? Rails::Application.paths.app.helpers.to_a : []
-      end
+      extlib_inheritable_accessor(:helpers_path)
+      self.helpers_path = []
     end
 
     module ClassMethods

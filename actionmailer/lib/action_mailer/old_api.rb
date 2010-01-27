@@ -204,12 +204,8 @@ module ActionMailer
 
     def create_parts 
       if String === @body
-        self.response_body = @body
-      end
-
-      if String === response_body
-        @parts.unshift create_inline_part(response_body)
-      else
+        @parts.unshift create_inline_part(@body)
+      elsif @parts.empty? || @parts.all? { |p| p.content_disposition =~ /^attachment/ }
         self.class.view_paths.first.find_all(@template, {}, @mailer_name).each do |template|
           @parts << create_inline_part(render_to_body(:_template => template), template.mime_type)
         end

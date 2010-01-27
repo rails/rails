@@ -49,10 +49,16 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_cache_does_not_wrap_string_results_in_arrays
+    require 'sqlite3/version' if current_adapter?(:SQLite3Adapter)
+
     Task.cache do
       # Oracle adapter returns count() as Fixnum or Float
       if current_adapter?(:OracleAdapter)
         assert Task.connection.select_value("SELECT count(*) AS count_all FROM tasks").is_a?(Numeric)
+      elsif current_adapter?(:SQLite3Adapter) && SQLite3::Version::VERSION > '1.2.5'
+        # Future versions of the sqlite3 adapter will return numeric
+        assert_instance_of Fixnum,
+         Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
       else
         assert_instance_of String, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
       end

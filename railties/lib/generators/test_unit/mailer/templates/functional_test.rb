@@ -4,7 +4,7 @@ class <%= class_name %>Test < ActionMailer::TestCase
 <% for action in actions -%>
   test "<%= action %>" do
     @expected.subject = <%= action.to_s.humanize.inspect %>
-    @expected.to      = "to@example.com"
+    @expected.to      = "to@example.org"
     @expected.from    = "from@example.com"
     @expected.body    = read_fixture("<%= action %>")
     @expected.date    = Time.now

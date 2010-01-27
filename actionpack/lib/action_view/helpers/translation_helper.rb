@@ -25,11 +25,15 @@ module ActionView
       end
       alias :l :localize
 
-
       private
+
         def scope_key_by_partial(key)
           if key.to_s.first == "."
-            template.path_without_format_and_extension.gsub(%r{/_?}, ".") + key.to_s
+            if @_virtual_path
+              @_virtual_path.gsub(%r{/_?}, ".") + key.to_s
+            else
+              raise "Cannot use t(#{key.inspect}) shortcut because path is not available"
+            end
           else
             key
           end

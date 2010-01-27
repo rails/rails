@@ -27,20 +27,19 @@ class TestMailer < ActionMailer::Base
     subject    "[Cancelled] Goodbye #{recipient}"
     from       "system@loudthinking.com"
     sent_on    Time.local(2004, 12, 12)
-
-    render :text => "Goodbye, Mr. #{recipient}"
+    body       "Goodbye, Mr. #{recipient}"
   end
 
   def from_with_name
     from       "System <system@loudthinking.com>"
     recipients "root@loudthinking.com"
-    render :text => "Nothing to see here."
+    body       "Nothing to see here."
   end
 
   def from_without_name
     from       "system@loudthinking.com"
     recipients "root@loudthinking.com"
-    render :text => "Nothing to see here."
+    body       "Nothing to see here."
   end
 
   def cc_bcc(recipient)
@@ -51,7 +50,7 @@ class TestMailer < ActionMailer::Base
     cc         "nobody@loudthinking.com"
     bcc        "root@loudthinking.com"
 
-    render :text => "Nothing to see here."
+    body       "Nothing to see here."
   end
 
   def different_reply_to(recipient)
@@ -61,7 +60,7 @@ class TestMailer < ActionMailer::Base
     sent_on    Time.local(2008, 5, 23)
     reply_to   "atraver@gmail.com"
 
-    render :text => "Nothing to see here."
+    body       "Nothing to see here."
   end
 
   def iso_charset(recipient)
@@ -73,7 +72,7 @@ class TestMailer < ActionMailer::Base
     bcc        "root@loudthinking.com"
     charset    "iso-8859-1"
 
-    render :text => "Nothing to see here."
+    body       "Nothing to see here."
   end
 
   def unencoded_subject(recipient)
@@ -84,7 +83,7 @@ class TestMailer < ActionMailer::Base
     cc         "nobody@loudthinking.com"
     bcc        "root@loudthinking.com"
 
-    render :text => "Nothing to see here."
+    body       "Nothing to see here."
   end
 
   def extended_headers(recipient)
@@ -96,7 +95,7 @@ class TestMailer < ActionMailer::Base
     bcc        "Grytøyr <stian3@example.net>"
     charset    "iso-8859-1"
 
-    render :text => "Nothing to see here."
+    body       "Nothing to see here."
   end
 
   def utf8_body(recipient)
@@ -108,7 +107,7 @@ class TestMailer < ActionMailer::Base
     bcc        "Foo áëô îü <extended@example.net>"
     charset    "utf-8"
     
-    render :text => "åœö blah"
+    body       "åœö blah"
   end
 
   def multipart_with_mime_version(recipient)
@@ -158,7 +157,7 @@ class TestMailer < ActionMailer::Base
     attachment :content_type => "image/jpeg", :filename => File.join(File.dirname(__FILE__), "fixtures", "attachments", "foo.jpg"),
       :data => "123456789"
 
-    render :text => "plain text default"
+    body       "plain text default"
   end
 
   def implicitly_multipart_example(recipient, cs = nil, order = nil)
@@ -187,12 +186,12 @@ class TestMailer < ActionMailer::Base
     from         "test@example.com"
     content_type "text/html"
 
-    render :text => "<em>Emphasize</em> <strong>this</strong>"
+    body       "<em>Emphasize</em> <strong>this</strong>"
   end
 
   def html_mail_with_underscores(recipient)
     subject      "html mail with underscores"
-    render :text => %{<a href="http://google.com" target="_blank">_Google</a>}
+    body       %{<a href="http://google.com" target="_blank">_Google</a>}
   end
 
   def custom_template(recipient)
@@ -219,7 +218,7 @@ class TestMailer < ActionMailer::Base
     subject      "various newlines"
     from         "test@example.com"
 
-    render :text => "line #1\nline #2\rline #3\r\nline #4\r\r" +
+    body       "line #1\nline #2\rline #3\r\nline #4\r\r" +
                     "line #5\n\nline#6\r\n\r\nline #7"
   end
 
@@ -282,7 +281,7 @@ class TestMailer < ActionMailer::Base
     from         "One: Two <test@example.com>"
     cc           "Three: Four <test@example.com>"
     bcc          "Five: Six <test@example.com>"
-    render :text => "testing"
+    body       "testing"
   end
 
   def custom_content_type_attributes
@@ -290,7 +289,7 @@ class TestMailer < ActionMailer::Base
     subject      "custom content types"
     from         "some.one@somewhere.test"
     content_type "text/plain; format=flowed"
-    render :text => "testing"
+    body       "testing"
   end
 
   def return_path
@@ -298,13 +297,13 @@ class TestMailer < ActionMailer::Base
     subject      "return path test"
     from         "some.one@somewhere.test"
     headers["return-path"] = "another@somewhere.test"
-    render :text => "testing"
+    body       "testing"
   end
 
   def subject_with_i18n(recipient)
     recipients recipient
     from       "system@loudthinking.com"
-    render :text => "testing"
+    body       "testing"
   end
 
   class << self
@@ -1111,7 +1110,7 @@ end
 class MethodNamingTest < ActiveSupport::TestCase
   class TestMailer < ActionMailer::Base
     def send
-      render :text => 'foo'
+      body       'foo'
     end
   end
 

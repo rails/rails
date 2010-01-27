@@ -1,5 +1,9 @@
 *Edge*
 
+* Update bundled TZInfo to v0.3.16 [Geoff Buesing]
+
+* Georgetown TimeZone is now mapped to "America/Guyana" instead of "America/Argentina/San_Juan" #1821 [Geoff Buesing, Reuben Sivan]
+
 * Changed the default ActiveSupport.use_standard_json_time_format from false to true and
 ActiveSupport.escape_html_entities_in_json from true to false to match previously announced Rails 3 defaults [DHH]
 

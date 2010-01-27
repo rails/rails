@@ -255,6 +255,7 @@ module ActionMailer #:nodoc:
     include AbstractController::Layouts
     include AbstractController::Helpers
     include AbstractController::UrlFor
+    include AbstractController::Translation
 
     helper  ActionMailer::MailHelper
 

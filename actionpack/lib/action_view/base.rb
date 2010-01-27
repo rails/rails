@@ -276,9 +276,11 @@ module ActionView #:nodoc:
       @config = nil
       @formats = formats
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
-      @_controller = controller
       @helpers = self.class.helpers || Module.new
-      @_content_for = Hash.new {|h,k| h[k] = ActionView::SafeBuffer.new }
+
+      @_controller   = controller
+      @_content_for  = Hash.new {|h,k| h[k] = ActionView::SafeBuffer.new }
+      @_virtual_path = nil
       self.view_paths = view_paths
     end
 

@@ -14,7 +14,7 @@ class AutoLayoutMailer < ActionMailer::Base
     from       "tester@example.com"
 
     @world = "Earth"
-    render(:inline => "Hello, <%= @world %>", :layout => 'spam')
+    body render(:inline => "Hello, <%= @world %>", :layout => 'spam')
   end
 
   def nolayout
@@ -23,7 +23,7 @@ class AutoLayoutMailer < ActionMailer::Base
     from       "tester@example.com"
 
     @world = "Earth"
-    render(:inline => "Hello, <%= @world %>", :layout => false)
+    body render(:inline => "Hello, <%= @world %>", :layout => false)
   end
 
   def multipart(type = nil)
@@ -45,16 +45,6 @@ class ExplicitLayoutMailer < ActionMailer::Base
   end
 
   def logout
-    recipients 'test@localhost'
-    subject    "You have a mail"
-    from       "tester@example.com"
-  end
-end
-
-class NestedLayoutMailer < ActionMailer::Base
-  layout 'nested/layouts/spam'
-
-  def signup
     recipients 'test@localhost'
     subject    "You have a mail"
     from       "tester@example.com"
@@ -154,10 +144,5 @@ class LayoutMailerTest < Test::Unit::TestCase
   def test_explicit_layout_exceptions
     mail = ExplicitLayoutMailer.logout
     assert_equal "You logged out", mail.body.to_s.strip
-  end
-
-  def test_nested_class_layout
-    mail = NestedLayoutMailer.signup
-    assert_equal "Nested Spammer layout We do not spam", mail.body.to_s.strip
   end
 end
