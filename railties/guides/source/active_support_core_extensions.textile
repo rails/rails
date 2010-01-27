@@ -629,14 +629,6 @@ NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
 
 h4. Descendants
 
-h5. +descendents+
-
-The +descendents+ method returns all the descendants of its receiver as an array of class objects. This method performs no filtering so non-reachable classes are included, if any.
-
-See aso +Object#subclasses_of+, explained in "Extensions to All Objects FIX THIS LINK":FIXME.
-
-NOTE: Defined in +active_support/core_ext/object/extending.rb+.
-
 h5. +subclasses+
 
 The +subclasses+ method returns the names of all the anonymous or reachable descendants of its receiver as an array of strings:
