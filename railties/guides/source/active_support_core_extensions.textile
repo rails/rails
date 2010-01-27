@@ -363,31 +363,6 @@ See also +Class#subclasses+ in "Extensions to +Class+ FIXME THIS LINK":FIXME.
 
 NOTE: Defined in +active_support/core_ext/object/extending.rb+.
 
-h5. +extended_by+
-
-The method +extended_by+ returns an array with the modules that extend the receiver, if any:
-
-<ruby>
-module M
-end
-
-module N2
-end
-
-module N
-  include N2
-end
-
-class C
-  extend M
-  extend N
-end
-
-C.extended_by # => [N, N2, M]
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/object/extending.rb+.
-
 h5. +extend_with_included_modules_from+
 
 The method +extend_with_included_modules_from+ extends its receiver with the modules that extend its argument:
