@@ -54,5 +54,11 @@ module Rails
         raise "\"#{name}\" is a Railtie/Engine and cannot be installed as plugin"
       end
     end
+
+  protected
+
+    def reloadable?(app)
+      app.config.reload_plugins
+    end
   end
 end

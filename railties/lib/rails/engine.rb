@@ -124,7 +124,7 @@ module Rails
   protected
 
     def reloadable?(app)
-      app.config.reload_plugins
+      app.config.reload_engines
     end
   end
 end

@@ -19,5 +19,9 @@ module RailtiesTest
         plugin.write "lib/another.rb", "class Another; end"
       end
     end
+
+    def reload_config
+      :reload_engines
+    end
   end
 end

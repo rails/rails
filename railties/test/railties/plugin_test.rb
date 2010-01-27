@@ -15,6 +15,10 @@ module RailtiesTest
       end
     end
 
+    def reload_config
+      :reload_plugins
+    end
+
     test "plugin can load the file with the same name in lib" do
       boot_rails
       require "bukkits"

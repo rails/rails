@@ -31,7 +31,7 @@ module RailtiesTest
 
     def test_plugin_constants_get_reloaded_if_config_reload_plugins
       add_to_config <<-RUBY
-        config.reload_plugins = true
+        config.#{reload_config} = true
       RUBY
 
       boot_rails
