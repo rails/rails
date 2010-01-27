@@ -50,7 +50,7 @@ module ActiveRecord
     end
 
     # Setup database middleware after initializers have run
-    initializer "active_record.initialize_database_middleware" do |app|
+    initializer "active_record.initialize_database_middleware", :after => "action_controller.set_configs" do |app|
       middleware = app.config.middleware
       if middleware.include?("ActiveRecord::SessionStore")
         middleware.insert_before "ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
