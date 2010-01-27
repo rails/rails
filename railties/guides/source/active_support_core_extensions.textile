@@ -363,27 +363,6 @@ See also +Class#subclasses+ in "Extensions to +Class+ FIXME THIS LINK":FIXME.
 
 NOTE: Defined in +active_support/core_ext/object/extending.rb+.
 
-h5. +extend_with_included_modules_from+
-
-The method +extend_with_included_modules_from+ extends its receiver with the modules that extend its argument:
-
-<ruby>
-module M
-end
-
-class C
-  extend M
-end
-
-class D
-end
-
-D.extend_with_included_modules_from(C)
-D.extended_by # => [M]
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/object/extending.rb+.
-
 h4. Instance Variables
 
 Active Support provides several methods to ease access to instance variables.
