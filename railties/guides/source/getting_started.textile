@@ -1288,4 +1288,4 @@ h3. Changelog
 * October 16, 2008: Revised based on feedback from Pratik Naik by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
 * October 13, 2008: First complete draft by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
 * October 12, 2008: More detail, rearrangement, editing by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
-* September 8, 2008: initial version by James Miller (not yet approved for publication)
+* September 8, 2008: initial version by "James Miller":credits.html#bensie (not yet approved for publication)
