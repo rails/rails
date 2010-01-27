@@ -531,7 +531,7 @@ module ActionMailer #:nodoc:
       when m.multipart?
         ["multipart", "alternative", params]
       else
-        class_default
+        m.content_type || class_default
       end
     end
 
