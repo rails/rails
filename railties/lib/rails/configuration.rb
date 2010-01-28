@@ -91,6 +91,8 @@ module Rails
       def method_missing(method, *args)
         method = method.to_s.sub(/=$/, '').to_sym
 
+        return @options[method] if args.empty?
+
         if method == :rails
           namespace, configuration = :rails, args.shift
         elsif args.first.is_a?(Hash)

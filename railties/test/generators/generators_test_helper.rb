@@ -9,7 +9,7 @@ Rails.application.config.root = Rails.root
 
 require 'rails/generators'
 require 'rails/generators/test_case'
-
+Rails::Generators.configure!
 require 'active_record'
 require 'action_dispatch'
 
