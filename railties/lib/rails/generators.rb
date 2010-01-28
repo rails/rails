@@ -58,8 +58,7 @@ module Rails
         :scaffold_controller => :scaffold_controller,
         :singleton => false,
         :stylesheets => true,
-        :template_engine => :erb,
-        :test_framework => :test_unit
+        :template_engine => :erb
       },
 
       :test_unit => {
