@@ -283,7 +283,7 @@ module ActiveSupport #:nodoc:
         # are coerced into values that Time#- will recognize
         def minus_with_coercion(other)
           other = other.comparable_time if other.respond_to?(:comparable_time)
-          minus_without_coercion(other)
+          other.is_a?(::DateTime) ? to_f - other.to_f : minus_without_coercion(other)
         end
 
         # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances
