@@ -1,5 +1,7 @@
 *Edge*
 
+* Unvendor'd Builder.  Now requires the Builder gem as a dependency
+
 * Unvendor'd TZInfo.  Now requires the TZInfo gem as a dependency
 
 * YAML serialization for OrderedHash.  #3608 [Gregor Schmidt]
