@@ -144,6 +144,23 @@ jQuery(function ($) {
      */
     $('a[data-remote="true"],input[data-remote="true"],input[data-remote-submit="true"]').live('click', rails.remote);
    
+    /*
+     * popup
+     */
+    $('a[data-popup],input[data-popup]').live('click', function(e){
+        var el  = $(this),
+            url = el.attr('data-url') || el.attr('href');
+
+        e.preventDefault();
+
+        if(el.attr('data-popup') === "true"){
+          window.open(url);
+          console.log('without options');
+        } else {
+          window.open(url, el.attr('data-popup'));
+          console.log('with options');
+        }
+    });
 
     /**
      *
