@@ -1,5 +1,11 @@
 *Edge*
 
+* Unvendor'd Memcach Client.  Now requires the Builder gem as a dependency [Mikel Lindsaar]
+
+* Unvendor'd Builder.  Now requires the Builder gem as a dependency [Mikel Lindsaar]
+
+* Unvendor'd TZInfo.  Now requires the TZInfo gem as a dependency [Mikel Lindsaar]
+
 * YAML serialization for OrderedHash.  #3608 [Gregor Schmidt]
 
 * Update bundled TZInfo to v0.3.16 [Geoff Buesing]

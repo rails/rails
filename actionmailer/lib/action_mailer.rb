@@ -45,5 +45,5 @@ end
 module Text
   extend ActiveSupport::Autoload
 
-  autoload :Format, 'action_mailer/vendor/text_format'
+  autoload :Format, 'text/format'
 end

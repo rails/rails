@@ -1,5 +1,7 @@
 *Rails 3.0 (pending)*
 
+* Unvendor'd text-format, now requires text-format gem
+
 * Whole new API added with tests.  See base.rb for full details.  Old API is deprecated.
 
 * The Mail::Message class has helped methods for all the field types that return 'common' defaults for the common use case, so to get the subject, mail.subject will give you a string, mail.date will give you a DateTime object, mail.from will give you an array of address specs (mikel@test.lindsaar.net) etc.  If you want to access the field object itself, call mail[:field_name] which will return the field object you want, which you can then chain, like mail[:from].formatted
