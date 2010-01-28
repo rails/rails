@@ -52,8 +52,6 @@ class ArrayExtToParamTests < Test::Unit::TestCase
 end
 
 class ArrayExtToSentenceTests < Test::Unit::TestCase
-  include ActiveSupport::Testing::Deprecation
-  
   def test_plain_array_to_sentence
     assert_equal "", [].to_sentence
     assert_equal "one", ['one'].to_sentence
@@ -62,28 +60,12 @@ class ArrayExtToSentenceTests < Test::Unit::TestCase
   end
 
   def test_to_sentence_with_words_connector
-    assert_deprecated(":connector has been deprecated. Use :words_connector instead") do
-      assert_equal "one, two, three", ['one', 'two', 'three'].to_sentence(:connector => '')
-    end
-    
-    assert_deprecated(":connector has been deprecated. Use :words_connector instead") do
-      assert_equal "one, two, and three", ['one', 'two', 'three'].to_sentence(:connector => 'and ')
-    end
-    
     assert_equal "one two, and three", ['one', 'two', 'three'].to_sentence(:words_connector => ' ')
     assert_equal "one & two, and three", ['one', 'two', 'three'].to_sentence(:words_connector => ' & ')
     assert_equal "onetwo, and three", ['one', 'two', 'three'].to_sentence(:words_connector => nil)
   end
 
   def test_to_sentence_with_last_word_connector
-    assert_deprecated(":skip_last_comma has been deprecated. Use :last_word_connector instead") do
-      assert_equal "one, two and three", ['one', 'two', 'three'].to_sentence(:skip_last_comma => true)
-    end
-    
-    assert_deprecated(":skip_last_comma has been deprecated. Use :last_word_connector instead") do
-      assert_equal "one, two, and three", ['one', 'two', 'three'].to_sentence(:skip_last_comma => false)
-    end
-    
     assert_equal "one, two, and also three", ['one', 'two', 'three'].to_sentence(:last_word_connector => ', and also ')
     assert_equal "one, twothree", ['one', 'two', 'three'].to_sentence(:last_word_connector => nil)
     assert_equal "one, two three", ['one', 'two', 'three'].to_sentence(:last_word_connector => ' ')
@@ -317,6 +299,28 @@ class ArrayExtractOptionsTests < Test::Unit::TestCase
     assert_equal({}, [1].extract_options!)
     assert_equal({:a=>:b}, [{:a=>:b}].extract_options!)
     assert_equal({:a=>:b}, [1, {:a=>:b}].extract_options!)
+  end
+end
+
+class ArrayUniqByTests < Test::Unit::TestCase
+  def test_uniq_by
+    assert_equal [1,2], [1,2,3,4].uniq_by { |i| i.odd? }
+    assert_equal [1,2], [1,2,3,4].uniq_by(&:even?)
+    assert_equal (-5..0).to_a, (-5..5).to_a.uniq_by{ |i| i**2 }
+  end
+
+  def test_uniq_by!
+    a = [1,2,3,4]
+    a.uniq_by! { |i| i.odd? }
+    assert_equal [1,2], a
+
+    a = [1,2,3,4]
+    a.uniq_by! { |i| i.even? }
+    assert_equal [1,2], a
+
+    a = (-5..5).to_a
+    a.uniq_by! { |i| i**2 }
+    assert_equal (-5..0).to_a, a
   end
 end
 

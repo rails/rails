@@ -19,12 +19,6 @@ module Rails
         @options[:after]
       end
 
-      def global
-        @options[:global]
-      end
-
-      alias global? global
-
       def run(*args)
         @context.instance_exec(*args, &block)
       end
@@ -70,10 +64,7 @@ module Rails
     end
 
     def initializers
-      @initializers ||= begin
-        initializers = self.class.initializers_for(:instance)
-        Collection.new(initializers.map { |i| i.bind(self) })
-      end
+      @initializers ||= self.class.initializers_for(self)
     end
 
     module ClassMethods
@@ -81,26 +72,27 @@ module Rails
         @initializers ||= []
       end
 
-      def initializers_for(scope = :global)
+      def initializers_chain
         initializers = Collection.new
         ancestors.reverse_each do |klass|
           next unless klass.respond_to?(:initializers)
-          initializers = initializers + klass.initializers.select { |i|
-            (scope == :global) == !!i.global?
-          }
+          initializers = initializers + klass.initializers
         end
         initializers
       end
 
+      def initializers_for(binding)
+        Collection.new(initializers_chain.map { |i| i.bind(binding) })
+      end
+
       def initializer(name, opts = {}, &blk)
         raise ArgumentError, "A block must be passed when defining an initializer" unless blk
-        @initializers ||= []
-        @initializers << Initializer.new(name, nil, opts, &blk)
+        initializers << Initializer.new(name, nil, opts, &blk)
       end
 
       def run_initializers(*args)
         return if @ran
-        initializers_for(:global).each do |initializer|
+        initializers_chain.each do |initializer|
           instance_exec(*args, &initializer.block)
         end
         @ran = true

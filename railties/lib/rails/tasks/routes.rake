@@ -1,5 +1,6 @@
 desc 'Print out all defined routes in match order, with names. Target specific controller with CONTROLLER=x.'
 task :routes => :environment do
+  Rails::Application.reload_routes!
   all_routes = ENV['CONTROLLER'] ? ActionController::Routing::Routes.routes.select { |route| route.defaults[:controller] == ENV['CONTROLLER'] } : ActionController::Routing::Routes.routes
   routes = all_routes.collect do |route|
     name = ActionController::Routing::Routes.named_routes.routes.index(route).to_s

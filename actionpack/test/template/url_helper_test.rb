@@ -76,7 +76,7 @@ class UrlHelperTest < ActionView::TestCase
 
   def test_button_to_with_javascript_confirm
     assert_dom_equal(
-      "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input onclick=\"return confirm('Are you sure?');\" type=\"submit\" value=\"Hello\" /></div></form>",
+      "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
       button_to("Hello", "http://www.example.com", :confirm => "Are you sure?")
     )
   end
@@ -170,76 +170,76 @@ class UrlHelperTest < ActionView::TestCase
 
   def test_link_tag_with_javascript_confirm
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"return confirm('Are you sure?');\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-confirm=\"Are you sure?\">Hello</a>",
       link_to("Hello", "http://www.example.com", :confirm => "Are you sure?")
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"return confirm('You can\\'t possibly be sure, can you?');\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-confirm=\"You can\'t possibly be sure, can you?\">Hello</a>",
       link_to("Hello", "http://www.example.com", :confirm => "You can't possibly be sure, can you?")
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"return confirm('You can\\'t possibly be sure,\\n can you?');\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-confirm=\"You can\'t possibly be sure,\n can you?\">Hello</a>",
       link_to("Hello", "http://www.example.com", :confirm => "You can't possibly be sure,\n can you?")
     )
   end
 
   def test_link_tag_with_popup
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"window.open(this.href);return false;\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-popup=\"true\">Hello</a>",
       link_to("Hello", "http://www.example.com", :popup => true)
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"window.open(this.href);return false;\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-popup=\"true\">Hello</a>",
       link_to("Hello", "http://www.example.com", :popup => 'true')
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"window.open(this.href,'window_name','width=300,height=300');return false;\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-popup=\"{title: 'window_name', options: 'width=300,height=300'}\">Hello</a>",
       link_to("Hello", "http://www.example.com", :popup => ['window_name', 'width=300,height=300'])
     )
   end
 
   def test_link_tag_with_popup_and_javascript_confirm
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"if (confirm('Fo\\' sho\\'?')) { window.open(this.href); };return false;\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-confirm=\"Fo\' sho\'?\" data-popup=\"true\">Hello</a>",
       link_to("Hello", "http://www.example.com", { :popup => true, :confirm => "Fo' sho'?" })
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"if (confirm('Are you serious?')) { window.open(this.href,'window_name','width=300,height=300'); };return false;\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-confirm=\"Are you serious?\" data-popup=\"{title: 'window_name', options: 'width=300,height=300'}\">Hello</a>",
       link_to("Hello", "http://www.example.com", { :popup => ['window_name', 'width=300,height=300'], :confirm => "Are you serious?" })
     )
   end
 
   def test_link_tag_using_post_javascript
     assert_dom_equal(
-      "<a href='http://www.example.com' onclick=\"var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;f.submit();return false;\">Hello</a>",
+      "<a href='http://www.example.com' data-url='http://www.example.com' data-method=\"post\">Hello</a>",
       link_to("Hello", "http://www.example.com", :method => :post)
     )
   end
 
   def test_link_tag_using_delete_javascript
     assert_dom_equal(
-      "<a href='http://www.example.com' onclick=\"var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); m.setAttribute('value', 'delete'); f.appendChild(m);f.submit();return false;\">Destroy</a>",
+      "<a href='http://www.example.com' data-url='http://www.example.com' rel=\"nofollow\" data-method=\"delete\">Destroy</a>",
       link_to("Destroy", "http://www.example.com", :method => :delete)
     )
   end
 
   def test_link_tag_using_delete_javascript_and_href
     assert_dom_equal(
-      "<a href='\#' onclick=\"var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = 'http://www.example.com';var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); m.setAttribute('value', 'delete'); f.appendChild(m);f.submit();return false;\">Destroy</a>",
+      "<a href='\#' data-url='http://www.example.com' rel=\"nofollow\" data-method=\"delete\">Destroy</a>",
       link_to("Destroy", "http://www.example.com", :method => :delete, :href => '#')
     )
   end
 
   def test_link_tag_using_post_javascript_and_confirm
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"if (confirm('Are you serious?')) { var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;f.submit(); };return false;\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-url='http://www.example.com' data-method=\"post\" data-confirm=\"Are you serious?\">Hello</a>",
       link_to("Hello", "http://www.example.com", :method => :post, :confirm => "Are you serious?")
     )
   end
 
   def test_link_tag_using_delete_javascript_and_href_and_confirm
     assert_dom_equal(
-      "<a href='\#' onclick=\"if (confirm('Are you serious?')) { var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = 'http://www.example.com';var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); m.setAttribute('value', 'delete'); f.appendChild(m);f.submit(); };return false;\">Destroy</a>",
+      "<a href=\"#\" data-url='http://www.example.com' rel=\"nofollow\" data-method=\"delete\" data-confirm=\"Are you serious?\">Destroy</a>",
       link_to("Destroy", "http://www.example.com", :method => :delete, :href => '#', :confirm => "Are you serious?"),
       "When specifying url, form should be generated with it, but not this.href"
     )

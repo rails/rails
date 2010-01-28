@@ -1,2 +1,0 @@
-class EngineModel
-end

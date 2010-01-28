@@ -1,6 +1,6 @@
 require 'optparse'
 require 'irb'
-require "irb/completion"
+require 'irb/completion'
 
 module Rails
   class Console
@@ -24,9 +24,9 @@ module Rails
       end
 
       @app.initialize!
-      require "rails/console_app"
-      require "rails/console_sandbox" if options[:sandbox]
-      require "rails/console_with_helpers"
+      require "rails/console/app"
+      require "rails/console/sandbox" if options[:sandbox]
+      require "rails/console/helpers"
 
       if options[:debugger]
         begin

@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/kernel/reporting'
 
-ActionController::Base.helpers_dir = File.dirname(__FILE__) + '/../fixtures/helpers'
+ActionController::Base.helpers_path = [File.dirname(__FILE__) + '/../fixtures/helpers']
 
 module Fun
   class GamesController < ActionController::Base
@@ -31,7 +31,7 @@ module LocalAbcHelper
   def c() end
 end
 
-class HelperTest < Test::Unit::TestCase
+class HelperTest < ActiveSupport::TestCase
   class TestController < ActionController::Base
     attr_accessor :delegate_attr
     def delegate_method() end
@@ -106,7 +106,7 @@ class HelperTest < Test::Unit::TestCase
   end
 
   def test_all_helpers_with_alternate_helper_dir
-    @controller_class.helpers_dir = File.dirname(__FILE__) + '/../fixtures/alternate_helpers'
+    @controller_class.helpers_path = [File.dirname(__FILE__) + '/../fixtures/alternate_helpers']
 
     # Reload helpers
     @controller_class._helpers = Module.new
@@ -135,6 +135,18 @@ class HelperTest < Test::Unit::TestCase
     assert methods.include?('foobar')
   end
 
+  # TODO Add this deprecation back before Rails 3.0 final release
+  # def test_deprecation
+  #   assert_deprecated do
+  #     ActionController::Base.helpers_dir = "some/foo/bar"
+  #   end
+  #   assert_deprecated do
+  #     assert_equal ["some/foo/bar"], ActionController::Base.helpers_dir
+  #   end
+  # ensure
+  #   ActionController::Base.helpers_path = [File.dirname(__FILE__) + '/../fixtures/helpers']
+  # end
+
   private
     def expected_helper_methods
       TestHelper.instance_methods.map {|m| m.to_s }
@@ -154,7 +166,7 @@ class HelperTest < Test::Unit::TestCase
 end
 
 
-class IsolatedHelpersTest < Test::Unit::TestCase
+class IsolatedHelpersTest < ActiveSupport::TestCase
   class A < ActionController::Base
     def index
       render :inline => '<%= shout %>'

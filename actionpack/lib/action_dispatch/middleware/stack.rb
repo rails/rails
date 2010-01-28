@@ -55,7 +55,11 @@ module ActionDispatch
         when Class
           klass == middleware
         else
-          klass == ActiveSupport::Inflector.constantize(middleware.to_s)
+          if lazy_compare?(@klass) && lazy_compare?(middleware)
+            normalize(@klass) == normalize(middleware)
+          else
+            klass == ActiveSupport::Inflector.constantize(middleware.to_s)
+          end
         end
       end
 
@@ -72,6 +76,14 @@ module ActionDispatch
       end
 
       private
+        def lazy_compare?(object)
+          object.is_a?(String) || object.is_a?(Symbol)
+        end
+
+        def normalize(object)
+          object.to_s.strip.sub(/^::/, '')
+        end
+
         def build_args
           Array(args).map { |arg| arg.respond_to?(:call) ? arg.call : arg }
         end

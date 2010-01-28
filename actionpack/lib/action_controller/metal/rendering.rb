@@ -13,6 +13,10 @@ module ActionController
     end
 
     def render(*args)
+      if response_body
+        raise ::AbstractController::DoubleRenderError
+      end
+
       args << {} unless args.last.is_a?(Hash)
       super(*args)
       self.content_type ||= args.last[:_template].mime_type.to_s

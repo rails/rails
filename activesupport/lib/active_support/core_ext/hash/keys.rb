@@ -1,10 +1,7 @@
 class Hash
   # Return a new hash with all keys converted to strings.
   def stringify_keys
-    inject({}) do |options, (key, value)|
-      options[key.to_s] = value
-      options
-    end
+    dup.stringify_keys!
   end
 
   # Destructively convert all keys to strings.
@@ -18,16 +15,16 @@ class Hash
   # Return a new hash with all keys converted to symbols, as long as
   # they respond to +to_sym+.
   def symbolize_keys
-    inject({}) do |options, (key, value)|
-      options[(key.to_sym rescue key) || key] = value
-      options
-    end
+    dup.symbolize_keys!
   end
 
   # Destructively convert all keys to symbols, as long as they respond
   # to +to_sym+.
   def symbolize_keys!
-    self.replace(self.symbolize_keys)
+    keys.each do |key|
+      self[(key.to_sym rescue key) || key] = delete(key)
+    end
+    self
   end
 
   alias_method :to_options,  :symbolize_keys

@@ -3,11 +3,13 @@ require 'test_helper'
 class <%= class_name %>Test < ActionMailer::TestCase
 <% for action in actions -%>
   test "<%= action %>" do
-    @expected.subject = '<%= class_name %>#<%= action %>'
-    @expected.body    = read_fixture('<%= action %>')
+    @expected.subject = <%= action.to_s.humanize.inspect %>
+    @expected.to      = "to@example.org"
+    @expected.from    = "from@example.com"
+    @expected.body    = read_fixture("<%= action %>")
     @expected.date    = Time.now
 
-    assert_equal @expected.encoded, <%= class_name %>.create_<%= action %>(@expected.date).encoded
+    assert_equal @expected, <%= class_name %>.<%= action %>
   end
 
 <% end -%>

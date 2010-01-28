@@ -19,8 +19,14 @@ module ApplicationTests
       yield app_const.config
     end
 
+    def with_bare_config
+      require "rails"
+      require "rails/generators"
+      yield app_const.config
+    end
+
     test "generators default values" do
-      with_config do |c|
+      with_bare_config do |c|
         assert_equal(true, c.generators.colorize_logging)
         assert_equal({}, c.generators.aliases)
         assert_equal({}, c.generators.options)
@@ -28,7 +34,7 @@ module ApplicationTests
     end
 
     test "generators set rails options" do
-      with_config do |c|
+      with_bare_config do |c|
         c.generators.orm            = :datamapper
         c.generators.test_framework = :rspec
         c.generators.helper         = false
@@ -75,7 +81,7 @@ module ApplicationTests
     end
 
     test "generators with hashes for options and aliases" do
-      with_config do |c|
+      with_bare_config do |c|
         c.generators do |g|
           g.orm    :datamapper, :migration => false
           g.plugin :aliases => { :generator => "-g" },
@@ -91,19 +97,6 @@ module ApplicationTests
         assert_equal expected, c.generators.options
         assert_equal({ :plugin => { :generator => "-g" } }, c.generators.aliases)
       end
-    end
-
-    test "generators with hashes are deep merged" do
-      with_config do |c|
-        c.generators do |g|
-          g.orm    :datamapper, :migration => false
-          g.plugin :aliases => { :generator => "-g" },
-                   :generator => true
-        end
-      end
-
-      assert Rails::Generators.aliases.size >= 1
-      assert Rails::Generators.options.size >= 1
     end
   end
 end

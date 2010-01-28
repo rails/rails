@@ -1,5 +1,11 @@
+require 'rails/engine'
+
 module Rails
-  class Plugin < Railtie
+  class Plugin < Engine
+    def self.inherited(base)
+      raise "You cannot inherit from Rails::Plugin"
+    end
+
     def self.all(list, paths)
       plugins = []
       paths.each do |path|
@@ -17,53 +23,42 @@ module Rails
 
     attr_reader :name, :path
 
-    def initialize(path)
-      @name = File.basename(path).to_sym
-      @path = path
-    end
-
-    def load_paths
-      Dir["#{path}/{lib}", "#{path}/app/{models,controllers,helpers}"]
-    end
-
     def load_tasks
-      Dir["#{path}/{tasks,lib/tasks,rails/tasks}/**/*.rake"].sort.each { |ext| load ext }
-    end
+      super
+      extra_tasks = Dir["#{root}/{tasks,rails/tasks}/**/*.rake"]
 
-    initializer :add_to_load_path, :after => :set_autoload_paths do |app|
-      load_paths.each do |path|
-        $LOAD_PATH << path
-        require "active_support/dependencies"
-
-        ActiveSupport::Dependencies.load_paths << path
-
-        unless app.config.reload_plugins
-          ActiveSupport::Dependencies.load_once_paths << path
-        end
+      unless extra_tasks.empty?
+        ActiveSupport::Deprecation.warn "Having rake tasks in PLUGIN_PATH/tasks or " <<
+          "PLUGIN_PATH/rails/tasks is deprecated. Use to PLUGIN_PATH/lib/tasks instead"
+        extra_tasks.sort.each { |ext| load(ext) }
       end
     end
 
-    initializer :load_init_rb, :before => :load_application_initializers do |app|
-      file   = "#{@path}/init.rb"
+    def initialize(root)
+      @name = File.basename(root).to_sym
+      config.root = root
+    end
+
+    def config
+      @config ||= Engine::Configuration.new
+    end
+
+    initializer :load_init_rb do |app|
+      file   = Dir["#{root}/{rails/init,init}.rb"].first
       config = app.config
-      eval File.read(file), binding, file if File.file?(file)
+      eval(File.read(file), binding, file) if file && File.file?(file)
     end
 
-    initializer :add_view_paths, :after => :initialize_framework_views do
-      plugin_views = "#{path}/app/views"
-      if File.directory?(plugin_views)
-        ActionController::Base.view_paths.concat([plugin_views]) if defined? ActionController
-        ActionMailer::Base.view_paths.concat([plugin_views])     if defined? ActionMailer
+    initializer :sanity_check_railties_collision do
+      if Engine.subclasses.map { |k| k.root.to_s }.include?(root.to_s)
+        raise "\"#{name}\" is a Railtie/Engine and cannot be installed as plugin"
       end
     end
 
-    # TODO Isn't it supposed to be :after => "action_controller.initialize_routing" ?
-    initializer :add_routing_file, :after => :initialize_routing do |app|
-      routing_file = "#{path}/config/routes.rb"
-      if File.exist?(routing_file)
-        app.route_configuration_files << routing_file
-        app.reload_routes!
-      end
+  protected
+
+    def reloadable?(app)
+      app.config.reload_plugins
     end
   end
 end

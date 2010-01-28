@@ -38,11 +38,6 @@ module Rails
     }
 
     DEFAULT_OPTIONS = {
-      :active_record => {
-        :migration  => true,
-        :timestamps => true
-      },
-
       :erb => {
         :layout => true
       },
@@ -51,20 +46,15 @@ module Rails
         :force_plural => false,
         :helper => true,
         :layout => true,
-        :orm => :active_record,
-        :integration_tool => :test_unit,
-        :performance_tool => :test_unit,
+        :orm => nil,
+        :integration_tool => nil,
+        :performance_tool => nil,
         :resource_controller => :controller,
         :scaffold_controller => :scaffold_controller,
         :singleton => false,
         :stylesheets => true,
-        :template_engine => :erb,
-        :test_framework => :test_unit
-      },
-
-      :test_unit => {
-        :fixture => true,
-        :fixture_replacement => nil
+        :test_framework => nil,
+        :template_engine => :erb
       },
 
       :plugin => {
@@ -200,6 +190,7 @@ module Rails
       # Print Rails defaults first.
       rails = groups.delete("rails")
       rails.map! { |n| n.sub(/^rails:/, '') }
+      rails.delete("app")
       print_list("rails", rails)
 
       groups.sort.each { |b, n| print_list(b, n) }

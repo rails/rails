@@ -11,35 +11,43 @@ namespace :doc do
     rdoc.rdoc_files.include('lib/**/*.rb')
   }
 
-  desc "Generate documentation for the Rails framework"
+  desc 'Generate documentation for the Rails framework. Specify path with PATH="/path/to/rails"'
   Rake::RDocTask.new("rails") { |rdoc|
+    path = ENV['RAILS_PATH'] || 'vendor/gems/gems'
+    version = '-3.0.pre' unless ENV['RAILS_PATH']
     rdoc.rdoc_dir = 'doc/api'
     rdoc.template = "#{ENV['template']}.rb" if ENV['template']
     rdoc.title    = "Rails Framework Documentation"
     rdoc.options << '--line-numbers' << '--inline-source'
     rdoc.rdoc_files.include('README')
-    rdoc.rdoc_files.include('vendor/rails/railties/CHANGELOG')
-    rdoc.rdoc_files.include('vendor/rails/railties/MIT-LICENSE')
-    rdoc.rdoc_files.include('vendor/rails/railties/README')
-    rdoc.rdoc_files.include('vendor/rails/railties/lib/{*.rb,commands/*.rb,generators/*.rb}')
-    rdoc.rdoc_files.include('vendor/rails/activerecord/README')
-    rdoc.rdoc_files.include('vendor/rails/activerecord/CHANGELOG')
-    rdoc.rdoc_files.include('vendor/rails/activerecord/lib/active_record/**/*.rb')
-    rdoc.rdoc_files.exclude('vendor/rails/activerecord/lib/active_record/vendor/*')
-    rdoc.rdoc_files.include('vendor/rails/activeresource/README')
-    rdoc.rdoc_files.include('vendor/rails/activeresource/CHANGELOG')
-    rdoc.rdoc_files.include('vendor/rails/activeresource/lib/active_resource.rb')
-    rdoc.rdoc_files.include('vendor/rails/activeresource/lib/active_resource/*')
-    rdoc.rdoc_files.include('vendor/rails/actionpack/README')
-    rdoc.rdoc_files.include('vendor/rails/actionpack/CHANGELOG')
-    rdoc.rdoc_files.include('vendor/rails/actionpack/lib/action_controller/**/*.rb')
-    rdoc.rdoc_files.include('vendor/rails/actionpack/lib/action_view/**/*.rb')
-    rdoc.rdoc_files.include('vendor/rails/actionmailer/README')
-    rdoc.rdoc_files.include('vendor/rails/actionmailer/CHANGELOG')
-    rdoc.rdoc_files.include('vendor/rails/actionmailer/lib/action_mailer/base.rb')
-    rdoc.rdoc_files.include('vendor/rails/activesupport/README')
-    rdoc.rdoc_files.include('vendor/rails/activesupport/CHANGELOG')
-    rdoc.rdoc_files.include('vendor/rails/activesupport/lib/active_support/**/*.rb')
+
+    %w(README CHANGELOG lib/action_mailer/base.rb).each do |file|
+      rdoc.rdoc_files.include("#{path}/actionmailer#{version}/#{file}")
+    end
+
+    %w(README CHANGELOG lib/action_controller/**/*.rb lib/action_view/**/*.rb).each do |file|
+      rdoc.rdoc_files.include("#{path}/actionpack#{version}/#{file}")
+    end
+
+    %w(README CHANGELOG lib/active_model/**/*.rb).each do |file|
+      rdoc.rdoc_files.include("#{path}/activemodel#{version}/#{file}")
+    end
+
+    %w(README CHANGELOG lib/active_record/**/*.rb).each do |file|
+      rdoc.rdoc_files.include("#{path}/activerecord#{version}/#{file}")
+    end
+
+    %w(README CHANGELOG lib/active_resource.rb lib/active_resource/*).each do |file|
+      rdoc.rdoc_files.include("#{path}/activeresource#{version}/#{file}")
+    end
+
+    %w(README CHANGELOG lib/active_support/**/*.rb).each do |file|
+      rdoc.rdoc_files.include("#{path}/activesupport#{version}/#{file}")
+    end
+
+    %w(README CHANGELOG MIT-LICENSE lib/{*.rb,commands/*.rb,generators/*.rb}).each do |file|
+      rdoc.rdoc_files.include("#{path}/railties#{version}/#{file}")
+    end
   }
 
   plugins = FileList['vendor/plugins/**'].collect { |plugin| File.basename(plugin) }

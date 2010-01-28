@@ -1,43 +1,70 @@
-require "fileutils"
-require 'active_support/core_ext/module/delegation'
+require 'fileutils'
+require 'rails/railties_path'
+require 'rails/plugin'
+require 'rails/engine'
 
 module Rails
-  class Application
-    include Initializable
+  class Application < Engine
+    autoload :Bootstrap,      'rails/application/bootstrap'
+    autoload :Configurable,   'rails/application/configurable'
+    autoload :Configuration,  'rails/application/configuration'
+    autoload :Finisher,       'rails/application/finisher'
+    autoload :MetalLoader,    'rails/application/metal_loader'
+    autoload :Railties,       'rails/application/railties'
+    autoload :RoutesReloader, 'rails/application/routes_reloader'
 
     class << self
-      attr_writer :config
-      alias configure class_eval
-      delegate :call,
-        :initialize!,
-        :load_generators,
-        :load_tasks,
-        :middleware,
-        :root,
-        :to => :instance
-
       private :new
+      alias   :configure :class_eval
+
       def instance
-        @instance ||= new
+        if self == Rails::Application
+          Rails.application
+        else
+          @@instance ||= new
+        end
       end
 
-      def config
-        @config ||= Configuration.new(Plugin::Configuration.default)
+      def inherited(base)
+        raise "You cannot have more than one Rails::Application" if Rails.application
+        super
+        Rails.application = base.instance
       end
 
-      def routes
-        ActionController::Routing::Routes
+      def respond_to?(*args)
+        super || instance.respond_to?(*args)
+      end
+
+    protected
+
+      def method_missing(*args, &block)
+        instance.send(*args, &block)
       end
     end
 
-    delegate :config, :routes, :to => :'self.class'
-    delegate :root, :middleware, :to => :config
-    attr_reader :route_configuration_files
+    def require_environment!
+      environment = config.paths.config.environment.to_a.first
+      require environment if environment
+    end
 
-    def initialize
-      require_environment
-      Rails.application ||= self
-      @route_configuration_files = []
+    def routes
+      ::ActionController::Routing::Routes
+    end
+
+    def railties
+      @railties ||= Railties.new(config)
+    end
+
+    def metal_loader
+      @metal_laoder ||= MetalLoader.new
+    end
+
+    def routes_reloader
+      @routes_reloader ||= RoutesReloader.new
+    end
+
+    def reload_routes!
+      routes_reloader.reload!
     end
 
     def initialize!
@@ -45,74 +72,22 @@ module Rails
       self
     end
 
-    def require_environment
-      require config.environment_path
-    rescue LoadError
-    end
-
-    def routes_changed_at
-      routes_changed_at = nil
-
-      route_configuration_files.each do |config|
-        config_changed_at = File.stat(config).mtime
-
-        if routes_changed_at.nil? || config_changed_at > routes_changed_at
-          routes_changed_at = config_changed_at
-        end
-      end
-
-      routes_changed_at
-    end
-
-    def reload_routes!
-      routes.disable_clear_and_finalize = true
-
-      routes.clear!
-      route_configuration_files.each { |config| load(config) }
-      routes.finalize!
-
-      nil
-    ensure
-      routes.disable_clear_and_finalize = false
-    end
-
     def load_tasks
-      require "rails/tasks"
-      plugins.each { |p| p.load_tasks }
-      # Load all application tasks
-      # TODO: extract out the path to the rake tasks
-      Dir["#{root}/lib/tasks/**/*.rake"].sort.each { |ext| load ext }
-      task :environment do
-        $rails_rake_task = true
-        initialize!
-      end
+      initialize_tasks
+      super
+      railties.all { |r| r.load_tasks }
+      self
     end
 
     def load_generators
-      plugins.each { |p| p.load_generators }
-    end
-
-    def initializers
-      initializers = Bootstrap.new(self).initializers
-      plugins.each { |p| initializers += p.initializers }
-      initializers += super
-      initializers
-    end
-
-    # TODO: Fix this method. It loads all railties independent if :all is given
-    # or not, otherwise frameworks are never loaded.
-    def plugins
-      @plugins ||= begin
-        plugin_names = (config.plugins || [:all]).map { |p| p.to_sym }
-        Railtie.plugins.map(&:new) + Plugin.all(plugin_names, config.paths.vendor.plugins)
-      end
+      initialize_generators
+      super
+      railties.all { |r| r.load_generators }
+      self
     end
 
     def app
-      @app ||= begin
-        reload_routes!
-        middleware.build(routes)
-      end
+      @app ||= middleware.build(routes)
     end
 
     def call(env)
@@ -120,42 +95,31 @@ module Rails
       app.call(env)
     end
 
-    initializer :load_application_initializers do
-      Dir["#{root}/config/initializers/**/*.rb"].sort.each do |initializer|
-        load(initializer)
+    def initializers
+      initializers = Bootstrap.initializers_for(self)
+      railties.all { |r| initializers += r.initializers }
+      initializers += super
+      initializers += Finisher.initializers_for(self)
+      initializers
+    end
+
+  protected
+
+    def initialize_tasks
+      require "rails/tasks"
+      task :environment do
+        $rails_rake_task = true
+        initialize!
       end
     end
 
-    initializer :build_middleware_stack do
-      app
+    def initialize_generators
+      require "rails/generators"
     end
 
-    # Fires the user-supplied after_initialize block (Configuration#after_initialize)
-    initializer :after_initialize do
-      config.after_initialize_blocks.each do |block|
-        block.call
-      end
-    end
-
-    # Eager load application classes
-    initializer :load_application_classes do
-      next if $rails_rake_task
-
-      if config.cache_classes
-        config.eager_load_paths.each do |load_path|
-          matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
-          Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
-            require_dependency file.sub(matcher, '\1')
-          end
-        end
-      end
-    end
-
-    # Disable dependency loading during request cycle
-    initializer :disable_dependency_loading do
-      if config.cache_classes && !config.dependency_loading
-        ActiveSupport::Dependencies.unhook!
-      end
+    # Application is always reloadable when config.cache_classes is false.
+    def reloadable?(app)
+      true
     end
   end
 end

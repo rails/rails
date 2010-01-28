@@ -1,3 +1,5 @@
+require 'abstract_controller/collector'
+
 module ActionController #:nodoc:
   module MimeResponds #:nodoc:
     extend ActiveSupport::Concern
@@ -265,6 +267,7 @@ module ActionController #:nodoc:
     end
 
     class Collector #:nodoc:
+      include AbstractController::Collector
       attr_accessor :order
 
       def initialize(&block)
@@ -289,32 +292,6 @@ module ActionController #:nodoc:
       def response_for(mime)
         @responses[mime] || @responses[Mime::ALL] || @default_response
       end
-
-      def self.generate_method_for_mime(mime)
-        sym = mime.is_a?(Symbol) ? mime : mime.to_sym
-        const = sym.to_s.upcase
-        class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{sym}(&block)                # def html(&block)
-            custom(Mime::#{const}, &block)  #   custom(Mime::HTML, &block)
-          end                               # end
-        RUBY
-      end
-
-      Mime::SET.each do |mime|
-        generate_method_for_mime(mime)
-      end
-
-      def method_missing(symbol, &block)
-        mime_constant = Mime.const_get(symbol.to_s.upcase)
-
-        if Mime::SET.include?(mime_constant)
-          self.class.generate_method_for_mime(mime_constant)
-          send(symbol, &block)
-        else
-          super
-        end
-      end
-
     end
   end
 end

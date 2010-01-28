@@ -8,7 +8,10 @@ require "rails"
 
 module ActiveRecord
   class Railtie < Rails::Railtie
-    plugin_name :active_record
+    railtie_name :active_record
+
+    config.generators.orm :active_record, :migration => true,
+                                          :timestamps => true
 
     rake_tasks do
       load "active_record/railties/databases.rake"
@@ -17,6 +20,15 @@ module ActiveRecord
     # TODO If we require the wrong file, the error never comes up.
     require "active_record/railties/subscriber"
     subscriber ActiveRecord::Railties::Subscriber.new
+
+    initializer "active_record.initialize_timezone" do
+      ActiveRecord::Base.time_zone_aware_attributes = true
+      ActiveRecord::Base.default_timezone = :utc
+    end
+
+    initializer "active_record.logger" do
+      ActiveRecord::Base.logger ||= ::Rails.logger
+    end
 
     initializer "active_record.set_configs" do |app|
       app.config.active_record.each do |k,v|
@@ -31,11 +43,6 @@ module ActiveRecord
       ActiveRecord::Base.establish_connection
     end
 
-    initializer "active_record.initialize_timezone" do
-      ActiveRecord::Base.time_zone_aware_attributes = true
-      ActiveRecord::Base.default_timezone = :utc
-    end
-
     # Expose database runtime to controller for logging.
     initializer "active_record.log_runtime" do |app|
       require "active_record/railties/controller_runtime"
@@ -45,9 +52,9 @@ module ActiveRecord
     # Setup database middleware after initializers have run
     initializer "active_record.initialize_database_middleware" do |app|
       middleware = app.config.middleware
-      if middleware.include?(ActiveRecord::SessionStore)
-        middleware.insert_before ActiveRecord::SessionStore, ActiveRecord::ConnectionAdapters::ConnectionManagement
-        middleware.insert_before ActiveRecord::SessionStore, ActiveRecord::QueryCache
+      if middleware.include?("ActiveRecord::SessionStore")
+        middleware.insert_before "ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
+        middleware.insert_before "ActiveRecord::SessionStore", ActiveRecord::QueryCache
       else
         middleware.use ActiveRecord::ConnectionAdapters::ConnectionManagement
         middleware.use ActiveRecord::QueryCache
@@ -69,11 +76,6 @@ module ActiveRecord
           ActiveRecord::Base.clear_reloadable_connections!
         end
       end
-    end
-
-    # TODO: ActiveRecord::Base.logger should delegate to its own config.logger
-    initializer "active_record.logger" do
-      ActiveRecord::Base.logger ||= ::Rails.logger
     end
 
     initializer "active_record.i18n_deprecation" do

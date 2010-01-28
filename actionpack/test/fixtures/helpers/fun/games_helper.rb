@@ -1,3 +1,5 @@
-module Fun::GamesHelper
-  def stratego() "Iz guuut!" end
+module Fun
+  module GamesHelper
+    def stratego() "Iz guuut!" end
+  end
 end

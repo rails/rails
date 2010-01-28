@@ -9,27 +9,23 @@ module Rails
       end
 
       def call(env)
-        @env = env
-        before_dispatch
-        result = @app.call(@env)
-        after_dispatch
-        result
+        before_dispatch(env)
+        @app.call(env)
+      ensure
+        after_dispatch(env)
       end
 
       protected
 
-        def request
-          @request ||= ActionDispatch::Request.new(@env) 
-        end
-
-        def before_dispatch
+        def before_dispatch(env)
+          request = ActionDispatch::Request.new(env)
           path = request.request_uri.inspect rescue "unknown"
 
           info "\n\nStarted #{request.method.to_s.upcase} #{path} " <<
                       "for #{request.remote_ip} at #{Time.now.to_s(:db)}"
         end
 
-        def after_dispatch
+        def after_dispatch(env)
           Rails::Subscriber.flush_all!
         end
 

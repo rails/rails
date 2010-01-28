@@ -37,7 +37,7 @@ module ActionDispatch
 
     def initialize(app, prepare_each_request = false)
       @app, @prepare_each_request = app, prepare_each_request
-      run_callbacks(:prepare)
+      run_callbacks(:prepare) unless @prepare_each_request
     end
 
     def call(env)

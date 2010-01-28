@@ -141,19 +141,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :rooms
       end
 
-      scope '(:locale)', :locale => /en|pl/ do
-        resources :descriptions
-      end
+      match '/info' => 'projects#info', :as => 'info'
 
       namespace :admin do
-        scope '(/:locale)', :locale => /en|pl/ do
+        scope '(:locale)', :locale => /en|pl/ do
           resources :descriptions
         end
       end
 
-      match '/info' => 'projects#info', :as => 'info'
-
-      root :to => 'projects#index'
+      scope '(:locale)', :locale => /en|pl/ do
+        resources :descriptions
+        root :to => 'projects#index'
+      end
     end
   end
 
@@ -657,6 +656,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/account/description'
       assert_equal 'account#description', @response.body
+    end
+  end
+
+  def test_optional_scoped_root
+    with_test_routes do
+      assert_equal '/en', root_path("en")
+      get '/en'
+      assert_equal 'projects#index', @response.body
     end
   end
 

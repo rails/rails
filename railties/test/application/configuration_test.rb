@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class InitializerTest < Test::Unit::TestCase
+  class ConfigurationTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
 
     def new_app
@@ -12,11 +12,31 @@ module ApplicationTests
       FileUtils.cp_r(app_path, new_app)
     end
 
+    def app
+      @app ||= Rails.application
+    end
+
     def setup
-      FileUtils.rm_rf(new_app) if File.directory?(new_app)
       build_app
       boot_rails
       FileUtils.rm_rf("#{app_path}/config/environments")
+    end
+
+    def teardown
+      FileUtils.rm_rf(new_app) if File.directory?(new_app)
+    end
+
+    test "Rails::Application.instance is nil until app is initialized" do
+      require 'rails'
+      assert_nil Rails::Application.instance
+      require "#{app_path}/config/environment"
+      assert_equal AppTemplate::Application.instance, Rails::Application.instance
+    end
+
+    test "Rails::Application responds to all instance methods" do
+      require "#{app_path}/config/environment"
+      assert_respond_to Rails::Application, :routes_reloader
+      assert_equal Rails::Application.routes_reloader, Rails.application.routes_reloader
     end
 
     test "the application root is set correctly" do
@@ -52,21 +72,12 @@ module ApplicationTests
       end
     end
 
-    test "if there's no config.active_support.bare, all of ActiveSupport is required" do
-      use_frameworks []
+    test "Rails.root should be a Pathname" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+      RUBY
       require "#{app_path}/config/environment"
-      assert_nothing_raised { [1,2,3].rand }
-    end
-
-    test "config.active_support.bare does not require all of ActiveSupport" do
-      add_to_config "config.active_support.bare = true"
-
-      use_frameworks []
-
-      Dir.chdir("#{app_path}/app") do
-        require "#{app_path}/config/environment"
-        assert_raises(NoMethodError) { [1,2,3].rand }
-      end
+      assert_instance_of Pathname, Rails.root
     end
 
     test "marking the application as threadsafe sets the correct config variables" do
@@ -129,10 +140,29 @@ module ApplicationTests
           value = value.reverse if key =~ /baz/
         }]
       RUBY
-      
+
       assert_nothing_raised do
         require "#{app_path}/config/application"
       end
+    end
+
+    test "config.to_prepare is forwarded to ActionDispatch" do
+      $prepared = false
+
+      add_to_config <<-RUBY
+        config.to_prepare do
+          $prepared = true
+        end
+      RUBY
+
+      assert !$prepared
+
+      require "#{app_path}/config/environment"
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get "/"
+      assert $prepared
     end
   end
 end

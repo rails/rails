@@ -41,10 +41,6 @@ module AbstractController
     # Mostly abstracts the fact that calling render twice is a DoubleRenderError.
     # Delegates render_to_body and sticks the result in self.response_body.
     def render(*args, &block)
-      if response_body
-        raise AbstractController::DoubleRenderError
-      end
-
       options = _normalize_options(*args, &block)
       self.response_body = render_to_body(options)
     end

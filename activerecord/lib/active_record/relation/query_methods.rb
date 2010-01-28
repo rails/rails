@@ -133,8 +133,13 @@ module ActiveRecord
         arel = h.is_a?(String) ? arel.having(h) : arel.having(*h)
       end
 
-      arel = arel.take(@limit_value) if @limit_value.present?
-      arel = arel.skip(@offset_value) if @offset_value.present?
+      if defined?(@limit_value) && @limit_value.present?
+        arel = arel.take(@limit_value)
+      end
+
+      if defined?(@offset_value) && @offset_value.present?
+        arel = arel.skip(@offset_value)
+      end
 
       @group_values.uniq.each do |g|
         arel = arel.group(g) if g.present?
@@ -157,7 +162,12 @@ module ActiveRecord
         arel = arel.project(quoted_table_name + '.*')
       end
 
-      arel = @from_value.present? ? arel.from(@from_value) : arel.from(quoted_table_name)
+      arel =
+        if defined?(@from_value) && @from_value.present?
+          arel.from(@from_value)
+        else
+          arel.from(quoted_table_name)
+        end
 
       case @lock_value
       when TrueClass

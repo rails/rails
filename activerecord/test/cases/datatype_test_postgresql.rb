@@ -21,6 +21,9 @@ end
 class PostgresqlOid < ActiveRecord::Base
 end
 
+class PostgresqlTimestampWithZone < ActiveRecord::Base
+end
+
 class PostgresqlDataTypeTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
@@ -50,6 +53,8 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
     @connection.execute("INSERT INTO postgresql_oids (obj_id) VALUES (1234)")
     @first_oid = PostgresqlOid.find(1)
+    
+    @connection.execute("INSERT INTO postgresql_timestamp_with_zones (time) VALUES ('2010-01-01 10:00:00-1')")
   end
 
   def test_data_type_of_array_types
@@ -200,5 +205,39 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert @first_oid.save
     assert @first_oid.reload
     assert_equal @first_oid.obj_id, new_value
+  end
+
+  def test_timestamp_with_zone_values_with_rails_time_zone_support
+    old_tz         = ActiveRecord::Base.time_zone_aware_attributes
+    old_default_tz = ActiveRecord::Base.default_timezone
+
+    ActiveRecord::Base.time_zone_aware_attributes = true
+    ActiveRecord::Base.default_timezone = :utc
+
+    @connection.reconnect!
+
+    @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
+    assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+  ensure
+    ActiveRecord::Base.default_timezone = old_default_tz
+    ActiveRecord::Base.time_zone_aware_attributes = old_tz
+    @connection.reconnect!
+  end
+
+  def test_timestamp_with_zone_values_without_rails_time_zone_support
+    old_tz         = ActiveRecord::Base.time_zone_aware_attributes
+    old_default_tz = ActiveRecord::Base.default_timezone
+
+    ActiveRecord::Base.time_zone_aware_attributes = false
+    ActiveRecord::Base.default_timezone = :local
+
+    @connection.reconnect!
+
+    @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
+    assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+  ensure
+    ActiveRecord::Base.default_timezone = old_default_tz
+    ActiveRecord::Base.time_zone_aware_attributes = old_tz
+    @connection.reconnect!
   end
 end

@@ -100,6 +100,8 @@ module TestHelpers
     end
 
     class Bukkit
+      attr_reader :path
+
       def initialize(path)
         @path = path
       end
@@ -118,10 +120,29 @@ module TestHelpers
     def plugin(name, string = "")
       dir = "#{app_path}/vendor/plugins/#{name}"
       FileUtils.mkdir_p(dir)
+
       File.open("#{dir}/init.rb", 'w') do |f|
         f.puts "::#{name.upcase} = 'loaded'"
         f.puts string
       end
+
+      Bukkit.new(dir).tap do |bukkit|
+        yield bukkit if block_given?
+      end
+    end
+
+    def engine(name)
+      dir = "#{app_path}/random/#{name}"
+      FileUtils.mkdir_p(dir)
+
+      app = File.readlines("#{app_path}/config/application.rb")
+      app.insert(2, "$:.unshift(\"#{dir}/lib\")")
+      app.insert(3, "require #{name.inspect}")
+
+      File.open("#{app_path}/config/application.rb", 'r+') do |f|
+        f.puts app
+      end
+
       Bukkit.new(dir).tap do |bukkit|
         yield bukkit if block_given?
       end

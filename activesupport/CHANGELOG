@@ -1,4 +1,12 @@
-*Edge*
+*Rails 3.0 (pending)*
+
+* Time#- with a DateTime argument behaves the same as with a Time argument, i.e. returns the difference between self and arg as a Float #3476 [Geoff Buesing]
+
+* YAML serialization for OrderedHash.  #3608 [Gregor Schmidt]
+
+* Update bundled TZInfo to v0.3.16 [Geoff Buesing]
+
+* Georgetown TimeZone is now mapped to "America/Guyana" instead of "America/Argentina/San_Juan" #1821 [Geoff Buesing, Reuben Sivan]
 
 * Changed the default ActiveSupport.use_standard_json_time_format from false to true and
 ActiveSupport.escape_html_entities_in_json from true to false to match previously announced Rails 3 defaults [DHH]

@@ -193,20 +193,20 @@ module ActiveRecord
         SQL
 
         execute(sql, name).map do |row|
-          row[0]
+          row['name']
         end
       end
 
       def columns(table_name, name = nil) #:nodoc:
         table_structure(table_name).map do |field|
-          SQLiteColumn.new(field['name'], field['dflt_value'], field['type'], field['notnull'] == "0")
+          SQLiteColumn.new(field['name'], field['dflt_value'], field['type'], field['notnull'].to_i == 0)
         end
       end
 
       def indexes(table_name, name = nil) #:nodoc:
         execute("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
           index = IndexDefinition.new(table_name, row['name'])
-          index.unique = row['unique'] != '0'
+          index.unique = row['unique'].to_i != 0
           index.columns = execute("PRAGMA index_info('#{index.name}')").map { |col| col['name'] }
           index
         end

@@ -31,10 +31,12 @@ module ActionMailer
   extend ::ActiveSupport::Autoload
 
   autoload :AdvAttrAccessor
+  autoload :Collector
   autoload :Base
-  autoload :DeliveryMethod
-  autoload :DeprecatedBody
+  autoload :DeliveryMethods
+  autoload :DeprecatedApi
   autoload :MailHelper
+  autoload :OldApi
   autoload :Quoting
   autoload :TestCase
   autoload :TestHelper
@@ -43,5 +45,5 @@ end
 module Text
   extend ActiveSupport::Autoload
 
-  autoload :Format, 'action_mailer/vendor/text_format'
+  autoload :Format, 'text/format'
 end
