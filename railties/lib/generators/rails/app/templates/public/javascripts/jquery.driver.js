@@ -1,6 +1,3 @@
-// TODO: confirm
-// TODO: popup
-// TODO: disable_with
 jQuery(function ($) {
     var rails = {
         update: function (selector, content, position) {
@@ -76,6 +73,21 @@ jQuery(function ($) {
                         }
                     },
                     complete: function (xhr) {
+                        // enable disabled_with buttons
+                        if (el[0].tagName.toUpperCase() == 'FORM') {
+                          el.children('input[type="button"][data-enable-with],input[type="submit"][data-enable-with]').each(function(i, button){
+                            button = $(button);
+                            button.attr('value', button.attr('data-enable-with'));
+                            button.removeAttr('data-enable-with');
+                            button.removeAttr('disabled');
+                              
+                          });
+                        } else {
+                          el.attr('value', el.attr('data-enable-with'));
+                          el.removeAttr('data-enable-with');
+                          el.removeAttr('disabled');
+                        }
+
                         el.trigger('rails:complete', xhr);
                         el.trigger('rails:loaded', xhr);
                     },
@@ -121,7 +133,7 @@ jQuery(function ($) {
      * confirm
      * make sure this event is first!
      */
-    $('a[data-confirm],input[data-confirm]').live('click', function(e){
+    $('a[data-confirm],input[type="submit"][data-confirm],input[type="button"][data-confirm]').live('click', function(e){
         var el = $(this);
 
         if(!confirm(el.attr('data-confirm'))){
@@ -147,6 +159,17 @@ jQuery(function ($) {
     });
 
     /**
+     * disable_with
+     */
+    $('input[type="button"][data-disable-with],input[type="submit"][data-disable-with]').live('click', function(e){
+        var el = $(this);
+
+        el.attr('data-enable-with', el.attr('value'));
+        el.attr('disabled', 'disabled');
+        el.attr('value', el.attr('data-disable-with'));
+    });
+
+    /**
      * remote_form_tag, and remote_form_for
      */
     $('form[data-remote="true"]').live('submit', rails.remote);
@@ -159,7 +182,7 @@ jQuery(function ($) {
     /*
      * popup
      */
-    $('a[data-popup],input[data-popup]').live('click', function(e){
+    $('a[data-popup],input[type="button"][data-popup]').live('click', function(e){
         var el  = $(this),
             url = el.attr('data-url') || el.attr('href');
 
