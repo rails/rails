@@ -100,7 +100,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "mail() with bcc, cc, content_type, charset, mime_version, reply_to and date" do
-    @time = Time.now
+    @time = Time.now.beginning_of_day.to_datetime
     email = BaseMailer.welcome(:bcc => 'bcc@test.lindsaar.net',
                                :cc  => 'cc@test.lindsaar.net',
                                :content_type => 'multipart/mixed',
