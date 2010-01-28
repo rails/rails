@@ -259,7 +259,7 @@ class Time
   # are coerced into values that Time#- will recognize
   def minus_with_coercion(other)
     other = other.comparable_time if other.respond_to?(:comparable_time)
-    minus_without_coercion(other)
+    other.is_a?(DateTime) ? to_f - other.to_f : minus_without_coercion(other)
   end
   alias_method :minus_without_coercion, :-
   alias_method :-, :minus_with_coercion

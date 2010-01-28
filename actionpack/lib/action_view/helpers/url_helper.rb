@@ -305,12 +305,11 @@ module ActionView
           request_token_tag = tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)
         end
 
-        if confirm = html_options.delete("confirm")
-          html_options["onclick"] = "return #{confirm_javascript_function(confirm)};"
-        end
 
         url = options.is_a?(String) ? options : self.url_for(options)
         name ||= url
+     
+        convert_options_to_javascript!(html_options, url)
 
         html_options.merge!("type" => "submit", "value" => name)
 
@@ -563,55 +562,6 @@ module ActionView
       end
 
       private
-        def convert_options_to_javascript!(html_options, url = '')
-          confirm, popup = html_options.delete("confirm"), html_options.delete("popup")
-
-          method, href = html_options.delete("method"), html_options['href']
-
-          html_options["onclick"] = case
-            when popup && method
-              raise ActionView::ActionViewError, "You can't use :popup and :method in the same link"
-            when confirm && popup
-              "if (#{confirm_javascript_function(confirm)}) { #{popup_javascript_function(popup)} };return false;"
-            when confirm && method
-              "if (#{confirm_javascript_function(confirm)}) { #{method_javascript_function(method, url, href)} };return false;"
-            when confirm
-              "return #{confirm_javascript_function(confirm)};"
-            when method
-              "#{method_javascript_function(method, url, href)}return false;"
-            when popup
-              "#{popup_javascript_function(popup)}return false;"
-            else
-              html_options["onclick"]
-          end
-        end
-
-        def confirm_javascript_function(confirm)
-          "confirm('#{escape_javascript(confirm)}')"
-        end
-
-        def popup_javascript_function(popup)
-          popup.is_a?(Array) ? "window.open(this.href,'#{popup.first}','#{popup.last}');" : "window.open(this.href);"
-        end
-
-        def method_javascript_function(method, url = '', href = nil)
-          action = (href && url.size > 0) ? "'#{url}'" : 'this.href'
-          submit_function =
-            "var f = document.createElement('form'); f.style.display = 'none'; " +
-            "this.parentNode.appendChild(f); f.method = 'POST'; f.action = #{action};"
-
-          unless method == :post
-            submit_function << "var m = document.createElement('input'); m.setAttribute('type', 'hidden'); "
-            submit_function << "m.setAttribute('name', '_method'); m.setAttribute('value', '#{method}'); f.appendChild(m);"
-          end
-
-          if protect_against_forgery?
-            submit_function << "var s = document.createElement('input'); s.setAttribute('type', 'hidden'); "
-            submit_function << "s.setAttribute('name', '#{request_forgery_protection_token}'); s.setAttribute('value', '#{escape_javascript form_authenticity_token}'); f.appendChild(s);"
-          end
-          submit_function << "f.submit();"
-        end
-
         # Processes the +html_options+ hash, converting the boolean
         # attributes from true/false form into the form required by
         # HTML/XHTML.  (An attribute is considered to be boolean if

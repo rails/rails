@@ -1232,7 +1232,7 @@ class FormHelperTest < ActionView::TestCase
 
   # Perhaps this test should be moved to prototype helper tests.
   def test_remote_form_for_with_labelled_builder
-    self.extend ActionView::Helpers::PrototypeHelper
+    self.extend ActionView::Helpers::AjaxHelper
 
      remote_form_for(:post, @post, :builder => LabelledFormBuilder) do |f|
        concat f.text_field(:title)
@@ -1241,7 +1241,7 @@ class FormHelperTest < ActionView::TestCase
      end
 
      expected =
-       %(<form action="http://www.example.com" onsubmit="new Ajax.Request('http://www.example.com', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" method="post">) +
+       %(<form action="http://www.example.com" data-remote="true" method="post">) +
        "<label for='title'>Title:</label> <input name='post[title]' size='30' type='text' id='post_title' value='Hello World' /><br/>" +
        "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea><br/>" +
        "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' /><br/>" +
@@ -1397,10 +1397,10 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_remote_form_for_with_html_options_adds_options_to_form_tag
-    self.extend ActionView::Helpers::PrototypeHelper
+    self.extend ActionView::Helpers::AjaxHelper
 
     remote_form_for(:post, @post, :html => {:id => 'some_form', :class => 'some_class'}) do |f| end
-    expected = "<form action=\"http://www.example.com\" class=\"some_class\" id=\"some_form\" method=\"post\" onsubmit=\"new Ajax.Request('http://www.example.com', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\"></form>"
+    expected = "<form action=\"http://www.example.com\" class=\"some_class\" id=\"some_form\" method=\"post\" data-remote=\"true\"></form>"
 
     assert_dom_equal expected, output_buffer
   end
