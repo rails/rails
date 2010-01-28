@@ -17,6 +17,14 @@ class BaseTest < ActiveSupport::TestCase
     def simple(hash = {})
       mail(hash)
     end
+
+    def html_only(hash = {})
+      mail(hash)
+    end
+
+    def plain_text_only(hash = {})
+      mail(hash)
+    end
     
     def simple_with_headers(hash = {})
       headers hash
@@ -433,6 +441,16 @@ class BaseTest < ActiveSupport::TestCase
   test "explicit multipart should be multipart" do
     mail = BaseMailer.explicit_multipart
     assert_not_nil(mail.content_type_parameters[:boundary])
+  end
+  
+  test "should set a content type if only has an html part" do
+    mail = BaseMailer.html_only
+    assert_equal('text/html', mail.mime_type)
+  end
+  
+  test "should set a content type if only has an plain text part" do
+    mail = BaseMailer.plain_text_only
+    assert_equal('text/plain', mail.mime_type)
   end
 
   protected
