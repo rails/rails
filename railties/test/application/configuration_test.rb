@@ -12,11 +12,18 @@ module ApplicationTests
       FileUtils.cp_r(app_path, new_app)
     end
 
+    def app
+      @app ||= Rails.application
+    end
+
     def setup
-      FileUtils.rm_rf(new_app) if File.directory?(new_app)
       build_app
       boot_rails
       FileUtils.rm_rf("#{app_path}/config/environments")
+    end
+
+    def teardown
+      FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
     test "Rails::Application.instance is nil until app is initialized" do
@@ -24,6 +31,12 @@ module ApplicationTests
       assert_nil Rails::Application.instance
       require "#{app_path}/config/environment"
       assert_equal AppTemplate::Application.instance, Rails::Application.instance
+    end
+
+    test "Rails::Application responds to all instance methods" do
+      require "#{app_path}/config/environment"
+      assert_respond_to Rails::Application, :routes_reloader
+      assert_equal Rails::Application.routes_reloader, Rails.application.routes_reloader
     end
 
     test "the application root is set correctly" do
@@ -131,6 +144,25 @@ module ApplicationTests
       assert_nothing_raised do
         require "#{app_path}/config/application"
       end
+    end
+
+    test "config.to_prepare is forwarded to ActionDispatch" do
+      $prepared = false
+
+      add_to_config <<-RUBY
+        config.to_prepare do
+          $prepared = true
+        end
+      RUBY
+
+      assert !$prepared
+
+      require "#{app_path}/config/environment"
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get "/"
+      assert $prepared
     end
   end
 end

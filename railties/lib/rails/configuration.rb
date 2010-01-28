@@ -16,7 +16,7 @@ module Rails
           middleware.use('::ActionDispatch::Cookies')
           middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
           middleware.use('::ActionDispatch::Flash', :if => lambda { ActionController::Base.session_store })
-          middleware.use(lambda { Rails::Application::Metal.new(Rails.application.config.metals) }, :if => lambda { Rails::Application::Metal.metals.any? })
+          middleware.use(lambda { Rails.application.metal_loader.build_middleware(Rails.application.config.metals) }, :if => lambda { Rails.application.metal_loader.metals.any? })
           middleware.use('ActionDispatch::ParamsParser')
           middleware.use('::Rack::MethodOverride')
           middleware.use('::ActionDispatch::Head')
@@ -50,6 +50,14 @@ module Rails
 
       def after_initialize(&blk)
         after_initialize_blocks << blk if blk
+      end
+
+      def to_prepare_blocks
+        @@to_prepare_blocks ||= []
+      end
+
+      def to_prepare(&blk)
+        to_prepare_blocks << blk if blk
       end
 
       def respond_to?(name)
@@ -90,6 +98,8 @@ module Rails
 
       def method_missing(method, *args)
         method = method.to_s.sub(/=$/, '').to_sym
+
+        return @options[method] if args.empty?
 
         if method == :rails
           namespace, configuration = :rails, args.shift

@@ -8,6 +8,7 @@ require "rails"
   action_view
   action_mailer
   active_resource
+  rails/test_unit
 ).each do |framework|
   begin
     require "#{framework}/railtie"

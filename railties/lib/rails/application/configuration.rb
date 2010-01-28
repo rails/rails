@@ -8,14 +8,16 @@ module Rails
       attr_accessor :cache_classes, :cache_store, :colorize_logging,
                     :consider_all_requests_local, :dependency_loading,
                     :filter_parameters,  :log_level, :logger, :metals,
-                    :plugins, :preload_frameworks, :reload_plugins,
+                    :plugins, :preload_frameworks, :reload_engines, :reload_plugins,
                     :serve_static_assets, :time_zone, :whiny_nils
 
       def initialize(*)
         super
+        @colorize_logging    = true
         @filter_parameters   = []
         @dependency_loading  = true
         @serve_static_assets = true
+        @time_zone           = "UTC"
       end
 
       def paths
@@ -23,6 +25,7 @@ module Rails
           paths = super
           paths.app.controllers << builtin_controller if builtin_controller
           paths.config.database    "config/database.yml"
+          paths.config.environment "config/environments", :glob => "#{Rails.env}.rb"
           paths.log                "log/#{Rails.env}.log"
           paths.tmp                "tmp"
           paths.tmp.cache          "tmp/cache"
@@ -75,10 +78,6 @@ module Rails
 
       def log_level
         @log_level ||= Rails.env.production? ? :info : :debug
-      end
-
-      def time_zone
-        @time_zone ||= "UTC"
       end
     end
   end

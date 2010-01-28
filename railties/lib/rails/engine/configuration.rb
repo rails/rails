@@ -22,7 +22,6 @@ module Rails
           paths.lib                 "lib",                 :load_path => true
           paths.lib.tasks           "lib/tasks",           :glob => "**/*.rake"
           paths.config              "config"
-          paths.config.environment  "config/environments", :glob => "#{Rails.env}.rb"
           paths.config.initializers "config/initializers", :glob => "**/*.rb"
           paths.config.locales      "config/locales",      :glob => "*.{rb,yml}"
           paths.config.routes       "config/routes.rb"

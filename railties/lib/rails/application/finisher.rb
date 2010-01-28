@@ -15,9 +15,15 @@ module Rails
         end
       end
 
-      initializer :add_builtin_route do
+      initializer :add_to_prepare_blocks do
+        config.to_prepare_blocks.each do |block|
+          ActionDispatch::Callbacks.to_prepare(&block)
+        end
+      end
+
+      initializer :add_builtin_route do |app|
         if Rails.env.development?
-          Rails::Application::RoutesReloader.paths << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
+          app.routes_reloader.paths << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
         end
       end
 
@@ -25,7 +31,7 @@ module Rails
         app
       end
 
-      # Fires the user-supplied after_initialize block (config#after_initialize)
+      # Fires the user-supplied after_initialize block (config.after_initialize)
       initializer :after_initialize do
         config.after_initialize_blocks.each do |block|
           block.call(self)

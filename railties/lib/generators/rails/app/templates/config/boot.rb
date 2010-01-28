@@ -26,6 +26,7 @@ require 'rails/all'
 # require "action_view/railtie"
 # require "action_mailer/railtie"
 # require "active_resource/railtie"
+# require "rails/test_unit/railtie"
 <% else -%>
 # Pick the frameworks you want:
 # require "active_model/railtie"
@@ -35,4 +36,5 @@ require "action_controller/railtie"
 require "action_view/railtie"
 require "action_mailer/railtie"
 require "active_resource/railtie"
+require "rails/test_unit/railtie"
 <% end -%>

@@ -56,8 +56,11 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal 'EDT', ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).zone #dst
   end
 
-  def test_to_json
+  def test_to_json_with_use_standard_json_time_format_config_set_to_false
+    old, ActiveSupport.use_standard_json_time_format = ActiveSupport.use_standard_json_time_format, false
     assert_equal "\"1999/12/31 19:00:00 -0500\"", ActiveSupport::JSON.encode(@twz)
+  ensure
+    ActiveSupport.use_standard_json_time_format = old
   end
 
   def test_to_json_with_use_standard_json_time_format_config_set_to_true

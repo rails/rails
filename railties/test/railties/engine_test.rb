@@ -19,5 +19,14 @@ module RailtiesTest
         plugin.write "lib/another.rb", "class Another; end"
       end
     end
+
+    def reload_config
+      :reload_engines
+    end
+
+    test "Rails::Engine itself does not respond to config" do
+      boot_rails
+      assert !Rails::Engine.respond_to?(:config)
+    end
   end
 end
