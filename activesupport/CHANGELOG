@@ -1,5 +1,7 @@
 *Edge*
 
+* Unvendor'd TZInfo.  Now requires the TZInfo gem as a dependency
+
 * YAML serialization for OrderedHash.  #3608 [Gregor Schmidt]
 
 * Update bundled TZInfo to v0.3.16 [Geoff Buesing]
