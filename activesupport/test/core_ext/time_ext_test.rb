@@ -722,6 +722,10 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_minus_with_time_with_zone
     assert_equal  86_400.0, Time.utc(2000, 1, 2) - ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1), ActiveSupport::TimeZone['UTC'] )
   end
+  
+  def test_minus_with_datetime
+    assert_equal  86_400.0, Time.utc(2000, 1, 2) - DateTime.civil(2000, 1, 1)
+  end
 
   def test_time_created_with_local_constructor_cannot_represent_times_during_hour_skipped_by_dst
     with_env_tz 'US/Eastern' do
