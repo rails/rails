@@ -7,6 +7,9 @@ Gem::Specification.new do |s|
   s.description = %q{Utility library which carries commonly used classes and goodies from the Rails framework}
 
   s.add_dependency('i18n', '~> 0.3.0')
+  s.add_dependency('tzinfo', '~> 0.3.16')
+  s.add_dependency('builder', '~> 2.1.2')
+  s.add_dependency('memcache-client', '~> 1.7.5')
 
   s.files = Dir['CHANGELOG', 'README', 'lib/**/*']
   s.require_path = 'lib'

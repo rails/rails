@@ -1,4 +1,8 @@
-*Edge*
+*Rails 3.0 (pending)*
+
+* Time#- with a DateTime argument behaves the same as with a Time argument, i.e. returns the difference between self and arg as a Float #3476 [Geoff Buesing]
+
+* YAML serialization for OrderedHash.  #3608 [Gregor Schmidt]
 
 * Update bundled TZInfo to v0.3.16 [Geoff Buesing]
 

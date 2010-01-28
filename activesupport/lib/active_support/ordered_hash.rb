@@ -1,8 +1,11 @@
+require 'yaml'
+
 # OrderedHash is namespaced to prevent conflicts with other implementations
 module ActiveSupport
   # Hash is ordered in Ruby 1.9!
   if RUBY_VERSION >= '1.9'
-    OrderedHash = ::Hash
+    class OrderedHash < ::Hash #:nodoc:
+    end
   else
     class OrderedHash < Hash #:nodoc:
       def initialize(*args, &block)
@@ -137,5 +140,25 @@ module ActiveSupport
         @keys.delete_if {|k| !has_key?(k)}
       end
     end
+  end
+
+  class OrderedHash #:nodoc:
+    def to_yaml_type
+      "!tag:yaml.org,2002:omap"
+    end
+
+    def to_yaml(opts = {})
+      YAML.quick_emit(self, opts) do |out|
+        out.seq(taguri, to_yaml_style) do |seq|
+          each do |k, v|
+            seq.add(k => v)
+          end
+        end
+      end
+    end
+  end
+
+  YAML.add_builtin_type("omap") do |type, val|
+    ActiveSupport::OrderedHash[val.map(&:to_a).map(&:first)]
   end
 end

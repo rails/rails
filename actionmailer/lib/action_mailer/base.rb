@@ -23,8 +23,8 @@ module ActionMailer #:nodoc:
   # Examples:
   #
   #  class Notifier < ActionMailer::Base
-  #    defaults :from => 'no-reply@example.com',
-  #             :return_path => 'system@example.com'
+  #    default :from => 'no-reply@example.com',
+  #            :return_path => 'system@example.com'
   # 
   #    def welcome(recipient)
   #      @account = recipient
@@ -191,7 +191,7 @@ module ActionMailer #:nodoc:
   #
   # These options are specified on the class level, like <tt>ActionMailer::Base.template_root = "/my/templates"</tt>
   #
-  # * <tt>defaults</tt> - This is a class wide hash of <tt>:key => value</tt> pairs containing
+  # * <tt>default</tt> - This is a class wide hash of <tt>:key => value</tt> pairs containing
   #   default values for the specified header fields of the <tt>Mail::Message</tt>.  You can 
   #   specify a default for any valid header for <tt>Mail::Message</tt> and it will be used if
   #   you do not override it.  The defaults set by Action Mailer are:
@@ -232,16 +232,16 @@ module ActionMailer #:nodoc:
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with <tt>delivery_method :test</tt>. Most useful
   #   for unit and functional testing.
   #
-  # * <tt>default_charset</tt> - This is now deprecated, use the +defaults+ method above to 
+  # * <tt>default_charset</tt> - This is now deprecated, use the +default+ method above to 
   #   set the default +:charset+.
   #
-  # * <tt>default_content_type</tt> - This is now deprecated, use the +defaults+ method above 
+  # * <tt>default_content_type</tt> - This is now deprecated, use the +default+ method above 
   #   to set the default +:content_type+.
   #
-  # * <tt>default_mime_version</tt> - This is now deprecated, use the +defaults+ method above 
+  # * <tt>default_mime_version</tt> - This is now deprecated, use the +default+ method above 
   #   to set the default +:mime_version+.
   #
-  # * <tt>default_implicit_parts_order</tt> - This is now deprecated, use the +defaults+ method above 
+  # * <tt>default_implicit_parts_order</tt> - This is now deprecated, use the +default+ method above 
   #   to set the default +:parts_order+.  Parts Order is used when a message is built implicitly
   #   (i.e. multiple parts are assembled from templates which specify the content type in their
   #   filenames) this variable controls how the parts are ordered.
@@ -280,7 +280,7 @@ module ActionMailer #:nodoc:
       attr_writer :mailer_name
       alias :controller_path :mailer_name
 
-      def defaults(value=nil)
+      def default(value=nil)
         self.default_params.merge!(value) if value
         self.default_params
       end
@@ -429,13 +429,13 @@ module ActionMailer #:nodoc:
     # * <tt>:reply_to</tt> - Who to set the Reply-To header of the email to.
     # * <tt>:date</tt> - The date to say the email was sent on.
     # 
-    # You can set default values for any of the above headers (except :date) by using the <tt>defaults</tt> 
+    # You can set default values for any of the above headers (except :date) by using the <tt>default</tt> 
     # class method:
     # 
     #  class Notifier < ActionMailer::Base
-    #    self.defaults :from => 'no-reply@test.lindsaar.net',
-    #                  :bcc => 'email_logger@test.lindsaar.net',
-    #                  :reply_to => 'bounces@test.lindsaar.net'
+    #    self.default :from => 'no-reply@test.lindsaar.net',
+    #                 :bcc => 'email_logger@test.lindsaar.net',
+    #                 :reply_to => 'bounces@test.lindsaar.net'
     #  end
     # 
     # If you need other headers not listed above, use the <tt>headers['name'] = value</tt> method.
@@ -487,7 +487,7 @@ module ActionMailer #:nodoc:
       parts_order  = headers[:parts_order]
 
       # Merge defaults from class
-      headers = headers.reverse_merge(self.class.defaults)
+      headers = headers.reverse_merge(self.class.default)
       charset = headers[:charset]
 
       # Quote fields
@@ -531,7 +531,7 @@ module ActionMailer #:nodoc:
       when m.multipart?
         ["multipart", "alternative", params]
       else
-        class_default
+        m.content_type || class_default
       end
     end
 
@@ -562,7 +562,7 @@ module ActionMailer #:nodoc:
       elsif headers[:body]
         responses << {
           :body => headers[:body],
-          :content_type => self.class.defaults[:content_type] || "text/plain"
+          :content_type => self.class.default[:content_type] || "text/plain"
         }
       else
         each_template do |template|

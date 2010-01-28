@@ -5,9 +5,9 @@ class BaseTest < ActiveSupport::TestCase
   class BaseMailer < ActionMailer::Base
     self.mailer_name = "base_mailer"
 
-    defaults :to => 'system@test.lindsaar.net',
-             :from => 'jose@test.plataformatec.com',
-             :reply_to => 'mikel@test.lindsaar.net'
+    default :to => 'system@test.lindsaar.net',
+            :from => 'jose@test.plataformatec.com',
+            :reply_to => 'mikel@test.lindsaar.net'
 
     def welcome(hash = {})
       headers['X-SPAM'] = "Not SPAM"
@@ -15,6 +15,14 @@ class BaseTest < ActiveSupport::TestCase
     end
 
     def simple(hash = {})
+      mail(hash)
+    end
+
+    def html_only(hash = {})
+      mail(hash)
+    end
+
+    def plain_text_only(hash = {})
       mail(hash)
     end
     
@@ -92,7 +100,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "mail() with bcc, cc, content_type, charset, mime_version, reply_to and date" do
-    @time = Time.now
+    @time = Time.now.beginning_of_day.to_datetime
     email = BaseMailer.welcome(:bcc => 'bcc@test.lindsaar.net',
                                :cc  => 'cc@test.lindsaar.net',
                                :content_type => 'multipart/mixed',
@@ -159,7 +167,9 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.attachment_with_hash
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.jpg', email.attachments[0].filename)
-    assert_equal("\312\213\254\232)b", email.attachments['invoice.jpg'].decoded)
+    expected = "\312\213\254\232)b"
+    expected.force_encoding(Encoding::BINARY) if '1.9'.respond_to?(:force_encoding)
+    assert_equal expected, email.attachments['invoice.jpg'].decoded
   end
 
   test "sets mime type to multipart/mixed when attachment is included" do
@@ -227,7 +237,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "subject gets default from I18n" do
-    BaseMailer.defaults[:subject] = nil
+    BaseMailer.default[:subject] = nil
     email = BaseMailer.welcome(:subject => nil)
     assert_equal "Welcome", email.subject
 
@@ -434,6 +444,16 @@ class BaseTest < ActiveSupport::TestCase
     mail = BaseMailer.explicit_multipart
     assert_not_nil(mail.content_type_parameters[:boundary])
   end
+  
+  test "should set a content type if only has an html part" do
+    mail = BaseMailer.html_only
+    assert_equal('text/html', mail.mime_type)
+  end
+  
+  test "should set a content type if only has an plain text part" do
+    mail = BaseMailer.plain_text_only
+    assert_equal('text/plain', mail.mime_type)
+  end
 
   protected
 
@@ -453,7 +473,7 @@ class BaseTest < ActiveSupport::TestCase
     end
 
     def with_default(klass, new_values)
-      hash = klass.defaults
+      hash = klass.default
       old_values = {}
       new_values.each do |key, value|
         old_values[key] = hash[key]

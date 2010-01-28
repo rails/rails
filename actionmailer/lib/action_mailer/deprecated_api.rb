@@ -14,7 +14,7 @@ module ActionMailer
 
           def self.default_#{method}=(value)
             ActiveSupport::Deprecation.warn "ActionMailer::Base.default_#{method}=value is deprecated, " <<
-              "use defaults :#{method} => value instead"
+              "use default :#{method} => value instead"
             @@default_#{method} = value
           end
 
