@@ -1,3 +1,5 @@
+require 'yaml'
+
 # OrderedHash is namespaced to prevent conflicts with other implementations
 module ActiveSupport
   # Hash is ordered in Ruby 1.9!
