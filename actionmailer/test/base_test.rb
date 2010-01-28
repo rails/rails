@@ -5,9 +5,9 @@ class BaseTest < ActiveSupport::TestCase
   class BaseMailer < ActionMailer::Base
     self.mailer_name = "base_mailer"
 
-    defaults :to => 'system@test.lindsaar.net',
-             :from => 'jose@test.plataformatec.com',
-             :reply_to => 'mikel@test.lindsaar.net'
+    default :to => 'system@test.lindsaar.net',
+            :from => 'jose@test.plataformatec.com',
+            :reply_to => 'mikel@test.lindsaar.net'
 
     def welcome(hash = {})
       headers['X-SPAM'] = "Not SPAM"
@@ -237,7 +237,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "subject gets default from I18n" do
-    BaseMailer.defaults[:subject] = nil
+    BaseMailer.default[:subject] = nil
     email = BaseMailer.welcome(:subject => nil)
     assert_equal "Welcome", email.subject
 
@@ -473,7 +473,7 @@ class BaseTest < ActiveSupport::TestCase
     end
 
     def with_default(klass, new_values)
-      hash = klass.defaults
+      hash = klass.default
       old_values = {}
       new_values.each do |key, value|
         old_values[key] = hash[key]

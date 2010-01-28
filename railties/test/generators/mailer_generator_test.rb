@@ -9,7 +9,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "app/mailers/notifier.rb" do |mailer|
       assert_match /class Notifier < ActionMailer::Base/, mailer
-      assert_match /defaults :from => "from@example.com"/, mailer
+      assert_match /default :from => "from@example.com"/, mailer
     end
   end
 
