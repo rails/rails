@@ -52,19 +52,14 @@ module Rails
         :helper => true,
         :layout => true,
         :orm => :active_record,
-        :integration_tool => :test_unit,
-        :performance_tool => :test_unit,
+        :integration_tool => nil,
+        :performance_tool => nil,
         :resource_controller => :controller,
         :scaffold_controller => :scaffold_controller,
         :singleton => false,
         :stylesheets => true,
         :test_framework => nil,
         :template_engine => :erb
-      },
-
-      :test_unit => {
-        :fixture => true,
-        :fixture_replacement => nil
       },
 
       :plugin => {

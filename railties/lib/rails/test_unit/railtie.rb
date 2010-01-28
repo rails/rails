@@ -2,7 +2,13 @@ module Rails
   class TestUnitRailtie < Rails::Railtie
     railtie_name :test_unit
 
-    config.generators.test_framework :test_unit
+    config.generators do |c|
+      c.test_framework :test_unit, :fixture => true,
+                                   :fixture_replacement => nil
+
+      c.integration_tool :test_unit
+      c.performance_tool :test_unit
+    end
 
     rake_tasks do
        load "rails/tasks/testing.rake"
