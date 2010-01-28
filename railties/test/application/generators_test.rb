@@ -34,7 +34,7 @@ module ApplicationTests
     end
 
     test "generators set rails options" do
-      with_config do |c|
+      with_bare_config do |c|
         c.generators.orm            = :datamapper
         c.generators.test_framework = :rspec
         c.generators.helper         = false

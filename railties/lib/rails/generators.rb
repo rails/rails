@@ -38,11 +38,6 @@ module Rails
     }
 
     DEFAULT_OPTIONS = {
-      :active_record => {
-        :migration  => true,
-        :timestamps => true
-      },
-
       :erb => {
         :layout => true
       },
@@ -51,7 +46,7 @@ module Rails
         :force_plural => false,
         :helper => true,
         :layout => true,
-        :orm => :active_record,
+        :orm => nil,
         :integration_tool => nil,
         :performance_tool => nil,
         :resource_controller => :controller,

@@ -10,6 +10,9 @@ module ActiveRecord
   class Railtie < Rails::Railtie
     railtie_name :active_record
 
+    config.generators.orm :active_record, :migration => true,
+                                          :timestamps => true
+
     rake_tasks do
       load "active_record/railties/databases.rake"
     end

@@ -20,6 +20,7 @@ module RailtiesTest
     end
 
     test "Rails::Plugin itself does not respond to config" do
+      boot_rails
       assert !Rails::Plugin.respond_to?(:config)
     end
 
