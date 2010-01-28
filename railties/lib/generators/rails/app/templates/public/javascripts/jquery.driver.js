@@ -118,6 +118,18 @@ jQuery(function ($) {
     });
 
     /**
+     * confirm
+     * make sure this event is first!
+     */
+    $('a[data-confirm],input[data-confirm]').live('click', function(e){
+        var el = $(this);
+
+        if(!confirm(el.attr('data-confirm'))){
+          return false;
+        }
+    });
+
+    /**
      * periodically_call_remote
      */
     $('script[data-periodical="true"]').each(function (index, e) {
@@ -155,10 +167,8 @@ jQuery(function ($) {
 
         if(el.attr('data-popup') === "true"){
           window.open(url);
-          console.log('without options');
         } else {
           window.open(url, el.attr('data-popup'));
-          console.log('with options');
         }
     });
 
