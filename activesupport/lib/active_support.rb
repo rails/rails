@@ -69,5 +69,3 @@ module ActiveSupport
 
   autoload :TestCase
 end
-
-require 'active_support/vendor'

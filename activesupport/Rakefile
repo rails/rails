@@ -41,7 +41,6 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/active_support.rb')
   rdoc.rdoc_files.include('lib/active_support/**/*.rb')
-  rdoc.rdoc_files.exclude('lib/active_support/vendor/*')
 }
 
 spec = eval(File.read('activesupport.gemspec'))
