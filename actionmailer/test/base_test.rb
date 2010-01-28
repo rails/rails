@@ -167,7 +167,9 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.attachment_with_hash
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.jpg', email.attachments[0].filename)
-    assert_equal("\312\213\254\232)b", email.attachments['invoice.jpg'].decoded)
+    expected = "\312\213\254\232)b"
+    expected.force_encoding(Encoding::BINARY) if '1.9'.respond_to?(:force_encoding)
+    assert_equal expected, email.attachments['invoice.jpg'].decoded
   end
 
   test "sets mime type to multipart/mixed when attachment is included" do
