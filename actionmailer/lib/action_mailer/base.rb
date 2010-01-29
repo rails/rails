@@ -38,8 +38,12 @@ module ActionMailer #:nodoc:
   # * <tt>attachments[]=</tt> - Allows you to add attachments to your email in an intuitive
   #   manner; <tt>attachments['filename.png'] = File.read('path/to/filename.png')</tt>
   #
-  # * <tt>headers[]=</tt> - Allows you to specify non standard headers in your email such
-  #   as <tt>headers['X-No-Spam'] = 'True'</tt>
+  # * <tt>headers[]=</tt> - Allows you to specify any header field in your email such
+  #   as <tt>headers['X-No-Spam'] = 'True'</tt>. Note, while most fields (like <tt>To:</tt>
+  #   <tt>From:</tt> can only appear once in an email header, other fields like <tt>X-Anything</tt>
+  #   can appear multiple times. If you want to change a field that can appear multiple times,
+  #   you need to set it to nil first so that Mail knows you are replacing it, not adding
+  #   another field of the same name.)
   #
   # * <tt>headers(hash)</tt> - Allows you to specify multiple headers in your email such
   #   as <tt>headers({'X-No-Spam' => 'True', 'In-Reply-To' => '1234@message.id'})</tt>
@@ -47,15 +51,11 @@ module ActionMailer #:nodoc:
   # * <tt>mail</tt> - Allows you to specify your email to send.
   # 
   # The hash passed to the mail method allows you to specify any header that a Mail::Message
-  # will accept (any valid Email header including optional fields).  Obviously if you specify
-  # the same header in the headers method and then again in the mail method, the last one
-  # will over write the first, unless you are specifying a header field that can appear more
-  # than once per RFC, in which case, both will be inserted (X-value headers for example can
-  # appear multiple times.)
+  # will accept (any valid Email header including optional fields).
   #
   # The mail method, if not passed a block, will inspect your views and send all the views with
-  # the same name as the method, so the above action would send the +welcome.plain.erb+ view file
-  # as well as the +welcome.html.erb+ view file in a +multipart/alternative+ email.
+  # the same name as the method, so the above action would send the +welcome.text.plain.erb+ view
+  # file as well as the +welcome.text.html.erb+ view file in a +multipart/alternative+ email.
   # 
   # If you want to explicitly render only certain templates, pass a block:
   # 
@@ -71,7 +71,7 @@ module ActionMailer #:nodoc:
   #     format.html
   #   end
   #
-  # Or even to renderize a special view:
+  # Or even to render a special view:
   #
   #   mail(:to => user.emai) do |format|
   #     format.text
@@ -85,7 +85,7 @@ module ActionMailer #:nodoc:
   # 
   # To define a template to be used with a mailing, create an <tt>.erb</tt> file with the same
   # name as the method in your mailer model. For example, in the mailer defined above, the template at
-  # <tt>app/views/notifier/signup_notification.text.erb</tt> would be used to generate the email.
+  # <tt>app/views/notifier/signup_notification.text.plain.erb</tt> would be used to generate the email.
   #
   # Variables defined in the model are accessible as instance variables in the view.
   #
@@ -107,9 +107,9 @@ module ActionMailer #:nodoc:
   #
   # = Generating URLs
   #
-  # URLs can be generated in mailer views using <tt>url_for</tt> or named routes.
-  # Unlike controllers from Action Pack, the mailer instance doesn't have any context about the incoming request,
-  # so you'll need to provide all of the details needed to generate a URL.
+  # URLs can be generated in mailer views using <tt>url_for</tt> or named routes. Unlike controllers from 
+  # Action Pack, the mailer instance doesn't have any context about the incoming request, so you'll need
+  # to provide all of the details needed to generate a URL.
   #
   # When using <tt>url_for</tt> you'll need to provide the <tt>:host</tt>, <tt>:controller</tt>, and <tt>:action</tt>:
   #
@@ -119,11 +119,11 @@ module ActionMailer #:nodoc:
   #
   #   <%= users_url(:host => "example.com") %>
   #
-  # You will want to avoid using the <tt>name_of_route_path</tt> form of named routes because it doesn't make sense to
-  # generate relative URLs in email messages.
+  # You will want to avoid using the <tt>name_of_route_path</tt> form of named routes because it doesn't
+  # make sense to generate relative URLs in email messages.
   #
-  # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt> option in
-  # the <tt>ActionMailer::Base.default_url_options</tt> hash as follows:
+  # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt>
+  # option in the <tt>ActionMailer::Base.default_url_options</tt> hash as follows:
   #
   #   ActionMailer::Base.default_url_options[:host] = "example.com"
   #
@@ -132,9 +132,9 @@ module ActionMailer #:nodoc:
   #   config.action_mailer.default_url_options = { :host => "example.com" }
   #
   # If you do decide to set a default <tt>:host</tt> for your mailers you will want to use the
-  # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. This will ensure that absolute URLs are generated because
-  # the <tt>url_for</tt> view helper will, by default, generate relative URLs when a <tt>:host</tt> option isn't
-  # explicitly provided.
+  # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. This will ensure that absolute URLs are
+  # generated because the <tt>url_for</tt> view helper will, by default, generate relative URLs when a
+  # <tt>:host</tt> option isn't explicitly provided.
   #
   # = Sending mail
   #
@@ -145,7 +145,7 @@ module ActionMailer #:nodoc:
   #   mail = Notifier.welcome(david)  # => a Mail::Message object
   #   mail.deliver                    # sends the email
   #
-  # You never instantiate your mailer class. Rather, you just call the method on the class itself.
+  # You never instantiate your mailer class. Rather, you just call the method you defined on the class itself.
   #
   # = Multipart Emails
   #
@@ -180,11 +180,11 @@ module ActionMailer #:nodoc:
   #     end
   #   end
   # 
-  # Which will (if it had both a <tt>.text.erb</tt> and <tt>.html.erb</tt> tempalte in the view
-  # directory), send a complete <tt>multipart/mixed</tt> email with two parts, the first part being
-  # a <tt>multipart/alternative</tt> with the text and HTML email parts inside, and the second being
-  # a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book with the filename
-  # +free_book.pdf+.
+  # Which will (if it had both a <tt>welcome.text.plain.erb</tt> and <tt>welcome.text.html.erb</tt>
+  # tempalte in the view directory), send a complete <tt>multipart/mixed</tt> email with two parts,
+  # the first part being a <tt>multipart/alternative</tt> with the text and HTML email parts inside,
+  # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
+  # with the filename +free_book.pdf+.
   #
   #
   # = Configuration options
@@ -194,7 +194,9 @@ module ActionMailer #:nodoc:
   # * <tt>default</tt> - This is a class wide hash of <tt>:key => value</tt> pairs containing
   #   default values for the specified header fields of the <tt>Mail::Message</tt>.  You can 
   #   specify a default for any valid header for <tt>Mail::Message</tt> and it will be used if
-  #   you do not override it.  The defaults set by Action Mailer are:
+  #   you do not override it.  You pass in the header value as a symbol, all lower case with under
+  #   scores instead of hyphens, so <tt>Content-Transfer-Encoding:</tt>
+  #   becomes <tt>:content_transfer_encoding</tt>. The defaults set by Action Mailer are:
   #   * <tt>:mime_version => "1.0"</tt>
   #   * <tt>:charset      => "utf-8",</tt>
   #   * <tt>:content_type => "text/plain",</tt>
@@ -204,33 +206,40 @@ module ActionMailer #:nodoc:
   #   Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
   #
   # * <tt>smtp_settings</tt> - Allows detailed configuration for <tt>:smtp</tt> delivery method:
-  #   * <tt>:address</tt> - Allows you to use a remote mail server. Just change it from its default "localhost" setting.
+  #   * <tt>:address</tt> - Allows you to use a remote mail server. Just change it from its default
+  #     "localhost" setting.
   #   * <tt>:port</tt> - On the off chance that your mail server doesn't run on port 25, you can change it.
   #   * <tt>:domain</tt> - If you need to specify a HELO domain, you can do it here.
   #   * <tt>:user_name</tt> - If your mail server requires authentication, set the username in this setting.
   #   * <tt>:password</tt> - If your mail server requires authentication, set the password in this setting.
-  #   * <tt>:authentication</tt> - If your mail server requires authentication, you need to specify the authentication type here.
+  #   * <tt>:authentication</tt> - If your mail server requires authentication, you need to specify the
+  #     authentication type here.
   #     This is a symbol and one of <tt>:plain</tt>, <tt>:login</tt>, <tt>:cram_md5</tt>.
-  #   * <tt>:enable_starttls_auto</tt> - When set to true, detects if STARTTLS is enabled in your SMTP server and starts to use it.
-  #     It works only on Ruby >= 1.8.7 and Ruby >= 1.9. Default is true.
+  #   * <tt>:enable_starttls_auto</tt> - When set to true, detects if STARTTLS is enabled in your SMTP server
+  #     and starts to use it.
   #
   # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
-  #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i -t</tt>.
+  #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i -t</tt> with <tt>-f sender@addres</tt>
+  #     added automatically before the message is sent.
   #
   # * <tt>file_settings</tt> - Allows you to override options for the <tt>:file</tt> delivery method.
-  #   * <tt>:location</tt> - The directory into which emails will be written. Defaults to the application <tt>tmp/mails</tt>.
+  #   * <tt>:location</tt> - The directory into which emails will be written. Defaults to the application
+  #     <tt>tmp/mails</tt>.
   #
   # * <tt>raise_delivery_errors</tt> - Whether or not errors should be raised if the email fails to be delivered.
   #
-  # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default), <tt>:sendmail</tt>, <tt>:test</tt>,
-  #   and <tt>:file</tt>. Or you may provide a custom delivery method object eg. MyOwnDeliveryMethodClass.new
+  # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default),
+  #   <tt>:sendmail</tt>, <tt>:test</tt>, and <tt>:file</tt>. Or you may provide a custom delivery method
+  #   object eg. MyOwnDeliveryMethodClass.new.  See the Mail gem documentation on the interface you need to
+  #   implement for a custom delivery agent.
   #
-  # * <tt>perform_deliveries</tt> - Determines whether <tt>deliver_*</tt> methods are actually carried out. By default they are,
-  #   but this can be turned off to help functional testing.
+  # * <tt>perform_deliveries</tt> - Determines whether emails are actually sent from Action Mailer when you
+  #   call <tt>.deliver</tt> on an mail message or on an Action Mailer method.  This is on by default but can
+  #   be turned off to aid in functional testing.
   #
-  # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with <tt>delivery_method :test</tt>. Most useful
-  #   for unit and functional testing.
+  # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
+  #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
   # * <tt>default_charset</tt> - This is now deprecated, use the +default+ method above to 
   #   set the default +:charset+.
@@ -289,7 +298,7 @@ module ActionMailer #:nodoc:
       # instantiates a new mailer, and passes the email object to the mailer
       # object's +receive+ method. If you want your mailer to be able to
       # process incoming messages, you'll need to implement a +receive+
-      # method that accepts the email object as a parameter:
+      # method that accepts the raw email string as a parameter:
       #
       #   class MyMailer < ActionMailer::Base
       #     def receive(mail)
@@ -304,9 +313,10 @@ module ActionMailer #:nodoc:
         end
       end
 
-      # Delivers a mail object.  This is actually called by the <tt>Mail::Message</tt> object
-      # itself through a call back when you call <tt>:deliver</tt> on the Mail::Message,
-      # calling +deliver_mail+ directly and passing an Mail::Message will do nothing.
+      # Wraps an email delivery inside of Active Support Notifications instrumentation. This
+      # method is actually called by the <tt>Mail::Message</tt> object itself through a call back
+      # when you call <tt>:deliver</tt> on the Mail::Message, calling +deliver_mail+ directly
+      # and passing a Mail::Message will do nothing except tell the logger you sent the email.
       def deliver_mail(mail) #:nodoc:
         ActiveSupport::Notifications.instrument("action_mailer.deliver") do |payload|
           self.set_payload_for_mail(payload, mail)
