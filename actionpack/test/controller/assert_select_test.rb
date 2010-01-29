@@ -18,7 +18,7 @@ unless defined?(ActionMailer)
   end
 end
 
-ActionMailer::Base.template_root = FIXTURE_LOAD_PATH
+ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
 
 class AssertSelectTest < ActionController::TestCase
   Assertion = ActiveSupport::TestCase::Assertion
@@ -716,7 +716,7 @@ EOF
 
   def test_assert_select_email
     assert_raise(Assertion) { assert_select_email {} }
-    AssertSelectMailer.deliver_test "<div><p>foo</p><p>bar</p></div>"
+    AssertSelectMailer.test("<div><p>foo</p><p>bar</p></div>").deliver
     assert_select_email do
       assert_select "div:root" do
         assert_select "p:first-child", "foo"
