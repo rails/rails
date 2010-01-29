@@ -31,9 +31,13 @@ if RUBY_VERSION < '1.9'
     alias :interpolate_without_ruby_19_syntax :% # :nodoc:
 
     INTERPOLATION_PATTERN = Regexp.union(
-      /%%/,
       /%\{(\w+)\}/,                               # matches placeholders like "%{foo}"
       /%<(\w+)>(.*?\d*\.?\d*[bBdiouxXeEfgGcps])/  # matches placeholders like "%<foo>.d"
+    )
+
+    INTERPOLATION_PATTERN_WITH_ESCAPE = Regexp.union(
+      /%%/,
+      INTERPOLATION_PATTERN
     )
 
     # % uses self (i.e. the String) as a format specification and returns the
@@ -75,7 +79,7 @@ if RUBY_VERSION < '1.9'
     #     # => "10, 43.3"
     def %(args)
       if args.kind_of?(Hash)
-        dup.gsub(INTERPOLATION_PATTERN) do |match|
+        dup.gsub(INTERPOLATION_PATTERN_WITH_ESCAPE) do |match|
           if match == '%%'
             '%'
           else
