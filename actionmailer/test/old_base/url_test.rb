@@ -1,9 +1,12 @@
 require 'abstract_unit'
+require 'action_controller'
 
 class WelcomeController < ActionController::Base
 end
 
 class TestMailer < ActionMailer::Base
+  include ActionController::UrlFor
+
   default_url_options[:host] = 'www.basecamphq.com'
 
   def signed_up_with_url(recipient)

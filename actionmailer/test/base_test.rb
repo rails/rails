@@ -415,6 +415,21 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("7bit", email.parts[1].content_transfer_encoding)
   end
 
+  test "explicit multipart should be multipart" do
+    mail = BaseMailer.explicit_multipart
+    assert_not_nil(mail.content_type_parameters[:boundary])
+  end
+
+  test "should set a content type if only has an html part" do
+    mail = BaseMailer.html_only
+    assert_equal('text/html', mail.mime_type)
+  end
+  
+  test "should set a content type if only has an plain text part" do
+    mail = BaseMailer.plain_text_only
+    assert_equal('text/plain', mail.mime_type)
+  end
+
   test "explicit multipart with one part is rendered as body" do
     email = BaseMailer.custom_block
     assert_equal(0, email.parts.size)
@@ -456,22 +471,8 @@ class BaseTest < ActiveSupport::TestCase
     BaseMailer.expects(:welcome).returns(mail)
     BaseMailer.welcome.deliver
   end
-  
-  test "explicit multipart should be multipart" do
-    mail = BaseMailer.explicit_multipart
-    assert_not_nil(mail.content_type_parameters[:boundary])
-  end
-  
-  test "should set a content type if only has an html part" do
-    mail = BaseMailer.html_only
-    assert_equal('text/html', mail.mime_type)
-  end
-  
-  test "should set a content type if only has an plain text part" do
-    mail = BaseMailer.plain_text_only
-    assert_equal('text/plain', mail.mime_type)
-  end
-  
+
+  # Rendering
   test "that you can specify a different template" do
     mail = BaseMailer.different_template('explicit_multipart_templates')
     assert_equal("HTML Explicit Multipart Templates", mail.html_part.body.decoded)

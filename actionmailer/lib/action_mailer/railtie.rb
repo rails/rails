@@ -17,5 +17,9 @@ module ActionMailer
         ActionMailer::Base.send "#{k}=", v
       end
     end
+
+    initializer "action_mailer.url_for" do |app|
+      ActionMailer::Base.send(:include, ActionController::UrlFor) if defined?(ActionController)
+    end
   end
 end
