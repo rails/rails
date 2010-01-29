@@ -4,9 +4,11 @@ require 'action_controller'
 class WelcomeController < ActionController::Base
 end
 
-class TestMailer < ActionMailer::Base
+class ActionMailer::Base
   include ActionController::UrlFor
+end
 
+class TestMailer < ActionMailer::Base
   default_url_options[:host] = 'www.basecamphq.com'
 
   def signed_up_with_url(recipient)
