@@ -86,6 +86,15 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
+    def different_layout(layout_name='')
+      mail do |format|
+        format.text { 
+          render :layout => layout_name 
+        }
+        format.html { render :layout => layout_name }
+      end
+    end
+
   end
 
   test "method call to mail does not raise error" do
@@ -467,6 +476,12 @@ class BaseTest < ActiveSupport::TestCase
     mail = BaseMailer.different_template('explicit_multipart_templates')
     assert_equal("HTML Explicit Multipart Templates", mail.html_part.body.decoded)
     assert_equal("TEXT Explicit Multipart Templates", mail.text_part.body.decoded)
+  end
+
+  test "that you can specify a different layout" do
+    mail = BaseMailer.different_layout('different_layout')
+    assert_equal("HTML -- HTML", mail.html_part.body.decoded)
+    assert_equal("PLAIN -- PLAIN", mail.text_part.body.decoded)
   end
 
   protected
