@@ -78,6 +78,14 @@ class BaseTest < ActiveSupport::TestCase
         format.html{ render "welcome" } if include_html
       end
     end
+    
+    def different_template(template_name='')
+      mail do |format|
+        format.text { render :template => template_name }
+        format.html { render :template => template_name }
+      end
+    end
+
   end
 
   test "method call to mail does not raise error" do
@@ -453,6 +461,12 @@ class BaseTest < ActiveSupport::TestCase
   test "should set a content type if only has an plain text part" do
     mail = BaseMailer.plain_text_only
     assert_equal('text/plain', mail.mime_type)
+  end
+  
+  test "that you can specify a different template" do
+    mail = BaseMailer.different_template('explicit_multipart_templates')
+    assert_equal("HTML Explicit Multipart Templates", mail.html_part.body.decoded)
+    assert_equal("TEXT Explicit Multipart Templates", mail.text_part.body.decoded)
   end
 
   protected
