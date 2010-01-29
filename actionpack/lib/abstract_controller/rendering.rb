@@ -157,7 +157,8 @@ module AbstractController
         options[:_template_name] = options[:file]
       end
 
-      name = (options[:_template_name] || action_name).to_s
+      name = (options[:_template_name] || options[:action] || action_name).to_s
+      options[:_prefix] ||= _prefix if (options.keys & [:partial, :file, :template]).empty?
 
       options[:_template] ||= with_template_cache(name) do
         find_template(name, { :formats => formats }, options)

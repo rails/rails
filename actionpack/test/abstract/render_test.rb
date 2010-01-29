@@ -11,13 +11,13 @@ module AbstractController
       end
 
       self.view_paths = [ActionView::FixtureResolver.new(
-        "default.erb" => "With Default",
         "template.erb" => "With Template",
+        "renderer/default.erb" => "With Default",
         "renderer/string.erb" => "With String",
         "renderer/symbol.erb" => "With Symbol",
+        "renderer/template_name.erb" => "With Template Name",
         "string/with_path.erb" => "With String With Path",
-        "some/file.erb" => "With File",
-        "template_name.erb" => "With Template Name"
+        "some/file.erb" => "With File"
       )]
 
       def template
