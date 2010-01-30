@@ -39,10 +39,6 @@ module ActionView
     #    <div><%= submit_tag 'Recalculate Shipping' %></div>
     #  <% end -%>
     #
-    # ...periodically...
-    #
-    #  periodically_call_remote(:url => 'update', :frequency => '5', :update => 'ticker')
-    #
     # As you can see, there are numerous ways to use Prototype's Ajax functions (and actually more than
     # are listed here); check out the documentation for each method to find out more about its usage and options.
     #
@@ -253,37 +249,6 @@ module ActionView
       # and defining callbacks is the same as link_to_remote.
       def button_to_remote(name, options = {}, html_options = {})
         button_to_function(name, remote_function(options), html_options)
-      end
-
-      # Periodically calls the specified url (<tt>options[:url]</tt>) every
-      # <tt>options[:frequency]</tt> seconds (default is 10). Usually used to
-      # update a specified div (<tt>options[:update]</tt>) with the results
-      # of the remote call. The options for specifying the target with <tt>:url</tt>
-      # and defining callbacks is the same as link_to_remote.
-      # Examples:
-      #  # Call get_averages and put its results in 'avg' every 10 seconds
-      #  # Generates:
-      #  #      new PeriodicalExecuter(function() {new Ajax.Updater('avg', '/grades/get_averages',
-      #  #      {asynchronous:true, evalScripts:true})}, 10)
-      #  periodically_call_remote(:url => { :action => 'get_averages' }, :update => 'avg')
-      #
-      #  # Call invoice every 10 seconds with the id of the customer
-      #  # If it succeeds, update the invoice DIV; if it fails, update the error DIV
-      #  # Generates:
-      #  #      new PeriodicalExecuter(function() {new Ajax.Updater({success:'invoice',failure:'error'},
-      #  #      '/testing/invoice/16', {asynchronous:true, evalScripts:true})}, 10)
-      #  periodically_call_remote(:url => { :action => 'invoice', :id => customer.id },
-      #     :update => { :success => "invoice", :failure => "error" }
-      #
-      #  # Call update every 20 seconds and update the new_block DIV
-      #  # Generates:
-      #  # new PeriodicalExecuter(function() {new Ajax.Updater('news_block', 'update', {asynchronous:true, evalScripts:true})}, 20)
-      #  periodically_call_remote(:url => 'update', :frequency => '20', :update => 'news_block')
-      #
-      def periodically_call_remote(options = {})
-         frequency = options[:frequency] || 10 # every ten seconds by default
-         code = "new PeriodicalExecuter(function() {#{remote_function(options)}}, #{frequency})"
-         javascript_tag(code)
       end
 
       # Returns a form tag that will submit using XMLHttpRequest in the
