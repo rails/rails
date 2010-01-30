@@ -1,9 +1,16 @@
 en:
-  errors:
-    messages:
-      taken: "has already been taken"
-      record_invalid: "Validation failed: {{errors}}"
-      # Append your own errors here or at the model/attributes scope.
+  # Attributes names common to most models
+  #attributes:
+    #created_at: "Created at"
+    #updated_at: "Updated at"
+
+  # ActiveRecord models configuration
+  activerecord:
+    errors:
+      messages:
+        taken: "has already been taken"
+        record_invalid: "Validation failed: {{errors}}"
+        # Append your own errors here or at the model/attributes scope.
 
       # You can define own errors for models or model attributes.
       # The values :model, :attribute and :value are always available for interpolation.
@@ -19,13 +26,6 @@ en:
       # custom blank validation message for login attribute of User model.
       #models:
 
-  # Attributes names common to most models
-  #attributes:
-    #created_at: "Created at"
-    #updated_at: "Updated at"
-
-  # ActiveRecord models configuration
-  #activerecord:
     # Translate model names. Used in Model.human_name().
     #models:
       # For example,

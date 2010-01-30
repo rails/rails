@@ -77,17 +77,5 @@ module ActiveRecord
         end
       end
     end
-
-    initializer "active_record.i18n_deprecation" do
-      require 'active_support/i18n'
-
-      begin
-        I18n.t(:"activerecord.errors", :raise => true)
-        warn "[DEPRECATION] \"activerecord.errors\" namespace is deprecated in I18n " << 
-          "yml files, please use just \"errors\" instead."
-      rescue Exception => e
-        # No message then.
-      end
-    end
   end
 end
