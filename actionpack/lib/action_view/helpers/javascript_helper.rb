@@ -35,10 +35,6 @@ module ActionView
     # For documentation on +javascript_include_tag+ see
     # ActionView::Helpers::AssetTagHelper.
     module JavaScriptHelper
-      unless const_defined? :JAVASCRIPT_PATH
-        JAVASCRIPT_PATH = File.join(File.dirname(__FILE__), 'javascripts')
-      end
-
       include PrototypeHelper
 
       # Returns a button with the given +name+ text that'll trigger a JavaScript +function+ using the
