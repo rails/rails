@@ -189,24 +189,21 @@ module ActionView
 
     protected
       def convert_options_to_javascript!(html_options, url = '')
-        confirm, popup = html_options.delete("confirm"), html_options.delete("popup")
+        confirm = html_options.delete("confirm")
+
+        if html_options.key?("popup")
+          ActiveSupport::Deprecation.warn(":popup has been deprecated", caller)
+        end
 
         method, href = html_options.delete("method"), html_options['href']
 
-        if popup && method
-          raise ActionView::ActionViewError, "You can't use :popup and :method in the same link"
-        elsif confirm && popup
-          add_confirm_to_attributes!(html_options, confirm)
-          html_options["data-popup"] = popup_attributes(popup)
-        elsif confirm && method
+        if confirm && method
           add_confirm_to_attributes!(html_options, confirm)
           add_method_to_attributes!(html_options, method, url)
         elsif confirm
           add_confirm_to_attributes!(html_options, confirm)
         elsif method
           add_method_to_attributes!(html_options, method, url)
-        elsif popup
-          html_options["data-popup"] = popup_attributes(popup)
         end
       end
 
@@ -224,10 +221,6 @@ module ActionView
 
       def add_disable_with_to_attributes!(html_options, disable_with)
           html_options["data-disable-with"] = disable_with if disable_with
-      end
-
-      def popup_attributes(popup)
-        popup.is_a?(Array) ? "{title: '#{popup.first}', options: '#{popup.last}'}" : "true"
       end
 
       def options_for_javascript(options)

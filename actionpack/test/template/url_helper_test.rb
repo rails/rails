@@ -183,32 +183,6 @@ class UrlHelperTest < ActionView::TestCase
     )
   end
 
-  def test_link_tag_with_popup
-    assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-popup=\"true\">Hello</a>",
-      link_to("Hello", "http://www.example.com", :popup => true)
-    )
-    assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-popup=\"true\">Hello</a>",
-      link_to("Hello", "http://www.example.com", :popup => 'true')
-    )
-    assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-popup=\"{title: 'window_name', options: 'width=300,height=300'}\">Hello</a>",
-      link_to("Hello", "http://www.example.com", :popup => ['window_name', 'width=300,height=300'])
-    )
-  end
-
-  def test_link_tag_with_popup_and_javascript_confirm
-    assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-confirm=\"Fo\' sho\'?\" data-popup=\"true\">Hello</a>",
-      link_to("Hello", "http://www.example.com", { :popup => true, :confirm => "Fo' sho'?" })
-    )
-    assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-confirm=\"Are you serious?\" data-popup=\"{title: 'window_name', options: 'width=300,height=300'}\">Hello</a>",
-      link_to("Hello", "http://www.example.com", { :popup => ['window_name', 'width=300,height=300'], :confirm => "Are you serious?" })
-    )
-  end
-
   def test_link_tag_using_post_javascript
     assert_dom_equal(
       "<a href='http://www.example.com' data-url='http://www.example.com' data-method=\"post\">Hello</a>",
@@ -243,10 +217,6 @@ class UrlHelperTest < ActionView::TestCase
       link_to("Destroy", "http://www.example.com", :method => :delete, :href => '#', :confirm => "Are you serious?"),
       "When specifying url, form should be generated with it, but not this.href"
     )
-  end
-
-  def test_link_tag_using_post_javascript_and_popup
-    assert_raise(ActionView::ActionViewError) { link_to("Hello", "http://www.example.com", :popup => true, :method => :post, :confirm => "Are you serious?") }
   end
 
   def test_link_tag_using_block_in_erb

@@ -120,10 +120,6 @@ module ActionView
       # * <tt>:confirm => 'question?'</tt> - This will add a JavaScript confirm
       #   prompt with the question specified. If the user accepts, the link is
       #   processed normally, otherwise no action is taken.
-      # * <tt>:popup => true || array of window options</tt> - This will force the
-      #   link to open in a popup window. By passing true, a default browser window
-      #   will be opened with the URL. You can also specify an array of options
-      #   that are passed to the <tt>window.open</tt> JavaScript call.
       # * <tt>:method => symbol of HTTP verb</tt> - This modifier will dynamically
       #   create an HTML form and immediately submit the form for processing using
       #   the HTTP verb specified. Useful for having links perform a POST operation
@@ -135,10 +131,6 @@ module ActionView
       #   POST behavior, you should check for it in your controller's action by using
       #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt> or <tt>put?</tt>.
       # * The +html_options+ will accept a hash of html attributes for the link tag.
-      #
-      # You can mix and match the +html_options+ with the exception of
-      # <tt>:popup</tt> and <tt>:method</tt> which will raise an
-      # <tt>ActionView::ActionViewError</tt> exception.
       #
       # ==== Examples
       # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
@@ -203,16 +195,10 @@ module ActionView
       #   link_to "Nonsense search", searches_path(:foo => "bar", :baz => "quux")
       #   # => <a href="/searches?foo=bar&amp;baz=quux">Nonsense search</a>
       #
-      # The three options specific to +link_to+ (<tt>:confirm</tt>, <tt>:popup</tt>, and <tt>:method</tt>) are used as follows:
+      # The three options specific to +link_to+ (<tt>:confirm</tt> and <tt>:method</tt>) are used as follows:
       #
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", :confirm => "Are you sure?"
       #   # => <a href="http://www.rubyonrails.org/" onclick="return confirm('Are you sure?');">Visit Other Site</a>
-      #
-      #   link_to "Help", { :action => "help" }, :popup => true
-      #   # => <a href="/testing/help/" onclick="window.open(this.href);return false;">Help</a>
-      #
-      #   link_to "View Image", @image, :popup => ['new_window_name', 'height=300,width=600']
-      #   # => <a href="/images/9" onclick="window.open(this.href,'new_window_name','height=300,width=600');return false;">View Image</a>
       #
       #   link_to "Delete Image", @image, :confirm => "Are you sure?", :method => :delete
       #   # => <a href="/images/9" onclick="if (confirm('Are you sure?')) { var f = document.createElement('form');
@@ -308,7 +294,7 @@ module ActionView
 
         url = options.is_a?(String) ? options : self.url_for(options)
         name ||= url
-     
+
         convert_options_to_javascript!(html_options, url)
 
         html_options.merge!("type" => "submit", "value" => name)
