@@ -135,17 +135,16 @@ class HelperTest < ActiveSupport::TestCase
     assert methods.include?('foobar')
   end
 
-  # TODO Add this deprecation back before Rails 3.0 final release
-  # def test_deprecation
-  #   assert_deprecated do
-  #     ActionController::Base.helpers_dir = "some/foo/bar"
-  #   end
-  #   assert_deprecated do
-  #     assert_equal ["some/foo/bar"], ActionController::Base.helpers_dir
-  #   end
-  # ensure
-  #   ActionController::Base.helpers_path = [File.dirname(__FILE__) + '/../fixtures/helpers']
-  # end
+  def test_deprecation
+    assert_deprecated do
+      ActionController::Base.helpers_dir = "some/foo/bar"
+    end
+    assert_deprecated do
+      assert_equal ["some/foo/bar"], ActionController::Base.helpers_dir
+    end
+  ensure
+    ActionController::Base.helpers_path = [File.dirname(__FILE__) + '/../fixtures/helpers']
+  end
 
   private
     def expected_helper_methods
