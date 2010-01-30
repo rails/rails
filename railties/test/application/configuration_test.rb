@@ -37,6 +37,13 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       assert_respond_to Rails::Application, :routes_reloader
       assert_equal Rails::Application.routes_reloader, Rails.application.routes_reloader
+      assert_equal Rails::Application.routes_reloader, AppTemplate::Application.routes_reloader
+    end
+
+    test "Rails::Application responds to paths" do
+      require "#{app_path}/config/environment"
+      assert_respond_to AppTemplate::Application, :paths
+      assert_equal AppTemplate::Application.paths.app.views.to_a, ["#{app_path}/app/views"]
     end
 
     test "the application root is set correctly" do
