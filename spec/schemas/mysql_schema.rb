@@ -16,7 +16,8 @@ sql = <<-SQL
     id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     salary INTEGER NOT NULL,
-    department VARCHAR(255) NOT NULL
+    department VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL
   );
 SQL
 
