@@ -24,8 +24,16 @@
 actionpack_path = File.expand_path('../../../actionpack/lib', __FILE__)
 $:.unshift(actionpack_path) if File.directory?(actionpack_path) && !$:.include?(actionpack_path)
 
-require 'action_controller'
+require 'abstract_controller'
 require 'action_view'
+
+# Common ActiveSupport usage in ActionMailer
+require 'active_support/core_ext/class'
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/array/uniq_by'
+require 'active_support/core_ext/module/attr_internal'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/string/inflections'
 
 module ActionMailer
   extend ::ActiveSupport::Autoload

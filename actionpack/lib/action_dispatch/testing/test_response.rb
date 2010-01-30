@@ -36,6 +36,11 @@ module ActionDispatch
         @template.layout
       end
 
+      def redirected_to
+        ::ActiveSupport::Deprecation.warn("response.redirected_to is deprecated. Use response.redirect_url instead", caller)
+        redirect_url
+      end
+
       def redirect_url_match?(pattern)
         ::ActiveSupport::Deprecation.warn("response.redirect_url_match? is deprecated. Use assert_match(/foo/, response.redirect_url) instead", caller)
         return false if redirect_url.nil?

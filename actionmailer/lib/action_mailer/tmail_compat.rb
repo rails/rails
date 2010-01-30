@@ -17,7 +17,13 @@ module Mail
         old_transfer_encoding
       end
     end
-    
+
+    def transfer_encoding=(value)
+      ActiveSupport::Deprecation.warn('Message#transfer_encoding= is deprecated, please call ' <<
+                                      'Message#content_transfer_encoding= with the same arguments', caller[0,2])
+      self.content_transfer_encoding = value
+    end
+
     def original_filename
       ActiveSupport::Deprecation.warn('Message#original_filename is deprecated, ' <<
                                       'please call Message#filename', caller[0,2])

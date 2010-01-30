@@ -37,15 +37,15 @@ A short rundown of the major features:
       def show
         @customer = find_customer
       end
-      
+
       def update
         @customer = find_customer
         @customer.attributes = params[:customer]
-        @customer.save ? 
+        @customer.save ?
           redirect_to(:action => "show") :
           render(:action => "edit")
       end
-      
+
       private
         def find_customer() Customer.find(params[:id]) end
     end
@@ -64,7 +64,7 @@ A short rundown of the major features:
     <% unless @person.is_client? %>
       Not for clients to see...
     <% end %>
-  
+
   {Learn more}[link:classes/ActionView.html]
 
 
@@ -99,24 +99,24 @@ A short rundown of the major features:
       before_filter :authenticate, :cache, :audit
       after_filter { |c| c.response.body = Gzip::compress(c.response.body) }
       after_filter LocalizeFilter
-      
+
       def index
         # Before this action is run, the user will be authenticated, the cache
         # will be examined to see if a valid copy of the results already
         # exists, and the action will be logged for auditing.
-        
-        # After this action has run, the output will first be localized then 
+
+        # After this action has run, the output will first be localized then
         # compressed to minimize bandwidth usage
       end
-      
+
       private
         def authenticate
           # Implement the filter with full access to both request and response
         end
     end
-  
+
   {Learn more}[link:classes/ActionController/Filters/ClassMethods.html]
-  
+
 
 * Helpers for forms, dates, action links, and text
 
@@ -124,26 +124,26 @@ A short rundown of the major features:
     <%= html_date_select(Date.today) %>
     <%= link_to "New post", :controller => "post", :action => "new" %>
     <%= truncate(post.title, :length => 25) %>
- 
+
   {Learn more}[link:classes/ActionView/Helpers.html]
 
 
-* Layout sharing for template reuse (think simple version of Struts 
+* Layout sharing for template reuse (think simple version of Struts
   Tiles[http://jakarta.apache.org/struts/userGuide/dev_tiles.html])
 
     class WeblogController < ActionController::Base
       layout "weblog_layout"
-      
+
       def hello_world
       end
     end
 
     Layout file (called weblog_layout):
       <html><body><%= yield %></body></html>
-    
+
     Template for hello_world action:
       <h1>Hello world</h1>
-    
+
     Result of running hello_world action:
       <html><body><h1>Hello world</h1></body></html>
 
@@ -156,9 +156,9 @@ A short rundown of the major features:
 
     Accessing /clients/37signals/basecamp/project/dash calls ProjectController#dash with
     { "client_name" => "37signals", "project_name" => "basecamp" } in params[:params]
-    
+
     From that URL, you can rewrite the redirect in a number of ways:
-    
+
     redirect_to(:action => "edit") =>
       /clients/37signals/basecamp/project/dash
 
@@ -166,15 +166,6 @@ A short rundown of the major features:
       /clients/nextangle/rails/project/dash
 
   {Learn more}[link:classes/ActionController/Base.html]
-
-
-* Javascript and Ajax integration
-
-    link_to_function "Greeting", "alert('Hello world!')"
-    link_to_remote "Delete this post", :update => "posts", 
-                   :url => { :action => "destroy", :id => post.id }
-  
-  {Learn more}[link:classes/ActionView/Helpers/JavaScriptHelper.html]
 
 
 * Easy testing of both controller and rendered template through ActionController::TestCase
@@ -218,18 +209,18 @@ A short rundown of the major features:
     class WeblogController < ActionController::Base
       caches_page :show
       caches_action :account
-      
+
       def show
-        # the output of the method will be cached as 
+        # the output of the method will be cached as
         # ActionController::Base.page_cache_directory + "/weblog/show/n.html"
         # and the web server will pick it up without even hitting Rails
       end
-      
+
       def account
         # the output of the method will be cached in the fragment store
         # but Rails is hit to retrieve it, so filters are run
       end
-      
+
       def update
         List.update(params[:list][:id], params[:list])
         expire_page   :action => "show", :id => params[:list][:id]
@@ -256,26 +247,26 @@ A short rundown of the major features:
     class AccountController < ActionController::Base
       scaffold :account
     end
-    
+
     The AccountController now has the full CRUD range of actions and default
     templates: list, show, destroy, new, create, edit, update
-    
+
   {Learn more}[link:classes/ActionController/Scaffolding/ClassMethods.html]
 
 
 * Form building for Active Record model objects
 
-    The post object has a title (varchar), content (text), and 
+    The post object has a title (varchar), content (text), and
     written_on (date)
 
     <%= form "post" %>
-    
+
     ...will generate something like (the selects will have more options, of
     course):
-    
+
     <form action="create" method="POST">
       <p>
-        <b>Title:</b><br/> 
+        <b>Title:</b><br/>
         <input type="text" name="post[title]" value="<%= @post.title %>" />
       </p>
       <p>
@@ -293,7 +284,7 @@ A short rundown of the major features:
     </form>
 
     This form generates a params[:post] array that can be used directly in a save action:
-    
+
     class WeblogController < ActionController::Base
       def create
         post = Post.create(params[:post])
@@ -318,19 +309,19 @@ methods:
 
   class WeblogController < ActionController::Base
     layout "weblog/layout"
-  
+
     def index
       @posts = Post.find(:all)
     end
-    
+
     def show
       @post = Post.find(params[:id])
     end
-    
+
     def new
       @post = Post.new
     end
-    
+
     def create
       @post = Post.create(params[:post])
       redirect_to :action => "show", :id => @post.id
@@ -364,7 +355,7 @@ And the templates look like this:
 
   weblog/new.html.erb:
     <%= form "post" %>
-  
+
 This simple setup will list all the posts in the system on the index page,
 which is called by accessing /weblog/. It uses the form builder for the Active
 Record model to make the new screen, which in turn hands everything over to
@@ -379,7 +370,7 @@ The latest version of Action Pack can be found at
 
 * http://rubyforge.org/project/showfiles.php?group_id=249
 
-Documentation can be found at 
+Documentation can be found at
 
 * http://api.rubyonrails.com
 

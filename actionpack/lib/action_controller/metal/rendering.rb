@@ -58,11 +58,6 @@ module ActionController
           options.merge! :partial => action
         end
 
-        if (options.keys & [:partial, :file, :template, :text, :inline]).empty?
-          options[:_template_name] ||= options[:action]
-          options[:_prefix] = _prefix
-        end
-
         if options[:status]
           options[:status] = Rack::Utils.status_code(options[:status])
         end

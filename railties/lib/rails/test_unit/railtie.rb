@@ -11,7 +11,7 @@ module Rails
     end
 
     rake_tasks do
-       load "rails/tasks/testing.rake"
-     end
+      load "rails/test_unit/testing.rake"
+    end
   end
 end

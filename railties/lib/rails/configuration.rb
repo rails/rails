@@ -128,61 +128,61 @@ module Rails
 
       def view_path=(value)
         ActiveSupport::Deprecation.warn "config.view_path= is deprecated, " <<
-          "please do config.paths.app.views= instead", caller
+          "please do paths.app.views= instead", caller
         paths.app.views = value
       end
 
       def view_path
         ActiveSupport::Deprecation.warn "config.view_path is deprecated, " <<
-          "please do config.paths.app.views instead", caller
+          "please do paths.app.views instead", caller
         paths.app.views.to_a.first
       end
 
       def routes_configuration_file=(value)
         ActiveSupport::Deprecation.warn "config.routes_configuration_file= is deprecated, " <<
-          "please do config.paths.config.routes= instead", caller
+          "please do paths.config.routes= instead", caller
         paths.config.routes = value
       end
 
       def routes_configuration_file
         ActiveSupport::Deprecation.warn "config.routes_configuration_file is deprecated, " <<
-          "please do config.paths.config.routes instead", caller
+          "please do paths.config.routes instead", caller
         paths.config.routes.to_a.first
       end
 
       def database_configuration_file=(value)
         ActiveSupport::Deprecation.warn "config.database_configuration_file= is deprecated, " <<
-          "please do config.paths.config.database= instead", caller
+          "please do paths.config.database= instead", caller
         paths.config.database = value
       end
 
       def database_configuration_file
         ActiveSupport::Deprecation.warn "config.database_configuration_file is deprecated, " <<
-          "please do config.paths.config.database instead", caller
+          "please do paths.config.database instead", caller
         paths.config.database.to_a.first
       end
 
       def log_path=(value)
         ActiveSupport::Deprecation.warn "config.log_path= is deprecated, " <<
-          "please do config.paths.log= instead", caller
+          "please do paths.log= instead", caller
         paths.config.log = value
       end
 
       def log_path
         ActiveSupport::Deprecation.warn "config.log_path is deprecated, " <<
-          "please do config.paths.log instead", caller
+          "please do paths.log instead", caller
         paths.config.log.to_a.first
       end
 
       def controller_paths=(value)
         ActiveSupport::Deprecation.warn "config.controller_paths= is deprecated, " <<
-          "please do config.paths.app.controllers= instead", caller
+          "please do paths.app.controllers= instead", caller
         paths.app.controllers = value
       end
 
       def controller_paths
         ActiveSupport::Deprecation.warn "config.controller_paths is deprecated, " <<
-          "please do config.paths.app.controllers instead", caller
+          "please do paths.app.controllers instead", caller
         paths.app.controllers.to_a.uniq
       end
     end

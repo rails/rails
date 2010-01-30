@@ -6,13 +6,9 @@ module RequestForgeryProtectionActions
   def index
     render :inline => "<%= form_tag('/') {} %>"
   end
-  
+
   def show_button
     render :inline => "<%= button_to('New', '/') {} %>"
-  end
-  
-  def remote_form
-    render :inline => "<% form_remote_tag(:url => '/') {} %>"
   end
 
   def unsafe
@@ -30,11 +26,11 @@ end
 
 class FreeCookieController < RequestForgeryProtectionController
   self.allow_forgery_protection = false
-  
+
   def index
     render :inline => "<%= form_tag('/') {} %>"
   end
-  
+
   def show_button
     render :inline => "<%= button_to('New', '/') {} %>"
   end
@@ -65,11 +61,6 @@ module RequestForgeryProtectionTests
      assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token
    end
 
-   def test_should_render_remote_form_with_only_one_token_parameter
-     get :remote_form
-     assert_equal 1, @response.body.scan(@token).size
-   end
-
    def test_should_allow_get
      get :index
      assert_response :success
@@ -84,12 +75,12 @@ module RequestForgeryProtectionTests
     @request.env['CONTENT_TYPE'] = Mime::URL_ENCODED_FORM.to_s
     assert_raise(ActionController::InvalidAuthenticityToken) { post :index, :format => :html }
   end
-  
+
   def test_should_not_allow_html_put_without_token
     @request.env['CONTENT_TYPE'] = Mime::URL_ENCODED_FORM.to_s
     assert_raise(ActionController::InvalidAuthenticityToken) { put :index, :format => :html }
   end
-  
+
   def test_should_not_allow_html_delete_without_token
     @request.env['CONTENT_TYPE'] = Mime::URL_ENCODED_FORM.to_s
     assert_raise(ActionController::InvalidAuthenticityToken) { delete :index, :format => :html }
@@ -154,51 +145,51 @@ module RequestForgeryProtectionTests
       delete :index, :format => 'xml'
     end
   end
-  
+
   def test_should_allow_xhr_post_without_token
     assert_nothing_raised { xhr :post, :index }
   end
-  
+
   def test_should_allow_xhr_put_without_token
     assert_nothing_raised { xhr :put, :index }
   end
-  
+
   def test_should_allow_xhr_delete_without_token
     assert_nothing_raised { xhr :delete, :index }
   end
-  
+
   def test_should_allow_xhr_post_with_encoded_form_content_type_without_token
     @request.env['CONTENT_TYPE'] = Mime::URL_ENCODED_FORM.to_s
     assert_nothing_raised { xhr :post, :index }
   end
-  
+
   def test_should_allow_post_with_token
     post :index, :authenticity_token => @token
     assert_response :success
   end
-  
+
   def test_should_allow_put_with_token
     put :index, :authenticity_token => @token
     assert_response :success
   end
-  
+
   def test_should_allow_delete_with_token
     delete :index, :authenticity_token => @token
     assert_response :success
   end
-  
+
   def test_should_allow_post_with_xml
     @request.env['CONTENT_TYPE'] = Mime::XML.to_s
     post :index, :format => 'xml'
     assert_response :success
   end
-  
+
   def test_should_allow_put_with_xml
     @request.env['CONTENT_TYPE'] = Mime::XML.to_s
     put :index, :format => 'xml'
     assert_response :success
   end
-  
+
   def test_should_allow_delete_with_xml
     @request.env['CONTENT_TYPE'] = Mime::XML.to_s
     delete :index, :format => 'xml'
@@ -231,17 +222,17 @@ class FreeCookieControllerTest < ActionController::TestCase
 
     ActiveSupport::SecureRandom.stubs(:base64).returns(@token)
   end
-  
+
   def test_should_not_render_form_with_token_tag
     get :index
     assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token, false
   end
-  
+
   def test_should_not_render_button_to_with_token_tag
     get :show_button
     assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token, false
   end
-  
+
   def test_should_allow_all_methods_without_token
     [:post, :put, :delete].each do |method|
       assert_nothing_raised { send(method, :index)}

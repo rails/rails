@@ -47,7 +47,7 @@ module RailtiesTest
       assert_equal :debug, LEVEL
     end
 
-    test "plugin_init_is_ran_before_application_ones" do
+    test "plugin_init_is_run_before_application_ones" do
       plugin "foo", "$foo = true" do |plugin|
         plugin.write "lib/foo.rb", "module Foo; end"
       end

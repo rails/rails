@@ -50,7 +50,7 @@ module ActiveRecord
     end
 
     # Setup database middleware after initializers have run
-    initializer "active_record.initialize_database_middleware" do |app|
+    initializer "active_record.initialize_database_middleware", :after => "action_controller.set_configs" do |app|
       middleware = app.config.middleware
       if middleware.include?("ActiveRecord::SessionStore")
         middleware.insert_before "ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
@@ -75,18 +75,6 @@ module ActiveRecord
           ActiveRecord::Base.reset_subclasses
           ActiveRecord::Base.clear_reloadable_connections!
         end
-      end
-    end
-
-    initializer "active_record.i18n_deprecation" do
-      require 'active_support/i18n'
-
-      begin
-        I18n.t(:"activerecord.errors", :raise => true)
-        warn "[DEPRECATION] \"activerecord.errors\" namespace is deprecated in I18n " << 
-          "yml files, please use just \"errors\" instead."
-      rescue Exception => e
-        # No message then.
       end
     end
   end

@@ -1,6 +1,11 @@
 require 'abstract_unit'
+require 'action_controller'
 
 class WelcomeController < ActionController::Base
+end
+
+class ActionMailer::Base
+  include ActionController::UrlFor
 end
 
 class TestMailer < ActionMailer::Base
