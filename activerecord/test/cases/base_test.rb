@@ -71,9 +71,8 @@ class Task < ActiveRecord::Base
   attr_protected :starting
 end
 
-class TopicWithProtectedContentAndAccessibleAuthorName < ActiveRecord::Base
+class TopicWithProtectedContent < ActiveRecord::Base
   self.table_name = 'topics'
-  attr_accessible :author_name
   attr_protected  :content
 end
 
@@ -956,9 +955,9 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_mass_assignment_should_raise_exception_if_accessible_and_protected_attribute_writers_are_both_used
-    topic = TopicWithProtectedContentAndAccessibleAuthorName.new
-    assert_raise(RuntimeError) { topic.attributes = { "author_name" => "me" } }
-    assert_raise(RuntimeError) { topic.attributes = { "content" => "stuff" } }
+    assert_raise(RuntimeError) do
+      TopicWithProtectedContent.attr_accessible :author_name
+    end
   end
 
   def test_mass_assignment_protection
@@ -1021,19 +1020,20 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_mass_assignment_protection_inheritance
-    assert_nil LoosePerson.accessible_attributes
-    assert_equal Set.new([ 'credit_rating', 'administrator' ]), LoosePerson.protected_attributes
+    assert LoosePerson.accessible_attributes.blank?
+    assert_equal Set.new([ 'credit_rating', 'administrator', *LoosePerson.attributes_protected_by_default ]), LoosePerson.protected_attributes
 
-    assert_nil LooseDescendant.accessible_attributes
-    assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number' ]), LooseDescendant.protected_attributes
+    assert LooseDescendant.accessible_attributes.blank?
+    assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number', *LoosePerson.attributes_protected_by_default ]), LooseDescendant.protected_attributes
 
-    assert_nil LooseDescendantSecond.accessible_attributes
-    assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number', 'name' ]), LooseDescendantSecond.protected_attributes, 'Running attr_protected twice in one class should merge the protections'
+    assert LooseDescendantSecond.accessible_attributes.blank?
+    assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number', 'name', *LoosePerson.attributes_protected_by_default ]), LooseDescendantSecond.protected_attributes,
+      'Running attr_protected twice in one class should merge the protections'
 
-    assert_nil TightPerson.protected_attributes
+    assert (TightPerson.protected_attributes - TightPerson.attributes_protected_by_default).blank?
     assert_equal Set.new([ 'name', 'address' ]), TightPerson.accessible_attributes
 
-    assert_nil TightDescendant.protected_attributes
+    assert (TightDescendant.protected_attributes - TightDescendant.attributes_protected_by_default).blank?
     assert_equal Set.new([ 'name', 'address', 'phone_number' ]), TightDescendant.accessible_attributes
   end
 
