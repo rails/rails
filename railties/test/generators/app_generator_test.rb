@@ -86,13 +86,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/boot.rb", /# require "active_record\/railtie"/
   end
 
-  def test_test_unit_is_added_by_default
+  def test_prototype_and_test_unit_are_added_by_default
     run_generator
+    assert_file "public/javascripts/prototype.js"
     assert_file "test"
   end
 
-  def test_test_unit_is_skipped_if_required
-    run_generator [destination_root, "--skip-testunit"]
+  def test_prototype_and_test_unit_are_skipped_if_required
+    run_generator [destination_root, "--skip-prototype", "--skip-testunit"]
+    assert_no_file "public/javascripts/prototype.js"
     assert_no_file "test"
   end
 
