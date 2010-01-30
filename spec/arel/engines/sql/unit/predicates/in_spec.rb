@@ -45,6 +45,25 @@ module Arel
               end
             end
           end
+
+          describe 'when the array is empty' do
+            before do
+              @array = []
+            end
+
+            it 'manufactures sql with a comma separated list' do
+              sql = In.new(@attribute, @array).to_sql
+
+              adapter_is :mysql do
+                sql.should be_like(%Q{`users`.`id` IN (NULL)})
+              end
+
+              adapter_is_not :mysql do
+                sql.should be_like(%Q{"users"."id" IN (NULL)})
+              end
+            end
+          end
+
         end
 
         describe 'when relating to a range' do

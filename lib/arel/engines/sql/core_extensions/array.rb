@@ -2,7 +2,11 @@ module Arel
   module Sql
     module ArrayExtensions
       def to_sql(formatter = nil)
-        "(" + collect { |e| e.to_sql(formatter) }.join(', ') + ")"
+        if any?
+          "(" + collect { |e| e.to_sql(formatter) }.join(', ') + ")"
+        else
+          "(NULL)"
+        end
       end
 
       def inclusion_predicate_sql
