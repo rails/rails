@@ -95,23 +95,6 @@ module ActionView
       def javascript_cdata_section(content) #:nodoc:
         "\n//#{cdata_section("\n#{content}\n//")}\n"
       end
-
-      protected
-        def options_for_javascript(options)
-          if options.empty?
-            '{}'
-          else
-            "{#{options.keys.map { |k| "#{k}:#{options[k]}" }.sort.join(', ')}}"
-          end
-        end
-
-        def array_or_string_for_javascript(option)
-          if option.kind_of?(Array)
-            "['#{option.join('\',\'')}']"
-          elsif !option.nil?
-            "'#{option}'"
-          end
-        end
     end
   end
 end

@@ -624,6 +624,14 @@ module ActionView
       end
 
       protected
+        def options_for_javascript(options)
+          if options.empty?
+            '{}'
+          else
+            "{#{options.keys.map { |k| "#{k}:#{options[k]}" }.sort.join(', ')}}"
+          end
+        end
+
         def options_for_ajax(options)
           js_options = build_callbacks(options)
 

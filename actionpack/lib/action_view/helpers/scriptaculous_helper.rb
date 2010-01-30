@@ -216,6 +216,15 @@ module ActionView
 
         %(Droppables.add(#{ActiveSupport::JSON.encode(element_id)}, #{options_for_javascript(options)});)
       end
+
+      protected
+        def array_or_string_for_javascript(option)
+          if option.kind_of?(Array)
+            "['#{option.join('\',\'')}']"
+          elsif !option.nil?
+            "'#{option}'"
+          end
+        end
     end
 
     module PrototypeHelper
