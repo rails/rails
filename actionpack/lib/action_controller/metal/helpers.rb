@@ -63,11 +63,6 @@ module ActionController
         self.helpers_path = Array(value)
       end
 
-      def inherited(klass)
-        klass.class_eval { default_helper_module! unless name.blank? }
-        super
-      end
-
       # Declares helper accessors for controller attributes. For example, the
       # following adds new +name+ and <tt>name=</tt> instance methods to a
       # controller and makes them available to the view:
@@ -99,16 +94,6 @@ module ActionController
         def _modules_for_helpers(args)
           args += all_application_helpers if args.delete(:all)
           super(args)
-        end
-
-        def default_helper_module!
-          module_name = name.sub(/Controller$/, '')
-          module_path = module_name.underscore
-          helper module_path
-        rescue MissingSourceFile => e
-          raise e unless e.is_missing? "helpers/#{module_path}_helper"
-        rescue NameError => e
-          raise e unless e.missing_name? "#{module_name}Helper"
         end
 
         # Extract helper names from files in app/helpers/**/*_helper.rb

@@ -25,7 +25,7 @@ module AbstractController
       def inherited(klass)
         helpers = _helpers
         klass._helpers = Module.new { include helpers }
-
+        klass.class_eval { default_helper_module! unless name.blank? }
         super
       end
 
@@ -145,6 +145,16 @@ module AbstractController
             raise ArgumentError, "helper must be a String, Symbol, or Module"
           end
         end
+      end
+
+      def default_helper_module!
+        module_name = name.sub(/Controller$/, '')
+        module_path = module_name.underscore
+        helper module_path
+      rescue MissingSourceFile => e
+        raise e unless e.is_missing? "helpers/#{module_path}_helper"
+      rescue NameError => e
+        raise e unless e.missing_name? "#{module_name}Helper"
       end
     end
   end

@@ -12,6 +12,7 @@ module AbstractController
   autoload :Base
   autoload :Callbacks
   autoload :Collector
+  autoload :Compatibility
   autoload :Helpers
   autoload :Layouts
   autoload :LocalizedCache
