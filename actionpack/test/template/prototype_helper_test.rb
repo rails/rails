@@ -82,33 +82,6 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
     super
   end
 
-  def test_link_to_remote
-    assert_dom_equal %(<a class=\"fine\" href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true}); return false;\">Remote outauthor</a>),
-      link_to_remote("Remote outauthor", { :url => { :action => "whatnot"  }}, { :class => "fine"  })
-    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onComplete:function(request){alert(request.responseText)}}); return false;\">Remote outauthor</a>),
-      link_to_remote("Remote outauthor", :complete => "alert(request.responseText)", :url => { :action => "whatnot"  })
-    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onSuccess:function(request){alert(request.responseText)}}); return false;\">Remote outauthor</a>),
-      link_to_remote("Remote outauthor", :success => "alert(request.responseText)", :url => { :action => "whatnot"  })
-    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onFailure:function(request){alert(request.responseText)}}); return false;\">Remote outauthor</a>),
-      link_to_remote("Remote outauthor", :failure => "alert(request.responseText)", :url => { :action => "whatnot"  })
-    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot?a=10&amp;b=20', {asynchronous:true, evalScripts:true, onFailure:function(request){alert(request.responseText)}}); return false;\">Remote outauthor</a>),
-      link_to_remote("Remote outauthor", :failure => "alert(request.responseText)", :url => { :action => "whatnot", :a => '10', :b => '20' })
-    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:false, evalScripts:true}); return false;\">Remote outauthor</a>),
-      link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :type => :synchronous)
-    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, insertion:'bottom'}); return false;\">Remote outauthor</a>),
-      link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :position => :bottom)
-  end
-
-  def test_link_to_remote_html_options
-    assert_dom_equal %(<a class=\"fine\" href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true}); return false;\">Remote outauthor</a>),
-      link_to_remote("Remote outauthor", { :url => { :action => "whatnot"  }, :html => { :class => "fine" } })
-  end
-
-  def test_link_to_remote_url_quote_escaping
-    assert_dom_equal %(<a href="#" onclick="new Ajax.Request('http://www.example.com/whatnot\\\'s', {asynchronous:true, evalScripts:true}); return false;">Remote</a>),
-      link_to_remote("Remote", { :url => { :action => "whatnot's" } })
-  end
-
   def test_button_to_remote
     assert_dom_equal %(<input class=\"fine\" type=\"button\" value=\"Remote outpost\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true});\" />),
       button_to_remote("Remote outpost", { :url => { :action => "whatnot"  }}, { :class => "fine"  })
@@ -610,4 +583,3 @@ return value.reverse();
     assert_equal "MyObject.myMethod(function() { $(\"one\").show();\n$(\"two\").hide(); });", @generator.to_s
   end
 end
-
