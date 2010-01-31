@@ -588,10 +588,6 @@ module ActionView
           html_options["data-method"] = method if method
         end
 
-        def add_disable_with_to_attributes!(html_options, disable_with)
-          html_options["data-disable-with"] = disable_with if disable_with
-        end
-
         def options_for_javascript(options)
           if options.empty?
             '{}'
