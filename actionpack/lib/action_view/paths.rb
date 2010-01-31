@@ -45,7 +45,7 @@ module ActionView #:nodoc:
         end
       end
       
-      raise ActionView::MissingTemplate.new(self, "#{prefix}/#{path} - #{details.inspect} - partial: #{!!partial}")
+      raise ActionView::MissingTemplate.new(self, "#{prefix}/#{path}", details, partial)
     end
     
     def exists?(path, extension = nil, prefix = nil, partial = false)
