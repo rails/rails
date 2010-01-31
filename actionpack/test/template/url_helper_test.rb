@@ -81,6 +81,13 @@ class UrlHelperTest < ActionView::TestCase
     )
   end
 
+  def test_button_to_with_remote_and_javascript_confirm
+    assert_dom_equal(
+      "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\" data-remote=\"true\"><div><input data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
+      button_to("Hello", "http://www.example.com", :remote => true, :confirm => "Are you sure?")
+    )
+  end
+
   def test_button_to_enabled_disabled
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>",

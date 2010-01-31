@@ -286,6 +286,8 @@ module ActionView
 
         form_method = method.to_s == 'get' ? 'get' : 'post'
 
+        remote = html_options.delete('remote')
+
         request_token_tag = ''
         if form_method == 'post' && protect_against_forgery?
           request_token_tag = tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)
@@ -298,7 +300,7 @@ module ActionView
 
         html_options.merge!("type" => "submit", "value" => name)
 
-        ("<form method=\"#{form_method}\" action=\"#{escape_once url}\" class=\"button-to\"><div>" +
+        ("<form method=\"#{form_method}\" action=\"#{escape_once url}\" #{"data-remote=\"true\"" if remote} class=\"button-to\"><div>" +
           method_tag + tag("input", html_options) + request_token_tag + "</div></form>").html_safe!
       end
 
