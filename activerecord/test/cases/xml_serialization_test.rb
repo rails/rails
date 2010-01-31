@@ -130,10 +130,20 @@ class NilXmlSerializationTest < ActiveRecord::TestCase
 end
 
 class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
-  fixtures :authors, :posts
+  fixtures :authors, :posts, :projects
+
   # to_xml used to mess with the hash the user provided which
   # caused the builder to be reused.  This meant the document kept
   # getting appended to.
+
+  def test_modules
+    projects = MyApplication::Business::Project.all
+    xml = projects.to_xml
+    root = projects.first.class.to_s.underscore.pluralize.tr('/','_').dasherize
+    assert_match "<#{root} type=\"array\">", xml
+    assert_match "</#{root}>", xml
+  end
+
   def test_passing_hash_shouldnt_reuse_builder
     options = {:include=>:posts}
     david = authors(:david)
