@@ -225,6 +225,33 @@ module ActionView
       #    ...
       #   <% end %>
       #
+      # === Unobtrusive JavaScript
+      # 
+      # Specifying:  
+      #  
+      #    :remote => true
+      #
+      # in the options hash creates a form that will allow the unobtrusive JavaScript drivers to modify its
+      # behaviour. The expected default behaviour is an XMLHttpRequest in the background instead of the regular 
+      # POST arrangement, but ultimately the behaviour is the choice of the JavaScript driver implementor.
+      # Even though it's using JavaScript to serialize the form elements, the form submission will work just like 
+      # a regular submission as viewed by the receiving side (all elements available in <tt>params</tt>).
+      #
+      # Example:
+      #
+      #   <% form_for(:post, @post, :remote => true, :html => { :id => 'create-post', :method => :put }) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # The HTML generated for this would be:
+      #
+      #   <form action='http://www.example.com' id='create-post' method='post' data-remote='true'>
+      #     <div style='margin:0;padding:0;display:inline'>
+      #       <input name='_method' type='hidden' value='put' />
+      #     </div>
+      #     ...
+      #   </form>
+      #
       # === Customized form builders
       #
       # You can also build forms using a customized FormBuilder class. Subclass

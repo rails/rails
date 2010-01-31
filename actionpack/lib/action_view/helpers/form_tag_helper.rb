@@ -19,6 +19,8 @@ module ActionView
       #   If "put", "delete", or another verb is used, a hidden input with name <tt>_method</tt>
       #   is added to simulate the verb over post.
       # * A list of parameters to feed to the URL the form will be posted to.
+      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the 
+      #   submit behaviour. By default this behaviour is an ajax submit.
       #
       # ==== Examples
       #   form_tag('/posts')
@@ -30,10 +32,14 @@ module ActionView
       #   form_tag('/upload', :multipart => true)
       #   # => <form action="/upload" method="post" enctype="multipart/form-data">
       #
-      #   <% form_tag '/posts' do -%>
+      #   <% form_tag('/posts')do -%>
       #     <div><%= submit_tag 'Save' %></div>
       #   <% end -%>
       #   # => <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
+      # 
+      #  <% form_tag('/posts', :remote => true) %>
+      #   # => <form action="/posts" method="post" data-remote="true">
+      #   
       def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &block)
         html_options = html_options_for_form(url_for_options, options, *parameters_for_url)
         if block_given?
@@ -333,12 +339,13 @@ module ActionView
       # Creates a submit button with the text <tt>value</tt> as the caption.
       #
       # ==== Options
-      # * <tt>:confirm => 'question?'</tt> - This will add a JavaScript confirm
-      #   prompt with the question specified. If the user accepts, the form is
-      #   processed normally, otherwise no action is taken.
+      # * <tt>:confirm => 'question?'</tt> - If present the unobtrusive JavaScript 
+      #   drivers will provide a prompt with the question specified. If the user accepts, 
+      #   the form is processed normally, otherwise no action is taken.
       # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
-      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a disabled version
-      #   of the submit button when the form is submitted.
+      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a 
+      #   disabled version of the submit button when the form is submitted. This feature is 
+      #   provided by the unobtrusive JavaScript driver.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
@@ -351,16 +358,22 @@ module ActionView
       #   submit_tag "Save edits", :disabled => true
       #   # => <input disabled="disabled" name="commit" type="submit" value="Save edits" />
       #
+      #
       #   submit_tag "Complete sale", :disable_with => "Please wait..."
-      #   # => <input name="commit" onclick="this.disabled=true;this.value='Please wait...';this.form.submit();"
+      #   # => <input name="commit" data-disable-with="Please wait..."
       #   #    type="submit" value="Complete sale" />
       #
       #   submit_tag nil, :class => "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
       #   submit_tag "Edit", :disable_with => "Editing...", :class => "edit-button"
-      #   # => <input class="edit-button" onclick="this.disabled=true;this.value='Editing...';this.form.submit();"
+      #   # => <input class="edit-button" data-disable_with="Editing..."
       #   #    name="commit" type="submit" value="Edit" />
+      #
+      #   submit_tag "Save", :confirm => "Are you sure?"
+      #   # => <input name='commit' type='submit' value='Save' 
+      #         data-confirm="Are you sure?" />
+      #
       def submit_tag(value = "Save changes", options = {})
         options.stringify_keys!
 

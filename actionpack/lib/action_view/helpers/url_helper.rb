@@ -117,8 +117,8 @@ module ActionView
       #   end
       #
       # ==== Options
-      # * <tt>:confirm => 'question?'</tt> - This will add a JavaScript confirm
-      #   prompt with the question specified. If the user accepts, the link is
+      # * <tt>:confirm => 'question?'</tt> - This will allow the unobtrusive JavaScript 
+      #   driver to prompt with the question specified. If the user accepts, the link is
       #   processed normally, otherwise no action is taken.
       # * <tt>:method => symbol of HTTP verb</tt> - This modifier will dynamically
       #   create an HTML form and immediately submit the form for processing using
@@ -195,18 +195,15 @@ module ActionView
       #   link_to "Nonsense search", searches_path(:foo => "bar", :baz => "quux")
       #   # => <a href="/searches?foo=bar&amp;baz=quux">Nonsense search</a>
       #
-      # The three options specific to +link_to+ (<tt>:confirm</tt> and <tt>:method</tt>) are used as follows:
+      # The two options specific to +link_to+ (<tt>:confirm</tt> and <tt>:method</tt>) are used as follows:
       #
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", :confirm => "Are you sure?"
-      #   # => <a href="http://www.rubyonrails.org/" onclick="return confirm('Are you sure?');">Visit Other Site</a>
+      #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?"">Visit Other Site</a>
       #
-      #   link_to "Delete Image", @image, :confirm => "Are you sure?", :method => :delete
-      #   # => <a href="/images/9" onclick="if (confirm('Are you sure?')) { var f = document.createElement('form');
-      #        f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;
-      #        var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method');
-      #        m.setAttribute('value', 'delete');var s = document.createElement('input'); s.setAttribute('type', 'hidden');
-      #        s.setAttribute('name', 'authenticity_token'); s.setAttribute('value', 'Q/ttlxPYZ6R77B+vZ1sBkhj21G2isO9dpE6UtOHBApg=');
-      #        f.appendChild(s)f.appendChild(m);f.submit(); };return false;">Delete Image</a>
+      #   link_to("Destroy", "http://www.example.com", :method => :delete, :confirm => "Are you sure?")
+      #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete" data-confirm="Are you sure?">Destroy</a>
+
+      #
       def link_to(*args, &block)
         if block_given?
           options      = args.first || {}
@@ -256,9 +253,11 @@ module ActionView
       # There are a few special +html_options+:
       # * <tt>:method</tt> - Specifies the anchor name to be appended to the path.
       # * <tt>:disabled</tt> - Specifies the anchor name to be appended to the path.
-      # * <tt>:confirm</tt> - This will add a JavaScript confirm
+      # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to 
       #   prompt with the question specified. If the user accepts, the link is
       #   processed normally, otherwise no action is taken.
+      # * <tt>:remote</tt> -  If set to true, will allow the Unobtrusive JavaScript drivers to control the 
+      #   submit behaviour. By default this behaviour is an ajax submit.
       #
       # ==== Examples
       #   <%= button_to "New", :action => "new" %>
@@ -266,15 +265,27 @@ module ActionView
       #   #      <div><input value="New" type="submit" /></div>
       #   #    </form>"
       #
-      #   button_to "Delete Image", { :action => "delete", :id => @image.id },
-      #             :confirm => "Are you sure?", :method => :delete
+      #
+      #   <%= button_to "Delete Image", { :action => "delete", :id => @image.id },
+      #             :confirm => "Are you sure?", :method => :delete %>
       #   # => "<form method="post" action="/images/delete/1" class="button-to">
       #   #      <div>
       #   #        <input type="hidden" name="_method" value="delete" />
-      #   #        <input onclick="return confirm('Are you sure?');"
-      #   #              value="Delete" type="submit" />
+      #   #        <input data-confirm='Are you sure?' value="Delete" type="submit" />
       #   #      </div>
       #   #    </form>"
+      #
+      #
+      #   <%= button_to('Destroy', 'http://www.example.com', :confirm => 'Are you sure?', 
+      #             :method => "delete", :remote => true, :disable_with => 'loading...') %>
+      #   # => "<form class='button-to' method='post' action='http://www.example.com' data-remote='true'>
+      #   #       <div>
+      #   #         <input name='_method' value='delete' type='hidden' />
+      #   #         <input value='Destroy' type='submit' disable_with='loading...' data-confirm='Are you sure?' />
+      #   #       </div>
+      #   #     </form>"
+      #   #
+
       def button_to(name, options = {}, html_options = {})
         html_options = html_options.stringify_keys
         convert_boolean_attributes!(html_options, %w( disabled ))
@@ -567,14 +578,8 @@ module ActionView
 
           method, href = html_options.delete("method"), html_options['href']
 
-          if confirm && method
-            add_confirm_to_attributes!(html_options, confirm)
-            add_method_to_attributes!(html_options, method)
-          elsif confirm
-            add_confirm_to_attributes!(html_options, confirm)
-          elsif method
-            add_method_to_attributes!(html_options, method)
-          end
+          add_confirm_to_attributes!(html_options, confirm) if confirm
+          add_method_to_attributes!(html_options, method)   if method
 
           html_options["data-url"] = options[:url] if options.is_a?(Hash) && options[:url]
 
