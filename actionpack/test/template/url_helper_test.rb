@@ -192,7 +192,7 @@ class UrlHelperTest < ActionView::TestCase
 
   def test_link_tag_using_post_javascript
     assert_dom_equal(
-      "<a href='http://www.example.com' data-method=\"post\">Hello</a>",
+      "<a href='http://www.example.com' data-method=\"post\" rel=\"nofollow\">Hello</a>",
       link_to("Hello", "http://www.example.com", :method => :post)
     )
   end
@@ -213,7 +213,7 @@ class UrlHelperTest < ActionView::TestCase
 
   def test_link_tag_using_post_javascript_and_confirm
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-method=\"post\" data-confirm=\"Are you serious?\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-method=\"post\" rel=\"nofollow\" data-confirm=\"Are you serious?\">Hello</a>",
       link_to("Hello", "http://www.example.com", :method => :post, :confirm => "Are you serious?")
     )
   end
