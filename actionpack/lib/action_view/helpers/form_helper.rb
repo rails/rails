@@ -280,6 +280,8 @@ module ActionView
           args.unshift object
         end
 
+        options[:html][:remote] = true if options.delete(:remote)
+
         concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}))
         fields_for(object_name, *(args << options), &proc)
         concat('</form>'.html_safe!)
