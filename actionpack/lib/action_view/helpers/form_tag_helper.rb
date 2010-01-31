@@ -57,7 +57,7 @@ module ActionView
       # ==== Examples
       #   select_tag "people", options_from_collection_for_select(@people, "name", "id")
       #   # <select id="people" name="people"><option value="1">David</option></select>
-      #   
+      #
       #   select_tag "people", "<option>David</option>"
       #   # => <select id="people" name="people"><option>David</option></select>
       #
@@ -128,7 +128,7 @@ module ActionView
 
       # Creates a label field
       #
-      # ==== Options  
+      # ==== Options
       # * Creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -367,7 +367,7 @@ module ActionView
         if disable_with = options.delete("disable_with")
           disable_with = "this.value='#{disable_with}'"
           disable_with << ";#{options.delete('onclick')}" if options['onclick']
-          
+
           options["onclick"]  = "if (window.hiddenCommit) { window.hiddenCommit.setAttribute('value', this.value); }"
           options["onclick"] << "else { hiddenCommit = document.createElement('input');hiddenCommit.type = 'hidden';"
           options["onclick"] << "hiddenCommit.value = this.value;hiddenCommit.name = this.name;this.form.appendChild(hiddenCommit); }"
@@ -377,8 +377,7 @@ module ActionView
         end
 
         if confirm = options.delete("confirm")
-          options["onclick"] ||= 'return true;'
-          options["onclick"] = "if (!#{confirm_javascript_function(confirm)}) return false; #{options['onclick']}"
+          add_confirm_to_attributes!(options, confirm)
         end
 
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
@@ -411,8 +410,7 @@ module ActionView
         options.stringify_keys!
 
         if confirm = options.delete("confirm")
-          options["onclick"] ||= ''
-          options["onclick"] += "return #{confirm_javascript_function(confirm)};"
+          add_confirm_to_attributes!(options, confirm)
         end
 
         tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options.stringify_keys)
