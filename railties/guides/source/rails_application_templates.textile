@@ -88,7 +88,7 @@ Please note that you need to +git :init+ before you can install a plugin as a su
 Or use plain old SVN :
 
 <ruby>
-plugin 'wtfsvn', :svn => 'svn://crap.com/wtf/trunk'
+plugin 'usingsvn', :svn => 'svn://example.com/usingsvn/trunk'
 </ruby>
 
 h4. vendor/lib/file/initializer(filename, data = nil, &block)

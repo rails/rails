@@ -13,7 +13,7 @@ module AbstractControllerTests
         "layouts/hello_override.erb"            => "With Override <%= yield %>",
         "layouts/abstract_controller_tests/layouts/with_string_implied_child.erb" =>
                                                    "With Implied <%= yield %>",
-        "layouts/omg.erb"                       => "OMGHI2U <%= yield %>",
+        "layouts/overwrite.erb"                  => "Overwrite <%= yield %>",
         "layouts/with_false_layout.erb"         => "False Layout <%= yield %>"
       )]
     end
@@ -42,7 +42,7 @@ module AbstractControllerTests
       end
 
       def overwrite_string
-        render :_template => ActionView::Template::Text.new("Hello string!"), :layout => "omg"
+        render :_template => ActionView::Template::Text.new("Hello string!"), :layout => "overwrite"
       end
 
       def overwrite_skip
@@ -68,7 +68,7 @@ module AbstractControllerTests
     end
 
     class WithProc < Base
-      layout proc { |c| "omg" }
+      layout proc { |c| "overwrite" }
 
       def index
         render :_template => ActionView::Template::Text.new("Hello proc!")
@@ -83,7 +83,7 @@ module AbstractControllerTests
       end
     private  
       def hello
-        "omg"
+        "overwrite"
       end
     end
     
@@ -122,7 +122,7 @@ module AbstractControllerTests
     end    
     
     class WithSymbolAndNoMethod < Base
-      layout :omg_no_method
+      layout :no_method
       
       def index
         render :_template => ActionView::Template::Text.new("Hello boom!")
@@ -175,7 +175,7 @@ module AbstractControllerTests
       test "when layout is overwriten by string in render, render new layout" do
         controller = WithString.new
         controller.process(:overwrite_string)
-        assert_equal "OMGHI2U Hello string!", controller.response_body
+        assert_equal "Overwrite Hello string!", controller.response_body
       end
 
       test "when layout is overwriten by false in render, render no layout" do
@@ -209,13 +209,13 @@ module AbstractControllerTests
       test "when layout is specified as a proc, call it and use the layout returned" do
         controller = WithProc.new
         controller.process(:index)
-        assert_equal "OMGHI2U Hello proc!", controller.response_body
+        assert_equal "Overwrite Hello proc!", controller.response_body
       end
       
       test "when layout is specified as a symbol, call the requested method and use the layout returned" do
         controller = WithSymbol.new
         controller.process(:index)
-        assert_equal "OMGHI2U Hello symbol!", controller.response_body
+        assert_equal "Overwrite Hello symbol!", controller.response_body
       end
       
       test "when layout is specified as a symbol and the method returns nil, don't use a layout" do
@@ -266,7 +266,7 @@ module AbstractControllerTests
       test "raises an exception when specifying layout true" do
         assert_raises ArgumentError do
           Object.class_eval do
-            class ::BadOmgFailLolLayout < AbstractControllerTests::Layouts::Base
+            class ::BadFailLayout < AbstractControllerTests::Layouts::Base
               layout true
             end
           end

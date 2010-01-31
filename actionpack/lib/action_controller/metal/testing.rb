@@ -4,7 +4,7 @@ module ActionController
 
     include RackDelegation
 
-    # OMG MEGA HAX
+    # TODO: Clean this up
     def process_with_new_base_test(request, response)
       @_request = request
       @_response = response

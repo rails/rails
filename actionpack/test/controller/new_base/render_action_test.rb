@@ -119,9 +119,9 @@ module RenderActionWithApplicationLayout
     # Set the view path to an application view structure with layouts
     self.view_paths = self.view_paths = [ActionView::FixtureResolver.new(
       "render_action_with_application_layout/basic/hello_world.html.erb" => "Hello World!",
-      "render_action_with_application_layout/basic/hello.html.builder"   => "xml.p 'Omg'",
-      "layouts/application.html.erb"                                     => "OHAI <%= yield %> KTHXBAI",
-      "layouts/greetings.html.erb"                                       => "Greetings <%= yield %> Bai",
+      "render_action_with_application_layout/basic/hello.html.builder"   => "xml.p 'Hello'",
+      "layouts/application.html.erb"                                     => "Hi <%= yield %> OK, Bye",
+      "layouts/greetings.html.erb"                                       => "Greetings <%= yield %> Bye",
       "layouts/builder.html.builder"                                     => "xml.html do\n  xml << yield\nend"
     )]
 
@@ -156,14 +156,14 @@ module RenderActionWithApplicationLayout
     test "rendering implicit application.html.erb as layout" do
       get "/render_action_with_application_layout/basic/hello_world"
 
-      assert_body "OHAI Hello World! KTHXBAI"
+      assert_body "Hi Hello World! OK, Bye"
       assert_status 200
     end
 
     test "rendering with layout => true" do
       get "/render_action_with_application_layout/basic/hello_world_with_layout"
 
-      assert_body "OHAI Hello World! KTHXBAI"
+      assert_body "Hi Hello World! OK, Bye"
       assert_status 200
     end
 
@@ -184,7 +184,7 @@ module RenderActionWithApplicationLayout
     test "rendering with layout => 'greetings'" do
       get "/render_action_with_application_layout/basic/hello_world_with_custom_layout"
 
-      assert_body "Greetings Hello World! Bai"
+      assert_body "Greetings Hello World! Bye"
       assert_status 200
     end
   end
@@ -194,7 +194,7 @@ module RenderActionWithApplicationLayout
 
     test "builder works with layouts" do
       get :with_builder_and_layout
-      assert_response "<html>\n<p>Omg</p>\n</html>\n"
+      assert_response "<html>\n<p>Hello</p>\n</html>\n"
     end
   end
 
@@ -204,7 +204,7 @@ module RenderActionWithControllerLayout
   class BasicController < ActionController::Base
     self.view_paths = self.view_paths = [ActionView::FixtureResolver.new(
       "render_action_with_controller_layout/basic/hello_world.html.erb" => "Hello World!",
-      "layouts/render_action_with_controller_layout/basic.html.erb"     => "With Controller Layout! <%= yield %> KTHXBAI"
+      "layouts/render_action_with_controller_layout/basic.html.erb"     => "With Controller Layout! <%= yield %> Bye"
     )]
 
     def hello_world
@@ -234,14 +234,14 @@ module RenderActionWithControllerLayout
     test "render hello_world and implicitly use <controller_path>.html.erb as a layout." do
       get "/render_action_with_controller_layout/basic/hello_world"
 
-      assert_body "With Controller Layout! Hello World! KTHXBAI"
+      assert_body "With Controller Layout! Hello World! Bye"
       assert_status 200
     end
 
     test "rendering with layout => true" do
       get "/render_action_with_controller_layout/basic/hello_world_with_layout"
 
-      assert_body "With Controller Layout! Hello World! KTHXBAI"
+      assert_body "With Controller Layout! Hello World! Bye"
       assert_status 200
     end
 
@@ -265,8 +265,8 @@ module RenderActionWithBothLayouts
   class BasicController < ActionController::Base
     self.view_paths = [ActionView::FixtureResolver.new({
       "render_action_with_both_layouts/basic/hello_world.html.erb" => "Hello World!",
-      "layouts/application.html.erb"                                => "OHAI <%= yield %> KTHXBAI",
-      "layouts/render_action_with_both_layouts/basic.html.erb"      => "With Controller Layout! <%= yield %> KTHXBAI"
+      "layouts/application.html.erb"                                => "Oh Hi <%= yield %> Bye",
+      "layouts/render_action_with_both_layouts/basic.html.erb"      => "With Controller Layout! <%= yield %> Bye"
     })]
 
     def hello_world
@@ -292,14 +292,14 @@ module RenderActionWithBothLayouts
     test "rendering implicitly use <controller_path>.html.erb over application.html.erb as a layout" do
       get "/render_action_with_both_layouts/basic/hello_world"
 
-      assert_body   "With Controller Layout! Hello World! KTHXBAI"
+      assert_body   "With Controller Layout! Hello World! Bye"
       assert_status 200
     end
 
     test "rendering with layout => true" do
       get "/render_action_with_both_layouts/basic/hello_world_with_layout"
 
-      assert_body "With Controller Layout! Hello World! KTHXBAI"
+      assert_body "With Controller Layout! Hello World! Bye"
       assert_status 200
     end
 

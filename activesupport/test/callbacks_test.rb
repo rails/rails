@@ -264,12 +264,12 @@ module CallbacksTest
     define_callbacks :save
     attr_reader :stuff
 
-    set_callback :save, :before, :omg, :per_key => {:if => :yes}
+    set_callback :save, :before, :action, :per_key => {:if => :yes}
 
     def yes() true end
 
-    def omg
-      @stuff = "OMG"
+    def action
+      @stuff = "ACTION"
     end
 
     def save
@@ -522,7 +522,7 @@ module CallbacksTest
     def test_save
       obj = HyphenatedCallbacks.new
       obj.save
-      assert_equal obj.stuff, "OMG"
+      assert_equal obj.stuff, "ACTION"
     end
   end
 end

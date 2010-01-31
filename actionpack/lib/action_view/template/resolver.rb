@@ -141,8 +141,7 @@ module ActionView
     end
   end
 
-  # OMG HAX
-  # TODO: remove hax
+  # TODO: remove hack
   class FileSystemResolverWithFallback < Resolver
     def initialize(path, options = {})
       super(options)
