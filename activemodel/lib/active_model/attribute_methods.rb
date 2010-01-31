@@ -5,6 +5,48 @@ module ActiveModel
   class MissingAttributeError < NoMethodError
   end
 
+  # <tt>ActiveModel::AttributeMethods</tt> provides a way to add prefixes and suffixes
+  # to your methods as well as handling the creation of Active Record like class methods
+  # such as +table_name+.
+  # 
+  # The requirements to implement ActiveModel::AttributeMethods are:
+  #
+  # * <tt>include ActiveModel::AttributeMethods</tt> in your object
+  # * Call each Attribute Method module method you want to add, such as 
+  #   attribute_method_suffix or attribute_method_prefix
+  # * Call <tt>define_attribute_methods</tt> after the other methods are
+  #   called.
+  # * Define the various generic +_attribute+ methods that you have declared
+  # 
+  # A minimal implementation could be:
+  # 
+  #   class Person
+  #   
+  #     include ActiveModel::AttributeMethods
+  #     
+  #     attribute_method_affix  :prefix => 'reset_', :suffix => '_to_default!'
+  #     attribute_method_suffix '_contrived?'
+  #     attribute_method_prefix 'clear_'
+  #     define_attribute_methods ['name']
+  #     
+  #     attr_accessor :name
+  #     
+  #     private
+  #     
+  #     def attribute_contrived?(attr)
+  #       true
+  #     end
+  #     
+  #     def clear_attribute(attr)
+  #       send("#{attr}=", nil)
+  #     end
+  #     
+  #     def reset_attribute_to_default!(attr)
+  #       send("#{attr}=", "Default Name")
+  #     end
+  #   
+  #   end
+  # 
   module AttributeMethods
     extend ActiveSupport::Concern
 
@@ -22,12 +64,27 @@ module ActiveModel
       #
       # Example:
       #
-      #   class A < ActiveRecord::Base
+      #   class Person
+      # 
+      #     include ActiveModel::AttributeMethods
+      # 
+      #     cattr_accessor :primary_key
+      #     cattr_accessor :inheritance_column
+      #     
       #     define_attr_method :primary_key, "sysid"
       #     define_attr_method( :inheritance_column ) do
       #       original_inheritance_column + "_id"
       #     end
+      # 
       #   end
+      # 
+      # Provivdes you with:
+      # 
+      #   AttributePerson.primary_key
+      #   # => "sysid"
+      #   AttributePerson.inheritance_column = 'address'
+      #   AttributePerson.inheritance_column
+      #   # => 'address_id'
       def define_attr_method(name, value=nil, &block)
         sing = metaclass
         sing.send :alias_method, "original_#{name}", name
@@ -54,19 +111,25 @@ module ActiveModel
       #
       # For example:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person
+      # 
+      #     include ActiveModel::AttributeMethods
+      #     attr_accessor :name
       #     attribute_method_prefix 'clear_'
+      #     define_attribute_methods [:name]
       #
       #     private
-      #       def clear_attribute(attr)
-      #         ...
-      #       end
+      # 
+      #     def clear_attribute(attr)
+      #       send("#{attr}=", nil)
+      #     end
       #   end
       #
-      #   person = Person.find(1)
-      #   person.name          # => 'Gem'
+      #   person = Person.new
+      #   person.name = "Bob"
+      #   person.name          # => "Bob"
       #   person.clear_name
-      #   person.name          # => ''
+      #   person.name          # => nil
       def attribute_method_prefix(*prefixes)
         attribute_method_matchers.concat(prefixes.map { |prefix| AttributeMethodMatcher.new :prefix => prefix })
         undefine_attribute_methods
@@ -86,18 +149,24 @@ module ActiveModel
       #
       # For example:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person
+      # 
+      #     include ActiveModel::AttributeMethods
+      #     attr_accessor :name
       #     attribute_method_suffix '_short?'
+      #     define_attribute_methods [:name]
       #
       #     private
-      #       def attribute_short?(attr)
-      #         ...
-      #       end
+      # 
+      #     def attribute_short?(attr)
+      #       send(attr).length < 5
+      #     end
       #   end
       #
-      #   person = Person.find(1)
-      #   person.name           # => 'Gem'
-      #   person.name_short?    # => true
+      #   person = Person.new
+      #   person.name = "Bob"
+      #   person.name          # => "Bob"
+      #   person.name_short?   # => true
       def attribute_method_suffix(*suffixes)
         attribute_method_matchers.concat(suffixes.map { |suffix| AttributeMethodMatcher.new :suffix => suffix })
         undefine_attribute_methods
@@ -118,16 +187,21 @@ module ActiveModel
       #
       # For example:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person
+      # 
+      #     include ActiveModel::AttributeMethods
+      #     attr_accessor :name
       #     attribute_method_affix :prefix => 'reset_', :suffix => '_to_default!'
+      #     define_attribute_methods [:name]
       #
       #     private
-      #       def reset_attribute_to_default!(attr)
-      #         ...
-      #       end
+      # 
+      #     def reset_attribute_to_default!(attr)
+      #       ...
+      #     end
       #   end
       #
-      #   person = Person.find(1)
+      #   person = Person.new
       #   person.name                         # => 'Gem'
       #   person.reset_name_to_default!
       #   person.name                         # => 'Gemma'
@@ -146,6 +220,30 @@ module ActiveModel
         end
       end
 
+      # Declares a the attributes that should be prefixed and suffixed by 
+      # ActiveModel::AttributeMethods.
+      # 
+      # To use, pass in an array of attribute names (as strings or symbols),
+      # be sure to declare +define_attribute_methods+ after you define any
+      # prefix, suffix or affix methods, or they will not hook in.
+      # 
+      #   class Person
+      # 
+      #     include ActiveModel::AttributeMethods
+      #     attr_accessor :name, :age, :address
+      #     attribute_method_prefix 'clear_'
+      #
+      #     # Call to define_attribute_methods must appear after the
+      #     # attribute_method_prefix, attribute_method_suffix or
+      #     # attribute_method_affix declares.
+      #     define_attribute_methods [:name, :age, :address]
+      #
+      #     private
+      # 
+      #     def clear_attribute(attr)
+      #       ...
+      #     end
+      #   end
       def define_attribute_methods(attr_names)
         return if attribute_methods_generated?
         attr_names.each do |attr_name|
@@ -168,6 +266,7 @@ module ActiveModel
         @attribute_methods_generated = true
       end
 
+      # Removes all the preiously dynamically defined methods from the class
       def undefine_attribute_methods
         generated_attribute_methods.module_eval do
           instance_methods.each { |m| undef_method(m) }
@@ -175,6 +274,7 @@ module ActiveModel
         @attribute_methods_generated = nil
       end
 
+      # Returns true if the attribute methods defined have been generated.
       def generated_attribute_methods #:nodoc:
         @generated_attribute_methods ||= begin
           mod = Module.new

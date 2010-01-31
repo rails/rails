@@ -1,5 +1,6 @@
 module ActiveModel #:nodoc:
-  # A simple base class that can be used along with ActiveModel::Validations::ClassMethods.validates_with
+  # A simple base class that can be used along with 
+  # +ActiveModel::Validations::ClassMethods.validates_with+
   #
   #   class Person
   #     include ActiveModel::Validations
@@ -28,7 +29,7 @@ module ActiveModel #:nodoc:
   #   end
   #
   #   class MyValidator < ActiveModel::Validator
-  #     def validate
+  #     def validate(record)
   #       record # => The person instance being validated
   #       options # => Any non-standard options passed to validates_with
   #     end
