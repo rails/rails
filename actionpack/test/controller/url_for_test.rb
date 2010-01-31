@@ -5,7 +5,7 @@ module AbstractController
 
     class UrlForTests < ActionController::TestCase
       class W
-        include AbstractController::UrlFor
+        include ActionController::UrlFor
       end
 
       def teardown
@@ -132,7 +132,7 @@ module AbstractController
           end
 
           # We need to create a new class in order to install the new named route.
-          kls = Class.new { include AbstractController::UrlFor }
+          kls = Class.new { include ActionController::UrlFor }
           controller = kls.new
           assert controller.respond_to?(:home_url)
           assert_equal 'http://www.basecamphq.com/home/sweet/home/again',
@@ -153,7 +153,7 @@ module AbstractController
             match '/home/sweet/home/:user', :to => 'home#index', :as => :home
           end
 
-          kls = Class.new { include AbstractController::UrlFor }
+          kls = Class.new { include ActionController::UrlFor }
           controller = kls.new
 
           assert_equal 'http://www.basecamphq.com/subdir/home/sweet/home/again',
@@ -171,7 +171,7 @@ module AbstractController
           end
 
           # We need to create a new class in order to install the new named route.
-          kls = Class.new { include AbstractController::UrlFor }
+          kls = Class.new { include ActionController::UrlFor }
           controller = kls.new
           assert controller.respond_to?(:home_url)
           assert_equal '/brave/new/world',
@@ -239,7 +239,7 @@ module AbstractController
           end
 
           # We need to create a new class in order to install the new named route.
-          kls = Class.new { include AbstractController::UrlFor }
+          kls = Class.new { include ActionController::UrlFor }
           kls.default_url_options[:host] = 'www.basecamphq.com'
 
           controller = kls.new
@@ -251,8 +251,8 @@ module AbstractController
       end
 
       def test_multiple_includes_maintain_distinct_options
-        first_class = Class.new { include AbstractController::UrlFor }
-        second_class = Class.new { include AbstractController::UrlFor }
+        first_class = Class.new { include ActionController::UrlFor }
+        second_class = Class.new { include ActionController::UrlFor }
 
         first_host, second_host = 'firsthost.com', 'secondhost.com'
 

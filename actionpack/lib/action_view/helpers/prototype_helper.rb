@@ -1,7 +1,6 @@
 require 'set'
 require 'active_support/json'
 require 'active_support/core_ext/object/returning'
-require 'action_view/helpers/scriptaculous_helper'
 
 module ActionView
   module Helpers
@@ -27,6 +26,26 @@ module ActionView
     # (See the documentation for
     # ActionView::Helpers::JavaScriptHelper for more information on including
     # this and other JavaScript files in your Rails templates.)
+    #
+    # Now you're ready to call a remote action either through a link...
+    #
+    #  link_to_remote "Add to cart",
+    #    :url => { :action => "add", :id => product.id },
+    #    :update => { :success => "cart", :failure => "error" }
+    #
+    # ...through a form...
+    #
+    #  <% form_remote_tag :url => '/shipping' do -%>
+    #    <div><%= submit_tag 'Recalculate Shipping' %></div>
+    #  <% end -%>
+    #
+    # As you can see, there are numerous ways to use Prototype's Ajax functions (and actually more than
+    # are listed here); check out the documentation for each method to find out more about its usage and options.
+    #
+    # === Common Options
+    # See link_to_remote for documentation of options common to all Ajax
+    # helpers; any of the options specified by link_to_remote can be used
+    # by the other helpers.
     #
     # == Designing your Rails actions for Ajax
     # When building your action handlers (that is, the Rails actions that receive your background requests), it's
@@ -74,8 +93,6 @@ module ActionView
     # See JavaScriptGenerator for information on updating multiple elements
     # on the page in an Ajax response.
     module PrototypeHelper
-      include ScriptaculousHelper
-
       unless const_defined? :CALLBACKS
         CALLBACKS    = Set.new([ :create, :uninitialized, :loading, :loaded,
                          :interactive, :complete, :failure, :success ] +
@@ -83,6 +100,39 @@ module ActionView
         AJAX_OPTIONS = Set.new([ :before, :after, :condition, :url,
                          :asynchronous, :method, :insertion, :position,
                          :form, :with, :update, :script, :type ]).merge(CALLBACKS)
+      end
+
+      # Returns a button with the given +name+ text that'll trigger a JavaScript +function+ using the
+      # onclick handler.
+      #
+      # The first argument +name+ is used as the button's value or display text.
+      #
+      # The next arguments are optional and may include the javascript function definition and a hash of html_options.
+      #
+      # The +function+ argument can be omitted in favor of an +update_page+
+      # block, which evaluates to a string when the template is rendered
+      # (instead of making an Ajax request first).
+      #
+      # The +html_options+ will accept a hash of html attributes for the link tag. Some examples are :class => "nav_button", :id => "articles_nav_button"
+      #
+      # Note: if you choose to specify the javascript function in a block, but would like to pass html_options, set the +function+ parameter to nil
+      #
+      # Examples:
+      #   button_to_function "Greeting", "alert('Hello world!')"
+      #   button_to_function "Delete", "if (confirm('Really?')) do_delete()"
+      #   button_to_function "Details" do |page|
+      #     page[:details].visual_effect :toggle_slide
+      #   end
+      #   button_to_function "Details", :class => "details_button" do |page|
+      #     page[:details].visual_effect :toggle_slide
+      #   end
+      def button_to_function(name, *args, &block)
+        html_options = args.extract_options!.symbolize_keys
+
+        function = block_given? ? update_page(&block) : args[0] || ''
+        onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function};"
+
+        tag(:input, html_options.merge(:type => 'button', :value => name, :onclick => onclick))
       end
 
       # Returns the JavaScript needed for a remote function.
@@ -502,32 +552,6 @@ module ActionView
             record "}, #{(seconds * 1000).to_i})"
           end
 
-          # Starts a script.aculo.us visual effect. See
-          # ActionView::Helpers::ScriptaculousHelper for more information.
-          def visual_effect(name, id = nil, options = {})
-            record @context.send(:visual_effect, name, id, options)
-          end
-
-          # Creates a script.aculo.us sortable element. Useful
-          # to recreate sortable elements after items get added
-          # or deleted.
-          # See ActionView::Helpers::ScriptaculousHelper for more information.
-          def sortable(id, options = {})
-            record @context.send(:sortable_element_js, id, options)
-          end
-
-          # Creates a script.aculo.us draggable element.
-          # See ActionView::Helpers::ScriptaculousHelper for more information.
-          def draggable(id, options = {})
-            record @context.send(:draggable_element_js, id, options)
-          end
-
-          # Creates a script.aculo.us drop receiving element.
-          # See ActionView::Helpers::ScriptaculousHelper for more information.
-          def drop_receiving(id, options = {})
-            record @context.send(:drop_receiving_element_js, id, options)
-          end
-
           private
             def loop_on_multiple_args(method, ids)
               record(ids.size>1 ?
@@ -599,65 +623,57 @@ module ActionView
         javascript_tag update_page(&block), html_options
       end
 
-    protected
-      def options_for_ajax(options)
-        js_options = build_callbacks(options)
-
-        js_options['asynchronous'] = options[:type] != :synchronous
-        js_options['method']       = method_option_to_s(options[:method]) if options[:method]
-        js_options['insertion']    = "'#{options[:position].to_s.downcase}'" if options[:position]
-        js_options['evalScripts']  = options[:script].nil? || options[:script]
-
-        if options[:form]
-          js_options['parameters'] = 'Form.serialize(this)'
-        elsif options[:submit]
-          js_options['parameters'] = "Form.serialize('#{options[:submit]}')"
-        elsif options[:with]
-          js_options['parameters'] = options[:with]
-        end
-
-        if protect_against_forgery? && !options[:form]
-          if js_options['parameters']
-            js_options['parameters'] << " + '&"
+      protected
+        def options_for_javascript(options)
+          if options.empty?
+            '{}'
           else
-            js_options['parameters'] = "'"
-          end
-          js_options['parameters'] << "#{request_forgery_protection_token}=' + encodeURIComponent('#{escape_javascript form_authenticity_token}')"
-        end
-
-        options_for_javascript(js_options)
-      end
-
-      def method_option_to_s(method)
-        (method.is_a?(String) and !method.index("'").nil?) ? method : "'#{method}'"
-      end
-
-      def build_observer(klass, name, options = {})
-        if options[:with] && (options[:with] !~ /[\{=(.]/)
-          options[:with] = "'#{options[:with]}=' + encodeURIComponent(value)"
-        else
-          options[:with] ||= 'value' unless options[:function]
-        end
-
-        callback = options[:function] || remote_function(options)
-        javascript  = "new #{klass}('#{name}', "
-        javascript << "#{options[:frequency]}, " if options[:frequency]
-        javascript << "function(element, value) {"
-        javascript << "#{callback}}"
-        javascript << ")"
-        javascript_tag(javascript)
-      end
-
-      def build_callbacks(options)
-        callbacks = {}
-        options.each do |callback, code|
-          if CALLBACKS.include?(callback)
-            name = 'on' + callback.to_s.capitalize
-            callbacks[name] = "function(request){#{code}}"
+            "{#{options.keys.map { |k| "#{k}:#{options[k]}" }.sort.join(', ')}}"
           end
         end
-        callbacks
-      end
+
+        def options_for_ajax(options)
+          js_options = build_callbacks(options)
+
+          js_options['asynchronous'] = options[:type] != :synchronous
+          js_options['method']       = method_option_to_s(options[:method]) if options[:method]
+          js_options['insertion']    = "'#{options[:position].to_s.downcase}'" if options[:position]
+          js_options['evalScripts']  = options[:script].nil? || options[:script]
+
+          if options[:form]
+            js_options['parameters'] = 'Form.serialize(this)'
+          elsif options[:submit]
+            js_options['parameters'] = "Form.serialize('#{options[:submit]}')"
+          elsif options[:with]
+            js_options['parameters'] = options[:with]
+          end
+
+          if protect_against_forgery? && !options[:form]
+            if js_options['parameters']
+              js_options['parameters'] << " + '&"
+            else
+              js_options['parameters'] = "'"
+            end
+            js_options['parameters'] << "#{request_forgery_protection_token}=' + encodeURIComponent('#{escape_javascript form_authenticity_token}')"
+          end
+
+          options_for_javascript(js_options)
+        end
+
+        def method_option_to_s(method)
+          (method.is_a?(String) and !method.index("'").nil?) ? method : "'#{method}'"
+        end
+
+        def build_callbacks(options)
+          callbacks = {}
+          options.each do |callback, code|
+            if CALLBACKS.include?(callback)
+              name = 'on' + callback.to_s.capitalize
+              callbacks[name] = "function(request){#{code}}"
+            end
+          end
+          callbacks
+        end
     end
 
     # Converts chained method calls on DOM proxy elements into JavaScript chains

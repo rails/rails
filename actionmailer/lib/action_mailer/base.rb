@@ -1,8 +1,3 @@
-require 'active_support/core_ext/class'
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/array/uniq_by'
-require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/string/inflections'
 require 'mail'
 require 'action_mailer/tmail_compat'
 require 'action_mailer/collector'
@@ -263,8 +258,8 @@ module ActionMailer #:nodoc:
     include AbstractController::LocalizedCache
     include AbstractController::Layouts
     include AbstractController::Helpers
-    include AbstractController::UrlFor
     include AbstractController::Translation
+    include AbstractController::Compatibility
 
     helper  ActionMailer::MailHelper
 

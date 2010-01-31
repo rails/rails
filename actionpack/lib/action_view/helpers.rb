@@ -3,7 +3,6 @@ require 'active_support/benchmarkable'
 module ActionView #:nodoc:
   module Helpers #:nodoc:
     autoload :ActiveModelHelper, 'action_view/helpers/active_model_helper'
-    autoload :AjaxHelperCompat, 'action_view/helpers/ajax_helper'
     autoload :AssetTagHelper, 'action_view/helpers/asset_tag_helper'
     autoload :AtomFeedHelper, 'action_view/helpers/atom_feed_helper'
     autoload :CacheHelper, 'action_view/helpers/cache_helper'
@@ -15,11 +14,12 @@ module ActionView #:nodoc:
     autoload :FormTagHelper, 'action_view/helpers/form_tag_helper'
     autoload :JavaScriptHelper, 'action_view/helpers/javascript_helper'
     autoload :NumberHelper, 'action_view/helpers/number_helper'
-    autoload :AjaxHelper, 'action_view/helpers/ajax_helper'
+    autoload :PrototypeHelper, 'action_view/helpers/prototype_helper'
     autoload :RawOutputHelper, 'action_view/helpers/raw_output_helper'
     autoload :RecordIdentificationHelper, 'action_view/helpers/record_identification_helper'
     autoload :RecordTagHelper, 'action_view/helpers/record_tag_helper'
     autoload :SanitizeHelper, 'action_view/helpers/sanitize_helper'
+    autoload :ScriptaculousHelper, 'action_view/helpers/scriptaculous_helper'
     autoload :TagHelper, 'action_view/helpers/tag_helper'
     autoload :TextHelper, 'action_view/helpers/text_helper'
     autoload :TranslationHelper, 'action_view/helpers/translation_helper'
@@ -47,11 +47,12 @@ module ActionView #:nodoc:
     include FormTagHelper
     include JavaScriptHelper
     include NumberHelper
-    include AjaxHelperCompat
+    include PrototypeHelper
     include RawOutputHelper
     include RecordIdentificationHelper
     include RecordTagHelper
     include SanitizeHelper
+    include ScriptaculousHelper
     include TagHelper
     include TextHelper
     include TranslationHelper

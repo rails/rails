@@ -262,8 +262,23 @@ module ActionView
       # FormTagHelper#form_tag.
       def form_for(record_or_name_or_array, *args, &proc)
         raise ArgumentError, "Missing block" unless block_given?
+
         options = args.extract_options!
-        object_name = extract_object_name_for_form!(args, options, record_or_name_or_array)
+
+        case record_or_name_or_array
+        when String, Symbol
+          object_name = record_or_name_or_array
+        when Array
+          object = record_or_name_or_array.last
+          object_name = ActionController::RecordIdentifier.singular_class_name(object)
+          apply_form_for_options!(record_or_name_or_array, options)
+          args.unshift object
+        else
+          object = record_or_name_or_array
+          object_name = ActionController::RecordIdentifier.singular_class_name(object)
+          apply_form_for_options!([object], options)
+          args.unshift object
+        end
 
         concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}))
         fields_for(object_name, *(args << options), &proc)
@@ -727,25 +742,6 @@ module ActionView
       def radio_button(object_name, method, tag_value, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_radio_button_tag(tag_value, options)
       end
-
-      private
-        def extract_object_name_for_form!(args, options, record_or_name_or_array)
-          case record_or_name_or_array
-          when String, Symbol
-            object_name = record_or_name_or_array
-          when Array
-            object = record_or_name_or_array.last
-            object_name = ActionController::RecordIdentifier.singular_class_name(object)
-            apply_form_for_options!(record_or_name_or_array, options)
-            args.unshift object
-          else
-            object = record_or_name_or_array
-            object_name = ActionController::RecordIdentifier.singular_class_name(object)
-            apply_form_for_options!([object], options)
-            args.unshift object
-          end
-          object_name
-        end
     end
 
     module InstanceTagMethods #:nodoc:

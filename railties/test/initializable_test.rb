@@ -50,7 +50,7 @@ module InitializableTests
       $arr << 3
     end
 
-    initializer :four, :after => :one do
+    initializer :four, :after => :one, :before => :two do
       $arr << 4
     end
   end
@@ -97,7 +97,7 @@ module InitializableTests
         $arr << 3
       end
 
-      initializer :terminate, :after => :first do
+      initializer :terminate, :after => :first, :before => :startup do
         $arr << two
       end
 
@@ -118,6 +118,39 @@ module InitializableTests
 
     def self.initializers
       super + MoreInitializers.new.initializers
+    end
+  end
+
+  module Interdependent
+    class PluginA
+      include Rails::Initializable
+
+      initializer "plugin_a.startup" do
+        $arr << 1
+      end
+
+      initializer "plugin_a.terminate" do
+        $arr << 4
+      end
+    end
+
+    class PluginB
+      include Rails::Initializable
+
+      initializer "plugin_b.startup", :after => "plugin_a.startup" do
+        $arr << 2
+      end
+
+      initializer "plugin_b.terminate", :before => "plugin_a.terminate" do
+        $arr << 3
+      end
+    end
+
+    class Application
+      include Rails::Initializable
+      def self.initializers
+        PluginB.initializers + PluginA.initializers
+      end
     end
   end
 
@@ -173,6 +206,12 @@ module InitializableTests
       $arr = []
       Child.run_initializers
       assert_equal [5, 3, 1, 4, 2], $arr
+    end
+
+    test "handles dependencies introduced before all initializers are loaded" do
+      $arr = []
+      Interdependent::Application.run_initializers
+      assert_equal [1, 2, 3, 4], $arr
     end
   end
 

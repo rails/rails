@@ -64,6 +64,10 @@ task :generate_guides do
   ruby "guides/rails_guides.rb"
 end
 
+task :update_prototype_ujs do
+  system "curl http://github.com/rails/prototype-ujs/raw/master/src/rails.js > lib/generators/rails/app/templates/public/javascripts/rails.js"
+end
+
 # Generate documentation ------------------------------------------------------------------
 
 Rake::RDocTask.new { |rdoc|

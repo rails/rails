@@ -57,7 +57,7 @@ module ActionView
       # ==== Examples
       #   select_tag "people", options_from_collection_for_select(@people, "name", "id")
       #   # <select id="people" name="people"><option value="1">David</option></select>
-      #   
+      #
       #   select_tag "people", "<option>David</option>"
       #   # => <select id="people" name="people"><option>David</option></select>
       #
@@ -128,7 +128,7 @@ module ActionView
 
       # Creates a label field
       #
-      # ==== Options  
+      # ==== Options
       # * Creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -352,20 +352,20 @@ module ActionView
       #   # => <input disabled="disabled" name="commit" type="submit" value="Save edits" />
       #
       #   submit_tag "Complete sale", :disable_with => "Please wait..."
-      #   # => <input name="commit" data-disable-with="Please wait..."
+      #   # => <input name="commit" onclick="this.disabled=true;this.value='Please wait...';this.form.submit();"
       #   #    type="submit" value="Complete sale" />
       #
       #   submit_tag nil, :class => "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
       #   submit_tag "Edit", :disable_with => "Editing...", :class => "edit-button"
-      #   # => <input class="edit-button" data-disable-with="Editing..."
+      #   # => <input class="edit-button" onclick="this.disabled=true;this.value='Editing...';this.form.submit();"
       #   #    name="commit" type="submit" value="Edit" />
       def submit_tag(value = "Save changes", options = {})
         options.stringify_keys!
 
         if disable_with = options.delete("disable_with")
-          add_disable_with_to_attributes!(options, disable_with)
+          options["data-disable-with"] = disable_with if disable_with
         end
 
         if confirm = options.delete("confirm")
@@ -482,7 +482,6 @@ module ActionView
         def sanitize_to_id(name)
           name.to_s.gsub(']','').gsub(/[^-a-zA-Z0-9:.]/, "_")
         end
-
     end
   end
 end

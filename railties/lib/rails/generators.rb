@@ -286,3 +286,6 @@ module Rails
   end
 end
 
+# If the application was already defined, configure generators,
+# otherwise you have to configure it by hand.
+Rails::Generators.configure! if Rails.respond_to?(:application) && Rails.application

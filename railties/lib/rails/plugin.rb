@@ -43,7 +43,7 @@ module Rails
       @config ||= Engine::Configuration.new
     end
 
-    initializer :load_init_rb do |app|
+    initializer :load_init_rb, :before => :load_application_initializers do |app|
       file   = Dir["#{root}/{rails/init,init}.rb"].first
       config = app.config
       eval(File.read(file), binding, file) if file && File.file?(file)

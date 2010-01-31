@@ -174,79 +174,56 @@ class UrlHelperTest < ActionView::TestCase
       link_to("Hello", "http://www.example.com", :confirm => "Are you sure?")
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-confirm=\"You can\'t possibly be sure, can you?\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-confirm=\"You can't possibly be sure, can you?\">Hello</a>",
       link_to("Hello", "http://www.example.com", :confirm => "You can't possibly be sure, can you?")
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-confirm=\"You can\'t possibly be sure,\n can you?\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-confirm=\"You can't possibly be sure,\n can you?\">Hello</a>",
       link_to("Hello", "http://www.example.com", :confirm => "You can't possibly be sure,\n can you?")
     )
   end
 
-  def test_link_tag_with_popup
+  def test_link_to_with_remote
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-popup=\"true\">Hello</a>",
-      link_to("Hello", "http://www.example.com", :popup => true)
-    )
-    assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-popup=\"true\">Hello</a>",
-      link_to("Hello", "http://www.example.com", :popup => 'true')
-    )
-    assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-popup=\"{title: 'window_name', options: 'width=300,height=300'}\">Hello</a>",
-      link_to("Hello", "http://www.example.com", :popup => ['window_name', 'width=300,height=300'])
-    )
-  end
-
-  def test_link_tag_with_popup_and_javascript_confirm
-    assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-confirm=\"Fo\' sho\'?\" data-popup=\"true\">Hello</a>",
-      link_to("Hello", "http://www.example.com", { :popup => true, :confirm => "Fo' sho'?" })
-    )
-    assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-confirm=\"Are you serious?\" data-popup=\"{title: 'window_name', options: 'width=300,height=300'}\">Hello</a>",
-      link_to("Hello", "http://www.example.com", { :popup => ['window_name', 'width=300,height=300'], :confirm => "Are you serious?" })
+      "<a href=\"http://www.example.com\" data-remote=\"true\">Hello</a>",
+      link_to("Hello", "http://www.example.com", :remote => true)
     )
   end
 
   def test_link_tag_using_post_javascript
     assert_dom_equal(
-      "<a href='http://www.example.com' data-url='http://www.example.com' data-method=\"post\">Hello</a>",
+      "<a href='http://www.example.com' data-method=\"post\" rel=\"nofollow\">Hello</a>",
       link_to("Hello", "http://www.example.com", :method => :post)
     )
   end
 
   def test_link_tag_using_delete_javascript
     assert_dom_equal(
-      "<a href='http://www.example.com' data-url='http://www.example.com' rel=\"nofollow\" data-method=\"delete\">Destroy</a>",
+      "<a href='http://www.example.com' rel=\"nofollow\" data-method=\"delete\">Destroy</a>",
       link_to("Destroy", "http://www.example.com", :method => :delete)
     )
   end
 
   def test_link_tag_using_delete_javascript_and_href
     assert_dom_equal(
-      "<a href='\#' data-url='http://www.example.com' rel=\"nofollow\" data-method=\"delete\">Destroy</a>",
+      "<a href='\#' rel=\"nofollow\" data-method=\"delete\">Destroy</a>",
       link_to("Destroy", "http://www.example.com", :method => :delete, :href => '#')
     )
   end
 
   def test_link_tag_using_post_javascript_and_confirm
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-url='http://www.example.com' data-method=\"post\" data-confirm=\"Are you serious?\">Hello</a>",
+      "<a href=\"http://www.example.com\" data-method=\"post\" rel=\"nofollow\" data-confirm=\"Are you serious?\">Hello</a>",
       link_to("Hello", "http://www.example.com", :method => :post, :confirm => "Are you serious?")
     )
   end
 
   def test_link_tag_using_delete_javascript_and_href_and_confirm
     assert_dom_equal(
-      "<a href=\"#\" data-url='http://www.example.com' rel=\"nofollow\" data-method=\"delete\" data-confirm=\"Are you serious?\">Destroy</a>",
+      "<a href='\#' rel=\"nofollow\" data-confirm=\"Are you serious?\" data-method=\"delete\">Destroy</a>",
       link_to("Destroy", "http://www.example.com", :method => :delete, :href => '#', :confirm => "Are you serious?"),
       "When specifying url, form should be generated with it, but not this.href"
     )
-  end
-
-  def test_link_tag_using_post_javascript_and_popup
-    assert_raise(ActionView::ActionViewError) { link_to("Hello", "http://www.example.com", :popup => true, :method => :post, :confirm => "Are you serious?") }
   end
 
   def test_link_tag_using_block_in_erb

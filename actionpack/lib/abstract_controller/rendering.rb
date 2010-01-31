@@ -157,11 +157,21 @@ module AbstractController
         options[:_template_name] = options[:file]
       end
 
-      name = (options[:_template_name] || action_name).to_s
+      name = (options[:_template_name] || options[:action] || action_name).to_s
+      options[:_prefix] ||= _prefix if (options.keys & [:partial, :file, :template]).empty?
+
+      details = _normalize_details(options)
 
       options[:_template] ||= with_template_cache(name) do
-        find_template(name, { :formats => formats }, options)
+        find_template(name, details, options)
       end
+    end
+
+    def _normalize_details(options)
+      details = { :formats => formats }
+      details[:formats] = Array(options[:format]) if options[:format]
+      details[:locale]  = Array(options[:locale]) if options[:locale]
+      details
     end
 
     def find_template(name, details, options)

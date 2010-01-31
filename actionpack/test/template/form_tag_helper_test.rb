@@ -285,8 +285,8 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_submit_tag
     assert_dom_equal(
-      %(<input name='commit' data-disable-with="Saving..." onclick="alert('hello!');" type="submit" value="Save" />),
-      submit_tag("Save", :disable_with => "Saving...", :onclick => "alert('hello!');")
+      %(<input name='commit' data-disable-with="Saving..." onclick="alert('hello!')" type="submit" value="Save" />),
+      submit_tag("Save", :disable_with => "Saving...", :onclick => "alert('hello!')")
     )
   end
 
@@ -299,21 +299,21 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_submit_tag_with_confirmation
     assert_dom_equal(
-      %(<input name='commit' type='submit' value='Save' data-confirm="Are you sure?"/>),
+      %(<input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />),
       submit_tag("Save", :confirm => "Are you sure?")
     )
   end
 
   def test_submit_tag_with_confirmation_and_with_disable_with
     assert_dom_equal(
-      %(<input name="commit" data-confirm="Are you sure?" data-disable-with="Saving..." type="submit" value="Save" />),
+      %(<input name="commit" data-disable-with="Saving..." data-confirm="Are you sure?" type="submit" value="Save" />),
       submit_tag("Save", :disable_with => "Saving...", :confirm => "Are you sure?")
     )
   end
 
   def test_image_submit_tag_with_confirmation
     assert_dom_equal(
-      %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?"/>),
+      %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
       image_submit_tag("save.gif", :confirm => "Are you sure?")
     )
   end

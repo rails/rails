@@ -1,3 +1,5 @@
+require 'tsort'
+
 module Rails
   module Initializable
     def self.included(base)
@@ -30,28 +32,20 @@ module Rails
     end
 
     class Collection < Array
+      include TSort
+
+      alias :tsort_each_node :each
+      def tsort_each_child(initializer, &block)
+        select { |i| i.before == initializer.name || i.name == initializer.after }.each(&block)
+      end
+
       def initialize(initializers = [])
-        super()
-        initializers.each do |initializer|
-          if initializer.before
-            index = index_for(initializer.before)
-          elsif initializer.after
-            index = index_for(initializer.after)
-            index += 1 if index
-          else
-            index = length
-          end
-          insert(index || -1, initializer)
-        end
+        super(initializers)
+        replace(tsort)
       end
 
       def +(other)
         Collection.new(to_a + other.to_a)
-      end
-
-      def index_for(name)
-        initializer = find { |i| i.name == name }
-        initializer && index(initializer)
       end
     end
 
@@ -87,6 +81,7 @@ module Rails
 
       def initializer(name, opts = {}, &blk)
         raise ArgumentError, "A block must be passed when defining an initializer" unless blk
+        opts[:after] ||= initializers.last.name unless initializers.empty? || initializers.find { |i| i.name == opts[:before] }
         initializers << Initializer.new(name, nil, opts, &blk)
       end
 

@@ -242,28 +242,35 @@ module ActiveModel
     # <li><tt>activemodel.errors.models.admin.blank</tt></li>
     # <li><tt>activemodel.errors.models.user.attributes.title.blank</tt></li>
     # <li><tt>activemodel.errors.models.user.blank</tt></li>
-    # <li><tt>activemodel.errors.messages.blank</tt></li>
     # <li>any default you provided through the +options+ hash (in the activemodel.errors scope)</li>
+    # <li><tt>activemodel.errors.messages.blank</tt></li>
+    # <li><tt>errors.attributes.title.blank</tt></li>
+    # <li><tt>errors.messages.blank</tt></li>
     # </ol>
     def generate_message(attribute, message = :invalid, options = {})
       message, options[:default] = options[:default], message if options[:default].is_a?(Symbol)
 
       defaults = @base.class.lookup_ancestors.map do |klass|
-        [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}",
-          :"models.#{klass.name.underscore}.#{message}" ]
+        [ :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.underscore}.attributes.#{attribute}.#{message}",
+          :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.underscore}.#{message}" ]
       end
 
       defaults << options.delete(:default)
-      defaults = defaults.compact.flatten << :"messages.#{message}"
+      defaults << :"#{@base.class.i18n_scope}.errors.messages.#{message}"
+      defaults << :"errors.attributes.#{attribute}.#{message}"
+      defaults << :"errors.messages.#{message}"
+
+      defaults.compact!
+      defaults.flatten!
 
       key = defaults.shift
       value = @base.send(:read_attribute_for_validation, attribute)
 
-      options = { :default => defaults,
+      options = {
+        :default => defaults,
         :model => @base.class.model_name.human,
         :attribute => @base.class.human_attribute_name(attribute),
-        :value => value,
-        :scope => [:errors]
+        :value => value
       }.merge(options)
 
       I18n.translate(key, options)

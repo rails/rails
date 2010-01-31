@@ -101,7 +101,6 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
     assert_equal javascript_tag(create_generator(&block).to_s, {:defer => 'true'}), update_page_tag({:defer => 'true'}, &block)
   end
 
-
   protected
     def author_path(record)
       "/authors/#{record.id}"
@@ -466,4 +465,3 @@ return value.reverse();
     assert_equal "MyObject.myMethod(function() { $(\"one\").show();\n$(\"two\").hide(); });", @generator.to_s
   end
 end
-
