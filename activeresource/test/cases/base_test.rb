@@ -5,6 +5,7 @@ require "fixtures/street_address"
 require "fixtures/beast"
 require "fixtures/proxy"
 require 'active_support/core_ext/hash/conversions'
+require 'mocha'
 
 class BaseTest < Test::Unit::TestCase
   def setup
