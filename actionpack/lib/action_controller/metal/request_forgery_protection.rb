@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/attribute'
+
 module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:
   end
@@ -13,7 +15,7 @@ module ActionController #:nodoc:
       cattr_accessor :request_forgery_protection_token
 
       # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
-      extlib_inheritable_accessor :allow_forgery_protection
+      class_attribute :allow_forgery_protection
       self.allow_forgery_protection = true
 
       helper_method :form_authenticity_token
@@ -107,7 +109,7 @@ module ActionController #:nodoc:
       end
 
       def protect_against_forgery?
-        allow_forgery_protection
+        self.class.allow_forgery_protection
       end
   end
 end

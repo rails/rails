@@ -7,8 +7,7 @@ module ActionMailer
     extend ActiveSupport::Concern
 
     included do
-      extlib_inheritable_accessor :delivery_methods, :delivery_method,
-                                  :instance_writer => false
+      class_attribute :delivery_methods, :delivery_method
 
       # Do not make this inheritable, because we always want it to propagate
       cattr_accessor :raise_delivery_errors
@@ -17,7 +16,7 @@ module ActionMailer
       cattr_accessor :perform_deliveries
       self.perform_deliveries = true
 
-      self.delivery_methods = {}
+      self.delivery_methods = {}.freeze
       self.delivery_method  = :smtp
 
       add_delivery_method :smtp, Mail::SMTP,
@@ -53,12 +52,9 @@ module ActionMailer
       #     :arguments  => '-i -t'
       # 
       def add_delivery_method(symbol, klass, default_options={})
-        unless respond_to?(:"#{symbol}_settings")
-          extlib_inheritable_accessor(:"#{symbol}_settings", :instance_writer => false)
-        end
-
+        class_attribute(:"#{symbol}_settings") unless respond_to?(:"#{symbol}_settings")
         send(:"#{symbol}_settings=", default_options)
-        self.delivery_methods[symbol.to_sym] = klass
+        self.delivery_methods = delivery_methods.merge(symbol.to_sym => klass).freeze
       end
 
       def wrap_delivery_behavior(mail, method=nil) #:nodoc:

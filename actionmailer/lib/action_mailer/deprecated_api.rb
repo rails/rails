@@ -47,7 +47,7 @@ module ActionMailer
       end
 
       def template_root=(root)
-        ActiveSupport::Deprecation.warn "template_root= is deprecated, use view_paths.unshift instead", caller[0,2]
+        ActiveSupport::Deprecation.warn "template_root= is deprecated, use prepend_view_path instead", caller[0,2]
         self.view_paths = ActionView::Base.process_view_paths(root)
       end
 

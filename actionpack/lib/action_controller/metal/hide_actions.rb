@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/attribute'
+
 module ActionController
   # ActionController::HideActions adds the ability to prevent public methods on a controller
   # to be called as actions.
@@ -5,7 +7,8 @@ module ActionController
     extend ActiveSupport::Concern
 
     included do
-      extlib_inheritable_accessor(:hidden_actions) { Set.new }
+      class_attribute :hidden_actions
+      self.hidden_actions = Set.new
     end
 
   private
@@ -14,7 +17,7 @@ module ActionController
     # action name is in the list of hidden actions.
     def action_method?(action_name)
       self.class.visible_action?(action_name) do
-        !hidden_actions.include?(action_name) && super
+        !self.class.hidden_actions.include?(action_name) && super
       end
     end
 
@@ -24,7 +27,7 @@ module ActionController
       # ==== Parameters
       # *args<#to_s>:: A list of actions
       def hide_action(*args)
-        hidden_actions.merge(args.map! {|a| a.to_s })
+        self.hidden_actions = hidden_actions.dup.merge(args.map(&:to_s))
       end
 
       def inherited(klass)

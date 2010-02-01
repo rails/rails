@@ -1,5 +1,6 @@
 require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/class/attribute'
 
 module ActionView #:nodoc:
   class ActionViewError < StandardError #:nodoc:
@@ -244,7 +245,7 @@ module ActionView #:nodoc:
       ActionView::PathSet.new(Array(value))
     end
 
-    extlib_inheritable_accessor :helpers
+    class_attribute :helpers
     attr_reader :helpers
 
     def self.for_controller(controller)
