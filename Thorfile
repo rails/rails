@@ -1,3 +1,5 @@
+require "active_support"
+
 module GemHelpers
 
   def generate_gemspec
