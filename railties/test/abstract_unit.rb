@@ -1,15 +1,7 @@
 ORIG_ARGV = ARGV.dup
 
-root = File.expand_path('../../..', __FILE__)
-begin
-  require "#{root}/vendor/gems/environment"
-rescue LoadError
-  %w(activesupport activemodel activerecord actionpack actionmailer activeresource railties).each do |lib|
-    $:.unshift "#{root}/#{lib}/lib"
-  end
-end
-
-$:.unshift "#{root}/railties/builtin/rails_info"
+require File.expand_path("../../../load_paths", __FILE__)
+$:.unshift File.expand_path("../../builtin/rails_info", __FILE__)
 
 require 'stringio'
 require 'test/unit'

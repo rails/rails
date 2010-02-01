@@ -1,3 +1,5 @@
+require 'action_controller/test_case'
+
 module ActionView
   class Base
     alias_method :initialize_without_template_tracking, :initialize
@@ -51,7 +53,7 @@ module ActionView
     setup :setup_with_controller
     def setup_with_controller
       @controller = TestController.new
-      @output_buffer = ActionView::SafeBuffer.new
+      @output_buffer = ActiveSupport::SafeBuffer.new
       @rendered = ''
 
       self.class.send(:include_helper_modules!)

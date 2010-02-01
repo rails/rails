@@ -59,15 +59,15 @@ elsif ENV['CHILD']
     end
 
     test "resets requires one" do
-      assert !defined?(OmgOmg)
-      assert_equal 0, $LOADED_FEATURES.grep(/fixtures\/omgomg/).size
-      require File.expand_path(File.join(File.dirname(__FILE__), "fixtures", "omgomg"))
+      assert !defined?(Custom)
+      assert_equal 0, $LOADED_FEATURES.grep(/fixtures\/custom/).size
+      require File.expand_path(File.join(File.dirname(__FILE__), "fixtures", "custom"))
     end
 
     test "resets requires two" do
-      assert !defined?(OmgOmg)
-      assert_equal 0, $LOADED_FEATURES.grep(/fixtures\/omgomg/).size
-      require File.expand_path(File.join(File.dirname(__FILE__), "fixtures", "omgomg"))
+      assert !defined?(Custom)
+      assert_equal 0, $LOADED_FEATURES.grep(/fixtures\/custom/).size
+      require File.expand_path(File.join(File.dirname(__FILE__), "fixtures", "custom"))
     end
   end
 else

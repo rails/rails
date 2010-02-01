@@ -1,4 +1,6 @@
 # Edit this Gemfile to bundle your application's dependencies.
+source :gemcutter
+
 <% if !dev_or_edge? %>
 gem "rails", "<%= Rails::VERSION::STRING %>"
 <% end -%>
@@ -10,6 +12,14 @@ gem "rails", "<%= Rails::VERSION::STRING %>"
 <%- else -%>
 <%= "# " unless options.edge? %>gem "rails", :git => "git://github.com/rails/rails.git"
 <%- end -%>
+
+<% unless options[:skip_activerecord] -%>
+<% if options[:database] == 'sqlite3' -%>
+# ActiveRecord requires a database adapter. By default,
+# Rails has selected sqlite3.
+<% end -%>
+gem "<%= gem_for_database %>"
+<% end -%>
 
 ## Bundle the gems you use:
 # gem "bj"

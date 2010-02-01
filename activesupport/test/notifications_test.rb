@@ -77,7 +77,7 @@ module Notifications
     def test_instrument_with_bang_returns_result_even_on_failure
       begin
         instrument!(:awesome, :payload => "notifications") do
-          raise "OMG"
+          raise "FAIL"
         end
         flunk
       rescue
@@ -126,10 +126,10 @@ module Notifications
     def test_instrument_does_not_publish_when_exception_is_raised
       begin
         instrument(:awesome, :payload => "notifications") do
-          raise "OMG"
+          raise "FAIL"
         end
       rescue RuntimeError => e
-        assert_equal "OMG", e.message
+        assert_equal "FAIL", e.message
       end
 
       drain

@@ -1,2 +1,0 @@
-class OmgOmg
-end

@@ -6,7 +6,7 @@ require 'active_support/core_ext/kernel/reporting'
 
 module ActionView
   class Base
-    @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>".html_safe! }
+    @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>".html_safe }
     cattr_accessor :field_error_proc
   end
 
@@ -86,12 +86,11 @@ module ActionView
         submit_value = options[:submit_value] || options[:action].gsub(/[^\w]/, '').capitalize
 
         contents = form_tag({:action => action}, :method =>(options[:method] || 'post'), :enctype => options[:multipart] ? 'multipart/form-data': nil)
-        contents << hidden_field(record_name, :id) unless record.new_record?
-        contents << all_input_tags(record, record_name, options)
+        contents.safe_concat hidden_field(record_name, :id) unless record.new_record?
+        contents.safe_concat all_input_tags(record, record_name, options)
         yield contents if block_given?
-        contents << submit_tag(submit_value)
-        contents << '</form>'
-        contents.html_safe!
+        contents.safe_concat submit_tag(submit_value)
+        contents.safe_concat('</form>')
       end
 
       # Returns a string containing the error message attached to the +method+ on the +object+ if one exists.

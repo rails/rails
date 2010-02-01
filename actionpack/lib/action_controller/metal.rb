@@ -1,4 +1,4 @@
-require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/class/attribute'
 
 module ActionController
   # ActionController::Metal provides a way to get a valid Rack application from a controller.
@@ -90,7 +90,12 @@ module ActionController
       end
     end
 
-    extlib_inheritable_accessor(:middleware_stack) { ActionDispatch::MiddlewareStack.new }
+    class_attribute :middleware_stack
+    self.middleware_stack = ActionDispatch::MiddlewareStack.new
+
+    def self.inherited(base)
+      self.middleware_stack = base.middleware_stack.dup
+    end
 
     def self.use(*args)
       middleware_stack.use(*args)

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/attribute'
+
 module ActiveRecord
   # Observer classes respond to lifecycle callbacks to implement trigger-like
   # behavior outside the original class. This is a great way to reduce the
@@ -85,7 +87,8 @@ module ActiveRecord
   # singletons and that call instantiates and registers them.
   #
   class Observer < ActiveModel::Observer
-    extlib_inheritable_accessor(:observed_methods){ [] }
+    class_attribute :observed_methods
+    self.observed_methods = []
 
     def initialize
       super
@@ -93,7 +96,7 @@ module ActiveRecord
     end
 
     def self.method_added(method)
-      observed_methods << method if ActiveRecord::Callbacks::CALLBACKS.include?(method.to_sym)
+      self.observed_methods += [method] if ActiveRecord::Callbacks::CALLBACKS.include?(method.to_sym)
     end
 
     protected
@@ -106,7 +109,7 @@ module ActiveRecord
 
         # Check if a notifier callback was already added to the given class. If
         # it was not, add it.
-        self.observed_methods.each do |method|
+        self.class.observed_methods.each do |method|
           callback = :"_notify_observers_for_#{method}"
           if (klass.instance_methods & [callback, callback.to_s]).empty?
             klass.class_eval "def #{callback}; notify_observers(:#{method}); end"

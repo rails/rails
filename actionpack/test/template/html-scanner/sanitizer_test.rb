@@ -48,7 +48,7 @@ class SanitizerTest < ActionController::TestCase
     assert_sanitized "a b c<script language=\"Javascript\">blah blah blah</script>d e f", "a b cd e f"
   end
 
-  # fucked
+  # TODO: Clean up
   def test_sanitize_js_handlers
     raw = %{onthis="do that" <a href="#" onclick="hello" name="foo" onbogus="remove me">hello</a>}
     assert_sanitized raw, %{onthis="do that" <a name="foo" href="#">hello</a>}
@@ -193,7 +193,7 @@ class SanitizerTest < ActionController::TestCase
     assert_sanitized img_hack, "<img>"
   end
 
-  # fucked
+  # TODO: Clean up
   def test_should_sanitize_attributes
     assert_sanitized %(<SPAN title="'><script>alert()</script>">blah</SPAN>), %(<span title="'&gt;&lt;script&gt;alert()&lt;/script&gt;">blah</span>)
   end

@@ -8,10 +8,10 @@ module Rails
       def middleware
         @@default_middleware_stack ||= ActionDispatch::MiddlewareStack.new.tap do |middleware|
           middleware.use('::ActionDispatch::Static', lambda { Rails.public_path }, :if => lambda { Rails.application.config.serve_static_assets })
-          middleware.use('::Rack::Lock', :if => lambda { !ActionController::Base.allow_concurrency })
+          middleware.use('::Rack::Lock', :if => lambda { !Rails.application.config.allow_concurrency })
           middleware.use('::Rack::Runtime')
           middleware.use('::Rails::Rack::Logger')
-          middleware.use('::ActionDispatch::ShowExceptions', lambda { ActionController::Base.consider_all_requests_local })
+          middleware.use('::ActionDispatch::ShowExceptions', lambda { Rails.application.config.consider_all_requests_local })
           middleware.use('::ActionDispatch::Callbacks', lambda { !Rails.application.config.cache_classes })
           middleware.use('::ActionDispatch::Cookies')
           middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
@@ -88,11 +88,12 @@ module Rails
     end
 
     class Generators #:nodoc:
-      attr_accessor :aliases, :options, :colorize_logging
+      attr_accessor :aliases, :options, :fallbacks, :colorize_logging
 
       def initialize
         @aliases = Hash.new { |h,k| h[k] = {} }
         @options = Hash.new { |h,k| h[k] = {} }
+        @fallbacks = {}
         @colorize_logging = true
       end
 

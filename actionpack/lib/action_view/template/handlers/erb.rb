@@ -6,7 +6,7 @@ module ActionView
   module Template::Handlers
     class Erubis < ::Erubis::Eruby
       def add_preamble(src)
-        src << "@output_buffer = ActionView::SafeBuffer.new;"
+        src << "@output_buffer = ActiveSupport::SafeBuffer.new;"
       end
 
       def add_text(src, text)
@@ -15,7 +15,11 @@ module ActionView
       end
 
       def add_expr_literal(src, code)
-        src << '@output_buffer << ((' << code << ').to_s);'
+        if code =~ /\s*raw\s+(.*)/
+          src << "@output_buffer.safe_concat((" << $1 << ").to_s);"
+        else
+          src << '@output_buffer << ((' << code << ').to_s);'
+        end
       end
 
       def add_expr_escaped(src, code)
