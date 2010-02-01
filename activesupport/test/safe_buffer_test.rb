@@ -1,8 +1,8 @@
 require 'abstract_unit'
 
-class SafeBufferTest < ActionView::TestCase
+class SafeBufferTest < ActiveSupport::TestCase
   def setup
-    @buffer = ActionView::SafeBuffer.new
+    @buffer = ActiveSupport::SafeBuffer.new
   end
 
   test "Should look like a string" do
@@ -36,6 +36,6 @@ class SafeBufferTest < ActionView::TestCase
 
   test "Should return a safe buffer when calling to_s" do
     new_buffer = @buffer.to_s
-    assert_equal ActionView::SafeBuffer, new_buffer.class
+    assert_equal ActiveSupport::SafeBuffer, new_buffer.class
   end
 end

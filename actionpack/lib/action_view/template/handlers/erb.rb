@@ -6,7 +6,7 @@ module ActionView
   module Template::Handlers
     class Erubis < ::Erubis::Eruby
       def add_preamble(src)
-        src << "@output_buffer = ActionView::SafeBuffer.new;"
+        src << "@output_buffer = ActiveSupport::SafeBuffer.new;"
       end
 
       def add_text(src, text)
