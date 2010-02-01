@@ -14,13 +14,12 @@ end
 puts "[CruiseControl] Rails build"
 build_results = {}
 
-# Requires gem home and path to be writeable and/or overridden to be ~/.gem,
-# Will enable when RubyGems supports this properly (in a coming release)
-# build_results[:geminstaller] = system 'geminstaller --exceptions'
+# Install rubygems-update, so 'gem update --system' in cruise_config.rb auto-installs it on next build.
+# This is how you can auto-update rubygems without logging in to CI system
+build_results[:geminstaller] = system "sudo gem install rubygems-update -v 1.3.5 --no-ri --no-rdoc"
 
-# for now, use the no-passwd sudoers approach (documented in ci_setup_notes.txt)
-# A security hole, but there is nothing valuable on rails CI box anyway.
-build_results[:geminstaller] = system "sudo geminstaller --config=#{root_dir}/ci/geminstaller.yml --exceptions"
+# Install required version of bundler.
+build_results[:geminstaller] = system "sudo gem install bundler -v 0.9.0.pre3 --prerelease --no-ri --no-rdoc"
 
 cd root_dir do
   puts
