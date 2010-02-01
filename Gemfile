@@ -8,7 +8,7 @@ gem "rails", "3.0.pre", :path => "railties"
 end
 
 # AR
-gem "arel", "0.2.pre", :git => "git://github.com/rails/arel.git"
+gem "arel", ">= 0.2.0"
 gem "sqlite3-ruby", ">= 1.2.5"
 
 only :test do
