@@ -1,4 +1,3 @@
-require 'action_view/erb/util'
 require 'set'
 
 module ActionView
