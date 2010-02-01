@@ -81,8 +81,8 @@ class BaseTest < ActiveSupport::TestCase
     
     def different_template(template_name='')
       mail do |format|
-        format.text { render :template => template_name }
-        format.html { render :template => template_name }
+        format.text { render :template => "#{mailer_name}/#{template_name}" }
+        format.html { render :template => "#{mailer_name}/#{template_name}" }
       end
     end
 
