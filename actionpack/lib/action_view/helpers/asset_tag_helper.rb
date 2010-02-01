@@ -293,7 +293,7 @@ module ActionView
         else
           sources = expand_javascript_sources(sources, recursive)
           ensure_javascript_sources!(sources) if cache
-          sources.collect { |source| javascript_src_tag(source, options) }.join("\n").html_safe!
+          sources.collect { |source| javascript_src_tag(source, options) }.join("\n").html_safe
         end
       end
 
@@ -444,7 +444,7 @@ module ActionView
         else
           sources = expand_stylesheet_sources(sources, recursive)
           ensure_stylesheet_sources!(sources) if cache
-          sources.collect { |source| stylesheet_tag(source, options) }.join("\n").html_safe!
+          sources.collect { |source| stylesheet_tag(source, options) }.join("\n").html_safe
         end
       end
 
@@ -588,7 +588,7 @@ module ActionView
 
         if sources.is_a?(Array)
           content_tag("video", options) do
-            sources.map { |source| tag("source", :src => source) }.join.html_safe!
+            sources.map { |source| tag("source", :src => source) }.join.html_safe
           end
         else
           options[:src] = path_to_video(sources)

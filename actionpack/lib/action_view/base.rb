@@ -284,7 +284,7 @@ module ActionView #:nodoc:
       @helpers = self.class.helpers || Module.new
 
       @_controller   = controller
-      @_content_for  = Hash.new {|h,k| h[k] = ActionView::SafeBuffer.new }
+      @_content_for  = Hash.new {|h,k| h[k] = ActiveSupport::SafeBuffer.new }
       @_virtual_path = nil
       self.view_paths = view_paths
     end

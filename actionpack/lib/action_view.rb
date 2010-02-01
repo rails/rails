@@ -56,7 +56,9 @@ module ActionView
   autoload :TestCase, 'action_view/test_case'
 end
 
-require 'action_view/erb/util'
+require 'active_support/core_ext/string/output_safety'
 require 'action_view/base'
+
+ActionView::SafeBuffer = ActiveSupport::SafeBuffer
 
 I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"

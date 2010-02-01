@@ -342,12 +342,12 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "A string can be marked safe" do
-    @string.html_safe!
-    assert @string.html_safe?
+    string = @string.html_safe
+    assert string.html_safe?
   end
 
   test "Marking a string safe returns the string" do
-    assert_equal @string, @string.html_safe!
+    assert_equal @string, @string.html_safe
   end
 
   test "A fixnum is safe by default" do
@@ -361,7 +361,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
       end
     end
 
-    @string.html_safe!
+    @string.html_safe
     @string << klass.new
 
     assert_equal "helloother", @string
@@ -369,44 +369,44 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "Adding a safe string to another safe string returns a safe string" do
-    @other_string = "other".html_safe!
-    @string.html_safe!
-    @combination = @other_string + @string
+    @other_string = "other".html_safe
+    string = @string.html_safe
+    @combination = @other_string + string
 
     assert_equal "otherhello", @combination
     assert @combination.html_safe?
   end
 
-  test "Adding an unsafe string to a safe string returns an unsafe string" do
-    @other_string = "other".html_safe!
-    @combination = @other_string + @string
-    @other_combination = @string + @other_string
+  test "Adding an unsafe string to a safe string escapes it and returns a safe string" do
+    @other_string = "other".html_safe
+    @combination = @other_string + "<foo>"
+    @other_combination = @string + "<foo>"
 
-    assert_equal "otherhello", @combination
-    assert_equal "helloother", @other_combination
+    assert_equal "other&lt;foo&gt;", @combination
+    assert_equal "hello<foo>", @other_combination
 
-    assert !@combination.html_safe?
+    assert @combination.html_safe?
     assert !@other_combination.html_safe?
   end
 
   test "Concatting safe onto unsafe yields unsafe" do
     @other_string = "other"
-    @string.html_safe!
+    @string.html_safe
 
     @other_string.concat(@string)
     assert !@other_string.html_safe?
   end
 
-  test "Concatting unsafe onto safe yields unsafe" do
-    @other_string = "other".html_safe!
-
-    @other_string.concat(@string)
-    assert !@other_string.html_safe?
+  test "Concatting unsafe onto safe yields escaped safe" do
+    @other_string = "other".html_safe
+    string = @other_string.concat("<foo>")
+    assert_equal "other&lt;foo&gt;", string
+    assert string.html_safe?
   end
 
   test "Concatting safe onto safe yields safe" do
-    @other_string = "other".html_safe!
-    @string.html_safe!
+    @other_string = "other".html_safe
+    @string.html_safe
 
     @other_string.concat(@string)
     assert @other_string.html_safe?
@@ -414,31 +414,32 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "Concatting safe onto unsafe with << yields unsafe" do
     @other_string = "other"
-    @string.html_safe!
+    @string.html_safe
 
     @other_string << @string
     assert !@other_string.html_safe?
   end
 
-  test "Concatting unsafe onto safe with << yields unsafe" do
-    @other_string = "other".html_safe!
-
-    @other_string << @string
-    assert !@other_string.html_safe?
+  test "Concatting unsafe onto safe with << yields escaped safe" do
+    @other_string = "other".html_safe
+    string = @other_string << "<foo>"
+    assert_equal "other&lt;foo&gt;", string
+    assert string.html_safe?
   end
 
   test "Concatting safe onto safe with << yields safe" do
-    @other_string = "other".html_safe!
-    @string.html_safe!
+    @other_string = "other".html_safe
+    @string.html_safe
 
     @other_string << @string
     assert @other_string.html_safe?
   end
 
   test "Concatting a fixnum to safe always yields safe" do
-    @string.html_safe!
-    @string.concat(13)
-    assert @string.html_safe?
+    string = @string.html_safe
+    string = string.concat(13)
+    assert_equal "hello".concat(13), string
+    assert string.html_safe?
   end
 end
 

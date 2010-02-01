@@ -16,7 +16,7 @@ class SafeBufferTest < ActionView::TestCase
   end
 
   test "Should NOT escape a safe value passed to it" do
-    @buffer << "<script>".html_safe!
+    @buffer << "<script>".html_safe
     assert_equal "<script>", @buffer
   end
 
