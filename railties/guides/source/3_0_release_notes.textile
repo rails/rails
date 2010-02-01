@@ -264,6 +264,9 @@ Produces:
 * Form label helper now pulls values from I18n with a single value, so <tt>f.label :name</tt> will pull the <tt>:name</tt> translation.
 * I18n select label on should now be :en.helpers.select instead of :en.support.select.
 * You no longer need to place a minus sign at the end of a ruby interpolation inside an ERb template to remove the trailing carriage return in the HTML output.
+* Added +grouped_collection_select+ helper to Action View.
+* Action View now will raise exceptions if CSS stylesheets and javascript files listed in the +javascript_include_tag+ and +stylesheet_include_tag+ helpers are missing.
+* +content_for?+ has been added allowing you to check for the existence of content in a view before rendering.
 
 h3. Active Model
 
@@ -350,6 +353,11 @@ More Information:
 * "Active Record Query Interface":http://m.onkey.org/2010/1/22/active-record-query-interface
 * "Let your SQL Growl in Rails 3":http://hasmanyquestions.wordpress.com/2010/01/17/let-your-sql-growl-in-rails-3/
 
+h4. Enhancements
+
+* Added <tt>:destroyed?</tt> to Active Record objects.
+* Added <tt>:inverse_of</tt> to Active Record associations allowing you to pull the instance of an already loaded association without hitting the database.
+
 h4. Patches and Deprecations
 
 Additionally, many fixes in the Active Record branch:
@@ -359,6 +367,7 @@ Additionally, many fixes in the Active Record branch:
 * PostgreSQL adapter has had it's +TIME ZONE+ support fixed so it no longer inserts incorrect values.
 * PostgreSQL support for the XML data type column.
 * +table_name+ is now cached.
+* Large amount of work done on the Oracle adapter with many fixes.
 
 As well as the following deprecations:
 
@@ -369,6 +378,8 @@ As well as the following deprecations:
 * <tt>model.errors.on</tt> is deprecated in favour of <tt>model.errors[]</tt>
 * validates_presence_of => validates... :presence => true
 * <tt>ActiveRecord::Base.colorize_logging</tt> and <tt>config.active_record.colorize_logging</tt> are deprecated in favour of <tt>Rails::Subscriber.colorize_logging</tt> or <tt>config.colorize_logging</tt>
+
+NOTE: while an implementation of State Machine has been in Active Record edge for some months now, it has been removed from the Rails 3.0 release.
 
 h3. Active Resource
 
