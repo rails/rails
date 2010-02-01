@@ -1,4 +1,5 @@
-require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/hash/reverse_merge'
 require 'rails/generators'
 require 'fileutils'
@@ -28,8 +29,8 @@ module Rails
     class TestCase < ActiveSupport::TestCase
       include FileUtils
 
-      extlib_inheritable_accessor :destination_root, :current_path, :generator_class,
-                                  :default_arguments, :instance_writer => false
+      class_attribute :destination_root, :current_path, :generator_class, :default_arguments
+      delegate :destination_root, :current_path, :generator_class, :default_arguments, :to => :'self.class'
 
       # Generators frequently change the current path using +FileUtils.cd+.
       # So we need to store the path at file load and revert back to it after each test.

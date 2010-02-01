@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/attribute'
+
 module ActionController
   # In <b>routes.rb</b> one defines URL-to-controller mappings, but the reverse
   # is also possible: an URL can be generated from one of your routing definitions.
@@ -85,9 +87,8 @@ module ActionController
 
     included do
       ActionController::Routing::Routes.install_helpers(self)
-      extlib_inheritable_accessor :default_url_options,
-                                  :instance_writer => false, :instance_reader => false
-      self.default_url_options ||= {}
+      class_attribute :default_url_options
+      self.default_url_options = {}
     end
 
     # Overwrite to implement a number of default options that all url_for-based methods will use. The default options should come in
