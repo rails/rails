@@ -4,6 +4,8 @@ This guide should provide you with all you need to get started in sending and re
 
 endprologue.
 
+WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in other versions of Rails.
+
 h3. Introduction
 
 Action Mailer allows you to send emails from your application using a mailer model and views. So, in Rails, emails are used by creating mailers that inherit from +ActionMailer::Base+ and live in  +app/mailers+. Those mailers have associated views that appear alongside controller views in +app/views+.
@@ -55,8 +57,8 @@ end
 
 Here is a quick explanation of the items presented in the preceding method. For a full list of all available options, please have a look further down at the Complete List of ActionMailer user-settable attributes section.
 
-|<tt>default Hash</tt>| This is a hash of default values for any email you send, in this case we are setting the <tt>:from</tt> header to a value for all messages in this class, this can be overridden on a per email basis|
-|mail| The actual email message, we are passing the <tt>:to</tt> and <tt>:subject</tt> headers in|
+* <tt>default Hash</tt> - This is a hash of default values for any email you send, in this case we are setting the <tt>:from</tt> header to a value for all messages in this class, this can be overridden on a per email basis
+* +mail+ - The actual email message, we are passing the <tt>:to</tt> and <tt>:subject</tt> headers in|
 
 And instance variables we define in the method become available for use in the view.
 
@@ -73,7 +75,10 @@ Create a file called +welcome_email.html.erb+ in +app/views/user_mailer/+. This 
   <body>
     <h1>Welcome to example.com, <%= @user.name %></h1>
     <p>
-      You have successfully signed up to example.com, and your username is: <%= @user.login %>.<br/>
+      You have successfully signed up to example.com,
+      your username is: <%= @user.login %>.<br/>
+    </p>
+    <p>
       To login to the site, just follow this link: <%= @url %>.
     </p>
     <p>Thanks for joining and have a great day!</p>
@@ -87,7 +92,8 @@ It is also a good idea to make a text part for this email, to do this, create a 
 Welcome to example.com, <%= @user.name %>
 ===============================================
 
-You have successfully signed up to example.com, and your username is: <%= @user.login %>.
+You have successfully signed up to example.com,
+your username is: <%= @user.login %>.
 
 To login to the site, just follow this link: <%= @url %>.
 
@@ -134,7 +140,7 @@ end
 
 Notice how we call <tt>UserMailer.welcome_email(user)</tt>? Even though in the <tt>user_mailer.rb</tt> file we defined an instance method, we are calling the method_name +welcome_email(user)+ on the class.  This is a peculiarity of Action Mailer.
 
-Note. In previous versions of Rails, you would call +deliver_welcome_email+ or +create_welcome_email+ however in Rails 3.0 this has been deprecated in favour of just calling the method name itself.
+NOTE: In previous versions of Rails, you would call +deliver_welcome_email+ or +create_welcome_email+ however in Rails 3.0 this has been deprecated in favour of just calling the method name itself.
 
 The method +welcome_email+ returns a Mail::Message object which can then just be told +deliver+ to send itself out.
 
@@ -179,7 +185,7 @@ Adding attachments has been simplified in Action Mailer 3.0.
 attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
 </ruby>
 
-Note. Mail will automatically Base64 encode an attachment, if you want something different, pre encode your content and pass in the encoded content and encoding in a +Hash+ to the +attachments+ method.
+NOTE: Mail will automatically Base64 encode an attachment, if you want something different, pre encode your content and pass in the encoded content and encoding in a +Hash+ to the +attachments+ method.
 
 * Pass the file name and specify headers and content and Action Mailer and Mail will use the settings you pass in.
 
@@ -190,7 +196,7 @@ attachments['filename.jpg'] = {:mime_type => 'application/x-gzip',
                                :content => encoded_content }
 </ruby>
 
-Note. If you specify an encoding, Mail will assume that your content is already encoded and not try to Base64 encode it.
+NOTE: If you specify an encoding, Mail will assume that your content is already encoded and not try to Base64 encode it.
 
 h4. Mailer Views
 
@@ -253,7 +259,9 @@ URLs can be generated in mailer views using +url_for+ or named routes.
 Unlike controllers, the mailer instance doesn't have any context about the incoming request so you'll need to provide the +:host+, +:controller+, and +:action+:
 
 <erb>
-<%= url_for(:host => "example.com", :controller => "welcome", :action => "greeting") %>
+<%= url_for(:host => "example.com",
+            :controller => "welcome",
+            :action => "greeting") %>
 </erb>
 
 When using named routes you only need to supply the +:host+:
@@ -266,7 +274,7 @@ Email clients have no web context and so paths have no base URL to form complete
 
 It is also possible to set a default host that will be used in all mailers by setting the +:host+ option in the +ActionMailer::Base.default_url_options+ hash as follows:
 
-<erb>
+<ruby>
 class UserMailer < ActionMailer::Base
   default_url_options[:host] = "example.com"
 
@@ -277,7 +285,7 @@ class UserMailer < ActionMailer::Base
          :subject => "Welcome to My Awesome Site")
   end
 end
-</erb>
+</ruby>
 
 h4. Sending Multipart Emails
 
@@ -323,9 +331,9 @@ h3. Receiving Emails
 
 Receiving and parsing emails with Action Mailer can be a rather complex endeavour. Before your email reaches your Rails app, you would have had to configure your system to somehow forward emails to your app, which needs to be listening for that. So, to receive emails in your Rails app you'll need:
 
-1. Implement a +receive+ method in your mailer.
+* Implement a +receive+ method in your mailer.
 
-2. Configure your email server to forward emails from the address(es) you would like your app to receive to +/path/to/app/script/runner 'UserMailer.receive(STDIN.read)'+.
+* Configure your email server to forward emails from the address(es) you would like your app to receive to +/path/to/app/script/runner 'UserMailer.receive(STDIN.read)'+.
 
 Once a method called +receive+ is defined in any mailer, Action Mailer will parse the raw incoming email into an email object, decode it, instantiate a new mailer, and pass the email object to the mailer +receive+ instance method. Here's an example:
 
