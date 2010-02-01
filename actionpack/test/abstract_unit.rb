@@ -1,10 +1,4 @@
-begin
-  require File.expand_path('../../../vendor/gems/environment', __FILE__)
-rescue LoadError
-end
-
-lib = File.expand_path('../../lib', __FILE__)
-$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
+require File.expand_path('../../../load_paths', __FILE__)
 
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
@@ -20,9 +14,6 @@ require 'action_view/base'
 require 'action_dispatch'
 require 'fixture_template'
 require 'active_support/dependencies'
-
-activemodel_path = File.expand_path('../../../activemodel/lib', __FILE__)
-$:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include?(activemodel_path)
 require 'active_model'
 
 begin
