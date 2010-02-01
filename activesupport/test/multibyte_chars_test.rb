@@ -301,10 +301,10 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_equal " #{UNICODE_STRING}", @chars.rjust(5)
     assert_equal "   #{UNICODE_STRING}", @chars.rjust(7)
     assert_equal "---#{UNICODE_STRING}", @chars.rjust(7, '-')
-    assert_equal "ααα#{UNICODE_STRING}", @chars.rjust(7, 'α')
+    assert_equal "αα#{UNICODE_STRING}", @chars.rjust(7, 'α')
     assert_equal "aba#{UNICODE_STRING}", @chars.rjust(7, 'ab')
     assert_equal "αηα#{UNICODE_STRING}", @chars.rjust(7, 'αη')
-    assert_equal "αηαη#{UNICODE_STRING}", @chars.rjust(8, 'αη')
+    assert_equal "αη#{UNICODE_STRING}", @chars.rjust(8, 'αη')
   end
 
   def test_ljust_should_raise_argument_errors_on_bad_arguments
@@ -319,10 +319,10 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_equal "#{UNICODE_STRING} ", @chars.ljust(5)
     assert_equal "#{UNICODE_STRING}   ", @chars.ljust(7)
     assert_equal "#{UNICODE_STRING}---", @chars.ljust(7, '-')
-    assert_equal "#{UNICODE_STRING}ααα", @chars.ljust(7, 'α')
+    assert_equal "#{UNICODE_STRING}αα", @chars.ljust(7, 'α')
     assert_equal "#{UNICODE_STRING}aba", @chars.ljust(7, 'ab')
     assert_equal "#{UNICODE_STRING}αηα", @chars.ljust(7, 'αη')
-    assert_equal "#{UNICODE_STRING}αηαη", @chars.ljust(8, 'αη')
+    assert_equal "#{UNICODE_STRING}αη", @chars.ljust(8, 'αη')
   end
 
   def test_center_should_raise_argument_errors_on_bad_arguments
@@ -339,13 +339,13 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_equal " #{UNICODE_STRING}  ", @chars.center(7)
     assert_equal "--#{UNICODE_STRING}--", @chars.center(8, '-')
     assert_equal "--#{UNICODE_STRING}---", @chars.center(9, '-')
-    assert_equal "αα#{UNICODE_STRING}αα", @chars.center(8, 'α')
-    assert_equal "αα#{UNICODE_STRING}ααα", @chars.center(9, 'α')
-    assert_equal "a#{UNICODE_STRING}ab", @chars.center(7, 'ab')
-    assert_equal "ab#{UNICODE_STRING}ab", @chars.center(8, 'ab')
-    assert_equal "abab#{UNICODE_STRING}abab", @chars.center(12, 'ab')
-    assert_equal "α#{UNICODE_STRING}αη", @chars.center(7, 'αη')
-    assert_equal "αη#{UNICODE_STRING}αη", @chars.center(8, 'αη')
+    assert_equal "α#{UNICODE_STRING}α", @chars.center(8, 'α')
+    assert_equal "α#{UNICODE_STRING}αα", @chars.center(9, 'α')
+    assert_equal "a#{UNICODE_STRING}", @chars.center(7, 'ab')
+    assert_equal UNICODE_STRING, @chars.center(8, 'ab')
+    assert_equal "ab#{UNICODE_STRING}ab", @chars.center(12, 'ab')
+    assert_equal "α#{UNICODE_STRING}", @chars.center(7, 'αη')
+    assert_equal UNICODE_STRING, @chars.center(8, 'αη')
   end
 
   def test_lstrip_strips_whitespace_from_the_left_of_the_string
