@@ -10,25 +10,31 @@ These release notes cover the major upgrades, but don't include every little bug
 
 endprologue.
 
+
 h3. Upgrading from Rails 2.3.5 to Rails 3.0
 
 As always, having a high coverage, passing test suite is your friend when upgrading.  You should also first upgrade to Rails 2.3.5 and make sure your application still runs as expected before attempting to update to Rails 3.0. In general, the upgrade from Rails 2.x to 3.0 centers around three big changes:
+
 
 h4. New Ruby Version Requirement
 
 WARNING: Rails only runs on version 1.8.7 of Ruby or later.  Support for previous versions of Ruby has been dropped and Rails 3.0 will no longer boot on any of these versions.
 
+
 h4. The new boot process
 
 As part of the shift to treating Rails apps as Rack endpoints, you are now required to have a +config/application.rb+ file, which takes over much of the work +config/environment.rb+ used to handle.  Along with that comes a lot of internal change to the boot process, but those changes are mostly internal.
+
 
 h4. Gems and gems and gems
 
 The +config.gem+ method is gone and has been replaced by using +bundler+ and a +Gemfile+, see "Vendoring Gems":#vendoring-gems below.
 
+
 h4. New APIs
 
 Both the router and query interface have seen significant, breaking changes.  There is a backwards compatibility layer that is in place and will be supported until the 3.1 release.
+
 
 h4. Upgrade Process
 
@@ -46,6 +52,7 @@ Aside from Rails Upgrade tool, if you need more help, there are people on IRC an
 
 More information - "The Path to Rails 3: Approaching the upgrade":http://omgbloglol.com/post/353978923/the-path-to-rails-3-approaching-the-upgrade
 
+
 h3. Application Creation
 
 As stated above, you must be on Ruby 1.8.7 or later to boot up a Rails application.  Rails will no longer boot on Ruby 1.8.6 or earlier.
@@ -61,11 +68,13 @@ There have been a few changes to the +rails+ script that's used to generate Rail
 $ rails myapp --database=mysql
 </shell>
 
+
 h4. Vendoring Gems
 
 Rails now uses a +Gemfile+ in the application root to determine the gems you require for your application to start. This +Gemfile+ is then read and acted on by the new "Bundler":http://github.com/wycats/bundler gem, which then vendors all your gems into the vendor directory, making your Rails application isolated from system gems.
 
 More information: - "Using bundler":http://yehudakatz.com/2009/11/03/using-the-new-gem-bundler-today/
+
 
 h4. Living on the Edge
 
@@ -79,13 +88,16 @@ More information:
 * "Spinning up a new Rails app":http://yehudakatz.com/2009/12/31/spinning-up-a-new-rails-app/
 * "Rails 3 and Passenger":http://cakebaker.42dh.com/2010/01/17/rails-3-and-passenger/
 
+
 h3. Rails Architectural Changes
 
 There are six major changes in the architecture of Rails.
 
+
 h4. Railties Restrung
 
 Railties was updated to provide a consistent plugin API for the entire Rails framework as well as a total rewrite of generators and the Rails bindings, the result is that developers can now hook into any significant stage of the generators and application framework in a consistent, defined manner.
+
 
 h4. All Rails core components are decoupled
 
@@ -93,11 +105,13 @@ With the merge of Merb and Rails, one of the big jobs was to remove the tight co
 
 More information: - "The Great Decoupling":http://yehudakatz.com/2009/07/19/rails-3-the-great-decoupling/
 
+
 h4. Active Model Abstraction
 
 Part of decoupling the core components was extracting all ties to Active Record from Action Pack.  This has now been completed. All new ORM plugins now just need to implement Active Model interfaces to work seamlessly with Action Pack.
 
 More information: - "Make Any Ruby Object Feel Like ActiveRecord":http://yehudakatz.com/2010/01/10/activemodel-make-any-ruby-object-feel-like-activerecord/
+
 
 h4. Controller Abstraction
 
@@ -105,11 +119,13 @@ Another big part of decoupling the core components was creating a base superclas
 
 More Information: - "Rails Edge Architecture":http://yehudakatz.com/2009/06/11/rails-edge-architecture/
 
+
 h4. Arel Integration
 
 "Arel":http://github.com/brynary/arel (or Active Relation) has been taken on as the underpinnings of Active Record and is now required for Rails (it is installed for you when you do a <tt>gem bundle</tt>).  Arel provides an SQL abstraction that simplifies out Active Record and provides the underpinnings for the relation functionality in Active Record.
 
 More information: - "Why I wrote Arel":http://magicscalingsprinkles.wordpress.com/2010/01/28/why-i-wrote-arel/.
+
 
 h4. Mail Extraction
 
@@ -117,11 +133,25 @@ Action Mailer ever since its beginnings has had monkey patches, pre parsers and 
 
 More information: - "New Action Mailer API in Rails 3":http://lindsaar.net/2010/1/26/new-actionmailer-api-in-rails-3
 
+
 h3. Documentation
 
 The documentation in the Rails tree is being updated with all the API changes, additionally, the "Rails Edge guides":http://guides.rails.info/ are being updated one by one to reflect the changes in Rails 3.0.  The guides at "guides.rubyonrails.org":http://guides.rubyonrails.org/ however will continue to contain only the stable version of Rails (at this point, version 2.3.5, until 3.0 is released).
 
 More Information: - "Rails Documentation Projects":http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects.
+
+
+h3. Internationalization
+
+Rails has many improvements in I18n support, including the latest "I18n":http://github.com/svenfuchs/i18n gem supplying many speed improvements.
+
+* I18n for any object - I18n behavior can be added to any object by including <tt>ActiveModel::Translation</tt> and <tt>ActiveModel::Validations</tt>.  There is also an <tt>errors.messages</tt> fallback for translations.
+* Attributes can have default translations.
+* Form Submit Tags automatically pull the correct status (Create or Update) depending on the object status, and so pull the correct translation.
+* Labels with I18n also now work by just passing the attribute name.
+
+More Information: - "Speedup for I18n":http://blog.plataformatec.com.br/2009/12/run-i18n-run/
+
 
 h3. Railties
 
@@ -166,9 +196,11 @@ More information:
 * "Discovering Rails 3 generators":http://blog.plataformatec.com.br/2010/01/discovering-rails-3-generators
 * "Making Generators for Rails 3 with Thor":http://caffeinedd.com/guides/331-making-generators-for-rails-3-with-thor
 
+
 h3. Action Pack
 
 There have been significant internal and external changes in Action Pack.
+
 
 h4. Abstract Controller
 
@@ -179,6 +211,7 @@ It also provided an opportunity to clean up Action Controller, abstracting out w
 Note however that Abstract Controller is not a user facing API, you will not run into it in your day to day use of Rails.
 
 More Information: - "Rails Edge Architecture":http://yehudakatz.com/2009/06/11/rails-edge-architecture/
+
 
 h4. Action Controller
 
@@ -198,6 +231,7 @@ Deprecations:
 More Information:
 * "Render Options in Rails 3":http://www.engineyard.com/blog/2010/render-options-in-rails-3/
 * "Three reasons to love ActionController::Responder":http://weblog.rubyonrails.org/2009/8/31/three-reasons-love-responder
+
 
 h4. Action Dispatch
 
@@ -248,6 +282,7 @@ More Information:
 * "Revamped Routes in Rails 3":http://rizwanreza.com/2009/12/20/revamped-routes-in-rails-3
 * "Generic Actions in Rails 3":http://yehudakatz.com/2009/12/20/generic-actions-in-rails-3/
 
+
 h4. Action View
 
 Major re-write was done in the Action View helpers, implementing Unobtrusive JavaScript (UJS) hooks and removing the old inline AJAX commands.  This enables Rails to use any compliant UJS driver to implement the UJS hooks in the helpers.
@@ -273,15 +308,18 @@ Produces:
 * Action View now will raise exceptions if CSS stylesheets and javascript files listed in the +javascript_include_tag+ and +stylesheet_include_tag+ helpers are missing.
 * +content_for?+ has been added allowing you to check for the existence of content in a view before rendering.
 
+
 h3. Active Model
 
 Active Model is new in Rails 3.0.  It provides an abstraction layer for any ORM libraries to use to interact with Rails by implementing an Active Model interface.
+
 
 h4. ORM Abstraction and Action Pack Interface
 
 Part of decoupling the core components was extracting all ties to Active Record from Action Pack.  This has now been completed. All new ORM plugins now just need to implement Active Model interfaces to work seamlessly with Action Pack.
 
 More Information: - "Make Any Ruby Object Feel Like ActiveRecord":http://yehudakatz.com/2010/01/10/activemodel-make-any-ruby-object-feel-like-activerecord/
+
 
 h4. Validations
 
@@ -332,7 +370,9 @@ More Information:
 * "Sexy Validation in Rails 3":http://thelucid.com/2010/01/08/sexy-validation-in-edge-rails-rails-3/
 * "Rails 3 Validations Explained":http://lindsaar.net/2010/1/31/validates_rails_3_awesome_is_true
 
+
 h3. Active Record
+
 
 h4. Query Interface
 
@@ -358,10 +398,12 @@ More Information:
 * "Active Record Query Interface":http://m.onkey.org/2010/1/22/active-record-query-interface
 * "Let your SQL Growl in Rails 3":http://hasmanyquestions.wordpress.com/2010/01/17/let-your-sql-growl-in-rails-3/
 
+
 h4. Enhancements
 
 * Added <tt>:destroyed?</tt> to Active Record objects.
 * Added <tt>:inverse_of</tt> to Active Record associations allowing you to pull the instance of an already loaded association without hitting the database.
+
 
 h4. Patches and Deprecations
 
@@ -386,6 +428,7 @@ As well as the following deprecations:
 * <tt>ActiveRecord::Base.colorize_logging</tt> and <tt>config.active_record.colorize_logging</tt> are deprecated in favour of <tt>Rails::Subscriber.colorize_logging</tt> or <tt>config.colorize_logging</tt>
 
 NOTE: while an implementation of State Machine has been in Active Record edge for some months now, it has been removed from the Rails 3.0 release.
+
 
 h3. Active Resource
 
@@ -416,6 +459,7 @@ Deprecations:
 
 * <tt>save(false)</tt> is deprecated, in favour of <tt>save(:validate => false)</tt>.
 * Ruby 1.9.2: <tt>URI.parse</tt> and <tt>.decode</tt> are deprecated and are no longer used in the library.
+
 
 h3. Active Support
 
@@ -497,6 +541,7 @@ Deprecations:
 More Information:
 * "New Action Mailer API in Rails 3":http://lindsaar.net/2010/1/26/new-actionmailer-api-in-rails-3
 * "New Mail Gem for Ruby":http://lindsaar.net/2010/1/23/mail-gem-version-2-released
+
 
 h3. Credits
 
