@@ -39,7 +39,7 @@ module ApplicationTests
     end
 
     test "removes lock if allow concurrency is set" do
-      add_to_config "config.action_controller.allow_concurrency = true"
+      add_to_config "config.allow_concurrency = true"
       boot!
       assert !middleware.include?("Rack::Lock")
     end
