@@ -296,7 +296,7 @@ module ActionView
           options << %(<option value="#{html_escape(value.to_s)}"#{selected_attribute}#{disabled_attribute}>#{html_escape(text.to_s)}</option>)
         end
 
-        options_for_select.join("\n").html_safe!
+        options_for_select.join("\n").html_safe
       end
 
       # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning the

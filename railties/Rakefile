@@ -1,7 +1,4 @@
-begin
-  require File.expand_path('../../vendor/gems/environment', __FILE__)
-rescue LoadError
-end
+require File.expand_path('../../load_paths', __FILE__)
 
 require 'rake'
 require 'rake/testtask'
@@ -62,6 +59,10 @@ desc 'Generate guides (for authors), use ONLY=foo to process just "foo.textile"'
 task :generate_guides do
   ENV["WARN_BROKEN_LINKS"] = "1" # authors can't disable this
   ruby "guides/rails_guides.rb"
+end
+
+task :update_prototype_ujs do
+  system "curl http://github.com/rails/prototype-ujs/raw/master/src/rails.js > lib/generators/rails/app/templates/public/javascripts/rails.js"
 end
 
 # Generate documentation ------------------------------------------------------------------

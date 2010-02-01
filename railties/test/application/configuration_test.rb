@@ -93,7 +93,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/application"
-      assert AppTemplate::Application.config.action_controller.allow_concurrency
+      assert AppTemplate::Application.config.allow_concurrency
     end
 
     test "the application can be marked as threadsafe when there are no frameworks" do

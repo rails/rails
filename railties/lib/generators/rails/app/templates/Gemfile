@@ -1,4 +1,6 @@
 # Edit this Gemfile to bundle your application's dependencies.
+source :gemcutter
+
 <% if !dev_or_edge? %>
 gem "rails", "<%= Rails::VERSION::STRING %>"
 <% end -%>

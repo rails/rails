@@ -67,5 +67,6 @@ module ActiveSupport
     autoload :XmlMini
   end
 
+  autoload :SafeBuffer, "active_support/core_ext/string/output_safety"
   autoload :TestCase
 end

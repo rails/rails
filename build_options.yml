@@ -7,6 +7,13 @@ mysql:
 pg:
   pg-dir: /usr/share/pgsql
 
+sqlite3-ruby:
+  sqlite3-dir: /usr/share/mysql 
+  sqlite3-lib: /usr/lib/mysql 
+  sqlite3-include: /usr/include/mysql
+  
+  
+# These are only to run Rails test on our local Mac
 # mysql:
 #   mysql-config: /usr/local/mysql/bin/mysql_config
 #   mysql-dir: /usr/local/mysql 

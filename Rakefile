@@ -38,7 +38,6 @@ Rake::GemPackageTask.new(spec) do |pkg|
 end
 
 task :install => :gem do
-  system %(cd arel && gem build arel.gemspec && gem install arel-0.2.pre.gem --no-ri --no-rdoc --ignore-dependencies)
   system %(cd rack && rake gem VERSION=1.0.2.pre && gem install rack-1.0.2.pre.gem --no-ri --no-rdoc --ignore-dependencies)
   (PROJECTS - ["railties"]).each do |project|
     puts "INSTALLING #{project}"

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/attribute'
+
 module ActionController
   # The Rails framework provides a large number of helpers for working with +assets+, +dates+, +forms+,
   # +numbers+ and model objects, to name a few. These helpers are available to all templates
@@ -50,7 +52,7 @@ module ActionController
     include AbstractController::Helpers
 
     included do
-      extlib_inheritable_accessor(:helpers_path)
+      class_attribute :helpers_path
       self.helpers_path = []
     end
 

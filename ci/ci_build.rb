@@ -26,7 +26,7 @@ cd root_dir do
   puts
   puts "[CruiseControl] Bundling RubyGems"
   puts
-  build_results[:bundle] = system 'rm -rf vendor && env CI=1 gem19 bundle --update && chmod 755 bin vendor vendor/gems'
+  build_results[:bundle] = system 'env CI=1 sudo bundle install'
 end
 
 cd "#{root_dir}/activesupport" do

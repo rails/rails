@@ -499,7 +499,7 @@ class RespondWithController < ActionController::Base
 
   def using_resource_with_action
     respond_with(resource, :action => :foo) do |format|
-      format.html { raise ActionView::MissingTemplate.new([], "method") }
+      format.html { raise ActionView::MissingTemplate.new([], "foo/bar", {}, false) }
     end
   end
 

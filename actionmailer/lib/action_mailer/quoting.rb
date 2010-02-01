@@ -1,5 +1,8 @@
 module ActionMailer
   module Quoting #:nodoc:
+    # TODO extract this into Mail itself.
+    # 
+    # 
     # Convert the given text into quoted printable format, with an instruction
     # that the text be eventually interpreted in the given charset.
     def quoted_printable(text, charset)

@@ -43,7 +43,6 @@ module ActiveModel
   autoload :Observer, 'active_model/observing'
   autoload :Observing
   autoload :Serialization
-  autoload :StateMachine
   autoload :TestCase
   autoload :Translation
   autoload :VERSION

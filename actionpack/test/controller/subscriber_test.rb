@@ -13,7 +13,7 @@ module Another
     end
 
     def data_sender
-      send_data "cool data", :filename => "omg.txt"
+      send_data "cool data", :filename => "file.txt"
     end
 
     def xfile_sender
@@ -121,7 +121,7 @@ class ACSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 3, logs.size
-    assert_match /Sent data omg\.txt/, logs[1]
+    assert_match /Sent data file\.txt/, logs[1]
   end
 
   def test_send_file

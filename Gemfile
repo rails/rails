@@ -1,17 +1,20 @@
-gem "rake", ">= 0.8.7"
-gem "mocha", ">= 0.9.8"
-gem "ruby-debug", ">= 0.10.3" if RUBY_VERSION < '1.9'
+path File.expand_path('..', __FILE__)
+source :gemcutter
 
-gem "rails", "3.0.pre", :path => "railties"
-%w(activesupport activemodel actionpack actionmailer activerecord activeresource).each do |lib|
-  gem lib, '3.0.pre', :path => lib
+gem "rails", "3.0.pre"
+
+gem "rake",  ">= 0.8.7"
+gem "mocha", ">= 0.9.8"
+
+if RUBY_VERSION < '1.9'
+  gem "ruby-debug", ">= 0.10.3"
 end
 
 # AR
-gem "arel", "0.2.pre", :git => "git://github.com/rails/arel.git"
+gem "arel", ">= 0.2.0"
 gem "sqlite3-ruby", ">= 1.2.5"
 
-only :test do
+group :test do
   gem "pg", ">= 0.8.0"
   gem "mysql", ">= 2.8.1"
 end
@@ -21,8 +24,6 @@ gem "rack-test", "0.5.3"
 gem "RedCloth", ">= 4.2.2"
 
 if ENV['CI']
-  disable_system_gems
-
   gem "nokogiri", ">= 1.4.0"
   gem "memcache-client", ">= 1.7.6"
 
@@ -34,5 +35,3 @@ if ENV['CI']
     gem "test-unit", ">= 2.0.5"
   end
 end
-
-disable_system_gems
