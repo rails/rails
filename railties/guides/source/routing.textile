@@ -816,7 +816,7 @@ root :to => 'pages#main'
 
 The use of the +root+ method tells Rails that this route applies to requests for the root of the site.
 
-Because of the top-down processing of the file, the named route must be specified _before_ the call to +map.root+.
+Because of the top-down processing of the file, the named route must be specified _before_ the call to +root+.
 
 h4. Connecting the Empty String
 
