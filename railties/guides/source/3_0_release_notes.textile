@@ -1,8 +1,8 @@
 h2. Ruby on Rails 3.0 Release Notes
 
-Rails 3.0 is a landmark release as it delivers on the Merb/Rails merge promise made in December 2008.  Rails 3.0 provides many major upgrades to all of the major components of Rails, including a major overhaul of the router and query APIs.
+Rails 3.0 is a landmark release as it delivers on the Merb/Rails merge promise made in December 2008.  Rails 3.0 provides major upgrades to all of the components of Rails, including a complete overhaul of the router and query APIs.
 
-One of the major achievements of this release, is that while there are loads of new features, old APIs have been deprecated with warnings wherever possible, so that you can implement the new features and conventions at your own pace.  There is a backwards compatibility layer that will be supported during 3.0.x and removed in 3.1.
+One of the main achievements of this release, is that while there are loads of new features, old APIs have been deprecated with warnings wherever possible, so that you can implement the new features and conventions at your own pace.  There is a backwards compatibility layer that will be supported during 3.0.x and removed in 3.1.
 
 Rails 3.0 adds Active Model ORM abstraction, Abstract Controller generic controller abstraction as well as a consistent Plugin API giving developers full access to all the Rails internals that make Action Mailer, Action Controller, Action View, Active Record and Active Resource work.
 
@@ -20,21 +20,21 @@ WARNING: Rails only runs on version 1.8.7 of Ruby or later.  Support for previou
 
 h4. The new boot process
 
-As part of the shift to treating Rails apps as Rack endpoints, you are now required to have a +config/application.rb+ file, which takes over much of the work +config/environment.rb+ used to handle.  Along with that comes a lot of internal change to the boot process (most of which you as a consumer of the framework don't care about!).
+As part of the shift to treating Rails apps as Rack endpoints, you are now required to have a +config/application.rb+ file, which takes over much of the work +config/environment.rb+ used to handle.  Along with that comes a lot of internal change to the boot process, but those changes are mostly internal.
 
 h4. Gems and gems and gems
 
 The +config.gem+ method is gone and has been replaced by using +bundler+ and a +Gemfile+, see "Vendoring Gems":#vendoring-gems below.
 
-h4. New API's
+h4. New APIs
 
 Both the router and query interface have seen significant, breaking changes.  There is a backwards compatibility layer that is in place and will be supported until the 3.1 release.
 
 h4. Upgrade Process
 
-To help with the upgrade process, a plugin named "Rails Upgrade":http://github.com/rails/rails_upgrade has been created to automate part of the process.
+To help with the upgrade process, a plugin named "Rails Upgrade":http://github.com/rails/rails_upgrade has been created to automate part of it.
 
-Simply install the plugin, then run +rake rails:upgrade:check+ to check your app for pieces that need to be updated (with links to information on how to update them).  It also offers a task to generate a Gemfile based on your current +config.gem+ calls and a task to generate a new routes file from your current one.  To get the plugin, simply run the following:
+Simply install the plugin, then run +rake rails:upgrade:check+ to check your app for pieces that need to be updated (with links to information on how to update them).  It also offers a task to generate a +Gemfile+ based on your current +config.gem+ calls and a task to generate a new routes file from your current one.  To get the plugin, simply run the following:
 
 <shell>
 script/plugin install git://github.com/rails/rails_upgrade.git
@@ -69,7 +69,7 @@ More information: - "Using bundler":http://yehudakatz.com/2009/11/03/using-the-n
 
 h4. Living on the Edge
 
-Due to the use of Gemfile, the concept of freezing Rails was dropped, because it's always bundled/frozen inside your application. By default, it uses your system gems when bundling; however, if you want to bundle straight from the Git repository, you can pass the edge flag:
+Due to the use of +Gemfile+, the concept of freezing Rails was dropped, because it's always bundled/frozen inside your application. By default, it uses your system gems when bundling; however, if you want to bundle straight from the Git repository, you can pass the edge flag:
 
 <shell>
 $ rails myapp --edge
@@ -81,7 +81,7 @@ More information:
 
 h3. Rails Architectural Changes
 
-There are six major architectural changes in the architecture of Rails.
+There are six major changes in the architecture of Rails.
 
 h4. Railties Restrung
 
@@ -113,7 +113,7 @@ More information: - "Why I wrote Arel":http://magicscalingsprinkles.wordpress.co
 
 h4. Mail Extraction
 
-Action Mailer ever since it's beginnings has had monkey patches, pre parsers and even delivery and receiver agents, all in addition to having TMail vendor'd in the source tree.  Version 3 changes that with all email message related functionality abstracted out to the "Mail":http://github.com/mikel/mail gem.  This again reduces code duplication and helps create definable boundaries between Action Mailer and the email parser.
+Action Mailer ever since its beginnings has had monkey patches, pre parsers and even delivery and receiver agents, all in addition to having TMail vendored in the source tree.  Version 3 changes that with all email message related functionality abstracted out to the "Mail":http://github.com/mikel/mail gem.  This again reduces code duplication and helps create definable boundaries between Action Mailer and the email parser.
 
 More information: - "New Action Mailer API in Rails 3":http://lindsaar.net/2010/1/26/new-actionmailer-api-in-rails-3
 
@@ -128,19 +128,19 @@ h3. Railties
 With the decoupling of the main Rails frameworks, Railties got a huge overhaul so as to make linking up frameworks, engines or plugins as painless and extensible as possible:
 
 * Each application now has it's own name space, application is started with <tt>YourAppName.boot</tt> for example, makes interacting with other applications a lot easier.
-* You now have access to Rails.config which provides huge amount of configuration settings for your application.
+* You now have access to <tt>Rails.config</tt> which provides huge amount of configuration settings for your application.
 * Anything under <tt>Rails.root/app</tt> is now added to the load path, so you can make <tt>app/observers/user_observer.rb</tt> and Rails will load it without any modifications.
 * Rails 3.0 now provides a <tt>Rails.config</tt> object, which provides a central repository of all sorts of Rails wide configuration options.
 
-Application generation has received extra flags allowing you to skip the installation of test-unit, Active Record, Prototype and Git.  Also a new <tt>--dev</tt> flag has been added which sets the application up with the Gemfile pointing to your Rails checkout (which is determined by the path to the +rails+ binary).  See <tt>rails --help</tt> for more info.
+Application generation has received extra flags allowing you to skip the installation of test-unit, Active Record, Prototype and Git.  Also a new <tt>--dev</tt> flag has been added which sets the application up with the +Gemfile+ pointing to your Rails checkout (which is determined by the path to the +rails+ binary).  See <tt>rails --help</tt> for more info.
 
 Railties generators got a huge amount of attention in Rails 3.0, basically:
 
 * Generators were completely rewritten and are backwards incompatible.
 * Rails templates API and generators API were merged (they are the same as the former).
 * Generators are no longer loaded from special paths anymore, they are just found in the Ruby load path, so calling <tt>script/generate foo</tt> will look for <tt>generators/foo_generator</tt>.
-* new generators provide hooks, so any template engine, ORM, test framework can easily hook in.
-* new generators allow you to override the templates by placing a copy at <tt>RAILS_ROOT/lib/templates</tt>.
+* New generators provide hooks, so any template engine, ORM, test framework can easily hook in.
+* New generators allow you to override the templates by placing a copy at <tt>RAILS_ROOT/lib/templates</tt>.
 * <tt>Rails::Generators::TestCase</tt> is also supplied so you can create your own generators and test them.
 
 Also, the views generated by Railties generators had some overhaul:
@@ -149,12 +149,13 @@ Also, the views generated by Railties generators had some overhaul:
 * Scaffolds generated now make use of <tt>_form</tt> partials, instead of duplicated code in the edit and new views.
 * Scaffold forms now use <tt>f.submit</tt> which returns "Create ModelName" or "Update ModelName" depending on the state of the object passed in.
 
-Following deprecations were done in Railties:
+Railties now deprecates:
 
-* <tt>RAILS_ROOT</tt> is deprecated in favour of <tt>Rails.root</tt>.
-* <tt>RAILS_ENV</tt> is deprecated in favour of <tt>Rails.env</tt>.
-* <tt>RAILS_DEFAULT_LOGGER</tt> is deprecated in favour of <tt>Rails.logger</tt>.
-* <tt>PLUGIN/rails/tasks</tt>, <tt>PLUGIN/tasks</tt> are no longer loaded all tasks now must be in <tt>PLUGIN/lib/tasks</tt>.
+* <tt>RAILS_ROOT</tt> in favour of <tt>Rails.root</tt>,
+* <tt>RAILS_ENV</tt> in favour of <tt>Rails.env</tt>, and
+* <tt>RAILS_DEFAULT_LOGGER</tt> in favour of <tt>Rails.logger</tt>.
+
+<tt>PLUGIN/rails/tasks</tt>, and <tt>PLUGIN/tasks</tt> are no longer loaded all tasks now must be in <tt>PLUGIN/lib/tasks</tt>.
 
 More information:
 * "Discovering Rails 3 generators":http://blog.plataformatec.com.br/2010/01/discovering-rails-3-generators
@@ -255,7 +256,7 @@ form_for @post, :remote => true
 Produces:
 
 <html>
-<form action='http://host.com' id='create-post' method='post' data-remote='true'>
+<form action="http://host.com" id="create-post" method="post" data-remote="true">
 </html>
 
 * You no longer need to call <tt>h(string)</tt> to escape HTML output, it is on by default in all view templates. If you want the unescaped string, call <tt>raw(string)</tt>.
@@ -276,9 +277,9 @@ More Information: - "Make Any Ruby Object Feel Like ActiveRecord":http://yehudak
 
 h4. Validations
 
-Validations have been moved, in the main, from Active Record into Active Model, providing an interface to validations that works across ORM libraries in Rails 3.
+Validations have been moved from Active Record into Active Model, providing an interface to validations that works across ORM libraries in Rails 3.
 
-* There is now a <tt>validates :attribute, options_hash</tt> short cut method that you can call that allows you to pass options for all the validates class methods, you can pass more than one option to a validate method.
+* There is now a <tt>validates :attribute, options_hash</tt> shortcut method that allows you to pass options for all the validates class methods, you can pass more than one option to a validate method.
 * The +validates+ method has the following options:
   * <tt>:acceptance => Boolean</tt>.
   * <tt>:confirmation => Boolean</tt>.
@@ -292,7 +293,7 @@ Validations have been moved, in the main, from Active Record into Active Model, 
 
 NOTE: All the Rails version 2.3 style validation methods are still supported in Rails 3.0, the new validates method is designed as an additional aid in your model validations, not a replacement for the existing API.
 
-You can also pass in a Validator object, which you can then reuse between objects that use Active Model:
+You can also pass in a validator object, which you can then reuse between objects that use Active Model:
 
 <ruby>
 class TitleValidator < ActiveModel::EachValidator
@@ -373,26 +374,26 @@ h3. Active Resource
 
 Active Resource was also extracted out to Active Model allowing you to use Active Resource objects with Action Pack seamlessly.
 
-* Added validations to Active Resource through Active Model.
-* Add observing hooks to Active Resources.
-* HTTP proxy support for Active Resource.
-* Added digest authentication option for ActiveResource.
-* Move model naming into Active Model.
+* Added validations through Active Model.
+* Added observing hooks.
+* HTTP proxy support.
+* Added support for digest authentication.
+* Moved model naming into Active Model.
 * Changed Active Resource attributes to a Hash with indifferent access.
 * Added +first+, +last+ and +all+ aliases for equivalent find scopes.
 * <tt>find_every</tt> now does not return a +ResourceNotFound+ error if nothing returned.
 * Added <tt>save!</tt> which raises <tt>ResourceInvalid</tt> unless the object is <tt>valid?</tt>.
 * <tt>update_attribute</tt> and <tt>update_attributes</tt> added to Active Resource models.
 * Added <tt>exists?</tt>.
-* Rename <tt>SchemaDefinition</tt> to <tt>Schema</tt> and <tt>define_schema</tt> to <tt>schema</tt>.
+* Renamed <tt>SchemaDefinition</tt> to <tt>Schema</tt> and <tt>define_schema</tt> to <tt>schema</tt>.
 * Use the <tt>format</tt> of Active Resources rather than the <tt>content-type</tt> of remote errors to load errors.
 * Use <tt>instance_eval</tt> for schema block.
-* Fix ActiveResource::ConnectionError#to_s when @response does not respond to #code or #message, handles Ruby 1.9 compat.
+* Fix <tt>ActiveResource::ConnectionError#to_s</tt> when +@response+ does not respond to #code or #message, handles Ruby 1.9 compat.
 * Add support for errors in JSON format.
 * Ensure <tt>load</tt> works with numeric arrays.
 * Recognises a 410 response from remote resource as the resource has been deleted.
 * Add ability to set SSL options on Active Resource connections.
-* Setting connection timeout also affects Net::HTTP <tt>open_timeout</tt>.
+* Setting connection timeout also affects +Net::HTTP+ <tt>open_timeout</tt>.
 
 Deprecations:
 
@@ -403,32 +404,32 @@ h3. Active Support
 
 A large effort was made in Active Support to make it cherry pickable, that is, you no longer have to require the entire Active Support library to get pieces of it.  This allows the various core components of Rails to run slimmer.
 
-Following changes in Active Support:
+These are the main changes in Active Support:
 
 * Large clean up of the library removing unused methods throughout.
-* Active Support no longer provides vendor'd versions of "TZInfo":http://tzinfo.rubyforge.org/, "Memcache Client":http://deveiate.org/projects/RMemCache/ and "Builder":http://builder.rubyforge.org/, these are all included as dependencies and installed via the <tt>gem bundle</tt> command.
+* Active Support no longer provides vendored versions of "TZInfo":http://tzinfo.rubyforge.org/, "Memcache Client":http://deveiate.org/projects/RMemCache/ and "Builder":http://builder.rubyforge.org/, these are all included as dependencies and installed via the <tt>gem bundle</tt> command.
 * Safe buffers are implemented in <tt>ActiveSupport::SafeBuffer</tt>.
 * Added <tt>Array.uniq_by</tt> and <tt>Array.uniq_by!</tt>.
-* Fixed bug on TimeZone.seconds_to_utc_offset returning wrong value.
+* Fixed bug on +TimeZone.seconds_to_utc_offset+ returning wrong value.
 * Added <tt>ActiveSupport::Notifications</tt> middleware.
 * <tt>ActiveSupport.use_standard_json_time_format</tt> now defaults to true.
 * <tt>ActiveSupport.escape_html_entities_in_json</tt> now defaults to false.
 * <tt>Integer#multiple_of?</tt> accepts zero as an argument, returns false unless the receiver is zero.
 * +string.chars+ has been renamed to +string.mb_chars+.
-* OrderedHash now can de-serialize through YAML.
+* +ActiveSupport::OrderedHash+ now can de-serialize through YAML.
 * Added SAX-based parser for XmlMini, using LibXML and Nokogiri.
 * Added <tt>Object#presence</tt> that returns the object if it's <tt>#present?</tt> otherwise returns +nil+.
 * Added <tt>String#exclude?</tt> core extension that returns the inverse of <tt>#include?</tt>.
-* Added <tt>#to_i</tt> to +DateTime+ in +ActiveSupport+ so <tt>#to_yaml</tt> works correctly on +ActiveRecord+ models with +DateTime+ attributes.
+* Added <tt>to_i</tt> to +DateTime+ in +ActiveSupport+ so <tt>to_yaml</tt> works correctly on models with +DateTime+ attributes.
 * Added <tt>Enumerable#exclude?</tt> to bring parity to <tt>Enumerable#include?</tt> and avoid if <tt>!x.include?</tt>.
 * Switch to on-by-default XSS escaping for rails.
-* Support deep-merging HashWithIndifferentAccess.
+* Support deep-merging in +ActiveSupport::HashWithIndifferentAccess+.
 * <tt>Enumerable#sum</tt> now works will all enumerables, even if they don't respond to <tt>:size</tt>.
-* <tt>#inspect</tt> of a zero length duration returns '0 seconds' instead of empty string.
-* Add <tt>#element</tt> and <tt>#collection</tt> to <tt>ModelName</tt>.
-* String <tt>#to_time</tt> and <tt>#to_datetime</tt>: handle fractional seconds.
-* Added support to new callbacks for around filter object that respond to <tt>:before</tt> & <tt>:after</tt> used in before and after callbacks.
-* <tt>ActiveSupport::OrderedHash#to_a</tt> method returns an ordered set of arrays. Matches Ruby 1.9's <tt>Hash#to_a</tt>.
+* <tt>inspect</tt> on a zero length duration returns '0 seconds' instead of empty string.
+* Add <tt>element</tt> and <tt>collection</tt> to <tt>ModelName</tt>.
+* <tt>String#to_time</tt> and <tt>String#to_datetime</tt> handle fractional seconds.
+* Added support to new callbacks for around filter object that respond to <tt>:before</tt> and <tt>:after</tt> used in before and after callbacks.
+* The <tt>ActiveSupport::OrderedHash#to_a</tt> method returns an ordered set of arrays. Matches Ruby 1.9's <tt>Hash#to_a</tt>.
 * <tt>MissingSourceFile</tt> exists as a constant but it is now just equals to <tt>LoadError</tt>
 * Added <tt>Class#class_attribute</tt>, to be able to declare a class-level attribute whose value is inheritable and overwritable by subclasses.
 * Finally removed +DeprecatedCallbacks+ in <tt>ActiveRecord::Associations</tt>.
@@ -444,7 +445,7 @@ The following methods have been removed because they are now available in Ruby 1
 * <tt>Object#instance_variable_defined?</tt>
 * <tt>Enumerable#none?</tt>
 
-The security patch for REXML remains in Active Support because early patchlevels still need it. It is only applied if needed though.
+The security patch for REXML remains in Active Support because early patchlevels of Ruby 1.8.7 still need it. Active Support knows whether it has to apply it or not.
 
 The following methods have been removed because they are no longer used in the framework:
 
