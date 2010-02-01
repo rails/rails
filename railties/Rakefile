@@ -1,7 +1,4 @@
-begin
-  require File.expand_path('../../vendor/gems/environment', __FILE__)
-rescue LoadError
-end
+require File.expand_path('../../load_paths', __FILE__)
 
 require 'rake'
 require 'rake/testtask'

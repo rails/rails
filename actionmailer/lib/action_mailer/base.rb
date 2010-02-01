@@ -268,13 +268,13 @@ module ActionMailer #:nodoc:
 
     private_class_method :new #:nodoc:
 
-    extlib_inheritable_accessor :default_params
+    class_attribute :default_params
     self.default_params = {
       :mime_version => "1.0",
       :charset      => "utf-8",
       :content_type => "text/plain",
       :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
-    }
+    }.freeze
 
     class << self
 
@@ -284,9 +284,9 @@ module ActionMailer #:nodoc:
       attr_writer :mailer_name
       alias :controller_path :mailer_name
 
-      def default(value=nil)
-        self.default_params.merge!(value) if value
-        self.default_params
+      def default(value = nil)
+        self.default_params = default_params.merge(value).freeze if value
+        default_params
       end
 
       # Receives a raw email, parses it into an email object, decodes it,

@@ -183,23 +183,7 @@ module TestHelpers
     end
 
     def boot_rails
-      root = File.expand_path('../../../..', __FILE__)
-      begin
-        require "#{root}/vendor/gems/environment"
-      rescue LoadError
-        %w(
-          actionmailer/lib
-          actionpack/lib
-          activemodel/lib
-          activerecord/lib
-          activeresource/lib
-          activesupport/lib
-          railties/lib
-          railties
-        ).reverse_each do |path|
-          $:.unshift "#{root}/#{path}"
-        end
-      end
+      require File.expand_path('../../../../load_paths', __FILE__)
     end
   end
 end
@@ -220,14 +204,18 @@ Module.new do
   end
   FileUtils.mkdir(tmp_path)
 
-  environment = File.expand_path('../../../../vendor/gems/environment', __FILE__)
+  environment = File.expand_path('../../../../load_paths', __FILE__)
   if File.exist?("#{environment}.rb")
     require_environment = "-r #{environment}"
   end
 
   `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{tmp_path('app_template')}`
   File.open("#{tmp_path}/app_template/config/boot.rb", 'w') do |f|
-    f.puts "require '#{environment}'" if require_environment
+    if require_environment
+      f.puts "Dir.chdir('#{File.dirname(environment)}') do"
+      f.puts "  require '#{environment}'"
+      f.puts "end"
+    end
     f.puts "require 'rails/all'"
   end
 end

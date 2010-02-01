@@ -24,12 +24,12 @@ module ActionView
       #       end
       #       # will either display "Logged in!" or a login link
       #   %>
-      def concat(string, unused_binding = nil)
-        if unused_binding
-          ActiveSupport::Deprecation.warn("The binding argument of #concat is no longer needed.  Please remove it from your views and helpers.", caller)
-        end
-
+      def concat(string)
         output_buffer << string
+      end
+
+      def safe_concat(string)
+        output_buffer.safe_concat(string)
       end
 
       # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>

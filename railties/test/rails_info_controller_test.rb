@@ -17,23 +17,23 @@ class InfoControllerTest < ActionController::TestCase
     ActionController::Routing::Routes.draw do |map|
       match ':controller/:action'
     end
-    @controller.stubs(:consider_all_requests_local => false, :local_request? => true)
+    @controller.stubs(:consider_all_requests_local? => false, :local_request? => true)
   end
 
   test "info controller does not allow remote requests" do
-    @controller.stubs(:consider_all_requests_local => false, :local_request? => false)
+    @controller.stubs(:consider_all_requests_local? => false, :local_request? => false)
     get :properties
     assert_response :forbidden
   end
 
   test "info controller renders an error message when request was forbidden" do
-    @controller.stubs(:consider_all_requests_local => false, :local_request? => false)
+    @controller.stubs(:consider_all_requests_local? => false, :local_request? => false)
     get :properties
     assert_select 'p'
   end
 
   test "info controller allows requests when all requests are considered local" do
-    @controller.stubs(:consider_all_requests_local => true, :local_request? => false)
+    @controller.stubs(:consider_all_requests_local? => true, :local_request? => false)
     get :properties
     assert_response :success
   end

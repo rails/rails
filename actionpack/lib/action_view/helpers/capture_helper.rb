@@ -143,7 +143,7 @@ module ActionView
       # Defaults to a new empty string.
       def with_output_buffer(buf = nil) #:nodoc:
         unless buf
-          buf = ActionView::SafeBuffer.new
+          buf = ActiveSupport::SafeBuffer.new
           buf.force_encoding(output_buffer.encoding) if buf.respond_to?(:force_encoding)
         end
         self.output_buffer, old_buffer = buf, output_buffer

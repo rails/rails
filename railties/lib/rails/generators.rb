@@ -67,6 +67,7 @@ module Rails
       no_color! unless config.colorize_logging
       aliases.deep_merge! config.aliases
       options.deep_merge! config.options
+      fallbacks.merge! config.fallbacks
     end
 
     def self.aliases #:nodoc:

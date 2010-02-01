@@ -1,3 +1,6 @@
+require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/module/delegation'
+
 module AbstractController
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
   # repeated setups. The inclusion pattern has pages that look like this:
@@ -161,8 +164,9 @@ module AbstractController
     include Rendering
 
     included do
-      extlib_inheritable_accessor(:_layout_conditions) { Hash.new }
-      extlib_inheritable_accessor(:_action_has_layout) { Hash.new }
+      class_attribute :_layout_conditions
+      delegate :_layout_conditions, :to => :'self.class'
+      self._layout_conditions = {}
       _write_layout_method
     end
 
