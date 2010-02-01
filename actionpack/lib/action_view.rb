@@ -35,7 +35,6 @@ module ActionView
     autoload :Context
     autoload :Template
     autoload :Helpers
-    autoload :SafeBuffer
 
     autoload_under "render" do
       autoload :Partials
