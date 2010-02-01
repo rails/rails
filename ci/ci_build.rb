@@ -7,7 +7,7 @@ def root_dir
 end
 
 def rake(*tasks)
-  tasks.each { |task| return false unless system("#{root_dir}/bin/rake", task) }
+  tasks.each { |task| return false unless system("bundle exec rake", task) }
   true
 end
 
