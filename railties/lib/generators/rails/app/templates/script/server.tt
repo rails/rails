@@ -1,5 +1,0 @@
-require File.expand_path('../../config/boot',  __FILE__)
-require 'rails/commands/server'
-
-Dir.chdir(File.expand_path('../..',  __FILE__))
-Rails::Server.start

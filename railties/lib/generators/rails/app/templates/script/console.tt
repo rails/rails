@@ -1,5 +1,0 @@
-require File.expand_path('../../config/boot',  __FILE__)
-require 'rails/commands/console'
-require File.expand_path('../../config/application',  __FILE__)
-
-Rails::Console.start(Rails::Application)

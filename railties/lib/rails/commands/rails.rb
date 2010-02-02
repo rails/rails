@@ -1,0 +1,69 @@
+if ARGV.empty?
+  ARGV << '--help'
+end
+
+HELP_TEXT = <<-EOT
+usage: rails COMMAND [ARGS]
+
+The most common rails commands are:
+ generate  Generate new code (short-cut alias: "g")
+ console   Start the Rails console (short-cut alias: "c")
+ server    Start the Rails server (short-cut alias: "s")
+
+In addition to those, there are:
+ application  Generate the Rails application code
+ dbconsole    Start a console for the database specified in config/database.yml
+ destroy      Undo code generated with "generate"
+ benchmarker  See how fast a piece of code runs
+ profiler     Get profile information from a piece of code
+ plugin       Install a plugin
+ runner       Run a piece of code in the application environment
+
+All commands can be run with -h for more information.
+EOT
+
+
+case ARGV.shift
+when 'g', 'generate'
+  require ENV_PATH
+  require 'rails/commands/generate'
+when 'c', 'console'
+  require BOOT_PATH
+  require 'rails/commands/console'
+  require APP_PATH
+  Rails::Console.start(Rails::Application)
+when 's', 'server'
+  require File.expand_path('../../config/boot',  __FILE__)
+  require 'rails/commands/server'
+  Dir.chdir(File.expand_path('../..',  __FILE__))
+  Rails::Server.start
+  
+
+when 'dbconsole'
+  require BOOT_PATH
+  require 'rails/commands/dbconsole'
+  require APP_PATH
+  Rails::DBConsole.start(Rails::Application)
+when 'destroy'
+  require ENV_PATH
+  require 'rails/commands/destroy'
+when 'benchmarker'
+  require ENV_PATH
+  require 'rails/commands/performance/benchmarker'
+when 'profiler'
+  require ENV_PATH
+  require 'rails/commands/performance/profiler'
+when 'plugin'
+  require APP_PATH
+  require 'rails/commands/plugin'
+when 'runner'
+  require BOOT_PATH
+  require 'rails/commands/runner'
+  require ENV_PATH
+
+when '--help', '-h'
+  puts HELP_TEXT
+else
+  puts "Error: Command not recognized"
+  puts HELP_TEXT
+end
