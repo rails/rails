@@ -168,15 +168,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_dev_option
-    generator([destination_root], :dev => true).expects(:run).with("gem bundle")
+    generator([destination_root], :dev => true).expects(:run).with("bundle install")
     silence(:stdout){ generator.invoke }
     rails_path = File.expand_path('../../..', Rails.root)
-    dev_gem = %(directory #{rails_path.inspect}, :glob => "{*/,}*.gemspec")
+    dev_gem = %(path #{rails_path.inspect}, :glob => "{*/,}*.gemspec")
     assert_file 'Gemfile', /^#{Regexp.escape(dev_gem)}$/
   end
 
   def test_edge_option
-    generator([destination_root], :edge => true).expects(:run).with("gem bundle")
+    generator([destination_root], :edge => true).expects(:run).with("bundle install")
     silence(:stdout){ generator.invoke }
     edge_gem = %(gem "rails", :git => "git://github.com/rails/rails.git")
     assert_file 'Gemfile', /^#{Regexp.escape(edge_gem)}$/

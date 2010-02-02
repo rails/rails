@@ -181,7 +181,7 @@ module Rails::Generators
     end
 
     def bundle_if_dev_or_edge
-      run "gem bundle" if dev_or_edge?
+      run "bundle install" if dev_or_edge?
     end
 
     protected
