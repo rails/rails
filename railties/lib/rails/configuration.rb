@@ -4,6 +4,7 @@ require 'rails/rack'
 
 module Rails
   module Configuration
+    # Holds coonfiguration shared between Railtie, Engine and Application.
     module Shared
       def middleware
         @@default_middleware_stack ||= ActionDispatch::MiddlewareStack.new.tap do |middleware|
@@ -87,6 +88,8 @@ module Rails
       end
     end
 
+    # Generators configuration which uses method missing to wrap it in a nifty DSL.
+    # It also allows you to set generators fallbacks and aliases.
     class Generators #:nodoc:
       attr_accessor :aliases, :options, :fallbacks, :colorize_logging
 
@@ -119,6 +122,7 @@ module Rails
       end
     end
 
+    # Holds configs deprecated in 3.0. Will be removed on 3.1.
     module Deprecated
       def frameworks(*args)
         raise "config.frameworks in no longer supported. See the generated " \

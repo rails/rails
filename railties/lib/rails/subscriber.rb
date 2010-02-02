@@ -31,7 +31,7 @@ module Rails
   # facility on top of Rails.logger.
   # 
   # Subscriber also has some helpers to deal with logging and automatically flushes
-  # all logs when the request finishes (via action_dispatch.callback notification).
+  # all logs when the request finishes.
   class Subscriber
     mattr_accessor :colorize_logging
     self.colorize_logging = true

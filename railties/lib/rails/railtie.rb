@@ -2,66 +2,36 @@ require 'rails/initializable'
 require 'rails/configuration'
 
 module Rails
-  # Railtie is the core of the Rails Framework and provides all the hooks and
-  # methods you need to link your plugin into Rails.
+  # Railtie is the core of the Rails Framework and provides several hooks to extend
+  # Rails and/or modify the initialization process.
   # 
-  # What Railtie does is make every component of Rails a "plugin" and creates 
-  # an API that exposes all the powers that the builtin components need
-  # to any plugin author.
+  # Every major component of Rails (Action Mailer, Action Controller,
+  # Action View, Active Record and Active Resource) are all Railties, so each of
+  # them is responsible to set their own initialization. This makes, for example,
+  # Rails absent of any ActiveRecord hook, allowing any other ORM to hook in.
   # 
-  # In fact, every major component of Rails (Action Mailer, Action Controller,
-  # Action View, Active Record and Active Resource) are all now just plain
-  # old plugins, so anything they can do, your plugin can do.
-  # 
-  # Developing a plugin for Rails does not _require_ any implementation of
-  # Railtie, there is no fixed rule, but as a guideline, if your plugin works
-  # by just being required before Rails boots, then there is no need for you
-  # to hook into Railtie, but if you need to interact with the Rails framework
+  # Developing a Rails extension does not _require_ any implementation of
+  # Railtie, but if you need to interact with the Rails framework
   # during boot, or after boot, then Railtie is what you need to do that
   # interaction.
   # 
   # For example, the following would need you to implement Railtie in your
   # plugin:
   # 
-  # * creating initializers (including route insertion)
-  # * modifying the render path (think HAML et al)
+  # * creating initializers
+  # * configuring a Rails framework or the Application, like setting a generator
   # * adding Rails config.* keys to the environment
   # * setting up a subscriber to the Rails +ActiveSupport::Notifications+
-  # * adding global Rake tasks into rails
-  # * setting up a default configuration for the Application
+  # * adding rake tasks into rails
   # 
-  # Railtie gives you a central place to connect into the Rails framework.  If you
-  # find yourself writing plugin code that is having to monkey patch parts of the
-  # Rails framework to achieve something, there is probably a better, more elegant
-  # way to do it through Railtie, if there isn't, then you have found a lacking
-  # feature of Railtie, please lodge a ticket.
+  # == Creating your Railtie
+  #
+  # Implementing Railtie in your Rails extension is done by creating a class
+  # Railtie that has your extension name and making sure that this gets loaded
+  # during boot time of the Rails stack.
   # 
-  # Implementing Railtie in your plugin is by creating a class Railtie in your
-  # application that has your plugin name and making sure that this gets loaded
-  # durng boot time of the Rails stack.
-  # 
-  # You can do this however you wish, but three straight forward ways are:
-  # 
-  # == For gems or plugins that are not used outside of Rails
-  # 
-  # * Create a Railtie subclass within your lib/my_plugin.rb file:
-  #   
-  #   # lib/my_plugin.rb
-  #   module MyPlugin
-  #     class Railtie < Rails::Railtie
-  #     end
-  #   end
-  # 
-  # * Pass in your plugin name
-  # 
-  #   # lib/my_plugin.rb
-  #   module MyPlugin
-  #     class Railtie < Rails::Railtie
-  #       plugin_name :my_plugin
-  #     end
-  #   end
-  #   
-  # == For gems that could be used without Rails
+  # You can do this however you wish, but here is an example if you want to provide
+  # it for a gem that can be used with or without Rails:
   # 
   # * Create a file (say, lib/my_gem/railtie.rb) which contains class Railtie inheriting from
   #   Rails::Railtie and is namespaced to your gem:
@@ -69,6 +39,7 @@ module Rails
   #   # lib/my_gem/railtie.rb
   #   module MyGem
   #     class Railtie < Rails::Railtie
+  #       railtie_name :mygem
   #     end
   #   end
   # 
@@ -80,28 +51,17 @@ module Rails
   # 
   #   module MyGem
   #     class Railtie < Rails::Railtie
+  #       railtie_name :mygem
   #     end
   #   end
   #   
-  # * Give your gem a unique name:
-  # 
-  #   # lib/my_gem/railtie.rb
-  #   require 'my_gem'
-  #   require 'rails'
-  # 
-  #   module MyGem
-  #     class Railtie < Rails::Railtie
-  #       plugin_name :my_gem
-  #     end
-  #   end
-  # 
   # * Make sure your Gem loads the railtie.rb file if Rails is loaded first, an easy
   #   way to check is by checking for the Rails constant which will exist if Rails
   #   has started:
   # 
   #   # lib/my_gem.rb
   #   module MyGem
-  #     require 'lib/railtie' if defined?(Rails)
+  #     require 'lib/my_gem/railtie' if defined?(Rails)
   #   end
   # 
   # * Or instead of doing the require automatically, you can ask your users to require
@@ -110,6 +70,109 @@ module Rails
   #   # #{USER_RAILS_ROOT}/Gemfile
   #   gem "my_gem", :require_as => ["my_gem", "my_gem/railtie"]
   #
+  # == Initializers
+  #
+  # To add an initialization step from your Railtie to Rails boot process, you just need
+  # to create an initializer block:
+  #
+  #   class MyRailtie < Rails::Railtie
+  #     initializer "my_railtie.configure_rails_initialization" do
+  #       # some initialization behavior
+  #     end
+  #   end
+  #
+  # If specified, the block can also receive the application object, in case you 
+  # need to access some application specific configuration:
+  #
+  #   class MyRailtie < Rails::Railtie
+  #     initializer "my_railtie.configure_rails_initialization" do |app|
+  #       if app.config.cache_classes
+  #         # some initialization behavior
+  #       end
+  #     end
+  #   end
+  #
+  # Finally, you can also pass :before and :after as option to initializer, in case
+  # you want to couple it with a specific step in the initialization process.
+  #
+  # == Configuration
+  #
+  # Inside the Railtie class, you can access a config object which contains configuration
+  # shared by all railties and the application:
+  #
+  #   class MyRailtie < Rails::Railtie
+  #     # Customize the ORM
+  #     config.generators.orm :my_railtie_orm
+  #
+  #     # Add a middleware
+  #     config.middlewares.use MyRailtie::Middleware
+  #
+  #     # Add a to_prepare block which is executed once in production
+  #     # and before which request in development
+  #     config.to_prepare do
+  #       MyRailtie.setup!
+  #     end
+  #   end
+  #
+  # == Loading rake tasks and generators
+  #
+  # If your railtie has rake tasks, you can tell Rails to load them through the method
+  # rake tasks:
+  #
+  #   class MyRailtie < Railtie
+  #     rake_tasks do
+  #       load "path/to/my_railtie.tasks"
+  #     end
+  #   end
+  #
+  # By default, Rails load generators from your load path. However, if you want to place
+  # your generators at a different location, you can specify in your Railtie a block which
+  # will load them during normal generators lookup:
+  #
+  #   class MyRailtie < Railtie
+  #     generators do
+  #       require "path/to/my_railtie_generator"
+  #     end
+  #   end
+  #
+  # == Adding your subscriber
+  #
+  # Since version 3.0, Rails ships with a notification system which is used for several
+  # purposes, including logging. If you are sending notifications in your Railtie, you may
+  # want to add a subscriber to consume such notifications for logging purposes.
+  #
+  # The subscriber is added under the railtie_name namespace and only consumes notifications
+  # under the given namespace. For example, let's suppose your railtie is publishing the
+  # following "something_expensive" instrumentation:
+  #
+  #   ActiveSupport::Notifications.instrument "my_railtie.something_expensive" do
+  #     # something expensive
+  #   end
+  #
+  # You can log this instrumentation with your own Rails::Subscriber:
+  #
+  #   class MyRailtie::Subscriber < Rails::Subscriber
+  #     def something_expensive(event)
+  #       info("Something expensive took %.1fms" % event.duration)
+  #     end
+  #   end
+  #
+  # By registering it:
+  #
+  #   class MyRailtie < Railtie
+  #     subscriber MyRailtie::Subscriber.new
+  #   end
+  #
+  # Take a look in Rails::Subscriber docs for more information.
+  #
+  # == Application, Plugin and Engine
+  #
+  # A Rails::Engine is nothing more than a Railtie with some initializers already set.
+  # And since Rails::Application and Rails::Plugin are engines, the same configuration
+  # described here can be used in all three.
+  #
+  # Be sure to look at the documentation of those specific classes for more information.
+  # 
   class Railtie
     autoload :Configurable,  "rails/railtie/configurable"
     autoload :Configuration, "rails/railtie/configuration"

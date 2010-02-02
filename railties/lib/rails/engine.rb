@@ -2,6 +2,90 @@ require 'active_support/core_ext/module/delegation'
 require 'rails/railtie'
 
 module Rails
+  # Rails::Engine allows you to wrap a specific Rails application and share it accross
+  # different applications. Since Rails 3.0, your Rails::Application is nothing
+  # more than an Engine, thus your engines will behave much more closer to an application
+  # since then.
+  #
+  # Any Rails::Engine is also a Rails::Railtie, so the same methods (like rake_tasks and
+  # generators) and configuration available in the latter can also be used in the former.
+  #
+  # == Creating an Engine
+  #
+  # In Rails versions before to 3.0, your gems automatically behaved as Engine, however
+  # this coupled Rails to Rubygems. Since Rails 3.0, if you want a gem to automatically
+  # behave as Engine, you have to specify an Engine for it somewhere inside your plugin
+  # lib folder (similar with how we spceify a Railtie):
+  #
+  #   # lib/my_engine.rb
+  #   module MyEngine
+  #     class Engine < Rails::Engine
+  #       engine_name :my_engine
+  #     end
+  #   end
+  #
+  # Then ensure that this file is loaded at the top of your config/application.rb (or in
+  # your Gemfile) and it will automatically load models, controllers, helpers and metals
+  # inside app, load routes at "config/routes.rb", load locales at "config/locales/*",
+  # load tasks at "lib/tasks/*".
+  #
+  # == Configuration
+  #
+  # Besides the Railtie configuration which is shared across the application, in a
+  # Rails::Engine you can access load_paths, eager_load_paths and load_once_paths,
+  # which differently from a Railtie, are scoped to the current Engine.
+  #
+  # Example:
+  #
+  #   class MyEngine < Rails::Engine
+  #     # config.middleware is shared configururation
+  #     config.middleware.use MyEngine::Middleware
+  #
+  #     # Add a load path for this specific Engine
+  #     config.load_paths << File.expand_path("../lib/some/path", __FILE__)
+  #   end
+  # 
+  # == Paths
+  #
+  # Since Rails 3.0, both your Application and Engines does not have hardcoded paths.
+  # This means that you are not required to place your controllers at "app/controllers",
+  # but in any place which you find convenient.
+  #
+  # For example, let's suppose you want to lay your controllers at lib/controllers, all
+  # you need to do is:
+  #
+  #   class MyEngine < Rails::Engine
+  #     paths.app.controllers = "lib/controllers"
+  #   end
+  #
+  # You can also have your controllers being loaded from both "app/controllers" and
+  # "lib/controllers":
+  #
+  #   class MyEngine < Rails::Engine
+  #     paths.app.controllers << "lib/controllers"
+  #   end
+  #
+  # The available paths in an Engine are:
+  #
+  #   class MyEngine < Rails::Engine
+  #     paths.app                 = "app"
+  #     paths.app.controllers     = "app/controllers"
+  #     paths.app.helpers         = "app/helpers"
+  #     paths.app.models          = "app/models"
+  #     paths.app.metals          = "app/metal"
+  #     paths.app.views           = "app/views"
+  #     paths.lib                 = "lib"
+  #     paths.lib.tasks           = "lib/tasks"
+  #     paths.config              = "config"
+  #     paths.config.initializers = "config/initializers"
+  #     paths.config.locales      = "config/locales"
+  #     paths.config.routes       = "config/routes.rb"
+  #   end
+  #
+  # Your Application class adds a couple more paths to this set. And as in your Application,
+  # all folders under "app" are automatically added to the load path. So if you have
+  # "app/observers", it's added by default.
+  #
   class Engine < Railtie
     autoload :Configurable,  "rails/engine/configurable"
     autoload :Configuration, "rails/engine/configuration"

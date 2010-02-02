@@ -4,6 +4,43 @@ require 'rails/plugin'
 require 'rails/engine'
 
 module Rails
+  # In Rails 3.0, a Rails::Application object was introduced which is nothing more than
+  # an Engine but with the responsibility of coordinating the whole boot process.
+  #
+  # Opposite to Rails::Engine, you can only have one Rails::Application instance
+  # in your process and both Rails::Application and YourApplication::Application
+  # points to it.
+  #
+  # In other words, Rails::Application is Singleton and whenever you are accessing
+  # Rails::Application.config or YourApplication::Application.config, you are actually 
+  # accessing YourApplication::Application.instance.config.
+  #
+  # == Initialization
+  #
+  # Rails::Application is responsible for executing all railties, engines and plugin
+  # initializers. Besides, it also executed some bootstrap initializers (check
+  # Rails::Application::Bootstrap) and finishing initializers, after all the others
+  # are executed (check Rails::Application::Finisher).
+  #
+  # == Configuration
+  #
+  # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
+  # the application object has several specific configurations, for example
+  # "allow_concurrency", "cache_classes", "consider_all_requests_local", "filter_parameters",
+  # "logger", "metals", "reload_engines", "reload_plugins" and so forth.
+  #
+  # Check Rails::Application::Configuration to see them all.
+  #
+  # == Routes
+  #
+  # The application object is also responsible for holding the routes and reloading routes
+  # whenever the files change in development.
+  #
+  # == Middlewares and metals
+  #
+  # The Application is also responsible for building the middleware stack and setting up
+  # both application and engines metals.
+  # 
   class Application < Engine
     autoload :Bootstrap,      'rails/application/bootstrap'
     autoload :Configurable,   'rails/application/configurable'
