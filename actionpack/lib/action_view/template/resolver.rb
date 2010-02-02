@@ -1,5 +1,6 @@
 require "pathname"
 require "active_support/core_ext/class"
+require "active_support/core_ext/array/wrap"
 require "action_view/template"
 
 module ActionView
@@ -11,7 +12,7 @@ module ActionView
 
     def self.register_detail(name, options = {})
       registered_details[name] = lambda do |val|
-        val ||= yield
+        val = Array.wrap(val || yield)
         val |= [nil] unless options[:allow_nil] == false
         val
       end
@@ -141,8 +142,7 @@ module ActionView
     end
   end
 
-  # OMG HAX
-  # TODO: remove hax
+  # TODO: remove hack
   class FileSystemResolverWithFallback < Resolver
     def initialize(path, options = {})
       super(options)

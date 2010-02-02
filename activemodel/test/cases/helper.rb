@@ -1,10 +1,4 @@
-begin
-  require File.expand_path('../../../../vendor/gems/environment', __FILE__)
-rescue LoadError
-end
-
-lib = File.expand_path('../../../lib', __FILE__)
-$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
+require File.expand_path('../../../../load_paths', __FILE__)
 
 require 'config'
 require 'active_model'

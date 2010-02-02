@@ -1,4 +1,6 @@
 require 'active_support/dependencies'
+require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/module/delegation'
 
 module AbstractController
   module Helpers
@@ -12,10 +14,10 @@ module AbstractController
     end
 
     included do
-      extlib_inheritable_accessor(:_helpers) { Module.new }
-      extlib_inheritable_accessor(:_helper_serial) do
-        AbstractController::Helpers.next_serial
-      end
+      class_attribute :_helpers, :_helper_serial
+      delegate :_helpers, :to => :'self.class'
+      self._helpers = Module.new
+      self._helper_serial = ::AbstractController::Helpers.next_serial
     end
 
     module ClassMethods

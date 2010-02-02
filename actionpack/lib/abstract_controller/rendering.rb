@@ -1,4 +1,7 @@
 require "abstract_controller/base"
+require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/array/wrap'
 
 module AbstractController
   class DoubleRenderError < Error
@@ -13,8 +16,9 @@ module AbstractController
     extend ActiveSupport::Concern
 
     included do
-      extlib_inheritable_accessor :_view_paths
-      self._view_paths ||= ActionView::PathSet.new
+      class_attribute :_view_paths
+      delegate :_view_paths, :to => :'self.class'
+      self._view_paths = ActionView::PathSet.new
     end
 
     # An instance of a view class. The default view class is ActionView::Base
@@ -156,7 +160,6 @@ module AbstractController
       elsif options.key?(:file)
         options[:_template_name] = options[:file]
       end
-
       name = (options[:_template_name] || options[:action] || action_name).to_s
       options[:_prefix] ||= _prefix if (options.keys & [:partial, :file, :template]).empty?
 
@@ -201,7 +204,7 @@ module AbstractController
       # the default view path. You may also provide a custom view path
       # (see ActionView::ViewPathSet for more information)
       def append_view_path(path)
-        self.view_paths << path
+        self.view_paths = view_paths.dup + Array.wrap(path)
       end
 
       # Prepend a path to the list of view paths for this controller.
@@ -212,12 +215,12 @@ module AbstractController
       # (see ActionView::ViewPathSet for more information)
       def prepend_view_path(path)
         clear_template_caches!
-        self.view_paths.unshift(path)
+        self.view_paths = Array.wrap(path) + view_paths.dup
       end
 
       # A list of all of the default view paths for this controller.
       def view_paths
-        self._view_paths
+        _view_paths
       end
 
       # Set the view paths.
@@ -228,6 +231,7 @@ module AbstractController
       def view_paths=(paths)
         clear_template_caches!
         self._view_paths = paths.is_a?(ActionView::PathSet) ? paths : ActionView::Base.process_view_paths(paths)
+        _view_paths.freeze
       end
     end
   end

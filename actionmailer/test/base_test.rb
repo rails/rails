@@ -81,8 +81,8 @@ class BaseTest < ActiveSupport::TestCase
     
     def different_template(template_name='')
       mail do |format|
-        format.text { render :template => template_name }
-        format.html { render :template => template_name }
+        format.text { render :template => "#{mailer_name}/#{template_name}" }
+        format.html { render :template => "#{mailer_name}/#{template_name}" }
       end
     end
 
@@ -254,7 +254,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "subject gets default from I18n" do
-    BaseMailer.default[:subject] = nil
+    BaseMailer.default :subject => nil
     email = BaseMailer.welcome(:subject => nil)
     assert_equal "Welcome", email.subject
 
@@ -331,22 +331,24 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "implicit multipart with several view paths uses the first one with template" do
+    old = BaseMailer.view_paths
     begin
-      BaseMailer.view_paths.unshift(File.join(FIXTURE_LOAD_PATH, "another.path"))
+      BaseMailer.view_paths = [File.join(FIXTURE_LOAD_PATH, "another.path")] + old.dup
       email = BaseMailer.welcome
       assert_equal("Welcome from another path", email.body.encoded)
     ensure
-      BaseMailer.view_paths.shift
+      BaseMailer.view_paths = old
     end
   end
 
   test "implicit multipart with inexistent templates uses the next view path" do
+    old = BaseMailer.view_paths
     begin
-      BaseMailer.view_paths.unshift(File.join(FIXTURE_LOAD_PATH, "unknown"))
+      BaseMailer.view_paths = [File.join(FIXTURE_LOAD_PATH, "unknown")] + old.dup
       email = BaseMailer.welcome
       assert_equal("Welcome", email.body.encoded)
     ensure
-      BaseMailer.view_paths.shift
+      BaseMailer.view_paths = old
     end
   end
 
@@ -503,16 +505,10 @@ class BaseTest < ActiveSupport::TestCase
     end
 
     def with_default(klass, new_values)
-      hash = klass.default
-      old_values = {}
-      new_values.each do |key, value|
-        old_values[key] = hash[key]
-        hash[key] = value
-      end
+      old = klass.default_params
+      klass.default(new_values)
       yield
     ensure
-      old_values.each do |key, value|
-        hash[key] = value
-      end
+      klass.default_params = old
     end
 end

@@ -1,14 +1,8 @@
-begin
-  require File.expand_path('../../../vendor/gems/environment', __FILE__)
-rescue LoadError
-end
+require File.expand_path('../../../load_paths', __FILE__)
 
-lib = File.expand_path('../../lib', __FILE__)
-$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
-
-require 'rubygems'
 require 'test/unit'
 require 'action_mailer'
+require 'action_mailer/test_case'
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true

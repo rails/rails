@@ -90,6 +90,18 @@ module Rails::Generators
       template "config/boot.rb"
     end
 
+    def gem_for_database
+      # %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+      case options[:database]
+      when "mysql"      then "mysql"
+      when "oracle"     then "ruby-oci8"
+      when "postgresql" then "pg"
+      when "sqlite3"    then "sqlite3-ruby"
+      when "frontbase"  then "ruby-frontbase"
+      when "ibm_db"     then "ibm_db"
+      end
+    end
+
     def create_activerecord_files
       return if options[:skip_activerecord]
       template "config/databases/#{options[:database]}.yml", "config/database.yml"

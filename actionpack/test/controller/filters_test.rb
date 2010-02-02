@@ -435,7 +435,7 @@ class FilterTest < ActionController::TestCase
       end
 
       def non_yielding_filter
-        @filters  << "zomg it didn't yield"
+        @filters  << "it didn't yield"
         @filter_return_value
       end
 
@@ -465,14 +465,14 @@ class FilterTest < ActionController::TestCase
     controller = NonYieldingAroundFilterController.new
     controller.instance_variable_set "@filter_return_value", false
     test_process(controller, "index")
-    assert_equal ["filter_one", "zomg it didn't yield"], controller.assigns['filters']
+    assert_equal ["filter_one", "it didn't yield"], controller.assigns['filters']
   end
 
   def test_after_filters_are_not_run_if_around_filter_does_not_yield
     controller = NonYieldingAroundFilterController.new
     controller.instance_variable_set "@filter_return_value", true
     test_process(controller, "index")
-    assert_equal ["filter_one", "zomg it didn't yield"], controller.assigns['filters']
+    assert_equal ["filter_one", "it didn't yield"], controller.assigns['filters']
   end
 
   def test_added_filter_to_inheritance_graph

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/attribute'
+
 module ActionController
   def self.add_renderer(key, &block)
     Renderers.add(key, &block)
@@ -7,8 +9,8 @@ module ActionController
     extend ActiveSupport::Concern
 
     included do
-      extlib_inheritable_accessor :_renderers
-      self._renderers = {}
+      class_attribute :_renderers
+      self._renderers = {}.freeze
     end
 
     module ClassMethods
@@ -30,9 +32,11 @@ module ActionController
       end
 
       def use_renderers(*args)
+        new = _renderers.dup
         args.each do |key|
-          _renderers[key] = RENDERERS[key]
+          new[key] = RENDERERS[key]
         end
+        self._renderers = new.freeze
         _write_render_options
       end
       alias use_renderer use_renderers

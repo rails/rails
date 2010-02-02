@@ -33,7 +33,7 @@ class AVSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_text_template
-    @view.render(:text => "OMG")
+    @view.render(:text => "TEXT")
     wait
 
     assert_equal 1, @logger.logged(:info).size
@@ -41,7 +41,7 @@ class AVSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_inline_template
-    @view.render(:inline => "<%= 'OMG' %>")
+    @view.render(:inline => "<%= 'TEXT' %>")
     wait
 
     assert_equal 1, @logger.logged(:info).size

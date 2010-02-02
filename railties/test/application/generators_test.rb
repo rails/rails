@@ -30,6 +30,7 @@ module ApplicationTests
         assert_equal(true, c.generators.colorize_logging)
         assert_equal({}, c.generators.aliases)
         assert_equal({}, c.generators.options)
+        assert_equal({}, c.generators.fallbacks)
       end
     end
 
@@ -51,11 +52,20 @@ module ApplicationTests
       end
     end
 
-    test "generators aliases and options on initialization" do
+    test "generators set rails fallbacks" do
+      with_config do |c|
+        c.generators.fallbacks[:shoulda] = :test_unit
+        expected = { :shoulda => :test_unit }
+        assert_equal expected, c.generators.fallbacks
+      end
+    end
+
+    test "generators aliases, options and fallbacks on initialization" do
       add_to_config <<-RUBY
         config.generators.rails :aliases => { :test_framework => "-w" }
         config.generators.orm :datamapper
         config.generators.test_framework :rspec
+        config.generators.fallbacks[:shoulda] = :test_unit
       RUBY
 
       # Initialize the application
@@ -65,6 +75,7 @@ module ApplicationTests
 
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
       assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]
+      assert_equal :test_unit, Rails::Generators.fallbacks[:shoulda]
     end
 
     test "generators no color on initialization" do

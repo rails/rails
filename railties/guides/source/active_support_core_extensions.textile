@@ -496,7 +496,42 @@ The class method +delegate+
 
 h3. Extensions to +Class+
 
-h4. Class Attribute Accessors
+h4. Class Attributes
+
+The method +Class#class_attribute+ declares one or more inheritable class attributes that can be overriden at any level down the hierarchy:
+
+<ruby>
+class A
+  class_attribute :x
+end
+
+class B < A; end
+
+class C < B; end
+
+A.x = :a
+B.x # => :a
+C.x # => :a
+
+B.x = :b
+A.x # => :a
+C.x # => :b
+
+C.x = :c
+A.x # => :a
+B.x # => :b
+</ruby>
+
+For example that's the way the +allow_forgery_protection+ flag is implemented for controllers:
+
+<ruby>
+class_attribute :allow_forgery_protection
+self.allow_forgery_protection = true
+</ruby>
+
+For convenience +class_attribute+ defines also a predicate, so that declaration also generates +allow_forgery_protection?+. Such predicate returns the double boolean negation of the value.
+
+NOTE: Defined in +active_support/core_ext/class/attribute.rb+
 
 The macros +cattr_reader+, +cattr_writer+, and +cattr_accessor+ are analogous to their +attr_*+ counterparts but for classes. They initialize a class variable to +nil+ unless it already exists, and generate the corresponding class methods to access it:
 

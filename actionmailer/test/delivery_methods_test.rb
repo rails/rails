@@ -45,7 +45,9 @@ class CustomDeliveryMethodsTest < ActiveSupport::TestCase
 
   def teardown
     ActionMailer::Base.delivery_method = @old_delivery_method
-    ActionMailer::Base.delivery_methods.delete(:custom)
+    new = ActionMailer::Base.delivery_methods.dup
+    new.delete(:custom)
+    ActionMailer::Base.delivery_methods = new
   end
 
   test "allow to add custom delivery method" do

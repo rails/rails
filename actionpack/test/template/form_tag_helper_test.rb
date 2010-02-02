@@ -53,6 +53,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_form_tag_with_remote
+    actual = form_tag({}, :remote => true)
+    expected = %(<form action="http://www.example.com" method="post" data-remote="true">)
+    assert_dom_equal expected, actual
+  end
+
   def test_form_tag_with_block_in_erb
     __in_erb_template = ''
     form_tag("http://example.com") { concat "Hello world!" }
@@ -329,19 +335,19 @@ class FormTagHelperTest < ActionView::TestCase
     expected = %(<fieldset><legend>Your details</legend>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    self.output_buffer = ''
+    self.output_buffer = ''.html_safe
     field_set_tag { concat "Hello world!" }
 
     expected = %(<fieldset>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    self.output_buffer = ''
+    self.output_buffer = ''.html_safe
     field_set_tag('') { concat "Hello world!" }
 
     expected = %(<fieldset>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    self.output_buffer = ''
+    self.output_buffer = ''.html_safe
     field_set_tag('', :class => 'format') { concat "Hello world!" }
 
     expected = %(<fieldset class="format">Hello world!</fieldset>)

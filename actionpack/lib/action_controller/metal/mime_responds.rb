@@ -1,11 +1,12 @@
 require 'abstract_controller/collector'
+require 'active_support/core_ext/class/attribute'
 
 module ActionController #:nodoc:
   module MimeResponds #:nodoc:
     extend ActiveSupport::Concern
 
     included do
-      extlib_inheritable_accessor :responder, :mimes_for_respond_to, :instance_writer => false
+      class_attribute :responder, :mimes_for_respond_to
       self.responder = ActionController::Responder
       clear_respond_to
     end
@@ -38,18 +39,20 @@ module ActionController #:nodoc:
         only_actions   = Array(options.delete(:only))
         except_actions = Array(options.delete(:except))
 
+        new = mimes_for_respond_to.dup
         mimes.each do |mime|
           mime = mime.to_sym
-          mimes_for_respond_to[mime]          = {}
-          mimes_for_respond_to[mime][:only]   = only_actions   unless only_actions.empty?
-          mimes_for_respond_to[mime][:except] = except_actions unless except_actions.empty?
+          new[mime]          = {}
+          new[mime][:only]   = only_actions   unless only_actions.empty?
+          new[mime][:except] = except_actions unless except_actions.empty?
         end
+        self.mimes_for_respond_to = new.freeze
       end
 
       # Clear all mimes in respond_to.
       #
       def clear_respond_to
-        self.mimes_for_respond_to = ActiveSupport::OrderedHash.new
+        self.mimes_for_respond_to = ActiveSupport::OrderedHash.new.freeze
       end
     end
 
@@ -218,12 +221,12 @@ module ActionController #:nodoc:
     #
     def respond_with(*resources, &block)
       raise "In order to use respond_with, first you need to declare the formats your " <<
-            "controller responds to in the class level" if mimes_for_respond_to.empty?
+            "controller responds to in the class level" if self.class.mimes_for_respond_to.empty?
 
       if response = retrieve_response_from_mimes(&block)
         options = resources.extract_options!
         options.merge!(:default_response => response)
-        (options.delete(:responder) || responder).call(self, resources, options)
+        (options.delete(:responder) || self.class.responder).call(self, resources, options)
       end
     end
 
@@ -235,8 +238,8 @@ module ActionController #:nodoc:
     def collect_mimes_from_class_level #:nodoc:
       action = action_name.to_sym
 
-      mimes_for_respond_to.keys.select do |mime|
-        config = mimes_for_respond_to[mime]
+      self.class.mimes_for_respond_to.keys.select do |mime|
+        config = self.class.mimes_for_respond_to[mime]
 
         if config[:except]
           !config[:except].include?(action)

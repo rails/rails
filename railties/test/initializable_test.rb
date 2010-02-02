@@ -10,7 +10,7 @@ module InitializableTests
       attr_accessor :foo, :bar
     end
 
-    initializer :omg do
+    initializer :start do
       @foo ||= 0
       @foo += 1
     end

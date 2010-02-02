@@ -23,7 +23,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   end
 
   # Accept header send with user HTTP_USER_AGENT: Sunrise/0.42j (Windows XP)
-  test "parse crappy broken acceptlines" do
+  test "parse broken acceptlines" do
     accept = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/*,,*/*;q=0.5"
     expect = [Mime::HTML, Mime::XML, "image/*", Mime::TEXT, Mime::ALL]
     assert_equal expect, Mime::Type.parse(accept).collect { |c| c.to_s }
@@ -31,7 +31,7 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   # Accept header send with user HTTP_USER_AGENT: Mozilla/4.0
   #  (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; InfoPath.1)
-  test "parse crappy broken acceptlines2" do
+  test "parse other broken acceptlines" do
     accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword,  , pronto/1.00.00, sslvpn/1.00.00.00, */*"
     expect = ['image/gif', 'image/x-xbitmap', 'image/jpeg','image/pjpeg', 'application/x-shockwave-flash', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/msword', 'pronto/1.00.00', 'sslvpn/1.00.00.00', Mime::ALL  ]
     assert_equal expect, Mime::Type.parse(accept).collect { |c| c.to_s }
