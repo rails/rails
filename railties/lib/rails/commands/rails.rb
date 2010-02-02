@@ -28,19 +28,15 @@ when 'g', 'generate'
   require ENV_PATH
   require 'rails/commands/generate'
 when 'c', 'console'
-  require BOOT_PATH
   require 'rails/commands/console'
   require APP_PATH
   Rails::Console.start(Rails::Application)
 when 's', 'server'
-  require File.expand_path('../../config/boot',  __FILE__)
   require 'rails/commands/server'
   Dir.chdir(File.expand_path('../..',  __FILE__))
   Rails::Server.start
-  
 
 when 'dbconsole'
-  require BOOT_PATH
   require 'rails/commands/dbconsole'
   require APP_PATH
   Rails::DBConsole.start(Rails::Application)
@@ -57,7 +53,6 @@ when 'plugin'
   require APP_PATH
   require 'rails/commands/plugin'
 when 'runner'
-  require BOOT_PATH
   require 'rails/commands/runner'
   require ENV_PATH
 
