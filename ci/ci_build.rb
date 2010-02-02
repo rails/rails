@@ -7,7 +7,11 @@ def root_dir
 end
 
 def rake(*tasks)
-  tasks.each { |task| return false unless system("bundle exec rake", task) }
+  tasks.each do |task|
+    cmd = "bundle exec rake #{task}"
+    puts "Running command: #{cmd}"
+    return false unless system(cmd)
+  end
   true
 end
 
@@ -105,7 +109,8 @@ puts "[CruiseControl]   #{`mysql --version`}"
 puts "[CruiseControl]   #{`pg_config --version`}"
 puts "[CruiseControl]   SQLite3: #{`sqlite3 -version`}"
 `gem env`.each_line {|line| print "[CruiseControl]   #{line}"}
-puts "[CruiseControl]   Bundled gems:"
+# Commented until bundler supports --list again
+# puts "[CruiseControl]   Bundled gems:"
 # `gem bundle --list`.each_line {|line| print "[CruiseControl]     #{line}"}
 puts "[CruiseControl]   Local gems:"
 `gem list`.each_line {|line| print "[CruiseControl]     #{line}"}
