@@ -62,12 +62,16 @@ Rails 3.0 is designed to run on 1.8.7 and also support Ruby 1.9.
 There have been a few changes to the +rails+ script that's used to generate Rails applications:
 
 * The application name, <tt>rails my_app</tt>, can now optionally be a path instead <tt>rails ~/code/my_app</tt>, your rails application will be name spaced under the application name you pass the +rails+ command.
-* Additionally, any flags you need to generate the application now need to come after the application path, for example:
+* Additionally, any flags you need to generate the application now need to come after the application path.
+
+The new installing rails sequence (for the beta) is:
 
 <shell>
-$ rails myapp --database=mysql
+$ gem install rails --prerelease
+$ rails myapp
+$ cd myapp
+$ bundle install
 </shell>
-
 
 h4. Vendoring Gems
 
@@ -78,7 +82,7 @@ More information: - "Using bundler":http://yehudakatz.com/2009/11/03/using-the-n
 
 h4. Living on the Edge
 
-Due to the use of +Gemfile+, the concept of freezing Rails was dropped, because it's always bundled/frozen inside your application. By default, it uses your system gems when bundling; however, if you want to bundle straight from the Git repository, you can pass the edge flag:
+Due to the use of +Gemfile+, your Rails app is "frozen" by default, that is, all the gems you depend on are kept in your vendor directory, these gems are copied from your system gems by default or from gemcutter.  If you want to bundle straight from the Git repository, you can pass the edge flag:
 
 <shell>
 $ rails myapp --edge
