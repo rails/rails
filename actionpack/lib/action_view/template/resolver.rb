@@ -104,7 +104,7 @@ module ActionView
     end
 
     def query(path, exts)
-      query = "#{@path}/#{path}"
+      query = File.join(@path, path)
       exts.each do |ext|
         query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << '}'
       end
