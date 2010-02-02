@@ -6,10 +6,11 @@ module Rails
     #
     module Migration
       def self.included(base) #:nodoc:
-        base.extend ClassMethods
-        base.send :attr_reader, :migration_number,
-                                :migration_file_name,
-                                :migration_class_name
+        base.class_eval do
+          extend ClassMethods
+          readers = lambda { attr_reader :migration_number, :migration_file_name, :migration_class_name }
+          respond_to?(:no_tasks) ? no_tasks(&readers) : readers.call
+        end
       end
 
       module ClassMethods
@@ -28,10 +29,6 @@ module Rails
         end
 
         def next_migration_number(dirname) #:nodoc:
-          orm = Rails.configuration.generators.options[:rails][:orm]
-          require "generators/#{orm}"
-          "#{orm.to_s.camelize}::Generators::Base".constantize.next_migration_number(dirname)
-        rescue
           raise NotImplementedError
         end
       end
