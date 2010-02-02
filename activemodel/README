@@ -1,13 +1,13 @@
 = Active Model - defined interfaces for Rails
-
+ 
 Prior to Rails 3.0, if a plugin or gem developer wanted to be able to have
 an object interact with Action Pack helpers, it was required to either
 copy chunks of code from Rails, or monkey patch entire helpers to make them
 handle objects that did not look like Active Record.  This generated code
 duplication and fragile applications that broke on upgrades.
-
+ 
 Active Model is a solution for this problem.
-
+ 
 Active Model provides a known set of interfaces that your objects can implement
 to then present a common interface to the Action Pack helpers.  You can include
 functionality from the following modules:
@@ -75,7 +75,7 @@ functionality from the following modules:
     person.name = 'robert'
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
-
+ 
   {Learn more}[link:classes/ActiveModel/Dirty.html]
 
 * Adding +errors+ support to your object
@@ -84,22 +84,22 @@ functionality from the following modules:
     helpers seamlessly...
     
     class Person
-
+    
       def initialize
         @errors = ActiveModel::Errors.new(self)
       end
-
+    
       attr_accessor :name
       attr_reader   :errors
-
+    
       def validate!
         errors.add(:name, "can not be nil") if name == nil
       end
-
+    
       def ErrorsPerson.human_attribute_name(attr, options = {})
         "Name"
       end
-
+    
     end
     
     ... gives you...
@@ -153,19 +153,6 @@ functionality from the following modules:
     s.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
   
   {Learn more}[link:classes/ActiveModel/Serialization.html]
-    
-
-* Turning your object into a finite State Machine
-
-    ActiveModel::StateMachine provides a clean way to include all the methods
-    you need to transform your object into a finite State Machine...
-
-    light = TrafficLight.new
-    light.current_state       #=> :red
-    light.change_color!       #=> true
-    light.current_state       #=> :green
-
-  {Learn more}[link:classes/ActiveModel/StateMachine.html]
 
 * Integrating with Rail's internationalization (i18n) handling through
   ActiveModel::Translations...
@@ -183,10 +170,12 @@ functionality from the following modules:
 
      attr_accessor :first_name, :last_name
 
+
      validates_each :first_name, :last_name do |record, attr, value|
        record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
      end
    end
+
 
    person = Person.new(:first_name => 'zoolander')
    person.valid?          #=> false
@@ -214,5 +203,3 @@ functionality from the following modules:
    p.valid?                  #=>  true
 
   {Learn more}[link:classes/ActiveModel/Validator.html]
-  
-  

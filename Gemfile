@@ -11,7 +11,6 @@ if RUBY_VERSION < '1.9'
 end
 
 # AR
-gem "arel", ">= 0.2.0"
 gem "sqlite3-ruby", ">= 1.2.5"
 
 group :test do

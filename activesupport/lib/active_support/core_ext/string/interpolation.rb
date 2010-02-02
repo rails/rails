@@ -1,7 +1,7 @@
 =begin
   heavily based on Masao Mutoh's gettext String interpolation extension
   http://github.com/mutoh/gettext/blob/f6566738b981fe0952548c421042ad1e0cdfb31e/lib/gettext/core_ext/string.rb
-  Copyright (C) 2005-2009 Masao Mutoh
+  Copyright (C) 2005-2010 Masao Mutoh
   You may redistribute it and/or modify it under the same license terms as Ruby.
 =end
 

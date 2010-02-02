@@ -273,6 +273,7 @@ module ActiveModel
         @attribute_methods_generated = nil
       end
 
+      # Returns true if the attribute methods defined have been generated.
       def generated_attribute_methods #:nodoc:
         @generated_attribute_methods ||= begin
           mod = Module.new

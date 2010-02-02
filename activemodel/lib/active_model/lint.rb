@@ -58,7 +58,7 @@ module ActiveModel
       # 
       # Returns an object that has :[] and :full_messages defined on it. See below
       # for more details.
-
+      #
       # Returns an Array of Strings that are the errors for the attribute in
       # question. If localization is used, the Strings should be localized
       # for the current locale. If no error is present, this method should

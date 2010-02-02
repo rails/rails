@@ -7,7 +7,7 @@ gem "rails", "<%= Rails::VERSION::STRING %>"
 
 ## Bundle edge rails:
 <%- if options.dev? -%>
-directory "<%= Rails::Generators::RAILS_DEV_PATH %>", :glob => "{*/,}*.gemspec"
+path "<%= Rails::Generators::RAILS_DEV_PATH %>", :glob => "{*/,}*.gemspec"
 gem "rails", "<%= Rails::VERSION::STRING %>"
 <%- else -%>
 <%= "# " unless options.edge? %>gem "rails", :git => "git://github.com/rails/rails.git"

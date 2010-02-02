@@ -2,7 +2,6 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
 
 module ActiveModel
-  
   # Provides a basic serialization to a serializable_hash for your object.
   # 
   # A minimal implementation could be:

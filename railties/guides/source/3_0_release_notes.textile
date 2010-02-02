@@ -377,6 +377,8 @@ More Information:
 
 h3. Active Record
 
+Active Record received a lot of attention in Rails 3.0, including abstraction into Active Model, a full update to the Query interface using Arel, validation updates and many enhancements and fixes.  All of the Rails 2.x API will be usable through a compatibility layer that will be supported until version 3.1.
+
 
 h4. Query Interface
 

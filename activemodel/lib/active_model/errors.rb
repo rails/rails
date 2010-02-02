@@ -62,8 +62,6 @@ module ActiveModel
     #       @errors = ActiveModel::Errors.new(self)
     #     end
     #   end
-    # 
-    # 
     def initialize(base)
       @base = base
       super()
