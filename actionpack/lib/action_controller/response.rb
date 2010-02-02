@@ -233,7 +233,8 @@ module ActionController # :nodoc:
       end
 
       def convert_cookies!
-        headers['Set-Cookie'] = Array(headers['Set-Cookie']).compact
+        cookies = Array(headers['Set-Cookie']).compact
+        headers['Set-Cookie'] = cookies unless cookies.empty?
       end
   end
 end

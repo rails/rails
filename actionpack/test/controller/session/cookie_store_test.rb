@@ -145,7 +145,7 @@ class CookieStoreTest < ActionController::IntegrationTest
     with_test_route_set do
       get '/no_session_access'
       assert_response :success
-      assert_equal "", headers['Set-Cookie']
+      assert_equal nil, headers['Set-Cookie']
     end
   end
 
@@ -155,7 +155,7 @@ class CookieStoreTest < ActionController::IntegrationTest
         "fef868465920f415f2c0652d6910d3af288a0367"
       get '/no_session_access'
       assert_response :success
-      assert_equal "", headers['Set-Cookie']
+      assert_equal nil, headers['Set-Cookie']
     end
   end
 
