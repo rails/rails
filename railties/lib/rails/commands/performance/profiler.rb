@@ -1,5 +1,5 @@
 if ARGV.empty?
-  $stderr.puts "Usage: ./script/performance/profiler 'Person.expensive_method(10)' [times] [flat|graph|graph_html]"
+  $stderr.puts "Usage: profiler 'Person.expensive_method(10)' [times] [flat|graph|graph_html]"
   exit(1)
 end
 

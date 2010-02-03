@@ -89,6 +89,10 @@ module TestHelpers
         end
       end
 
+      unless options[:gemfile]
+        File.delete"#{app_path}/Gemfile"
+      end
+
       routes = File.read("#{app_path}/config/routes.rb")
       if routes =~ /(\n\s*end\s*)\Z/
         File.open("#{app_path}/config/routes.rb", 'w') do |f|

@@ -175,8 +175,7 @@ module Rails
         groups[base] << namespace
       end
 
-      puts "Usage:"
-      puts "  script/generate GENERATOR [args] [options]"
+      puts "Usage: generate GENERATOR [args] [options]"
       puts
       puts "General options:"
       puts "  -h, [--help]     # Print generators options and usage"
