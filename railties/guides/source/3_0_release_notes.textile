@@ -155,14 +155,14 @@ More Information: - "Rails Documentation Projects":http://weblog.rubyonrails.org
 
 h3. Internationalization
 
-Rails has many improvements in I18n support, including the latest "I18n":http://github.com/svenfuchs/i18n gem supplying many speed improvements.
+A large amount of work has been done with I18n support in Rails 3, including the latest "I18n":http://github.com/svenfuchs/i18n gem supplying many speed improvements.
 
 * I18n for any object - I18n behavior can be added to any object by including <tt>ActiveModel::Translation</tt> and <tt>ActiveModel::Validations</tt>.  There is also an <tt>errors.messages</tt> fallback for translations.
 * Attributes can have default translations.
 * Form Submit Tags automatically pull the correct status (Create or Update) depending on the object status, and so pull the correct translation.
 * Labels with I18n also now work by just passing the attribute name.
 
-More Information: - "Speedup for I18n":http://blog.plataformatec.com.br/2009/12/run-i18n-run/
+More Information: - "Speedup for I18n":http://blog.plataformatec.com.br/2010/02/rails-3-i18n-changes/
 
 
 h3. Railties
