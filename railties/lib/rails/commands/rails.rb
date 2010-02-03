@@ -33,7 +33,7 @@ when 'c', 'console'
   Rails::Console.start(Rails::Application)
 when 's', 'server'
   require 'rails/commands/server'
-  Dir.chdir(File.expand_path('../..',  __FILE__))
+  Dir.chdir(ROOT_PATH)
   Rails::Server.start
 
 when 'dbconsole'
