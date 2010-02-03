@@ -505,7 +505,7 @@ The following methods have been removed because they are now available in Ruby 1
 
 * <tt>Integer#even?</tt> and <tt>Integer#odd?</tt>
 * <tt>String#each_char</tt>
-* <tt>String#start_with?</tt> and <tt>String#end_with?</tt> (plural aliases still kept)
+* <tt>String#start_with?</tt> and <tt>String#end_with?</tt> (3rd person aliases still kept)
 * <tt>String#bytesize</tt>
 * <tt>Object#tap</tt>
 * <tt>Symbol#to_proc</tt>
