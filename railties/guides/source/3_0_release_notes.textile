@@ -28,6 +28,11 @@ h4. The new boot process
 As part of the shift to treating Rails apps as Rack endpoints, you are now required to have a +config/application.rb+ file, which takes over much of the work +config/environment.rb+ used to handle.  Along with that comes a lot of internal change to the boot process, but those changes are mostly internal.
 
 
+h4. New rails binary
+
+The +rails+ binary has been upgraded in Rails 3.0  It lives as <tt>script/rails</tt> and is a one stop command for all of the commands that used to live in <tt>script/</tt>.  You now call <tt>rails <command_name></tt> instead.
+
+
 h4. Gems and gems and gems
 
 The +config.gem+ method is gone and has been replaced by using +bundler+ and a +Gemfile+, see "Vendoring Gems":#vendoring-gems below.
@@ -45,7 +50,7 @@ To help with the upgrade process, a plugin named "Rails Upgrade":http://github.c
 Simply install the plugin, then run +rake rails:upgrade:check+ to check your app for pieces that need to be updated (with links to information on how to update them).  It also offers a task to generate a +Gemfile+ based on your current +config.gem+ calls and a task to generate a new routes file from your current one.  To get the plugin, simply run the following:
 
 <shell>
-script/plugin install git://github.com/rails/rails_upgrade.git
+rails plugin install git://github.com/rails/rails_upgrade.git
 </shell>
 
 You can see an example of how that works at "Rails Upgrade is now an Official Plugin":http://omgbloglol.com/post/364624593/rails-upgrade-is-now-an-official-plugin
@@ -175,7 +180,7 @@ Railties generators got a huge amount of attention in Rails 3.0, basically:
 
 * Generators were completely rewritten and are backwards incompatible.
 * Rails templates API and generators API were merged (they are the same as the former).
-* Generators are no longer loaded from special paths anymore, they are just found in the Ruby load path, so calling <tt>script/generate foo</tt> will look for <tt>generators/foo_generator</tt>.
+* Generators are no longer loaded from special paths anymore, they are just found in the Ruby load path, so calling <tt>rails generate foo</tt> will look for <tt>generators/foo_generator</tt>.
 * New generators provide hooks, so any template engine, ORM, test framework can easily hook in.
 * New generators allow you to override the templates by placing a copy at <tt>RAILS_ROOT/lib/templates</tt>.
 * <tt>Rails::Generators::TestCase</tt> is also supplied so you can create your own generators and test them.
