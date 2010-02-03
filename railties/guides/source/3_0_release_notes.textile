@@ -6,7 +6,7 @@ One of the main achievements of this release, is that while there are loads of n
 
 Rails 3.0 adds Active Model ORM abstraction, Abstract Controller generic controller abstraction as well as a consistent Plugin API giving developers full access to all the Rails internals that make Action Mailer, Action Controller, Action View, Active Record and Active Resource work.
 
-These release notes cover the major upgrades, but don't include every little bug fix and change. If you want to see everything, check out the "list of commits":http://github.com/rails/rails/commits/master in the main Rails repository on GitHub.
+These release notes cover the major upgrades, but don't include every little bug fix and change. If you want to see everything, check out the "commit diff":http://github.com/rails/rails/compare/v2.3.5...master of all commits that are in Rails 3.0 that are not in Rails 2.3.5 branch.
 
 endprologue.
 
