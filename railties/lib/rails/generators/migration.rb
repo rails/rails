@@ -5,12 +5,10 @@ module Rails
     # just by implementing the next migration number method.
     #
     module Migration
+      attr_reader :migration_number, :migration_file_name, :migration_class_name
+
       def self.included(base) #:nodoc:
-        base.class_eval do
-          extend ClassMethods
-          readers = lambda { attr_reader :migration_number, :migration_file_name, :migration_class_name }
-          respond_to?(:no_tasks) ? no_tasks(&readers) : readers.call
-        end
+        base.extend ClassMethods
       end
 
       module ClassMethods

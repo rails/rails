@@ -1,4 +1,4 @@
-require 'thor'
+require 'thor/group'
 require 'rails/generators/actions'
 
 module Rails

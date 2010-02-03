@@ -9,8 +9,9 @@ Gem::Specification.new do |s|
   EOF
 
   s.add_dependency('rake', '>= 0.8.3')
-  s.add_dependency('activesupport',    '= 3.0.pre')
-  s.add_dependency('actionpack',       '= 3.0.pre')
+  s.add_dependency('thor', '~> 0.13')
+  s.add_dependency('activesupport', '= 3.0.pre')
+  s.add_dependency('actionpack', '= 3.0.pre')
 
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false
