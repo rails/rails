@@ -18,7 +18,9 @@ module ActionController
         :controller => self.class.name,
         :action     => self.action_name,
         :params     => request.filtered_parameters,
-        :formats    => request.formats.map(&:to_sym)
+        :formats    => request.formats.map(&:to_sym),
+        :method     => request.method,
+        :path       => (request.request_uri rescue "unknown")
       }
 
       ActiveSupport::Notifications.instrument("action_controller.start_processing", raw_payload.dup)
