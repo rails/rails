@@ -271,7 +271,7 @@ This can be especially useful when map multiple namespaced routes together using
 
 <ruby>
 namespace :admin do
-  admin.resources :photos, :videos
+  resources :photos, :videos
 end
 </ruby>
 

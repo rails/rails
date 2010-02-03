@@ -1,6 +1,6 @@
 h2. Active Support Core Extensions
 
-Active Support is the Rails component responsible for providing Ruby language extensions, utilities, and other transversal stuff. It offers a richer bottom-line at the language level, targeted both at the development of Rails applications, and at the development of Rails itself. TEST 2.
+Active Support is the Rails component responsible for providing Ruby language extensions, utilities, and other transversal stuff. It offers a richer bottom-line at the language level, targeted both at the development of Rails applications, and at the development of Rails itself.
 
 By referring to this guide you will learn the extensions to the Ruby core classes and modules provided by Rails.
 
