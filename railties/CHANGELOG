@@ -1,5 +1,7 @@
 *Edge*
 
+* Added "rake about" as a replacement for script/about [DHH]
+
 * Removed all the default commands in script/* and replaced them with script/rails and a rails command that'll act the same when run from within the app [DHH]. Example:
 
   ./script/generate scaffold post title:string  can now be called as  rails g scaffold post title:string
