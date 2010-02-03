@@ -6,13 +6,14 @@ HELP_TEXT = <<-EOT
 usage: rails COMMAND [ARGS]
 
 The most common rails commands are:
- generate  Generate new code (short-cut alias: "g")
- console   Start the Rails console (short-cut alias: "c")
- server    Start the Rails server (short-cut alias: "s")
+ generate    Generate new code (short-cut alias: "g")
+ console     Start the Rails console (short-cut alias: "c")
+ server      Start the Rails server (short-cut alias: "s")
+ dbconsole   Start a console for the database specified in config/database.yml
+             (short-cut alias: "db")
 
 In addition to those, there are:
  application  Generate the Rails application code
- dbconsole    Start a console for the database specified in config/database.yml
  destroy      Undo code generated with "generate"
  benchmarker  See how fast a piece of code runs
  profiler     Get profile information from a piece of code
@@ -35,13 +36,13 @@ when 's', 'server'
   require 'rails/commands/server'
   Dir.chdir(ROOT_PATH)
   Rails::Server.start
-
-when 'application'
-  require 'rails/commands/application'
-when 'dbconsole'
+when 'db', 'dbconsole'
   require 'rails/commands/dbconsole'
   require APP_PATH
   Rails::DBConsole.start(Rails::Application)
+
+when 'application'
+  require 'rails/commands/application'
 when 'destroy'
   require ENV_PATH
   require 'rails/commands/destroy'
