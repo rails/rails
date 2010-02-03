@@ -442,7 +442,7 @@ As well as the following deprecations:
 * validates_presence_of => validates... :presence => true
 * <tt>ActiveRecord::Base.colorize_logging</tt> and <tt>config.active_record.colorize_logging</tt> are deprecated in favour of <tt>Rails::Subscriber.colorize_logging</tt> or <tt>config.colorize_logging</tt>
 
-NOTE: while an implementation of State Machine has been in Active Record edge for some months now, it has been removed from the Rails 3.0 release.
+NOTE: While an implementation of State Machine has been in Active Record edge for some months now, it has been removed from the Rails 3.0 release.
 
 
 h3. Active Resource
