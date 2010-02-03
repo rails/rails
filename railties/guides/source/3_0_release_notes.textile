@@ -83,7 +83,9 @@ More information: - "Using bundler":http://yehudakatz.com/2009/11/03/using-the-n
 
 h4. Living on the Edge
 
-Due to the use of +Gemfile+, your Rails app is "frozen" by default, that is, all the gems you depend on are kept in your vendor directory, these gems are copied from your system gems by default or from gemcutter.  If you want to bundle straight from the Git repository, you can pass the edge flag:
+Due to the use of the +Bundler+ gem with +Gemfile+, you can "freeze" your Rails app at any time through the <tt>bundle</tt> command, so the concept of <tt>rake freeze</tt> has been dropped.
+
+If you want to bundle straight from the Git repository, you can pass the edge flag:
 
 <shell>
 $ rails myapp --edge
