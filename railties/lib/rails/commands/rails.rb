@@ -36,6 +36,8 @@ when 's', 'server'
   Dir.chdir(ROOT_PATH)
   Rails::Server.start
 
+when 'application'
+  require 'rails/commands/application'
 when 'dbconsole'
   require 'rails/commands/dbconsole'
   require APP_PATH
