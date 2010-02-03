@@ -28,7 +28,13 @@ Each Rails application now must have a corresponding application object. Applica
 
 h4. script/* replaced by script/rails
 
-The +rails+ binary has been upgraded in Rails 3.0  It lives as <tt>script/rails</tt> and is a one stop command for all of the commands that used to live in <tt>script/</tt>.  You now call <tt>rails <command_name></tt> instead.
+The new <tt>script/rails</tt> replaces all the scripts that used to be in the <tt>script</tt> directory. You do not run <tt>script/rails</tt> directly though, the +rails+ command detects it is being invoked in the root of a Rails application and runs the script for you. Intended usage is:
+
+<shell>
+rails console # new idiom for the now gone script/console
+</shell>
+
+There are also some command shortcuts.
 
 h4. Dependencies and config.gem
 
