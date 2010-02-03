@@ -1,4 +1,4 @@
-h2. Ruby on Rails 3.0 Release Notes
+h2. Ruby on Rails 3.0 Beta Release Notes
 
 Rails 3.0 is a landmark release as it delivers on the Merb/Rails merge promise made in December 2008.  Rails 3.0 provides major upgrades to all of the components of Rails, including a complete overhaul of the router and query APIs.
 
@@ -11,6 +11,8 @@ These release notes cover the major upgrades, but don't include every little bug
 endprologue.
 
 
+NOTE: These release notes are still being modified constantly.  Rails 3.0 beta is not out yet, so be sure to check back here on the actual release date to find any changes.  Comments and corrections welcome, please send to "Mikel Lindsaar":http://lindsaar.net or "@raasdnil"::http://twitter.com/raasdnil or contribute via Doc Rails.
+
 h3. Upgrading from Rails 2.3.5 to Rails 3.0
 
 As always, having a high coverage, passing test suite is your friend when upgrading.  You should also first upgrade to Rails 2.3.5 and make sure your application still runs as expected before attempting to update to Rails 3.0. In general, the upgrade from Rails 2.x to 3.0 centers around three big changes:
@@ -18,12 +20,17 @@ As always, having a high coverage, passing test suite is your friend when upgrad
 
 h4. New Ruby Version Requirement
 
-WARNING: Rails only runs on version 1.8.7 of Ruby or later.  Support for previous versions of Ruby has been dropped and Rails 3.0 will no longer boot on any of these versions.
+WARNING: Rails 3.0 was built to run on Ruby version 1.8.7.  Support for previous versions of Ruby has been dropped and Rails 3.0 will no longer boot on any of these versions.
 
 
 h4. The new boot process
 
 As part of the shift to treating Rails apps as Rack endpoints, you are now required to have a +config/application.rb+ file, which takes over much of the work +config/environment.rb+ used to handle.  Along with that comes a lot of internal change to the boot process, but those changes are mostly internal.
+
+
+h4. New rails binary
+
+The +rails+ binary has been upgraded in Rails 3.0  It lives as <tt>script/rails</tt> and is a one stop command for all of the commands that used to live in <tt>script/</tt>.  You now call <tt>rails <command_name></tt> instead.
 
 
 h4. Gems and gems and gems
@@ -43,7 +50,7 @@ To help with the upgrade process, a plugin named "Rails Upgrade":http://github.c
 Simply install the plugin, then run +rake rails:upgrade:check+ to check your app for pieces that need to be updated (with links to information on how to update them).  It also offers a task to generate a +Gemfile+ based on your current +config.gem+ calls and a task to generate a new routes file from your current one.  To get the plugin, simply run the following:
 
 <shell>
-script/plugin install git://github.com/rails/rails_upgrade.git
+rails plugin install git://github.com/rails/rails_upgrade.git
 </shell>
 
 You can see an example of how that works at "Rails Upgrade is now an Official Plugin":http://omgbloglol.com/post/364624593/rails-upgrade-is-now-an-official-plugin
@@ -57,7 +64,7 @@ h3. Application Creation
 
 As stated above, you must be on Ruby 1.8.7 or later to boot up a Rails application.  Rails will no longer boot on Ruby 1.8.6 or earlier.
 
-Rails 3.0 is designed to run on 1.8.7 and also support Ruby 1.9.
+Rails 3.0 is designed to run on 1.8.7, support for 1.9.x is still in testing.
 
 There have been a few changes to the +rails+ script that's used to generate Rails applications:
 
@@ -70,7 +77,6 @@ The new installing rails sequence (for the beta) is:
 $ gem install rails --prerelease
 $ rails myapp
 $ cd myapp
-$ bundle install
 </shell>
 
 h4. Vendoring Gems
@@ -82,7 +88,9 @@ More information: - "Using bundler":http://yehudakatz.com/2009/11/03/using-the-n
 
 h4. Living on the Edge
 
-Due to the use of +Gemfile+, your Rails app is "frozen" by default, that is, all the gems you depend on are kept in your vendor directory, these gems are copied from your system gems by default or from gemcutter.  If you want to bundle straight from the Git repository, you can pass the edge flag:
+Due to the use of the +Bundler+ gem with +Gemfile+, you can "freeze" your Rails app at any time through the <tt>bundle</tt> command, so the concept of <tt>rake freeze</tt> has been dropped.
+
+If you want to bundle straight from the Git repository, you can pass the edge flag:
 
 <shell>
 $ rails myapp --edge
@@ -147,14 +155,14 @@ More Information: - "Rails Documentation Projects":http://weblog.rubyonrails.org
 
 h3. Internationalization
 
-Rails has many improvements in I18n support, including the latest "I18n":http://github.com/svenfuchs/i18n gem supplying many speed improvements.
+A large amount of work has been done with I18n support in Rails 3, including the latest "I18n":http://github.com/svenfuchs/i18n gem supplying many speed improvements.
 
 * I18n for any object - I18n behavior can be added to any object by including <tt>ActiveModel::Translation</tt> and <tt>ActiveModel::Validations</tt>.  There is also an <tt>errors.messages</tt> fallback for translations.
 * Attributes can have default translations.
 * Form Submit Tags automatically pull the correct status (Create or Update) depending on the object status, and so pull the correct translation.
 * Labels with I18n also now work by just passing the attribute name.
 
-More Information: - "Speedup for I18n":http://blog.plataformatec.com.br/2009/12/run-i18n-run/
+More Information: - "Speedup for I18n":http://blog.plataformatec.com.br/2010/02/rails-3-i18n-changes/
 
 
 h3. Railties
@@ -172,7 +180,7 @@ Railties generators got a huge amount of attention in Rails 3.0, basically:
 
 * Generators were completely rewritten and are backwards incompatible.
 * Rails templates API and generators API were merged (they are the same as the former).
-* Generators are no longer loaded from special paths anymore, they are just found in the Ruby load path, so calling <tt>script/generate foo</tt> will look for <tt>generators/foo_generator</tt>.
+* Generators are no longer loaded from special paths anymore, they are just found in the Ruby load path, so calling <tt>rails generate foo</tt> will look for <tt>generators/foo_generator</tt>.
 * New generators provide hooks, so any template engine, ORM, test framework can easily hook in.
 * New generators allow you to override the templates by placing a copy at <tt>RAILS_ROOT/lib/templates</tt>.
 * <tt>Rails::Generators::TestCase</tt> is also supplied so you can create your own generators and test them.
