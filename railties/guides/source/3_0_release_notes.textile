@@ -11,7 +11,7 @@ These release notes cover the major upgrades, but don't include every little bug
 endprologue.
 
 
-NOTE: These release notes are still being modified constantly.  Rails 3.0 beta is not out yet, so be sure to check back here on the actual release date to find any changes.  Comments and corrections welcome, please send to "Mikel Lindsaar":http://lindsaar.net or "@raasdnil"::http://twitter.com/raasdnil or contribute via Doc Rails.
+WARNING: These release notes are still being modified constantly.  Rails 3.0 beta is not out yet, so be sure to check back here on the actual release date to find any changes.  Comments and corrections welcome, please send to "Mikel Lindsaar":http://lindsaar.net or "@raasdnil"::http://twitter.com/raasdnil or contribute via "docrails":http://github.com/lifo/docrails/.
 
 h3. Upgrading from Rails 2.3.5 to Rails 3.0
 
