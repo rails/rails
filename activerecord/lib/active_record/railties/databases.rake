@@ -200,6 +200,9 @@ namespace :db do
     when 'postgresql'
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.encoding
+    when 'sqlite3'
+      ActiveRecord::Base.establish_connection(config)
+      puts ActiveRecord::Base.connection.encoding
     else
       puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
     end
