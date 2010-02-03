@@ -162,7 +162,7 @@ A large amount of work has been done with I18n support in Rails 3, including the
 * Form Submit Tags automatically pull the correct status (Create or Update) depending on the object status, and so pull the correct translation.
 * Labels with I18n also now work by just passing the attribute name.
 
-More Information: - "Speedup for I18n":http://blog.plataformatec.com.br/2010/02/rails-3-i18n-changes/
+More Information: - "Rails 3 I18n changes":http://blog.plataformatec.com.br/2010/02/rails-3-i18n-changes/
 
 
 h3. Railties
@@ -436,7 +436,7 @@ As well as the following deprecations:
 * +named_scope+ in an Active Record class is deprecated and has been renamed to just +scope+.
 * In +scope+ methods, you should move to using the relation methods, instead of a <tt>:conditions => {}</tt> finder method, for example <tt>scope :since, lambda {|time| where("created_at > ?", time) }</tt>.
 * <tt>save(false)</tt> is deprecated, in favour of <tt>save(:validate => false)</tt>.
-* I18n error messages for ActiveRecord should be changed from :en.activerecord.errors to <tt>:en.errors</tt>.
+* I18n error messages for ActiveRecord should be changed from :en.activerecord.errors.template to <tt>:en.errors.template</tt>.
 * <tt>model.errors.on</tt> is deprecated in favour of <tt>model.errors[]</tt>
 * validates_presence_of => validates... :presence => true
 * <tt>ActiveRecord::Base.colorize_logging</tt> and <tt>config.active_record.colorize_logging</tt> are deprecated in favour of <tt>Rails::Subscriber.colorize_logging</tt> or <tt>config.colorize_logging</tt>
