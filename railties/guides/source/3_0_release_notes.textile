@@ -1,4 +1,4 @@
-h2. Ruby on Rails 3.0 Release Notes
+h2. Ruby on Rails 3.0 Beta Release Notes
 
 Rails 3.0 is a landmark release as it delivers on the Merb/Rails merge promise made in December 2008.  Rails 3.0 provides major upgrades to all of the components of Rails, including a complete overhaul of the router and query APIs.
 
@@ -11,6 +11,8 @@ These release notes cover the major upgrades, but don't include every little bug
 endprologue.
 
 
+NOTE: These release notes are still being modified.  Rails 3.0 beta is not out yet, so be sure to check back here on release date to find any changes.  Comments and corrections welcome, please send to "Mikel Lindsaar":http://lindsaar.net or contribute via Doc Rails.
+
 h3. Upgrading from Rails 2.3.5 to Rails 3.0
 
 As always, having a high coverage, passing test suite is your friend when upgrading.  You should also first upgrade to Rails 2.3.5 and make sure your application still runs as expected before attempting to update to Rails 3.0. In general, the upgrade from Rails 2.x to 3.0 centers around three big changes:
@@ -18,7 +20,7 @@ As always, having a high coverage, passing test suite is your friend when upgrad
 
 h4. New Ruby Version Requirement
 
-WARNING: Rails only runs on version 1.8.7 of Ruby or later.  Support for previous versions of Ruby has been dropped and Rails 3.0 will no longer boot on any of these versions.
+WARNING: Rails 3.0 was built to run on Ruby version 1.8.7.  Support for previous versions of Ruby has been dropped and Rails 3.0 will no longer boot on any of these versions.
 
 
 h4. The new boot process
@@ -57,7 +59,7 @@ h3. Application Creation
 
 As stated above, you must be on Ruby 1.8.7 or later to boot up a Rails application.  Rails will no longer boot on Ruby 1.8.6 or earlier.
 
-Rails 3.0 is designed to run on 1.8.7 and also support Ruby 1.9.
+Rails 3.0 is designed to run on 1.8.7, support for 1.9.x is still in testing.
 
 There have been a few changes to the +rails+ script that's used to generate Rails applications:
 
@@ -70,7 +72,6 @@ The new installing rails sequence (for the beta) is:
 $ gem install rails --prerelease
 $ rails myapp
 $ cd myapp
-$ bundle install
 </shell>
 
 h4. Vendoring Gems
