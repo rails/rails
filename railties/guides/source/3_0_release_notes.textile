@@ -171,7 +171,6 @@ h3. Railties
 With the decoupling of the main Rails frameworks, Railties got a huge overhaul so as to make linking up frameworks, engines or plugins as painless and extensible as possible:
 
 * Each application now has it's own name space, application is started with <tt>YourAppName.boot</tt> for example, makes interacting with other applications a lot easier.
-* You now have access to <tt>Rails.config</tt> which provides huge amount of configuration settings for your application.
 * Anything under <tt>Rails.root/app</tt> is now added to the load path, so you can make <tt>app/observers/user_observer.rb</tt> and Rails will load it without any modifications.
 * Rails 3.0 now provides a <tt>Rails.config</tt> object, which provides a central repository of all sorts of Rails wide configuration options.
 
