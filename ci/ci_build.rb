@@ -7,20 +7,23 @@ def root_dir
 end
 
 def rake(*tasks)
-  tasks.each { |task| return false unless system("#{root_dir}/bin/rake", task) }
+  tasks.each do |task|
+    cmd = "bundle exec rake #{task}"
+    puts "Running command: #{cmd}"
+    return false unless system(cmd)
+  end
   true
 end
 
 puts "[CruiseControl] Rails build"
 build_results = {}
 
-# Requires gem home and path to be writeable and/or overridden to be ~/.gem,
-# Will enable when RubyGems supports this properly (in a coming release)
-# build_results[:geminstaller] = system 'geminstaller --exceptions'
+# Install rubygems-update, so 'gem update --system' in cruise_config.rb auto-installs it on next build.
+# This is how you can auto-update rubygems without logging in to CI system
+build_results[:geminstaller] = system "sudo gem install rubygems-update -v 1.3.5 --no-ri --no-rdoc"
 
-# for now, use the no-passwd sudoers approach (documented in ci_setup_notes.txt)
-# A security hole, but there is nothing valuable on rails CI box anyway.
-build_results[:geminstaller] = system "sudo geminstaller --config=#{root_dir}/ci/geminstaller.yml --exceptions"
+# Install required version of bundler.
+build_results[:geminstaller] = system "sudo gem install bundler -v 0.9.0.pre4 --prerelease --no-ri --no-rdoc"
 
 cd root_dir do
   puts
@@ -105,11 +108,10 @@ puts "[CruiseControl]   #{`ruby19 -v`}"
 puts "[CruiseControl]   #{`mysql --version`}"
 puts "[CruiseControl]   #{`pg_config --version`}"
 puts "[CruiseControl]   SQLite3: #{`sqlite3 -version`}"
-`gem19 env`.each_line {|line| print "[CruiseControl]   #{line}"}
-puts "[CruiseControl]   Bundled gems:"
-`gem19 bundle --list`.each_line {|line| print "[CruiseControl]     #{line}"}
-puts "[CruiseControl]   Local gems:"
-`gem19 list`.each_line {|line| print "[CruiseControl]     #{line}"}
+`gem env`.each_line {|line| print "[CruiseControl]   #{line}"}
+# Commented until bundler supports --list again
+# puts "[CruiseControl]   Bundled gems:"
+# `gem bundle --list`.each_line {|line| print "[CruiseControl]     #{line}"}
 
 failures = build_results.select { |key, value| value == false }
 

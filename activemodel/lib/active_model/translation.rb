@@ -1,6 +1,23 @@
 require 'active_support/core_ext/hash/reverse_merge'
 
 module ActiveModel
+  
+  # ActiveModel::Translation provides integration between your object and
+  # the Rails internationalization (i18n) framework.
+  # 
+  # A minimal implementation could be:
+  # 
+  #   class TranslatedPerson
+  #     extend ActiveModel::Translation
+  #   end
+  # 
+  #   TranslatedPerson.human_attribute_name('my_attribue')
+  #   #=> "My attribute"
+  # 
+  # This also provides the required class methods for hooking into the
+  # Rails internationalization API, including being able to define a
+  # class based i18n_scope and lookup_ancestors to find translations in
+  # parent classes.
   module Translation
     include ActiveModel::Naming
 
@@ -17,8 +34,6 @@ module ActiveModel
     end
 
     # Transforms attributes names into a more human format, such as "First name" instead of "first_name".
-    #
-    # Example:
     #
     #   Person.human_attribute_name("first_name") # => "First name"
     #
