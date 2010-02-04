@@ -16,6 +16,9 @@ rescue LoadError
   # require 'rubygems'
 end
 
+# Auto-require all bundled libraries.
+Bundler.require
+
 <% unless options[:skip_activerecord] -%>
 require 'rails/all'
 
