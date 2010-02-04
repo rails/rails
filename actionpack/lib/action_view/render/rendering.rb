@@ -19,7 +19,7 @@ module ActionView
         options[:locals] ||= {}
 
         if block_given?
-          return concat(_render_partial(options.merge(:partial => layout), &block))
+          return safe_concat(_render_partial(options.merge(:partial => layout), &block))
         elsif options.key?(:partial)
           return _render_partial(options)
         end

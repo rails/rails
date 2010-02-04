@@ -309,7 +309,7 @@ module ActionView
 
         options[:html][:remote] = true if options.delete(:remote)
 
-        concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}))
+        safe_concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}))
         fields_for(object_name, *(args << options), &proc)
         safe_concat('</form>')
       end
