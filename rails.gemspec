@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.add_dependency('activeresource',   '= 3.0.0.beta')
   s.add_dependency('actionmailer',     '= 3.0.0.beta')
   s.add_dependency('railties',         '= 3.0.0.beta')
-  s.add_dependency('bundler',          '>= 0.9.0.pre')
+  s.add_dependency('bundler',          '>= 0.9.0.pre5')
 
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false

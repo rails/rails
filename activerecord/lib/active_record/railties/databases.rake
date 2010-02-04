@@ -28,8 +28,8 @@ namespace :db do
 
   desc 'Create the database defined in config/database.yml for the current Rails.env - also makes test database if in development mode'
   task :create => :load_config do
-    # Make the test database at the same time as the development one
-    if Rails.env == 'development'
+    # Make the test database at the same time as the development one, if it exists
+    if Rails.env.development? && ActiveRecord::Base.configurations['test']
       create_database(ActiveRecord::Base.configurations['test'])
     end
     create_database(ActiveRecord::Base.configurations[Rails.env])
