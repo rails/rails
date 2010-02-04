@@ -20,10 +20,14 @@ build_results = {}
 
 # Install rubygems-update, so 'gem update --system' in cruise_config.rb auto-installs it on next build.
 # This is how you can auto-update rubygems without logging in to CI system
-build_results[:geminstaller] = system "sudo gem install rubygems-update -v 1.3.5 --no-ri --no-rdoc"
+rubygems_install_cmd = "sudo gem install rubygems-update -v 1.3.5 --no-ri --no-rdoc"
+puts "Running command: #{rubygems_install_cmd}"
+build_results[:install_rubygems_update] = system rubygems_install_cmd
 
 # Install required version of bundler.
-build_results[:geminstaller] = system "sudo gem install bundler -v 0.9.2 --prerelease --no-ri --no-rdoc"
+bundler_install_cmd = "sudo gem install bundler -v 0.9.2 --no-ri --no-rdoc"
+puts "Running command: #{bundler_install_cmd}"
+build_results[:install_bundler] = system bundler_install_cmd
 
 cd root_dir do
   puts

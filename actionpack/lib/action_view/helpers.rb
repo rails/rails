@@ -7,6 +7,7 @@ module ActionView #:nodoc:
     autoload :AtomFeedHelper, 'action_view/helpers/atom_feed_helper'
     autoload :CacheHelper, 'action_view/helpers/cache_helper'
     autoload :CaptureHelper, 'action_view/helpers/capture_helper'
+    autoload :CsrfHelper, 'action_view/helpers/csrf_helper'
     autoload :DateHelper, 'action_view/helpers/date_helper'
     autoload :DebugHelper, 'action_view/helpers/debug_helper'
     autoload :FormHelper, 'action_view/helpers/form_helper'
@@ -40,6 +41,7 @@ module ActionView #:nodoc:
     include AtomFeedHelper
     include CacheHelper
     include CaptureHelper
+    include CsrfHelper
     include DateHelper
     include DebugHelper
     include FormHelper
