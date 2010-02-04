@@ -13,6 +13,13 @@ task :secret do
   puts ActiveSupport::SecureRandom.hex(64)
 end
 
+desc 'Explain the current environment'
+task :about do
+  $LOAD_PATH.unshift "#{RAILTIES_PATH}/builtin/rails_info"
+  require 'rails/info'
+  puts Rails::Info
+end
+
 namespace :time do
   namespace :zones do
     desc 'Displays names of all time zones recognized by the Rails TimeZone class, grouped by offset. Results can be filtered with optional OFFSET parameter, e.g., OFFSET=-6'

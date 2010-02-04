@@ -1350,6 +1350,16 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_migration_should_be_run_without_logger
+      previous_logger = ActiveRecord::Base.logger
+      ActiveRecord::Base.logger = nil
+      assert_nothing_raised do
+        ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
+      end
+    ensure
+      ActiveRecord::Base.logger = previous_logger
+    end
+
     protected
       def with_env_tz(new_tz = 'US/Eastern')
         old_tz, ENV['TZ'] = ENV['TZ'], new_tz

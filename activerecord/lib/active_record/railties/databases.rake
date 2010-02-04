@@ -26,8 +26,12 @@ namespace :db do
     end
   end
 
-  desc 'Create the database defined in config/database.yml for the current Rails.env'
+  desc 'Create the database defined in config/database.yml for the current Rails.env - also makes test database if in development mode'
   task :create => :load_config do
+    # Make the test database at the same time as the development one, if it exists
+    if Rails.env.development? && ActiveRecord::Base.configurations['test']
+      create_database(ActiveRecord::Base.configurations['test'])
+    end
     create_database(ActiveRecord::Base.configurations[Rails.env])
   end
 
@@ -194,6 +198,9 @@ namespace :db do
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.charset
     when 'postgresql'
+      ActiveRecord::Base.establish_connection(config)
+      puts ActiveRecord::Base.connection.encoding
+    when 'sqlite3'
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.encoding
     else

@@ -35,7 +35,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       public/images
       public/javascripts
       public/stylesheets
-      script/performance
+      script/rails
       test/fixtures
       test/functional
       test/integration
@@ -74,6 +74,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/
+    assert_file "Gemfile", /^gem "sqlite3-ruby", :require => "sqlite3"$/
+  end
+
+  def test_config_another_database
+    run_generator([destination_root, "-d", "mysql"])
+    assert_file "config/database.yml", /mysql/
+    assert_file "Gemfile", /^gem "mysql"$/
   end
 
   def test_config_database_is_not_added_if_skip_activerecord_is_given
@@ -98,34 +105,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test"
   end
 
-  def test_shebang_is_added_to_files
+  def test_shebang_is_added_to_rails_file
     run_generator [destination_root, "--ruby", "foo/bar/baz"]
-
-    %w(
-      about
-      console
-      dbconsole
-      destroy
-      generate
-      plugin
-      runner
-      server
-    ).each { |path| assert_file "script/#{path}", /#!foo\/bar\/baz/ }
+    assert_file "script/rails", /#!foo\/bar\/baz/
   end
 
   def test_shebang_when_is_the_same_as_default_use_env
     run_generator [destination_root, "--ruby", Thor::Util.ruby_command]
-
-    %w(
-      about
-      console
-      dbconsole
-      destroy
-      generate
-      plugin
-      runner
-      server
-    ).each { |path| assert_file "script/#{path}", /#!\/usr\/bin\/env/ }
+    assert_file "script/rails", /#!\/usr\/bin\/env/
   end
 
   def test_template_from_dir_pwd

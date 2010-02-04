@@ -13,7 +13,7 @@ namespace :notes do
     end
   end
 
-  desc "Enumerate a custom annotation, specify with ANNOTATION=WTFHAX"
+  desc "Enumerate a custom annotation, specify with ANNOTATION=CUSTOM"
   task :custom do
     SourceAnnotationExtractor.enumerate ENV['ANNOTATION']
   end

@@ -207,8 +207,7 @@ module ActionDispatch
 
           lambda do |env|
             req = Request.new(env)
-
-            uri = URI.parse(path_proc.call(req.params.symbolize_keys))
+            uri = URI.parse(path_proc.call(req.symbolized_path_parameters))
             uri.scheme ||= req.scheme
             uri.host   ||= req.host
             uri.port   ||= req.port unless req.port == 80

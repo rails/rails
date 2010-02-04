@@ -79,7 +79,7 @@ module ActiveRecord #:nodoc:
 
     def initialize(message, original_exception)
       super(message)
-      @original_exception, = original_exception
+      @original_exception = original_exception
     end
   end
 

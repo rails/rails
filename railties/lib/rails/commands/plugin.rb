@@ -295,7 +295,7 @@ module Commands
     def options
       OptionParser.new do |o|
         o.set_summary_indent('  ')
-        o.banner =    "Usage: #{@script_name} [OPTIONS] command"
+        o.banner =    "Usage: plugin [OPTIONS] command"
         o.define_head "Rails plugin manager."
         
         o.separator ""        

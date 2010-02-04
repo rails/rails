@@ -1195,8 +1195,8 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_default_form_builder
-    old_default_form_builder, ActionView.default_form_builder =
-      ActionView.default_form_builder, LabelledFormBuilder
+    old_default_form_builder, ActionView::Base.default_form_builder =
+      ActionView::Base.default_form_builder, LabelledFormBuilder
 
     form_for(:post, @post) do |f|
       concat f.text_field(:title)
@@ -1213,7 +1213,7 @@ class FormHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, output_buffer
   ensure
-    ActionView.default_form_builder = old_default_form_builder
+    ActionView::Base.default_form_builder = old_default_form_builder
   end
 
   def test_default_form_builder_with_active_record_helpers

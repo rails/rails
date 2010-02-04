@@ -5,10 +5,30 @@ module Rails
     # just by implementing the next migration number method.
     #
     module Migration
+      attr_reader :migration_number, :migration_file_name, :migration_class_name
+
       def self.included(base) #:nodoc:
-        base.send :attr_reader, :migration_number,
-                                :migration_file_name,
-                                :migration_class_name
+        base.extend ClassMethods
+      end
+
+      module ClassMethods
+        def migration_lookup_at(dirname) #:nodoc:
+          Dir.glob("#{dirname}/[0-9]*_*.rb")
+        end
+
+        def migration_exists?(dirname, file_name) #:nodoc:
+          migration_lookup_at(dirname).grep(/\d+_#{file_name}.rb$/).first
+        end
+
+        def current_migration_number(dirname) #:nodoc:
+          migration_lookup_at(dirname).collect do |file|
+            File.basename(file).split("_").first.to_i
+          end.max.to_i
+        end
+
+        def next_migration_number(dirname) #:nodoc:
+          raise NotImplementedError
+        end
       end
 
       # Creates a migration template at the given destination. The difference
@@ -26,11 +46,11 @@ module Rails
         destination = File.expand_path(destination || source, self.destination_root)
 
         migration_dir = File.dirname(destination)
-        @migration_number     = next_migration_number(migration_dir)
+        @migration_number     = self.class.next_migration_number(migration_dir)
         @migration_file_name  = File.basename(destination).sub(/\.rb$/, '')
         @migration_class_name = @migration_file_name.camelize
 
-        destination = migration_exists?(migration_dir, @migration_file_name)
+        destination = self.class.migration_exists?(migration_dir, @migration_file_name)
 
         if behavior == :invoke
           raise Error, "Another migration is already named #{@migration_file_name}: #{destination}" if destination
@@ -39,27 +59,6 @@ module Rails
 
         template(source, destination, config)
       end
-
-      protected
-
-        def migration_lookup_at(dirname) #:nodoc:
-          Dir.glob("#{dirname}/[0-9]*_*.rb")
-        end
-
-        def migration_exists?(dirname, file_name) #:nodoc:
-          migration_lookup_at(dirname).grep(/\d+_#{file_name}.rb$/).first
-        end
-
-        def current_migration_number(dirname) #:nodoc:
-          migration_lookup_at(dirname).collect do |file|
-            File.basename(file).split("_").first.to_i
-          end.max.to_i
-        end
-
-        def next_migration_number(dirname) #:nodoc:
-          raise NotImplementError
-        end
-
     end
   end
 end

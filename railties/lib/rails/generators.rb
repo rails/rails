@@ -9,8 +9,6 @@ require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/inflections'
 
-# TODO: Do not always push on vendored thor
-$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/vendor/thor-0.12.3/lib")
 require 'rails/generators/base'
 require 'rails/generators/named_base'
 
@@ -175,8 +173,7 @@ module Rails
         groups[base] << namespace
       end
 
-      puts "Usage:"
-      puts "  script/generate GENERATOR [args] [options]"
+      puts "Usage: rails generate GENERATOR [args] [options]"
       puts
       puts "General options:"
       puts "  -h, [--help]     # Print generators options and usage"

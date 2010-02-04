@@ -9,6 +9,8 @@ module Rails::Generators
 
   class AppGenerator < Base
     DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+
+    attr_accessor :rails_template
     add_shebang_option!
 
     argument :app_path, :type => :string
@@ -88,18 +90,6 @@ module Rails::Generators
 
     def create_boot_file
       template "config/boot.rb"
-    end
-
-    def gem_for_database
-      # %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
-      case options[:database]
-      when "mysql"      then "mysql"
-      when "oracle"     then "ruby-oci8"
-      when "postgresql" then "pg"
-      when "sqlite3"    then "sqlite3-ruby"
-      when "frontbase"  then "ruby-frontbase"
-      when "ibm_db"     then "ibm_db"
-      end
     end
 
     def create_activerecord_files
@@ -185,7 +175,10 @@ module Rails::Generators
     end
 
     protected
-      attr_accessor :rails_template
+
+      def self.banner
+        "rails #{self.arguments.map(&:usage).join(' ')} [options]"
+      end
 
       def set_default_accessors!
         self.rails_template = case options[:template]
@@ -230,8 +223,21 @@ module Rails::Generators
         options.dev? || options.edge?
       end
 
-      def self.banner
-        "#{$0} #{self.arguments.map(&:usage).join(' ')} [options]"
+      def gem_for_database
+        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+        case options[:database]
+        when "oracle"     then "ruby-oci8"
+        when "postgresql" then "pg"
+        when "sqlite3"    then "sqlite3-ruby"
+        when "frontbase"  then "ruby-frontbase"
+        else options[:database]
+        end
+      end
+
+      def require_for_database
+        case options[:database]
+        when "sqlite3" then "sqlite3"
+        end
       end
 
       def mysql_socket

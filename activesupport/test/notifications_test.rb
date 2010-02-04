@@ -67,27 +67,11 @@ module Notifications
   end
 
   class InstrumentationTest < TestCase
-    delegate :instrument, :instrument!, :to => ActiveSupport::Notifications
+    delegate :instrument, :to => ActiveSupport::Notifications
 
     def test_instrument_returns_block_result
       assert_equal 2, instrument(:awesome) { 1 + 1 }
       drain
-    end
-
-    def test_instrument_with_bang_returns_result_even_on_failure
-      begin
-        instrument!(:awesome, :payload => "notifications") do
-          raise "FAIL"
-        end
-        flunk
-      rescue
-      end
-
-      drain
-
-      assert_equal 1, @events.size
-      assert_equal :awesome, @events.last.name
-      assert_equal Hash[:payload => "notifications"], @events.last.payload
     end
 
     def test_instrument_yields_the_paylod_for_further_modification

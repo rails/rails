@@ -38,7 +38,6 @@ Rake::GemPackageTask.new(spec) do |pkg|
 end
 
 task :install => :gem do
-  system %(cd rack && rake gem VERSION=1.0.2.pre && gem install rack-1.0.2.pre.gem --no-ri --no-rdoc --ignore-dependencies)
   (PROJECTS - ["railties"]).each do |project|
     puts "INSTALLING #{project}"
     system("gem install #{project}/pkg/#{project}-#{ActionPack::VERSION::STRING}.gem --no-ri --no-rdoc")

@@ -1,5 +1,5 @@
 if ARGV.empty?
-  puts "Usage: ./script/performance/benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ..."
+  puts "Usage: benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ..."
   exit 1
 end
 
