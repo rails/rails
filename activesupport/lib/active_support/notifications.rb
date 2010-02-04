@@ -45,7 +45,7 @@ module ActiveSupport
     class << self
       attr_writer :notifier
       delegate :publish, :subscribe, :to => :notifier
-      delegate :instrument, :instrument!, :to => :instrumenter
+      delegate :instrument, :to => :instrumenter
 
       def notifier
         @notifier ||= Notifier.new
