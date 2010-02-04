@@ -4,8 +4,7 @@ Gem::Specification.new do |s|
   s.version = '3.0.pre'
   s.summary = "Controls boot-up, rake tasks and generators for the Rails framework."
   s.description = <<-EOF
-    Rails is a framework for building web-application using CGI, FCGI, mod_ruby, or WEBrick
-    on top of either MySQL, PostgreSQL, SQLite, DB2, SQL Server, or Oracle with eRuby- or Builder-based templates.
+    Rails is a full-stack, web-application framework.
   EOF
 
   s.add_dependency('rake', '>= 0.8.3')
