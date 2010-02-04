@@ -59,6 +59,7 @@ The methods are:
 * +group+
 * +order+
 * +limit+
+* +offset+
 * +joins+
 * +includes+
 * +lock+
@@ -726,12 +727,12 @@ This code looks fine at the first sight. But the problem lies within the total n
 
 <strong>Solution to N <plus> 1 queries problem</strong>
 
-Active Record lets you specify all the associations in advanced that are going to be loaded. This is possible by specifying the +include+ method of the +Model.find+ call. By +include+, Active Record ensures that all the specified associations are loaded using minimum possible number of queries.
+Active Record lets you specify all the associations in advanced that are going to be loaded. This is possible by specifying the +includes+ method of the +Model.find+ call. With +includes+, Active Record ensures that all the specified associations are loaded using minimum possible number of queries.
 
 Revisiting the above case, we could rewrite +Client.all+ to use eager load addresses:
 
 <ruby>
-clients = Client.include(:address).limit(10)
+clients = Client.includes(:address).limit(10)
 
 clients.each do |client|
   puts client.address.postcode
@@ -748,12 +749,12 @@ SELECT addresses.* FROM addresses
 
 h4. Eager Loading Multiple Associations
 
-Active Record lets you eager load any possible number of associations with a single +Model.find+ call by using an array, hash, or a nested hash of array/hash with the +include+ method.
+Active Record lets you eager load any possible number of associations with a single +Model.find+ call by using an array, hash, or a nested hash of array/hash with the +includes+ method.
 
 h5. Array of Multiple Associations 
 
 <ruby>
-Post.include(:category, :comments)
+Post.includes(:category, :comments)
 </ruby>
 
 This loads all the posts and the associated category and comments for each post.
@@ -761,7 +762,7 @@ This loads all the posts and the associated category and comments for each post.
 h5. Nested Associations Hash
 
 <ruby>
-Category.find(1).include(:posts => [{:comments => :guest}, :tags])
+Category.find(1).includes(:posts => [{:comments => :guest}, :tags])
 </ruby>
 
 The above code finds the category with id 1 and eager loads all the posts associated with the found category. Additionally, it will also eager load every posts' tags and comments. Every comment's guest association will get eager loaded as well.
@@ -865,10 +866,10 @@ Which will execute:
 SELECT count(*) AS count_all FROM clients WHERE (first_name = 'Ryan')
 </sql>
 
-You can also use the +include+ or +joins+ methods for this to do something a little more complex:
+You can also use the +includes+ or +joins+ methods for this to do something a little more complex:
 
 <ruby>
-Client.count.where("clients.first_name = 'Ryan' AND orders.status = 'received'").include("orders")
+Client.count.where("clients.first_name = 'Ryan' AND orders.status = 'received'").includes("orders")
 </ruby>
 
 Which will execute:
