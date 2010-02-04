@@ -1,4 +1,4 @@
-h2. Ruby on Rails 3.0 Release Notes
+h2. Rails 3.0: Release Notes
 
 Rails 3.0 is ponies and rainbows! It's going to cook you dinner and fold your laundry. You're going to wonder how life was ever possible before you it arrived. It's the Best Version of Rails We've Ever Done! 
 
@@ -18,39 +18,36 @@ These release notes cover the major upgrades, but don't include every little bug
 
 endprologue.
 
-WARNING: These release notes are still being modified constantly.  Rails 3.0 beta is not out yet, so be sure to check back here on the actual release date to find any changes.  Comments and corrections welcome, please drop by #docrails ( irc.freenode.net ) or contribute via "docrails":http://github.com/lifo/docrails/.
+WARNING: Rails 3.0 is currently in beta. This means that there are probably bugs and that you should "report them":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/overview if you see them. You also may not want to run the NORAD nuclear launch application off a beta version. But if you're starting development on a new application and you don't mind getting wind in your hair, please do jump on board!
 
-h3. Upgrading from Rails 2.3.5 to Rails 3
+h3. Upgrading to Rails 3
 
-As always, having a high coverage, passing test suite is your friend when upgrading. You should also first upgrade to Rails 2.3.5 and make sure your application still runs as expected before attempting to update to Rails 3. In general, the upgrade from Rails 2.x to Rails 3 centres around three big changes:
+If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 2.3.5 and make sure your application still runs as expected before attempting to update to Rails 3. Then take heed of the following changes:
 
-h4. Ruby 1.8.6 no longer supported
+h4. Rails 3 requires Ruby 1.8.7+
 
-Rails 3 requires Ruby 1.8.7 or higher. Ruby 1.9.2 is now fully supported as well. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible.
+Rails 3.0 requires Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible. Rails 3.0 is also compatible with Ruby 1.9.2.
 
 h4. Rails Application object
 
 As part of the groundwork for supporting running multiple Rails applications in the same process, Rails 3 introduces the concept of an Application object. An application object holds all the application specific configurations and is very similar in nature to +config/environment.rb+ from the previous versions of Rails.
 
-Each Rails application now must have a corresponding application object. Application object is typically defined in +config/application.rb+. If you're upgrading an existing application to Rails 3, you must add this file and move the appropriate configurations from +config/environment.rb+ to +config/application.rb+.
+Each Rails application now must have a corresponding application object. The application object is defined in +config/application.rb+. If you're upgrading an existing application to Rails 3, you must add this file and move the appropriate configurations from +config/environment.rb+ to +config/application.rb+.
 
 h4. script/* replaced by script/rails
 
 The new <tt>script/rails</tt> replaces all the scripts that used to be in the <tt>script</tt> directory. You do not run <tt>script/rails</tt> directly though, the +rails+ command detects it is being invoked in the root of a Rails application and runs the script for you. Intended usage is:
 
 <shell>
-rails console # new idiom for the now gone script/console
+rails console                      # => ./script/console
+rails g scaffold post title:string # => ./script/generate scaffold post title:string
 </shell>
 
-There are also some command shortcuts.
+Run rails --help for a list of all the options.
 
 h4. Dependencies and config.gem
 
 The +config.gem+ method is gone and has been replaced by using +bundler+ and a +Gemfile+, see "Vendoring Gems":#vendoring-gems below.
-
-h4. New APIs
-
-Both the router and query interface have seen significant, breaking changes.  There is a backwards compatibility layer that is in place and will be supported until the 3.1 release.
 
 h4. Upgrade Process
 
@@ -69,16 +66,7 @@ Aside from Rails Upgrade tool, if you need more help, there are people on IRC an
 More information - "The Path to Rails 3: Approaching the upgrade":http://omgbloglol.com/post/353978923/the-path-to-rails-3-approaching-the-upgrade
 
 
-h3. Application Creation
-
-As stated above, you must be on Ruby 1.8.7 or later to boot up a Rails application.  Rails will no longer boot on Ruby 1.8.6 or earlier.
-
-Rails 3.0 is designed to run on 1.8.7, support for 1.9.x is still in testing.
-
-There have been a few changes to the +rails+ script that's used to generate Rails applications:
-
-* The application name, <tt>rails my_app</tt>, can now optionally be a path instead <tt>rails ~/code/my_app</tt>, your rails application will be name spaced under the application name you pass the +rails+ command.
-* Additionally, any flags you need to generate the application now need to come after the application path.
+h3. Creating a Rails 3.0 application
 
 The new installing rails sequence (for the beta) is:
 
@@ -90,14 +78,14 @@ $ cd myapp
 
 h4. Vendoring Gems
 
-Rails now uses a +Gemfile+ in the application root to determine the gems you require for your application to start. This +Gemfile+ is then read and acted on by the new "Bundler":http://github.com/wycats/bundler gem, which then vendors all your gems into the vendor directory, making your Rails application isolated from system gems.
+Rails now uses a +Gemfile+ in the application root to determine the gems you require for your application to start. This +Gemfile+ is processed by the "Bundler":http://github.com/carlhuda/bundler, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
 More information: - "Using bundler":http://yehudakatz.com/2009/11/03/using-the-new-gem-bundler-today/
 
 
 h4. Living on the Edge
 
-Due to the use of the +Bundler+ gem with +Gemfile+, you can "freeze" your Rails app at any time through the <tt>bundle</tt> command, so the concept of <tt>rake freeze</tt> has been dropped.
++Bundler+ and +Gemfile+ makes freezing your Rails application easy as pie with the new dedicated <tt>bundle</tt> command, so <tt>rake freeze</tt> is no longer relevant and has been dropped.
 
 If you want to bundle straight from the Git repository, you can pass the edge flag:
 
@@ -143,7 +131,7 @@ More Information: - "Rails Edge Architecture":http://yehudakatz.com/2009/06/11/r
 
 h4. Arel Integration
 
-"Arel":http://github.com/brynary/arel (or Active Relation) has been taken on as the underpinnings of Active Record and is now required for Rails (it is installed for you when you do a <tt>gem bundle</tt>).  Arel provides an SQL abstraction that simplifies out Active Record and provides the underpinnings for the relation functionality in Active Record.
+"Arel":http://github.com/rails/arel (or Active Relation) has been taken on as the underpinnings of Active Record and is now required for Rails.  Arel provides an SQL abstraction that simplifies out Active Record and provides the underpinnings for the relation functionality in Active Record.
 
 More information: - "Why I wrote Arel":http://magicscalingsprinkles.wordpress.com/2010/01/28/why-i-wrote-arel/.
 
@@ -279,9 +267,9 @@ end
 * Added +scope+ method to the router, allowing you to namespace routes for different languages or different actions, for example:
 
 <ruby>
-scope 'es' { resources :projects, 
-                       :path_names => { :edit => 'cambiar' },
-                       :as => 'projeto' }
+scope 'es' do
+  resources :projects, :path_names => { :edit => 'cambiar' }, :as => 'projeto'
+end
 
 # Gives you the edit action with /es/projeto/1/cambiar
 </ruby>
@@ -567,6 +555,6 @@ More Information:
 
 h3. Credits
 
-See the "full list of contributors to Rails":http://contributors.rubyonrails.org/, many people have spent many hours making Rails 3 what it is.  Kudos to all of them.
+See the "full list of contributors to Rails":http://contributors.rubyonrails.org/ for the many people who spent many hours making Rails 3.  Kudos to all of them.
 
-Rails 3.0 Release Notes were compiled by "Mikel Lindsaar":http://lindsaar.net, who can be found "feeding":http://feeds.feedburner.com/lindsaar-net and "tweeting":http://twitter.com/raasdnil.
+Rails 3.0 Release Notes were compiled by "Mikel Lindsaar":http://lindsaar.net.
