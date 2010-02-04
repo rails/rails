@@ -1,5 +1,3 @@
-require 'thread'
-
 module ActiveSupport
   module Notifications
     # This is a default queue implementation that ships with Notifications. It
@@ -21,8 +19,8 @@ module ActiveSupport
         @subscribers.each { |s| s.publish(*args) }
       end
 
+      # This is a sync queue, so there is not waiting.
       def wait
-        sleep(0.05) until @subscribers.all?(&:drained?)
       end
 
       # Used for internal implementation only.

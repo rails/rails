@@ -1,4 +1,4 @@
-require 'thor'
+require 'thor/group'
 require 'rails/generators/actions'
 
 module Rails
@@ -261,7 +261,7 @@ module Rails
         # Use Rails default banner.
         #
         def self.banner
-          "#{$0} #{generator_name} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]"
+          "rails generate #{generator_name} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]"
         end
 
         # Sets the base_name taking into account the current class namespace.

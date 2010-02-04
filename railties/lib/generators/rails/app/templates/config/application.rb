@@ -1,5 +1,19 @@
 require File.expand_path('../boot', __FILE__)
 
+<% unless options[:skip_activerecord] -%>
+require 'rails/all'
+<% else -%>
+# Pick the frameworks you want:
+# require "active_record/railtie"
+require "action_controller/railtie"
+require "action_mailer/railtie"
+require "active_resource/railtie"
+require "rails/test_unit/railtie"
+<% end -%>
+
+# Auto-require default libraries and those for the current Rails environment.
+Bundler.require :default, Rails.env
+
 module <%= app_const_base %>
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.

@@ -14,9 +14,8 @@ railties/test/fixtures/tmp
 railties/test/initializer/root/log
 railties/doc/guides/html/images
 railties/doc/guides/html/stylesheets
-benches
 railties/guides/output
-bin
-vendor/gems/
 railties/tmp
+bin
+.bundle
 pkg

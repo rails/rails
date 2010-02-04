@@ -6,4 +6,4 @@ APP_PATH  = File.expand_path('../../config/application',  __FILE__)
 ROOT_PATH = File.expand_path('../..',  __FILE__)
 
 require BOOT_PATH
-require 'rails/commands/rails'
+require 'rails/commands'

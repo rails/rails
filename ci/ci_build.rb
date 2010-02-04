@@ -23,7 +23,7 @@ build_results = {}
 build_results[:geminstaller] = system "sudo gem install rubygems-update -v 1.3.5 --no-ri --no-rdoc"
 
 # Install required version of bundler.
-build_results[:geminstaller] = system "sudo gem install bundler -v 0.9.0.pre4 --prerelease --no-ri --no-rdoc"
+build_results[:geminstaller] = system "sudo gem install bundler -v 0.9.2 --prerelease --no-ri --no-rdoc"
 
 cd root_dir do
   puts
