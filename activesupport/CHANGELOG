@@ -1,5 +1,7 @@
 *2.3.6 (pending)*
 
+* Introduce String#html_safe for rails_xss plugin and forward-compatibility with Rails 3.  [Michael Koziarski, Santiago Pastorino, José Ignacio Costa]
+
 * Time#- with a DateTime argument behaves the same as with a Time argument, i.e. returns the difference between self and arg as a Float #3476 [Geoff Buesing]
 
 * YAML serialization for OrderedHash.  #3608 [Gregor Schmidt]

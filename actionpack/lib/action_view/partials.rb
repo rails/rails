@@ -221,7 +221,7 @@ module ActionView
           result = template.render_partial(self, object, local_assigns.dup, as)
           index += 1
           result
-        end.join(spacer).html_safe!
+        end.join(spacer).html_safe
       end
 
       def _pick_partial_template(partial_path) #:nodoc:

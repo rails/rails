@@ -1,4 +1,4 @@
-# Rack 1.0 does not allow string subclass body. This does not play well with our ActionView::SafeBuffer.
+# Rack 1.0 does not allow string subclass body. This does not play well with our ActiveSupport::SafeBuffer.
 # The next release of Rack will be allowing string subclass body - http://github.com/rack/rack/commit/de668df02802a0335376a81ba709270e43ba9d55
 # TODO : Remove this monkey patch after the next release of Rack
 

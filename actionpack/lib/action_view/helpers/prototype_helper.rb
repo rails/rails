@@ -393,7 +393,7 @@ module ActionView
 
         concat(form_remote_tag(options))
         fields_for(object_name, *(args << options), &proc)
-        concat('</form>'.html_safe!)
+        concat('</form>')
       end
       alias_method :form_remote_for, :remote_form_for
 
@@ -1026,7 +1026,7 @@ module ActionView
       #     page.hide 'spinner'
       #   end
       def update_page(&block)
-        JavaScriptGenerator.new(@template, &block).to_s.html_safe!
+        JavaScriptGenerator.new(@template, &block).to_s.html_safe
       end
 
       # Works like update_page but wraps the generated JavaScript in a <script>

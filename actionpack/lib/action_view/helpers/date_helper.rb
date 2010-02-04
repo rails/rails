@@ -616,7 +616,7 @@ module ActionView
 
           build_selects_from_types(order)
         else
-          "#{select_date}#{@options[:datetime_separator]}#{select_time}".html_safe!
+          "#{select_date}#{@options[:datetime_separator]}#{select_time}".html_safe
         end
       end
 
@@ -835,7 +835,7 @@ module ActionView
           select_html << prompt_option_tag(type, @options[:prompt]) + "\n" if @options[:prompt]
           select_html << select_options_as_html.to_s
 
-          (content_tag(:select, select_html, select_options) + "\n").html_safe!
+          (content_tag(:select, select_html, select_options) + "\n").html_safe
         end
 
         # Builds a prompt option tag with supplied options or from default options
@@ -865,7 +865,7 @@ module ActionView
             :id => input_id_from_type(type),
             :name => input_name_from_type(type),
             :value => value
-          }) + "\n").html_safe!
+          }) + "\n").html_safe
         end
 
         # Returns the name attribute for the input tag
@@ -896,7 +896,7 @@ module ActionView
             separator = separator(type) unless type == order.first # don't add on last field
             select.insert(0, separator.to_s + send("select_#{type}").to_s)
           end
-          select.html_safe!
+          select.html_safe
         end
 
         # Returns the separator for a given datetime component
@@ -916,15 +916,15 @@ module ActionView
 
     class InstanceTag #:nodoc:
       def to_date_select_tag(options = {}, html_options = {})
-        datetime_selector(options, html_options).select_date.html_safe!
+        datetime_selector(options, html_options).select_date.html_safe
       end
 
       def to_time_select_tag(options = {}, html_options = {})
-        datetime_selector(options, html_options).select_time.html_safe!
+        datetime_selector(options, html_options).select_time.html_safe
       end
 
       def to_datetime_select_tag(options = {}, html_options = {})
-        datetime_selector(options, html_options).select_datetime.html_safe!
+        datetime_selector(options, html_options).select_datetime.html_safe
       end
 
       private

@@ -14,6 +14,18 @@ class ErbUtilTest < Test::Unit::TestCase
       end
     end
   end
+
+  def test_html_escape_is_html_safe
+    escaped = h("<p>")
+    assert_equal "&lt;p&gt;", escaped
+    assert escaped.html_safe?
+  end
+
+  def test_html_escape_passes_html_escpe_unmodified
+    escaped = h("<p>".html_safe)
+    assert_equal "<p>", escaped
+    assert escaped.html_safe?
+  end
   
   def test_rest_in_ascii
     (0..127).to_a.map(&:chr).each do |chr|

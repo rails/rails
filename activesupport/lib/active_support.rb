@@ -44,6 +44,7 @@ module ActiveSupport
   autoload :OrderedHash, 'active_support/ordered_hash'
   autoload :OrderedOptions, 'active_support/ordered_options'
   autoload :Rescuable, 'active_support/rescuable'
+  autoload :SafeBuffer, 'active_support/core_ext/string/output_safety'
   autoload :SecureRandom, 'active_support/secure_random'
   autoload :StringInquirer, 'active_support/string_inquirer'
   autoload :TimeWithZone, 'active_support/time_with_zone'

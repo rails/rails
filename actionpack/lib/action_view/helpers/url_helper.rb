@@ -91,7 +91,7 @@ module ActionView
           polymorphic_path(options)
         end
 
-        escape ? escape_once(url) : url
+        escape ? escape_once(url).html_safe : url
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set
@@ -219,7 +219,7 @@ module ActionView
         if block_given?
           options      = args.first || {}
           html_options = args.second
-          concat(link_to(capture(&block), options, html_options).html_safe!)
+          concat(link_to(capture(&block), options, html_options))
         else
           name         = args.first
           options      = args.second || {}
@@ -237,7 +237,7 @@ module ActionView
           end
 
           href_attr = "href=\"#{url}\"" unless href
-          "<a #{href_attr}#{tag_options}>#{name || url}</a>".html_safe!
+          "<a #{href_attr}#{tag_options}>#{name || url}</a>".html_safe
         end
       end
 
@@ -309,7 +309,7 @@ module ActionView
         html_options.merge!("type" => "submit", "value" => name)
 
         "<form method=\"#{form_method}\" action=\"#{escape_once url}\" class=\"button-to\"><div>" +
-          method_tag + tag("input", html_options) + request_token_tag + "</div></form>".html_safe!
+          method_tag + tag("input", html_options) + request_token_tag + "</div></form>".html_safe
       end
 
 

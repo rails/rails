@@ -17,7 +17,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_concat
-    self.output_buffer = 'foo'
+    self.output_buffer = ActiveSupport::SafeBuffer.new('foo')
     assert_equal 'foobar', concat('bar')
     assert_equal 'foobar', output_buffer
   end

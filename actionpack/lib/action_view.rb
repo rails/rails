@@ -49,10 +49,9 @@ module ActionView
   autoload :TemplateHandler, 'action_view/template_handler'
   autoload :TemplateHandlers, 'action_view/template_handlers'
   autoload :Helpers, 'action_view/helpers'
-  autoload :SafeBuffer, 'action_view/safe_buffer'
 end
 
-require 'action_view/erb/util'
+require 'active_support/core_ext/string/output_safety'
 
 
 I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"

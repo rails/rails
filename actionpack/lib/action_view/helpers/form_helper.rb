@@ -280,7 +280,7 @@ module ActionView
 
         concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}))
         fields_for(object_name, *(args << options), &proc)
-        concat('</form>'.html_safe!)
+        concat('</form>')
       end
 
       def apply_form_for_options!(object_or_array, options) #:nodoc:
@@ -834,7 +834,7 @@ module ActionView
         add_default_name_and_id(options)
         hidden = tag("input", "name" => options["name"], "type" => "hidden", "value" => options['disabled'] && checked ? checked_value : unchecked_value)
         checkbox = tag("input", options)
-        (hidden + checkbox).html_safe!
+        (hidden + checkbox).html_safe
       end
 
       def to_boolean_select_tag(options = {})

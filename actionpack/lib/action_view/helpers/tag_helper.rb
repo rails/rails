@@ -1,4 +1,4 @@
-require 'action_view/erb/util'
+require 'active_support/core_ext/string/output_safety'
 require 'set'
 
 module ActionView
@@ -38,7 +38,7 @@ module ActionView
       #   tag("img", { :src => "open &amp; shut.png" }, false, false)
       #   # => <img src="open &amp; shut.png" />
       def tag(name, options = nil, open = false, escape = true)
-        "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe!
+        "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
       end
 
       # Returns an HTML block tag of type +name+ surrounding the +content+. Add
@@ -91,7 +91,7 @@ module ActionView
       #   cdata_section(File.read("hello_world.txt"))
       #   # => <![CDATA[<hello from a text file]]>
       def cdata_section(content)
-        "<![CDATA[#{content}]]>".html_safe!
+        "<![CDATA[#{content}]]>".html_safe
       end
 
       # Returns an escaped version of +html+ without affecting existing escaped entities.
@@ -125,7 +125,7 @@ module ActionView
 
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
-          "<#{name}#{tag_options}>#{content}</#{name}>".html_safe!
+          "<#{name}#{tag_options}>#{content}</#{name}>".html_safe
         end
 
         def tag_options(options, escape = true)
@@ -142,7 +142,7 @@ module ActionView
             else
               attrs = options.map { |key, value| %(#{key}="#{value}") }
             end
-            " #{attrs.sort * ' '}".html_safe! unless attrs.empty?
+            " #{attrs.sort * ' '}".html_safe unless attrs.empty?
           end
         end
     end
