@@ -218,7 +218,7 @@ class RequestForgeryProtectionControllerTest < ActionController::TestCase
 
   test 'should emit a csrf-token meta tag' do
     get :meta
-    assert_equal %(<meta name="csrf-token" content="#{@token}"/>), @response.body
+    assert_equal %(<meta name="csrf-param" content="authenticity_token"/>\n<meta name="csrf-token" content="#{@token}"/>), @response.body
   end
 end
 
