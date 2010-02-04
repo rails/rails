@@ -80,7 +80,7 @@ h4. Vendoring Gems
 
 Rails now uses a +Gemfile+ in the application root to determine the gems you require for your application to start. This +Gemfile+ is processed by the "Bundler":http://github.com/carlhuda/bundler, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: - "Using bundler":http://yehudakatz.com/2009/11/03/using-the-new-gem-bundler-today/
+More information: - "bundler README on Github":http://github.com/carlhuda/bundler
 
 
 h4. Living on the Edge
@@ -478,7 +478,7 @@ A large effort was made in Active Support to make it cherry pickable, that is, y
 These are the main changes in Active Support:
 
 * Large clean up of the library removing unused methods throughout.
-* Active Support no longer provides vendored versions of "TZInfo":http://tzinfo.rubyforge.org/, "Memcache Client":http://deveiate.org/projects/RMemCache/ and "Builder":http://builder.rubyforge.org/, these are all included as dependencies and installed via the <tt>gem bundle</tt> command.
+* Active Support no longer provides vendored versions of "TZInfo":http://tzinfo.rubyforge.org/, "Memcache Client":http://deveiate.org/projects/RMemCache/ and "Builder":http://builder.rubyforge.org/, these are all included as dependencies and installed via the <tt>bundle install</tt> command.
 * Safe buffers are implemented in <tt>ActiveSupport::SafeBuffer</tt>.
 * Added <tt>Array.uniq_by</tt> and <tt>Array.uniq_by!</tt>.
 * Fixed bug on +TimeZone.seconds_to_utc_offset+ returning wrong value.
