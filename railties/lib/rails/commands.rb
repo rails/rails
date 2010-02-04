@@ -33,6 +33,7 @@ when 'c', 'console'
   require APP_PATH
   Rails::Console.start(Rails::Application)
 when 's', 'server'
+  require APP_PATH
   require 'rails/commands/server'
   Dir.chdir(ROOT_PATH)
   Rails::Server.start
