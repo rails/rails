@@ -65,7 +65,6 @@ Aside from Rails Upgrade tool, if you need more help, there are people on IRC an
 
 More information - "The Path to Rails 3: Approaching the upgrade":http://omgbloglol.com/post/353978923/the-path-to-rails-3-approaching-the-upgrade
 
-
 h3. Creating a Rails 3.0 application
 
 The new installing rails sequence (for the beta) is:
@@ -82,31 +81,29 @@ Rails now uses a +Gemfile+ in the application root to determine the gems you req
 
 More information: - "bundler README on Github":http://github.com/carlhuda/bundler
 
-
 h4. Living on the Edge
 
 +Bundler+ and +Gemfile+ makes freezing your Rails application easy as pie with the new dedicated <tt>bundle</tt> command, so <tt>rake freeze</tt> is no longer relevant and has been dropped.
 
-If you want to bundle straight from the Git repository, you can pass the edge flag:
+If you want to bundle straight from the Git repository, you can pass the +--edge+ flag:
 
 <shell>
 $ rails myapp --edge
 </shell>
 
-More information:
-* "Spinning up a new Rails app":http://yehudakatz.com/2009/12/31/spinning-up-a-new-rails-app/
-* "Rails 3 and Passenger":http://cakebaker.42dh.com/2010/01/17/rails-3-and-passenger/
+If you have a local checkout of the Rails repository and want to generate an application using that, you can pass the +--dev+ flag:
 
+<shell>
+$ ruby /path/to/rails/railties/bin/rails myapp --dev
+</shell>
 
 h3. Rails Architectural Changes
 
 There are six major changes in the architecture of Rails.
 
-
 h4. Railties Restrung
 
 Railties was updated to provide a consistent plugin API for the entire Rails framework as well as a total rewrite of generators and the Rails bindings, the result is that developers can now hook into any significant stage of the generators and application framework in a consistent, defined manner.
-
 
 h4. All Rails core components are decoupled
 
