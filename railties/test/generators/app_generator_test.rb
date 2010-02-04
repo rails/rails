@@ -90,7 +90,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_activerecord_is_removed_from_frameworks_if_skip_activerecord_is_given
     run_generator [destination_root, "--skip-activerecord"]
-    assert_file "config/boot.rb", /# require "active_record\/railtie"/
+    assert_file "config/application.rb", /# require "active_record\/railtie"/
   end
 
   def test_prototype_and_test_unit_are_added_by_default
