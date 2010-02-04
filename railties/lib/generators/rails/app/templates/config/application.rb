@@ -11,8 +11,8 @@ require "active_resource/railtie"
 require "rails/test_unit/railtie"
 <% end -%>
 
-# Auto-require all bundled libraries.
-Bundler.require
+# Auto-require default libraries and those for the current Rails environment.
+Bundler.require :default, Rails.env
 
 module <%= app_const_base %>
   class Application < Rails::Application
