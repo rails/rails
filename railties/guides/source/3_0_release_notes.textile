@@ -43,7 +43,7 @@ rails console                      # => ./script/console
 rails g scaffold post title:string # => ./script/generate scaffold post title:string
 </shell>
 
-Run rails --help for a list of all the options.
+Run <tt>rails --help</tt> for a list of all the options.
 
 h4. Dependencies and config.gem
 
