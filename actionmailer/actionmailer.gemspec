@@ -3,14 +3,14 @@ Gem::Specification.new do |s|
   s.name = 'actionmailer'
   s.summary = "Service layer for easy email delivery and testing."
   s.description = %q{Makes it trivial to test and deliver emails sent from a single service layer.}
-  s.version = '3.0.pre'
+  s.version = '3.0.0.beta'
 
   s.author = "David Heinemeier Hansson"
   s.email = "david@loudthinking.com"
   s.rubyforge_project = "actionmailer"
   s.homepage = "http://www.rubyonrails.org"
 
-  s.add_dependency('actionpack', '= 3.0.pre')
+  s.add_dependency('actionpack', '= 3.0.0.beta')
   s.add_dependency('mail', '~> 2.1.2')
   s.add_dependency('text-format', '~> 1.0.0')
 

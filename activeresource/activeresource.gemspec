@@ -1,14 +1,14 @@
 Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.name = 'activeresource'
-  s.version = '3.0.pre'
+  s.version = '3.0.0.beta'
   s.summary = "Think Active Record for web resources."
   s.description = %q{Wraps web resources in model classes that can be manipulated through XML over REST.}
 
   s.files = Dir['CHANGELOG', 'README', 'examples/**/*', 'lib/**/*']
 
-  s.add_dependency('activesupport', '= 3.0.pre')
-  s.add_dependency('activemodel',   '= 3.0.pre')
+  s.add_dependency('activesupport', '= 3.0.0.beta')
+  s.add_dependency('activemodel',   '= 3.0.0.beta')
 
   s.require_path = 'lib'
   s.autorequire = 'active_resource'
