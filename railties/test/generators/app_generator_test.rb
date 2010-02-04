@@ -74,6 +74,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/
+    assert_file "Gemfile", /^gem "sqlite3-ruby", :require => "sqlite3"$/
+  end
+
+  def test_config_another_database
+    run_generator([destination_root, "-d", "mysql"])
+    assert_file "config/database.yml", /mysql/
+    assert_file "Gemfile", /^gem "mysql"$/
   end
 
   def test_config_database_is_not_added_if_skip_activerecord_is_given
