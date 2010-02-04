@@ -60,8 +60,6 @@ when 'runner'
   require ENV_PATH
 
 
-when '--version', '-v'
-  puts "Rails #{Rails::VERSION::STRING}"
 when '--help', '-h'
   puts HELP_TEXT
 when '--version', '-v'
