@@ -1,3 +1,0 @@
-[submodule "arel"]
-	path = arel
-	url = git://github.com/rails/arel.git

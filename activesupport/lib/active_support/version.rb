@@ -2,7 +2,7 @@ module ActiveSupport
   module VERSION #:nodoc:
     MAJOR = 3
     MINOR = 0
-    TINY  = "pre"
+    TINY  = "0.beta"
 
     STRING = [MAJOR, MINOR, TINY].join('.')
   end

@@ -1,22 +1,22 @@
 Gem::Specification.new do |s|
-  s.platform = Gem::Platform::RUBY
-  s.name = 'actionmailer'
-  s.summary = "Service layer for easy email delivery and testing."
-  s.description = %q{Makes it trivial to test and deliver emails sent from a single service layer.}
-  s.version = '3.0.pre'
+  s.platform    = Gem::Platform::RUBY
+  s.name        = 'actionmailer'
+  s.version     = '3.0.0.beta'
+  s.summary     = 'Email composition, delivery, and recieval framework (part of Rails).'
+  s.description = 'Email composition, delivery, and recieval framework (part of Rails).'
 
-  s.author = "David Heinemeier Hansson"
-  s.email = "david@loudthinking.com"
-  s.rubyforge_project = "actionmailer"
-  s.homepage = "http://www.rubyonrails.org"
+  s.author            = 'David Heinemeier Hansson'
+  s.email             = 'david@loudthinking.com'
+  s.homepage          = 'http://www.rubyonrails.org'
+  s.rubyforge_project = 'actionmailer'
 
-  s.add_dependency('actionpack', '= 3.0.pre')
-  s.add_dependency('mail', '~> 2.1.2')
-  s.add_dependency('text-format', '~> 1.0.0')
-
-  s.files = Dir['CHANGELOG', 'README', 'MIT-LICENSE', 'lib/**/*']
-  s.has_rdoc = true
-  s.requirements << 'none'
+  s.files        = Dir['CHANGELOG', 'README', 'MIT-LICENSE', 'lib/**/*']
   s.require_path = 'lib'
-  s.autorequire = 'action_mailer'
+  s.requirements << 'none'
+
+  s.has_rdoc = true
+
+  s.add_dependency('actionpack',  '= 3.0.0.beta')
+  s.add_dependency('mail',        '~> 2.1.2')
+  s.add_dependency('text-format', '~> 1.0.0')
 end
