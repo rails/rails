@@ -24,8 +24,8 @@ TIP: To install the Rails 3 prerelease beta using rubygems you have to install a
 
 <shell>
 # Use sudo if your setup requires it
-gem install tzinfo builder memcache-client rack \
-  rack-test rack-mount erubis mail text-format \
+gem install tzinfo builder i18n memcache-client rack \
+  rake rack-test rack-mount erubis mail text-format \
   thor bundler
 gem install rails --pre
 </shell>
@@ -509,7 +509,7 @@ These are the main changes in Active Support:
 * <tt>String#to_time</tt> and <tt>String#to_datetime</tt> handle fractional seconds.
 * Added support to new callbacks for around filter object that respond to <tt>:before</tt> and <tt>:after</tt> used in before and after callbacks.
 * The <tt>ActiveSupport::OrderedHash#to_a</tt> method returns an ordered set of arrays. Matches Ruby 1.9's <tt>Hash#to_a</tt>.
-* <tt>MissingSourceFile</tt> exists as a constant but it is now just equals to <tt>LoadError</tt>
+* <tt>MissingSourceFile</tt> exists as a constant but it is now just equals to <tt>LoadError</tt>.
 * Added <tt>Class#class_attribute</tt>, to be able to declare a class-level attribute whose value is inheritable and overwritable by subclasses.
 * Finally removed +DeprecatedCallbacks+ in <tt>ActiveRecord::Associations</tt>.
 
@@ -530,8 +530,7 @@ The following methods have been removed because they are no longer used in the f
 
 * <tt>Object#remove_subclasses_of</tt>, <tt>Object#subclasses_of</tt>, <tt>Object#extend_with_included_modules_from</tt>, <tt>Object#extended_by</tt>
 * <tt>Class#subclasses</tt>, <tt>Class#reachable?</tt>, <tt>Class#remove_class</tt>
-* <tt>Regexp#number_of_captures</tt>
-* <tt>Regexp.unoptionalize</tt>, <tt>Regexp.optionalize</tt>, <tt>Regexp#number_of_captures</tt>
+* <tt>Regexp#number_of_captures</tt>, <tt>Regexp.unoptionalize</tt>, <tt>Regexp.optionalize</tt>, <tt>Regexp#number_of_captures</tt>
 
 
 h3. Action Mailer
@@ -540,11 +539,11 @@ Action Mailer has been given a new API with TMail being replaced out with the ne
 
 * All mailers are now in <tt>app/mailers</tt> by default.
 * Can now send email using new API with three methods: +attachments+, +headers+ and +mail+.
-* ActionMailer emailing methods now return Mail::Message objects, which can then be sent the +deliver+ message to send itself.
+* Action Mailer emailing methods now return <tt>Mail::Message</tt> objects, which can then be sent the +deliver+ message to send itself.
 * All delivery methods are now abstracted out to the Mail gem.
 * The mail delivery method can accept a hash of all valid mail header fields with their value pair.
-* The mail delivery method acts in a similar way to Action Controller's respond_to block, and you can explicitly or implicitly render templates. Action Mailer will turn the email into a multipart email as needed.
-* You can pass a proc to the <tt>format.mime_type</tt> calls within the mail block and explicitly render specific types of text, or add layouts or different templates. The +render+ call inside the proc is from Abstract Controller, so all the same options are available as they are in Action Controller.
+* The +mail+ delivery method acts in a similar way to Action Controller's +respond_to+, and you can explicitly or implicitly render templates. Action Mailer will turn the email into a multipart email as needed.
+* You can pass a proc to the <tt>format.mime_type</tt> calls within the mail block and explicitly render specific types of text, or add layouts or different templates. The +render+ call inside the proc is from Abstract Controller and supports the same options.
 * What were mailer unit tests have been moved to functional tests.
 
 Deprecations:
@@ -553,7 +552,7 @@ Deprecations:
 * Mailer dynamic <tt>create_method_name</tt> and <tt>deliver_method_name</tt> are deprecated, just call <tt>method_name</tt> which now returns a <tt>Mail::Message</tt> object.
 * <tt>ActionMailer.deliver(message)</tt> is deprecated, just call <tt>message.deliver</tt>.
 * <tt>template_root</tt> is deprecated, pass options to a render call inside a proc from the <tt>format.mime_type</tt> method inside the <tt>mail</tt> generation block
-* The body method to define instance variables is deprecated (<tt>body {:ivar => value}</tt>), just declare instance variables in the method directly and they will be available in the view.
+* The +body+ method to define instance variables is deprecated (<tt>body {:ivar => value}</tt>), just declare instance variables in the method directly and they will be available in the view.
 * Mailers being in <tt>app/models</tt> is deprecated, use <tt>app/mailers</tt> instead.
 
 More Information:

@@ -624,6 +624,69 @@ NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
 
 h3. Extensions to +String+
 
+h4. Output Safety
+
+Inserting data into HTML templates needs extra care. For example you can't just interpolate +@review.title+ verbatim into an HTML page. On one hand if the review title is "Flanagan & Matz rules!" the output won't be well-formed because an ampersand has to be escaped as "&amp;amp;". On the other hand, depending on the application that may be a big security hole because users can inject malicious HTML setting a hand-crafted review title. Check out the "section about cross-site scripting in the Security guide":security.html#cross-site-scripting-xss for further information about the risks.
+
+Active Support has the concept of <i>(html) safe</i> strings since Rails 3. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
+
+Strings are considered to be <i>unsafe</i> by default:
+
+<ruby>
+"".html_safe? # => false
+</ruby>
+
+You can obtain a safe string from a given one with the +html_safe+ method:
+
+<ruby>
+s = "".html_safe
+s.html_safe? # => true
+</ruby>
+
+It is important to understand that +html_safe+ performs no escaping whatsoever, it is just an assertion:
+
+<ruby>
+s = "<script>...</script>".html_safe
+s.html_safe? # => true
+s            # => "<script>...</script>"
+</ruby>
+
+It is your responsability to ensure calling +html_safe+ on a particular string is fine.
+
+NOTE: For performance reasons safe strings are implemented in a way that cannot offer an in-place +html_safe!+ variant.
+
+If you append onto a safe string, either in-place with +concat+/<tt><<</tt>, or with <tt>+</tt>, the result is a safe string. Unsafe arguments are escaped:
+
+<ruby>
+"".html_safe + "<" # => "&lt;"
+</ruby>
+
+Safe arguments are directly appended:
+
+<ruby>
+"".html_safe + "<".html_safe # => "<"
+</ruby>
+
+These methods should not be used in ordinary views. In Rails 3 unsafe values are automatically escaped:
+
+<erb>
+<%= @review.title %> <%# fine in Rails 3, escaped if needed %>
+</erb>
+
+To insert something verbatim use the +raw+ helper rather than calling +html_safe+:
+
+<erb>
+<%= raw @cms.current_template %> <%# inserts @cms.current_template as is %>
+</erb>
+
+The +raw+ helper calls +html_safe+ for you:
+
+<ruby>
+def raw(stringish)
+  stringish.to_s.html_safe
+end
+</ruby>
+
 h4. +squish+
 
 The method +String#squish+ strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each:

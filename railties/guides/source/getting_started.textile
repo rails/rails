@@ -187,8 +187,8 @@ h4. Installing the Required Gems
 Rails uses the _Bundler_ gem to populate the +vendor+ directory with all the gems your application depends on.  As we don't need any special gems beyond the default, we just need to do the following:
 
 <shell>
-$ gem install bundle
-$ gem bundle
+$ gem install bundler
+$ bundle install
 </shell>
 
 This will copy down the latest versions of all the gems you need to start a rails application.
