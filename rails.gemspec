@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'rails'
-  s.version     = '3.0.0.beta'
+  s.version     = '3.0.0.beta1'
   s.summary     = 'Full-stack web-application framework.'
   s.description = 'Full-stack web-application framework.'
 
@@ -13,11 +13,11 @@ Gem::Specification.new do |s|
   s.files = []
   s.require_path = []
 
-  s.add_dependency('activesupport',    '= 3.0.0.beta')
-  s.add_dependency('actionpack',       '= 3.0.0.beta')
-  s.add_dependency('activerecord',     '= 3.0.0.beta')
-  s.add_dependency('activeresource',   '= 3.0.0.beta')
-  s.add_dependency('actionmailer',     '= 3.0.0.beta')
-  s.add_dependency('railties',         '= 3.0.0.beta')
+  s.add_dependency('activesupport',    '= 3.0.0.beta1')
+  s.add_dependency('actionpack',       '= 3.0.0.beta1')
+  s.add_dependency('activerecord',     '= 3.0.0.beta1')
+  s.add_dependency('activeresource',   '= 3.0.0.beta1')
+  s.add_dependency('actionmailer',     '= 3.0.0.beta1')
+  s.add_dependency('railties',         '= 3.0.0.beta1')
   s.add_dependency('bundler',          '>= 0.9.2')
 end
