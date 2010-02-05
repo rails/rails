@@ -1,4 +1,11 @@
 document.observe("dom:loaded", function() {
+  var authToken = $$('meta[name=csrf-token]').first().readAttribute('content'),
+    authParam = $$('meta[name=csrf-param]').first().readAttribute('content'),
+    formTemplate = '<form method="#{method}" action="#{action}">\
+      #{realmethod}<input name="#{param}" value="#{token}" type="hidden">\
+      </form>',
+    realmethodTemplate = '<input name="_method" value="#{method}" type="hidden">';
+
   function handleRemote(element) {
     var method, url, params;
 
@@ -43,6 +50,25 @@ document.observe("dom:loaded", function() {
     var element = event.findElement("a[data-remote=true]");
     if (element) {
       handleRemote(element);
+      event.stop();
+    }
+
+    var element = event.findElement("a[data-method]");
+    if (element && element.readAttribute('data-remote') != 'true') {
+      var method = element.readAttribute('data-method'),
+        piggyback = method.toLowerCase() != 'post',
+        formHTML = formTemplate.interpolate({
+          method: 'POST',
+          realmethod: piggyback ? realmethodTemplate.interpolate({ method: method }) : '',
+          action: element.readAttribute('href'),
+          token: authToken,
+          param: authParam
+        });
+
+      var form = new Element('div').update(formHTML).down().hide();
+      this.insert({ bottom: form });
+
+      form.submit();
       event.stop();
     }
   });
