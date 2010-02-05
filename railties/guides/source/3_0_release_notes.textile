@@ -539,11 +539,11 @@ Action Mailer has been given a new API with TMail being replaced out with the ne
 
 * All mailers are now in <tt>app/mailers</tt> by default.
 * Can now send email using new API with three methods: +attachments+, +headers+ and +mail+.
-* ActionMailer emailing methods now return Mail::Message objects, which can then be sent the +deliver+ message to send itself.
+* Action Mailer emailing methods now return <tt>Mail::Message</tt> objects, which can then be sent the +deliver+ message to send itself.
 * All delivery methods are now abstracted out to the Mail gem.
 * The mail delivery method can accept a hash of all valid mail header fields with their value pair.
-* The mail delivery method acts in a similar way to Action Controller's respond_to block, and you can explicitly or implicitly render templates. Action Mailer will turn the email into a multipart email as needed.
-* You can pass a proc to the <tt>format.mime_type</tt> calls within the mail block and explicitly render specific types of text, or add layouts or different templates. The +render+ call inside the proc is from Abstract Controller, so all the same options are available as they are in Action Controller.
+* The +mail+ delivery method acts in a similar way to Action Controller's +respond_to+ block, and you can explicitly or implicitly render templates. Action Mailer will turn the email into a multipart email as needed.
+* You can pass a proc to the <tt>format.mime_type</tt> calls within the mail block and explicitly render specific types of text, or add layouts or different templates. The +render+ call inside the proc is from Abstract Controller and supports the same options.
 * What were mailer unit tests have been moved to functional tests.
 
 Deprecations:
@@ -552,7 +552,7 @@ Deprecations:
 * Mailer dynamic <tt>create_method_name</tt> and <tt>deliver_method_name</tt> are deprecated, just call <tt>method_name</tt> which now returns a <tt>Mail::Message</tt> object.
 * <tt>ActionMailer.deliver(message)</tt> is deprecated, just call <tt>message.deliver</tt>.
 * <tt>template_root</tt> is deprecated, pass options to a render call inside a proc from the <tt>format.mime_type</tt> method inside the <tt>mail</tt> generation block
-* The body method to define instance variables is deprecated (<tt>body {:ivar => value}</tt>), just declare instance variables in the method directly and they will be available in the view.
+* The +body+ method to define instance variables is deprecated (<tt>body {:ivar => value}</tt>), just declare instance variables in the method directly and they will be available in the view.
 * Mailers being in <tt>app/models</tt> is deprecated, use <tt>app/mailers</tt> instead.
 
 More Information:
