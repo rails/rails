@@ -259,7 +259,7 @@ Action Dispatch is new in Rails 3.0 and provides a new, cleaner implementation f
 <ruby>
 # Instead of:
 
-ActionController::Routing::Routes.draw do
+ActionController::Routing::Routes.draw do |map|
   map.resources :posts
 end
 
