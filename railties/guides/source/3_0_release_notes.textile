@@ -7,7 +7,7 @@ But seriously now, it's really good stuff. There are all the good ideas brought 
 Even if you don't give a hoot about any of our internal cleanups, Rails 3.0 is going to delight. We have a bunch of new features and improved APIs. It's never been a better time to be a Rails developer. Some of the highlights are:
 
 * Brand new router with an emphasis on RESTful declarations
-* New Action Mailer API modelled after Action Controller (now without the agonizing pain of sending multipart messages!)
+* New Action Mailer API modeled after Action Controller (now without the agonizing pain of sending multipart messages!)
 * New Active Record chainable query language built on top of relational algebra
 * Unobtrusive JavaScript helpers with drivers for Prototype, jQuery, and more coming (end of inline JS)
 * Explicit dependency management with Bundler
@@ -469,7 +469,7 @@ Active Resource was also extracted out to Active Model allowing you to use Activ
 * Fix <tt>ActiveResource::ConnectionError#to_s</tt> when +@response+ does not respond to #code or #message, handles Ruby 1.9 compat.
 * Add support for errors in JSON format.
 * Ensure <tt>load</tt> works with numeric arrays.
-* Recognises a 410 response from remote resource as the resource has been deleted.
+* Recognizes a 410 response from remote resource as the resource has been deleted.
 * Add ability to set SSL options on Active Resource connections.
 * Setting connection timeout also affects +Net::HTTP+ <tt>open_timeout</tt>.
 
