@@ -38,7 +38,7 @@ and query generation.
       # circular dependency chain. The solution is for ActiveRecord to release
       # the connection adapters which Arel uses in a separate gem
       # s.add_dependency "activerecord", ">= 3.0.pre"
-      s.add_dependency "activesupport", ">= 3.0.pre"
+      s.add_dependency "activesupport", ">= 3.0.0.beta"
     end
   end
 

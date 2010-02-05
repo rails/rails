@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bryan Helmkamp", "Nick Kallen", "Emilio Tagua"]
-  s.date = %q{2010-02-01}
+  s.date = %q{2010-02-05}
   s.description = %q{Arel is a Relational Algebra for Ruby. It 1) simplifies the generation complex
 of SQL queries and it 2) adapts to various RDBMS systems. It is intended to be
 a framework framework; that is, you can build your own ORM with it, focusing on
@@ -238,11 +238,11 @@ and query generation.}
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<activesupport>, [">= 3.0.pre"])
+      s.add_runtime_dependency(%q<activesupport>, [">= 3.0.0.beta"])
     else
-      s.add_dependency(%q<activesupport>, [">= 3.0.pre"])
+      s.add_dependency(%q<activesupport>, [">= 3.0.0.beta"])
     end
   else
-    s.add_dependency(%q<activesupport>, [">= 3.0.pre"])
+    s.add_dependency(%q<activesupport>, [">= 3.0.0.beta"])
   end
 end
