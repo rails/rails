@@ -1,5 +1,5 @@
 path File.expand_path('..', __FILE__)
-source :gemcutter
+source 'http://gemcutter.org'
 
 gem "rails", "3.0.0.beta"
 
@@ -34,3 +34,6 @@ if ENV['CI']
     gem "test-unit", ">= 2.0.5", :require => 'test/unit'
   end
 end
+
+# For releases
+gem "rake-gemcutter"

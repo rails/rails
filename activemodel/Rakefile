@@ -44,9 +44,15 @@ end
 
 require 'rake/packagetask'
 require 'rake/gempackagetask'
+require 'rake/gemcutter'
 
 spec = eval(File.read("#{dir}/activemodel.gemspec"))
 
 Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
+
+Rake::Gemcutter::Tasks(spec)
+
+desc "Release to gemcutter"
+task :release => [:package, 'gem:push']

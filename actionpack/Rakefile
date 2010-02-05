@@ -4,6 +4,7 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
+require 'rake/gemcutter'
 require File.join(File.dirname(__FILE__), 'lib', 'action_pack', 'version')
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
@@ -69,6 +70,11 @@ spec = eval(File.read('actionpack.gemspec'))
 Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
+
+Rake::Gemcutter::Tasks(spec)
+
+desc "Release to gemcutter"
+task :release => [:package, 'gem:push']
 
 task :lines do
   lines, codelines, total_lines, total_codelines = 0, 0, 0, 0

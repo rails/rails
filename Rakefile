@@ -37,6 +37,20 @@ Rake::GemPackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
 end
 
+Rake::Gemcutter::Tasks(spec)
+
+desc "Release all gems to gemcutter. Package rails, package & push components, then push rails"
+task :release => [:package, :release_all, 'gem:push']
+
+desc "Release all components to gemcutter."
+task :release_all do
+  errors = []
+  PROJECTS.each do |project|
+    system(%(cd #{project} && #{env} #{$0} release)) || errors << project
+  end
+  fail("Errors in #{errors.join(', ')}") unless errors.empty?
+end
+
 task :install => :gem do
   (PROJECTS - ["railties"]).each do |project|
     puts "INSTALLING #{project}"
