@@ -4,7 +4,6 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
-require 'rake/gemcutter'
 require File.join(File.dirname(__FILE__), 'lib', 'action_mailer', 'version')
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
@@ -55,10 +54,12 @@ Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 
-Rake::Gemcutter::Tasks.new(spec).define
-
 desc "Release to gemcutter"
-task :release => [:package, 'gem:push']
+task :release => :package do
+  require 'rake/gemcutter'
+  Rake::Gemcutter::Tasks.new(spec).define
+  Rake::Task['gem:push'].invoke
+end
 
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do

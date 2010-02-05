@@ -1,7 +1,6 @@
 require 'rake'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
-require 'rake/gemcutter'
 
 env = %(PKG_BUILD="#{ENV['PKG_BUILD']}") if ENV['PKG_BUILD']
 
@@ -14,7 +13,7 @@ end
 desc 'Run all tests by default'
 task :default => %w(test test:isolated)
 
-%w(test test:isolated rdoc pgem package release gem gemspec).each do |task_name|
+%w(test test:isolated rdoc pgem package gem gemspec).each do |task_name|
   desc "Run #{task_name} task for all projects"
   task task_name do
     errors = []
@@ -38,13 +37,15 @@ Rake::GemPackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
 end
 
-Rake::Gemcutter::Tasks.new(spec).define
-
 desc "Release all gems to gemcutter. Package rails, package & push components, then push rails"
-task :release => [:package, :release_all, 'gem:push']
+task :release => :release_projects do
+  require 'rake/gemcutter'
+  Rake::Gemcutter::Tasks.new(spec).define
+  Rake::Task['gem:push'].invoke
+end
 
 desc "Release all components to gemcutter."
-task :release_all do
+task :release_projects => :package do
   errors = []
   PROJECTS.each do |project|
     system(%(cd #{project} && #{env} #{$0} release)) || errors << project
