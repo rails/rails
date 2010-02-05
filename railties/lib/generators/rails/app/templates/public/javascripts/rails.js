@@ -34,6 +34,12 @@ document.observe("dom:loaded", function() {
   }
 
   $(document.body).observe("click", function(event) {
+    var message = event.element().readAttribute('data-confirm');
+    if (message && !confirm(message)) {
+      event.stop();
+      return false;
+    }
+
     var element = event.findElement("a[data-remote=true]");
     if (element) {
       handleRemote(element);
@@ -41,13 +47,14 @@ document.observe("dom:loaded", function() {
     }
   });
 
-  $(document.body).observe("ajax:before", function(event) {
-    var message = event.element().readAttribute('data-confirm');
-    if (message && !confirm(message)) event.stop();
-  });
-
   // TODO: I don't think submit bubbles in IE
   $(document.body).observe("submit", function(event) {
+    var message = event.element().readAttribute('data-confirm');
+    if (message && !confirm(message)) {
+      event.stop();
+      return false;
+    }
+
     var inputs = event.element().select("input[type=submit][data-disable-with]");
     inputs.each(function(input) {
       input.disabled = true;
