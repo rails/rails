@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.homepage          = 'http://www.rubyonrails.org'
   s.rubyforge_project = 'rails'
 
-  s.rdoc_options << '--exclude' << '.'
-  s.has_rdoc = false
+  s.files = []
+  s.require_path = []
 
   s.add_dependency('activesupport',    '= 3.0.0.beta')
   s.add_dependency('actionpack',       '= 3.0.0.beta')
