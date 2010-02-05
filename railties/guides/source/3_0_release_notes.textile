@@ -542,7 +542,7 @@ Action Mailer has been given a new API with TMail being replaced out with the ne
 * Action Mailer emailing methods now return <tt>Mail::Message</tt> objects, which can then be sent the +deliver+ message to send itself.
 * All delivery methods are now abstracted out to the Mail gem.
 * The mail delivery method can accept a hash of all valid mail header fields with their value pair.
-* The +mail+ delivery method acts in a similar way to Action Controller's +respond_to+ block, and you can explicitly or implicitly render templates. Action Mailer will turn the email into a multipart email as needed.
+* The +mail+ delivery method acts in a similar way to Action Controller's +respond_to+, and you can explicitly or implicitly render templates. Action Mailer will turn the email into a multipart email as needed.
 * You can pass a proc to the <tt>format.mime_type</tt> calls within the mail block and explicitly render specific types of text, or add layouts or different templates. The +render+ call inside the proc is from Abstract Controller and supports the same options.
 * What were mailer unit tests have been moved to functional tests.
 
