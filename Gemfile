@@ -34,6 +34,3 @@ if ENV['CI']
     gem "test-unit", ">= 2.0.5", :require => 'test/unit'
   end
 end
-
-# For releases
-gem "rake-gemcutter"
