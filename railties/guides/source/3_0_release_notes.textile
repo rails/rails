@@ -24,8 +24,8 @@ TIP: To install the Rails 3 prerelease beta using rubygems you have to install a
 
 <shell>
 # Use sudo if your setup requires it
-gem install tzinfo builder memcache-client rack \
-  rack-test rack-mount erubis mail text-format \
+gem install tzinfo builder i18n memcache-client rack \
+  rake rack-test rack-mount erubis mail text-format \
   thor bundler
 gem install rails --pre
 </shell>
