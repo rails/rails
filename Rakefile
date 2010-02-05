@@ -1,6 +1,7 @@
 require 'rake'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
+require 'rake/gemcutter'
 
 env = %(PKG_BUILD="#{ENV['PKG_BUILD']}") if ENV['PKG_BUILD']
 
