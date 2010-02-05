@@ -38,7 +38,7 @@ Rake::GemPackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
 end
 
-Rake::Gemcutter::Tasks(spec)
+Rake::Gemcutter::Tasks.new(spec).define
 
 desc "Release all gems to gemcutter. Package rails, package & push components, then push rails"
 task :release => [:package, :release_all, 'gem:push']

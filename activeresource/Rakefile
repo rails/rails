@@ -90,7 +90,7 @@ end
 
 # Publishing ------------------------------------------------------
 
-Rake::Gemcutter::Tasks(spec)
+Rake::Gemcutter::Tasks.new(spec).define
 
 desc "Release to gemcutter"
 task :release => [:package, 'gem:push']

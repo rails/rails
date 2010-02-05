@@ -55,7 +55,7 @@ Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 
-Rake::Gemcutter::Tasks(spec)
+Rake::Gemcutter::Tasks.new(spec).define
 
 desc "Release to gemcutter"
 task :release => [:package, 'gem:push']
