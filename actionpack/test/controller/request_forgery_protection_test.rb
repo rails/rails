@@ -210,7 +210,7 @@ class RequestForgeryProtectionControllerTest < ActionController::TestCase
     @request    = ActionController::TestRequest.new
     @request.format = :html
     @response   = ActionController::TestResponse.new
-    @token      = "cf50faa3fe97702ca1ae"
+    @token      = "cf50faa3fe97702ca1a/=?"
 
     ActiveSupport::SecureRandom.stubs(:base64).returns(@token)
     ActionController::Base.request_forgery_protection_token = :authenticity_token
@@ -227,7 +227,7 @@ class FreeCookieControllerTest < ActionController::TestCase
     @controller = FreeCookieController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
-    @token      = "cf50faa3fe97702ca1ae"
+    @token      = "cf50faa3fe97702ca1a/=?"
 
     ActiveSupport::SecureRandom.stubs(:base64).returns(@token)
   end
