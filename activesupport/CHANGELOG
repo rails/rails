@@ -1,6 +1,6 @@
 *Rails 3.0 (pending)*
 
-* JSON backend for YAJL.  #2666 [Brian Lopez]
+* JSON backend for YAJL. Preferred if available.  #2666 [Brian Lopez]
 
 
 *Rails 3.0.0 [beta] (February 4, 2010)*
