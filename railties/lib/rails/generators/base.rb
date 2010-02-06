@@ -213,8 +213,7 @@ module Rails
         if base.name && base.name !~ /Base$/
           Rails::Generators.subclasses << base
 
-          if defined?(Rails.root) && Rails.root
-            path = File.expand_path(File.join(Rails.root, 'lib', 'templates'))
+          Rails::Generators.templates_path.each do |path|
             if base.name.include?('::')
               base.source_paths << File.join(path, base.base_name, base.generator_name)
             else

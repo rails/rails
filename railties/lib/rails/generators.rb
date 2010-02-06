@@ -66,6 +66,11 @@ module Rails
       aliases.deep_merge! config.aliases
       options.deep_merge! config.options
       fallbacks.merge! config.fallbacks
+      templates_path.concat config.templates
+    end
+
+    def self.templates_path
+      @templates_path ||= []
     end
 
     def self.aliases #:nodoc:
