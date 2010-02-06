@@ -422,6 +422,20 @@ end
 
 NOTE: Defined in +active_support/core_ext/kernel/reporting.rb+.
 
+h4. +require_library_or_gem+
+
+The convenience method +require_library_or_gem+ tries to load its argument with a regular +require+ first. If it fails loads +rubygems+ and tries again.
+
+If the first attempt is a failure and +rubygems+ can't be loaded the method raises +LoadError+. On the other hand, if +rubygems+ is available but the argument is not loadable as a gem, the method gives up and +LoadError+ is also raised.
+
+For example, that's the way the MySQL adapter loads the MySQL library:
+
+<ruby>
+require_library_or_gem('mysql')
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/kernel/requires.rb+.
+
 h3. Extensions to +Module+
 
 h4. Aliasing
