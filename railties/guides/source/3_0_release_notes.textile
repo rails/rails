@@ -174,7 +174,7 @@ h3. Railties
 
 With the decoupling of the main Rails frameworks, Railties got a huge overhaul so as to make linking up frameworks, engines or plugins as painless and extensible as possible:
 
-* Each application now has it's own name space, application is started with <tt>YourAppName.boot</tt> for example, makes interacting with other applications a lot easier.
+* Each application now has its own name space, application is started with <tt>YourAppName.boot</tt> for example, makes interacting with other applications a lot easier.
 * Anything under <tt>Rails.root/app</tt> is now added to the load path, so you can make <tt>app/observers/user_observer.rb</tt> and Rails will load it without any modifications.
 * Rails 3.0 now provides a <tt>Rails.config</tt> object, which provides a central repository of all sorts of Rails wide configuration options.
 
@@ -394,7 +394,7 @@ Active Record received a lot of attention in Rails 3.0, including abstraction in
 
 h4. Query Interface
 
-Active Record, through the use of Arel, now returns relations on it's core methods.  The existing API in Rails 2.3.x is still supported and will not be deprecated until Rails 3.1 and not removed until Rails 3.2, however, the new API provides the following new methods that all return relations allowing them to be chained together:
+Active Record, through the use of Arel, now returns relations on its core methods.  The existing API in Rails 2.3.x is still supported and will not be deprecated until Rails 3.1 and not removed until Rails 3.2, however, the new API provides the following new methods that all return relations allowing them to be chained together:
 
 * <tt>where</tt> - provides conditions on the relation, what gets returned.
 * <tt>select</tt> - choose what attributes of the models you wish to have returned from the database.
@@ -429,7 +429,7 @@ Additionally, many fixes in the Active Record branch:
 
 * SQLite 2 support has been dropped in favour of SQLite 3.
 * MySQL support for column order.
-* PostgreSQL adapter has had it's +TIME ZONE+ support fixed so it no longer inserts incorrect values.
+* PostgreSQL adapter has had its +TIME ZONE+ support fixed so it no longer inserts incorrect values.
 * Support multiple schemas in table names for PostgreSQL.
 * PostgreSQL support for the XML data type column.
 * +table_name+ is now cached.
