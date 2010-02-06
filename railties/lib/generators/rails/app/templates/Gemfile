@@ -1,15 +1,15 @@
 # Edit this Gemfile to bundle your application's dependencies.
 source 'http://gemcutter.org'
 
-<% if !dev_or_edge? %>
-gem "rails", "<%= Rails::VERSION::STRING %>"
-<% end -%>
-
-## Bundle edge rails:
 <%- if options.dev? -%>
 gem "rails", :path => "<%= Rails::Generators::RAILS_DEV_PATH %>"
+<%- elsif options.edge? -%>
+gem "rails", :git => "git://github.com/rails/rails.git"
 <%- else -%>
-<%= "# " unless options.edge? %>gem "rails", :git => "git://github.com/rails/rails.git"
+gem "rails", "<%= Rails::VERSION::STRING %>"
+
+# Bundle edge Rails instead
+# gem "rails", :git => "git://github.com/rails/rails.git"
 <%- end -%>
 
 <% unless options[:skip_activerecord] -%>
