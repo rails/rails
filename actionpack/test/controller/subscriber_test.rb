@@ -73,7 +73,7 @@ class ACSubscriberTest < ActionController::TestCase
     wait
     assert_equal 2, logs.size
     assert_match /Completed/, logs.last
-    assert_match /with 200/, logs.last
+    assert_match /200 OK/, logs.last
   end
 
   def test_process_action_without_parameters
