@@ -1,3 +1,5 @@
+require 'active_support/core_ext/kernel/requires'
+
 module Rails
   module Rack
     class Debugger
