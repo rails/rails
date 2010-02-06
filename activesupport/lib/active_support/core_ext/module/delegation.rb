@@ -7,8 +7,13 @@ class Module
   # Delegation is particularly useful with Active Record associations:
   #
   #   class Greeter < ActiveRecord::Base
-  #     def hello()   "hello"   end
-  #     def goodbye() "goodbye" end
+  #     def hello
+  #       "hello"
+  #     end
+  #
+  #     def goodbye
+  #       "goodbye"
+  #     end
   #   end
   #
   #   class Foo < ActiveRecord::Base
