@@ -528,6 +528,7 @@ The security patch for REXML remains in Active Support because early patchlevels
 
 The following methods have been removed because they are no longer used in the framework:
 
+* +Kernel#daemonize+
 * <tt>Object#remove_subclasses_of</tt>, <tt>Object#subclasses_of</tt>, <tt>Object#extend_with_included_modules_from</tt>, <tt>Object#extended_by</tt>
 * <tt>Class#subclasses</tt>, <tt>Class#reachable?</tt>, <tt>Class#remove_class</tt>
 * <tt>Regexp#number_of_captures</tt>, <tt>Regexp.unoptionalize</tt>, <tt>Regexp.optionalize</tt>, <tt>Regexp#number_of_captures</tt>
