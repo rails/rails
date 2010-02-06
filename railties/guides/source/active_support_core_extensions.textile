@@ -700,6 +700,73 @@ end
 
 NOTE: Defined in +active_support/core_ext/module/delegation+.
 
+h4. Parents
+
+h5. +parent+
+
+The +parent+ method on a nested named module returns the module that contains its corresponding constant:
+
+<ruby>
+module X
+  module Y
+    module Z
+    end
+  end
+end
+M = X::Y::Z
+
+X::Y::Z.parent # => X::Y
+M.parent       # => X::Y
+</ruby>
+
+If the module is anonymous or belongs to the top-level, +parent+ returns +Object+.
+
+WARNING: Note that in that case +parent_name+ returns +nil+.
+
+NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
+
+h5. +parent_name+
+
+The +parent_name+ method on a nested named module returns the fully-qualified name of the module that contains its corresponding constant:
+
+<ruby>
+module X
+  module Y
+    module Z
+    end
+  end
+end
+M = X::Y::Z
+
+X::Y::Z.parent_name # => "X::Y"
+M.parent_name       # => "X::Y"
+</ruby>
+
+For top-level or anonymous modules +parent_name+ returns +nil+.
+
+WARNING: Note that in that case +parent+ returns +Object+.
+
+NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
+
+h5. +parents+
+
+The method +parents+ calls +parent+ on the receiver and upwards until +Object+ is reached. The chain is returned in an array, from bottom to top:
+
+<ruby>
+module X
+  module Y
+    module Z
+    end
+  end
+end
+M = X::Y::Z
+
+X::Y::Z.parents # => [X::Y, X, Object]
+M.parents       # => [X::Y, X, Object]
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
+
 h3. Extensions to +Class+
 
 h4. Class Attributes
