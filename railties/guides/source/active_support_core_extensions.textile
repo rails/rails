@@ -438,9 +438,7 @@ NOTE: Defined in +active_support/core_ext/kernel/requires.rb+.
 
 h3. Extensions to +Module+
 
-h4. Aliasing
-
-h5. +alias_method_chain+
+h4. +alias_method_chain+
 
 Using plain Ruby you can wrap methods with other methods, that's called _alias chaining_.
 
@@ -490,6 +488,8 @@ Rails uses +alias_method_chain+ all over the code base. For example validations 
 
 NOTE: Defined in +active_support/core_ext/module/aliasing.rb+.
 
+h4. Attributes
+
 h5. +alias_attribute+
 
 Model attributes have a reader, a writer, and a predicate. You can aliase a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (my mnemonic is they go in the same order as if you did an assignment):
@@ -503,6 +503,55 @@ end
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/module/aliasing.rb+.
+
+h5. +attr_accessor_with_default+
+
+The method +attr_accessor_with_default+ serves the same purpose as the Ruby macro +attr_accessor+ but allows you to set a default value for the attribute:
+
+<ruby>
+class Url
+  attr_accessor_with_default :port, 80
+end
+
+Url.new.port # => 80
+</ruby>
+
+The default value can be also specified with a block, which is called in the context of the corresponding object:
+
+<ruby>
+class User
+  attr_accessor :name, :surname
+  attr_accessor_with_default(:full_name) {
+	[name, surname].compact.join(" ")
+  }
+end
+
+u = User.new
+u.name = 'Xavier'
+u.surname = 'Noria'
+u.full_name # => "Xavier Noria"
+</ruby>
+
+The result is not cached, the block is invoked in each call to the reader.
+
+You can overwrite the default with the writer:
+
+<ruby>
+url = Url.new
+url.host # => 80
+url.host = 8080
+url.host # => 8080
+</ruby>
+
+The default value is returned as long as the attribute is unset. The reader does not rely on the value of the attribute to know whether it has to return the default. It rather monitors the writer: if there's any assignment the value is no longer considered to be unset.
+
+Active Resource uses this macro to set a default value for the +:primary_key+ attribute:
+
+<ruby>
+attr_accessor_with_default :primary_key, 'id'
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/attr_accessor_with_default.rb+.
 
 h4. Delegation
 
