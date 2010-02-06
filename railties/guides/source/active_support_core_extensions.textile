@@ -553,6 +553,44 @@ attr_accessor_with_default :primary_key, 'id'
 
 NOTE: Defined in +active_support/core_ext/module/attr_accessor_with_default.rb+.
 
+h5. Internal Attributes
+
+When you are defining an attribute in a class that is meant to be subclassed name collisions are a risk. That's remarkably important for libraries.
+
+Active Support defines the macros +attr_internal_reader+, +attr_internal_writer+, and +attr_internal_accessor+. They behave like their Ruby builtin +attr_*+ counterparts, except they name the unerlying instace variable in a way that makes collisions less likely.
+
+The macro +attr_internal+ is a synonim for +attr_internal_accessor+:
+
+<ruby>
+# library
+class ThirdPartyLibrary::Crawler
+  attr_internal :log_level
+end
+
+# client code
+class MyCrawler < ThirdPartyLibrary::Crawler
+  attr_accessor :log_level
+end
+</ruby>
+
+In the previous example it could be the case that +:log_level+ does not belong to the public interface of the library and it is only used for development. The client code, unaware of the potential conflict, subclasses and defines its own +:log_level+. Thanks to +attr_internal+ there's no collision.
+
+By default the internal instance variable is named with a leading underscore, +@_log_level+ in the example above. That's configurable via +Module.attr_internal_naming_format+ though, you can pass any +sprintf+-like format string with a leading +@+ and a +%s+ somewhere, which is where the name will be placed. The default is +"@_%s"+.
+
+Rails uses internal attributes in a few spots, for examples for views:
+
+<ruby>
+module ActionView
+  class Base
+    attr_internal :captures
+    attr_internal :request, :layout
+    attr_internal :controller, :template
+  end
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/attr_internal.rb+.
+
 h4. Delegation
 
 The class method +delegate+
