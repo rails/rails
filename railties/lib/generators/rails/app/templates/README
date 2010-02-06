@@ -29,14 +29,15 @@ link:files/vendor/rails/actionpack/README.html.
 
 1. At the command prompt, start a new Rails application using the <tt>rails</tt> command
    and your application name. Ex: rails myapp
-2. Change directory into myapp and start the web server: <tt>script/server</tt> (run with --help for options)
+2. Change directory into myapp and start the web server: <tt>rails server</tt> (run with --help for options)
 3. Go to http://localhost:3000/ and get "Welcome aboard: You're riding the Rails!"
 4. Follow the guidelines to start developing your application
 
 
 == Web Servers
 
-By default, Rails will try to use Mongrel if it's are installed when started with script/server, otherwise Rails will use WEBrick, the webserver that ships with Ruby. But you can also use Rails
+By default, Rails will try to use Mongrel if it's installed when started with <tt>rails server</tt>, otherwise
+Rails will use WEBrick, the webserver that ships with Ruby. But you can also use Rails
 with a variety of other web servers.
 
 Mongrel is a Ruby-based webserver with a C component (which requires compilation) that is
@@ -164,20 +165,20 @@ Finally, when you're ready to resume execution, you enter "cont"
 
 == Console
 
-You can interact with the domain model by starting the console through <tt>script/console</tt>.
+You can interact with the domain model by starting the console through <tt>rails console</tt>.
 Here you'll have all parts of the application configured, just like it is when the
 application is running. You can inspect domain models, change values, and save to the
 database. Starting the script without arguments will launch it in the development environment.
-Passing an argument will specify a different environment, like <tt>script/console production</tt>.
+Passing an argument will specify a different environment, like <tt>rails console production</tt>.
 
 To reload your controllers and models after launching the console run <tt>reload!</tt>
 
 == dbconsole
 
-You can go to the command line of your database directly through <tt>script/dbconsole</tt>.
+You can go to the command line of your database directly through <tt>rails dbconsole</tt>.
 You would be connected to the database with the credentials defined in database.yml.
 Starting the script without arguments will connect you to the development database. Passing an
-argument will connect you to a different database, like <tt>script/dbconsole production</tt>.
+argument will connect you to a different database, like <tt>rails dbconsole production</tt>.
 Currently works for mysql, postgresql and sqlite.
 
 == Description of Contents
@@ -207,7 +208,7 @@ app/views/layouts
 
 app/helpers
   Holds view helpers that should be named like weblogs_helper.rb. These are generated
-  for you automatically when using script/generate for controllers. Helpers can be used to
+  for you automatically when using rails generate for controllers. Helpers can be used to
   wrap functionality for your views into methods.
 
 config
@@ -234,7 +235,7 @@ script
   Helper scripts for automation and generation.
 
 test
-  Unit and functional tests along with fixtures. When using the script/generate scripts, template
+  Unit and functional tests along with fixtures. When using the rails generate command, template
   test files will be generated for you and placed in this directory.
 
 vendor
