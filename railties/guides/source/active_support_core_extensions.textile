@@ -618,9 +618,87 @@ end
 
 NOTE: Defined in +active_support/core_ext/module/attribute_accessors.rb+.
 
-h4. Delegation
+h4. Method Delegation
 
-The class method +delegate+
+The class method +delegate+ offers an easy way to forward methods.
+
+For example, if +User+ has some details like the age factored out to +Profile+, it could be handy to still be able to acces such attribute directly, <tt>user.age</tt>, instead of having to explicit the chain <tt>user.profile.age</tt>.
+
+That can be accomplished by hand:
+
+<ruby>
+class User
+  has_one :profile
+
+  def age
+    profile.age
+  end
+end
+</ruby>
+
+But with +delegate+ you can make that shorter and the intention even more obvious:
+
+<ruby>
+class User
+  has_one :profile
+
+  delegate :age, to => :profile
+end
+</ruby>
+
+The macro accepts more than one method:
+
+<ruby>
+class User
+  has_one :profile
+
+  delegate :age, :avatar, :twitter_username, to => :profile
+end
+</ruby>
+
+Methods can be delegated to objects returned by methods, as in the examples above, but also to instance variables, class variables, and constants. Just pass their names as symbols or strings, including the at signs in the last cases.
+
+For example, +ActionView::Base+ delegates +erb_trim_mode=+:
+
+<ruby>
+module ActionView
+  class Base
+    delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
+  end
+end
+</ruby>
+
+In fact, you can delegate to any expression passed as a string. It will be evaluated in the context of the receiver. Controllers for example delegate alerts and notices to the current flash:
+
+<ruby>
+delegate :alert, :notice, :to => "request.flash"
+</ruby>
+
+If the target is +nil+ calling any delegated method will raise an exception even if +nil+ responds to such method. You can override this behavior setting the option +:allow_nil+ to true, in which case the forwarded call will simply return +nil+.
+
+If the target is a method, the name of delegated methods can also be prefixed. If the +:prefix+ option is set to (exactly) the +true+ object, the value of the +:to+ option is prefixed:
+
+<ruby>
+class Invoice
+  belongs_to :customer
+
+  # defines a method called customer_name
+  delegate :name, :to => :customer, :prefix => true
+end
+</ruby>
+
+And a custom prefix can be set as well, in that case it does not matter wheter the target is a method or not:
+
+<ruby>
+class Account
+  belongs_to :user
+
+  # defines a method called admin_email
+  delegate :email, :to => :user, :prefix => 'admin'
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/delegation+.
 
 h3. Extensions to +Class+
 
