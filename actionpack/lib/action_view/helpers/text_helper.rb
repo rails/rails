@@ -17,7 +17,7 @@ module ActionView
       #       concat "hello"
       #       # is the equivalent of <%= "hello" %>
       #
-      #       if (logged_in == true):
+      #       if logged_in
       #         concat "Logged in!"
       #       else
       #         concat link_to('login', :action => login)
