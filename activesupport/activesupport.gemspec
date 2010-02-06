@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'activesupport'
-  s.version     = '3.0.0.beta'
+  s.version     = '3.0.0.beta1'
   s.summary     = 'Support and utility classes used by the Rails framework.'
   s.description = 'Support and utility classes used by the Rails framework.'
 

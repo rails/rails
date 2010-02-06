@@ -158,7 +158,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], :dev => true).expects(:run).with("bundle install")
     silence(:stdout){ generator.invoke }
     rails_path = File.expand_path('../../..', Rails.root)
-    dev_gem = %(path #{rails_path.inspect}, :glob => "{*/,}*.gemspec")
+    dev_gem = %(gem "rails", :path => #{rails_path.inspect})
     assert_file 'Gemfile', /^#{Regexp.escape(dev_gem)}$/
   end
 

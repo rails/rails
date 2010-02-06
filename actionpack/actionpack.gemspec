@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'actionpack'
-  s.version     = '3.0.0.beta'
+  s.version     = '3.0.0.beta1'
   s.summary     = 'Web-flow and rendering framework putting the VC in MVC (part of Rails).'
   s.description = 'Web-flow and rendering framework putting the VC in MVC (part of Rails).'
 
@@ -16,8 +16,8 @@ Gem::Specification.new do |s|
 
   s.has_rdoc = true
 
-  s.add_dependency('activesupport', '= 3.0.0.beta')
-  s.add_dependency('activemodel',   '= 3.0.0.beta')
+  s.add_dependency('activesupport', '= 3.0.0.beta1')
+  s.add_dependency('activemodel',   '= 3.0.0.beta1')
   s.add_dependency('rack',          '~> 1.1.0')
   s.add_dependency('rack-test',     '~> 0.5.0')
   s.add_dependency('rack-mount',    '~> 0.4.0')

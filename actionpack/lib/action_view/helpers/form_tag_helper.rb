@@ -441,8 +441,8 @@ module ActionView
       #   # => <fieldset class="format"><p><input id="name" name="name" type="text" /></p></fieldset>
       def field_set_tag(legend = nil, options = nil, &block)
         content = capture(&block)
-        concat(tag(:fieldset, options, true))
-        concat(content_tag(:legend, legend)) unless legend.blank?
+        safe_concat(tag(:fieldset, options, true))
+        safe_concat(content_tag(:legend, legend)) unless legend.blank?
         concat(content)
         safe_concat("</fieldset>")
       end
@@ -477,7 +477,7 @@ module ActionView
 
         def form_tag_in_block(html_options, &block)
           content = capture(&block)
-          concat(form_tag_html(html_options))
+          safe_concat(form_tag_html(html_options))
           concat(content)
           safe_concat("</form>")
         end

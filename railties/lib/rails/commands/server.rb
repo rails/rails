@@ -9,6 +9,7 @@ module Rails
         options = {}
         args    = args.dup
         opt_parser = OptionParser.new do |opts|
+          opts.banner = "Usage: rails server [options]"
           opts.on("-p", "--port=port", Integer,
                   "Runs Rails on the specified port.", "Default: #{options[:Port]}") { |v| options[:Port] = v }
           opts.on("-b", "--binding=ip", String,
@@ -48,7 +49,9 @@ module Rails
 
       super
     ensure
-      puts 'Exiting' unless options[:daemonize]
+      # The '-h' option calls exit before @options is set.
+      # If we call 'options' with it unset, we get double help banners.
+      puts 'Exiting' unless @options && options[:daemonize]
     end
 
     def middleware

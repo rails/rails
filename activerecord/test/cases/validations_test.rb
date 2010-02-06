@@ -157,9 +157,9 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_validates_acceptance_of_as_database_column
-    Topic.validates_acceptance_of(:author_name)
-    topic = Topic.create("author_name" => "Dan Brown")
-    assert_equal "Dan Brown", topic["author_name"]
+    Topic.validates_acceptance_of(:approved)
+    topic = Topic.create("approved" => true)
+    assert topic["approved"]
   end
 
   def test_validate_is_deprecated_on_create

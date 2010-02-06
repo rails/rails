@@ -1,5 +1,10 @@
 *Rails 3.0 (pending)*
 
+* JSON backend for YAJL. Preferred if available.  #2666 [Brian Lopez]
+
+
+*Rails 3.0.0 [beta] (February 4, 2010)*
+
 * Introduce class_attribute to declare inheritable class attributes. Writing an attribute on a subclass behaves just like overriding the superclass reader method.  Unifies and replaces most usage of cattr_accessor, class_inheritable_attribute, superclass_delegating_attribute, and extlib_inheritable_attribute.  [Jeremy Kemper, Yehuda Katz]
 
 * Time#- with a DateTime argument behaves the same as with a Time argument, i.e. returns the difference between self and arg as a Float #3476 [Geoff Buesing]

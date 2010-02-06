@@ -1,7 +1,7 @@
 path File.expand_path('..', __FILE__)
-source :gemcutter
+source 'http://gemcutter.org'
 
-gem "rails", "3.0.0.beta"
+gem "rails", "3.0.0.beta1"
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"

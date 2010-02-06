@@ -64,6 +64,7 @@ cd "#{root_dir}/actionmailer" do
   puts "[CruiseControl] Building ActionMailer"
   puts
   build_results[:actionmailer] = rake 'test'
+  build_results[:actionmailer_isolated] = rake 'test:isolated'
 end
 
 cd "#{root_dir}/activemodel" do
@@ -71,6 +72,7 @@ cd "#{root_dir}/activemodel" do
   puts "[CruiseControl] Building ActiveModel"
   puts
   build_results[:activemodel] = rake 'test'
+  build_results[:activemodel_isolated] = rake 'test:isolated'
 end
 
 rm_f "#{root_dir}/activeresource/debug.log"
@@ -79,6 +81,7 @@ cd "#{root_dir}/activeresource" do
   puts "[CruiseControl] Building ActiveResource"
   puts
   build_results[:activeresource] = rake 'test'
+  build_results[:activeresource_isolated] = rake 'test:isolated'
 end
 
 rm_f "#{root_dir}/activerecord/debug.log"
@@ -86,21 +89,24 @@ cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with MySQL"
   puts
-  build_results[:activerecord_mysql] = rake 'mysql:rebuild_databases', 'test_mysql'
+  build_results[:activerecord_mysql] = rake 'mysql:rebuild_databases', 'mysql:test'
+  build_results[:activerecord_mysql_isolated] = rake 'mysql:rebuild_databases', 'mysql:isolated_test'
 end
 
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with PostgreSQL"
   puts
-  build_results[:activerecord_postgresql8] = rake 'postgresql:rebuild_databases', 'test_postgresql'
+  build_results[:activerecord_postgresql8] = rake 'postgresql:rebuild_databases', 'postgresql:test'
+  build_results[:activerecord_postgresql8_isolated] = rake 'postgresql:rebuild_databases', 'postgresql:isolated_test'
 end
 
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with SQLite 3"
   puts
-  build_results[:activerecord_sqlite3] = rake 'test_sqlite3'
+  build_results[:activerecord_sqlite3] = rake 'sqlite3:test'
+  build_results[:activerecord_sqlite3_isolated] = rake 'sqlite3:isolated_test'
 end
 
 
@@ -113,9 +119,10 @@ puts "[CruiseControl]   #{`mysql --version`}"
 puts "[CruiseControl]   #{`pg_config --version`}"
 puts "[CruiseControl]   SQLite3: #{`sqlite3 -version`}"
 `gem env`.each_line {|line| print "[CruiseControl]   #{line}"}
-# Commented until bundler supports --list again
-# puts "[CruiseControl]   Bundled gems:"
-# `gem bundle --list`.each_line {|line| print "[CruiseControl]     #{line}"}
+puts "[CruiseControl]   Bundled gems:"
+`bundle show`.each_line {|line| print "[CruiseControl]     #{line}"}
+puts "[CruiseControl]   Local gems:"
+`gem list`.each_line {|line| print "[CruiseControl]     #{line}"}
 
 failures = build_results.select { |key, value| value == false }
 

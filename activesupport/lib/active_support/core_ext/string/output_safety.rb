@@ -71,13 +71,10 @@ module ActiveSupport #:nodoc:
         super(ERB::Util.h(value))
       end
     end
+    alias << concat
 
     def +(other)
       dup.concat(other)
-    end
-
-    def <<(value)
-      self.concat(value)
     end
 
     def html_safe?
