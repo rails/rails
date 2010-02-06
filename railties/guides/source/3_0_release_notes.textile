@@ -139,7 +139,7 @@ More Information: - "Rails Edge Architecture":http://yehudakatz.com/2009/06/11/r
 
 h4. Arel Integration
 
-"Arel":http://github.com/rails/arel (or Active Relation) has been taken on as the underpinnings of Active Record and is now required for Rails.  Arel provides an SQL abstraction that simplifies out Active Record and provides the underpinnings for the relation functionality in Active Record.
+"Arel":http://github.com/brynary/arel (or Active Relation) has been taken on as the underpinnings of Active Record and is now required for Rails.  Arel provides an SQL abstraction that simplifies out Active Record and provides the underpinnings for the relation functionality in Active Record.
 
 More information: - "Why I wrote Arel":http://magicscalingsprinkles.wordpress.com/2010/01/28/why-i-wrote-arel/.
 
