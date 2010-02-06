@@ -3,7 +3,7 @@ Description:
     CamelCased or under_scored, as an argument. 
 
 Example:
-    `./script/generate generator Awesome`
+    `rails generate generator Awesome`
 
     creates a standard awesome generator:
         lib/generators/awesome/

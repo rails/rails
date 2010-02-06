@@ -1805,7 +1805,7 @@ Rails hijacks +LoadError.new+ to return a +MissingSourceFile+ exception:
 $ ruby -e 'require "nonexistent"'
 ...: no such file to load -- nonexistent (LoadError)
 ...
-$ script/runner 'require "nonexistent"'
+$ rails runner 'require "nonexistent"'
 ...: no such file to load -- nonexistent (MissingSourceFile)
 ...
 </shell>

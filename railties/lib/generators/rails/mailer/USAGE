@@ -6,7 +6,7 @@ Description:
     engine and test framework generators.
 
 Example:
-    `./script/generate mailer Notifications signup forgot_password invoice`
+    `rails generate mailer Notifications signup forgot_password invoice`
 
     creates a Notifications mailer class, views, test, and fixtures:
         Mailer:     app/mailers/notifications.rb

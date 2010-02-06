@@ -9,7 +9,7 @@ module ActionMailer #:nodoc:
   #
   # To use Action Mailer, you need to create a mailer model.
   #
-  #   $ script/generate mailer Notifier
+  #   $ rails generate mailer Notifier
   #
   # The generated model inherits from ActionMailer::Base. Emails are defined by creating methods
   # within the model which are then used to set variables to be used in the mail template, to

@@ -2,7 +2,7 @@
 #
 # Installing plugins:
 #
-#   $ ./script/plugin install continuous_builder asset_timestamping
+#   $ rails plugin install continuous_builder asset_timestamping
 # 
 # Specifying revisions:
 #
@@ -319,13 +319,13 @@ module Commands
         o.separator ""
         o.separator "EXAMPLES"
         o.separator "  Install a plugin:"
-        o.separator "    #{@script_name} install continuous_builder\n"
+        o.separator "    #{@script_name} plugin install continuous_builder\n"
         o.separator "  Install a plugin from a subversion URL:"
-        o.separator "    #{@script_name} install http://dev.rubyonrails.com/svn/rails/plugins/continuous_builder\n"
+        o.separator "    #{@script_name} plugin install http://dev.rubyonrails.com/svn/rails/plugins/continuous_builder\n"
         o.separator "  Install a plugin from a git URL:"
-        o.separator "    #{@script_name} install git://github.com/SomeGuy/my_awesome_plugin.git\n"
+        o.separator "    #{@script_name} plugin install git://github.com/SomeGuy/my_awesome_plugin.git\n"
         o.separator "  Install a plugin and add a svn:externals entry to vendor/plugins"
-        o.separator "    #{@script_name} install -x continuous_builder\n"
+        o.separator "    #{@script_name} plugin install -x continuous_builder\n"
       end
     end
     
@@ -381,7 +381,7 @@ module Commands
                       "Exports the plugin, allowing you to check it into your local repository. Does not enable updates, or add an svn:externals entry.") { |v| @method = :export }
         o.on(         "-q", "--quiet",
                       "Suppresses the output from installation.",
-                      "Ignored if -v is passed (./script/plugin -v install ...)") { |v| @options[:quiet] = true }
+                      "Ignored if -v is passed (rails plugin -v install ...)") { |v| @options[:quiet] = true }
         o.on(         "-r REVISION", "--revision REVISION",
                       "Checks out the given revision from subversion or git.",
                       "Ignored if subversion/git is not used.") { |v| @options[:revision] = v }

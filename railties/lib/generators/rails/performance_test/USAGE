@@ -6,5 +6,5 @@ Description:
     TestUnit.
 
 Example:
-    `./script/generate performance_test GeneralStories` creates a GeneralStories
+    `rails generate performance_test GeneralStories` creates a GeneralStories
     performance test in test/performance/general_stories_test.rb

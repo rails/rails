@@ -2,4 +2,4 @@ Description:
     Copies scaffold stylesheets to public/stylesheets/.
 
 Examples:
-    `./script/generate stylesheets`
+    `rails generate stylesheets`

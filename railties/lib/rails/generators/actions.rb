@@ -32,7 +32,7 @@ module Rails
           options[:git] = "-b #{options[:branch]} #{options[:git]}"   if options[:branch]
           options[:svn] = "-r #{options[:revision]} #{options[:svn]}" if options[:revision]
           in_root do
-            run_ruby_script "script/plugin install #{options[:svn] || options[:git]}", :verbose => false
+            run_ruby_script "script/rails plugin install #{options[:svn] || options[:git]}", :verbose => false
           end
         else
           log "! no git or svn provided for #{name}. Skipping..."
@@ -226,7 +226,7 @@ module Rails
         log :generate, what
         argument = args.map {|arg| arg.to_s }.flatten.join(" ")
 
-        in_root { run_ruby_script("script/generate #{what} #{argument}", :verbose => false) }
+        in_root { run_ruby_script("script/rails generate #{what} #{argument}", :verbose => false) }
       end
 
       # Runs the supplied rake task

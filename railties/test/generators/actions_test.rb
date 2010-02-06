@@ -36,22 +36,22 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_plugin_with_git_option_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/plugin install #{@git_plugin_uri}", :verbose => false)
+    generator.expects(:run_ruby_script).once.with("script/rails plugin install #{@git_plugin_uri}", :verbose => false)
     action :plugin, 'restful-authentication', :git => @git_plugin_uri
   end
 
   def test_plugin_with_svn_option_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/plugin install #{@svn_plugin_uri}", :verbose => false)
+    generator.expects(:run_ruby_script).once.with("script/rails plugin install #{@svn_plugin_uri}", :verbose => false)
     action :plugin, 'restful-authentication', :svn => @svn_plugin_uri
   end
 
   def test_plugin_with_git_option_and_branch_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/plugin install -b stable #{@git_plugin_uri}", :verbose => false)
+    generator.expects(:run_ruby_script).once.with("script/rails plugin install -b stable #{@git_plugin_uri}", :verbose => false)
     action :plugin, 'restful-authentication', :git => @git_plugin_uri, :branch => 'stable'
   end
 
   def test_plugin_with_svn_option_and_revision_should_run_plugin_install
-    generator.expects(:run_ruby_script).once.with("script/plugin install -r 1234 #{@svn_plugin_uri}", :verbose => false)
+    generator.expects(:run_ruby_script).once.with("script/rails plugin install -r 1234 #{@svn_plugin_uri}", :verbose => false)
     action :plugin, 'restful-authentication', :svn => @svn_plugin_uri, :revision => 1234
   end
 
@@ -155,7 +155,7 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_generate_should_run_script_generate_with_argument_and_options
-    generator.expects(:run_ruby_script).once.with('script/generate model MyModel', :verbose => false)
+    generator.expects(:run_ruby_script).once.with('script/rails generate model MyModel', :verbose => false)
     action :generate, 'model', 'MyModel'
   end
 
