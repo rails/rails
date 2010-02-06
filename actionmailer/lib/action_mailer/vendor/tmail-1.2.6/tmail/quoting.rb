@@ -10,7 +10,7 @@ module TMail
     end
 
     def unquoted_body(to_charset = 'utf-8')
-      from_charset = sub_header("content-type", "charset")
+      from_charset = charset
       case (content_transfer_encoding || "7bit").downcase
         when "quoted-printable"
           # the default charset is set to iso-8859-1 instead of 'us-ascii'.
@@ -56,10 +56,20 @@ module TMail
     end
   end
 
+  class Attachment
+    
+    include TextUtils
+    
+    def original_filename(to_charset = 'utf-8')
+      Unquoter.unquote_and_convert_to(quoted_filename, to_charset).chomp
+    end
+  end
+
   class Unquoter
     class << self
       def unquote_and_convert_to(text, to_charset, from_charset = "iso-8859-1", preserve_underscores=false)
         return "" if text.nil?
+        text.gsub!(/\?=(\s*)=\?/, '?==?') # Remove whitespaces between 'encoded-word's
         text.gsub(/(.*?)(?:(?:=\?(.*?)\?(.)\?(.*?)\?=)|$)/) do
           before = $1
           from_charset = $2
@@ -79,6 +89,29 @@ module TMail
               else
                 raise "unknown quoting method #{quoting_method.inspect}"
             end
+        end
+      end
+
+      def convert_to_with_fallback_on_iso_8859_1(text, to, from)
+        return text if to == 'utf-8' and text.isutf8
+
+        if from.blank? and !text.is_binary_data?
+          from = CharDet.detect(text)['encoding']
+
+          # Chardet ususally detects iso-8859-2 (aka windows-1250), but the text is
+          # iso-8859-1 (aka windows-1252 and Latin1). http://en.wikipedia.org/wiki/ISO/IEC_8859-2
+          # This can cause unwanted characters, like ŕ instead of à.
+          # (I know, could be a very bad decision...)
+          from = 'iso-8859-1' if from =~ /iso-8859-2/i
+        end
+
+        begin
+          convert_to_without_fallback_on_iso_8859_1(text, to, from)
+        rescue Iconv::InvalidCharacter
+          unless from == 'iso-8859-1'
+            from = 'iso-8859-1'
+            retry
+          end
         end
       end
 
@@ -113,6 +146,10 @@ module TMail
           text
         end
       end
+      
+      alias_method :convert_to_without_fallback_on_iso_8859_1, :convert_to
+      alias_method :convert_to, :convert_to_with_fallback_on_iso_8859_1
+      
     end
   end
 end

@@ -364,9 +364,10 @@ module TMail
     end
 
     def fromline2time( line )
-      m = /\AFrom \S+ \w+ (\w+) (\d+) (\d+):(\d+):(\d+) (\d+)/.match(line) \
-              or return nil
+      m = /\AFrom \S+ \w+ (\w+) (\d+) (\d+):(\d+):(\d+) (\d+)/.match(line) or return nil
       Time.local(m[6].to_i, m[1], m[2].to_i, m[3].to_i, m[4].to_i, m[5].to_i)
+    rescue
+      nil
     end
 
   end   # UNIXMbox
