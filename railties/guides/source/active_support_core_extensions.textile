@@ -591,6 +591,33 @@ end
 
 NOTE: Defined in +active_support/core_ext/module/attr_internal.rb+.
 
+h5. Module Attributes
+
+The macros +mattr_reader+, +mattr_writer+, and +mattr_accessor+ are analogous to the +cattr_*+ macros defined for class. Check "Class Attributes":#class-attributes.
+
+For example, the dependencies mechanism uses them:
+
+<ruby>
+module ActiveSupport
+  module Dependencies
+    mattr_accessor :warnings_on_first_load
+    mattr_accessor :history
+    mattr_accessor :loaded
+    mattr_accessor :mechanism
+    mattr_accessor :load_paths
+    mattr_accessor :load_once_paths
+    mattr_accessor :autoloaded_constants
+    mattr_accessor :explicitly_unloadable_constants
+    mattr_accessor :logger
+    mattr_accessor :log_activity
+    mattr_accessor :constant_watch_stack
+    mattr_accessor :constant_watch_stack_mutex
+  end
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/attribute_accessors.rb+.
+
 h4. Delegation
 
 The class method +delegate+
