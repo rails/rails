@@ -701,6 +701,8 @@ def raw(stringish)
 end
 </ruby>
 
+NOTE: Defined in +active_support/core_ext/string/output_safety.rb+.
+
 h4. +squish+
 
 The method +String#squish+ strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each:
