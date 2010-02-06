@@ -767,6 +767,30 @@ M.parents       # => [X::Y, X, Object]
 
 NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
 
+h4. Constants
+
+The method +local_constants+ returns the names of the constants that have been defined in the receiver module:
+
+<ruby>
+module X
+  X1 = 1
+  X2 = 2
+  module Y
+    Y1 = :y1
+    X1 = :overrides_X1_above
+  end
+end
+
+X.local_constants    # => ["X2", "X1", "Y"], assumes Ruby 1.8
+X::Y.local_constants # => ["X1", "Y1"], assumes Ruby 1.8
+</ruby>
+
+The names are returned as strings in Ruby 1.8, and as symbols in Ruby 1.9. The method +local_constant_names+ returns always strings.
+
+WARNING: This method is exact if running under Ruby 1.9. In previous versions it may miss some constants if their value in some ancestor stores the exact same object than in the receiver.
+
+NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
+
 h3. Extensions to +Class+
 
 h4. Class Attributes
