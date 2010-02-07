@@ -16,7 +16,7 @@ module Rails
 
     initializer "test_unit.backtrace_cleaner" do
       # TODO: Figure out how to get the Rails::BacktraceFilter into minitest/unit
-      unless defined?(Minitest) || ENV['BACKTRACE']
+      if defined?(Test::Unit::Util::BacktraceFilter) && ENV['BACKTRACE'].nil?
         require 'rails/backtrace_cleaner'
         Test::Unit::Util::BacktraceFilter.module_eval { include Rails::BacktraceFilterForTestUnit }
       end
