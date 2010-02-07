@@ -25,7 +25,7 @@ puts "Running command: #{rubygems_install_cmd}"
 build_results[:install_rubygems_update] = system rubygems_install_cmd
 
 # Install required version of bundler.
-bundler_install_cmd = "sudo gem install bundler -v 0.9.2 --no-ri --no-rdoc"
+bundler_install_cmd = "sudo gem install bundler -v 0.9.3 --no-ri --no-rdoc"
 puts "Running command: #{bundler_install_cmd}"
 build_results[:install_bundler] = system bundler_install_cmd
 
@@ -33,7 +33,7 @@ cd root_dir do
   puts
   puts "[CruiseControl] Bundling RubyGems"
   puts
-  build_results[:bundle] = system 'sudo env CI=1 bundle install'
+  build_results[:bundle] = system 'env CI=1 bundle install'
 end
 
 cd "#{root_dir}/activesupport" do
