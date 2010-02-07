@@ -791,6 +791,30 @@ WARNING: This method is exact if running under Ruby 1.9. In previous versions it
 
 NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
 
+h4. Synchronization
+
+The +synchronize+ macro declares a method to be synchronized:
+
+<ruby>
+class Counter
+  @@mutex = Mutex.new
+  attr_reader :value
+
+  def initialize
+    @value = 0
+  end
+
+  def incr
+    @value += 1 # non-atomic
+  end
+  synchronize :incr, :with => '@@mutex'
+end
+</ruby>
+
+The method receives the name of an action, and a +:with+ option with code. The code is evaluated in the context of the receiver each time the method is invoked, and it should evaluate to a +Mutex+ instance or any other object that responds to +synchronize+ and accepts a block. 
+
+NOTE: Defined in +active_support/core_ext/module/synchronization.rb+.
+
 h3. Extensions to +Class+
 
 h4. Class Attributes
