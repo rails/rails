@@ -41,7 +41,7 @@ module TMail
     end
   
     private
-    
+    require 'ruby-debug'
     def attachment(part)
       if part.multipart?
         part.attachments

@@ -60,8 +60,17 @@ module TMail
     
     include TextUtils
     
+    def quoted?(string)
+      !!((string =~ /.+'\w\w'.+/) || (string =~ /=\?.+\?.\?.+\?=/))
+    end
+    
+    # Only unquote if quoted
     def original_filename(to_charset = 'utf-8')
-      Unquoter.unquote_and_convert_to(quoted_filename, to_charset).chomp
+      if quoted?(quoted_filename)
+        Unquoter.unquote_and_convert_to(quoted_filename, to_charset).chomp
+      else
+        quoted_filename
+      end
     end
   end
 
