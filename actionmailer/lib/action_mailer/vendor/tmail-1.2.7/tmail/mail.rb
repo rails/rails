@@ -547,7 +547,7 @@ module TMail
     end
     
     def read_multipart( src )
-      bound = @header['content-type'].params['boundary']
+      bound = @header['content-type'].params['boundary'] || ::TMail.new_boundary
       is_sep = /\A--#{Regexp.quote bound}(?:--)?[ \t]*(?:\n|\r\n|\r)/
       lastbound = "--#{bound}--"
 

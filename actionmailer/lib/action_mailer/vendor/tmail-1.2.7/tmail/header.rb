@@ -243,6 +243,8 @@ module TMail
 
     def do_parse
       quote_boundary
+      quote_unquoted_name
+      quote_unquoted_bencode
       obj = Parser.parse(self.class::PARSE_TYPE, @body, @comments)
       set obj if obj
     end
@@ -314,7 +316,7 @@ module TMail
         if first
           first = false
         else
-          strategy.meta ','
+          strategy.puts_meta ','
           strategy.space
         end
         a.accept strategy
@@ -817,7 +819,7 @@ module TMail
         if v
           strategy.meta ';'
           strategy.space
-          strategy.kv_pair k, v
+          strategy.kv_pair k, unquote(v)
         end
       end
     end

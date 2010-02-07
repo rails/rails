@@ -1,0 +1,12 @@
+Usage:
+    require 'rubygems'
+    require 'rchardet'
+
+    cd = CharDet.detect(some_data)
+    encoding = cd['encoding']
+    confidence = cd['confidence'] # 0.0 <= confidence <= 1.0
+
+Project page: 
+    http://rubyforge.org/projects/rchardet
+
+    Made for rFeedParser <http://rfeedparser.rubyforge.org>.

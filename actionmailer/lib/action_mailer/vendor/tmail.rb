@@ -2,9 +2,9 @@
 require 'rubygems'
 
 begin
-  gem 'tmail', '~> 1.2.3'
+  gem 'tmail', '~> 1.2.7'
 rescue Gem::LoadError
-  $:.unshift "#{File.dirname(__FILE__)}/tmail-1.2.3"
+  $:.unshift "#{File.dirname(__FILE__)}/tmail-1.2.7"
 end
 
 module TMail

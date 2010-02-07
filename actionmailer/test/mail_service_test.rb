@@ -734,8 +734,8 @@ EOF
     expected.date    = Time.local 2004, 12, 12
 
     created = TestMailer.create_utf8_body @recipient
-    assert_match(/\nFrom: =\?utf-8\?Q\?Foo_.*?\?= <extended@example.net>\r/, created.encoded)
-    assert_match(/\nTo: =\?utf-8\?Q\?Foo_.*?\?= <extended@example.net>, Example Recipient <me/, created.encoded)
+    assert_match(/From:\ =\?utf\-8\?Q\?Foo_=C3=A1=C3=AB=C3=B4_=C3=AE=C3=BC\?=\ <extended@example\.net>/, created.encoded)
+    assert_match(/To:\ =\?utf\-8\?Q\?Foo_=C3=A1=C3=AB=C3=B4_=C3=AE=C3=BC\?=\ <extended@example\.net>/, created.encoded)
   end
 
   def test_receive_decodes_base64_encoded_mail

@@ -595,6 +595,12 @@ module TMail
     # Invalid message IDs are ignored (silently, unless configured otherwise) and result in 
     # a nil message ID.  Left and right angle brackets are required.
     #
+    # Be warned however, that calling mail.ready_to_send will overwrite whatever value you
+    # have in this field with an automatically generated unique value.
+    # 
+    # If you really want to set your own message ID and know what you are doing per the
+    # various RFCs, you can do so with the enforced_message_id= command
+    # 
     # Example:
     # 
     #  mail = TMail::Mail.new
@@ -604,6 +610,22 @@ module TMail
     #  mail.message_id #=> nil
     def message_id=( str )
       set_string_attr 'Message-Id', str
+    end
+
+    # Destructively sets the message ID of the mail object instance to the passed in string
+    # and also guarantees that calling #ready_to_send will not destroy what you set as the
+    # message_id
+    # 
+    # Example:
+    # 
+    #  mail = TMail::Mail.new
+    #  mail.message_id = "<348F04F142D69C21-291E56D292BC@xxxx.net>"
+    #  mail.message_id #=> "<348F04F142D69C21-291E56D292BC@xxxx.net>"
+    #  mail.ready_to_send
+    #  mail.message_id #=> "<348F04F142D69C21-291E56D292BC@xxxx.net>"
+    def enforced_message_id=( str )
+      @message_id_enforced = true
+      self.message_id = ( str )
     end
 
     # Returns the "In-Reply-To:" field contents as an array of this mail instance if it exists
@@ -843,7 +865,17 @@ module TMail
       if h = @header['content-type']
         h['charset'] or default
       else
-        default
+        mime_version_charset || default
+      end
+    end
+
+    # some weird emails come with the charset specified in the mime-version header:
+    #
+    #  #<TMail::MimeVersionHeader "1.0\n charset=\"gb2312\"">
+    #
+    def mime_version_charset
+      if header['mime-version'].inspect =~ /charset=('|\\")?([^\\"']+)/
+        $2
       end
     end
 

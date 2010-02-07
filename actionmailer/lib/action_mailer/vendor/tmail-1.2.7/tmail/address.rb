@@ -46,7 +46,7 @@ module TMail
   # 
   # Just pass the email address in as a string to Address.parse:
   # 
-  #  email = TMail::Address.parse('Mikel Lindsaar <mikel@lindsaar.net>)
+  #  email = TMail::Address.parse('Mikel Lindsaar <mikel@lindsaar.net>')
   #  #=> #<TMail::Address mikel@lindsaar.net>
   #  email.address
   #  #=> "mikel@lindsaar.net"
@@ -63,7 +63,7 @@ module TMail
   # Address.parse and catch any SyntaxError:
   # 
   #  begin
-  #    TMail::Mail.parse("mikel   2@@@@@ me .com")
+  #    TMail::Address.parse("mikel   2@@@@@ me .com")
   #  rescue TMail::SyntaxError
   #    puts("Invalid Email Address Detected")
   #  else
@@ -81,41 +81,7 @@ module TMail
     # 
     # Raises a TMail::SyntaxError on invalid email format
     def Address.parse( str )
-      Parser.parse :ADDRESS, special_quote_address(str)
-    end
-    
-    def Address.special_quote_address(str) #:nodoc:
-      # Takes a string which is an address and adds quotation marks to special
-      # edge case methods that the RACC parser can not handle.
-      #
-      # Right now just handles two edge cases:
-      #
-      # Full stop as the last character of the display name:
-      #   Mikel L. <mikel@me.com>
-      # Returns:
-      #   "Mikel L." <mikel@me.com>
-      #
-      # Unquoted @ symbol in the display name:
-      #   mikel@me.com <mikel@me.com>
-      # Returns:
-      #   "mikel@me.com" <mikel@me.com>
-      #
-      # Any other address not matching these patterns just gets returned as is. 
-      case
-      # This handles the missing "" in an older version of Apple Mail.app
-      # around the display name when the display name contains a '@'
-      # like 'mikel@me.com <mikel@me.com>'
-      # Just quotes it to: '"mikel@me.com" <mikel@me.com>'
-      when str =~ /\A([^"].+@.+[^"])\s(<.*?>)\Z/
-        return "\"#{$1}\" #{$2}"
-      # This handles cases where 'Mikel A. <mikel@me.com>' which is a trailing
-      # full stop before the address section.  Just quotes it to
-      # '"Mikel A. <mikel@me.com>"
-      when str =~ /\A(.*?\.)\s(<.*?>)\Z/
-        return "\"#{$1}\" #{$2}"
-      else
-        str
-      end
+      Parser.parse :ADDRESS, str
     end
 
     def address_group? #:nodoc:
@@ -412,7 +378,7 @@ module TMail
         if first
           first = false
         else
-          strategy.meta ','
+          strategy.puts_meta ','
         end
         strategy.space
         mbox.accept strategy

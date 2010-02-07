@@ -161,7 +161,7 @@ module TMail
     # Unwraps supplied string from inside double quotes
     # Returns unquoted string
     def unquote( str )
-      str =~ /^"(.*?)"$/ ? $1 : str
+      str =~ /^"(.*?)"$/m ? $1 : str
     end
     
     # Provides a method to join a domain name by it's parts and also makes it
@@ -255,7 +255,7 @@ module TMail
     end
 
 
-    MESSAGE_ID = /<[^\@>]+\@[^>\@]+>/
+    MESSAGE_ID = /<[^\@>]+\@[^>]+>/
     
     def message_id?( str )
       MESSAGE_ID === str
@@ -329,9 +329,33 @@ module TMail
         end
       end
     end
+    
+    # AppleMail generates illegal character contained Content-Type parameter like:
+    #   name==?ISO-2022-JP?B?...=?=
+    # so quote. (This case is only value fits in one line.)
+    def quote_unquoted_bencode
+      @body = @body.gsub(%r"(;\s+[-a-z]+=)(=\?.+?)([;\r\n ]|\z)"m) {
+        head, should_quoted, tail = $~.captures
+        # head: "; name="
+        # should_quoted: "=?ISO-2022-JP?B?...=?="
+    
+        head << quote_token(should_quoted) << tail
+      }
+    end
+    
+    # AppleMail generates name=filename attributes in the content type that
+    # contain spaces.  Need to handle this so the TMail Parser can.
+    def quote_unquoted_name
+      @body = @body.gsub(%r|(name=)([\w\s.]+)(.*)|m) {
+        head, should_quoted, tail = $~.captures
+        # head: "; name="
+        # should_quoted: "=?ISO-2022-JP?B?...=?="
+        head  << quote_token(should_quoted) << tail
+      }
+    end
+    
     #:startdoc:
-
-
+    
   end
 
 end
