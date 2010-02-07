@@ -16,7 +16,7 @@ Description:
     created model. This allows you create Single Table Inheritance models.
 
 Examples:
-    `./script/generate model account`
+    `rails generate model account`
 
         For ActiveRecord and TestUnit it creates:
 
@@ -25,6 +25,6 @@ Examples:
             Fixtures:   test/fixtures/accounts.yml
             Migration:  db/migrate/XXX_add_accounts.rb
 
-    `./script/generate model post title:string body:text published:boolean`
+    `rails generate model post title:string body:text published:boolean`
 
         Creates a Post model with a string title, text body, and published flag.

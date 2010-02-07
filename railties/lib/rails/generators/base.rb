@@ -62,7 +62,7 @@ module Rails
       #
       # For example, if the user invoke the controller generator as:
       #
-      #   ruby script/generate controller Account --test-framework=test_unit
+      #   rails generate controller Account --test-framework=test_unit
       #
       # The controller generator will then try to invoke the following generators:
       #
@@ -117,11 +117,11 @@ module Rails
       # All hooks come with switches for user interface. If the user don't want
       # to use any test framework, he can do:
       #
-      #   ruby script/generate controller Account --skip-test-framework
+      #   rails generate controller Account --skip-test-framework
       #
       # Or similarly:
       #
-      #   ruby script/generate controller Account --no-test-framework
+      #   rails generate controller Account --no-test-framework
       #
       # ==== Boolean hooks
       #
@@ -133,7 +133,7 @@ module Rails
       #
       # Then, if you want, webrat to be invoked, just supply:
       #
-      #   ruby script/generate controller Account --webrat
+      #   rails generate controller Account --webrat
       #
       # The hooks lookup is similar as above:
       #
@@ -213,8 +213,7 @@ module Rails
         if base.name && base.name !~ /Base$/
           Rails::Generators.subclasses << base
 
-          if defined?(Rails.root) && Rails.root
-            path = File.expand_path(File.join(Rails.root, 'lib', 'templates'))
+          Rails::Generators.templates_path.each do |path|
             if base.name.include?('::')
               base.source_paths << File.join(path, base.base_name, base.generator_name)
             else

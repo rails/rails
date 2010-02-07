@@ -52,30 +52,23 @@ module ApplicationTests
       end
     end
 
-    test "generators set rails fallbacks" do
-      with_config do |c|
-        c.generators.fallbacks[:shoulda] = :test_unit
-        expected = { :shoulda => :test_unit }
-        assert_equal expected, c.generators.fallbacks
-      end
-    end
-
-    test "generators aliases, options and fallbacks on initialization" do
+    test "generators aliases, options, templates and fallbacks on initialization" do
       add_to_config <<-RUBY
         config.generators.rails :aliases => { :test_framework => "-w" }
         config.generators.orm :datamapper
         config.generators.test_framework :rspec
         config.generators.fallbacks[:shoulda] = :test_unit
+        config.generators.templates << "some/where"
       RUBY
 
       # Initialize the application
       require "#{app_path}/config/environment"
       require "rails/generators"
-      Rails::Generators.configure!
 
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
       assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]
-      assert_equal :test_unit, Rails::Generators.fallbacks[:shoulda]
+      assert_equal Hash[:shoulda => :test_unit], Rails::Generators.fallbacks
+      assert_equal ["#{app_path}/lib/templates", "some/where"], Rails::Generators.templates_path
     end
 
     test "generators no color on initialization" do

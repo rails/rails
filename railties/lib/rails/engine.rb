@@ -102,6 +102,10 @@ module Rails
       app.metal_loader.paths.unshift(*paths.app.metals.to_a)
     end
 
+    initializer :add_generator_templates do |app|
+      config.generators.templates.unshift(*paths.lib.templates.to_a)
+    end
+
     initializer :load_application_initializers do
       paths.config.initializers.to_a.sort.each do |initializer|
         load(initializer)

@@ -88,12 +88,13 @@ module Rails
     end
 
     class Generators #:nodoc:
-      attr_accessor :aliases, :options, :fallbacks, :colorize_logging
+      attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging
 
       def initialize
         @aliases = Hash.new { |h,k| h[k] = {} }
         @options = Hash.new { |h,k| h[k] = {} }
         @fallbacks = {}
+        @templates = []
         @colorize_logging = true
       end
 

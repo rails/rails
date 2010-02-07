@@ -37,7 +37,7 @@ h4. Generating Performance Tests
 Rails provides a generator called +performance_test+ for creating new performance tests:
 
 <shell>
-script/generate performance_test homepage
+rails generate performance_test homepage
 </shell>
 
 This generates +homepage_test.rb+ in the +test/performance+ directory:
@@ -381,19 +381,19 @@ h4. +benchmarker+
 Usage:
 
 <shell>
-$ script/performance/benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ...
+$ rails benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ...
 </shell>
 
 Examples:
 
 <shell>
-$ script/performance/benchmarker 10 'Item.all' 'CouchItem.all'
+$ rails benchmarker 10 'Item.all' 'CouchItem.all'
 </shell>
 
 If the +[times]+ argument is omitted, supplied methods are run just once:
 
 <shell>
-$ script/performance/benchmarker 'Item.first' 'Item.last'
+$ rails benchmarker 'Item.first' 'Item.last'
 </shell>
 
 h4. +profiler+
@@ -403,19 +403,19 @@ h4. +profiler+
 Usage:
 
 <shell>
-$ script/performance/profiler 'Person.expensive_method(10)' [times] [flat|graph|graph_html]
+$ rails profiler 'Person.expensive_method(10)' [times] [flat|graph|graph_html]
 </shell>
 
 Examples:
 
 <shell>
-$ script/performance/profiler 'Item.all'
+$ rails profiler 'Item.all'
 </shell>
 
 This will profile +Item.all+ in +RubyProf::WALL_TIME+ measure mode. By default, it prints flat output to the shell.
 
 <shell>
-$ script/performance/profiler 'Item.all' 10 graph
+$ rails profiler 'Item.all' 10 graph
 </shell>
 
 This will profile +10.times { Item.all }+ with +RubyProf::WALL_TIME+ measure mode and print graph output to the shell.
@@ -423,7 +423,7 @@ This will profile +10.times { Item.all }+ with +RubyProf::WALL_TIME+ measure mod
 If you want to store the output in a file:
 
 <shell>
-$ script/performance/profiler 'Item.all' 10 graph 2> graph.txt
+$ rails profiler 'Item.all' 10 graph 2> graph.txt
 </shell>
 
 h3. Helper Methods

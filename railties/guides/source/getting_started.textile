@@ -258,10 +258,10 @@ h3. Hello, Rails!
 One of the traditional places to start with a new language is by getting some text up on screen quickly. To do that in Rails, you need to create at minimum a controller and a view. Fortunately, you can do that in a single command. Enter this command in your terminal:
 
 <shell>
-$ script/generate controller home index
+$ rails generate controller home index
 </shell>
 
-TIP: If you're on Windows, or your Ruby is set up in some non-standard fashion, you may need to explicitly pass Rails +script+ commands to Ruby: +ruby script/generate controller home index+.
+TIP: If you're on Windows, or your Ruby is set up in some non-standard fashion, you may need to explicitly pass Rails +script+ commands to Ruby: +rails generate controller home index+.
 
 Rails will create several files for you, including +app/views/home/index.html.erb+. This is the template that will be used to display the results of the +index+ action (method) in the +home+ controller. Open this file in your text editor and edit it to contain a single line of code:
 
@@ -274,7 +274,7 @@ h4. Starting up the Web Server
 You actually have a functional Rails application already - after running only two commands! To see it, you need to start a web server on your development machine. You can do this by running another command:
 
 <shell>
-$ script/server
+$ rails server
 </shell>
 
 This will fire up an instance of the Mongrel web server by default (Rails can also use several other web servers). To see your application in action, open a browser window and navigate to +http://localhost:3000+. You should see Rails' default information page:
@@ -323,7 +323,7 @@ h3. Creating a Resource
 In the case of the blog application, you can start by generating a scaffolded Post resource: this will represent a single blog posting. To do this, enter this command in your terminal:
 
 <shell>
-$ script/generate scaffold Post name:string title:string content:text
+$ rails generate scaffold Post name:string title:string content:text
 </shell>
 
 NOTE. While scaffolding will get you up and running quickly, the "one size fits all" code that it generates is unlikely to be a perfect fit for your application. In most cases, you'll need to customize the generated code. Many experienced Rails developers avoid scaffolding entirely, preferring to write all or most of their source code from scratch.
@@ -349,7 +349,7 @@ The scaffold generator will build 14 files in your application, along with some 
 
 h4. Running a Migration
 
-One of the products of the +script/generate scaffold+ command is a _database migration_. Migrations are Ruby classes that are designed to make it simple to create and modify database tables. Rails uses rake commands to run migrations, and it's possible to undo a migration after it's been applied to your database. Migration filenames include a timestamp to ensure that they're processed in the order that they were created.
+One of the products of the +rails generate scaffold+ command is a _database migration_. Migrations are Ruby classes that are designed to make it simple to create and modify database tables. Rails uses rake commands to run migrations, and it's possible to undo a migration after it's been applied to your database. Migration filenames include a timestamp to ensure that they're processed in the order that they were created.
 
 If you look in the +db/migrate/20090113124235_create_posts.rb+ file (remember, yours will have a slightly different name), here's what you'll find:
 
@@ -400,7 +400,7 @@ Now you're ready to start working with posts. To do that, navigate to +http://lo
 
 !images/posts_index.png(Posts Index screenshot)!
 
-This is the result of Rails rendering the +index+ view of your posts. There aren't currently any posts in the database, but if you click the +New Post+ link you can create one. After that, you'll find that you can edit posts, look at their details, or destroy them. All of the logic and HTML to handle this was built by the single +script/generate scaffold+ command.
+This is the result of Rails rendering the +index+ view of your posts. There aren't currently any posts in the database, but if you click the +New Post+ link you can create one. After that, you'll find that you can edit posts, look at their details, or destroy them. All of the logic and HTML to handle this was built by the single +rails generate scaffold+ command.
 
 TIP: In development mode (which is what you're working in by default), Rails reloads your application with every browser request, so there's no need to stop and restart the web server.
 
@@ -435,7 +435,7 @@ h4. Using the Console
 To see your validations in action, you can use the console. The console is a command-line tool that lets you execute Ruby code in the context of your application:
 
 <shell>
-$ script/console
+$ rails console
 </shell>
 
 After the console loads, you can use it to work with your application's models:
@@ -516,7 +516,7 @@ TIP: For more details on the rendering process, see "Layouts and Rendering in Ra
 
 h4. Customizing the Layout
 
-The view is only part of the story of how HTML is displayed in your web browser. Rails also has the concept of +layouts+, which are containers for views. When Rails renders a view to the browser, it does so by putting the view's HTML into a layout's HTML. The +script/generate scaffold+ command automatically created a default layout, +app/views/layouts/posts.html.erb+, for the posts. Open this layout in your editor and modify the +body+ tag:
+The view is only part of the story of how HTML is displayed in your web browser. Rails also has the concept of +layouts+, which are containers for views. When Rails renders a view to the browser, it does so by putting the view's HTML into a layout's HTML. The +rails generate scaffold+ command automatically created a default layout, +app/views/layouts/posts.html.erb+, for the posts. Open this layout in your editor and modify the +body+ tag:
 
 <erb>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -859,7 +859,7 @@ h4. Generating a Model
 Models in Rails use a singular name, and their corresponding database tables use a plural name. For the model to hold comments, the convention is to use the name Comment. Even if you don't want to use the entire apparatus set up by scaffolding, most Rails developers still use generators to make things like models and controllers. To create the new model, run this command in your terminal:
 
 <shell>
-$ script/generate model Comment commenter:string body:text
+$ rails generate model Comment commenter:string body:text
     post:references
 </shell>
 
@@ -953,7 +953,7 @@ h4. Generating a Controller
 With the model in hand, you can turn your attention to creating a matching controller. Again, there's a generator for this:
 
 <shell>
-$ script/generate controller Comments index show new edit
+$ rails generate controller Comments index show new edit
 </shell>
 
 This creates eight files:
@@ -967,7 +967,7 @@ This creates eight files:
 * +test/functional/comments_controller_test.rb+ - The functional tests for the controller
 * +test/unit/helpers/comments_helper_test.rb+ - The unit tests for the helper
 
-The controller will be generated with empty methods and views for each action that you specified in the call to +script/generate controller+:
+The controller will be generated with empty methods and views for each action that you specified in the call to +rails generate controller+:
 
 <ruby>
 class CommentsController < ApplicationController
@@ -1052,7 +1052,7 @@ This creates a new +Comment+ object _and_ sets up the +post_id+ field to have th
 
 h4. Building Views
 
-Because you skipped scaffolding, you'll need to build views for comments "by hand". Invoking +script/generate controller+ will give you skeleton views, but they'll be devoid of actual content. Here's a first pass at fleshing out the comment views.
+Because you skipped scaffolding, you'll need to build views for comments "by hand". Invoking +rails generate controller+ will give you skeleton views, but they'll be devoid of actual content. Here's a first pass at fleshing out the comment views.
 
 The +views/comments/index.html.erb+ view:
 
@@ -1214,7 +1214,7 @@ h3. Building a Multi-Model Form
 Comments and posts are edited on two separate forms - which makes sense, given the flow of this mini-application. But what if you want to edit more than one thing on a single form? Rails 2.3 offers new support for nested forms. Let's add support for giving each post multiple tags, right in the form where you create the post. First, create a new model to hold the tags:
 
 <shell>
-$ script/generate model tag name:string post:references
+$ rails generate model tag name:string post:references
 </shell>
 
 Run the migration to create the database table:

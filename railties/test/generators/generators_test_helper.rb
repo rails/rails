@@ -6,6 +6,7 @@ module Rails
   end
 end
 Rails.application.config.root = Rails.root
+Rails.application.config.generators.templates = [File.join(Rails.root, "lib", "templates")]
 
 require 'rails/generators'
 require 'rails/generators/test_case'

@@ -5,4 +5,4 @@ Description:
     Before invoking this generator, be sure that your ORM supports session stores.
 
 Example:
-    `./script/generate session_migration CreateSessionTable`
+    `rails generate session_migration CreateSessionTable`

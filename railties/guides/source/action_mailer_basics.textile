@@ -19,7 +19,7 @@ h4. Walkthrough to Generating a Mailer
 h5. Create the Mailer
 
 <shell>
-./script/generate mailer UserMailer
+rails generate mailer UserMailer
 create  app/mailers/user_mailer.rb
 invoke  erb
 create    app/views/user_mailer
@@ -111,7 +111,7 @@ Let's see how we would go about wiring it up using an observer.
 First off, we need to create a simple +User+ scaffold:
 
 <shell>
-$ script/generate scaffold user name:string email:string login:string
+$ rails generate scaffold user name:string email:string login:string
 $ rake db:migrate
 </shell>
 
@@ -333,7 +333,7 @@ Receiving and parsing emails with Action Mailer can be a rather complex endeavou
 
 * Implement a +receive+ method in your mailer.
 
-* Configure your email server to forward emails from the address(es) you would like your app to receive to +/path/to/app/script/runner 'UserMailer.receive(STDIN.read)'+.
+* Configure your email server to forward emails from the address(es) you would like your app to receive to +/path/to/app/script/rails runner 'UserMailer.receive(STDIN.read)'+.
 
 Once a method called +receive+ is defined in any mailer, Action Mailer will parse the raw incoming email into an email object, decode it, instantiate a new mailer, and pass the email object to the mailer +receive+ instance method. Here's an example:
 

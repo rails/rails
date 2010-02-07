@@ -6,5 +6,5 @@ Description:
     TestUnit.
 
 Example:
-    `./script/generate integration_test GeneralStories` creates a GeneralStories
+    `rails generate integration_test GeneralStories` creates a GeneralStories
     integration test in test/integration/general_stories_test.rb
