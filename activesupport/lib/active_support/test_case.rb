@@ -21,12 +21,6 @@ module ActiveSupport
       alias_method :method_name, :name if method_defined? :name
       alias_method :method_name, :__name__ if method_defined? :__name__
     else
-      # TODO: Figure out how to get the Rails::BacktraceFilter into minitest/unit
-      if defined?(Rails) && ENV['BACKTRACE'].nil?
-        require 'rails/backtrace_cleaner'
-        Test::Unit::Util::BacktraceFilter.module_eval { include Rails::BacktraceFilterForTestUnit }
-      end
-
       Assertion = Test::Unit::AssertionFailedError
 
       require 'active_support/testing/default'
