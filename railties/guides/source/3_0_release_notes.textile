@@ -211,7 +211,7 @@ Railties now deprecates:
 More information:
 * "Discovering Rails 3 generators":http://blog.plataformatec.com.br/2010/01/discovering-rails-3-generators
 * "Making Generators for Rails 3 with Thor":http://caffeinedd.com/guides/331-making-generators-for-rails-3-with-thor
-
+* "The Rails Module (in Rails 3)":http://litanyagainstfear.com/blog/2010/02/03/the-rails-module/
 
 h3. Action Pack
 
