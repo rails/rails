@@ -215,34 +215,34 @@ module CharDet
       # so the word boundary detection works properly. [MAP]
 
       if get_state() == ENotMe
-	# Both model probers say it's not them. No reason to continue.
-	return ENotMe
+        # Both model probers say it's not them. No reason to continue.
+        return ENotMe
       end
 
       aBuf = filter_high_bit_only(aBuf)
 
       for cur in aBuf.split(' ')
-	if cur == ' '
-	  # We stand on a space - a word just ended
-	  if @_mBeforePrev != ' '
-	    # next-to-last char was not a space so self._mPrev is not a 1 letter word
-	    if is_final(@_mPrev)
-	      # case (1) [-2:not space][-1:final letter][cur:space]
-	      @_mFinalCharLogicalScore += 1
-	    elsif is_non_final(@_mPrev)
-	      # case (2) [-2:not space][-1:Non-Final letter][cur:space]
-	      @_mFinalCharVisualScore += 1
-	    end
-	  end
-	else
-	  # Not standing on a space
-	  if (@_mBeforePrev == ' ') and (is_final(@_mPrev)) and (cur != ' ')
-	    # case (3) [-2:space][-1:final letter][cur:not space]
-	    @_mFinalCharVisualScore += 1
-	  end
-	end
-	@_mBeforePrev = @_mPrev
-	@_mPrev = cur
+        if cur == ' '
+          # We stand on a space - a word just ended
+          if @_mBeforePrev != ' '
+            # next-to-last char was not a space so self._mPrev is not a 1 letter word
+            if is_final(@_mPrev)
+              # case (1) [-2:not space][-1:final letter][cur:space]
+              @_mFinalCharLogicalScore += 1
+            elsif is_non_final(@_mPrev)
+              # case (2) [-2:not space][-1:Non-Final letter][cur:space]
+              @_mFinalCharVisualScore += 1
+            end
+          end
+        else
+          # Not standing on a space
+          if (@_mBeforePrev == ' ') and (is_final(@_mPrev)) and (cur != ' ')
+            # case (3) [-2:space][-1:final letter][cur:not space]
+            @_mFinalCharVisualScore += 1
+          end
+        end
+        @_mBeforePrev = @_mPrev
+        @_mPrev = cur
       end
 
       # Forever detecting, till the end or until both model probers return eNotMe (handled above)
@@ -254,24 +254,24 @@ module CharDet
       # If the final letter score distance is dominant enough, rely on it.
       finalsub = @_mFinalCharLogicalScore - @_mFinalCharVisualScore
       if finalsub >= MIN_FINAL_CHAR_DISTANCE
-	return LOGICAL_HEBREW_NAME
+        return LOGICAL_HEBREW_NAME
       end
       if finalsub <= -MIN_FINAL_CHAR_DISTANCE
-	return VISUAL_HEBREW_NAME
+        return VISUAL_HEBREW_NAME
       end
 
       # It's not dominant enough, try to rely on the model scores instead.
       modelsub = @_mLogicalProber.get_confidence() - @_mVisualProber.get_confidence()
       if modelsub > MIN_MODEL_DISTANCE
-	return LOGICAL_HEBREW_NAME
+        return LOGICAL_HEBREW_NAME
       end
       if modelsub < -MIN_MODEL_DISTANCE
-	return VISUAL_HEBREW_NAME
+        return VISUAL_HEBREW_NAME
       end
 
       # Still no good, back to final letter distance, maybe it'll save the day.
       if finalsub < 0.0
-	return VISUAL_HEBREW_NAME
+        return VISUAL_HEBREW_NAME
       end
 
       # (finalsub > 0 - Logical) or (don't know what to do) default to Logical.
@@ -281,7 +281,7 @@ module CharDet
     def get_state
       # Remain active as long as any of the model probers are active.
       if (@_mLogicalProber.get_state() == ENotMe) and (@_mVisualProber.get_state() == ENotMe)
-	return ENotMe
+        return ENotMe
       end
       return EDetecting
     end

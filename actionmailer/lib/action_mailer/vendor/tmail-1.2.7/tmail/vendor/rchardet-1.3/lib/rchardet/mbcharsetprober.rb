@@ -40,10 +40,10 @@ module CharDet
     def reset
       super
       if @_mCodingSM
-	@_mCodingSM.reset()
+        @_mCodingSM.reset()
       end
       if @_mDistributionAnalyzer
-	@_mDistributionAnalyzer.reset()
+        @_mDistributionAnalyzer.reset()
       end
       @_mLastChar = "\x00\x00"
     end
@@ -54,30 +54,30 @@ module CharDet
     def feed(aBuf)
       aLen = aBuf.length
       for i in (0...aLen)
-	codingState = @_mCodingSM.next_state(aBuf[i..i])
-	if codingState == EError
-	  $stderr << "#{get_charset_name} prober hit error at byte #{i}\n" if $debug
-	  @_mState = ENotMe
-	  break
-	elsif codingState == EItsMe
-	  @_mState = EFoundIt
-	  break
-	elsif codingState == EStart
-	  charLen = @_mCodingSM.get_current_charlen()
-	  if i == 0
-	    @_mLastChar[1] = aBuf[0..0]
-	    @_mDistributionAnalyzer.feed(@_mLastChar, charLen)
-	  else
-	    @_mDistributionAnalyzer.feed(aBuf[i-1...i+1], charLen)
-	  end
-	end
+        codingState = @_mCodingSM.next_state(aBuf[i..i])
+        if codingState == EError
+          $stderr << "#{get_charset_name} prober hit error at byte #{i}\n" if $debug
+          @_mState = ENotMe
+          break
+        elsif codingState == EItsMe
+          @_mState = EFoundIt
+          break
+        elsif codingState == EStart
+          charLen = @_mCodingSM.get_current_charlen()
+          if i == 0
+            @_mLastChar[1] = aBuf[0..0]
+            @_mDistributionAnalyzer.feed(@_mLastChar, charLen)
+          else
+            @_mDistributionAnalyzer.feed(aBuf[i-1...i+1], charLen)
+          end
+        end
       end
       @_mLastChar[0] = aBuf[aLen-1..aLen-1]
 
       if get_state() == EDetecting
-	if @_mDistributionAnalyzer.got_enough_data() and (get_confidence() > SHORTCUT_THRESHOLD)
-	  @_mState = EFoundIt
-	end
+        if @_mDistributionAnalyzer.got_enough_data() and (get_confidence() > SHORTCUT_THRESHOLD)
+          @_mState = EFoundIt
+        end
       end
       return get_state()
     end

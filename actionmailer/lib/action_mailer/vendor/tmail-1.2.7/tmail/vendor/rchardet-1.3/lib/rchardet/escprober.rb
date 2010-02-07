@@ -30,21 +30,19 @@ module CharDet
   class EscCharSetProber < CharSetProber
     def initialize
       super()
-      @_mCodingSM = [ 
-	CodingStateMachine.new(HZSMModel),
-	CodingStateMachine.new(ISO2022CNSMModel),
-	CodingStateMachine.new(ISO2022JPSMModel),
-	CodingStateMachine.new(ISO2022KRSMModel)
-      ]
+      @_mCodingSM = [ CodingStateMachine.new(HZSMModel),
+                      CodingStateMachine.new(ISO2022CNSMModel),
+                      CodingStateMachine.new(ISO2022JPSMModel),
+                      CodingStateMachine.new(ISO2022KRSMModel)  ]
       reset()
     end
 
     def reset
       super()
-      for codingSM in @_mCodingSM:
-	next if not codingSM
-	codingSM.active = true
-	codingSM.reset()
+      for codingSM in @_mCodingSM
+        next if not codingSM
+        codingSM.active = true
+        codingSM.reset()
       end
       @_mActiveSM = @_mCodingSM.length
       @_mDetectedCharset = nil
@@ -56,35 +54,36 @@ module CharDet
 
     def get_confidence
       if @_mDetectedCharset
-	return 0.99
+        return 0.99
       else
-	return 0.00
+        return 0.00
       end
     end
 
     def feed(aBuf)
       aBuf.each_byte do |b|
-	c = b.chr
-	for codingSM in @_mCodingSM
-	  next unless codingSM
-	  next unless codingSM.active
-	  codingState = codingSM.next_state(c)
-	  if codingState == EError
-	    codingSM.active = false
-	    @_mActiveSM -= 1
-	    if @_mActiveSM <= 0
-	      @_mState = ENotMe
-	      return get_state()
-	    end
-	  elsif codingState == EItsMe
-	    @_mState = EFoundIt
-	    @_mDetectedCharset = codingSM.get_coding_state_machine()
-	    return get_state()
-	  end
-	end
+        c = b.chr
+        for codingSM in @_mCodingSM
+          next unless codingSM
+          next unless codingSM.active
+          codingState = codingSM.next_state(c)
+          if codingState == EError
+            codingSM.active = false
+            @_mActiveSM -= 1
+            if @_mActiveSM <= 0
+              @_mState = ENotMe
+              return get_state()
+            end
+          elsif codingState == EItsMe
+            @_mState = EFoundIt
+            @_mDetectedCharset = codingSM.get_coding_state_machine()
+            return get_state()
+          end
+        end
       end
-
       return get_state()
+
     end
+
   end
 end

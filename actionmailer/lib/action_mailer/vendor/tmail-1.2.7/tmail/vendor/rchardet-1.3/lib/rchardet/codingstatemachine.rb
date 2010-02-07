@@ -44,8 +44,8 @@ module CharDet
       # if it is first byte, we also get byte length
       byteCls = @_mModel['classTable'][c[0]]
       if @_mCurrentState == EStart
-	@_mCurrentBytePos = 0
-	@_mCurrentCharLen = @_mModel['charLenTable'][byteCls]
+        @_mCurrentBytePos = 0
+        @_mCurrentCharLen = @_mModel['charLenTable'][byteCls]
       end
       # from byte's class and stateTable, we get its next state
       @_mCurrentState = @_mModel['stateTable'][@_mCurrentState * @_mModel['classFactor'] + byteCls]

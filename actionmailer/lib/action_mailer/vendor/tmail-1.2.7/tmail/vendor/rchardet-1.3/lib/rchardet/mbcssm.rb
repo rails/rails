@@ -73,10 +73,10 @@ module CharDet
   Big5CharLenTable = [0, 1, 1, 2, 0]
 
   Big5SMModel = {'classTable' =>  BIG5_cls,
-	       'classFactor' =>  5,
-	       'stateTable' =>  BIG5_st,
-	       'charLenTable' =>  Big5CharLenTable,
-	       'name' =>  'Big5'
+                 'classFactor' =>  5,
+                 'stateTable' =>  BIG5_st,
+                 'charLenTable' =>  Big5CharLenTable,
+                 'name' =>  'Big5'
   }
 
   # EUC-JP
@@ -127,10 +127,10 @@ module CharDet
   EUCJPCharLenTable = [2, 2, 2, 3, 1, 0]
 
   EUCJPSMModel = {'classTable' =>  EUCJP_cls,
-		'classFactor' =>  6,
-		'stateTable' =>  EUCJP_st,
-		'charLenTable' =>  EUCJPCharLenTable,
-		'name' =>  'EUC-JP'
+                  'classFactor' =>  6,
+                  'stateTable' =>  EUCJP_st,
+                  'charLenTable' =>  EUCJPCharLenTable,
+                  'name' =>  'EUC-JP'
   }
 
   # EUC-KR
@@ -178,10 +178,10 @@ module CharDet
   EUCKRCharLenTable = [0, 1, 2, 0]
 
   EUCKRSMModel = {'classTable' =>  EUCKR_cls,
-		'classFactor' =>  4,
-		'stateTable' =>  EUCKR_st,
-		'charLenTable' =>  EUCKRCharLenTable,
-		'name' =>  'EUC-KR'
+                  'classFactor' =>  4,
+                  'stateTable' =>  EUCKR_st,
+                  'charLenTable' =>  EUCKRCharLenTable,
+                  'name' =>  'EUC-KR'
   }
 
   # EUC-TW
@@ -233,10 +233,10 @@ module CharDet
   EUCTWCharLenTable = [0, 0, 1, 2, 2, 2, 3]
 
   EUCTWSMModel = {'classTable' =>  EUCTW_cls,
-		'classFactor' =>  7,
-		'stateTable' =>  EUCTW_st,
-		'charLenTable' =>  EUCTWCharLenTable,
-		'name' =>  'x-euc-tw'
+                  'classFactor' =>  7,
+                  'stateTable' =>  EUCTW_st,
+                  'charLenTable' =>  EUCTWCharLenTable,
+                  'name' =>  'x-euc-tw'
   }
 
   # GB2312
@@ -293,10 +293,10 @@ module CharDet
   GB2312CharLenTable = [0, 1, 1, 1, 1, 1, 2]
 
   GB2312SMModel = {'classTable' =>  GB2312_cls,
-		  'classFactor' =>  7,
-		  'stateTable' =>  GB2312_st,
-		  'charLenTable' =>  GB2312CharLenTable,
-		  'name' =>  'GB2312'
+                   'classFactor' =>  7,
+                   'stateTable' =>  GB2312_st,
+                   'charLenTable' =>  GB2312CharLenTable,
+                   'name' =>  'GB2312'
   }
 
   # Shift_JIS
@@ -347,10 +347,10 @@ module CharDet
   SJISCharLenTable = [0, 1, 1, 2, 0, 0]
 
   SJISSMModel = {'classTable' =>  SJIS_cls,
-	       'classFactor' =>  6,
-	       'stateTable' =>  SJIS_st,
-	       'charLenTable' =>  SJISCharLenTable,
-	       'name' =>  'Shift_JIS'
+                 'classFactor' =>  6,
+                 'stateTable' =>  SJIS_st,
+                 'charLenTable' =>  SJISCharLenTable,
+                 'name' =>  'Shift_JIS'
   }
 
   # UCS2-BE
@@ -403,10 +403,10 @@ module CharDet
   UCS2BECharLenTable = [2, 2, 2, 0, 2, 2]
 
   UCS2BESMModel = {'classTable' =>  UCS2BE_cls,
-		 'classFactor' =>  6,
-		 'stateTable' =>  UCS2BE_st,
-		 'charLenTable' =>  UCS2BECharLenTable,
-		 'name' =>  'UTF-16BE'
+                   'classFactor' =>  6,
+                   'stateTable' =>  UCS2BE_st,
+                   'charLenTable' =>  UCS2BECharLenTable,
+                   'name' =>  'UTF-16BE'
   }
 
   # UCS2-LE
@@ -459,10 +459,10 @@ module CharDet
   UCS2LECharLenTable = [2, 2, 2, 2, 2, 2]
 
   UCS2LESMModel = {'classTable' =>  UCS2LE_cls,
-		 'classFactor' =>  6,
-		 'stateTable' =>  UCS2LE_st,
-		 'charLenTable' =>  UCS2LECharLenTable,
-		 'name' =>  'UTF-16LE'
+                   'classFactor' =>  6,
+                   'stateTable' =>  UCS2LE_st,
+                   'charLenTable' =>  UCS2LECharLenTable,
+                   'name' =>  'UTF-16LE'
   }
 
   # UTF-8
@@ -534,9 +534,9 @@ module CharDet
   UTF8CharLenTable = [0, 1, 0, 0, 0, 0, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6]
 
   UTF8SMModel = {'classTable' =>  UTF8_cls,
-	       'classFactor' =>  16,
-	       'stateTable' =>  UTF8_st,
-	       'charLenTable' =>  UTF8CharLenTable,
-	       'name' =>  'UTF-8'
+                 'classFactor' =>  16,
+                 'stateTable' =>  UTF8_st,
+                 'charLenTable' =>  UTF8CharLenTable,
+                 'name' =>  'UTF-8'
   }
 end
