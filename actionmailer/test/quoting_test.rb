@@ -23,9 +23,13 @@ class QuotingTest < Test::Unit::TestCase
   end
 
   def test_unqoute_multiple
-    a ="=?utf-8?q?Re=3A_=5B12=5D_=23137=3A_Inkonsistente_verwendung_von_=22Hin?==?utf-8?b?enVmw7xnZW4i?="
-    b = TMail::Unquoter.unquote_and_convert_to(a, 'utf-8')
-    assert_equal "Re: [12] #137: Inkonsistente verwendung von \"Hinzuf\303\274gen\"", b
+    quoted ="=?utf-8?q?Re=3A_=5B12=5D_=23137=3A_Inkonsistente_verwendung_von_=22Hin?==?utf-8?b?enVmw7xnZW4i?="
+    actual = TMail::Unquoter.unquote_and_convert_to(quoted, 'utf-8')
+
+    expected = "Re: [12] #137: Inkonsistente verwendung von \"Hinzuf\303\274gen\""
+    expected.force_encoding 'ASCII-8BIT' if expected.respond_to?(:force_encoding)
+
+    assert_equal expected, actual
   end
 
   def test_unqoute_in_the_middle
@@ -71,7 +75,9 @@ class QuotingTest < Test::Unit::TestCase
 
   def test_email_with_partially_quoted_subject
     mail = TMail::Mail.parse(IO.read("#{File.dirname(__FILE__)}/fixtures/raw_email_with_partially_quoted_subject"))
-    assert_equal "Re: Test: \"\346\274\242\345\255\227\" mid \"\346\274\242\345\255\227\" tail", mail.subject
+    expected = "Re: Test: \"\346\274\242\345\255\227\" mid \"\346\274\242\345\255\227\" tail"
+    expected.force_encoding('ASCII-8BIT') if expected.respond_to?(:force_encoding)
+    assert_equal expected, mail.subject
   end
 
   private
