@@ -81,7 +81,7 @@ module Rails
         end
 
         in_root do
-          append_file "Gemfile", "gem #{parts.join(", ")}", :verbose => false
+          append_file "Gemfile", "gem #{parts.join(", ")}\n", :verbose => false
         end
       end
 
