@@ -163,11 +163,6 @@ class ModuleTest < Test::Unit::TestCase
   def test_local_constants
     assert_equal %w(Constant1 Constant3), Ab.local_constants.sort.map(&:to_s)
   end
-
-  def test_as_load_path
-    assert_equal 'yz/zy', Yz::Zy.as_load_path
-    assert_equal 'yz', Yz.as_load_path
-  end
 end
 
 module BarMethodAliaser
