@@ -2118,7 +2118,7 @@ File.atomic_write(joined_asset_path) do |cache|
 end
 </ruby>
 
-To accomplish this +atomic_write+ creates a temporary file. That's the file the code in the block actually writes to. On completion, the temporary file is renamed. If the target file exists +atomic_write+ overwrites it and keeps owners and permissions.
+To accomplish this +atomic_write+ creates a temporary file. That's the file the code in the block actually writes to. On completion, the temporary file is renamed, which is an atomic operation on POSIX systems. If the target file exists +atomic_write+ overwrites it and keeps owners and permissions.
 
 WARNING. Note you can't append with +atomic_write+.
 
