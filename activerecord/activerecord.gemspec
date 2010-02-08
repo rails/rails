@@ -4,6 +4,7 @@ Gem::Specification.new do |s|
   s.version     = '3.0.0.beta1'
   s.summary     = 'Object-relational mapper framework (part of Rails).'
   s.description = 'Object-relational mapper framework (part of Rails).'
+  s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'

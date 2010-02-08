@@ -4,6 +4,7 @@ Gem::Specification.new do |s|
   s.version     = '3.0.0.beta1'
   s.summary     = 'Web-flow and rendering framework putting the VC in MVC (part of Rails).'
   s.description = 'Web-flow and rendering framework putting the VC in MVC (part of Rails).'
+  s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'

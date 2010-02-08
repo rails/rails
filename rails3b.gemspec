@@ -4,6 +4,7 @@ Gem::Specification.new do |s|
   s.version     = '3.0.0'
   s.summary     = 'Just the Rails 3 beta dependencies. Works around prerelease RubyGems bug.'
   s.description = 'My kingdom for working dependencies.'
+  s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'Jeremy Kemper'
   s.email             = 'jeremy@bitsweat.net'
