@@ -319,7 +319,7 @@ $ rm public/index.html
 
 We need to do this as Rails will deliver any static file in the +public+ directory in preference to any dynamic contact we generate from the controllers.
 
-Now, you have to tell Rails where your actual home page is located. Open the file +config/routes.rb+ in your editor. This is your application's, _routing file_, which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. There are only comments in this file, so we need to add at the top the following:
+Now, you have to tell Rails where your actual home page is located. Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. There are only comments in this file, so we need to add at the top the following:
 
 <ruby>
 Blog::Application.routes.draw do |map|
