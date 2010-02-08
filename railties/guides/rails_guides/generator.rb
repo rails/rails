@@ -11,7 +11,7 @@ module RailsGuides
 
       unless ENV["ONLY"]
         FileUtils.rm_r(@output) if File.directory?(@output)
-        FileUtils.mkdir(@output)
+        FileUtils.mkdir_p(@output)
       end
 
       @view_path = File.join(@guides_dir, "source")
