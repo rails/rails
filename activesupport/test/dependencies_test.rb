@@ -1,7 +1,6 @@
 require 'abstract_unit'
 require 'pp'
 require 'active_support/dependencies'
-require 'active_support/core_ext/module/loading'
 require 'active_support/core_ext/kernel/reporting'
 
 module ModuleWithMissing
@@ -128,10 +127,6 @@ class DependenciesTest < Test::Unit::TestCase
       assert_nothing_raised { require_dependency 'mutual_two' }
       assert_equal 2, $mutual_dependencies_count
     end
-  end
-
-  def test_as_load_path
-    assert_equal '', DependenciesTest.as_load_path
   end
 
   def test_module_loading
