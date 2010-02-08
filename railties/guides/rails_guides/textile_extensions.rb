@@ -13,9 +13,9 @@ module RailsGuides
     end
 
     def tip(body)
-      body.gsub!(/^(TIP)\:(.*)$/) do |m|
+      body.gsub!(/^TIP(?:\.|\:)(.*)$/) do |m|
         result = "<div class='info'><p>"
-        result << $2.strip
+        result << $1.strip
         result << '</p></div>'
         result
       end
