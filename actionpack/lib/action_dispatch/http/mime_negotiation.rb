@@ -48,7 +48,7 @@ module ActionDispatch
         @env["action_dispatch.request.formats"] ||=
           if parameters[:format]
             Array(Mime[parameters[:format]])
-          elsif xhr? || (accept && !accept.include?(?,))
+          elsif xhr? || (accept && accept !~ /,\s*\*\/\*/)
             accepts
           else
             [Mime::HTML]
