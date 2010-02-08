@@ -148,7 +148,7 @@ Usually run this as the root user:
 
 NOTE. In the Rails 3.0.0-beta, you will need to manually install the dependencies for Rails itself as a bug in rubygems will cause these to not be installed, see the "3.0 Release Notes":http://guides.rails.info/3_0_release_notes.html for the commands to run.
 
-TIP. If you're working on Windows, you may find it easier to install Instant Rails. Be aware, though, that "Instant Rails":http://instantrails.rubyforge.org/wiki/wiki.pl releases tend to lag seriously behind the actual Rails version. Also, you will find that Rails development on Windows is overall less pleasant than on other operating systems. If at all possible, we suggest that you install a Linux virtual machine and use that for Rails development, instead of using Windows.
+TIP. If you're working on Windows, you may find it easier to install "Instant Rails":http://instantrails.rubyforge.org/wiki/wiki.pl. Be aware, though, that Instant Rails releases tend to lag seriously behind the actual Rails version. Also, you will find that Rails development on Windows is overall less pleasant than on other operating systems. If at all possible, we suggest that you install a Linux virtual machine and use that for Rails development, instead of using Windows.
 
 h4. Creating the Blog Application
 
