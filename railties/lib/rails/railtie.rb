@@ -8,12 +8,11 @@ module Rails
   # Every major component of Rails (Action Mailer, Action Controller,
   # Action View, Active Record and Active Resource) are all Railties, so each of
   # them is responsible to set their own initialization. This makes, for example,
-  # Rails absent of any ActiveRecord hook, allowing any other ORM to hook in.
+  # Rails absent of any ActiveRecord hook, allowing any other ORM framework to hook in.
   # 
-  # Developing a Rails extension does not _require_ any implementation of
-  # Railtie, but if you need to interact with the Rails framework
-  # during boot, or after boot, then Railtie is what you need to do that
-  # interaction.
+  # Developing a Rails extension does _not_ require any implementation of
+  # Railtie, but if you need to interact with the Rails framework during
+  # or after boot, then Railtie is what you need to do that interaction.
   # 
   # For example, the following would need you to implement Railtie in your
   # plugin:

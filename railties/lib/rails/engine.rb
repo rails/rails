@@ -3,9 +3,8 @@ require 'rails/railtie'
 
 module Rails
   # Rails::Engine allows you to wrap a specific Rails application and share it accross
-  # different applications. Since Rails 3.0, your Rails::Application is nothing
-  # more than an Engine, thus your engines will behave much more closer to an application
-  # since then.
+  # different applications. Since Rails 3.0, every Rails::Application is nothing
+  # more than an Engine, allowing you to share it very easily.
   #
   # Any Rails::Engine is also a Rails::Railtie, so the same methods (like rake_tasks and
   # generators) and configuration available in the latter can also be used in the former.
@@ -47,7 +46,7 @@ module Rails
   # 
   # == Paths
   #
-  # Since Rails 3.0, both your Application and Engines does not have hardcoded paths.
+  # Since Rails 3.0, both your Application and Engines do not have hardcoded paths.
   # This means that you are not required to place your controllers at "app/controllers",
   # but in any place which you find convenient.
   #
