@@ -1,7 +1,7 @@
 module RailsGuides
   module TextileExtensions
     def notestuff(body)
-      body.gsub!(/^(IMPORTANT|CAUTION|WARNING|NOTE|INFO)(?:\.|\:)(.*)$/) do |m|
+      body.gsub!(/^(IMPORTANT|CAUTION|WARNING|NOTE|INFO)[.:](.*)$/) do |m|
         css_class = $1.downcase
         css_class = 'warning' if ['caution', 'important'].include?(css_class)
 
@@ -13,7 +13,7 @@ module RailsGuides
     end
 
     def tip(body)
-      body.gsub!(/^TIP(?:\.|\:)(.*)$/) do |m|
+      body.gsub!(/^TIP[.:](.*)$/) do |m|
         result = "<div class='info'><p>"
         result << $1.strip
         result << '</p></div>'
