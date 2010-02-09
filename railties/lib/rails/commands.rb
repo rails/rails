@@ -58,8 +58,6 @@ when 'plugin'
   require 'rails/commands/plugin'
 when 'runner'
   require 'rails/commands/runner'
-  require ENV_PATH
-
 
 when '--help', '-h'
   puts HELP_TEXT
