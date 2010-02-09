@@ -6,8 +6,8 @@ module Rails
   class Server < ::Rack::Server
     class Options
       def parse!(args)
-        options = {}
-        args    = args.dup
+        args, options = args.dup, {}
+
         opt_parser = OptionParser.new do |opts|
           opts.banner = "Usage: rails server [options]"
           opts.on("-p", "--port=port", Integer,
@@ -34,13 +34,20 @@ module Rails
       end
     end
 
+    def initialize(*)
+      super
+      set_environment
+    end
+
     def opt_parser
       Options.new
     end
 
-    def start
-      ENV["RAILS_ENV"] = options[:environment]
+    def set_environment
+      ENV["RAILS_ENV"] ||= options[:environment]
+    end
 
+    def start
       puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
       puts "=> Rails #{Rails.version} application starting in #{Rails.env} on http://#{options[:Host]}:#{options[:Port]}"
       puts "=> Call with -d to detach" unless options[:daemonize]
