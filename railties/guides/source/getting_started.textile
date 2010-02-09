@@ -9,7 +9,7 @@ This guide covers getting up and running with Ruby on Rails. After reading it, y
 
 endprologue.
 
-WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in other versions of Rails.
+WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
 
 h3. Guide Assumptions
 
