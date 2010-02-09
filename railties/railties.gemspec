@@ -4,6 +4,7 @@ Gem::Specification.new do |s|
   s.version     = '3.0.0.beta1'
   s.summary     = 'Controls boot-up, rake tasks and generators for the Rails framework.'
   s.description = 'Controls boot-up, rake tasks and generators for the Rails framework.'
+  s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'

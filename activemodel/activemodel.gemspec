@@ -4,6 +4,7 @@ Gem::Specification.new do |s|
   s.version = '3.0.0.beta1'
   s.summary = "A toolkit for building other modeling frameworks like ActiveRecord"
   s.description = %q{Extracts common modeling concerns from ActiveRecord to share between similar frameworks like ActiveResource.}
+  s.required_ruby_version = '>= 1.8.7'
 
   s.author = "David Heinemeier Hansson"
   s.email = "david@loudthinking.com"

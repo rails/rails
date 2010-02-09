@@ -4,12 +4,13 @@ Gem::Specification.new do |s|
   s.version     = '3.0.0.beta1'
   s.summary     = 'Full-stack web-application framework.'
   s.description = 'Full-stack web-application framework.'
+  s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'
   s.homepage          = 'http://www.rubyonrails.org'
   s.rubyforge_project = 'rails'
-
+  
   s.files = []
   s.require_path = []
 

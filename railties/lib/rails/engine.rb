@@ -16,7 +16,7 @@ module Rails
         unless abstract_railtie?(base)
           base.called_from = begin
             call_stack = caller.map { |p| p.split(':').first }
-            File.dirname(call_stack.detect { |p| p !~ %r[railties/lib/rails|rack/lib/rack] })
+            File.dirname(call_stack.detect { |p| p !~ %r[railties[\w\-]*/lib/rails|rack[\w\-]*/lib/rack] })
           end
         end
 
