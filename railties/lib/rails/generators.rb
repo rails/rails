@@ -166,7 +166,7 @@ module Rails
     end
 
     # Show help message with available generators.
-    def self.help
+    def self.help(command = 'generate')
       lookup!
 
       namespaces = subclasses.map{ |k| k.namespace }
@@ -178,7 +178,7 @@ module Rails
         groups[base] << namespace
       end
 
-      puts "Usage: rails generate GENERATOR [args] [options]"
+      puts "Usage: rails #{command} GENERATOR [args] [options]"
       puts
       puts "General options:"
       puts "  -h, [--help]     # Print generators options and usage"
