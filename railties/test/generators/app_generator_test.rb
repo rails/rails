@@ -158,15 +158,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], :dev => true).expects(:run).with("bundle install")
     silence(:stdout){ generator.invoke }
     rails_path = File.expand_path('../../..', Rails.root)
-    dev_gem = %(gem "rails", :path => #{rails_path.inspect})
-    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']\/Users\/mikel\/rails_programs\/rails["']$/
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
     generator([destination_root], :edge => true).expects(:run).with("bundle install")
     silence(:stdout){ generator.invoke }
-    edge_gem = %(gem "rails", :git => "git://github.com/rails/rails.git")
-    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:git\s+=>\s+["']git:\/\/github\.com\/rails\/rails\.git["']$/
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$/
   end
 
   protected
