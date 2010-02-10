@@ -323,6 +323,40 @@ TIP: Since +with_options+ forwards calls to its receiver they can be nested. Eac
 
 NOTE: Defined in +active_support/core_ext/object/with_options.rb+.
 
+h5. +subclasses_of+
+
+The method +subclasses_of+ receives an arbitrary number of class objects and returns all their anonymous or reachable descendants as a single array:
+
+<ruby>
+class C; end
+subclasses_of(C) # => []
+
+subclasses_of(Integer) # => [Bignum, Fixnum]
+
+module M
+  class A; end
+  class B1 < A; end
+  class B2 < A; end
+end
+
+module N
+  class C < M::B1; end
+end
+
+subclasses_of(M::A) # => [N::C, M::B2, M::B1]
+</ruby>
+
+The order in which these classes are returned is unspecified. The returned collection may have duplicates:
+
+<ruby>
+subclasses_of(Numeric, Integer)
+# => [Bignum, Float, Fixnum, Integer, Date::Infinity, Rational, BigDecimal, Bignum, Fixnum]
+</ruby>
+
+See also +Class#subclasses+ in "Extensions to +Class+ FIX THIS LINK":FIXME.
+
+NOTE: Defined in +active_support/core_ext/object/extending.rb+.
+
 h4. Instance Variables
 
 Active Support provides several methods to ease access to instance variables.
