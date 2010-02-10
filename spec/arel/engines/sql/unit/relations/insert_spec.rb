@@ -46,6 +46,14 @@ module Arel
             RETURNING "id"
           })
         end
+
+        adapter_is :oracle do
+          @insertion.to_sql.should be_like(%Q{
+            INSERT
+            INTO "USERS"
+            ("ID", "NAME") VALUES (1, 'nick')
+          })
+        end
       end
 
       describe 'when given values whose types correspond to the types of the attributes' do
@@ -76,6 +84,14 @@ module Arel
               INTO "users"
               ("name") VALUES (E'nick')
               RETURNING "id"
+            })
+          end
+
+          adapter_is :oracle do
+            @insertion.to_sql.should be_like(%Q{
+              INSERT
+              INTO "USERS"
+              ("NAME") VALUES ('nick')
             })
           end
         end
@@ -111,6 +127,15 @@ module Arel
               RETURNING "id"
             })
           end
+
+          adapter_is :oracle do
+            @insertion.to_sql.should be_like(%Q{
+              INSERT
+              INTO "USERS"
+              ("ID") VALUES (1)
+            })
+          end
+
         end
       end
     end

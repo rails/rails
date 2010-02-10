@@ -20,7 +20,15 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "USERS"."ID", "USERS"."NAME"
+              FROM "USERS"
+              GROUP BY "USERS"."ID"
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "users"."id", "users"."name"
               FROM "users"
@@ -42,7 +50,15 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "USERS"."ID", "USERS"."NAME"
+              FROM "USERS"
+              GROUP BY asdf
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "users"."id", "users"."name"
               FROM "users"

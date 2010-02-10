@@ -11,7 +11,13 @@ module Arel
       end
 
       def adapter_name
-        @adapter_name ||= connection.adapter_name
+        @adapter_name ||= case (name = connection.adapter_name)
+        # map OracleEnanced adapter to Oracle
+        when /Oracle/
+          'Oracle'
+        else
+          name
+        end
       end
 
       def method_missing(method, *args, &block)

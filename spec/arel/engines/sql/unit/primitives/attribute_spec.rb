@@ -22,7 +22,11 @@ module Arel
             sql.should be_like(%Q{`users`.`id`})
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{"USERS"."ID"})
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{"users"."id"})
           end
         end

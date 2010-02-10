@@ -19,7 +19,16 @@ module Arel
           })
         end
 
-        adapter_is_not :mysql do
+        adapter_is :oracle do
+          sql.should be_like(%Q{
+            select * from (select raw_sql_.*, rownum raw_rnum_ from
+            (SELECT "USERS"."ID", "USERS"."NAME"
+            FROM "USERS") raw_sql_)
+            where raw_rnum_ > 4
+          })
+        end
+
+        adapter_is_not :mysql, :oracle do
           sql.should be_like(%Q{
             SELECT "users"."id", "users"."name"
             FROM "users"

@@ -14,7 +14,11 @@ module Arel
           sql.should be_like(%Q{SELECT COUNT(*) AS count_id FROM `users`})
         end
 
-        adapter_is_not :mysql do
+        adapter_is :oracle do
+          sql.should be_like(%Q{SELECT COUNT(*) AS count_id FROM "USERS"})
+        end
+
+        adapter_is_not :mysql, :oracle do
           sql.should be_like(%Q{SELECT COUNT(*) AS count_id FROM "users"})
         end
       end
@@ -26,7 +30,11 @@ module Arel
           sql.should be_like(%Q{SELECT SUM(2 * credit_limit) AS sum_id FROM `users`})
         end
 
-        adapter_is_not :mysql do
+        adapter_is :oracle do
+          sql.should be_like(%Q{SELECT SUM(2 * credit_limit) AS sum_id FROM "USERS"})
+        end
+
+        adapter_is_not :mysql, :oracle do
           sql.should be_like(%Q{SELECT SUM(2 * credit_limit) AS sum_id FROM "users"})
         end
       end

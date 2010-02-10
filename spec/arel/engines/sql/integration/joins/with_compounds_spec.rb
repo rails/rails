@@ -26,7 +26,16 @@ module Arel
               })
             end
 
-            adapter_is_not :mysql do
+            adapter_is :oracle do
+              sql.should be_like(%Q{
+                SELECT "USERS"."ID", "USERS"."NAME", "PHOTOS"."ID", "PHOTOS"."USER_ID", "PHOTOS"."CAMERA_ID"
+                FROM "USERS"
+                INNER JOIN "PHOTOS"
+                  ON "USERS"."ID" = "PHOTOS"."USER_ID" AND asdf
+              })
+            end
+
+            adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 SELECT "users"."id", "users"."name", "photos"."id", "photos"."user_id", "photos"."camera_id"
                 FROM "users"
@@ -59,7 +68,18 @@ module Arel
               })
             end
 
-            adapter_is_not :mysql do
+            adapter_is :oracle do
+              sql.should be_like(%Q{
+                SELECT "USERS"."ID", "USERS"."NAME", "PHOTOS"."ID", "PHOTOS"."USER_ID", "PHOTOS"."CAMERA_ID"
+                FROM "USERS"
+                INNER JOIN "PHOTOS"
+                  ON "USERS"."ID" = "PHOTOS"."USER_ID"
+                WHERE "USERS"."ID" = 1
+                  AND "USERS"."ID" = 1
+              })
+            end
+
+            adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 SELECT "users"."id", "users"."name", "photos"."id", "photos"."user_id", "photos"."camera_id"
                 FROM "users"
@@ -90,7 +110,17 @@ module Arel
               })
             end
 
-            adapter_is_not :mysql do
+            adapter_is :oracle do
+              sql.should be_like(%Q{
+                SELECT "USERS"."ID", "USERS"."NAME", "PHOTOS"."ID", "PHOTOS"."USER_ID", "PHOTOS"."CAMERA_ID"
+                FROM "USERS"
+                INNER JOIN "PHOTOS"
+                  ON "USERS"."ID" = "PHOTOS"."USER_ID"
+                GROUP BY "USERS"."ID"
+              })
+            end
+
+            adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 SELECT "users"."id", "users"."name", "photos"."id", "photos"."user_id", "photos"."camera_id"
                 FROM "users"

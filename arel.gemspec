@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bryan Helmkamp", "Nick Kallen", "Emilio Tagua"]
-  s.date = %q{2010-02-05}
+  s.date = %q{2010-02-13}
   s.description = %q{Arel is a Relational Algebra for Ruby. It 1) simplifies the generation complex
 of SQL queries and it 2) adapts to various RDBMS systems. It is intended to be
 a framework framework; that is, you can build your own ORM with it, focusing on
@@ -146,6 +146,7 @@ and query generation.}
     "spec/arel/engines/sql/unit/relations/update_spec.rb",
     "spec/arel/engines/sql/unit/relations/where_spec.rb",
     "spec/connections/mysql_connection.rb",
+    "spec/connections/oracle_connection.rb",
     "spec/connections/postgresql_connection.rb",
     "spec/connections/sqlite3_connection.rb",
     "spec/doubles/hash.rb",
@@ -153,6 +154,7 @@ and query generation.}
     "spec/matchers/disambiguate_attributes.rb",
     "spec/matchers/hash_the_same_as.rb",
     "spec/schemas/mysql_schema.rb",
+    "spec/schemas/oracle_schema.rb",
     "spec/schemas/postgresql_schema.rb",
     "spec/schemas/sqlite3_schema.rb",
     "spec/spec.opts",
@@ -221,6 +223,7 @@ and query generation.}
     "spec/arel/engines/sql/unit/relations/update_spec.rb",
     "spec/arel/engines/sql/unit/relations/where_spec.rb",
     "spec/connections/mysql_connection.rb",
+    "spec/connections/oracle_connection.rb",
     "spec/connections/postgresql_connection.rb",
     "spec/connections/sqlite3_connection.rb",
     "spec/doubles/hash.rb",
@@ -228,6 +231,7 @@ and query generation.}
     "spec/matchers/disambiguate_attributes.rb",
     "spec/matchers/hash_the_same_as.rb",
     "spec/schemas/mysql_schema.rb",
+    "spec/schemas/oracle_schema.rb",
     "spec/schemas/postgresql_schema.rb",
     "spec/schemas/sqlite3_schema.rb",
     "spec/spec_helper.rb"

@@ -33,6 +33,12 @@ module Arel
                 ("users"."id" = 1 AND "users"."name" = E'name')
               })
             end
+
+            adapter_is :oracle do
+              sql.should be_like(%Q{
+                ("USERS"."ID" = 1 AND "USERS"."NAME" = 'name')
+              })
+            end
           end
         end
       end
@@ -57,6 +63,12 @@ module Arel
             adapter_is :postgresql do
               sql.should be_like(%Q{
                 ("users"."id" = 1 OR "users"."name" = E'name')
+              })
+            end
+
+            adapter_is :oracle do
+              sql.should be_like(%Q{
+                ("USERS"."ID" = 1 OR "USERS"."NAME" = 'name')
               })
             end
           end

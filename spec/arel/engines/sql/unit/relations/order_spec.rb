@@ -20,7 +20,31 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "USERS"."ID", "USERS"."NAME"
+              FROM "USERS"
+              ORDER BY "USERS"."ID" ASC
+            })
+
+            distinct_attributes = ActiveRecord::Base.connection.distinct('"USERS"."NAME"', '"USERS"."ID"')
+            @relation.project(distinct_attributes).order(@relation[:id]).to_sql.should be_like(%Q{
+              SELECT DISTINCT "USERS"."NAME",
+              FIRST_VALUE("USERS"."ID") OVER (PARTITION BY "USERS"."NAME" ORDER BY "USERS"."ID") AS alias_0__
+              FROM "USERS"
+              ORDER BY alias_0__
+            })
+
+            distinct_attributes = ActiveRecord::Base.connection.distinct('"USERS"."NAME"', '"USERS"."ID" DESC')
+            @relation.project(distinct_attributes).order('"USERS"."ID" DESC').to_sql.should be_like(%Q{
+              SELECT DISTINCT "USERS"."NAME",
+              FIRST_VALUE("USERS"."ID") OVER (PARTITION BY "USERS"."NAME" ORDER BY "USERS"."ID" DESC) AS alias_0__
+              FROM "USERS"
+              ORDER BY alias_0__ DESC
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "users"."id", "users"."name"
               FROM "users"
@@ -46,7 +70,15 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "USERS"."ID", "USERS"."NAME"
+              FROM "USERS"
+              ORDER BY "USERS"."ID" ASC, "USERS"."NAME" ASC
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "users"."id", "users"."name"
               FROM "users"
@@ -72,7 +104,15 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "USERS"."ID", "USERS"."NAME"
+              FROM "USERS"
+              ORDER BY asdf
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "users"."id", "users"."name"
               FROM "users"
@@ -99,7 +139,15 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "USERS"."ID", "USERS"."NAME"
+              FROM "USERS"
+              ORDER BY "USERS"."NAME" ASC, "USERS"."ID" ASC
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "users"."id", "users"."name"
               FROM "users"

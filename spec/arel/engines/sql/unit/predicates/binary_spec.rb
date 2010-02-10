@@ -37,6 +37,10 @@ module Arel
               adapter_is :sqlite3 do
                 sql.should be_like(%Q{("users"."id" <=> 1 OR "users"."name" <=> 'name')})
               end
+
+              adapter_is :oracle do
+                sql.should be_like(%Q{("USERS"."ID" <=> 1 OR "USERS"."NAME" <=> 'name')})
+              end
             end
           end
         end
@@ -57,6 +61,10 @@ module Arel
               adapter_is :postgresql do
                 sql.should be_like(%Q{("users"."id" <=> 1 AND "users"."name" <=> E'name')})
               end
+
+              adapter_is :oracle do
+                sql.should be_like(%Q{("USERS"."ID" <=> 1 AND "USERS"."NAME" <=> 'name')})
+              end
             end
           end
         end
@@ -71,7 +79,11 @@ module Arel
               sql.should be_like(%Q{`users`.`id` <=> `users`.`name`})
             end
 
-            adapter_is_not :mysql do
+            adapter_is :oracle do
+              sql.should be_like(%Q{"USERS"."ID" <=> "USERS"."NAME"})
+            end
+
+            adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{"users"."id" <=> "users"."name"})
             end
           end
@@ -90,7 +102,11 @@ module Arel
                 sql.should be_like(%Q{`users`.`id` <=> 1})
               end
 
-              adapter_is_not :mysql do
+              adapter_is :oracle do
+                sql.should be_like(%Q{"USERS"."ID" <=> 1})
+              end
+
+              adapter_is_not :mysql, :oracle do
                 sql.should be_like(%Q{"users"."id" <=> 1})
               end
             end
@@ -110,6 +126,10 @@ module Arel
 
               adapter_is :postgresql do
                 sql.should be_like(%Q{"users"."name" <=> E'1-asdf'})
+              end
+
+              adapter_is :oracle do
+                sql.should be_like(%Q{"USERS"."NAME" <=> '1-asdf'})
               end
             end
           end

@@ -14,7 +14,11 @@ module Arel
           sql.should be_like(%Q{DELETE FROM `users`})
         end
 
-        adapter_is_not :mysql do
+        adapter_is :oracle do
+          sql.should be_like(%Q{DELETE FROM "USERS"})
+        end
+
+        adapter_is_not :mysql, :oracle do
           sql.should be_like(%Q{DELETE FROM "users"})
         end
       end
@@ -30,7 +34,15 @@ module Arel
           })
         end
 
-        adapter_is_not :mysql do
+        adapter_is :oracle do
+          sql.should be_like(%Q{
+            DELETE
+            FROM "USERS"
+            WHERE "USERS"."ID" = 1
+          })
+        end
+
+        adapter_is_not :mysql, :oracle do
           sql.should be_like(%Q{
             DELETE
             FROM "users"
@@ -50,7 +62,15 @@ module Arel
           })
         end
 
-        adapter_is_not :mysql do
+        adapter_is :oracle do
+          sql.should be_like(%Q{
+            DELETE
+            FROM "USERS"
+            WHERE ROWNUM <= 1
+          })
+        end
+
+        adapter_is_not :mysql, :oracle do
           sql.should be_like(%Q{
             DELETE
             FROM "users"

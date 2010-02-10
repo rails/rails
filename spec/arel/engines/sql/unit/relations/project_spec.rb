@@ -19,7 +19,14 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "USERS"."ID"
+              FROM "USERS"
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "users"."id"
               FROM "users"
@@ -42,7 +49,13 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT (SELECT "USERS"."NAME" FROM "USERS") AS "USERS" FROM "USERS"
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT (SELECT "users"."name" FROM "users") AS "users" FROM "users"
             })
@@ -60,7 +73,13 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT asdf FROM "USERS"
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT asdf FROM "users"
             })
@@ -79,7 +98,14 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT COUNT("USERS"."ID") AS count_id
+              FROM "USERS"
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT COUNT("users"."id") AS count_id
               FROM "users"
@@ -97,7 +123,14 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT COUNT(DISTINCT "USERS"."ID") AS count_id
+              FROM "USERS"
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT COUNT(DISTINCT "users"."id") AS count_id
               FROM "users"

@@ -29,7 +29,16 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "USERS"."ID", "USERS"."NAME", "PHOTOS_EXTERNAL"."ID", "PHOTOS_EXTERNAL"."USER_ID", "PHOTOS_EXTERNAL"."CAMERA_ID"
+              FROM "USERS"
+              INNER JOIN (SELECT "PHOTOS"."ID", "PHOTOS"."USER_ID", "PHOTOS"."CAMERA_ID" FROM "PHOTOS" WHERE ROWNUM <= 3) "PHOTOS_EXTERNAL"
+                ON "USERS"."ID" = "PHOTOS_EXTERNAL"."USER_ID"
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "users"."id", "users"."name", "photos_external"."id", "photos_external"."user_id", "photos_external"."camera_id"
               FROM "users"
@@ -52,7 +61,16 @@ module Arel
               })
             end
 
-            adapter_is_not :mysql do
+            adapter_is :oracle do
+              sql.should be_like(%Q{
+                SELECT "USERS"."ID", "USERS"."NAME", "PHOTOS_EXTERNAL"."USER_ID", "PHOTOS_EXTERNAL"."CNT"
+                FROM "USERS"
+                  INNER JOIN (SELECT "PHOTOS"."USER_ID", COUNT("PHOTOS"."ID") AS "CNT" FROM "PHOTOS" GROUP BY "PHOTOS"."USER_ID") "PHOTOS_EXTERNAL"
+                    ON "USERS"."ID" = "PHOTOS_EXTERNAL"."USER_ID"
+              })
+            end
+
+            adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 SELECT "users"."id", "users"."name", "photos_external"."user_id", "photos_external"."cnt"
                 FROM "users"
@@ -76,7 +94,16 @@ module Arel
               })
             end
 
-            adapter_is_not :mysql do
+            adapter_is :oracle do
+              sql.should be_like(%Q{
+                SELECT "PHOTOS_EXTERNAL"."USER_ID", "PHOTOS_EXTERNAL"."CNT", "USERS"."ID", "USERS"."NAME"
+                FROM (SELECT "PHOTOS"."USER_ID", COUNT("PHOTOS"."ID") AS "CNT" FROM "PHOTOS" GROUP BY "PHOTOS"."USER_ID") "PHOTOS_EXTERNAL"
+                  INNER JOIN "USERS"
+                    ON "USERS"."ID" = "PHOTOS_EXTERNAL"."USER_ID"
+              })
+            end
+
+            adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 SELECT "photos_external"."user_id", "photos_external"."cnt", "users"."id", "users"."name"
                 FROM (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" GROUP BY "photos"."user_id") AS "photos_external"
@@ -101,7 +128,16 @@ module Arel
               })
             end
 
-            adapter_is_not :mysql do
+            adapter_is :oracle do
+              sql.should be_like(%Q{
+                SELECT "PHOTOS_EXTERNAL"."USER_ID", "PHOTOS_EXTERNAL"."CNT", "PHOTOS_EXTERNAL_2"."USER_ID", "PHOTOS_EXTERNAL_2"."CNT"
+                FROM (SELECT "PHOTOS"."USER_ID", COUNT("PHOTOS"."ID") AS "CNT" FROM "PHOTOS" GROUP BY  "PHOTOS"."USER_ID") "PHOTOS_EXTERNAL"
+                  INNER JOIN (SELECT "PHOTOS"."USER_ID", COUNT("PHOTOS"."ID") AS "CNT" FROM "PHOTOS" GROUP BY "PHOTOS"."USER_ID") "PHOTOS_EXTERNAL_2"
+                    ON "PHOTOS_EXTERNAL_2"."USER_ID" = "PHOTOS_EXTERNAL"."USER_ID"
+              })
+            end
+
+            adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 SELECT "photos_external"."user_id", "photos_external"."cnt", "photos_external_2"."user_id", "photos_external_2"."cnt"
                 FROM (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" GROUP BY  "photos"."user_id") AS "photos_external"
@@ -126,7 +162,16 @@ module Arel
                 })
               end
 
-              adapter_is_not :mysql do
+              adapter_is :oracle do
+                sql.should be_like(%Q{
+                  SELECT "USERS"."ID", "USERS"."NAME", "PHOTOS_EXTERNAL"."USER_ID", "PHOTOS_EXTERNAL"."CNT"
+                  FROM "USERS"
+                    INNER JOIN (SELECT "PHOTOS"."USER_ID", COUNT("PHOTOS"."ID") AS "CNT" FROM "PHOTOS" WHERE "PHOTOS"."USER_ID" = 1 GROUP BY "PHOTOS"."USER_ID") "PHOTOS_EXTERNAL"
+                      ON "USERS"."ID" = "PHOTOS_EXTERNAL"."USER_ID"
+                })
+              end
+
+              adapter_is_not :mysql, :oracle do
                 sql.should be_like(%Q{
                   SELECT "users"."id", "users"."name", "photos_external"."user_id", "photos_external"."cnt"
                   FROM "users"
@@ -150,7 +195,16 @@ module Arel
                 })
               end
 
-              adapter_is_not :mysql do
+              adapter_is :oracle do
+                sql.should be_like(%Q{
+                  SELECT "PHOTOS_EXTERNAL"."USER_ID", "PHOTOS_EXTERNAL"."CNT", "USERS"."ID", "USERS"."NAME"
+                  FROM (SELECT "PHOTOS"."USER_ID", COUNT("PHOTOS"."ID") AS "CNT" FROM "PHOTOS" WHERE "PHOTOS"."USER_ID" = 1 GROUP BY "PHOTOS"."USER_ID") "PHOTOS_EXTERNAL"
+                    INNER JOIN "USERS"
+                      ON "USERS"."ID" = "PHOTOS_EXTERNAL"."USER_ID"
+                })
+              end
+
+              adapter_is_not :mysql, :oracle do
                 sql.should be_like(%Q{
                   SELECT "photos_external"."user_id", "photos_external"."cnt", "users"."id", "users"."name"
                   FROM (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" WHERE "photos"."user_id" = 1 GROUP BY "photos"."user_id") AS "photos_external"

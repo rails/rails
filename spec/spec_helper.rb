@@ -12,18 +12,21 @@ require 'arel'
 end
 
 module AdapterGuards
-  def adapter_is(name)
-    verify_adapter_name(name)
-    yield if name.to_s == adapter_name
+  def adapter_is(*names)
+    names = names.map(&:to_s)
+    names.each{|name| verify_adapter_name(name)}
+    yield if names.include? adapter_name
   end
 
-  def adapter_is_not(name)
-    verify_adapter_name(name)
-    yield if name.to_s != adapter_name
+  def adapter_is_not(*names)
+    names = names.map(&:to_s)
+    names.each{|name| verify_adapter_name(name)}
+    yield unless names.include? adapter_name
   end
 
   def adapter_name
     name = ActiveRecord::Base.configurations["unit"][:adapter]
+    name = 'oracle' if name == 'oracle_enhanced'
     verify_adapter_name(name)
     name
   end
@@ -33,7 +36,7 @@ module AdapterGuards
   end
 
   def valid_adapters
-    %w[mysql postgresql sqlite3]
+    %w[mysql postgresql sqlite3 oracle]
   end
 end
 
@@ -52,4 +55,10 @@ Spec::Runner.configure do |config|
   config.before do
     Arel::Table.engine = Arel::Sql::Engine.new(ActiveRecord::Base)
   end
+end
+
+# load corresponding adapter using ADAPTER environment variable when running single *_spec.rb file
+if adapter = ENV['ADAPTER']
+  require "#{dir}/connections/#{adapter}_connection.rb"
+  require "#{dir}/schemas/#{adapter}_schema.rb"
 end

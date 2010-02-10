@@ -93,7 +93,7 @@ module Arel
 
     class TableReference < Formatter
       def select(select_sql, table)
-        "(#{select_sql}) AS #{quote_table_name(name_for(table))}"
+        "(#{select_sql})#{as_keyword}#{quote_table_name(name_for(table))}"
       end
 
       def table(table)
@@ -101,8 +101,15 @@ module Arel
           table.name
         else
           quote_table_name(table.name) +
-            (table.name != name_for(table) ? " AS " + quote_table_name(name_for(table)) : '')
+            (table.name != name_for(table) ? as_keyword + quote_table_name(name_for(table)) : '')
         end
+      end
+
+      private
+
+      def as_keyword
+        # AS keyword should not be used before table alias in Oracle
+        as_keyword = engine.adapter_name == "Oracle" ? " " : " AS "
       end
     end
 

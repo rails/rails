@@ -30,6 +30,24 @@ module Arel
             FROM "users"
           })
         end
+
+        adapter_is :oracle do
+          sql.should be_like(%Q{
+            SELECT "USERS"."ID", "USERS"."NAME"
+            FROM "USERS" FOR UPDATE
+          })
+
+          sql_with_order_by = @relation.order(@relation[:id]).take(1).lock.to_sql
+          sql_with_order_by.should be_like(%Q{
+            SELECT "USERS"."ID", "USERS"."NAME"
+            FROM "USERS"
+            WHERE "ID" IN (select * from
+                          (SELECT "ID" FROM "USERS" ORDER BY "USERS"."ID" ASC)
+                          where rownum <= 1)
+            FOR UPDATE
+          })
+
+        end
       end
 
       it "manufactures a select query locking with a given lock" do
@@ -53,6 +71,13 @@ module Arel
           sql.should be_like(%Q{
             SELECT "users"."id", "users"."name"
             FROM "users"
+          })
+        end
+
+        adapter_is :oracle do
+          sql.should be_like(%Q{
+            SELECT "USERS"."ID", "USERS"."NAME"
+            FROM "USERS" LOCK IN SHARE MODE
           })
         end
       end

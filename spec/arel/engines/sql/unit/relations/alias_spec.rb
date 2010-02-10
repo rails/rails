@@ -27,7 +27,17 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "USERS"."ID"
+              FROM "USERS"
+              WHERE "USERS"."ID" = 1
+              GROUP BY "USERS"."ID"
+              ORDER BY "USERS"."ID" ASC
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "users"."id"
               FROM "users"

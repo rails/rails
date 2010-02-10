@@ -20,7 +20,16 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "DEVELOPERS"."ID", "DEVELOPERS"."NAME", "DEVELOPERS"."SALARY", "DEVELOPERS"."DEPARTMENT", "DEVELOPERS"."CREATED_AT"
+              FROM "DEVELOPERS"
+              GROUP BY "DEVELOPERS"."DEPARTMENT"
+              HAVING MIN(salary) > 1000
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "developers"."id", "developers"."name", "developers"."salary", "developers"."department", "developers"."created_at"
               FROM "developers"

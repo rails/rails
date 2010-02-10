@@ -22,7 +22,11 @@ module Arel
                 sql.should be_like(%Q{`users`.`id` IN (1, 2, 3)})
               end
 
-              adapter_is_not :mysql do
+              adapter_is :oracle do
+                sql.should be_like(%Q{"USERS"."ID" IN (1, 2, 3)})
+              end
+
+              adapter_is_not :mysql, :oracle do
                 sql.should be_like(%Q{"users"."id" IN (1, 2, 3)})
               end
             end
@@ -40,7 +44,11 @@ module Arel
                 sql.should be_like(%Q{`users`.`id` IN (1, 2, 3)})
               end
 
-              adapter_is_not :mysql do
+              adapter_is :oracle do
+                sql.should be_like(%Q{"USERS"."ID" IN (1, 2, 3)})
+              end
+
+              adapter_is_not :mysql, :oracle do
                 sql.should be_like(%Q{"users"."id" IN (1, 2, 3)})
               end
             end
@@ -58,7 +66,11 @@ module Arel
                 sql.should be_like(%Q{`users`.`id` IN (NULL)})
               end
 
-              adapter_is_not :mysql do
+              adapter_is :oracle do
+                sql.should be_like(%Q{"USERS"."ID" IN (NULL)})
+              end
+
+              adapter_is_not :mysql, :oracle do
                 sql.should be_like(%Q{"users"."id" IN (NULL)})
               end
             end
@@ -78,7 +90,11 @@ module Arel
               sql.should be_like(%Q{`users`.`id` BETWEEN 1 AND 2})
             end
 
-            adapter_is_not :mysql do
+            adapter_is :oracle do
+              sql.should be_like(%Q{"USERS"."ID" BETWEEN 1 AND 2})
+            end
+
+            adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{"users"."id" BETWEEN 1 AND 2})
             end
           end
@@ -109,6 +125,10 @@ module Arel
             adapter_is :postgresql do
               sql.should be_like(%Q{"developers"."created_at" BETWEEN '2010-01-01 00:00:00.000000' AND '2010-02-01 00:00:00.000000'})
             end
+
+            adapter_is :oracle do
+              sql.should be_like(%Q{"DEVELOPERS"."CREATED_AT" BETWEEN TO_TIMESTAMP('2010-01-01 00:00:00:000000','YYYY-MM-DD HH24:MI:SS:FF6') AND TO_TIMESTAMP('2010-02-01 00:00:00:000000','YYYY-MM-DD HH24:MI:SS:FF6')})
+            end
           end
         end
 
@@ -122,7 +142,13 @@ module Arel
               })
             end
 
-            adapter_is_not :mysql do
+            adapter_is :oracle do
+              sql.should be_like(%Q{
+                "USERS"."ID" IN (SELECT "USERS"."ID", "USERS"."NAME" FROM "USERS")
+              })
+            end
+
+            adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 "users"."id" IN (SELECT "users"."id", "users"."name" FROM "users")
               })

@@ -12,6 +12,11 @@ module Arel
       @photos.delete
       @photos.insert(@photos[:id] => 1, @photos[:user_id] => 1, @photos[:camera_id] => 6)
       @photos.insert(@photos[:id] => 2, @photos[:user_id] => 2, @photos[:camera_id] => 42)
+      # Oracle adapter returns database integers as Ruby integers and not strings
+      @adapter_returns_integer = false
+      adapter_is :oracle do
+        @adapter_returns_integer = true
+      end
     end
 
     describe 'when the in memory relation is on the left' do
@@ -22,8 +27,8 @@ module Arel
           .project(@users[:name], @photos[:camera_id]) \
         .let do |relation|
           relation.call.should == [
-            Row.new(relation, ['bryan', '6']),
-            Row.new(relation, ['emilio', '42'])
+            Row.new(relation, ['bryan', @adapter_returns_integer ? 6 : '6']),
+            Row.new(relation, ['emilio', @adapter_returns_integer ? 42 : '42'])
           ]
         end
       end
@@ -37,8 +42,8 @@ module Arel
           .project(@users[:name], @photos[:camera_id]) \
         .let do |relation|
           relation.call.should == [
-            Row.new(relation, ['bryan', '6']),
-            Row.new(relation, ['emilio', '42'])
+            Row.new(relation, ['bryan', @adapter_returns_integer ? 6 : '6']),
+            Row.new(relation, ['emilio', @adapter_returns_integer ? 42 : '42'])
           ]
         end
       end

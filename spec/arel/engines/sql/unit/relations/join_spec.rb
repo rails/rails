@@ -28,7 +28,15 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "USERS"."ID", "USERS"."NAME", "PHOTOS"."ID", "PHOTOS"."USER_ID", "PHOTOS"."CAMERA_ID"
+              FROM "USERS"
+                INNER JOIN "PHOTOS" ON "USERS"."ID" = "PHOTOS"."USER_ID"
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "users"."id", "users"."name", "photos"."id", "photos"."user_id", "photos"."camera_id"
               FROM "users"
@@ -49,7 +57,15 @@ module Arel
               })
             end
 
-            adapter_is_not :mysql do
+            adapter_is :oracle do
+              sql.should be_like(%Q{
+                SELECT "SUPER_USERS"."ID", "SUPER_USERS"."NAME", "PHOTOS"."ID", "PHOTOS"."USER_ID", "PHOTOS"."CAMERA_ID"
+                FROM "USERS" "SUPER_USERS"
+                  INNER JOIN "PHOTOS" ON "SUPER_USERS"."ID" = "PHOTOS"."USER_ID"
+              })
+            end
+
+            adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 SELECT "super_users"."id", "super_users"."name", "photos"."id", "photos"."user_id", "photos"."camera_id"
                 FROM "users" AS "super_users"
@@ -71,7 +87,15 @@ module Arel
               })
             end
 
-            adapter_is_not :mysql do
+            adapter_is :oracle do
+              sql.should be_like(%Q{
+                SELECT "SUPER_USERS"."ID", "SUPER_USERS"."NAME", "SUPER_PHOTOS"."ID", "SUPER_PHOTOS"."USER_ID", "SUPER_PHOTOS"."CAMERA_ID"
+                FROM "USERS" "SUPER_USERS"
+                  INNER JOIN "PHOTOS" "SUPER_PHOTOS" ON "SUPER_USERS"."ID" = "SUPER_PHOTOS"."USER_ID"
+              })
+            end
+
+            adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 SELECT "super_users"."id", "super_users"."name", "super_photos"."id", "super_photos"."user_id", "super_photos"."camera_id"
                 FROM "users" AS "super_users"
@@ -95,7 +119,15 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "USERS"."ID", "USERS"."NAME"
+              FROM "USERS"
+                INNER JOIN asdf ON fdsa
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "users"."id", "users"."name"
               FROM "users"
@@ -119,7 +151,17 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            sql.should be_like(%Q{
+              SELECT "USERS"."ID", "USERS"."NAME"
+              FROM "USERS"
+                INNER JOIN asdf ON fdsa
+                INNER JOIN lifo ON fifo
+                INNER JOIN hatful ON hallow
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             sql.should be_like(%Q{
               SELECT "users"."id", "users"."name"
               FROM "users"

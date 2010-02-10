@@ -36,6 +36,13 @@ module Arel
             SET "id" = 1, "name" = E'nick'
           })
         end
+
+        adapter_is :oracle do
+          sql.should be_like(%Q{
+            UPDATE "USERS"
+            SET "ID" = 1, "NAME" = 'nick'
+          })
+        end
       end
 
       it "manufactures sql updating attributes when given a ranged relation" do
@@ -62,6 +69,23 @@ module Arel
             UPDATE "users" SET
             "name" = E'nick'
             WHERE "id" IN (SELECT "id" FROM "users"  LIMIT 1)
+          })
+        end
+
+        adapter_is :oracle do
+          sql.should be_like(%Q{
+            UPDATE "USERS" SET
+            "NAME" = 'nick'
+            WHERE "ID" IN (SELECT "ID" FROM "USERS" WHERE ROWNUM <= 1)
+          })
+
+          sql_with_order_by = Update.new(@relation.order(@relation[:id]).take(1), @relation[:name] => "nick").to_sql
+          sql_with_order_by.should be_like(%Q{
+            UPDATE "USERS" SET
+            "NAME" = 'nick'
+            WHERE "ID" IN (select * from
+                          (SELECT "ID" FROM "USERS" ORDER BY "USERS"."ID" ASC)
+                          where rownum <= 1)
           })
         end
       end
@@ -92,6 +116,13 @@ module Arel
               SET "name" = E'nick'
             })
           end
+
+          adapter_is :oracle do
+            @update.to_sql.should be_like(%Q{
+              UPDATE "USERS"
+              SET "NAME" = 'nick'
+            })
+          end
         end
       end
 
@@ -108,7 +139,14 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :oracle do
+            @update.to_sql.should be_like(%Q{
+              UPDATE "USERS"
+              SET "ID" = 1
+            })
+          end
+
+          adapter_is_not :mysql, :oracle do
             @update.to_sql.should be_like(%Q{
               UPDATE "users"
               SET "id" = 1
@@ -147,6 +185,14 @@ module Arel
               UPDATE "users"
               SET "name" = E'nick'
               WHERE "users"."id" = 1
+            })
+          end
+
+          adapter_is :oracle do
+            @update.to_sql.should be_like(%Q{
+              UPDATE "USERS"
+              SET "NAME" = 'nick'
+              WHERE "USERS"."ID" = 1
             })
           end
         end
