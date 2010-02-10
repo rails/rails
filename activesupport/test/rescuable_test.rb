@@ -7,11 +7,8 @@ class NuclearExplosion < StandardError
 end
 
 class MadRonon < StandardError
-  attr_accessor :message
-  
   def initialize(message)
-    @message = message
-    super()
+    super(message)
   end
 end
 
