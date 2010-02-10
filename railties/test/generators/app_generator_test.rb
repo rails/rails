@@ -74,13 +74,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/
-    assert_file "Gemfile", /^gem "sqlite3-ruby", :require => "sqlite3"$/
+    assert_file "Gemfile", /^gem\s+["']sqlite3-ruby["'],\s+:require\s+=>\s+["']sqlite3["']$/
   end
 
   def test_config_another_database
     run_generator([destination_root, "-d", "mysql"])
     assert_file "config/database.yml", /mysql/
-    assert_file "Gemfile", /^gem "mysql"$/
+    assert_file "Gemfile", /^gem\s+["']mysql["']$/
   end
 
   def test_config_database_is_not_added_if_skip_activerecord_is_given
@@ -90,7 +90,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_activerecord_is_removed_from_frameworks_if_skip_activerecord_is_given
     run_generator [destination_root, "--skip-activerecord"]
-    assert_file "config/application.rb", /# require "active_record\/railtie"/
+    assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
   end
 
   def test_prototype_and_test_unit_are_added_by_default
@@ -159,14 +159,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     silence(:stdout){ generator.invoke }
     rails_path = File.expand_path('../../..', Rails.root)
     dev_gem = %(gem "rails", :path => #{rails_path.inspect})
-    assert_file 'Gemfile', /^#{Regexp.escape(dev_gem)}$/
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']\/Users\/mikel\/rails_programs\/rails["']$/
   end
 
   def test_edge_option
     generator([destination_root], :edge => true).expects(:run).with("bundle install")
     silence(:stdout){ generator.invoke }
     edge_gem = %(gem "rails", :git => "git://github.com/rails/rails.git")
-    assert_file 'Gemfile', /^#{Regexp.escape(edge_gem)}$/
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:git\s+=>\s+["']git:\/\/github\.com\/rails\/rails\.git["']$/
   end
 
   protected
