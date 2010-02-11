@@ -1,4 +1,6 @@
-class Module  
+require 'active_support/core_ext/object/blank'
+
+class Module
   # A module may or may not have a name.
   #
   #   module M; end
@@ -15,6 +17,8 @@ class Module
   #   m.name         # => "M"
   #
   def anonymous?
-    name == ''
+    # Uses blank? because the name of an anonymous class is an empty
+    # string in 1.8, and nil in 1.9.
+    name.blank? 
   end
 end
