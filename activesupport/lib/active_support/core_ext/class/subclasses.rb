@@ -1,4 +1,5 @@
-require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/module/anonymous'
+require 'active_support/core_ext/module/reachable'
 
 class Class #:nodoc:
   # Returns an array with the names of the subclasses of +self+ as strings.
@@ -6,10 +7,6 @@ class Class #:nodoc:
   #   Integer.subclasses # => ["Bignum", "Fixnum"]
   def subclasses
     Class.subclasses_of(self).map { |o| o.to_s }
-  end
-
-  def reachable? #:nodoc:
-    eval("defined?(::#{self}) && ::#{self}.equal?(self)")
   end
 
   # Rubinius
@@ -51,7 +48,7 @@ class Class #:nodoc:
   def self.subclasses_of(*superclasses) #:nodoc:
     subclasses = []
     superclasses.each do |klass|
-      subclasses.concat klass.descendents.select {|k| k.name.blank? || k.reachable?}
+      subclasses.concat klass.descendents.select {|k| k.anonymous? || k.reachable?}
     end
     subclasses
   end
