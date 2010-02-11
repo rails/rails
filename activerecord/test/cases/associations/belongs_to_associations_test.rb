@@ -31,6 +31,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:first_firm).name, client.firm_with_primary_key.name
   end
 
+  def test_belongs_to_with_primary_key_joins_on_correct_column
+    sql = Client.send(:construct_finder_sql, :joins => :firm_with_primary_key)
+    assert sql !~ /\.id/
+    assert sql =~ /\.name/
+  end
+
   def test_proxy_assignment
     account = Account.find(1)
     assert_nothing_raised { account.firm = account.firm }

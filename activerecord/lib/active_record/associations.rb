@@ -2173,7 +2173,7 @@ module ActiveRecord
                   " #{join_type} %s ON %s.%s = %s.%s " % [
                      table_name_and_alias,
                      connection.quote_table_name(aliased_table_name),
-                     reflection.klass.primary_key,
+                     reflection.options[:primary_key] || reflection.klass.primary_key,
                      connection.quote_table_name(parent.aliased_table_name),
                      options[:foreign_key] || reflection.primary_key_name
                     ]
