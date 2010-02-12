@@ -452,7 +452,10 @@ module ActionDispatch
 
           scope(:path => resource.name.to_s, :controller => resource.controller) do
             with_scope_level(:resource, resource) do
-              yield if block_given?
+
+              scope(:name_prefix => resource.name.to_s) do
+                yield if block_given?
+              end
 
               get    :show if resource.actions.include?(:show)
               post   :create if resource.actions.include?(:create)

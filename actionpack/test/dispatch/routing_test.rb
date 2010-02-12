@@ -24,6 +24,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resource :session do
         get :create
+
+        resource :info
       end
 
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
@@ -231,6 +233,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/session/edit'
       assert_equal 'sessions#edit', @response.body
       assert_equal '/session/edit', edit_session_path
+    end
+  end
+
+  def test_session_info_nested_singleton_resource
+    with_test_routes do
+      get '/session/info'
+      assert_equal 'infos#show', @response.body
+      assert_equal '/session/info', session_info_path
     end
   end
 
