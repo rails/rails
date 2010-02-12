@@ -7,6 +7,10 @@ module Rails::Generators
   # can change in Ruby 1.8.7 when we FileUtils.cd.
   RAILS_DEV_PATH = File.expand_path("../../../../..", File.dirname(__FILE__))
 
+  RESERVED_NAMES = %w[generate console server dbconsole
+                      application destroy benchmarker profiler
+                      plugin runner test]
+
   class AppGenerator < Base
     DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
 
@@ -209,9 +213,10 @@ module Rails::Generators
       end
 
       def valid_app_const?
-        case app_const
-        when /^\d/
+        if app_const =~ /^\d/
           raise Error, "Invalid application name #{app_name}. Please give a name which does not start with numbers."
+        elsif RESERVED_NAMES.include?(app_name)
+          raise Error, "Invalid application name #{app_name}. Please give a name which does not match one of the reserved rails words."
         end
       end
 
