@@ -849,6 +849,44 @@ The method receives the name of an action, and a +:with+ option with code. The c
 
 NOTE: Defined in +active_support/core_ext/module/synchronization.rb+.
 
+h4. Reachable Modules
+
+A named module is reachable if it is stored in its correspoding constant. It means you can reach the module object via the constant.
+
+That is what ordinarily happens, if a module is called "M", the +M+ constant exists and holds it:
+
+<ruby>
+module M
+end
+
+M.reachable? # => true
+</ruby>
+
+But since constants and modules are indeed kind of decoupled, module objects can become unreachable:
+
+<ruby>
+module M
+end
+
+orphan = Object.send(:remove_const, :M)
+
+# The module object is orphan now but it still has a name.
+orphan.name # => "M"
+
+# You cannot reach it via the constant M because it does not even exist.
+orphan.reachable? # => false
+
+# Let's define a module called "M" again.
+module M
+end
+
+# The constant M exists now again, and it stores a module
+# object called "M", but it is a new instance.
+orphan.reachable? # => false
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/reachable.rb+.
+
 h3. Extensions to +Class+
 
 h4. Class Attributes
