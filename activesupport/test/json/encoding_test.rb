@@ -50,13 +50,18 @@ class TestJSONEncoding < Test::Unit::TestCase
   StandardDateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005-02-01T15:15:10+00:00") ]]
   StandardStringTests   = [[ 'this is the <string>', %("this is the <string>")]]
 
+  def sorted_json(json)
+    return json unless json =~ /^\{.*\}$/
+    '{' + json[1..-2].split(',').sort.join(',') + '}'
+  end
+
   constants.grep(/Tests$/).each do |class_tests|
     define_method("test_#{class_tests[0..-6].underscore}") do
       begin
         ActiveSupport.escape_html_entities_in_json  = class_tests !~ /^Standard/
         ActiveSupport.use_standard_json_time_format = class_tests =~ /^Standard/
         self.class.const_get(class_tests).each do |pair|
-          assert_equal pair.last, ActiveSupport::JSON.encode(pair.first)
+          assert_equal pair.last, sorted_json(ActiveSupport::JSON.encode(pair.first))
         end
       ensure
         ActiveSupport.escape_html_entities_in_json  = false
@@ -71,8 +76,7 @@ class TestJSONEncoding < Test::Unit::TestCase
     assert_equal %({\"a\":[1,2]}), ActiveSupport::JSON.encode('a' => [1,2])
     assert_equal %({"1":2}), ActiveSupport::JSON.encode(1 => 2)
 
-    sorted_json = '{' + ActiveSupport::JSON.encode(:a => :b, :c => :d)[1..-2].split(',').sort.join(',') + '}'
-    assert_equal %({\"a\":\"b\",\"c\":\"d\"}), sorted_json
+    assert_equal %({\"a\":\"b\",\"c\":\"d\"}), sorted_json(ActiveSupport::JSON.encode(:a => :b, :c => :d))
   end
 
   def test_utf8_string_encoded_properly_when_kcode_is_utf8

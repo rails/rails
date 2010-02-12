@@ -103,6 +103,24 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file 'Gemfile', /gem "rspec", :only => \["development", "test"\]/
   end
 
+  def test_gem_with_version_should_include_version_in_gemfile
+    run_generator
+
+    action :gem, 'rspec', '>=2.0.0.a5'
+
+    assert_file 'Gemfile', /gem "rspec", ">=2.0.0.a5"/
+  end
+
+  def test_gem_should_insert_on_separate_lines
+    run_generator
+
+    action :gem, 'rspec'
+    action :gem, 'rspec-rails'
+
+    assert_file 'Gemfile', /gem "rspec"$/
+    assert_file 'Gemfile', /gem "rspec-rails"$/
+  end
+
   def test_environment_should_include_data_in_environment_initializer_block
     run_generator
     load_paths = 'config.load_paths += %w["#{Rails.root}/app/extras"]'

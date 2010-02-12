@@ -5,6 +5,12 @@ exit("Abort testing: Your Rails environment is not running in test mode!") unles
 require 'test/unit'
 require 'active_support/core_ext/kernel/requires'
 
+# TODO: Figure out how to get the Rails::BacktraceFilter into minitest/unit
+if defined?(Test::Unit::Util::BacktraceFilter) && ENV['BACKTRACE'].nil?
+  require 'rails/backtrace_cleaner'
+  Test::Unit::Util::BacktraceFilter.module_eval { include Rails::BacktraceFilterForTestUnit }
+end
+
 if defined?(ActiveRecord)
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures

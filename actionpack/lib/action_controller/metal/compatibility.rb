@@ -76,6 +76,7 @@ module ActionController
       def consider_all_requests_local=(value)
         ActiveSupport::Deprecation.warn "ActionController::Base.consider_all_requests_local= is no longer effective. " <<
           "Please configure it on your application with config.consider_all_requests_local="
+        Rails.application.config.consider_all_requests_local = value
       end
 
       def allow_concurrency
@@ -87,6 +88,7 @@ module ActionController
       def allow_concurrency=(value)
         ActiveSupport::Deprecation.warn "ActionController::Base.allow_concurrency= is no longer effective. " <<
           "Please configure it on your application with config.allow_concurrency="
+        Rails.application.config.allow_concurrency = value
       end
 
       def rescue_action(env)

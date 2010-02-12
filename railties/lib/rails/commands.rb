@@ -33,10 +33,13 @@ when 'c', 'console'
   require APP_PATH
   Rails::Console.start(Rails::Application)
 when 's', 'server'
-  require APP_PATH
   require 'rails/commands/server'
+  # Initialize the server first, so environment options are set
+  server = Rails::Server.new
+  require APP_PATH
+
   Dir.chdir(Rails::Application.root)
-  Rails::Server.start
+  server.start
 when 'db', 'dbconsole'
   require 'rails/commands/dbconsole'
   require APP_PATH
@@ -58,8 +61,6 @@ when 'plugin'
   require 'rails/commands/plugin'
 when 'runner'
   require 'rails/commands/runner'
-  require ENV_PATH
-
 
 when '--help', '-h'
   puts HELP_TEXT

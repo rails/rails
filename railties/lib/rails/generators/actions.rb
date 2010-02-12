@@ -69,7 +69,7 @@ module Rails
         # otherwise use name (version).
         parts, message = [ name.inspect ], name
         if version ||= options.delete(:version)
-          parts   << version
+          parts   << version.inspect
           message << " (#{version})"
         end
         message = options[:git] if options[:git]

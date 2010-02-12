@@ -1,5 +1,5 @@
-if ARGV.empty?
-  puts "Usage: benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ..."
+if [nil, "-h", "--help"].include?(ARGV.first)
+  puts "Usage: rails benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ..."
   exit 1
 end
 

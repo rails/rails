@@ -104,6 +104,10 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('activesupport/CHANGELOG')
   rdoc.rdoc_files.include('activesupport/lib/active_support/**/*.rb')
   rdoc.rdoc_files.exclude('activesupport/lib/active_support/vendor/*')
+
+  rdoc.rdoc_files.include('activemodel/README')
+  rdoc.rdoc_files.include('activemodel/CHANGELOG')
+  rdoc.rdoc_files.include('activemodel/lib/active_model/**/*.rb')
 end
 
 # Enhance rdoc task to copy referenced images also

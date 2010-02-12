@@ -1,4 +1,4 @@
-path File.expand_path('..', __FILE__)
+path File.dirname(__FILE__)
 source 'http://gemcutter.org'
 
 gem "rails", "3.0.0.beta1"
@@ -24,13 +24,7 @@ gem "RedCloth", ">= 4.2.2"
 
 if ENV['CI']
   gem "nokogiri", ">= 1.4.0"
-  gem "memcache-client", ">= 1.7.6", :require => 'memcache'
 
   # fcgi gem doesn't compile on 1.9
-  # avoid minitest strangeness on 1.9
-  if RUBY_VERSION < '1.9.0'
-    gem "fcgi", ">= 0.8.7"
-  else
-    gem "test-unit", ">= 2.0.5", :require => 'test/unit'
-  end
+  gem "fcgi", ">= 0.8.7" if RUBY_VERSION < '1.9.0'
 end
