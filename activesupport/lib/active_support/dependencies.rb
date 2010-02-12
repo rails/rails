@@ -472,7 +472,7 @@ module ActiveSupport #:nodoc:
     # Determine if the given constant has been automatically loaded.
     def autoloaded?(desc)
       # No name => anonymous module.
-      return false if desc.is_a?(Module) && desc.name.blank?
+      return false if desc.is_a?(Module) && desc.anonymous?
       name = to_constant_name desc
       return false unless qualified_const_defined? name
       return autoloaded_constants.include?(name)
