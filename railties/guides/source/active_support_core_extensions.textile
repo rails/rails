@@ -849,7 +849,7 @@ The method receives the name of an action, and a +:with+ option with code. The c
 
 NOTE: Defined in +active_support/core_ext/module/synchronization.rb+.
 
-h4. Reachable Modules
+h4. Reachable
 
 A named module is reachable if it is stored in its correspoding constant. It means you can reach the module object via the constant.
 
@@ -886,6 +886,47 @@ orphan.reachable? # => false
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/module/reachable.rb+.
+
+h4. Anonymous
+
+A module may or may not have a name:
+
+<ruby>
+module M
+end
+M.name # => "M"
+
+N = Module.new
+N.name # => "N"
+
+Module.new.name # => "" in 1.8, nil in 1.9
+</ruby>
+
+You can check whether a module has a name with the predicate +anonymous?+:
+
+<ruby>
+module M
+end
+M.anonymous? # => false
+
+Module.new.anonymous? # => true
+</ruby>
+
+Note that being unreachable does not imply being anonymous:
+
+<ruby>
+module M
+end
+
+m = Object.send(:remove_const, :M)
+
+m.reachable? # => false
+m.anonymous? # => false
+</ruby>
+
+though an anonymous module is unreachable by definition.
+
+NOTE: Defined in +active_support/core_ext/module/anonymous.rb+.
 
 h3. Extensions to +Class+
 
