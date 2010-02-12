@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.add_dependency('text-format', '~> 1.0.0')
   s.add_dependency('rack',          '~> 1.1.0')
   s.add_dependency('rack-test',     '~> 0.5.0')
-  s.add_dependency('rack-mount',    '~> 0.5.3')
+  s.add_dependency('rack-mount',    '~> 0.5.0')
   s.add_dependency('erubis',        '~> 2.6.5')
   s.add_dependency('i18n',            '~> 0.3.0')
   s.add_dependency('tzinfo',          '~> 0.3.16')
