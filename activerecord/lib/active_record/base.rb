@@ -557,6 +557,7 @@ module ActiveRecord #:nodoc:
       alias :colorize_logging= :colorize_logging
 
       delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
+      delegate :find_each, :find_in_batches, :to => :scoped
       delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
@@ -2394,7 +2395,7 @@ module ActiveRecord #:nodoc:
     # #save_with_autosave_associations to be wrapped inside a transaction.
     include AutosaveAssociation, NestedAttributes
 
-    include Aggregations, Transactions, Reflection, Batches, Serialization
+    include Aggregations, Transactions, Reflection, Serialization
 
   end
 end
