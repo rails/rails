@@ -493,7 +493,7 @@ module ActionView
             char = c.chr
             string << (char =~ /\w/ ? sprintf("%%%x", c) : char)
           end
-          content_tag "a", name || email_address_encoded, html_options.merge({ "href" => "#{string}#{extras}" })
+          content_tag "a", name || email_address_encoded.html_safe, html_options.merge({ "href" => "#{string}#{extras}" })
         else
           content_tag "a", name || email_address_obfuscated, html_options.merge({ "href" => "mailto:#{email_address}#{extras}" })
         end

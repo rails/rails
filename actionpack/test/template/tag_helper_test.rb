@@ -37,6 +37,8 @@ class TagHelperTest < ActionView::TestCase
     assert content_tag("a", "Create", "href" => "create").html_safe?
     assert_equal content_tag("a", "Create", "href" => "create"),
                  content_tag("a", "Create", :href => "create")
+    assert_equal "<p>&lt;script&gt;evil_js&lt;/script&gt;</p>",
+                 content_tag(:p, '<script>evil_js</script>')
   end
 
   def test_content_tag_with_block_in_erb

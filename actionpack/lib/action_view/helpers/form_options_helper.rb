@@ -572,10 +572,9 @@ module ActionView
           end
           if value.blank? && options[:prompt]
             prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            "<option value=\"\">#{prompt}</option>\n" + option_tags
-          else
-            option_tags
+            option_tags = "<option value=\"\">#{prompt}</option>\n" + option_tags
           end
+          option_tags.html_safe
         end
     end
 
