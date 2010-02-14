@@ -127,7 +127,7 @@ module ActionView
         if (obj = (object.respond_to?(:errors) ? object : instance_variable_get("@#{object}"))) &&
           (errors = obj.errors[method])
           content_tag("div",
-            "#{options[:prepend_text]}#{ERB::Util.html_escape(errors.first)}#{options[:append_text]}".html_safe,
+            (options[:prepend_text].html_safe << errors.first).safe_concat(options[:append_text]),
             :class => options[:css_class]
           )
         else
@@ -226,7 +226,7 @@ module ActionView
 
             error_messages = objects.sum do |object|
               object.errors.full_messages.map do |msg|
-                content_tag(:li, ERB::Util.html_escape(msg))
+                content_tag(:li, msg)
               end
             end.join.html_safe
 
