@@ -177,7 +177,10 @@ module ActiveSupport #:nodoc:
       end
 
       def require_dependency(file_name, message = "No such file to load -- %s")
-        raise ArgumentError, "the file name must be a String -- you passed #{file_name.inspect}"
+        unless file_name.is_a?(String)
+          raise ArgumentError, "the file name must be a String -- you passed #{file_name.inspect}"
+        end
+
         Dependencies.depend_on(file_name, false, message)
       end
 
