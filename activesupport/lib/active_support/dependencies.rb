@@ -116,7 +116,7 @@ module ActiveSupport #:nodoc:
         base.class_eval do
           # Emulate #exclude via an ivar
           return if @_const_missing
-          @_const_missing = method(:const_missing)
+          @_const_missing = instance_method(:const_missing)
           remove_method(:const_missing)
         end
         super
