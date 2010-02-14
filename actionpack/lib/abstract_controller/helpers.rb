@@ -1,6 +1,7 @@
 require 'active_support/dependencies'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/module/anonymous'
 
 module AbstractController
   module Helpers
@@ -27,7 +28,7 @@ module AbstractController
       def inherited(klass)
         helpers = _helpers
         klass._helpers = Module.new { include helpers }
-        klass.class_eval { default_helper_module! unless name.blank? }
+        klass.class_eval { default_helper_module! unless anonymous? }
         super
       end
 
