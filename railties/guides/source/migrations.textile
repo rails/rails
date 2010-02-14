@@ -105,7 +105,7 @@ h4. Creating a Model
 The model and scaffold generators will create migrations appropriate for adding a new model. This migration will already contain instructions for creating the relevant table. If you tell Rails what columns you want then statements for adding those will also be created. For example, running
 
 <shell>
-ruby script/generate model Product name:string description:text
+rails generate model Product name:string description:text
 </shell>
 
 will create a migration that looks like this
@@ -135,7 +135,7 @@ h4. Creating a Standalone Migration
 If you are creating migrations for other purposes (for example to add a column to an existing table) then you can use the migration generator:
 
 <shell>
-ruby script/generate migration AddPartNumberToProducts
+rails generate migration AddPartNumberToProducts
 </shell>
 
 This will create an empty but appropriately named migration:
@@ -153,7 +153,7 @@ end
 If the migration name is of the form "AddXXXToYYY" or "RemoveXXXFromYYY" and is followed by a list of column names and types then a migration containing the appropriate +add_column+ and +remove_column+ statements will be created.
 
 <shell>
-ruby script/generate migration AddPartNumberToProducts part_number:string
+rails generate migration AddPartNumberToProducts part_number:string
 </shell>
 
 will generate
@@ -173,7 +173,7 @@ end
 Similarly,
 
 <shell>
-ruby script/generate migration RemovePartNumberFromProducts part_number:string
+rails generate migration RemovePartNumberFromProducts part_number:string
 </shell>
 
 generates
@@ -193,7 +193,7 @@ end
 You are not limited to one magically generated column, for example
 
 <shell>
-ruby script/generate migration AddDetailsToProducts part_number:string price:decimal
+rails generate migration AddDetailsToProducts part_number:string price:decimal
 </shell>
 
 generates

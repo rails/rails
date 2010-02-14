@@ -15,9 +15,8 @@ module ActionController
         payload   = event.payload
         additions = ActionController::Base.log_process_action(payload)
 
-        message = "Completed in %.0fms" % event.duration
+        message = "Completed #{payload[:status]} #{Rack::Utils::HTTP_STATUS_CODES[payload[:status]]} in %.0fms" % event.duration
         message << " (#{additions.join(" | ")})" unless additions.blank?
-        message << " with #{payload[:status]}"
 
         info(message)
       end

@@ -3,6 +3,8 @@
 <head>
   <title><%= controller_class_name %>: <%%= controller.action_name %></title>
   <%%= stylesheet_link_tag 'scaffold' %>
+  <%%= javascript_include_tag :defaults %>
+  <%%= csrf_meta_tag %>
 </head>
 <body>
 

@@ -39,9 +39,9 @@ The examples in this guide require that you have a working rails application.  T
 gem install rails
 rails yaffle_guide
 cd yaffle_guide
-script/generate scaffold bird name:string
+rails generate scaffold bird name:string
 rake db:migrate
-script/server
+rails server
 </pre>
 
 Then navigate to http://localhost:3000/birds.  Make sure you have a functioning rails app before continuing.
@@ -57,16 +57,16 @@ This creates a plugin in 'vendor/plugins' including an 'init.rb' and 'README' as
 
 Examples:
 <pre>
-./script/generate plugin yaffle
-./script/generate plugin yaffle --with-generator
+rails generate plugin yaffle
+rails generate plugin yaffle --with-generator
 </pre>
 
-To get more detailed help on the plugin generator, type +./script/generate plugin+.
+To get more detailed help on the plugin generator, type +rails generate plugin+.
 
 Later on this guide will describe how to work with generators, so go ahead and generate your plugin with the +--with-generator+ option now:
 
 <pre>
-./script/generate plugin yaffle --with-generator
+rails generate plugin yaffle --with-generator
 </pre>
 
 You should see the following output:
@@ -334,7 +334,7 @@ end
 To test that your method does what it says it does, run the unit tests with +rake+ from your plugin directory.  To see this in action, fire up a console and start squawking:
 
 <shell>
-$ ./script/console
+$ rails console
 >> "Hello World".to_squawk
 => "squawk! Hello World"
 </shell>
@@ -871,7 +871,7 @@ If you plan to distribute your plugin, developers will expect at least a minimum
 Rails ships with several built-in generators.  You can see all of the generators available to you by typing the following at the command line:
 
 <shell>
-./script/generate
+rails generate
 </shell>
 
 You should see something like this:
@@ -882,7 +882,7 @@ Installed Generators
   Builtin: controller, integration_test, mailer, migration, model, observer, plugin, resource, scaffold, session_migration
 </shell>
 
-When you run +script/generate yaffle_definition -h+ you should see the contents of your 'vendor/plugins/yaffle/generators/yaffle_definition/USAGE'.
+When you run +rails generate yaffle_definition -h+ you should see the contents of your 'vendor/plugins/yaffle/generators/yaffle_definition/USAGE'.
 
 For this plugin, update the USAGE file could look like this:
 
@@ -1111,11 +1111,11 @@ end
 To see this work, type:
 
 <shell>
-./script/generate yaffle_route
-./script/destroy yaffle_route
+rails generate yaffle_route
+rails destroy yaffle_route
 </shell>
 
-NOTE: If you haven't set up the custom route from above, 'script/destroy' will fail and you'll have to remove it manually.
+NOTE: If you haven't set up the custom route from above, 'rails destroy' will fail and you'll have to remove it manually.
 
 h3. Migrations
 
@@ -1195,7 +1195,7 @@ h4. Generate Migrations
 
 Generating migrations has several advantages over other methods.  Namely, you can allow other developers to more easily customize the migration.  The flow looks like this:
 
- * call your script/generate script and pass in whatever options they need
+ * call your rails generate script and pass in whatever options they need
  * examine the generated migration, adding/removing columns or other options as necessary
 
 This example will demonstrate how to use one of the built-in generator methods named 'migration_template' to create a migration file.  Extending the rails migration generator requires a somewhat intimate knowledge of the migration generator internals, so it's best to write a test first:
@@ -1289,7 +1289,7 @@ It's courteous to check to see if table names are being pluralized whenever you 
 To run the generator, type the following at the command line:
 
 <shell>
-./script/generate yaffle_migration bird
+rails generate yaffle_migration bird
 </shell>
 
 and you will see a new file:

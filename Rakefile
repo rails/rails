@@ -13,7 +13,7 @@ end
 desc 'Run all tests by default'
 task :default => %w(test test:isolated)
 
-%w(test test:isolated rdoc pgem package release gem gemspec).each do |task_name|
+%w(test test:isolated rdoc pgem package gem gemspec).each do |task_name|
   desc "Run #{task_name} task for all projects"
   task task_name do
     errors = []
@@ -35,6 +35,22 @@ end
 spec = eval(File.read('rails.gemspec'))
 Rake::GemPackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
+end
+
+desc "Release all gems to gemcutter. Package rails, package & push components, then push rails"
+task :release => :release_projects do
+  require 'rake/gemcutter'
+  Rake::Gemcutter::Tasks.new(spec).define
+  Rake::Task['gem:push'].invoke
+end
+
+desc "Release all components to gemcutter."
+task :release_projects => :package do
+  errors = []
+  PROJECTS.each do |project|
+    system(%(cd #{project} && #{env} #{$0} release)) || errors << project
+  end
+  fail("Errors in #{errors.join(', ')}") unless errors.empty?
 end
 
 task :install => :gem do
@@ -88,6 +104,10 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('activesupport/CHANGELOG')
   rdoc.rdoc_files.include('activesupport/lib/active_support/**/*.rb')
   rdoc.rdoc_files.exclude('activesupport/lib/active_support/vendor/*')
+
+  rdoc.rdoc_files.include('activemodel/README')
+  rdoc.rdoc_files.include('activemodel/CHANGELOG')
+  rdoc.rdoc_files.include('activemodel/lib/active_model/**/*.rb')
 end
 
 # Enhance rdoc task to copy referenced images also

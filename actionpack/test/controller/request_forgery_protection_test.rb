@@ -15,13 +15,17 @@ module RequestForgeryProtectionActions
     render :text => 'pwn'
   end
 
+  def meta
+    render :inline => "<%= csrf_meta_tag %>"
+  end
+
   def rescue_action(e) raise e end
 end
 
 # sample controllers
 class RequestForgeryProtectionController < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery :only => :index
+  protect_from_forgery :only => %w(index meta)
 end
 
 class FreeCookieController < RequestForgeryProtectionController
@@ -211,6 +215,12 @@ class RequestForgeryProtectionControllerTest < ActionController::TestCase
     ActiveSupport::SecureRandom.stubs(:base64).returns(@token)
     ActionController::Base.request_forgery_protection_token = :authenticity_token
   end
+
+  test 'should emit a csrf-token meta tag' do
+    ActiveSupport::SecureRandom.stubs(:base64).returns(@token + '<=?')
+    get :meta
+    assert_equal %(<meta name="csrf-param" content="authenticity_token"/>\n<meta name="csrf-token" content="cf50faa3fe97702ca1ae&lt;=?"/>), @response.body
+  end
 end
 
 class FreeCookieControllerTest < ActionController::TestCase
@@ -237,6 +247,11 @@ class FreeCookieControllerTest < ActionController::TestCase
     [:post, :put, :delete].each do |method|
       assert_nothing_raised { send(method, :index)}
     end
+  end
+
+  test 'should not emit a csrf-token meta tag' do
+    get :meta
+    assert @response.body.blank?
   end
 end
 

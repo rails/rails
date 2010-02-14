@@ -12,7 +12,6 @@ module Rails
       add_filter   { |line| line.sub('./', '/') } # for tests
 
       add_gem_filters
-      add_bundler_filters
 
       add_silencer { |line| !APP_DIRS.any? { |dir| line =~ /^#{dir}/ } }
     end
@@ -26,16 +25,6 @@ module Rails
             line.sub(%r{(#{path})/gems/([^/]+)-([0-9.]+)/(.*)}, '\2 (\3) \4')
           }
         end
-      end
-
-      def add_bundler_filters
-        return unless defined? Bundler
-        add_filter { |line|
-          line.sub(%r{vendor/gems/[^/]+/[^/]+/gems/([^/]+)-([0-9.]+)/(.*)}, '\1 (\2) \3')
-        }
-        add_filter { |line|
-          line.sub(%r{vendor/gems/[^/]+/[^/]+/dirs/([^/]+)/(.*)}, '\1 \2')
-        }
       end
   end
 

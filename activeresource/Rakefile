@@ -89,26 +89,15 @@ end
 
 # Publishing ------------------------------------------------------
 
-desc "Publish the beta gem"
-task :pgem => [:package] do
-  require 'rake/contrib/sshpublisher'
-  Rake::SshFilePublisher.new("gems.rubyonrails.org", "/u/sites/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
-  `ssh gems.rubyonrails.org '/u/sites/gems/gemupdate.sh'`
+desc "Release to gemcutter"
+task :release => :package do
+  require 'rake/gemcutter'
+  Rake::Gemcutter::Tasks.new(spec).define
+  Rake::Task['gem:push'].invoke
 end
 
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do
   require 'rake/contrib/sshpublisher'
   Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/ar", "doc").upload
-end
-
-desc "Publish the release files to RubyForge."
-task :release => [ :package ] do
-  `rubyforge login`
-
-  for ext in %w( gem tgz zip )
-    release_command = "rubyforge add_release #{PKG_NAME} #{PKG_NAME} 'REL #{PKG_VERSION}' pkg/#{PKG_NAME}-#{PKG_VERSION}.#{ext}"
-    puts release_command
-    system(release_command)
-  end
 end

@@ -66,6 +66,11 @@ module Rails
       aliases.deep_merge! config.aliases
       options.deep_merge! config.options
       fallbacks.merge! config.fallbacks
+      templates_path.concat config.templates
+    end
+
+    def self.templates_path
+      @templates_path ||= []
     end
 
     def self.aliases #:nodoc:
@@ -161,7 +166,7 @@ module Rails
     end
 
     # Show help message with available generators.
-    def self.help
+    def self.help(command = 'generate')
       lookup!
 
       namespaces = subclasses.map{ |k| k.namespace }
@@ -173,7 +178,7 @@ module Rails
         groups[base] << namespace
       end
 
-      puts "Usage: rails generate GENERATOR [args] [options]"
+      puts "Usage: rails #{command} GENERATOR [args] [options]"
       puts
       puts "General options:"
       puts "  -h, [--help]     # Print generators options and usage"

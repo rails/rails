@@ -99,7 +99,7 @@ module Rails
         unless abstract_railtie?(base)
           base.called_from = begin
             call_stack = caller.map { |p| p.split(':').first }
-            File.dirname(call_stack.detect { |p| p !~ %r[railties/lib/rails|rack/lib/rack] })
+            File.dirname(call_stack.detect { |p| p !~ %r[railties[\w\-]*/lib/rails|rack[\w\-]*/lib/rack] })
           end
         end
 
@@ -183,6 +183,10 @@ module Rails
 
     initializer :add_metals do |app|
       app.metal_loader.paths.unshift(*paths.app.metals.to_a)
+    end
+
+    initializer :add_generator_templates do |app|
+      config.generators.templates.unshift(*paths.lib.templates.to_a)
     end
 
     initializer :load_application_initializers do

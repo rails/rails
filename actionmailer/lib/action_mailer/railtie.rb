@@ -5,6 +5,10 @@ module ActionMailer
   class Railtie < Rails::Railtie
     railtie_name :action_mailer
 
+    initializer "action_mailer.url_for", :before => :load_environment_config do |app|
+      ActionMailer::Base.send(:include, ActionController::UrlFor) if defined?(ActionController)
+    end
+
     require "action_mailer/railties/subscriber"
     subscriber ActionMailer::Railties::Subscriber.new
 
@@ -16,10 +20,6 @@ module ActionMailer
       app.config.action_mailer.each do |k,v|
         ActionMailer::Base.send "#{k}=", v
       end
-    end
-
-    initializer "action_mailer.url_for" do |app|
-      ActionMailer::Base.send(:include, ActionController::UrlFor) if defined?(ActionController)
     end
   end
 end

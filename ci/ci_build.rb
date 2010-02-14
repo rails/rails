@@ -18,18 +18,16 @@ end
 puts "[CruiseControl] Rails build"
 build_results = {}
 
-# Install rubygems-update, so 'gem update --system' in cruise_config.rb auto-installs it on next build.
-# This is how you can auto-update rubygems without logging in to CI system
-build_results[:geminstaller] = system "sudo gem install rubygems-update -v 1.3.5 --no-ri --no-rdoc"
-
 # Install required version of bundler.
-build_results[:geminstaller] = system "sudo gem install bundler -v 0.9.1.pre1 --prerelease --no-ri --no-rdoc"
+bundler_install_cmd = "gem install bundler -v 0.9.3 --no-ri --no-rdoc"
+puts "Running command: #{bundler_install_cmd}"
+build_results[:install_bundler] = system bundler_install_cmd
 
 cd root_dir do
   puts
   puts "[CruiseControl] Bundling RubyGems"
   puts
-  build_results[:bundle] = system 'env CI=1 sudo bundle install'
+  build_results[:bundle] = system 'rm -rf ~/.bundle; env CI=1 bundle install'
 end
 
 cd "#{root_dir}/activesupport" do
@@ -60,6 +58,7 @@ cd "#{root_dir}/actionmailer" do
   puts "[CruiseControl] Building ActionMailer"
   puts
   build_results[:actionmailer] = rake 'test'
+  build_results[:actionmailer_isolated] = rake 'test:isolated'
 end
 
 cd "#{root_dir}/activemodel" do
@@ -67,6 +66,7 @@ cd "#{root_dir}/activemodel" do
   puts "[CruiseControl] Building ActiveModel"
   puts
   build_results[:activemodel] = rake 'test'
+  build_results[:activemodel_isolated] = rake 'test:isolated'
 end
 
 rm_f "#{root_dir}/activeresource/debug.log"
@@ -75,6 +75,7 @@ cd "#{root_dir}/activeresource" do
   puts "[CruiseControl] Building ActiveResource"
   puts
   build_results[:activeresource] = rake 'test'
+  build_results[:activeresource_isolated] = rake 'test:isolated'
 end
 
 rm_f "#{root_dir}/activerecord/debug.log"
@@ -82,21 +83,24 @@ cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with MySQL"
   puts
-  build_results[:activerecord_mysql] = rake 'mysql:rebuild_databases', 'test_mysql'
+  build_results[:activerecord_mysql] = rake 'mysql:rebuild_databases', 'mysql:test'
+  build_results[:activerecord_mysql_isolated] = rake 'mysql:rebuild_databases', 'mysql:isolated_test'
 end
 
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with PostgreSQL"
   puts
-  build_results[:activerecord_postgresql8] = rake 'postgresql:rebuild_databases', 'test_postgresql'
+  build_results[:activerecord_postgresql8] = rake 'postgresql:rebuild_databases', 'postgresql:test'
+  build_results[:activerecord_postgresql8_isolated] = rake 'postgresql:rebuild_databases', 'postgresql:isolated_test'
 end
 
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with SQLite 3"
   puts
-  build_results[:activerecord_sqlite3] = rake 'test_sqlite3'
+  build_results[:activerecord_sqlite3] = rake 'sqlite3:test'
+  build_results[:activerecord_sqlite3_isolated] = rake 'sqlite3:isolated_test'
 end
 
 
@@ -109,9 +113,8 @@ puts "[CruiseControl]   #{`mysql --version`}"
 puts "[CruiseControl]   #{`pg_config --version`}"
 puts "[CruiseControl]   SQLite3: #{`sqlite3 -version`}"
 `gem env`.each_line {|line| print "[CruiseControl]   #{line}"}
-# Commented until bundler supports --list again
-# puts "[CruiseControl]   Bundled gems:"
-# `gem bundle --list`.each_line {|line| print "[CruiseControl]     #{line}"}
+puts "[CruiseControl]   Bundled gems:"
+`bundle show`.each_line {|line| print "[CruiseControl]     #{line}"}
 puts "[CruiseControl]   Local gems:"
 `gem list`.each_line {|line| print "[CruiseControl]     #{line}"}
 

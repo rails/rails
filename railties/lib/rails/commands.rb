@@ -34,8 +34,12 @@ when 'c', 'console'
   Rails::Console.start(Rails::Application)
 when 's', 'server'
   require 'rails/commands/server'
-  Dir.chdir(ROOT_PATH)
-  Rails::Server.start
+  # Initialize the server first, so environment options are set
+  server = Rails::Server.new
+  require APP_PATH
+
+  Dir.chdir(Rails::Application.root)
+  server.start
 when 'db', 'dbconsole'
   require 'rails/commands/dbconsole'
   require APP_PATH
@@ -57,11 +61,7 @@ when 'plugin'
   require 'rails/commands/plugin'
 when 'runner'
   require 'rails/commands/runner'
-  require ENV_PATH
 
-
-when '--version', '-v'
-  puts "Rails #{Rails::VERSION::STRING}"
 when '--help', '-h'
   puts HELP_TEXT
 when '--version', '-v'

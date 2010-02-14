@@ -2,6 +2,7 @@ require "abstract_unit"
 require "fixtures/person"
 require "rails/subscriber/test_helper"
 require "active_resource/railties/subscriber"
+require "active_support/core_ext/hash/conversions"
 
 class SubscriberTest < ActiveSupport::TestCase
   include Rails::Subscriber::TestHelper
@@ -24,7 +25,7 @@ class SubscriberTest < ActiveSupport::TestCase
     matz = Person.find(1)
     wait
     assert_equal 2, @logger.logged(:info).size
-    assert_equal "GET http://somewhere.else:80/people/1.xml", @logger.logged(:info)[0] 
+    assert_equal "GET http://37s.sunrise.i:3000/people/1.xml", @logger.logged(:info)[0]
     assert_match /\-\-\> 200 200 106/, @logger.logged(:info)[1]
   end
 end

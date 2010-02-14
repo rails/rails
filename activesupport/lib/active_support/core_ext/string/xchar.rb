@@ -1,5 +1,5 @@
 begin
-  # See http://bogomips.org/fast_xs/ by Eric Wong.
+  # See http://fast-xs.rubyforge.org/ by Eric Wong.
   # Also included with hpricot.
   require 'fast_xs'
 rescue LoadError

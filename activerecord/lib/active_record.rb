@@ -55,10 +55,10 @@ module ActiveRecord
       autoload :Calculations
       autoload :PredicateBuilder
       autoload :SpawnMethods
+      autoload :Batches
     end
 
     autoload :Base
-    autoload :Batches
     autoload :Callbacks
     autoload :DynamicFinderMatch
     autoload :DynamicScopeMatch

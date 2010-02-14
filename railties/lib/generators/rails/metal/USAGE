@@ -2,7 +2,7 @@ Description:
     Cast some metal!
 
 Examples:
-    `./script/generate metal poller`
+    `rails generate metal poller`
 
         This will create:
             Metal: app/metal/poller.rb

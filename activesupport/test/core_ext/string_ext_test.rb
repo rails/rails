@@ -335,6 +335,11 @@ end
 class OutputSafetyTest < ActiveSupport::TestCase
   def setup
     @string = "hello"
+    @object = Class.new(Object) do
+      def to_s
+        "other"
+      end
+    end.new
   end
 
   test "A string is unsafe by default" do
@@ -355,17 +360,15 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "An object is unsafe by default" do
-    klass = Class.new(Object) do
-      def to_str
-        "other"
-      end
-    end
+    assert !@object.html_safe?
+  end
 
-    @string.html_safe
-    @string << klass.new
+  test "Adding an object to a safe string returns a safe string" do
+    string = @string.html_safe
+    string << @object
 
-    assert_equal "helloother", @string
-    assert !@string.html_safe?
+    assert_equal "helloother", string
+    assert string.html_safe?
   end
 
   test "Adding a safe string to another safe string returns a safe string" do
@@ -391,9 +394,9 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "Concatting safe onto unsafe yields unsafe" do
     @other_string = "other"
-    @string.html_safe
 
-    @other_string.concat(@string)
+    string = @string.html_safe
+    @other_string.concat(string)
     assert !@other_string.html_safe?
   end
 
@@ -406,17 +409,17 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "Concatting safe onto safe yields safe" do
     @other_string = "other".html_safe
-    @string.html_safe
+    string = @string.html_safe
 
-    @other_string.concat(@string)
+    @other_string.concat(string)
     assert @other_string.html_safe?
   end
 
   test "Concatting safe onto unsafe with << yields unsafe" do
     @other_string = "other"
-    @string.html_safe
+    string = @string.html_safe
 
-    @other_string << @string
+    @other_string << string
     assert !@other_string.html_safe?
   end
 
@@ -429,9 +432,9 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "Concatting safe onto safe with << yields safe" do
     @other_string = "other".html_safe
-    @string.html_safe
+    string = @string.html_safe
 
-    @other_string << @string
+    @other_string << string
     assert @other_string.html_safe?
   end
 

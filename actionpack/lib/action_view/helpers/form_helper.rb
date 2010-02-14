@@ -309,7 +309,7 @@ module ActionView
 
         options[:html][:remote] = true if options.delete(:remote)
 
-        concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}))
+        safe_concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}))
         fields_for(object_name, *(args << options), &proc)
         safe_concat('</form>')
       end
@@ -1172,7 +1172,9 @@ module ActionView
 
         def fields_for_with_nested_attributes(association_name, args, block)
           name = "#{object_name}[#{association_name}_attributes]"
-          association = args.first.to_model if args.first.respond_to?(:to_model)
+          options = args.extract_options!
+          association = args.shift
+          association = association.to_model if association.respond_to?(:to_model)
 
           if association.respond_to?(:new_record?)
             association = [association] if @object.send(association_name).is_a?(Array)
@@ -1181,20 +1183,22 @@ module ActionView
           end
 
           if association.is_a?(Array)
-            explicit_child_index = args.last[:child_index] if args.last.is_a?(Hash)
+            explicit_child_index = options[:child_index]
             association.map do |child|
-              fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index(name)}]", child, args, block)
+              fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index(name)}]", child, options, block)
             end.join
           elsif association
-            fields_for_nested_model(name, association, args, block)
+            fields_for_nested_model(name, association, options, block)
           end
         end
 
-        def fields_for_nested_model(name, object, args, block)
+        def fields_for_nested_model(name, object, options, block)
+          object = object.to_model if object.respond_to?(:to_model)
+
           if object.new_record?
-            @template.fields_for(name, object, *args, &block)
+            @template.fields_for(name, object, options, &block)
           else
-            @template.fields_for(name, object, *args) do |builder|
+            @template.fields_for(name, object, options) do |builder|
               block.call(builder)
               @template.concat builder.hidden_field(:id) unless builder.emitted_hidden_id?
             end
