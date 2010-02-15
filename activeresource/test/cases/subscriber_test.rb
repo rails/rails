@@ -1,9 +1,13 @@
+railties_path = File.expand_path('../../../../railties/lib', __FILE__)
+$:.unshift(railties_path) if File.directory?(railties_path) && !$:.include?(railties_path)
+
 require "abstract_unit"
 require "fixtures/person"
 require "rails/subscriber/test_helper"
 require "active_resource/railties/subscriber"
 require "active_support/core_ext/hash/conversions"
 
+# TODO: This test should be part of Railties
 class SubscriberTest < ActiveSupport::TestCase
   include Rails::Subscriber::TestHelper
   Rails::Subscriber.add(:active_resource, ActiveResource::Railties::Subscriber.new)

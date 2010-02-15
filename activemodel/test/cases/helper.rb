@@ -1,4 +1,9 @@
-require File.expand_path('../../../../load_paths', __FILE__)
+require File.expand_path('../../../../bundler', __FILE__)
+
+lib = File.expand_path("#{File.dirname(__FILE__)}/../../lib")
+$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
+
+puts $LOAD_PATH.inspect
 
 require 'config'
 require 'active_model'

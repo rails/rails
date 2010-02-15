@@ -187,7 +187,7 @@ module TestHelpers
     end
 
     def boot_rails
-      require File.expand_path('../../../../load_paths', __FILE__)
+      require File.expand_path('../../edge_rails', __FILE__)
     end
   end
 end
@@ -208,18 +208,12 @@ Module.new do
   end
   FileUtils.mkdir(tmp_path)
 
-  environment = File.expand_path('../../../../load_paths', __FILE__)
-  if File.exist?("#{environment}.rb")
-    require_environment = "-r #{environment}"
-  end
+  environment = File.expand_path('../../edge_rails', __FILE__)
+  require_environment = "-r #{environment}"
 
   `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{tmp_path('app_template')}`
   File.open("#{tmp_path}/app_template/config/boot.rb", 'w') do |f|
-    if require_environment
-      f.puts "Dir.chdir('#{File.dirname(environment)}') do"
-      f.puts "  require '#{environment}'"
-      f.puts "end"
-    end
+    f.puts "require '#{environment}'"
     f.puts "require 'rails/all'"
   end
 end
