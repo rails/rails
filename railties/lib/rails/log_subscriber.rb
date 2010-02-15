@@ -2,15 +2,15 @@ require 'active_support/core_ext/class/inheritable_attributes'
 require 'active_support/notifications'
 
 module Rails
-  # Rails::Subscriber is an object set to consume ActiveSupport::Notifications
-  # on initialization with solely purpose of logging. The subscriber dispatches
+  # Rails::LogSubscriber is an object set to consume ActiveSupport::Notifications
+  # on initialization with solely purpose of logging. The log subscriber dispatches
   # notifications to a regirested object based on its given namespace.
   #
-  # An example would be ActiveRecord subscriber responsible for logging queries:
+  # An example would be ActiveRecord log subscriber responsible for logging queries:
   #
   #   module ActiveRecord
   #     class Railtie
-  #       class Subscriber < Rails::Subscriber
+  #       class LogSubscriber < Rails::LogSubscriber
   #         def sql(event)
   #           "#{event.payload[:name]} (#{event.duration}) #{event.payload[:sql]}"
   #         end
@@ -20,19 +20,19 @@ module Rails
   #
   # It's finally registed as:
   #
-  #   Rails::Subscriber.add :active_record, ActiveRecord::Railtie::Subscriber.new
+  #   Rails::LogSubscriber.add :active_record, ActiveRecord::Railtie::LogSubscriber.new
   #
-  # So whenever a "active_record.sql" notification arrive to Rails::Subscriber,
+  # So whenever a "active_record.sql" notification arrive to Rails::LogSubscriber,
   # it will properly dispatch the event (ActiveSupport::Notifications::Event) to
   # the sql method.
   #
-  # This is useful because it avoids spanning several subscribers just for logging
+  # This is useful because it avoids spanning several log subscribers just for logging
   # purposes(which slows down the main thread). Besides of providing a centralized
   # facility on top of Rails.logger.
   # 
-  # Subscriber also has some helpers to deal with logging and automatically flushes
+  # Log subscriber also has some helpers to deal with logging and automatically flushes
   # all logs when the request finishes (via action_dispatch.callback notification).
-  class Subscriber
+  class LogSubscriber
     mattr_accessor :colorize_logging
     self.colorize_logging = true
 
@@ -50,30 +50,30 @@ module Rails
     CYAN       = "\e[36m"
     WHITE      = "\e[37m"
 
-    def self.add(namespace, subscriber)
-      subscribers[namespace.to_sym] = subscriber
+    def self.add(namespace, log_subscriber)
+      log_subscribers[namespace.to_sym] = log_subscriber
     end
 
-    def self.subscribers
-      @subscribers ||= {}
+    def self.log_subscribers
+      @log_subscribers ||= {}
     end
 
     def self.dispatch(args)
       namespace, name = args[0].split(".")
-      subscriber = subscribers[namespace.to_sym]
+      log_subscriber = log_subscribers[namespace.to_sym]
 
-      if subscriber.respond_to?(name) && subscriber.logger
+      if log_subscriber.respond_to?(name) && log_subscriber.logger
         begin
-          subscriber.send(name, ActiveSupport::Notifications::Event.new(*args))
+          log_subscriber.send(name, ActiveSupport::Notifications::Event.new(*args))
         rescue Exception => e
           Rails.logger.error "Could not log #{args[0].inspect} event. #{e.class}: #{e.message}"
         end
       end
     end
 
-    # Flush all subscribers' logger.
+    # Flush all log_subscribers' logger.
     def self.flush_all!
-      loggers = subscribers.values.map(&:logger)
+      loggers = log_subscribers.values.map(&:logger)
       loggers.uniq!
       loggers.each { |l| l.flush if l.respond_to?(:flush) }
     end

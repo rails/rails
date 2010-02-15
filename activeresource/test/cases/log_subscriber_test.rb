@@ -1,12 +1,12 @@
 require "abstract_unit"
 require "fixtures/person"
-require "rails/subscriber/test_helper"
-require "active_resource/railties/subscriber"
+require "rails/log_subscriber/test_helper"
+require "active_resource/railties/log_subscriber"
 require "active_support/core_ext/hash/conversions"
 
-class SubscriberTest < ActiveSupport::TestCase
-  include Rails::Subscriber::TestHelper
-  Rails::Subscriber.add(:active_resource, ActiveResource::Railties::Subscriber.new)
+class LogSubscriberTest < ActiveSupport::TestCase
+  include Rails::LogSubscriber::TestHelper
+  Rails::LogSubscriber.add(:active_resource, ActiveResource::Railties::LogSubscriber.new)
 
   def setup
     @matz = { :id => 1, :name => 'Matz' }.to_xml(:root => 'person')

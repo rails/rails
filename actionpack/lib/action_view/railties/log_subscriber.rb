@@ -1,6 +1,6 @@
 module ActionView
   module Railties
-    class Subscriber < Rails::Subscriber
+    class LogSubscriber < Rails::LogSubscriber
       def render_template(event)
         message = "Rendered #{from_rails_root(event.payload[:identifier])}"
         message << " within #{from_rails_root(event.payload[:layout])}" if event.payload[:layout]

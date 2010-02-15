@@ -5,8 +5,8 @@ module ActionView
   class Railtie < Rails::Railtie
     railtie_name :action_view
 
-    require "action_view/railties/subscriber"
-    subscriber ActionView::Railties::Subscriber.new
+    require "action_view/railties/log_subscriber"
+    log_subscriber ActionView::Railties::LogSubscriber.new
 
     initializer "action_view.cache_asset_timestamps" do |app|
       unless app.config.cache_classes

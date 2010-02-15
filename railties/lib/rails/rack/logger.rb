@@ -1,9 +1,9 @@
-require 'rails/subscriber'
+require 'rails/log_subscriber'
 
 module Rails
   module Rack
     # Log the request started and flush all loggers after it.
-    class Logger < Rails::Subscriber
+    class Logger < Rails::LogSubscriber
       def initialize(app)
         @app = app
       end
@@ -26,7 +26,7 @@ module Rails
         end
 
         def after_dispatch(env)
-          Rails::Subscriber.flush_all!
+          Rails::LogSubscriber.flush_all!
         end
 
     end

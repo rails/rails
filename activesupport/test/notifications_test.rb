@@ -26,7 +26,7 @@ module Notifications
       assert_equal [[:foo]], @events
     end
 
-    def test_subscriber_with_pattern
+    def test_log_subscriber_with_pattern
       events = []
       @notifier.subscribe('1') { |*args| events << args }
 
@@ -38,7 +38,7 @@ module Notifications
       assert_equal [['1'], ['1.a']], events
     end
 
-    def test_subscriber_with_pattern_as_regexp
+    def test_log_subscriber_with_pattern_as_regexp
       events = []
       @notifier.subscribe(/\d/) { |*args| events << args }
 
@@ -50,7 +50,7 @@ module Notifications
       assert_equal [['1'], ['a.1'], ['1.a']], events
     end
 
-    def test_multiple_subscribers
+    def test_multiple_log_subscribers
       @another = []
       @notifier.subscribe { |*args| @another << args }
       @notifier.publish :foo

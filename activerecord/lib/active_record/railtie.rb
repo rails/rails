@@ -20,8 +20,8 @@ module ActiveRecord
     end
 
     # TODO If we require the wrong file, the error never comes up.
-    require "active_record/railties/subscriber"
-    subscriber ActiveRecord::Railties::Subscriber.new
+    require "active_record/railties/log_subscriber"
+    log_subscriber ActiveRecord::Railties::LogSubscriber.new
 
     initializer "active_record.initialize_timezone" do
       ActiveRecord::Base.time_zone_aware_attributes = true
