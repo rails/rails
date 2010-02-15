@@ -15,6 +15,14 @@ module Arel
       else
         @engine = options # Table.new('foo', engine)
       end
+
+      if @engine.connection
+        begin
+          require "lib/arel/engines/sql/compilers/#{@engine.adapter_name.downcase}_compiler"
+        rescue LoadError
+          raise "#{@engine.adapter_name} is not supported by Arel."
+        end
+      end
     end
 
     def as(table_alias)

@@ -1,12 +1,13 @@
 module Arel
   module Sql
     class Engine
+
       def initialize(ar = nil)
         @ar = ar
       end
 
       def connection
-        @ar.connection
+        @ar ? @ar.connection : nil
       end
 
       def adapter_name

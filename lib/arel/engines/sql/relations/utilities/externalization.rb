@@ -3,7 +3,7 @@ module Arel
     include Recursion::BaseCase
 
     def table_sql(formatter = Sql::TableReference.new(relation))
-      formatter.select relation.select_sql, self
+      formatter.select relation.compiler.select_sql, self
     end
 
     # REMOVEME
