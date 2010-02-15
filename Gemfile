@@ -22,6 +22,10 @@ end
 gem "rack-test", "0.5.3", :require => 'rack/test'
 gem "RedCloth", ">= 4.2.2"
 
+group :documentation do
+  gem 'rdoc', '2.1'
+end
+
 if ENV['CI']
   gem "nokogiri", ">= 1.4.0"
 
