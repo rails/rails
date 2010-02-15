@@ -119,11 +119,11 @@ module ActiveRecord #:nodoc:
   class ReadOnlyRecord < ActiveRecordError
   end
 
-  # +ActiveRecord::Transactions::ClassMethods.transaction+ uses this exception
+  # <tt>ActiveRecord::Transactions::ClassMethods.transaction</tt> uses this exception
   # to distinguish a deliberate rollback from other exceptional situations.
   # Normally, raising an exception will cause the +transaction+ method to rollback
   # the database transaction *and* pass on the exception. But if you raise an
-  # +ActiveRecord::Rollback+ exception, then the database transaction will be rolled back,
+  # <tt>ActiveRecord::Rollback</tt> exception, then the database transaction will be rolled back,
   # without passing on the exception.
   #
   # For example, you could do this in your controller to rollback a transaction:
