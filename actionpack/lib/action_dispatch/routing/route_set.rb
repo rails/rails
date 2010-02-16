@@ -19,12 +19,7 @@ module ActionDispatch
         def call(env)
           params = env[PARAMETERS_KEY]
           prepare_params!(params)
-
-          unless controller = controller(params)
-            return [404, {'X-Cascade' => 'pass'}, []]
-          end
-
-          controller.action(params[:action]).call(env)
+          controller(params).action(params[:action]).call(env)
         end
 
         def prepare_params!(params)
@@ -39,14 +34,13 @@ module ActionDispatch
           end
         end
 
-        def controller(params)
+        def controller(params, swallow=false)
           if params && params.has_key?(:controller)
             controller = "#{params[:controller].camelize}Controller"
             ActiveSupport::Inflector.constantize(controller)
           end
         rescue NameError => e
-          raise unless e.message.include?(controller)
-          nil
+          raise ActionController::RoutingError, e.message, e.backtrace unless swallow
         end
 
         private
@@ -433,7 +427,7 @@ module ActionDispatch
         req = Rack::Request.new(env)
         @set.recognize(req) do |route, params|
           dispatcher = route.app
-          if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params)
+          if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, true)
             dispatcher.prepare_params!(params)
             return params
           end
