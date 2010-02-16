@@ -214,6 +214,10 @@ class TestController < ActionController::Base
     render :text => false
   end
 
+  def render_text_with_resource
+    render :text => Customer.new("David")
+  end
+
   # :ported:
   def render_nothing_with_appendix
     render :text => "appended"
@@ -815,6 +819,11 @@ class RenderTest < ActionController::TestCase
     get :render_nothing_with_appendix
     assert_response 200
     assert_equal 'appended', @response.body
+  end
+
+  def test_render_text_with_resource
+    get :render_text_with_resource
+    assert_equal 'name: David', @response.body
   end
 
   # :ported:
