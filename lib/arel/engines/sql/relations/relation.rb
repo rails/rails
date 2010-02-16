@@ -2,7 +2,11 @@ module Arel
   class Relation
 
     def compiler
-      @compiler ||= "Arel::SqlCompiler::#{engine.adapter_name}Compiler".constantize.new(self)
+      @compiler ||=  begin
+        "Arel::SqlCompiler::#{engine.adapter_name}Compiler".constantize.new(self)
+      rescue
+        Arel::SqlCompiler::GenericCompiler.new(self)
+      end
     end
 
     def to_sql(formatter = Sql::SelectStatement.new(self))
