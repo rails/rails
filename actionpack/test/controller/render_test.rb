@@ -823,7 +823,7 @@ class RenderTest < ActionController::TestCase
 
   def test_render_text_with_resource
     get :render_text_with_resource
-    assert_equal 'name: David', @response.body
+    assert_equal 'name: "David"', @response.body
   end
 
   # :ported:
