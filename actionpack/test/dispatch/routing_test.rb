@@ -104,7 +104,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
       end
 
-      resources :posts, :only => [:index, :show]
+      resources :posts, :only => [:index, :show] do
+        resources :comments, :except => :destroy
+      end
 
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
 
@@ -471,7 +473,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_posts
+  def test_resource_routes_with_only_and_except
     with_test_routes do
       get '/posts'
       assert_equal 'posts#index', @response.body
@@ -481,9 +483,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal 'posts#show', @response.body
       assert_equal '/posts/1', post_path(:id => 1)
 
+      get '/posts/1/comments'
+      assert_equal 'comments#index', @response.body
+      assert_equal '/posts/1/comments', post_comments_path(:post_id => 1)
+
       assert_raise(ActionController::RoutingError) { post '/posts' }
       assert_raise(ActionController::RoutingError) { put '/posts/1' }
       assert_raise(ActionController::RoutingError) { delete '/posts/1' }
+      assert_raise(ActionController::RoutingError) { delete '/posts/1/comments' }
     end
   end
 

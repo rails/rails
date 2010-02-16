@@ -367,9 +367,9 @@ module ActionDispatch
 
           def actions
             if only = options[:only]
-              only.map(&:to_sym)
+              Array(only).map(&:to_sym)
             elsif except = options[:except]
-              default_actions - except.map(&:to_sym)
+              default_actions - Array(except).map(&:to_sym)
             else
               default_actions
             end
@@ -443,7 +443,7 @@ module ActionDispatch
         def resource(*resources, &block)
           options = resources.extract_options!
 
-          if verify_common_behavior_for(:resource, resources, options, &block)
+          if apply_common_behavior_for(:resource, resources, options, &block)
             return self
           end
 
@@ -468,7 +468,7 @@ module ActionDispatch
         def resources(*resources, &block)
           options = resources.extract_options!
 
-          if verify_common_behavior_for(:resources, resources, options, &block)
+          if apply_common_behavior_for(:resources, resources, options, &block)
             return self
           end
 
@@ -591,7 +591,7 @@ module ActionDispatch
             path_names[name.to_sym] || name.to_s
           end
 
-          def verify_common_behavior_for(method, resources, options, &block)
+          def apply_common_behavior_for(method, resources, options, &block)
             if resources.length > 1
               resources.each { |r| send(method, r, options, &block) }
               return true
