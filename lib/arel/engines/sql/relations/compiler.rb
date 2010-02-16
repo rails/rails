@@ -53,10 +53,6 @@ module Arel
       def order_clauses
         orders.collect { |o| o.to_sql(Sql::OrderClause.new(relation)) }
       end
-
-      def using_distinct_on?
-        select_clauses.any? { |x| x =~ /DISTINCT ON/ }
-      end
     end
 
   end

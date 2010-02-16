@@ -4,10 +4,6 @@ module Arel
 
       def select_sql
         if !orders.blank? && using_distinct_on?
-          # PostgreSQL does not allow arbitrary ordering when using DISTINCT ON, so we work around this
-          # by wrapping the +sql+ string as a sub-select and ordering in that query.
-          order = order_clauses.join(', ').split(',').map { |s| s.strip }.reject(&:blank?)
-          order = order.zip((0...order.size).to_a).map { |s,i| "id_list.alias_#{i} #{'DESC' if s =~ /\bdesc$/i}" }.join(', ')
 
           query = build_query \
             "SELECT #{select_clauses.kind_of?(::Array) ? select_clauses.join("") : select_clauses.to_s}",
@@ -20,13 +16,24 @@ module Arel
 
           build_query \
             "SELECT * FROM (#{query}) AS id_list",
-            "ORDER BY #{order}",
+            "ORDER BY #{aliased_orders(order_clauses)}",
             ("LIMIT #{taken}" unless taken.blank? ),
             ("OFFSET #{skipped}" unless skipped.blank? )
 
         else
           super
         end
+      end
+
+      def using_distinct_on?
+        select_clauses.any? { |x| x =~ /DISTINCT ON/ }
+      end
+
+      def aliased_orders(orders)
+        # PostgreSQL does not allow arbitrary ordering when using DISTINCT ON, so we work around this
+        # by wrapping the +sql+ string as a sub-select and ordering in that query.
+        order = orders.join(', ').split(/,/).map { |s| s.strip }.reject(&:blank?)
+        order = order.zip((0...order.size).to_a).map { |s,i| "id_list.alias_#{i} #{'DESC' if s =~ /\bdesc$/i}" }.join(', ')
       end
     end
   end
