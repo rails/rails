@@ -4,8 +4,7 @@ module Arel
 
       def select_sql
         if !orders.blank? && using_distinct_on?
-
-          query = build_query \
+          subquery = build_query \
             "SELECT #{select_clauses.kind_of?(::Array) ? select_clauses.join("") : select_clauses.to_s}",
             "FROM #{from_clauses}",
             (joins(self) unless joins(self).blank? ),
@@ -15,11 +14,10 @@ module Arel
             ("#{locked}" unless locked.blank? )
 
           build_query \
-            "SELECT * FROM (#{query}) AS id_list",
+            "SELECT * FROM (#{subquery}) AS id_list",
             "ORDER BY #{aliased_orders(order_clauses)}",
             ("LIMIT #{taken}" unless taken.blank? ),
             ("OFFSET #{skipped}" unless skipped.blank? )
-
         else
           super
         end
