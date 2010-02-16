@@ -5,7 +5,7 @@ module Arel
         "DELETE",
         "FROM #{table_sql}",
         ("WHERE #{wheres.collect(&:to_sql).join(' AND ')}" unless wheres.blank? ),
-        ("LIMIT #{taken}"                                     unless taken.blank?  )
+        ("LIMIT #{taken}"                                  unless taken.blank?  )
     end
   end
 
@@ -69,15 +69,7 @@ module Arel
       unless taken.blank?
         conditions << " LIMIT #{taken}"
 
-        if engine.adapter_name != "MySQL"
-          begin
-            quote_primary_key = engine.quote_column_name(table.name.classify.constantize.primary_key)
-          rescue NameError
-            quote_primary_key = engine.quote_column_name("id")
-          end
-
-          conditions =  "WHERE #{quote_primary_key} IN (SELECT #{quote_primary_key} FROM #{engine.connection.quote_table_name table.name} #{conditions})"
-        end
+        conditions = compiler.limited_update_conditions(conditions)
       end
 
       conditions

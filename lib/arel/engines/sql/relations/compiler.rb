@@ -21,6 +21,16 @@ module Arel
           ("#{locked}"                                   unless locked.blank?)
       end
 
+      def limited_update_conditions(conditions)
+        begin
+          quote_primary_key = engine.quote_column_name(table.name.classify.constantize.primary_key)
+        rescue NameError
+          quote_primary_key = engine.quote_column_name("id")
+        end
+
+        "WHERE #{quote_primary_key} IN (SELECT #{quote_primary_key} FROM #{engine.connection.quote_table_name table.name} #{conditions})"
+      end
+
     protected
       def method_missing(method, *args, &block)
         relation.send(method, *args, &block)
