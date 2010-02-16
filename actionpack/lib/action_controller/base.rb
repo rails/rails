@@ -52,7 +52,7 @@ module ActionController
 
       def method_for_action(action_name)
         super || begin
-          if template_exists?(action_name.to_s, {:formats => formats}, :_prefix => controller_path)
+          if view_paths.exists?(action_name.to_s, {:formats => formats}, controller_path)
             "default_render"
           end
         end

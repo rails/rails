@@ -49,6 +49,14 @@ module ActionController
       headers["Content-Type"] = type.to_s
     end
 
+    def content_type
+      headers["Content-Type"]
+    end
+
+    def location
+      headers["Location"]
+    end
+
     def location=(url)
       headers["Location"] = url
     end

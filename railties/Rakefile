@@ -1,4 +1,4 @@
-require File.expand_path('../../load_paths', __FILE__)
+require File.expand_path('../../bundler', __FILE__)
 
 require 'rake'
 require 'rake/testtask'

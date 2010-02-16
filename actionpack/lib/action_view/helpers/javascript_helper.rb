@@ -93,7 +93,7 @@ module ActionView
       end
 
       def javascript_cdata_section(content) #:nodoc:
-        "\n//#{cdata_section("\n#{content}\n//")}\n"
+        "\n//#{cdata_section("\n#{content}\n//")}\n".html_safe
       end
     end
   end

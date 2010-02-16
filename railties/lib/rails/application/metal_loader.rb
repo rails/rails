@@ -34,7 +34,7 @@ module Rails
           Dir.glob("#{path}/**/*.rb").sort.each do |metal_path|
             metal = metal_path.sub(matcher, '\1').to_sym
             next unless list.include?(metal) || list.include?(:all)
-            require_dependency metal
+            require_dependency metal.to_s
             metals << metal
           end
         end

@@ -37,7 +37,7 @@ module AbstractController
     #   options<Hash>:: See _render_template_with_layout in ActionView::Base
     #   partial<Boolean>:: Whether or not the template to render is a partial
     #
-    # Override this method in a to change the default behavior.
+    # Override this method in a module to change the default behavior.
     def view_context
       @_view_context ||= ActionView::Base.for_controller(self)
     end
