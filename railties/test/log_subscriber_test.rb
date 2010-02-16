@@ -79,7 +79,7 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
     instrument "my_log_subscriber.unknown_event"
     wait
-    # If we get here, it means that NoMethodError was raised.
+    # If we get here, it means that NoMethodError was not raised.
   end
 
   def test_does_not_send_the_event_if_logger_is_nil
@@ -87,6 +87,12 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     @log_subscriber.expects(:some_event).never
     Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
     instrument "my_log_subscriber.some_event"
+    wait
+  end
+
+  def test_does_not_fail_with_non_namespaced_events
+    Rails::LogSubscriber.add :my_log_subscriber, @log_subscriber
+    instrument "whatever"
     wait
   end
 

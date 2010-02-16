@@ -60,8 +60,9 @@ module Rails
 
     def self.dispatch(args)
       namespace, name = args[0].split(".")
-      log_subscriber = log_subscribers[namespace.to_sym]
+      return unless namespace && name
 
+      log_subscriber = log_subscribers[namespace.to_sym]
       if log_subscriber.respond_to?(name) && log_subscriber.logger
         begin
           log_subscriber.send(name, ActiveSupport::Notifications::Event.new(*args))
