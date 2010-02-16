@@ -86,7 +86,7 @@ module ActionController
       end
 
       private
-        # Overwrite _modules_for_helpers to accept :all as argument, which loads
+        # Overwrite modules_for_helpers to accept :all as argument, which loads
         # all helpers in helpers_dir.
         #
         # ==== Parameters
@@ -95,7 +95,7 @@ module ActionController
         # ==== Returns
         # Array[Module]:: A normalized list of modules for the list of
         #   helpers provided.
-        def _modules_for_helpers(args)
+        def modules_for_helpers(args)
           args += all_application_helpers if args.delete(:all)
           super(args)
         end
