@@ -1,3 +1,6 @@
+railties_path = File.expand_path('../../../../railties/lib', __FILE__)
+$:.unshift(railties_path) if File.directory?(railties_path) && !$:.include?(railties_path)
+
 require 'active_record_unit'
 require 'active_record/railties/controller_runtime'
 require 'fixtures/project'
@@ -31,7 +34,7 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
   def set_logger(logger)
     ActionController::Base.logger = logger
   end
- 
+
   def test_log_with_active_record
     get :show
     wait

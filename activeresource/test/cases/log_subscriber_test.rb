@@ -1,9 +1,13 @@
+railties_path = File.expand_path('../../../../railties/lib', __FILE__)
+$:.unshift(railties_path) if File.directory?(railties_path) && !$:.include?(railties_path)
+
 require "abstract_unit"
 require "fixtures/person"
 require "rails/log_subscriber/test_helper"
 require "active_resource/railties/log_subscriber"
 require "active_support/core_ext/hash/conversions"
 
+# TODO: This test should be part of Railties
 class LogSubscriberTest < ActiveSupport::TestCase
   include Rails::LogSubscriber::TestHelper
   Rails::LogSubscriber.add(:active_resource, ActiveResource::Railties::LogSubscriber.new)

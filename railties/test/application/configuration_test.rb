@@ -140,7 +140,7 @@ module ApplicationTests
         require "#{app_path}/config/environment"
       end
     end
-    
+
     test "filter_parameters should be able to set via config.filter_parameters" do
       add_to_config <<-RUBY
         config.filter_parameters += [ :foo, 'bar', lambda { |key, value|

@@ -84,6 +84,8 @@ class DelegatingAttributesTest < Test::Unit::TestCase
     
     assert_equal "1", Child.some_attribute
     assert_nil Mokopuna.some_attribute
+  ensure
+    Child.some_attribute=nil
   end
 
 end

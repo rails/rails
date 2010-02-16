@@ -430,7 +430,7 @@ module ActionDispatch
         end
 
         req = Rack::Request.new(env)
-        @set.recognize(req) do |route, params|
+        @set.recognize(req) do |route, matches, params|
           dispatcher = route.app
           if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, false)
             dispatcher.prepare_params!(params)
