@@ -21,6 +21,7 @@ class Customer < Struct.new(:name, :id)
   def to_js(options={})
     "name: #{name.inspect}"
   end
+  alias :to_text :to_js
 
   def errors
     []

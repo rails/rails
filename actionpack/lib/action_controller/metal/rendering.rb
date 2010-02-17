@@ -36,6 +36,13 @@ module ActionController
         super
       end
 
+      def _determine_template(options)
+        if options.key?(:text) && options[:text].respond_to?(:to_text)
+          options[:text] = options[:text].to_text
+        end
+        super
+      end
+
       def format_for_text
         formats.first
       end

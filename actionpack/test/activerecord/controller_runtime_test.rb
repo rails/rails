@@ -4,30 +4,30 @@ $:.unshift(railties_path) if File.directory?(railties_path) && !$:.include?(rail
 require 'active_record_unit'
 require 'active_record/railties/controller_runtime'
 require 'fixtures/project'
-require 'rails/subscriber/test_helper'
-require 'action_controller/railties/subscriber'
+require 'rails/log_subscriber/test_helper'
+require 'action_controller/railties/log_subscriber'
 
 ActionController::Base.send :include, ActiveRecord::Railties::ControllerRuntime
 
-class ControllerRuntimeSubscriberTest < ActionController::TestCase
-  class SubscriberController < ActionController::Base
+class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
+  class LogSubscriberController < ActionController::Base
     def show
       render :inline => "<%= Project.all %>"
     end
   end
-
-  include Rails::Subscriber::TestHelper
-  tests SubscriberController
+  
+  include Rails::LogSubscriber::TestHelper
+  tests LogSubscriberController
 
   def setup
     @old_logger = ActionController::Base.logger
-    Rails::Subscriber.add(:action_controller, ActionController::Railties::Subscriber.new)
+    Rails::LogSubscriber.add(:action_controller, ActionController::Railties::LogSubscriber.new)
     super
   end
 
   def teardown
     super
-    Rails::Subscriber.subscribers.clear
+    Rails::LogSubscriber.log_subscribers.clear
     ActionController::Base.logger = @old_logger
   end
 

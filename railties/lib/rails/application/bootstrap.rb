@@ -49,17 +49,17 @@ module Rails
         end
       end
 
-      # Initialize rails subscriber on top of notifications.
-      initializer :initialize_subscriber do
+      # Initialize rails log subscriber on top of notifications.
+      initializer :initialize_log_subscriber do
         require 'active_support/notifications'
 
         if config.colorize_logging == false
-          Rails::Subscriber.colorize_logging = false
+          Rails::LogSubscriber.colorize_logging = false
           config.generators.colorize_logging = false
         end
 
         ActiveSupport::Notifications.subscribe do |*args|
-          Rails::Subscriber.dispatch(args)
+          Rails::LogSubscriber.dispatch(args)
         end
       end
 

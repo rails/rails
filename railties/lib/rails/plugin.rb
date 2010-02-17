@@ -29,7 +29,7 @@ module Rails
 
       unless extra_tasks.empty?
         ActiveSupport::Deprecation.warn "Having rake tasks in PLUGIN_PATH/tasks or " <<
-          "PLUGIN_PATH/rails/tasks is deprecated. Use to PLUGIN_PATH/lib/tasks instead"
+          "PLUGIN_PATH/rails/tasks is deprecated. Use PLUGIN_PATH/lib/tasks instead"
         extra_tasks.sort.each { |ext| load(ext) }
       end
     end
@@ -44,7 +44,13 @@ module Rails
     end
 
     initializer :load_init_rb, :before => :load_application_initializers do |app|
-      file   = Dir["#{root}/{rails/init,init}.rb"].first
+      if File.file?(file = File.expand_path("rails/init.rb", root))
+        ActiveSupport::Deprecation.warn "PLUGIN_PATH/rails/init.rb in plugins is deprecated. " <<
+          "Use PLUGIN_PATH/init.rb instead"
+      else
+        file = File.expand_path("init.rb", root)
+      end
+
       config = app.config
       eval(File.read(file), binding, file) if file && File.file?(file)
     end

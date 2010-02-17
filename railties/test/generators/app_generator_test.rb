@@ -50,6 +50,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     ).each{ |path| assert_file path }
   end
 
+  def test_name_collision_raises_an_error
+    content = capture(:stderr){ run_generator [File.join(destination_root, "generate")] }
+    assert_equal "Invalid application name generate. Please give a name which does not match one of the reserved rails words.\n", content
+  end
+
   def test_invalid_database_option_raises_an_error
     content = capture(:stderr){ run_generator([destination_root, "-d", "unknown"]) }
     assert_match /Invalid value for \-\-database option/, content

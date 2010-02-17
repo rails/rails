@@ -7,7 +7,7 @@ require 'active_support/core_ext/logger'
 require 'rails/application'
 require 'rails/version'
 require 'rails/deprecation'
-require 'rails/subscriber'
+require 'rails/log_subscriber'
 require 'rails/ruby_version_check'
 
 require 'active_support/railtie'

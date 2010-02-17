@@ -1,6 +1,6 @@
 module ActionController
   module Railties
-    class Subscriber < Rails::Subscriber
+    class LogSubscriber < Rails::LogSubscriber
       INTERNAL_PARAMS = %w(controller action format _method only_path)
 
       def start_processing(event)

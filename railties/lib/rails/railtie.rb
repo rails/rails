@@ -32,8 +32,8 @@ module Rails
         subclasses.map { |p| p.railtie_name }
       end
 
-      def subscriber(subscriber)
-        Rails::Subscriber.add(railtie_name, subscriber)
+      def log_subscriber(log_subscriber)
+        Rails::LogSubscriber.add(railtie_name, log_subscriber)
       end
 
       def rake_tasks(&blk)

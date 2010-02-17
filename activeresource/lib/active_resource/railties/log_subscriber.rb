@@ -1,6 +1,6 @@
 module ActiveResource
   module Railties
-    class Subscriber < Rails::Subscriber
+    class LogSubscriber < Rails::LogSubscriber
       def request(event)
         result = event.payload[:result]
         info "#{event.payload[:method].to_s.upcase} #{event.payload[:request_uri]}"

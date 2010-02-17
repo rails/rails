@@ -9,8 +9,8 @@ module ActionMailer
       ActionMailer::Base.send(:include, ActionController::UrlFor) if defined?(ActionController)
     end
 
-    require "action_mailer/railties/subscriber"
-    subscriber ActionMailer::Railties::Subscriber.new
+    require "action_mailer/railties/log_subscriber"
+    log_subscriber ActionMailer::Railties::LogSubscriber.new
 
     initializer "action_mailer.logger" do
       ActionMailer::Base.logger ||= Rails.logger

@@ -11,8 +11,8 @@ module ActionDispatch
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       class Dispatcher
-        def initialize(options = {})
-          defaults = options[:defaults]
+        def initialize(options={})
+          @defaults = options[:defaults]
           @glob_param = options.delete(:glob)
         end
 
@@ -20,7 +20,8 @@ module ActionDispatch
           params = env[PARAMETERS_KEY]
           prepare_params!(params)
 
-          unless controller = controller(params)
+          # Just raise undefined constant errors if a controller was specified as default.
+          unless controller = controller(params, @defaults.key?(:controller))
             return [404, {'X-Cascade' => 'pass'}, []]
           end
 
@@ -39,14 +40,13 @@ module ActionDispatch
           end
         end
 
-        def controller(params)
+        def controller(params, raise_error=true)
           if params && params.has_key?(:controller)
             controller = "#{params[:controller].camelize}Controller"
             ActiveSupport::Inflector.constantize(controller)
           end
         rescue NameError => e
-          raise unless e.message.include?(controller)
-          nil
+          raise ActionController::RoutingError, e.message, e.backtrace if raise_error
         end
 
         private
@@ -58,7 +58,6 @@ module ActionDispatch
             params[@glob_param] = params[@glob_param].split('/').map { |v| URI.unescape(v) }
           end
       end
-
 
       # A NamedRouteCollection instance is a collection of named routes, and also
       # maintains an anonymous module that can be used to install helpers for the
@@ -433,7 +432,7 @@ module ActionDispatch
         req = Rack::Request.new(env)
         @set.recognize(req) do |route, matches, params|
           dispatcher = route.app
-          if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params)
+          if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, false)
             dispatcher.prepare_params!(params)
             return params
           end

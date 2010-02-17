@@ -1,10 +1,10 @@
 module ActiveSupport
   module Notifications
     # This is a default queue implementation that ships with Notifications. It
-    # just pushes events to all registered subscribers.
+    # just pushes events to all registered log subscribers.
     class Fanout
       def initialize
-        @subscribers = []
+        @log_subscribers = []
       end
 
       def bind(pattern)
@@ -12,11 +12,11 @@ module ActiveSupport
       end
 
       def subscribe(pattern = nil, &block)
-        @subscribers << Subscriber.new(pattern, &block)
+        @log_subscribers << LogSubscriber.new(pattern, &block)
       end
 
       def publish(*args)
-        @subscribers.each { |s| s.publish(*args) }
+        @log_subscribers.each { |s| s.publish(*args) }
       end
 
       # This is a sync queue, so there is not waiting.
@@ -41,7 +41,7 @@ module ActiveSupport
         end
       end
 
-      class Subscriber #:nodoc:
+      class LogSubscriber #:nodoc:
         def initialize(pattern, &block)
           @pattern = pattern
           @block = block

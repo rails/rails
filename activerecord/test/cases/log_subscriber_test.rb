@@ -3,12 +3,12 @@ $:.unshift(railties_path) if File.directory?(railties_path) && !$:.include?(rail
 
 require "cases/helper"
 require "models/developer"
-require "rails/subscriber/test_helper"
-require "active_record/railties/subscriber"
+require "rails/log_subscriber/test_helper"
+require "active_record/railties/log_subscriber"
 
-class SubscriberTest < ActiveSupport::TestCase
-  include Rails::Subscriber::TestHelper
-  Rails::Subscriber.add(:active_record, ActiveRecord::Railties::Subscriber.new)
+class LogSubscriberTest < ActiveSupport::TestCase
+  include Rails::LogSubscriber::TestHelper
+  Rails::LogSubscriber.add(:active_record, ActiveRecord::Railties::LogSubscriber.new)
 
   def setup
     @old_logger = ActiveRecord::Base.logger

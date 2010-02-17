@@ -2,12 +2,12 @@ railties_path = File.expand_path('../../../railties/lib', __FILE__)
 $:.unshift(railties_path) if File.directory?(railties_path) && !$:.include?(railties_path)
 
 require "abstract_unit"
-require "rails/subscriber/test_helper"
-require "action_mailer/railties/subscriber"
+require "rails/log_subscriber/test_helper"
+require "action_mailer/railties/log_subscriber"
 
-class AMSubscriberTest < ActionMailer::TestCase
-  include Rails::Subscriber::TestHelper
-  Rails::Subscriber.add(:action_mailer, ActionMailer::Railties::Subscriber.new)
+class AMLogSubscriberTest < ActionMailer::TestCase
+  include Rails::LogSubscriber::TestHelper
+  Rails::LogSubscriber.add(:action_mailer, ActionMailer::Railties::LogSubscriber.new)
 
   class TestMailer < ActionMailer::Base
     def basic

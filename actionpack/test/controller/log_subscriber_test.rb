@@ -2,11 +2,11 @@ railties_path = File.expand_path('../../../../railties/lib', __FILE__)
 $:.unshift(railties_path) if File.directory?(railties_path) && !$:.include?(railties_path)
 
 require "abstract_unit"
-require "rails/subscriber/test_helper"
-require "action_controller/railties/subscriber"
+require "rails/log_subscriber/test_helper"
+require "action_controller/railties/log_subscriber"
 
 module Another
-  class SubscribersController < ActionController::Base
+  class LogSubscribersController < ActionController::Base
     def show
       render :nothing => true
     end
@@ -38,9 +38,9 @@ module Another
   end
 end
 
-class ACSubscriberTest < ActionController::TestCase
-  tests Another::SubscribersController
-  include Rails::Subscriber::TestHelper
+class ACLogSubscriberTest < ActionController::TestCase
+  tests Another::LogSubscribersController
+  include Rails::LogSubscriber::TestHelper
 
   def setup
     @old_logger = ActionController::Base.logger
@@ -49,13 +49,13 @@ class ACSubscriberTest < ActionController::TestCase
     ActionController::Base.page_cache_directory = @cache_path
     ActionController::Base.cache_store = :file_store, @cache_path
 
-    Rails::Subscriber.add(:action_controller, ActionController::Railties::Subscriber.new)
+    Rails::LogSubscriber.add(:action_controller, ActionController::Railties::LogSubscriber.new)
     super
   end
 
   def teardown
     super
-    Rails::Subscriber.subscribers.clear
+    Rails::LogSubscriber.log_subscribers.clear
     FileUtils.rm_rf(@cache_path)
     ActionController::Base.logger = @old_logger
   end
@@ -68,7 +68,7 @@ class ACSubscriberTest < ActionController::TestCase
     get :show
     wait
     assert_equal 2, logs.size
-    assert_equal "Processing by Another::SubscribersController#show as HTML", logs.first
+    assert_equal "Processing by Another::LogSubscribersController#show as HTML", logs.first
   end
 
   def test_process_action

@@ -6,8 +6,8 @@ module ActionController
   class Railtie < Rails::Railtie
     railtie_name :action_controller
 
-    require "action_controller/railties/subscriber"
-    subscriber ActionController::Railties::Subscriber.new
+    require "action_controller/railties/log_subscriber"
+    log_subscriber ActionController::Railties::LogSubscriber.new
 
     initializer "action_controller.logger" do
       ActionController::Base.logger ||= Rails.logger
