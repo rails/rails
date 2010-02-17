@@ -99,7 +99,11 @@ module Arel
             end
 
             adapter_is :sqlite3 do
-              sql.should be_like(%Q{"developers"."created_at" BETWEEN '2010-01-01 00:00:00' AND '2010-02-01 00:00:00'})
+              if RUBY_VERSION < '1.9'
+                sql.should be_like(%Q{"developers"."created_at" BETWEEN '2010-01-01 00:00:00.000000' AND '2010-02-01 00:00:00.000000'})
+              else
+                sql.should be_like(%Q{"developers"."created_at" BETWEEN '2010-01-01 00:00:00' AND '2010-02-01 00:00:00'})
+              end
             end
 
             adapter_is :postgresql do
