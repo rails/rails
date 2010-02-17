@@ -84,6 +84,30 @@ module Arel
           end
         end
 
+        describe 'when relating to a time range' do
+          before do
+            @relation = Arel::Table.new(:developers)
+            @attribute = @relation[:created_at]
+            @range = Time.mktime(2010, 01, 01)..Time.mktime(2010, 02, 01)
+          end
+
+          it 'manufactures sql with a between' do
+            sql = In.new(@attribute, @range).to_sql
+
+            adapter_is :mysql do
+              sql.should be_like(%Q{`developers`.`created_at` BETWEEN '2010-01-01 00:00:00' AND '2010-02-01 00:00:00'})
+            end
+
+            adapter_is :sqlite3 do
+              sql.should be_like(%Q{"developers"."created_at" BETWEEN '2010-01-01 00:00:00' AND '2010-02-01 00:00:00'})
+            end
+
+            adapter_is :postgresql do
+              sql.should be_like(%Q{"developers"."created_at" BETWEEN '2010-01-01 00:00:00.000000' AND '2010-02-01 00:00:00.000000'})
+            end
+          end
+        end
+
         describe 'when relating to a relation' do
           it 'manufactures sql with a subselect' do
             sql = In.new(@attribute, @relation).to_sql

@@ -112,7 +112,7 @@ module Arel
       end
 
       def range(left, right)
-        "#{left} AND #{right}"
+        "#{scalar(left)} AND #{scalar(right)}"
       end
     end
 

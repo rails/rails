@@ -16,7 +16,8 @@ sql = <<-SQL
     id SERIAL PRIMARY KEY NOT NULL,
     name VARCHAR(255) NOT NULL,
     salary INTEGER NOT NULL,
-    department VARCHAR(255) NOT NULL
+    department VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL
   );
 SQL
 

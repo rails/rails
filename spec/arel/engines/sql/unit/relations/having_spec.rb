@@ -13,7 +13,7 @@ module Arel
 
           adapter_is :mysql do
             sql.should be_like(%Q{
-              SELECT `developers`.`id`, `developers`.`name`, `developers`.`salary`, `developers`.`department`
+              SELECT `developers`.`id`, `developers`.`name`, `developers`.`salary`, `developers`.`department`, `developers`.`created_at`
               FROM `developers`
               GROUP BY `developers`.`department`
               HAVING MIN(salary) > 1000
@@ -22,7 +22,7 @@ module Arel
 
           adapter_is_not :mysql do
             sql.should be_like(%Q{
-              SELECT "developers"."id", "developers"."name", "developers"."salary", "developers"."department"
+              SELECT "developers"."id", "developers"."name", "developers"."salary", "developers"."department", "developers"."created_at"
               FROM "developers"
               GROUP BY "developers"."department"
               HAVING MIN(salary) > 1000
