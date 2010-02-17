@@ -283,7 +283,7 @@ module ActionDispatch
         end
 
         def namespace(path)
-          scope(path.to_s, :name_prefix => path.to_s, :namespace => path.to_s) { yield }
+          scope(path.to_s, :name_prefix => path.to_s, :controller_namespace => path.to_s) { yield }
         end
 
         def constraints(constraints = {})
@@ -318,12 +318,12 @@ module ActionDispatch
             parent ? "#{parent}_#{child}" : child
           end
 
-          def merge_namespace_scope(parent, child)
+          def merge_controller_namespace_scope(parent, child)
             parent ? "#{parent}/#{child}" : child
           end
 
           def merge_controller_scope(parent, child)
-            @scope[:namespace] ? "#{@scope[:namespace]}/#{child}" : child
+            @scope[:controller_namespace] ? "#{@scope[:controller_namespace]}/#{child}" : child
           end
 
           def merge_resources_path_names_scope(parent, child)
