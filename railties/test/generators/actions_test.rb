@@ -210,6 +210,12 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file 'config/routes.rb', /#{Regexp.escape(route_command)}/
   end
 
+  def test_readme
+    run_generator
+    Rails::Generators::AppGenerator.expects(:source_root).returns(destination_root)
+    assert_match(/Welcome to Rails/, action(:readme, "README"))
+  end
+
   protected
 
     def action(*args, &block)

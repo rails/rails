@@ -280,6 +280,16 @@ module Rails
         end
       end
 
+      # Reads the given file at the source root and prints it in the console.
+      #
+      # === Example
+      #
+      #   readme "README"
+      #
+      def readme(path)
+        say File.read(find_in_source_paths(path))
+      end
+
       protected
 
         # Define log for backwards compatibility. If just one argument is sent,
