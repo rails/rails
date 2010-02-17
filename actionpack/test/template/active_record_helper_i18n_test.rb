@@ -2,7 +2,7 @@ require 'abstract_unit'
 
 class ActiveRecordHelperI18nTest < Test::Unit::TestCase
   include ActionView::Helpers::ActiveRecordHelper
-  
+
   attr_reader :request
   def setup
     @object = stub :errors => stub(:count => 1, :full_messages => ['full_messages'])
@@ -35,10 +35,17 @@ class ActiveRecordHelperI18nTest < Test::Unit::TestCase
     I18n.expects(:t).with('', :default => '', :count => 1, :scope => [:activerecord, :models]).once.returns ''
     error_messages_for(:object => @object, :locale => 'en')
   end
-  
+
   def test_error_messages_for_given_object_name_it_translates_object_name
     I18n.expects(:t).with(:header, :locale => 'en', :scope => [:activerecord, :errors, :template], :count => 1, :model => @object_name).returns "1 error prohibited this #{@object_name} from being saved"
     I18n.expects(:t).with(@object_name, :default => @object_name, :count => 1, :scope => [:activerecord, :models]).once.returns @object_name
     error_messages_for(:object => @object, :locale => 'en', :object_name => @object_name)
   end
+
+  def test_error_messages_for_given_object_name_with_underscore_it_translates_object_name
+    I18n.expects(:t).with('bank_account', :default => 'bank account', :count => 1, :scope => [:activerecord, :models]).once.returns 'bank account'
+    I18n.expects(:t).with(:header, :locale => 'en', :scope => [:activerecord, :errors, :template], :count => 1, :model => 'bank account').returns "1 error prohibited this bank account from being saved"
+    error_messages_for(:object => @object, :locale => 'en', :object_name => 'bank_account')
+  end
 end
+
