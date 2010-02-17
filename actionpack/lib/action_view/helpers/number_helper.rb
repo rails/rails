@@ -28,27 +28,25 @@ module ActionView
       #  number_to_phone(1235551234, :country_code => 1, :extension => 1343, :delimiter => ".")
       #  => +1.123.555.1234 x 1343
       def number_to_phone(number, options = {})
-        number       = number.to_s.strip unless number.nil?
+        return nil if number.nil?
+
+        number       = number.to_s.strip
         options      = options.symbolize_keys
         area_code    = options[:area_code] || nil
         delimiter    = options[:delimiter] || "-"
         extension    = options[:extension].to_s.strip || nil
         country_code = options[:country_code] || nil
 
-        begin
-          str = ""
-          str << "+#{country_code}#{delimiter}" unless country_code.blank?
-          str << if area_code
-            number.gsub!(/([0-9]{1,3})([0-9]{3})([0-9]{4}$)/,"(\\1) \\2#{delimiter}\\3")
-          else
-            number.gsub!(/([0-9]{0,3})([0-9]{3})([0-9]{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
-            number.starts_with?('-') ? number.slice!(1..-1) : number
-          end
-          str << " x #{extension}" unless extension.blank?
-          str
-        rescue
-          number
+        str = ""
+        str << "+#{country_code}#{delimiter}" unless country_code.blank?
+        str << if area_code
+          number.gsub!(/([0-9]{1,3})([0-9]{3})([0-9]{4}$)/,"(\\1) \\2#{delimiter}\\3")
+        else
+          number.gsub!(/([0-9]{0,3})([0-9]{3})([0-9]{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
+          number.starts_with?('-') ? number.slice!(1..-1) : number
         end
+        str << " x #{extension}" unless extension.blank?
+        str
       end
 
       # Formats a +number+ into a currency string (e.g., $13.65). You can customize the format
@@ -87,13 +85,14 @@ module ActionView
         format    = options[:format]    || defaults[:format]
         separator = '' if precision == 0
 
-        begin
-          format.gsub(/%n/, number_with_precision(number,
-            :precision => precision,
-            :delimiter => delimiter,
-            :separator => separator)
-          ).gsub(/%u/, unit).html_safe
-        rescue
+        value = number_with_precision(number,
+          :precision => precision,
+          :delimiter => delimiter,
+          :separator => separator)
+
+        if value
+          format.gsub(/%n/, value).gsub(/%u/, unit).html_safe
+        else
           number
         end
       end
@@ -122,14 +121,11 @@ module ActionView
         separator = options[:separator] || defaults[:separator]
         delimiter = options[:delimiter] || defaults[:delimiter]
 
-        begin
-          number_with_precision(number,
-            :precision => precision,
-            :separator => separator,
-            :delimiter => delimiter) + "%"
-        rescue
-          number
-        end
+        value = number_with_precision(number,
+          :precision => precision,
+          :separator => separator,
+          :delimiter => delimiter)
+        value ? value + "%" : number
       end
 
       # Formats a +number+ with grouped thousands using +delimiter+ (e.g., 12,324). You can
@@ -168,11 +164,11 @@ module ActionView
         delimiter ||= (options[:delimiter] || defaults[:delimiter])
         separator ||= (options[:separator] || defaults[:separator])
 
-        begin
-          parts = number.to_s.split('.')
+        parts = number.to_s.split('.')
+        if parts[0]
           parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{delimiter}")
           parts.join(separator)
-        rescue
+        else
           number
         end
       end
@@ -216,11 +212,17 @@ module ActionView
         delimiter ||= (options[:delimiter] || defaults[:delimiter])
 
         begin
+          value = Float(number)
+        rescue ArgumentError, TypeError
+          value = nil
+        end
+
+        if value
           rounded_number = BigDecimal.new((Float(number) * (10 ** precision)).to_s).round.to_f / 10 ** precision
           number_with_delimiter("%01.#{precision}f" % rounded_number,
             :separator => separator,
             :delimiter => delimiter)
-        rescue
+        else
           number
         end
       end
@@ -293,17 +295,13 @@ module ActionView
           unit_key = STORAGE_UNITS[exponent]
           unit = I18n.translate(:"number.human.storage_units.units.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
 
-          begin
-            escaped_separator = Regexp.escape(separator)
-            formatted_number = number_with_precision(number,
-              :precision => precision,
-              :separator => separator,
-              :delimiter => delimiter
-            ).sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, '')
-            storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit)
-          rescue
-            number
-          end
+          escaped_separator = Regexp.escape(separator)
+          formatted_number = number_with_precision(number,
+            :precision => precision,
+            :separator => separator,
+            :delimiter => delimiter
+          ).sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, '')
+          storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit)
         end
       end
     end
