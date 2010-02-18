@@ -43,6 +43,7 @@ module Arel
             INSERT
             INTO "users"
             ("id", "name") VALUES (1, E'nick')
+            RETURNING "id"
           })
         end
       end
@@ -74,6 +75,7 @@ module Arel
               INSERT
               INTO "users"
               ("name") VALUES (E'nick')
+              RETURNING "id"
             })
           end
         end
@@ -93,11 +95,20 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :sqlite3 do
             @insertion.to_sql.should be_like(%Q{
               INSERT
               INTO "users"
               ("id") VALUES (1)
+            })
+          end
+
+          adapter_is :postgresql do
+            @insertion.to_sql.should be_like(%Q{
+              INSERT
+              INTO "users"
+              ("id") VALUES (1)
+              RETURNING "id"
             })
           end
         end

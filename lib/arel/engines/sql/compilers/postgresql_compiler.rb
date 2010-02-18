@@ -33,6 +33,10 @@ module Arel
         order = orders.join(', ').split(/,/).map { |s| s.strip }.reject(&:blank?)
         order = order.zip((0...order.size).to_a).map { |s,i| "id_list.alias_#{i} #{'DESC' if s =~ /\bdesc$/i}" }.join(', ')
       end
+
+      def supports_insert_with_returning?
+        engine.postgresql_version >= 80200
+      end
     end
   end
 end

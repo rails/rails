@@ -32,7 +32,8 @@ module Arel
       build_query \
         "INSERT",
         "INTO #{table_sql}",
-        insertion_attributes_values_sql
+        insertion_attributes_values_sql,
+        ("RETURNING #{engine.quote_column_name(primary_key)}" if compiler.supports_insert_with_returning?)
     end
   end
 

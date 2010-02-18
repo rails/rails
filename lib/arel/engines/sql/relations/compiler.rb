@@ -26,6 +26,10 @@ module Arel
         "WHERE #{quoted_primary_key} IN (SELECT #{quoted_primary_key} FROM #{engine.connection.quote_table_name table.name} #{conditions})"
       end
 
+      def supports_insert_with_returning?
+        false
+      end
+
     protected
       def method_missing(method, *args, &block)
         relation.send(method, *args, &block)
