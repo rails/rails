@@ -10,6 +10,10 @@ require 'models/custom_reader'
 class ValidationsTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
 
+  def setup
+    Topic._validators.clear
+  end
+
   # Most of the tests mess with the validations of Topic, so lets repair it all the time.
   # Other classes we mess with will be dealt with in the specific tests
   def teardown
@@ -219,5 +223,28 @@ class ValidationsTest < ActiveModel::TestCase
     t = Topic.new
     assert !t.valid?
     assert ["NO BLANKS HERE"], t.errors[:title]
+  end
+
+  def test_list_of_validators_for_model
+    Topic.validates_presence_of :title
+    Topic.validates_length_of :title, :minimum => 2
+
+    assert_equal 2, Topic.validators.count
+    assert_equal [:presence, :length], Topic.validators.map(&:kind)
+  end
+
+  def test_list_of_validators_on_an_attribute
+    Topic.validates_presence_of :title, :content
+    Topic.validates_length_of :title, :minimum => 2
+
+    assert_equal 2, Topic.validators_on(:title).count
+    assert_equal [:presence, :length], Topic.validators_on(:title).map(&:kind)
+    assert_equal 1, Topic.validators_on(:content).count
+    assert_equal [:presence], Topic.validators_on(:content).map(&:kind)
+  end
+
+  def test_accessing_instance_of_validator_on_an_attribute
+    Topic.validates_length_of :title, :minimum => 10
+    assert_equal 10, Topic.validators_on(:title).first.options[:minimum]
   end
 end
