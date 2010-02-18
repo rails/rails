@@ -2,13 +2,12 @@ module ActionController
   module Rendering
     extend ActiveSupport::Concern
 
-    included do
-      include AbstractController::Rendering
-      include AbstractController::LocalizedCache
-    end
+    include RackDelegation
+    include AbstractController::Rendering
+    include AbstractController::LocalizedCache
 
     def process_action(*)
-      self.formats = request.formats.map {|x| x.to_sym}
+      self.formats = request.formats.map {|x| x.to_sym }
       super
     end
 
