@@ -20,5 +20,13 @@ module Arel
     def inclusion_predicate_sql
       "IN"
     end
+
+    def primary_key
+      @primary_key ||= begin
+        table.name.classify.constantize.primary_key
+      rescue NameError
+        "id"
+      end
+    end
   end
 end

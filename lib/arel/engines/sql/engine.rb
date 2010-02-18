@@ -20,7 +20,7 @@ module Arel
 
       module CRUD
         def create(relation)
-          connection.insert(relation.to_sql)
+          connection.insert(relation.to_sql, nil, relation.primary_key)
         end
 
         def read(relation)
