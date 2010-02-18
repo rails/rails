@@ -15,7 +15,7 @@ module Rails
       def inherited(base)
         unless abstract_railtie?(base)
           base.called_from = begin
-            call_stack = caller.map { |p| p.split(':').first }
+            call_stack = caller.map { |p| p.split(':')[0..-2].join(':') }
             File.dirname(call_stack.detect { |p| p !~ %r[railties[\w\-]*/lib/rails|rack[\w\-]*/lib/rack] })
           end
         end
