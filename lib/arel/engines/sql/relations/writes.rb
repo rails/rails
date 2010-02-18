@@ -10,7 +10,7 @@ module Arel
   end
 
   class Insert < Compound
-    def to_sql
+    def to_sql(include_returning = true)
       insertion_attributes_values_sql = if record.is_a?(Value)
         record.value
       else
@@ -33,7 +33,7 @@ module Arel
         "INSERT",
         "INTO #{table_sql}",
         insertion_attributes_values_sql,
-        ("RETURNING #{engine.quote_column_name(primary_key)}" if compiler.supports_insert_with_returning?)
+        ("RETURNING #{engine.quote_column_name(primary_key)}" if include_returning && compiler.supports_insert_with_returning?)
     end
   end
 
