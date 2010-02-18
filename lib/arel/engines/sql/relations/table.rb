@@ -18,7 +18,7 @@ module Arel
 
       if @engine.connection
         begin
-          require "lib/arel/engines/sql/compilers/#{@engine.adapter_name.downcase}_compiler"
+          require "arel/engines/sql/compilers/#{@engine.adapter_name.downcase}_compiler"
         rescue LoadError
           raise "#{@engine.adapter_name} is not supported by Arel."
         end
