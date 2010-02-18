@@ -17,6 +17,7 @@ module ActiveSupport #:nodoc:
         #   end
         def atomic_write(file_name, temp_dir = Dir.tmpdir)
           require 'tempfile' unless defined?(Tempfile)
+          require 'fileutils' unless defined?(FileUtils)
 
           temp_file = Tempfile.new(basename(file_name), temp_dir)
           yield temp_file
@@ -34,7 +35,7 @@ module ActiveSupport #:nodoc:
           end
 
           # Overwrite original file with temp file
-          rename(temp_file.path, file_name)
+          FileUtils.mv(temp_file.path, file_name)
 
           # Set correct permissions on new file
           chown(old_stat.uid, old_stat.gid, file_name)
