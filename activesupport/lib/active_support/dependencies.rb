@@ -78,6 +78,7 @@ module ActiveSupport #:nodoc:
       def new_constants_for(frames)
         frames.map do |mod_name, prior_constants|
           mod = Inflector.constantize(mod_name)
+          mod = Inflector.constantize(mod_name) if Dependencies.qualified_const_defined?(mod_name)
           next unless mod.is_a?(Module)
 
           new_constants = mod.local_constant_names - prior_constants
