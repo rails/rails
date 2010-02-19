@@ -1,5 +1,6 @@
 module Arel
   class Relation
+    @@tables_primary_keys = {}
 
     def compiler
       @compiler ||=  begin
@@ -22,10 +23,10 @@ module Arel
     end
 
     def primary_key
-      @primary_key ||= begin
-        table.name.classify.constantize.primary_key
-      rescue NameError
-        nil
+      if @@tables_primary_keys.has_key?(table.name)
+        @@tables_primary_keys[table.name]
+      else
+        @@tables_primary_keys[table.name] = engine.primary_key(table.name)
       end
     end
 
