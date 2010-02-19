@@ -17,11 +17,6 @@ class TranslationHelperTest < ActiveSupport::TestCase
     expected = '<span class="translation_missing">en, foo</span>'
     assert_equal expected, translate(:foo)
   end
-  
-  def test_translation_of_an_array
-    I18n.expects(:translate).with(["foo", "bar"], :raise => true).returns(["foo", "bar"])
-    assert_equal ["foo", "bar"], translate(["foo", "bar"])
-  end
 
   def test_translation_of_an_array
     I18n.expects(:translate).with(["foo", "bar"], :raise => true).returns(["foo", "bar"])
