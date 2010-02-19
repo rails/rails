@@ -431,7 +431,7 @@ Now you're ready to start working with posts. To do that, navigate to "http://lo
 
 !images/posts_index.png(Posts Index screenshot)!
 
-This is the result of Rails rendering the +index+ view of your posts. There aren't currently any posts in the database, but if you click the +New Post+ link you can create one. After that, you'll find that you can edit posts, look at their details, or destroy them. All of the logic and HTML to handle this was built by the single +script/generate scaffold+ command.
+This is the result of Rails rendering the +index+ view of your posts. There aren't currently any posts in the database, but if you click the +New Post+ link you can create one. After that, you'll find that you can edit posts, look at their details, or destroy them. All of the logic and HTML to handle this was built by the single +rails generate scaffold+ command.
 
 TIP: In development mode (which is what you're working in by default), Rails reloads your application with every browser request, so there's no need to stop and restart the web server.
 
