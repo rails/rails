@@ -76,17 +76,19 @@ module ActiveSupport #:nodoc:
       locked :concat, :each, :delete_if, :<<
 
       def new_constants_for(frames)
-        frames.map do |mod_name, prior_constants|
+        constants = []
+        frames.each do |mod_name, prior_constants|
           mod = Inflector.constantize(mod_name) if Dependencies.qualified_const_defined?(mod_name)
           next unless mod.is_a?(Module)
 
           new_constants = mod.local_constant_names - prior_constants
           get(mod_name).concat(new_constants)
 
-          new_constants.map do |suffix|
-            ([mod_name, suffix] - ["Object"]).join("::")
+          new_constants.each do |suffix|
+            constants << ([mod_name, suffix] - ["Object"]).join("::")
           end
-        end.flatten
+        end
+        constants
       end
 
       # Add a set of modules to the watch stack, remembering the initial constants
