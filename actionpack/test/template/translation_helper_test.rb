@@ -18,6 +18,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal expected, translate(:foo)
   end
 
+  def test_translation_of_an_array
+    I18n.expects(:translate).with(["foo", "bar"], :raise => true).returns(["foo", "bar"])
+    assert_equal ["foo", "bar"], translate(["foo", "bar"])
+  end
+
   def test_delegates_localize_to_i18n
     @time = Time.utc(2008, 7, 8, 12, 18, 38)
     I18n.expects(:localize).with(@time)
