@@ -27,17 +27,14 @@ module Rails
         end
       end
 
-      # Fires the user-supplied after_initialize block (config.after_initialize)
-      # Should run before the middleware stack is built, because building the
-      # middleware already fires to_prepare callbacks in test and production.
+      initializer :build_middleware_stack do
+        app
+      end
+
       initializer :after_initialize do
         config.after_initialize_blocks.each do |block|
           block.call(self)
         end
-      end
-
-      initializer :build_middleware_stack do
-        app
       end
 
       # Disable dependency loading during request cycle
