@@ -113,19 +113,19 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_select_tag
-    actual = select_tag "people", "<option>david</option>"
+    actual = select_tag "people", "<option>david</option>".html_safe
     expected = %(<select id="people" name="people"><option>david</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_multiple
-    actual = select_tag "colors", "<option>Red</option><option>Blue</option><option>Green</option>", :multiple => :true
+    actual = select_tag "colors", "<option>Red</option><option>Blue</option><option>Green</option>".html_safe, :multiple => :true
     expected = %(<select id="colors" multiple="multiple" name="colors"><option>Red</option><option>Blue</option><option>Green</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_disabled
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>", :disabled => :true
+    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :disabled => :true
     expected = %(<select id="places" disabled="disabled" name="places"><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
@@ -256,9 +256,9 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, 'disabled' => true, :readonly => "yes")
     assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), check_box_tag("admin", 1, true, :disabled => false, :readonly => nil)
     assert_dom_equal %(<input type="checkbox" />), tag(:input, :type => "checkbox", :checked => false)
-    assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", "<option>david</option>", :multiple => true)
-    assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", "<option>david</option>", :multiple => true)
-    assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", "<option>david</option>", :multiple => nil)
+    assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", "<option>david</option>".html_safe, :multiple => true)
+    assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", "<option>david</option>".html_safe, :multiple => true)
+    assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", "<option>david</option>".html_safe, :multiple => nil)
   end
 
   def test_stringify_symbol_keys
