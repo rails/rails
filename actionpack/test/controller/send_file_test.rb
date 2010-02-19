@@ -51,19 +51,17 @@ class SendFileTest < ActionController::TestCase
   end
 
   def test_file_stream
-    pending do
-      response = nil
-      assert_nothing_raised { response = process('file') }
-      assert_not_nil response
-      assert_kind_of Array, response.body_parts
+    response = nil
+    assert_nothing_raised { response = process('file') }
+    assert_not_nil response
+    assert_kind_of Array, response.body_parts
 
-      require 'stringio'
-      output = StringIO.new
-      output.binmode
-      output.string.force_encoding(file_data.encoding) if output.string.respond_to?(:force_encoding)
-      assert_nothing_raised { response.body_parts.each { |part| output << part.to_s } }
-      assert_equal file_data, output.string
-    end
+    require 'stringio'
+    output = StringIO.new
+    output.binmode
+    output.string.force_encoding(file_data.encoding) if output.string.respond_to?(:force_encoding)
+    assert_nothing_raised { response.body_parts.each { |part| output << part.to_s } }
+    assert_equal file_data, output.string
   end
 
   def test_file_url_based_filename
