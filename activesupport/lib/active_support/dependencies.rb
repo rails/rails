@@ -117,7 +117,7 @@ module ActiveSupport #:nodoc:
       def self.append_features(base)
         base.class_eval do
           # Emulate #exclude via an ivar
-          return if @_const_missing
+          return if defined?(@_const_missing) && @_const_missing
           @_const_missing = instance_method(:const_missing)
           remove_method(:const_missing)
         end
