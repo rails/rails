@@ -273,7 +273,8 @@ module ActionDispatch
 
           @request_count += 1
           @request  = ActionDispatch::Request.new(session.last_request.env)
-          @response = ActionDispatch::TestResponse.from_response(@mock_session.last_response)
+          response = @mock_session.last_response
+          @response = ActionDispatch::TestResponse.new(response.status, response.headers, response.body)
           @html_document = nil
 
           @controller = session.last_request.env['action_controller.instance']

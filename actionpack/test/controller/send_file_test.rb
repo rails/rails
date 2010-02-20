@@ -102,7 +102,7 @@ class SendFileTest < ActionController::TestCase
   end
 
   # Test that send_file_headers! is setting the correct HTTP headers.
-  def test_send_file_headers!
+  def test_send_file_headers_bang
     options = {
       :length => 1,
       :type => Mime::PNG,
@@ -125,7 +125,6 @@ class SendFileTest < ActionController::TestCase
     assert_equal 'binary', h['Content-Transfer-Encoding']
 
     # test overriding Cache-Control: no-cache header to fix IE open/save dialog
-    @controller.headers = { 'Cache-Control' => 'no-cache' }
     @controller.send(:send_file_headers!, options)
     @controller.response.prepare!
     assert_equal 'private', h['Cache-Control']
