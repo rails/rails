@@ -13,6 +13,29 @@
 module ActiveModel
   module Lint
     module Tests
+
+      # == Responds to <tt>key</tt>
+      #
+      # Returns an Enumerable of all (primary) key attributes
+      # or nil if model.new_record? is true
+      def test_key
+        assert model.respond_to?(:key), "The model should respond to key"
+        def model.new_record?() true end
+        assert model.key.nil?
+        def model.new_record?() false end
+        assert model.key.respond_to?(:each)
+      end
+
+      # == Responds to <tt>to_param</tt>
+      #
+      # Returns a string representing the object's key suitable for use in URLs
+      # or nil if model.new_record? is true
+      def test_to_param
+        assert model.respond_to?(:to_param), "The model should respond to to_param"
+        def model.new_record?() true end
+        assert model.to_param.nil?
+      end
+
       # == Responds to <tt>valid?</tt>
       #
       # Returns a boolean that specifies whether the object is in a valid or invalid

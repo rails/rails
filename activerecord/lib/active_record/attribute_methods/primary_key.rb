@@ -39,6 +39,20 @@ module ActiveRecord
         end
         alias :primary_key= :set_primary_key
       end
+
+      module InstanceMethods
+
+        # Returns this record's primary key value wrapped in an Array
+        # or nil if the record is a new_record?
+        # This is done to comply with the AMo interface that expects
+        # every AMo compliant object to respond_to?(:key) and return
+        # an Enumerable object from that call, or nil if new_record?
+        def key
+          new_record? ? nil : [ self.id ]
+        end
+
+      end
+
     end
   end
 end
