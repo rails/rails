@@ -10,6 +10,14 @@ class LintTest < ActiveModel::TestCase
       self
     end
 
+    def key
+      new_record? ? nil : [1]
+    end
+
+    def to_param
+      key ? key.first.to_s : nil
+    end
+
     def valid?()      true end
     def new_record?() true end
     def destroyed?()  true end

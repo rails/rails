@@ -6,6 +6,10 @@ class Customer < Struct.new(:name, :id)
 
   undef_method :to_json
 
+  def key
+    id ? [id] : nil
+  end
+
   def to_param
     id.to_s
   end
@@ -43,6 +47,10 @@ module Quiz
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 
+    def key
+      id ? [id] : nil
+    end
+
     def to_param
       id.to_s
     end
@@ -58,6 +66,10 @@ class Post < Struct.new(:title, :author_name, :body, :secret, :written_on, :cost
   extend ActiveModel::Translation
 
   alias_method :secret?, :secret
+
+  def key
+    id ? [id] : nil
+  end
 
   def new_record=(boolean)
     @new_record = boolean
@@ -84,6 +96,7 @@ class Comment
   attr_reader :id
   attr_reader :post_id
   def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end
+  def key; id ? [id] : nil end
   def save; @id = 1; @post_id = 1 end
   def new_record?; @id.nil? end
   def to_param; @id; end
@@ -103,6 +116,7 @@ class Tag
   attr_reader :id
   attr_reader :post_id
   def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end
+  def key; id ? [id] : nil end
   def save; @id = 1; @post_id = 1 end
   def new_record?; @id.nil? end
   def to_param; @id; end
@@ -122,6 +136,7 @@ class CommentRelevance
   attr_reader :id
   attr_reader :comment_id
   def initialize(id = nil, comment_id = nil); @id, @comment_id = id, comment_id end
+  def key; id ? [id] : nil end
   def save; @id = 1; @comment_id = 1 end
   def new_record?; @id.nil? end
   def to_param; @id; end
@@ -137,6 +152,7 @@ class TagRelevance
   attr_reader :id
   attr_reader :tag_id
   def initialize(id = nil, tag_id = nil); @id, @tag_id = id, tag_id end
+  def key; id ? [id] : nil end
   def save; @id = 1; @tag_id = 1 end
   def new_record?; @id.nil? end
   def to_param; @id; end

@@ -55,18 +55,6 @@ class Name
   end
 end
 
-$nowhere = <<-EOF
-class Name
-  delegate :nowhere
-end
-EOF
-
-$noplace = <<-EOF
-class Name
-  delegate :noplace, :tos => :hollywood
-end
-EOF
-
 class ModuleTest < Test::Unit::TestCase
   def setup
     @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
@@ -87,8 +75,12 @@ class ModuleTest < Test::Unit::TestCase
   end
 
   def test_missing_delegation_target
-    assert_raise(ArgumentError) { eval($nowhere) }
-    assert_raise(ArgumentError) { eval($noplace) }
+    assert_raise(ArgumentError) do
+      Name.send :delegate, :nowhere
+    end
+    assert_raise(ArgumentError) do
+      Name.send :delegate, :noplace, :tos => :hollywood
+    end
   end
 
   def test_delegation_prefix

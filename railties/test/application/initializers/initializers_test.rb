@@ -51,5 +51,31 @@ module ApplicationTests
       assert $activerecord_configurations
       assert $activerecord_configurations['development']
     end
+
+    test "after_initialize happens after to_prepare in development" do
+      $order = []
+      add_to_config <<-RUBY
+        config.cache_classes = false
+        config.after_initialize { $order << :after_initialize }
+        config.to_prepare { $order << :to_prepare }
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert [:to_prepare, :after_initialize], $order
+    end
+
+    test "after_initialize happens after to_prepare in production" do
+      $order = []
+      add_to_config <<-RUBY
+        config.cache_classes = true
+        config.after_initialize { $order << :after_initialize }
+        config.to_prepare { $order << :to_prepare }
+      RUBY
+
+      require "#{app_path}/config/application"
+      Rails.env.replace "production"
+      require "#{app_path}/config/environment"
+      assert [:to_prepare, :after_initialize], $order
+    end
   end
 end

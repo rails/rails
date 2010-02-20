@@ -202,8 +202,6 @@ module ActionView
       #
       #   link_to("Destroy", "http://www.example.com", :method => :delete, :confirm => "Are you sure?")
       #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete" data-confirm="Are you sure?">Destroy</a>
-
-      #
       def link_to(*args, &block)
         if block_given?
           options      = args.first || {}

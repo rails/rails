@@ -165,10 +165,8 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal('public', @response.headers['Cache-Control'])
     assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
 
-    pending do
-      assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
-      assert_equal({:public => true}, @response.cache_control)
-    end
+    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
+    assert_equal({:public => true}, @response.cache_control)
   end
 
   test "response cache control from rackish app" do
@@ -184,10 +182,8 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal('public', @response.headers['Cache-Control'])
     assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
 
-    pending do
-      assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
-      assert_equal({:public => true}, @response.cache_control)
-    end
+    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
+    assert_equal({:public => true}, @response.cache_control)
   end
 
   test "response charset and content type from railsish app" do
@@ -202,10 +198,8 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     get '/'
     assert_response :success
 
-    pending do
-      assert_equal('utf-16', @response.charset)
-      assert_equal(Mime::XML, @response.content_type)
-    end
+    assert_equal('utf-16', @response.charset)
+    assert_equal(Mime::XML, @response.content_type)
 
     assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
   end
@@ -220,10 +214,8 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     get '/'
     assert_response :success
 
-    pending do
-      assert_equal('utf-16', @response.charset)
-      assert_equal(Mime::XML, @response.content_type)
-    end
+    assert_equal('utf-16', @response.charset)
+    assert_equal(Mime::XML, @response.content_type)
 
     assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
   end

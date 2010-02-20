@@ -9,6 +9,15 @@ require 'models/mixed_case_monkey'
 class PrimaryKeysTest < ActiveRecord::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
 
+  def test_key
+    # test new record
+    topic = Topic.new
+    assert topic.key.nil?
+    # test existing record
+    topic = Topic.find(1)
+    assert_equal topic.key, [1]
+  end
+
   def test_integer_key
     topic = Topic.find(1)
     assert_equal(topics(:first).author_name, topic.author_name)
