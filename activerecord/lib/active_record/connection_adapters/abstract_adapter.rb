@@ -37,6 +37,7 @@ module ActiveRecord
       @@row_even = true
 
       def initialize(connection, logger = nil) #:nodoc:
+        @active = nil
         @connection, @logger = connection, logger
         @runtime = 0
         @query_cache_enabled = false
