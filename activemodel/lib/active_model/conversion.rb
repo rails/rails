@@ -8,9 +8,9 @@ module ActiveModel
   #   class ContactMessage
   #     include ActiveModel::Conversion
   #
-  #     # Always a new record, since it's not persisted in the DB.
-  #     def new_record?
-  #       true
+  #     # ContactMessage are never persisted in the DB
+  #     def persisted?
+  #       false
   #     end
   #   end
   #
@@ -30,13 +30,13 @@ module ActiveModel
       self
     end
 
-    # Returns an Enumerable of all (primary) key attributes or nil if new_record? is true
+    # Returns an Enumerable of all (primary) key attributes or nil if persisted? is fakse
     def to_key
-      new_record? ? nil : [id]
+      persisted? ? [id] : nil
     end
 
     # Returns a string representing the object's key suitable for use in URLs,
-    # or nil if new_record? is true
+    # or nil if persisted? is false
     def to_param
       to_key ? to_key.join('-') : nil
     end

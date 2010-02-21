@@ -316,14 +316,13 @@ module ActionView
 
       def apply_form_for_options!(object_or_array, options) #:nodoc:
         object = object_or_array.is_a?(Array) ? object_or_array.last : object_or_array
-
         object = convert_to_model(object)
 
         html_options =
-          if object.respond_to?(:new_record?) && object.new_record?
-            { :class  => dom_class(object, :new),  :id => dom_id(object), :method => :post }
-          else
+          if object.respond_to?(:persisted?) && object.persisted?
             { :class  => dom_class(object, :edit), :id => dom_id(object, :edit), :method => :put }
+          else
+            { :class  => dom_class(object, :new),  :id => dom_id(object), :method => :post }
           end
 
         options[:html] ||= {}
@@ -1150,7 +1149,7 @@ module ActionView
 
         def submit_default_value
           object = @object.respond_to?(:to_model) ? @object.to_model : @object
-          key    = object ? (object.new_record? ? :create : :update) : :submit
+          key    = object ? (object.persisted? ? :update : :create) : :submit
 
           model = if object.class.respond_to?(:model_name)
             object.class.model_name.human
@@ -1176,7 +1175,7 @@ module ActionView
           association = args.shift
           association = association.to_model if association.respond_to?(:to_model)
 
-          if association.respond_to?(:new_record?)
+          if association.respond_to?(:persisted?)
             association = [association] if @object.send(association_name).is_a?(Array)
           elsif !association.is_a?(Array)
             association = @object.send(association_name)
@@ -1195,13 +1194,13 @@ module ActionView
         def fields_for_nested_model(name, object, options, block)
           object = object.to_model if object.respond_to?(:to_model)
 
-          if object.new_record?
-            @template.fields_for(name, object, options, &block)
-          else
+          if object.persisted?
             @template.fields_for(name, object, options) do |builder|
               block.call(builder)
               @template.concat builder.hidden_field(:id) unless builder.emitted_hidden_id?
             end
+          else
+            @template.fields_for(name, object, options, &block)
           end
         end
 

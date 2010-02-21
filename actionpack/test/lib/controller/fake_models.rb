@@ -6,14 +6,6 @@ class Customer < Struct.new(:name, :id)
 
   undef_method :to_json
 
-  def to_key
-    id ? [id] : nil
-  end
-
-  def to_param
-    id.to_s
-  end
-
   def to_xml(options={})
     if options[:builder]
       options[:builder].name name
@@ -31,8 +23,8 @@ class Customer < Struct.new(:name, :id)
     []
   end
 
-  def destroyed?
-    false
+  def persisted?
+    id.present?
   end
 end
 
@@ -47,12 +39,8 @@ module Quiz
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 
-    def to_key
-      id ? [id] : nil
-    end
-
-    def to_param
-      id.to_s
+    def persisted?
+      id.present?
     end
   end
 
@@ -67,16 +55,12 @@ class Post < Struct.new(:title, :author_name, :body, :secret, :written_on, :cost
 
   alias_method :secret?, :secret
 
-  def to_key
-    id ? [id] : nil
+  def persisted=(boolean)
+    @persisted = boolean
   end
 
-  def new_record=(boolean)
-    @new_record = boolean
-  end
-
-  def new_record?
-    @new_record
+  def persisted?
+    @persisted
   end
 
   attr_accessor :author
@@ -98,7 +82,7 @@ class Comment
   def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end
   def to_key; id ? [id] : nil end
   def save; @id = 1; @post_id = 1 end
-  def new_record?; @id.nil? end
+  def persisted?; @id.present? end
   def to_param; @id; end
   def name
     @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
@@ -118,7 +102,7 @@ class Tag
   def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end
   def to_key; id ? [id] : nil end
   def save; @id = 1; @post_id = 1 end
-  def new_record?; @id.nil? end
+  def persisted?; @id.present? end
   def to_param; @id; end
   def value
     @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
@@ -138,7 +122,7 @@ class CommentRelevance
   def initialize(id = nil, comment_id = nil); @id, @comment_id = id, comment_id end
   def to_key; id ? [id] : nil end
   def save; @id = 1; @comment_id = 1 end
-  def new_record?; @id.nil? end
+  def persisted?; @id.present? end
   def to_param; @id; end
   def value
     @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
@@ -154,7 +138,7 @@ class TagRelevance
   def initialize(id = nil, tag_id = nil); @id, @tag_id = id, tag_id end
   def to_key; id ? [id] : nil end
   def save; @id = 1; @tag_id = 1 end
-  def new_record?; @id.nil? end
+  def persisted?; @id.present? end
   def to_param; @id; end
   def value
     @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"

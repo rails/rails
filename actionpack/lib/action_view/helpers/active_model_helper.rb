@@ -80,13 +80,13 @@ module ActionView
         record = convert_to_model(record)
 
         options = options.symbolize_keys
-        options[:action] ||= record.new_record? ? "create" : "update"
+        options[:action] ||= record.persisted? ? "update" : "create"
         action = url_for(:action => options[:action], :id => record)
 
         submit_value = options[:submit_value] || options[:action].gsub(/[^\w]/, '').capitalize
 
         contents = form_tag({:action => action}, :method =>(options[:method] || 'post'), :enctype => options[:multipart] ? 'multipart/form-data': nil)
-        contents.safe_concat hidden_field(record_name, :id) unless record.new_record?
+        contents.safe_concat hidden_field(record_name, :id) if record.persisted?
         contents.safe_concat all_input_tags(record, record_name, options)
         yield contents if block_given?
         contents.safe_concat submit_tag(submit_value)

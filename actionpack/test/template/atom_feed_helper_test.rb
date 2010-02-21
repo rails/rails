@@ -4,8 +4,8 @@ class Scroll < Struct.new(:id, :to_param, :title, :body, :updated_at, :created_a
   extend ActiveModel::Naming
   include ActiveModel::Conversion
 
-  def new_record?
-    true
+  def persisted?
+    false
   end
 end
 
@@ -34,7 +34,7 @@ class ScrollsController < ActionController::Base
           feed.updated((@scrolls.first.created_at))
 
           for scroll in @scrolls
-            feed.entry(scroll, :url => "/otherstuff/" + scroll.to_param, :updated => Time.utc(2007, 1, scroll.id)) do |entry|
+            feed.entry(scroll, :url => "/otherstuff/" + scroll.to_param.to_s, :updated => Time.utc(2007, 1, scroll.id)) do |entry|
               entry.title(scroll.title)
               entry.content(scroll.body, :type => 'html')
 
@@ -55,7 +55,7 @@ class ScrollsController < ActionController::Base
           end
 
           for scroll in @scrolls
-            feed.entry(scroll, :url => "/otherstuff/" + scroll.to_param, :updated => Time.utc(2007, 1, scroll.id)) do |entry|
+            feed.entry(scroll, :url => "/otherstuff/" + scroll.to_param.to_s, :updated => Time.utc(2007, 1, scroll.id)) do |entry|
               entry.title(scroll.title)
               entry.content(scroll.body, :type => 'html')
             end

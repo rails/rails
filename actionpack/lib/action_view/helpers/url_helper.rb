@@ -63,7 +63,7 @@ module ActionView
       #   # => /testing/jump/#tax&ship
       #
       #   <%= url_for(Workshop.new) %>
-      #   # relies on Workshop answering a new_record? call (and in this case returning true)
+      #   # relies on Workshop answering a persisted? call (and in this case returning false)
       #   # => /workshops
       #
       #   <%= url_for(@workshop) %>
