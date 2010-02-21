@@ -50,7 +50,7 @@ module ActiveRecord
         # This method also takes custom primary keys specified via
         # the +set_primary_key+ into account.
         def to_key
-          new_record? ? nil : [ self.send(self.class.primary_key) ]
+          new_record? ? nil : [ self.primary_key ]
         end
 
       end
