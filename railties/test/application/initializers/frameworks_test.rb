@@ -32,6 +32,17 @@ module ApplicationTests
       ActionMailer::Base.view_paths.include?(File.expand_path("app/views", app_path))
     end
 
+    test "allows me to configure default url options for ActionMailer" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails::Application.configure do
+          config.action_mailer.default_url_options = { :host => "test.rails" }
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert "test.rails", ActionMailer::Base.default_url_options[:host]
+    end
+
     # AS
     test "if there's no config.active_support.bare, all of ActiveSupport is required" do
       use_frameworks []
