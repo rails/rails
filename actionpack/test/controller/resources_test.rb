@@ -394,7 +394,7 @@ class ResourcesTest < ActionController::TestCase
       assert_restful_routes_for :messages do |options|
         assert_recognizes(options.merge(:action => "new"), :path => "/messages/new", :method => :get)
         assert_raise(ActionController::RoutingError) do
-          ActionController::Routing::Routes.recognize_path("/messages/new", :method => :post)
+          ActionDispatch::Routing::Routes.recognize_path("/messages/new", :method => :post)
         end
       end
     end
@@ -504,7 +504,7 @@ class ResourcesTest < ActionController::TestCase
 
   def test_restful_routes_dont_generate_duplicates
     with_restful_routing :messages do
-      routes = ActionController::Routing::Routes.routes
+      routes = ActionDispatch::Routing::Routes.routes
       routes.each do |route|
         routes.each do |r|
           next if route === r # skip the comparison instance

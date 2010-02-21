@@ -48,7 +48,7 @@ module Rails
     end
 
     def routes
-      ::ActionController::Routing::Routes
+      ::ActionDispatch::Routing::Routes
     end
 
     def railties

@@ -80,7 +80,7 @@ module ActionDispatch
         expected_path = "/#{expected_path}" unless expected_path[0] == ?/
         # Load routes.rb if it hasn't been loaded.
 
-        generated_path, extra_keys = ActionController::Routing::Routes.generate_extras(options, defaults)
+        generated_path, extra_keys = ActionDispatch::Routing::Routes.generate_extras(options, defaults)
         found_extras = options.reject {|k, v| ! extra_keys.include? k}
 
         msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
@@ -125,7 +125,7 @@ module ActionDispatch
       end
 
       # A helper to make it easier to test different route configurations.
-      # This method temporarily replaces ActionController::Routing::Routes
+      # This method temporarily replaces ActionDispatch::Routing::Routes
       # with a new RouteSet instance.
       #
       # The new instance is yielded to the passed block. Typically the block
@@ -142,22 +142,22 @@ module ActionDispatch
       #   end
       #
       def with_routing
-        real_routes = ActionController::Routing::Routes
-        ActionController::Routing.module_eval { remove_const :Routes }
+        real_routes = ActionDispatch::Routing::Routes
+        ActionDispatch::Routing.module_eval { remove_const :Routes }
 
-        temporary_routes = ActionController::Routing::RouteSet.new
-        ActionController::Routing.module_eval { const_set :Routes, temporary_routes }
+        temporary_routes = ActionDispatch::Routing::RouteSet.new
+        ActionDispatch::Routing.module_eval { const_set :Routes, temporary_routes }
 
         yield temporary_routes
       ensure
-        if ActionController::Routing.const_defined? :Routes
-          ActionController::Routing.module_eval { remove_const :Routes }
+        if ActionDispatch::Routing.const_defined? :Routes
+          ActionDispatch::Routing.module_eval { remove_const :Routes }
         end
-        ActionController::Routing.const_set(:Routes, real_routes) if real_routes
+        ActionDispatch::Routing.const_set(:Routes, real_routes) if real_routes
       end
 
       def method_missing(selector, *args, &block)
-        if @controller && ActionController::Routing::Routes.named_routes.helpers.include?(selector)
+        if @controller && ActionDispatch::Routing::Routes.named_routes.helpers.include?(selector)
           @controller.send(selector, *args, &block)
         else
           super
@@ -174,7 +174,7 @@ module ActionDispatch
           request.env["REQUEST_METHOD"] = request_method.to_s.upcase if request_method
           request.path = path
 
-          params = ActionController::Routing::Routes.recognize_path(path, { :method => request.method })
+          params = ActionDispatch::Routing::Routes.recognize_path(path, { :method => request.method })
           request.path_parameters = params.with_indifferent_access
 
           request

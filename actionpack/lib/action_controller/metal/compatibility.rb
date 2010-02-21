@@ -20,8 +20,8 @@ module ActionController
 
       class << self
         delegate :default_charset=, :to => "ActionDispatch::Response"
-        delegate :resources_path_names, :to => "ActionController::Routing::Routes"
-        delegate :resources_path_names=, :to => "ActionController::Routing::Routes"
+        delegate :resources_path_names, :to => "ActionDispatch::Routing::Routes"
+        delegate :resources_path_names=, :to => "ActionDispatch::Routing::Routes"
       end
 
       # cattr_reader :protected_instance_variables

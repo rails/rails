@@ -5,7 +5,7 @@ require 'active_support/core_ext/hash/keys'
 module ActionView
   module Helpers #:nodoc:
     # Provides a set of methods for making links and getting URLs that
-    # depend on the routing subsystem (see ActionController::Routing).
+    # depend on the routing subsystem (see ActionDispatch::Routing).
     # This allows you to use the same format for links in views
     # and controllers.
     module UrlHelper

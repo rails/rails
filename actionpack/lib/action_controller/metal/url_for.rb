@@ -6,7 +6,7 @@ module ActionController
   # is also possible: an URL can be generated from one of your routing definitions.
   # URL generation functionality is centralized in this module.
   #
-  # See ActionController::Routing and ActionController::Resources for general
+  # See ActionDispatch::Routing and ActionController::Resources for general
   # information about routing and routes.rb.
   #
   # <b>Tip:</b> If you need to generate URLs from your models or some other place,
@@ -87,7 +87,7 @@ module ActionController
     extend ActiveSupport::Concern
 
     included do
-      ActionController::Routing::Routes.install_helpers(self)
+      ActionDispatch::Routing::Routes.install_helpers(self)
 
       # Including in a class uses an inheritable hash. Modules get a plain hash.
       if respond_to?(:class_attribute)

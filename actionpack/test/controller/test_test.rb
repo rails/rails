@@ -476,8 +476,8 @@ XML
   end
 
   def test_with_routing_places_routes_back
-    assert ActionController::Routing::Routes
-    routes_id = ActionController::Routing::Routes.object_id
+    assert ActionDispatch::Routing::Routes
+    routes_id = ActionDispatch::Routing::Routes.object_id
 
     begin
       with_routing { raise 'fail' }
@@ -485,8 +485,8 @@ XML
     rescue RuntimeError
     end
 
-    assert ActionController::Routing::Routes
-    assert_equal routes_id, ActionController::Routing::Routes.object_id
+    assert ActionDispatch::Routing::Routes
+    assert_equal routes_id, ActionDispatch::Routing::Routes.object_id
   end
 
   def test_remote_addr

@@ -133,7 +133,7 @@ module RailtiesTest
           end
         end
 
-        ActionController::Routing::Routes.draw do
+        ActionDispatch::Routing::Routes.draw do
           match "/sprokkit", :to => Sprokkit
         end
       RUBY
@@ -170,7 +170,7 @@ module RailtiesTest
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
-        ActionController::Routing::Routes.draw do |map|
+        ActionDispatch::Routing::Routes.draw do |map|
           match 'foo', :to => 'bar#index'
           match 'bar', :to => 'bar#index'
         end
@@ -261,7 +261,7 @@ YAML
 
     def test_namespaced_controllers_with_namespaced_routes
       @plugin.write "config/routes.rb", <<-RUBY
-        ActionController::Routing::Routes.draw do
+        ActionDispatch::Routing::Routes.draw do
           namespace :admin do
             match "index", :to => "admin/foo#index"
           end
