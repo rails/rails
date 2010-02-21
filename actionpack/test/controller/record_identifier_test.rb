@@ -5,6 +5,7 @@ class Comment
   include ActiveModel::Conversion
 
   attr_reader :id
+  def to_key; id ? [id] : nil end
   def save; @id = 1 end
   def new_record?; @id.nil? end
   def name

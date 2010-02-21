@@ -14,22 +14,28 @@ module ActiveModel
   module Lint
     module Tests
 
-      # == Responds to <tt>key</tt>
+      # == Responds to <tt>to_key</tt>
       #
       # Returns an Enumerable of all (primary) key attributes
       # or nil if model.new_record? is true
-      def test_key
-        assert model.respond_to?(:key), "The model should respond to key"
+      def test_to_key
+        assert model.respond_to?(:to_key), "The model should respond to to_key"
         def model.new_record?() true end
-        assert model.key.nil?
+        assert model.to_key.nil?
         def model.new_record?() false end
-        assert model.key.respond_to?(:each)
+        assert model.to_key.respond_to?(:each)
       end
 
       # == Responds to <tt>to_param</tt>
       #
       # Returns a string representing the object's key suitable for use in URLs
-      # or nil if model.new_record? is true
+      # or nil if model.new_record? is true.
+      #
+      # Implementers can decide to either raise an exception or provide a default
+      # in case the record uses a composite primary key. There are no tests for this
+      # behavior in lint because it doesn't make sense to force any of the possible
+      # implementation strategies on the implementer. However, if the resource is
+      # a new_record?, then to_param should always return nil.
       def test_to_param
         assert model.respond_to?(:to_param), "The model should respond to to_param"
         def model.new_record?() true end

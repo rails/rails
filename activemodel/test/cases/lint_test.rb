@@ -10,12 +10,14 @@ class LintTest < ActiveModel::TestCase
       self
     end
 
-    def key
-      new_record? ? nil : [1]
+    def to_key
+      new_record? ? nil : [id]
     end
 
     def to_param
-      key ? key.first.to_s : nil
+      return nil if to_key.nil?
+      # some default for CPKs, real implementations will differ
+      to_key.length > 1 ? to_key.join('-') : to_key.first.to_s
     end
 
     def valid?()      true end

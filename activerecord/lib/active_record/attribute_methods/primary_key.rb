@@ -45,10 +45,12 @@ module ActiveRecord
         # Returns this record's primary key value wrapped in an Array
         # or nil if the record is a new_record?
         # This is done to comply with the AMo interface that expects
-        # every AMo compliant object to respond_to?(:key) and return
+        # every AMo compliant object to respond_to?(:to_key) and return
         # an Enumerable object from that call, or nil if new_record?
-        def key
-          new_record? ? nil : [ self.id ]
+        # This method also takes custom primary keys specified via
+        # the +set_primary_key+ into account.
+        def to_key
+          new_record? ? nil : [ self.send(self.class.primary_key) ]
         end
 
       end
