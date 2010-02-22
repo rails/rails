@@ -23,7 +23,9 @@ module ContentType
       "content_type/implied/i_am_html_erb.html.erb"         => "Hello world!",
       "content_type/implied/i_am_xml_erb.xml.erb"          => "<xml>Hello world!</xml>",
       "content_type/implied/i_am_html_builder.html.builder" => "xml.p 'Hello'",
-      "content_type/implied/i_am_xml_builder.xml.builder"  => "xml.awesome 'Hello'"
+      "content_type/implied/i_am_xml_builder.xml.builder"  => "xml.awesome 'Hello'",
+      "content_type/implied/i_am_rjs_in_html.html.erb" => "<%= render 'i_am_rjs_partial' %>",
+      "content_type/implied/_i_am_rjs_partial.js.rjs" => ""
     )]
 
     def i_am_html_erb()     end
@@ -90,6 +92,12 @@ module ContentType
       get "/content_type/implied/i_am_xml_builder", "format" => "xml"
 
       assert_header "Content-Type", "application/xml; charset=utf-8"
+    end
+
+    test "sets Content-Type as text/html when rendering *.html.erb with a RJS partial" do
+      get "/content_type/implied/i_am_rjs_in_html"
+
+      assert_header "Content-Type", "text/html; charset=utf-8"
     end
   end
 
