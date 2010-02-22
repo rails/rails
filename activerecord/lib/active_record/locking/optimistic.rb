@@ -23,6 +23,16 @@ module ActiveRecord
     #   p2.first_name = "should fail"
     #   p2.save # Raises a ActiveRecord::StaleObjectError
     #
+    # Optimistic locking will also check for stale data when objects are destroyed.  Example:
+    #
+    #   p1 = Person.find(1)
+    #   p2 = Person.find(1)
+    #
+    #   p1.first_name = "Michael"
+    #   p1.save
+    #
+    #   p2.destroy # Raises a ActiveRecord::StaleObjectError
+    #
     # You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging,
     # or otherwise apply the business logic needed to resolve the conflict.
     #
@@ -39,6 +49,7 @@ module ActiveRecord
         base.lock_optimistically = true
 
         base.alias_method_chain :update, :lock
+        base.alias_method_chain :destroy, :lock
         base.alias_method_chain :attributes_from_column_definition, :lock
 
         class << base
@@ -86,7 +97,7 @@ module ActiveRecord
             end_sql
 
             unless affected_rows == 1
-              raise ActiveRecord::StaleObjectError, "Attempted to update a stale object"
+              raise ActiveRecord::StaleObjectError, "Attempted to update a stale object: #{self.class.name}"
             end
 
             affected_rows
@@ -96,6 +107,28 @@ module ActiveRecord
             send(lock_col + '=', previous_value)
             raise
           end
+        end
+
+        def destroy_with_lock #:nodoc:
+          return destroy_without_lock unless locking_enabled?
+
+          unless new_record?
+            lock_col = self.class.locking_column
+            previous_value = send(lock_col).to_i
+
+            affected_rows = connection.delete(
+              "DELETE FROM #{self.class.quoted_table_name} " +
+              "WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quoted_id} " +
+                    "AND #{self.class.quoted_locking_column} = #{quote_value(previous_value)}",
+              "#{self.class.name} Destroy"
+            )
+
+            unless affected_rows == 1
+              raise ActiveRecord::StaleObjectError, "Attempted to delete a stale object: #{self.class.name}"
+            end
+          end
+
+          freeze
         end
 
       module ClassMethods
