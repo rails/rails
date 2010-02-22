@@ -89,12 +89,12 @@ module Rails
       #
       # ==== Example
       #
-      #   source "http://gems.github.com/"
+      #   add_source "http://gems.github.com/"
       def add_source(source, options={})
         log :source, source
 
         in_root do
-          prepend_file "Gemfile", "source #{source.inspect}", :verbose => false
+          prepend_file "Gemfile", "source #{source.inspect}\n", :verbose => false
         end
       end
 
