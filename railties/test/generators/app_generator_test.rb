@@ -9,6 +9,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def setup
     super
     Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+    @bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
   end
 
   def teardown
@@ -168,14 +169,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_dev_option
-    generator([destination_root], :dev => true).expects(:run).with("bundle install")
+    generator([destination_root], :dev => true).expects(:run).with("#{@bundle_command} install")
     silence(:stdout){ generator.invoke }
     rails_path = File.expand_path('../../..', Rails.root)
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
-    generator([destination_root], :edge => true).expects(:run).with("bundle install")
+    generator([destination_root], :edge => true).expects(:run).with("#{@bundle_command} install")
     silence(:stdout){ generator.invoke }
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$/
   end
