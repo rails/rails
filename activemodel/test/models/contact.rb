@@ -8,6 +8,6 @@ class Contact
   end
 
   def persisted?
-    id.present?
+    id
   end
 end
