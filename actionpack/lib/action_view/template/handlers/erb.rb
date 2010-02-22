@@ -43,13 +43,13 @@ module ActionView
 
       self.default_format = Mime::HTML
       
-      cattr_accessor :erubis_implementation
-      self.erubis_implementation = Erubis
+      cattr_accessor :erb_implementation
+      self.erb_implementation = Erubis
 
       def compile(template)
         source = template.source.gsub(/\A(<%(#.*coding[:=]\s*(\S+)\s*)-?%>)\s*\n?/, '')
         erb = "<% __in_erb_template=true %>#{source}"
-        result = self.class.erubis_implementation.new(erb, :trim=>(self.class.erb_trim_mode == "-")).src
+        result = self.class.erb_implementation.new(erb, :trim=>(self.class.erb_trim_mode == "-")).src
         result = "#{$2}\n#{result}" if $2
         result
       end
