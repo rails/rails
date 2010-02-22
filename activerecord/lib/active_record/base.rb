@@ -338,6 +338,9 @@ module ActiveRecord #:nodoc:
     # Accessor for the name of the prefix string to prepend to every table name. So if set to "basecamp_", all
     # table names will be named like "basecamp_projects", "basecamp_people", etc. This is a convenient way of creating a namespace
     # for tables in a shared database. By default, the prefix is the empty string.
+    #
+    # If you are organising your models within modules you can add a prefix to the models within a namespace by defining
+    # a singleton method in the parent module called table_name_prefix which returns your chosen prefix.
     cattr_accessor :table_name_prefix, :instance_writer => false
     @@table_name_prefix = ""
 
@@ -765,12 +768,16 @@ module ActiveRecord #:nodoc:
               contained = contained.singularize if parent.pluralize_table_names
               contained << '_'
             end
-            name = "#{table_name_prefix}#{contained}#{undecorated_table_name(base.name)}#{table_name_suffix}"
+            name = "#{modularized_table_name_prefix}#{contained}#{undecorated_table_name(base.name)}#{table_name_suffix}"
           end
 
         @quoted_table_name = nil
         set_table_name(name)
         name
+      end
+
+      def modularized_table_name_prefix #:nodoc:
+        (parents.detect{ |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
       # Defines the column name for use with single table inheritance
