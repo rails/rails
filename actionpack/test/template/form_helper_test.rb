@@ -53,6 +53,7 @@ class FormHelperTest < ActionView::TestCase
     def @post.id_before_type_cast; 123; end
     def @post.to_param; '123'; end
 
+    @post.persisted   = true
     @post.title       = "Hello World"
     @post.author_name = ""
     @post.body        = "Back to the hill and over it again!"
@@ -529,7 +530,7 @@ class FormHelperTest < ActionView::TestCase
   def test_submit_with_object_as_new_record_and_locale_strings
     old_locale, I18n.locale = I18n.locale, :submit
 
-    def @post.new_record?() true; end
+    @post.persisted = false
     form_for(:post, @post) do |f|
       concat f.submit
     end
@@ -1363,7 +1364,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_new_object
     post = Post.new
-    post.new_record = true
+    post.persisted = false
     def post.id() nil end
 
     form_for(post) do |f| end
@@ -1373,9 +1374,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_existing_object_in_list
-    @post.new_record = false
     @comment.save
-
     form_for([@post, @comment]) {}
 
     expected = %(<form action="#{comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0;display:inline"><input name="_method" type="hidden" value="put" /></div></form>)
@@ -1383,8 +1382,6 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_new_object_in_list
-    @post.new_record = false
-
     form_for([@post, @comment]) {}
 
     expected = %(<form action="#{comments_path(@post)}" class="new_comment" id="new_comment" method="post"></form>)
@@ -1392,9 +1389,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_existing_object_and_namespace_in_list
-    @post.new_record = false
     @comment.save
-
     form_for([:admin, @post, @comment]) {}
 
     expected = %(<form action="#{admin_comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0;display:inline"><input name="_method" type="hidden" value="put" /></div></form>)
@@ -1402,8 +1397,6 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_new_object_and_namespace_in_list
-    @post.new_record = false
-
     form_for([:admin, @post, @comment]) {}
 
     expected = %(<form action="#{admin_comments_path(@post)}" class="new_comment" id="new_comment" method="post"></form>)

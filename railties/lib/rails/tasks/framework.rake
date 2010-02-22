@@ -32,12 +32,18 @@ namespace :rails do
 
   namespace :update do
     def invoke_from_app_generator(method)
-      require 'rails/generators'
-      require 'generators/rails/app/app_generator'
+      app_generator.invoke(method)
+    end
 
-      generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
-                                                      :destination_root => Rails.root
-      generator.invoke(method)
+    def app_generator
+      @app_generator ||= begin
+        require 'rails/generators'
+        require 'generators/rails/app/app_generator'
+        gen = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
+                                                             :destination_root => Rails.root
+        gen.send(:valid_app_const?)
+        gen
+      end
     end
 
     desc "Update config/boot.rb from your current rails install"

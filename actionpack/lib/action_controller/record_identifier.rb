@@ -77,8 +77,8 @@ module ActionController
     # make sure yourself that your dom ids are valid, in case you overwrite this method.
     def record_key_for_dom_id(record)
       return record.id unless record.respond_to?(:to_model)
-      key = record.to_model.key
-      key ? sanitize_dom_id(key.join('-')) : key
+      key = record.to_model.to_key
+      key ? sanitize_dom_id(key.join('_')) : key
     end
 
     # Replaces characters that are invalid in HTML DOM ids with valid ones.

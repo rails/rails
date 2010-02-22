@@ -33,7 +33,7 @@ module I18n
     railtie_name :i18n
 
     # Initialize I18n load paths to an array
-    config.i18n.engines_load_path = []
+    config.i18n.railties_load_path = []
     config.i18n.load_path = []
 
     initializer "i18n.initialize" do
@@ -49,7 +49,7 @@ module I18n
     config.after_initialize do |app|
       app.config.i18n.each do |setting, value|
         case setting
-        when :engines_load_path
+        when :railties_load_path
           app.config.i18n.load_path.unshift(*value)
         when :load_path
           I18n.load_path += value

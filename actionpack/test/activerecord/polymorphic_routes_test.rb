@@ -400,7 +400,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         map.resources :series
       end
 
-      ActionController::Routing::Routes.install_helpers(self.class)
+      ActionDispatch::Routing::Routes.install_helpers(self.class)
       yield
     end
   end
@@ -422,7 +422,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      ActionController::Routing::Routes.install_helpers(self.class)
+      ActionDispatch::Routing::Routes.install_helpers(self.class)
       yield
     end
   end
@@ -441,7 +441,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      ActionController::Routing::Routes.install_helpers(self.class)
+      ActionDispatch::Routing::Routes.install_helpers(self.class)
       yield
     end
   end

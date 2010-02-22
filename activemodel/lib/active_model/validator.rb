@@ -1,3 +1,5 @@
+require "active_support/core_ext/module/anonymous"
+
 module ActiveModel #:nodoc:
   # A simple base class that can be used along with 
   # +ActiveModel::Validations::ClassMethods.validates_with+
@@ -88,9 +90,25 @@ module ActiveModel #:nodoc:
   class Validator
     attr_reader :options
 
+    # Returns the kind of the validator.
+    #
+    # == Examples
+    #
+    #   PresenceValidator.kind    #=> :presence
+    #   UniquenessValidator.kind  #=> :uniqueness
+    #
+    def self.kind
+      @kind ||= name.split('::').last.underscore.sub(/_validator$/, '').to_sym unless anonymous?
+    end
+
     # Accepts options that will be made availible through the +options+ reader.
     def initialize(options)
       @options = options
+    end
+
+    # Return the kind for this validator.
+    def kind
+      self.class.kind
     end
 
     # Override this method in subclasses with validation logic, adding errors

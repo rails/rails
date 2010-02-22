@@ -64,7 +64,7 @@ class ActiveModelHelperTest < ActionView::TestCase
       }.new
     end
 
-    def @post.new_record?() true end
+    def @post.persisted?() false end
     def @post.to_param() nil end
 
     def @post.column_for_attribute(attr_name)
@@ -155,7 +155,7 @@ class ActiveModelHelperTest < ActionView::TestCase
 
     silence_warnings do
       class << @post
-        def new_record?() false end
+        def persisted?() true end
         def to_param() id end
         def id() 1 end
       end

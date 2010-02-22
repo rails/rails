@@ -462,7 +462,7 @@ class RequestTest < ActiveSupport::TestCase
     [{'foo'=>'bar', 'baz'=>'foo'},{'foo'=>'[FILTERED]', 'baz'=>'[FILTERED]'},%w'foo baz'],
     [{'bar'=>{'foo'=>'bar','bar'=>'foo'}},{'bar'=>{'foo'=>'[FILTERED]','bar'=>'foo'}},%w'fo'],
     [{'foo'=>{'foo'=>'bar','bar'=>'foo'}},{'foo'=>'[FILTERED]'},%w'f banana'],
-    [{'baz'=>[{'foo'=>'baz'}]}, {'baz'=>[{'foo'=>'[FILTERED]'}]}, [/foo/]]]
+    [{'baz'=>[{'foo'=>'baz'}, "1"]}, {'baz'=>[{'foo'=>'[FILTERED]'}, "1"]}, [/foo/]]]
 
     test_hashes.each do |before_filter, after_filter, filter_words|
       request = stub_request('action_dispatch.parameter_filter' => filter_words)

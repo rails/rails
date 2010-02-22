@@ -19,7 +19,7 @@ module ActionController
 
     def assign_parameters(controller_path, action, parameters = {})
       parameters = parameters.symbolize_keys.merge(:controller => controller_path, :action => action)
-      extra_keys = ActionController::Routing::Routes.extra_keys(parameters)
+      extra_keys = ActionDispatch::Routing::Routes.extra_keys(parameters)
       non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
         if value.is_a? Fixnum

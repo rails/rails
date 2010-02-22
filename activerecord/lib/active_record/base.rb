@@ -1767,6 +1767,11 @@ module ActiveRecord #:nodoc:
         @destroyed || false
       end
 
+      # Returns if the record is persisted, i.e. it's not a new record and it was not destroyed.
+      def persisted?
+        !(new_record? || destroyed?)
+      end
+
       # :call-seq:
       #   save(options)
       #
@@ -1816,7 +1821,7 @@ module ActiveRecord #:nodoc:
       # callbacks, Observer methods, or any <tt>:dependent</tt> association
       # options, use <tt>#destroy</tt>.
       def delete
-        self.class.delete(id) unless new_record?
+        self.class.delete(id) if persisted?
         @destroyed = true
         freeze
       end
@@ -1824,7 +1829,7 @@ module ActiveRecord #:nodoc:
       # Deletes the record in the database and freezes this instance to reflect that no changes should
       # be made (since they can't be persisted).
       def destroy
-        unless new_record?
+        if persisted?
           self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
         end
 
@@ -1844,6 +1849,7 @@ module ActiveRecord #:nodoc:
         became.instance_variable_set("@attributes", @attributes)
         became.instance_variable_set("@attributes_cache", @attributes_cache)
         became.instance_variable_set("@new_record", new_record?)
+        became.instance_variable_set("@destroyed", destroyed?)
         became
       end
 
@@ -2042,8 +2048,7 @@ module ActiveRecord #:nodoc:
       def ==(comparison_object)
         comparison_object.equal?(self) ||
           (comparison_object.instance_of?(self.class) &&
-            comparison_object.id == id &&
-            !comparison_object.new_record?)
+            comparison_object.id == id && !comparison_object.new_record?)
       end
 
       # Delegates to ==

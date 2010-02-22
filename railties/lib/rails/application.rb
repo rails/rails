@@ -48,7 +48,7 @@ module Rails
     end
 
     def routes
-      ::ActionController::Routing::Routes
+      ::ActionDispatch::Routing::Routes
     end
 
     def railties
@@ -56,7 +56,7 @@ module Rails
     end
 
     def metal_loader
-      @metal_laoder ||= MetalLoader.new
+      @metal_loader ||= MetalLoader.new
     end
 
     def routes_reloader

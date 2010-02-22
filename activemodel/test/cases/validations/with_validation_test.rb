@@ -9,6 +9,7 @@ class ValidatesWithTest < ActiveRecord::TestCase
 
   def teardown
     Topic.reset_callbacks(:validate)
+    Topic._validators.clear
   end
 
   ERROR_MESSAGE = "Validation error from validator"

@@ -502,6 +502,32 @@ class BaseTest < ActiveSupport::TestCase
     mail = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer'])
     assert_equal("Welcome from another path", mail.body.encoded)
   end
+  
+  # Before and After hooks
+  
+  class MyObserver
+    def self.delivered_email(mail)
+    end
+  end
+  
+  test "you can register an observer to the mail object that gets informed on email delivery" do
+    ActionMailer::Base.register_observer(MyObserver)
+    mail = BaseMailer.welcome
+    MyObserver.expects(:delivered_email).with(mail)
+    mail.deliver
+  end
+
+  class MyInterceptor
+    def self.delivering_email(mail)
+    end
+  end
+
+  test "you can register an interceptor to the mail object that gets passed the mail object before delivery" do
+    ActionMailer::Base.register_interceptor(MyInterceptor)
+    mail = BaseMailer.welcome
+    MyInterceptor.expects(:delivering_email).with(mail)
+    mail.deliver
+  end
 
   protected
 

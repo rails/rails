@@ -1,26 +1,14 @@
-require "cases/helper"
+require 'cases/helper'
 
 class LintTest < ActiveModel::TestCase
   include ActiveModel::Lint::Tests
 
   class CompliantModel
     extend ActiveModel::Naming
-
-    def to_model
-      self
-    end
-
-    def key
-      new_record? ? nil : [1]
-    end
-
-    def to_param
-      key ? key.first.to_s : nil
-    end
+    include ActiveModel::Conversion
 
     def valid?()      true end
-    def new_record?() true end
-    def destroyed?()  true end
+    def persisted?() false end
 
     def errors
       obj = Object.new

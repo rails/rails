@@ -90,7 +90,7 @@ module Rails
     # I18n load paths are a special case since the ones added
     # later have higher priority.
     initializer :add_locales do
-      config.i18n.engines_load_path.concat(paths.config.locales.to_a)
+      config.i18n.railties_load_path.concat(paths.config.locales.to_a)
     end
 
     initializer :add_view_paths do

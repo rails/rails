@@ -61,7 +61,7 @@ class ActionMailerUrlTest < Test::Unit::TestCase
   def test_signed_up_with_url
     TestMailer.delivery_method = :test
     
-    ActionController::Routing::Routes.draw do |map|
+    ActionDispatch::Routing::Routes.draw do |map|
       map.connect ':controller/:action/:id'
       map.welcome 'welcome', :controller=>"foo", :action=>"bar"
     end

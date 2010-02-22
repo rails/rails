@@ -76,7 +76,7 @@ class ActiveSupport::TestCase
   # Hold off drawing routes until all the possible controller classes
   # have been loaded.
   setup_once do
-    ActionController::Routing::Routes.draw do |map|
+    ActionDispatch::Routing::Routes.draw do |map|
       match ':controller(/:action(/:id))'
     end
   end
@@ -92,7 +92,7 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
       middleware.use "ActionDispatch::Cookies"
       middleware.use "ActionDispatch::Flash"
       middleware.use "ActionDispatch::Head"
-    }.build(routes || ActionController::Routing::Routes)
+    }.build(routes || ActionDispatch::Routing::Routes)
   end
 
   self.app = build_app
@@ -118,19 +118,19 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
   end
 
   def with_routing(&block)
-    real_routes = ActionController::Routing::Routes
-    ActionController::Routing.module_eval { remove_const :Routes }
+    real_routes = ActionDispatch::Routing::Routes
+    ActionDispatch::Routing.module_eval { remove_const :Routes }
 
-    temporary_routes = ActionController::Routing::RouteSet.new
+    temporary_routes = ActionDispatch::Routing::RouteSet.new
     self.class.app = self.class.build_app(temporary_routes)
-    ActionController::Routing.module_eval { const_set :Routes, temporary_routes }
+    ActionDispatch::Routing.module_eval { const_set :Routes, temporary_routes }
 
     yield temporary_routes
   ensure
-    if ActionController::Routing.const_defined? :Routes
-      ActionController::Routing.module_eval { remove_const :Routes }
+    if ActionDispatch::Routing.const_defined? :Routes
+      ActionDispatch::Routing.module_eval { remove_const :Routes }
     end
-    ActionController::Routing.const_set(:Routes, real_routes) if real_routes
+    ActionDispatch::Routing.const_set(:Routes, real_routes) if real_routes
     self.class.app = self.class.build_app
   end
 end

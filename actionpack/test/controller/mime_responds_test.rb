@@ -513,7 +513,7 @@ class RespondWithController < ActionController::Base
 protected
 
   def resource
-    Customer.new("david", 13)
+    Customer.new("david", request.delete? ? nil : 13)
   end
 
   def _render_js(js, options)
@@ -717,7 +717,7 @@ class RespondWithControllerTest < ActionController::TestCase
       delete :using_resource
       assert_equal "text/html", @response.content_type
       assert_equal 302, @response.status
-      assert_equal "http://www.example.com/customers/13", @response.location
+      assert_equal "http://www.example.com/customers", @response.location
     end
   end
 

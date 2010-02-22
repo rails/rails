@@ -8,7 +8,7 @@ module ActionView
       # Full usage example:
       #
       #   config/routes.rb:
-      #     ActionController::Routing::Routes.draw do |map|
+      #     ActionDispatch::Routing::Routes.draw do |map|
       #       map.resources :posts
       #       map.root :controller => "posts"
       #     end

@@ -499,14 +499,14 @@ end
 class Workshop
   extend ActiveModel::Naming
   include ActiveModel::Conversion
-  attr_accessor :id, :new_record
+  attr_accessor :id
 
-  def initialize(id, new_record)
-    @id, @new_record = id, new_record
+  def initialize(id)
+    @id = id
   end
 
-  def new_record?
-    @new_record
+  def persisted?
+    id.present?
   end
 
   def to_s
@@ -517,14 +517,14 @@ end
 class Session
   extend ActiveModel::Naming
   include ActiveModel::Conversion
-  attr_accessor :id, :workshop_id, :new_record
+  attr_accessor :id, :workshop_id
 
-  def initialize(id, new_record)
-    @id, @new_record = id, new_record
+  def initialize(id)
+    @id = id
   end
 
-  def new_record?
-    @new_record
+  def persisted?
+    id.present?
   end
 
   def to_s
@@ -534,12 +534,12 @@ end
 
 class WorkshopsController < ActionController::Base
   def index
-    @workshop = Workshop.new(1, true)
+    @workshop = Workshop.new(nil)
     render :inline => "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
   end
 
   def show
-    @workshop = Workshop.new(params[:id], false)
+    @workshop = Workshop.new(params[:id])
     render :inline => "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
   end
 
@@ -548,14 +548,14 @@ end
 
 class SessionsController < ActionController::Base
   def index
-    @workshop = Workshop.new(params[:workshop_id], false)
-    @session = Session.new(1, true)
+    @workshop = Workshop.new(params[:workshop_id])
+    @session = Session.new(nil)
     render :inline => "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
   end
 
   def show
-    @workshop = Workshop.new(params[:workshop_id], false)
-    @session = Session.new(params[:id], false)
+    @workshop = Workshop.new(params[:workshop_id])
+    @session = Session.new(params[:id])
     render :inline => "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
   end
 
@@ -565,8 +565,8 @@ end
 class PolymorphicControllerTest < ActionController::TestCase
   def setup
     super
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
+    @request  = ActionController::TestRequest.new
+    @response = ActionController::TestResponse.new
   end
 
   def test_new_resource

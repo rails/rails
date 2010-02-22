@@ -53,6 +53,7 @@ task :release_projects => :package do
   fail("Errors in #{errors.join(', ')}") unless errors.empty?
 end
 
+desc "Install gems for all projects."
 task :install => :gem do
   (PROJECTS - ["railties"]).each do |project|
     puts "INSTALLING #{project}"

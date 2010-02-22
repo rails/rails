@@ -728,14 +728,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   private
     def with_test_routes
-      real_routes, temp_routes = ActionController::Routing::Routes, Routes
+      real_routes, temp_routes = ActionDispatch::Routing::Routes, Routes
 
-      ActionController::Routing.module_eval { remove_const :Routes }
-      ActionController::Routing.module_eval { const_set :Routes, temp_routes }
+      ActionDispatch::Routing.module_eval { remove_const :Routes }
+      ActionDispatch::Routing.module_eval { const_set :Routes, temp_routes }
 
       yield
     ensure
-      ActionController::Routing.module_eval { remove_const :Routes }
-      ActionController::Routing.const_set(:Routes, real_routes)
+      ActionDispatch::Routing.module_eval { remove_const :Routes }
+      ActionDispatch::Routing.const_set(:Routes, real_routes)
     end
 end

@@ -16,7 +16,7 @@ class Person
     @persisted = true
   end
 
-  def new_record?
+  def persisted?
     @persisted
   end
 end
