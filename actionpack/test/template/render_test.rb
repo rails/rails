@@ -233,6 +233,11 @@ module RenderTestCases
       @view.render(:file => "test/nested_layout.erb", :layout => "layouts/yield")
   end
 
+  def test_render_with_file_in_layout
+    assert_equal %(\n<title>title</title>\n\n),
+      @view.render(:file => "test/layout_render_file.erb")
+  end
+ 
   if '1.9'.respond_to?(:force_encoding)
     def test_render_utf8_template_with_magic_comment
       with_external_encoding Encoding::ASCII_8BIT do
