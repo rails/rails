@@ -79,6 +79,8 @@ module ActionController #:nodoc:
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
       # for the Cache-Control header spec.
       def send_file(path, options = {}) #:doc:
+        # self.response_body = File.open(path)
+
         raise MissingFile, "Cannot read file #{path}" unless File.file?(path) and File.readable?(path)
 
         options[:length]   ||= File.size(path)
@@ -90,19 +92,9 @@ module ActionController #:nodoc:
         if options[:x_sendfile]
           head options[:status], X_SENDFILE_HEADER => path
         else
-          if options[:stream]
-            # TODO : Make render :text => proc {} work with the new base
-            render :status => options[:status], :text => Proc.new { |response, output|
-              len = options[:buffer_size] || 4096
-              File.open(path, 'rb') do |file|
-                while buf = file.read(len)
-                  output.write(buf)
-                end
-              end
-            }
-          else
-            File.open(path, 'rb') { |file| render :status => options[:status], :text => file.read }
-          end
+          self.status = options[:status] || 200
+          self.content_type = options[:content_type] if options.key?(:content_type)
+          self.response_body = File.open(path, "rb")
         end
       end
 
@@ -139,7 +131,7 @@ module ActionController #:nodoc:
       # instead. See ActionController::Base#render for more information.
       def send_data(data, options = {}) #:doc:
         send_file_headers! options.merge(:length => data.bytesize)
-        render :status => options[:status], :text => data
+        render options.slice(:status, :content_type).merge(:text => data)
       end
 
     private

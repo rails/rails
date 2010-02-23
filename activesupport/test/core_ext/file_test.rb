@@ -57,6 +57,10 @@ class AtomicWriteTest < Test::Unit::TestCase
     File.unlink(file_name) rescue nil
   end
 
+  def test_responds_to_to_path
+    assert_equal __FILE__, File.open(__FILE__, "r").to_path
+  end
+
   private
     def file_name
       "atomic.file"

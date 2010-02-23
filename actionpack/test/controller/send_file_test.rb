@@ -46,15 +46,17 @@ class SendFileTest < ActionController::TestCase
     response = nil
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
-    assert_kind_of String, response.body
-    assert_equal file_data, response.body
+    body = response.body
+    assert_kind_of String, body
+    assert_equal file_data, body
   end
 
   def test_file_stream
     response = nil
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
-    assert_kind_of Array, response.body_parts
+    assert response.body_parts.respond_to?(:each)
+    assert response.body_parts.respond_to?(:to_path)
 
     require 'stringio'
     output = StringIO.new
@@ -158,6 +160,12 @@ class SendFileTest < ActionController::TestCase
       @controller.options = { :stream => false, :status => 500 }
       assert_nothing_raised { assert_not_nil process(method) }
       assert_equal 500, @response.status
+    end
+
+    define_method "test_send_#{method}_content_type" do
+      @controller.options = { :stream => false, :content_type => "application/x-ruby" }
+      assert_nothing_raised { assert_not_nil process(method) }
+      assert_equal "application/x-ruby", @response.content_type
     end
 
     define_method "test_default_send_#{method}_status" do

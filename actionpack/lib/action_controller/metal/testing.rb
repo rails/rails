@@ -13,7 +13,6 @@ module ActionController
       if cookies = @_request.env['action_dispatch.cookies']
         cookies.write(@_response)
       end
-      @_response.body ||= self.response_body
       @_response.prepare!
       set_test_assigns
       ret
