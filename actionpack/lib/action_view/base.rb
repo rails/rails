@@ -11,7 +11,7 @@ module ActionView #:nodoc:
 
     def initialize(paths, path, details, partial)
       @path = path
-      display_paths = paths.compact.join(":")
+      display_paths = paths.compact.map{ |p| p.to_s.inspect }.join(", ")
       template_type = if partial
         "partial"
       elsif path =~ /layouts/i
@@ -20,7 +20,7 @@ module ActionView #:nodoc:
         'template'
       end
 
-      super("Missing #{template_type} #{path} with #{details.inspect} in view path #{display_paths}")
+      super("Missing #{template_type} #{path} with #{details.inspect} in view paths #{display_paths}")
     end
   end
 

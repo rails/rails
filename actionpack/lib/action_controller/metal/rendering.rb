@@ -2,7 +2,7 @@ module ActionController
   module Rendering
     extend ActiveSupport::Concern
 
-    include RackDelegation
+    include ActionController::RackDelegation
     include AbstractController::Rendering
     include AbstractController::LocalizedCache
 

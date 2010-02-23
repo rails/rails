@@ -174,7 +174,7 @@ module ActiveRecord
         arel = arel.lock
       when String
         arel = arel.lock(@lock_value)
-      end
+      end if defined?(@lock_value)
 
       arel
     end
