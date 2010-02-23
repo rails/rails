@@ -1333,15 +1333,15 @@ yaffle:squawk             # Prints out the word 'Yaffle'
 
 You can add as many files as you want in the tasks directory, and if they end in .rake Rails will pick them up.
 
-Note that tasks from 'vendor/plugins/yaffle/Rakefile' are not available to the main app.
+Note that tasks from +vendor/plugins/yaffle/Rakefile+ are not available to the main app.
 
-h3. PluginGems
+h3. Plugins as Gems
 
 Turning your rails plugin into a gem is a simple and straightforward task.  This section will cover how to turn your plugin into a gem.  It will not cover how to distribute that gem.
 
-Historically rails plugins loaded the plugin's 'init.rb' file.  In fact some plugins contain all of their code in that one file.  To be compatible with plugins, 'init.rb' was moved to 'rails/init.rb'.
+The initialization file has to be called +rails/init.rb+, the root +init.rb+ file, if any, is ignored by Rails. Also, the name of the plugin now is relevant since +config.gem+ tries to load it. Either name the main file after your gem, or document that users should use the +:lib+ option.
 
-It's common practice to put any developer-centric rake tasks (such as tests, rdoc and gem package tasks) in 'Rakefile'.  A rake task that packages the gem might look like this:
+It's common practice to put any developer-centric rake tasks (such as tests, rdoc and gem package tasks) in +Rakefile+.  A rake task that packages the gem might look like this:
 
 * *vendor/plugins/yaffle/Rakefile:*
 
@@ -1383,7 +1383,7 @@ rake gem
 sudo gem install pkg/yaffle-0.0.1.gem
 </shell>
 
-To test this, create a new rails app, add 'config.gem "yaffle"' to environment.rb and all of your plugin's functionality will be available to you.
+To test this, create a new rails app, add +config.gem "yaffle"+ to +config/environment.rb+ and all of your plugin's functionality will be available to you.
 
 h3. RDoc Documentation
 
