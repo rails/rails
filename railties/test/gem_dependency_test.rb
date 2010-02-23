@@ -174,7 +174,7 @@ class GemDependencyTest < Test::Unit::TestCase
   def test_gem_from_directory_name
     dummy_gem = Rails::GemDependency.from_directory_name('dummy-gem-1.1', false)
     assert_equal 'dummy-gem', dummy_gem.name
-    assert_equal '= 1.1',     dummy_gem.version_requirements.to_s
+    assert_equal '= 1.1',     dummy_gem.requirement.to_s
   end
 
   def test_gem_from_directory_name_loads_specification_successfully
