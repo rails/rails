@@ -12,6 +12,7 @@ module Rails
           middleware.use('::Rack::Runtime')
           middleware.use('::Rails::Rack::Logger')
           middleware.use('::ActionDispatch::ShowExceptions', lambda { Rails.application.config.consider_all_requests_local })
+          middleware.use('::Rack::Sendfile', lambda { Rails.application.config.action_dispatch.x_sendfile_header })
           middleware.use('::ActionDispatch::Callbacks', lambda { !Rails.application.config.cache_classes })
           middleware.use('::ActionDispatch::Cookies')
           middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })

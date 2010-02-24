@@ -1,5 +1,5 @@
 path File.dirname(__FILE__)
-source 'http://gemcutter.org'
+source 'http://rubygems.org'
 
 gem "rails", "3.0.0.beta1"
 

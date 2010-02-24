@@ -31,10 +31,10 @@ end
 
 class ResourcesTest < ActionController::TestCase
   def test_should_arrange_actions
-    resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages,
+    resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages, {
       :collection => { :rss => :get, :reorder => :post, :csv => :post },
       :member     => { :rss => :get, :atom => :get, :upload => :post, :fix => :post },
-      :new        => { :preview => :get, :draft => :get })
+      :new        => { :preview => :get, :draft => :get }}, {})
 
     assert_resource_methods [:rss],                   resource, :collection, :get
     assert_resource_methods [:csv, :reorder],         resource, :collection, :post
@@ -44,18 +44,18 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_should_resource_controller_name_equal_resource_name_by_default
-    resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages, {})
+    resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages, {}, {})
     assert_equal 'messages', resource.controller
   end
 
   def test_should_resource_controller_name_equal_controller_option
-    resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages, :controller => 'posts')
+    resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages, {:controller => 'posts'}, {})
     assert_equal 'posts', resource.controller
   end
 
   def test_should_all_singleton_paths_be_the_same
     [ :path, :nesting_path_prefix, :member_path ].each do |method|
-      resource = ActionDispatch::Routing::DeprecatedMapper::SingletonResource.new(:messages, :path_prefix => 'admin')
+      resource = ActionDispatch::Routing::DeprecatedMapper::SingletonResource.new(:messages, {:path_prefix => 'admin'}, {})
       assert_equal 'admin/messages', resource.send(method)
     end
   end
@@ -111,8 +111,8 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_override_paths_for_default_restful_actions
-    resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages,
-      :path_names => {:new => 'nuevo', :edit => 'editar'})
+    resource = ActionDispatch::Routing::DeprecatedMapper::Resource.new(:messages, {
+      :path_names => {:new => 'nuevo', :edit => 'editar'}}, {})
     assert_equal resource.new_path, "#{resource.path}/nuevo"
   end
 
@@ -1162,8 +1162,9 @@ class ResourcesTest < ActionController::TestCase
         options[:shallow_options] = options[:options]
       end
 
-      new_action    = ActionController::Base.resources_path_names[:new] || "new"
-      edit_action   = ActionController::Base.resources_path_names[:edit] || "edit"
+      new_action    = ActionDispatch::Routing::Routes.resources_path_names[:new] || "new"
+      edit_action   = ActionDispatch::Routing::Routes.resources_path_names[:edit] || "edit"
+
       if options[:path_names]
         new_action  = options[:path_names][:new] if options[:path_names][:new]
         edit_action = options[:path_names][:edit] if options[:path_names][:edit]

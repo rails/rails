@@ -19,3 +19,4 @@ railties/tmp
 bin
 .bundle
 pkg
+*.gem

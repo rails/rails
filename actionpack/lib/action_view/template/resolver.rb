@@ -20,7 +20,7 @@ module ActionView
 
     register_detail(:locale)  { [I18n.locale] }
     register_detail(:formats) { Mime::SET.symbols }
-    register_detail(:handlers, :allow_nil => false) do
+    register_detail(:handlers) do
       Template::Handlers.extensions
     end
 

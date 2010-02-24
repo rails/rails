@@ -5,6 +5,8 @@ module ActionDispatch
   class Railtie < Rails::Railtie
     railtie_name :action_dispatch
 
+    config.action_dispatch.x_sendfile_header = "X-Sendfile"
+
     # Prepare dispatcher callbacks and run 'prepare' callbacks
     initializer "action_dispatch.prepare_dispatcher" do |app|
       # TODO: This used to say unless defined?(Dispatcher). Find out why and fix.

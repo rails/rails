@@ -82,6 +82,18 @@ module ActionDispatch # :nodoc:
     end
     alias_method :status_message, :message
 
+    def respond_to?(method)
+      if method.to_sym == :to_path
+        @body.respond_to?(:to_path)
+      else
+        super
+      end
+    end
+
+    def to_path
+      @body.to_path
+    end
+
     def body
       str = ''
       each { |part| str << part.to_s }

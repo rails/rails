@@ -21,6 +21,10 @@ class TestController < ActionController::Base
   def hello_world
   end
 
+  def hello_world_file
+    render :file => File.expand_path("../../fixtures/hello.html", __FILE__)
+  end
+
   def conditional_hello
     if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123])
       render :action => 'hello_world'
@@ -749,6 +753,11 @@ class RenderTest < ActionController::TestCase
   def test_render_file_with_instance_variables
     get :render_file_with_instance_variables
     assert_equal "The secret is in the sauce\n", @response.body
+  end
+
+  def test_render_file
+    get :hello_world_file
+    assert_equal "Hello world!", @response.body
   end
 
   # :ported:

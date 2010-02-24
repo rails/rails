@@ -1,6 +1,3 @@
-railties_path = File.expand_path('../../../../railties/lib', __FILE__)
-$:.unshift(railties_path) if File.directory?(railties_path) && !$:.include?(railties_path)
-
 require "abstract_unit"
 require "rails/log_subscriber/test_helper"
 require "action_controller/railties/log_subscriber"
@@ -137,11 +134,11 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_send_xfile
-    get :xfile_sender
+    assert_deprecated { get :xfile_sender }
     wait
 
     assert_equal 3, logs.size
-    assert_match /Sent X\-Sendfile header/, logs[1]
+    assert_match /Sent file/, logs[1]
     assert_match /test\/fixtures\/company\.rb/, logs[1]
   end
 

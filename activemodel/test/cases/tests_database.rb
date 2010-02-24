@@ -1,8 +1,6 @@
 require 'logger'
 
-activerecord_path = File.expand_path('../../../../activerecord/lib', __FILE__)
-$:.unshift(activerecord_path) if File.directory?(activerecord_path) && !$:.include?(activerecord_path)
-
+$:.unshift(File.dirname(__FILE__) + '/../../../activerecord/lib')
 require 'active_record'
 
 module ActiveModel

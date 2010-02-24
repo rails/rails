@@ -13,7 +13,7 @@ require 'rake/testtask'
 task :default => :test
 
 Rake::TestTask.new do |t|
-  t.libs << "test"
+  t.libs << "#{dir}/test"
   t.test_files = Dir.glob("#{dir}/test/cases/**/*_test.rb").sort
   t.warning = true
 end
