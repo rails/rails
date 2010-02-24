@@ -1,6 +1,3 @@
-railties_path = File.expand_path('../../../../railties/lib', __FILE__)
-$:.unshift(railties_path) if File.directory?(railties_path) && !$:.include?(railties_path)
-
 require "cases/helper"
 require "models/developer"
 require "rails/log_subscriber/test_helper"
