@@ -19,6 +19,7 @@ module ApplicationTests
         "Rack::Runtime",
         "Rails::Rack::Logger",
         "ActionDispatch::ShowExceptions",
+        "Rack::Sendfile",
         "ActionDispatch::Callbacks",
         "ActionDispatch::Cookies",
         "ActionDispatch::Session::CookieStore",
