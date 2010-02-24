@@ -22,15 +22,7 @@ module ActionController
       end
 
       def send_file(event)
-        message = if event.payload[:x_sendfile]
-          header = ActionController::Streaming::X_SENDFILE_HEADER
-          "Sent #{header} header %s"
-        elsif event.payload[:stream]
-          "Streamed file %s"
-        else
-          "Sent file %s"
-        end
-
+        message = "Sent file %s"
         message << " (%.1fms)"
         info(message % [event.payload[:path], event.duration])
       end

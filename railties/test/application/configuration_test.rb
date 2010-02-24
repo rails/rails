@@ -171,5 +171,60 @@ module ApplicationTests
       get "/"
       assert $prepared
     end
+
+    test "config.action_dispatch.x_sendfile_header defaults to X-Sendfile" do
+      require "rails"
+      require "action_controller/railtie"
+
+      class MyApp < Rails::Application
+        config.action_controller.session = { :key => "_myapp_session", :secret => "3b7cd727ee24e8444053437c36cc66c4" }
+      end
+
+      MyApp.initialize!
+
+      class ::OmgController < ActionController::Base
+        def index
+          send_file __FILE__
+        end
+      end
+
+      MyApp.routes.draw do
+        match "/" => "omg#index"
+      end
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get "/"
+      assert_equal File.expand_path(__FILE__), last_response.headers["X-Sendfile"]
+    end
+
+    test "config.action_dispatch.x_sendfile_header is sent to Rack::Sendfile" do
+      require "rails"
+      require "action_controller/railtie"
+
+      class MyApp < Rails::Application
+        config.action_controller.session = { :key => "_myapp_session", :secret => "3b7cd727ee24e8444053437c36cc66c4" }
+        config.action_dispatch.x_sendfile_header = 'X-Lighttpd-Send-File'
+      end
+
+      MyApp.initialize!
+
+      class ::OmgController < ActionController::Base
+        def index
+          send_file __FILE__
+        end
+      end
+
+      MyApp.routes.draw do
+        match "/" => "omg#index"
+      end
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get "/"
+      assert_equal File.expand_path(__FILE__), last_response.headers["X-Lighttpd-Send-File"]
+    end
   end
 end
