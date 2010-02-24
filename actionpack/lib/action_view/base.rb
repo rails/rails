@@ -196,7 +196,7 @@ module ActionView #:nodoc:
         # This is expensive, but we need to reset this when the format is updated,
         # which currently only happens
         Thread.current[:format_locale_key] =
-          AbstractController::HashKey.get(self.class, formats, I18n.locale)
+          AbstractController::HashKey.get(self.class, :formats => formats, :locale => [I18n.locale])
       end
     end
 

@@ -5,7 +5,7 @@ module AbstractController
   
     class CachedController < AbstractController::Base
       include AbstractController::Rendering
-      include AbstractController::LocalizedCache
+      include AbstractController::DetailsCache
 
       self.view_paths = [ActionView::FixtureResolver.new(
         "default.erb" => "With Default",

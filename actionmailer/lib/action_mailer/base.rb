@@ -267,7 +267,7 @@ module ActionMailer #:nodoc:
 
     include AbstractController::Logger
     include AbstractController::Rendering
-    include AbstractController::LocalizedCache
+    include AbstractController::DetailsCache
     include AbstractController::Layouts
     include AbstractController::Helpers
     include AbstractController::Translation
