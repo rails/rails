@@ -12,19 +12,11 @@ module ActionController
     end
 
     def render(*args)
-      if response_body
-        raise ::AbstractController::DoubleRenderError
-      end
-
+      raise ::AbstractController::DoubleRenderError if response_body
       args << {} unless args.last.is_a?(Hash)
       super(*args)
       self.content_type ||= args.last[:_template].mime_type.to_s
       response_body
-    end
-
-    def render_to_body(options)
-      _process_options(options)
-      super
     end
 
     private
@@ -35,22 +27,8 @@ module ActionController
         super
       end
 
-      def _determine_template(options)
-        if options.key?(:text) && options[:text].respond_to?(:to_text)
-          options[:text] = options[:text].to_text
-        end
-        super
-      end
-
       def format_for_text
         formats.first
-      end
-
-      def _process_options(options)
-        status, content_type, location = options.values_at(:status, :content_type, :location)
-        self.status = status if status
-        self.content_type = content_type if content_type
-        self.headers["Location"] = url_for(location) if location
       end
 
       def _normalize_options(action=nil, options={}, &blk)
@@ -64,12 +42,25 @@ module ActionController
           options.merge! :partial => action
         end
 
+        if options.key?(:text) && options[:text].respond_to?(:to_text)
+          options[:text] = options[:text].to_text
+        end
+
         if options[:status]
           options[:status] = Rack::Utils.status_code(options[:status])
         end
 
         options[:update] = blk if block_given?
+
+        _process_options(options)
         options
+      end
+
+      def _process_options(options)
+        status, content_type, location = options.values_at(:status, :content_type, :location)
+        self.status = status if status
+        self.content_type = content_type if content_type
+        self.headers["Location"] = url_for(location) if location
       end
   end
 end
