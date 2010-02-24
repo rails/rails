@@ -14,7 +14,7 @@ class InfoControllerTest < ActionController::TestCase
   tests Rails::InfoController
 
   def setup
-    ActionDispatch::Routing::Routes.draw do |map|
+    Rails.application.routes.draw do |map|
       match ':controller/:action'
     end
     @controller.stubs(:consider_all_requests_local? => false, :local_request? => true)
