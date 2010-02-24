@@ -244,14 +244,15 @@ module ActionDispatch
         attr_reader :collection_methods, :member_methods, :new_methods
         attr_reader :path_prefix, :name_prefix, :path_segment
         attr_reader :plural, :singular
-        attr_reader :options
+        attr_reader :options, :defaults
 
-        def initialize(entities, options)
+        def initialize(entities, options, defaults)
           @plural   ||= entities
           @singular ||= options[:singular] || plural.to_s.singularize
           @path_segment = options.delete(:as) || @plural
 
           @options = options
+          @defaults = defaults
 
           arrange_actions
           add_default_actions
@@ -280,7 +281,7 @@ module ActionDispatch
 
         def new_path
           new_action   = self.options[:path_names][:new] if self.options[:path_names]
-          new_action ||= ActionController::Base.resources_path_names[:new]
+          new_action ||= self.defaults[:path_names][:new]
           @new_path  ||= "#{path}/#{new_action}"
         end
 
@@ -370,7 +371,7 @@ module ActionDispatch
       end
 
       class SingletonResource < Resource #:nodoc:
-        def initialize(entity, options)
+        def initialize(entity, options, defaults)
           @singular = @plural = entity
           options[:controller] ||= @singular.to_s.pluralize
           super
@@ -717,7 +718,7 @@ module ActionDispatch
 
       private
         def map_resource(entities, options = {}, &block)
-          resource = Resource.new(entities, options)
+          resource = Resource.new(entities, options, :path_names => @set.resources_path_names)
 
           with_options :controller => resource.controller do |map|
             map_associations(resource, options)
@@ -734,7 +735,7 @@ module ActionDispatch
         end
 
         def map_singleton_resource(entities, options = {}, &block)
-          resource = SingletonResource.new(entities, options)
+          resource = SingletonResource.new(entities, options, :path_names => @set.resources_path_names)
 
           with_options :controller => resource.controller do |map|
             map_associations(resource, options)
@@ -826,7 +827,7 @@ module ActionDispatch
             actions.each do |action|
               [method].flatten.each do |m|
                 action_path = resource.options[:path_names][action] if resource.options[:path_names].is_a?(Hash)
-                action_path ||= ActionController::Base.resources_path_names[action] || action
+                action_path ||= @set.resources_path_names[action] || action
 
                 map_resource_routes(map, resource, action, "#{resource.member_path}#{resource.action_separator}#{action_path}", "#{action}_#{resource.shallow_name_prefix}#{resource.singular}", m, { :force_id => true })
               end
