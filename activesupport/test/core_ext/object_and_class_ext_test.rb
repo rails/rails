@@ -89,7 +89,7 @@ class ClassExtTest < Test::Unit::TestCase
   end
 end
 
-class ObjectTests < Test::Unit::TestCase
+class ObjectTests < ActiveSupport::TestCase
   class DuckTime
     def acts_like_time?
       true
@@ -119,12 +119,16 @@ class ObjectTests < Test::Unit::TestCase
     assert !duck.acts_like?(:date)
   end
 
-  def test_metaclass
-    string = "Hello"
-    string.metaclass.instance_eval do
-      define_method(:foo) { "bar" }
+  def test_singleton_class
+    o = Object.new
+    assert_equal class << o; self end, o.singleton_class
+  end
+
+  def test_metaclass_deprecated
+    o = Object.new
+    assert_deprecated /use singleton_class instead/ do
+      assert_equal o.singleton_class, o.metaclass
     end
-    assert_equal "bar", string.foo
   end
 end
 

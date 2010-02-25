@@ -1,4 +1,4 @@
-require 'active_support/core_ext/object/metaclass'
+require 'active_support/core_ext/object/singleton_class'
 require 'active_support/core_ext/module/delegation'
 
 class Class
@@ -25,11 +25,12 @@ class Class
   #
   #   Subclass.setting?           # => false
   def class_attribute(*attrs)
+    s = singleton_class
     attrs.each do |attr|
-      metaclass.send(:define_method, attr) { }
-      metaclass.send(:define_method, "#{attr}?") { !!send(attr) }
-      metaclass.send(:define_method, "#{attr}=") do |value|
-        metaclass.send(:define_method, attr) { value }
+      s.send(:define_method, attr) { }
+      s.send(:define_method, "#{attr}?") { !!send(attr) }
+      s.send(:define_method, "#{attr}=") do |value|
+        singleton_class.send(:define_method, attr) { value }
       end
     end
   end

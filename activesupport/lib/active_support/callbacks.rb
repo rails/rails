@@ -1,7 +1,7 @@
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/inheritable_attributes'
 require 'active_support/core_ext/kernel/reporting'
-require 'active_support/core_ext/object/metaclass'
+require 'active_support/core_ext/object/singleton_class'
 
 module ActiveSupport
   # Callbacks are hooks into the lifecycle of an object that allow you to trigger logic
@@ -312,7 +312,7 @@ module ActiveSupport
 
       def _normalize_legacy_filter(kind, filter)
         if !filter.respond_to?(kind) && filter.respond_to?(:filter)
-          filter.metaclass.class_eval(
+          filter.singleton_class.class_eval(
             "def #{kind}(context, &block) filter(context, &block) end",
             __FILE__, __LINE__ - 1)
         elsif filter.respond_to?(:before) && filter.respond_to?(:after) && kind == :around

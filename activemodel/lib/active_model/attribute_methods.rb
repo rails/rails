@@ -86,7 +86,7 @@ module ActiveModel
       #   AttributePerson.inheritance_column
       #   # => 'address_id'
       def define_attr_method(name, value=nil, &block)
-        sing = metaclass
+        sing = singleton_class
         sing.send :alias_method, "original_#{name}", name
         if block_given?
           sing.send :define_method, name, &block
