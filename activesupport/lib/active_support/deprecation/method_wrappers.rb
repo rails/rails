@@ -12,15 +12,15 @@ module ActiveSupport
       method_names.each do |method_name|
         target_module.alias_method_chain(method_name, :deprecation) do |target, punctuation|
           target_module.module_eval(<<-end_eval, __FILE__, __LINE__ + 1)
-            def #{target}_with_deprecation#{punctuation}(*args, &block)          # def generate_secret_with_deprecation(*args, &block)
-              ::ActiveSupport::Deprecation.warn(                                 #   ::ActiveSupport::Deprecation.warn(
-                ::ActiveSupport::Deprecation.deprecated_method_warning(          #     ::ActiveSupport::Deprecation.deprecated_method_warning(
-                  :#{method_name},                                               #       :generate_secret,
-                  #{options[method_name].inspect}),                              #       "You should use ActiveSupport::SecureRandom.hex(64)"),
-                caller                                                           #     caller
-              )                                                                  #   )
-              send(:#{target}_without_deprecation#{punctuation}, *args, &block)  #   send(:generate_secret_without_deprecation, *args, &block)
-            end                                                                  # end
+            def #{target}_with_deprecation#{punctuation}(*args, &block)
+              ::ActiveSupport::Deprecation.warn(
+                ::ActiveSupport::Deprecation.deprecated_method_warning(
+                  :#{method_name},
+                  #{options[method_name].inspect}),
+                caller
+              )
+              send(:#{target}_without_deprecation#{punctuation}, *args, &block)
+            end
           end_eval
         end
       end
