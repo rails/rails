@@ -138,16 +138,19 @@ end
 
 NOTE: Defined in +active_support/core_ext/object/try.rb+.
 
-h4. +metaclass+
+h4. +singleton_class+
 
-The method +metaclass+ returns the singleton class on any object:
+The method +singleton_class+ returns the singleton class of the receiver:
 
 <ruby>
-String.metaclass     # => #<Class:String>
-String.new.metaclass # => #<Class:#<String:0x17a1d1c>>
+String.singleton_class     # => #<Class:String>
+String.new.singleton_class # => #<Class:#<String:0x17a1d1c>>
 </ruby>
 
-NOTE: Defined in +active_support/core_ext/object/metaclass.rb+.
+WARNING: Fixnums and symbols have no singleton classes, +singleton_class+
+raises +TypeError+ on them.
+
+NOTE: Defined in +active_support/core_ext/object/singleton_class.rb+.
 
 h4. +class_eval(*args, &block)+
 
@@ -168,7 +171,7 @@ class Proc
 end
 </ruby>
 
-NOTE: Defined in +active_support/core_ext/object/metaclass.rb+.
+NOTE: Defined in +active_support/core_ext/object/singleton_class.rb+.
 
 h4. +acts_like?(duck)+
 
