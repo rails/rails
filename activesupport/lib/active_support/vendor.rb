@@ -26,3 +26,11 @@ rescue Gem::LoadError
   $:.unshift "#{File.dirname(__FILE__)}/vendor/i18n-0.3.3/lib"
 end
 require 'i18n'
+
+module I18n
+  if !respond_to?(:normalize_translation_keys) && respond_to?(:normalize_keys)
+    def self.normalize_translation_keys(*args)
+      normalize_keys(*args)
+    end
+  end
+end
