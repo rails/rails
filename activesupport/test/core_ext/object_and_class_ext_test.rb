@@ -123,13 +123,6 @@ class ObjectTests < ActiveSupport::TestCase
     o = Object.new
     assert_equal class << o; self end, o.singleton_class
   end
-
-  def test_metaclass_deprecated
-    o = Object.new
-    assert_deprecated /use singleton_class instead/ do
-      assert_equal o.singleton_class, o.metaclass
-    end
-  end
 end
 
 class ObjectInstanceVariableTest < Test::Unit::TestCase
