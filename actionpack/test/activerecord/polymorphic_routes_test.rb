@@ -400,7 +400,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         map.resources :series
       end
 
-      ActionDispatch::Routing::Routes.install_helpers(self.class)
+      self.class.send(:include, @router.named_url_helpers)
       yield
     end
   end
@@ -422,7 +422,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      ActionDispatch::Routing::Routes.install_helpers(self.class)
+      self.class.send(:include, @router.named_url_helpers)
       yield
     end
   end
@@ -441,7 +441,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      ActionDispatch::Routing::Routes.install_helpers(self.class)
+      self.class.send(:include, @router.named_url_helpers)
       yield
     end
   end

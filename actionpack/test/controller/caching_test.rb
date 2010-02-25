@@ -74,9 +74,9 @@ class PageCachingTest < ActionController::TestCase
         match '/', :to => 'posts#index', :as => :main
       end
       @params[:format] = 'rss'
-      assert_equal '/posts.rss', @rewriter.rewrite(@params)
+      assert_equal '/posts.rss', @rewriter.rewrite(@router, @params)
       @params[:format] = nil
-      assert_equal '/', @rewriter.rewrite(@params)
+      assert_equal '/', @rewriter.rewrite(@router, @params)
     end
   end
 
@@ -511,6 +511,8 @@ class ActionCacheTest < ActionController::TestCase
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
       @controller = ActionCachingTestController.new
+      # ROUTES TODO: It seems bad to explicitly remix in the class
+      @controller.metaclass.send(:include, @router.named_url_helpers)
       @request.host = 'hostname.com'
     end
 
