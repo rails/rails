@@ -21,9 +21,14 @@ module Arel
           ("#{locked}"                                   unless locked.blank?)
       end
 
-      def limited_update_conditions(conditions)
+      def limited_update_conditions(conditions, taken)
+        conditions << " LIMIT #{taken}"
         quoted_primary_key = engine.quote_table_name(primary_key)
         "WHERE #{quoted_primary_key} IN (SELECT #{quoted_primary_key} FROM #{engine.connection.quote_table_name table.name} #{conditions})"
+      end
+
+      def add_limit_on_delete(taken)
+        "LIMIT #{taken}"
       end
 
       def supports_insert_with_returning?

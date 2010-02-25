@@ -5,7 +5,7 @@ module Arel
         "DELETE",
         "FROM #{table_sql}",
         ("WHERE #{wheres.collect(&:to_sql).join(' AND ')}" unless wheres.blank? ),
-        ("LIMIT #{taken}"                                  unless taken.blank?  )
+        (compiler.add_limit_on_delete(taken)               unless taken.blank?  )
     end
   end
 
@@ -68,9 +68,7 @@ module Arel
       conditions << " ORDER BY #{order_clauses.join(', ')}" unless orders.blank?
 
       unless taken.blank?
-        conditions << " LIMIT #{taken}"
-
-        conditions = compiler.limited_update_conditions(conditions)
+        conditions = compiler.limited_update_conditions(conditions,taken)
       end
 
       conditions
