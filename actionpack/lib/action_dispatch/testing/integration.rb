@@ -188,11 +188,11 @@ module ActionDispatch
         unless defined? @named_routes_configured
           # install the named routes in this session instance.
           klass = singleton_class
-          ActionDispatch::Routing::Routes.install_helpers(klass)
+          # ActionDispatch::Routing::Routes.install_helpers(klass)
 
           # the helpers are made protected by default--we make them public for
           # easier access during testing and troubleshooting.
-          klass.module_eval { public *ActionDispatch::Routing::Routes.named_routes.helpers }
+          # klass.module_eval { public *ActionDispatch::Routing::Routes.named_routes.helpers }
           @named_routes_configured = true
         end
       end
@@ -224,9 +224,13 @@ module ActionDispatch
       # Returns the URL for the given options, according to the rules specified
       # in the application's routes.
       def url_for(options)
+        # ROUTES TODO: @app.router is not guaranteed to exist, so a generic Rack
+        # application will not work here. This means that a generic Rack application
+        # integration test cannot call url_for, since the application will not have
+        # #router on it.
         controller ?
           controller.url_for(options) :
-          generic_url_rewriter.rewrite(options)
+          generic_url_rewriter.rewrite(SharedTestRoutes, options)
       end
 
       private

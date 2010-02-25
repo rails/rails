@@ -219,12 +219,14 @@ class EmptyUrlOptionsTest < ActionController::TestCase
   end
 
   def test_named_routes_with_path_without_doing_a_request_first
+    @controller = EmptyController.new
+
     with_routing do |set|
       set.draw do |map|
         resources :things
       end
 
-      assert_equal '/things', EmptyController.new.send(:things_path)
+      assert_equal '/things', @controller.send(:things_path)
     end
   end
 end

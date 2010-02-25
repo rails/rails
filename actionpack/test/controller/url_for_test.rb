@@ -5,7 +5,7 @@ module AbstractController
 
     class UrlForTests < ActionController::TestCase
       class W
-        include ActionController::UrlFor
+        include SharedTestRoutes.url_helpers
       end
 
       def teardown

@@ -206,6 +206,7 @@ module ActionDispatch
     autoload :Route, 'action_dispatch/routing/route'
     autoload :Routes, 'action_dispatch/routing/routes'
     autoload :RouteSet, 'action_dispatch/routing/route_set'
+    autoload :UrlFor, 'action_dispatch/routing/url_for'
 
     SEPARATORS = %w( / . ? )
     HTTP_METHODS = [:get, :head, :post, :put, :delete, :options]

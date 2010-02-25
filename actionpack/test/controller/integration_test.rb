@@ -86,7 +86,7 @@ class SessionTest < Test::Unit::TestCase
   def test_url_for_without_controller
     options = {:action => 'show'}
     mock_rewriter = mock()
-    mock_rewriter.expects(:rewrite).with(options).returns('/show')
+    mock_rewriter.expects(:rewrite).with(SharedTestRoutes, options).returns('/show')
     @session.stubs(:generic_url_rewriter).returns(mock_rewriter)
     @session.stubs(:controller).returns(nil)
     assert_equal '/show', @session.url_for(options)
@@ -401,9 +401,14 @@ class IntegrationProcessTest < ActionController::IntegrationTest
   private
     def with_test_route_set
       with_routing do |set|
+        controller = ::IntegrationProcessTest::IntegrationController.clone
+        controller.class_eval do
+          include set.named_url_helpers
+        end
+
         set.draw do |map|
-          match ':action', :to => ::IntegrationProcessTest::IntegrationController
-          get 'get/:action', :to => ::IntegrationProcessTest::IntegrationController
+          match ':action', :to => controller
+          get 'get/:action', :to => controller
         end
         yield
       end

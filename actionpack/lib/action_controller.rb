@@ -32,7 +32,7 @@ module ActionController
     autoload :SessionManagement
     autoload :Streaming
     autoload :Testing
-    autoload :UrlFor
+    # ROUTES TODO: Proxy UrlFor to Rails.application.routes.url_helpers
     autoload :Verification
   end
 

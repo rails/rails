@@ -1,7 +1,6 @@
 module ActionController
   module Head
     extend ActiveSupport::Concern
-    include ActionController::UrlFor
 
     # Return a response that has no content (merely headers). The options
     # argument is interpreted to be a hash of header names and values.
@@ -25,6 +24,9 @@ module ActionController
       end
 
       self.status = status
+      # ROUTES TODO: Figure out how to rescue from a no method error
+      # This is needed only if you wire up a controller yourself, and
+      # this not working would be baffling without a better error
       self.location = url_for(location) if location
       self.content_type = Mime[formats.first]
       self.response_body = " "

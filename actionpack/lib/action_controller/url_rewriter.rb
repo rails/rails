@@ -9,11 +9,11 @@ module ActionController
       @request, @parameters = request, parameters
     end
 
-    def rewrite(options = {})
+    def rewrite(router, options = {})
       options[:host]     ||= @request.host_with_port
       options[:protocol] ||= @request.protocol
 
-      self.class.rewrite(options, @request.symbolized_path_parameters) do |options|
+      self.class.rewrite(router, options, @request.symbolized_path_parameters) do |options|
         process_path_options(options)
       end
     end
@@ -24,7 +24,8 @@ module ActionController
 
     alias_method :to_s, :to_str
 
-    def self.rewrite(options, path_segments=nil)
+    # ROUTES TODO: Class method code smell
+    def self.rewrite(router, options, path_segments=nil)
       rewritten_url = ""
 
       unless options[:only_path]
@@ -40,7 +41,7 @@ module ActionController
 
       path_options = options.except(*RESERVED_OPTIONS)
       path_options = yield(path_options) if block_given?
-      path = Routing::Routes.generate(path_options, path_segments || {})
+      path = router.generate(path_options, path_segments || {})
 
       rewritten_url << ActionController::Base.relative_url_root.to_s unless options[:skip_relative_url_root]
       rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)

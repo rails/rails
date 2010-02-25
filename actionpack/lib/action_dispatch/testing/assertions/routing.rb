@@ -80,7 +80,7 @@ module ActionDispatch
         expected_path = "/#{expected_path}" unless expected_path[0] == ?/
         # Load routes.rb if it hasn't been loaded.
 
-        generated_path, extra_keys = ActionDispatch::Routing::Routes.generate_extras(options, defaults)
+        generated_path, extra_keys = @router.generate_extras(options, defaults)
         found_extras = options.reject {|k, v| ! extra_keys.include? k}
 
         msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
@@ -142,22 +142,21 @@ module ActionDispatch
       #   end
       #
       def with_routing
-        real_routes = ActionDispatch::Routing::Routes
-        ActionDispatch::Routing.module_eval { remove_const :Routes }
-
-        temporary_routes = ActionDispatch::Routing::RouteSet.new
-        ActionDispatch::Routing.module_eval { const_set :Routes, temporary_routes }
-
-        yield temporary_routes
+        old_routes, @router = @router, ActionDispatch::Routing::RouteSet.new
+        old_controller, @controller = @controller, @controller.clone if @controller
+        # ROUTES TODO: Figure out this insanity
+        silence_warnings { ::ActionController.const_set(:UrlFor, @router.named_url_helpers) }
+        _router = @router
+        @controller.metaclass.send(:send, :include, @router.named_url_helpers) if @controller
+        yield @router
       ensure
-        if ActionDispatch::Routing.const_defined? :Routes
-          ActionDispatch::Routing.module_eval { remove_const :Routes }
-        end
-        ActionDispatch::Routing.const_set(:Routes, real_routes) if real_routes
+        @router = old_routes
+        @controller = old_controller if @controller
+        silence_warnings { ::ActionController.const_set(:UrlFor, @router.named_url_helpers) } if @router
       end
 
       def method_missing(selector, *args, &block)
-        if @controller && ActionDispatch::Routing::Routes.named_routes.helpers.include?(selector)
+        if @controller && @router.named_routes.helpers.include?(selector)
           @controller.send(selector, *args, &block)
         else
           super
@@ -174,7 +173,7 @@ module ActionDispatch
           request.env["REQUEST_METHOD"] = request_method.to_s.upcase if request_method
           request.path = path
 
-          params = ActionDispatch::Routing::Routes.recognize_path(path, { :method => request.method })
+          params = @router.recognize_path(path, { :method => request.method })
           request.path_parameters = params.with_indifferent_access
 
           request
