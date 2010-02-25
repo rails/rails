@@ -155,7 +155,7 @@ class GeneratorsTest < Rails::Generators::TestCase
 
     assert_equal false, NewGenerator.class_options[:generate].default
   ensure
-    Rails::Generators.subclasses.delete(klass)
+    Rails::Generators.subclasses.delete(NewGenerator)
   end
 
   def test_load_generators_from_railties
