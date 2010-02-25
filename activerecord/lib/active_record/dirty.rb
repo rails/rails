@@ -167,7 +167,7 @@ module ActiveRecord
 
     module ClassMethods
       def self.extended(base)
-        base.metaclass.alias_method_chain(:alias_attribute, :dirty)
+        base.singleton_class.alias_method_chain(:alias_attribute, :dirty)
       end
 
       def alias_attribute_with_dirty(new_name, old_name)

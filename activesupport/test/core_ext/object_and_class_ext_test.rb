@@ -107,7 +107,7 @@ class ClassExtTest < Test::Unit::TestCase
   end
 end
 
-class ObjectTests < Test::Unit::TestCase
+class ObjectTests < ActiveSupport::TestCase
   def test_suppress_re_raises
     assert_raise(LoadError) { suppress(ArgumentError) {raise LoadError} }
   end
@@ -176,6 +176,18 @@ class ObjectTests < Test::Unit::TestCase
     end
     assert_equal "bar", string.foo
   end
+
+  def test_singleton_class
+    o = Object.new
+    assert_equal class << o; self end, o.singleton_class
+  end
+
+  def test_metaclass_deprecated
+    o = Object.new
+    assert_deprecated /use singleton_class instead/ do
+      assert_equal o.singleton_class, o.metaclass
+    end
+   end
 end
 
 class ObjectInstanceVariableTest < Test::Unit::TestCase
