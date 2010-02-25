@@ -9,7 +9,7 @@ module ActionController
     include ActionController::Helpers
     
     include ActionController::HideActions
-    # include ActionController::UrlFor
+    include ActionController::UrlFor
     include ActionController::Redirecting
     include ActionController::Rendering
     include ActionController::Renderers::All
@@ -82,12 +82,5 @@ module ActionController
       filter
     end
 
-  protected
-
-    # Overwrite url rewriter to use request.
-    def _url_rewriter
-      return ActionController::UrlRewriter unless request
-      @_url_rewriter ||= ActionController::UrlRewriter.new(request, params)
-    end
   end
 end

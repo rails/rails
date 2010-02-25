@@ -1,6 +1,7 @@
 require "action_controller"
 require "rails"
 require "action_view/railtie"
+require "active_support/core_ext/class/subclasses"
 
 module ActionController
   class Railtie < Rails::Railtie

@@ -194,24 +194,11 @@ module ActionDispatch
             # end
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
               def #{selector}(*args)
-                if args.empty? || Hash === args.first
-                  options = #{hash_access_method}(args.first || {})
-                else
-                  options = #{hash_access_method}(args.extract_options!)
-                  default = default_url_options(options) if self.respond_to?(:default_url_options, true)
-                  options = (default ||= {}).merge(options)
+                options =  #{hash_access_method}(args.extract_options!)
 
-                  keys = #{route.segment_keys.inspect}
-                  keys -= options.keys if args.size < keys.size - 1 # take format into account
-
-                  args = args.zip(keys).inject({}) do |h, (v, k)|
-                    h[k] = v
-                    h
-                  end
-
-                  # Tell url_for to skip default_url_options
-                  options[:use_defaults] = false
-                  options.merge!(args)
+                if args.any?
+                  options[:_positional_args] = args
+                  options[:_positional_keys] = #{route.segment_keys.inspect}
                 end
 
                 url_for(options)

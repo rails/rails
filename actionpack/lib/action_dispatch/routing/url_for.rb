@@ -85,8 +85,6 @@ module ActionDispatch
       extend ActiveSupport::Concern
 
       included do
-        # ActionDispatch::Routing::Routes.install_helpers(self)
-
         # Including in a class uses an inheritable hash. Modules get a plain hash.
         if respond_to?(:class_attribute)
           class_attribute :default_url_options
@@ -97,23 +95,16 @@ module ActionDispatch
         self.default_url_options = {}
       end
 
-      # Overwrite to implement a number of default options that all url_for-based methods will use. The default options should come in
-      # the form of a hash, just like the one you would use for url_for directly. Example:
-      #
-      #   def default_url_options(options)
-      #     { :project => @project.active? ? @project.url_name : "unknown" }
-      #   end
-      #
-      # As you can infer from the example, this is mostly useful for situations where you want to centralize dynamic decisions about the
-      # urls as they stem from the business domain. Please note that any individual url_for call can always override the defaults set
-      # by this method.
       def default_url_options(options = nil)
-        # ROUTES TODO: This should probably be an instance method
         self.class.default_url_options
       end
 
-      def rewrite_options(options) #:nodoc:
-        if options.delete(:use_defaults) != false && (defaults = default_url_options(options))
+      def url_options
+        self.class.default_url_options.merge
+      end
+
+      def merge_options(options) #:nodoc:
+        if options.delete(:use_defaults) != false && respond_to?(:default_url_options) && (defaults = default_url_options(options))
           defaults.merge(options)
         else
           options
@@ -149,18 +140,10 @@ module ActionDispatch
           when String
             options
           when Hash
-            _url_rewriter.rewrite(_router, rewrite_options(options))
+            ActionController::UrlRewriter.rewrite(_router, merge_options(options))
           else
             polymorphic_url(options)
         end
-      end
-
-    protected
-
-      # ROUTES TODO: Figure out why _url_rewriter is sometimes the class and
-      # sometimes an instance.
-      def _url_rewriter
-        ActionController::UrlRewriter
       end
     end
   end

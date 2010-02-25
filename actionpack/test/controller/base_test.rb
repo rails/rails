@@ -220,6 +220,7 @@ class EmptyUrlOptionsTest < ActionController::TestCase
 
   def test_named_routes_with_path_without_doing_a_request_first
     @controller = EmptyController.new
+    @controller.request = @request
 
     with_routing do |set|
       set.draw do |map|
