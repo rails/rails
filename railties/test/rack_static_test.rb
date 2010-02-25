@@ -2,6 +2,7 @@ require 'abstract_unit'
 
 require 'action_controller'
 require 'rails/rack'
+require 'fileutils'
 
 class RackStaticTest < ActiveSupport::TestCase
   def setup
