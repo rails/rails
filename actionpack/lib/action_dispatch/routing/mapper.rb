@@ -426,7 +426,11 @@ module ActionDispatch
           end
 
           def collection_name
-            plural
+            uncountable? ? "#{plural}_index" : plural
+          end
+          
+          def uncountable?
+            singular == plural
           end
 
           def name_for_action(action)
