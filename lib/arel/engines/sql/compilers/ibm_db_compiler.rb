@@ -54,7 +54,7 @@ module Arel
       end
 
       def add_limit_on_delete(taken)
-        "" # Limiting the number of rows to be deleted is not supported by IBM_DB
+        raise "IBM_DB does not support limit on deletion" # Limiting the number of rows to be deleted is not supported by IBM_DB
       end
 
     end
