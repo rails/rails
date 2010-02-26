@@ -104,7 +104,7 @@ module ActionDispatch
       end
 
       def merge_options(options) #:nodoc:
-        if options.delete(:use_defaults) != false && respond_to?(:default_url_options) && (defaults = default_url_options(options))
+        if respond_to?(:default_url_options) && (defaults = default_url_options(options))
           defaults.merge(options)
         else
           options
