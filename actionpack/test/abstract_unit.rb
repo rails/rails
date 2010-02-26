@@ -76,8 +76,6 @@ module ActiveSupport
         match ':controller(/:action(/:id))'
       end
 
-      # ROUTES TODO: Don't do this here
-      # brodel :'(
       ActionController::IntegrationTest.app.router.draw do
         match ':controller(/:action(/:id))'
       end
