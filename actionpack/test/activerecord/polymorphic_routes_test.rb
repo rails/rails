@@ -26,7 +26,7 @@ class Series < ActiveRecord::Base
 end
 
 class PolymorphicRoutesTest < ActionController::TestCase
-  include ActionController::UrlFor
+  include SharedTestRoutes.url_helpers
   self.default_url_options[:host] = 'example.com'
 
   def setup

@@ -254,10 +254,10 @@ module ActionController
   end
 end
 
-# ROUTES TODO: Cleaner way to do this?
+# This stub emulates the Railtie including the URL helpers from a Rails application
 module ActionController
-  UrlFor = SharedTestRoutes.url_helpers
   class Base
-    include UrlFor
+    # ROUTES TODO: Rename SharedTestRoutes to something that reflects it's a standin for Rails.application
+    include SharedTestRoutes.url_helpers
   end
 end
