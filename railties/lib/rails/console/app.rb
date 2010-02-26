@@ -26,7 +26,7 @@ end
 # reloads the environment
 def reload!(print=true)
   puts "Reloading..." if print
-  ActionDispatch::Callbacks.new(lambda {}, false)
+  ActionDispatch::Callbacks.new(lambda {}, false).call({})
   true
 end
 
