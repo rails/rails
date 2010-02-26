@@ -306,7 +306,7 @@ class ArrayUniqByTests < Test::Unit::TestCase
   def test_uniq_by
     assert_equal [1,2], [1,2,3,4].uniq_by { |i| i.odd? }
     assert_equal [1,2], [1,2,3,4].uniq_by(&:even?)
-    assert_equal (-5..0).to_a, (-5..5).to_a.uniq_by{ |i| i**2 }
+    assert_equal((-5..0).to_a, (-5..5).to_a.uniq_by{ |i| i**2 })
   end
 
   def test_uniq_by!
@@ -320,7 +320,7 @@ class ArrayUniqByTests < Test::Unit::TestCase
 
     a = (-5..5).to_a
     a.uniq_by! { |i| i**2 }
-    assert_equal (-5..0).to_a, a
+    assert_equal((-5..0).to_a, a)
   end
 end
 
