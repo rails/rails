@@ -113,6 +113,15 @@ class ControllerInstanceTests < Test::Unit::TestCase
       assert_equal Set.new(%w(public_action)), c.class.__send__(:action_methods), "#{c.controller_path} should not be empty!"
     end
   end
+
+  def test_temporary_anonymous_controllers
+    name = 'ExamplesController'
+    klass = Class.new(ActionController::Base)
+    Object.const_set(name, klass)
+
+    controller = klass.new
+    assert_equal "examples", controller.controller_path
+  end
 end
 
 class PerformActionTest < ActionController::TestCase
