@@ -12,6 +12,7 @@ module ActionController
 
     include AbstractController::Logger
     include ActionController::RackDelegation
+    include ActionController::UrlFor
 
     # Redirects the browser to the target specified in +options+. This parameter can take one of three forms:
     #
@@ -83,9 +84,6 @@ module ActionController
           raise RedirectBackError unless refer = request.headers["Referer"]
           refer
         else
-          # ROUTES TODO: Figure out how to rescue from a no method error
-          # This is needed only if you wire up a controller yourself, and
-          # this not working would be baffling without a better error
           url_for(options)
         end.gsub(/[\r\n]/, '')
       end
