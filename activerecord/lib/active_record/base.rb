@@ -1669,12 +1669,12 @@ module ActiveRecord #:nodoc:
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
-        self.attributes = attributes unless attributes.nil?
 
         if scope = self.class.send(:current_scoped_methods)
           create_with = scope.scope_for_create
           create_with.each { |att,value| self.send("#{att}=", value) } if create_with
         end
+        self.attributes = attributes unless attributes.nil?
 
         result = yield self if block_given?
         _run_initialize_callbacks

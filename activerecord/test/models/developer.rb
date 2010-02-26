@@ -99,3 +99,8 @@ class DeveloperCalledJamis < ActiveRecord::Base
   self.table_name = 'developers'
   default_scope :conditions => { :name => 'Jamis' }
 end
+
+class PoorDeveloperCalledJamis < ActiveRecord::Base
+  self.table_name = 'developers'
+  default_scope :conditions => { :name => 'Jamis', :salary => 50000 }
+end
