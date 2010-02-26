@@ -1,4 +1,5 @@
 require 'rails/engine'
+require 'active_support/core_ext/array/conversions'
 
 module Rails
   class Plugin < Engine
@@ -28,8 +29,7 @@ module Rails
       extra_tasks = Dir["#{root}/{tasks,rails/tasks}/**/*.rake"]
 
       unless extra_tasks.empty?
-        ActiveSupport::Deprecation.warn "Having rake tasks in PLUGIN_PATH/tasks or " <<
-          "PLUGIN_PATH/rails/tasks is deprecated. Use PLUGIN_PATH/lib/tasks instead"
+        ActiveSupport::Deprecation.warn "Rake tasks in #{extra_tasks.to_sentence} are deprecated. Use lib/tasks instead."
         extra_tasks.sort.each { |ext| load(ext) }
       end
     end
