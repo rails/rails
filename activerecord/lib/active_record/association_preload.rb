@@ -126,7 +126,7 @@ module ActiveRecord
         parent_records.each do |parent_record|
           association_proxy = parent_record.send(reflection_name)
           association_proxy.loaded
-          association_proxy.target.push *Array.wrap(associated_record)
+          association_proxy.target.push(*Array.wrap(associated_record))
 
           association_proxy.__send__(:set_inverse_instance, associated_record, parent_record)
         end
