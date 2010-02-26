@@ -396,7 +396,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
           get 'get/:action', :to => controller
         end
 
-        self.metaclass.send(:include, set.named_url_helpers)
+        self.singleton_class.send(:include, set.named_url_helpers)
 
         yield
       end

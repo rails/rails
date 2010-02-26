@@ -147,7 +147,7 @@ module ActionDispatch
         # ROUTES TODO: Figure out this insanity
         silence_warnings { ::ActionController.const_set(:UrlFor, @router.named_url_helpers) }
         _router = @router
-        @controller.metaclass.send(:send, :include, @router.named_url_helpers) if @controller
+        @controller.singleton_class.send(:send, :include, @router.named_url_helpers) if @controller
         yield @router
       ensure
         @router = old_routes
