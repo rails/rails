@@ -164,7 +164,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     Routes
   end
 
-  include Routes.named_url_helpers
+  include Routes.url_helpers
 
   def test_logout
     with_test_routes do

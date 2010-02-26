@@ -7,7 +7,7 @@ end
 AppRoutes = ActionDispatch::Routing::RouteSet.new
 
 class ActionMailer::Base
-  include AppRoutes.named_url_helpers
+  include AppRoutes.url_helpers
 end
 
 class TestMailer < ActionMailer::Base

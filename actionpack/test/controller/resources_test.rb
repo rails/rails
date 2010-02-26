@@ -1231,7 +1231,7 @@ class ResourcesTest < ActionController::TestCase
 
       @controller = "#{options[:options][:controller].camelize}Controller".constantize.new
       # ROUTES TODO: Figure out a way to not extend the routing helpers here
-      @controller.singleton_class.send(:include, @router.named_url_helpers)
+      @controller.singleton_class.send(:include, @router.url_helpers)
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
       get :index, options[:options]
@@ -1301,7 +1301,7 @@ class ResourcesTest < ActionController::TestCase
     def assert_singleton_named_routes_for(singleton_name, options = {})
       (options[:options] ||= {})[:controller] ||= singleton_name.to_s.pluralize
       @controller = "#{options[:options][:controller].camelize}Controller".constantize.new
-      @controller.singleton_class.send(:include, @router.named_url_helpers)
+      @controller.singleton_class.send(:include, @router.url_helpers)
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
       get :show, options[:options]

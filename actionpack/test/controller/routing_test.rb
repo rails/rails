@@ -251,7 +251,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
 
   def setup_for_named_route
     inst = MockController.clone.new
-    inst.class.send(:include, rs.named_url_helpers)
+    inst.class.send(:include, rs.url_helpers)
     inst
   end
 
@@ -741,7 +741,7 @@ class RouteSetTest < ActiveSupport::TestCase
       map.users '/admin/users', :controller => 'admin/users', :action => 'index'
     end
 
-    MockController.clone.new.tap { |inst| inst.class.send(:include, set.named_url_helpers)}
+    MockController.clone.new.tap { |inst| inst.class.send(:include, set.url_helpers)}
   end
 
   def test_named_route_hash_access_method

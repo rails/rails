@@ -256,7 +256,7 @@ end
 
 # ROUTES TODO: Cleaner way to do this?
 module ActionController
-  UrlFor = SharedTestRoutes.named_url_helpers
+  UrlFor = SharedTestRoutes.url_helpers
   class Base
     include UrlFor
   end

@@ -400,7 +400,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         map.resources :series
       end
 
-      self.class.send(:include, @router.named_url_helpers)
+      self.class.send(:include, @router.url_helpers)
       yield
     end
   end
@@ -422,7 +422,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      self.class.send(:include, @router.named_url_helpers)
+      self.class.send(:include, @router.url_helpers)
       yield
     end
   end
@@ -441,7 +441,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      self.class.send(:include, @router.named_url_helpers)
+      self.class.send(:include, @router.url_helpers)
       yield
     end
   end

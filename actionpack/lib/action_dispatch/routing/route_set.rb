@@ -259,9 +259,8 @@ module ActionDispatch
         named_routes.install(destinations, regenerate_code)
       end
 
-      # ROUTES TODO: Revisit the name of these methods
-      def url_helpers
-        @url_helpers ||= begin
+      def url_for
+        @url_for ||= begin
           router = self
           Module.new do
             extend ActiveSupport::Concern
@@ -272,13 +271,13 @@ module ActionDispatch
         end
       end
 
-      def named_url_helpers
-        @named_url_helpers ||= begin
+      def url_helpers
+        @url_helpers ||= begin
           router = self
 
           Module.new do
             extend ActiveSupport::Concern
-            include router.url_helpers
+            include router.url_for
 
             # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
             # we can include?

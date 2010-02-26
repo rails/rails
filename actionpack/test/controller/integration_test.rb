@@ -221,7 +221,7 @@ class IntegrationTestUsesCorrectClass < ActionController::IntegrationTest
 end
 
 class IntegrationProcessTest < ActionController::IntegrationTest
-  include SharedTestRoutes.named_url_helpers
+  include SharedTestRoutes.url_helpers
 
   class IntegrationController < ActionController::Base
     def get
@@ -388,7 +388,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       with_routing do |set|
         controller = ::IntegrationProcessTest::IntegrationController.clone
         controller.class_eval do
-          include set.named_url_helpers
+          include set.url_helpers
         end
 
         set.draw do |map|
@@ -396,7 +396,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
           get 'get/:action', :to => controller
         end
 
-        self.singleton_class.send(:include, set.named_url_helpers)
+        self.singleton_class.send(:include, set.url_helpers)
 
         yield
       end
@@ -404,7 +404,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
 end
 
 class MetalIntegrationTest < ActionController::IntegrationTest
-  include SharedTestRoutes.named_url_helpers
+  include SharedTestRoutes.url_helpers
 
   class Poller
     def self.call(env)

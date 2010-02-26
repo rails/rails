@@ -15,7 +15,7 @@ module ActionController
 
     def _router
       raise "In order to use #url_for, you must include the helpers of a particular " \
-            "router. For instance, `include Rails.application.router.named_url_helpers"
+            "router. For instance, `include Rails.application.routes.url_helpers"
     end
   end
 end

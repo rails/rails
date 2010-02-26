@@ -6,7 +6,7 @@ module ActionMailer
     railtie_name :action_mailer
 
     initializer "action_mailer.url_for", :before => :load_environment_config do |app|
-      ActionMailer::Base.send(:include, app.routes.named_url_helpers)
+      ActionMailer::Base.send(:include, app.routes.url_helpers)
     end
 
     require "action_mailer/railties/log_subscriber"
