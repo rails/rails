@@ -33,7 +33,6 @@ module ActionController
     initializer "action_controller.url_helpers" do |app|
       ActionController::Base.extend ::ActionController::Railtie::UrlHelpers.with(app.routes)
       ActionController::Routing::Routes = app.routes
-      ::SharedTestRoutes = app.routes
     end
   end
 end

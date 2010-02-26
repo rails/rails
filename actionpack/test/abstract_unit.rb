@@ -257,7 +257,6 @@ end
 # This stub emulates the Railtie including the URL helpers from a Rails application
 module ActionController
   class Base
-    # ROUTES TODO: Rename SharedTestRoutes to something that reflects it's a standin for Rails.application
     include SharedTestRoutes.url_helpers
   end
 end

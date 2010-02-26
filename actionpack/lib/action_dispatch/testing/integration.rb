@@ -219,18 +219,6 @@ module ActionDispatch
         @host = name
       end
 
-      # # Returns the URL for the given options, according to the rules specified
-      # # in the application's routes.
-      # def url_for(options)
-      #   # ROUTES TODO: @app.router is not guaranteed to exist, so a generic Rack
-      #   # application will not work here. This means that a generic Rack application
-      #   # integration test cannot call url_for, since the application will not have
-      #   # #router on it.
-      #   controller ?
-      #     controller.url_for(options) :
-      #     generic_url_rewriter.rewrite(SharedTestRoutes, options)
-      # end
-
       private
 
         # Performs the actual request.
