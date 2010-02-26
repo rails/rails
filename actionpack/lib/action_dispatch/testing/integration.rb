@@ -219,17 +219,17 @@ module ActionDispatch
         @host = name
       end
 
-      # Returns the URL for the given options, according to the rules specified
-      # in the application's routes.
-      def url_for(options)
-        # ROUTES TODO: @app.router is not guaranteed to exist, so a generic Rack
-        # application will not work here. This means that a generic Rack application
-        # integration test cannot call url_for, since the application will not have
-        # #router on it.
-        controller ?
-          controller.url_for(options) :
-          generic_url_rewriter.rewrite(SharedTestRoutes, options)
-      end
+      # # Returns the URL for the given options, according to the rules specified
+      # # in the application's routes.
+      # def url_for(options)
+      #   # ROUTES TODO: @app.router is not guaranteed to exist, so a generic Rack
+      #   # application will not work here. This means that a generic Rack application
+      #   # integration test cannot call url_for, since the application will not have
+      #   # #router on it.
+      #   controller ?
+      #     controller.url_for(options) :
+      #     generic_url_rewriter.rewrite(SharedTestRoutes, options)
+      # end
 
       private
 
@@ -282,19 +282,6 @@ module ActionDispatch
           @controller = session.last_request.env['action_controller.instance']
 
           return response.status
-        end
-
-        # Get a temporary URL writer object
-        def generic_url_rewriter
-          env = {
-            'REQUEST_METHOD' => "GET",
-            'QUERY_STRING'   => "",
-            "REQUEST_URI"    => "/",
-            "HTTP_HOST"      => host,
-            "SERVER_PORT"    => https? ? "443" : "80",
-            "HTTPS"          => https? ? "on" : "off"
-          }
-          ActionController::UrlRewriter.new(ActionDispatch::Request.new(env), {})
         end
     end
 
@@ -365,6 +352,19 @@ module ActionDispatch
         %w(controller response request).each do |var|
           instance_variable_set("@#{var}", @integration_session.__send__(var))
         end
+      end
+
+      extend ActiveSupport::Concern
+      include ActionDispatch::Routing::UrlFor
+
+      def merge_options(options)
+        opts = super.reverse_merge(
+          :host => host,
+          :protocol => https? ? "https" : "http"
+        )
+
+        opts.merge!(:port => 443) if !opts.key?(:port) && https?
+        opts
       end
 
       # Delegate unhandled messages to the current session instance.

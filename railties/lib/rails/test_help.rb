@@ -30,6 +30,10 @@ class ActionController::TestCase
   end
 end
 
+class ActionDispatch::IntegrationTest
+  include Rails.application.routes.named_url_helpers
+end
+
 begin
   require_library_or_gem 'ruby-debug'
   Debugger.start

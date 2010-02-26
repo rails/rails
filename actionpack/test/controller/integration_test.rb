@@ -75,23 +75,6 @@ class SessionTest < Test::Unit::TestCase
     @session.delete_via_redirect(path, args, headers)
   end
 
-  def test_url_for_with_controller
-    options = {:action => 'show'}
-    mock_controller = mock()
-    mock_controller.expects(:url_for).with(options).returns('/show')
-    @session.stubs(:controller).returns(mock_controller)
-    assert_equal '/show', @session.url_for(options)
-  end
-
-  def test_url_for_without_controller
-    options = {:action => 'show'}
-    mock_rewriter = mock()
-    mock_rewriter.expects(:rewrite).with(SharedTestRoutes, options).returns('/show')
-    @session.stubs(:generic_url_rewriter).returns(mock_rewriter)
-    @session.stubs(:controller).returns(nil)
-    assert_equal '/show', @session.url_for(options)
-  end
-
   def test_get
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     @session.expects(:process).with(:get,path,params,headers)
@@ -238,6 +221,8 @@ class IntegrationTestUsesCorrectClass < ActionController::IntegrationTest
 end
 
 class IntegrationProcessTest < ActionController::IntegrationTest
+  include SharedTestRoutes.named_url_helpers
+
   class IntegrationController < ActionController::Base
     def get
       respond_to do |format|
@@ -410,12 +395,17 @@ class IntegrationProcessTest < ActionController::IntegrationTest
           match ':action', :to => controller
           get 'get/:action', :to => controller
         end
+
+        self.metaclass.send(:include, set.named_url_helpers)
+
         yield
       end
     end
 end
 
 class MetalIntegrationTest < ActionController::IntegrationTest
+  include SharedTestRoutes.named_url_helpers
+
   class Poller
     def self.call(env)
       if env["PATH_INFO"] =~ /^\/success/
