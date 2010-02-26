@@ -204,7 +204,6 @@ module ActionDispatch
     autoload :DeprecatedMapper, 'action_dispatch/routing/deprecated_mapper'
     autoload :Mapper, 'action_dispatch/routing/mapper'
     autoload :Route, 'action_dispatch/routing/route'
-    autoload :Routes, 'action_dispatch/routing/routes'
     autoload :RouteSet, 'action_dispatch/routing/route_set'
     autoload :UrlFor, 'action_dispatch/routing/url_for'
 

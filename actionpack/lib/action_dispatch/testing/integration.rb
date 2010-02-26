@@ -188,11 +188,9 @@ module ActionDispatch
         unless defined? @named_routes_configured
           # install the named routes in this session instance.
           klass = singleton_class
-          # ActionDispatch::Routing::Routes.install_helpers(klass)
 
           # the helpers are made protected by default--we make them public for
           # easier access during testing and troubleshooting.
-          # klass.module_eval { public *ActionDispatch::Routing::Routes.named_routes.helpers }
           @named_routes_configured = true
         end
       end

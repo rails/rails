@@ -24,6 +24,12 @@ if defined?(ActiveRecord)
   end
 end
 
+class ActionController::TestCase
+  setup do
+    @router = Rails.application.routes
+  end
+end
+
 begin
   require_library_or_gem 'ruby-debug'
   Debugger.start

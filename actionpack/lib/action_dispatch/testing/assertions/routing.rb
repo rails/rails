@@ -125,7 +125,7 @@ module ActionDispatch
       end
 
       # A helper to make it easier to test different route configurations.
-      # This method temporarily replaces ActionDispatch::Routing::Routes
+      # This method temporarily replaces @router
       # with a new RouteSet instance.
       #
       # The new instance is yielded to the passed block. Typically the block
