@@ -132,7 +132,8 @@ module AbstractController
           end
 
           # We need to create a new class in order to install the new named route.
-          kls = Class.new { include ActionController::UrlFor }
+          kls = Class.new { include set.url_helpers }
+
           controller = kls.new
           assert controller.respond_to?(:home_url)
           assert_equal 'http://www.basecamphq.com/home/sweet/home/again',
@@ -153,7 +154,7 @@ module AbstractController
             match '/home/sweet/home/:user', :to => 'home#index', :as => :home
           end
 
-          kls = Class.new { include ActionController::UrlFor }
+          kls = Class.new { include set.url_helpers }
           controller = kls.new
 
           assert_equal 'http://www.basecamphq.com/subdir/home/sweet/home/again',
@@ -171,7 +172,7 @@ module AbstractController
           end
 
           # We need to create a new class in order to install the new named route.
-          kls = Class.new { include ActionController::UrlFor }
+          kls = Class.new { include set.url_helpers }
           controller = kls.new
           assert controller.respond_to?(:home_url)
           assert_equal '/brave/new/world',
@@ -239,7 +240,7 @@ module AbstractController
           end
 
           # We need to create a new class in order to install the new named route.
-          kls = Class.new { include ActionController::UrlFor }
+          kls = Class.new { include set.url_helpers }
           kls.default_url_options[:host] = 'www.basecamphq.com'
 
           controller = kls.new

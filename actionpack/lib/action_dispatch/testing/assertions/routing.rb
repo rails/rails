@@ -144,15 +144,12 @@ module ActionDispatch
       def with_routing
         old_routes, @router = @router, ActionDispatch::Routing::RouteSet.new
         old_controller, @controller = @controller, @controller.clone if @controller
-        # ROUTES TODO: Figure out this insanity
-        silence_warnings { ::ActionController.const_set(:UrlFor, @router.url_helpers) }
         _router = @router
         @controller.singleton_class.send(:send, :include, @router.url_helpers) if @controller
         yield @router
       ensure
         @router = old_routes
         @controller = old_controller if @controller
-        silence_warnings { ::ActionController.const_set(:UrlFor, @router.url_helpers) } if @router
       end
 
       def method_missing(selector, *args, &block)
