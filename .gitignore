@@ -1,3 +1,6 @@
+*.gem
+pkg
+.bundle
 debug.log
 doc/rdoc
 activeresource/doc
@@ -15,6 +18,3 @@ railties/test/500.html
 railties/doc/guides/html/images
 railties/doc/guides/html/stylesheets
 railties/guides/output
-*.rbc
-*.swp
-*.swo
