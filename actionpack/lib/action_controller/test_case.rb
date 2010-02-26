@@ -336,7 +336,7 @@ module ActionController
     private
       def build_request_uri(action, parameters)
         unless @request.env['REQUEST_URI']
-          options = @controller.__send__(:merge_options, parameters)
+          options = @controller.__send__(:url_options).merge(parameters)
           options.update(:only_path => true, :action => action)
 
           url = ActionController::UrlRewriter.new(@request, parameters)

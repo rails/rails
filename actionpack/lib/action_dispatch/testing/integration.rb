@@ -357,7 +357,7 @@ module ActionDispatch
       extend ActiveSupport::Concern
       include ActionDispatch::Routing::UrlFor
 
-      def merge_options(options)
+      def url_options
         opts = super.reverse_merge(
           :host => host,
           :protocol => https? ? "https" : "http"

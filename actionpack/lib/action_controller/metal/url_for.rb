@@ -5,7 +5,7 @@ module ActionController
     include ActionDispatch::Routing::UrlFor
     include ActionController::RackDelegation
 
-    def merge_options(options)
+    def url_options
       super.reverse_merge(
         :host => request.host_with_port,
         :protocol => request.protocol,

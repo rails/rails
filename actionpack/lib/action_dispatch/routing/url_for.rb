@@ -95,21 +95,25 @@ module ActionDispatch
         self.default_url_options = {}
       end
 
-      def default_url_options(options = nil)
-        self.class.default_url_options
-      end
+      # def default_url_options(options = nil)
+      #   self.class.default_url_options
+      # end
 
       def url_options
-        self.class.default_url_options.merge
+        self.class.default_url_options.merge(@url_options || {})
       end
 
-      def merge_options(options) #:nodoc:
-        if respond_to?(:default_url_options) && (defaults = default_url_options(options))
-          defaults.merge(options)
-        else
-          options
-        end
+      def url_options=(options)
+        @url_options = options
       end
+
+      # def merge_options(options) #:nodoc:
+      #   if respond_to?(:default_url_options) && (defaults = default_url_options(options))
+      #     defaults.merge(options)
+      #   else
+      #     options
+      #   end
+      # end
 
       # Generate a url based on the options provided, default_url_options and the
       # routes defined in routes.rb.  The following options are supported:
@@ -140,7 +144,15 @@ module ActionDispatch
           when String
             options
           when Hash
-            ActionController::UrlRewriter.rewrite(_router, merge_options(options))
+            # Handle the deprecated instance level default_url_options
+            if respond_to?(:default_url_options, true)
+              ActiveSupport::Deprecation.warn "Overwriting #default_url_options is deprecated. Please set url options with self.url_options = { ... }"
+              if defaults = default_url_options(options)
+                options = defaults.merge(options)
+              end
+            end
+
+            ActionController::UrlRewriter.rewrite(_router, url_options.merge(options))
           else
             polymorphic_url(options)
         end
