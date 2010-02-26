@@ -29,7 +29,7 @@ module Rails
       extra_tasks = Dir["#{root}/{tasks,rails/tasks}/**/*.rake"]
 
       unless extra_tasks.empty?
-        ActiveSupport::Deprecation.warn "Rake tasks in #{extra_tasks.to_sentence} are deprecated. Use lib/tasks instead."
+        ActiveSupport::Deprecation.warn "Rake tasks in #{extra_tasks.to_sentence} are deprecated. Use lib/tasks instead"
         extra_tasks.sort.each { |ext| load(ext) }
       end
     end
