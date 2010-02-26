@@ -907,7 +907,7 @@ module ActionView
             when :hour
               (@options[:discard_year] && @options[:discard_day]) ? "" : @options[:datetime_separator]
             when :minute
-              @options[:time_separator]
+              @options[:discard_minute] ? "" : @options[:time_separator]
             when :second
               @options[:include_seconds] ? @options[:time_separator] : ""
           end

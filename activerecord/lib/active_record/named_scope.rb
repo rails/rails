@@ -1,6 +1,6 @@
 require 'active_support/core_ext/array'
 require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/object/metaclass'
+require 'active_support/core_ext/object/singleton_class'
 
 module ActiveRecord
   module NamedScope
@@ -112,7 +112,7 @@ module ActiveRecord
               options.call(*args)
           end, &block)
         end
-        metaclass.instance_eval do
+        singleton_class.instance_eval do
           define_method name do |*args|
             scopes[name].call(self, *args)
           end

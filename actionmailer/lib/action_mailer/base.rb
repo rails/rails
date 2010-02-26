@@ -267,7 +267,7 @@ module ActionMailer #:nodoc:
 
     include AbstractController::Logger
     include AbstractController::Rendering
-    include AbstractController::LocalizedCache
+    include AbstractController::DetailsCache
     include AbstractController::Layouts
     include AbstractController::Helpers
     include AbstractController::Translation
@@ -605,7 +605,7 @@ module ActionMailer #:nodoc:
 
         each_template(templates_path, templates_name) do |template|
           responses << {
-            :body => render_to_body(:_template => template),
+            :body => render(:_template => template),
             :content_type => template.mime_type.to_s
           }
         end

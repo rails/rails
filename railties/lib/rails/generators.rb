@@ -3,7 +3,7 @@ $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.inc
 
 require 'active_support'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/object/metaclass'
+require 'active_support/core_ext/object/singleton_class'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/module/attribute_accessors'

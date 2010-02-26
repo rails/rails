@@ -165,13 +165,17 @@ module AbstractController
 
       details = _normalize_details(options)
 
-      options[:_template] ||= with_template_cache(name) do
+      options[:_template] ||= with_template_cache(name, details) do
         find_template(name, details, options)
       end
     end
 
+    def _details_defaults
+      { :formats => formats, :locale => [I18n.locale] }
+    end
+
     def _normalize_details(options)
-      details = { :formats => formats }
+      details = _details_defaults
       details[:formats] = Array(options[:format]) if options[:format]
       details[:locale]  = Array(options[:locale]) if options[:locale]
       details
@@ -185,7 +189,7 @@ module AbstractController
       view_paths.exists?(name, details, options[:_prefix], options[:_partial])
     end
 
-    def with_template_cache(name)
+    def with_template_cache(name, details)
       yield
     end
 

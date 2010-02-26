@@ -1,6 +1,6 @@
 require 'stringio'
 require 'uri'
-require 'active_support/core_ext/object/metaclass'
+require 'active_support/core_ext/object/singleton_class'
 require 'rack/test'
 
 module ActionDispatch
@@ -187,7 +187,7 @@ module ActionDispatch
 
         unless defined? @named_routes_configured
           # install the named routes in this session instance.
-          klass = metaclass
+          klass = singleton_class
           ActionDispatch::Routing::Routes.install_helpers(klass)
 
           # the helpers are made protected by default--we make them public for
