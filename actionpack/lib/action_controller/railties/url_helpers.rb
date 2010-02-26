@@ -4,7 +4,7 @@ module ActionController
       def self.with(router)
         Module.new do
           define_method(:inherited) do |klass|
-            super
+            super(klass)
             klass.send(:include, router.named_url_helpers)
           end
         end
