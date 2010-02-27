@@ -511,7 +511,6 @@ class ActionCacheTest < ActionController::TestCase
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
       @controller = ActionCachingTestController.new
-      # ROUTES TODO: It seems bad to explicitly remix in the class
       @controller.singleton_class.send(:include, @router.url_helpers)
       @request.host = 'hostname.com'
     end

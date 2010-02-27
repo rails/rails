@@ -85,6 +85,7 @@ end
 
 class RoutedRackApp
   attr_reader :router
+  alias routes router
 
   def initialize(router, &blk)
     @router = router

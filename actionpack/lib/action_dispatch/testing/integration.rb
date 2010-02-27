@@ -162,10 +162,29 @@ module ActionDispatch
       # A running counter of the number of requests processed.
       attr_accessor :request_count
 
+      include ActionDispatch::Routing::UrlFor
+
       # Create and initialize a new Session instance.
       def initialize(app)
         @app = app
+
+        # If the app is a Rails app, make url_helpers available on the session
+        # This makes app.url_for and app.foo_path available in the console
+        if app.respond_to?(:routes) && app.routes.respond_to?(:url_helpers)
+          singleton_class.class_eval { include app.routes.url_helpers }
+        end
+
         reset!
+      end
+
+      def url_options
+        opts = super.reverse_merge(
+          :host => host,
+          :protocol => https? ? "https" : "http"
+        )
+
+        opts.merge!(:port => 443) if !opts.key?(:port) && https?
+        opts
       end
 
       # Resets the instance. This can be used to reset the state information
@@ -346,13 +365,8 @@ module ActionDispatch
       include ActionDispatch::Routing::UrlFor
 
       def url_options
-        opts = super.reverse_merge(
-          :host => host,
-          :protocol => https? ? "https" : "http"
-        )
-
-        opts.merge!(:port => 443) if !opts.key?(:port) && https?
-        opts
+        reset! unless @integration_session
+        @integration_session.url_options
       end
 
       # Delegate unhandled messages to the current session instance.

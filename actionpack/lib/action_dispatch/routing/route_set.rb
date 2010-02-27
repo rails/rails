@@ -203,7 +203,6 @@ module ActionDispatch
 
                 url_for(options)
               end
-              protected :#{selector}
             END_EVAL
             helpers << selector
           end

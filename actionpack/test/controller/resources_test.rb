@@ -1230,7 +1230,6 @@ class ResourcesTest < ActionController::TestCase
       end
 
       @controller = "#{options[:options][:controller].camelize}Controller".constantize.new
-      # ROUTES TODO: Figure out a way to not extend the routing helpers here
       @controller.singleton_class.send(:include, @router.url_helpers)
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new

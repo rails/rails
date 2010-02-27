@@ -178,8 +178,8 @@ class IntegrationTestTest < Test::Unit::TestCase
     session1 = @test.open_session { |sess| }
     session2 = @test.open_session # implicit session
 
-    assert_equal ::ActionController::Integration::Session, session1.class
-    assert_equal ::ActionController::Integration::Session, session2.class
+    assert_kind_of ::ActionController::Integration::Session, session1
+    assert_kind_of ::ActionController::Integration::Session, session2
     assert_not_equal session1, session2
   end
 
@@ -221,8 +221,6 @@ class IntegrationTestUsesCorrectClass < ActionController::IntegrationTest
 end
 
 class IntegrationProcessTest < ActionController::IntegrationTest
-  include SharedTestRoutes.url_helpers
-
   class IntegrationController < ActionController::Base
     def get
       respond_to do |format|
