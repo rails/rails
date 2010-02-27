@@ -52,11 +52,17 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
 end
 
 class MockController
-  def url_for(options)
-    options[:protocol] ||= "http"
-    options[:host] ||= "test.host"
+  def self.build(helpers)
+    Class.new do
+      def url_for(options)
+        options[:protocol] ||= "http"
+        options[:host] ||= "test.host"
 
-    super(options)
+        super(options)
+      end
+
+      include helpers
+    end
   end
 end
 
@@ -250,9 +256,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   end
 
   def setup_for_named_route
-    inst = MockController.clone.new
-    inst.class.send(:include, rs.url_helpers)
-    inst
+    MockController.build(rs.url_helpers).new
   end
 
   def test_named_route_without_hash
@@ -741,7 +745,7 @@ class RouteSetTest < ActiveSupport::TestCase
       map.users '/admin/users', :controller => 'admin/users', :action => 'index'
     end
 
-    MockController.clone.new.tap { |inst| inst.class.send(:include, set.url_helpers)}
+    MockController.build(set.url_helpers).new
   end
 
   def test_named_route_hash_access_method
