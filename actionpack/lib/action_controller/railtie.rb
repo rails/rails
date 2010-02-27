@@ -2,6 +2,7 @@ require "rails"
 require "action_controller"
 require "action_view/railtie"
 require "active_support/core_ext/class/subclasses"
+require "active_support/deprecation/proxy_wrappers"
 
 module ActionController
   class Railtie < Rails::Railtie
@@ -32,7 +33,12 @@ module ActionController
 
     initializer "action_controller.url_helpers" do |app|
       ActionController::Base.extend ::ActionController::Railtie::UrlHelpers.with(app.routes)
-      ActionController::Routing::Routes = app.routes
+
+      message = "ActionController::Routing::Routes is deprecated. " \
+                "Instead, use Rails.application.routes"
+
+      proxy = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(app.routes, message)
+      ActionController::Routing::Routes = proxy
     end
   end
 end
