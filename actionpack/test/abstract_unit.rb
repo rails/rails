@@ -205,7 +205,6 @@ module ActionController
     include ActionDispatch::TestProcess
 
     setup do
-      # ROUTES TODO: The router object should come from somewhere sane
       @router = SharedTestRoutes
     end
 
