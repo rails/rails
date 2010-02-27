@@ -104,7 +104,7 @@ To make it easy to organize your files and to make the plugin more compatible wi
     `-- init.rb
 </pre>
 
-*vendor/plugins/yaffle/rails/init.rb*
+*vendor/plugins/yaffle/init.rb*
 
 <ruby>
 require 'yaffle'
@@ -341,13 +341,15 @@ $ rails console
 
 h4. Working with +init.rb+
 
-When rails loads plugins it looks for the file named 'init.rb' or 'rails/init.rb'.  However, when the plugin is initialized, 'init.rb' is invoked via +eval+ (not +require+) so it has slightly different behavior.
+When Rails loads plugins it looks for a file named +init.rb+.  However, when the plugin is initialized, +init.rb+ is invoked via +eval+ (not +require+) so it has slightly different behavior.
 
-Under certain circumstances if you reopen classes or modules in 'init.rb' you may inadvertently create a new class, rather than reopening an existing class.  A better alternative is to reopen the class in a different file, and require that file from +init.rb+, as shown above.
+NOTE: The plugins loader also looks for +rails/init.rb+, but that one is deprecated in favor of the top-level +init.rb+ aforementioned.
+
+Under certain circumstances if you reopen classes or modules in +init.rb+ you may inadvertently create a new class, rather than reopening an existing class.  A better alternative is to reopen the class in a different file, and require that file from +init.rb+, as shown above.
 
 If you must reopen a class in +init.rb+ you can use +module_eval+ or +class_eval+ to avoid any issues:
 
-* *vendor/plugins/yaffle/rails/init.rb*
+* *vendor/plugins/yaffle/init.rb*
 
 <ruby>
 Hash.class_eval do
@@ -359,7 +361,7 @@ end
 
 Another way is to explicitly define the top-level module space for all modules and classes, like +::Hash+:
 
-* *vendor/plugins/yaffle/rails/init.rb*
+* *vendor/plugins/yaffle/init.rb*
 
 <ruby>
 class ::Hash
