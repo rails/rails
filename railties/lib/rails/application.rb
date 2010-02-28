@@ -48,7 +48,7 @@ module Rails
     end
 
     def routes
-      ::ActionDispatch::Routing::Routes
+      @routes ||= ActionDispatch::Routing::RouteSet.new
     end
 
     def railties

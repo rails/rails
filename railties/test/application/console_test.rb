@@ -6,7 +6,9 @@ class ConsoleTest < Test::Unit::TestCase
   def setup
     build_app
     boot_rails
+  end
 
+  def load_environment
     # Load steps taken from rails/commands/console.rb
     require "#{rails_root}/config/environment"
     require 'rails/console/app'
@@ -14,18 +16,21 @@ class ConsoleTest < Test::Unit::TestCase
   end
 
   def test_app_method_should_return_integration_session
+    load_environment
     console_session = app
     assert_not_nil console_session
     assert_instance_of ActionController::Integration::Session, console_session
   end
 
   def test_new_session_should_return_integration_session
+    load_environment
     session = new_session
     assert_not_nil session
     assert_instance_of ActionController::Integration::Session, session
   end
 
   def test_reload_should_fire_preparation_callbacks
+    load_environment
     a = b = c = nil
 
     # TODO: These should be defined on the initializer
@@ -34,16 +39,37 @@ class ConsoleTest < Test::Unit::TestCase
     ActionDispatch::Callbacks.to_prepare { c = 3 }
 
     # Hide Reloading... output
-    silence_stream(STDOUT) do
-      reload!
-    end
+    silence_stream(STDOUT) { reload! }
 
     assert_equal 1, a
     assert_equal 2, b
     assert_equal 3, c
   end
 
+  def test_reload_should_reload_constants
+    app_file "app/models/user.rb", <<-MODEL
+      class User
+        attr_accessor :name
+      end
+    MODEL
+
+    load_environment
+    assert User.new.respond_to?(:name)
+    assert !User.new.respond_to?(:age)
+
+    app_file "app/models/user.rb", <<-MODEL
+      class User
+        attr_accessor :name, :age
+      end
+    MODEL
+
+    assert !User.new.respond_to?(:age)
+    silence_stream(STDOUT) { reload! }
+    assert User.new.respond_to?(:age)
+  end
+
   def test_access_to_helpers
+    load_environment
     assert_not_nil helper
     assert_instance_of ActionView::Base, helper
     assert_equal 'Once upon a time in a world...',

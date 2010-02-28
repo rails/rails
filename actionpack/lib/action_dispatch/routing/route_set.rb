@@ -194,29 +194,15 @@ module ActionDispatch
             # end
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
               def #{selector}(*args)
-                if args.empty? || Hash === args.first
-                  options = #{hash_access_method}(args.first || {})
-                else
-                  options = #{hash_access_method}(args.extract_options!)
-                  default = default_url_options(options) if self.respond_to?(:default_url_options, true)
-                  options = (default ||= {}).merge(options)
+                options =  #{hash_access_method}(args.extract_options!)
 
-                  keys = #{route.segment_keys.inspect}
-                  keys -= options.keys if args.size < keys.size - 1 # take format into account
-
-                  args = args.zip(keys).inject({}) do |h, (v, k)|
-                    h[k] = v
-                    h
-                  end
-
-                  # Tell url_for to skip default_url_options
-                  options[:use_defaults] = false
-                  options.merge!(args)
+                if args.any?
+                  options[:_positional_args] = args
+                  options[:_positional_keys] = #{route.segment_keys.inspect}
                 end
 
                 url_for(options)
               end
-              protected :#{selector}
             END_EVAL
             helpers << selector
           end
@@ -270,6 +256,35 @@ module ActionDispatch
       def install_helpers(destinations = [ActionController::Base, ActionView::Base], regenerate_code = false)
         Array(destinations).each { |d| d.module_eval { include Helpers } }
         named_routes.install(destinations, regenerate_code)
+      end
+
+      def url_for
+        @url_for ||= begin
+          router = self
+          Module.new do
+            extend ActiveSupport::Concern
+            include UrlFor
+
+            define_method(:_router) { router }
+          end
+        end
+      end
+
+      def url_helpers
+        @url_helpers ||= begin
+          router = self
+
+          Module.new do
+            extend ActiveSupport::Concern
+            include router.url_for
+
+            # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
+            # we can include?
+            included do
+              router.install_helpers(self)
+            end
+          end
+        end
       end
 
       def empty?

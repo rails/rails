@@ -1,6 +1,3 @@
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/module/delegation'
-
 module AbstractController
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
   # repeated setups. The inclusion pattern has pages that look like this:

@@ -75,23 +75,6 @@ class SessionTest < Test::Unit::TestCase
     @session.delete_via_redirect(path, args, headers)
   end
 
-  def test_url_for_with_controller
-    options = {:action => 'show'}
-    mock_controller = mock()
-    mock_controller.expects(:url_for).with(options).returns('/show')
-    @session.stubs(:controller).returns(mock_controller)
-    assert_equal '/show', @session.url_for(options)
-  end
-
-  def test_url_for_without_controller
-    options = {:action => 'show'}
-    mock_rewriter = mock()
-    mock_rewriter.expects(:rewrite).with(options).returns('/show')
-    @session.stubs(:generic_url_rewriter).returns(mock_rewriter)
-    @session.stubs(:controller).returns(nil)
-    assert_equal '/show', @session.url_for(options)
-  end
-
   def test_get
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     @session.expects(:process).with(:get,path,params,headers)
@@ -195,8 +178,8 @@ class IntegrationTestTest < Test::Unit::TestCase
     session1 = @test.open_session { |sess| }
     session2 = @test.open_session # implicit session
 
-    assert_equal ::ActionController::Integration::Session, session1.class
-    assert_equal ::ActionController::Integration::Session, session2.class
+    assert_kind_of ::ActionController::Integration::Session, session1
+    assert_kind_of ::ActionController::Integration::Session, session2
     assert_not_equal session1, session2
   end
 
@@ -401,16 +384,26 @@ class IntegrationProcessTest < ActionController::IntegrationTest
   private
     def with_test_route_set
       with_routing do |set|
-        set.draw do |map|
-          match ':action', :to => ::IntegrationProcessTest::IntegrationController
-          get 'get/:action', :to => ::IntegrationProcessTest::IntegrationController
+        controller = ::IntegrationProcessTest::IntegrationController.clone
+        controller.class_eval do
+          include set.url_helpers
         end
+
+        set.draw do |map|
+          match ':action', :to => controller
+          get 'get/:action', :to => controller
+        end
+
+        self.singleton_class.send(:include, set.url_helpers)
+
         yield
       end
     end
 end
 
 class MetalIntegrationTest < ActionController::IntegrationTest
+  include SharedTestRoutes.url_helpers
+
   class Poller
     def self.call(env)
       if env["PATH_INFO"] =~ /^\/success/

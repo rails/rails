@@ -8,7 +8,7 @@ module ActionView
       # Full usage example:
       #
       #   config/routes.rb:
-      #     ActionDispatch::Routing::Routes.draw do |map|
+      #     Basecamp::Application.routes.draw do |map|
       #       map.resources :posts
       #       map.root :controller => "posts"
       #     end

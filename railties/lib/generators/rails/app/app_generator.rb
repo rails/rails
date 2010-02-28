@@ -138,8 +138,11 @@ module Rails::Generators
     end
 
     def create_prototype_files
-      return if options[:skip_prototype]
-      directory "public/javascripts"
+      unless options[:skip_prototype]
+        directory "public/javascripts"
+      else
+        empty_directory_with_gitkeep "public/javascripts"
+      end
     end
 
     def create_script_files

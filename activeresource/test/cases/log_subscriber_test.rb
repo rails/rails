@@ -27,6 +27,6 @@ class LogSubscriberTest < ActiveSupport::TestCase
     wait
     assert_equal 2, @logger.logged(:info).size
     assert_equal "GET http://37s.sunrise.i:3000/people/1.xml", @logger.logged(:info)[0]
-    assert_match /\-\-\> 200 200 106/, @logger.logged(:info)[1]
+    assert_match(/\-\-\> 200 200 106/, @logger.logged(:info)[1])
   end
 end

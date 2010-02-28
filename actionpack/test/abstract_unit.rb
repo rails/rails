@@ -64,29 +64,49 @@ module SetupOnce
     end
 end
 
-class ActiveSupport::TestCase
-  include SetupOnce
+SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
-  # Hold off drawing routes until all the possible controller classes
-  # have been loaded.
-  setup_once do
-    ActionDispatch::Routing::Routes.draw do |map|
-      match ':controller(/:action(/:id))'
+module ActiveSupport
+  class TestCase
+    include SetupOnce
+    # Hold off drawing routes until all the possible controller classes
+    # have been loaded.
+    setup_once do
+      SharedTestRoutes.draw do |map|
+        match ':controller(/:action(/:id))'
+      end
+
+      ActionController::IntegrationTest.app.router.draw do
+        match ':controller(/:action(/:id))'
+      end
     end
+  end
+end
+
+class RoutedRackApp
+  attr_reader :router
+  alias routes router
+
+  def initialize(router, &blk)
+    @router = router
+    @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@router)
+  end
+
+  def call(env)
+    @stack.call(env)
   end
 end
 
 class ActionController::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
-    ActionDispatch::Flash
-    ActionDispatch::MiddlewareStack.new { |middleware|
+    RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
       middleware.use "ActionDispatch::ShowExceptions"
       middleware.use "ActionDispatch::Callbacks"
       middleware.use "ActionDispatch::ParamsParser"
       middleware.use "ActionDispatch::Cookies"
       middleware.use "ActionDispatch::Flash"
       middleware.use "ActionDispatch::Head"
-    }.build(routes || ActionDispatch::Routing::Routes)
+    end
   end
 
   self.app = build_app
@@ -112,20 +132,15 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
   end
 
   def with_routing(&block)
-    real_routes = ActionDispatch::Routing::Routes
-    ActionDispatch::Routing.module_eval { remove_const :Routes }
-
     temporary_routes = ActionDispatch::Routing::RouteSet.new
-    self.class.app = self.class.build_app(temporary_routes)
-    ActionDispatch::Routing.module_eval { const_set :Routes, temporary_routes }
+    old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
+    old_routes = SharedTestRoutes
+    silence_warnings { Object.const_set(:SharedTestRoutes, temporary_routes) }
 
     yield temporary_routes
   ensure
-    if ActionDispatch::Routing.const_defined? :Routes
-      ActionDispatch::Routing.module_eval { remove_const :Routes }
-    end
-    ActionDispatch::Routing.const_set(:Routes, real_routes) if real_routes
-    self.class.app = self.class.build_app
+    self.class.app = old_app
+    silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
   end
 end
 
@@ -190,6 +205,10 @@ module ActionController
   class TestCase
     include ActionDispatch::TestProcess
 
+    setup do
+      @router = SharedTestRoutes
+    end
+
     def assert_template(options = {}, message = nil)
       validate_request!
 
@@ -230,5 +249,12 @@ module ActionController
         end
       end
     end
+  end
+end
+
+# This stub emulates the Railtie including the URL helpers from a Rails application
+module ActionController
+  class Base
+    include SharedTestRoutes.url_helpers
   end
 end

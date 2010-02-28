@@ -84,7 +84,7 @@ module AbstractController
       # ==== Returns
       # String
       def controller_path
-        @controller_path ||= name && name.sub(/Controller$/, '').underscore
+        @controller_path ||= name.sub(/Controller$/, '').underscore unless anonymous?
       end
     end
 

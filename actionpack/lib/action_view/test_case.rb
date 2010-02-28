@@ -53,6 +53,7 @@ module ActionView
     setup :setup_with_controller
     def setup_with_controller
       @controller = TestController.new
+      @router = SharedTestRoutes
       @output_buffer = ActiveSupport::SafeBuffer.new
       @rendered = ''
 
@@ -152,7 +153,7 @@ module ActionView
       end
 
       def method_missing(selector, *args)
-        if ActionDispatch::Routing::Routes.named_routes.helpers.include?(selector)
+        if @router.named_routes.helpers.include?(selector)
           @controller.__send__(selector, *args)
         else
           super

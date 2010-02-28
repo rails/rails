@@ -82,12 +82,5 @@ module ActionController
       filter
     end
 
-  protected
-
-    # Overwrite url rewriter to use request.
-    def _url_rewriter
-      return ActionController::UrlRewriter unless request
-      @_url_rewriter ||= ActionController::UrlRewriter.new(request, params)
-    end
   end
 end

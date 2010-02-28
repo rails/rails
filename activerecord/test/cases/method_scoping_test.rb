@@ -663,6 +663,16 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 2, posts.count
     assert_equal posts(:thinking), posts.first
   end
+
+  def test_create_attribute_overwrites_default_scoping
+    assert_equal 'David', PoorDeveloperCalledJamis.create!(:name => 'David').name
+    assert_equal 200000, PoorDeveloperCalledJamis.create!(:name => 'David', :salary => 200000).salary
+  end
+ 
+  def test_create_attribute_overwrites_default_values
+    assert_equal nil, PoorDeveloperCalledJamis.create!(:salary => nil).salary
+    assert_equal 50000, PoorDeveloperCalledJamis.create!(:name => 'David').salary
+  end
 end
 
 =begin

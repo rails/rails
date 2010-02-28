@@ -109,7 +109,7 @@ namespace :db do
           # Only connect to local databases
           local_database?(config) { drop_database(config) }
         rescue Exception => e
-          puts "Couldn't drop #{config['database']} : #{e.inspect}"
+          $stderr.puts "Couldn't drop #{config['database']} : #{e.inspect}"
         end
       end
     end
@@ -121,7 +121,7 @@ namespace :db do
     begin
       drop_database(config)
     rescue Exception => e
-      puts "Couldn't drop #{config['database']} : #{e.inspect}"
+      $stderr.puts "Couldn't drop #{config['database']} : #{e.inspect}"
     end
   end
 
@@ -129,7 +129,7 @@ namespace :db do
     if %w( 127.0.0.1 localhost ).include?(config['host']) || config['host'].blank?
       yield
     else
-      puts "This task only modifies local databases. #{config['database']} is on a remote host."
+      $stderr.puts "This task only modifies local databases. #{config['database']} is on a remote host."
     end
   end
 
@@ -204,7 +204,7 @@ namespace :db do
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.encoding
     else
-      puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
+      $stderr.puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
     end
   end
 
@@ -216,7 +216,7 @@ namespace :db do
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.collation
     else
-      puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
+      $stderr.puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
     end
   end
 

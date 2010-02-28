@@ -162,10 +162,29 @@ module ActionDispatch
       # A running counter of the number of requests processed.
       attr_accessor :request_count
 
+      include ActionDispatch::Routing::UrlFor
+
       # Create and initialize a new Session instance.
       def initialize(app)
         @app = app
+
+        # If the app is a Rails app, make url_helpers available on the session
+        # This makes app.url_for and app.foo_path available in the console
+        if app.respond_to?(:routes) && app.routes.respond_to?(:url_helpers)
+          singleton_class.class_eval { include app.routes.url_helpers }
+        end
+
         reset!
+      end
+
+      def url_options
+        opts = super.reverse_merge(
+          :host => host,
+          :protocol => https? ? "https" : "http"
+        )
+
+        opts.merge!(:port => 443) if !opts.key?(:port) && https?
+        opts
       end
 
       # Resets the instance. This can be used to reset the state information
@@ -188,11 +207,9 @@ module ActionDispatch
         unless defined? @named_routes_configured
           # install the named routes in this session instance.
           klass = singleton_class
-          ActionDispatch::Routing::Routes.install_helpers(klass)
 
           # the helpers are made protected by default--we make them public for
           # easier access during testing and troubleshooting.
-          klass.module_eval { public *ActionDispatch::Routing::Routes.named_routes.helpers }
           @named_routes_configured = true
         end
       end
@@ -219,14 +236,6 @@ module ActionDispatch
       #   session.host! "www.example.com"
       def host!(name)
         @host = name
-      end
-
-      # Returns the URL for the given options, according to the rules specified
-      # in the application's routes.
-      def url_for(options)
-        controller ?
-          controller.url_for(options) :
-          generic_url_rewriter.rewrite(options)
       end
 
       private
@@ -280,19 +289,6 @@ module ActionDispatch
           @controller = session.last_request.env['action_controller.instance']
 
           return response.status
-        end
-
-        # Get a temporary URL writer object
-        def generic_url_rewriter
-          env = {
-            'REQUEST_METHOD' => "GET",
-            'QUERY_STRING'   => "",
-            "REQUEST_URI"    => "/",
-            "HTTP_HOST"      => host,
-            "SERVER_PORT"    => https? ? "443" : "80",
-            "HTTPS"          => https? ? "on" : "off"
-          }
-          ActionController::UrlRewriter.new(ActionDispatch::Request.new(env), {})
         end
     end
 
@@ -363,6 +359,14 @@ module ActionDispatch
         %w(controller response request).each do |var|
           instance_variable_set("@#{var}", @integration_session.__send__(var))
         end
+      end
+
+      extend ActiveSupport::Concern
+      include ActionDispatch::Routing::UrlFor
+
+      def url_options
+        reset! unless @integration_session
+        @integration_session.url_options
       end
 
       # Delegate unhandled messages to the current session instance.

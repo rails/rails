@@ -164,6 +164,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     Routes
   end
 
+  include Routes.url_helpers
+
   def test_logout
     with_test_routes do
       delete '/logout'
@@ -728,14 +730,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   private
     def with_test_routes
-      real_routes, temp_routes = ActionDispatch::Routing::Routes, Routes
-
-      ActionDispatch::Routing.module_eval { remove_const :Routes }
-      ActionDispatch::Routing.module_eval { const_set :Routes, temp_routes }
-
       yield
-    ensure
-      ActionDispatch::Routing.module_eval { remove_const :Routes }
-      ActionDispatch::Routing.const_set(:Routes, real_routes)
     end
 end

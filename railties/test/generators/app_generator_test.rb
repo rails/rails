@@ -107,6 +107,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_prototype_and_test_unit_are_skipped_if_required
     run_generator [destination_root, "--skip-prototype", "--skip-testunit"]
     assert_no_file "public/javascripts/prototype.js"
+    assert_file "public/javascripts"
     assert_no_file "test"
   end
 

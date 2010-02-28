@@ -1,6 +1,7 @@
 module ActionController
   module Head
     extend ActiveSupport::Concern
+
     include ActionController::UrlFor
 
     # Return a response that has no content (merely headers). The options

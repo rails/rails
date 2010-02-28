@@ -441,7 +441,10 @@ module ActiveSupport #:nodoc:
 
       qualified_name = qualified_name_for from_mod, const_name
       path_suffix = qualified_name.underscore
+
+      trace = caller.reject {|l| l =~ %r{#{Regexp.escape(__FILE__)}}}
       name_error = NameError.new("uninitialized constant #{qualified_name}")
+      name_error.set_backtrace(trace)
 
       file_path = search_for_file(path_suffix)
 

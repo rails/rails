@@ -1,4 +1,5 @@
 require 'rails/engine'
+require 'active_support/core_ext/array/conversions'
 
 module Rails
   class Plugin < Engine
@@ -25,12 +26,14 @@ module Rails
 
     def load_tasks
       super
-      extra_tasks = Dir["#{root}/{tasks,rails/tasks}/**/*.rake"]
+      load_deprecated_tasks
+    end
 
-      unless extra_tasks.empty?
-        ActiveSupport::Deprecation.warn "Having rake tasks in PLUGIN_PATH/tasks or " <<
-          "PLUGIN_PATH/rails/tasks is deprecated. Use PLUGIN_PATH/lib/tasks instead"
-        extra_tasks.sort.each { |ext| load(ext) }
+    def load_deprecated_tasks
+      tasks = Dir["#{root}/{tasks,rails/tasks}/**/*.rake"].sort
+      if tasks.any?
+        ActiveSupport::Deprecation.warn "Rake tasks in #{tasks.to_sentence} are deprecated. Use lib/tasks instead"
+        tasks.each { |ext| load(ext) }
       end
     end
 
@@ -44,15 +47,14 @@ module Rails
     end
 
     initializer :load_init_rb, :before => :load_application_initializers do |app|
-      if File.file?(file = File.expand_path("rails/init.rb", root))
-        ActiveSupport::Deprecation.warn "PLUGIN_PATH/rails/init.rb in plugins is deprecated. " <<
-          "Use PLUGIN_PATH/init.rb instead"
-      else
-        file = File.expand_path("init.rb", root)
+      files = %w(rails/init.rb init.rb).map { |path| File.expand_path path, root }
+      if initrb = files.find { |path| File.file? path }
+        if initrb == files.first
+          ActiveSupport::Deprecation.warn "Use toplevel init.rb; rails/init.rb is deprecated: #{initrb}"
+        end
+        config = app.config
+        eval(File.read(initrb), binding, initrb)
       end
-
-      config = app.config
-      eval(File.read(file), binding, file) if file && File.file?(file)
     end
 
     initializer :sanity_check_railties_collision do

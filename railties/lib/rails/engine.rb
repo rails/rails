@@ -17,7 +17,7 @@ module Rails
           base.called_from = begin
             # Remove the line number from backtraces making sure we don't leave anything behind
             call_stack = caller.map { |p| p.split(':')[0..-2].join(':') }
-            File.dirname(call_stack.detect { |p| p !~ %r[railties[\w\-]*/lib/rails|rack[\w\-]*/lib/rack] })
+            File.dirname(call_stack.detect { |p| p !~ %r[railties[\w\-\.]*/lib/rails|rack[\w\-\.]*/lib/rack] })
           end
         end
 
@@ -95,8 +95,8 @@ module Rails
 
     initializer :add_view_paths do
       views = paths.app.views.to_a
-      ActionController::Base.view_paths.unshift(*views) if defined?(ActionController)
-      ActionMailer::Base.view_paths.unshift(*views)     if defined?(ActionMailer)
+      ActionController::Base.prepend_view_path(views) if defined?(ActionController)
+      ActionMailer::Base.prepend_view_path(views) if defined?(ActionMailer)
     end
 
     initializer :add_metals do |app|

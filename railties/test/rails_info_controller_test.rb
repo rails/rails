@@ -18,6 +18,9 @@ class InfoControllerTest < ActionController::TestCase
       match ':controller/:action'
     end
     @controller.stubs(:consider_all_requests_local? => false, :local_request? => true)
+    @router = Rails.application.routes
+
+    Rails::InfoController.send(:include, @router.url_helpers)
   end
 
   test "info controller does not allow remote requests" do

@@ -26,7 +26,8 @@ end
 # reloads the environment
 def reload!(print=true)
   puts "Reloading..." if print
-  ActionDispatch::Callbacks.new(lambda {}, false)
+  # This triggers the to_prepare callbacks
+  ActionDispatch::Callbacks.new(Proc.new {}, false).call({})
   true
 end
 

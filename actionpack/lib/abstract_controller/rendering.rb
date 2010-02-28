@@ -1,7 +1,5 @@
 require "abstract_controller/base"
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/array/wrap'
+require "active_support/core_ext/array/wrap"
 
 module AbstractController
   class DoubleRenderError < Error

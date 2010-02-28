@@ -4,8 +4,10 @@ require 'action_controller'
 class WelcomeController < ActionController::Base
 end
 
+AppRoutes = ActionDispatch::Routing::RouteSet.new
+
 class ActionMailer::Base
-  include ActionController::UrlFor
+  include AppRoutes.url_helpers
 end
 
 class TestMailer < ActionMailer::Base
@@ -61,7 +63,7 @@ class ActionMailerUrlTest < Test::Unit::TestCase
   def test_signed_up_with_url
     TestMailer.delivery_method = :test
     
-    ActionDispatch::Routing::Routes.draw do |map|
+    AppRoutes.draw do |map|
       map.connect ':controller/:action/:id'
       map.welcome 'welcome', :controller=>"foo", :action=>"bar"
     end
