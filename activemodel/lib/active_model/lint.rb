@@ -22,8 +22,6 @@ module ActiveModel
         assert model.respond_to?(:to_key), "The model should respond to to_key"
         def model.persisted?() false end
         assert model.to_key.nil?
-        def model.persisted?() true end
-        assert model.to_key.respond_to?(:each)
       end
 
       # == Responds to <tt>to_param</tt>
