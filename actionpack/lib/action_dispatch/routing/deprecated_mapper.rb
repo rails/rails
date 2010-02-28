@@ -1,5 +1,30 @@
 module ActionDispatch
   module Routing
+    class RouteSet
+      attr_accessor :controller_namespaces
+
+      CONTROLLER_REGEXP = /[_a-zA-Z0-9]+/
+
+      def controller_constraints
+        @controller_constraints ||= begin
+          namespaces = controller_namespaces + in_memory_controller_namespaces
+          source = namespaces.map { |ns| "#{Regexp.escape(ns)}/#{CONTROLLER_REGEXP.source}" }
+          source << CONTROLLER_REGEXP.source
+          Regexp.compile(source.sort.reverse.join('|'))
+        end
+      end
+
+      def in_memory_controller_namespaces
+        namespaces = Set.new
+        ActionController::Base.subclasses.each do |klass|
+          controller_name = klass.underscore
+          namespaces << controller_name.split('/')[0...-1].join('/')
+        end
+        namespaces.delete('')
+        namespaces
+      end
+    end
+
     # Mapper instances are used to build routes. The object passed to the draw
     # block in config/routes.rb is a Mapper instance.
     #

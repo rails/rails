@@ -73,11 +73,13 @@ module ActiveSupport
     # have been loaded.
     setup_once do
       SharedTestRoutes.draw do |map|
-        match ':controller(/:action(/:id))'
+        # FIXME: match ':controller(/:action(/:id))'
+        map.connect ':controller/:action/:id'
       end
 
-      ActionController::IntegrationTest.app.router.draw do
-        match ':controller(/:action(/:id))'
+      ActionController::IntegrationTest.app.router.draw do |map|
+        # FIXME: match ':controller(/:action(/:id))'
+        map.connect ':controller/:action/:id'
       end
     end
   end

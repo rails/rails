@@ -1,5 +1,6 @@
 require 'rack/mount'
 require 'forwardable'
+require 'action_dispatch/routing/deprecated_mapper'
 
 module ActionDispatch
   module Routing
@@ -208,7 +209,7 @@ module ActionDispatch
           end
       end
 
-      attr_accessor :routes, :named_routes, :controller_namespaces
+      attr_accessor :routes, :named_routes
       attr_accessor :disable_clear_and_finalize, :resources_path_names
 
       def self.default_resources_path_names
@@ -289,27 +290,6 @@ module ActionDispatch
 
       def empty?
         routes.empty?
-      end
-
-      CONTROLLER_REGEXP = /[_a-zA-Z0-9]+/
-
-      def controller_constraints
-        @controller_constraints ||= begin
-          namespaces = controller_namespaces + in_memory_controller_namespaces
-          source = namespaces.map { |ns| "#{Regexp.escape(ns)}/#{CONTROLLER_REGEXP.source}" }
-          source << CONTROLLER_REGEXP.source
-          Regexp.compile(source.sort.reverse.join('|'))
-        end
-      end
-
-      def in_memory_controller_namespaces
-        namespaces = Set.new
-        ActionController::Base.subclasses.each do |klass|
-          controller_name = klass.underscore
-          namespaces << controller_name.split('/')[0...-1].join('/')
-        end
-        namespaces.delete('')
-        namespaces
       end
 
       def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil)
