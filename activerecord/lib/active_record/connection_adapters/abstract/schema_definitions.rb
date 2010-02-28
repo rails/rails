@@ -319,16 +319,19 @@ module ActiveRecord
       def method_missing(symbol, *args)
         if symbol.to_s == 'xml'
           xml_column_fallback(args)
+        else
+          super
         end
       end
 
       def xml_column_fallback(*args)
         case @base.adapter_name.downcase
-          when 'sqlite', 'mysql'
-            options = args.extract_options!
-            column(args[0], :text, options)
-          end
+        when 'sqlite', 'mysql'
+          options = args.extract_options!
+          column(args[0], :text, options)
         end
+      end
+
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name)

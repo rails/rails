@@ -27,6 +27,16 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised { @connection.select_all "SELECT * FROM schema_migrations" }
       assert_equal 7, ActiveRecord::Migrator::current_version
     end
+
+    def test_schema_raises_an_error_for_invalid_column_ntype
+      assert_raise NoMethodError do
+        ActiveRecord::Schema.define(:version => 8) do
+          create_table :vegetables do |t|
+            t.unknown :color
+          end
+        end
+      end
+    end
   end
 
 end
