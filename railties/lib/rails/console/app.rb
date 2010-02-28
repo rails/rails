@@ -17,8 +17,8 @@ end
 # create a new session. If a block is given, the new session will be yielded
 # to the block before being returned.
 def new_session
-  app = ActionController::Dispatcher.new
-  session = ActionController::Integration::Session.new(app)
+  app = Rails.application
+  session = ActionDispatch::Integration::Session.new(app)
   yield session if block_given?
   session
 end
