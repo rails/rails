@@ -27,10 +27,6 @@ module ActionController
         super
       end
 
-      def details_for_render
-        {:formats => formats}
-      end
-
       def format_for_text
         formats.first
       end
