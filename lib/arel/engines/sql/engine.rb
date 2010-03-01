@@ -26,13 +26,13 @@ module Arel
 
       module CRUD
         def create(relation)
-          primary_key_value = nil
-          if primary_key = relation.primary_key
-            if primary_key_attribute_and_value = relation.record.detect{|k, v| k.name.to_s == primary_key.to_s}
-              primary_key_value = primary_key_attribute_and_value[1].value
+          attribute = [*relation.record].map do |attr, value|
+            if attr.respond_to?(:name) && !relation.primary_key.blank? && attr.name == relation.primary_key
+              value
             end
-          end
-          connection.insert(relation.to_sql(false), nil, primary_key, primary_key_value)
+          end.compact.first
+          primary_key_value = attribute ? attribute.value : nil
+          connection.insert(relation.to_sql(false), nil, relation.primary_key, primary_key_value)
         end
 
         def read(relation)
