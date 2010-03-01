@@ -1378,6 +1378,19 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
+h5. +titleize+
+
+The method +titleize+ capitalizes the words in the receiver:
+
+<ruby>
+"alice in wonderland".titleize # => "Alice In Wonderland"
+"fermat's enigma".titleize     # => "Fermat's Enigma"
+</ruby>
+
++titleize+ is aliased to +titlecase+.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
