@@ -1450,6 +1450,20 @@ In fact, the result string is wrapped in an instance of +ActiveSupport::Multibyt
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
+h5. +tableize+
+
+The method +tableize+ is +underscore+ followed by +pluralize+.
+
+<ruby>
+"Person".tableize      # => "people"
+"Invoice".tableize     # => "invoices"
+"InvoiceLine".tableize # => "invoice_lines" 
+</ruby>
+
+As a rule of thumb, +tableize+ returns the table name that corresponds to a given model for simple cases. The actual implementation in Active Record is not straight +tableize+ indeed, because it also demodulizes de class name and checks a few options that may affect the returned string.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
