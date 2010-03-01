@@ -26,7 +26,13 @@ module Arel
 
       module CRUD
         def create(relation)
-          connection.insert(relation.to_sql(false), nil, relation.primary_key)
+          primary_key_value = nil
+          if primary_key = relation.primary_key
+            if primary_key_attribute_and_value = relation.record.detect{|k, v| k.name.to_s == primary_key.to_s}
+              primary_key_value = primary_key_attribute_and_value[1].value
+            end
+          end
+          connection.insert(relation.to_sql(false), nil, primary_key, primary_key_value)
         end
 
         def read(relation)
