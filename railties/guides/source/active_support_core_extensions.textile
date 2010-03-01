@@ -1412,6 +1412,31 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
+h5. +demodulize+
+
+Given a string with a qualified constant reference expression, +demodulize+ returns the very constant name, that is, the rightmost part of it:
+
+<ruby>
+"Product".demodulize                        # => "Product"
+"Backoffice::UsersController".demodulize    # => "UsersController"
+"Admin::Hotel::ReservationUtils".demodulize # => "ReservationUtils"
+</ruby>
+
+Active Record for example uses this method to compute the name of a counter cache column:
+
+<ruby>
+# active_record/reflection.rb
+def counter_cache_column
+  if options[:counter_cache] == true
+    "#{active_record.name.demodulize.underscore.pluralize}_count"
+  elsif options[:counter_cache]
+    options[:counter_cache]
+  end
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
