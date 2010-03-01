@@ -1299,6 +1299,85 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
+h5. +camelize+
+
+The method +camelize+ returns its receiver in camel case:
+
+<ruby>
+"product".camelize    # => "Product"
+"admin_user".camelize # => "AdminUser"
+</ruby>
+
+As a rule of thumb you can think of this method as the one that transforms paths into Ruby class or module names, where slashes separate namespaces:
+
+<ruby>
+"backoffice/session".camelize # => "Backoffice::Session"
+</ruby>
+
+For example, Action Pack uses this method to load the class that provides a certain session store:
+
+<ruby>
+# action_controller/metal/session_management.rb
+def session_store=(store)
+  if store == :active_record_store
+    self.session_store = ActiveRecord::SessionStore
+  else
+    @@session_store = store.is_a?(Symbol) ?
+      ActionDispatch::Session.const_get(store.to_s.camelize) :
+      store
+  end
+end
+</ruby>
+
++camelize+ accepts an optional argument, it can be +:upper+ (default), or +:lower+. With the latter the first letter becomes lowercase:
+
+<ruby>
+"visual_effect".camelize(:lower) # => "visualEffect"
+</ruby>
+
+That may be handy to compute method names in a language that follows that convention, for example JavaScript.
+
++camelize+ is aliased to +camelcase+.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +underscore+
+
+The method +underscore+ is the inverse of +camelize+, explained above:
+
+<ruby>
+"Product".underscore   # => "product"
+"AdminUser".underscore # => "admin_user"
+</ruby>
+
+Also converts "::" back to "/":
+
+<ruby>
+"Backoffice::Session".underscore # => "backoffice/session"
+</ruby>
+
+and understands strings that start with lowercase:
+
+<ruby>
+"visualEffect".underscore # => "visual_effect"
+</ruby>
+
++underscore+ accepts no argument though.
+
+Rails class and module autoloading uses +underscore+ to infer the relative path without extension of a file that would define a given missing constant:
+
+<ruby>
+# active_support/dependencies.rb
+def load_missing_constant(from_mod, const_name)
+  ...
+  qualified_name = qualified_name_for from_mod, const_name
+  path_suffix = qualified_name.underscore
+  ...
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
