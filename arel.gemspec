@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bryan Helmkamp", "Nick Kallen", "Emilio Tagua"]
-  s.date = %q{2010-02-13}
+  s.date = %q{2010-03-01}
   s.description = %q{Arel is a Relational Algebra for Ruby. It 1) simplifies the generation complex
 of SQL queries and it 2) adapts to various RDBMS systems. It is intended to be
 a framework framework; that is, you can build your own ORM with it, focusing on
@@ -69,6 +69,11 @@ and query generation.}
     "lib/arel/engines/memory/relations/writes.rb",
     "lib/arel/engines/sql.rb",
     "lib/arel/engines/sql/christener.rb",
+    "lib/arel/engines/sql/compilers/ibm_db_compiler.rb",
+    "lib/arel/engines/sql/compilers/mysql_compiler.rb",
+    "lib/arel/engines/sql/compilers/oracle_compiler.rb",
+    "lib/arel/engines/sql/compilers/postgresql_compiler.rb",
+    "lib/arel/engines/sql/compilers/sqlite_compiler.rb",
     "lib/arel/engines/sql/core_extensions.rb",
     "lib/arel/engines/sql/core_extensions/array.rb",
     "lib/arel/engines/sql/core_extensions/nil_class.rb",
@@ -79,6 +84,7 @@ and query generation.}
     "lib/arel/engines/sql/predicates.rb",
     "lib/arel/engines/sql/primitives.rb",
     "lib/arel/engines/sql/relations.rb",
+    "lib/arel/engines/sql/relations/compiler.rb",
     "lib/arel/engines/sql/relations/operations/alias.rb",
     "lib/arel/engines/sql/relations/operations/join.rb",
     "lib/arel/engines/sql/relations/relation.rb",

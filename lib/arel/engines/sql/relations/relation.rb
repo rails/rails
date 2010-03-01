@@ -1,6 +1,6 @@
 module Arel
   class Relation
-    @@tables_primary_keys = {}
+    @@connection_tables_primary_keys = {}
 
     def compiler
       @compiler ||=  begin
@@ -23,10 +23,12 @@ module Arel
     end
 
     def primary_key
-      if @@tables_primary_keys.has_key?(table.name)
-        @@tables_primary_keys[table.name]
+      connection_id = engine.connection.object_id
+      if @@connection_tables_primary_keys[connection_id] && @@connection_tables_primary_keys[connection_id].has_key?(table.name)
+        @@connection_tables_primary_keys[connection_id][table.name]
       else
-        @@tables_primary_keys[table.name] = engine.primary_key(table.name)
+        @@connection_tables_primary_keys[connection_id] ||= {}
+        @@connection_tables_primary_keys[connection_id][table.name] = engine.connection.primary_key(table.name)
       end
     end
 
