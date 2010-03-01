@@ -41,6 +41,7 @@ class PrototypeHelperBaseTest < ActionView::TestCase
 
   def reset_formats(format)
     @format = format
+    yield if block_given?
   end
 
   def setup
