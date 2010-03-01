@@ -1391,6 +1391,27 @@ The method +titleize+ capitalizes the words in the receiver:
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
+h5. +dasherize+
+
+The method +dasherize+ replaces the underscores in the receiver with dashes:
+
+<ruby>
+"name".dasherize         # => "name"
+"contact_data".dasherize # => "contact-data"
+</ruby>
+
+The XML serializer of models uses this method to dasherize node names:
+
+<ruby>
+# active_model/serializers/xml.rb
+def reformat_name(name)
+  name = name.camelize if camelize?
+  dasherize? ? name.dasherize : name
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
