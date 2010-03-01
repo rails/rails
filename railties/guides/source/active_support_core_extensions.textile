@@ -1276,6 +1276,29 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
+h5. +singularize+
+
+The inverse of +pluralize+:
+
+<ruby>
+"tables".singularize    # => "table"
+"rubies".singularize    # => "ruby"
+"equipment".singularize # => "equipment"
+</ruby>
+
+Associations compute the name of the corresponding default associated class using this method:
+
+<ruby>
+# active_record/reflection.rb
+def derive_class_name
+  class_name = name.to_s.camelize
+  class_name = class_name.singularize if collection?
+  class_name
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
