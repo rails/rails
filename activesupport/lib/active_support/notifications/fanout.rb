@@ -12,7 +12,7 @@ module ActiveSupport
       end
 
       def subscribe(pattern = nil, &block)
-        @log_subscribers << LogSubscriber.new(pattern, &block)
+        @log_subscribers << Subscriber.new(pattern, &block)
       end
 
       def publish(*args)
@@ -41,7 +41,7 @@ module ActiveSupport
         end
       end
 
-      class LogSubscriber #:nodoc:
+      class Subscriber #:nodoc:
         def initialize(pattern, &block)
           @pattern = pattern
           @block = block
