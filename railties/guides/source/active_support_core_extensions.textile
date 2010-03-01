@@ -1437,6 +1437,19 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
+h5. +parameterize+
+
+The method +parameterize+ normalizes its receiver in a way that can be used in pretty URLs.
+
+<ruby>
+"John Smith".parameterize # => "john-smith"
+"Kurt Gödel".parameterize # => "kurt-godel"
+</ruby>
+
+In fact, the result string is wrapped in an instance of +ActiveSupport::Multibyte::Chars+.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
