@@ -16,15 +16,9 @@ module Arel
         # when limit or offset subquery is used then cannot use FOR UPDATE directly
         # and need to construct separate subquery for primary key
         if use_subquery_for_lock = limit_or_offset && !locked.blank?
-          primary_key = begin
-            engine.quote_column_name(table.name.classify.constantize.primary_key)
-          rescue NameError
-            engine.quote_column_name("id")
-          end
-          select_attributes_string = primary_key
-        else
-          select_attributes_string = select_clauses.join(', ')
+          quoted_primary_key = engine.quote_column_name(primary_key)
         end
+        select_attributes_string = use_subquery_for_lock ? quoted_primary_key : select_clauses.join(', ')
 
         # OracleEnhanced adapter workaround when ORDER BY is used with columns not
         # present in DISTINCT columns list
@@ -51,7 +45,7 @@ module Arel
           build_query \
             "SELECT     #{select_clauses.join(', ')}",
             "FROM       #{from_clauses}",
-            "WHERE      #{primary_key} IN (#{query})",
+            "WHERE      #{quoted_primary_key} IN (#{query})",
             "#{locked}"
         elsif !locked.blank?
           build_query query, "#{locked}"
