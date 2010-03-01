@@ -6,6 +6,11 @@ rescue LoadError
     require 'bundler'
     Bundler.setup
   rescue LoadError
+    module Bundler
+      def self.require(*args, &block); end
+      def self.method_missing(*args, &block); end
+    end
+
     %w(
       actionmailer
       actionpack
