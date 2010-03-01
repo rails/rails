@@ -182,10 +182,14 @@ module ActionView
         def initialize(context, &block) #:nodoc:
           context._evaluate_assigns_and_ivars
           @context, @lines = context, []
+          old_formats = @context.formats
+          @context.reset_formats([:js, :html]) if @context
           include_helpers_from_context
           @context.with_output_buffer(@lines) do
             @context.instance_exec(self, &block)
           end
+        ensure
+          @context.reset_formats(old_formats) if @context
         end
 
         private
