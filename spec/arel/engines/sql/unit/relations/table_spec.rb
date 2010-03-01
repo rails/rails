@@ -40,7 +40,7 @@ module Arel
         adapter_is :mysql do
           sql.should be_like(%Q{
             SELECT `super_users`.`id`, `super_users`.`name`
-            FROM `users` AS `super_users`
+            FROM `users` `super_users`
           })
         end
 
@@ -54,7 +54,7 @@ module Arel
         adapter_is_not :mysql, :oracle do
           sql.should be_like(%Q{
             SELECT "super_users"."id", "super_users"."name"
-            FROM "users" AS "super_users"
+            FROM "users" "super_users"
           })
         end
       end

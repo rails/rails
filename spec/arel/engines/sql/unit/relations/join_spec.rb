@@ -52,7 +52,7 @@ module Arel
             adapter_is :mysql do
               sql.should be_like(%Q{
                 SELECT `super_users`.`id`, `super_users`.`name`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
-                FROM `users` AS `super_users`
+                FROM `users` `super_users`
                   INNER JOIN `photos` ON `super_users`.`id` = `photos`.`user_id`
               })
             end
@@ -68,7 +68,7 @@ module Arel
             adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 SELECT "super_users"."id", "super_users"."name", "photos"."id", "photos"."user_id", "photos"."camera_id"
-                FROM "users" AS "super_users"
+                FROM "users" "super_users"
                   INNER JOIN "photos" ON "super_users"."id" = "photos"."user_id"
               })
             end
@@ -82,8 +82,8 @@ module Arel
             adapter_is :mysql do
               sql.should be_like(%Q{
                 SELECT `super_users`.`id`, `super_users`.`name`, `super_photos`.`id`, `super_photos`.`user_id`, `super_photos`.`camera_id`
-                FROM `users` AS `super_users`
-                  INNER JOIN `photos` AS `super_photos` ON `super_users`.`id` = `super_photos`.`user_id`
+                FROM `users` `super_users`
+                  INNER JOIN `photos` `super_photos` ON `super_users`.`id` = `super_photos`.`user_id`
               })
             end
 
@@ -98,8 +98,8 @@ module Arel
             adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 SELECT "super_users"."id", "super_users"."name", "super_photos"."id", "super_photos"."user_id", "super_photos"."camera_id"
-                FROM "users" AS "super_users"
-                  INNER JOIN "photos" AS "super_photos" ON "super_users"."id" = "super_photos"."user_id"
+                FROM "users" "super_users"
+                  INNER JOIN "photos" "super_photos" ON "super_users"."id" = "super_photos"."user_id"
               })
             end
           end

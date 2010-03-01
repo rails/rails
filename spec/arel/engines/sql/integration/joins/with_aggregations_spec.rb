@@ -24,7 +24,7 @@ module Arel
             sql.should be_like(%Q{
               SELECT `users`.`id`, `users`.`name`, `photos_external`.`id`, `photos_external`.`user_id`, `photos_external`.`camera_id`
               FROM `users`
-              INNER JOIN (SELECT `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id` FROM `photos` LIMIT 3) AS `photos_external`
+              INNER JOIN (SELECT `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id` FROM `photos` LIMIT 3) `photos_external`
                 ON `users`.`id` = `photos_external`.`user_id`
             })
           end
@@ -42,7 +42,7 @@ module Arel
             sql.should be_like(%Q{
               SELECT "users"."id", "users"."name", "photos_external"."id", "photos_external"."user_id", "photos_external"."camera_id"
               FROM "users"
-              INNER JOIN (SELECT "photos"."id", "photos"."user_id", "photos"."camera_id" FROM "photos" LIMIT 3) AS "photos_external"
+              INNER JOIN (SELECT "photos"."id", "photos"."user_id", "photos"."camera_id" FROM "photos" LIMIT 3) "photos_external"
                 ON "users"."id" = "photos_external"."user_id"
             })
           end
@@ -56,7 +56,7 @@ module Arel
               sql.should be_like(%Q{
                 SELECT `users`.`id`, `users`.`name`, `photos_external`.`user_id`, `photos_external`.`cnt`
                 FROM `users`
-                  INNER JOIN (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY `photos`.`user_id`) AS `photos_external`
+                  INNER JOIN (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY `photos`.`user_id`) `photos_external`
                     ON `users`.`id` = `photos_external`.`user_id`
               })
             end
@@ -74,7 +74,7 @@ module Arel
               sql.should be_like(%Q{
                 SELECT "users"."id", "users"."name", "photos_external"."user_id", "photos_external"."cnt"
                 FROM "users"
-                  INNER JOIN (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" GROUP BY "photos"."user_id") AS "photos_external"
+                  INNER JOIN (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" GROUP BY "photos"."user_id") "photos_external"
                     ON "users"."id" = "photos_external"."user_id"
               })
             end
@@ -88,7 +88,7 @@ module Arel
             adapter_is :mysql do
               sql.should be_like(%Q{
                 SELECT `photos_external`.`user_id`, `photos_external`.`cnt`, `users`.`id`, `users`.`name`
-                FROM (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY `photos`.`user_id`) AS `photos_external`
+                FROM (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY `photos`.`user_id`) `photos_external`
                   INNER JOIN `users`
                     ON `users`.`id` = `photos_external`.`user_id`
               })
@@ -106,7 +106,7 @@ module Arel
             adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 SELECT "photos_external"."user_id", "photos_external"."cnt", "users"."id", "users"."name"
-                FROM (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" GROUP BY "photos"."user_id") AS "photos_external"
+                FROM (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" GROUP BY "photos"."user_id") "photos_external"
                   INNER JOIN "users"
                     ON "users"."id" = "photos_external"."user_id"
               })
@@ -122,8 +122,8 @@ module Arel
             adapter_is :mysql do
               sql.should be_like(%Q{
                 SELECT `photos_external`.`user_id`, `photos_external`.`cnt`, `photos_external_2`.`user_id`, `photos_external_2`.`cnt`
-                FROM (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY  `photos`.`user_id`) AS `photos_external`
-                  INNER JOIN (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY `photos`.`user_id`) AS `photos_external_2`
+                FROM (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY  `photos`.`user_id`) `photos_external`
+                  INNER JOIN (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY `photos`.`user_id`) `photos_external_2`
                     ON `photos_external_2`.`user_id` = `photos_external`.`user_id`
               })
             end
@@ -140,8 +140,8 @@ module Arel
             adapter_is_not :mysql, :oracle do
               sql.should be_like(%Q{
                 SELECT "photos_external"."user_id", "photos_external"."cnt", "photos_external_2"."user_id", "photos_external_2"."cnt"
-                FROM (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" GROUP BY  "photos"."user_id") AS "photos_external"
-                  INNER JOIN (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" GROUP BY "photos"."user_id") AS "photos_external_2"
+                FROM (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" GROUP BY  "photos"."user_id") "photos_external"
+                  INNER JOIN (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" GROUP BY "photos"."user_id") "photos_external_2"
                     ON "photos_external_2"."user_id" = "photos_external"."user_id"
               })
             end
@@ -157,7 +157,7 @@ module Arel
                 sql.should be_like(%Q{
                   SELECT `users`.`id`, `users`.`name`, `photos_external`.`user_id`, `photos_external`.`cnt`
                   FROM `users`
-                    INNER JOIN (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` WHERE `photos`.`user_id` = 1 GROUP BY `photos`.`user_id`) AS `photos_external`
+                    INNER JOIN (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` WHERE `photos`.`user_id` = 1 GROUP BY `photos`.`user_id`) `photos_external`
                       ON `users`.`id` = `photos_external`.`user_id`
                 })
               end
@@ -175,7 +175,7 @@ module Arel
                 sql.should be_like(%Q{
                   SELECT "users"."id", "users"."name", "photos_external"."user_id", "photos_external"."cnt"
                   FROM "users"
-                    INNER JOIN (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" WHERE "photos"."user_id" = 1 GROUP BY "photos"."user_id") AS "photos_external"
+                    INNER JOIN (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" WHERE "photos"."user_id" = 1 GROUP BY "photos"."user_id") "photos_external"
                       ON "users"."id" = "photos_external"."user_id"
                 })
               end
@@ -189,7 +189,7 @@ module Arel
               adapter_is :mysql do
                 sql.should be_like(%Q{
                   SELECT `photos_external`.`user_id`, `photos_external`.`cnt`, `users`.`id`, `users`.`name`
-                  FROM (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` WHERE `photos`.`user_id` = 1 GROUP BY `photos`.`user_id`) AS `photos_external`
+                  FROM (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` WHERE `photos`.`user_id` = 1 GROUP BY `photos`.`user_id`) `photos_external`
                     INNER JOIN `users`
                       ON `users`.`id` = `photos_external`.`user_id`
                 })
@@ -207,7 +207,7 @@ module Arel
               adapter_is_not :mysql, :oracle do
                 sql.should be_like(%Q{
                   SELECT "photos_external"."user_id", "photos_external"."cnt", "users"."id", "users"."name"
-                  FROM (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" WHERE "photos"."user_id" = 1 GROUP BY "photos"."user_id") AS "photos_external"
+                  FROM (SELECT "photos"."user_id", COUNT("photos"."id") AS "cnt" FROM "photos" WHERE "photos"."user_id" = 1 GROUP BY "photos"."user_id") "photos_external"
                     INNER JOIN "users"
                       ON "users"."id" = "photos_external"."user_id"
                 })

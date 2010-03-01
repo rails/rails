@@ -17,7 +17,7 @@ module Arel
             sql.should be_like(%Q{
               SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
               FROM `users`
-                INNER JOIN `users` AS `users_2`
+                INNER JOIN `users` `users_2`
                   ON `users`.`id` = `users_2`.`id`
             })
           end
@@ -35,7 +35,7 @@ module Arel
             sql.should be_like(%Q{
               SELECT "users"."id", "users"."name", "users_2"."id", "users_2"."name"
               FROM "users"
-                INNER JOIN "users" AS "users_2"
+                INNER JOIN "users" "users_2"
                   ON "users"."id" = "users_2"."id"
             })
           end
@@ -52,7 +52,7 @@ module Arel
               sql.should be_like(%Q{
                 SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
                 FROM `users`
-                  INNER JOIN `users` AS `users_2`
+                  INNER JOIN `users` `users_2`
                     ON `users`.`id` = `users_2`.`id` AND `users_2`.`id` = 1
               })
             end
@@ -70,7 +70,7 @@ module Arel
               sql.should be_like(%Q{
                 SELECT "users"."id", "users"."name", "users_2"."id", "users_2"."name"
                 FROM "users"
-                  INNER JOIN "users" AS "users_2"
+                  INNER JOIN "users" "users_2"
                     ON "users"."id" = "users_2"."id" AND "users_2"."id" = 1
               })
             end
@@ -89,7 +89,7 @@ module Arel
                 sql.should be_like(%Q{
                   SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
                   FROM `users`
-                  INNER JOIN `users` AS `users_2`
+                  INNER JOIN `users` `users_2`
                     ON `users_2`.`id` = `users`.`id` AND `users_2`.`id` = 1
                 })
               end
@@ -107,7 +107,7 @@ module Arel
                 sql.should be_like(%Q{
                   SELECT "users"."id", "users"."name", "users_2"."id", "users_2"."name"
                   FROM "users"
-                  INNER JOIN "users" AS "users_2"
+                  INNER JOIN "users" "users_2"
                     ON "users_2"."id" = "users"."id" AND "users_2"."id" = 1
                 })
               end
@@ -133,9 +133,9 @@ module Arel
                 sql.should be_like(%Q{
                   SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`, `users_3`.`id`, `users_3`.`name`
                   FROM `users`
-                    INNER JOIN `users` AS `users_2`
+                    INNER JOIN `users` `users_2`
                       ON `users`.`id` = `users_2`.`id`
-                    INNER JOIN `users` AS `users_3`
+                    INNER JOIN `users` `users_3`
                       ON `users_2`.`id` = `users_3`.`id`
                 })
               end
@@ -155,9 +155,9 @@ module Arel
                 sql.should be_like(%Q{
                   SELECT "users"."id", "users"."name", "users_2"."id", "users_2"."name", "users_3"."id", "users_3"."name"
                   FROM "users"
-                    INNER JOIN "users" AS "users_2"
+                    INNER JOIN "users" "users_2"
                       ON "users"."id" = "users_2"."id"
-                    INNER JOIN "users" AS "users_3"
+                    INNER JOIN "users" "users_3"
                       ON "users_2"."id" = "users_3"."id"
                 })
               end
@@ -175,9 +175,9 @@ module Arel
                 sql.should be_like(%Q{
                   SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`, `users_3`.`id`, `users_3`.`name`
                   FROM `users`
-                    INNER JOIN `users` AS `users_2`
+                    INNER JOIN `users` `users_2`
                       ON `users`.`id` = `users_2`.`id`
-                    INNER JOIN `users` AS `users_3`
+                    INNER JOIN `users` `users_3`
                       ON `users_2`.`id` = `users_3`.`id`
                 })
               end
@@ -197,9 +197,9 @@ module Arel
                 sql.should be_like(%Q{
                   SELECT "users"."id", "users"."name", "users_2"."id", "users_2"."name", "users_3"."id", "users_3"."name"
                   FROM "users"
-                    INNER JOIN "users" AS "users_2"
+                    INNER JOIN "users" "users_2"
                       ON "users"."id" = "users_2"."id"
-                    INNER JOIN "users" AS "users_3"
+                    INNER JOIN "users" "users_3"
                       ON "users_2"."id" = "users_3"."id"
                 })
               end
