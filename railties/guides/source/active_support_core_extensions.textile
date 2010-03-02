@@ -1527,6 +1527,35 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
+h5. +humanize+
+
+The method +humanize+ gives you a sensible name for display out of an attribute name. To do so it replaces underscores with spaces, removes any "_id" suffix, and capitalizes the first word:
+
+<ruby>
+"name".humanize           # => "Name"
+"author_id".humanize      # => "Author"
+"comments_count".humanize # => "Comments count"
+</ruby>
+
+The helper method +full_messages+ uses +humanize+ as a fallback to include attribute names:
+
+<ruby>
+def full_messages
+  full_messages = []
+
+  each do |attribute, messages|
+    ...
+    attr_name = attribute.to_s.gsub('.', '_').humanize
+    attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+    ...
+  end
+
+  full_messages
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
