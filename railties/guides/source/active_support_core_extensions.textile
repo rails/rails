@@ -1484,6 +1484,49 @@ Note that +classify+ returns a class name as a string. You can get the actual cl
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
+h5. +constantize+
+
+The method +constantize+ resolves the constant reference expression in its receiver:
+
+<ruby>
+"Fixnum".constantize # => Fixnum
+
+module M
+  X = 1
+end
+"M::X".constantize # => 1
+</ruby>
+
+If the string evaluates to no known constant, or its content is not even a valid constant name, +constantize+ raises +NameError+.
+
+Constant name resolution by +constantize+ starts always at the top-level +Object+ even if there is no leading "::".
+
+<ruby>
+X = :in_Object
+module M
+  X = :in_M
+
+  X                 # => :in_M
+  "::X".constantize # => :in_Object
+  "X".constantize   # => :in_Object (!)
+end
+</ruby>
+
+So, it is in general not equivalent to what Ruby would do in the same spot, had a real constant be evaluated.
+
+Mailer test cases obtain the mailer being tested from the name of the test class using +constantize+:
+
+<ruby>
+# action_mailer/test_case.rb
+def determine_default_mailer(name)
+  name.sub(/Test$/, '').constantize
+rescue NameError => e
+  raise NonInferrableMailerError.new(name)
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
