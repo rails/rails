@@ -1,5 +1,6 @@
 require 'rails/initializable'
 require 'rails/configuration'
+require 'active_support/inflector'
 
 module Rails
   class Railtie
@@ -23,9 +24,8 @@ module Rails
       end
 
       def railtie_name(railtie_name = nil)
-        @railtie_name ||= name.demodulize.underscore
         @railtie_name = railtie_name if railtie_name
-        @railtie_name
+        @railtie_name ||= default_name
       end
 
       def railtie_names
@@ -52,6 +52,10 @@ module Rails
 
       def abstract_railtie?(base)
         ABSTRACT_RAILTIES.include?(base.name)
+      end
+
+      def default_name
+        ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(name))
       end
     end
 
