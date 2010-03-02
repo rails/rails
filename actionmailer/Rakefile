@@ -4,7 +4,6 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
-require File.join(File.dirname(__FILE__), 'lib', 'action_mailer', 'version')
 
 desc "Default Task"
 task :default => [ :test ]

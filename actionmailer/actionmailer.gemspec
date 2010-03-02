@@ -1,7 +1,10 @@
+$:.unshift "lib"
+require "action_mailer/version"
+
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'actionmailer'
-  s.version     = '3.0.0.beta1'
+  s.version     = ActionMailer::VERSION::STRING
   s.summary     = 'Email composition, delivery, and recieval framework (part of Rails).'
   s.description = 'Email composition, delivery, and recieval framework (part of Rails).'
   s.required_ruby_version = '>= 1.8.7'
@@ -17,7 +20,7 @@ Gem::Specification.new do |s|
 
   s.has_rdoc = true
 
-  s.add_dependency('actionpack',  '= 3.0.0.beta1')
+  s.add_dependency('actionpack',  "= #{ActionMailer::VERSION::STRING}")
   s.add_dependency('mail',        '~> 2.1.3')
   s.add_dependency('text-format', '~> 1.0.0')
 end

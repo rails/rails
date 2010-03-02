@@ -8,9 +8,6 @@ require 'rake/gempackagetask'
 require 'date'
 require 'rbconfig'
 
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/lib"
-require 'rails/version'
-
 task :default => :test
 task :test => 'test:isolated'
 

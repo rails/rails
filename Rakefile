@@ -3,10 +3,15 @@ require 'rake/rdoctask'
 require 'rake/gempackagetask'
 
 PROJECTS = %w(activesupport activemodel actionpack actionmailer activeresource activerecord railties)
+PROJECTS.each { |project| $:.unshift "#{project}/lib" }
 
-Dir["#{File.dirname(__FILE__)}/*/lib/*/version.rb"].each do |version_path|
-  require version_path
-end
+require "active_support/version"
+require "active_model/version"
+require "action_pack/version"
+require "action_mailer/version"
+require "active_resource/version"
+require "active_record/version"
+require "rails/version"
 
 desc 'Run all tests by default'
 task :default => %w(test test:isolated)

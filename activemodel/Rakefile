@@ -1,5 +1,4 @@
 dir = File.dirname(__FILE__)
-require "#{dir}/lib/active_model/version"
 
 require 'rake/testtask'
 
