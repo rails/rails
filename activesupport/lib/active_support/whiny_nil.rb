@@ -26,7 +26,7 @@
 # mode.
 class NilClass
   WHINERS = [::Array]
-  WHINERS << ::ActiveRecord::Base if defined? ::ActiveRecord
+  WHINERS << ::ActiveRecord::Base if defined? ::ActiveRecord::Base
 
   METHOD_CLASS_MAP = Hash.new
 
