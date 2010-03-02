@@ -20,14 +20,19 @@ module Notifications
   end
 
   class UnsubscribeTest < TestCase
-    def unsubscribing_removes_a_subscription
+    def test_unsubscribing_removes_a_subscription
       @notifier.publish :foo
       @notifier.wait
       assert_equal [[:foo]], @events
       @notifier.unsubscribe(@subscription)
-      @notifier.publish :bar
+      @notifier.publish :foo
       @notifier.wait
       assert_equal [[:foo]], @events
+    end
+
+  private
+    def event(*args)
+      args
     end
   end
 
@@ -36,6 +41,28 @@ module Notifications
       @notifier.publish :foo
       @notifier.wait
       assert_equal [[:foo]], @events
+    end
+
+    def test_publishing_multiple_times_works
+      @notifier.publish :foo
+      @notifier.publish :foo
+      @notifier.wait
+      assert_equal [[:foo], [:foo]], @events
+    end
+
+    def test_publishing_after_a_new_subscribe_works
+      @notifier.publish :foo
+      @notifier.publish :foo
+
+      @notifier.subscribe("not_existant") do |*args|
+        @events << ActiveSupport::Notifications::Event.new(*args)
+      end
+
+      @notifier.publish :foo
+      @notifier.publish :foo
+      @notifier.wait
+
+      assert_equal [[:foo]] * 4, @events
     end
 
     def test_log_subscriber_with_pattern

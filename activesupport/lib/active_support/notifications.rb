@@ -44,7 +44,7 @@ module ActiveSupport
 
     class << self
       attr_writer :notifier
-      delegate :publish, :subscribe, :to => :notifier
+      delegate :publish, :subscribe, :unsubscribe, :to => :notifier
       delegate :instrument, :to => :instrumenter
 
       def notifier
