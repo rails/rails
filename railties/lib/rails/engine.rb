@@ -97,8 +97,8 @@ module Rails
 
     initializer :add_view_paths do
       views = paths.app.views.to_a
-      ActionController::Base.prepend_view_path(views) if defined?(ActionController)
-      ActionMailer::Base.prepend_view_path(views) if defined?(ActionMailer)
+      ActionController::Base.prepend_view_path(views) if defined?(ActionController::Base)
+      ActionMailer::Base.prepend_view_path(views) if defined?(ActionMailer::Base)
     end
 
     initializer :add_metals do |app|

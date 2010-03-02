@@ -16,11 +16,6 @@ module ActionMailer
       ActionMailer::Base.logger ||= Rails.logger
     end
 
-    initializer "action_mailer.add_view_paths" do |app|
-      views = app.config.paths.app.views.to_a
-      ActionMailer::Base.prepend_view_path(views)
-    end
-
     initializer "action_mailer.set_configs" do |app|
       app.config.action_mailer.each do |k,v|
         ActionMailer::Base.send "#{k}=", v

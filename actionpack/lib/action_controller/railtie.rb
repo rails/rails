@@ -27,11 +27,6 @@ module ActionController
       ActionController::Base.cache_store ||= RAILS_CACHE
     end
 
-    initializer "action_controller.add_view_paths" do |app|
-      views = app.config.paths.app.views.to_a
-      ActionController::Base.prepend_view_path(views)
-    end
-
     initializer "action_controller.set_helpers_path" do |app|
       ActionController::Base.helpers_path = app.config.paths.app.helpers.to_a
     end
