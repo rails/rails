@@ -5,24 +5,9 @@ require 'rake/rdoctask'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
 
-require File.join(File.dirname(__FILE__), 'lib', 'active_record', 'version')
 require File.expand_path(File.dirname(__FILE__)) + "/test/config"
 
-PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
-PKG_NAME      = 'activerecord'
-PKG_VERSION   = ActiveRecord::VERSION::STRING + PKG_BUILD
-PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
-
-RELEASE_NAME  = "REL #{PKG_VERSION}"
-
-RUBY_FORGE_PROJECT = "activerecord"
-RUBY_FORGE_USER    = "webster132"
-
 MYSQL_DB_USER = 'rails'
-
-PKG_FILES = FileList[
-    "lib/**/*", "test/**/*", "examples/**/*", "doc/**/*", "[A-Z]*", "install.rb", "Rakefile"
-].exclude(/\bCVS\b|~$/)
 
 def run_without_aborting(*tasks)
   errors = []

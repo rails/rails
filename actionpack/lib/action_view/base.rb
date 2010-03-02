@@ -186,17 +186,38 @@ module ActionView #:nodoc:
 
     extend ActiveSupport::Memoizable
 
-    attr_accessor :base_path, :assigns, :template_extension, :formats
+    attr_accessor :base_path, :assigns, :template_extension
     attr_internal :captures
 
     def reset_formats(formats)
-      @formats = formats
+      old_formats, self.formats = self.formats, formats
+      reset_hash_key
+      yield if block_given?
+    ensure
+      if block_given?
+        self.formats = old_formats
+        reset_hash_key
+      end
+    end
 
+    def reset_hash_key
       if defined?(AbstractController::HashKey)
         # This is expensive, but we need to reset this when the format is updated,
         # which currently only happens
         Thread.current[:format_locale_key] =
           AbstractController::HashKey.get(self.class, :formats => formats, :locale => [I18n.locale])
+      end
+    end
+
+    def formats
+      controller ? controller.formats : @formats
+    end
+
+    def formats=(val)
+      if controller
+        controller.formats = val
+      else
+        @formats = val
       end
     end
 

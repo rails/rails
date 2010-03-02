@@ -120,7 +120,8 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do |map|
-          match ':controller(/:action)'
+          match 'admin/foo', :to => 'admin/foo#index'
+          match 'foo', :to => 'foo#index'
         end
       RUBY
 

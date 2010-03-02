@@ -8,20 +8,6 @@ require 'rake/gempackagetask'
 require 'date'
 require 'rbconfig'
 
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/lib"
-require 'rails/version'
-
-PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
-PKG_NAME        = 'railties'
-PKG_VERSION     = Rails::VERSION::STRING + PKG_BUILD
-PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
-PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
-
-RELEASE_NAME  = "REL #{PKG_VERSION}"
-
-RUBY_FORGE_PROJECT = "rails"
-RUBY_FORGE_USER    = "webster132"
-
 task :default => :test
 task :test => 'test:isolated'
 

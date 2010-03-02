@@ -258,7 +258,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     with_routing do |set|
       set.draw do |map|
         match 'admin/inner_module', :to => 'admin/inner_module#index', :as => :admin_inner_module
-        match ':controller/:action'
+        # match ':controller/:action'
+        map.connect ':controller/:action/:id'
       end
       process :redirect_to_index
       # redirection is <{"action"=>"index", "controller"=>"admin/admin/inner_module"}>
@@ -272,7 +273,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     with_routing do |set|
       set.draw do |map|
         match '/action_pack_assertions/:id', :to => 'action_pack_assertions#index', :as => :top_level
-        match ':controller/:action'
+        # match ':controller/:action'
+        map.connect ':controller/:action/:id'
       end
       process :redirect_to_top_level_named_route
       # assert_redirected_to "http://test.host/action_pack_assertions/foo" would pass because of exact match early return
@@ -287,7 +289,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       set.draw do |map|
         # this controller exists in the admin namespace as well which is the only difference from previous test
         match '/user/:id', :to => 'user#index', :as => :top_level
-        match ':controller/:action'
+        # match ':controller/:action'
+        map.connect ':controller/:action/:id'
       end
       process :redirect_to_top_level_named_route
       # assert_redirected_to top_level_url('foo') would pass because of exact match early return

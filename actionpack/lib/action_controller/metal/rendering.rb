@@ -23,7 +23,7 @@ module ActionController
 
       def _render_partial(options)
         options[:partial] = action_name if options[:partial] == true
-        options[:_details] = {:formats => formats}
+        options[:_details] = details_for_render
         super
       end
 

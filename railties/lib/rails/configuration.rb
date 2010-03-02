@@ -6,22 +6,7 @@ module Rails
   module Configuration
     module Shared
       def middleware
-        @@default_middleware_stack ||= ActionDispatch::MiddlewareStack.new.tap do |middleware|
-          middleware.use('::ActionDispatch::Static', lambda { Rails.public_path }, :if => lambda { Rails.application.config.serve_static_assets })
-          middleware.use('::Rack::Lock', :if => lambda { !Rails.application.config.allow_concurrency })
-          middleware.use('::Rack::Runtime')
-          middleware.use('::Rails::Rack::Logger')
-          middleware.use('::ActionDispatch::ShowExceptions', lambda { Rails.application.config.consider_all_requests_local })
-          middleware.use('::Rack::Sendfile', lambda { Rails.application.config.action_dispatch.x_sendfile_header })
-          middleware.use('::ActionDispatch::Callbacks', lambda { !Rails.application.config.cache_classes })
-          middleware.use('::ActionDispatch::Cookies')
-          middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
-          middleware.use('::ActionDispatch::Flash', :if => lambda { ActionController::Base.session_store })
-          middleware.use(lambda { Rails.application.metal_loader.build_middleware(Rails.application.config.metals) }, :if => lambda { Rails.application.metal_loader.metals.any? })
-          middleware.use('ActionDispatch::ParamsParser')
-          middleware.use('::Rack::MethodOverride')
-          middleware.use('::ActionDispatch::Head')
-        end
+        @@default_middleware_stack ||= default_middleware
       end
 
       # Holds generators configuration:
@@ -85,6 +70,26 @@ module Rails
 
       def options
         @@options ||= Hash.new { |h,k| h[k] = ActiveSupport::OrderedOptions.new }
+      end
+
+      def default_middleware
+        require 'action_dispatch'
+        ActionDispatch::MiddlewareStack.new.tap do |middleware|
+          middleware.use('::ActionDispatch::Static', lambda { Rails.public_path }, :if => lambda { Rails.application.config.serve_static_assets })
+          middleware.use('::Rack::Lock', :if => lambda { !Rails.application.config.allow_concurrency })
+          middleware.use('::Rack::Runtime')
+          middleware.use('::Rails::Rack::Logger')
+          middleware.use('::ActionDispatch::ShowExceptions', lambda { Rails.application.config.consider_all_requests_local })
+          middleware.use('::Rack::Sendfile', lambda { Rails.application.config.action_dispatch.x_sendfile_header })
+          middleware.use('::ActionDispatch::Callbacks', lambda { !Rails.application.config.cache_classes })
+          middleware.use('::ActionDispatch::Cookies')
+          middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
+          middleware.use('::ActionDispatch::Flash', :if => lambda { ActionController::Base.session_store })
+          middleware.use(lambda { Rails.application.metal_loader.build_middleware(Rails.application.config.metals) }, :if => lambda { Rails.application.metal_loader.metals.any? })
+          middleware.use('ActionDispatch::ParamsParser')
+          middleware.use('::Rack::MethodOverride')
+          middleware.use('::ActionDispatch::Head')
+        end
       end
     end
 

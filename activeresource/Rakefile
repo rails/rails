@@ -5,22 +5,6 @@ require 'rake/rdoctask'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
 
-require File.join(File.dirname(__FILE__), 'lib', 'active_resource', 'version')
-
-PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
-PKG_NAME      = 'activeresource'
-PKG_VERSION   = ActiveResource::VERSION::STRING + PKG_BUILD
-PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
-
-RELEASE_NAME  = "REL #{PKG_VERSION}"
-
-RUBY_FORGE_PROJECT = "activerecord"
-RUBY_FORGE_USER    = "webster132"
-
-PKG_FILES = FileList[
-    "lib/**/*", "test/**/*", "[A-Z]*", "Rakefile"
-].exclude(/\bCVS\b|~$/)
-
 desc "Default Task"
 task :default => [ :test ]
 

@@ -44,7 +44,7 @@ module ActiveSupport
 
     class << self
       attr_writer :notifier
-      delegate :publish, :subscribe, :to => :notifier
+      delegate :publish, :subscribe, :unsubscribe, :to => :notifier
       delegate :instrument, :to => :instrumenter
 
       def notifier
@@ -67,6 +67,10 @@ module ActiveSupport
 
       def subscribe(pattern = nil, &block)
         @queue.bind(pattern).subscribe(&block)
+      end
+
+      def unsubscribe(subscriber)
+        @queue.unsubscribe(subscriber)
       end
 
       def wait

@@ -1,5 +1,6 @@
-require 'active_support/core_ext/module/delegation'
 require 'rails/railtie'
+require 'active_support/core_ext/module/delegation'
+require 'pathname'
 
 module Rails
   class Engine < Railtie
@@ -43,7 +44,7 @@ module Rails
     delegate :middleware, :paths, :root, :to => :config
 
     def load_tasks
-      super 
+      super
       config.paths.lib.tasks.to_a.sort.each { |ext| load(ext) }
     end
 
@@ -77,6 +78,7 @@ module Rails
       end
     end
 
+    # DEPRECATED: Remove in 3.1
     initializer :add_routing_namespaces do |app|
       paths.app.controllers.to_a.each do |load_path|
         load_path = File.expand_path(load_path)

@@ -21,7 +21,6 @@ module ActiveModel
   # A minimal implementation could be:
   # 
   #   class Person
-  #   
   #     include ActiveModel::AttributeMethods
   #     
   #     attribute_method_affix  :prefix => 'reset_', :suffix => '_to_default!'
@@ -44,9 +43,13 @@ module ActiveModel
   #     def reset_attribute_to_default!(attr)
   #       send("#{attr}=", "Default Name")
   #     end
-  #   
   #   end
-  # 
+  #
+  # Please notice that whenever you include ActiveModel::AtributeMethods in your class,
+  # it requires you to implement a <tt>attributes</tt> methods which returns a hash with
+  # each attribute name in your model as hash key and the attribute value as hash value.
+  # Hash keys must be a string.
+  #
   module AttributeMethods
     extend ActiveSupport::Concern
 

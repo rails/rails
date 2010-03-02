@@ -1,7 +1,10 @@
+$:.unshift "lib"
+require "rails/version"
+
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'railties'
-  s.version     = '3.0.0.beta1'
+  s.version     = Rails::VERSION::STRING
   s.summary     = 'Controls boot-up, rake tasks and generators for the Rails framework.'
   s.description = 'Controls boot-up, rake tasks and generators for the Rails framework.'
   s.required_ruby_version = '>= 1.8.7'
@@ -22,6 +25,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency('rake',          '>= 0.8.3')
   s.add_dependency('thor',          '~> 0.13.4')
-  s.add_dependency('activesupport', '= 3.0.0.beta1')
-  s.add_dependency('actionpack',    '= 3.0.0.beta1')
+  s.add_dependency('activesupport', "= #{Rails::VERSION::STRING}")
+  s.add_dependency('actionpack',    "= #{Rails::VERSION::STRING}")
 end

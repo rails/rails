@@ -25,7 +25,7 @@ module ActionView
         end
 
         template = if options[:file]
-          find(options[:file], {:formats => formats})
+          find(options[:file], details_for_render)
         elsif options[:inline]
           handler = Template.handler_class_for_extension(options[:type] || "erb")
           Template.new(options[:inline], "inline template", handler, {})
@@ -34,7 +34,7 @@ module ActionView
         end
 
         if template
-          layout = find(layout, {:formats => formats}) if layout
+          layout = find(layout, details_for_render) if layout
           _render_template(template, layout, :locals => options[:locals])
         end
       when :update
@@ -42,6 +42,10 @@ module ActionView
       else
         _render_partial(:partial => options, :locals => locals)
       end
+    end
+
+    def details_for_render
+      controller.try(:details_for_render) || {:formats => formats}
     end
 
     # You can think of a layout as a method that is called with a block. _layout_for

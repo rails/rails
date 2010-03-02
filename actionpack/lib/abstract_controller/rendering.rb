@@ -168,12 +168,12 @@ module AbstractController
       end
     end
 
-    def _details_defaults
+    def details_for_render
       { :formats => formats, :locale => [I18n.locale] }
     end
 
     def _normalize_details(options)
-      details = _details_defaults
+      details = details_for_render
       details[:formats] = Array(options[:format]) if options[:format]
       details[:locale]  = Array(options[:locale]) if options[:locale]
       details

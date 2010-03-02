@@ -1,5 +1,11 @@
 require File.expand_path('../../../load_paths', __FILE__)
 
+lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
+$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
+
+activemodel_path = File.expand_path('../../../activemodel/lib', __FILE__)
+$:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include?(activemodel_path)
+
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
@@ -73,11 +79,13 @@ module ActiveSupport
     # have been loaded.
     setup_once do
       SharedTestRoutes.draw do |map|
-        match ':controller(/:action(/:id))'
+        # FIXME: match ':controller(/:action(/:id))'
+        map.connect ':controller/:action/:id'
       end
 
-      ActionController::IntegrationTest.app.router.draw do
-        match ':controller(/:action(/:id))'
+      ActionController::IntegrationTest.app.router.draw do |map|
+        # FIXME: match ':controller(/:action(/:id))'
+        map.connect ':controller/:action/:id'
       end
     end
   end

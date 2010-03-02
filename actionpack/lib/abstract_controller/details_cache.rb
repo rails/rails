@@ -34,7 +34,7 @@ module AbstractController
     end
 
     def render_to_body(*args)
-      Thread.current[:format_locale_key] = HashKey.get(self.class, _details_defaults)
+      Thread.current[:format_locale_key] = HashKey.get(self.class, details_for_render)
       super
     end
 

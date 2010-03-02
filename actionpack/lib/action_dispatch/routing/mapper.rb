@@ -88,7 +88,6 @@ module ActionDispatch
             @requirements ||= returning(@options[:constraints] || {}) do |requirements|
               requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
               @options.each { |k, v| requirements[k] = v if v.is_a?(Regexp) }
-              requirements[:controller] ||= @set.controller_constraints
             end
           end
 

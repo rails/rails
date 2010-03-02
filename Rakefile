@@ -2,23 +2,26 @@ require 'rake'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
 
-env = %(PKG_BUILD="#{ENV['PKG_BUILD']}") if ENV['PKG_BUILD']
-
 PROJECTS = %w(activesupport activemodel actionpack actionmailer activeresource activerecord railties)
+PROJECTS.each { |project| $:.unshift "#{project}/lib" }
 
-Dir["#{File.dirname(__FILE__)}/*/lib/*/version.rb"].each do |version_path|
-  require version_path
-end
+require "active_support/version"
+require "active_model/version"
+require "action_pack/version"
+require "action_mailer/version"
+require "active_resource/version"
+require "active_record/version"
+require "rails/version"
 
 desc 'Run all tests by default'
 task :default => %w(test test:isolated)
 
-%w(test test:isolated rdoc pgem package gem gemspec).each do |task_name|
+%w(test test:isolated rdoc package gem).each do |task_name|
   desc "Run #{task_name} task for all projects"
   task task_name do
     errors = []
     PROJECTS.each do |project|
-      system(%(cd #{project} && #{env} #{$0} #{task_name})) || errors << project
+      system(%(cd #{project} && #{$0} #{task_name})) || errors << project
     end
     fail("Errors in #{errors.join(', ')}") unless errors.empty?
   end
@@ -27,9 +30,9 @@ end
 desc "Smoke-test all projects"
 task :smoke do
   (PROJECTS - %w(activerecord)).each do |project|
-    system %(cd #{project} && #{env} #{$0} test:isolated)
+    system %(cd #{project} && #{$0} test:isolated)
   end
-  system %(cd activerecord && #{env} #{$0} sqlite3:isolated_test)
+  system %(cd activerecord && #{$0} sqlite3:isolated_test)
 end
 
 spec = eval(File.read('rails.gemspec'))
@@ -48,7 +51,7 @@ desc "Release all components to gemcutter."
 task :release_projects => :package do
   errors = []
   PROJECTS.each do |project|
-    system(%(cd #{project} && #{env} #{$0} release)) || errors << project
+    system(%(cd #{project} && #{$0} release)) || errors << project
   end
   fail("Errors in #{errors.join(', ')}") unless errors.empty?
 end
@@ -122,6 +125,28 @@ task :pdoc => :rdoc do
   require 'rake/contrib/sshpublisher'
   Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/api", "doc/rdoc").upload
   PROJECTS.each do |project|
-    system %(cd #{project} && #{env} #{$0} pdoc)
+    system %(cd #{project} && #{$0} pdoc)
+  end
+end
+
+task :update_versions do
+  constants = {
+    "activesupport"   => "ActiveSupport",
+    "activemodel"     => "ActiveModel",
+    "actionpack"      => "ActionPack",
+    "actionmailer"    => "ActionMailer",
+    "activeresource"  => "ActiveResource",
+    "activerecord"    => "ActiveRecord",
+    "railties"        => "Rails"
+  }
+
+  version_file = File.read("version.rb")
+
+  PROJECTS.each do |project|
+    Dir["#{project}/lib/*/version.rb"].each do |file|
+      File.open(file, "w") do |f|
+        f.write version_file.gsub(/Rails/, constants[project])
+      end
+    end
   end
 end

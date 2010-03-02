@@ -81,6 +81,10 @@ module ActionDispatch
         parts[0..-(tld_length+2)]
       end
 
+      def subdomain(tld_length = 1)
+        subdomains(tld_length).join('.')
+      end
+
       # Returns the query string, accounting for server idiosyncrasies.
       def query_string
         @env['QUERY_STRING'].present? ? @env['QUERY_STRING'] : (@env['REQUEST_URI'].to_s.split('?', 2)[1] || '')
