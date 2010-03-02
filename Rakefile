@@ -123,3 +123,25 @@ task :pdoc => :rdoc do
     system %(cd #{project} && #{$0} pdoc)
   end
 end
+
+task :update_versions do
+  constants = {
+    "activesupport"   => "ActiveSupport",
+    "activemodel"     => "ActiveModel",
+    "actionpack"      => "ActionPack",
+    "actionmailer"    => "ActionMailer",
+    "activeresource"  => "ActiveResource",
+    "activerecord"    => "ActiveRecord",
+    "railties"        => "Rails"
+  }
+
+  version_file = File.read("version.rb")
+
+  PROJECTS.each do |project|
+    Dir["#{project}/lib/*/version.rb"].each do |file|
+      File.open(file, "w") do |f|
+        f.write version_file.gsub(/Rails/, constants[project])
+      end
+    end
+  end
+end
