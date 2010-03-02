@@ -6,7 +6,7 @@ module Notifications
       ActiveSupport::Notifications.notifier = nil
       @notifier = ActiveSupport::Notifications.notifier
       @events = []
-      @notifier.subscribe { |*args| @events << event(*args) }
+      @subscription = @notifier.subscribe { |*args| @events << event(*args) }
     end
 
     private
@@ -17,6 +17,18 @@ module Notifications
       def drain
         @notifier.wait
       end
+  end
+
+  class UnsubscribeTest < TestCase
+    def unsubscribing_removes_a_subscription
+      @notifier.publish :foo
+      @notifier.wait
+      assert_equal [[:foo]], @events
+      @notifier.unsubscribe(@subscription)
+      @notifier.publish :bar
+      @notifier.wait
+      assert_equal [[:foo]], @events
+    end
   end
 
   class SyncPubSubTest < TestCase

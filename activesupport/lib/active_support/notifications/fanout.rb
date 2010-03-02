@@ -4,7 +4,7 @@ module ActiveSupport
     # just pushes events to all registered log subscribers.
     class Fanout
       def initialize
-        @log_subscribers = []
+        @subscribers = []
       end
 
       def bind(pattern)
@@ -12,11 +12,16 @@ module ActiveSupport
       end
 
       def subscribe(pattern = nil, &block)
-        @log_subscribers << Subscriber.new(pattern, &block)
+        @subscribers << Subscriber.new(pattern, &block)
+        @subscribers.last
+      end
+
+      def unsubscribe(subscriber)
+        @subscribers.delete(subscriber)
       end
 
       def publish(*args)
-        @log_subscribers.each { |s| s.publish(*args) }
+        @subscribers.each { |s| s.publish(*args) }
       end
 
       # This is a sync queue, so there is not waiting.
