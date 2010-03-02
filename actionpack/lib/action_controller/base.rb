@@ -15,7 +15,6 @@ module ActionController
     include ActionController::Renderers::All
     include ActionController::ConditionalGet
     include ActionController::RackDelegation
-    include ActionController::Configuration
 
     # Legacy modules
     include SessionManagement

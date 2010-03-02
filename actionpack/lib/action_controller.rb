@@ -13,7 +13,6 @@ module ActionController
   autoload_under "metal" do
     autoload :Compatibility
     autoload :ConditionalGet
-    autoload :Configuration
     autoload :Cookies
     autoload :Flash
     autoload :Head

@@ -2,8 +2,6 @@ module ActionController #:nodoc:
   module SessionManagement #:nodoc:
     extend ActiveSupport::Concern
 
-    include ActionController::Configuration
-
     module ClassMethods
       # Set the session store to be used for keeping the session data between requests.
       # By default, sessions are stored in browser cookies (<tt>:cookie_store</tt>),
