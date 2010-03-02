@@ -458,7 +458,9 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_redirected_to_url_no_leadling_slash
     process :redirect_to_path
-    assert_redirected_to 'some/path'
+    assert_deprecated /leading/ do
+      assert_redirected_to 'some/path'
+    end
   end
 
   def test_redirected_to_url_full_url
