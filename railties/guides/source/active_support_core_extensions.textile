@@ -1457,10 +1457,30 @@ The method +tableize+ is +underscore+ followed by +pluralize+.
 <ruby>
 "Person".tableize      # => "people"
 "Invoice".tableize     # => "invoices"
-"InvoiceLine".tableize # => "invoice_lines" 
+"InvoiceLine".tableize # => "invoice_lines"
 </ruby>
 
 As a rule of thumb, +tableize+ returns the table name that corresponds to a given model for simple cases. The actual implementation in Active Record is not straight +tableize+ indeed, because it also demodulizes de class name and checks a few options that may affect the returned string.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +classify+
+
+The method +classify+ is the inverse of +tableize+. It gives you the class name corresponding to a table name:
+
+<ruby>
+"people".classify        # => "Person"
+"invoices".classify      # => "Invoice"
+"invoice_lines".classify # => "InvoiceLine"
+</ruby>
+
+The method understands qualified table names:
+
+<ruby>
+"highrise_production.companies".classify # => "Company"
+</ruby>
+
+Note that +classify+ returns a class name as a string. You can get the actual class object invoking +constantize+ on it, explained next.
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
