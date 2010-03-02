@@ -30,13 +30,11 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
   def setup
     super
     @log_subscriber = MyLogSubscriber.new
-    Rails::LogSubscriber.instance_variable_set(:@log_tailer, nil)
   end
 
   def teardown
     super
     Rails::LogSubscriber.log_subscribers.clear
-    Rails::LogSubscriber.instance_variable_set(:@log_tailer, nil)
   end
 
   def instrument(*args, &block)
