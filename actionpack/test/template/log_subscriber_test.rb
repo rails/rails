@@ -7,11 +7,11 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   include Rails::LogSubscriber::TestHelper
 
   def setup
+    super
     @old_logger = ActionController::Base.logger
     @view = ActionView::Base.new(ActionController::Base.view_paths, {})
     Rails.stubs(:root).returns(File.expand_path(FIXTURE_LOAD_PATH))
     Rails::LogSubscriber.add(:action_view, ActionView::Railties::LogSubscriber.new)
-    super
   end
 
   def teardown

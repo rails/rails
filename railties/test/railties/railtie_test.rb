@@ -54,7 +54,7 @@ module RailtiesTest
     test "railtie can add log subscribers" do
       begin
         class Foo < Rails::Railtie ; log_subscriber(Rails::LogSubscriber.new) ; end
-        assert_kind_of Rails::LogSubscriber, Rails::LogSubscriber.log_subscribers[:foo]
+        assert_kind_of Rails::LogSubscriber, Rails::LogSubscriber.log_subscribers[0]
       ensure
         Rails::LogSubscriber.log_subscribers.clear
       end

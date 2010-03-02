@@ -29,7 +29,7 @@ module Rails
   # This is useful because it avoids spanning several log subscribers just for logging
   # purposes(which slows down the main thread). Besides of providing a centralized
   # facility on top of Rails.logger.
-  # 
+  #
   # Log subscriber also has some helpers to deal with logging and automatically flushes
   # all logs when the request finishes (via action_dispatch.callback notification).
   class LogSubscriber
@@ -50,31 +50,29 @@ module Rails
     CYAN       = "\e[36m"
     WHITE      = "\e[37m"
 
-    def self.add(namespace, log_subscriber)
-      log_subscribers[namespace.to_sym] = log_subscriber
-    end
+    def self.add(namespace, log_subscriber, notifier = ActiveSupport::Notifications)
+      log_subscribers << log_subscriber
 
-    def self.log_subscribers
-      @log_subscribers ||= {}
-    end
+      log_subscriber.public_methods(false).each do |event|
+        notifier.subscribe("#{namespace}.#{event}") do |*args|
+          next if log_subscriber.logger.nil?
 
-    def self.dispatch(args)
-      namespace, name = args[0].split(".")
-      return unless namespace && name
-
-      log_subscriber = log_subscribers[namespace.to_sym]
-      if log_subscriber.respond_to?(name) && log_subscriber.logger
-        begin
-          log_subscriber.send(name, ActiveSupport::Notifications::Event.new(*args))
-        rescue Exception => e
-          Rails.logger.error "Could not log #{args[0].inspect} event. #{e.class}: #{e.message}"
+          begin
+            log_subscriber.send(event, ActiveSupport::Notifications::Event.new(*args))
+          rescue Exception => e
+            Rails.logger.error "Could not log #{args[0].inspect} event. #{e.class}: #{e.message}"
+          end
         end
       end
     end
 
+    def self.log_subscribers
+      @log_subscribers ||= []
+    end
+
     # Flush all log_subscribers' logger.
     def self.flush_all!
-      loggers = log_subscribers.values.map(&:logger)
+      loggers = log_subscribers.map(&:logger)
       loggers.uniq!
       loggers.each { |l| l.flush if l.respond_to?(:flush) }
     end

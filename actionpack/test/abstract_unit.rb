@@ -203,6 +203,16 @@ end
 class ::ApplicationController < ActionController::Base
 end
 
+module ActionView
+  class TestCase
+    # Must repeat the setup because AV::TestCase is a duplication
+    # of AC::TestCase
+    setup do
+      @router = SharedTestRoutes
+    end
+  end
+end
+
 module ActionController
   class Base
     include ActionController::Testing

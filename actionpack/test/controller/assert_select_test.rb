@@ -6,18 +6,7 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
 
-
-unless defined?(ActionMailer)
-  begin
-    $:.unshift("#{File.dirname(__FILE__)}/../../../actionmailer/lib")
-    require 'action_mailer'
-  rescue LoadError => e
-    raise unless e.message =~ /action_mailer/
-    require 'rubygems'
-    gem 'actionmailer'
-  end
-end
-
+require 'action_mailer'
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
 
 class AssertSelectTest < ActionController::TestCase

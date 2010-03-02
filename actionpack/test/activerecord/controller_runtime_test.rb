@@ -17,9 +17,9 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
   tests LogSubscriberController
 
   def setup
+    super
     @old_logger = ActionController::Base.logger
     Rails::LogSubscriber.add(:action_controller, ActionController::Railties::LogSubscriber.new)
-    super
   end
 
   def teardown

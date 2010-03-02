@@ -152,7 +152,7 @@ module ActionView
       end
 
       def method_missing(selector, *args)
-        if ActionDispatch::Routing::Routes.named_routes.helpers.include?(selector)
+        if @controller._router.named_routes.helpers.include?(selector)
           @controller.__send__(selector, *args)
         else
           super
