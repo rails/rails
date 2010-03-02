@@ -43,7 +43,6 @@ module Rails
         @notifier = ActiveSupport::Notifications::Notifier.new(queue)
 
         Rails::LogSubscriber.colorize_logging = false
-        @notifier.subscribe { |*args| Rails::LogSubscriber.dispatch(args) }
 
         set_logger(@logger)
         ActiveSupport::Notifications.notifier = @notifier
