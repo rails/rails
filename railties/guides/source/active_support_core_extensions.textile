@@ -1556,6 +1556,31 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
+h5. +foreign_key+
+
+The method +foreign_key+ gives a foreign key column name from a class name. To do so it demodulizes, underscores, and adds "_id":
+
+<ruby>
+"User".foreign_key           # => "user_id"
+"InvoiceLine".foreign_key    # => "invoice_line_id"
+"Admin::Session".foreign_key # => "session_id"
+</ruby>
+
+Pass a false argument if you do not want the underscore in "_id":
+
+<ruby>
+"User".foreign_key(false) # => "userid"
+</ruby>
+
+Associations use this method to infer foreign keys, for example +has_one+ and +has_many+ do this:
+
+<ruby>
+# active_record/associations.rb
+foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
