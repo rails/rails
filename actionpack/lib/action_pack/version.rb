@@ -1,9 +1,10 @@
-module ActionPack #:nodoc:
+module ActionPack
   module VERSION #:nodoc:
     MAJOR = 3
     MINOR = 0
-    TINY  = "0.beta1"
+    TINY  = 0
+    BUILD = "beta1"
 
-    STRING = [MAJOR, MINOR, TINY].join('.')
+    STRING = [MAJOR, MINOR, TINY, BUILD].join('.')
   end
 end
