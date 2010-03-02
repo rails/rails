@@ -1,5 +1,6 @@
-require 'active_support/core_ext/module/delegation'
 require 'rails/railtie'
+require 'active_support/core_ext/module/delegation'
+require 'pathname'
 
 module Rails
   class Engine < Railtie
