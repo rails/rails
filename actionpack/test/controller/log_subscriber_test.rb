@@ -40,6 +40,8 @@ class ACLogSubscriberTest < ActionController::TestCase
   include Rails::LogSubscriber::TestHelper
 
   def setup
+    super
+
     @old_logger = ActionController::Base.logger
 
     @cache_path = File.expand_path('../temp/test_cache', File.dirname(__FILE__))
@@ -47,7 +49,6 @@ class ACLogSubscriberTest < ActionController::TestCase
     ActionController::Base.cache_store = :file_store, @cache_path
 
     Rails::LogSubscriber.add(:action_controller, ActionController::Railties::LogSubscriber.new)
-    super
   end
 
   def teardown
