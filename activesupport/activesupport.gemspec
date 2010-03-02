@@ -5,8 +5,8 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'activesupport'
   s.version     = ActiveSupport::VERSION::STRING
-  s.summary     = 'Support and utility classes used by the Rails framework.'
-  s.description = 'Support and utility classes used by the Rails framework.'
+  s.summary     = 'A toolkit of support libraries and Ruby core extensions extracted from the Rails framework.'
+  s.summary     = 'A toolkit of support libraries and Ruby core extensions extracted from the Rails framework. Rich support for multibyte strings, internationalization, time zones, and testing.'
   s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'David Heinemeier Hansson'

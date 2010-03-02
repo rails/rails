@@ -5,8 +5,8 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'rails'
   s.version     = Rails::VERSION::STRING
-  s.summary     = 'Full-stack web-application framework.'
-  s.description = 'Full-stack web-application framework.'
+  s.summary     = 'Full-stack web application framework.'
+  s.description = 'Ruby on Rails is a full-stack web framework optimized for programmer happiness and sustainable productivity. It encourages beautiful code by favoring convention over configuration.'
   s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'David Heinemeier Hansson'

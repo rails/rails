@@ -5,8 +5,8 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'railties'
   s.version     = Rails::VERSION::STRING
-  s.summary     = 'Controls boot-up, rake tasks and generators for the Rails framework.'
-  s.description = 'Controls boot-up, rake tasks and generators for the Rails framework.'
+  s.summary     = 'Tools for creating, working with, and running Rails applications.'
+  s.description = 'Rails internals: application bootup, plugins, generators, and rake tasks.'
   s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'David Heinemeier Hansson'

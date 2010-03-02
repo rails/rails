@@ -5,8 +5,9 @@ Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.name = 'activemodel'
   s.version = ActiveModel::VERSION::STRING
-  s.summary = "A toolkit for building other modeling frameworks like ActiveRecord"
-  s.description = %q{Extracts common modeling concerns from ActiveRecord to share between similar frameworks like ActiveResource.}
+  s.summary = 'A toolkit for building modeling frameworks (part of Rails).'
+  s.description = 'A toolkit for building modeling frameworks like Active Record and Active Resource. Rich support for attributes, callbacks, validations, observers, serialization, internationalization, and testing.'
+  to share between similar frameworks like ActiveResource.}
   s.required_ruby_version = '>= 1.8.7'
 
   s.author = "David Heinemeier Hansson"
