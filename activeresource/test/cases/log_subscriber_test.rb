@@ -7,15 +7,16 @@ require "active_support/core_ext/hash/conversions"
 # TODO: This test should be part of Railties
 class LogSubscriberTest < ActiveSupport::TestCase
   include Rails::LogSubscriber::TestHelper
-  Rails::LogSubscriber.add(:active_resource, ActiveResource::Railties::LogSubscriber.new)
 
   def setup
+    super
+
     @matz = { :id => 1, :name => 'Matz' }.to_xml(:root => 'person')
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/1.xml", {}, @matz
     end
 
-    super
+    Rails::LogSubscriber.add(:active_resource, ActiveResource::Railties::LogSubscriber.new)
   end
 
   def set_logger(logger)
