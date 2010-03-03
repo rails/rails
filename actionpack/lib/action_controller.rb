@@ -20,6 +20,7 @@ module ActionController
     autoload :Helpers
     autoload :HideActions
     autoload :HttpAuthentication
+    autoload :ImplicitRender
     autoload :Instrumentation
     autoload :MimeResponds
     autoload :RackDelegation
