@@ -51,6 +51,7 @@ class PageCachingTest < ActionController::TestCase
 
     @request = ActionController::TestRequest.new
     @request.host = 'hostname.com'
+    @request.env.delete('PATH_INFO')
 
     @response   = ActionController::TestResponse.new
     @controller = PageCachingTestController.new
@@ -110,7 +111,7 @@ class PageCachingTest < ActionController::TestCase
   end
 
   def test_should_cache_ok_at_custom_path
-    @request.request_uri = "/index.html"
+    @request.env['PATH_INFO'] = '/index.html'
     get :ok
     assert_response :ok
     assert File.exist?("#{FILE_STORE_PATH}/index.html")
