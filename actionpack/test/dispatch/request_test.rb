@@ -1,14 +1,6 @@
 require 'abstract_unit'
 
 class RequestTest < ActiveSupport::TestCase
-  def setup
-    ActionController::Base.relative_url_root = nil
-  end
-
-  def teardown
-    ActionController::Base.relative_url_root = nil
-  end
-
   test "remote ip" do
     request = stub_request 'REMOTE_ADDR' => '1.2.3.4'
     assert_equal '1.2.3.4', request.remote_ip

@@ -648,8 +648,8 @@ module ActionView
             source = rewrite_asset_path(source)
 
             if has_request && include_host
-              unless source =~ %r{^#{ActionController::Base.relative_url_root}/}
-                source = "#{ActionController::Base.relative_url_root}#{source}"
+              unless source =~ %r{^#{controller.config.relative_url_root}/}
+                source = "#{controller.config.relative_url_root}#{source}"
               end
             end
           end

@@ -9,6 +9,10 @@ module ActionController
       super.reverse_merge(
         :host => request.host_with_port,
         :protocol => request.protocol,
+        # ROUTES TODO: relative_url_root should be middleware
+        # and the generator should take SCRIPT_NAME into
+        # consideration
+        :relative_url_root => config.relative_url_root,
         :_path_segments => request.symbolized_path_parameters
       )
     end

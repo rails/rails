@@ -7,13 +7,17 @@ module ActionController
     class ::ActionController::ActionControllerError < StandardError #:nodoc:
     end
 
+    module ClassMethods
+    end
+
     # Temporary hax
     included do
       ::ActionController::UnknownAction = ::AbstractController::ActionNotFound
       ::ActionController::DoubleRenderError = ::AbstractController::DoubleRenderError
 
-      cattr_accessor :relative_url_root
-      self.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
+      # ROUTES TODO: This should be handled by a middleware and route generation
+      # should be able to handle SCRIPT_NAME
+      self.config.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
 
       class << self
         delegate :default_charset=, :to => "ActionDispatch::Response"
@@ -46,6 +50,39 @@ module ActionController
 
       cattr_accessor :trusted_proxies
     end
+
+    def self.deprecated_config_accessor(option, message = nil)
+      deprecated_config_reader(option, message)
+      deprecated_config_writer(option, message)
+    end
+
+    def self.deprecated_config_reader(option, message = nil)
+      message ||= "Reading #{option} directly from ActionController::Base is deprecated. " \
+                  "Please read it from config.#{option}"
+
+      ClassMethods.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+        def #{option}
+          ActiveSupport::Deprecation.warn #{message.inspect}
+          config.#{option}
+        end
+      RUBY
+    end
+
+    def self.deprecated_config_writer(option, message = nil)
+      message ||= "Setting #{option} directly on ActionController::Base is deprecated. " \
+                  "Please set it on config.action_controller.#{option}"
+
+      ClassMethods.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+        def #{option}=(val)
+          ActiveSupport::Deprecation.warn #{message.inspect}
+          config.#{option} = val
+        end
+      RUBY
+    end
+
+    deprecated_config_writer :session_store
+    deprecated_config_writer :session_options
+    deprecated_config_accessor :relative_url_root, "relative_url_root is ineffective. Please stop using it"
 
     # For old tests
     def initialize_template_class(*) end

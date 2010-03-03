@@ -8,22 +8,6 @@ module ActionController #:nodoc:
     end
 
     module ClassMethods
-      # Set the session store to be used for keeping the session data between requests.
-      # By default, sessions are stored in browser cookies (<tt>:cookie_store</tt>),
-      # but you can also specify one of the other included stores (<tt>:active_record_store</tt>,
-      # <tt>:mem_cache_store</tt>, or your own custom class.
-      def session_store=(store)
-        ActiveSupport::Deprecation.warn "Setting session_store directly on ActionController::Base is deprecated. " \
-                                        "Please set it on config.action_controller.session_store"
-        config.session_store = store
-      end
-
-      def session_options=(opts)
-        ActiveSupport::Deprecation.warn "Setting seession_options directly on ActionController::Base is deprecated. " \
-                                        "Please set it on config.action_controller.session_options"
-        config.session_store = opts
-      end
-
       def session_options
         config.session_options
       end

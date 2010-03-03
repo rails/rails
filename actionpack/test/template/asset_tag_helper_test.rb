@@ -1,4 +1,13 @@
 require 'abstract_unit'
+require 'active_support/ordered_options'
+
+class FakeController
+  attr_accessor :request
+
+  def config
+    @config ||= ActiveSupport::InheritableOptions.new(ActionController::Metal.config)
+  end
+end
 
 class AssetTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
@@ -32,8 +41,7 @@ class AssetTagHelperTest < ActionView::TestCase
       )
     end
 
-    @controller = Class.new do
-      attr_accessor :request
+    @controller = Class.new(FakeController) do
       def url_for(*args) "http://www.example.com" end
     end.new
 
@@ -372,11 +380,9 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_timebased_asset_id_with_relative_url_root
-      ActionController::Base.relative_url_root = "/collaboration/hieraki"
-      expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
-      assert_equal %(<img alt="Rails" src="#{ActionController::Base.relative_url_root}/images/rails.png?#{expected_time}" />), image_tag("rails.png")
-    ensure
-      ActionController::Base.relative_url_root = ""
+    @controller.config.relative_url_root = "/collaboration/hieraki"
+    expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
+    assert_equal %(<img alt="Rails" src="#{@controller.config.relative_url_root}/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
 
   def test_should_skip_asset_id_on_complete_url
@@ -606,7 +612,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_with_relative_url_root
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.relative_url_root = "/collaboration/hieraki"
+    @controller.config.relative_url_root = "/collaboration/hieraki"
     ActionController::Base.perform_caching = true
 
     assert_dom_equal(
@@ -624,7 +630,6 @@ class AssetTagHelperTest < ActionView::TestCase
     assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
 
   ensure
-    ActionController::Base.relative_url_root = nil
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
   end
@@ -821,7 +826,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_stylesheet_link_tag_with_relative_url_root
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.relative_url_root = "/collaboration/hieraki"
+    @controller.config.relative_url_root = "/collaboration/hieraki"
     ActionController::Base.perform_caching = true
 
     assert_dom_equal(
@@ -841,7 +846,6 @@ class AssetTagHelperTest < ActionView::TestCase
 
     assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
   ensure
-    ActionController::Base.relative_url_root = nil
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
   end
@@ -884,15 +888,13 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
 
   def setup
     super
-    ActionController::Base.relative_url_root = "/collaboration/hieraki"
-
-    @controller = Class.new do
-      attr_accessor :request
-
+    @controller = Class.new(FakeController) do
       def url_for(options)
         "http://www.example.com/collaboration/hieraki"
       end
     end.new
+
+    @controller.config.relative_url_root = "/collaboration/hieraki"
 
     @request = Class.new do
       def protocol
@@ -903,10 +905,6 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     @controller.request = @request
 
     ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
-  end
-
-  def teardown
-    ActionController::Base.relative_url_root = nil
   end
 
   def test_should_compute_proper_path
