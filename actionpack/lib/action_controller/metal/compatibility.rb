@@ -12,9 +12,6 @@ module ActionController
       ::ActionController::UnknownAction = ::AbstractController::ActionNotFound
       ::ActionController::DoubleRenderError = ::AbstractController::DoubleRenderError
 
-      cattr_accessor :session_options
-      self.session_options = {}
-
       cattr_accessor :relative_url_root
       self.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
 

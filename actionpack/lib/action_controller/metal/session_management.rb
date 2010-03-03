@@ -2,27 +2,40 @@ module ActionController #:nodoc:
   module SessionManagement #:nodoc:
     extend ActiveSupport::Concern
 
+    included do
+      self.config.session_store   ||= :cookie_store
+      self.config.session_options ||= {}
+    end
+
     module ClassMethods
       # Set the session store to be used for keeping the session data between requests.
       # By default, sessions are stored in browser cookies (<tt>:cookie_store</tt>),
       # but you can also specify one of the other included stores (<tt>:active_record_store</tt>,
       # <tt>:mem_cache_store</tt>, or your own custom class.
       def session_store=(store)
-        if store == :active_record_store
-          self.session_store = ActiveRecord::SessionStore
-        else
-          @@session_store = store.is_a?(Symbol) ?
-            ActionDispatch::Session.const_get(store.to_s.camelize) :
-            store
-        end
+        ActiveSupport::Deprecation.warn "Setting session_store directly on ActionController::Base is deprecated. " \
+                                        "Please set it on config.action_controller.session_store"
+        config.session_store = store
       end
 
-      # Returns the session store class currently used.
+      def session_options=(opts)
+        ActiveSupport::Deprecation.warn "Setting seession_options directly on ActionController::Base is deprecated. " \
+                                        "Please set it on config.action_controller.session_options"
+        config.session_store = opts
+      end
+
+      def session_options
+        config.session_options
+      end
+
       def session_store
-        if defined? @@session_store
-          @@session_store
+        case store = config.session_store
+        when :active_record_store
+          ActiveRecord::SessionStore
+        when Symbol
+          ActionDispatch::Session.const_get(store.to_s.camelize)
         else
-          ActionDispatch::Session::CookieStore
+          store
         end
       end
 

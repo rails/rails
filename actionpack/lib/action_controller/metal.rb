@@ -1,4 +1,13 @@
 require 'active_support/core_ext/class/attribute'
+require 'active_support/ordered_options'
+
+module ActiveSupport
+  class InheritableOptions < OrderedOptions
+    def initialize(parent)
+      super() { |h,k| parent[k] }
+    end
+  end
+end
 
 module ActionController
   # ActionController::Metal provides a way to get a valid Rack application from a controller.
@@ -9,6 +18,14 @@ module ActionController
   # can dispatch directly to the action returned by FooController.action(:index).
   class Metal < AbstractController::Base
     abstract!
+
+    def self.config
+      @config ||= ActiveSupport::InheritableOptions.new(superclass < Metal ? superclass.config : {})
+    end
+
+    def config
+      self.class.config
+    end
 
     # :api: public
     attr_internal :params, :env
