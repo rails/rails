@@ -41,7 +41,7 @@ module Rails
       end
     end
 
-    delegate :middleware, :paths, :root, :to => :config
+    delegate :middleware, :paths, :metal_loader, :root, :to => :config
 
     def load_tasks
       super

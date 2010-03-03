@@ -55,10 +55,6 @@ module Rails
       @railties ||= Railties.new(config)
     end
 
-    def metal_loader
-      @metal_loader ||= MetalLoader.new
-    end
-
     def routes_reloader
       @routes_reloader ||= RoutesReloader.new
     end
