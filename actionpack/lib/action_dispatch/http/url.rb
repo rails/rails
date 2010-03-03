@@ -85,42 +85,23 @@ module ActionDispatch
         subdomains(tld_length).join('.')
       end
 
-      # Returns the query string, accounting for server idiosyncrasies.
+      # The query string must always be present
       def query_string
-        @env['QUERY_STRING'].present? ? @env['QUERY_STRING'] : (@env['REQUEST_URI'].to_s.split('?', 2)[1] || '')
+        @env['QUERY_STRING']
       end
 
       # Returns the request URI, accounting for server idiosyncrasies.
       # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
       def request_uri
-        if uri = @env['REQUEST_URI']
-          # Remove domain, which webrick puts into the request_uri.
-          (%r{^\w+\://[^/]+(/.*|$)$} =~ uri) ? $1 : uri
-        else
-          # Construct IIS missing REQUEST_URI from SCRIPT_NAME and PATH_INFO.
-          uri = @env['PATH_INFO'].to_s
-
-          if script_filename = @env['SCRIPT_NAME'].to_s.match(%r{[^/]+$})
-            uri = uri.sub(/#{script_filename}\//, '')
-          end
-
-          env_qs = @env['QUERY_STRING'].to_s
-          uri += "?#{env_qs}" unless env_qs.empty?
-
-          if uri.blank?
-            @env.delete('REQUEST_URI')
-          else
-            @env['REQUEST_URI'] = uri
-          end
-        end
+        uri = "#{@env["SCRIPT_NAME"]}#{@env["PATH_INFO"]}"
+        uri << "?#{@env["QUERY_STRING"]}" if @env["QUERY_STRING"].present?
+        uri
       end
 
       # Returns the interpreted \path to requested resource after all the installation
       # directory of this application was taken into account.
       def path
-        path = request_uri.to_s[/\A[^\?]*/]
-        path.sub!(/\A#{ActionController::Base.relative_url_root}/, '')
-        path
+        @env['PATH_INFO']
       end
 
     private

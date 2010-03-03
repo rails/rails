@@ -322,6 +322,8 @@ module ActionController
         @controller ||= klass.new rescue nil
       end
 
+      @request.env.delete('PATH_INFO')
+
       if @controller
         @controller.request = @request
         @controller.params = {}
@@ -333,15 +335,19 @@ module ActionController
       @request.remote_addr = '208.77.188.166' # example.com
     end
 
-    private
-      def build_request_uri(action, parameters)
-        unless @request.env['REQUEST_URI']
-          options = @controller.__send__(:url_options).merge(parameters)
-          options.update(:only_path => true, :action => action)
+  private
+    def build_request_uri(action, parameters)
+      unless @request.env["PATH_INFO"]
+        options = @controller.__send__(:url_options).merge(parameters)
+        options.update(:only_path => true, :action => action, :relative_url_root => nil)
+        rewriter = ActionController::UrlRewriter.new(@request, parameters)
 
-          url = ActionController::UrlRewriter.new(@request, parameters)
-          @request.request_uri = url.rewrite(@router, options)
-        end
+        url, query_string = rewriter.rewrite(@router, options).split("?", 2)
+
+        @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
+        @request.env["PATH_INFO"] = url
+        @request.env["QUERY_STRING"] = query_string || ""
       end
+    end
   end
 end

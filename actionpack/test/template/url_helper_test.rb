@@ -464,8 +464,6 @@ end
 class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
   def setup
     super
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
     @controller = TasksController.new
   end
 
@@ -565,7 +563,6 @@ end
 class PolymorphicControllerTest < ActionController::TestCase
   def setup
     super
-    @request  = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
   end
 

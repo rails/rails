@@ -346,8 +346,8 @@ class IntegrationProcessTest < ActionController::IntegrationTest
   def test_get_with_parameters
     with_test_route_set do
       get '/get_with_params', :foo => "bar"
-      assert_equal '/get_with_params', request.env["REQUEST_URI"]
-      assert_equal '/get_with_params', request.request_uri
+      assert_equal '/get_with_params', request.env["PATH_INFO"]
+      assert_equal '/get_with_params', request.path_info
       assert_equal 'foo=bar', request.env["QUERY_STRING"]
       assert_equal 'foo=bar', request.query_string
       assert_equal 'bar', request.parameters['foo']

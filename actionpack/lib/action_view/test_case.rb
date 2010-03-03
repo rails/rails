@@ -34,6 +34,8 @@ module ActionView
         @request = ActionController::TestRequest.new
         @response = ActionController::TestResponse.new
 
+        @request.env.delete('PATH_INFO')
+
         @params = {}
       end
     end

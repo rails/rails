@@ -144,103 +144,33 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "request uri" do
-    request = stub_request 'REQUEST_URI' => "http://www.rubyonrails.org/path/of/some/uri?mapped=1"
+    request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/path/of/some/uri', 'QUERY_STRING' => 'mapped=1'
     assert_equal "/path/of/some/uri?mapped=1", request.request_uri
     assert_equal "/path/of/some/uri",          request.path
 
-    request = stub_request 'REQUEST_URI' => "http://www.rubyonrails.org/path/of/some/uri"
+    request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/path/of/some/uri'
     assert_equal "/path/of/some/uri", request.request_uri
     assert_equal "/path/of/some/uri", request.path
 
-    request = stub_request 'REQUEST_URI' => "/path/of/some/uri"
-    assert_equal "/path/of/some/uri", request.request_uri
-    assert_equal "/path/of/some/uri", request.path
-
-    request = stub_request 'REQUEST_URI' => "/"
+    request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/'
     assert_equal "/", request.request_uri
     assert_equal "/", request.path
 
-    request = stub_request 'REQUEST_URI' => "/?m=b"
+    request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/', 'QUERY_STRING' => 'm=b'
     assert_equal "/?m=b", request.request_uri
     assert_equal "/",     request.path
 
-    request = stub_request 'REQUEST_URI' => "/", 'SCRIPT_NAME' => '/dispatch.cgi'
-    assert_equal "/", request.request_uri
-    assert_equal "/", request.path
-
-    ActionController::Base.relative_url_root = "/hieraki"
-    request = stub_request 'REQUEST_URI' => "/hieraki/", 'SCRIPT_NAME' => "/hieraki/dispatch.cgi"
+    request = stub_request 'SCRIPT_NAME' => '/hieraki', 'PATH_INFO' => '/'
     assert_equal "/hieraki/", request.request_uri
     assert_equal "/",         request.path
-    ActionController::Base.relative_url_root = nil
 
-    ActionController::Base.relative_url_root = "/collaboration/hieraki"
-    request = stub_request 'REQUEST_URI' => "/collaboration/hieraki/books/edit/2",
-      'SCRIPT_NAME' => "/collaboration/hieraki/dispatch.cgi"
+    request = stub_request 'SCRIPT_NAME' => '/collaboration/hieraki', 'PATH_INFO' => '/books/edit/2'
     assert_equal "/collaboration/hieraki/books/edit/2", request.request_uri
     assert_equal "/books/edit/2",                       request.path
-    ActionController::Base.relative_url_root = nil
 
-    # The following tests are for when REQUEST_URI is not supplied (as in IIS)
-    request = stub_request 'PATH_INFO'   => "/path/of/some/uri?mapped=1",
-                           'SCRIPT_NAME' => nil,
-                           'REQUEST_URI' => nil
-    assert_equal "/path/of/some/uri?mapped=1", request.request_uri
-    assert_equal "/path/of/some/uri",          request.path
-
-    ActionController::Base.relative_url_root = '/path'
-    request = stub_request 'PATH_INFO'   => "/path/of/some/uri?mapped=1",
-                           'SCRIPT_NAME' => "/path/dispatch.rb",
-                           'REQUEST_URI' => nil
+    request = stub_request 'SCRIPT_NAME' => '/path', 'PATH_INFO' => '/of/some/uri', 'QUERY_STRING' => 'mapped=1'
     assert_equal "/path/of/some/uri?mapped=1", request.request_uri
     assert_equal "/of/some/uri",               request.path
-    ActionController::Base.relative_url_root = nil
-
-    request = stub_request 'PATH_INFO'   => "/path/of/some/uri",
-                           'SCRIPT_NAME' => nil,
-                           'REQUEST_URI' => nil
-    assert_equal "/path/of/some/uri", request.request_uri
-    assert_equal "/path/of/some/uri", request.path
-
-    request = stub_request 'PATH_INFO' => '/', 'REQUEST_URI' => nil
-    assert_equal "/", request.request_uri
-    assert_equal "/", request.path
-
-    request = stub_request 'PATH_INFO' => '/?m=b', 'REQUEST_URI' => nil
-    assert_equal "/?m=b", request.request_uri
-    assert_equal "/",     request.path
-
-    request = stub_request 'PATH_INFO'   => "/",
-                           'SCRIPT_NAME' => "/dispatch.cgi",
-                           'REQUEST_URI' => nil
-    assert_equal "/", request.request_uri
-    assert_equal "/", request.path
-
-    ActionController::Base.relative_url_root = '/hieraki'
-    request = stub_request 'PATH_INFO'   => "/hieraki/",
-                           'SCRIPT_NAME' => "/hieraki/dispatch.cgi",
-                           'REQUEST_URI' => nil
-    assert_equal "/hieraki/", request.request_uri
-    assert_equal "/",         request.path
-    ActionController::Base.relative_url_root = nil
-
-    request = stub_request 'REQUEST_URI' => '/hieraki/dispatch.cgi'
-    ActionController::Base.relative_url_root = '/hieraki'
-    assert_equal "/dispatch.cgi", request.path
-    ActionController::Base.relative_url_root = nil
-
-    request = stub_request 'REQUEST_URI' => '/hieraki/dispatch.cgi'
-    ActionController::Base.relative_url_root = '/foo'
-    assert_equal "/hieraki/dispatch.cgi", request.path
-    ActionController::Base.relative_url_root = nil
-
-    # This test ensures that Rails uses REQUEST_URI over PATH_INFO
-    ActionController::Base.relative_url_root = nil
-    request = stub_request 'REQUEST_URI' => "/some/path",
-                           'PATH_INFO'   => "/another/path",
-                           'SCRIPT_NAME' => "/dispatch.cgi"
-    assert_equal "/some/path", request.request_uri
-    assert_equal "/some/path", request.path
   end
 
 
@@ -498,7 +428,7 @@ class RequestTest < ActiveSupport::TestCase
 
 protected
 
-  def stub_request(env={})
+  def stub_request(env = {})
     ActionDispatch::Request.new(env)
   end
 
