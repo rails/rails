@@ -42,6 +42,7 @@ module ActionDispatch
   end
 
   autoload_under 'middleware' do
+    autoload :BlockUntrustedIps
     autoload :Callbacks
     autoload :Cascade
     autoload :Cookies
