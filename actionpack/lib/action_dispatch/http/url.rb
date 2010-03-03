@@ -3,7 +3,7 @@ module ActionDispatch
     module URL
       # Returns the complete URL used for this request.
       def url
-        protocol + host_with_port + request_uri
+        protocol + host_with_port + fullpath
       end
 
       # Returns 'https://' if this is an SSL request and 'http://' otherwise.
@@ -88,15 +88,8 @@ module ActionDispatch
       # Returns the request URI, accounting for server idiosyncrasies.
       # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
       def request_uri
-        uri = "#{@env["SCRIPT_NAME"]}#{@env["PATH_INFO"]}"
-        uri << "?#{@env["QUERY_STRING"]}" if @env["QUERY_STRING"].present?
-        uri
-      end
-
-      # Returns the interpreted \path to requested resource after all the installation
-      # directory of this application was taken into account.
-      def path
-        @env['PATH_INFO']
+        ActiveSupport::Deprecation.warn "Using #request_uri is deprecated. Use fullpath instead."
+        fullpath
       end
 
     private

@@ -143,34 +143,34 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal ":8080", request.port_string
   end
 
-  test "request uri" do
+  test "full path" do
     request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/path/of/some/uri', 'QUERY_STRING' => 'mapped=1'
-    assert_equal "/path/of/some/uri?mapped=1", request.request_uri
-    assert_equal "/path/of/some/uri",          request.path
+    assert_equal "/path/of/some/uri?mapped=1", request.fullpath
+    assert_equal "/path/of/some/uri",          request.path_info
 
     request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/path/of/some/uri'
-    assert_equal "/path/of/some/uri", request.request_uri
-    assert_equal "/path/of/some/uri", request.path
+    assert_equal "/path/of/some/uri", request.fullpath
+    assert_equal "/path/of/some/uri", request.path_info
 
     request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/'
-    assert_equal "/", request.request_uri
-    assert_equal "/", request.path
+    assert_equal "/", request.fullpath
+    assert_equal "/", request.path_info
 
     request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/', 'QUERY_STRING' => 'm=b'
-    assert_equal "/?m=b", request.request_uri
-    assert_equal "/",     request.path
+    assert_equal "/?m=b", request.fullpath
+    assert_equal "/",     request.path_info
 
     request = stub_request 'SCRIPT_NAME' => '/hieraki', 'PATH_INFO' => '/'
-    assert_equal "/hieraki/", request.request_uri
-    assert_equal "/",         request.path
+    assert_equal "/hieraki/", request.fullpath
+    assert_equal "/",         request.path_info
 
     request = stub_request 'SCRIPT_NAME' => '/collaboration/hieraki', 'PATH_INFO' => '/books/edit/2'
-    assert_equal "/collaboration/hieraki/books/edit/2", request.request_uri
-    assert_equal "/books/edit/2",                       request.path
+    assert_equal "/collaboration/hieraki/books/edit/2", request.fullpath
+    assert_equal "/books/edit/2",                       request.path_info
 
     request = stub_request 'SCRIPT_NAME' => '/path', 'PATH_INFO' => '/of/some/uri', 'QUERY_STRING' => 'mapped=1'
-    assert_equal "/path/of/some/uri?mapped=1", request.request_uri
-    assert_equal "/of/some/uri",               request.path
+    assert_equal "/path/of/some/uri?mapped=1", request.fullpath
+    assert_equal "/of/some/uri",               request.path_info
   end
 
 

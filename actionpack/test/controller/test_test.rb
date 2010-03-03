@@ -42,7 +42,7 @@ class TestTest < ActionController::TestCase
     end
 
     def test_uri
-      render :text => request.request_uri
+      render :text => request.fullpath
     end
 
     def test_query_string
