@@ -4,7 +4,11 @@ require "action_mailer/railties/log_subscriber"
 
 class AMLogSubscriberTest < ActionMailer::TestCase
   include Rails::LogSubscriber::TestHelper
-  Rails::LogSubscriber.add(:action_mailer, ActionMailer::Railties::LogSubscriber.new)
+
+  def setup
+    super
+    Rails::LogSubscriber.add(:action_mailer, ActionMailer::Railties::LogSubscriber.new)
+  end
 
   class TestMailer < ActionMailer::Base
     def basic
