@@ -85,11 +85,6 @@ module ActionDispatch
         subdomains(tld_length).join('.')
       end
 
-      # The query string must always be present
-      def query_string
-        @env['QUERY_STRING']
-      end
-
       # Returns the request URI, accounting for server idiosyncrasies.
       # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
       def request_uri
