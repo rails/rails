@@ -435,11 +435,4 @@ protected
   def with_set(*args)
     args
   end
-
-  def with_accept_header(value)
-    ActionController::Base.use_accept_header, old = value, ActionController::Base.use_accept_header
-    yield
-  ensure
-    ActionController::Base.use_accept_header = old
-  end
 end

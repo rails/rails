@@ -35,8 +35,14 @@ module ActionController
       cattr_accessor :resource_action_separator
       self.resource_action_separator = "/"
 
-      cattr_accessor :use_accept_header
-      self.use_accept_header = true
+      def self.use_accept_header
+        ActiveSupport::Deprecation.warn "ActionController::Base.use_accept_header doesn't do anything anymore. " \
+                                        "The accept header is always taken into account."
+      end
+
+      def self.use_accept_header=(val)
+        use_accept_header
+      end
 
       self.page_cache_directory = defined?(Rails.public_path) ? Rails.public_path : ""
 
