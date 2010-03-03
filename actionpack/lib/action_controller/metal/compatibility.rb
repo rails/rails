@@ -32,8 +32,15 @@ module ActionController
                                              @_response)
 
       # Controls the resource action separator
-      cattr_accessor :resource_action_separator
-      self.resource_action_separator = "/"
+      def self.resource_action_separator
+        @resource_action_separator ||= "/"
+      end
+
+      def self.resource_action_separator=(val)
+        ActiveSupport::Deprecation.warn "ActionController::Base.resource_action_separator is deprecated and only " \
+                                        "works with the deprecated router DSL."
+        @resource_action_separator = val
+      end
 
       def self.use_accept_header
         ActiveSupport::Deprecation.warn "ActionController::Base.use_accept_header doesn't do anything anymore. " \
