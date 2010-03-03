@@ -103,6 +103,7 @@ module ActionController
 
     def self.inherited(base)
       self.middleware_stack = base.middleware_stack.dup
+      super
     end
 
     def self.use(*args)
