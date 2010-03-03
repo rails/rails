@@ -1,14 +1,6 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/ordered_options'
 
-module ActiveSupport
-  class InheritableOptions < OrderedOptions
-    def initialize(parent)
-      super() { |h,k| parent[k] }
-    end
-  end
-end
-
 module ActionController
   # ActionController::Metal provides a way to get a valid Rack application from a controller.
   #
