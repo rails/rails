@@ -1,9 +1,6 @@
 # Make double-sure the RAILS_ENV is set to test,
 # so fixtures are loaded to the right database
-unless Rails.env.test?
-  puts "Abort testing: Your Rails environment is not running in test mode!"
-  exit
-end
+abort("Abort testing: Your Rails environment is not running in test mode!") unless Rails.env.test?
 
 require 'test/unit'
 require 'active_support/core_ext/kernel/requires'
