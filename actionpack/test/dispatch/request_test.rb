@@ -42,7 +42,7 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '1.1.1.1',
                            'HTTP_CLIENT_IP'       => '2.2.2.2'
-    e = assert_raise(ActionController::ActionControllerError) {
+    e = assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
       request.remote_ip
     }
     assert_match /IP spoofing attack/, e.message
@@ -54,18 +54,17 @@ class RequestTest < ActiveSupport::TestCase
     # example is WAP.  Since the cellular network is not IP based, it's a
     # leap of faith to assume that their proxies are ever going to set the
     # HTTP_CLIENT_IP/HTTP_X_FORWARDED_FOR headers properly.
-    ActionController::Base.ip_spoofing_check = false
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '1.1.1.1',
-                           'HTTP_CLIENT_IP'       => '2.2.2.2'
+                           'HTTP_CLIENT_IP'       => '2.2.2.2',
+                           :ip_spoofing_check => false
     assert_equal '2.2.2.2', request.remote_ip
-    ActionController::Base.ip_spoofing_check = true
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, 9.9.9.9'
     assert_equal '9.9.9.9', request.remote_ip
   end
 
   test "remote ip with user specified trusted proxies" do
-    ActionController::Base.trusted_proxies = /^67\.205\.106\.73$/i
+    @trusted_proxies = /^67\.205\.106\.73$/i
 
     request = stub_request 'REMOTE_ADDR' => '67.205.106.73',
                            'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
@@ -429,6 +428,9 @@ class RequestTest < ActiveSupport::TestCase
 protected
 
   def stub_request(env = {})
+    ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
+    ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, @trusted_proxies)
+    ip_app.call(env)
     ActionDispatch::Request.new(env)
   end
 

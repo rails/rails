@@ -42,13 +42,13 @@ module ActionDispatch
   end
 
   autoload_under 'middleware' do
-    autoload :BlockUntrustedIps
     autoload :Callbacks
     autoload :Cascade
     autoload :Cookies
     autoload :Flash
     autoload :Head
     autoload :ParamsParser
+    autoload :RemoteIp
     autoload :Rescue
     autoload :ShowExceptions
     autoload :Static

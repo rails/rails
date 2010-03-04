@@ -6,6 +6,7 @@ module ActionDispatch
     railtie_name :action_dispatch
 
     config.action_dispatch.x_sendfile_header = "X-Sendfile"
+    config.action_dispatch.ip_spoofing_check = true
 
     # Prepare dispatcher callbacks and run 'prepare' callbacks
     initializer "action_dispatch.prepare_dispatcher" do |app|
