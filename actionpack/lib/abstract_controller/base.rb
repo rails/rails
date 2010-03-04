@@ -34,6 +34,10 @@ module AbstractController
         @config ||= ActiveSupport::InheritableOptions.new(superclass < Base ? superclass.config : {})
       end
 
+      def configure
+        yield config
+      end
+
       # A list of all internal methods for a controller. This finds the first
       # abstract superclass of a controller, and gets a list of all public
       # instance methods on that abstract class. Public instance methods of
