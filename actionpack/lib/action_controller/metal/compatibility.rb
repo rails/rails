@@ -158,6 +158,12 @@ module ActionController
         Rails.application.config.action_dispatch.ip_spoofing_check = value
       end
 
+      def session=(value)
+        ActiveSupport::Deprecation.warn "ActionController::Base.session= is deprecated. " <<
+          "Please configure it on your application with config.action_dispatch.session=", caller
+        Rails.application.config.action_dispatch.session = value.delete(:disabled) ? nil : value
+      end
+
       def rescue_action(env)
         raise env["action_dispatch.rescue.exception"]
       end

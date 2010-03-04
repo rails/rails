@@ -7,6 +7,8 @@ module ActionDispatch
 
     config.action_dispatch.x_sendfile_header = "X-Sendfile"
     config.action_dispatch.ip_spoofing_check = true
+    config.action_dispatch.session = {}
+    config.action_dispatch.session_store = :cookie_store
 
     # Prepare dispatcher callbacks and run 'prepare' callbacks
     initializer "action_dispatch.prepare_dispatcher" do |app|

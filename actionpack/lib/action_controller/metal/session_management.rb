@@ -27,11 +27,6 @@ module ActionController #:nodoc:
         SessionManagement.session_store_for(config.session_store)
       end
 
-      def session=(options = {})
-        self.session_store = nil if options.delete(:disabled)
-        session_options.merge!(options)
-      end
-
       def session(*args)
         ActiveSupport::Deprecation.warn(
           "Disabling sessions for a single controller has been deprecated. " +

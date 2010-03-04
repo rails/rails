@@ -3,6 +3,7 @@ require "action_controller"
 require "action_view/railtie"
 require "active_support/core_ext/class/subclasses"
 require "active_support/deprecation/proxy_wrappers"
+require "active_support/deprecation"
 
 module ActionController
   class Railtie < Rails::Railtie
@@ -11,33 +12,48 @@ module ActionController
     require "action_controller/railties/log_subscriber"
     require "action_controller/railties/url_helpers"
 
-    log_subscriber ActionController::Railties::LogSubscriber.new
+    ad = config.action_dispatch
+    config.action_controller.singleton_class.send(:define_method, :session) do
+      ActiveSupport::Deprecation.warn "config.action_controller.session has been " \
+        "renamed to config.action_dispatch.session.", caller
+      ad.session
+    end
 
-    config.action_controller.session_store = :cookie_store
-    config.action_controller.session_options = {}
+    config.action_controller.singleton_class.send(:define_method, :session=) do |val|
+      ActiveSupport::Deprecation.warn "config.action_controller.session has been " \
+        "renamed to config.action_dispatch.session.", caller
+      ad.session = val
+    end
+
+    config.action_controller.singleton_class.send(:define_method, :session_store) do
+      ActiveSupport::Deprecation.warn "config.action_controller.session_store has been " \
+        "renamed to config.action_dispatch.session_store.", caller
+      ad.session_store
+    end
+
+    config.action_controller.singleton_class.send(:define_method, :session_store=) do |val|
+      ActiveSupport::Deprecation.warn "config.action_controller.session_store has been " \
+        "renamed to config.action_dispatch.session_store.", caller
+      ad.session_store = val
+    end
+
+    log_subscriber ActionController::Railties::LogSubscriber.new
 
     initializer "action_controller.logger" do
       ActionController::Base.logger ||= Rails.logger
     end
 
-    # assets_dir = defined?(Rails.public_path) ? Rails.public_path : "public"
-    # ActionView::DEFAULT_CONFIG = {
-    #   :assets_dir => assets_dir,
-    #   :javascripts_dir => "#{assets_dir}/javascripts",
-    #   :stylesheets_dir => "#{assets_dir}/stylesheets",
-    # }
-
-
     initializer "action_controller.set_configs" do |app|
       paths = app.config.paths
       ac = app.config.action_controller
-      ac.assets_dir = paths.public
-      ac.javascripts_dir = paths.public.javascripts
-      ac.stylesheets_dir = paths.public.stylesheets
+      ac.assets_dir = paths.public.to_a.first
+      ac.javascripts_dir = paths.public.javascripts.to_a.first
+      ac.stylesheets_dir = paths.public.stylesheets.to_a.first
 
-      app.config.action_controller.each do |k,v|
-        ActionController::Base.send "#{k}=", v
-      end
+      ActionController::Base.config.replace(ac)
+      # app.config.action_controller.each do |k,v|
+      #   ActionController::Base.send "#{k}=", v
+      # end
     end
 
     initializer "action_controller.initialize_framework_caches" do
