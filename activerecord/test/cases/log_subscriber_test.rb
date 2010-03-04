@@ -7,9 +7,9 @@ class LogSubscriberTest < ActiveSupport::TestCase
   include Rails::LogSubscriber::TestHelper
 
   def setup
+    @old_logger = ActiveRecord::Base.logger
     super
 
-    @old_logger = ActiveRecord::Base.logger
     Rails::LogSubscriber.add(:active_record, ActiveRecord::Railties::LogSubscriber.new)
   end
 
