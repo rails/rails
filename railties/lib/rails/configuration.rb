@@ -88,7 +88,7 @@ module Rails
           middleware.use('::Rack::Sendfile', lambda { action_dispatch.x_sendfile_header })
           middleware.use('::ActionDispatch::Callbacks', lambda { !cache_classes })
           middleware.use('::ActionDispatch::Cookies')
-          middleware.use(lambda { action_controller.session_store }, lambda { action_controller.session_options })
+          middleware.use(lambda { ActionController::SessionManagement.session_store_for(action_controller.session_store) }, lambda { action_controller.session })
           middleware.use('::ActionDispatch::Flash', :if => lambda { action_controller.session_store })
           middleware.use(lambda { metal_loader.build_middleware(metals) }, :if => lambda { metal_loader.metals.any? })
           middleware.use('ActionDispatch::ParamsParser')

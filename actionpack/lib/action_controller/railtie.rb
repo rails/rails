@@ -13,6 +13,9 @@ module ActionController
 
     log_subscriber ActionController::Railties::LogSubscriber.new
 
+    config.action_controller.session_store = :cookie_store
+    config.action_controller.session_options = {}
+
     initializer "action_controller.logger" do
       ActionController::Base.logger ||= Rails.logger
     end

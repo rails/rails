@@ -3,8 +3,19 @@ module ActionController #:nodoc:
     extend ActiveSupport::Concern
 
     included do
-      self.config.session_store   ||= :cookie_store
+      # This is still needed for the session secret for some reason.
       self.config.session_options ||= {}
+    end
+
+    def self.session_store_for(store)
+      case store
+      when :active_record_store
+        ActiveRecord::SessionStore
+      when Symbol
+        ActionDispatch::Session.const_get(store.to_s.camelize)
+      else
+        store
+      end
     end
 
     module ClassMethods
@@ -13,14 +24,7 @@ module ActionController #:nodoc:
       end
 
       def session_store
-        case store = config.session_store
-        when :active_record_store
-          ActiveRecord::SessionStore
-        when Symbol
-          ActionDispatch::Session.const_get(store.to_s.camelize)
-        else
-          store
-        end
+        SessionManagement.session_store_for(config.session_store)
       end
 
       def session=(options = {})
