@@ -7,6 +7,7 @@ module Rails
       attr_writer :eager_load_paths, :load_once_paths, :load_paths
 
       def initialize(root=nil)
+        super()
         @root = root
       end
 

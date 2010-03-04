@@ -3,6 +3,13 @@ require 'rails/configuration'
 module Rails
   class Railtie
     class Configuration
+      attr_accessor :cookie_secret
+
+      def initialize
+        @session_store = :cookie_store
+        @session_options = {}
+      end
+
       def middleware
         @@default_middleware_stack ||= default_middleware
       end
@@ -52,6 +59,24 @@ module Rails
         @metal_loader ||= Rails::Application::MetalLoader.new
       end
 
+      def session_store(*args)
+        if args.empty?
+          case @session_store
+          when :disabled
+            nil
+          when :active_record_store
+            ActiveRecord::SessionStore
+          when Symbol
+            ActionDispatch::Session.const_get(@session_store.to_s.camelize)
+          else
+            @session_store
+          end
+        else
+          @session_store = args.shift
+          @session_options = args.shift || {}
+        end
+      end
+
     private
 
       def method_missing(name, *args, &blk)
@@ -59,6 +84,11 @@ module Rails
           return $2 == '=' ? options[$1] = args.first : options[$1]
         end
         super
+      end
+
+      def session_options
+        return @session_options unless @session_store == :cookie_store
+        @session_options.merge(:secret => @cookie_secret)
       end
 
       def config_key_regexp
@@ -86,8 +116,8 @@ module Rails
           middleware.use('::Rack::Sendfile', lambda { action_dispatch.x_sendfile_header })
           middleware.use('::ActionDispatch::Callbacks', lambda { !cache_classes })
           middleware.use('::ActionDispatch::Cookies')
-          middleware.use(lambda { ActionController::SessionManagement.session_store_for(action_dispatch.session_store) }, lambda { action_dispatch.session })
-          middleware.use('::ActionDispatch::Flash', :if => lambda { action_dispatch.session_store })
+          middleware.use(lambda { session_store }, lambda { session_options })
+          middleware.use('::ActionDispatch::Flash', :if => lambda { session_store })
           middleware.use(lambda { metal_loader.build_middleware(metals) }, :if => lambda { metal_loader.metals.any? })
           middleware.use('ActionDispatch::ParamsParser')
           middleware.use('::Rack::MethodOverride')

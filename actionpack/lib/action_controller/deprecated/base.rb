@@ -78,10 +78,23 @@ module ActionController
         Rails.application.config.action_dispatch.ip_spoofing_check = value
       end
 
+      def session(*args)
+        ActiveSupport::Deprecation.warn(
+          "Disabling sessions for a single controller has been deprecated. " +
+          "Sessions are now lazy loaded. So if you don't access them, " +
+          "consider them off. You can still modify the session cookie " +
+          "options with request.session_options.", caller)
+      end
+
       def session=(value)
         ActiveSupport::Deprecation.warn "ActionController::Base.session= is deprecated. " <<
-          "Please configure it on your application with config.action_dispatch.session=", caller
-        Rails.application.config.action_dispatch.session = value.delete(:disabled) ? nil : value
+          "Please configure it on your application with config.session_store :cookie_store, :key => '....'", caller
+        if value.delete(:disabled)
+          Rails.application.config.session_store :disabled
+        else
+          store = Rails.application.config.session_store
+          Rails.application.config.session_store store, value
+        end
       end
 
       # Controls the resource action separator

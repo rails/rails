@@ -49,11 +49,9 @@ module ActionController
       ac.assets_dir = paths.public.to_a.first
       ac.javascripts_dir = paths.public.javascripts.to_a.first
       ac.stylesheets_dir = paths.public.stylesheets.to_a.first
+      ac.secret = app.config.cookie_secret
 
       ActionController::Base.config.replace(ac)
-      # app.config.action_controller.each do |k,v|
-      #   ActionController::Base.send "#{k}=", v
-      # end
     end
 
     initializer "action_controller.initialize_framework_caches" do

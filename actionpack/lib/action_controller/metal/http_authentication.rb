@@ -165,7 +165,7 @@ module ActionController
 
         # Authenticate with HTTP Digest, returns true or false
         def authenticate_with_http_digest(realm = "Application", &password_procedure)
-          HttpAuthentication::Digest.authenticate(config.session_options[:secret], request, realm, &password_procedure)
+          HttpAuthentication::Digest.authenticate(config.secret, request, realm, &password_procedure)
         end
 
         # Render output including the HTTP Digest authentication header
@@ -238,7 +238,7 @@ module ActionController
       end
 
       def authentication_header(controller, realm)
-        secret_key = controller.config.session_options[:secret]
+        secret_key = controller.config.secret
         nonce = self.nonce(secret_key)
         opaque = opaque(secret_key)
         controller.headers["WWW-Authenticate"] = %(Digest realm="#{realm}", qop="auth", algorithm=MD5, nonce="#{nonce}", opaque="#{opaque}")

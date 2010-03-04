@@ -170,8 +170,7 @@ end
 # Temporary base class
 class Rack::TestCase < ActionController::IntegrationTest
   setup do
-    ActionController::Base.session_options[:key] = "abc"
-    ActionController::Base.session_options[:secret] = ("*" * 30)
+    ActionController::Base.config.secret = "abc" * 30
   end
 
   def self.testing(klass = nil)
