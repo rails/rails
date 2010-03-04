@@ -670,7 +670,7 @@ module ActionView
         # or the value returned from invoking the proc if it's a proc or the value from
         # invoking call if it's an object responding to call.
         def compute_asset_host(source)
-          if host = ActionController::Base.asset_host
+          if host = config.asset_host
             if host.is_a?(Proc) || host.respond_to?(:call)
               case host.is_a?(Proc) ? host.arity : host.method(:call).arity
               when 2

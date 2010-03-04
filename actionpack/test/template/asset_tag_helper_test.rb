@@ -401,15 +401,13 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_image_path_with_caching_and_proc_asset_host_using_request
     ENV['RAILS_ASSET_ID'] = ''
-    ActionController::Base.asset_host = Proc.new do |source, request|
+    @controller.config.asset_host = Proc.new do |source, request|
       if request.ssl?
         "#{request.protocol}#{request.host_with_port}"
       else
         "#{request.protocol}assets#{source.length}.example.com"
       end
     end
-
-    ActionController::Base.perform_caching = true
 
 
     @controller.request.stubs(:ssl?).returns(false)
@@ -421,7 +419,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_on
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = 'http://a0.example.com'
+    @controller.config.asset_host = 'http://a0.example.com'
     ActionController::Base.perform_caching = true
 
     assert_dom_equal(
@@ -453,7 +451,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_on_with_proc_asset_host
     ENV['RAILS_ASSET_ID'] = ''
-    ActionController::Base.asset_host = Proc.new { |source| "http://a#{source.length}.example.com" }
+    @controller.config.asset_host = Proc.new { |source| "http://a#{source.length}.example.com" }
     ActionController::Base.perform_caching = true
 
     assert_equal '/javascripts/scripts.js'.length, 23
@@ -470,7 +468,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_on_with_2_argument_proc_asset_host
     ENV['RAILS_ASSET_ID'] = ''
-    ActionController::Base.asset_host = Proc.new { |source, request|
+    @controller.config.asset_host = Proc.new { |source, request|
       if request.ssl?
         "#{request.protocol}#{request.host_with_port}"
       else
@@ -507,7 +505,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_on_with_2_argument_object_asset_host
     ENV['RAILS_ASSET_ID'] = ''
-    ActionController::Base.asset_host = Class.new do
+    @controller.config.asset_host = Class.new do
       def call(source, request)
         if request.ssl?
           "#{request.protocol}#{request.host_with_port}"
@@ -547,7 +545,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_on_and_using_subdirectory
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = 'http://a%d.example.com'
+    @controller.config.asset_host = 'http://a%d.example.com'
     ActionController::Base.perform_caching = true
 
     hash = '/javascripts/cache/money.js'.hash % 4
@@ -563,7 +561,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_with_all_and_recursive_puts_defaults_at_the_start_of_the_file
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = 'http://a0.example.com'
+    @controller.config.asset_host = 'http://a0.example.com'
     ActionController::Base.perform_caching = true
 
     assert_dom_equal(
@@ -584,7 +582,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_with_all_puts_defaults_at_the_start_of_the_file
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = 'http://a0.example.com'
+    @controller.config.asset_host = 'http://a0.example.com'
     ActionController::Base.perform_caching = true
 
     assert_dom_equal(
@@ -692,7 +690,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_stylesheet_link_tag_when_caching_on
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = 'http://a0.example.com'
+    @controller.config.asset_host = 'http://a0.example.com'
     ActionController::Base.perform_caching = true
 
     assert_dom_equal(
@@ -802,7 +800,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_stylesheet_link_tag_when_caching_on_with_proc_asset_host
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = Proc.new { |source| "http://a#{source.length}.example.com" }
+    @controller.config.asset_host = Proc.new { |source| "http://a#{source.length}.example.com" }
     ActionController::Base.perform_caching = true
 
     assert_equal '/stylesheets/styles.css'.length, 23
@@ -911,43 +909,33 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   end
 
   def test_should_compute_proper_path_with_asset_host
-    ActionController::Base.asset_host = "http://assets.example.com"
+    @controller.config.asset_host = "http://assets.example.com"
     assert_dom_equal(%(<link href="http://www.example.com/collaboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />), auto_discovery_link_tag)
     assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
     assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
     assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
     assert_dom_equal(%(<img alt="Mouse" onmouseover="this.src='http://assets.example.com/collaboration/hieraki/images/mouse_over.png'" onmouseout="this.src='http://assets.example.com/collaboration/hieraki/images/mouse.png'" src="http://assets.example.com/collaboration/hieraki/images/mouse.png" />), image_tag("mouse.png", :mouseover => "/images/mouse_over.png"))
     assert_dom_equal(%(<img alt="Mouse2" onmouseover="this.src='http://assets.example.com/collaboration/hieraki/images/mouse_over2.png'" onmouseout="this.src='http://assets.example.com/collaboration/hieraki/images/mouse2.png'" src="http://assets.example.com/collaboration/hieraki/images/mouse2.png" />), image_tag("mouse2.png", :mouseover => image_path("mouse_over2.png")))
-  ensure
-    ActionController::Base.asset_host = ""
   end
 
   def test_should_ignore_asset_host_on_complete_url
-    ActionController::Base.asset_host = "http://assets.example.com"
+    @controller.config.asset_host = "http://assets.example.com"
     assert_dom_equal(%(<link href="http://bar.example.com/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag("http://bar.example.com/stylesheets/style.css"))
-  ensure
-    ActionController::Base.asset_host = ""
   end
 
   def test_should_wildcard_asset_host_between_zero_and_four
-    ActionController::Base.asset_host = 'http://a%d.example.com'
+    @controller.config.asset_host = 'http://a%d.example.com'
     assert_match %r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_path('xml.png')
-  ensure
-    ActionController::Base.asset_host = nil
   end
 
   def test_asset_host_without_protocol_should_use_request_protocol
-    ActionController::Base.asset_host = 'a.example.com'
+    @controller.config.asset_host = 'a.example.com'
     assert_equal 'gopher://a.example.com/collaboration/hieraki/images/xml.png', image_path('xml.png')
-  ensure
-    ActionController::Base.asset_host = nil
   end
 
   def test_asset_host_without_protocol_should_use_request_protocol_even_if_path_present
-    ActionController::Base.asset_host = 'a.example.com/files/go/here'
+    @controller.config.asset_host = 'a.example.com/files/go/here'
     assert_equal 'gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png', image_path('xml.png')
-  ensure
-    ActionController::Base.asset_host = nil
   end
 
   def test_assert_css_and_js_of_the_same_name_return_correct_extension

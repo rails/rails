@@ -21,13 +21,17 @@ class AssetHostTest < Test::Unit::TestCase
   end
 
   def test_asset_host_as_string
-    ActionController::Base.asset_host = "http://www.example.com"
+    ActionMailer::Base.configure do |c|
+      c.asset_host = "http://www.example.com"
+      c.assets_dir = File.dirname(__FILE__)
+    end
+
     mail = AssetHostMailer.email_with_asset
     assert_equal "<img alt=\"Somelogo\" src=\"http://www.example.com/images/somelogo.png\" />", mail.body.to_s.strip
   end
 
   def test_asset_host_as_one_arguement_proc
-    ActionController::Base.asset_host = Proc.new { |source|
+    AssetHostMailer.config.asset_host = Proc.new { |source|
       if source.starts_with?('/images')
         "http://images.example.com"
       else
