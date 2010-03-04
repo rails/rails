@@ -145,18 +145,6 @@ end
 class AcceptBasedContentTypeTest < ActionController::TestCase
   tests OldContentTypeController
 
-  def setup
-    super
-    @_old_accept_header = ActionController::Base.use_accept_header
-    ActionController::Base.use_accept_header = true
-  end
-
-  def teardown
-    super
-    ActionController::Base.use_accept_header = @_old_accept_header
-  end
-
-
   def test_render_default_content_types_for_respond_to
     @request.accept = Mime::HTML.to_s
     get :render_default_content_types_for_respond_to

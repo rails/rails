@@ -155,13 +155,11 @@ class RespondToControllerTest < ActionController::TestCase
 
   def setup
     super
-    ActionController::Base.use_accept_header = true
     @request.host = "www.example.com"
   end
 
   def teardown
     super
-    ActionController::Base.use_accept_header = false
   end
 
   def test_html
@@ -544,13 +542,11 @@ class RespondWithControllerTest < ActionController::TestCase
 
   def setup
     super
-    ActionController::Base.use_accept_header = true
     @request.host = "www.example.com"
   end
 
   def teardown
     super
-    ActionController::Base.use_accept_header = false
   end
 
   def test_using_resource

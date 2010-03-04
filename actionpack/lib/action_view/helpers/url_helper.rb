@@ -544,10 +544,11 @@ module ActionView
         # submitted url doesn't have any either.  This lets the function
         # work with things like ?order=asc
         if url_string.index("?")
-          request_uri = request.request_uri
+          request_uri = request.fullpath
         else
-          request_uri = request.request_uri.split('?').first
+          request_uri = request.path
         end
+
         if url_string =~ /^\w+:\/\//
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
         else

@@ -2,28 +2,29 @@ module ActionController #:nodoc:
   module SessionManagement #:nodoc:
     extend ActiveSupport::Concern
 
+    included do
+      # This is still needed for the session secret for some reason.
+      self.config.session_options ||= {}
+    end
+
+    def self.session_store_for(store)
+      case store
+      when :active_record_store
+        ActiveRecord::SessionStore
+      when Symbol
+        ActionDispatch::Session.const_get(store.to_s.camelize)
+      else
+        store
+      end
+    end
+
     module ClassMethods
-      # Set the session store to be used for keeping the session data between requests.
-      # By default, sessions are stored in browser cookies (<tt>:cookie_store</tt>),
-      # but you can also specify one of the other included stores (<tt>:active_record_store</tt>,
-      # <tt>:mem_cache_store</tt>, or your own custom class.
-      def session_store=(store)
-        if store == :active_record_store
-          self.session_store = ActiveRecord::SessionStore
-        else
-          @@session_store = store.is_a?(Symbol) ?
-            ActionDispatch::Session.const_get(store.to_s.camelize) :
-            store
-        end
+      def session_options
+        config.session_options
       end
 
-      # Returns the session store class currently used.
       def session_store
-        if defined? @@session_store
-          @@session_store
-        else
-          ActionDispatch::Session::CookieStore
-        end
+        SessionManagement.session_store_for(config.session_store)
       end
 
       def session=(options = {})

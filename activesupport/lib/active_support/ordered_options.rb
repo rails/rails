@@ -18,4 +18,10 @@ module ActiveSupport #:nodoc:
       end
     end
   end
+
+  class InheritableOptions < OrderedOptions
+    def initialize(parent)
+      super() { |h,k| parent[k] }
+    end
+  end
 end

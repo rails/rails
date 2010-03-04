@@ -32,6 +32,7 @@ module ActionController
 
       # ROUTES TODO: Fix the tests
       segments = options.delete(:_path_segments)
+      relative_url_root = options.delete(:relative_url_root).to_s
       path_segments = path_segments ? path_segments.merge(segments || {}) : segments
 
       unless options[:only_path]
@@ -49,7 +50,8 @@ module ActionController
       path_options = yield(path_options) if block_given?
       path = router.generate(path_options, path_segments || {})
 
-      rewritten_url << ActionController::Base.relative_url_root.to_s unless options[:skip_relative_url_root]
+      # ROUTES TODO: This can be called directly, so relative_url_root should probably be set in the router
+      rewritten_url << relative_url_root
       rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
       rewritten_url << "##{Rack::Utils.escape(options[:anchor].to_param.to_s)}" if options[:anchor]
 

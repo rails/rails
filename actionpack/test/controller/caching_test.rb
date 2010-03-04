@@ -51,6 +51,7 @@ class PageCachingTest < ActionController::TestCase
 
     @request = ActionController::TestRequest.new
     @request.host = 'hostname.com'
+    @request.env.delete('PATH_INFO')
 
     @response   = ActionController::TestResponse.new
     @controller = PageCachingTestController.new
@@ -110,7 +111,7 @@ class PageCachingTest < ActionController::TestCase
   end
 
   def test_should_cache_ok_at_custom_path
-    @request.request_uri = "/index.html"
+    @request.env['PATH_INFO'] = '/index.html'
     get :ok
     assert_response :ok
     assert File.exist?("#{FILE_STORE_PATH}/index.html")
@@ -305,12 +306,9 @@ class ActionCacheTest < ActionController::TestCase
   end
 
   def test_action_cache_conditional_options
-    old_use_accept_header = ActionController::Base.use_accept_header
-    ActionController::Base.use_accept_header = true
     @request.env['HTTP_ACCEPT'] = 'application/json'
     get :index
     assert !fragment_exist?('hostname.com/action_caching_test')
-    ActionController::Base.use_accept_header = old_use_accept_header
   end
 
   def test_action_cache_with_store_options

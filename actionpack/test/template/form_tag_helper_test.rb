@@ -3,17 +3,16 @@ require 'abstract_unit'
 class FormTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormTagHelper
 
-  include ActiveSupport::Configurable
-  DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG
+  # include ActiveSupport::Configurable
+  # DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG
 
   def setup
     super
-    @controller = Class.new do
+    @controller = Class.new(BasicController) do
       def url_for(options)
         "http://www.example.com"
       end
-    end
-    @controller = @controller.new
+    end.new
   end
 
   VALID_HTML_ID = /^[A-Za-z][-_:.A-Za-z0-9]*$/ # see http://www.w3.org/TR/html4/types.html#type-name
