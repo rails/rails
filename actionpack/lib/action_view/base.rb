@@ -297,7 +297,7 @@ module ActionView #:nodoc:
       @helpers = self.class.helpers || Module.new
 
       @_controller   = controller
-      @_config       = controller.config if controller
+      @_config       = ActiveSupport::InheritableOptions.new(controller.config) if controller
       @_content_for  = Hash.new {|h,k| h[k] = ActiveSupport::SafeBuffer.new }
       @_virtual_path = nil
       self.view_paths = view_paths

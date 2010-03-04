@@ -1,3 +1,5 @@
+require 'active_support/ordered_options'
+
 module AbstractController
   class Error < StandardError; end
   class ActionNotFound < StandardError; end

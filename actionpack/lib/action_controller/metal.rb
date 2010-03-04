@@ -1,5 +1,4 @@
 require 'active_support/core_ext/class/attribute'
-require 'active_support/ordered_options'
 
 module ActionController
   # ActionController::Metal provides a way to get a valid Rack application from a controller.
