@@ -13,6 +13,10 @@ end
 class TestMailer < ActionMailer::Base
   default_url_options[:host] = 'www.basecamphq.com'
 
+  configure do |c|
+    c.assets_dir = '' # To get the tests to pass
+  end
+
   def signed_up_with_url(recipient)
     @recipients   = recipient
     @subject      = "[Signed up] Welcome #{recipient}"

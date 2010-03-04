@@ -14,6 +14,10 @@ class AssetHostTest < Test::Unit::TestCase
     set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
     ActionMailer::Base.deliveries.clear
+    AssetHostMailer.configure do |c|
+      c.asset_host = "http://www.example.com"
+      c.assets_dir = ''
+    end
   end
 
   def teardown
@@ -21,11 +25,6 @@ class AssetHostTest < Test::Unit::TestCase
   end
 
   def test_asset_host_as_string
-    ActionMailer::Base.configure do |c|
-      c.asset_host = "http://www.example.com"
-      c.assets_dir = File.dirname(__FILE__)
-    end
-
     mail = AssetHostMailer.email_with_asset
     assert_equal "<img alt=\"Somelogo\" src=\"http://www.example.com/images/somelogo.png\" />", mail.body.to_s.strip
   end
