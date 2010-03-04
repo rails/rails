@@ -11,14 +11,6 @@ module ActionController
   class Metal < AbstractController::Base
     abstract!
 
-    def self.config
-      @config ||= ActiveSupport::InheritableOptions.new(superclass < Metal ? superclass.config : {})
-    end
-
-    def config
-      self.class.config
-    end
-
     # :api: public
     attr_internal :params, :env
 

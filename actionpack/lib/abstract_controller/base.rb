@@ -28,6 +28,10 @@ module AbstractController
         @descendants ||= []
       end
 
+      def config
+        @config ||= ActiveSupport::InheritableOptions.new(superclass < Base ? superclass.config : {})
+      end
+
       # A list of all internal methods for a controller. This finds the first
       # abstract superclass of a controller, and gets a list of all public
       # instance methods on that abstract class. Public instance methods of
@@ -93,6 +97,10 @@ module AbstractController
     # Initialize controller with nil formats.
     def initialize #:nodoc:
       @_formats = nil
+    end
+
+    def config
+      self.class.config
     end
 
     # Calls the action going through the entire action dispatch stack.

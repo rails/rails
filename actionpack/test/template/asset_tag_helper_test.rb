@@ -5,7 +5,7 @@ class FakeController
   attr_accessor :request
 
   def config
-    @config ||= ActiveSupport::InheritableOptions.new(ActionController::Metal.config)
+    @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config)
   end
 end
 

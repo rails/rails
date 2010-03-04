@@ -109,7 +109,7 @@ class BasicController
   attr_accessor :request
 
   def config
-    @config ||= ActiveSupport::InheritableOptions.new(ActionController::Metal.config).tap do |config|
+    @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config).tap do |config|
       # VIEW TODO: View tests should not require a controller
       public_dir = File.expand_path("../fixtures/public", __FILE__)
       config.assets_dir = public_dir
