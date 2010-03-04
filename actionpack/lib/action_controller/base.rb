@@ -60,3 +60,5 @@ module ActionController
 
   end
 end
+
+require "action_controller/deprecated/base"
