@@ -36,9 +36,12 @@ class ViewLoadPathsTest < ActionController::TestCase
     @old_behavior = ActiveSupport::Deprecation.behavior
     @last_message = nil
     ActiveSupport::Deprecation.behavior = Proc.new { |message, callback| @last_message = message }
+
+    @paths = TestController.view_paths
   end
 
   def teardown
+    TestController.view_paths = @paths
     ActiveSupport::Deprecation.behavior = @old_behavior
   end
 
