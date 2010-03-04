@@ -70,7 +70,7 @@ module ActionController
 
       ClassMethods.class_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{option}
-          ActiveSupport::Deprecation.warn #{message.inspect}
+          ActiveSupport::Deprecation.warn #{message.inspect}, caller
           config.#{option}
         end
       RUBY
@@ -82,7 +82,7 @@ module ActionController
 
       ClassMethods.class_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{option}=(val)
-          ActiveSupport::Deprecation.warn #{message.inspect}
+          ActiveSupport::Deprecation.warn #{message.inspect}, caller
           config.#{option} = val
         end
       RUBY
@@ -109,49 +109,49 @@ module ActionController
     module ClassMethods
       def consider_all_requests_local
         ActiveSupport::Deprecation.warn "ActionController::Base.consider_all_requests_local is deprecated, " <<
-          "use Rails.application.config.consider_all_requests_local instead"
+          "use Rails.application.config.consider_all_requests_local instead", caller
         Rails.application.config.consider_all_requests_local
       end
 
       def consider_all_requests_local=(value)
         ActiveSupport::Deprecation.warn "ActionController::Base.consider_all_requests_local= is deprecated. " <<
-          "Please configure it on your application with config.consider_all_requests_local="
+          "Please configure it on your application with config.consider_all_requests_local=", caller
         Rails.application.config.consider_all_requests_local = value
       end
 
       def allow_concurrency
         ActiveSupport::Deprecation.warn "ActionController::Base.allow_concurrency is deprecated, " <<
-          "use Rails.application.config.allow_concurrency instead"
+          "use Rails.application.config.allow_concurrency instead", caller
         Rails.application.config.allow_concurrency
       end
 
       def allow_concurrency=(value)
         ActiveSupport::Deprecation.warn "ActionController::Base.allow_concurrency= is deprecated. " <<
-          "Please configure it on your application with config.allow_concurrency="
+          "Please configure it on your application with config.allow_concurrency=", caller
         Rails.application.config.allow_concurrency = value
       end
 
       def ip_spoofing_check=(value)
         ActiveSupport::Deprecation.warn "ActionController::Base.ip_spoofing_check= is deprecated. " <<
-          "Please configure it on your application with config.action_dispatch.ip_spoofing_check="
+          "Please configure it on your application with config.action_dispatch.ip_spoofing_check=", caller
         Rails.application.config.action_disaptch.ip_spoofing_check = value
       end
 
       def ip_spoofing_check
-        ActiveSupport::Deprecation.warn "ActionController::Base.ip_spoofing_check is deprecated. "
-          "Configuring ip_spoofing_check on the application configures a middleware."
+        ActiveSupport::Deprecation.warn "ActionController::Base.ip_spoofing_check is deprecated. " <<
+          "Configuring ip_spoofing_check on the application configures a middleware.", caller
         Rails.application.config.action_disaptch.ip_spoofing_check
       end
 
       def trusted_proxies=(value)
         ActiveSupport::Deprecation.warn "ActionController::Base.trusted_proxies= is deprecated. " <<
-          "Please configure it on your application with config.action_dispatch.trusted_proxies="
+          "Please configure it on your application with config.action_dispatch.trusted_proxies=", caller
         Rails.application.config.action_dispatch.ip_spoofing_check = value
       end
 
       def trusted_proxies
         ActiveSupport::Deprecation.warn "ActionController::Base.trusted_proxies is deprecated. " <<
-          "Configuring trusted_proxies on the application configures a middleware."
+          "Configuring trusted_proxies on the application configures a middleware.", caller
         Rails.application.config.action_dispatch.ip_spoofing_check = value
       end
 
