@@ -57,11 +57,6 @@ module ActionController
       # and images to a dedicated asset server away from the main web server. Example:
       #   ActionController::Base.asset_host = "http://assets.example.com"
       cattr_accessor :asset_host
-
-      cattr_accessor :ip_spoofing_check
-      self.ip_spoofing_check = true
-
-      cattr_accessor :trusted_proxies
     end
 
     def self.deprecated_config_accessor(option, message = nil)
@@ -119,7 +114,7 @@ module ActionController
       end
 
       def consider_all_requests_local=(value)
-        ActiveSupport::Deprecation.warn "ActionController::Base.consider_all_requests_local= is no longer effective. " <<
+        ActiveSupport::Deprecation.warn "ActionController::Base.consider_all_requests_local= is deprecated. " <<
           "Please configure it on your application with config.consider_all_requests_local="
         Rails.application.config.consider_all_requests_local = value
       end
@@ -131,9 +126,33 @@ module ActionController
       end
 
       def allow_concurrency=(value)
-        ActiveSupport::Deprecation.warn "ActionController::Base.allow_concurrency= is no longer effective. " <<
+        ActiveSupport::Deprecation.warn "ActionController::Base.allow_concurrency= is deprecated. " <<
           "Please configure it on your application with config.allow_concurrency="
         Rails.application.config.allow_concurrency = value
+      end
+
+      def ip_spoofing_check=(value)
+        ActiveSupport::Deprecation.warn "ActionController::Base.ip_spoofing_check= is deprecated. " <<
+          "Please configure it on your application with config.action_dispatch.ip_spoofing_check="
+        Rails.application.config.action_disaptch.ip_spoofing_check = value
+      end
+
+      def ip_spoofing_check
+        ActiveSupport::Deprecation.warn "ActionController::Base.ip_spoofing_check is deprecated. "
+          "Configuring ip_spoofing_check on the application configures a middleware."
+        Rails.application.config.action_disaptch.ip_spoofing_check
+      end
+
+      def trusted_proxies=(value)
+        ActiveSupport::Deprecation.warn "ActionController::Base.trusted_proxies= is deprecated. " <<
+          "Please configure it on your application with config.action_dispatch.trusted_proxies="
+        Rails.application.config.action_dispatch.ip_spoofing_check = value
+      end
+
+      def trusted_proxies
+        ActiveSupport::Deprecation.warn "ActionController::Base.trusted_proxies is deprecated. " <<
+          "Configuring trusted_proxies on the application configures a middleware."
+        Rails.application.config.action_dispatch.ip_spoofing_check = value
       end
 
       def rescue_action(env)

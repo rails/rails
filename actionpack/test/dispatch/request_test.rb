@@ -87,8 +87,6 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 67.205.106.73'
     assert_equal '3.4.5.6', request.remote_ip
-
-    ActionController::Base.trusted_proxies = nil
   end
 
   test "domains" do
