@@ -102,7 +102,7 @@ module AbstractController
     end
 
     def config
-      self.class.config
+      @config ||= ActiveSupport::InheritableOptions.new(self.class.config)
     end
 
     # Calls the action going through the entire action dispatch stack.
