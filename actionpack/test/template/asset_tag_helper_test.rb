@@ -12,13 +12,6 @@ end
 class AssetTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
-  DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG.merge(
-    :assets_dir => File.dirname(__FILE__) + "/../fixtures/public",
-    :javascripts_dir => File.dirname(__FILE__) + "/../fixtures/public/javascripts",
-    :stylesheets_dir => File.dirname(__FILE__) + "/../fixtures/public/stylesheets")
-
-  include ActiveSupport::Configurable
-
   def setup
     super
     silence_warnings do
@@ -41,7 +34,7 @@ class AssetTagHelperTest < ActionView::TestCase
       )
     end
 
-    @controller = Class.new(FakeController) do
+    @controller = Class.new(BasicController) do
       def url_for(*args) "http://www.example.com" end
     end.new
 
@@ -883,12 +876,9 @@ end
 class AssetTagHelperNonVhostTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
-  DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG
-  include ActiveSupport::Configurable
-
   def setup
     super
-    @controller = Class.new(FakeController) do
+    @controller = Class.new(BasicController) do
       def url_for(options)
         "http://www.example.com/collaboration/hieraki"
       end

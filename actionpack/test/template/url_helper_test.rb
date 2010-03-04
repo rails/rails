@@ -4,18 +4,13 @@ require 'active_support/ordered_options'
 require 'controller/fake_controllers'
 
 class UrlHelperTest < ActionView::TestCase
-  include ActiveSupport::Configurable
-  DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG
 
   def setup
     super
-    @controller = Class.new do
-      attr_accessor :url, :request
+    @controller = Class.new(BasicController) do
+      attr_accessor :url
       def url_for(options)
         url
-      end
-      def config
-        ActiveSupport::InheritableOptions.new({})
       end
     end
 

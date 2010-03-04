@@ -62,6 +62,10 @@ module ActionView
       make_test_case_available_to_view!
     end
 
+    def config
+      @controller.config
+    end
+
     def render(options = {}, local_assigns = {}, &block)
       @rendered << output = _view.render(options, local_assigns, &block)
       output

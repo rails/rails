@@ -17,7 +17,21 @@ module ActionController
       ActionController::Base.logger ||= Rails.logger
     end
 
+    # assets_dir = defined?(Rails.public_path) ? Rails.public_path : "public"
+    # ActionView::DEFAULT_CONFIG = {
+    #   :assets_dir => assets_dir,
+    #   :javascripts_dir => "#{assets_dir}/javascripts",
+    #   :stylesheets_dir => "#{assets_dir}/stylesheets",
+    # }
+
+
     initializer "action_controller.set_configs" do |app|
+      paths = app.config.paths
+      ac = app.config.action_controller
+      ac.assets_dir = paths.public
+      ac.javascripts_dir = paths.public.javascripts
+      ac.stylesheets_dir = paths.public.stylesheets
+
       app.config.action_controller.each do |k,v|
         ActionController::Base.send "#{k}=", v
       end

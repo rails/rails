@@ -133,13 +133,6 @@ module ActionView
     # change. You can use something like Live HTTP Headers for Firefox to verify
     # that the cache is indeed working.
     module AssetTagHelper
-      assets_dir = defined?(Rails.public_path) ? Rails.public_path : "public"
-      ActionView::DEFAULT_CONFIG = {
-        :assets_dir => assets_dir,
-        :javascripts_dir => "#{assets_dir}/javascripts",
-        :stylesheets_dir => "#{assets_dir}/stylesheets",
-      }
-
       JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls', 'rails'].freeze unless const_defined?(:JAVASCRIPT_DEFAULT_SOURCES)
 
       # Returns a link tag that browsers and news readers can use to auto-detect

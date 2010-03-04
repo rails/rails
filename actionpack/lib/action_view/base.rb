@@ -175,15 +175,6 @@ module ActionView #:nodoc:
 
     include Helpers, Rendering, Partials, ::ERB::Util
 
-    def config
-      self.config = DEFAULT_CONFIG unless @config
-      @config
-    end
-
-    def config=(config)
-      @config = ActiveSupport::OrderedOptions.new.merge(config)
-    end
-
     extend ActiveSupport::Memoizable
 
     attr_accessor :base_path, :assigns, :template_extension
@@ -306,12 +297,13 @@ module ActionView #:nodoc:
       @helpers = self.class.helpers || Module.new
 
       @_controller   = controller
+      @_config       = controller.config if controller
       @_content_for  = Hash.new {|h,k| h[k] = ActiveSupport::SafeBuffer.new }
       @_virtual_path = nil
       self.view_paths = view_paths
     end
 
-    attr_internal :controller, :template
+    attr_internal :controller, :template, :config
     attr_reader :view_paths
 
     def view_paths=(paths)
