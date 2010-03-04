@@ -100,7 +100,7 @@ module TestHelpers
         end
       end
 
-      add_to_config 'config.action_controller.session = { :key => "_myapp_session", :secret => "bac838a849c1d5c4de2e6a50af826079" }'
+      add_to_config 'config.action_dispatch.session = { :key => "_myapp_session", :secret => "bac838a849c1d5c4de2e6a50af826079" }'
     end
 
     class Bukkit

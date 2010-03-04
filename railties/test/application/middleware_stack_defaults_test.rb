@@ -10,7 +10,7 @@ class MiddlewareStackDefaultsTest < Test::Unit::TestCase
 
     Object.const_set(:MyApplication, Class.new(Rails::Application))
     MyApplication.class_eval do
-      config.action_controller.session = { :key => "_myapp_session", :secret => "OMG A SEKRET" * 10 }
+      config.action_dispatch.session = { :key => "_myapp_session", :secret => "OMG A SEKRET" * 10 }
     end
   end
 
