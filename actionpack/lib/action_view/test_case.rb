@@ -34,6 +34,8 @@ module ActionView
         @request = ActionController::TestRequest.new
         @response = ActionController::TestResponse.new
 
+        @request.env.delete('PATH_INFO')
+
         @params = {}
       end
     end
@@ -58,6 +60,10 @@ module ActionView
 
       self.class.send(:include_helper_modules!)
       make_test_case_available_to_view!
+    end
+
+    def config
+      @controller.config
     end
 
     def render(options = {}, local_assigns = {}, &block)

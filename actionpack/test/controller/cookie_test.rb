@@ -157,7 +157,7 @@ class CookieTest < ActionController::TestCase
     def assert_cookie_header(expected)
       header = @response.headers["Set-Cookie"]
       if header.respond_to?(:to_str)
-        assert_equal expected, header
+        assert_equal expected.split("\n").sort, header.split("\n").sort
       else
         assert_equal expected.split("\n"), header
       end

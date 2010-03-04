@@ -165,7 +165,7 @@ module ActionController
 
         # Authenticate with HTTP Digest, returns true or false
         def authenticate_with_http_digest(realm = "Application", &password_procedure)
-          HttpAuthentication::Digest.authenticate(request, realm, &password_procedure)
+          HttpAuthentication::Digest.authenticate(config.session_options[:secret], request, realm, &password_procedure)
         end
 
         # Render output including the HTTP Digest authentication header
@@ -175,8 +175,8 @@ module ActionController
       end
 
       # Returns false on a valid response, true otherwise
-      def authenticate(request, realm, &password_procedure)
-        authorization(request) && validate_digest_response(request, realm, &password_procedure)
+      def authenticate(secret_key, request, realm, &password_procedure)
+        authorization(request) && validate_digest_response(secret_key, request, realm, &password_procedure)
       end
 
       def authorization(request)
@@ -189,16 +189,16 @@ module ActionController
       # Returns false unless the request credentials response value matches the expected value.
       # First try the password as a ha1 digest password. If this fails, then try it as a plain
       # text password.
-      def validate_digest_response(request, realm, &password_procedure)
+      def validate_digest_response(secret_key, request, realm, &password_procedure)
         credentials = decode_credentials_header(request)
-        valid_nonce = validate_nonce(request, credentials[:nonce])
+        valid_nonce = validate_nonce(secret_key, request, credentials[:nonce])
 
-        if valid_nonce && realm == credentials[:realm] && opaque == credentials[:opaque]
+        if valid_nonce && realm == credentials[:realm] && opaque(secret_key) == credentials[:opaque]
           password = password_procedure.call(credentials[:username])
           return false unless password
 
           method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
-          uri    = credentials[:uri][0,1] == '/' ? request.request_uri : request.url
+          uri    = credentials[:uri][0,1] == '/' ? request.fullpath : request.url
 
          [true, false].any? do |password_is_ha1|
            expected = expected_response(method, uri, credentials, password, password_is_ha1)
@@ -238,6 +238,9 @@ module ActionController
       end
 
       def authentication_header(controller, realm)
+        secret_key = controller.config.session_options[:secret]
+        nonce = self.nonce(secret_key)
+        opaque = opaque(secret_key)
         controller.headers["WWW-Authenticate"] = %(Digest realm="#{realm}", qop="auth", algorithm=MD5, nonce="#{nonce}", opaque="#{opaque}")
       end
 
@@ -280,7 +283,7 @@ module ActionController
       # The nonce is opaque to the client. Composed of Time, and hash of Time with secret
       # key from the Rails session secret generated upon creation of project. Ensures
       # the time cannot be modified by client.
-      def nonce(time = Time.now)
+      def nonce(secret_key, time = Time.now)
         t = time.to_i
         hashed = [t, secret_key]
         digest = ::Digest::MD5.hexdigest(hashed.join(":"))
@@ -292,19 +295,14 @@ module ActionController
       # Can be much shorter if the Stale directive is implemented. This would
       # allow a user to use new nonce without prompting user again for their
       # username and password.
-      def validate_nonce(request, value, seconds_to_timeout=5*60)
+      def validate_nonce(secret_key, request, value, seconds_to_timeout=5*60)
         t = ActiveSupport::Base64.decode64(value).split(":").first.to_i
-        nonce(t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout
+        nonce(secret_key, t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout
       end
 
       # Opaque based on random generation - but changing each request?
-      def opaque()
+      def opaque(secret_key)
         ::Digest::MD5.hexdigest(secret_key)
-      end
-
-      # Set in /initializers/session_store.rb, and loaded even if sessions are not in use.
-      def secret_key
-        ActionController::Base.session_options[:secret]
       end
 
     end

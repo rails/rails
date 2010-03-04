@@ -1,3 +1,5 @@
+require 'active_support/ordered_options'
+
 module AbstractController
   class Error < StandardError; end
   class ActionNotFound < StandardError; end
@@ -26,6 +28,14 @@ module AbstractController
       # useful for initializers which need to add behavior to all controllers.
       def descendants
         @descendants ||= []
+      end
+
+      def config
+        @config ||= ActiveSupport::InheritableOptions.new(superclass < Base ? superclass.config : {})
+      end
+
+      def configure
+        yield config
       end
 
       # A list of all internal methods for a controller. This finds the first
@@ -93,6 +103,10 @@ module AbstractController
     # Initialize controller with nil formats.
     def initialize #:nodoc:
       @_formats = nil
+    end
+
+    def config
+      @config ||= ActiveSupport::InheritableOptions.new(self.class.config)
     end
 
     # Calls the action going through the entire action dispatch stack.

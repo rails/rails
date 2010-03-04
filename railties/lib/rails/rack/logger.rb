@@ -19,7 +19,7 @@ module Rails
 
         def before_dispatch(env)
           request = ActionDispatch::Request.new(env)
-          path = request.request_uri.inspect rescue "unknown"
+          path = request.fullpath.inspect rescue "unknown"
 
           info "\n\nStarted #{request.method.to_s.upcase} #{path} " <<
                       "for #{request.remote_ip} at #{Time.now.to_s(:db)}"

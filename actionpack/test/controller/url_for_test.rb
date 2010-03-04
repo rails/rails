@@ -113,15 +113,13 @@ module AbstractController
       end
 
       def test_relative_url_root_is_respected
-        orig_relative_url_root = ActionController::Base.relative_url_root
-        ActionController::Base.relative_url_root = '/subdir'
+        # ROUTES TODO: Tests should not have to pass :relative_url_root directly. This
+        # should probably come from the router.
 
         add_host!
         assert_equal('https://www.basecamphq.com/subdir/c/a/i',
-          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https', :relative_url_root => '/subdir')
         )
-      ensure
-        ActionController::Base.relative_url_root = orig_relative_url_root
       end
 
       def test_named_routes
@@ -146,9 +144,6 @@ module AbstractController
       end
 
       def test_relative_url_root_is_respected_for_named_routes
-        orig_relative_url_root = ActionController::Base.relative_url_root
-        ActionController::Base.relative_url_root = '/subdir'
-
         with_routing do |set|
           set.draw do |map|
             match '/home/sweet/home/:user', :to => 'home#index', :as => :home
@@ -158,10 +153,8 @@ module AbstractController
           controller = kls.new
 
           assert_equal 'http://www.basecamphq.com/subdir/home/sweet/home/again',
-            controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again')
+            controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again', :relative_url_root => "/subdir")
         end
-      ensure
-        ActionController::Base.relative_url_root = orig_relative_url_root
       end
 
       def test_only_path
