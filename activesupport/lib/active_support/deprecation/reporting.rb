@@ -29,7 +29,8 @@ module ActiveSupport
       private
         def deprecation_message(callstack, message = nil)
           message ||= "You are using deprecated behavior which will be removed from the next major or minor release."
-          "DEPRECATION WARNING: #{message}. #{deprecation_caller_message(callstack)}"
+          message += '.' unless message =~ /\.$/
+          "DEPRECATION WARNING: #{message} #{deprecation_caller_message(callstack)}"
         end
 
         def deprecation_caller_message(callstack)
