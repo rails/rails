@@ -35,11 +35,6 @@ module ActionController
         raise env["action_dispatch.rescue.exception"]
       end
 
-      # Defines the storage option for cached fragments
-      def cache_store=(store_option)
-        @@cache_store = ActiveSupport::Cache.lookup_store(store_option)
-      end
-
       self.page_cache_directory = defined?(Rails.public_path) ? Rails.public_path : ""
     end
 
