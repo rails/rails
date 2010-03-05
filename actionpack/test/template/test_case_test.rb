@@ -104,7 +104,7 @@ module ActionView
           assert_match /Hello: EloyHello: Manfred/, render(:partial => 'test/from_helper')
 
         ensure
-          self.class.helper_class.remove_method :render_from_helper
+          self.class.helper_class.send(:remove_method, :render_from_helper)
         end
       end
 
@@ -162,7 +162,7 @@ module ActionView
           end
           assert_equal 'Word!', render(:partial => 'test/from_helper')
         ensure
-          _helpers.remove_method :render_from_helper
+          _helpers.send(:remove_method, :render_from_helper)
         end
       end
 
