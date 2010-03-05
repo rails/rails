@@ -29,11 +29,11 @@ module ActionView
       @cached = {}
     end
 
-    # Normalizes the arguments and passes it on to find_template
     def find(*args)
       find_all(*args).first
     end
 
+    # Normalizes the arguments and passes it on to find_template
     def find_all(name, details = {}, prefix = nil, partial = nil)
       details = normalize_details(details)
       name, prefix = normalize_name(name, prefix)
@@ -41,6 +41,10 @@ module ActionView
       cached([name, details, prefix, partial]) do
         find_templates(name, details, prefix, partial)
       end
+    end
+
+    def to_s
+      self.class.name
     end
 
   private
