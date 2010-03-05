@@ -12,7 +12,7 @@ module ApplicationTests
       add_to_config <<-RUBY
         config.root = "#{app_path}"
         config.after_initialize do |app|
-          app.config.action_dispatch.session_store = nil
+          app.config.session_store nil
         end
       RUBY
       use_frameworks [:action_controller, :action_view, :action_mailer, :active_record]
