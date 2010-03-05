@@ -42,7 +42,7 @@ class AssetHostTest < Test::Unit::TestCase
   end
 
   def test_asset_host_as_two_arguement_proc
-    ActionController::Base.asset_host = Proc.new {|source,request|
+    ActionController::Base.config.asset_host = Proc.new {|source,request|
       if request && request.ssl?
         "https://www.example.com"
       else
