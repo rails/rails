@@ -1,28 +1,8 @@
 require 'abstract_unit'
 
 module TestUrlGeneration
-  class WithoutMountpoint < ActiveSupport::TestCase
-    setup do
-      app = lambda { |env| [200, {}, "Hello"] }
-      @router = ActionDispatch::Routing::RouteSet.new
-      @router.draw do
-        match "/foo", :to => app, :as => :foo
-      end
-
-      singleton_class.send(:include, @router.url_helpers)
-    end
-
-    test "generating URLS normally" do
-      assert_equal "/foo", foo_path
-    end
-
-    test "accepting a :script_name option" do
-      assert_equal "/bar/foo", foo_path(:script_name => "/bar")
-    end
-  end
-
   class WithMountPoint < ActionDispatch::IntegrationTest
-    Router = ActionDispatch::Routing::RouteSet.new(:mount_point => "/baz")
+    Router = ActionDispatch::Routing::RouteSet.new
     Router.draw { match "/foo", :to => "my_route_generating#index", :as => :foo }
 
     class ::MyRouteGeneratingController < ActionController::Base
@@ -42,11 +22,11 @@ module TestUrlGeneration
       Router
     end
 
-    test "using the default :script_name option" do
-      assert_equal "/baz/foo", foo_path
+    test "generating URLS normally" do
+      assert_equal "/foo", foo_path
     end
 
-    test "overriding the default :script_name option" do
+    test "accepting a :script_name option" do
       assert_equal "/bar/foo", foo_path(:script_name => "/bar")
     end
 

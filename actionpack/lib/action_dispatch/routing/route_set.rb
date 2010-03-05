@@ -209,19 +209,18 @@ module ActionDispatch
           end
       end
 
-      attr_accessor :routes, :named_routes, :mount_point
+      attr_accessor :routes, :named_routes
       attr_accessor :disable_clear_and_finalize, :resources_path_names
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
       end
 
-      def initialize(options = {})
+      def initialize
         self.routes = []
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.controller_namespaces = Set.new
-        self.mount_point = options[:mount_point]
 
         @disable_clear_and_finalize = false
         clear!
@@ -339,7 +338,7 @@ module ActionDispatch
 
       def generate(options, recall = {}, method = :generate)
         options, recall = options.dup, recall.dup
-        script_name = options.delete(:script_name) || mount_point
+        script_name = options.delete(:script_name)
         named_route = options.delete(:use_route)
 
         options = options_as_params(options)
