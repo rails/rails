@@ -1,10 +1,9 @@
-$:.unshift "lib"
-require "active_resource/version"
+version = File.read("../RAILS_VERSION").strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'activeresource'
-  s.version     = ActiveResource::VERSION::STRING
+  s.version     = version
   s.summary     = 'REST modeling framework (part of Rails).'
   s.description = 'REST on Rails. Wrap your RESTful web app with Ruby classes and work with them like Active Record models.'
   s.required_ruby_version = '>= 1.8.7'
@@ -21,6 +20,6 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files = %w( README )
   s.rdoc_options.concat ['--main',  'README']
 
-  s.add_dependency('activesupport', "= #{ActiveResource::VERSION::STRING}")
-  s.add_dependency('activemodel',   "= #{ActiveResource::VERSION::STRING}")
+  s.add_dependency('activesupport', version)
+  s.add_dependency('activemodel',   version)
 end
