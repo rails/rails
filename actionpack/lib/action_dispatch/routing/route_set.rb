@@ -211,6 +211,7 @@ module ActionDispatch
 
       attr_accessor :routes, :named_routes
       attr_accessor :disable_clear_and_finalize, :resources_path_names
+      attr_accessor :script_name
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
@@ -225,8 +226,10 @@ module ActionDispatch
         @disable_clear_and_finalize = false
       end
 
-      def draw(&block)
+      def draw(options = {}, &block)
         clear! unless @disable_clear_and_finalize
+
+        @script_name = options[:script_name]
 
         mapper = Mapper.new(self)
         if block.arity == 1

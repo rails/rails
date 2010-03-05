@@ -101,7 +101,11 @@ module ActionDispatch
       # end
 
       def url_options
-        self.class.default_url_options.merge(@url_options || {})
+        @url_options ||= begin
+          opts = self.class.default_url_options
+          opts.merge(:script_name => _router.script_name) if respond_to?(:_router)
+          opts
+        end
       end
 
       def url_options=(options)

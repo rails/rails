@@ -12,7 +12,7 @@ module ActionController
         # ROUTES TODO: relative_url_root should be middleware
         # and the generator should take SCRIPT_NAME into
         # consideration
-        :relative_url_root => config.relative_url_root,
+        :script_name => request.env["SCRIPT_NAME"],
         :_path_segments => request.symbolized_path_parameters
       )
     end

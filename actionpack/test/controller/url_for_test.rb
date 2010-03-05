@@ -118,7 +118,7 @@ module AbstractController
 
         add_host!
         assert_equal('https://www.basecamphq.com/subdir/c/a/i',
-          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https', :relative_url_root => '/subdir')
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https', :script_name => '/subdir')
         )
       end
 
@@ -153,7 +153,7 @@ module AbstractController
           controller = kls.new
 
           assert_equal 'http://www.basecamphq.com/subdir/home/sweet/home/again',
-            controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again', :relative_url_root => "/subdir")
+            controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again', :script_name => "/subdir")
         end
       end
 

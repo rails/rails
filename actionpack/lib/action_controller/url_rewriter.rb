@@ -32,7 +32,7 @@ module ActionController
 
       # ROUTES TODO: Fix the tests
       segments = options.delete(:_path_segments)
-      relative_url_root = options.delete(:relative_url_root).to_s
+      relative_url_root = options.delete(:script_name).to_s
       path_segments = path_segments ? path_segments.merge(segments || {}) : segments
 
       unless options[:only_path]
