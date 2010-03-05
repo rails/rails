@@ -58,7 +58,7 @@ module ActionView
     # +asset_host+ to a proc like this:
     #
     #   ActionController::Base.asset_host = Proc.new { |source|
-    #     "http://assets#{rand(2) + 1}.example.com"
+    #     "http://assets#{source.hash % 2 + 1}.example.com"
     #   }
     #   image_tag("rails.png")
     #   # => <img alt="Rails" src="http://assets0.example.com/images/rails.png?1230601161" />
@@ -66,7 +66,7 @@ module ActionView
     #   # => <link href="http://assets1.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
     #
     # The example above generates "http://assets1.example.com" and
-    # "http://assets2.example.com" randomly. This option is useful for example if
+    # "http://assets2.example.com". This option is useful for example if
     # you need fewer/more than four hosts, custom host names, etc.
     #
     # As you see the proc takes a +source+ parameter. That's a string with the
