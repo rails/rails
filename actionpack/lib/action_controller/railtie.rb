@@ -51,12 +51,6 @@ module ActionController
       ac.stylesheets_dir = paths.public.stylesheets.to_a.first
       ac.secret = app.config.cookie_secret
 
-      if ac.relative_url_root
-        ActiveSupport::Deprecation.warn "config.action_controller.relative_url_root " \
-          "is no longer effective. Please set it in the router as " \
-          "routes.draw(:script_name => #{ac.relative_url_root.inspect})"
-      end
-
       ActionController::Base.config.replace(ac)
     end
 

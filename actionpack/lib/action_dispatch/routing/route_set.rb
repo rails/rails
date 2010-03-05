@@ -209,28 +209,26 @@ module ActionDispatch
           end
       end
 
-      attr_accessor :routes, :named_routes
+      attr_accessor :routes, :named_routes, :mount_point
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :script_name
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
       end
 
-      def initialize
+      def initialize(options = {})
         self.routes = []
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.controller_namespaces = Set.new
+        self.mount_point = options[:mount_point]
 
         @disable_clear_and_finalize = false
         clear!
       end
 
-      def draw(options = {}, &block)
+      def draw(&block)
         clear! unless @disable_clear_and_finalize
-
-        @script_name = options[:script_name]
 
         mapper = Mapper.new(self)
         if block.arity == 1
@@ -341,6 +339,7 @@ module ActionDispatch
 
       def generate(options, recall = {}, method = :generate)
         options, recall = options.dup, recall.dup
+        script_name = options.delete(:script_name) || mount_point
         named_route = options.delete(:use_route)
 
         options = options_as_params(options)
@@ -406,6 +405,7 @@ module ActionDispatch
           [path, params.keys]
         elsif path
           path << "?#{params.to_query}" if params.any?
+          path = "#{script_name}#{path}"
           path
         else
           raise ActionController::RoutingError, "No route matches #{options.inspect}"
