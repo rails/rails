@@ -18,11 +18,9 @@ module ActionView
       end
     end
 
-    register_detail(:locale)  { [I18n.locale] }
-    register_detail(:formats) { Mime::SET.symbols }
-    register_detail(:handlers) do
-      Template::Handlers.extensions
-    end
+    register_detail(:locale)   { [I18n.locale] }
+    register_detail(:formats)  { Mime::SET.symbols }
+    register_detail(:handlers) { Template::Handlers.extensions }
 
     def initialize(options = {})
       @cache  = options[:cache]
@@ -41,10 +39,6 @@ module ActionView
       cached([name, details, prefix, partial]) do
         find_templates(name, details, prefix, partial)
       end
-    end
-
-    def to_s
-      self.class.name
     end
 
   private
