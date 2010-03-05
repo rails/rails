@@ -224,6 +224,7 @@ module ActionDispatch
         self.controller_namespaces = Set.new
 
         @disable_clear_and_finalize = false
+        clear!
       end
 
       def draw(options = {}, &block)
