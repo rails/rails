@@ -57,12 +57,11 @@ module ActionController #:nodoc:
     end
 
     include ConfigMethods
+    include Pages, Actions, Fragments
+    include Sweeping if defined?(ActiveRecord)
 
     included do
       extend ConfigMethods
-
-      include Pages, Actions, Fragments
-      include Sweeping if defined?(ActiveRecord)
 
       @@perform_caching = true
       cattr_accessor :perform_caching
