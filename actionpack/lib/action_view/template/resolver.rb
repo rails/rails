@@ -18,22 +18,20 @@ module ActionView
       end
     end
 
-    register_detail(:locale)  { [I18n.locale] }
-    register_detail(:formats) { Mime::SET.symbols }
-    register_detail(:handlers) do
-      Template::Handlers.extensions
-    end
+    register_detail(:locale)   { [I18n.locale] }
+    register_detail(:formats)  { Mime::SET.symbols }
+    register_detail(:handlers) { Template::Handlers.extensions }
 
     def initialize(options = {})
       @cache  = options[:cache]
       @cached = {}
     end
 
-    # Normalizes the arguments and passes it on to find_template
     def find(*args)
       find_all(*args).first
     end
 
+    # Normalizes the arguments and passes it on to find_template
     def find_all(name, details = {}, prefix = nil, partial = nil)
       details = normalize_details(details)
       name, prefix = normalize_name(name, prefix)

@@ -65,7 +65,7 @@ module ApplicationTests
     test "database middleware doesn't initialize when session store is not active_record" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-        config.action_controller.session_store = :cookie_store
+        config.session_store :cookie_store, { :key => "blahblahblah" }
       RUBY
       require "#{app_path}/config/environment"
 
@@ -73,7 +73,7 @@ module ApplicationTests
     end
 
     test "database middleware initializes when session store is active record" do
-      add_to_config "config.action_controller.session_store = :active_record_store"
+      add_to_config "config.session_store :active_record_store"
 
       require "#{app_path}/config/environment"
 

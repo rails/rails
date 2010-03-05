@@ -11,8 +11,8 @@ module ApplicationTests
       app_file "config/environments/development.rb", ""
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-        config.after_initialize do
-          ActionController::Base.session_store = nil
+        config.after_initialize do |app|
+          app.config.session_store nil
         end
       RUBY
       use_frameworks [:action_controller, :action_view, :action_mailer, :active_record]

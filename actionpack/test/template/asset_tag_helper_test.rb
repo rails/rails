@@ -51,7 +51,6 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def teardown
     ActionController::Base.perform_caching = false
-    ActionController::Base.asset_host = nil
     ENV.delete('RAILS_ASSET_ID')
   end
 

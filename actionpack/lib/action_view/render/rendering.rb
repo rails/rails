@@ -102,7 +102,7 @@ module ActionView
       ActiveSupport::Notifications.instrument("action_view.render_template",
         :identifier => template.identifier, :layout => layout.try(:identifier)) do
 
-        content = template.render(self, locals)
+        content = template.render(self, locals) {|*name| _layout_for(*name) }
         @_content_for[:layout] = content
 
         if layout

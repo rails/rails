@@ -41,11 +41,12 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   setup do
     # Used as secret in generating nonce to prevent tampering of timestamp
     @secret = "session_options_secret"
-    @old_secret, ActionController::Base.session_options[:secret] = ActionController::Base.session_options[:secret], @secret
+    @controller.config.secret = @secret
+    # @old_secret, ActionController::Base.config.secret[:secret] = ActionController::Base.session_options[:secret], @secret
   end
 
   teardown do
-    ActionController::Base.session_options[:secret] = @old_secret
+    # ActionController::Base.session_options[:secret] = @old_secret
   end
 
   AUTH_HEADERS.each do |header|

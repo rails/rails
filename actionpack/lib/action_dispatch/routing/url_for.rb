@@ -101,11 +101,16 @@ module ActionDispatch
       # end
 
       def url_options
-        self.class.default_url_options.merge(@url_options || {})
+        @url_options ||= begin
+          # self.class does not respond to default_url_options when the helpers are extended
+          # onto a singleton
+          self.class.respond_to?(:default_url_options) ? self.class.default_url_options : {}
+        end
       end
 
       def url_options=(options)
-        @url_options = options
+        defaults = self.class.respond_to?(:default_url_options) ? self.class.default_url_options : {}
+        @url_options = defaults.merge(options)
       end
 
       # def merge_options(options) #:nodoc:

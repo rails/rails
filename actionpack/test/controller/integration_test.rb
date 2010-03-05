@@ -284,18 +284,13 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     end
   end
 
-  def test_cookie_monster
+  test 'response cookies are added to the cookie jar for the next request' do
     with_test_route_set do
       self.cookies['cookie_1'] = "sugar"
       self.cookies['cookie_2'] = "oatmeal"
       get '/cookie_monster'
-      assert_equal 410, status
-      assert_equal "Gone", status_message
-      assert_response 410
-      assert_response :gone
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
       assert_equal({"cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies.to_hash)
-      assert_equal "Gone", response.body
     end
   end
 

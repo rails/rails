@@ -223,6 +223,7 @@ module ActionDispatch
         self.controller_namespaces = Set.new
 
         @disable_clear_and_finalize = false
+        clear!
       end
 
       def draw(&block)
@@ -337,6 +338,7 @@ module ActionDispatch
 
       def generate(options, recall = {}, method = :generate)
         options, recall = options.dup, recall.dup
+        script_name = options.delete(:script_name)
         named_route = options.delete(:use_route)
 
         options = options_as_params(options)
@@ -402,6 +404,7 @@ module ActionDispatch
           [path, params.keys]
         elsif path
           path << "?#{params.to_query}" if params.any?
+          path = "#{script_name}#{path}"
           path
         else
           raise ActionController::RoutingError, "No route matches #{options.inspect}"

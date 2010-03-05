@@ -40,27 +40,33 @@ module ActionController #:nodoc:
       autoload :Sweeping, 'action_controller/caching/sweeping'
     end
 
-    included do
-      @@cache_store = nil
-      cattr_reader :cache_store
-
-      # Defines the storage option for cached fragments
-      def self.cache_store=(store_option)
-        @@cache_store = ActiveSupport::Cache.lookup_store(store_option)
+    module ConfigMethods
+      def cache_store
+        config.cache_store
       end
 
-      include Pages, Actions, Fragments
-      include Sweeping if defined?(ActiveRecord)
+      def cache_store=(store)
+        config.cache_store = ActiveSupport::Cache.lookup_store(store)
+      end
+
+    private
+
+      def cache_configured?
+        perform_caching && cache_store
+      end
+    end
+
+    include ConfigMethods
+    include Pages, Actions, Fragments
+    include Sweeping if defined?(ActiveRecord)
+
+    included do
+      extend ConfigMethods
 
       @@perform_caching = true
       cattr_accessor :perform_caching
     end
 
-    module ClassMethods
-      def cache_configured?
-        perform_caching && cache_store
-      end
-    end
 
     def caching_allowed?
       request.get? && response.status == 200
@@ -74,11 +80,6 @@ module ActionController #:nodoc:
       else
         yield
       end
-    end
-
-  private
-    def cache_configured?
-      self.class.cache_configured?
     end
   end
 end
