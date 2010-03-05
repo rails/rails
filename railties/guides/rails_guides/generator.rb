@@ -1,4 +1,5 @@
 require 'set'
+require 'fileutils'
 
 module RailsGuides
   class Generator
