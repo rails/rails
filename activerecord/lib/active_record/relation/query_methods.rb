@@ -184,16 +184,16 @@ module ActiveRecord
 
       builder = PredicateBuilder.new(table.engine)
 
-      conditions = if [String, Array].include?(args.first.class)
-        @klass.send(:sanitize_sql, args.size > 1 ? args : args.first)
-      elsif args.first.is_a?(Hash)
-        attributes = @klass.send(:expand_hash_conditions_for_aggregates, args.first)
+      opts = args.first
+      case opts
+      when String, Array
+        @klass.send(:sanitize_sql, args.size > 1 ? args : opts)
+      when Hash
+        attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
         builder.build_from_hash(attributes, table)
       else
-        args.first
+        opts
       end
-
-      conditions
     end
 
     private
