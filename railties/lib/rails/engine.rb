@@ -82,7 +82,7 @@ module Rails
     initializer :add_routing_namespaces do |app|
       paths.app.controllers.to_a.each do |load_path|
         load_path = File.expand_path(load_path)
-        Dir["#{load_path}/*/*_controller.rb"].collect do |path|
+        Dir["#{load_path}/*/**/*_controller.rb"].collect do |path|
           namespace = File.dirname(path).sub(/#{load_path}\/?/, '')
           app.routes.controller_namespaces << namespace unless namespace.empty?
         end
