@@ -2765,10 +2765,9 @@ module ActiveRecord #:nodoc:
 
       # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
       def attributes
-        self.attribute_names.inject({}) do |attrs, name|
-          attrs[name] = read_attribute(name)
-          attrs
-        end
+        attrs = {}
+        attribute_names.each { |name| attrs[name] = read_attribute(name) }
+        attrs
       end
 
       # Returns a hash of attributes before typecasting and deserialization.
@@ -3129,7 +3128,7 @@ module ActiveRecord #:nodoc:
 
       # Returns a comma-separated pair list, like "key1 = val1, key2 = val2".
       def comma_pair_list(hash)
-        hash.inject([]) { |list, pair| list << "#{pair.first} = #{pair.last}" }.join(", ")
+        hash.map { |k,v| "#{k} = #{v}" }.join(", ")
       end
 
       def quoted_column_names(attributes = attributes_with_quotes)
