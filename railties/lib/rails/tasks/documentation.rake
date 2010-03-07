@@ -11,9 +11,11 @@ namespace :doc do
     rdoc.rdoc_files.include('lib/**/*.rb')
   }
 
-  desc 'Generate documentation for the Rails framework. Specify path with PATH="/path/to/rails"'
+  desc 'Generate documentation for the Rails framework. Specify path with RAILS_PATH="/path/to/rails"'
   Rake::RDocTask.new("rails") { |rdoc|
     path = ENV['RAILS_PATH'] || 'vendor/gems/gems'
+    raise "Missing Rails directory at #{path}" unless File.directory?(path)
+
     version = "-#{Rails::VERSION::STRING}" unless ENV['RAILS_PATH']
     rdoc.rdoc_dir = 'doc/api'
     rdoc.template = "#{ENV['template']}.rb" if ENV['template']
