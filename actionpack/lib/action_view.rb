@@ -41,6 +41,7 @@ module ActionView
       autoload :Rendering
     end
 
+    autoload :Base
     autoload :MissingTemplate,   'action_view/base'
     autoload :Resolver,          'action_view/template/resolver'
     autoload :PathResolver,      'action_view/template/resolver'
@@ -56,6 +57,5 @@ module ActionView
 end
 
 require 'active_support/core_ext/string/output_safety'
-require 'action_view/base'
 
 I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"

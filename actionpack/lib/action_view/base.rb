@@ -177,6 +177,8 @@ module ActionView #:nodoc:
 
     extend ActiveSupport::Memoizable
 
+    ActionView.run_base_hooks(self)
+
     attr_accessor :base_path, :assigns, :template_extension
     attr_internal :captures
 

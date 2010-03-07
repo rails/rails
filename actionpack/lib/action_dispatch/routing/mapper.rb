@@ -1,3 +1,5 @@
+require "active_support/core_ext/hash/except"
+
 module ActionDispatch
   module Routing
     class Mapper
@@ -85,7 +87,7 @@ module ActionDispatch
           end
 
           def requirements
-            @requirements ||= returning(@options[:constraints] || {}) do |requirements|
+            @requirements ||= (@options[:constraints] || {}).tap do |requirements|
               requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
               @options.each { |k, v| requirements[k] = v if v.is_a?(Regexp) }
             end

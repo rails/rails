@@ -1,4 +1,5 @@
 require 'action_controller/test_case'
+require 'action_view'
 
 module ActionView
   class Base

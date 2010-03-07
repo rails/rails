@@ -34,6 +34,7 @@ require 'active_support/core_ext/array/uniq_by'
 require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/lazy_load_hooks'
 
 module ActionMailer
   extend ::ActiveSupport::Autoload

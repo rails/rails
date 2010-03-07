@@ -1211,8 +1211,10 @@ module ActionView
     end
   end
 
-  class Base
-    cattr_accessor :default_form_builder
-    @@default_form_builder = ::ActionView::Helpers::FormBuilder
+  ActionView.base_hook do
+    class ActionView::Base
+      cattr_accessor :default_form_builder
+      @@default_form_builder = ::ActionView::Helpers::FormBuilder
+    end
   end
 end

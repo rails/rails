@@ -9,6 +9,7 @@ require 'test/unit'
 require 'stringio'
 
 require 'active_record'
+require 'active_support/dependencies'
 require 'connection'
 
 begin

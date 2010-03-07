@@ -10,7 +10,9 @@ module ActionView
 
     initializer "action_view.cache_asset_timestamps" do |app|
       unless app.config.cache_classes
-        ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
+        ActionView.base_hook do
+          ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
+        end
       end
     end
   end
