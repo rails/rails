@@ -1561,24 +1561,18 @@ module ActiveRecord
 
         def configure_dependency_for_belongs_to(reflection)
           if reflection.options.include?(:dependent)
-            case reflection.options[:dependent]
-              when :destroy
-                method_name = "belongs_to_dependent_destroy_for_#{reflection.name}".to_sym
-                define_method(method_name) do
-                  association = send(reflection.name)
-                  association.destroy unless association.nil?
-                end
-                after_destroy method_name
-              when :delete
-                method_name = "belongs_to_dependent_delete_for_#{reflection.name}".to_sym
-                define_method(method_name) do
-                  association = send(reflection.name)
-                  association.delete unless association.nil?
-                end
-                after_destroy method_name
-              else
-                raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{reflection.options[:dependent].inspect})"
+            name = reflection.options[:dependent]
+
+            unless [:destroy, :delete].include?(name)
+              raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{reflection.options[:dependent].inspect})"
             end
+
+            method_name = :"belongs_to_dependent_#{name}_for_#{reflection.name}"
+            define_method(method_name) do
+              association = send(reflection.name)
+              association.destroy unless association.nil?
+            end
+            after_destroy method_name
           end
         end
 
