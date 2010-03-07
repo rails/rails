@@ -309,7 +309,7 @@ module ActionView
           prefix = controller.controller_path unless path.include?(?/)
         end
 
-        @view.find(path, {:formats => @view.formats}, prefix, true)
+        @view.find(path, prefix, true)
       end
 
       def partial_path(object = @object)
@@ -329,7 +329,7 @@ module ActionView
 
       details = options[:_details]
 
-      # Is this needed
+      # TODO This should happen automatically as well
       self.formats = details[:formats] if details
       renderer = PartialRenderer.new(self, options, nil)
       text = renderer.render

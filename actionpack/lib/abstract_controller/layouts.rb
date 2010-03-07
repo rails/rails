@@ -170,27 +170,7 @@ module AbstractController
     module ClassMethods
       def inherited(klass)
         super
-        klass.class_eval do
-          _write_layout_method
-          @found_layouts = {}
-        end
-      end
-
-      def clear_template_caches!
-        @found_layouts.clear if defined? @found_layouts
-        super
-      end
-
-      def cache_layout(details)
-        layout = @found_layouts
-        key = Thread.current[:format_locale_key]
-
-        # Cache nil
-        if layout.key?(key)
-          return layout[key]
-        else
-          layout[key] = yield
-        end
+        klass._write_layout_method
       end
 
       # This module is mixed in if layout conditions are provided. This means
@@ -282,12 +262,10 @@ module AbstractController
           if name
             self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
               def _layout(details)
-                self.class.cache_layout(details) do
-                  if template_exists?("#{_implied_layout_name}", details, :_prefix => "layouts")
-                    "#{_implied_layout_name}"
-                  else
-                    super
-                  end
+                if template_exists?("#{_implied_layout_name}", :_prefix => "layouts")
+                  "#{_implied_layout_name}"
+                else
+                  super
                 end
               end
             RUBY
@@ -372,9 +350,10 @@ module AbstractController
     # ==== Returns
     # Template:: A template object matching the name and details
     def _find_layout(name, details)
-      # TODO: Make prefix actually part of details in ViewPath#find_by_parts
       prefix = details.key?(:prefix) ? details.delete(:prefix) : "layouts"
-      find_template(name, details, :_prefix => prefix)
+      # TODO This should happen automatically
+      template_lookup.details = template_lookup.details.merge(:formats => details[:formats])
+      find_template(name, :_prefix => prefix)
     end
 
     # Returns the default layout for this controller and a given set of details.

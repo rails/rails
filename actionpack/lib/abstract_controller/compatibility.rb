@@ -11,7 +11,7 @@ module AbstractController
     def _default_layout(details, require_layout = false)
       super
     rescue ActionView::MissingTemplate
-      _find_layout(_layout({}), {})
+      _layout_for_name(_layout({}), {})
       nil
     end
   end

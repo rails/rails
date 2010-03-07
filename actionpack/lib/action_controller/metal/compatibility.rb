@@ -73,18 +73,5 @@ module ActionController
     def performed?
       response_body
     end
-
-    # ==== Request only view path switching ====
-    def append_view_path(path)
-      view_paths.push(*path)
-    end
-
-    def prepend_view_path(path)
-      view_paths.unshift(*path)
-    end
-
-    def view_paths
-      view_context.view_paths
-    end
   end
 end

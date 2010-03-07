@@ -90,10 +90,22 @@ module AbstractController
       view_context.render_partial(options)
     end
 
+    def template_lookup
+      @template_lookup ||= ActionView::Template::Lookup.new(_view_paths, details_for_render)
+    end
+
     # The list of view paths for this controller. See ActionView::ViewPathSet for
     # more details about writing custom view paths.
     def view_paths
-      _view_paths
+      template_lookup.view_paths
+    end
+
+    def append_view_path(path)
+      template_lookup.view_paths.push(*path)
+    end
+
+    def prepend_view_path(path)
+      template_lookup.view_paths.unshift(*path)
     end
 
     # The prefix used in render "foo" shortcuts.
@@ -162,10 +174,9 @@ module AbstractController
       options[:_prefix] ||= _prefix if (options.keys & [:partial, :file, :template]).empty?
 
       details = _normalize_details(options)
+      template_lookup.details = details
 
-      options[:_template] ||= with_template_cache(name, details) do
-        find_template(name, details, options)
-      end
+      options[:_template] ||= find_template(name, options)
     end
 
     def details_for_render
@@ -179,16 +190,12 @@ module AbstractController
       details
     end
 
-    def find_template(name, details, options)
-      view_paths.find(name, details, options[:_prefix], options[:_partial])
+    def find_template(name, options)
+      template_lookup.find(name, options[:_prefix], options[:_partial])
     end
 
-    def template_exists?(name, details, options)
-      view_paths.exists?(name, details, options[:_prefix], options[:_partial])
-    end
-
-    def with_template_cache(name, details)
-      yield
+    def template_exists?(name, options)
+      template_lookup.exists?(name, options[:_prefix], options[:_partial])
     end
 
     def format_for_text
@@ -196,9 +203,6 @@ module AbstractController
     end
 
     module ClassMethods
-      def clear_template_caches!
-      end
-
       # Append a path to the list of view paths for this controller.
       #
       # ==== Parameters
@@ -206,7 +210,7 @@ module AbstractController
       # the default view path. You may also provide a custom view path
       # (see ActionView::ViewPathSet for more information)
       def append_view_path(path)
-        self.view_paths = view_paths.dup + Array.wrap(path)
+        self.view_paths = view_paths.dup + Array(path)
       end
 
       # Prepend a path to the list of view paths for this controller.
@@ -216,8 +220,7 @@ module AbstractController
       # the default view path. You may also provide a custom view path
       # (see ActionView::ViewPathSet for more information)
       def prepend_view_path(path)
-        clear_template_caches!
-        self.view_paths = Array.wrap(path) + view_paths.dup
+        self.view_paths = Array(path) + view_paths.dup
       end
 
       # A list of all of the default view paths for this controller.
@@ -231,9 +234,8 @@ module AbstractController
       # paths<ViewPathSet, Object>:: If a ViewPathSet is provided, use that;
       #   otherwise, process the parameter into a ViewPathSet.
       def view_paths=(paths)
-        clear_template_caches!
         self._view_paths = paths.is_a?(ActionView::PathSet) ? paths : ActionView::Base.process_view_paths(paths)
-        _view_paths.freeze
+        self._view_paths.freeze
       end
     end
   end

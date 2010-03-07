@@ -9,7 +9,7 @@ module ActionView #:nodoc:
       METHOD
     end
 
-    def find(path, details = {}, prefix = nil, partial = false)
+    def find(path, details = {}, prefix = nil, partial = false, key=nil)
       each do |resolver|
         if template = resolver.find(path, details, prefix, partial)
           return template
@@ -19,7 +19,7 @@ module ActionView #:nodoc:
       raise ActionView::MissingTemplate.new(self, "#{prefix}/#{path}", details, partial)
     end
     
-    def exists?(path, details = {}, prefix = nil, partial = false)
+    def exists?(path, details = {}, prefix = nil, partial = false, key=nil)
       each do |resolver|
         if resolver.find(path, details, prefix, partial)
           return true

@@ -4,7 +4,6 @@ module ActionController
 
     include ActionController::RackDelegation
     include AbstractController::Rendering
-    include AbstractController::DetailsCache
 
     def process_action(*)
       self.formats = request.formats.map {|x| x.to_sym }

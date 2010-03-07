@@ -180,62 +180,19 @@ module ActionView #:nodoc:
     attr_accessor :base_path, :assigns, :template_extension
     attr_internal :captures
 
-    def reset_formats(formats)
-      old_formats, self.formats = self.formats, formats
-      reset_hash_key
-      yield if block_given?
-    ensure
-      if block_given?
-        self.formats = old_formats
-        reset_hash_key
-      end
-    end
-
-    def reset_hash_key
-      if defined?(AbstractController::HashKey)
-        # This is expensive, but we need to reset this when the format is updated,
-        # which currently only happens
-        Thread.current[:format_locale_key] =
-          AbstractController::HashKey.get(self.class, :formats => formats, :locale => [I18n.locale])
-      end
-    end
-
-    def formats
-      controller ? controller.formats : @formats
-    end
-
-    def formats=(val)
-      if controller
-        controller.formats = val
-      else
-        @formats = val
-      end
-    end
-
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
       delegate :logger, :to => 'ActionController::Base', :allow_nil => true
     end
 
-    @@debug_rjs = false
-    ##
-    # :singleton-method:
     # Specify whether RJS responses should be wrapped in a try/catch block
     # that alert()s the caught exception (and then re-raises it).
     cattr_accessor :debug_rjs
-
-    # Specify whether templates should be cached. Otherwise the file we be read everytime it is accessed.
-    # Automatically reloading templates are not thread safe and should only be used in development mode.
-    @@cache_template_loading = nil
-    cattr_accessor :cache_template_loading
+    @@debug_rjs = false
 
     # :nodoc:
     def self.xss_safe?
       true
-    end
-
-    def self.cache_template_loading?
-      ActionController::Base.allow_concurrency || (cache_template_loading.nil? ? !ActiveSupport::Dependencies.load? : cache_template_loading)
     end
 
     attr_internal :request, :layout
@@ -248,8 +205,6 @@ module ActionView #:nodoc:
              :flash, :action_name, :controller_name, :to => :controller
 
     delegate :logger, :to => :controller, :allow_nil => true
-
-    delegate :find, :to => :view_paths
 
     include Context
 
@@ -287,10 +242,10 @@ module ActionView #:nodoc:
         klass = self
       end
 
-      klass.new(controller.class.view_paths, {}, controller)
+      klass.new(controller.template_lookup, {}, controller)
     end
 
-    def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil, formats = nil)#:nodoc:
+    def initialize(template_lookup = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:
       @config = nil
       @formats = formats
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
@@ -298,16 +253,33 @@ module ActionView #:nodoc:
 
       @_controller   = controller
       @_config       = ActiveSupport::InheritableOptions.new(controller.config) if controller
-      @_content_for  = Hash.new {|h,k| h[k] = ActiveSupport::SafeBuffer.new }
+      @_content_for  = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
       @_virtual_path = nil
-      self.view_paths = view_paths
+
+      @template_lookup = template_lookup.is_a?(ActionView::Template::Lookup) ?
+        template_lookup : ActionView::Template::Lookup.new(template_lookup)
     end
 
     attr_internal :controller, :template, :config
-    attr_reader :view_paths
 
-    def view_paths=(paths)
-      @view_paths = self.class.process_view_paths(paths)
+    attr_reader :template_lookup
+    delegate :find, :view_paths, :view_paths=, :to => :template_lookup
+
+    def formats=(formats)
+      update_details(:formats => Array(formats))
+    end
+
+    def update_details(details)
+      old_details = template_lookup.details
+      template_lookup.details = old_details.merge(details)
+
+      if block_given?
+        begin
+          yield
+        ensure
+          template_lookup.details = old_details
+        end
+      end
     end
 
     def punctuate_body!(part)

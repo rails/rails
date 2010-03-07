@@ -13,6 +13,7 @@ module ActionView
       autoload :Handler
       autoload :Handlers
       autoload :Text
+      autoload :Lookup
     end
 
     extend Template::Handlers
