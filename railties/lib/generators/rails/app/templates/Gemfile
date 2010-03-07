@@ -1,4 +1,4 @@
-source 'http://gemcutter.org'
+source 'http://rubygems.org'
 
 <%- if options.dev? -%>
 gem 'rails', :path => '<%= Rails::Generators::RAILS_DEV_PATH %>'
@@ -15,15 +15,15 @@ gem 'rails', '<%= Rails::VERSION::STRING %>'
 gem '<%= gem_for_database %>'<% if require_for_database %>, :require => '<%= require_for_database %>'<% end %>
 <% end -%>
 
-# Use mongrel as the web server
-# gem 'mongrel'
+# Use unicorn as the web server
+# gem 'unicorn'
 
 # Deploy with Capistrano
 # gem 'capistrano'
 
 # Bundle the extra gems:
 # gem 'bj'
-# gem 'hpricot', '0.6'
+# gem 'nokogiri', '1.4.1'
 # gem 'sqlite3-ruby', :require => 'sqlite3'
 # gem 'aws-s3', :require => 'aws/s3'
 
