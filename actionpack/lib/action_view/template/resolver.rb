@@ -22,8 +22,7 @@ module ActionView
     register_detail(:formats)  { Mime::SET.symbols }
     register_detail(:handlers) { Template::Handlers.extensions }
 
-    def initialize(options = {})
-      @cache  = options[:cache]
+    def initialize
       @cached = {}
     end
 
@@ -42,6 +41,10 @@ module ActionView
     end
 
   private
+
+    def caching?
+      @caching ||= !defined?(Rails.application) || Rails.application.config.cache_classes
+    end
 
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
@@ -72,7 +75,7 @@ module ActionView
     end
 
     def cached(key)
-      return yield unless @cache
+      return yield unless caching?
       return @cached[key] if @cached.key?(key)
       @cached[key] = yield
     end
@@ -133,18 +136,18 @@ module ActionView
   end
 
   class FileSystemResolver < PathResolver
-    def initialize(path, options = {})
+    def initialize(path)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
-      super(options)
+      super()
       @path = Pathname.new(path).expand_path
     end
   end
 
   # TODO: remove hack
   class FileSystemResolverWithFallback < Resolver
-    def initialize(path, options = {})
-      super(options)
-      @paths = [FileSystemResolver.new(path, options), FileSystemResolver.new("", options), FileSystemResolver.new("/", options)]
+    def initialize(path)
+      super()
+      @paths = [FileSystemResolver.new(path), FileSystemResolver.new(""), FileSystemResolver.new("/")]
     end
 
     def find_templates(*args)

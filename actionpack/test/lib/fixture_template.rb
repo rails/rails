@@ -1,7 +1,7 @@
 module ActionView #:nodoc:
   class FixtureResolver < PathResolver
-    def initialize(hash = {}, options = {})
-      super(options)
+    def initialize(hash = {})
+      super()
       @hash = hash
     end
 
