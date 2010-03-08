@@ -46,10 +46,11 @@ module ActionController
     initializer "action_controller.set_configs" do |app|
       paths = app.config.paths
       ac = app.config.action_controller
-      ac.assets_dir = paths.public.to_a.first
+
+      ac.assets_dir      = paths.public.to_a.first
       ac.javascripts_dir = paths.public.javascripts.to_a.first
       ac.stylesheets_dir = paths.public.stylesheets.to_a.first
-      ac.secret = app.config.cookie_secret
+      ac.secret          = app.config.cookie_secret
 
       ActionController.base_hook { self.config.replace(ac) }
     end
