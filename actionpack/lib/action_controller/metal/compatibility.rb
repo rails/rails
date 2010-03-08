@@ -49,14 +49,19 @@ module ActionController
       super
     end
 
-    def render_to_body(options)
-      if options.is_a?(Hash) && options.key?(:template)
-        options[:template].sub!(/^\//, '')
+    def _normalize_options(options)
+      # TODO Deprecate this. Rails 2.x allowed to give a template as action.
+      if options[:action] && options[:action].to_s.include?(?/)
+        options[:template] = options.delete(:action)
       end
 
       options[:text] = nil if options.delete(:nothing) == true
       options[:text] = " " if options.key?(:text) && options[:text].nil?
+      super
+    end
 
+    def render_to_body(options)
+      options[:template].sub!(/^\//, '') if options.key?(:template)
       super || " "
     end
 

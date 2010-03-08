@@ -264,7 +264,7 @@ module AbstractController
 
             self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
               def _layout
-                if template_exists?("#{_implied_layout_name}", :_prefix => #{_prefix.inspect})
+                if template_exists?("#{_implied_layout_name}", #{_prefix.inspect})
                   "#{_implied_layout_name}"
                 else
                   super
@@ -277,7 +277,9 @@ module AbstractController
       end
     end
 
-    def render_to_body(options)
+    def _normalize_options(options)
+      super
+
       if _include_layout?(options)
         layout = options.key?(:layout) ? options[:layout] : :default
         value = _layout_for_option(layout)
@@ -288,7 +290,6 @@ module AbstractController
         # TODO Revisit this. :layout with :partial from controllers are not the same as in views
         options[:layout] = view_context._find_layout(options[:layout]) if options.key?(:partial)
       end
-      super
     end
 
   private

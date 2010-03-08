@@ -24,18 +24,8 @@ module ActionView
           return _render_partial(options)
         end
 
-        template = if options[:file]
-          find(options[:file])
-        elsif options[:inline]
-          handler = Template.handler_class_for_extension(options[:type] || "erb")
-          Template.new(options[:inline], "inline template", handler, {})
-        elsif options[:text]
-          Template::Text.new(options[:text])
-        end
-
-        if template
-          _render_template(template, layout, :locals => options[:locals])
-        end
+        template = _determine_template(options)
+        _render_template(template, layout, :locals => options[:locals]) if template
       when :update
         update_page(&block)
       else
@@ -87,8 +77,28 @@ module ActionView
     # _layout::   The layout, if any, to wrap the Template in
     def render_template(options)
       _evaluate_assigns_and_ivars
-      template, layout = options.values_at(:_template, :layout)
-      _render_template(template, layout, options)
+      if options.key?(:partial)
+        _render_partial(options)
+      else
+        template = _determine_template(options)
+        yield template if block_given?
+        _render_template(template, options[:layout], options)
+      end
+    end
+
+    def _determine_template(options)
+      if options.key?(:inline)
+        handler = Template.handler_class_for_extension(options[:type] || "erb")
+        Template.new(options[:inline], "inline template", handler, {})
+      elsif options.key?(:text)
+        Template::Text.new(options[:text], self.formats.try(:first))
+      elsif options.key?(:_template)
+        options[:_template]
+      elsif options.key?(:file)
+        find(options[:file], options[:_prefix])
+      elsif options.key?(:template)
+        find(options[:template], options[:_prefix])
+      end
     end
 
     def _find_layout(layout)
@@ -102,8 +112,6 @@ module ActionView
     end
 
     def _render_template(template, layout = nil, options = {})
-      self.formats = template.details[:formats]
-
       locals = options[:locals] || {}
       layout = _find_layout(layout) if layout
 
