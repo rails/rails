@@ -614,14 +614,12 @@ module ActionMailer #:nodoc:
 
     def each_template(paths, name, &block) #:nodoc:
       Array(paths).each do |path|
-        self.class.view_paths.each do |load_paths|
-          templates = load_paths.find_all(name, {}, path)
-          templates = templates.uniq_by { |t| t.details[:formats] }
+        templates = lookup_context.find_all(name, path)
 
-          unless templates.empty?
-            templates.each(&block)
-            return
-          end
+        unless templates.empty?
+          templates = templates.uniq_by { |t| t.details[:formats] }
+          templates.each(&block)
+          return
         end
       end
     end

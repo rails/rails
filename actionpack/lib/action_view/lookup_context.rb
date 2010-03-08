@@ -64,6 +64,11 @@ module ActionView
         @view_paths.find(name, key.details, prefix, partial || false, key)
       end
 
+      def find_all(name, prefix = nil, partial = false)
+        key = details_key
+        @view_paths.find_all(name, key.details, prefix, partial || false, key)
+      end
+
       def template_exists?(name, prefix = nil, partial = false)
         key = details_key
         @view_paths.exists?(name, key.details, prefix, partial || false, key)

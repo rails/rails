@@ -9,6 +9,14 @@ module ActionView #:nodoc:
       METHOD
     end
 
+    def find_all(path, details = {}, prefix = nil, partial = false, key=nil)
+      each do |resolver|
+        templates = resolver.find_all(path, details, prefix, partial, key)
+        return templates unless templates.empty?
+      end
+      []
+    end
+
     def find(path, details = {}, prefix = nil, partial = false, key=nil)
       each do |resolver|
         if template = resolver.find(path, details, prefix, partial, key)
