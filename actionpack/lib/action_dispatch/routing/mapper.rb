@@ -1,5 +1,3 @@
-require "active_support/core_ext/hash/except"
-
 module ActionDispatch
   module Routing
     class Mapper
@@ -38,7 +36,7 @@ module ActionDispatch
         end
 
         def to_route
-          [ app, conditions, requirements, defaults, @options[:as] ]
+          [ app, conditions, requirements, defaults, @options[:as], @options[:anchor] ]
         end
 
         private
@@ -66,7 +64,7 @@ module ActionDispatch
 
           # match "account/overview"
           def using_match_shorthand?(args, options)
-            args.present? && options.except(:via).empty? && !args.first.include?(':')
+            args.present? && options.except(:via, :anchor).empty? && !args.first.include?(':')
           end
 
           def normalize_path(path)
@@ -87,7 +85,7 @@ module ActionDispatch
           end
 
           def requirements
-            @requirements ||= (@options[:constraints] || {}).tap do |requirements|
+            @requirements ||= returning(@options[:constraints] || {}) do |requirements|
               requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
               @options.each { |k, v| requirements[k] = v if v.is_a?(Regexp) }
             end
@@ -176,7 +174,8 @@ module ActionDispatch
         end
 
         def match(*args)
-          @set.add_route(*Mapping.new(@set, @scope, args).to_route)
+          mapping = Mapping.new(@set, @scope, args).to_route
+          @set.add_route(*mapping)
           self
         end
       end
@@ -295,6 +294,7 @@ module ActionDispatch
           options = args.extract_options!
 
           options = (@scope[:options] || {}).merge(options)
+          options[:anchor] = true unless options.key?(:anchor)
 
           if @scope[:name_prefix] && !options[:as].blank?
             options[:as] = "#{@scope[:name_prefix]}_#{options[:as]}"
@@ -536,6 +536,21 @@ module ActionDispatch
               yield
             end
           end
+        end
+
+        def mount(app, options = nil)
+          if options
+            path = options.delete(:at)
+          else
+            options = app
+            app, path = options.find { |k, v| k.respond_to?(:call) }
+            options.delete(app) if app
+          end
+
+          raise "A rack application must be specified" unless path
+
+          match(path, options.merge(:to => app, :anchor => false))
+          self
         end
 
         def match(*args)
