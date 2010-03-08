@@ -57,7 +57,7 @@ module ActionController
       def ip_spoofing_check=(value)
         ActiveSupport::Deprecation.warn "ActionController::Base.ip_spoofing_check= is deprecated. " <<
           "Please configure it on your application with config.action_dispatch.ip_spoofing_check=", caller
-        Rails.application.config.action_disaptch.ip_spoofing_check = value
+        Rails.application.config.action_dispatch.ip_spoofing_check = value
       end
 
       def ip_spoofing_check

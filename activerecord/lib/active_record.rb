@@ -30,7 +30,6 @@ $:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include
 
 require 'active_support'
 require 'active_model'
-require 'arel'
 
 module ActiveRecord
   extend ActiveSupport::Autoload
@@ -38,8 +37,8 @@ module ActiveRecord
   eager_autoload do
     autoload :VERSION
 
-    autoload :ActiveRecordError, 'active_record/base'
-    autoload :ConnectionNotEstablished, 'active_record/base'
+    autoload :ActiveRecordError, 'active_record/errors'
+    autoload :ConnectionNotEstablished, 'active_record/errors'
 
     autoload :Aggregations
     autoload :AssociationPreload
@@ -106,12 +105,16 @@ module ActiveRecord
 
     eager_autoload do
       autoload :AbstractAdapter
+      autoload :ConnectionManagement, "active_record/connection_adapters/abstract/connection_pool"
     end
   end
 
   autoload :TestCase
   autoload :TestFixtures, 'active_record/fixtures'
+
+  base_hook do
+    Arel::Table.engine = Arel::Sql::Engine.new(self)
+  end
 end
 
-Arel::Table.engine = Arel::Sql::Engine.new(ActiveRecord::Base)
 I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'

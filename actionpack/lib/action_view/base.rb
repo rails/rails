@@ -176,6 +176,8 @@ module ActionView #:nodoc:
     include Helpers, Rendering, Partials, Layouts, ::ERB::Util, Context
     extend  ActiveSupport::Memoizable
 
+    ActionView.run_base_hooks(self)
+
     # Specify whether RJS responses should be wrapped in a try/catch block
     # that alert()s the caught exception (and then re-raises it).
     cattr_accessor :debug_rjs

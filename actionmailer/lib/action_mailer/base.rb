@@ -289,6 +289,8 @@ module ActionMailer #:nodoc:
       :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
 
+    ActionMailer.run_base_hooks(self)
+
     class << self
 
       def mailer_name

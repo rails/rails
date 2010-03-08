@@ -1,3 +1,5 @@
+require "active_support/core_ext/hash/except"
+
 module ActionDispatch
   module Routing
     class Mapper
@@ -85,7 +87,7 @@ module ActionDispatch
           end
 
           def requirements
-            @requirements ||= returning(@options[:constraints] || {}) do |requirements|
+            @requirements ||= (@options[:constraints] || {}).tap do |requirements|
               requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
               @options.each { |k, v| requirements[k] = v if v.is_a?(Regexp) }
             end
@@ -450,7 +452,10 @@ module ActionDispatch
 
           scope(:path => resource.name.to_s, :controller => resource.controller) do
             with_scope_level(:resource, resource) do
-              yield if block_given?
+
+              scope(:name_prefix => resource.name.to_s) do
+                yield if block_given?
+              end
 
               get    :show if resource.actions.include?(:show)
               post   :create if resource.actions.include?(:create)

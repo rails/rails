@@ -1,5 +1,4 @@
 require 'active_support/core_ext/hash/keys'
-require 'rack/request'
 
 module ActionDispatch
   module Session
