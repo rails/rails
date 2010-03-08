@@ -18,39 +18,26 @@ module AbstractController
       self._view_paths = ActionView::PathSet.new
     end
 
-    delegate :formats, :formats=, :to => :template_lookup
-    delegate :_view_paths, :to => :'self.class'
+    delegate :find_template, :template_exists?,
+             :view_paths, :formats, :formats=, :to => :lookup_context
 
-    def template_lookup
-      @template_lookup ||= ActionView::Template::Lookup.new(_view_paths, details_for_lookup)
+    # LookupContext is the object responsible to hold all information required to lookup
+    # templates, i.e. view paths and details. Check ActionView::LookupContext for more
+    # information.
+    def lookup_context
+      @lookup_context ||= ActionView::LookupContext.new(self.class._view_paths, details_for_lookup)
     end
 
     def details_for_lookup
       { }
     end
 
-    # The list of view paths for this controller. See ActionView::ViewPathSet for
-    # more details about writing custom view paths.
-    def view_paths
-      template_lookup.view_paths
-    end
-
     def append_view_path(path)
-      template_lookup.view_paths.push(*path)
+      lookup_context.view_paths.push(*path)
     end
 
     def prepend_view_path(path)
-      template_lookup.view_paths.unshift(*path)
-    end
-
-    protected
-
-    def template_exists?(*args)
-      template_lookup.exists?(*args)
-    end
-
-    def find_template(*args)
-      template_lookup.find(*args)
+      lookup_context.view_paths.unshift(*path)
     end
 
     module ClassMethods
@@ -191,12 +178,12 @@ module AbstractController
       options[:template] ||= (options[:action] || action_name).to_s
 
       details = _normalize_details(options)
-      template_lookup.details = details
+      lookup_context.update_details(details)
       options
     end
 
     def _normalize_details(options)
-      details = template_lookup.details
+      details = {}
       details[:formats] = Array(options[:format]) if options[:format]
       details[:locale]  = Array(options[:locale]) if options[:locale]
       details

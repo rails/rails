@@ -42,6 +42,7 @@ module ActionView
       autoload :Rendering
     end
 
+    autoload :LookupContext,     'action_view/lookup_context'
     autoload :MissingTemplate,   'action_view/base'
     autoload :Resolver,          'action_view/template/resolver'
     autoload :PathResolver,      'action_view/template/resolver'

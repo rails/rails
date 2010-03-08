@@ -242,12 +242,11 @@ module ActionView #:nodoc:
         klass = self
       end
 
-      klass.new(controller.template_lookup, {}, controller)
+      klass.new(controller.lookup_context, {}, controller)
     end
 
-    def initialize(template_lookup = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:
+    def initialize(lookup_context = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:
       @config = nil
-      @formats = formats
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
       @helpers = self.class.helpers || Module.new
 
@@ -256,27 +255,17 @@ module ActionView #:nodoc:
       @_content_for  = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
       @_virtual_path = nil
 
-      @template_lookup = template_lookup.is_a?(ActionView::Template::Lookup) ?
-        template_lookup : ActionView::Template::Lookup.new(template_lookup)
+      @lookup_context = lookup_context.is_a?(ActionView::LookupContext) ?
+        lookup_context : ActionView::LookupContext.new(lookup_context)
+      @lookup_context.formats = formats if formats
     end
 
     attr_internal :controller, :template, :config
 
-    attr_reader :template_lookup
-    delegate :find, :formats, :formats=, :view_paths, :view_paths=, :to => :template_lookup
+    attr_reader :lookup_context
 
-    def update_details(details)
-      old_details = template_lookup.details
-      template_lookup.details = old_details.merge(details)
-
-      if block_given?
-        begin
-          yield
-        ensure
-          template_lookup.details = old_details
-        end
-      end
-    end
+    delegate :find_template, :template_exists?, :formats, :formats=,
+             :view_paths, :view_paths=, :update_details, :to => :lookup_context
 
     def punctuate_body!(part)
       flush_output_buffer

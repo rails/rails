@@ -63,9 +63,9 @@ module ActionView
       elsif options.key?(:text)
         Template::Text.new(options[:text], self.formats.try(:first))
       elsif options.key?(:file)
-        find(options[:file], options[:_prefix])
+        find_template(options[:file], options[:_prefix])
       elsif options.key?(:template)
-        find(options[:template], options[:_prefix])
+        find_template(options[:template], options[:_prefix])
       end
     end
 
