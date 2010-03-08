@@ -19,4 +19,5 @@ module AbstractController
   autoload :Logger
   autoload :Rendering
   autoload :Translation
+  autoload :ViewPaths
 end
