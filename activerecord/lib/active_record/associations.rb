@@ -1544,12 +1544,12 @@ module ActiveRecord
               when :destroy, :delete
                 define_method(method_name) do
                   association = send(reflection.name)
-                  association.destroy unless association.nil?
+                  association.send(name) if association
                 end
               when :nullify
                 define_method(method_name) do
                   association = send(reflection.name)
-                  association.update_attribute(reflection.primary_key_name, nil) unless association.nil?
+                  association.update_attribute(reflection.primary_key_name, nil) if association
                 end
               else
                 raise ArgumentError, "The :dependent option expects either :destroy, :delete or :nullify (#{reflection.options[:dependent].inspect})"
@@ -1570,7 +1570,7 @@ module ActiveRecord
             method_name = :"belongs_to_dependent_#{name}_for_#{reflection.name}"
             define_method(method_name) do
               association = send(reflection.name)
-              association.destroy unless association.nil?
+              association.send(name) if association
             end
             after_destroy method_name
           end
