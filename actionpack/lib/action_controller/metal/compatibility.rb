@@ -2,8 +2,6 @@ module ActionController
   module Compatibility
     extend ActiveSupport::Concern
 
-    include AbstractController::Compatibility
-
     class ::ActionController::ActionControllerError < StandardError #:nodoc:
     end
 

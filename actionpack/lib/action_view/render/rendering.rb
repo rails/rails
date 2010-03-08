@@ -34,7 +34,6 @@ module ActionView
         end
 
         if template
-          layout = find(layout) if layout
           _render_template(template, layout, :locals => options[:locals])
         end
       when :update
@@ -92,13 +91,12 @@ module ActionView
       _render_template(template, layout, options)
     end
 
-    def _find_layout(template, layout)
+    def _find_layout(layout)
       begin
-        prefix = "layouts" unless layout =~ /\blayouts/
-        layout = find(layout, prefix)
+        find(layout)
       rescue ActionView::MissingTemplate => e
         update_details(:formats => nil) do
-          raise unless template_lookup.exists?(layout, prefix)
+          raise unless template_lookup.exists?(layout)
         end
       end
     end
@@ -107,7 +105,7 @@ module ActionView
       self.formats = template.details[:formats]
 
       locals = options[:locals] || {}
-      layout = _find_layout(template, layout) if layout.is_a?(String)
+      layout = _find_layout(layout) if layout
 
       ActiveSupport::Notifications.instrument("action_view.render_template",
         :identifier => template.identifier, :layout => layout.try(:identifier)) do

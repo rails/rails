@@ -182,9 +182,6 @@ module ActionView
         @view           = view_context
         @partial_names  = PARTIAL_NAMES[@view.controller.class]
 
-        key = Thread.current[:format_locale_key]
-        @templates      = TEMPLATES[key] if key
-
         setup(options, block)
       end
 
@@ -296,15 +293,9 @@ module ActionView
         end
       end
 
-      def find_template(path = @path)
-        unless @templates
-          path && _find_template(path)
-        else
-          path && @templates[path] ||= _find_template(path)
-        end
-      end
+      def find_template(path=@path)
+        return path unless path.is_a?(String)
 
-      def _find_template(path)
         if controller = @view.controller
           prefix = controller.controller_path unless path.include?(?/)
         end
