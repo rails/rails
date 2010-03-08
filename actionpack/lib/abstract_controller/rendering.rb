@@ -101,17 +101,7 @@ module AbstractController
       end
 
       options[:template] ||= (options[:action] || action_name).to_s
-
-      details = _normalize_details(options)
-      lookup_context.update_details(details)
       options
-    end
-
-    def _normalize_details(options)
-      details = {}
-      details[:formats] = Array(options[:format]) if options[:format]
-      details[:locale]  = Array(options[:locale]) if options[:locale]
-      details
     end
 
     def _process_options(options)

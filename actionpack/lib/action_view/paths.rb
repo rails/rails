@@ -11,7 +11,7 @@ module ActionView #:nodoc:
 
     def find(path, details = {}, prefix = nil, partial = false, key=nil)
       each do |resolver|
-        if template = resolver.find(path, details, prefix, partial)
+        if template = resolver.find(path, details, prefix, partial, key)
           return template
         end
       end
@@ -21,7 +21,7 @@ module ActionView #:nodoc:
     
     def exists?(path, details = {}, prefix = nil, partial = false, key=nil)
       each do |resolver|
-        if resolver.find(path, details, prefix, partial)
+        if resolver.find(path, details, prefix, partial, key)
           return true
         end
       end

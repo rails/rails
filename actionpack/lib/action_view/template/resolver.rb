@@ -5,24 +5,9 @@ require "action_view/template"
 
 module ActionView
   class Resolver
-
-    class_inheritable_accessor(:registered_details)
-    self.registered_details = {}
-
-    def self.register_detail(name, options = {})
-      registered_details[name] = lambda do |val|
-        val = Array.wrap(val || yield)
-        val |= [nil] unless options[:allow_nil] == false
-        val
-      end
-    end
-
-    register_detail(:locale)   { [I18n.locale] }
-    register_detail(:formats)  { Mime::SET.symbols }
-    register_detail(:handlers) { Template::Handlers.extensions }
-
     def initialize
-      @cached = {}
+      @cached = Hash.new { |h1,k1| h1[k1] =
+        Hash.new { |h2,k2| h2[k2] = Hash.new { |h3, k3| h3[k3] = {} } } }
     end
 
     def find(*args)
@@ -30,11 +15,10 @@ module ActionView
     end
 
     # Normalizes the arguments and passes it on to find_template.
-    def find_all(name, details = {}, prefix = nil, partial = nil)
-      details = normalize_details(details)
+    def find_all(name, details = {}, prefix = nil, partial = nil, key=nil)
       name, prefix = normalize_name(name, prefix)
 
-      cached([name, details, prefix, partial]) do
+      cached(key, prefix, name, partial) do
         find_templates(name, details, prefix, partial)
       end
     end
@@ -52,16 +36,6 @@ module ActionView
       raise NotImplementedError
     end
 
-    def normalize_details(details)
-      details = details.dup
-      # TODO: Refactor this concern out of the resolver
-      details.delete(:formats) if details[:formats] == [:"*/*"]
-      registered_details.each do |k, v|
-        details[k] = v.call(details[k])
-      end
-      details
-    end
-
     # Support legacy foo.erb names even though we now ignore .erb
     # as well as incorrectly putting part of the path in the template
     # name instead of the prefix.
@@ -73,10 +47,14 @@ module ActionView
       return parts.pop, [prefix, *parts].compact.join("/")
     end
 
-    def cached(key)
-      return yield unless caching?
-      return @cached[key] if @cached.key?(key)
-      @cached[key] = yield
+    def cached(key, prefix, name, partial)
+      return yield unless key && caching?
+      scope = @cached[key][prefix][name]
+      if scope.key?(partial)
+        scope[partial]
+      else
+        scope[partial] = yield
+      end
     end
   end
 
