@@ -88,12 +88,26 @@ module ActionView
     # _layout::   The layout, if any, to wrap the Template in
     def render_template(options)
       _evaluate_assigns_and_ivars
-      template, layout = options.values_at(:_template, :_layout)
+      template, layout = options.values_at(:_template, :layout)
       _render_template(template, layout, options)
     end
 
+    def _find_layout(template, layout)
+      begin
+        prefix = "layouts" unless layout =~ /\blayouts/
+        layout = find(layout, prefix)
+      rescue ActionView::MissingTemplate => e
+        update_details(:formats => nil) do
+          raise unless template_lookup.exists?(layout, prefix)
+        end
+      end
+    end
+
     def _render_template(template, layout = nil, options = {})
+      self.formats = template.details[:formats]
+
       locals = options[:locals] || {}
+      layout = _find_layout(template, layout) if layout.is_a?(String)
 
       ActiveSupport::Notifications.instrument("action_view.render_template",
         :identifier => template.identifier, :layout => layout.try(:identifier)) do

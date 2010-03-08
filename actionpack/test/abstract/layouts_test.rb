@@ -11,7 +11,7 @@ module AbstractControllerTests
       self.view_paths = [ActionView::FixtureResolver.new(
         "layouts/hello.erb"                     => "With String <%= yield %>",
         "layouts/hello_override.erb"            => "With Override <%= yield %>",
-        "layouts/abstract_controller_tests/layouts/with_string_implied_child.erb" =>
+        "abstract_controller_tests/layouts/with_string_implied_child.erb" =>
                                                    "With Implied <%= yield %>",
         "layouts/overwrite.erb"                  => "Overwrite <%= yield %>",
         "layouts/with_false_layout.erb"         => "False Layout <%= yield %>"

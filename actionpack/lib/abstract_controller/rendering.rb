@@ -15,9 +15,11 @@ module AbstractController
 
     included do
       class_attribute :_view_paths
-      delegate :_view_paths, :to => :'self.class'
       self._view_paths = ActionView::PathSet.new
     end
+
+    delegate :formats, :formats=, :to => :template_lookup
+    delegate :_view_paths, :to => :'self.class'
 
     # An instance of a view class. The default view class is ActionView::Base
     #
@@ -180,11 +182,11 @@ module AbstractController
     end
 
     def details_for_render
-      { :formats => formats, :locale => [I18n.locale] }
+      {  }
     end
 
     def _normalize_details(options)
-      details = details_for_render
+      details = template_lookup.details
       details[:formats] = Array(options[:format]) if options[:format]
       details[:locale]  = Array(options[:locale]) if options[:locale]
       details

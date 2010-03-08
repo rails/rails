@@ -7,7 +7,6 @@ module AbstractController
   class Base
     attr_internal :response_body
     attr_internal :action_name
-    attr_internal :formats
 
     class << self
       attr_reader :abstract
@@ -99,11 +98,6 @@ module AbstractController
     end
 
     abstract!
-
-    # Initialize controller with nil formats.
-    def initialize #:nodoc:
-      @_formats = nil
-    end
 
     def config
       @config ||= ActiveSupport::InheritableOptions.new(self.class.config)

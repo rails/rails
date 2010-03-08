@@ -330,7 +330,7 @@ module ActionView
       details = options[:_details]
 
       # TODO This should happen automatically as well
-      self.formats = details[:formats] if details
+      self.formats = details[:formats] if details[:formats]
       renderer = PartialRenderer.new(self, options, nil)
       text = renderer.render
       options[:_template] = renderer.template

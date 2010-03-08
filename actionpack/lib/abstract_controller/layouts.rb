@@ -260,9 +260,11 @@ module AbstractController
           raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
         when nil
           if name
+            _prefix = "layouts" unless _implied_layout_name =~ /\blayouts/
+
             self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
               def _layout(details)
-                if template_exists?("#{_implied_layout_name}", :_prefix => "layouts")
+                if template_exists?("#{_implied_layout_name}", :_prefix => #{_prefix.inspect})
                   "#{_implied_layout_name}"
                 else
                   super
@@ -290,6 +292,7 @@ module AbstractController
       # render_template
       if layout
         layout = _layout_for_option(layout, options[:_template].details)
+        layout = find_template(layout, {})
         response = layout.render(view_context, options[:locals] || {}) { response }
       end
 
@@ -309,7 +312,7 @@ module AbstractController
     #   the lookup to. By default, layout lookup is limited to the
     #   formats specified for the current request.
     def _layout_for_name(name, details)
-      name && _find_layout(name, details)
+      name
     end
 
     # Determine the layout for a given name and details, taking into account
@@ -337,23 +340,7 @@ module AbstractController
 
       return unless (options.keys & [:text, :inline, :partial]).empty? || options.key?(:layout)
       layout = options.key?(:layout) ? options[:layout] : :default
-      options[:_layout] = _layout_for_option(layout, options[:_template].details)
-    end
-
-    # Take in the name and details and find a Template.
-    #
-    # ==== Parameters
-    # name<String>:: The name of the template to retrieve
-    # details<Hash>:: A list of details to restrict the search by. This
-    #   might include details like the format or locale of the template.
-    #
-    # ==== Returns
-    # Template:: A template object matching the name and details
-    def _find_layout(name, details)
-      prefix = details.key?(:prefix) ? details.delete(:prefix) : "layouts"
-      # TODO This should happen automatically
-      template_lookup.details = template_lookup.details.merge(:formats => details[:formats])
-      find_template(name, :_prefix => prefix)
+      options[:layout] = _layout_for_option(layout, options[:_template].details)
     end
 
     # Returns the default layout for this controller and a given set of details.

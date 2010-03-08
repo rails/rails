@@ -12,8 +12,7 @@ module ActionController
 
     def method_for_action(action_name)
       super || begin
-        # TODO This should use template lookup
-        if view_paths.exists?(action_name.to_s, details_for_render, controller_path)
+        if template_exists?(action_name.to_s, :_prefix => controller_path)
           "default_render"
         end
       end

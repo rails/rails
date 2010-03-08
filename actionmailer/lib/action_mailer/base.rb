@@ -270,7 +270,6 @@ module ActionMailer #:nodoc:
     include AbstractController::Layouts
     include AbstractController::Helpers
     include AbstractController::Translation
-    include AbstractController::Compatibility
 
     helper  ActionMailer::MailHelper
 

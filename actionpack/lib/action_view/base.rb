@@ -263,11 +263,7 @@ module ActionView #:nodoc:
     attr_internal :controller, :template, :config
 
     attr_reader :template_lookup
-    delegate :find, :view_paths, :view_paths=, :to => :template_lookup
-
-    def formats=(formats)
-      update_details(:formats => Array(formats))
-    end
+    delegate :find, :formats, :formats=, :view_paths, :view_paths=, :to => :template_lookup
 
     def update_details(details)
       old_details = template_lookup.details

@@ -23,6 +23,14 @@ module ActionView
         self.view_paths = view_paths
       end
 
+      def formats
+        @details[:formats]
+      end
+
+      def formats=(value)
+        self.details = @details.merge(:formats => Array(value))
+      end
+
       def view_paths=(paths)
         @view_paths = ActionView::Base.process_view_paths(paths)
       end
