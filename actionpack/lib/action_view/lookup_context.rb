@@ -59,19 +59,19 @@ module ActionView
         @view_paths = ActionView::Base.process_view_paths(paths)
       end
 
-      def find_template(name, prefix = nil, partial = false)
+      def find(name, prefix = nil, partial = false)
         key = details_key
-        @view_paths.find(name, key.details, prefix, partial || false, key)
+        @view_paths.find(name, prefix, partial || false, key.details, key)
       end
 
       def find_all(name, prefix = nil, partial = false)
         key = details_key
-        @view_paths.find_all(name, key.details, prefix, partial || false, key)
+        @view_paths.find_all(name, prefix, partial || false, key.details, key)
       end
 
-      def template_exists?(name, prefix = nil, partial = false)
+      def exists?(name, prefix = nil, partial = false)
         key = details_key
-        @view_paths.exists?(name, key.details, prefix, partial || false, key)
+        @view_paths.exists?(name, prefix, partial || false, key.details, key)
       end
 
       # Add fallbacks to the view paths. Useful in cases you are rendering a file.

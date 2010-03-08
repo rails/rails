@@ -294,7 +294,7 @@ module ActionView
       def find_template(path=@path)
         return path unless path.is_a?(String)
         prefix = @view.controller_path unless path.include?(?/)
-        @view.find_template(path, prefix, true)
+        @view.find(path, prefix, true)
       end
 
       def partial_path(object = @object)

@@ -9,31 +9,22 @@ module ActionView #:nodoc:
       METHOD
     end
 
-    def find_all(path, details = {}, prefix = nil, partial = false, key=nil)
+    def find(path, prefix = nil, partial = false, details = {}, key = nil)
+      template = find_all(path, prefix, partial, details, key).first
+      raise MissingTemplate.new(self, "#{prefix}/#{path}", details, partial) unless template
+      template
+    end
+
+    def find_all(*args)
       each do |resolver|
-        templates = resolver.find_all(path, details, prefix, partial, key)
+        templates = resolver.find_all(*args)
         return templates unless templates.empty?
       end
       []
     end
 
-    def find(path, details = {}, prefix = nil, partial = false, key=nil)
-      each do |resolver|
-        if template = resolver.find(path, details, prefix, partial, key)
-          return template
-        end
-      end
-      
-      raise ActionView::MissingTemplate.new(self, "#{prefix}/#{path}", details, partial)
-    end
-    
-    def exists?(path, details = {}, prefix = nil, partial = false, key=nil)
-      each do |resolver|
-        if resolver.find(path, details, prefix, partial, key)
-          return true
-        end
-      end
-      false
+    def exists?(*args)
+      find_all(*args).any?
     end
 
   protected

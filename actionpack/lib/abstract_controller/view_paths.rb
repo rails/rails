@@ -7,8 +7,7 @@ module AbstractController
       self._view_paths = ActionView::PathSet.new
     end
 
-    delegate :find_template, :template_exists?,
-             :view_paths, :formats, :formats=, :to => :lookup_context
+    delegate :template_exists?, :view_paths, :formats, :formats=, :to => :lookup_context
 
     # LookupContext is the object responsible to hold all information required to lookup
     # templates, i.e. view paths and details. Check ActionView::LookupContext for more
@@ -27,6 +26,10 @@ module AbstractController
 
     def prepend_view_path(path)
       lookup_context.view_paths.unshift(*path)
+    end
+
+    def template_exists?(*args)
+      lookup_context.exists?(*args)
     end
 
     module ClassMethods

@@ -97,7 +97,7 @@ module AbstractController
       end
 
       if (options.keys & [:partial, :file, :template]).empty?
-        options[:_prefix] ||= _prefix
+        options[:prefix] ||= _prefix
       end
 
       options[:template] ||= (options[:action] || action_name).to_s

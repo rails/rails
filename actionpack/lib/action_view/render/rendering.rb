@@ -29,8 +29,6 @@ module ActionView
     end
 
     # This is the API to render a ViewContext's template from a controller.
-    # TODO Review this name since it does not render only templates, but also
-    # partials, files and so forth.
     def render_template(options, &block)
       _evaluate_assigns_and_ivars
 
@@ -62,12 +60,12 @@ module ActionView
         Template.new(options[:inline], "inline template", handler, {})
       elsif options.key?(:text)
         Template::Text.new(options[:text], self.formats.try(:first))
-      elsif options.key?(:file)
-        with_fallbacks { find_template(options[:file], options[:_prefix]) }
       elsif options.key?(:_template)
         options[:_template]
+      elsif options.key?(:file)
+        with_fallbacks { find(options[:file], options[:prefix]) }
       elsif options.key?(:template)
-        find_template(options[:template], options[:_prefix])
+        find(options[:template], options[:prefix])
       end
     end
 

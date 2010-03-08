@@ -50,8 +50,9 @@ module ActionController
     end
 
     def _normalize_options(options)
-      # TODO Deprecate this. Rails 2.x allowed to give a template as action.
       if options[:action] && options[:action].to_s.include?(?/)
+        ActiveSupport::Deprecation.warn "Giving a path to render :action is deprecated. " <<
+          "Please use render :template instead", caller
         options[:template] = options.delete(:action)
       end
 

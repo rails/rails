@@ -10,16 +10,20 @@ module ActionView
         Hash.new { |h2,k2| h2[k2] = Hash.new { |h3, k3| h3[k3] = {} } } }
     end
 
+    def clear_cache
+      @cached.clear
+    end
+
     def find(*args)
       find_all(*args).first
     end
 
     # Normalizes the arguments and passes it on to find_template.
-    def find_all(name, details = {}, prefix = nil, partial = nil, key=nil)
+    def find_all(name, prefix=nil, partial=false, details={}, key=nil)
       name, prefix = normalize_name(name, prefix)
 
       cached(key, prefix, name, partial) do
-        find_templates(name, details, prefix, partial)
+        find_templates(name, prefix, partial, details)
       end
     end
 
@@ -32,7 +36,7 @@ module ActionView
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
     # normalized.
-    def find_templates(name, details, prefix, partial)
+    def find_templates(name, prefix, partial, details)
       raise NotImplementedError
     end
 
@@ -68,12 +72,12 @@ module ActionView
 
   private
 
-    def find_templates(name, details, prefix, partial)
-      path = build_path(name, details, prefix, partial)
+    def find_templates(name, prefix, partial, details)
+      path = build_path(name, prefix, partial, details)
       query(path, EXTENSION_ORDER.map { |ext| details[ext] })
     end
 
-    def build_path(name, details, prefix, partial)
+    def build_path(name, prefix, partial, details)
       path = ""
       path << "#{prefix}/" unless prefix.empty?
       path << (partial ? "_#{name}" : name)
