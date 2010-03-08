@@ -45,7 +45,8 @@ module AbstractController
     # Mostly abstracts the fact that calling render twice is a DoubleRenderError.
     # Delegates render_to_body and sticks the result in self.response_body.
     def render(*args, &block)
-      options = _normalize_options(*args, &block)
+      options = _normalize_args(*args, &block)
+      _normalize_options(options)
       self.response_body = render_to_body(options)
     end
 
@@ -70,8 +71,8 @@ module AbstractController
     # render_to_body into a String.
     #
     # :api: plugin
-    def render_to_string(*args)
-      options = _normalize_options(*args)
+    def render_to_string(options={})
+      _normalize_options(options)
       AbstractController::Rendering.body_to_s(render_to_body(options))
     end
 
@@ -131,7 +132,7 @@ module AbstractController
 
     # Normalize options, by converting render "foo" to render :template => "prefix/foo"
     # and render "/foo" to render :file => "/foo".
-    def _normalize_options(action=nil, options={})
+    def _normalize_args(action=nil, options={})
       case action
       when Hash
         options, action = action, nil
@@ -149,6 +150,9 @@ module AbstractController
       end
 
       options
+    end
+
+    def _normalize_options(options)
     end
 
     # Take in a set of options and determine the template to render

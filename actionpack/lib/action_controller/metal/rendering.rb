@@ -18,6 +18,11 @@ module ActionController
       response_body
     end
 
+    def render_to_body(options)
+      _process_options(options)
+      super
+    end
+
     private
 
       def _render_partial(options)
@@ -30,7 +35,7 @@ module ActionController
         formats.first
       end
 
-      def _normalize_options(action=nil, options={}, &blk)
+      def _normalize_args(action=nil, options={}, &blk)
         case action
         when NilClass
         when Hash
@@ -38,9 +43,14 @@ module ActionController
         when String, Symbol
           options = super
         else
-          options.merge! :partial => action
+          options.merge!(:partial => action)
         end
 
+        options[:update] = blk if block_given?
+        options
+      end
+
+      def _normalize_options(options)
         if options.key?(:text) && options[:text].respond_to?(:to_text)
           options[:text] = options[:text].to_text
         end
@@ -49,10 +59,7 @@ module ActionController
           options[:status] = Rack::Utils.status_code(options[:status])
         end
 
-        options[:update] = blk if block_given?
-
-        _process_options(options)
-        options
+        super
       end
 
       def _process_options(options)

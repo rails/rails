@@ -277,8 +277,8 @@ module AbstractController
       end
     end
 
-    def render_to_body(options={})
-      if (options.keys & [:text, :inline, :partial]).empty? || options.key?(:layout)
+    def render_to_body(options)
+      if _include_layout?(options)
         layout = options.key?(:layout) ? options[:layout] : :default
         value = _layout_for_option(layout)
 
@@ -342,6 +342,10 @@ module AbstractController
       end
 
       layout_name
+    end
+
+    def _include_layout?(options)
+      (options.keys & [:text, :inline, :partial]).empty? || options.key?(:layout)
     end
 
     def _action_has_layout?
