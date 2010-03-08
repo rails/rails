@@ -21,6 +21,10 @@ module Rails
         @consider_all_requests_local = true
       end
 
+      def middleware
+        @@default_middleware_stack ||= default_middleware
+      end
+
       def paths
         @paths ||= begin
           paths = super
