@@ -88,6 +88,10 @@ class UrlHelperTest < ActionView::TestCase
     )
   end
 
+  def test_button_to_returns_an_html_safe_string
+    assert button_to("Hello", "http://www.example.com").html_safe?
+  end
+
   def test_link_tag_with_straight_url
     assert_dom_equal "<a href=\"http://www.example.com\">Hello</a>", link_to("Hello", "http://www.example.com")
   end
