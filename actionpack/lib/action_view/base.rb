@@ -173,7 +173,7 @@ module ActionView #:nodoc:
     module Subclasses
     end
 
-    include Helpers, Rendering, Partials, ::ERB::Util
+    include Helpers, Rendering, Partials, Layouts, ::ERB::Util
 
     extend ActiveSupport::Memoizable
 

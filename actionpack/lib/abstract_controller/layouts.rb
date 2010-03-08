@@ -281,14 +281,9 @@ module AbstractController
       super
 
       if _include_layout?(options)
-        layout = options.key?(:layout) ? options[:layout] : :default
+        layout = options.key?(:layout) ? options.delete(:layout) : :default
         value = _layout_for_option(layout)
-
-        # TODO Revisit this. Maybe we should pass a :layout_prefix?
-        options[:layout] = ((!value || value =~ /\blayouts/) ? value : "layouts/#{value}")
-
-        # TODO Revisit this. :layout with :partial from controllers are not the same as in views
-        options[:layout] = view_context._find_layout(options[:layout]) if options.key?(:partial)
+        options[:layout] = (value =~ /\blayouts/ ? value : "layouts/#{value}") if value
       end
     end
 

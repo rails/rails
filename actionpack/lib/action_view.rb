@@ -37,6 +37,7 @@ module ActionView
     autoload :Helpers
 
     autoload_under "render" do
+      autoload :Layouts
       autoload :Partials
       autoload :Rendering
     end

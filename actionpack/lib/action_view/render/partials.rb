@@ -174,9 +174,6 @@ module ActionView
 
     class PartialRenderer
       PARTIAL_NAMES = Hash.new {|h,k| h[k] = {} }
-      TEMPLATES = Hash.new {|h,k| h[k] = {} }
-
-      attr_reader :template
 
       def initialize(view_context, options, block)
         @view           = view_context
@@ -225,6 +222,7 @@ module ActionView
           if !@block && (layout = @options[:layout])
             content = @view._render_layout(find_template(layout), @locals){ content }
           end
+
           content
         end
       end
@@ -241,9 +239,9 @@ module ActionView
       end
 
       def collection_with_template(template = @template)
-        segments, locals, as = [], @locals, @options[:as] || template.variable_name
+        segments, locals, as, template = [], @locals, @options[:as] || @template.variable_name, @template
 
-        counter_name  = template.counter_name
+        counter_name = template.counter_name
         locals[counter_name] = -1
 
         @collection.each do |object|
@@ -253,7 +251,6 @@ module ActionView
           segments << template.render(@view, locals)
         end
 
-        @template = template
         segments
       end
 
@@ -274,7 +271,7 @@ module ActionView
       end
 
       def render_partial(object = @object)
-        locals, view = @locals, @view
+        locals, view, template = @locals, @view, @template
 
         object ||= locals[template.variable_name]
         locals[@options[:as] || template.variable_name] = object
@@ -285,6 +282,7 @@ module ActionView
       end
 
     private
+
       def collection
         if @object.respond_to?(:to_ary)
           @object
@@ -295,11 +293,7 @@ module ActionView
 
       def find_template(path=@path)
         return path unless path.is_a?(String)
-
-        if controller = @view.controller
-          prefix = controller.controller_path unless path.include?(?/)
-        end
-
+        prefix = @view.controller_path unless path.include?(?/)
         @view.find(path, prefix, true)
       end
 
@@ -315,21 +309,8 @@ module ActionView
       end
     end
 
-    def render_partial(options)
-      _evaluate_assigns_and_ivars
-
-      details = options[:_details]
-
-      # TODO This should happen automatically as well
-      self.formats = details[:formats] if details[:formats]
-      renderer = PartialRenderer.new(self, options, nil)
-      text = renderer.render
-      options[:_template] = renderer.template
-      text
-    end
-
     def _render_partial(options, &block) #:nodoc:
-      if defined? @renderer
+      if defined?(@renderer)
         @renderer.setup(options, block)
       else
         @renderer = PartialRenderer.new(self, options, block)

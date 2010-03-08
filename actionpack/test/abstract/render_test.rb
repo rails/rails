@@ -15,7 +15,6 @@ module AbstractController
         "renderer/default.erb" => "With Default",
         "renderer/string.erb" => "With String",
         "renderer/symbol.erb" => "With Symbol",
-        "renderer/template_name.erb" => "With Template Name",
         "string/with_path.erb" => "With String With Path",
         "some/file.erb" => "With File",
         "with_format.html.erb" => "With html format",
@@ -54,14 +53,6 @@ module AbstractController
 
       def symbol
         render :symbol
-      end
-
-      def template_name
-        render :_template_name => :template_name
-      end
-
-      def object
-        render :_template => ActionView::Template::Text.new("With Object")
       end
 
       def with_html_format
@@ -125,16 +116,6 @@ module AbstractController
       def test_render_string_with_path
         @controller.process(:string_with_path)
         assert_equal "With String With Path", @controller.response_body
-      end
-
-      def test_render_template_name
-        @controller.process(:template_name)
-        assert_equal "With Template Name", @controller.response_body
-      end
-
-      def test_render_object
-        @controller.process(:object)
-        assert_equal "With Object", @controller.response_body
       end
 
       def test_render_with_html_format
