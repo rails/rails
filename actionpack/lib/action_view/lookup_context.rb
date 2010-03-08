@@ -6,6 +6,9 @@ module ActionView
   class LookupContext #:nodoc:
     attr_reader :details, :view_paths
 
+    mattr_accessor :fallbacks
+    @@fallbacks = [FileSystemResolver.new(""), FileSystemResolver.new("/")]
+
     class DetailsKey #:nodoc:
       attr_reader :details
       alias :eql? :equal?
@@ -67,6 +70,19 @@ module ActionView
           self.details = old_details
         end
       end
+    end
+
+    # Added fallbacks to the view paths. Useful in cases you are rendering a file.
+    def with_fallbacks
+      added_resolvers = 0
+      self.class.fallbacks.each do |resolver|
+        next if view_paths.include?(resolver)
+        view_paths.push(resolver)
+        added_resolvers += 1
+      end
+      yield
+    ensure
+      added_resolvers.times { view_paths.pop }
     end
 
     def find_template(name, prefix = nil, partial = false)

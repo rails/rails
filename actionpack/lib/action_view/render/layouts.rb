@@ -48,7 +48,8 @@ module ActionView
     # the given name exists across all details before raising the error.
     def _find_layout(layout) #:nodoc:
       begin
-        find_template(layout)
+        layout =~ /^\// ?
+          with_fallbacks { find_template(layout) } : find_template(layout)
       rescue ActionView::MissingTemplate => e
         update_details(:formats => nil) do
           raise unless template_exists?(layout)

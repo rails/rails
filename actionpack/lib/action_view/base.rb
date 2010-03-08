@@ -173,47 +173,40 @@ module ActionView #:nodoc:
     module Subclasses
     end
 
-    include Helpers, Rendering, Partials, Layouts, ::ERB::Util
-
-    extend ActiveSupport::Memoizable
-
-    attr_accessor :base_path, :assigns, :template_extension
-    attr_internal :captures
-
-    class << self
-      delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
-      delegate :logger, :to => 'ActionController::Base', :allow_nil => true
-    end
+    include Helpers, Rendering, Partials, Layouts, ::ERB::Util, Context
+    extend  ActiveSupport::Memoizable
 
     # Specify whether RJS responses should be wrapped in a try/catch block
     # that alert()s the caught exception (and then re-raises it).
     cattr_accessor :debug_rjs
     @@debug_rjs = false
 
-    # :nodoc:
-    def self.xss_safe?
-      true
+    class_attribute :helpers
+    attr_reader :helpers
+
+    class << self
+      delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
+      delegate :logger, :to => 'ActionController::Base', :allow_nil => true
     end
 
-    attr_internal :request, :layout
+    attr_accessor :base_path, :assigns, :template_extension, :lookup_context
+    attr_internal :captures, :request, :layout, :controller, :template, :config
 
-    def controller_path
-      @controller_path ||= controller && controller.controller_path
-    end
+    delegate :find_template, :template_exists?, :formats, :formats=,
+             :view_paths, :view_paths=, :with_fallbacks, :update_details, :to => :lookup_context
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
              :flash, :action_name, :controller_name, :to => :controller
 
     delegate :logger, :to => :controller, :allow_nil => true
 
-    include Context
+    def self.xss_safe? #:nodoc:
+      true
+    end
 
     def self.process_view_paths(value)
       ActionView::PathSet.new(Array(value))
     end
-
-    class_attribute :helpers
-    attr_reader :helpers
 
     def self.for_controller(controller)
       @views ||= {}
@@ -260,12 +253,9 @@ module ActionView #:nodoc:
       @lookup_context.formats = formats if formats
     end
 
-    attr_internal :controller, :template, :config
-
-    attr_reader :lookup_context
-
-    delegate :find_template, :template_exists?, :formats, :formats=,
-             :view_paths, :view_paths=, :update_details, :to => :lookup_context
+    def controller_path
+      @controller_path ||= controller && controller.controller_path
+    end
 
     def punctuate_body!(part)
       flush_output_buffer

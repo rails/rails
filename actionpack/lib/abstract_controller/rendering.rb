@@ -142,8 +142,8 @@ module AbstractController
 
   private
 
-    # Normalize options, by converting render "foo" to render :template => "prefix/foo"
-    # and render "/foo" to render :file => "/foo".
+    # Normalize options by converting render "foo" to render :action => "foo" and
+    # render "foo/bar" to render :file => "foo/bar".
     def _normalize_args(action=nil, options={})
       case action
       when NilClass
@@ -151,14 +151,8 @@ module AbstractController
         options, action = action, nil
       when String, Symbol
         action = action.to_s
-        case action.index("/")
-        when NilClass
-          options[:action] = action
-        when 0
-          options[:file] = action
-        else
-          options[:template] = action
-        end
+        key = action.include?(?/) ? :file : :action
+        options[key] = action
       else
         options.merge!(:partial => action)
       end

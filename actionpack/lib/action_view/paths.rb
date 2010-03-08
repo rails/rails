@@ -33,7 +33,7 @@ module ActionView #:nodoc:
     def typecast!
       each_with_index do |path, i|
         next unless path.is_a?(String)
-        self[i] = FileSystemResolverWithFallback.new(path)
+        self[i] = FileSystemResolver.new(path)
       end
     end
   end

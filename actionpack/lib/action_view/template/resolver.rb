@@ -4,7 +4,6 @@ require "active_support/core_ext/array/wrap"
 require "action_view/template"
 
 module ActionView
-  # Abstract superclass
   class Resolver
 
     class_inheritable_accessor(:registered_details)
@@ -30,7 +29,7 @@ module ActionView
       find_all(*args).first
     end
 
-    # Normalizes the arguments and passes it on to find_template
+    # Normalizes the arguments and passes it on to find_template.
     def find_all(name, details = {}, prefix = nil, partial = nil)
       details = normalize_details(details)
       name, prefix = normalize_name(name, prefix)
@@ -82,20 +81,19 @@ module ActionView
   end
 
   class PathResolver < Resolver
-
     EXTENSION_ORDER = [:locale, :formats, :handlers]
 
     def to_s
       @path.to_s
     end
-    alias to_path to_s
+    alias :to_path :to_s
+
+  private
 
     def find_templates(name, details, prefix, partial)
       path = build_path(name, details, prefix, partial)
       query(path, EXTENSION_ORDER.map { |ext| details[ext] })
     end
-
-  private
 
     def build_path(name, details, prefix, partial)
       path = ""
@@ -141,25 +139,10 @@ module ActionView
       super()
       @path = Pathname.new(path).expand_path
     end
-  end
 
-  # TODO: remove hack
-  class FileSystemResolverWithFallback < Resolver
-    def initialize(path)
-      super()
-      @paths = [FileSystemResolver.new(path), FileSystemResolver.new(""), FileSystemResolver.new("/")]
+    def eql?(resolver)
+      self.class.equal?(resolver.class) && to_path == resolver.to_path
     end
-
-    def find_templates(*args)
-      @paths.each do |p|
-        template = p.find_templates(*args)
-        return template unless template.empty?
-      end
-      []
-    end
-
-    def to_s
-      @paths.first.to_s
-    end
+    alias :== :eql?
   end
 end
