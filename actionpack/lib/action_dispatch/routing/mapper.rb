@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/except'
+
 module ActionDispatch
   module Routing
     class Mapper
