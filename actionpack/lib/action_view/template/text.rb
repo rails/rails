@@ -1,11 +1,10 @@
 module ActionView #:nodoc:
   class Template
     class Text < String #:nodoc:
-      HTML = Mime[:html]
-
-      def initialize(string, content_type = HTML)
+      def initialize(string, content_type = nil)
         super(string.to_s)
-        @content_type = Mime[content_type] || content_type
+        @content_type   = Mime[content_type] || content_type if content_type
+        @content_type ||= Mime::TEXT
       end
 
       def details

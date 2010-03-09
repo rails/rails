@@ -4,7 +4,7 @@ module ActionDispatch
       attr_reader :app, :conditions, :defaults, :name
       attr_reader :path, :requirements
 
-      def initialize(app, conditions = {}, requirements = {}, defaults = {}, name = nil)
+      def initialize(app, conditions, requirements, defaults, name, anchor)
         @app = app
         @defaults = defaults
         @name = name
@@ -17,7 +17,7 @@ module ActionDispatch
 
         if path = conditions[:path_info]
           @path = path
-          conditions[:path_info] = ::Rack::Mount::Strexp.compile(path, requirements, SEPARATORS)
+          conditions[:path_info] = ::Rack::Mount::Strexp.compile(path, requirements, SEPARATORS, anchor)
         end
 
         @conditions = conditions.inject({}) { |h, (k, v)|

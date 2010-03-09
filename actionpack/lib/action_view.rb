@@ -37,15 +37,18 @@ module ActionView
     autoload :Helpers
 
     autoload_under "render" do
+      autoload :Layouts
       autoload :Partials
       autoload :Rendering
     end
 
-    autoload :MissingTemplate,   'action_view/base'
-    autoload :Resolver,          'action_view/template/resolver'
-    autoload :PathResolver,      'action_view/template/resolver'
-    autoload :PathSet,           'action_view/paths'
-    autoload :FileSystemResolverWithFallback, 'action_view/template/resolver'
+    autoload :Base
+    autoload :LookupContext
+    autoload :MissingTemplate,    'action_view/base'
+    autoload :Resolver,           'action_view/template/resolver'
+    autoload :PathResolver,       'action_view/template/resolver'
+    autoload :FileSystemResolver, 'action_view/template/resolver'
+    autoload :PathSet,            'action_view/paths'
 
     autoload :TemplateError,     'action_view/template/error'
     autoload :TemplateHandler,   'action_view/template'
@@ -56,6 +59,5 @@ module ActionView
 end
 
 require 'active_support/core_ext/string/output_safety'
-require 'action_view/base'
 
 I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"

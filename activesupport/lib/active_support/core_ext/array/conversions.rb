@@ -1,7 +1,6 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/inflector'
-require 'active_support/i18n'
 
 class Array
   # Converts the array to a comma-separated sentence where the last element is joined by the connector word. Options:

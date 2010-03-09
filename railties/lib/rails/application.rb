@@ -15,7 +15,10 @@ module Rails
 
     class << self
       private :new
-      alias   :configure :class_eval
+
+      def configure(&block)
+        class_eval(&block)
+      end
 
       def instance
         if self == Rails::Application

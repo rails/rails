@@ -56,9 +56,10 @@ module ApplicationTests
     end
 
     test "booting up Rails yields a list of paths that are eager" do
-      assert @paths.app.eager_load?
-      assert @paths.app.controllers.eager_load?
-      assert @paths.app.helpers.eager_load?
+      eager_load = @paths.eager_load
+      assert eager_load.include?(root("app/controllers"))
+      assert eager_load.include?(root("app/helpers"))
+      assert eager_load.include?(root("app/models"))
     end
 
     test "environments has a glob equal to the current environment" do

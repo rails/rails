@@ -2,8 +2,6 @@ module ActionController
   module Compatibility
     extend ActiveSupport::Concern
 
-    include AbstractController::Compatibility
-
     class ::ActionController::ActionControllerError < StandardError #:nodoc:
     end
 
@@ -51,14 +49,20 @@ module ActionController
       super
     end
 
-    def render_to_body(options)
-      if options.is_a?(Hash) && options.key?(:template)
-        options[:template].sub!(/^\//, '')
+    def _normalize_options(options)
+      if options[:action] && options[:action].to_s.include?(?/)
+        ActiveSupport::Deprecation.warn "Giving a path to render :action is deprecated. " <<
+          "Please use render :template instead", caller
+        options[:template] = options.delete(:action)
       end
 
       options[:text] = nil if options.delete(:nothing) == true
       options[:text] = " " if options.key?(:text) && options[:text].nil?
+      super
+    end
 
+    def render_to_body(options)
+      options[:template].sub!(/^\//, '') if options.key?(:template)
       super || " "
     end
 
@@ -72,19 +76,6 @@ module ActionController
 
     def performed?
       response_body
-    end
-
-    # ==== Request only view path switching ====
-    def append_view_path(path)
-      view_paths.push(*path)
-    end
-
-    def prepend_view_path(path)
-      view_paths.unshift(*path)
-    end
-
-    def view_paths
-      view_context.view_paths
     end
   end
 end

@@ -10,10 +10,6 @@ module Rails
         @session_options = {}
       end
 
-      def middleware
-        @@default_middleware_stack ||= default_middleware
-      end
-
       # Holds generators configuration:
       #
       #   config.generators do |g|

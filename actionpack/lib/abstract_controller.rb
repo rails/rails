@@ -14,11 +14,10 @@ module AbstractController
   autoload :Base
   autoload :Callbacks
   autoload :Collector
-  autoload :Compatibility
-  autoload :DetailsCache
   autoload :Helpers
   autoload :Layouts
   autoload :Logger
   autoload :Rendering
   autoload :Translation
+  autoload :ViewPaths
 end

@@ -40,30 +40,35 @@ module ActionController
     log_subscriber ActionController::Railties::LogSubscriber.new
 
     initializer "action_controller.logger" do
-      ActionController::Base.logger ||= Rails.logger
+      ActionController.base_hook { self.logger ||= Rails.logger }
     end
 
     initializer "action_controller.set_configs" do |app|
       paths = app.config.paths
       ac = app.config.action_controller
-      ac.assets_dir = paths.public.to_a.first
+
+      ac.assets_dir      = paths.public.to_a.first
       ac.javascripts_dir = paths.public.javascripts.to_a.first
       ac.stylesheets_dir = paths.public.stylesheets.to_a.first
-      ac.secret = app.config.cookie_secret
+      ac.secret          = app.config.cookie_secret
 
-      ActionController::Base.config.replace(ac)
+      ActionController.base_hook { self.config.replace(ac) }
     end
 
     initializer "action_controller.initialize_framework_caches" do
-      ActionController::Base.cache_store ||= RAILS_CACHE
+      ActionController.base_hook { self.cache_store ||= RAILS_CACHE }
     end
 
     initializer "action_controller.set_helpers_path" do |app|
-      ActionController::Base.helpers_path = app.config.paths.app.helpers.to_a
+      ActionController.base_hook do
+        self.helpers_path = app.config.paths.app.helpers.to_a
+      end
     end
 
     initializer "action_controller.url_helpers" do |app|
-      ActionController::Base.extend ::ActionController::Railtie::UrlHelpers.with(app.routes)
+      ActionController.base_hook do
+        extend ::ActionController::Railtie::UrlHelpers.with(app.routes)
+      end
 
       message = "ActionController::Routing::Routes is deprecated. " \
                 "Instead, use Rails.application.routes"

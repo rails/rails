@@ -1537,58 +1537,42 @@ module ActiveRecord
         # has_one associated objects, according to the defined :dependent rule.
         def configure_dependency_for_has_one(reflection)
           if reflection.options.include?(:dependent)
-            case reflection.options[:dependent]
-              when :destroy
-                method_name = "has_one_dependent_destroy_for_#{reflection.name}".to_sym
+            name = reflection.options[:dependent]
+            method_name = :"has_one_dependent_#{name}_for_#{reflection.name}"
+
+            case name
+              when :destroy, :delete
                 define_method(method_name) do
                   association = send(reflection.name)
-                  association.destroy unless association.nil?
+                  association.send(name) if association
                 end
-                before_destroy method_name
-              when :delete
-                method_name = "has_one_dependent_delete_for_#{reflection.name}".to_sym
-                define_method(method_name) do
-                  # Retrieve the associated object and delete it. The retrieval
-                  # is necessary because there may be multiple associated objects
-                  # with foreign keys pointing to this object, and we only want
-                  # to delete the correct one, not all of them.
-                  association = send(reflection.name)
-                  association.delete unless association.nil?
-                end
-                before_destroy method_name
               when :nullify
-                method_name = "has_one_dependent_nullify_for_#{reflection.name}".to_sym
                 define_method(method_name) do
                   association = send(reflection.name)
-                  association.update_attribute(reflection.primary_key_name, nil) unless association.nil?
+                  association.update_attribute(reflection.primary_key_name, nil) if association
                 end
-                before_destroy method_name
               else
                 raise ArgumentError, "The :dependent option expects either :destroy, :delete or :nullify (#{reflection.options[:dependent].inspect})"
             end
+
+            before_destroy method_name
           end
         end
 
         def configure_dependency_for_belongs_to(reflection)
           if reflection.options.include?(:dependent)
-            case reflection.options[:dependent]
-              when :destroy
-                method_name = "belongs_to_dependent_destroy_for_#{reflection.name}".to_sym
-                define_method(method_name) do
-                  association = send(reflection.name)
-                  association.destroy unless association.nil?
-                end
-                after_destroy method_name
-              when :delete
-                method_name = "belongs_to_dependent_delete_for_#{reflection.name}".to_sym
-                define_method(method_name) do
-                  association = send(reflection.name)
-                  association.delete unless association.nil?
-                end
-                after_destroy method_name
-              else
-                raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{reflection.options[:dependent].inspect})"
+            name = reflection.options[:dependent]
+
+            unless [:destroy, :delete].include?(name)
+              raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{reflection.options[:dependent].inspect})"
             end
+
+            method_name = :"belongs_to_dependent_#{name}_for_#{reflection.name}"
+            define_method(method_name) do
+              association = send(reflection.name)
+              association.send(name) if association
+            end
+            after_destroy method_name
           end
         end
 

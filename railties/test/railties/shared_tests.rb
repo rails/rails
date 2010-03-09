@@ -263,13 +263,15 @@ YAML
       @plugin.write "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           namespace :admin do
-            match "index", :to => "admin/foo#index"
+            namespace :foo do
+              match "bar", :to => "admin/foo/bar#index"
+            end
           end
         end
       RUBY
 
-      @plugin.write "app/controllers/admin/foo_controller.rb", <<-RUBY
-        class Admin::FooController < ApplicationController
+      @plugin.write "app/controllers/admin/foo/bar_controller.rb", <<-RUBY
+        class Admin::Foo::BarController < ApplicationController
           def index
             render :text => "Rendered from namespace"
           end
@@ -280,7 +282,7 @@ YAML
       require 'rack/test'
       extend Rack::Test::Methods
 
-      get "/admin/index"
+      get "/admin/foo/bar"
       assert_equal 200, last_response.status
       assert_equal "Rendered from namespace", last_response.body
     end

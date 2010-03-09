@@ -58,6 +58,8 @@ module ActionController
       filter
     end
 
+    ActionController.run_base_hooks(self)
+
   end
 end
 

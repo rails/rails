@@ -293,8 +293,8 @@ module ActionDispatch
         routes.empty?
       end
 
-      def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil)
-        route = Route.new(app, conditions, requirements, defaults, name)
+      def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
+        route = Route.new(app, conditions, requirements, defaults, name, anchor)
         @set.add_route(*route)
         named_routes[name] = route if name
         routes << route

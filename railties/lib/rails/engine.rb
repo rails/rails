@@ -82,7 +82,7 @@ module Rails
     initializer :add_routing_namespaces do |app|
       paths.app.controllers.to_a.each do |load_path|
         load_path = File.expand_path(load_path)
-        Dir["#{load_path}/*/*_controller.rb"].collect do |path|
+        Dir["#{load_path}/*/**/*_controller.rb"].collect do |path|
           namespace = File.dirname(path).sub(/#{load_path}\/?/, '')
           app.routes.controller_namespaces << namespace unless namespace.empty?
         end
@@ -97,8 +97,8 @@ module Rails
 
     initializer :add_view_paths do
       views = paths.app.views.to_a
-      ActionController::Base.prepend_view_path(views) if defined?(ActionController::Base)
-      ActionMailer::Base.prepend_view_path(views) if defined?(ActionMailer::Base)
+      ActionController.base_hook { prepend_view_path(views) } if defined?(ActionController)
+      ActionMailer.base_hook { prepend_view_path(views) } if defined?(ActionMailer)
     end
 
     initializer :add_metals do |app|

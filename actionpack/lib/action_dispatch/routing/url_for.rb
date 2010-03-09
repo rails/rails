@@ -152,7 +152,7 @@ module ActionDispatch
           when Hash
             # Handle the deprecated instance level default_url_options
             if respond_to?(:default_url_options, true)
-              ActiveSupport::Deprecation.warn "Overwriting #default_url_options is deprecated. Please set url options with self.url_options = { ... }"
+              ActiveSupport::Deprecation.warn "Overriding the #default_url_options method is deprecated. Instead, set self.url_options = { ... } in a before_filter."
               if defaults = default_url_options(options)
                 options = defaults.merge(options)
               end

@@ -206,7 +206,7 @@ module ActionMailer
       if String === @body
         @parts.unshift create_inline_part(@body)
       elsif @parts.empty? || @parts.all? { |p| p.content_disposition =~ /^attachment/ }
-        self.class.view_paths.first.find_all(@template, {}, @mailer_name).each do |template|
+        lookup_context.find_all(@template, @mailer_name).each do |template|
           @parts << create_inline_part(render(:_template => template), template.mime_type)
         end
 

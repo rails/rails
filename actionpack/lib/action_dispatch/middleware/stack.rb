@@ -58,7 +58,7 @@ module ActionDispatch
           if lazy_compare?(@klass) && lazy_compare?(middleware)
             normalize(@klass) == normalize(middleware)
           else
-            klass == ActiveSupport::Inflector.constantize(middleware.to_s)
+            klass.name == middleware.to_s
           end
         end
       end

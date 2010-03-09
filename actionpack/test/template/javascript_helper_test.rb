@@ -7,8 +7,8 @@ class JavaScriptHelperTest < ActionView::TestCase
 
   attr_accessor :formats, :output_buffer
 
-  def reset_formats(format)
-    @format = format
+  def update_details(details)
+    @details = details
     yield if block_given?
   end
 
