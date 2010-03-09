@@ -90,8 +90,9 @@ module ActionDispatch
           class_attribute :default_url_options
         else
           mattr_accessor :default_url_options
-          remove_method :default_url_options
         end
+
+        remove_method :default_url_options
 
         self.default_url_options = {}
       end
