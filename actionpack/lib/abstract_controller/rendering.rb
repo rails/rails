@@ -108,7 +108,7 @@ module AbstractController
     end
 
     def _with_template_hook(template)
-      self.formats = template.details[:formats]
+      self.formats = template.formats
     end
   end
 end

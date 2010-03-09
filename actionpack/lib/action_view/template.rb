@@ -16,23 +16,22 @@ module ActionView
     end
 
     extend Template::Handlers
-    attr_reader :source, :identifier, :handler, :mime_type, :formats, :details
+
+    attr_reader :source, :identifier, :handler, :virtual_path, :formats
 
     def initialize(source, identifier, handler, details)
       @source     = source
       @identifier = identifier
       @handler    = handler
-      @details    = details
+
+      @partial      = details[:partial]
+      @virtual_path = details[:virtual_path]
       @method_names = {}
 
-      format = details.delete(:format) || begin
-        # TODO: Clean this up
-        handler.respond_to?(:default_format) ? handler.default_format.to_sym.to_s : "html"
-      end
-      @mime_type = Mime::Type.lookup_by_extension(format.to_s)
-      @formats = [format.to_sym]
-      @formats << :html if format == :js
-      @details[:formats] = Array.wrap(format.to_sym)
+      format    = details[:format]
+      format  ||= handler.default_format.to_sym if handler.respond_to?(:default_format)
+      format  ||= :html
+      @formats  = [format.to_sym]
     end
 
     def render(view, locals, &block)
@@ -47,19 +46,20 @@ module ActionView
       end
     end
 
-    # TODO: Figure out how to abstract this
-    def variable_name
-      @variable_name ||= identifier[%r'_?(\w+)(\.\w+)*$', 1].to_sym
+    def mime_type
+      @mime_type ||= Mime::Type.lookup_by_extension(@formats.first.to_s) if @formats.first
     end
 
-    # TODO: Figure out how to abstract this
+    def variable_name
+      @variable_name ||= @virtual_path[%r'_?(\w+)(\.\w+)*$', 1].to_sym
+    end
+
     def counter_name
       @counter_name ||= "#{variable_name}_counter".to_sym
     end
 
-    # TODO: kill hax
     def partial?
-      @details[:partial]
+      @partial
     end
 
     def inspect
@@ -87,7 +87,7 @@ module ActionView
 
         source = <<-end_src
           def #{method_name}(local_assigns)
-            _old_virtual_path, @_virtual_path = @_virtual_path, #{@details[:virtual_path].inspect};_old_output_buffer = output_buffer;#{locals_code};#{code}
+            _old_virtual_path, @_virtual_path = @_virtual_path, #{@virtual_path.inspect};_old_output_buffer = output_buffer;#{locals_code};#{code}
           ensure
             @_virtual_path, self.output_buffer = _old_virtual_path, _old_output_buffer
           end

@@ -74,7 +74,7 @@ module ActionView
 
     def find_templates(name, prefix, partial, details)
       path = build_path(name, prefix, partial, details)
-      query(path, EXTENSION_ORDER.map { |ext| details[ext] })
+      query(partial, path, EXTENSION_ORDER.map { |ext| details[ext] })
     end
 
     def build_path(name, prefix, partial, details)
@@ -84,34 +84,27 @@ module ActionView
       path
     end
 
-    def query(path, exts)
+    def query(partial, path, exts)
       query = File.join(@path, path)
+
       exts.each do |ext|
         query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << '}'
       end
 
       Dir[query].reject { |p| File.directory?(p) }.map do |p|
-        Template.new(File.read(p), File.expand_path(p), *path_to_details(p))
+        handler, format = extract_handler_and_format(p)
+        Template.new(File.read(p), File.expand_path(p), handler,
+          :partial => partial, :virtual_path => path, :format => format)
       end
     end
 
-    # # TODO: fix me
-    # # :api: plugin
-    def path_to_details(path)
-      # [:erb, :format => :html, :locale => :en, :partial => true/false]
-      if m = path.match(%r'((^|.*/)(_)?[\w-]+)((?:\.[\w-]+)*)\.(\w+)$')
-        partial = m[3] == '_'
-        details = (m[4]||"").split('.').reject { |e| e.empty? }
-        handler = Template.handler_class_for_extension(m[5])
+    def extract_handler_and_format(path)
+      pieces = File.basename(path).split(".")
+      pieces.shift
 
-        format  = Mime[details.last] && details.pop.to_sym
-        locale  = details.last && details.pop.to_sym
-
-        virtual_path = (m[1].gsub("#{@path}/", "") << details.join("."))
-
-        return handler, :format => format, :locale => locale, :partial => partial,
-                        :virtual_path => virtual_path
-      end
+      handler = Template.handler_class_for_extension(pieces.pop)
+      format  = pieces.last && Mime[pieces.last] && pieces.pop.to_sym
+      [handler, format]
     end
   end
 

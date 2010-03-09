@@ -7,10 +7,6 @@ module ActionView #:nodoc:
         @content_type ||= Mime::TEXT
       end
 
-      def details
-        {:formats => [@content_type.to_sym]}
-      end
-
       def identifier
         'text template'
       end
@@ -28,7 +24,7 @@ module ActionView #:nodoc:
       end
 
       def formats
-        [mime_type]
+        [@content_type.to_sym]
       end
 
       def partial?
