@@ -7,7 +7,7 @@ module ActiveSupport
 
   module JSON
     # Listed in order of preference.
-    DECODERS = %w(Yajl JSONGem Yaml)
+    DECODERS = %w(Yajl Yaml)
 
     class << self
       attr_reader :parse_error
