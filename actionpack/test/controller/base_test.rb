@@ -76,6 +76,9 @@ class UrlOptionsController < ActionController::Base
   end
 end
 
+class RecordIdentifierController < ActionController::Base
+end
+
 class ControllerClassTests < ActiveSupport::TestCase
   def test_controller_path
     assert_equal 'empty', EmptyController.controller_path
@@ -101,6 +104,11 @@ class ControllerClassTests < ActiveSupport::TestCase
     end
 
     assert_equal [:password], parameters
+  end
+
+  def test_record_identifier
+    assert_respond_to RecordIdentifierController.new, :dom_id
+    assert_respond_to RecordIdentifierController.new, :dom_class
   end
 end
 
