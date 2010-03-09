@@ -24,6 +24,10 @@ div.field, div.actions {
   color: green;
 }
 
+.alert {
+  color: red;
+}
+
 .fieldWithErrors {
   padding: 2px;
   background-color: red;
