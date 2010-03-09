@@ -276,28 +276,123 @@ module ActionDispatch
         route
       end
 
-      def options_as_params(options)
-        # If an explicit :controller was given, always make :action explicit
-        # too, so that action expiry works as expected for things like
-        #
-        #   generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
-        #
-        # (the above is from the unit tests). In the above case, because the
-        # controller was explicitly given, but no action, the action is implied to
-        # be "index", not the recalled action of "show".
-        #
-        # great fun, eh?
+      class Generator
+        attr_reader :options, :recall, :set, :script_name, :named_route
 
-        options_as_params = options.clone
-        options_as_params[:action] ||= 'index' if options[:controller]
-        options_as_params[:action] = options_as_params[:action].to_s if options_as_params[:action]
-        options_as_params
-      end
+        def initialize(options, recall, set, extras = false)
+          @script_name = options.delete(:script_name)
+          @named_route = options.delete(:use_route)
+          @options     = options.dup
+          @recall      = recall.dup
+          @set         = set
+          @extras      = extras
 
-      def build_expiry(options, recall)
-        recall.inject({}) do |expiry, (key, recalled_value)|
-          expiry[key] = (options.key?(key) && options[key].to_param != recalled_value.to_param)
-          expiry
+          normalize_options!
+          normalize_controller_action_id!
+          use_relative_controller!
+          controller.sub!(%r{^/}, '') if controller
+          handle_nil_action!
+        end
+
+        def controller
+          @controller ||= @options[:controller]
+        end
+
+        def current_controller
+          @recall[:controller]
+        end
+
+        def use_recall_for(key)
+          if @recall[key] && (!@options.key?(key) || @options[key] == @recall[key])
+            @options[key] = @recall.delete(key)
+          end
+        end
+
+        def normalize_options!
+          # If an explicit :controller was given, always make :action explicit
+          # too, so that action expiry works as expected for things like
+          #
+          #   generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
+          #
+          # (the above is from the unit tests). In the above case, because the
+          # controller was explicitly given, but no action, the action is implied to
+          # be "index", not the recalled action of "show".
+
+          if options[:controller]
+            options[:action]     ||= 'index'
+            options[:controller]   = options[:controller].to_s
+          end
+
+          if options[:action]
+            options[:action] = options[:action].to_s
+          end
+        end
+
+        # This pulls :controller, :action, and :id out of the recall.
+        # The recall key is only used if there is no key in the options
+        # or if the key in the options is identical. If any of
+        # :controller, :action or :id is not found, don't pull any
+        # more keys from the recall.
+        def normalize_controller_action_id!
+          @recall[:action] ||= 'index' if current_controller
+
+          use_recall_for(:controller) or return
+          use_recall_for(:action) or return
+          use_recall_for(:id)
+        end
+
+        # if the current controller is "foo/bar/baz" and :controller => "baz/bat"
+        # is specified, the controller becomes "foo/baz/bat"
+        def use_relative_controller!
+          if !named_route && different_controller?
+            old_parts = current_controller.split('/')
+            size = controller.count("/") + 1
+            parts = old_parts[0...-size] << controller
+            @controller = @options[:controller] = parts.join("/")
+          end
+        end
+
+        # This handles the case of :action => nil being explicitly passed.
+        # It is identical to :action => "index"
+        def handle_nil_action!
+          if options.has_key?(:action) && options[:action].nil?
+            options[:action] = 'index'
+          end
+          recall[:action] = options.delete(:action) if options[:action] == 'index'
+        end
+
+        def generate
+          error = ActionController::RoutingError.new("No route matches #{options.inspect}")
+          path, params = @set.generate(:path_info, named_route, options, recall, opts)
+
+          raise error unless path
+
+          params.reject! {|k,v| !v }
+
+          return [path, params.keys] if @extras
+
+          path << "?#{params.to_query}" if params.any?
+          "#{script_name}#{path}"
+        rescue Rack::Mount::RoutingError
+          raise error
+        end
+
+        def opts
+          parameterize = lambda do |name, value|
+            if name == :controller
+              value
+            elsif value.is_a?(Array)
+              value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
+            else
+              Rack::Mount::Utils.escape_uri(value.to_param)
+            end
+          end
+          {:parameterize => parameterize}
+        end
+
+        def different_controller?
+          return false unless current_controller
+          controller.to_param != current_controller.to_param
         end
       end
 
@@ -308,84 +403,11 @@ module ActionDispatch
       end
 
       def generate_extras(options, recall={})
-        generate(options, recall, :generate_extras)
+        generate(options, recall, true)
       end
 
-      def generate(options, recall = {}, method = :generate)
-        options, recall = options.dup, recall.dup
-        script_name = options.delete(:script_name)
-        named_route = options.delete(:use_route)
-
-        options = options_as_params(options)
-        expire_on = build_expiry(options, recall)
-
-        recall[:action] ||= 'index' if options[:controller] || recall[:controller]
-
-        if recall[:controller] && (!options.has_key?(:controller) || options[:controller] == recall[:controller])
-          options[:controller] = recall.delete(:controller)
-
-          if recall[:action] && (!options.has_key?(:action) || options[:action] == recall[:action])
-            options[:action] = recall.delete(:action)
-
-            if recall[:id] && (!options.has_key?(:id) || options[:id] == recall[:id])
-              options[:id] = recall.delete(:id)
-            end
-          end
-        end
-
-        options[:controller] = options[:controller].to_s if options[:controller]
-
-        if !named_route && expire_on[:controller] && options[:controller] && options[:controller][0] != ?/
-          old_parts = recall[:controller].split('/')
-          new_parts = options[:controller].split('/')
-          parts = old_parts[0..-(new_parts.length + 1)] + new_parts
-          options[:controller] = parts.join('/')
-        end
-
-        options[:controller] = options[:controller][1..-1] if options[:controller] && options[:controller][0] == ?/
-
-        merged = options.merge(recall)
-        if options.has_key?(:action) && options[:action].nil?
-          options.delete(:action)
-          recall[:action] = 'index'
-        end
-        recall[:action] = options.delete(:action) if options[:action] == 'index'
-
-        opts = {}
-        opts[:parameterize] = lambda { |name, value|
-          if name == :controller
-            value
-          elsif value.is_a?(Array)
-            value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
-          else
-            Rack::Mount::Utils.escape_uri(value.to_param)
-          end
-        }
-
-        unless result = @set.generate(:path_info, named_route, options, recall, opts)
-          raise ActionController::RoutingError, "No route matches #{options.inspect}"
-        end
-
-        path, params = result
-        params.each do |k, v|
-          if v
-            params[k] = v
-          else
-            params.delete(k)
-          end
-        end
-
-        if path && method == :generate_extras
-          [path, params.keys]
-        elsif path
-          path << "?#{params.to_query}" if params.any?
-          path = "#{script_name}#{path}"
-          path
-        else
-          raise ActionController::RoutingError, "No route matches #{options.inspect}"
-        end
-      rescue Rack::Mount::RoutingError
-        raise ActionController::RoutingError, "No route matches #{options.inspect}"
+      def generate(options, recall = {}, extras = false)
+        Generator.new(options, recall, @set, extras).generate
       end
 
       def call(env)

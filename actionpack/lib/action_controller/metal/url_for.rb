@@ -3,7 +3,6 @@ module ActionController
     extend ActiveSupport::Concern
 
     include ActionDispatch::Routing::UrlFor
-    include ActionController::RackDelegation
 
     def url_options
       super.reverse_merge(
