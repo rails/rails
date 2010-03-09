@@ -34,7 +34,8 @@ module ActionController
     # and response object available. You might wish to control the
     # environment and response manually for performance reasons.
 
-    attr_internal :status, :headers, :content_type, :response
+    attr_internal :status, :headers, :content_type, :response, :request
+    delegate :session, :to => "@_request"
 
     def initialize(*)
       @_headers = {}
@@ -66,8 +67,9 @@ module ActionController
     end
 
     # :api: private
-    def dispatch(name, env)
-      @_env = env
+    def dispatch(name, request)
+      @_request = request
+      @_env = request.env
       @_env['action_controller.instance'] = self
       process(name)
       to_a
@@ -76,26 +78,6 @@ module ActionController
     # :api: private
     def to_a
       response ? response.to_a : [status, headers, response_body]
-    end
-
-    class ActionEndpoint
-      @@endpoints = Hash.new {|h,k| h[k] = Hash.new {|sh,sk| sh[sk] = {} } }
-
-      def self.for(controller, action, stack)
-        @@endpoints[controller][action][stack] ||= begin
-          endpoint = new(controller, action)
-          stack.build(endpoint)
-        end
-      end
-
-      def initialize(controller, action)
-        @controller, @action = controller, action
-        @_formats = [Mime::HTML]
-      end
-
-      def call(env)
-        @controller.new.dispatch(@action, env)
-      end
     end
 
     class_attribute :middleware_stack
@@ -127,8 +109,10 @@ module ActionController
     #
     # ==== Returns
     # Proc:: A rack application
-    def self.action(name)
-      ActionEndpoint.for(self, name, middleware_stack)
+    def self.action(name, klass = ActionDispatch::Request)
+      middleware_stack.build do |env|
+        new.dispatch(name, klass.new(env))
+      end
     end
   end
 end
