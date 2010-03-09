@@ -168,31 +168,6 @@ module ActionDispatch
             selector = url_helper_name(name, kind)
             hash_access_method = hash_access_name(name, kind)
 
-            # We use module_eval to avoid leaks.
-            #
-            # def users_url(*args)
-            #   if args.empty? || Hash === args.first
-            #     options = hash_for_users_url(args.first || {})
-            #   else
-            #     options = hash_for_users_url(args.extract_options!)
-            #     default = default_url_options(options) if self.respond_to?(:default_url_options, true)
-            #     options = (default ||= {}).merge(options)
-            #
-            #     keys = []
-            #     keys -= options.keys if args.size < keys.size - 1
-            #
-            #     args = args.zip(keys).inject({}) do |h, (v, k)|
-            #       h[k] = v
-            #       h
-            #     end
-            #
-            #     # Tell url_for to skip default_url_options
-            #     options[:use_defaults] = false
-            #     options.merge!(args)
-            #   end
-            #
-            #   url_for(options)
-            # end
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
               def #{selector}(*args)
                 options =  #{hash_access_method}(args.extract_options!)
