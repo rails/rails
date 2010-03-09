@@ -85,42 +85,23 @@ module ActionDispatch
       extend ActiveSupport::Concern
 
       included do
-        # Including in a class uses an inheritable hash. Modules get a plain hash.
-        if respond_to?(:class_attribute)
-          class_attribute :default_url_options
-        else
-          mattr_accessor :default_url_options
+        # TODO: with_routing extends @controller with url_helpers, trickling down to including this module which overrides its default_url_options
+        unless method_defined?(:default_url_options)
+          # Including in a class uses an inheritable hash. Modules get a plain hash.
+          if respond_to?(:class_attribute)
+            class_attribute :default_url_options
+          else
+            mattr_accessor :default_url_options
+            remove_method :default_url_options
+          end
+
+          self.default_url_options = {}
         end
-
-        remove_method :default_url_options
-
-        self.default_url_options = {}
       end
-
-      # def default_url_options(options = nil)
-      #   self.class.default_url_options
-      # end
 
       def url_options
-        @url_options ||= begin
-          # self.class does not respond to default_url_options when the helpers are extended
-          # onto a singleton
-          self.class.respond_to?(:default_url_options) ? self.class.default_url_options : {}
-        end
+        default_url_options
       end
-
-      def url_options=(options)
-        defaults = self.class.respond_to?(:default_url_options) ? self.class.default_url_options : {}
-        @url_options = defaults.merge(options)
-      end
-
-      # def merge_options(options) #:nodoc:
-      #   if respond_to?(:default_url_options) && (defaults = default_url_options(options))
-      #     defaults.merge(options)
-      #   else
-      #     options
-      #   end
-      # end
 
       # Generate a url based on the options provided, default_url_options and the
       # routes defined in routes.rb.  The following options are supported:
@@ -145,23 +126,14 @@ module ActionDispatch
       #    url_for :controller => 'tasks', :action => 'testing', :host=>'somehost.org', :anchor => 'ok', :only_path => true    # => '/tasks/testing#ok'
       #    url_for :controller => 'tasks', :action => 'testing', :trailing_slash=>true  # => 'http://somehost.org/tasks/testing/'
       #    url_for :controller => 'tasks', :action => 'testing', :host=>'somehost.org', :number => '33'  # => 'http://somehost.org/tasks/testing?number=33'
-      def url_for(options = {})
-        options ||= {}
+      def url_for(options = nil)
         case options
-          when String
-            options
-          when Hash
-            # Handle the deprecated instance level default_url_options
-            if respond_to?(:default_url_options, true)
-              ActiveSupport::Deprecation.warn "Overriding the #default_url_options method is deprecated. Instead, set self.url_options = { ... } in a before_filter."
-              if defaults = default_url_options(options)
-                options = defaults.merge(options)
-              end
-            end
-
-            ActionController::UrlRewriter.rewrite(_router, url_options.merge(options))
-          else
-            polymorphic_url(options)
+        when String
+          options
+        when nil, Hash
+          ActionController::UrlRewriter.rewrite(_router, url_options.merge(options || {}))
+        else
+          polymorphic_url(options)
         end
       end
     end

@@ -437,7 +437,7 @@ class UrlHelperControllerTest < ActionController::TestCase
     end
 
     with_url_helper_routing do
-      assert_deprecated { get :show_named_route, :kind => 'url' }
+      get :show_named_route, :kind => 'url'
       assert_equal 'http://testtwo.host/url_helper_controller_test/url_helper/show_named_route', @response.body
     end
   end
