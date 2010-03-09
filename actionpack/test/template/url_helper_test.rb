@@ -122,7 +122,6 @@ class UrlHelperTest < ActionView::TestCase
     url = {:controller => 'weblog', :action => 'show'}
     @controller = ActionController::Base.new
     @controller.request = ActionController::TestRequest.new
-    @controller.url = ActionController::UrlRewriter.new(@controller.request, url)
     assert_dom_equal(%q{<a href="/weblog/show">Test Link</a>}, link_to('Test Link', url))
   end
 
@@ -131,7 +130,6 @@ class UrlHelperTest < ActionView::TestCase
     url = {:controller => 'weblog', :action => 'show', :host => 'www.example.com'}
     @controller = ActionController::Base.new
     @controller.request = ActionController::TestRequest.new
-    @controller.url = ActionController::UrlRewriter.new(@controller.request, url)
     assert_dom_equal(%q{<a href="http://www.example.com/weblog/show">Test Link</a>}, link_to('Test Link', url))
   end
 

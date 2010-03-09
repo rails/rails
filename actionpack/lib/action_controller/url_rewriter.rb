@@ -2,37 +2,16 @@ require 'active_support/core_ext/hash/except'
 
 module ActionController
   # Rewrites URLs for Base.redirect_to and Base.url_for in the controller.
-  class UrlRewriter #:nodoc:
+  module UrlRewriter #:nodoc:
     RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash, :skip_relative_url_root]
 
-    def initialize(request, parameters)
-      @request, @parameters = request, parameters
-    end
-
-    def rewrite(router, options = {})
-      options[:host]     ||= @request.host_with_port
-      options[:protocol] ||= @request.protocol
-
-      self.class.rewrite(router, options, @request.symbolized_path_parameters) do |options|
-        process_path_options(options)
-      end
-    end
-
-    def to_str
-      "#{@request.protocol}, #{@request.host_with_port}, #{@request.path}, #{@parameters[:controller]}, #{@parameters[:action]}, #{@request.parameters.inspect}"
-    end
-
-    alias_method :to_s, :to_str
-
     # ROUTES TODO: Class method code smell
-    def self.rewrite(router, options, path_segments=nil)
+    def self.rewrite(router, options)
       handle_positional_args(options)
 
       rewritten_url = ""
 
-      # ROUTES TODO: Fix the tests
-      segments = options.delete(:_path_segments)
-      path_segments = path_segments ? path_segments.merge(segments || {}) : segments
+      path_segments = options.delete(:_path_segments)
 
       unless options[:only_path]
         rewritten_url << (options[:protocol] || "http")
@@ -79,19 +58,6 @@ module ActionController
       else
         ""
       end
-    end
-
-    # Given a Hash of options, generates a route
-    def process_path_options(options)
-      options = options.symbolize_keys
-      options.update(options[:params].symbolize_keys) if options[:params]
-
-      if (overwrite = options.delete(:overwrite_params))
-        options.update(@parameters.symbolize_keys)
-        options.update(overwrite.symbolize_keys)
-      end
-
-      options
     end
 
   end
