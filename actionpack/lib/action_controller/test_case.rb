@@ -339,9 +339,13 @@ module ActionController
     def build_request_uri(action, parameters)
       unless @request.env["PATH_INFO"]
         options = @controller.__send__(:url_options).merge(parameters)
-        options.update(:only_path => true, :action => action, :relative_url_root => nil)
-        rewriter = ActionController::UrlRewriter.new(@request, parameters)
+        options.update(
+          :only_path => true,
+          :action => action,
+          :relative_url_root => nil,
+          :_path_segments => @request.symbolized_path_parameters)
 
+        rewriter = ActionController::UrlRewriter
         url, query_string = rewriter.rewrite(@router, options).split("?", 2)
 
         @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
