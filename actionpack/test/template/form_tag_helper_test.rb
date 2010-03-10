@@ -59,16 +59,14 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_with_block_in_erb
-    __in_erb_template = ''
-    form_tag("http://example.com") { concat "Hello world!" }
+    output_buffer = form_tag("http://example.com") { concat "Hello world!" }
 
     expected = %(<form action="http://example.com" method="post">Hello world!</form>)
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_tag_with_block_and_method_in_erb
-    __in_erb_template = ''
-    form_tag("http://example.com", :method => :put) { concat "Hello world!" }
+    output_buffer = form_tag("http://example.com", :method => :put) { concat "Hello world!" }
 
     expected = %(<form action="http://example.com" method="post"><div style='margin:0;padding:0;display:inline'><input type="hidden" name="_method" value="put" /></div>Hello world!</form>)
     assert_dom_equal expected, output_buffer
@@ -332,26 +330,22 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_field_set_tag_in_erb
-    __in_erb_template = ''
-    field_set_tag("Your details") { concat "Hello world!" }
+    output_buffer = field_set_tag("Your details") { concat "Hello world!" }
 
     expected = %(<fieldset><legend>Your details</legend>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    self.output_buffer = ''.html_safe
-    field_set_tag { concat "Hello world!" }
+    output_buffer = field_set_tag { concat "Hello world!" }
 
     expected = %(<fieldset>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    self.output_buffer = ''.html_safe
-    field_set_tag('') { concat "Hello world!" }
+    output_buffer = field_set_tag('') { concat "Hello world!" }
 
     expected = %(<fieldset>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    self.output_buffer = ''.html_safe
-    field_set_tag('', :class => 'format') { concat "Hello world!" }
+    output_buffer = field_set_tag('', :class => 'format') { concat "Hello world!" }
 
     expected = %(<fieldset class="format">Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer

@@ -28,8 +28,16 @@ module ActionView
       @buffer.to_s
     end
 
+    def to_str
+      @buffer.to_str
+    end
+
     def empty?
       @buffer.empty?
+    end
+
+    def html_safe?
+      @buffer.html_safe?
     end
 
     if "".respond_to?(:force_encoding)

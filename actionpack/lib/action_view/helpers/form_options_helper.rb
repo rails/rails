@@ -97,7 +97,9 @@ module ActionView
     #   </select>
     #
     module FormOptionsHelper
+      # ERB::Util can mask some helpers like textilize. Make sure to include them.
       include ERB::Util
+      include TextHelper
 
       # Create a select tag and a series of contained option tags for the provided object and method.
       # The option currently held by the object will be selected, provided that the object is available.

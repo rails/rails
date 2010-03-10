@@ -6,12 +6,29 @@ module ActionView
       include ActionView::Helpers::TagHelper
       include ActionView::Helpers::TextHelper
       include ActionView::Helpers::JavaScriptHelper
+      include ActionView::Helpers::FormHelper
 
       def content_tag(*, &block)
         block_called_from_erb?(block) ? safe_concat(super) : super
       end
 
       def javascript_tag(*, &block)
+        block_called_from_erb?(block) ? safe_concat(super) : super
+      end
+
+      def form_for(*, &block)
+        block_called_from_erb?(block) ? safe_concat(super) : super
+      end
+
+      def form_tag(*, &block)
+        block_called_from_erb?(block) ? safe_concat(super) : super
+      end
+
+      def fields_for(*, &block)
+        block_called_from_erb?(block) ? safe_concat(super) : super
+      end
+
+      def field_set_tag(*, &block)
         block_called_from_erb?(block) ? safe_concat(super) : super
       end
 
