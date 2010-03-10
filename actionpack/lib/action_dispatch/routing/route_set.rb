@@ -186,6 +186,7 @@ module ActionDispatch
 
       attr_accessor :routes, :named_routes
       attr_accessor :disable_clear_and_finalize, :resources_path_names
+      attr_accessor :default_url_options
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
@@ -196,6 +197,7 @@ module ActionDispatch
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.controller_namespaces = Set.new
+        self.default_url_options = {}
 
         @disable_clear_and_finalize = false
         clear!
@@ -404,6 +406,8 @@ module ActionDispatch
       RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash, :skip_relative_url_root]
 
       def url_for(options)
+        options = default_url_options.merge(options || {})
+
         handle_positional_args(options)
 
         rewritten_url = ""
