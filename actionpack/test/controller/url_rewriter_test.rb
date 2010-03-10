@@ -65,9 +65,11 @@ class UrlRewriterTests < ActionController::TestCase
     @params[:action] = 'bye'
     @params[:id] = '2'
 
-    assert_equal '/hi/hi/2', @rewriter.rewrite(:only_path => true, :overwrite_params => {:action => 'hi'})
-    u = @rewriter.rewrite(:only_path => false, :overwrite_params => {:action => 'hi'})
-    assert_match %r(/hi/hi/2$), u
+    assert_deprecated /overwrite_params/ do
+      assert_equal '/hi/hi/2', @rewriter.rewrite(:only_path => true, :overwrite_params => {:action => 'hi'})
+      u = @rewriter.rewrite(:only_path => false, :overwrite_params => {:action => 'hi'})
+      assert_match %r(/hi/hi/2$), u
+    end
   end
 
   def test_overwrite_removes_original
@@ -75,9 +77,11 @@ class UrlRewriterTests < ActionController::TestCase
     @params[:action] = 'list'
     @params[:list_page] = 1
 
-    assert_equal '/search/list?list_page=2', @rewriter.rewrite(:only_path => true, :overwrite_params => {"list_page" => 2})
-    u = @rewriter.rewrite(:only_path => false, :overwrite_params => {:list_page => 2})
-    assert_equal 'http://test.host/search/list?list_page=2', u
+    assert_deprecated /overwrite_params/ do
+      assert_equal '/search/list?list_page=2', @rewriter.rewrite(:only_path => true, :overwrite_params => {"list_page" => 2})
+      u = @rewriter.rewrite(:only_path => false, :overwrite_params => {:list_page => 2})
+      assert_equal 'http://test.host/search/list?list_page=2', u
+    end
   end
 
   def test_to_str

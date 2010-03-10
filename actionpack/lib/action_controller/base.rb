@@ -616,15 +616,6 @@ module ActionController #:nodoc:
       # displayed on:
       #
       #   url_for :controller => 'posts', :action => nil
-      #
-      # If you explicitly want to create a URL that's almost the same as the current URL, you can do so using the
-      # <tt>:overwrite_params</tt> options. Say for your posts you have different views for showing and printing them.
-      # Then, in the show view, you get the URL for the print view like this
-      #
-      #   url_for :overwrite_params => { :action => 'print' }
-      #
-      # This takes the current URL as is and only exchanges the action. In contrast, <tt>url_for :action => 'print'</tt>
-      # would have slashed-off the path components after the changed action.
       def url_for(options = {})
         options ||= {}
         case options
