@@ -121,10 +121,10 @@ module ActionController #:nodoc:
         if options.is_a?(Hash)
           if options[:action].is_a?(Array)
             options[:action].dup.each do |action|
-              self.class.expire_page(url_for(options.merge(:only_path => true, :skip_relative_url_root => true, :action => action)))
+              self.class.expire_page(url_for(options.merge(:only_path => true, :action => action)))
             end
           else
-            self.class.expire_page(url_for(options.merge(:only_path => true, :skip_relative_url_root => true)))
+            self.class.expire_page(url_for(options.merge(:only_path => true)))
           end
         else
           self.class.expire_page(options)
@@ -139,7 +139,7 @@ module ActionController #:nodoc:
 
         path = case options
           when Hash
-            url_for(options.merge(:only_path => true, :skip_relative_url_root => true, :format => params[:format]))
+            url_for(options.merge(:only_path => true, :format => params[:format]))
           when String
             options
           else

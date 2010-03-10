@@ -1,8 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
 
-ActionController::UrlRewriter
-
 class UrlRewriterTests < ActionController::TestCase
   class Rewriter
     def initialize(request)
@@ -13,8 +11,7 @@ class UrlRewriterTests < ActionController::TestCase
     end
 
     def rewrite(router, options)
-      options = @options.merge(options)
-      ActionController::UrlRewriter.rewrite(router, options)
+      router.url_for(@options.merge(options))
     end
   end
 

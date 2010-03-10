@@ -15,6 +15,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   stub_controllers do |routes|
     Routes = routes
     Routes.draw do
+      default_url_options :host => "rubyonrails.org"
+
       controller :sessions do
         get  'login' => :new, :as => :login
         post 'login' => :create
@@ -189,6 +191,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       assert_equal '/login', url_for(:controller => 'sessions', :action => 'create', :only_path => true)
       assert_equal '/login', url_for(:controller => 'sessions', :action => 'new', :only_path => true)
+
+      assert_equal 'http://rubyonrails.org/login', Routes.url_for(:controller => 'sessions', :action => 'create')
     end
   end
 

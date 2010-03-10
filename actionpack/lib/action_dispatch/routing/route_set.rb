@@ -186,6 +186,7 @@ module ActionDispatch
 
       attr_accessor :routes, :named_routes
       attr_accessor :disable_clear_and_finalize, :resources_path_names
+      attr_accessor :default_url_options
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
@@ -196,6 +197,7 @@ module ActionDispatch
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.controller_namespaces = Set.new
+        self.default_url_options = {}
 
         @disable_clear_and_finalize = false
         clear!
@@ -235,31 +237,22 @@ module ActionDispatch
         named_routes.install(destinations, regenerate_code)
       end
 
-      def url_for
-        @url_for ||= begin
-          router = self
-          Module.new do
-            extend ActiveSupport::Concern
-            include UrlFor
-
-            define_method(:_router) { router }
-          end
-        end
-      end
-
       def url_helpers
         @url_helpers ||= begin
           router = self
 
           Module.new do
             extend ActiveSupport::Concern
-            include router.url_for
+            include UrlFor
 
             # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
             # we can include?
+            # Yes plz - JP
             included do
               router.install_helpers(self)
             end
+
+            define_method(:_router) { router }
           end
         end
       end
@@ -410,6 +403,39 @@ module ActionDispatch
         Generator.new(options, recall, @set, extras).generate
       end
 
+      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash]
+
+      def url_for(options)
+        options = default_url_options.merge(options || {})
+
+        handle_positional_args(options)
+
+        rewritten_url = ""
+
+        path_segments = options.delete(:_path_segments)
+
+        unless options[:only_path]
+          rewritten_url << (options[:protocol] || "http")
+          rewritten_url << "://" unless rewritten_url.match("://")
+          rewritten_url << rewrite_authentication(options)
+
+          raise "Missing host to link to! Please provide :host parameter or set default_url_options[:host]" unless options[:host]
+
+          rewritten_url << options[:host]
+          rewritten_url << ":#{options.delete(:port)}" if options.key?(:port)
+        end
+
+        path_options = options.except(*RESERVED_OPTIONS)
+        path_options = yield(path_options) if block_given?
+        path = generate(path_options, path_segments || {})
+
+        # ROUTES TODO: This can be called directly, so script_name should probably be set in the router
+        rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
+        rewritten_url << "##{Rack::Utils.escape(options[:anchor].to_param.to_s)}" if options[:anchor]
+
+        rewritten_url
+      end
+
       def call(env)
         @set.call(env)
       end
@@ -435,6 +461,30 @@ module ActionDispatch
 
         raise ActionController::RoutingError, "No route matches #{path.inspect}"
       end
+
+      private
+        def handle_positional_args(options)
+          return unless args = options.delete(:_positional_args)
+
+          keys = options.delete(:_positional_keys)
+          keys -= options.keys if args.size < keys.size - 1 # take format into account
+
+          args = args.zip(keys).inject({}) do |h, (v, k)|
+            h[k] = v
+            h
+          end
+
+          # Tell url_for to skip default_url_options
+          options.merge!(args)
+        end
+
+        def rewrite_authentication(options)
+          if options[:user] && options[:password]
+            "#{Rack::Utils.escape(options.delete(:user))}:#{Rack::Utils.escape(options.delete(:password))}@"
+          else
+            ""
+          end
+        end
     end
   end
 end
