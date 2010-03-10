@@ -122,7 +122,6 @@ class UrlHelperTest < ActionView::TestCase
     url = {:controller => 'weblog', :action => 'show'}
     @controller = ActionController::Base.new
     @controller.request = ActionController::TestRequest.new
-    @controller.url = ActionController::UrlRewriter.new(@controller.request, url)
     assert_dom_equal(%q{<a href="/weblog/show">Test Link</a>}, link_to('Test Link', url))
   end
 
@@ -131,7 +130,6 @@ class UrlHelperTest < ActionView::TestCase
     url = {:controller => 'weblog', :action => 'show', :host => 'www.example.com'}
     @controller = ActionController::Base.new
     @controller.request = ActionController::TestRequest.new
-    @controller.url = ActionController::UrlRewriter.new(@controller.request, url)
     assert_dom_equal(%q{<a href="http://www.example.com/weblog/show">Test Link</a>}, link_to('Test Link', url))
   end
 
@@ -437,7 +435,7 @@ class UrlHelperControllerTest < ActionController::TestCase
     end
 
     with_url_helper_routing do
-      assert_deprecated { get :show_named_route, :kind => 'url' }
+      get :show_named_route, :kind => 'url'
       assert_equal 'http://testtwo.host/url_helper_controller_test/url_helper/show_named_route', @response.body
     end
   end

@@ -29,6 +29,7 @@ module ActionController
     include ActionController::Verification
     include ActionController::RequestForgeryProtection
     include ActionController::Streaming
+    include ActionController::RecordIdentifier
     include ActionController::HttpAuthentication::Basic::ControllerMethods
     include ActionController::HttpAuthentication::Digest::ControllerMethods
 

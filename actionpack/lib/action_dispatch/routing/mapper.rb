@@ -180,6 +180,11 @@ module ActionDispatch
           @set.add_route(*mapping)
           self
         end
+
+        def default_url_options=(options)
+          @set.default_url_options = options
+        end
+        alias_method :default_url_options, :default_url_options=
       end
 
       module HttpHelpers

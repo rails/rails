@@ -122,7 +122,11 @@ module ActionDispatch
       find_all { |middleware| middleware.active? }
     end
 
-    def build(app)
+    def build(app = nil, &blk)
+      app ||= blk
+
+      raise "MiddlewareStack#build requires an app" unless app
+
       active.reverse.inject(app) { |a, e| e.build(a) }
     end
   end
