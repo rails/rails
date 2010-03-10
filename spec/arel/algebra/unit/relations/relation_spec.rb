@@ -16,10 +16,9 @@ module Arel
       end
 
       describe 'when given a', Symbol, String do
-        it "returns the attribute with the same name, if it exists" do
+        it "returns the attribute with the same name" do
           check @relation[:id].should == @attribute1
           check @relation['id'].should == @attribute1
-          @relation[:does_not_exist].should be_nil
         end
       end
     end

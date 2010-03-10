@@ -84,7 +84,8 @@ module Arel
 
     module AttributeAccessable
       def [](index)
-        case index
+        @cached_attributes ||= {}
+        @cached_attributes[index] ||= case index
         when Symbol, String
           find_attribute_matching_name(index)
         when Attribute, Expression
@@ -96,7 +97,7 @@ module Arel
       end
 
       def find_attribute_matching_name(name)
-        attributes.detect { |a| a.named?(name) }
+        attributes.detect { |a| a.named?(name) } || Attribute.new(self, name)
       end
 
       def find_attribute_matching_attribute(attribute)

@@ -2,7 +2,7 @@ module Arel
   class Table < Relation
     include Recursion::BaseCase
 
-    cattr_accessor :engine
+    cattr_accessor :engine, :tables
     attr_reader :name, :engine, :table_alias, :options
 
     def initialize(name, options = {})
@@ -19,6 +19,7 @@ module Arel
       if @engine.connection
         begin
           require "arel/engines/sql/compilers/#{@engine.adapter_name.downcase}_compiler"
+          @@tables ||= engine.tables
         rescue LoadError
           raise "#{@engine.adapter_name} is not supported by Arel."
         end
@@ -29,9 +30,20 @@ module Arel
       Table.new(name, options.merge(:as => table_alias))
     end
 
+    def table_exists?
+      if @table_exists
+        true
+      else
+        @table_exists = @@tables.include?(name) || engine.table_exists?(name)
+      end
+    end
+
     def attributes
-      @attributes ||= columns.collect do |column|
-        Attribute.new(self, column.name.to_sym)
+      return @attributes if defined?(@attributes)
+      if table_exists?
+        @attributes = columns.collect { |column| Attribute.new(self, column.name.to_sym) }
+      else
+        []
       end
     end
 

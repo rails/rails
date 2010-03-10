@@ -9,7 +9,7 @@ module Arel
 
     describe '#column' do
       it "returns the corresponding column in the relation" do
-        @attribute.column.should == @relation.column_for(@attribute)
+         @attribute.column.should == @relation.column_for(@attribute)
       end
     end
 
@@ -31,6 +31,25 @@ module Arel
           end
         end
       end
+
+      describe 'for an inexistent attribute' do
+        it "manufactures sql" do
+          sql = @relation[:does_not_exist].to_sql
+
+          adapter_is :mysql do
+            sql.should be_like(%Q{`users`.`does_not_exist`})
+          end
+
+          adapter_is :oracle do
+            sql.should be_like(%Q{"USERS"."DOEST_NOT_EXIST"})
+          end
+
+          adapter_is_not :mysql, :oracle do
+            sql.should be_like(%Q{"users"."does_not_exist"})
+          end
+        end
+      end
+
     end
   end
 end

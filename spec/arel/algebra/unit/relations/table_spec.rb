@@ -10,7 +10,6 @@ module Arel
       describe 'when given a', Symbol do
         it "manufactures an attribute if the symbol names an attribute within the relation" do
           check @relation[:id].should == Attribute.new(@relation, :id)
-          @relation[:does_not_exist].should be_nil
         end
       end
 
