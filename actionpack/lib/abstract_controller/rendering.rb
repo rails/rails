@@ -9,9 +9,37 @@ module AbstractController
     end
   end
 
+  # This is a class to fix I18n global state. Whenever you provide I18n.locale during a request,
+  # it will trigger the lookup_context and consequently expire the cache.
+  # TODO Add some deprecation warnings to remove I18n.locale from controllers
+  class I18nProxy < ::I18n::Config #:nodoc:
+    attr_reader :i18n_config, :lookup_context
+
+    def initialize(i18n_config, lookup_context)
+      @i18n_config, @lookup_context = i18n_config, lookup_context
+    end
+
+    def locale
+      @i18n_config.locale
+    end
+
+    def locale=(value)
+      @i18n_config.locale = value
+      @lookup_context.update_details(:locale => @i18n_config.locale)
+    end
+  end
+
   module Rendering
     extend ActiveSupport::Concern
     include AbstractController::ViewPaths
+
+    # Overwrite process to setup I18n proxy.
+    def process(*) #:nodoc:
+      old_config, I18n.config = I18n.config, I18nProxy.new(I18n.config, lookup_context)
+      super
+    ensure
+      I18n.config = old_config
+    end
 
     # An instance of a view class. The default view class is ActionView::Base
     #
