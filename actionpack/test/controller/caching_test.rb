@@ -81,9 +81,9 @@ class PageCachingTest < ActionController::TestCase
         match '/', :to => 'posts#index', :as => :main
       end
       @params[:format] = 'rss'
-      assert_equal '/posts.rss', @router.rewrite(@params)
+      assert_equal '/posts.rss', @router.url_for(@params)
       @params[:format] = nil
-      assert_equal '/', @router.rewrite(@params)
+      assert_equal '/', @router.url_for(@params)
     end
   end
 

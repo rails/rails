@@ -11,7 +11,7 @@ class UrlRewriterTests < ActionController::TestCase
     end
 
     def rewrite(router, options)
-      router.rewrite(@options.merge(options))
+      router.url_for(@options.merge(options))
     end
   end
 

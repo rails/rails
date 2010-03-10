@@ -403,8 +403,7 @@ module ActionDispatch
 
       RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash, :skip_relative_url_root]
 
-      # TODO: Terrible method name
-      def rewrite(options)
+      def url_for(options)
         handle_positional_args(options)
 
         rewritten_url = ""

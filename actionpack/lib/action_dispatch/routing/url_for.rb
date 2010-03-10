@@ -131,7 +131,7 @@ module ActionDispatch
         when String
           options
         when nil, Hash
-          _router.rewrite(url_options.merge(options || {}))
+          _router.url_for(url_options.merge(options || {}))
         else
           polymorphic_url(options)
         end

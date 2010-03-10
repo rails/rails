@@ -345,7 +345,7 @@ module ActionController
             :relative_url_root => nil,
             :_path_segments => @request.symbolized_path_parameters)
 
-          url, query_string = @router.rewrite(options).split("?", 2)
+          url, query_string = @router.url_for(options).split("?", 2)
 
           @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
           @request.env["PATH_INFO"] = url
