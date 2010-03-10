@@ -67,21 +67,6 @@ module ActionDispatch
         @env["action_dispatch.request.formats"] = [Mime::Type.lookup_by_extension(parameters[:format])]
       end
 
-      # Returns a symbolized version of the <tt>:format</tt> parameter of the request.
-      # If no \format is given it returns <tt>:js</tt>for Ajax requests and <tt>:html</tt>
-      # otherwise.
-      def template_format
-        parameter_format = parameters[:format]
-
-        if parameter_format
-          parameter_format
-        elsif xhr?
-          :js
-        else
-          :html
-        end
-      end
-
       # Receives an array of mimes and return the first user sent mime that
       # matches the order array.
       #
