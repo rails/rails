@@ -46,7 +46,6 @@ module ActionController
 
   eager_autoload do
     autoload :RecordIdentifier
-    autoload :UrlRewriter
 
     # TODO: Don't autoload exceptions, setup explicit
     # requires for files that need them

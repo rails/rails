@@ -64,7 +64,6 @@ class PageCachingTest < ActionController::TestCase
     @controller.cache_store = :file_store, FILE_STORE_PATH
 
     @params = {:controller => 'posts', :action => 'index', :only_path => true, :skip_relative_url_root => true}
-    @rewriter = ActionController::UrlRewriter
 
     FileUtils.rm_rf(File.dirname(FILE_STORE_PATH))
     FileUtils.mkdir_p(FILE_STORE_PATH)
@@ -82,9 +81,9 @@ class PageCachingTest < ActionController::TestCase
         match '/', :to => 'posts#index', :as => :main
       end
       @params[:format] = 'rss'
-      assert_equal '/posts.rss', @rewriter.rewrite(@router, @params)
+      assert_equal '/posts.rss', @router.rewrite(@params)
       @params[:format] = nil
-      assert_equal '/', @rewriter.rewrite(@router, @params)
+      assert_equal '/', @router.rewrite(@params)
     end
   end
 
