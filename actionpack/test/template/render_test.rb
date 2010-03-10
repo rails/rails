@@ -33,17 +33,17 @@ module RenderTestCases
   end
 
   def test_render_file_with_localization
-    old_locale, I18n.locale = I18n.locale, :da
+    old_locale, @view.locale = @view.locale, :da
     assert_equal "Hey verden", @view.render(:file => "test/hello_world")
   ensure
-    I18n.locale = old_locale
+    @view.locale = old_locale
   end
 
   def test_render_file_with_dashed_locale
-    old_locale, I18n.locale = I18n.locale, :"pt-BR"
+    old_locale, @view.locale = @view.locale, :"pt-BR"
     assert_equal "Ola mundo", @view.render(:file => "test/hello_world")
   ensure
-    I18n.locale = old_locale
+    @view.locale = old_locale
   end
 
   def test_render_file_at_top_level

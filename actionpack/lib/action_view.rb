@@ -58,6 +58,7 @@ module ActionView
   autoload :TestCase, 'action_view/test_case'
 end
 
+require 'active_support/i18n'
 require 'active_support/core_ext/string/output_safety'
 
 I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"

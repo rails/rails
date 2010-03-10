@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/try'
+require 'active_support/core_ext/object/blank'
 
 module ActionView
   # LookupContext is the object responsible to hold all information required to lookup
@@ -14,16 +15,14 @@ module ActionView
 
     def self.register_detail(name, options = {})
       registered_details[name] = lambda do |value|
-        value = (value.blank? || options[:accessible] == false) ?
-          Array(yield) : Array(value)
+        value = Array(value.presence || yield)
         value |= [nil] unless options[:allow_nil] == false
         value
       end
     end
 
     register_detail(:formats) { Mime::SET.symbols }
-    register_detail(:locale, :accessible => false) { [I18n.locale] }
-    register_detail(:handlers, :accessible => false) { Template::Handlers.extensions }
+    register_detail(:locale)  { [I18n.locale] }
 
     class DetailsKey #:nodoc:
       attr_reader :details
@@ -38,16 +37,12 @@ module ActionView
       def initialize(details)
         @details, @hash = details, details.hash
       end
-
-      def outdated?(details)
-        @details != details
-      end
     end
 
     def initialize(view_paths, details = {})
+      @details_key = nil
       self.view_paths = view_paths
       self.details = details
-      @details_key = nil
     end
 
     module ViewPaths
@@ -60,18 +55,15 @@ module ActionView
       end
 
       def find(name, prefix = nil, partial = false)
-        key = details_key
-        @view_paths.find(name, prefix, partial || false, key.details, key)
+        @view_paths.find(name, prefix, partial || false, details, details_key)
       end
 
       def find_all(name, prefix = nil, partial = false)
-        key = details_key
-        @view_paths.find_all(name, prefix, partial || false, key.details, key)
+        @view_paths.find_all(name, prefix, partial || false, details, details_key)
       end
 
       def exists?(name, prefix = nil, partial = false)
-        key = details_key
-        @view_paths.exists?(name, prefix, partial || false, key.details, key)
+        @view_paths.exists?(name, prefix, partial || false, details, details_key)
       end
 
       # Add fallbacks to the view paths. Useful in cases you are rendering a file.
@@ -89,25 +81,20 @@ module ActionView
     end
 
     module Details
-      def details
-        @details = normalize_details(@details)
+      attr_reader :details
+
+      def details=(details)
+        @details = normalize_details(details)
+        @details_key = nil if @details_key && @details_key.details != @details
       end
 
-      def details=(new_details)
-        @details = new_details
-        details
-      end
-
-      # TODO This is too expensive. Revisit this.
       def details_key
-        latest_details = self.details
-        @details_key   = nil if @details_key.try(:outdated?, latest_details)
-        @details_key ||= DetailsKey.get(latest_details)
+        @details_key ||= DetailsKey.get(@details)
       end
 
       # Shortcut to read formats from details.
       def formats
-        self.details[:formats]
+        @details[:formats].compact
       end
 
       # Shortcut to set formats in details.
@@ -115,11 +102,25 @@ module ActionView
         self.details = @details.merge(:formats => value)
       end
 
+      # Shortcut to read locale.
+      def locale
+        I18n.locale
+      end
+
+      # Shortcut to set locale in details and I18n.
+      def locale=(value)
+        I18n.locale = value
+
+        unless I18n.config.respond_to?(:lookup_context)
+          self.details = @details.merge(:locale => value)
+        end
+      end
+
       # Update the details keys by merging the given hash into the current
       # details hash. If a block is given, the details are modified just during
       # the execution of the block and reverted to the previous value after.
       def update_details(new_details)
-        old_details  = self.details
+        old_details  = @details
         self.details = old_details.merge(new_details)
 
         if block_given?
@@ -140,7 +141,7 @@ module ActionView
         self.class.registered_details.each do |k, v|
           details[k] = v.call(details[k])
         end
-        details
+        details.freeze
       end
     end
 

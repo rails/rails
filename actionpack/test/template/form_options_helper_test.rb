@@ -293,7 +293,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.category = "<mus>"
 
-    fields_for :post, @post do |f|
+    output_buffer = fields_for :post, @post do |f|
       concat f.select(:category, %w( abe <mus> hest))
     end
   
@@ -307,7 +307,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.category = "<mus>"
 
-    fields_for :post, @post, :index => 108 do |f|
+    output_buffer = fields_for :post, @post, :index => 108 do |f|
       concat f.select(:category, %w( abe <mus> hest))
     end
 
@@ -322,7 +322,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     def @post.to_param; 108; end
 
-    fields_for "post[]", @post do |f|
+    output_buffer = fields_for "post[]", @post do |f|
       concat f.select(:category, %w( abe <mus> hest))
     end
 
@@ -336,7 +336,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     options = "<option value=\"abe\">abe</option><option value=\"mus\">mus</option><option value=\"hest\">hest</option>"
 
-    fields_for :post, @post do |f|
+    output_buffer = fields_for :post, @post do |f|
       concat f.select(:category, options, :prompt => 'The prompt')
     end
 
@@ -462,7 +462,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.author_name = "Babe"
 
-    fields_for :post, @post do |f|
+    output_buffer = fields_for :post, @post do |f|
       concat f.collection_select(:author_name, dummy_posts, :author_name, :author_name)
     end
   
@@ -476,7 +476,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.author_name = "Babe"
 
-    fields_for :post, @post, :index => 815 do |f|
+    output_buffer = fields_for :post, @post, :index => 815 do |f|
       concat f.collection_select(:author_name, dummy_posts, :author_name, :author_name)
     end
 
@@ -491,7 +491,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.author_name = "Babe"
     def @post.to_param; 815; end
 
-    fields_for "post[]", @post do |f|
+    output_buffer = fields_for "post[]", @post do |f|
       concat f.collection_select(:author_name, dummy_posts, :author_name, :author_name)
     end
 
@@ -570,7 +570,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_under_fields_for
     @firm = Firm.new("D")
 
-    fields_for :firm, @firm do |f|
+    output_buffer = fields_for :firm, @firm do |f|
       concat f.time_zone_select(:time_zone)
     end
   
@@ -589,7 +589,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_under_fields_for_with_index
     @firm = Firm.new("D")
 
-    fields_for :firm, @firm, :index => 305 do |f|
+    output_buffer = fields_for :firm, @firm, :index => 305 do |f|
       concat f.time_zone_select(:time_zone)
     end
 
@@ -609,7 +609,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @firm = Firm.new("D")
     def @firm.to_param; 305; end
 
-    fields_for "firm[]", @firm do |f|
+    output_buffer = fields_for "firm[]", @firm do |f|
       concat f.time_zone_select(:time_zone)
     end
 
@@ -787,7 +787,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.origin = 'dk'
 
-    fields_for :post, @post do |f|
+    output_buffer = fields_for :post, @post do |f|
       concat f.grouped_collection_select("origin", @continents, :countries, :continent_name, :country_id, :country_name)
     end
 

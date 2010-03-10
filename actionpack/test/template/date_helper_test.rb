@@ -1250,7 +1250,7 @@ class DateHelperTest < ActionView::TestCase
     @post = Post.new
     @post.written_on = Date.new(2004, 6, 15)
 
-    fields_for :post, @post do |f|
+    output_buffer = fields_for :post, @post do |f|
       concat f.date_select(:written_on)
     end
 
@@ -1266,7 +1266,7 @@ class DateHelperTest < ActionView::TestCase
     @post.written_on = Date.new(2004, 6, 15)
     id = 27
 
-    fields_for :post, @post, :index => id do |f|
+    output_buffer = fields_for :post, @post, :index => id do |f|
       concat f.date_select(:written_on)
     end
 
@@ -1282,7 +1282,7 @@ class DateHelperTest < ActionView::TestCase
     @post.written_on = Date.new(2004, 6, 15)
     id = nil
 
-    fields_for :post, @post, :index => id do |f|
+    output_buffer = fields_for :post, @post, :index => id do |f|
       concat f.date_select(:written_on)
     end
 
@@ -1478,7 +1478,7 @@ class DateHelperTest < ActionView::TestCase
     @post = Post.new
     @post.written_on = Date.new(2004, 6, 15)
 
-    fields_for :post, @post do |f|
+    output_buffer = fields_for :post, @post do |f|
       concat f.date_select(:written_on, {}, :class => 'selector')
     end
 
@@ -1642,7 +1642,7 @@ class DateHelperTest < ActionView::TestCase
     @post = Post.new
     @post.written_on = Time.local(2004, 6, 15, 15, 16, 35)
 
-    fields_for :post, @post do |f|
+    output_buffer = fields_for :post, @post do |f|
       concat f.time_select(:written_on, {}, :class => 'selector')
     end
 
@@ -1816,7 +1816,7 @@ class DateHelperTest < ActionView::TestCase
     @post = Post.new
     @post.updated_at = Time.local(2004, 6, 15, 16, 35)
 
-    fields_for :post, @post do |f|
+    output_buffer = fields_for :post, @post do |f|
       concat f.datetime_select(:updated_at, {}, :class => 'selector')
     end
 
@@ -2052,7 +2052,7 @@ class DateHelperTest < ActionView::TestCase
     @post.updated_at = Time.local(2004, 6, 15, 16, 35)
     id = 456
 
-    fields_for :post, @post, :index => id do |f|
+    output_buffer = fields_for :post, @post, :index => id do |f|
       concat f.datetime_select(:updated_at)
     end
 
