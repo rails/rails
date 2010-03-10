@@ -403,7 +403,7 @@ module ActionDispatch
         Generator.new(options, recall, @set, extras).generate
       end
 
-      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash, :skip_relative_url_root]
+      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash]
 
       def url_for(options)
         options = default_url_options.merge(options || {})

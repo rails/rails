@@ -63,7 +63,7 @@ class PageCachingTest < ActionController::TestCase
     @controller = PageCachingTestController.new
     @controller.cache_store = :file_store, FILE_STORE_PATH
 
-    @params = {:controller => 'posts', :action => 'index', :only_path => true, :skip_relative_url_root => true}
+    @params = {:controller => 'posts', :action => 'index', :only_path => true}
 
     FileUtils.rm_rf(File.dirname(FILE_STORE_PATH))
     FileUtils.mkdir_p(FILE_STORE_PATH)

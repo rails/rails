@@ -113,8 +113,6 @@ module ActionDispatch
       #   provided either explicitly, or via +default_url_options+.
       # * <tt>:port</tt> - Optionally specify the port to connect to.
       # * <tt>:anchor</tt> - An anchor name to be appended to the path.
-      # * <tt>:skip_relative_url_root</tt> - If true, the url is not constructed using the
-      #   +relative_url_root+ set in ActionController::Base.relative_url_root.
       # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2009/"
       #
       # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
