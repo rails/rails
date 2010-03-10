@@ -8,7 +8,7 @@ module ActiveRecord
 
         class_eval <<-CEVAL
           def #{query_method}(*args)
-            new_relation = spawn
+            new_relation = clone
             value = Array.wrap(args.flatten).reject {|x| x.blank? }
             new_relation.#{query_method}_values += value if value.present?
             new_relation
@@ -19,7 +19,7 @@ module ActiveRecord
       [:where, :having].each do |query_method|
         class_eval <<-CEVAL
           def #{query_method}(*args)
-            new_relation = spawn
+            new_relation = clone
             value = build_where(*args)
             new_relation.#{query_method}_values += [*value] if value.present?
             new_relation
@@ -32,7 +32,7 @@ module ActiveRecord
 
         class_eval <<-CEVAL
           def #{query_method}(value = true)
-            new_relation = spawn
+            new_relation = clone
             new_relation.#{query_method}_value = value
             new_relation
           end
@@ -41,12 +41,12 @@ module ActiveRecord
     end
 
     def lock(locks = true)
-      relation = spawn
+      relation = clone
       case locks
       when String, TrueClass, NilClass
-        spawn.tap {|new_relation| new_relation.lock_value = locks || true }
+        clone.tap {|new_relation| new_relation.lock_value = locks || true }
       else
-        spawn.tap {|new_relation| new_relation.lock_value = false }
+        clone.tap {|new_relation| new_relation.lock_value = false }
       end
     end
 

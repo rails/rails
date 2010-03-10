@@ -26,7 +26,7 @@ module ActiveRecord
         if options.present?
           Scope.init(self, options, &block)
         else
-          current_scoped_methods ? unscoped.merge(current_scoped_methods) : unscoped.spawn
+          current_scoped_methods ? unscoped.merge(current_scoped_methods) : unscoped.clone
         end
       end
 
