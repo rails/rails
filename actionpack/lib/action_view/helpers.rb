@@ -10,6 +10,7 @@ module ActionView #:nodoc:
     autoload :CsrfHelper, 'action_view/helpers/csrf_helper'
     autoload :DateHelper, 'action_view/helpers/date_helper'
     autoload :DebugHelper, 'action_view/helpers/debug_helper'
+    autoload :DeprecatedBlockHelpers, 'action_view/helpers/deprecated_block_helpers'
     autoload :FormHelper, 'action_view/helpers/form_helper'
     autoload :FormOptionsHelper, 'action_view/helpers/form_options_helper'
     autoload :FormTagHelper, 'action_view/helpers/form_tag_helper'

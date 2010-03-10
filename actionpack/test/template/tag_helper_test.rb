@@ -42,15 +42,13 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_with_block_in_erb
-    __in_erb_template = ''
-    content_tag(:div) { concat "Hello world!" }
-    assert_dom_equal "<div>Hello world!</div>", output_buffer
+    buffer = content_tag(:div) { concat "Hello world!" }
+    assert_dom_equal "<div>Hello world!</div>", buffer
   end
 
   def test_content_tag_with_block_and_options_in_erb
-    __in_erb_template = ''
-    content_tag(:div, :class => "green") { concat "Hello world!" }
-    assert_dom_equal %(<div class="green">Hello world!</div>), output_buffer
+    buffer = content_tag(:div, :class => "green") { concat "Hello world!" }
+    assert_dom_equal %(<div class="green">Hello world!</div>), buffer
   end
 
   def test_content_tag_with_block_and_options_out_of_erb
@@ -68,10 +66,10 @@ class TagHelperTest < ActionView::TestCase
                  output_buffer
   end
 
+  # TAG TODO: Move this into a real template
   def test_content_tag_nested_in_content_tag_in_erb
-    __in_erb_template = true
-    content_tag("p") { concat content_tag("b", "Hello") }
-    assert_equal '<p><b>Hello</b></p>', output_buffer
+    buffer = content_tag("p") { concat content_tag("b", "Hello") }
+    assert_equal '<p><b>Hello</b></p>', buffer
   end
 
   def test_content_tag_with_escaped_array_class

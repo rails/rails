@@ -3,10 +3,46 @@ require 'active_support/core_ext/string/output_safety'
 require 'erubis'
 
 module ActionView
+  class OutputBuffer
+    def initialize
+      @buffer = ActiveSupport::SafeBuffer.new
+    end
+
+    def safe_concat(value)
+      @buffer.safe_concat(value)
+    end
+
+    def <<(value)
+      @buffer << value.to_s
+    end
+
+    def length
+      @buffer.length
+    end
+
+    def [](*args)
+      @buffer[*args]
+    end
+
+    def to_s
+      @buffer.to_s
+    end
+
+    def empty?
+      @buffer.empty?
+    end
+
+    if "".respond_to?(:force_encoding)
+      def force_encoding(encoding)
+        @buffer.force_encoding(encoding)
+      end
+    end
+  end
+
   module Template::Handlers
     class Erubis < ::Erubis::Eruby
       def add_preamble(src)
-        src << "@output_buffer = ActiveSupport::SafeBuffer.new;"
+        src << "@output_buffer = ActionView::OutputBuffer.new;"
       end
 
       def add_text(src, text)
@@ -15,10 +51,10 @@ module ActionView
       end
 
       def add_expr_literal(src, code)
-        if code =~ /\s*raw\s+(.*)/
-          src << "@output_buffer.safe_concat((" << $1 << ").to_s);"
+        if code =~ /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
+          src << '@output_buffer << ' << code
         else
-          src << '@output_buffer << ((' << code << ').to_s);'
+          src << '@output_buffer << (' << code << ');'
         end
       end
 
@@ -42,7 +78,7 @@ module ActionView
       self.erb_trim_mode = '-'
 
       self.default_format = Mime::HTML
-      
+
       cattr_accessor :erb_implementation
       self.erb_implementation = Erubis
 
