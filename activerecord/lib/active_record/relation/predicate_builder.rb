@@ -20,9 +20,7 @@ module ActiveRecord
             table = Arel::Table.new(table_name, :engine => @engine)
           end
 
-          # TODO : Arel::Table#[] should fallback to using Arel::Attribute if the table/column doesn't exist
-          # attribute = table[column]
-          attribute = Arel::Attribute.new(table, column.to_sym)
+          attribute = table[column]
 
           case value
           when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope
