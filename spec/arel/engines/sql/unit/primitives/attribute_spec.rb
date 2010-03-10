@@ -9,7 +9,7 @@ module Arel
 
     describe '#column' do
       it "returns the corresponding column in the relation" do
-         @attribute.column.should == @relation.column_for(@attribute)
+        @attribute.column.should == @relation.column_for(@attribute)
       end
     end
 

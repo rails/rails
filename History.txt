@@ -1,3 +1,11 @@
+== 0.3.0 / 2010-02-05
+
+* Enhancements
+
+  * Introduced "SQL compilers" for query generation.
+  * Added support for Oracle (Raimonds Simanovskis) and IBM/DB (Praveen Devarao).
+  * Improvements to give better support to ActiveRecord.
+
 == 0.2.1 / 2010-02-05
 
 * Enhancements
