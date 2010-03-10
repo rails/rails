@@ -194,7 +194,7 @@ module ActionView #:nodoc:
     attr_accessor :base_path, :assigns, :template_extension, :lookup_context
     attr_internal :captures, :request, :layout, :controller, :template, :config
 
-    delegate :find, :exists?, :formats, :formats=,
+    delegate :find, :exists?, :formats, :formats=, :locale, :locale=,
              :view_paths, :view_paths=, :with_fallbacks, :update_details, :to => :lookup_context
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,

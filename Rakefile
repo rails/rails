@@ -49,6 +49,7 @@ end
 
 desc "Install gems for all projects."
 task :install => :gem do
+  require File.expand_path("../actionpack/lib/action_pack/version", __FILE__)
   (PROJECTS - ["railties"]).each do |project|
     puts "INSTALLING #{project}"
     system("gem install #{project}/pkg/#{project}-#{ActionPack::VERSION::STRING}.gem --no-ri --no-rdoc")

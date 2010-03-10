@@ -124,7 +124,7 @@ module ActionController
       end
 
       def authenticate(request, &login_procedure)
-        unless authorization(request).blank?
+        unless request.authorization.blank?
           login_procedure.call(*user_name_and_password(request))
         end
       end
@@ -133,15 +133,8 @@ module ActionController
         decode_credentials(request).split(/:/, 2)
       end
 
-      def authorization(request)
-        request.env['HTTP_AUTHORIZATION']   ||
-        request.env['X-HTTP_AUTHORIZATION'] ||
-        request.env['X_HTTP_AUTHORIZATION'] ||
-        request.env['REDIRECT_X_HTTP_AUTHORIZATION']
-      end
-
       def decode_credentials(request)
-        ActiveSupport::Base64.decode64(authorization(request).split(' ', 2).last || '')
+        ActiveSupport::Base64.decode64(request.authorization.split(' ', 2).last || '')
       end
 
       def encode_credentials(user_name, password)
@@ -176,14 +169,7 @@ module ActionController
 
       # Returns false on a valid response, true otherwise
       def authenticate(secret_key, request, realm, &password_procedure)
-        authorization(request) && validate_digest_response(secret_key, request, realm, &password_procedure)
-      end
-
-      def authorization(request)
-        request.env['HTTP_AUTHORIZATION']   ||
-        request.env['X-HTTP_AUTHORIZATION'] ||
-        request.env['X_HTTP_AUTHORIZATION'] ||
-        request.env['REDIRECT_X_HTTP_AUTHORIZATION']
+        request.authorization && validate_digest_response(secret_key, request, realm, &password_procedure)
       end
 
       # Returns false unless the request credentials response value matches the expected value.
@@ -226,7 +212,7 @@ module ActionController
       end
 
       def decode_credentials_header(request)
-        decode_credentials(authorization(request))
+        decode_credentials(request.authorization)
       end
 
       def decode_credentials(header)
