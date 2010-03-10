@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bryan Helmkamp", "Nick Kallen", "Emilio Tagua"]
-  s.date = %q{2010-03-01}
+  s.date = %q{2010-03-10}
   s.description = %q{Arel is a Relational Algebra for Ruby. It 1) simplifies the generation complex
 of SQL queries and it 2) adapts to various RDBMS systems. It is intended to be
 a framework framework; that is, you can build your own ORM with it, focusing on
@@ -169,7 +169,7 @@ and query generation.}
   s.homepage = %q{http://github.com/brynary/arel}
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{arel}
-  s.rubygems_version = %q{1.3.5}
+  s.rubygems_version = %q{1.3.6}
   s.summary = %q{Arel is a relational algebra engine for Ruby}
   s.test_files = [
     "spec/arel/algebra/unit/predicates/binary_spec.rb",
