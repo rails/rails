@@ -233,8 +233,8 @@ More Information: - "Rails Edge Architecture":http://yehudakatz.com/2009/06/11/r
 h4. Action Controller
 
 * <tt>application_controller.rb</tt> now has <tt>protect_from_forgery</tt> on by default.
-* The <tt>cookie_verifier_secret</tt> has been deprecated and now instead it is assigned through <tt>Rails.application.config.cookie_secret</tt> and moved into it's own file: <tt>initializers/cookie_verification_secret.rb</tt>.
-* The <tt>session_store</tt> configuration has also been changed from a hash assignment to <tt>ActionController::Base.session</tt> to <tt>Rails.application.config.session_store</tt> has also has been moved to <tt>initializers/session_store.rb</tt>.
+* The <tt>cookie_verifier_secret</tt> has been deprecated and now instead it is assigned through <tt>Rails.application.config.cookie_secret</tt> and moved into its own file: <tt>config/initializers/cookie_verification_secret.rb</tt>.
+* The <tt>session_store</tt> was configured in <tt>ActionController::Base.session</tt>, and that is now moved to <tt>Rails.application.config.session_store</tt>. Defaults are set up in <tt>config/initializers/session_store.rb</tt>.
 * <tt>cookies.secure</tt> allowing you to set encrypted values in cookies with <tt>cookie.secure[:key] => value</tt>.
 * <tt>cookies.permanent</tt> allowing you to set permanent values in the cookie hash <tt>cookie.permanent[:key] => value</tt> that raise exceptions on signed values if verification failures.
 * You can now pass <tt>:notice => 'This is a flash message'</tt> or <tt>:alert => 'Something went wrong'</tt> to the <tt>format</tt> call inside a +respond_to+ block.  The <tt>flash[]</tt> hash still works as previously.
