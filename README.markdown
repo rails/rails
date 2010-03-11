@@ -60,7 +60,7 @@ What are called `LIMIT` and `OFFSET` in SQL are called `take` and `skip` in Arel
 
     users.group(users[:name]) # => SELECT * FROM users GROUP BY name
 
-The best property of the Relational Algebra is its "composability", or closure under all operations. For example, to select AND project, just "chain" the method invocations:
+The best property of the Relational Algebra is its "composability", or closure under all operations. For example, to restrict AND project, just "chain" the method invocations:
 
     users                                 \
       .where(users[:name].eq('amy'))      \
