@@ -11,14 +11,24 @@ module ActionView
     @@fallbacks = [FileSystemResolver.new(""), FileSystemResolver.new("/")]
 
     mattr_accessor :registered_details
-    self.registered_details = {}
+    self.registered_details = []
 
     def self.register_detail(name, options = {})
-      registered_details[name] = lambda do |value|
+      self.registered_details << name
+
+      Setters.send :define_method, :"#{name}=" do |value|
         value = Array(value.presence || yield)
         value |= [nil] unless options[:allow_nil] == false
-        value
+
+        unless value == @details[name]
+          @details_key, @details = nil, @details.merge(name => value)
+          @details.freeze
+        end
       end
+    end
+
+    # Holds raw setters for the registered details.
+    module Setters #:nodoc:
     end
 
     register_detail(:formats) { Mime::SET.symbols }
@@ -40,7 +50,7 @@ module ActionView
     end
 
     def initialize(view_paths, details = {})
-      @details_key = nil
+      @details, @details_key = {}, nil
       self.view_paths = view_paths
       self.details = details
     end
@@ -55,18 +65,18 @@ module ActionView
       end
 
       def find(name, prefix = nil, partial = false)
-        @view_paths.find(name, prefix, partial || false, details, details_key)
+        @view_paths.find(name, prefix, partial, details, details_key)
       end
 
       def find_all(name, prefix = nil, partial = false)
-        @view_paths.find_all(name, prefix, partial || false, details, details_key)
+        @view_paths.find_all(name, prefix, partial, details, details_key)
       end
 
       def exists?(name, prefix = nil, partial = false)
-        @view_paths.exists?(name, prefix, partial || false, details, details_key)
+        @view_paths.exists?(name, prefix, partial, details, details_key)
       end
 
-      # Add fallbacks to the view paths. Useful in cases you are rendering a file.
+      # Add fallbacks to the view paths. Useful in cases you are rendering a :file.
       def with_fallbacks
         added_resolvers = 0
         self.class.fallbacks.each do |resolver|
@@ -83,9 +93,8 @@ module ActionView
     module Details
       attr_reader :details
 
-      def details=(details)
-        @details = normalize_details(details)
-        @details_key = nil if @details_key && @details_key.details != @details
+      def details=(given_details)
+        registered_details.each { |key| send(:"#{key}=", given_details[key]) }
       end
 
       def details_key
@@ -97,9 +106,10 @@ module ActionView
         @details[:formats].compact
       end
 
-      # Shortcut to set formats in details.
-      def formats=(value)
-        self.details = @details.merge(:formats => value)
+      # Overload formats= to reject [:"*/*"] values.
+      def formats=(value, freeze=true)
+        value = nil if value == [:"*/*"]
+        super(value)
       end
 
       # Shortcut to read locale.
@@ -107,13 +117,14 @@ module ActionView
         I18n.locale
       end
 
-      # Shortcut to set locale in details and I18n.
+      # Overload locale= to also set the I18n.locale. If the current I18n.config object responds
+      # to i18n_config, it means that it's has a copy of the original I18n configuration and it's
+      # acting as proxy, which we need to skip.
       def locale=(value)
-        I18n.locale = value
-
-        unless I18n.config.respond_to?(:lookup_context)
-          self.details = @details.merge(:locale => value)
-        end
+        value = value.first if value.is_a?(Array)
+        config = I18n.config.respond_to?(:i18n_config) ? I18n.config.i18n_config : I18n.config
+        config.locale = value if value
+        super(I18n.locale)
       end
 
       # Update the details keys by merging the given hash into the current
@@ -127,24 +138,13 @@ module ActionView
           begin
             yield
           ensure
-            self.details = old_details
+            @details = old_details
           end
         end
       end
-
-    protected
-
-      def normalize_details(details)
-        details = details.dup
-        # TODO: Refactor this concern out of the resolver
-        details.delete(:formats) if details[:formats] == [:"*/*"]
-        self.class.registered_details.each do |k, v|
-          details[k] = v.call(details[k])
-        end
-        details.freeze
-      end
     end
 
+    include Setters
     include Details
     include ViewPaths
   end

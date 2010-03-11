@@ -17,7 +17,7 @@ module RenderRjs
     end
 
     def index_locale
-      old_locale, I18n.locale = I18n.locale, :da
+      self.locale = :da
     end
   end
 
