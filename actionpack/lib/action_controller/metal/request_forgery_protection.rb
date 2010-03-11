@@ -12,7 +12,7 @@ module ActionController #:nodoc:
     included do
       # Sets the token parameter name for RequestForgery. Calling +protect_from_forgery+
       # sets it to <tt>:authenticity_token</tt> by default.
-      config.request_forgery_protection_token ||= true
+      config.request_forgery_protection_token ||= :authenticity_token
 
       # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
       config.allow_forgery_protection ||= true
