@@ -1,8 +1,4 @@
 namespace :doc do
-  def gem_path(gem_name)
-    Bundler.load.specs.find{|s| s.name == gem_name}.full_gem_path
-  end
-
   desc "Generate documentation for the application. Set custom template with TEMPLATE=/path/to/rdoc/template.rb or title with TITLE=\"Custom Title\""
   Rake::RDocTask.new("app") { |rdoc|
     rdoc.rdoc_dir = 'doc/app'
@@ -15,42 +11,54 @@ namespace :doc do
     rdoc.rdoc_files.include('lib/**/*.rb')
   }
 
-  desc 'Generate documentation for the Rails framework.'
-  Rake::RDocTask.new("rails") { |rdoc|
-    rdoc.rdoc_dir = 'doc/api'
-    rdoc.template = "#{ENV['template']}.rb" if ENV['template']
-    rdoc.title    = "Rails Framework Documentation"
-    rdoc.options << '--line-numbers' << '--inline-source'
-    rdoc.rdoc_files.include('README')
-
-    %w(README CHANGELOG MIT-LICENSE lib/action_mailer/base.rb).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('actionmailer')}/#{file}")
+  desc 'Generate documentation for the Rails framework. Specify path with RAILS_PATH="/path/to/rails"'
+  path = ENV['RAILS_PATH']
+  unless path && File.directory?(path)
+    task :rails do
+      if path
+        $stderr.puts "Skipping doc:rails, missing Rails directory at #{path}"
+      else
+        $stderr.puts "Skipping doc:rails, RAILS_PATH environment variable is not set"
+      end
     end
+  else
+    Rake::RDocTask.new("rails") { |rdoc|
+      version = "-#{Rails::VERSION::STRING}" unless ENV['RAILS_PATH']
+      rdoc.rdoc_dir = 'doc/api'
+      rdoc.template = "#{ENV['template']}.rb" if ENV['template']
+      rdoc.title    = "Rails Framework Documentation"
+      rdoc.options << '--line-numbers' << '--inline-source'
+      rdoc.rdoc_files.include('README')
 
-    %w(README CHANGELOG MIT-LICENSE lib/action_controller/**/*.rb lib/action_view/**/*.rb).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('actionpack')}/#{file}")
-    end
+      %w(README CHANGELOG lib/action_mailer/base.rb).each do |file|
+        rdoc.rdoc_files.include("#{path}/actionmailer#{version}/#{file}")
+      end
 
-    %w(README CHANGELOG MIT-LICENSE lib/active_model/**/*.rb).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('activemodel')}/#{file}")
-    end
+      %w(README CHANGELOG lib/action_controller/**/*.rb lib/action_view/**/*.rb).each do |file|
+        rdoc.rdoc_files.include("#{path}/actionpack#{version}/#{file}")
+      end
 
-    %w(README CHANGELOG lib/active_record/**/*.rb).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('activerecord')}/#{file}")
-    end
+      %w(README CHANGELOG lib/active_model/**/*.rb).each do |file|
+        rdoc.rdoc_files.include("#{path}/activemodel#{version}/#{file}")
+      end
 
-    %w(README CHANGELOG lib/active_resource.rb lib/active_resource/*).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('activeresource')}/#{file}")
-    end
+      %w(README CHANGELOG lib/active_record/**/*.rb).each do |file|
+        rdoc.rdoc_files.include("#{path}/activerecord#{version}/#{file}")
+      end
 
-    %w(README CHANGELOG lib/active_support/**/*.rb).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('activesupport')}/#{file}")
-    end
+      %w(README CHANGELOG lib/active_resource.rb lib/active_resource/*).each do |file|
+        rdoc.rdoc_files.include("#{path}/activeresource#{version}/#{file}")
+      end
 
-    %w(README CHANGELOG lib/{*.rb,commands/*.rb,generators/*.rb}).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('railties')}/#{file}")
-    end
-  }
+      %w(README CHANGELOG lib/active_support/**/*.rb).each do |file|
+        rdoc.rdoc_files.include("#{path}/activesupport#{version}/#{file}")
+      end
+
+      %w(README CHANGELOG MIT-LICENSE lib/{*.rb,commands/*.rb,generators/*.rb}).each do |file|
+        rdoc.rdoc_files.include("#{path}/railties#{version}/#{file}")
+      end
+    }
+  end
 
   plugins = FileList['vendor/plugins/**'].collect { |plugin| File.basename(plugin) }
 
