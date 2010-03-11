@@ -53,7 +53,7 @@ Spec::Runner.configure do |config|
   config.include Check
 
   config.before do
-    Arel::Table.engine = Arel::Sql::Engine.new(ActiveRecord::Base)
+    Arel::Table.engine = Arel::Sql::Engine.new(ActiveRecord::Base) if defined?(ActiveRecord::Base)
   end
 end
 
