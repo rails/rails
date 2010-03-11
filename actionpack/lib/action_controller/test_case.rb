@@ -322,6 +322,8 @@ module ActionController
         @controller ||= klass.new rescue nil
       end
 
+      @request.env.delete('PATH_INFO')
+
       if @controller
         @controller.request = @request
         @controller.params = {}
@@ -335,13 +337,20 @@ module ActionController
 
     private
       def build_request_uri(action, parameters)
-        unless @request.env['REQUEST_URI']
+        unless @request.env["PATH_INFO"]
           options = @controller.__send__(:url_options).merge(parameters)
-          options.update(:only_path => true, :action => action)
+          options.update(
+            :only_path => true,
+            :action => action,
+            :relative_url_root => nil,
+            :_path_segments => @request.symbolized_path_parameters)
 
-          url = ActionController::UrlRewriter.new(@request, parameters)
-          @request.request_uri = url.rewrite(@router, options)
+          url, query_string = @router.url_for(options).split("?", 2)
+
+          @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
+          @request.env["PATH_INFO"] = url
+          @request.env["QUERY_STRING"] = query_string || ""
         end
       end
-  end
+    end
 end

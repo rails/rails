@@ -24,14 +24,35 @@ class Class
   # For convenience, a query method is defined as well:
   #
   #   Subclass.setting?           # => false
+  #
+  # Instances may overwrite the class value in the same way:
+  #
+  #   Base.setting = true
+  #   object = Base.new
+  #   object.setting          # => true
+  #   object.setting = false
+  #   object.setting          # => false
+  #   Base.setting            # => true
+  #
+  # To opt out of the instance writer method, pass :instance_writer => false.
+  #
+  #   object.setting = false  # => NoMethodError
   def class_attribute(*attrs)
+    instance_writer = !attrs.last.is_a?(Hash) || attrs.pop[:instance_writer]
+
     s = singleton_class
     attrs.each do |attr|
       s.send(:define_method, attr) { }
-      s.send(:define_method, "#{attr}?") { !!send(attr) }
-      s.send(:define_method, "#{attr}=") do |value|
+      s.send(:define_method, :"#{attr}?") { !!send(attr) }
+      s.send(:define_method, :"#{attr}=") do |value|
         singleton_class.send(:define_method, attr) { value }
       end
+
+      define_method(attr) { self.class.send(attr) }
+      define_method(:"#{attr}?") { !!send(attr) }
+      define_method(:"#{attr}=") do |value|
+        singleton_class.send(:define_method, attr) { value }
+      end if instance_writer
     end
   end
 end

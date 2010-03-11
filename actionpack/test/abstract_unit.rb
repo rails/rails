@@ -16,7 +16,6 @@ require 'test/unit'
 require 'abstract_controller'
 require 'action_controller'
 require 'action_view'
-require 'action_view/base'
 require 'action_dispatch'
 require 'fixture_template'
 require 'active_support/dependencies'
@@ -105,6 +104,21 @@ class RoutedRackApp
   end
 end
 
+class BasicController
+  attr_accessor :request
+
+  def config
+    @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config).tap do |config|
+      # VIEW TODO: View tests should not require a controller
+      public_dir = File.expand_path("../fixtures/public", __FILE__)
+      config.assets_dir = public_dir
+      config.javascripts_dir = "#{public_dir}/javascripts"
+      config.stylesheets_dir = "#{public_dir}/stylesheets"
+      config
+    end
+  end
+end
+
 class ActionController::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
@@ -155,8 +169,7 @@ end
 # Temporary base class
 class Rack::TestCase < ActionController::IntegrationTest
   setup do
-    ActionController::Base.session_options[:key] = "abc"
-    ActionController::Base.session_options[:secret] = ("*" * 30)
+    ActionController::Base.config.secret = "abc" * 30
   end
 
   def self.testing(klass = nil)

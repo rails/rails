@@ -5,11 +5,12 @@ require "active_record/railties/log_subscriber"
 
 class LogSubscriberTest < ActiveSupport::TestCase
   include Rails::LogSubscriber::TestHelper
-  Rails::LogSubscriber.add(:active_record, ActiveRecord::Railties::LogSubscriber.new)
 
   def setup
     @old_logger = ActiveRecord::Base.logger
     super
+
+    Rails::LogSubscriber.add(:active_record, ActiveRecord::Railties::LogSubscriber.new)
   end
 
   def teardown

@@ -267,11 +267,9 @@ module ActionMailer #:nodoc:
 
     include AbstractController::Logger
     include AbstractController::Rendering
-    include AbstractController::DetailsCache
     include AbstractController::Layouts
     include AbstractController::Helpers
     include AbstractController::Translation
-    include AbstractController::Compatibility
 
     helper  ActionMailer::MailHelper
 
@@ -290,6 +288,8 @@ module ActionMailer #:nodoc:
       :content_type => "text/plain",
       :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
+
+    ActionMailer.run_base_hooks(self)
 
     class << self
 
@@ -616,14 +616,12 @@ module ActionMailer #:nodoc:
 
     def each_template(paths, name, &block) #:nodoc:
       Array(paths).each do |path|
-        self.class.view_paths.each do |load_paths|
-          templates = load_paths.find_all(name, {}, path)
-          templates = templates.uniq_by { |t| t.details[:formats] }
+        templates = lookup_context.find_all(name, path)
+        templates = templates.uniq_by { |t| t.formats }
 
-          unless templates.empty?
-            templates.each(&block)
-            return
-          end
+        unless templates.empty?
+          templates.each(&block)
+          return
         end
       end
     end

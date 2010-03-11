@@ -7,6 +7,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/anonymous'
+require 'active_support/i18n'
 
 module AbstractController
   extend ActiveSupport::Autoload
@@ -14,11 +15,10 @@ module AbstractController
   autoload :Base
   autoload :Callbacks
   autoload :Collector
-  autoload :Compatibility
-  autoload :DetailsCache
   autoload :Helpers
   autoload :Layouts
   autoload :Logger
   autoload :Rendering
   autoload :Translation
+  autoload :ViewPaths
 end

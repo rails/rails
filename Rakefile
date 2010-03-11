@@ -3,15 +3,6 @@ require 'rake/rdoctask'
 require 'rake/gempackagetask'
 
 PROJECTS = %w(activesupport activemodel actionpack actionmailer activeresource activerecord railties)
-PROJECTS.each { |project| $:.unshift "#{project}/lib" }
-
-require "active_support/version"
-require "active_model/version"
-require "action_pack/version"
-require "action_mailer/version"
-require "active_resource/version"
-require "active_record/version"
-require "rails/version"
 
 desc 'Run all tests by default'
 task :default => %w(test test:isolated)
@@ -58,6 +49,7 @@ end
 
 desc "Install gems for all projects."
 task :install => :gem do
+  require File.expand_path("../actionpack/lib/action_pack/version", __FILE__)
   (PROJECTS - ["railties"]).each do |project|
     puts "INSTALLING #{project}"
     system("gem install #{project}/pkg/#{project}-#{ActionPack::VERSION::STRING}.gem --no-ri --no-rdoc")
@@ -130,6 +122,12 @@ task :pdoc => :rdoc do
 end
 
 task :update_versions do
+  require File.dirname(__FILE__) + "/version"
+
+  File.open("RAILS_VERSION", "w") do |f|
+    f.write Rails::VERSION::STRING + "\n"
+  end
+
   constants = {
     "activesupport"   => "ActiveSupport",
     "activemodel"     => "ActiveModel",

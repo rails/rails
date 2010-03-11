@@ -14,7 +14,8 @@ module ApplicationTests
       require "action_controller/railtie"
 
       class MyApp < Rails::Application
-        config.action_controller.session = { :key => "_myapp_session", :secret => "3b7cd727ee24e8444053437c36cc66c4" }
+        config.cookie_secret = "3b7cd727ee24e8444053437c36cc66c4"
+        config.session_store :cookie_store, :key => "_myapp_session"
       end
 
       MyApp.initialize!

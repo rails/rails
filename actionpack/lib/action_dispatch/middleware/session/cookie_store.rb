@@ -1,5 +1,4 @@
 require 'active_support/core_ext/hash/keys'
-require 'rack/request'
 
 module ActionDispatch
   module Session
@@ -177,9 +176,8 @@ module ActionDispatch
           if key.blank?
             raise ArgumentError, 'A key is required to write a ' +
               'cookie containing the session data. Use ' +
-              'config.action_controller.session = { :key => ' +
-              '"_myapp_session", :secret => "some secret phrase" } in ' +
-              'config/application.rb'
+              'config.action_controller.session_store :cookie_store, { :key => ' +
+              '"_myapp_session" } in config/application.rb'
           end
         end
 
@@ -193,10 +191,9 @@ module ActionDispatch
           if secret.blank?
             raise ArgumentError, "A secret is required to generate an " +
               "integrity hash for cookie session data. Use " +
-              "config.action_controller.session = { :key => " +
-              "\"_myapp_session\", :secret => \"some secret phrase of at " +
-              "least #{SECRET_MIN_LENGTH} characters\" } " +
-              "in config/environment.rb"
+              "config.cookie_secret = \"some secret phrase of at " +
+              "least #{SECRET_MIN_LENGTH} characters\"" +
+              "in config/application.rb"
           end
 
           if secret.length < SECRET_MIN_LENGTH

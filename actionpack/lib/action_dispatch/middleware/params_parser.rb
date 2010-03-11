@@ -1,4 +1,3 @@
-require 'active_support/json'
 require 'action_dispatch/http/request'
 
 module ActionDispatch

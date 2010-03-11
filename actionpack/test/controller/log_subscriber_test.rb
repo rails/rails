@@ -46,8 +46,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     @cache_path = File.expand_path('../temp/test_cache', File.dirname(__FILE__))
     ActionController::Base.page_cache_directory = @cache_path
-    ActionController::Base.cache_store = :file_store, @cache_path
-
+    @controller.cache_store = :file_store, @cache_path
     Rails::LogSubscriber.add(:action_controller, ActionController::Railties::LogSubscriber.new)
   end
 

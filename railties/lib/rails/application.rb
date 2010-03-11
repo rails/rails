@@ -15,7 +15,10 @@ module Rails
 
     class << self
       private :new
-      alias   :configure :class_eval
+
+      def configure(&block)
+        class_eval(&block)
+      end
 
       def instance
         if self == Rails::Application
@@ -53,10 +56,6 @@ module Rails
 
     def railties
       @railties ||= Railties.new(config)
-    end
-
-    def metal_loader
-      @metal_loader ||= MetalLoader.new
     end
 
     def routes_reloader

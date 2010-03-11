@@ -1,5 +1,6 @@
 require "date"
 require 'action_view/helpers/tag_helper'
+require 'active_support/core_ext/hash/slice'
 
 module ActionView
   module Helpers
@@ -865,7 +866,7 @@ module ActionView
             :id => input_id_from_type(type),
             :name => input_name_from_type(type),
             :value => value
-          }) + "\n").html_safe
+          }.merge(@html_options.slice(:disabled))) + "\n").html_safe
         end
 
         # Returns the name attribute for the input tag

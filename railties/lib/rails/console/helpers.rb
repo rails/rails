@@ -2,4 +2,6 @@ def helper
   @helper ||= ApplicationController.helpers
 end
 
-@controller = ApplicationController.new
+def controller
+  @controller ||= ApplicationController.new
+end

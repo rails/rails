@@ -76,6 +76,9 @@ class UrlOptionsController < ActionController::Base
   end
 end
 
+class RecordIdentifierController < ActionController::Base
+end
+
 class ControllerClassTests < ActiveSupport::TestCase
   def test_controller_path
     assert_equal 'empty', EmptyController.controller_path
@@ -101,6 +104,11 @@ class ControllerClassTests < ActiveSupport::TestCase
     end
 
     assert_equal [:password], parameters
+  end
+
+  def test_record_identifier
+    assert_respond_to RecordIdentifierController.new, :dom_id
+    assert_respond_to RecordIdentifierController.new, :dom_class
   end
 end
 
@@ -181,7 +189,7 @@ class UrlOptionsTest < ActionController::TestCase
     rescue_action_in_public!
   end
 
-  def test_default_url_options_are_used_if_set
+  def test_url_options_override
     with_routing do |set|
       set.draw do |map|
         match 'from_view', :to => 'url_options#from_view', :as => :from_view
@@ -206,20 +214,18 @@ class DefaultUrlOptionsTest < ActionController::TestCase
     rescue_action_in_public!
   end
 
-  def test_default_url_options_are_used_if_set
+  def test_default_url_options_override
     with_routing do |set|
       set.draw do |map|
         match 'from_view', :to => 'default_url_options#from_view', :as => :from_view
         match ':controller/:action'
       end
 
-      assert_deprecated do
-        get :from_view, :route => "from_view_url"
+      get :from_view, :route => "from_view_url"
 
-        assert_equal 'http://www.override.com/from_view?locale=en', @response.body
-        assert_equal 'http://www.override.com/from_view?locale=en', @controller.send(:from_view_url)
-        assert_equal 'http://www.override.com/default_url_options/new?locale=en', @controller.url_for(:controller => 'default_url_options')
-      end
+      assert_equal 'http://www.override.com/from_view?locale=en', @response.body
+      assert_equal 'http://www.override.com/from_view?locale=en', @controller.send(:from_view_url)
+      assert_equal 'http://www.override.com/default_url_options/new?locale=en', @controller.url_for(:controller => 'default_url_options')
     end
   end
 
@@ -232,21 +238,19 @@ class DefaultUrlOptionsTest < ActionController::TestCase
         match ':controller/:action'
       end
 
-      assert_deprecated do
-        get :from_view, :route => "description_path(1)"
+      get :from_view, :route => "description_path(1)"
 
-        assert_equal '/en/descriptions/1', @response.body
-        assert_equal '/en/descriptions', @controller.send(:descriptions_path)
-        assert_equal '/pl/descriptions', @controller.send(:descriptions_path, "pl")
-        assert_equal '/pl/descriptions', @controller.send(:descriptions_path, :locale => "pl")
-        assert_equal '/pl/descriptions.xml', @controller.send(:descriptions_path, "pl", "xml")
-        assert_equal '/en/descriptions.xml', @controller.send(:descriptions_path, :format => "xml")
-        assert_equal '/en/descriptions/1', @controller.send(:description_path, 1)
-        assert_equal '/pl/descriptions/1', @controller.send(:description_path, "pl", 1)
-        assert_equal '/pl/descriptions/1', @controller.send(:description_path, 1, :locale => "pl")
-        assert_equal '/pl/descriptions/1.xml', @controller.send(:description_path, "pl", 1, "xml")
-        assert_equal '/en/descriptions/1.xml', @controller.send(:description_path, 1, :format => "xml")
-      end
+      assert_equal '/en/descriptions/1', @response.body
+      assert_equal '/en/descriptions', @controller.send(:descriptions_path)
+      assert_equal '/pl/descriptions', @controller.send(:descriptions_path, "pl")
+      assert_equal '/pl/descriptions', @controller.send(:descriptions_path, :locale => "pl")
+      assert_equal '/pl/descriptions.xml', @controller.send(:descriptions_path, "pl", "xml")
+      assert_equal '/en/descriptions.xml', @controller.send(:descriptions_path, :format => "xml")
+      assert_equal '/en/descriptions/1', @controller.send(:description_path, 1)
+      assert_equal '/pl/descriptions/1', @controller.send(:description_path, "pl", 1)
+      assert_equal '/pl/descriptions/1', @controller.send(:description_path, 1, :locale => "pl")
+      assert_equal '/pl/descriptions/1.xml', @controller.send(:description_path, "pl", 1, "xml")
+      assert_equal '/en/descriptions/1.xml', @controller.send(:description_path, 1, :format => "xml")
     end
   end
 

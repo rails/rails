@@ -83,13 +83,7 @@ module ActionView
             content_or_options_with_block
           end
 
-        tag = content_tag(:script, javascript_cdata_section(content), html_options.merge(:type => Mime::JS))
-
-        if block_called_from_erb?(block)
-          safe_concat(tag)
-        else
-          tag
-        end
+        content_tag(:script, javascript_cdata_section(content), html_options.merge(:type => Mime::JS))
       end
 
       def javascript_cdata_section(content) #:nodoc:

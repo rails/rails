@@ -11,8 +11,8 @@ module ApplicationTests
       app_file "config/environments/development.rb", ""
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-        config.after_initialize do
-          ActionController::Base.session_store = nil
+        config.after_initialize do |app|
+          app.config.session_store nil
         end
       RUBY
       use_frameworks [:action_controller, :action_view, :action_mailer, :active_record]
@@ -56,9 +56,10 @@ module ApplicationTests
     end
 
     test "booting up Rails yields a list of paths that are eager" do
-      assert @paths.app.eager_load?
-      assert @paths.app.controllers.eager_load?
-      assert @paths.app.helpers.eager_load?
+      eager_load = @paths.eager_load
+      assert eager_load.include?(root("app/controllers"))
+      assert eager_load.include?(root("app/helpers"))
+      assert eager_load.include?(root("app/models"))
     end
 
     test "environments has a glob equal to the current environment" do

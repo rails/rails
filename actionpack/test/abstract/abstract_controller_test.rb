@@ -59,11 +59,11 @@ module AbstractController
       end
 
       def rendering_to_body
-        self.response_body = render_to_body :_template_name => "naked_render.erb"
+        self.response_body = render_to_body :template => "naked_render.erb"
       end
 
       def rendering_to_string
-        self.response_body = render_to_string :_template_name => "naked_render.erb"
+        self.response_body = render_to_string :template => "naked_render.erb"
       end
     end
 

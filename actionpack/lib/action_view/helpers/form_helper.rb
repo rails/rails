@@ -92,6 +92,10 @@ module ActionView
     # link:classes/ActionView/Helpers/DateHelper.html, and
     # link:classes/ActionView/Helpers/ActiveRecordHelper.html
     module FormHelper
+      extend ActiveSupport::Concern
+
+      include FormTagHelper
+
       # Creates a form and a scope around a specific model object that is used
       # as a base for questioning about values for the fields.
       #
@@ -309,9 +313,9 @@ module ActionView
 
         options[:html][:remote] = true if options.delete(:remote)
 
-        safe_concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}))
-        fields_for(object_name, *(args << options), &proc)
-        safe_concat('</form>')
+        output = form_tag(options.delete(:url) || {}, options.delete(:html) || {})
+        output << fields_for(object_name, *(args << options), &proc)
+        output.safe_concat('</form>')
       end
 
       def apply_form_for_options!(object_or_array, options) #:nodoc:
@@ -528,7 +532,10 @@ module ActionView
         end
 
         builder = options[:builder] || ActionView::Base.default_form_builder
-        yield builder.new(object_name, object, self, options, block)
+
+        with_output_buffer do
+          yield builder.new(object_name, object, self, options, block)
+        end
       end
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
@@ -1183,9 +1190,11 @@ module ActionView
 
           if association.is_a?(Array)
             explicit_child_index = options[:child_index]
-            association.map do |child|
-              fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index(name)}]", child, options, block)
-            end.join
+            output = ActiveSupport::SafeBuffer.new
+            association.each do |child|
+              output << fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index(name)}]", child, options, block)
+            end
+            output
           elsif association
             fields_for_nested_model(name, association, options, block)
           end
@@ -1211,8 +1220,10 @@ module ActionView
     end
   end
 
-  class Base
-    cattr_accessor :default_form_builder
-    @@default_form_builder = ::ActionView::Helpers::FormBuilder
+  ActionView.base_hook do
+    class ActionView::Base
+      cattr_accessor :default_form_builder
+      @@default_form_builder = ::ActionView::Helpers::FormBuilder
+    end
   end
 end

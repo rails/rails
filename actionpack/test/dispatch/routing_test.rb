@@ -15,6 +15,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   stub_controllers do |routes|
     Routes = routes
     Routes.draw do
+      default_url_options :host => "rubyonrails.org"
+
       controller :sessions do
         get  'login' => :new, :as => :login
         post 'login' => :create
@@ -24,6 +26,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resource :session do
         get :create
+
+        resource :info
       end
 
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
@@ -187,6 +191,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       assert_equal '/login', url_for(:controller => 'sessions', :action => 'create', :only_path => true)
       assert_equal '/login', url_for(:controller => 'sessions', :action => 'new', :only_path => true)
+
+      assert_equal 'http://rubyonrails.org/login', Routes.url_for(:controller => 'sessions', :action => 'create')
     end
   end
 
@@ -231,6 +237,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/session/edit'
       assert_equal 'sessions#edit', @response.body
       assert_equal '/session/edit', edit_session_path
+    end
+  end
+
+  def test_session_info_nested_singleton_resource
+    with_test_routes do
+      get '/session/info'
+      assert_equal 'infos#show', @response.body
+      assert_equal '/session/info', session_info_path
     end
   end
 

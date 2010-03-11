@@ -3,14 +3,13 @@ module ActionController
     extend ActiveSupport::Concern
 
     include ActionDispatch::Routing::UrlFor
-    include ActionController::RackDelegation
 
     def url_options
       super.reverse_merge(
         :host => request.host_with_port,
         :protocol => request.protocol,
         :_path_segments => request.symbolized_path_parameters
-      )
+      ).merge(:script_name => request.script_name)
     end
 
     def _router

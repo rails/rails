@@ -355,7 +355,7 @@ class TestController < ActionController::Base
     @before = "i'm before the render"
     render_to_string :text => "foo"
     @after = "i'm after the render"
-    render :action => "test/hello_world"
+    render :template => "test/hello_world"
   end
 
   def render_to_string_with_exception
@@ -369,7 +369,7 @@ class TestController < ActionController::Base
     rescue
     end
     @after = "i'm after the render"
-    render :action => "test/hello_world"
+    render :template => "test/hello_world"
   end
 
   def accessing_params_in_template_with_layout
@@ -514,7 +514,7 @@ class TestController < ActionController::Base
   def render_to_string_with_partial
     @partial_only = render_to_string :partial => "partial_only"
     @partial_with_locals = render_to_string :partial => "customer", :locals => { :customer => Customer.new("david") }
-    render :action => "test/hello_world"
+    render :template => "test/hello_world"
   end
 
   def partial_with_counter

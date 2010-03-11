@@ -30,6 +30,14 @@ module ActionDispatch
       METHOD
     end
 
+    def self.new(env)
+      if request = env["action_dispatch.request"] && request.instance_of?(self)
+        return request
+      end
+
+      super
+    end
+
     def key?(key)
       @env.key?(key)
     end
@@ -119,36 +127,7 @@ module ActionDispatch
     # delimited list in the case of multiple chained proxies; the last
     # address which is not trusted is the originating IP.
     def remote_ip
-      remote_addr_list = @env['REMOTE_ADDR'] && @env['REMOTE_ADDR'].scan(/[^,\s]+/)
-
-      unless remote_addr_list.blank?
-        not_trusted_addrs = remote_addr_list.reject {|addr| addr =~ TRUSTED_PROXIES || addr =~ ActionController::Base.trusted_proxies}
-        return not_trusted_addrs.first unless not_trusted_addrs.empty?
-      end
-      remote_ips = @env['HTTP_X_FORWARDED_FOR'] && @env['HTTP_X_FORWARDED_FOR'].split(',')
-
-      if @env.include? 'HTTP_CLIENT_IP'
-        if ActionController::Base.ip_spoofing_check && remote_ips && !remote_ips.include?(@env['HTTP_CLIENT_IP'])
-          # We don't know which came from the proxy, and which from the user
-          raise ActionController::ActionControllerError.new <<EOM
-IP spoofing attack?!
-HTTP_CLIENT_IP=#{@env['HTTP_CLIENT_IP'].inspect}
-HTTP_X_FORWARDED_FOR=#{@env['HTTP_X_FORWARDED_FOR'].inspect}
-EOM
-        end
-
-        return @env['HTTP_CLIENT_IP']
-      end
-
-      if remote_ips
-        while remote_ips.size > 1 && (TRUSTED_PROXIES =~ remote_ips.last.strip || ActionController::Base.trusted_proxies =~ remote_ips.last.strip)
-          remote_ips.pop
-        end
-
-        return remote_ips.last.strip
-      end
-
-      @env['REMOTE_ADDR']
+      (@env["action_dispatch.remote_ip"] || ip).to_s
     end
 
     # Returns the lowercase name of the HTTP server software.

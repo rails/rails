@@ -284,18 +284,13 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     end
   end
 
-  def test_cookie_monster
+  test 'response cookies are added to the cookie jar for the next request' do
     with_test_route_set do
       self.cookies['cookie_1'] = "sugar"
       self.cookies['cookie_2'] = "oatmeal"
       get '/cookie_monster'
-      assert_equal 410, status
-      assert_equal "Gone", status_message
-      assert_response 410
-      assert_response :gone
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
       assert_equal({"cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies.to_hash)
-      assert_equal "Gone", response.body
     end
   end
 
@@ -333,7 +328,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     with_test_route_set do
       get '/get_with_params?foo=bar'
       assert_equal '/get_with_params?foo=bar', request.env["REQUEST_URI"]
-      assert_equal '/get_with_params?foo=bar', request.request_uri
+      assert_equal '/get_with_params?foo=bar', request.fullpath
       assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal 'foo=bar', request.query_string
       assert_equal 'bar', request.parameters['foo']
@@ -346,8 +341,8 @@ class IntegrationProcessTest < ActionController::IntegrationTest
   def test_get_with_parameters
     with_test_route_set do
       get '/get_with_params', :foo => "bar"
-      assert_equal '/get_with_params', request.env["REQUEST_URI"]
-      assert_equal '/get_with_params', request.request_uri
+      assert_equal '/get_with_params', request.env["PATH_INFO"]
+      assert_equal '/get_with_params', request.path_info
       assert_equal 'foo=bar', request.env["QUERY_STRING"]
       assert_equal 'foo=bar', request.query_string
       assert_equal 'bar', request.parameters['foo']

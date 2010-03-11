@@ -182,7 +182,7 @@ module ActionView
         def initialize(context, &block) #:nodoc:
           context._evaluate_assigns_and_ivars
           @context, @lines = context, []
-          @context.reset_formats([:js, :html]) do
+          @context.update_details(:formats => [:js, :html]) do
             include_helpers_from_context
             @context.with_output_buffer(@lines) do
               @context.instance_exec(self, &block)
@@ -583,7 +583,7 @@ module ActionView
             end
 
             def with_formats(*args)
-              @context ? @context.reset_formats(args) { yield } : yield
+              @context ? @context.update_details(:formats => args) { yield } : yield
             end
 
             def javascript_object_for(object)

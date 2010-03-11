@@ -1,13 +1,24 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
 
-ActionController::UrlRewriter
-
 class UrlRewriterTests < ActionController::TestCase
+  class Rewriter
+    def initialize(request)
+      @options = {
+        :host => request.host_with_port,
+        :protocol => request.protocol
+      }
+    end
+
+    def rewrite(router, options)
+      router.url_for(@options.merge(options))
+    end
+  end
+
   def setup
     @request = ActionController::TestRequest.new
     @params = {}
-    @rewriter = ActionController::UrlRewriter.new(@request, @params)
+    @rewriter = Rewriter.new(@request) #.new(@request, @params)
   end
 
   def test_port
@@ -59,34 +70,6 @@ class UrlRewriterTests < ActionController::TestCase
       'http://test.host/c/a/i#anc%2Fhor',
       @rewriter.rewrite(@router, :controller => 'c', :action => 'a', :id => 'i', :anchor => Struct.new(:to_param).new('anc/hor'))
     )
-  end
-
-  def test_overwrite_params
-    @params[:controller] = 'hi'
-    @params[:action] = 'bye'
-    @params[:id] = '2'
-
-    assert_equal '/hi/hi/2', @rewriter.rewrite(@router, :only_path => true, :overwrite_params => {:action => 'hi'})
-    u = @rewriter.rewrite(@router, :only_path => false, :overwrite_params => {:action => 'hi'})
-    assert_match %r(/hi/hi/2$), u
-  end
-
-  def test_overwrite_removes_original
-    @params[:controller] = 'search'
-    @params[:action] = 'list'
-    @params[:list_page] = 1
-
-    assert_equal '/search/list?list_page=2', @rewriter.rewrite(@router, :only_path => true, :overwrite_params => {"list_page" => 2})
-    u = @rewriter.rewrite(@router, :only_path => false, :overwrite_params => {:list_page => 2})
-    assert_equal 'http://test.host/search/list?list_page=2', u
-  end
-
-  def test_to_str
-    @params[:controller] = 'hi'
-    @params[:action] = 'bye'
-    @request.parameters[:id] = '2'
-
-    assert_equal 'http://, test.host, /, hi, bye, {"id"=>"2"}', @rewriter.to_str
   end
 
   def test_trailing_slash

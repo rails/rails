@@ -85,36 +85,23 @@ module ActionDispatch
       extend ActiveSupport::Concern
 
       included do
-        # Including in a class uses an inheritable hash. Modules get a plain hash.
-        if respond_to?(:class_attribute)
-          class_attribute :default_url_options
-        else
-          mattr_accessor :default_url_options
-          remove_method :default_url_options
+        # TODO: with_routing extends @controller with url_helpers, trickling down to including this module which overrides its default_url_options
+        unless method_defined?(:default_url_options)
+          # Including in a class uses an inheritable hash. Modules get a plain hash.
+          if respond_to?(:class_attribute)
+            class_attribute :default_url_options
+          else
+            mattr_accessor :default_url_options
+            remove_method :default_url_options
+          end
+
+          self.default_url_options = {}
         end
-
-        self.default_url_options = {}
       end
-
-      # def default_url_options(options = nil)
-      #   self.class.default_url_options
-      # end
 
       def url_options
-        self.class.default_url_options.merge(@url_options || {})
+        default_url_options
       end
-
-      def url_options=(options)
-        @url_options = options
-      end
-
-      # def merge_options(options) #:nodoc:
-      #   if respond_to?(:default_url_options) && (defaults = default_url_options(options))
-      #     defaults.merge(options)
-      #   else
-      #     options
-      #   end
-      # end
 
       # Generate a url based on the options provided, default_url_options and the
       # routes defined in routes.rb.  The following options are supported:
@@ -126,8 +113,6 @@ module ActionDispatch
       #   provided either explicitly, or via +default_url_options+.
       # * <tt>:port</tt> - Optionally specify the port to connect to.
       # * <tt>:anchor</tt> - An anchor name to be appended to the path.
-      # * <tt>:skip_relative_url_root</tt> - If true, the url is not constructed using the
-      #   +relative_url_root+ set in ActionController::Base.relative_url_root.
       # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2009/"
       #
       # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
@@ -139,23 +124,14 @@ module ActionDispatch
       #    url_for :controller => 'tasks', :action => 'testing', :host=>'somehost.org', :anchor => 'ok', :only_path => true    # => '/tasks/testing#ok'
       #    url_for :controller => 'tasks', :action => 'testing', :trailing_slash=>true  # => 'http://somehost.org/tasks/testing/'
       #    url_for :controller => 'tasks', :action => 'testing', :host=>'somehost.org', :number => '33'  # => 'http://somehost.org/tasks/testing?number=33'
-      def url_for(options = {})
-        options ||= {}
+      def url_for(options = nil)
         case options
-          when String
-            options
-          when Hash
-            # Handle the deprecated instance level default_url_options
-            if respond_to?(:default_url_options, true)
-              ActiveSupport::Deprecation.warn "Overwriting #default_url_options is deprecated. Please set url options with self.url_options = { ... }"
-              if defaults = default_url_options(options)
-                options = defaults.merge(options)
-              end
-            end
-
-            ActionController::UrlRewriter.rewrite(_router, url_options.merge(options))
-          else
-            polymorphic_url(options)
+        when String
+          options
+        when nil, Hash
+          _router.url_for(url_options.merge(options || {}))
+        else
+          polymorphic_url(options)
         end
       end
     end

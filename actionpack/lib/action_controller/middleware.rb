@@ -6,7 +6,8 @@ module ActionController
       end
 
       def call(env)
-        @controller.build(@app).dispatch(:index, env)
+        request = ActionDispatch::Request.new(env)
+        @controller.build(@app).dispatch(:index, request)
       end
     end
 

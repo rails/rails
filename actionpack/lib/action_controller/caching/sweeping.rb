@@ -30,9 +30,7 @@ module ActionController #:nodoc:
     #     cache_sweeper OpenBar::Sweeper, :only => [ :edit, :destroy, :share ]
     #   end
     module Sweeping
-      def self.included(base) #:nodoc:
-        base.extend(ClassMethods)
-      end
+      extend ActiveSupport::Concern
 
       module ClassMethods #:nodoc:
         def cache_sweeper(*sweepers)

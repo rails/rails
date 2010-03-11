@@ -9,6 +9,8 @@ end
 require 'abstract_unit'
 require 'active_support/whiny_nil'
 
+NilClass.add_whiner ::ActiveRecord::Base
+
 class WhinyNilTest < Test::Unit::TestCase
   def test_unchanged
     nil.method_thats_not_in_whiners

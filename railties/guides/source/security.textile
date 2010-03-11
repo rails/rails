@@ -92,7 +92,7 @@ Rails 2 introduced a new default session storage, CookieStore. CookieStore saves
 That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA512, which has not been compromised, yet). So _(highlight)don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters_. Put the secret in your environment.rb:
 
 <ruby>
-config.action_controller.session = {
+config.action_dispatch.session = {
   :key    => '_app_session',
   :secret => '0x0dkfj3927dkc7djdh36rkckdfzsg...'
 }

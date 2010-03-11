@@ -20,7 +20,7 @@ module ActionController
         :params     => request.filtered_parameters,
         :formats    => request.formats.map(&:to_sym),
         :method     => request.method,
-        :path       => (request.request_uri rescue "unknown")
+        :path       => (request.fullpath rescue "unknown")
       }
 
       ActiveSupport::Notifications.instrument("action_controller.start_processing", raw_payload.dup)
