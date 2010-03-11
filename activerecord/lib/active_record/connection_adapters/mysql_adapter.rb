@@ -321,7 +321,11 @@ module ActiveRecord
 
       # Executes a SQL query and returns a MySQL::Result object. Note that you have to free the Result object after you're done using it.
       def execute(sql, name = nil) #:nodoc:
-        log(sql, name) { @connection.query(sql) }
+        if name == :skip_logging
+          @connection.query(sql)
+        else
+          log(sql, name) { @connection.query(sql) }
+        end
       rescue ActiveRecord::StatementInvalid => exception
         if exception.message.split(":").first =~ /Packets out of order/
           raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem install mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information.  If you're on Windows, use the Instant Rails installer to get the updated mysql bindings."
@@ -456,7 +460,7 @@ module ActiveRecord
       def columns(table_name, name = nil)#:nodoc:
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
-        result = execute(sql, name)
+        result = execute(sql, :skip_logging)
         result.each { |field| columns << MysqlColumn.new(field[0], field[4], field[1], field[2] == "YES") }
         result.free
         columns
@@ -616,11 +620,11 @@ module ActiveRecord
 
         def configure_connection
           encoding = @config[:encoding]
-          execute("SET NAMES '#{encoding}'") if encoding
+          execute("SET NAMES '#{encoding}'", :skip_logging) if encoding
 
           # By default, MySQL 'where id is null' selects the last inserted id.
           # Turn this off. http://dev.rubyonrails.org/ticket/6778
-          execute("SET SQL_AUTO_IS_NULL=0")
+          execute("SET SQL_AUTO_IS_NULL=0", :skip_logging)
         end
 
         def select(sql, name = nil)

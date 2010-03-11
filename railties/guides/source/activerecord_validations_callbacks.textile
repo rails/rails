@@ -44,7 +44,7 @@ class Person < ActiveRecord::Base
 end
 </ruby>
 
-We can see how it works by looking at some script/console output:
+We can see how it works by looking at some +rails console+ output:
 
 <shell>
 >> p = Person.new(:name => "John Doe")
@@ -240,7 +240,7 @@ end
 
 The +validates_exclusion_of+ helper has an option +:in+ that receives the set of values that will not be accepted for the validated attributes. The +:in+ option has an alias called +:within+  that you can use for the same purpose, if you'd like to. This example uses the +:message+ option to show how you can include the attribute's value.
 
-The default error message for +validates_exclusion_of+  is "_is not included in the list_".
+The default error message for +validates_exclusion_of+  is "_is reserved_".
 
 h4. +validates_format_of+
 

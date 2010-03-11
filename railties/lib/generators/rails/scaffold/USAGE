@@ -21,9 +21,9 @@ Description:
     declaration in config/routes.rb.
 
     If you want to remove all the generated files, run
-    'script/destroy scaffold ModelName'.
+    'rails destroy scaffold ModelName'.
 
 Examples:
-    `./script/generate scaffold post`
-    `./script/generate scaffold post title:string body:text published:boolean`
-    `./script/generate scaffold purchase order_id:integer amount:decimal`
+    `rails generate scaffold post`
+    `rails generate scaffold post title:string body:text published:boolean`
+    `rails generate scaffold purchase order_id:integer amount:decimal`

@@ -4,6 +4,7 @@ require 'rubygems'
 require 'test/unit'
 require 'active_resource'
 require 'active_support'
+require 'active_support/test_case'
 
 $:.unshift "#{File.dirname(__FILE__)}/../test"
 require 'setter_trap'

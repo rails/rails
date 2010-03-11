@@ -56,7 +56,7 @@ h5. What are Fixtures?
 
 _Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and assume one of two formats: *YAML* or *CSV*. In this guide we will use *YAML* which is the preferred format.
 
-You'll find fixtures under your +test/fixtures+ directory. When you run +script/generate model+ to create a new model, fixture stubs will be automatically created and placed in this directory.
+You'll find fixtures under your +test/fixtures+ directory. When you run +rails generate model+ to create a new model, fixture stubs will be automatically created and placed in this directory.
 
 h5. YAML
 
@@ -144,10 +144,10 @@ For this guide we will be using Rails _scaffolding_. It will create the model, a
 
 NOTE: For more information on Rails _scaffolding_, refer to "Getting Started with Rails":getting_started.html
 
-When you use +script/generate scaffold+, for a resource among other things it creates a test stub in the +test/unit+ folder:
+When you use +rails generate scaffold+, for a resource among other things it creates a test stub in the +test/unit+ folder:
 
 <pre>
-$ script/generate scaffold post title:string body:text
+$ rails generate scaffold post title:string body:text
 ...
 create  app/models/post.rb
 create  test/unit/post_test.rb
@@ -604,7 +604,7 @@ Integration tests are used to test the interaction among any number of controlle
 Unlike Unit and Functional tests, integration tests have to be explicitly created under the 'test/integration' folder within your application. Rails provides a generator to create an integration test skeleton for you.
 
 <shell>
-$ script/generate integration_test user_flows
+$ rails generate integration_test user_flows
       exists  test/integration/
       create  test/integration/user_flows_test.rb
 </shell>

@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 require 'active_support/core_ext/object'
+require 'active_support/core_ext/class/subclasses'
 
 class ClassA; end
 class ClassB < ClassA; end
@@ -37,6 +38,55 @@ end
 
 class Foo
   include Bar
+end
+
+class ClassExtTest < Test::Unit::TestCase
+  def test_subclasses_of_should_find_nested_classes
+    assert Class.subclasses_of(ClassK).include?(Nested::ClassL)
+  end
+
+  def test_subclasses_of_should_not_return_removed_classes
+    # First create the removed class
+    old_class = Nested.class_eval { remove_const :ClassL }
+    new_class = Class.new(ClassK)
+    Nested.const_set :ClassL, new_class
+    assert_equal "Nested::ClassL", new_class.name # Sanity check
+
+    subclasses = Class.subclasses_of(ClassK)
+    assert subclasses.include?(new_class)
+    assert ! subclasses.include?(old_class)
+  ensure
+    Nested.const_set :ClassL, old_class unless defined?(Nested::ClassL)
+  end
+
+  def test_subclasses_of_should_not_trigger_const_missing
+    const_missing = false
+    Nested.on_const_missing { const_missing = true }
+
+    subclasses = Class.subclasses_of ClassK
+    assert !const_missing
+    assert_equal [ Nested::ClassL ], subclasses
+
+    removed = Nested.class_eval { remove_const :ClassL }  # keep it in memory
+    subclasses = Class.subclasses_of ClassK
+    assert !const_missing
+    assert subclasses.empty?
+  ensure
+    Nested.const_set :ClassL, removed unless defined?(Nested::ClassL)
+  end
+
+  def test_subclasses_of_with_multiple_roots
+    classes = Class.subclasses_of(ClassI, ClassK)
+    assert_equal %w(ClassJ Nested::ClassL), classes.collect(&:to_s).sort
+  end
+
+  def test_subclasses_of_doesnt_find_anonymous_classes
+    assert_equal [], Class.subclasses_of(Foo)
+    bar = Class.new(Foo)
+    assert_nothing_raised do
+      assert_equal [bar], Class.subclasses_of(Foo)
+    end
+  end
 end
 
 class ObjectTests < Test::Unit::TestCase

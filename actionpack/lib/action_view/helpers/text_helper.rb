@@ -187,7 +187,7 @@ module ActionView
       #   pluralize(0, 'person')
       #   # => 0 people
       def pluralize(count, singular, plural = nil)
-        "#{count || 0} " + ((count == 1 || count == '1') ? singular : (plural || singular.pluralize))
+        "#{count || 0} " + ((count == 1 || count =~ /^1(\.0+)?$/) ? singular : (plural || singular.pluralize))
       end
 
       # Wraps the +text+ into lines no longer than +line_width+ width. This method
@@ -327,12 +327,12 @@ module ActionView
       #   # => "<p class='description'>Look ma! A class!</p>"
       def simple_format(text, html_options={})
         start_tag = tag('p', html_options, true)
-        text = text.to_s.dup
+        text = h(text)
         text.gsub!(/\r\n?/, "\n")                    # \r\n and \r -> \n
         text.gsub!(/\n\n+/, "</p>\n\n#{start_tag}")  # 2+ newline  -> paragraph
         text.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') # 1 newline   -> br
         text.insert 0, start_tag
-        text << "</p>"
+        text.safe_concat("</p>")
       end
 
       # Turns all URLs and e-mail addresses into clickable links. The <tt>:link</tt> option
@@ -415,7 +415,7 @@ module ActionView
       #                {:first => 'Emily', :middle => 'Shannon', :maiden => 'Pike', :last => 'Hicks'},
       #               {:first => 'June', :middle => 'Dae', :last => 'Jones'}]
       #   <% @items.each do |item| %>
-      #     <tr class="<%= cycle("even", "odd", :name => "row_class") -%>">
+      #     <tr class="<%= cycle("odd", "even", :name => "row_class") -%>">
       #       <td>
       #         <% item.values.each do |value| %>
       #           <%# Create a named cycle "colors" %>

@@ -5,20 +5,6 @@ require 'action_dispatch/http/request'
 module ActionDispatch
   # This middleware rescues any exception returned by the application and renders
   # nice exception pages if it's being rescued locally.
-  #
-  # Every time an exception is caught, a notification is published, becoming a good API
-  # to deal with exceptions. So, if you want send an e-mail through ActionMailer
-  # everytime this notification is published, you just need to do the following:
-  #
-  #   ActiveSupport::Notifications.subscribe "action_dispatch.show_exception" do |name, start, end, instrumentation_id, payload|
-  #     ExceptionNotifier.deliver_exception(start, payload)
-  #   end
-  #
-  # The payload is a hash which has two pairs:
-  #
-  # * :env - Contains the rack env for the given request;
-  # * :exception - The exception raised;
-  #
   class ShowExceptions
     LOCALHOST = ['127.0.0.1', '::1'].freeze
 

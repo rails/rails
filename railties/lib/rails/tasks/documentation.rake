@@ -14,7 +14,7 @@ namespace :doc do
   desc 'Generate documentation for the Rails framework. Specify path with PATH="/path/to/rails"'
   Rake::RDocTask.new("rails") { |rdoc|
     path = ENV['RAILS_PATH'] || 'vendor/gems/gems'
-    version = '-3.0.0.beta' unless ENV['RAILS_PATH']
+    version = '-3.0.0.beta1' unless ENV['RAILS_PATH']
     rdoc.rdoc_dir = 'doc/api'
     rdoc.template = "#{ENV['template']}.rb" if ENV['template']
     rdoc.title    = "Rails Framework Documentation"

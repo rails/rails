@@ -32,7 +32,7 @@ module Rails
           options[:git] = "-b #{options[:branch]} #{options[:git]}"   if options[:branch]
           options[:svn] = "-r #{options[:revision]} #{options[:svn]}" if options[:revision]
           in_root do
-            run_ruby_script "script/plugin install #{options[:svn] || options[:git]}", :verbose => false
+            run_ruby_script "script/rails plugin install #{options[:svn] || options[:git]}", :verbose => false
           end
         else
           log "! no git or svn provided for #{name}. Skipping..."
@@ -69,7 +69,7 @@ module Rails
         # otherwise use name (version).
         parts, message = [ name.inspect ], name
         if version ||= options.delete(:version)
-          parts   << version
+          parts   << version.inspect
           message << " (#{version})"
         end
         message = options[:git] if options[:git]
@@ -81,7 +81,7 @@ module Rails
         end
 
         in_root do
-          append_file "Gemfile", "gem #{parts.join(", ")}", :verbose => false
+          append_file "Gemfile", "gem #{parts.join(", ")}\n", :verbose => false
         end
       end
 
@@ -226,7 +226,7 @@ module Rails
         log :generate, what
         argument = args.map {|arg| arg.to_s }.flatten.join(" ")
 
-        in_root { run_ruby_script("script/generate #{what} #{argument}", :verbose => false) }
+        in_root { run_ruby_script("script/rails generate #{what} #{argument}", :verbose => false) }
       end
 
       # Runs the supplied rake task

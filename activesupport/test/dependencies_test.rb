@@ -1,7 +1,6 @@
 require 'abstract_unit'
 require 'pp'
 require 'active_support/dependencies'
-require 'active_support/core_ext/module/loading'
 require 'active_support/core_ext/kernel/reporting'
 
 module ModuleWithMissing
@@ -43,12 +42,17 @@ class DependenciesTest < Test::Unit::TestCase
     require_dependency 'dependencies/service_one'
     require_dependency 'dependencies/service_two'
     assert_equal 2, ActiveSupport::Dependencies.loaded.size
+  ensure
+    Object.send(:remove_const, :ServiceOne) if Object.const_defined?(:ServiceOne)
+    Object.send(:remove_const, :ServiceTwo) if Object.const_defined?(:ServiceTwo)
   end
 
   def test_tracking_identical_loaded_files
     require_dependency 'dependencies/service_one'
     require_dependency 'dependencies/service_one'
     assert_equal 1, ActiveSupport::Dependencies.loaded.size
+  ensure
+    Object.send(:remove_const, :ServiceOne) if Object.const_defined?(:ServiceOne)
   end
 
   def test_missing_dependency_raises_missing_source_file
@@ -128,10 +132,6 @@ class DependenciesTest < Test::Unit::TestCase
       assert_nothing_raised { require_dependency 'mutual_two' }
       assert_equal 2, $mutual_dependencies_count
     end
-  end
-
-  def test_as_load_path
-    assert_equal '', DependenciesTest.as_load_path
   end
 
   def test_module_loading
@@ -291,12 +291,16 @@ class DependenciesTest < Test::Unit::TestCase
     assert ActiveSupport::Dependencies.qualified_const_defined?("::Test::Unit::TestCase")
   end
 
-  def test_qualified_const_defined_should_not_call_method_missing
+  def test_qualified_const_defined_should_not_call_const_missing
     ModuleWithMissing.missing_count = 0
     assert ! ActiveSupport::Dependencies.qualified_const_defined?("ModuleWithMissing::A")
     assert_equal 0, ModuleWithMissing.missing_count
     assert ! ActiveSupport::Dependencies.qualified_const_defined?("ModuleWithMissing::A::B")
     assert_equal 0, ModuleWithMissing.missing_count
+  end
+
+  def test_qualified_const_defined_explodes_with_invalid_const_name
+    assert_raises(NameError) { ActiveSupport::Dependencies.qualified_const_defined?("invalid") }
   end
 
   def test_autoloaded?
@@ -333,7 +337,6 @@ class DependenciesTest < Test::Unit::TestCase
     assert_equal "A", ActiveSupport::Dependencies.qualified_name_for(:Object, :A)
     assert_equal "A", ActiveSupport::Dependencies.qualified_name_for("Object", :A)
     assert_equal "A", ActiveSupport::Dependencies.qualified_name_for("::Object", :A)
-    assert_equal "A", ActiveSupport::Dependencies.qualified_name_for("::Kernel", :A)
 
     assert_equal "ActiveSupport::Dependencies::A", ActiveSupport::Dependencies.qualified_name_for(:'ActiveSupport::Dependencies', :A)
     assert_equal "ActiveSupport::Dependencies::A", ActiveSupport::Dependencies.qualified_name_for(ActiveSupport::Dependencies, :A)
@@ -457,14 +460,6 @@ class DependenciesTest < Test::Unit::TestCase
       require_dependency 'application'
       assert_equal 10, ApplicationController
       assert ActiveSupport::Dependencies.autoloaded?(:ApplicationController)
-    end
-  end
-
-  def test_const_missing_on_kernel_should_fallback_to_object
-    with_autoloading_fixtures do
-      kls = Kernel::E
-      assert_equal "E", kls.name
-      assert_equal kls.object_id, Kernel::E.object_id
     end
   end
 
@@ -711,7 +706,7 @@ class DependenciesTest < Test::Unit::TestCase
   def test_autoload_doesnt_shadow_name_error
     with_autoloading_fixtures do
       Object.send(:remove_const, :RaisesNameError) if defined?(::RaisesNameError)
-      2.times do
+      2.times do |i|
         begin
           ::RaisesNameError::FooBarBaz.object_id
           flunk 'should have raised NameError when autoloaded file referenced FooBarBaz'

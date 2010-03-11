@@ -72,7 +72,7 @@ module ActionView
           content_tag = content_tag_string(name, capture(&block), options, escape)
 
           if block_called_from_erb?(block)
-            concat(content_tag)
+            safe_concat(content_tag)
           else
             content_tag
           end

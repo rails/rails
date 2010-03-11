@@ -25,8 +25,9 @@ TIP: To install the Rails 3 prerelease beta using rubygems you have to install a
 <shell>
 # Use sudo if your setup requires it
 gem install tzinfo builder i18n memcache-client rack \
-  rake rack-test rack-mount erubis mail text-format \
+  rake rack-test erubis mail text-format \
   thor bundler
+gem install rack-mount -v=0.4
 gem install rails --pre
 </shell>
 
@@ -50,8 +51,8 @@ h4. script/* replaced by script/rails
 The new <tt>script/rails</tt> replaces all the scripts that used to be in the <tt>script</tt> directory. You do not run <tt>script/rails</tt> directly though, the +rails+ command detects it is being invoked in the root of a Rails application and runs the script for you. Intended usage is:
 
 <shell>
-rails console                      # => ./script/console
-rails g scaffold post title:string # => ./script/generate scaffold post title:string
+rails console                      # instead of script/console
+rails g scaffold post title:string # instead of script/generate scaffold post title:string
 </shell>
 
 Run <tt>rails --help</tt> for a list of all the options.
@@ -529,8 +530,8 @@ The security patch for REXML remains in Active Support because early patchlevels
 The following methods have been removed because they are no longer used in the framework:
 
 * +Kernel#daemonize+
-* <tt>Object#remove_subclasses_of</tt>, <tt>Object#subclasses_of</tt>, <tt>Object#extend_with_included_modules_from</tt>, <tt>Object#extended_by</tt>
-* <tt>Class#subclasses</tt>, <tt>Class#reachable?</tt>, <tt>Class#remove_class</tt>
+* <tt>Object#remove_subclasses_of</tt> <tt>Object#extend_with_included_modules_from</tt>, <tt>Object#extended_by</tt>
+* <tt>Class#remove_class</tt>
 * <tt>Regexp#number_of_captures</tt>, <tt>Regexp.unoptionalize</tt>, <tt>Regexp.optionalize</tt>, <tt>Regexp#number_of_captures</tt>
 
 

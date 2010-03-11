@@ -44,7 +44,8 @@ module ActionDispatch
             controller = "#{params[:controller].camelize}Controller"
             ActiveSupport::Inflector.constantize(controller)
           end
-        rescue NameError
+        rescue NameError => e
+          raise unless e.message.include?(controller)
           nil
         end
 

@@ -461,7 +461,8 @@ class BaseTest < ActiveSupport::TestCase
     assert_instance_of Mail::Message, mail
   end
 
-  test "calling deliver on the action should increment the deliveries collection" do
+  test "calling deliver on the action should increment the deliveries collection if using the test mailer" do
+    BaseMailer.delivery_method = :test
     BaseMailer.deliveries.clear
     BaseMailer.welcome.deliver
     assert_equal(1, BaseMailer.deliveries.length)

@@ -118,6 +118,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         match 'description', :to => "account#description", :as => "description"
         resource :subscription, :credit, :credit_card
 
+        root :to => "account#index"
+
         namespace :admin do
           resource :subscription
         end
@@ -656,6 +658,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/account/description'
       assert_equal 'account#description', @response.body
+    end
+  end
+
+  def test_namespaced_roots
+    with_test_routes do
+      assert_equal '/account', account_root_path
+      get '/account'
+      assert_equal 'account#index', @response.body
     end
   end
 

@@ -6,6 +6,62 @@ By referring to this guide you will learn the extensions to the Ruby core classe
 
 endprologue.
 
+h3. How to Load Core Extensions
+
+In order to have a near zero default footprint, Active Support does not load anything by default. It is broken in small pieces so that you may load just what you need, and also has some convenience entry points to load related extensions in one shot, even everything.
+
+Thus, after a simple require like:
+
+<ruby>
+require 'active_support'
+</ruby>
+
+objects do not even respond to +blank?+, let's see how to load its definition.
+
+h4. Cherry-picking a Definition
+
+The most lightweight way to get +blank?+ is to cherry-pick the file that defines it.
+
+For every single method defined as a core extension this guide has a note that says where is such a method defined. In the case of +blank?+ the note reads:
+
+NOTE: Defined in +active_support/core_ext/object/blank.rb+.
+
+That means that this single call is enough:
+
+<ruby>
+require 'active_support/core_ext/object/blank'
+</ruby>
+
+Active Support has been carefully revised so that cherry-picking a file loads only strictly needed dependencies, if any.
+
+h4. Loading Grouped Core Extensions
+
+The next level is to simply load all extensions to +Object+. As a rule of thumb, extensions to +SomeClass+ are available in one shot by loading +active_support/core_ext/some_class+.
+
+Thus, if that would do, to have +blank?+ available we could just load all extensions to +Object+:
+
+<ruby>
+require 'active_support/core_ext/object'
+</ruby>
+
+h4. Loading All Core Extensions
+
+You may prefer just to load all core extensions, there is a file for that:
+
+<ruby>
+require 'active_support/core_ext'
+</ruby>
+
+h4. Loading All Active Support
+
+And finally, if you want to have all Active Support available just issue:
+
+<ruby>
+require 'active_support/all'
+</ruby>
+
+That does not even put the entire Active Support in memory upfront indeed, some stuff is configured via +autoload+, so it is only loaded if used.
+
 h3. Extensions to All Objects
 
 h4. +blank?+ and +present?+
@@ -138,16 +194,19 @@ end
 
 NOTE: Defined in +active_support/core_ext/object/try.rb+.
 
-h4. +metaclass+
+h4. +singleton_class+
 
-The method +metaclass+ returns the singleton class on any object:
+The method +singleton_class+ returns the singleton class of the receiver:
 
 <ruby>
-String.metaclass     # => #<Class:String>
-String.new.metaclass # => #<Class:#<String:0x17a1d1c>>
+String.singleton_class     # => #<Class:String>
+String.new.singleton_class # => #<Class:#<String:0x17a1d1c>>
 </ruby>
 
-NOTE: Defined in +active_support/core_ext/object/metaclass.rb+.
+WARNING: Fixnums and symbols have no singleton classes, +singleton_class+
+raises +TypeError+ on them.
+
+NOTE: Defined in +active_support/core_ext/object/singleton_class.rb+.
 
 h4. +class_eval(*args, &block)+
 
@@ -168,7 +227,7 @@ class Proc
 end
 </ruby>
 
-NOTE: Defined in +active_support/core_ext/object/metaclass.rb+.
+NOTE: Defined in +active_support/core_ext/object/singleton_class.rb+.
 
 h4. +acts_like?(duck)+
 
@@ -323,6 +382,40 @@ TIP: Since +with_options+ forwards calls to its receiver they can be nested. Eac
 
 NOTE: Defined in +active_support/core_ext/object/with_options.rb+.
 
+h5. +subclasses_of+
+
+The method +subclasses_of+ receives an arbitrary number of class objects and returns all their anonymous or reachable descendants as a single array:
+
+<ruby>
+class C; end
+subclasses_of(C) # => []
+
+subclasses_of(Integer) # => [Bignum, Fixnum]
+
+module M
+  class A; end
+  class B1 < A; end
+  class B2 < A; end
+end
+
+module N
+  class C < M::B1; end
+end
+
+subclasses_of(M::A) # => [N::C, M::B2, M::B1]
+</ruby>
+
+The order in which these classes are returned is unspecified. The returned collection may have duplicates:
+
+<ruby>
+subclasses_of(Numeric, Integer)
+# => [Bignum, Float, Fixnum, Integer, Date::Infinity, Rational, BigDecimal, Bignum, Fixnum]
+</ruby>
+
+See also +Class#subclasses+ in "Extensions to +Class+ FIX THIS LINK":FIXME.
+
+NOTE: Defined in +active_support/core_ext/object/extending.rb+.
+
 h4. Instance Variables
 
 Active Support provides several methods to ease access to instance variables.
@@ -341,7 +434,7 @@ end
 C.new(0, 1).instance_variable_names # => ["@y", "@x"]
 </ruby>
 
-WARNING: The order in which the names are returned is unespecified, and it indeed depends on the version of the interpreter.
+WARNING: The order in which the names are returned is unspecified, and it indeed depends on the version of the interpreter.
 
 NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
 
@@ -815,6 +908,85 @@ The method receives the name of an action, and a +:with+ option with code. The c
 
 NOTE: Defined in +active_support/core_ext/module/synchronization.rb+.
 
+h4. Reachable
+
+A named module is reachable if it is stored in its correspoding constant. It means you can reach the module object via the constant.
+
+That is what ordinarily happens, if a module is called "M", the +M+ constant exists and holds it:
+
+<ruby>
+module M
+end
+
+M.reachable? # => true
+</ruby>
+
+But since constants and modules are indeed kind of decoupled, module objects can become unreachable:
+
+<ruby>
+module M
+end
+
+orphan = Object.send(:remove_const, :M)
+
+# The module object is orphan now but it still has a name.
+orphan.name # => "M"
+
+# You cannot reach it via the constant M because it does not even exist.
+orphan.reachable? # => false
+
+# Let's define a module called "M" again.
+module M
+end
+
+# The constant M exists now again, and it stores a module
+# object called "M", but it is a new instance.
+orphan.reachable? # => false
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/reachable.rb+.
+
+h4. Anonymous
+
+A module may or may not have a name:
+
+<ruby>
+module M
+end
+M.name # => "M"
+
+N = Module.new
+N.name # => "N"
+
+Module.new.name # => "" in 1.8, nil in 1.9
+</ruby>
+
+You can check whether a module has a name with the predicate +anonymous?+:
+
+<ruby>
+module M
+end
+M.anonymous? # => false
+
+Module.new.anonymous? # => true
+</ruby>
+
+Note that being unreachable does not imply being anonymous:
+
+<ruby>
+module M
+end
+
+m = Object.send(:remove_const, :M)
+
+m.reachable? # => false
+m.anonymous? # => false
+</ruby>
+
+though an anonymous module is unreachable by definition.
+
+NOTE: Defined in +active_support/core_ext/module/anonymous.rb+.
+
 h3. Extensions to +Class+
 
 h4. Class Attributes
@@ -942,6 +1114,39 @@ end
 If for whatever reason an application loads the definition of a mailer class and after that sets +ActionMailer::Base.delivery_method+, the mailer class will still see the new value. In addition, the mailer class is able to change the +delivery_method+ without affecting the value in the parent using its own inherited class attribute writer.
 
 NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
+
+h4. Descendants
+
+h5. +subclasses+
+
+The +subclasses+ method returns the names of all the anonymous or reachable descendants of its receiver as an array of strings:
+
+<ruby>
+class C; end
+C.subclasses # => []
+
+Integer.subclasses # => ["Bignum", "Fixnum"]
+
+module M
+  class A; end
+  class B1 < A; end
+  class B2 < A; end
+end
+
+module N
+  class C < M::B1; end
+end
+
+M::A.subclasses # => ["N::C", "M::B2", "M::B1"]
+</ruby>
+
+The order in which these class names are returned is unspecified.
+
+See also +Object#subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
+
+WARNING: This method is redefined in some Rails core classes.
+
+NOTE: Defined in +active_support/core_ext/class/subclasses.rb+.
 
 h3. Extensions to +String+
 
@@ -1099,6 +1304,338 @@ h5. +last(limit = 1)+
 The call +str.last(n)+ is equivalent to +str.from(-n)+ if +n+ > 0, and returns an empty string for +n+ == 0.
 
 NOTE: Defined in +active_support/core_ext/string/access.rb+.
+
+h4. Inflections
+
+h5. +pluralize+
+
+The method +pluralize+ returns the plural of its receiver:
+
+<ruby>
+"table".pluralize     # => "tables"
+"ruby".pluralize      # => "rubies"
+"equipment".pluralize # => "equipment"
+</ruby>
+
+As the previous example shows, Active Support knows some irregular plurals and uncountable nouns. Builtin rules can be extended in +config/initializers/inflections.rb+. That file is generated by the +rails+ command and has instructions in comments.
+
+Active Record uses this method to compute the default table name that corresponds to a model:
+
+<ruby>
+# active_record/base.rb
+def undecorated_table_name(class_name = base_class.name)
+  table_name = class_name.to_s.demodulize.underscore
+  table_name = table_name.pluralize if pluralize_table_names
+  table_name
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +singularize+
+
+The inverse of +pluralize+:
+
+<ruby>
+"tables".singularize    # => "table"
+"rubies".singularize    # => "ruby"
+"equipment".singularize # => "equipment"
+</ruby>
+
+Associations compute the name of the corresponding default associated class using this method:
+
+<ruby>
+# active_record/reflection.rb
+def derive_class_name
+  class_name = name.to_s.camelize
+  class_name = class_name.singularize if collection?
+  class_name
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +camelize+
+
+The method +camelize+ returns its receiver in camel case:
+
+<ruby>
+"product".camelize    # => "Product"
+"admin_user".camelize # => "AdminUser"
+</ruby>
+
+As a rule of thumb you can think of this method as the one that transforms paths into Ruby class or module names, where slashes separate namespaces:
+
+<ruby>
+"backoffice/session".camelize # => "Backoffice::Session"
+</ruby>
+
+For example, Action Pack uses this method to load the class that provides a certain session store:
+
+<ruby>
+# action_controller/metal/session_management.rb
+def session_store=(store)
+  if store == :active_record_store
+    self.session_store = ActiveRecord::SessionStore
+  else
+    @@session_store = store.is_a?(Symbol) ?
+      ActionDispatch::Session.const_get(store.to_s.camelize) :
+      store
+  end
+end
+</ruby>
+
++camelize+ accepts an optional argument, it can be +:upper+ (default), or +:lower+. With the latter the first letter becomes lowercase:
+
+<ruby>
+"visual_effect".camelize(:lower) # => "visualEffect"
+</ruby>
+
+That may be handy to compute method names in a language that follows that convention, for example JavaScript.
+
++camelize+ is aliased to +camelcase+.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +underscore+
+
+The method +underscore+ is the inverse of +camelize+, explained above:
+
+<ruby>
+"Product".underscore   # => "product"
+"AdminUser".underscore # => "admin_user"
+</ruby>
+
+Also converts "::" back to "/":
+
+<ruby>
+"Backoffice::Session".underscore # => "backoffice/session"
+</ruby>
+
+and understands strings that start with lowercase:
+
+<ruby>
+"visualEffect".underscore # => "visual_effect"
+</ruby>
+
++underscore+ accepts no argument though.
+
+Rails class and module autoloading uses +underscore+ to infer the relative path without extension of a file that would define a given missing constant:
+
+<ruby>
+# active_support/dependencies.rb
+def load_missing_constant(from_mod, const_name)
+  ...
+  qualified_name = qualified_name_for from_mod, const_name
+  path_suffix = qualified_name.underscore
+  ...
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +titleize+
+
+The method +titleize+ capitalizes the words in the receiver:
+
+<ruby>
+"alice in wonderland".titleize # => "Alice In Wonderland"
+"fermat's enigma".titleize     # => "Fermat's Enigma"
+</ruby>
+
++titleize+ is aliased to +titlecase+.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +dasherize+
+
+The method +dasherize+ replaces the underscores in the receiver with dashes:
+
+<ruby>
+"name".dasherize         # => "name"
+"contact_data".dasherize # => "contact-data"
+</ruby>
+
+The XML serializer of models uses this method to dasherize node names:
+
+<ruby>
+# active_model/serializers/xml.rb
+def reformat_name(name)
+  name = name.camelize if camelize?
+  dasherize? ? name.dasherize : name
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +demodulize+
+
+Given a string with a qualified constant reference expression, +demodulize+ returns the very constant name, that is, the rightmost part of it:
+
+<ruby>
+"Product".demodulize                        # => "Product"
+"Backoffice::UsersController".demodulize    # => "UsersController"
+"Admin::Hotel::ReservationUtils".demodulize # => "ReservationUtils"
+</ruby>
+
+Active Record for example uses this method to compute the name of a counter cache column:
+
+<ruby>
+# active_record/reflection.rb
+def counter_cache_column
+  if options[:counter_cache] == true
+    "#{active_record.name.demodulize.underscore.pluralize}_count"
+  elsif options[:counter_cache]
+    options[:counter_cache]
+  end
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +parameterize+
+
+The method +parameterize+ normalizes its receiver in a way that can be used in pretty URLs.
+
+<ruby>
+"John Smith".parameterize # => "john-smith"
+"Kurt Gödel".parameterize # => "kurt-godel"
+</ruby>
+
+In fact, the result string is wrapped in an instance of +ActiveSupport::Multibyte::Chars+.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +tableize+
+
+The method +tableize+ is +underscore+ followed by +pluralize+.
+
+<ruby>
+"Person".tableize      # => "people"
+"Invoice".tableize     # => "invoices"
+"InvoiceLine".tableize # => "invoice_lines"
+</ruby>
+
+As a rule of thumb, +tableize+ returns the table name that corresponds to a given model for simple cases. The actual implementation in Active Record is not straight +tableize+ indeed, because it also demodulizes de class name and checks a few options that may affect the returned string.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +classify+
+
+The method +classify+ is the inverse of +tableize+. It gives you the class name corresponding to a table name:
+
+<ruby>
+"people".classify        # => "Person"
+"invoices".classify      # => "Invoice"
+"invoice_lines".classify # => "InvoiceLine"
+</ruby>
+
+The method understands qualified table names:
+
+<ruby>
+"highrise_production.companies".classify # => "Company"
+</ruby>
+
+Note that +classify+ returns a class name as a string. You can get the actual class object invoking +constantize+ on it, explained next.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +constantize+
+
+The method +constantize+ resolves the constant reference expression in its receiver:
+
+<ruby>
+"Fixnum".constantize # => Fixnum
+
+module M
+  X = 1
+end
+"M::X".constantize # => 1
+</ruby>
+
+If the string evaluates to no known constant, or its content is not even a valid constant name, +constantize+ raises +NameError+.
+
+Constant name resolution by +constantize+ starts always at the top-level +Object+ even if there is no leading "::".
+
+<ruby>
+X = :in_Object
+module M
+  X = :in_M
+
+  X                 # => :in_M
+  "::X".constantize # => :in_Object
+  "X".constantize   # => :in_Object (!)
+end
+</ruby>
+
+So, it is in general not equivalent to what Ruby would do in the same spot, had a real constant be evaluated.
+
+Mailer test cases obtain the mailer being tested from the name of the test class using +constantize+:
+
+<ruby>
+# action_mailer/test_case.rb
+def determine_default_mailer(name)
+  name.sub(/Test$/, '').constantize
+rescue NameError => e
+  raise NonInferrableMailerError.new(name)
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +humanize+
+
+The method +humanize+ gives you a sensible name for display out of an attribute name. To do so it replaces underscores with spaces, removes any "_id" suffix, and capitalizes the first word:
+
+<ruby>
+"name".humanize           # => "Name"
+"author_id".humanize      # => "Author"
+"comments_count".humanize # => "Comments count"
+</ruby>
+
+The helper method +full_messages+ uses +humanize+ as a fallback to include attribute names:
+
+<ruby>
+def full_messages
+  full_messages = []
+
+  each do |attribute, messages|
+    ...
+    attr_name = attribute.to_s.gsub('.', '_').humanize
+    attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+    ...
+  end
+
+  full_messages
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +foreign_key+
+
+The method +foreign_key+ gives a foreign key column name from a class name. To do so it demodulizes, underscores, and adds "_id":
+
+<ruby>
+"User".foreign_key           # => "user_id"
+"InvoiceLine".foreign_key    # => "invoice_line_id"
+"Admin::Session".foreign_key # => "session_id"
+</ruby>
+
+Pass a false argument if you do not want the underscore in "_id":
+
+<ruby>
+"User".foreign_key(false) # => "userid"
+</ruby>
+
+Associations use this method to infer foreign keys, for example +has_one+ and +has_many+ do this:
+
+<ruby>
+# active_record/associations.rb
+foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
 h3. Extensions to +Numeric+
 

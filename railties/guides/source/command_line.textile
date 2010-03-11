@@ -58,7 +58,7 @@ Without any prodding of any kind, +server+ will run our new shiny Rails app:
 
 <shell>
 $ cd commandsapp
-$ ./script/server
+$ rails server
 => Booting WEBrick...
 => Rails 2.2.0 application started on http://0.0.0.0:3000
 => Ctrl-C to shutdown server; call with --help for options
@@ -76,8 +76,8 @@ h4. +generate+
 The +generate+ command uses templates to create a whole lot of things. You can always find out what's available by running +generate+ by itself. Let's do that:
 
 <shell>
-$ ./script/generate
-Usage: ./script/generate generator [options] [args]
+$ rails generate
+Usage: rails generate generator [options] [args]
 
 ...
 ...
@@ -95,17 +95,17 @@ Using generators will save you a large amount of time by writing *boilerplate co
 
 Let's make our own controller with the controller generator. But what command should we use? Let's ask the generator:
 
-INFO: All Rails console utilities have help text. As with most *NIX utilities, you can try adding +--help+ or +-h+ to the end, for example +./script/server --help+.
+INFO: All Rails console utilities have help text. As with most *NIX utilities, you can try adding +--help+ or +-h+ to the end, for example +rails server --help+.
 
 <shell>
-$ ./script/generate controller
-Usage: ./script/generate controller ControllerName [options]
+$ rails generate controller
+Usage: rails generate controller ControllerName [options]
 
 ...
 ...
 
 Example:
-    ./script/generate controller CreditCard open debit credit close
+    rails generate controller CreditCard open debit credit close
 
     Credit card controller with URLs like /credit_card/debit.
         Controller: app/controllers/credit_card_controller.rb
@@ -114,7 +114,7 @@ Example:
         Test:       test/functional/credit_card_controller_test.rb
 
 Modules Example:
-    ./script/generate controller 'admin/credit_card' suspend late_fee
+    rails generate controller 'admin/credit_card' suspend late_fee
 
     Credit card admin controller with URLs /admin/credit_card/suspend.
         Controller: app/controllers/admin/credit_card_controller.rb
@@ -126,7 +126,7 @@ Modules Example:
 Ah, the controller generator is expecting parameters in the form of +generate controller ControllerName action1 action2+. Let's make a +Greetings+ controller with an action of *hello*, which will say something nice to us.
 
 <shell>
-$ ./script/generate controller Greetings hello
+$ rails generate controller Greetings hello
      exists  app/controllers/
      exists  app/helpers/
      create  app/views/greetings
@@ -157,10 +157,10 @@ Then the view, to display our nice message (in +app/views/greetings/hello.html.e
 <p><%= @message %></p>
 </html>
 
-Deal. Go check it out in your browser. Fire up your server. Remember? +./script/server+ at the root of your Rails application should do it.
+Deal. Go check it out in your browser. Fire up your server. Remember? +rails server+ at the root of your Rails application should do it.
 
 <shell>
-$ ./script/server
+$ rails server
 => Booting WEBrick...
 </shell>
 
@@ -173,13 +173,13 @@ INFO: With a normal, plain-old Rails application, your URLs will generally follo
 "What about data, though?", you ask over a cup of coffee. Rails comes with a generator for data models too. Can you guess its generator name?
 
 <shell>
-$ ./script/generate model
-Usage: ./script/generate model ModelName [field:type, field:type]
+$ rails generate model
+Usage: rails generate model ModelName [field:type, field:type]
 
 ...
 
 Examples:
-    ./script/generate model account
+    rails generate model account
 
         creates an Account model, test, fixture, and migration:
             Model:      app/models/account.rb
@@ -187,7 +187,7 @@ Examples:
             Fixtures:   test/fixtures/accounts.yml
             Migration:  db/migrate/XXX_add_accounts.rb
 
-    ./script/generate model post title:string body:text published:boolean
+    rails generate model post title:string body:text published:boolean
 
         creates a Post model with a string title, text body, and published flag.
 </shell>
@@ -197,7 +197,7 @@ But instead of generating a model directly (which we'll be doing later), let's s
 Let's set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
 
 <shell>
-$ ./script/generate scaffold HighScore game:string score:integer
+$ rails generate scaffold HighScore game:string score:integer
     exists  app/models/
     exists  app/controllers/
     exists  app/helpers/
@@ -244,13 +244,13 @@ $ rake db:migrate
 
 INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions about code. In unit testing, we take a little part of code, say a method of a model, and test its inputs and outputs. Unit tests are your friend. The sooner you make peace with the fact that your quality of life will drastically increase when you unit test your code, the better. Seriously. We'll make one in a moment.
 
-Let's see the interface Rails created for us. ./script/server; http://localhost:3000/high_scores
+Let's see the interface Rails created for us. rails server; http://localhost:3000/high_scores
 
 We can create new high scores (55,160 on Space Invaders!)
 
 h4. +console+
 
-The +console+ command lets you interact with your Rails application from the command line. On the underside, +script/console+ uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
+The +console+ command lets you interact with your Rails application from the command line. On the underside, +rails console+ uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
 
 h4. +dbconsole+
 
@@ -265,7 +265,7 @@ Let's say you're creating a website for a client who wants a small accounting sy
 There is such a thing! The plugin we're installing is called "acts_as_paranoid", and it lets models implement a "deleted_at" column that gets set when you call destroy. Later, when calling find, the plugin will tack on a database check to filter out "deleted" things.
 
 <shell>
-$ ./script/plugin install http://svn.techno-weenie.net/projects/plugins/acts_as_paranoid
+$ rails plugin install http://svn.techno-weenie.net/projects/plugins/acts_as_paranoid
 + ./CHANGELOG
 + ./MIT-LICENSE
 ...
@@ -277,7 +277,7 @@ h4. +runner+
 <tt>runner</tt> runs Ruby code in the context of Rails non-interactively. For instance:
 
 <shell>
-$ ./script/runner "Model.long_running_method"
+$ rails runner "Model.long_running_method"
 </shell>
 
 h4. +destroy+
@@ -285,7 +285,7 @@ h4. +destroy+
 Think of +destroy+ as the opposite of +generate+. It'll figure out what generate did, and undo it. Believe you-me, the creation of this tutorial used this command many times!
 
 <shell>
-$ ./script/generate model Oops
+$ rails generate model Oops
       exists  app/models/
       exists  test/unit/
       exists  test/fixtures/
@@ -294,7 +294,7 @@ $ ./script/generate model Oops
       create  test/fixtures/oops.yml
       exists  db/migrate
       create  db/migrate/20081221040817_create_oops.rb
-$ ./script/destroy model Oops
+$ rails destroy model Oops
     notempty  db/migrate
     notempty  db
           rm  db/migrate/20081221040817_create_oops.rb
@@ -314,7 +314,7 @@ h4. +about+
 Check it: Version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version! +about+ is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
 <shell>
-$ ./script/about
+$ rails about
 About your application's environment
 Ruby version              1.8.6 (i486-linux)
 RubyGems version          1.3.1
@@ -399,7 +399,7 @@ Many people have created a large number different web servers in Ruby, and many 
 
 NOTE: For more details on the Rack integration, see "Rails on Rack":rails_on_rack.html.
 
-To use a different server, just install its gem, then use its name for the first parameter to +script/server+:
+To use a different server, just install its gem, then use its name for the first parameter to +rails server+:
 
 <shell>
 $ sudo gem install mongrel
@@ -412,9 +412,9 @@ Successfully installed mongrel-1.1.5
 ...
 ...
 Installing RDoc documentation for mongrel-1.1.5...
-$ script/server mongrel
-=> Booting Mongrel (use 'script/server webrick' to force WEBrick)
-=> Rails 2.2.0 application starting on http://0.0.0.0:3000
+$ rails server mongrel
+=> Booting Mongrel (use 'rails server webrick' to force WEBrick)
+=> Rails 3.0.0 application starting on http://0.0.0.0:3000
 ...
 </shell>
 
@@ -481,7 +481,7 @@ I got assigned some args:
 Then we'll make sure it got included in the list of available generators:
 
 <shell>
-$ ./script/generate
+$ rails generate
 ...
 ...
 Installed Generators
@@ -491,7 +491,7 @@ Installed Generators
 SWEET! Now let's generate some text, yeah!
 
 <shell>
-$ ./script/generate tutorial_test arg1 arg2 arg3
+$ rails generate tutorial_test arg1 arg2 arg3
       exists  public
       create  public/tutorial.txt
 </shell>

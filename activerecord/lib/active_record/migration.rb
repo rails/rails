@@ -107,7 +107,7 @@ module ActiveRecord
   # The Rails package has several tools to help create and apply migrations.
   #
   # To generate a new migration, you can use
-  #   script/generate migration MyNewMigration
+  #   rails generate migration MyNewMigration
   #
   # where MyNewMigration is the name of your migration. The generator will
   # create an empty migration file <tt>timestamp_my_new_migration.rb</tt> in the <tt>db/migrate/</tt>
@@ -117,7 +117,7 @@ module ActiveRecord
   # MyNewMigration.
   #
   # There is a special syntactic shortcut to generate migrations that add fields to a table.
-  #   script/generate migration add_fieldname_to_tablename fieldname:string
+  #   rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename</tt>, which will look like this:
   #   class AddFieldnameToTablename < ActiveRecord::Migration

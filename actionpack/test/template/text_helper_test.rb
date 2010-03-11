@@ -40,6 +40,18 @@ class TextHelperTest < ActionView::TestCase
      assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", :class => 'test')
   end
 
+  def test_simple_format_should_be_html_safe
+    assert simple_format("<b> test with html tags </b>").html_safe?
+  end
+
+  def test_simple_format_should_escape_unsafe_input
+    assert_equal "<p>&lt;b&gt; test with unsafe string &lt;/b&gt;</p>", simple_format("<b> test with unsafe string </b>")
+  end
+
+  def test_simple_format_should_not_escape_safe_input
+    assert_equal "<p><b> test with safe string </b></p>", simple_format("<b> test with safe string </b>".html_safe)
+  end
+
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", :length => 12)
     assert_equal "Hello Wor...", truncate("Hello World!!", :length => 12)
@@ -228,6 +240,8 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("2 counts", pluralize('2', "count"))
     assert_equal("1,066 counts", pluralize('1,066', "count"))
     assert_equal("1.25 counts", pluralize('1.25', "count"))
+    assert_equal("1.0 count", pluralize('1.0', "count"))
+    assert_equal("1.00 count", pluralize('1.00', "count"))
     assert_equal("2 counters", pluralize(2, "count", "counters"))
     assert_equal("0 counters", pluralize(nil, "count", "counters"))
     assert_equal("2 people", pluralize(2, "person"))

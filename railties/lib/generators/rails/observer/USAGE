@@ -5,7 +5,7 @@ Description:
     This generator only invokes your ORM and test framework generators.
 
 Example:
-    `./script/generate observer Account`
+    `rails generate observer Account`
 
     For ActiveRecord and TestUnit it creates:
         Observer:   app/models/account_observer.rb

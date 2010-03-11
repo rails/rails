@@ -250,7 +250,7 @@ app/views/layouts
 
 app/helpers
   Holds view helpers that should be named like weblogs_helper.rb. These are generated
-  for you automatically when using rails generate for controllers. Helpers can be used to
+  for you automatically when using <tt>rails generate</tt> for controllers. Helpers can be used to
   wrap functionality for your views into methods.
 
 config
@@ -277,7 +277,7 @@ script
   Helper scripts for automation and generation.
 
 test
-  Unit and functional tests along with fixtures. When using the rails generate command, template
+  Unit and functional tests along with fixtures. When using the <tt>rails generate</tt> scripts, template
   test files will be generated for you and placed in this directory.
 
 vendor

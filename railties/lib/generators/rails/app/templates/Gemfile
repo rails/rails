@@ -1,34 +1,34 @@
-# Edit this Gemfile to bundle your application's dependencies.
 source 'http://gemcutter.org'
 
-<% if !dev_or_edge? %>
-gem "rails", "<%= Rails::VERSION::STRING %>"
-<% end -%>
-
-## Bundle edge rails:
 <%- if options.dev? -%>
-path "<%= Rails::Generators::RAILS_DEV_PATH %>", :glob => "{*/,}*.gemspec"
-gem "rails", "<%= Rails::VERSION::STRING %>"
+gem 'rails', :path => '<%= Rails::Generators::RAILS_DEV_PATH %>'
+<%- elsif options.edge? -%>
+gem 'rails', :git => 'git://github.com/rails/rails.git'
 <%- else -%>
-<%= "# " unless options.edge? %>gem "rails", :git => "git://github.com/rails/rails.git"
+gem 'rails', '<%= Rails::VERSION::STRING %>'
+
+# Bundle edge Rails instead:
+# gem 'rails', :git => 'git://github.com/rails/rails.git'
 <%- end -%>
 
 <% unless options[:skip_activerecord] -%>
-<% if options[:database] == 'sqlite3' -%>
-# ActiveRecord requires a database adapter. By default,
-# Rails has selected sqlite3.
-<% end -%>
-gem "<%= gem_for_database %>"<% if require_for_database %>, :require => "<%= require_for_database %>"<% end %>
+gem '<%= gem_for_database %>'<% if require_for_database %>, :require => '<%= require_for_database %>'<% end %>
 <% end -%>
 
-## Bundle the gems you use:
-# gem "bj"
-# gem "hpricot", "0.6"
-# gem "sqlite3-ruby", :require => "sqlite3"
-# gem "aws-s3", :require => "aws/s3"
+# Use mongrel as the web server
+# gem 'mongrel'
 
-## Bundle gems used only in certain environments:
-# gem "rspec", :group => :test
+# Deploy with Capistrano
+# gem 'capistrano'
+
+# Bundle the extra gems:
+# gem 'bj'
+# gem 'hpricot', '0.6'
+# gem 'sqlite3-ruby', :require => 'sqlite3'
+# gem 'aws-s3', :require => 'aws/s3'
+
+# Bundle gems for certain environments:
+# gem 'rspec', :group => :test
 # group :test do
-#   gem "webrat"
+#   gem 'webrat'
 # end

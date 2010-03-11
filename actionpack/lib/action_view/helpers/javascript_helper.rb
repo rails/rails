@@ -86,7 +86,7 @@ module ActionView
         tag = content_tag(:script, javascript_cdata_section(content), html_options.merge(:type => Mime::JS))
 
         if block_called_from_erb?(block)
-          concat(tag)
+          safe_concat(tag)
         else
           tag
         end

@@ -5,6 +5,7 @@ require "fixtures/street_address"
 require "fixtures/beast"
 require "fixtures/proxy"
 require 'active_support/core_ext/hash/conversions'
+require 'mocha'
 
 class BaseTest < Test::Unit::TestCase
   def setup
@@ -98,8 +99,13 @@ class BaseTest < Test::Unit::TestCase
       mock.get    "/customers/1.xml",             {}, @luis
     end
 
+    @original_person_site = Person.site
     Person.user = nil
     Person.password = nil
+  end
+
+  def teardown
+    Person.site = @original_person_site
   end
 
   ########################################################################

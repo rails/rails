@@ -11,7 +11,7 @@
 # classes in NilClass::WHINERS the error message suggests which could be the
 # actual intended class:
 #
-#   $ script/runner nil.destroy 
+#   $ rails runner nil.destroy
 #   ...
 #   You might have expected an instance of ActiveRecord::Base.
 #   ...

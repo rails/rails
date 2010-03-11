@@ -9,7 +9,7 @@ Description:
     test framework.
 
 Example:
-    `./script/generate helper CreditCard`
+    `rails generate helper CreditCard`
 
     Credit card helper.
         Helper:     app/helpers/credit_card_helper.rb

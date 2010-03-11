@@ -9,7 +9,7 @@ class File
   # If your temp directory is not on the same filesystem as the file you're
   # trying to write, you can provide a different temporary directory.
   #
-  #   File.atomic_write("/data/something.important", "/data/tmp") do |f|
+  #   File.atomic_write("/data/something.important", "/data/tmp") do |file|
   #     file.write("hello")
   #   end
   def self.atomic_write(file_name, temp_dir = Dir.tmpdir)

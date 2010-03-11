@@ -39,9 +39,9 @@ The examples in this guide require that you have a working rails application.  T
 gem install rails
 rails yaffle_guide
 cd yaffle_guide
-script/generate scaffold bird name:string
+rails generate scaffold bird name:string
 rake db:migrate
-script/server
+rails server
 </pre>
 
 Then navigate to http://localhost:3000/birds.  Make sure you have a functioning rails app before continuing.
@@ -57,16 +57,16 @@ This creates a plugin in 'vendor/plugins' including an 'init.rb' and 'README' as
 
 Examples:
 <pre>
-./script/generate plugin yaffle
-./script/generate plugin yaffle --with-generator
+rails generate plugin yaffle
+rails generate plugin yaffle --with-generator
 </pre>
 
-To get more detailed help on the plugin generator, type +./script/generate plugin+.
+To get more detailed help on the plugin generator, type +rails generate plugin+.
 
 Later on this guide will describe how to work with generators, so go ahead and generate your plugin with the +--with-generator+ option now:
 
 <pre>
-./script/generate plugin yaffle --with-generator
+rails generate plugin yaffle --with-generator
 </pre>
 
 You should see the following output:
@@ -104,7 +104,7 @@ To make it easy to organize your files and to make the plugin more compatible wi
     `-- init.rb
 </pre>
 
-*vendor/plugins/yaffle/rails/init.rb*
+*vendor/plugins/yaffle/init.rb*
 
 <ruby>
 require 'yaffle'
@@ -334,20 +334,22 @@ end
 To test that your method does what it says it does, run the unit tests with +rake+ from your plugin directory.  To see this in action, fire up a console and start squawking:
 
 <shell>
-$ ./script/console
+$ rails console
 >> "Hello World".to_squawk
 => "squawk! Hello World"
 </shell>
 
 h4. Working with +init.rb+
 
-When rails loads plugins it looks for the file named 'init.rb' or 'rails/init.rb'.  However, when the plugin is initialized, 'init.rb' is invoked via +eval+ (not +require+) so it has slightly different behavior.
+When Rails loads plugins it looks for a file named +init.rb+.  However, when the plugin is initialized, +init.rb+ is invoked via +eval+ (not +require+) so it has slightly different behavior.
 
-Under certain circumstances if you reopen classes or modules in 'init.rb' you may inadvertently create a new class, rather than reopening an existing class.  A better alternative is to reopen the class in a different file, and require that file from +init.rb+, as shown above.
+NOTE: The plugins loader also looks for +rails/init.rb+, but that one is deprecated in favor of the top-level +init.rb+ aforementioned.
+
+Under certain circumstances if you reopen classes or modules in +init.rb+ you may inadvertently create a new class, rather than reopening an existing class.  A better alternative is to reopen the class in a different file, and require that file from +init.rb+, as shown above.
 
 If you must reopen a class in +init.rb+ you can use +module_eval+ or +class_eval+ to avoid any issues:
 
-* *vendor/plugins/yaffle/rails/init.rb*
+* *vendor/plugins/yaffle/init.rb*
 
 <ruby>
 Hash.class_eval do
@@ -359,7 +361,7 @@ end
 
 Another way is to explicitly define the top-level module space for all modules and classes, like +::Hash+:
 
-* *vendor/plugins/yaffle/rails/init.rb*
+* *vendor/plugins/yaffle/init.rb*
 
 <ruby>
 class ::Hash
@@ -871,7 +873,7 @@ If you plan to distribute your plugin, developers will expect at least a minimum
 Rails ships with several built-in generators.  You can see all of the generators available to you by typing the following at the command line:
 
 <shell>
-./script/generate
+rails generate
 </shell>
 
 You should see something like this:
@@ -882,7 +884,7 @@ Installed Generators
   Builtin: controller, integration_test, mailer, migration, model, observer, plugin, resource, scaffold, session_migration
 </shell>
 
-When you run +script/generate yaffle_definition -h+ you should see the contents of your 'vendor/plugins/yaffle/generators/yaffle_definition/USAGE'.
+When you run +rails generate yaffle_definition -h+ you should see the contents of your 'vendor/plugins/yaffle/generators/yaffle_definition/USAGE'.
 
 For this plugin, update the USAGE file could look like this:
 
@@ -1111,11 +1113,11 @@ end
 To see this work, type:
 
 <shell>
-./script/generate yaffle_route
-./script/destroy yaffle_route
+rails generate yaffle_route
+rails destroy yaffle_route
 </shell>
 
-NOTE: If you haven't set up the custom route from above, 'script/destroy' will fail and you'll have to remove it manually.
+NOTE: If you haven't set up the custom route from above, 'rails destroy' will fail and you'll have to remove it manually.
 
 h3. Migrations
 
@@ -1195,7 +1197,7 @@ h4. Generate Migrations
 
 Generating migrations has several advantages over other methods.  Namely, you can allow other developers to more easily customize the migration.  The flow looks like this:
 
- * call your script/generate script and pass in whatever options they need
+ * call your rails generate script and pass in whatever options they need
  * examine the generated migration, adding/removing columns or other options as necessary
 
 This example will demonstrate how to use one of the built-in generator methods named 'migration_template' to create a migration file.  Extending the rails migration generator requires a somewhat intimate knowledge of the migration generator internals, so it's best to write a test first:
@@ -1289,7 +1291,7 @@ It's courteous to check to see if table names are being pluralized whenever you 
 To run the generator, type the following at the command line:
 
 <shell>
-./script/generate yaffle_migration bird
+rails generate yaffle_migration bird
 </shell>
 
 and you will see a new file:
@@ -1333,15 +1335,15 @@ yaffle:squawk             # Prints out the word 'Yaffle'
 
 You can add as many files as you want in the tasks directory, and if they end in .rake Rails will pick them up.
 
-Note that tasks from 'vendor/plugins/yaffle/Rakefile' are not available to the main app.
+Note that tasks from +vendor/plugins/yaffle/Rakefile+ are not available to the main app.
 
-h3. PluginGems
+h3. Plugins as Gems
 
 Turning your rails plugin into a gem is a simple and straightforward task.  This section will cover how to turn your plugin into a gem.  It will not cover how to distribute that gem.
 
-Historically rails plugins loaded the plugin's 'init.rb' file.  In fact some plugins contain all of their code in that one file.  To be compatible with plugins, 'init.rb' was moved to 'rails/init.rb'.
+The initialization file has to be called +rails/init.rb+, the root +init.rb+ file, if any, is ignored by Rails. Also, the name of the plugin now is relevant since +config.gem+ tries to load it. Either name the main file after your gem, or document that users should use the +:lib+ option.
 
-It's common practice to put any developer-centric rake tasks (such as tests, rdoc and gem package tasks) in 'Rakefile'.  A rake task that packages the gem might look like this:
+It's common practice to put any developer-centric rake tasks (such as tests, rdoc and gem package tasks) in +Rakefile+.  A rake task that packages the gem might look like this:
 
 * *vendor/plugins/yaffle/Rakefile:*
 
@@ -1383,7 +1385,7 @@ rake gem
 sudo gem install pkg/yaffle-0.0.1.gem
 </shell>
 
-To test this, create a new rails app, add 'config.gem "yaffle"' to environment.rb and all of your plugin's functionality will be available to you.
+To test this, create a new rails app, add +config.gem "yaffle"+ to +config/environment.rb+ and all of your plugin's functionality will be available to you.
 
 h3. RDoc Documentation
 

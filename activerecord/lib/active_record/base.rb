@@ -119,11 +119,11 @@ module ActiveRecord #:nodoc:
   class ReadOnlyRecord < ActiveRecordError
   end
 
-  # ActiveRecord::Transactions::ClassMethods.transaction uses this exception
+  # <tt>ActiveRecord::Transactions::ClassMethods.transaction</tt> uses this exception
   # to distinguish a deliberate rollback from other exceptional situations.
   # Normally, raising an exception will cause the +transaction+ method to rollback
   # the database transaction *and* pass on the exception. But if you raise an
-  # ActiveRecord::Rollback exception, then the database transaction will be rolled back,
+  # <tt>ActiveRecord::Rollback</tt> exception, then the database transaction will be rolled back,
   # without passing on the exception.
   #
   # For example, you could do this in your controller to rollback a transaction:
@@ -557,6 +557,7 @@ module ActiveRecord #:nodoc:
       alias :colorize_logging= :colorize_logging
 
       delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
+      delegate :find_each, :find_in_batches, :to => :scoped
       delegate :select, :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
@@ -2394,7 +2395,7 @@ module ActiveRecord #:nodoc:
     # #save_with_autosave_associations to be wrapped inside a transaction.
     include AutosaveAssociation, NestedAttributes
 
-    include Aggregations, Transactions, Reflection, Batches, Serialization
+    include Aggregations, Transactions, Reflection, Serialization
 
   end
 end

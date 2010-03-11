@@ -1,4 +1,5 @@
 require 'set'
+require 'fileutils'
 
 module RailsGuides
   class Generator
@@ -49,16 +50,19 @@ module RailsGuides
         if guide =~ /\.textile\.erb$/
           # Generate the erb pages with textile formatting - e.g. index/authors
           result = view.render(:layout => 'layout', :file => guide)
-          f.write textile(result)
+          result = textile(result)
         else
           body = File.read(File.join(view_path, guide))
           body = set_header_section(body, @view)
           body = set_index(body, @view)
 
           result = view.render(:layout => 'layout', :text => textile(body).html_safe)
-          f.write result
+
           warn_about_broken_links(result) if ENV.key?("WARN_BROKEN_LINKS")
         end
+        
+        result = insert_edge_badge(result) if ENV.key?('INSERT_EDGE_BADGE')
+        f.write result
       end
     end
 
@@ -167,6 +171,10 @@ module RailsGuides
           puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."
         end
       end
+    end
+    
+    def insert_edge_badge(html)
+      html.sub(/<body[^>]*>/, '\&<img src="images/edge_badge.png" style="position:fixed; right:0px; top:0px; border:none; z-index:100"/>')
     end
   end
 end

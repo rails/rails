@@ -1,4 +1,11 @@
 document.observe("dom:loaded", function() {
+  var authToken = $$('meta[name=csrf-token]').first().readAttribute('content'),
+    authParam = $$('meta[name=csrf-param]').first().readAttribute('content'),
+    formTemplate = '<form method="#{method}" action="#{action}">\
+      #{realmethod}<input name="#{param}" value="#{token}" type="hidden">\
+      </form>',
+    realmethodTemplate = '<input name="_method" value="#{method}" type="hidden">';
+
   function handleRemote(element) {
     var method, url, params;
 
@@ -34,20 +41,46 @@ document.observe("dom:loaded", function() {
   }
 
   $(document.body).observe("click", function(event) {
+    var message = event.element().readAttribute('data-confirm');
+    if (message && !confirm(message)) {
+      event.stop();
+      return false;
+    }
+
     var element = event.findElement("a[data-remote=true]");
     if (element) {
       handleRemote(element);
       event.stop();
     }
-  });
 
-  $(document.body).observe("ajax:before", function(event) {
-    var message = event.element().readAttribute('data-confirm');
-    if (message && !confirm(message)) event.stop();
+    var element = event.findElement("a[data-method]");
+    if (element && element.readAttribute('data-remote') != 'true') {
+      var method = element.readAttribute('data-method'),
+        piggyback = method.toLowerCase() != 'post',
+        formHTML = formTemplate.interpolate({
+          method: 'POST',
+          realmethod: piggyback ? realmethodTemplate.interpolate({ method: method }) : '',
+          action: element.readAttribute('href'),
+          token: authToken,
+          param: authParam
+        });
+
+      var form = new Element('div').update(formHTML).down().hide();
+      this.insert({ bottom: form });
+
+      form.submit();
+      event.stop();
+    }
   });
 
   // TODO: I don't think submit bubbles in IE
   $(document.body).observe("submit", function(event) {
+    var message = event.element().readAttribute('data-confirm');
+    if (message && !confirm(message)) {
+      event.stop();
+      return false;
+    }
+
     var inputs = event.element().select("input[type=submit][data-disable-with]");
     inputs.each(function(input) {
       input.disabled = true;
