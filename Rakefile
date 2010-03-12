@@ -28,8 +28,8 @@ else
         t.libs << "#{File.dirname(__FILE__)}/spec"
         # t.warning = true
         t.spec_files =
-          ["spec/connections/#{adapter}_connection.rb"] +
-          ["spec/schemas/#{adapter}_schema.rb"] +
+          ["spec/support/connections/#{adapter}_connection.rb"] +
+          ["spec/support/schemas/#{adapter}_schema.rb"] +
           FileList['spec/**/*_spec.rb']
       end
     end
