@@ -32,12 +32,12 @@ module ActionView
       #   form_tag('/upload', :multipart => true)
       #   # => <form action="/upload" method="post" enctype="multipart/form-data">
       #
-      #   <% form_tag('/posts')do -%>
+      #   <%= form_tag('/posts')do -%>
       #     <div><%= submit_tag 'Save' %></div>
       #   <% end -%>
       #   # => <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
       # 
-      #  <% form_tag('/posts', :remote => true) %>
+      #  <%= form_tag('/posts', :remote => true) %>
       #   # => <form action="/posts" method="post" data-remote="true">
       #   
       def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &block)
@@ -425,17 +425,17 @@ module ActionView
       # <tt>options</tt> accept the same values as tag.
       #
       # ==== Examples
-      #   <% field_set_tag do %>
+      #   <%= field_set_tag do %>
       #     <p><%= text_field_tag 'name' %></p>
       #   <% end %>
       #   # => <fieldset><p><input id="name" name="name" type="text" /></p></fieldset>
       #
-      #   <% field_set_tag 'Your details' do %>
+      #   <%= field_set_tag 'Your details' do %>
       #     <p><%= text_field_tag 'name' %></p>
       #   <% end %>
       #   # => <fieldset><legend>Your details</legend><p><input id="name" name="name" type="text" /></p></fieldset>
       #
-      #   <% field_set_tag nil, :class => 'format' do %>
+      #   <%= field_set_tag nil, :class => 'format' do %>
       #     <p><%= text_field_tag 'name' %></p>
       #   <% end %>
       #   # => <fieldset class="format"><p><input id="name" name="name" type="text" /></p></fieldset>
