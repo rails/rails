@@ -162,7 +162,7 @@ module ActionView
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERb example:
       #
-      #   <% link_to(@profile) do %>
+      #   <%= link_to(@profile) do %>
       #     <strong><%= @profile.name %></strong> -- <span>Check it out!</span>
       #   <% end %>
       #   # => <a href="/profiles/1">
