@@ -160,16 +160,13 @@ module Arel
       def type_cast_to_numeric(value, method)
         return unless value
         if value.respond_to?(:to_str)
-          if value.to_str =~ /\A(-?(?:0|[1-9]\d*)(?:\.\d+)?|(?:\.\d+))\z/
-            $1.send(method)
-          else
-            value
-          end
+          str = value.to_str.strip
+          return if str.empty?
+          return $1.send(method) if str =~ /\A(-?(?:0|[1-9]\d*)(?:\.\d+)?|(?:\.\d+))\z/
         elsif value.respond_to?(method)
-          value.send(method)
-        else
-          raise typecast_error(value)
+          return value.send(method)
         end
+        raise typecast_error(value)
       end
 
       def typecast_error(value)

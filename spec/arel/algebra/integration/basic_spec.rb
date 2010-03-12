@@ -1,50 +1,5 @@
 require 'spec_helper'
 
-module Arel
-  module Testing
-    class Engine
-      attr_reader :rows
-
-      def initialize
-        @rows = []
-      end
-
-      def supports(operation)
-        false
-      end
-
-      def read(relation)
-        @rows.dup.map { |r| Row.new(relation, r) }
-      end
-
-      def create(insert)
-        @rows << insert.record.tuple
-        insert
-      end
-    end
-  end
-end
-
-class Thing < Arel::Relation
-  attr_reader :engine, :attributes
-
-  def initialize(engine, attributes)
-    @engine, @attributes = engine, []
-    attributes.each do |name, type|
-      @attributes << type.new(self, name)
-    end
-  end
-
-  def format(attribute, value)
-    value
-  end
-
-  def insert(row)
-    insert = super Arel::Row.new(self, row)
-    insert.record
-  end
-end
-
 def have_rows(expected)
   simple_matcher "have rows" do |given, matcher|
     found, got, expected = [], [], expected.map { |r| r.tuple }
@@ -101,11 +56,14 @@ module Arel
   describe "Relation" do
 
     before :all do
-      @engine   = Testing::Engine.new
-      @relation = Thing.new(@engine,
-        :id   => Attributes::Integer,
-        :name => Attributes::String,
-        :age  => Attributes::Integer)
+      @engine = Testing::Engine.new
+      @relation = Model.build do |r|
+        r.engine @engine
+
+        r.attribute :id,   Attributes::Integer
+        r.attribute :name, Attributes::String
+        r.attribute :age,  Attributes::Integer
+      end
     end
 
     describe "..." do
