@@ -41,6 +41,10 @@ module ActionView
     end
 
     if "".respond_to?(:force_encoding)
+      def encoding
+        @buffer.encoding
+      end
+
       def force_encoding(encoding)
         @buffer.force_encoding(encoding)
       end

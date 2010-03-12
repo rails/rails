@@ -444,6 +444,10 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert_equal "hello".concat(13), string
     assert string.html_safe?
   end
+
+  test 'emits normal string yaml' do
+    assert_equal 'foo'.to_yaml, 'foo'.html_safe.to_yaml(:foo => 1)
+  end
 end
 
 class StringExcludeTest < ActiveSupport::TestCase

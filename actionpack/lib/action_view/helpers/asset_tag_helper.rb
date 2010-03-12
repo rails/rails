@@ -11,7 +11,7 @@ module ActionView
     # the assets exist before linking to them:
     #
     #   image_tag("rails.png")
-    #   # => <img alt="Rails src="/images/rails.png?1230601161" />
+    #   # => <img alt="Rails" src="/images/rails.png?1230601161" />
     #   stylesheet_link_tag("application")
     #   # => <link href="/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
     #
@@ -523,7 +523,7 @@ module ActionView
         options.symbolize_keys!
 
         src = options[:src] = path_to_image(source)
-        options[:alt]     ||= File.basename(src, '.*').split('.').first.to_s.capitalize
+        options[:alt]     ||= File.basename(src, '.*').capitalize
 
         if size = options.delete(:size)
           options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
