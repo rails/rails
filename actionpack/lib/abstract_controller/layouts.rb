@@ -284,6 +284,12 @@ module AbstractController
         layout = options.key?(:layout) ? options.delete(:layout) : :default
         value = _layout_for_option(layout)
         options[:layout] = (value =~ /\blayouts/ ? value : "layouts/#{value}") if value
+
+        # TODO Layout for partials should be handled here, because inside the
+        # partial renderer it looks for the layout as a partial.
+        if options.key?(:partial) && options[:layout]
+          options[:layout] = view_context.find_layout(options[:layout])
+        end
       end
     end
 

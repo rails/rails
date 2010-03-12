@@ -264,14 +264,5 @@ module ActionView #:nodoc:
       response.body_parts << part
       nil
     end
-
-    # Evaluates the local assigns and controller ivars, pushes them to the view.
-    def _evaluate_assigns_and_ivars #:nodoc:
-      if controller
-        variables = controller.instance_variable_names
-        variables -= controller.protected_instance_variables if controller.respond_to?(:protected_instance_variables)
-        variables.each { |name| instance_variable_set(name, controller.instance_variable_get(name)) }
-      end
-    end
   end
 end

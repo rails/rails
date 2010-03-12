@@ -444,9 +444,6 @@ class ActionMailerTest < Test::Unit::TestCase
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
 
-    # Stub the render method so no alternative renderers need be present.
-    ActionView::Base.any_instance.stubs(:render).returns("Hello there, \n\nMr. #{@recipient}")
-
     # Now that the template is registered, there should be one part. The text/plain part.
     created = nil
     assert_nothing_raised { created = TestMailer.custom_templating_extension(@recipient) }
