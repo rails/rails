@@ -86,6 +86,10 @@ module Arel
         Predicates::Equality.new(self, other)
       end
 
+      def not(other)
+        Predicates::Not.new(self, other)
+      end
+
       def lt(other)
         Predicates::LessThan.new(self, other)
       end

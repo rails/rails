@@ -49,6 +49,39 @@ share_examples_for 'A Relation' do
       expected = @expected.select { |r| r[@relation[:age]] == @pivot[@relation[:age]] }
       @relation.where(@relation[:age].eq(@pivot[@relation[:age]])).should have_rows(expected)
     end
+
+    it "finds rows with a not predicate" do
+      expected = @expected.select { |r| r[@relation[:age]] != @pivot[@relation[:age]] }
+      @relation.where(@relation[:age].not(@pivot[@relation[:age]])).should have_rows(expected)
+    end
+
+    it "finds rows with a less than predicate" do
+      expected = @expected.select { |r| r[@relation[:age]] < @pivot[@relation[:age]] }
+      @relation.where(@relation[:age].lt(@pivot[@relation[:age]])).should have_rows(expected)
+    end
+
+    it "finds rows with a less than or equal to predicate" do
+      expected = @expected.select { |r| r[@relation[:age]] <= @pivot[@relation[:age]] }
+      @relation.where(@relation[:age].lteq(@pivot[@relation[:age]])).should have_rows(expected)
+    end
+
+    it "finds rows with a greater than predicate" do
+      expected = @expected.select { |r| r[@relation[:age]] > @pivot[@relation[:age]] }
+      @relation.where(@relation[:age].gt(@pivot[@relation[:age]])).should have_rows(expected)
+    end
+
+    it "finds rows with a greater than or equal to predicate" do
+      expected = @expected.select { |r| r[@relation[:age]] >= @pivot[@relation[:age]] }
+      @relation.where(@relation[:age].gteq(@pivot[@relation[:age]])).should have_rows(expected)
+    end
+
+    it "finds rows with a matches predicate"
+
+    it "finds rows with an in predicate" do
+      pending
+      set = @expected[1..(@expected.length/2+1)]
+      @relation.all(:id.in => set.map { |r| r.id }).should have_resources(set)
+    end
   end
 end
 

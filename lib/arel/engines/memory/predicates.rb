@@ -10,6 +10,12 @@ module Arel
       def operator; :== end
     end
 
+    class Not < Binary
+      def eval(row)
+        operand1.eval(row) != operand2.eval(row)
+      end
+    end
+
     class GreaterThanOrEqualTo < Binary
       def operator; :>= end
     end
