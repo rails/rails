@@ -41,7 +41,9 @@ module ActionController #:nodoc:
           else
             pos = buffer.length
             block.call
-            write_fragment(name, buffer[pos..-1], options)
+            content = buffer[pos..-1]
+            content = content.as_str if content.respond_to?(:as_str)
+            write_fragment(name, content, options)
           end
         else
           block.call

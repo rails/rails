@@ -105,14 +105,22 @@ module ActiveSupport #:nodoc:
       self
     end
 
+    def as_str
+      ''.replace(self)
+    end
+
     def to_yaml
-      "".replace(self).to_yaml
+      as_str.to_yaml
     end
   end
 end
 
 class String
   alias_method :add_without_safety, :+
+
+  def as_str
+    self
+  end
 
   def html_safe
     ActiveSupport::SafeBuffer.new(self)
