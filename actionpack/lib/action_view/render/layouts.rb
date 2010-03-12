@@ -49,10 +49,10 @@ module ActionView
     def _find_layout(layout) #:nodoc:
       begin
         layout =~ /^\// ?
-          with_fallbacks { find(layout) } : find(layout)
+          with_fallbacks { find_template(layout) } : find_template(layout)
       rescue ActionView::MissingTemplate => e
         update_details(:formats => nil) do
-          raise unless exists?(layout)
+          raise unless template_exists?(layout)
         end
       end
     end

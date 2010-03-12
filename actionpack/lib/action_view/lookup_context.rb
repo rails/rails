@@ -70,6 +70,7 @@ module ActionView
       def find(name, prefix = nil, partial = false)
         @view_paths.find(name, prefix, partial, details, details_key)
       end
+      alias :find_template :find
 
       def find_all(name, prefix = nil, partial = false)
         @view_paths.find_all(name, prefix, partial, details, details_key)
@@ -78,6 +79,7 @@ module ActionView
       def exists?(name, prefix = nil, partial = false)
         @view_paths.exists?(name, prefix, partial, details, details_key)
       end
+      alias :template_exists? :exists?
 
       # Add fallbacks to the view paths. Useful in cases you are rendering a :file.
       def with_fallbacks

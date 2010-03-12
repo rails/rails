@@ -59,13 +59,12 @@ module ActionView
         handler = Template.handler_class_for_extension(options[:type] || "erb")
         Template.new(options[:inline], "inline template", handler, {})
       elsif options.key?(:text)
-        Template::Text.new(options[:text], self.formats.try(:first))
-      elsif options.key?(:_template)
-        options[:_template]
+        Template::Text.new(options[:text], formats.try(:first))
       elsif options.key?(:file)
-        with_fallbacks { find(options[:file], options[:prefix]) }
+        with_fallbacks { find_template(options[:file], options[:prefix]) }
       elsif options.key?(:template)
-        find(options[:template], options[:prefix])
+        options[:template].respond_to?(:render) ?
+          options[:template] : find_template(options[:template], options[:prefix])
       end
     end
 
