@@ -9,6 +9,15 @@ module Arel
       @predicate = predicate.bind(@relation)
     end
 
+    def engine
+      # Temporary check of whether or not the engine supports where.
+      if relation.engine.respond_to?(:supports) && !relation.engine.supports(:where)
+        Memory::Engine.new
+      else
+        relation.engine
+      end
+    end
+
     def wheres
       @wheres ||= (relation.wheres + [predicate]).collect { |p| p.bind(self) }
     end

@@ -4,7 +4,7 @@ require 'logger'
 
 ActiveRecord::Base.logger = Logger.new("debug.log")
 
-db_file = "spec/fixtures/fixture_database.sqlite3"
+db_file = "spec/support/fixtures/fixture_database.sqlite3"
 
 ActiveRecord::Base.configurations = {
   "unit" => {

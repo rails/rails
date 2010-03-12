@@ -11,13 +11,13 @@ module Arel
           begin
             @started = true
             @instance = manufacture
-            metaclass.class_eval do
+            singleton_class.class_eval do
               undef :new
               alias_method :new, :instance
             end
             yield
           ensure
-            metaclass.class_eval do
+            singleton_class.class_eval do
               undef :new
               alias_method :new, :manufacture
             end
