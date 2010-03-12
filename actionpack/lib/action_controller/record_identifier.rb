@@ -60,11 +60,30 @@ module ActionController
     #
     #   dom_id(Post.find(45), :edit) # => "edit_post_45"
     def dom_id(record, prefix = nil) 
-      if record_id = record.id
+      if record_id = record_key_for_dom_id(record)
         "#{dom_class(record, prefix)}#{JOIN}#{record_id}"
       else
         dom_class(record, prefix || NEW)
       end
+    end
+
+    # Returns a string representation of the key attribute(s) that is suitable for use in an HTML DOM id.
+    # This can be overwritten to customize the default generated string representation if desired.
+    # If you need to read back a key from a dom_id in order to query for the underlying database record,
+    # you should write a helper like 'person_record_from_dom_id' that will extract the key either based
+    # on the default implementation (which just joins all key attributes with '-') or on your own
+    # overwritten version of the method. By default, this implementation passes the key string through a
+    # method that replaces all characters that are invalid inside DOM ids, with valid ones. You need to
+    # make sure yourself that your dom ids are valid, in case you overwrite this method.
+    def record_key_for_dom_id(record)
+      return record.id unless record.respond_to?(:to_model)
+      key = record.to_model.to_key
+      key ? sanitize_dom_id(key.join('_')) : key
+    end
+
+    # Replaces characters that are invalid in HTML DOM ids with valid ones.
+    def sanitize_dom_id(candidate_id)
+      candidate_id # TODO implement conversion to valid DOM id values
     end
 
     # Returns the plural class name of a record or class. Examples:

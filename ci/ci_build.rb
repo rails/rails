@@ -19,7 +19,7 @@ puts "[CruiseControl] Rails build"
 build_results = {}
 
 # Install required version of bundler.
-bundler_install_cmd = "gem install bundler -v 0.9.3 --no-ri --no-rdoc"
+bundler_install_cmd = "sudo gem install bundler -v 0.9.10 --no-ri --no-rdoc"
 puts "Running command: #{bundler_install_cmd}"
 build_results[:install_bundler] = system bundler_install_cmd
 

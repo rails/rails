@@ -158,7 +158,8 @@ module InflectorTestCases
     "Allow_Under_Scores"                  => "allow_under_scores",
     "Trailing bad characters!@#"          => "trailing-bad-characters",
     "!@#Leading bad characters"           => "leading-bad-characters",
-    "Squeeze   separators"                => "squeeze-separators"
+    "Squeeze   separators"                => "squeeze-separators",
+    "Test with + sign"                    => "test-with-sign"
   }
 
   StringToParameterizeWithNoSeparator = {
@@ -166,7 +167,8 @@ module InflectorTestCases
     "Random text with *(bad)* characters" => "randomtextwithbadcharacters",
     "Trailing bad characters!@#"          => "trailingbadcharacters",
     "!@#Leading bad characters"           => "leadingbadcharacters",
-    "Squeeze   separators"                => "squeezeseparators"
+    "Squeeze   separators"                => "squeezeseparators",
+    "Test with + sign"                    => "testwithsign"
   }
 
   StringToParameterizeWithUnderscore = {
@@ -174,7 +176,8 @@ module InflectorTestCases
     "Random text with *(bad)* characters" => "random_text_with_bad_characters",
     "Trailing bad characters!@#"          => "trailing_bad_characters",
     "!@#Leading bad characters"           => "leading_bad_characters",
-    "Squeeze   separators"                => "squeeze_separators"
+    "Squeeze   separators"                => "squeeze_separators",
+    "Test with + sign"                    => "test_with_sign"
   }
 
   # Ruby 1.9 doesn't do Unicode normalization yet.

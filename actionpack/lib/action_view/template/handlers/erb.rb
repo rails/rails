@@ -3,10 +3,17 @@ require 'active_support/core_ext/string/output_safety'
 require 'erubis'
 
 module ActionView
+  class OutputBuffer < ActiveSupport::SafeBuffer
+    def <<(value)
+      super(value.to_s)
+    end
+    alias :append= :<<
+  end
+
   module Template::Handlers
     class Erubis < ::Erubis::Eruby
       def add_preamble(src)
-        src << "@output_buffer = ActiveSupport::SafeBuffer.new;"
+        src << "@output_buffer = ActionView::OutputBuffer.new;"
       end
 
       def add_text(src, text)
@@ -15,15 +22,15 @@ module ActionView
       end
 
       def add_expr_literal(src, code)
-        if code =~ /\s*raw\s+(.*)/
-          src << "@output_buffer.safe_concat((" << $1 << ").to_s);"
+        if code =~ /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
+          src << '@output_buffer.append= ' << code
         else
-          src << '@output_buffer << ((' << code << ').to_s);'
+          src << '@output_buffer.append= (' << code << ');'
         end
       end
 
       def add_expr_escaped(src, code)
-        src << '@output_buffer << ' << escaped_expr(code) << ';'
+        src << '@output_buffer.append= ' << escaped_expr(code) << ';'
       end
 
       def add_postamble(src)
@@ -42,14 +49,14 @@ module ActionView
       self.erb_trim_mode = '-'
 
       self.default_format = Mime::HTML
-      
-      cattr_accessor :erubis_implementation
-      self.erubis_implementation = Erubis
+
+      cattr_accessor :erb_implementation
+      self.erb_implementation = Erubis
 
       def compile(template)
         source = template.source.gsub(/\A(<%(#.*coding[:=]\s*(\S+)\s*)-?%>)\s*\n?/, '')
         erb = "<% __in_erb_template=true %>#{source}"
-        result = self.class.erubis_implementation.new(erb, :trim=>(self.class.erb_trim_mode == "-")).src
+        result = self.class.erb_implementation.new(erb, :trim=>(self.class.erb_trim_mode == "-")).src
         result = "#{$2}\n#{result}" if $2
         result
       end

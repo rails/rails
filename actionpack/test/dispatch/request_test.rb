@@ -1,14 +1,6 @@
 require 'abstract_unit'
 
 class RequestTest < ActiveSupport::TestCase
-  def setup
-    ActionController::Base.relative_url_root = nil
-  end
-
-  def teardown
-    ActionController::Base.relative_url_root = nil
-  end
-
   test "remote ip" do
     request = stub_request 'REMOTE_ADDR' => '1.2.3.4'
     assert_equal '1.2.3.4', request.remote_ip
@@ -50,7 +42,7 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '1.1.1.1',
                            'HTTP_CLIENT_IP'       => '2.2.2.2'
-    e = assert_raise(ActionController::ActionControllerError) {
+    e = assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
       request.remote_ip
     }
     assert_match /IP spoofing attack/, e.message
@@ -62,18 +54,17 @@ class RequestTest < ActiveSupport::TestCase
     # example is WAP.  Since the cellular network is not IP based, it's a
     # leap of faith to assume that their proxies are ever going to set the
     # HTTP_CLIENT_IP/HTTP_X_FORWARDED_FOR headers properly.
-    ActionController::Base.ip_spoofing_check = false
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '1.1.1.1',
-                           'HTTP_CLIENT_IP'       => '2.2.2.2'
+                           'HTTP_CLIENT_IP'       => '2.2.2.2',
+                           :ip_spoofing_check => false
     assert_equal '2.2.2.2', request.remote_ip
-    ActionController::Base.ip_spoofing_check = true
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, 9.9.9.9'
     assert_equal '9.9.9.9', request.remote_ip
   end
 
   test "remote ip with user specified trusted proxies" do
-    ActionController::Base.trusted_proxies = /^67\.205\.106\.73$/i
+    @trusted_proxies = /^67\.205\.106\.73$/i
 
     request = stub_request 'REMOTE_ADDR' => '67.205.106.73',
                            'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
@@ -96,8 +87,6 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 67.205.106.73'
     assert_equal '3.4.5.6', request.remote_ip
-
-    ActionController::Base.trusted_proxies = nil
   end
 
   test "domains" do
@@ -151,104 +140,34 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal ":8080", request.port_string
   end
 
-  test "request uri" do
-    request = stub_request 'REQUEST_URI' => "http://www.rubyonrails.org/path/of/some/uri?mapped=1"
-    assert_equal "/path/of/some/uri?mapped=1", request.request_uri
-    assert_equal "/path/of/some/uri",          request.path
+  test "full path" do
+    request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/path/of/some/uri', 'QUERY_STRING' => 'mapped=1'
+    assert_equal "/path/of/some/uri?mapped=1", request.fullpath
+    assert_equal "/path/of/some/uri",          request.path_info
 
-    request = stub_request 'REQUEST_URI' => "http://www.rubyonrails.org/path/of/some/uri"
-    assert_equal "/path/of/some/uri", request.request_uri
-    assert_equal "/path/of/some/uri", request.path
+    request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/path/of/some/uri'
+    assert_equal "/path/of/some/uri", request.fullpath
+    assert_equal "/path/of/some/uri", request.path_info
 
-    request = stub_request 'REQUEST_URI' => "/path/of/some/uri"
-    assert_equal "/path/of/some/uri", request.request_uri
-    assert_equal "/path/of/some/uri", request.path
+    request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/'
+    assert_equal "/", request.fullpath
+    assert_equal "/", request.path_info
 
-    request = stub_request 'REQUEST_URI' => "/"
-    assert_equal "/", request.request_uri
-    assert_equal "/", request.path
+    request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/', 'QUERY_STRING' => 'm=b'
+    assert_equal "/?m=b", request.fullpath
+    assert_equal "/",     request.path_info
 
-    request = stub_request 'REQUEST_URI' => "/?m=b"
-    assert_equal "/?m=b", request.request_uri
-    assert_equal "/",     request.path
+    request = stub_request 'SCRIPT_NAME' => '/hieraki', 'PATH_INFO' => '/'
+    assert_equal "/hieraki/", request.fullpath
+    assert_equal "/",         request.path_info
 
-    request = stub_request 'REQUEST_URI' => "/", 'SCRIPT_NAME' => '/dispatch.cgi'
-    assert_equal "/", request.request_uri
-    assert_equal "/", request.path
+    request = stub_request 'SCRIPT_NAME' => '/collaboration/hieraki', 'PATH_INFO' => '/books/edit/2'
+    assert_equal "/collaboration/hieraki/books/edit/2", request.fullpath
+    assert_equal "/books/edit/2",                       request.path_info
 
-    ActionController::Base.relative_url_root = "/hieraki"
-    request = stub_request 'REQUEST_URI' => "/hieraki/", 'SCRIPT_NAME' => "/hieraki/dispatch.cgi"
-    assert_equal "/hieraki/", request.request_uri
-    assert_equal "/",         request.path
-    ActionController::Base.relative_url_root = nil
-
-    ActionController::Base.relative_url_root = "/collaboration/hieraki"
-    request = stub_request 'REQUEST_URI' => "/collaboration/hieraki/books/edit/2",
-      'SCRIPT_NAME' => "/collaboration/hieraki/dispatch.cgi"
-    assert_equal "/collaboration/hieraki/books/edit/2", request.request_uri
-    assert_equal "/books/edit/2",                       request.path
-    ActionController::Base.relative_url_root = nil
-
-    # The following tests are for when REQUEST_URI is not supplied (as in IIS)
-    request = stub_request 'PATH_INFO'   => "/path/of/some/uri?mapped=1",
-                           'SCRIPT_NAME' => nil,
-                           'REQUEST_URI' => nil
-    assert_equal "/path/of/some/uri?mapped=1", request.request_uri
-    assert_equal "/path/of/some/uri",          request.path
-
-    ActionController::Base.relative_url_root = '/path'
-    request = stub_request 'PATH_INFO'   => "/path/of/some/uri?mapped=1",
-                           'SCRIPT_NAME' => "/path/dispatch.rb",
-                           'REQUEST_URI' => nil
-    assert_equal "/path/of/some/uri?mapped=1", request.request_uri
-    assert_equal "/of/some/uri",               request.path
-    ActionController::Base.relative_url_root = nil
-
-    request = stub_request 'PATH_INFO'   => "/path/of/some/uri",
-                           'SCRIPT_NAME' => nil,
-                           'REQUEST_URI' => nil
-    assert_equal "/path/of/some/uri", request.request_uri
-    assert_equal "/path/of/some/uri", request.path
-
-    request = stub_request 'PATH_INFO' => '/', 'REQUEST_URI' => nil
-    assert_equal "/", request.request_uri
-    assert_equal "/", request.path
-
-    request = stub_request 'PATH_INFO' => '/?m=b', 'REQUEST_URI' => nil
-    assert_equal "/?m=b", request.request_uri
-    assert_equal "/",     request.path
-
-    request = stub_request 'PATH_INFO'   => "/",
-                           'SCRIPT_NAME' => "/dispatch.cgi",
-                           'REQUEST_URI' => nil
-    assert_equal "/", request.request_uri
-    assert_equal "/", request.path
-
-    ActionController::Base.relative_url_root = '/hieraki'
-    request = stub_request 'PATH_INFO'   => "/hieraki/",
-                           'SCRIPT_NAME' => "/hieraki/dispatch.cgi",
-                           'REQUEST_URI' => nil
-    assert_equal "/hieraki/", request.request_uri
-    assert_equal "/",         request.path
-    ActionController::Base.relative_url_root = nil
-
-    request = stub_request 'REQUEST_URI' => '/hieraki/dispatch.cgi'
-    ActionController::Base.relative_url_root = '/hieraki'
-    assert_equal "/dispatch.cgi", request.path
-    ActionController::Base.relative_url_root = nil
-
-    request = stub_request 'REQUEST_URI' => '/hieraki/dispatch.cgi'
-    ActionController::Base.relative_url_root = '/foo'
-    assert_equal "/hieraki/dispatch.cgi", request.path
-    ActionController::Base.relative_url_root = nil
-
-    # This test ensures that Rails uses REQUEST_URI over PATH_INFO
-    ActionController::Base.relative_url_root = nil
-    request = stub_request 'REQUEST_URI' => "/some/path",
-                           'PATH_INFO'   => "/another/path",
-                           'SCRIPT_NAME' => "/dispatch.cgi"
-    assert_equal "/some/path", request.request_uri
-    assert_equal "/some/path", request.path
+    request = stub_request 'SCRIPT_NAME' => '/path', 'PATH_INFO' => '/of/some/uri', 'QUERY_STRING' => 'mapped=1'
+    assert_equal "/path/of/some/uri?mapped=1", request.fullpath
+    assert_equal "/of/some/uri",               request.path_info
   end
 
 
@@ -462,7 +381,7 @@ class RequestTest < ActiveSupport::TestCase
     [{'foo'=>'bar', 'baz'=>'foo'},{'foo'=>'[FILTERED]', 'baz'=>'[FILTERED]'},%w'foo baz'],
     [{'bar'=>{'foo'=>'bar','bar'=>'foo'}},{'bar'=>{'foo'=>'[FILTERED]','bar'=>'foo'}},%w'fo'],
     [{'foo'=>{'foo'=>'bar','bar'=>'foo'}},{'foo'=>'[FILTERED]'},%w'f banana'],
-    [{'baz'=>[{'foo'=>'baz'}]}, {'baz'=>[{'foo'=>'[FILTERED]'}]}, [/foo/]]]
+    [{'baz'=>[{'foo'=>'baz'}, "1"]}, {'baz'=>[{'foo'=>'[FILTERED]'}, "1"]}, [/foo/]]]
 
     test_hashes.each do |before_filter, after_filter, filter_words|
       request = stub_request('action_dispatch.parameter_filter' => filter_words)
@@ -506,18 +425,14 @@ class RequestTest < ActiveSupport::TestCase
 
 protected
 
-  def stub_request(env={})
+  def stub_request(env = {})
+    ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
+    ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, @trusted_proxies)
+    ip_app.call(env)
     ActionDispatch::Request.new(env)
   end
 
   def with_set(*args)
     args
-  end
-
-  def with_accept_header(value)
-    ActionController::Base.use_accept_header, old = value, ActionController::Base.use_accept_header
-    yield
-  ensure
-    ActionController::Base.use_accept_header = old
   end
 end

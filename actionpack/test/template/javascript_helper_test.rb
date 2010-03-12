@@ -7,8 +7,9 @@ class JavaScriptHelperTest < ActionView::TestCase
 
   attr_accessor :formats, :output_buffer
 
-  def reset_formats(format)
-    @format = format
+  def update_details(details)
+    @details = details
+    yield if block_given?
   end
 
   def setup
@@ -71,18 +72,6 @@ class JavaScriptHelperTest < ActionView::TestCase
   def test_javascript_tag_with_options
     assert_dom_equal "<script id=\"the_js_tag\" type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
       javascript_tag("alert('hello')", :id => "the_js_tag")
-  end
-
-  def test_javascript_tag_with_block_in_erb
-    __in_erb_template = ''
-    javascript_tag { concat "alert('hello')" }
-    assert_dom_equal "<script type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", output_buffer
-  end
-
-  def test_javascript_tag_with_block_and_options_in_erb
-    __in_erb_template = ''
-    javascript_tag(:id => "the_js_tag") { concat "alert('hello')" }
-    assert_dom_equal "<script id=\"the_js_tag\" type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", output_buffer
   end
 
   def test_javascript_cdata_section

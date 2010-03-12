@@ -181,6 +181,18 @@ module ActionMailer #:nodoc:
   # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
   # with the filename +free_book.pdf+.
   #
+  # = Observing and Intercepting Mails
+  # 
+  # ActionMailer provides hooks into the Mail observer and interceptor methods.  These allow you to
+  # register objects that are called during the mail delivery life cycle.
+  # 
+  # An observer object must implement the <tt>:delivered_email(message)</tt> method which will be
+  # called once for every email sent after the email has been sent.
+  # 
+  # An interceptor object must implement the <tt>:delivering_email(message)</tt> method which will be
+  # called before the email is sent, allowing you to make modifications to the email before it hits
+  # the delivery agents.  Your object should make and needed modifications directly to the passed
+  # in Mail::Message instance.
   #
   # = Configuration options
   #
@@ -255,16 +267,17 @@ module ActionMailer #:nodoc:
 
     include AbstractController::Logger
     include AbstractController::Rendering
-    include AbstractController::LocalizedCache
     include AbstractController::Layouts
     include AbstractController::Helpers
     include AbstractController::Translation
-    include AbstractController::Compatibility
 
     helper  ActionMailer::MailHelper
 
     include ActionMailer::OldApi
     include ActionMailer::DeprecatedApi
+    
+    delegate :register_observer, :to => Mail
+    delegate :register_interceptor, :to => Mail
 
     private_class_method :new #:nodoc:
 
@@ -275,6 +288,8 @@ module ActionMailer #:nodoc:
       :content_type => "text/plain",
       :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
+
+    ActionMailer.run_base_hooks(self)
 
     class << self
 
@@ -452,10 +467,27 @@ module ActionMailer #:nodoc:
     # field for the 'envelope from' value.
     #
     # If you do not pass a block to the +mail+ method, it will find all templates in the 
-    # template path that match the method name that it is being called from, it will then
-    # create parts for each of these templates intelligently, making educated guesses
-    # on correct content type and sequence, and return a fully prepared Mail::Message
-    # ready to call <tt>:deliver</tt> on to send.
+    # view paths using by default the mailer name and the method name that it is being
+    # called from, it will then create parts for each of these templates intelligently,
+    # making educated guesses on correct content type and sequence, and return a fully
+    # prepared Mail::Message ready to call <tt>:deliver</tt> on to send.
+    #
+    # For example:
+    #
+    #   class Notifier < ActionMailer::Base
+    #     default :from => 'no-reply@test.lindsaar.net',
+    #
+    #     def welcome
+    #       mail(:to => 'mikel@test.lindsaar.net')
+    #     end
+    #   end
+    #
+    # Will look for all templates at "app/views/notifier" with name "welcome". However, those
+    # can be customized:
+    #
+    #   mail(:template_path => 'notifications', :template_name => 'another')
+    #
+    # And now it will look for all templates at "app/views/notifications" with name "another".
     #
     # If you do pass a block, you can render specific templates of your choice:
     # 
@@ -493,7 +525,7 @@ module ActionMailer #:nodoc:
 
       # Merge defaults from class
       headers = headers.reverse_merge(self.class.default)
-      charset = headers[:charset]
+      charset = headers.delete(:charset)
 
       # Quote fields
       headers[:subject] ||= default_i18n_subject
@@ -514,13 +546,11 @@ module ActionMailer #:nodoc:
       end
 
       # Set configure delivery behavior
-      wrap_delivery_behavior!(headers[:delivery_method])
+      wrap_delivery_behavior!(headers.delete(:delivery_method))
 
-      # Remove headers already treated and assign all others
-      headers.except!(:subject, :to, :from, :cc, :bcc, :reply_to)
-      headers.except!(:body, :parts_order, :content_type, :charset, :delivery_method)
+      # Remove any missing configuration header and assign all others
+      headers.except!(:parts_order, :content_type)
       headers.each { |k, v| m[k] = v }
-
       m
     end
 
@@ -548,12 +578,12 @@ module ActionMailer #:nodoc:
     # TODO: Move this into Mail
     def quote_fields!(headers, charset) #:nodoc:
       m = @_message
-      m.subject  ||= quote_if_necessary(headers[:subject], charset)          if headers[:subject]
-      m.to       ||= quote_address_if_necessary(headers[:to], charset)       if headers[:to]
-      m.from     ||= quote_address_if_necessary(headers[:from], charset)     if headers[:from]
-      m.cc       ||= quote_address_if_necessary(headers[:cc], charset)       if headers[:cc]
-      m.bcc      ||= quote_address_if_necessary(headers[:bcc], charset)      if headers[:bcc]
-      m.reply_to ||= quote_address_if_necessary(headers[:reply_to], charset) if headers[:reply_to]
+      m.subject  ||= quote_if_necessary(headers.delete(:subject), charset)          if headers[:subject]
+      m.to       ||= quote_address_if_necessary(headers.delete(:to), charset)       if headers[:to]
+      m.from     ||= quote_address_if_necessary(headers.delete(:from), charset)     if headers[:from]
+      m.cc       ||= quote_address_if_necessary(headers.delete(:cc), charset)       if headers[:cc]
+      m.bcc      ||= quote_address_if_necessary(headers.delete(:bcc), charset)      if headers[:bcc]
+      m.reply_to ||= quote_address_if_necessary(headers.delete(:reply_to), charset) if headers[:reply_to]
     end
 
     def collect_responses_and_parts_order(headers) #:nodoc:
@@ -566,13 +596,16 @@ module ActionMailer #:nodoc:
         responses  = collector.responses
       elsif headers[:body]
         responses << {
-          :body => headers[:body],
+          :body => headers.delete(:body),
           :content_type => self.class.default[:content_type] || "text/plain"
         }
       else
-        each_template do |template|
+        templates_path = headers.delete(:template_path) || self.class.mailer_name
+        templates_name = headers.delete(:template_name) || action_name
+
+        each_template(templates_path, templates_name) do |template|
           responses << {
-            :body => render_to_body(:_template => template),
+            :body => render(:_template => template),
             :content_type => template.mime_type.to_s
           }
         end
@@ -581,10 +614,10 @@ module ActionMailer #:nodoc:
       [responses, parts_order]
     end
 
-    def each_template(&block) #:nodoc:
-      self.class.view_paths.each do |load_paths|
-        templates = load_paths.find_all(action_name, {}, self.class.mailer_name)
-        templates = templates.uniq_by { |t| t.details[:formats] }
+    def each_template(paths, name, &block) #:nodoc:
+      Array(paths).each do |path|
+        templates = lookup_context.find_all(name, path)
+        templates = templates.uniq_by { |t| t.formats }
 
         unless templates.empty?
           templates.each(&block)

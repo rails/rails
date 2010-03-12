@@ -2,18 +2,6 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
 
-require File.join(File.dirname(__FILE__), 'lib', 'active_support', 'version')
-
-PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
-PKG_NAME      = 'activesupport'
-PKG_VERSION   = ActiveSupport::VERSION::STRING + PKG_BUILD
-PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
-
-RELEASE_NAME  = "REL #{PKG_VERSION}"
-
-RUBY_FORGE_PROJECT = "activesupport"
-RUBY_FORGE_USER    = "webster132"
-
 task :default => :test
 Rake::TestTask.new do |t|
   t.libs << 'test'

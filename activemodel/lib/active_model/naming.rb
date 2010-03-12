@@ -42,7 +42,7 @@ module ActiveModel
   # To implement, just extend ActiveModel::Naming in your object:
   # 
   #   class BookCover
-  #     exten ActiveModel::Naming
+  #     extend ActiveModel::Naming
   #   end
   # 
   #   BookCover.model_name        #=> "BookCover"

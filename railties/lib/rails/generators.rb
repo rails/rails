@@ -3,17 +3,23 @@ $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.inc
 
 require 'active_support'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/object/metaclass'
+require 'active_support/core_ext/object/singleton_class'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/inflections'
 
 require 'rails/generators/base'
-require 'rails/generators/named_base'
 
 module Rails
   module Generators
+    autoload :Actions,         'rails/generators/actions'
+    autoload :ActiveModel,     'rails/generators/active_model'
+    autoload :Migration,       'rails/generators/migration'
+    autoload :NamedBase,       'rails/generators/named_base'
+    autoload :ResourceHelpers, 'rails/generators/resource_helpers'
+    autoload :TestCase,        'rails/generators/test_case'
+
     DEFAULT_ALIASES = {
       :rails => {
         :actions => '-a',

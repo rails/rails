@@ -40,11 +40,13 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   setup do
     # Used as secret in generating nonce to prevent tampering of timestamp
-    @old_secret, ActionController::Base.session_options[:secret] = ActionController::Base.session_options[:secret], "session_options_secret"
+    @secret = "session_options_secret"
+    @controller.config.secret = @secret
+    # @old_secret, ActionController::Base.config.secret[:secret] = ActionController::Base.session_options[:secret], @secret
   end
 
   teardown do
-    ActionController::Base.session_options[:secret] = @old_secret
+    # ActionController::Base.session_options[:secret] = @old_secret
   end
 
   AUTH_HEADERS.each do |header|
@@ -138,7 +140,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   test "authentication request with request-uri that doesn't match credentials digest-uri" do
     @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
-    @request.env['REQUEST_URI'] = "/http_digest_authentication_test/dummy_digest/altered/uri"
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest/altered/uri"
     get :display
 
     assert_response :unauthorized
@@ -147,7 +149,8 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   test "authentication request with absolute request uri (as in webrick)" do
     @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
-    @request.env['REQUEST_URI'] = "http://test.host/http_digest_authentication_test/dummy_digest"
+    @request.env["SERVER_NAME"] = "test.host"
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest"
 
     get :display
 
@@ -170,7 +173,8 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   test "authentication request with absolute uri in both request and credentials (as in Webrick with IE)" do
     @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:url => "http://test.host/http_digest_authentication_test/dummy_digest",
                                                             :username => 'pretty', :password => 'please')
-    @request.env['REQUEST_URI'] = "http://test.host/http_digest_authentication_test/dummy_digest"
+    @request.env['SERVER_NAME'] = "test.host"
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest"
 
     get :display
 
@@ -202,7 +206,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   test "validate_digest_response should fail with nil returning password_procedure" do
     @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => nil, :password => nil)
-    assert !ActionController::HttpAuthentication::Digest.validate_digest_response(@request, "SuperSecret"){nil}
+    assert !ActionController::HttpAuthentication::Digest.validate_digest_response(@secret, @request, "SuperSecret"){nil}
   end
 
   private
@@ -225,7 +229,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
     credentials = decode_credentials(@response.headers['WWW-Authenticate'])
     credentials.merge!(options)
-    credentials.merge!(:uri => @request.env['REQUEST_URI'].to_s)
+    credentials.merge!(:uri => @request.env['PATH_INFO'].to_s)
     ActionController::HttpAuthentication::Digest.encode_credentials(method, credentials, password, options[:password_is_ha1])
   end
 

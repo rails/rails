@@ -15,7 +15,6 @@ module ActionController
     include ActionController::Renderers::All
     include ActionController::ConditionalGet
     include ActionController::RackDelegation
-    include ActionController::Configuration
 
     # Legacy modules
     include SessionManagement
@@ -30,35 +29,13 @@ module ActionController
     include ActionController::Verification
     include ActionController::RequestForgeryProtection
     include ActionController::Streaming
+    include ActionController::RecordIdentifier
     include ActionController::HttpAuthentication::Basic::ControllerMethods
     include ActionController::HttpAuthentication::Digest::ControllerMethods
 
     # Add instrumentations hooks at the bottom, to ensure they instrument
     # all the methods properly.
     include ActionController::Instrumentation
-
-    # TODO: Extract into its own module
-    # This should be moved together with other normalizing behavior
-    module ImplicitRender
-      def send_action(*)
-        ret = super
-        default_render unless response_body
-        ret
-      end
-
-      def default_render
-        render
-      end
-
-      def method_for_action(action_name)
-        super || begin
-          if template_exists?(action_name.to_s, {:formats => formats}, :_prefix => controller_path)
-            "default_render"
-          end
-        end
-      end
-    end
-
     include ImplicitRender
 
     include ActionController::Rescue
@@ -82,12 +59,9 @@ module ActionController
       filter
     end
 
-  protected
+    ActionController.run_base_hooks(self)
 
-    # Overwrite url rewriter to use request.
-    def _url_rewriter
-      return ActionController::UrlRewriter unless request
-      @_url_rewriter ||= ActionController::UrlRewriter.new(request, params)
-    end
   end
 end
+
+require "action_controller/deprecated/base"

@@ -14,8 +14,13 @@ class BaseTest < ActiveSupport::TestCase
       mail({:subject => "The first email on new API!"}.merge!(hash))
     end
 
-    def simple(hash = {})
-      mail(hash)
+    def welcome_with_headers(hash = {})
+      headers hash
+      mail
+    end
+
+    def welcome_from_another_path(path)
+      mail(:template_name => "welcome", :template_path => path)
     end
 
     def html_only(hash = {})
@@ -24,11 +29,6 @@ class BaseTest < ActiveSupport::TestCase
 
     def plain_text_only(hash = {})
       mail(hash)
-    end
-    
-    def simple_with_headers(hash = {})
-      headers hash
-      mail
     end
 
     def attachment_with_content(hash = {})
@@ -78,8 +78,12 @@ class BaseTest < ActiveSupport::TestCase
         format.html{ render "welcome" } if include_html
       end
     end
-    
-    def different_template(template_name='')
+
+    def implicit_different_template(template_name='')
+      mail(:template_name => template_name)
+    end
+
+    def explicit_different_template(template_name='')
       mail do |format|
         format.text { render :template => "#{mailer_name}/#{template_name}" }
         format.html { render :template => "#{mailer_name}/#{template_name}" }
@@ -88,13 +92,10 @@ class BaseTest < ActiveSupport::TestCase
 
     def different_layout(layout_name='')
       mail do |format|
-        format.text { 
-          render :layout => layout_name 
-        }
+        format.text { render :layout => layout_name }
         format.html { render :layout => layout_name }
       end
     end
-
   end
 
   test "method call to mail does not raise error" do
@@ -154,7 +155,7 @@ class BaseTest < ActiveSupport::TestCase
   test "can pass random headers in as a hash to mail" do
     hash = {'X-Special-Domain-Specific-Header' => "SecretValue",
             'In-Reply-To' => '1234@mikel.me.com' }
-    mail = BaseMailer.simple(hash)
+    mail = BaseMailer.welcome(hash)
     assert_equal('SecretValue', mail['X-Special-Domain-Specific-Header'].decoded)
     assert_equal('1234@mikel.me.com', mail['In-Reply-To'].decoded)
   end
@@ -162,7 +163,7 @@ class BaseTest < ActiveSupport::TestCase
   test "can pass random headers in as a hash" do
     hash = {'X-Special-Domain-Specific-Header' => "SecretValue",
             'In-Reply-To' => '1234@mikel.me.com' }
-    mail = BaseMailer.simple_with_headers(hash)
+    mail = BaseMailer.welcome_with_headers(hash)
     assert_equal('SecretValue', mail['X-Special-Domain-Specific-Header'].decoded)
     assert_equal('1234@mikel.me.com', mail['In-Reply-To'].decoded)
   end
@@ -247,9 +248,9 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "uses random default headers from class" do
-    with_default BaseMailer, "X-SPAM" => "Not spam" do
-      email = BaseMailer.simple
-      assert_equal("Not spam", email["X-SPAM"].decoded)
+    with_default BaseMailer, "X-Custom" => "Custom" do
+      email = BaseMailer.welcome
+      assert_equal("Custom", email["X-Custom"].decoded)
     end
   end
 
@@ -476,16 +477,56 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   # Rendering
-  test "that you can specify a different template" do
-    mail = BaseMailer.different_template('explicit_multipart_templates')
+  test "you can specify a different template for implicit render" do
+    mail = BaseMailer.implicit_different_template('implicit_multipart')
+    assert_equal("HTML Implicit Multipart", mail.html_part.body.decoded)
+    assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
+  end
+
+  test "you can specify a different template for explicit render" do
+    mail = BaseMailer.explicit_different_template('explicit_multipart_templates')
     assert_equal("HTML Explicit Multipart Templates", mail.html_part.body.decoded)
     assert_equal("TEXT Explicit Multipart Templates", mail.text_part.body.decoded)
   end
 
-  test "that you can specify a different layout" do
+  test "you can specify a different layout" do
     mail = BaseMailer.different_layout('different_layout')
     assert_equal("HTML -- HTML", mail.html_part.body.decoded)
     assert_equal("PLAIN -- PLAIN", mail.text_part.body.decoded)
+  end
+
+  test "you can specify the template path for implicit lookup" do
+    mail = BaseMailer.welcome_from_another_path('another.path/base_mailer')
+    assert_equal("Welcome from another path", mail.body.encoded)
+
+    mail = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer'])
+    assert_equal("Welcome from another path", mail.body.encoded)
+  end
+  
+  # Before and After hooks
+  
+  class MyObserver
+    def self.delivered_email(mail)
+    end
+  end
+  
+  test "you can register an observer to the mail object that gets informed on email delivery" do
+    ActionMailer::Base.register_observer(MyObserver)
+    mail = BaseMailer.welcome
+    MyObserver.expects(:delivered_email).with(mail)
+    mail.deliver
+  end
+
+  class MyInterceptor
+    def self.delivering_email(mail)
+    end
+  end
+
+  test "you can register an interceptor to the mail object that gets passed the mail object before delivery" do
+    ActionMailer::Base.register_interceptor(MyInterceptor)
+    mail = BaseMailer.welcome
+    MyInterceptor.expects(:delivering_email).with(mail)
+    mail.deliver
   end
 
   protected

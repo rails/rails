@@ -1,10 +1,14 @@
 require "abstract_unit"
-require "rails/subscriber/test_helper"
-require "action_mailer/railties/subscriber"
+require "rails/log_subscriber/test_helper"
+require "action_mailer/railties/log_subscriber"
 
-class AMSubscriberTest < ActionMailer::TestCase
-  include Rails::Subscriber::TestHelper
-  Rails::Subscriber.add(:action_mailer, ActionMailer::Railties::Subscriber.new)
+class AMLogSubscriberTest < ActionMailer::TestCase
+  include Rails::LogSubscriber::TestHelper
+
+  def setup
+    super
+    Rails::LogSubscriber.add(:action_mailer, ActionMailer::Railties::LogSubscriber.new)
+  end
 
   class TestMailer < ActionMailer::Base
     def basic

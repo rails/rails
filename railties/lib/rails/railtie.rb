@@ -1,5 +1,6 @@
 require 'rails/initializable'
 require 'rails/configuration'
+require 'active_support/inflector'
 
 module Rails
   # Railtie is the core of the Rails Framework and provides several hooks to extend
@@ -193,17 +194,16 @@ module Rails
       end
 
       def railtie_name(railtie_name = nil)
-        @railtie_name ||= name.demodulize.underscore
         @railtie_name = railtie_name if railtie_name
-        @railtie_name
+        @railtie_name ||= default_name
       end
 
       def railtie_names
         subclasses.map { |p| p.railtie_name }
       end
 
-      def subscriber(subscriber)
-        Rails::Subscriber.add(railtie_name, subscriber)
+      def log_subscriber(log_subscriber)
+        Rails::LogSubscriber.add(railtie_name, log_subscriber)
       end
 
       def rake_tasks(&blk)
@@ -222,6 +222,10 @@ module Rails
 
       def abstract_railtie?(base)
         ABSTRACT_RAILTIES.include?(base.name)
+      end
+
+      def default_name
+        ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(name))
       end
     end
 

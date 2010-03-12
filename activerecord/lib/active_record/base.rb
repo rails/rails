@@ -11,174 +11,12 @@ require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
-require 'active_support/core_ext/object/metaclass'
+require 'active_support/core_ext/object/singleton_class'
 require 'active_support/core_ext/module/delegation'
+require 'arel'
+require 'active_record/errors'
 
 module ActiveRecord #:nodoc:
-  # Generic Active Record exception class.
-  class ActiveRecordError < StandardError
-  end
-
-  # Raised when the single-table inheritance mechanism fails to locate the subclass
-  # (for example due to improper usage of column that +inheritance_column+ points to).
-  class SubclassNotFound < ActiveRecordError #:nodoc:
-  end
-
-  # Raised when an object assigned to an association has an incorrect type.
-  #
-  #   class Ticket < ActiveRecord::Base
-  #     has_many :patches
-  #   end
-  #
-  #   class Patch < ActiveRecord::Base
-  #     belongs_to :ticket
-  #   end
-  #
-  #   # Comments are not patches, this assignment raises AssociationTypeMismatch.
-  #   @ticket.patches << Comment.new(:content => "Please attach tests to your patch.")
-  class AssociationTypeMismatch < ActiveRecordError
-  end
-
-  # Raised when unserialized object's type mismatches one specified for serializable field.
-  class SerializationTypeMismatch < ActiveRecordError
-  end
-
-  # Raised when adapter not specified on connection (or configuration file <tt>config/database.yml</tt> misses adapter field).
-  class AdapterNotSpecified < ActiveRecordError
-  end
-
-  # Raised when Active Record cannot find database adapter specified in <tt>config/database.yml</tt> or programmatically.
-  class AdapterNotFound < ActiveRecordError
-  end
-
-  # Raised when connection to the database could not been established (for example when <tt>connection=</tt> is given a nil object).
-  class ConnectionNotEstablished < ActiveRecordError
-  end
-
-  # Raised when Active Record cannot find record by given id or set of ids.
-  class RecordNotFound < ActiveRecordError
-  end
-
-  # Raised by ActiveRecord::Base.save! and ActiveRecord::Base.create! methods when record cannot be
-  # saved because record is invalid.
-  class RecordNotSaved < ActiveRecordError
-  end
-
-  # Raised when SQL statement cannot be executed by the database (for example, it's often the case for MySQL when Ruby driver used is too old).
-  class StatementInvalid < ActiveRecordError
-  end
-
-  # Raised when SQL statement is invalid and the application gets a blank result.
-  class ThrowResult < ActiveRecordError
-  end
-
-  # Parent class for all specific exceptions which wrap database driver exceptions
-  # provides access to the original exception also.
-  class WrappedDatabaseException < StatementInvalid
-    attr_reader :original_exception
-
-    def initialize(message, original_exception)
-      super(message)
-      @original_exception = original_exception
-    end
-  end
-
-  # Raised when a record cannot be inserted because it would violate a uniqueness constraint.
-  class RecordNotUnique < WrappedDatabaseException
-  end
-
-  # Raised when a record cannot be inserted or updated because it references a non-existent record.
-  class InvalidForeignKey < WrappedDatabaseException
-  end
-
-  # Raised when number of bind variables in statement given to <tt>:condition</tt> key (for example, when using +find+ method)
-  # does not match number of expected variables.
-  #
-  # For example, in
-  #
-  #   Location.find :all, :conditions => ["lat = ? AND lng = ?", 53.7362]
-  #
-  # two placeholders are given but only one variable to fill them.
-  class PreparedStatementInvalid < ActiveRecordError
-  end
-
-  # Raised on attempt to save stale record. Record is stale when it's being saved in another query after
-  # instantiation, for example, when two users edit the same wiki page and one starts editing and saves
-  # the page before the other.
-  #
-  # Read more about optimistic locking in ActiveRecord::Locking module RDoc.
-  class StaleObjectError < ActiveRecordError
-  end
-
-  # Raised when association is being configured improperly or
-  # user tries to use offset and limit together with has_many or has_and_belongs_to_many associations.
-  class ConfigurationError < ActiveRecordError
-  end
-
-  # Raised on attempt to update record that is instantiated as read only.
-  class ReadOnlyRecord < ActiveRecordError
-  end
-
-  # <tt>ActiveRecord::Transactions::ClassMethods.transaction</tt> uses this exception
-  # to distinguish a deliberate rollback from other exceptional situations.
-  # Normally, raising an exception will cause the +transaction+ method to rollback
-  # the database transaction *and* pass on the exception. But if you raise an
-  # <tt>ActiveRecord::Rollback</tt> exception, then the database transaction will be rolled back,
-  # without passing on the exception.
-  #
-  # For example, you could do this in your controller to rollback a transaction:
-  #
-  #   class BooksController < ActionController::Base
-  #     def create
-  #       Book.transaction do
-  #         book = Book.new(params[:book])
-  #         book.save!
-  #         if today_is_friday?
-  #           # The system must fail on Friday so that our support department
-  #           # won't be out of job. We silently rollback this transaction
-  #           # without telling the user.
-  #           raise ActiveRecord::Rollback, "Call tech support!"
-  #         end
-  #       end
-  #       # ActiveRecord::Rollback is the only exception that won't be passed on
-  #       # by ActiveRecord::Base.transaction, so this line will still be reached
-  #       # even on Friday.
-  #       redirect_to root_url
-  #     end
-  #   end
-  class Rollback < ActiveRecordError
-  end
-
-  # Raised when attribute has a name reserved by Active Record (when attribute has name of one of Active Record instance methods).
-  class DangerousAttributeError < ActiveRecordError
-  end
-
-  # Raised when unknown attributes are supplied via mass assignment.
-  class UnknownAttributeError < NoMethodError
-  end
-
-  # Raised when an error occurred while doing a mass assignment to an attribute through the
-  # <tt>attributes=</tt> method. The exception has an +attribute+ property that is the name of the
-  # offending attribute.
-  class AttributeAssignmentError < ActiveRecordError
-    attr_reader :exception, :attribute
-    def initialize(message, exception, attribute)
-      @exception = exception
-      @attribute = attribute
-      @message = message
-    end
-  end
-
-  # Raised when there are multiple errors while doing a mass assignment through the +attributes+
-  # method. The exception has an +errors+ property that contains an array of AttributeAssignmentError
-  # objects, each corresponding to the error while assigning to an attribute.
-  class MultiparameterAssignmentErrors < ActiveRecordError
-    attr_reader :errors
-    def initialize(errors)
-      @errors = errors
-    end
-  end
-
   # Active Record objects don't specify their attributes directly, but rather infer them from the table definition with
   # which they're linked. Adding, removing, and changing attributes and their type is done directly in the database. Any change
   # is instantly reflected in the Active Record objects. The mapping that binds a given Active Record class to a certain
@@ -551,8 +389,8 @@ module ActiveRecord #:nodoc:
     class << self # Class methods
       def colorize_logging(*args)
         ActiveSupport::Deprecation.warn "ActiveRecord::Base.colorize_logging and " <<
-          "config.active_record.colorize_logging are deprecated. Please use " << 
-          "Rails::Subscriber.colorize_logging or config.colorize_logging instead", caller
+          "config.active_record.colorize_logging are deprecated. Please use " <<
+          "Rails::LogSubscriber.colorize_logging or config.colorize_logging instead", caller
       end
       alias :colorize_logging= :colorize_logging
 
@@ -1669,12 +1507,12 @@ module ActiveRecord #:nodoc:
         @attributes_cache = {}
         @new_record = true
         ensure_proper_type
-        self.attributes = attributes unless attributes.nil?
 
         if scope = self.class.send(:current_scoped_methods)
           create_with = scope.scope_for_create
           create_with.each { |att,value| self.send("#{att}=", value) } if create_with
         end
+        self.attributes = attributes unless attributes.nil?
 
         result = yield self if block_given?
         _run_initialize_callbacks
@@ -1767,6 +1605,11 @@ module ActiveRecord #:nodoc:
         @destroyed || false
       end
 
+      # Returns if the record is persisted, i.e. it's not a new record and it was not destroyed.
+      def persisted?
+        !(new_record? || destroyed?)
+      end
+
       # :call-seq:
       #   save(options)
       #
@@ -1816,7 +1659,7 @@ module ActiveRecord #:nodoc:
       # callbacks, Observer methods, or any <tt>:dependent</tt> association
       # options, use <tt>#destroy</tt>.
       def delete
-        self.class.delete(id) unless new_record?
+        self.class.delete(id) if persisted?
         @destroyed = true
         freeze
       end
@@ -1824,7 +1667,7 @@ module ActiveRecord #:nodoc:
       # Deletes the record in the database and freezes this instance to reflect that no changes should
       # be made (since they can't be persisted).
       def destroy
-        unless new_record?
+        if persisted?
           self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
         end
 
@@ -1844,6 +1687,7 @@ module ActiveRecord #:nodoc:
         became.instance_variable_set("@attributes", @attributes)
         became.instance_variable_set("@attributes_cache", @attributes_cache)
         became.instance_variable_set("@new_record", new_record?)
+        became.instance_variable_set("@destroyed", destroyed?)
         became
       end
 
@@ -1926,7 +1770,7 @@ module ActiveRecord #:nodoc:
       def reload(options = nil)
         clear_aggregation_cache
         clear_association_cache
-        @attributes.update(self.class.find(self.id, options).instance_variable_get('@attributes'))
+        @attributes.update(self.class.send(:with_exclusive_scope) { self.class.find(self.id, options) }.instance_variable_get('@attributes'))
         @attributes_cache = {}
         self
       end
@@ -1995,10 +1839,9 @@ module ActiveRecord #:nodoc:
 
       # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
       def attributes
-        self.attribute_names.inject({}) do |attrs, name|
-          attrs[name] = read_attribute(name)
-          attrs
-        end
+        attrs = {}
+        attribute_names.each { |name| attrs[name] = read_attribute(name) }
+        attrs
       end
 
       # Returns an <tt>#inspect</tt>-like string for the value of the
@@ -2042,8 +1885,7 @@ module ActiveRecord #:nodoc:
       def ==(comparison_object)
         comparison_object.equal?(self) ||
           (comparison_object.instance_of?(self.class) &&
-            comparison_object.id == id &&
-            !comparison_object.new_record?)
+            comparison_object.id == id && !comparison_object.new_record?)
       end
 
       # Delegates to ==
@@ -2343,7 +2185,7 @@ module ActiveRecord #:nodoc:
 
       # Returns a comma-separated pair list, like "key1 = val1, key2 = val2".
       def comma_pair_list(hash)
-        hash.inject([]) { |list, pair| list << "#{pair.first} = #{pair.last}" }.join(", ")
+        hash.map { |k,v| "#{k} = #{v}" }.join(", ")
       end
 
       def quote_columns(quoter, hash)
@@ -2397,8 +2239,10 @@ module ActiveRecord #:nodoc:
 
     include Aggregations, Transactions, Reflection, Serialization
 
+    NilClass.add_whiner(self) if NilClass.respond_to?(:add_whiner)
   end
 end
 
 # TODO: Remove this and make it work with LAZY flag
 require 'active_record/connection_adapters/abstract_adapter'
+ActiveRecord.run_base_hooks(ActiveRecord::Base)

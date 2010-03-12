@@ -5,7 +5,7 @@ module Rails
     class Configuration < ::Rails::Engine::Configuration
       include ::Rails::Configuration::Deprecated
 
-      attr_accessor :allow_concurrency, :cache_classes, :cache_store, :colorize_logging,
+      attr_accessor :allow_concurrency, :cache_classes, :cache_store,
                     :consider_all_requests_local, :dependency_loading,
                     :filter_parameters,  :log_level, :logger, :metals,
                     :plugins, :preload_frameworks, :reload_engines, :reload_plugins,
@@ -14,12 +14,15 @@ module Rails
       def initialize(*)
         super
         @allow_concurrency   = false
-        @colorize_logging    = true
         @filter_parameters   = []
         @dependency_loading  = true
         @serve_static_assets = true
         @time_zone           = "UTC"
         @consider_all_requests_local = true
+      end
+
+      def middleware
+        @@default_middleware_stack ||= default_middleware
       end
 
       def paths
@@ -80,6 +83,16 @@ module Rails
 
       def log_level
         @log_level ||= Rails.env.production? ? :info : :debug
+      end
+
+      def colorize_logging
+        @colorize_logging
+      end
+
+      def colorize_logging=(val)
+        @colorize_logging = val
+        Rails::LogSubscriber.colorize_logging = val
+        self.generators.colorize_logging = val
       end
     end
   end

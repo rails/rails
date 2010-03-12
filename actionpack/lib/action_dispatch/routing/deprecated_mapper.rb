@@ -1,5 +1,30 @@
 module ActionDispatch
   module Routing
+    class RouteSet
+      attr_accessor :controller_namespaces
+
+      CONTROLLER_REGEXP = /[_a-zA-Z0-9]+/
+
+      def controller_constraints
+        @controller_constraints ||= begin
+          namespaces = controller_namespaces + in_memory_controller_namespaces
+          source = namespaces.map { |ns| "#{Regexp.escape(ns)}/#{CONTROLLER_REGEXP.source}" }
+          source << CONTROLLER_REGEXP.source
+          Regexp.compile(source.sort.reverse.join('|'))
+        end
+      end
+
+      def in_memory_controller_namespaces
+        namespaces = Set.new
+        ActionController::Base.subclasses.each do |klass|
+          controller_name = klass.underscore
+          namespaces << controller_name.split('/')[0...-1].join('/')
+        end
+        namespaces.delete('')
+        namespaces
+      end
+    end
+
     # Mapper instances are used to build routes. The object passed to the draw
     # block in config/routes.rb is a Mapper instance.
     #
@@ -244,14 +269,15 @@ module ActionDispatch
         attr_reader :collection_methods, :member_methods, :new_methods
         attr_reader :path_prefix, :name_prefix, :path_segment
         attr_reader :plural, :singular
-        attr_reader :options
+        attr_reader :options, :defaults
 
-        def initialize(entities, options)
+        def initialize(entities, options, defaults)
           @plural   ||= entities
           @singular ||= options[:singular] || plural.to_s.singularize
           @path_segment = options.delete(:as) || @plural
 
           @options = options
+          @defaults = defaults
 
           arrange_actions
           add_default_actions
@@ -280,7 +306,7 @@ module ActionDispatch
 
         def new_path
           new_action   = self.options[:path_names][:new] if self.options[:path_names]
-          new_action ||= ActionController::Base.resources_path_names[:new]
+          new_action ||= self.defaults[:path_names][:new]
           @new_path  ||= "#{path}/#{new_action}"
         end
 
@@ -370,7 +396,7 @@ module ActionDispatch
       end
 
       class SingletonResource < Resource #:nodoc:
-        def initialize(entity, options)
+        def initialize(entity, options, defaults)
           @singular = @plural = entity
           options[:controller] ||= @singular.to_s.pluralize
           super
@@ -717,7 +743,7 @@ module ActionDispatch
 
       private
         def map_resource(entities, options = {}, &block)
-          resource = Resource.new(entities, options)
+          resource = Resource.new(entities, options, :path_names => @set.resources_path_names)
 
           with_options :controller => resource.controller do |map|
             map_associations(resource, options)
@@ -734,7 +760,7 @@ module ActionDispatch
         end
 
         def map_singleton_resource(entities, options = {}, &block)
-          resource = SingletonResource.new(entities, options)
+          resource = SingletonResource.new(entities, options, :path_names => @set.resources_path_names)
 
           with_options :controller => resource.controller do |map|
             map_associations(resource, options)
@@ -826,7 +852,7 @@ module ActionDispatch
             actions.each do |action|
               [method].flatten.each do |m|
                 action_path = resource.options[:path_names][action] if resource.options[:path_names].is_a?(Hash)
-                action_path ||= ActionController::Base.resources_path_names[action] || action
+                action_path ||= @set.resources_path_names[action] || action
 
                 map_resource_routes(map, resource, action, "#{resource.member_path}#{resource.action_separator}#{action_path}", "#{action}_#{resource.shallow_name_prefix}#{resource.singular}", m, { :force_id => true })
               end

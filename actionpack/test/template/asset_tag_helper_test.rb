@@ -1,14 +1,16 @@
 require 'abstract_unit'
+require 'active_support/ordered_options'
+
+class FakeController
+  attr_accessor :request
+
+  def config
+    @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config)
+  end
+end
 
 class AssetTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
-
-  DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG.merge(
-    :assets_dir => File.dirname(__FILE__) + "/../fixtures/public",
-    :javascripts_dir => File.dirname(__FILE__) + "/../fixtures/public/javascripts",
-    :stylesheets_dir => File.dirname(__FILE__) + "/../fixtures/public/stylesheets")
-
-  include ActiveSupport::Configurable
 
   def setup
     super
@@ -32,8 +34,7 @@ class AssetTagHelperTest < ActionView::TestCase
       )
     end
 
-    @controller = Class.new do
-      attr_accessor :request
+    @controller = Class.new(BasicController) do
       def url_for(*args) "http://www.example.com" end
     end.new
 
@@ -50,7 +51,6 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def teardown
     ActionController::Base.perform_caching = false
-    ActionController::Base.asset_host = nil
     ENV.delete('RAILS_ASSET_ID')
   end
 
@@ -141,13 +141,16 @@ class AssetTagHelperTest < ActionView::TestCase
 
   ImageLinkToTag = {
     %(image_tag("xml.png")) => %(<img alt="Xml" src="/images/xml.png" />),
-    %(image_tag("..jpg")) => %(<img alt="" src="/images/..jpg" />),
+    %(image_tag("..jpg")) => %(<img alt="..jpg" src="/images/..jpg" />),
     %(image_tag("rss.gif", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.gif" />),
     %(image_tag("gold.png", :size => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
     %(image_tag("gold.png", "size" => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
     %(image_tag("error.png", "size" => "45")) => %(<img alt="Error" src="/images/error.png" />),
     %(image_tag("error.png", "size" => "45 x 70")) => %(<img alt="Error" src="/images/error.png" />),
     %(image_tag("error.png", "size" => "x")) => %(<img alt="Error" src="/images/error.png" />),
+    %(image_tag("google.com.png")) => %(<img alt="Google.com" src="/images/google.com.png" />),
+    %(image_tag("slash..png")) => %(<img alt="Slash." src="/images/slash..png" />),
+    %(image_tag(".pdf.png")) => %(<img alt=".pdf" src="/images/.pdf.png" />),
     %(image_tag("http://www.rubyonrails.com/images/rails.png")) => %(<img alt="Rails" src="http://www.rubyonrails.com/images/rails.png" />),
     %(image_tag("mouse.png", :mouseover => "/images/mouse_over.png")) => %(<img alt="Mouse" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" src="/images/mouse.png" />),
     %(image_tag("mouse.png", :mouseover => image_path("mouse_over.png"))) => %(<img alt="Mouse" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" src="/images/mouse.png" />)
@@ -372,11 +375,9 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_timebased_asset_id_with_relative_url_root
-      ActionController::Base.relative_url_root = "/collaboration/hieraki"
-      expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
-      assert_equal %(<img alt="Rails" src="#{ActionController::Base.relative_url_root}/images/rails.png?#{expected_time}" />), image_tag("rails.png")
-    ensure
-      ActionController::Base.relative_url_root = ""
+    @controller.config.relative_url_root = "/collaboration/hieraki"
+    expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
+    assert_equal %(<img alt="Rails" src="#{@controller.config.relative_url_root}/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
 
   def test_should_skip_asset_id_on_complete_url
@@ -402,15 +403,13 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_image_path_with_caching_and_proc_asset_host_using_request
     ENV['RAILS_ASSET_ID'] = ''
-    ActionController::Base.asset_host = Proc.new do |source, request|
+    @controller.config.asset_host = Proc.new do |source, request|
       if request.ssl?
         "#{request.protocol}#{request.host_with_port}"
       else
         "#{request.protocol}assets#{source.length}.example.com"
       end
     end
-
-    ActionController::Base.perform_caching = true
 
 
     @controller.request.stubs(:ssl?).returns(false)
@@ -422,7 +421,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_on
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = 'http://a0.example.com'
+    @controller.config.asset_host = 'http://a0.example.com'
     ActionController::Base.perform_caching = true
 
     assert_dom_equal(
@@ -454,7 +453,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_on_with_proc_asset_host
     ENV['RAILS_ASSET_ID'] = ''
-    ActionController::Base.asset_host = Proc.new { |source| "http://a#{source.length}.example.com" }
+    @controller.config.asset_host = Proc.new { |source| "http://a#{source.length}.example.com" }
     ActionController::Base.perform_caching = true
 
     assert_equal '/javascripts/scripts.js'.length, 23
@@ -471,7 +470,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_on_with_2_argument_proc_asset_host
     ENV['RAILS_ASSET_ID'] = ''
-    ActionController::Base.asset_host = Proc.new { |source, request|
+    @controller.config.asset_host = Proc.new { |source, request|
       if request.ssl?
         "#{request.protocol}#{request.host_with_port}"
       else
@@ -508,7 +507,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_on_with_2_argument_object_asset_host
     ENV['RAILS_ASSET_ID'] = ''
-    ActionController::Base.asset_host = Class.new do
+    @controller.config.asset_host = Class.new do
       def call(source, request)
         if request.ssl?
           "#{request.protocol}#{request.host_with_port}"
@@ -548,7 +547,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_on_and_using_subdirectory
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = 'http://a%d.example.com'
+    @controller.config.asset_host = 'http://a%d.example.com'
     ActionController::Base.perform_caching = true
 
     hash = '/javascripts/cache/money.js'.hash % 4
@@ -564,7 +563,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_with_all_and_recursive_puts_defaults_at_the_start_of_the_file
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = 'http://a0.example.com'
+    @controller.config.asset_host = 'http://a0.example.com'
     ActionController::Base.perform_caching = true
 
     assert_dom_equal(
@@ -585,7 +584,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_with_all_puts_defaults_at_the_start_of_the_file
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = 'http://a0.example.com'
+    @controller.config.asset_host = 'http://a0.example.com'
     ActionController::Base.perform_caching = true
 
     assert_dom_equal(
@@ -606,7 +605,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_with_relative_url_root
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.relative_url_root = "/collaboration/hieraki"
+    @controller.config.relative_url_root = "/collaboration/hieraki"
     ActionController::Base.perform_caching = true
 
     assert_dom_equal(
@@ -624,7 +623,6 @@ class AssetTagHelperTest < ActionView::TestCase
     assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
 
   ensure
-    ActionController::Base.relative_url_root = nil
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
   end
@@ -694,7 +692,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_stylesheet_link_tag_when_caching_on
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = 'http://a0.example.com'
+    @controller.config.asset_host = 'http://a0.example.com'
     ActionController::Base.perform_caching = true
 
     assert_dom_equal(
@@ -804,7 +802,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_stylesheet_link_tag_when_caching_on_with_proc_asset_host
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.asset_host = Proc.new { |source| "http://a#{source.length}.example.com" }
+    @controller.config.asset_host = Proc.new { |source| "http://a#{source.length}.example.com" }
     ActionController::Base.perform_caching = true
 
     assert_equal '/stylesheets/styles.css'.length, 23
@@ -821,7 +819,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_stylesheet_link_tag_with_relative_url_root
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.relative_url_root = "/collaboration/hieraki"
+    @controller.config.relative_url_root = "/collaboration/hieraki"
     ActionController::Base.perform_caching = true
 
     assert_dom_equal(
@@ -841,7 +839,6 @@ class AssetTagHelperTest < ActionView::TestCase
 
     assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
   ensure
-    ActionController::Base.relative_url_root = nil
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
   end
@@ -879,20 +876,15 @@ end
 class AssetTagHelperNonVhostTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
-  DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG
-  include ActiveSupport::Configurable
-
   def setup
     super
-    ActionController::Base.relative_url_root = "/collaboration/hieraki"
-
-    @controller = Class.new do
-      attr_accessor :request
-
+    @controller = Class.new(BasicController) do
       def url_for(options)
         "http://www.example.com/collaboration/hieraki"
       end
     end.new
+
+    @controller.config.relative_url_root = "/collaboration/hieraki"
 
     @request = Class.new do
       def protocol
@@ -903,10 +895,6 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     @controller.request = @request
 
     ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
-  end
-
-  def teardown
-    ActionController::Base.relative_url_root = nil
   end
 
   def test_should_compute_proper_path
@@ -923,43 +911,33 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   end
 
   def test_should_compute_proper_path_with_asset_host
-    ActionController::Base.asset_host = "http://assets.example.com"
+    @controller.config.asset_host = "http://assets.example.com"
     assert_dom_equal(%(<link href="http://www.example.com/collaboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />), auto_discovery_link_tag)
     assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
     assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
     assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
     assert_dom_equal(%(<img alt="Mouse" onmouseover="this.src='http://assets.example.com/collaboration/hieraki/images/mouse_over.png'" onmouseout="this.src='http://assets.example.com/collaboration/hieraki/images/mouse.png'" src="http://assets.example.com/collaboration/hieraki/images/mouse.png" />), image_tag("mouse.png", :mouseover => "/images/mouse_over.png"))
     assert_dom_equal(%(<img alt="Mouse2" onmouseover="this.src='http://assets.example.com/collaboration/hieraki/images/mouse_over2.png'" onmouseout="this.src='http://assets.example.com/collaboration/hieraki/images/mouse2.png'" src="http://assets.example.com/collaboration/hieraki/images/mouse2.png" />), image_tag("mouse2.png", :mouseover => image_path("mouse_over2.png")))
-  ensure
-    ActionController::Base.asset_host = ""
   end
 
   def test_should_ignore_asset_host_on_complete_url
-    ActionController::Base.asset_host = "http://assets.example.com"
+    @controller.config.asset_host = "http://assets.example.com"
     assert_dom_equal(%(<link href="http://bar.example.com/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag("http://bar.example.com/stylesheets/style.css"))
-  ensure
-    ActionController::Base.asset_host = ""
   end
 
   def test_should_wildcard_asset_host_between_zero_and_four
-    ActionController::Base.asset_host = 'http://a%d.example.com'
+    @controller.config.asset_host = 'http://a%d.example.com'
     assert_match %r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_path('xml.png')
-  ensure
-    ActionController::Base.asset_host = nil
   end
 
   def test_asset_host_without_protocol_should_use_request_protocol
-    ActionController::Base.asset_host = 'a.example.com'
+    @controller.config.asset_host = 'a.example.com'
     assert_equal 'gopher://a.example.com/collaboration/hieraki/images/xml.png', image_path('xml.png')
-  ensure
-    ActionController::Base.asset_host = nil
   end
 
   def test_asset_host_without_protocol_should_use_request_protocol_even_if_path_present
-    ActionController::Base.asset_host = 'a.example.com/files/go/here'
+    @controller.config.asset_host = 'a.example.com/files/go/here'
     assert_equal 'gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png', image_path('xml.png')
-  ensure
-    ActionController::Base.asset_host = nil
   end
 
   def test_assert_css_and_js_of_the_same_name_return_correct_extension

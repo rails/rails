@@ -62,7 +62,8 @@ class RenderXmlTest < ActionController::TestCase
     with_routing do |set|
       set.draw do |map|
         resources :customers
-        match ':controller/:action'
+        # match ':controller/:action'
+        map.connect ':controller/:action/:id'
       end
 
       get :render_with_object_location

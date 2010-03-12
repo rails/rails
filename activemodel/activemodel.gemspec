@@ -1,9 +1,11 @@
+version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).strip
+
 Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.name = 'activemodel'
-  s.version = '3.0.0.beta1'
-  s.summary = "A toolkit for building other modeling frameworks like ActiveRecord"
-  s.description = %q{Extracts common modeling concerns from ActiveRecord to share between similar frameworks like ActiveResource.}
+  s.version = version
+  s.summary = 'A toolkit for building modeling frameworks (part of Rails).'
+  s.description = 'A toolkit for building modeling frameworks like Active Record and Active Resource. Rich support for attributes, callbacks, validations, observers, serialization, internationalization, and testing.'
   s.required_ruby_version = '>= 1.8.7'
 
   s.author = "David Heinemeier Hansson"
@@ -13,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.has_rdoc = true
 
-  s.add_dependency('activesupport', '= 3.0.0.beta1')
+  s.add_dependency('activesupport', version)
 
   s.require_path = 'lib'
   s.files = Dir["CHANGELOG", "MIT-LICENSE", "README", "lib/**/*"]

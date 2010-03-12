@@ -5,7 +5,7 @@ require 'active_support/core_ext/hash/keys'
 module ActionView
   module Helpers #:nodoc:
     # Provides a set of methods for making links and getting URLs that
-    # depend on the routing subsystem (see ActionController::Routing).
+    # depend on the routing subsystem (see ActionDispatch::Routing).
     # This allows you to use the same format for links in views
     # and controllers.
     module UrlHelper
@@ -63,7 +63,7 @@ module ActionView
       #   # => /testing/jump/#tax&ship
       #
       #   <%= url_for(Workshop.new) %>
-      #   # relies on Workshop answering a new_record? call (and in this case returning true)
+      #   # relies on Workshop answering a persisted? call (and in this case returning false)
       #   # => /workshops
       #
       #   <%= url_for(@workshop) %>
@@ -202,8 +202,6 @@ module ActionView
       #
       #   link_to("Destroy", "http://www.example.com", :method => :delete, :confirm => "Are you sure?")
       #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete" data-confirm="Are you sure?">Destroy</a>
-
-      #
       def link_to(*args, &block)
         if block_given?
           options      = args.first || {}
@@ -226,7 +224,7 @@ module ActionView
           end
 
           href_attr = "href=\"#{url}\"" unless href
-          "<a #{href_attr}#{tag_options}>#{ERB::Util.h(name || url)}</a>".html_safe
+          ("<a #{href_attr}#{tag_options}>".html_safe << (name || url)).safe_concat("</a>")
         end
       end
 
@@ -469,14 +467,12 @@ module ActionView
         extras << "subject=#{Rack::Utils.escape(subject).gsub("+", "%20")}&" unless subject.nil?
         extras = "?" << extras.gsub!(/&?$/,"") unless extras.empty?
 
-        email_address = email_address.to_s
-
-        email_address_obfuscated = email_address.dup
+        email_address_obfuscated = html_escape(email_address)
         email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.has_key?("replace_at")
         email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.has_key?("replace_dot")
 
         if encode == "javascript"
-          "document.write('#{content_tag("a", name || email_address_obfuscated, html_options.merge({ "href" => "mailto:"+email_address+extras }))}');".each_byte do |c|
+          "document.write('#{content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge({ "href" => "mailto:"+email_address+extras }))}');".each_byte do |c|
             string << sprintf("%%%x", c)
           end
           "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>"
@@ -493,9 +489,9 @@ module ActionView
             char = c.chr
             string << (char =~ /\w/ ? sprintf("%%%x", c) : char)
           end
-          content_tag "a", name || email_address_encoded, html_options.merge({ "href" => "#{string}#{extras}" })
+          content_tag "a", name || email_address_encoded.html_safe, html_options.merge({ "href" => "#{string}#{extras}" })
         else
-          content_tag "a", name || email_address_obfuscated, html_options.merge({ "href" => "mailto:#{email_address}#{extras}" })
+          content_tag "a", name || email_address_obfuscated.html_safe, html_options.merge({ "href" => "mailto:#{email_address}#{extras}" })
         end
       end
 
@@ -548,10 +544,11 @@ module ActionView
         # submitted url doesn't have any either.  This lets the function
         # work with things like ?order=asc
         if url_string.index("?")
-          request_uri = request.request_uri
+          request_uri = request.fullpath
         else
-          request_uri = request.request_uri.split('?').first
+          request_uri = request.path
         end
+
         if url_string =~ /^\w+:\/\//
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
         else

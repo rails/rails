@@ -1,6 +1,3 @@
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/module/delegation'
-
 module AbstractController
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
   # repeated setups. The inclusion pattern has pages that look like this:
@@ -173,27 +170,7 @@ module AbstractController
     module ClassMethods
       def inherited(klass)
         super
-        klass.class_eval do
-          _write_layout_method
-          @found_layouts = {}
-        end
-      end
-
-      def clear_template_caches!
-        @found_layouts.clear if defined? @found_layouts
-        super
-      end
-
-      def cache_layout(details)
-        layout = @found_layouts
-        key = Thread.current[:format_locale_key]
-
-        # Cache nil
-        if layout.key?(key)
-          return layout[key]
-        else
-          layout[key] = yield
-        end
+        klass._write_layout_method
       end
 
       # This module is mixed in if layout conditions are provided. This means
@@ -262,10 +239,10 @@ module AbstractController
       def _write_layout_method
         case defined?(@_layout) ? @_layout : nil
         when String
-          self.class_eval %{def _layout(details) #{@_layout.inspect} end}
+          self.class_eval %{def _layout; #{@_layout.inspect} end}
         when Symbol
           self.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
-            def _layout(details)
+            def _layout
               #{@_layout}.tap do |layout|
                 unless layout.is_a?(String) || !layout
                   raise ArgumentError, "Your layout method :#{@_layout} returned \#{layout}. It " \
@@ -276,21 +253,21 @@ module AbstractController
           ruby_eval
         when Proc
           define_method :_layout_from_proc, &@_layout
-          self.class_eval %{def _layout(details) _layout_from_proc(self) end}
+          self.class_eval %{def _layout; _layout_from_proc(self) end}
         when false
-          self.class_eval %{def _layout(details) end}
+          self.class_eval %{def _layout; end}
         when true
           raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
         when nil
           if name
+            _prefix = "layouts" unless _implied_layout_name =~ /\blayouts/
+
             self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def _layout(details)
-                self.class.cache_layout(details) do
-                  if template_exists?("#{_implied_layout_name}", details, :_prefix => "layouts")
-                    "#{_implied_layout_name}"
-                  else
-                    super
-                  end
+              def _layout
+                if template_exists?("#{_implied_layout_name}", #{_prefix.inspect})
+                  "#{_implied_layout_name}"
+                else
+                  super
                 end
               end
             RUBY
@@ -300,42 +277,20 @@ module AbstractController
       end
     end
 
-    def render_to_body(options = {})
-      # In the case of a partial with a layout, handle the layout
-      # here, and make sure the view does not try to handle it
-      layout = options.delete(:layout) if options.key?(:partial)
+    def _normalize_options(options)
+      super
 
-      response = super
-
-      # This is a little bit messy. We need to explicitly handle partial
-      # layouts here since the core lookup logic is in the view, but
-      # we need to determine the layout based on the controller
-      #
-      # TODO: An easier way to handle this would probably be to override
-      # render_template
-      if layout
-        layout = _layout_for_option(layout, options[:_template].details)
-        response = layout.render(view_context, options[:locals] || {}) { response }
+      if _include_layout?(options)
+        layout = options.key?(:layout) ? options.delete(:layout) : :default
+        value = _layout_for_option(layout)
+        options[:layout] = (value =~ /\blayouts/ ? value : "layouts/#{value}") if value
       end
-
-      response
     end
 
   private
 
     # This will be overwritten by _write_layout_method
-    def _layout(details) end
-
-    # Determine the layout for a given name and details.
-    #
-    # ==== Parameters
-    # name<String>:: The name of the template
-    # details<Hash{Symbol => Object}>:: A list of details to restrict
-    #   the lookup to. By default, layout lookup is limited to the
-    #   formats specified for the current request.
-    def _layout_for_name(name, details)
-      name && _find_layout(name, details)
-    end
+    def _layout; end
 
     # Determine the layout for a given name and details, taking into account
     # the name type.
@@ -345,39 +300,16 @@ module AbstractController
     # details<Hash{Symbol => Object}>:: A list of details to restrict
     #   the lookup to. By default, layout lookup is limited to the
     #   formats specified for the current request.
-    def _layout_for_option(name, details)
+    def _layout_for_option(name)
       case name
-      when String     then _layout_for_name(name, details)
-      when true       then _default_layout(details, true)
-      when :default   then _default_layout(details, false)
+      when String     then name
+      when true       then _default_layout(true)
+      when :default   then _default_layout(false)
       when false, nil then nil
       else
         raise ArgumentError,
           "String, true, or false, expected for `layout'; you passed #{name.inspect}"
       end
-    end
-
-    def _determine_template(options)
-      super
-
-      return unless (options.keys & [:text, :inline, :partial]).empty? || options.key?(:layout)
-      layout = options.key?(:layout) ? options[:layout] : :default
-      options[:_layout] = _layout_for_option(layout, options[:_template].details)
-    end
-
-    # Take in the name and details and find a Template.
-    #
-    # ==== Parameters
-    # name<String>:: The name of the template to retrieve
-    # details<Hash>:: A list of details to restrict the search by. This
-    #   might include details like the format or locale of the template.
-    #
-    # ==== Returns
-    # Template:: A template object matching the name and details
-    def _find_layout(name, details)
-      # TODO: Make prefix actually part of details in ViewPath#find_by_parts
-      prefix = details.key?(:prefix) ? details.delete(:prefix) : "layouts"
-      find_template(name, details, :_prefix => prefix)
     end
 
     # Returns the default layout for this controller and a given set of details.
@@ -392,18 +324,24 @@ module AbstractController
     #
     # ==== Returns
     # Template:: The template object for the default layout (or nil)
-    def _default_layout(details, require_layout = false)
-      if require_layout && _action_has_layout? && !_layout(details)
-        raise ArgumentError,
-          "There was no default layout for #{self.class} in #{view_paths.inspect}"
-      end
-
+    def _default_layout(require_layout = false)
       begin
-        _layout_for_name(_layout(details), details) if _action_has_layout?
+        layout_name = _layout if _action_has_layout?
       rescue NameError => e
         raise NoMethodError,
           "You specified #{@_layout.inspect} as the layout, but no such method was found"
       end
+
+      if require_layout && _action_has_layout? && !layout_name
+        raise ArgumentError,
+          "There was no default layout for #{self.class} in #{view_paths.inspect}"
+      end
+
+      layout_name
+    end
+
+    def _include_layout?(options)
+      (options.keys & [:text, :inline, :partial]).empty? || options.key?(:layout)
     end
 
     def _action_has_layout?

@@ -37,8 +37,21 @@ module ActionDispatch
       end
 
       module Response
-        def cache_control
-          @cache_control ||= {}
+        attr_reader :cache_control
+
+        def initialize(*)
+          status, header, body = super
+
+          @cache_control = {}
+          @etag = self["ETag"]
+
+          if cache_control = self["Cache-Control"]
+            cache_control.split(/,\s*/).each do |segment|
+              first, last = segment.split("=")
+              last ||= true
+              @cache_control[first.to_sym] = last
+            end
+          end
         end
 
         def last_modified
@@ -65,7 +78,7 @@ module ActionDispatch
 
         def etag=(etag)
           key = ActiveSupport::Cache.expand_cache_key(etag)
-          @etag = %("#{Digest::MD5.hexdigest(key)}")
+          @etag = self["ETag"] = %("#{Digest::MD5.hexdigest(key)}")
         end
 
       private
@@ -99,6 +112,8 @@ module ActionDispatch
 
         def set_conditional_cache_control!
           control = @cache_control
+
+          return if self["Cache-Control"].present?
 
           if control.empty?
             headers["Cache-Control"] = DEFAULT_CACHE_CONTROL

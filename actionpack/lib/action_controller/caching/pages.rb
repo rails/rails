@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'uri'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module ActionController #:nodoc:
   module Caching
@@ -34,27 +35,26 @@ module ActionController #:nodoc:
     # Additionally, you can expire caches using Sweepers that act on changes in the model to determine when a cache is supposed to be
     # expired.
     module Pages
-      def self.included(base) #:nodoc:
-        base.extend(ClassMethods)
-        base.class_eval do
-          @@page_cache_directory = defined?(Rails.public_path) ? Rails.public_path : ""
-          ##
-          # :singleton-method:
-          # The cache directory should be the document root for the web server and is set using <tt>Base.page_cache_directory = "/document/root"</tt>.
-          # For Rails, this directory has already been set to Rails.public_path (which is usually set to <tt>RAILS_ROOT + "/public"</tt>). Changing
-          # this setting can be useful to avoid naming conflicts with files in <tt>public/</tt>, but doing so will likely require configuring your
-          # web server to look in the new location for cached files.
-          cattr_accessor :page_cache_directory
+      extend ActiveSupport::Concern
 
-          @@page_cache_extension = '.html'
-          ##
-          # :singleton-method:
-          # Most Rails requests do not have an extension, such as <tt>/weblog/new</tt>. In these cases, the page caching mechanism will add one in
-          # order to make it easy for the cached files to be picked up properly by the web server. By default, this cache extension is <tt>.html</tt>.
-          # If you want something else, like <tt>.php</tt> or <tt>.shtml</tt>, just set Base.page_cache_extension. In cases where a request already has an
-          # extension, such as <tt>.xml</tt> or <tt>.rss</tt>, page caching will not add an extension. This allows it to work well with RESTful apps.
-          cattr_accessor :page_cache_extension
-        end
+      included do
+        @@page_cache_directory = defined?(Rails.public_path) ? Rails.public_path : ""
+        ##
+        # :singleton-method:
+        # The cache directory should be the document root for the web server and is set using <tt>Base.page_cache_directory = "/document/root"</tt>.
+        # For Rails, this directory has already been set to Rails.public_path (which is usually set to <tt>RAILS_ROOT + "/public"</tt>). Changing
+        # this setting can be useful to avoid naming conflicts with files in <tt>public/</tt>, but doing so will likely require configuring your
+        # web server to look in the new location for cached files.
+        cattr_accessor :page_cache_directory
+
+        @@page_cache_extension = '.html'
+        ##
+        # :singleton-method:
+        # Most Rails requests do not have an extension, such as <tt>/weblog/new</tt>. In these cases, the page caching mechanism will add one in
+        # order to make it easy for the cached files to be picked up properly by the web server. By default, this cache extension is <tt>.html</tt>.
+        # If you want something else, like <tt>.php</tt> or <tt>.shtml</tt>, just set Base.page_cache_extension. In cases where a request already has an
+        # extension, such as <tt>.xml</tt> or <tt>.rss</tt>, page caching will not add an extension. This allows it to work well with RESTful apps.
+        cattr_accessor :page_cache_extension
       end
 
       module ClassMethods
@@ -121,10 +121,10 @@ module ActionController #:nodoc:
         if options.is_a?(Hash)
           if options[:action].is_a?(Array)
             options[:action].dup.each do |action|
-              self.class.expire_page(url_for(options.merge(:only_path => true, :skip_relative_url_root => true, :action => action)))
+              self.class.expire_page(url_for(options.merge(:only_path => true, :action => action)))
             end
           else
-            self.class.expire_page(url_for(options.merge(:only_path => true, :skip_relative_url_root => true)))
+            self.class.expire_page(url_for(options.merge(:only_path => true)))
           end
         else
           self.class.expire_page(options)
@@ -139,7 +139,7 @@ module ActionController #:nodoc:
 
         path = case options
           when Hash
-            url_for(options.merge(:only_path => true, :skip_relative_url_root => true, :format => params[:format]))
+            url_for(options.merge(:only_path => true, :format => params[:format]))
           when String
             options
           else

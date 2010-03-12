@@ -42,7 +42,7 @@ class TestTest < ActionController::TestCase
     end
 
     def test_uri
-      render :text => request.request_uri
+      render :text => request.fullpath
     end
 
     def test_query_string
@@ -128,6 +128,7 @@ XML
     @controller = TestController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
+    @request.env['PATH_INFO'] = nil
   end
 
   def test_raw_post_handling
@@ -199,7 +200,7 @@ XML
   end
 
   def test_process_with_request_uri_with_params_with_explicit_uri
-    @request.request_uri = "/explicit/uri"
+    @request.env['PATH_INFO'] = "/explicit/uri"
     process :test_uri, :id => 7
     assert_equal "/explicit/uri", @response.body
   end
@@ -210,7 +211,8 @@ XML
   end
 
   def test_process_with_query_string_with_explicit_uri
-    @request.request_uri = "/explicit/uri?q=test?extra=question"
+    @request.env['PATH_INFO'] = '/explicit/uri'
+    @request.env['QUERY_STRING'] = 'q=test?extra=question'
     process :test_query_string
     assert_equal "q=test?extra=question", @response.body
   end
@@ -476,8 +478,8 @@ XML
   end
 
   def test_with_routing_places_routes_back
-    assert ActionController::Routing::Routes
-    routes_id = ActionController::Routing::Routes.object_id
+    assert @router
+    routes_id = @router.object_id
 
     begin
       with_routing { raise 'fail' }
@@ -485,8 +487,8 @@ XML
     rescue RuntimeError
     end
 
-    assert ActionController::Routing::Routes
-    assert_equal routes_id, ActionController::Routing::Routes.object_id
+    assert @router
+    assert_equal routes_id, @router.object_id
   end
 
   def test_remote_addr

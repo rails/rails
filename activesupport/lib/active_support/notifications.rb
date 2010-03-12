@@ -9,7 +9,7 @@ module ActiveSupport
   #   end
   #
   # You can consume those events and the information they provide by registering
-  # a subscriber. For instance, let's store all instrumented events in an array:
+  # a log subscriber. For instance, let's store all instrumented events in an array:
   #
   #   @events = []
   #
@@ -35,7 +35,7 @@ module ActiveSupport
   #   end
   #
   # Notifications ships with a queue implementation that consumes and publish events
-  # to subscribers in a thread. You can use any queue implementation you want.
+  # to log subscribers in a thread. You can use any queue implementation you want.
   #
   module Notifications
     autoload :Instrumenter, 'active_support/notifications/instrumenter'
@@ -44,7 +44,7 @@ module ActiveSupport
 
     class << self
       attr_writer :notifier
-      delegate :publish, :subscribe, :to => :notifier
+      delegate :publish, :subscribe, :unsubscribe, :to => :notifier
       delegate :instrument, :to => :instrumenter
 
       def notifier
@@ -67,6 +67,10 @@ module ActiveSupport
 
       def subscribe(pattern = nil, &block)
         @queue.bind(pattern).subscribe(&block)
+      end
+
+      def unsubscribe(subscriber)
+        @queue.unsubscribe(subscriber)
       end
 
       def wait

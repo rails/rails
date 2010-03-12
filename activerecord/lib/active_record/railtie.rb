@@ -20,35 +20,43 @@ module ActiveRecord
     end
 
     # TODO If we require the wrong file, the error never comes up.
-    require "active_record/railties/subscriber"
-    subscriber ActiveRecord::Railties::Subscriber.new
+    require "active_record/railties/log_subscriber"
+    log_subscriber ActiveRecord::Railties::LogSubscriber.new
 
     initializer "active_record.initialize_timezone" do
-      ActiveRecord::Base.time_zone_aware_attributes = true
-      ActiveRecord::Base.default_timezone = :utc
+      ActiveRecord.base_hook do
+        self.time_zone_aware_attributes = true
+        self.default_timezone = :utc
+      end
     end
 
     initializer "active_record.logger" do
-      ActiveRecord::Base.logger ||= ::Rails.logger
+      ActiveRecord.base_hook { self.logger ||= ::Rails.logger }
     end
 
     initializer "active_record.set_configs" do |app|
-      app.config.active_record.each do |k,v|
-        ActiveRecord::Base.send "#{k}=", v
+      ActiveRecord.base_hook do
+        app.config.active_record.each do |k,v|
+          send "#{k}=", v
+        end
       end
     end
 
     # This sets the database configuration from Configuration#database_configuration
     # and then establishes the connection.
     initializer "active_record.initialize_database" do |app|
-      ActiveRecord::Base.configurations = app.config.database_configuration
-      ActiveRecord::Base.establish_connection
+      ActiveRecord.base_hook do
+        self.configurations = app.config.database_configuration
+        establish_connection
+      end
     end
 
     # Expose database runtime to controller for logging.
     initializer "active_record.log_runtime" do |app|
       require "active_record/railties/controller_runtime"
-      ActionController::Base.send :include, ActiveRecord::Railties::ControllerRuntime
+      ActionController.base_hook do
+        include ActiveRecord::Railties::ControllerRuntime
+      end
     end
 
     # Setup database middleware after initializers have run
@@ -64,18 +72,22 @@ module ActiveRecord
     end
 
     initializer "active_record.load_observers" do
-      ActiveRecord::Base.instantiate_observers
+      ActiveRecord.base_hook { instantiate_observers }
 
-      ActionDispatch::Callbacks.to_prepare(:activerecord_instantiate_observers) do
-        ActiveRecord::Base.instantiate_observers
+      ActiveRecord.base_hook do
+        ActionDispatch::Callbacks.to_prepare(:activerecord_instantiate_observers) do
+          ActiveRecord::Base.instantiate_observers
+        end
       end
     end
 
     initializer "active_record.set_dispatch_hooks", :before => :set_clear_dependencies_hook do |app|
-      unless app.config.cache_classes
-        ActionDispatch::Callbacks.after do
-          ActiveRecord::Base.reset_subclasses
-          ActiveRecord::Base.clear_reloadable_connections!
+      ActiveRecord.base_hook do
+        unless app.config.cache_classes
+          ActionDispatch::Callbacks.after do
+            ActiveRecord::Base.reset_subclasses
+            ActiveRecord::Base.clear_reloadable_connections!
+          end
         end
       end
     end

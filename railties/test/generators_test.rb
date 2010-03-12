@@ -145,16 +145,17 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_developer_options_are_overwriten_by_user_options
-    Rails::Generators.options[:new_generator] = { :generate => false }
+    Rails::Generators.options[:with_options] = { :generate => false }
 
-    klass = Class.new(Rails::Generators::Base) do
-      def self.name() 'NewGenerator' end
-      class_option :generate, :default => true
-    end
+    self.class.class_eval <<-end_eval
+      class WithOptionsGenerator < Rails::Generators::Base
+        class_option :generate, :default => true
+      end
+    end_eval
 
-    assert_equal false, klass.class_options[:generate].default
+    assert_equal false, WithOptionsGenerator.class_options[:generate].default
   ensure
-    Rails::Generators.subclasses.delete(klass)
+    Rails::Generators.subclasses.delete(WithOptionsGenerator)
   end
 
   def test_load_generators_from_railties

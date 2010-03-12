@@ -97,7 +97,9 @@ module ActionView
     #   </select>
     #
     module FormOptionsHelper
+      # ERB::Util can mask some helpers like textilize. Make sure to include them.
       include ERB::Util
+      include TextHelper
 
       # Create a select tag and a series of contained option tags for the provided object and method.
       # The option currently held by the object will be selected, provided that the object is available.
@@ -572,10 +574,9 @@ module ActionView
           end
           if value.blank? && options[:prompt]
             prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            "<option value=\"\">#{prompt}</option>\n" + option_tags
-          else
-            option_tags
+            option_tags = "<option value=\"\">#{prompt}</option>\n" + option_tags
           end
+          option_tags.html_safe
         end
     end
 

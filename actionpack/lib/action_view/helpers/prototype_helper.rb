@@ -182,9 +182,11 @@ module ActionView
         def initialize(context, &block) #:nodoc:
           context._evaluate_assigns_and_ivars
           @context, @lines = context, []
-          include_helpers_from_context
-          @context.with_output_buffer(@lines) do
-            @context.instance_exec(self, &block)
+          @context.update_details(:formats => [:js, :html]) do
+            include_helpers_from_context
+            @context.with_output_buffer(@lines) do
+              @context.instance_exec(self, &block)
+            end
           end
         end
 
@@ -569,15 +571,19 @@ module ActionView
               end
             end
 
-            def render(*options_for_render)
-              old_formats = @context && @context.formats
+            def render(*options)
+              with_formats(:html) do
+                case option = options.first
+                when Hash
+                  @context.render(*options)
+                else
+                  option.to_s
+                end
+              end
+            end
 
-              @context.reset_formats([:html]) if @context
-              Hash === options_for_render.first ?
-                @context.render(*options_for_render) :
-                  options_for_render.first.to_s
-            ensure
-              @context.reset_formats(old_formats) if @context
+            def with_formats(*args)
+              @context ? @context.update_details(:formats => args) { yield } : yield
             end
 
             def javascript_object_for(object)

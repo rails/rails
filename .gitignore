@@ -1,3 +1,6 @@
+*.gem
+pkg
+.bundle
 debug.log
 doc/rdoc
 activemodel/doc
@@ -16,6 +19,3 @@ railties/doc/guides/html/images
 railties/doc/guides/html/stylesheets
 railties/guides/output
 railties/tmp
-bin
-.bundle
-pkg

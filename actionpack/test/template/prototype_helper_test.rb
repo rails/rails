@@ -4,6 +4,7 @@ require 'active_model'
 class Bunny < Struct.new(:Bunny, :id)
   extend ActiveModel::Naming
   include ActiveModel::Conversion
+  def to_key() id ? [id] : nil end
 end
 
 class Author
@@ -11,6 +12,7 @@ class Author
   include ActiveModel::Conversion
 
   attr_reader :id
+  def to_key() id ? [id] : nil end
   def save; @id = 1 end
   def new_record?; @id.nil? end
   def name
@@ -23,6 +25,7 @@ class Article
   include ActiveModel::Conversion
   attr_reader :id
   attr_reader :author_id
+  def to_key() id ? [id] : nil end
   def save; @id = 1; @author_id = 1 end
   def new_record?; @id.nil? end
   def name
@@ -36,8 +39,9 @@ class Author::Nested < Author; end
 class PrototypeHelperBaseTest < ActionView::TestCase
   attr_accessor :formats, :output_buffer
 
-  def reset_formats(format)
-    @format = format
+  def update_details(details)
+    @details = details
+    yield if block_given?
   end
 
   def setup

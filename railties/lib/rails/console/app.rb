@@ -17,8 +17,8 @@ end
 # create a new session. If a block is given, the new session will be yielded
 # to the block before being returned.
 def new_session
-  app = ActionController::Dispatcher.new
-  session = ActionController::Integration::Session.new(app)
+  app = Rails.application
+  session = ActionDispatch::Integration::Session.new(app)
   yield session if block_given?
   session
 end
@@ -26,7 +26,8 @@ end
 # reloads the environment
 def reload!(print=true)
   puts "Reloading..." if print
-  ActionDispatch::Callbacks.new(lambda {}, false)
+  # This triggers the to_prepare callbacks
+  ActionDispatch::Callbacks.new(Proc.new {}, false).call({})
   true
 end
 

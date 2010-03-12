@@ -1330,11 +1330,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_destroyed_returns_boolean
-    developer = Developer.new
-    assert_equal developer.destroyed?, false
-    developer.destroy
-    assert_equal developer.destroyed?, true
-
     developer = Developer.first
     assert_equal developer.destroyed?, false
     developer.destroy
@@ -1344,6 +1339,23 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal developer.destroyed?, false
     developer.delete
     assert_equal developer.destroyed?, true
+  end
+
+  def test_persisted_returns_boolean
+    developer = Developer.new(:name => "Jose")
+    assert_equal developer.persisted?, false
+    developer.save!
+    assert_equal developer.persisted?, true
+
+    developer = Developer.first
+    assert_equal developer.persisted?, true
+    developer.destroy
+    assert_equal developer.persisted?, false
+
+    developer = Developer.last
+    assert_equal developer.persisted?, true
+    developer.delete
+    assert_equal developer.persisted?, false
   end
 
   def test_clone
@@ -1709,6 +1721,12 @@ class BasicsTest < ActiveRecord::TestCase
     t1.save
     t2.reload
     assert_equal t1.title, t2.title
+  end
+
+  def test_reload_with_exclusive_scope
+    dev = DeveloperCalledDavid.first
+    dev.update_attributes!( :name => "NotDavid" )
+    assert_equal dev, dev.reload
   end
 
   def test_define_attr_method_with_value

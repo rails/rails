@@ -89,12 +89,12 @@ module Rails
       #
       # ==== Example
       #
-      #   source "http://gems.github.com/"
+      #   add_source "http://gems.github.com/"
       def add_source(source, options={})
         log :source, source
 
         in_root do
-          prepend_file "Gemfile", "source #{source.inspect}", :verbose => false
+          prepend_file "Gemfile", "source #{source.inspect}\n", :verbose => false
         end
       end
 
@@ -278,6 +278,16 @@ module Rails
         in_root do
           inject_into_file 'config/routes.rb', "\n  #{routing_code}\n", { :after => sentinel, :verbose => false }
         end
+      end
+
+      # Reads the given file at the source root and prints it in the console.
+      #
+      # === Example
+      #
+      #   readme "README"
+      #
+      def readme(path)
+        say File.read(find_in_source_paths(path))
       end
 
       protected

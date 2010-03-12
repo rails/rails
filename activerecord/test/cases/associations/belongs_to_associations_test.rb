@@ -18,7 +18,8 @@ require 'models/essay'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
-           :developers_projects, :computers, :authors, :posts, :tags, :taggings, :comments
+           :developers_projects, :computers, :authors, :author_addresses,
+           :posts, :tags, :taggings, :comments
 
   def test_belongs_to
     Client.find(3).firm.name
@@ -346,14 +347,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::ReadOnlyRecord) { companies(:first_client).readonly_firm.save! }
     assert companies(:first_client).readonly_firm.readonly?
   end
-  
+
   def test_polymorphic_assignment_foreign_type_field_updating
     # should update when assigning a saved record
     sponsor = Sponsor.new
     member = Member.create
     sponsor.sponsorable = member
     assert_equal "Member", sponsor.sponsorable_type
-    
+
     # should update when assigning a new record
     sponsor = Sponsor.new
     member = Member.new
@@ -374,15 +375,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     essay.writer = writer
     assert_equal "Author", essay.writer_type
   end
-  
+
   def test_polymorphic_assignment_updates_foreign_id_field_for_new_and_saved_records
     sponsor = Sponsor.new
     saved_member = Member.create
     new_member = Member.new
-    
+
     sponsor.sponsorable = saved_member
     assert_equal saved_member.id, sponsor.sponsorable_id
-    
+
     sponsor.sponsorable = new_member
     assert_equal nil, sponsor.sponsorable_id
   end
@@ -422,6 +423,25 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       Account.find(@account.id).save!
       Account.find(@account.id, :include => :firm).save!
+    end
+  end
+
+  def test_dependent_delete_and_destroy_with_belongs_to
+    author_address = author_addresses(:david_address)
+    author_address_extra = author_addresses(:david_address_extra)
+    assert_equal [], AuthorAddress.destroyed_author_address_ids
+
+    assert_difference "AuthorAddress.count", -2 do
+      authors(:david).destroy
+    end
+
+    assert_equal [], AuthorAddress.find_all_by_id([author_address.id, author_address_extra.id])
+    assert_equal [author_address.id], AuthorAddress.destroyed_author_address_ids
+  end
+
+  def test_invalid_belongs_to_dependent_option_raises_exception
+    assert_raise ArgumentError do
+      Author.belongs_to :special_author_address, :dependent => :nullify
     end
   end
 end

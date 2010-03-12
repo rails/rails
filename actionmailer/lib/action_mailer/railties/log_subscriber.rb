@@ -1,6 +1,6 @@
 module ActionMailer
   module Railties
-    class Subscriber < Rails::Subscriber
+    class LogSubscriber < Rails::LogSubscriber
       def deliver(event)
         recipients = Array(event.payload[:to]).join(', ')
         info("\nSent mail to #{recipients} (%1.fms)" % event.duration)

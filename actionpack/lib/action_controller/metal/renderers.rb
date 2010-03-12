@@ -19,7 +19,7 @@ module ActionController
           <<-RUBY_EVAL
             if options.key?(:#{name})
               _process_options(options)
-              return _render_option_#{name}(options[:#{name}], options)
+              return _render_option_#{name}(options.delete(:#{name}), options)
             end
           RUBY_EVAL
         end

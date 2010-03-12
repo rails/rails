@@ -51,12 +51,12 @@ module RailtiesTest
       assert_equal "bar",   Bar.config.foo.bar
     end
 
-    test "railtie can add subscribers" do
+    test "railtie can add log subscribers" do
       begin
-        class Foo < Rails::Railtie ; subscriber(Rails::Subscriber.new) ; end
-        assert_kind_of Rails::Subscriber, Rails::Subscriber.subscribers[:foo]
+        class Foo < Rails::Railtie ; log_subscriber(Rails::LogSubscriber.new) ; end
+        assert_kind_of Rails::LogSubscriber, Rails::LogSubscriber.log_subscribers[0]
       ensure
-        Rails::Subscriber.subscribers.clear
+        Rails::LogSubscriber.log_subscribers.clear
       end
     end
 

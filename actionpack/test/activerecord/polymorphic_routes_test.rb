@@ -26,7 +26,7 @@ class Series < ActiveRecord::Base
 end
 
 class PolymorphicRoutesTest < ActionController::TestCase
-  include ActionController::UrlFor
+  include SharedTestRoutes.url_helpers
   self.default_url_options[:host] = 'example.com'
 
   def setup
@@ -400,7 +400,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         map.resources :series
       end
 
-      ActionController::Routing::Routes.install_helpers(self.class)
+      self.class.send(:include, @router.url_helpers)
       yield
     end
   end
@@ -422,7 +422,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      ActionController::Routing::Routes.install_helpers(self.class)
+      self.class.send(:include, @router.url_helpers)
       yield
     end
   end
@@ -441,7 +441,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      ActionController::Routing::Routes.install_helpers(self.class)
+      self.class.send(:include, @router.url_helpers)
       yield
     end
   end

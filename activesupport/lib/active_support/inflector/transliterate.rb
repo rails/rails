@@ -47,7 +47,7 @@ module ActiveSupport
       # replace accented chars with their ascii equivalents
       parameterized_string = transliterate(string)
       # Turn unwanted chars into the separator
-      parameterized_string.gsub!(/[^a-z0-9\-_\+]+/i, sep)
+      parameterized_string.gsub!(/[^a-z0-9\-_]+/i, sep)
       unless sep.nil? || sep.empty?
         re_sep = Regexp.escape(sep)
         # No more than one of the separator in a row.

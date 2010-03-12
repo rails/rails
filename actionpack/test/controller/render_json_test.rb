@@ -18,6 +18,10 @@ class RenderJsonTest < ActionController::TestCase
       render :json => ActiveSupport::JSON.encode(:hello => 'world')
     end
 
+    def render_json_hello_world_with_status
+      render :json => ActiveSupport::JSON.encode(:hello => 'world'), :status => 401
+    end
+
     def render_json_hello_world_with_callback
       render :json => ActiveSupport::JSON.encode(:hello => 'world'), :callback => 'alert'
     end
@@ -56,6 +60,12 @@ class RenderJsonTest < ActionController::TestCase
     get :render_json_hello_world
     assert_equal '{"hello":"world"}', @response.body
     assert_equal 'application/json', @response.content_type
+  end
+
+  def test_render_json_with_status
+    get :render_json_hello_world_with_status
+    assert_equal '{"hello":"world"}', @response.body
+    assert_equal 401, @response.status
   end
 
   def test_render_json_with_callback

@@ -159,7 +159,7 @@ WARNING: Threadsafe operation in incompatible with the normal workings of develo
 
 * +config.action_controller.relative_url_root+ can be used to tell Rails that you are deploying to a subdirectory. The default is +ENV['RAILS_RELATIVE_URL_ROOT']+.
 
-* +config.action_controller.session_store+ sets the name of the store for session data. The default is +:cookie_store+; other valid options include +:active_record_store+, +:mem_cache_store+ or the name of your own custom class.
+* +config.action_dispatch.session_store+ sets the name of the store for session data. The default is +:cookie_store+; other valid options include +:active_record_store+, +:mem_cache_store+ or the name of your own custom class.
 
 The caching code adds two additional settings:
 

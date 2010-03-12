@@ -1,3 +1,3 @@
-ActionController::Routing::Routes.draw do |map|
+Rails.application.routes.draw do |map|
   match '/rails/info/properties' => "rails/info#properties"
 end

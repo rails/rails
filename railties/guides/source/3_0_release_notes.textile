@@ -443,7 +443,7 @@ As well as the following deprecations:
 * I18n error messages for ActiveRecord should be changed from :en.activerecord.errors.template to <tt>:en.errors.template</tt>.
 * <tt>model.errors.on</tt> is deprecated in favour of <tt>model.errors[]</tt>
 * validates_presence_of => validates... :presence => true
-* <tt>ActiveRecord::Base.colorize_logging</tt> and <tt>config.active_record.colorize_logging</tt> are deprecated in favour of <tt>Rails::Subscriber.colorize_logging</tt> or <tt>config.colorize_logging</tt>
+* <tt>ActiveRecord::Base.colorize_logging</tt> and <tt>config.active_record.colorize_logging</tt> are deprecated in favour of <tt>Rails::LogSubscriber.colorize_logging</tt> or <tt>config.colorize_logging</tt>
 
 NOTE: While an implementation of State Machine has been in Active Record edge for some months now, it has been removed from the Rails 3.0 release.
 

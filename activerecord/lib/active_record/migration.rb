@@ -1,4 +1,4 @@
-require 'active_support/core_ext/object/metaclass'
+require 'active_support/core_ext/object/singleton_class'
 
 module ActiveRecord
   # Exception that can be raised to stop migrations from going backwards.
@@ -303,7 +303,7 @@ module ActiveRecord
 
           case sym
             when :up, :down
-              metaclass.send(:alias_method_chain, sym, "benchmarks")
+              singleton_class.send(:alias_method_chain, sym, "benchmarks")
           end
         ensure
           @ignore_new_methods = false

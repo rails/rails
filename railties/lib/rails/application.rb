@@ -52,7 +52,10 @@ module Rails
 
     class << self
       private :new
-      alias   :configure :class_eval
+
+      def configure(&block)
+        class_eval(&block)
+      end
 
       def instance
         if self == Rails::Application
@@ -85,15 +88,11 @@ module Rails
     end
 
     def routes
-      ::ActionController::Routing::Routes
+      @routes ||= ActionDispatch::Routing::RouteSet.new
     end
 
     def railties
       @railties ||= Railties.new(config)
-    end
-
-    def metal_loader
-      @metal_laoder ||= MetalLoader.new
     end
 
     def routes_reloader

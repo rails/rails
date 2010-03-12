@@ -1,6 +1,6 @@
 # Make double-sure the RAILS_ENV is set to test,
 # so fixtures are loaded to the right database
-exit("Abort testing: Your Rails environment is not running in test mode!") unless Rails.env.test?
+abort("Abort testing: Your Rails environment is not running in test mode!") unless Rails.env.test?
 
 require 'test/unit'
 require 'active_support/core_ext/kernel/requires'
@@ -22,6 +22,16 @@ if defined?(ActiveRecord)
   def create_fixtures(*table_names, &block)
     Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, {}, &block)
   end
+end
+
+class ActionController::TestCase
+  setup do
+    @router = Rails.application.routes
+  end
+end
+
+class ActionDispatch::IntegrationTest
+  include Rails.application.routes.url_helpers
 end
 
 begin

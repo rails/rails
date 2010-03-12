@@ -52,29 +52,17 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
 end
 
 class MockController
-  attr_accessor :routes
+  def self.build(helpers)
+    Class.new do
+      def url_for(options)
+        options[:protocol] ||= "http"
+        options[:host] ||= "test.host"
 
-  def initialize(routes)
-    self.routes = routes
-  end
+        super(options)
+      end
 
-  def url_for(options)
-    only_path = options.delete(:only_path)
-
-    port        = options.delete(:port) || 80
-    port_string = port == 80 ? '' : ":#{port}"
-
-    protocol = options.delete(:protocol) || "http"
-    host     = options.delete(:host) || "test.host"
-    anchor   = "##{options.delete(:anchor)}" if options.key?(:anchor)
-
-    path = routes.generate(options)
-
-    only_path ? "#{path}#{anchor}" : "#{protocol}://#{host}#{port_string}#{path}#{anchor}"
-  end
-
-  def request
-    @request ||= ActionController::TestRequest.new
+      include helpers
+    end
   end
 end
 
@@ -268,9 +256,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   end
 
   def setup_for_named_route
-    klass = Class.new(MockController)
-    rs.install_helpers(klass)
-    klass.new(rs)
+    MockController.build(rs.url_helpers).new
   end
 
   def test_named_route_without_hash
@@ -759,9 +745,7 @@ class RouteSetTest < ActiveSupport::TestCase
       map.users '/admin/users', :controller => 'admin/users', :action => 'index'
     end
 
-    klass = Class.new(MockController)
-    set.install_helpers(klass)
-    klass.new(set)
+    MockController.build(set.url_helpers).new
   end
 
   def test_named_route_hash_access_method

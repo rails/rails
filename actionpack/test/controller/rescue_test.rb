@@ -326,7 +326,7 @@ class RescueTest < ActionController::IntegrationTest
   end
 
   test 'rescue routing exceptions' do
-    @app = ActionDispatch::Rescue.new(ActionController::Routing::Routes) do
+    @app = ActionDispatch::Rescue.new(SharedTestRoutes) do
       rescue_from ActionController::RoutingError, lambda { |env| [200, {"Content-Type" => "text/html"}, ["Gotcha!"]] }
     end
 
@@ -335,7 +335,7 @@ class RescueTest < ActionController::IntegrationTest
   end
 
   test 'unrescued exception' do
-    @app = ActionDispatch::Rescue.new(ActionController::Routing::Routes)
+    @app = ActionDispatch::Rescue.new(SharedTestRoutes)
     assert_raise(ActionController::RoutingError) { get '/b00m' }
   end
 

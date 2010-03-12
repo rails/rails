@@ -5,7 +5,7 @@ module AbstractController
 
     class UrlForTests < ActionController::TestCase
       class W
-        include ActionController::UrlFor
+        include SharedTestRoutes.url_helpers
       end
 
       def teardown
@@ -113,15 +113,13 @@ module AbstractController
       end
 
       def test_relative_url_root_is_respected
-        orig_relative_url_root = ActionController::Base.relative_url_root
-        ActionController::Base.relative_url_root = '/subdir'
+        # ROUTES TODO: Tests should not have to pass :relative_url_root directly. This
+        # should probably come from the router.
 
         add_host!
         assert_equal('https://www.basecamphq.com/subdir/c/a/i',
-          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https', :script_name => '/subdir')
         )
-      ensure
-        ActionController::Base.relative_url_root = orig_relative_url_root
       end
 
       def test_named_routes
@@ -132,7 +130,8 @@ module AbstractController
           end
 
           # We need to create a new class in order to install the new named route.
-          kls = Class.new { include ActionController::UrlFor }
+          kls = Class.new { include set.url_helpers }
+
           controller = kls.new
           assert controller.respond_to?(:home_url)
           assert_equal 'http://www.basecamphq.com/home/sweet/home/again',
@@ -145,22 +144,17 @@ module AbstractController
       end
 
       def test_relative_url_root_is_respected_for_named_routes
-        orig_relative_url_root = ActionController::Base.relative_url_root
-        ActionController::Base.relative_url_root = '/subdir'
-
         with_routing do |set|
           set.draw do |map|
             match '/home/sweet/home/:user', :to => 'home#index', :as => :home
           end
 
-          kls = Class.new { include ActionController::UrlFor }
+          kls = Class.new { include set.url_helpers }
           controller = kls.new
 
           assert_equal 'http://www.basecamphq.com/subdir/home/sweet/home/again',
-            controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again')
+            controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again', :script_name => "/subdir")
         end
-      ensure
-        ActionController::Base.relative_url_root = orig_relative_url_root
       end
 
       def test_only_path
@@ -171,7 +165,7 @@ module AbstractController
           end
 
           # We need to create a new class in order to install the new named route.
-          kls = Class.new { include ActionController::UrlFor }
+          kls = Class.new { include set.url_helpers }
           controller = kls.new
           assert controller.respond_to?(:home_url)
           assert_equal '/brave/new/world',
@@ -239,7 +233,7 @@ module AbstractController
           end
 
           # We need to create a new class in order to install the new named route.
-          kls = Class.new { include ActionController::UrlFor }
+          kls = Class.new { include set.url_helpers }
           kls.default_url_options[:host] = 'www.basecamphq.com'
 
           controller = kls.new

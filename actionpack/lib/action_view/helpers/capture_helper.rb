@@ -30,14 +30,10 @@ module ActionView
       #   <b><%= @greeting %></b>
       #   </body></html>
       #
-      def capture(*args, &block)
-        # Return captured buffer in erb.
-        if block_called_from_erb?(block)
-          with_output_buffer { block.call(*args) }
-        else
-          # Return block result otherwise, but protect buffer also.
-          with_output_buffer { return block.call(*args) }
-        end
+      def capture(*args)
+        value = nil
+        buffer = with_output_buffer { value = yield *args }
+        buffer.presence || value
       end
 
       # Calling content_for stores a block of markup in an identifier for later use.
@@ -143,7 +139,7 @@ module ActionView
       # Defaults to a new empty string.
       def with_output_buffer(buf = nil) #:nodoc:
         unless buf
-          buf = ActiveSupport::SafeBuffer.new
+          buf = ActionView::OutputBuffer.new
           buf.force_encoding(output_buffer.encoding) if buf.respond_to?(:force_encoding)
         end
         self.output_buffer, old_buffer = buf, output_buffer

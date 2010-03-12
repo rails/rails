@@ -1,11 +1,7 @@
 module ActiveRecord
   module SpawnMethods
-    def spawn
-      clone.reset
-    end
-
     def merge(r)
-      merged_relation = spawn
+      merged_relation = clone
       return merged_relation unless r
 
       merged_relation = merged_relation.eager_load(r.eager_load_values).preload(r.preload_values).includes(r.includes_values)
@@ -83,7 +79,7 @@ module ActiveRecord
                            :order, :select, :readonly, :group, :having, :from, :lock ]
 
     def apply_finder_options(options)
-      relation = spawn
+      relation = clone
       return relation unless options
 
       options.assert_valid_keys(VALID_FIND_OPTIONS)

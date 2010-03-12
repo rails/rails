@@ -14,7 +14,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:first_firm).account, Account.find(1)
     assert_equal Account.find(1).credit_limit, companies(:first_firm).account.credit_limit
   end
-  
+
   def test_has_one_cache_nils
     firm = companies(:another_firm)
     assert_queries(1) { assert_nil firm.account }
@@ -96,7 +96,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nil Account.find(old_account_id).firm_id
   end
 
-  def test_association_changecalls_delete
+  def test_association_change_calls_delete
     companies(:first_firm).deletable_account = Account.new
     assert_equal [], Account.destroyed_account_ids[companies(:first_firm).id]
   end

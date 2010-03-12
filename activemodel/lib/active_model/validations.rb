@@ -1,4 +1,5 @@
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/keys'
 require 'active_model/errors'
 
@@ -45,6 +46,9 @@ module ActiveModel
     included do
       extend ActiveModel::Translation
       define_callbacks :validate, :scope => :name
+
+      class_attribute :_validators
+      self._validators = Hash.new { |h,k| h[k] = [] }
     end
 
     module ClassMethods
@@ -117,12 +121,23 @@ module ActiveModel
         end
         set_callback(:validate, *args, &block)
       end
-    
-      private
-    
+
+      # List all validators that being used to validate the model using +validates_with+
+      # method.
+      def validators
+        _validators.values.flatten.uniq
+      end
+
+      # List all validators that being used to validate a specific attribute.
+      def validators_on(attribute)
+        _validators[attribute.to_sym]
+      end
+
+    private
+
       def _merge_attributes(attr_names)
         options = attr_names.extract_options!
-        options.merge(:attributes => attr_names)
+        options.merge(:attributes => attr_names.flatten)
       end
     end
 

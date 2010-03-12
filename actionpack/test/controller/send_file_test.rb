@@ -46,24 +46,24 @@ class SendFileTest < ActionController::TestCase
     response = nil
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
-    assert_kind_of String, response.body
-    assert_equal file_data, response.body
+    body = response.body
+    assert_kind_of String, body
+    assert_equal file_data, body
   end
 
   def test_file_stream
-    pending do
-      response = nil
-      assert_nothing_raised { response = process('file') }
-      assert_not_nil response
-      assert_kind_of Array, response.body_parts
+    response = nil
+    assert_nothing_raised { response = process('file') }
+    assert_not_nil response
+    assert response.body_parts.respond_to?(:each)
+    assert response.body_parts.respond_to?(:to_path)
 
-      require 'stringio'
-      output = StringIO.new
-      output.binmode
-      output.string.force_encoding(file_data.encoding) if output.string.respond_to?(:force_encoding)
-      assert_nothing_raised { response.body_parts.each { |part| output << part.to_s } }
-      assert_equal file_data, output.string
-    end
+    require 'stringio'
+    output = StringIO.new
+    output.binmode
+    output.string.force_encoding(file_data.encoding) if output.string.respond_to?(:force_encoding)
+    assert_nothing_raised { response.body_parts.each { |part| output << part.to_s } }
+    assert_equal file_data, output.string
   end
 
   def test_file_url_based_filename
@@ -72,18 +72,6 @@ class SendFileTest < ActionController::TestCase
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
     assert_equal "attachment", response.headers["Content-Disposition"]
-  end
-
-  def test_x_sendfile_header
-    @controller.options = { :x_sendfile => true }
-
-    response = nil
-    assert_nothing_raised { response = process('file') }
-    assert_not_nil response
-
-    assert_equal @controller.file_path, response.headers['X-Sendfile']
-    assert response.body.blank?
-    assert !response.etag?
   end
 
   def test_data
@@ -104,9 +92,8 @@ class SendFileTest < ActionController::TestCase
   end
 
   # Test that send_file_headers! is setting the correct HTTP headers.
-  def test_send_file_headers!
+  def test_send_file_headers_bang
     options = {
-      :length => 1,
       :type => Mime::PNG,
       :disposition => 'disposition',
       :filename => 'filename'
@@ -121,13 +108,11 @@ class SendFileTest < ActionController::TestCase
     @controller.send(:send_file_headers!, options)
 
     h = @controller.headers
-    assert_equal '1', h['Content-Length']
     assert_equal 'image/png', @controller.content_type
     assert_equal 'disposition; filename="filename"', h['Content-Disposition']
     assert_equal 'binary', h['Content-Transfer-Encoding']
 
     # test overriding Cache-Control: no-cache header to fix IE open/save dialog
-    @controller.headers = { 'Cache-Control' => 'no-cache' }
     @controller.send(:send_file_headers!, options)
     @controller.response.prepare!
     assert_equal 'private', h['Cache-Control']
@@ -135,7 +120,6 @@ class SendFileTest < ActionController::TestCase
 
   def test_send_file_headers_with_mime_lookup_with_symbol
     options = {
-      :length => 1,
       :type => :png
     }
 
@@ -148,7 +132,6 @@ class SendFileTest < ActionController::TestCase
 
   def test_send_file_headers_with_bad_symbol
     options = {
-      :length => 1,
       :type => :this_type_is_not_registered
     }
 
@@ -163,17 +146,16 @@ class SendFileTest < ActionController::TestCase
       assert_equal 500, @response.status
     end
 
+    define_method "test_send_#{method}_content_type" do
+      @controller.options = { :stream => false, :content_type => "application/x-ruby" }
+      assert_nothing_raised { assert_not_nil process(method) }
+      assert_equal "application/x-ruby", @response.content_type
+    end
+
     define_method "test_default_send_#{method}_status" do
       @controller.options = { :stream => false }
       assert_nothing_raised { assert_not_nil process(method) }
       assert_equal 200, @response.status
     end
-  end
-
-  def test_send_data_content_length_header
-    @controller.headers = {}
-    @controller.options = { :type => :text, :filename => 'file_with_utf8_text' }
-    process('multibyte_text_data')
-    assert_equal '29', @controller.headers['Content-Length']
   end
 end

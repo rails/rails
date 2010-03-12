@@ -1,5 +1,6 @@
-require 'active_support/core_ext/module/delegation'
 require 'rails/railtie'
+require 'active_support/core_ext/module/delegation'
+require 'pathname'
 
 module Rails
   # Rails::Engine allows you to wrap a specific Rails application and share it accross
@@ -98,8 +99,9 @@ module Rails
       def inherited(base)
         unless abstract_railtie?(base)
           base.called_from = begin
-            call_stack = caller.map { |p| p.split(':').first }
-            File.dirname(call_stack.detect { |p| p !~ %r[railties[\w\-]*/lib/rails|rack[\w\-]*/lib/rack] })
+            # Remove the line number from backtraces making sure we don't leave anything behind
+            call_stack = caller.map { |p| p.split(':')[0..-2].join(':') }
+            File.dirname(call_stack.detect { |p| p !~ %r[railties[\w\-\.]*/lib/rails|rack[\w\-\.]*/lib/rack] })
           end
         end
 
@@ -122,10 +124,10 @@ module Rails
       end
     end
 
-    delegate :middleware, :paths, :root, :to => :config
+    delegate :middleware, :paths, :metal_loader, :root, :to => :config
 
     def load_tasks
-      super 
+      super
       config.paths.lib.tasks.to_a.sort.each { |ext| load(ext) }
     end
 
@@ -159,10 +161,11 @@ module Rails
       end
     end
 
+    # DEPRECATED: Remove in 3.1
     initializer :add_routing_namespaces do |app|
       paths.app.controllers.to_a.each do |load_path|
         load_path = File.expand_path(load_path)
-        Dir["#{load_path}/*/*_controller.rb"].collect do |path|
+        Dir["#{load_path}/*/**/*_controller.rb"].collect do |path|
           namespace = File.dirname(path).sub(/#{load_path}\/?/, '')
           app.routes.controller_namespaces << namespace unless namespace.empty?
         end
@@ -172,13 +175,13 @@ module Rails
     # I18n load paths are a special case since the ones added
     # later have higher priority.
     initializer :add_locales do
-      config.i18n.engines_load_path.concat(paths.config.locales.to_a)
+      config.i18n.railties_load_path.concat(paths.config.locales.to_a)
     end
 
     initializer :add_view_paths do
       views = paths.app.views.to_a
-      ActionController::Base.view_paths.unshift(*views) if defined?(ActionController)
-      ActionMailer::Base.view_paths.unshift(*views)     if defined?(ActionMailer)
+      ActionController.base_hook { prepend_view_path(views) } if defined?(ActionController)
+      ActionMailer.base_hook { prepend_view_path(views) } if defined?(ActionMailer)
     end
 
     initializer :add_metals do |app|

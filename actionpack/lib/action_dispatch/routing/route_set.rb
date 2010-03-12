@@ -1,5 +1,6 @@
 require 'rack/mount'
 require 'forwardable'
+require 'action_dispatch/routing/deprecated_mapper'
 
 module ActionDispatch
   module Routing
@@ -11,8 +12,8 @@ module ActionDispatch
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       class Dispatcher
-        def initialize(options = {})
-          defaults = options[:defaults]
+        def initialize(options={})
+          @defaults = options[:defaults]
           @glob_param = options.delete(:glob)
         end
 
@@ -20,7 +21,8 @@ module ActionDispatch
           params = env[PARAMETERS_KEY]
           prepare_params!(params)
 
-          unless controller = controller(params)
+          # Just raise undefined constant errors if a controller was specified as default.
+          unless controller = controller(params, @defaults.key?(:controller))
             return [404, {'X-Cascade' => 'pass'}, []]
           end
 
@@ -39,14 +41,13 @@ module ActionDispatch
           end
         end
 
-        def controller(params)
+        def controller(params, raise_error=true)
           if params && params.has_key?(:controller)
             controller = "#{params[:controller].camelize}Controller"
             ActiveSupport::Inflector.constantize(controller)
           end
         rescue NameError => e
-          raise unless e.message.include?(controller)
-          nil
+          raise ActionController::RoutingError, e.message, e.backtrace if raise_error
         end
 
         private
@@ -58,7 +59,6 @@ module ActionDispatch
             params[@glob_param] = params[@glob_param].split('/').map { |v| URI.unescape(v) }
           end
       end
-
 
       # A NamedRouteCollection instance is a collection of named routes, and also
       # maintains an anonymous module that can be used to install helpers for the
@@ -168,63 +168,25 @@ module ActionDispatch
             selector = url_helper_name(name, kind)
             hash_access_method = hash_access_name(name, kind)
 
-            # We use module_eval to avoid leaks.
-            #
-            # def users_url(*args)
-            #   if args.empty? || Hash === args.first
-            #     options = hash_for_users_url(args.first || {})
-            #   else
-            #     options = hash_for_users_url(args.extract_options!)
-            #     default = default_url_options(options) if self.respond_to?(:default_url_options, true)
-            #     options = (default ||= {}).merge(options)
-            #
-            #     keys = []
-            #     keys -= options.keys if args.size < keys.size - 1
-            #
-            #     args = args.zip(keys).inject({}) do |h, (v, k)|
-            #       h[k] = v
-            #       h
-            #     end
-            #
-            #     # Tell url_for to skip default_url_options
-            #     options[:use_defaults] = false
-            #     options.merge!(args)
-            #   end
-            #
-            #   url_for(options)
-            # end
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
               def #{selector}(*args)
-                if args.empty? || Hash === args.first
-                  options = #{hash_access_method}(args.first || {})
-                else
-                  options = #{hash_access_method}(args.extract_options!)
-                  default = default_url_options(options) if self.respond_to?(:default_url_options, true)
-                  options = (default ||= {}).merge(options)
+                options =  #{hash_access_method}(args.extract_options!)
 
-                  keys = #{route.segment_keys.inspect}
-                  keys -= options.keys if args.size < keys.size - 1 # take format into account
-
-                  args = args.zip(keys).inject({}) do |h, (v, k)|
-                    h[k] = v
-                    h
-                  end
-
-                  # Tell url_for to skip default_url_options
-                  options[:use_defaults] = false
-                  options.merge!(args)
+                if args.any?
+                  options[:_positional_args] = args
+                  options[:_positional_keys] = #{route.segment_keys.inspect}
                 end
 
                 url_for(options)
               end
-              protected :#{selector}
             END_EVAL
             helpers << selector
           end
       end
 
-      attr_accessor :routes, :named_routes, :controller_namespaces
+      attr_accessor :routes, :named_routes
       attr_accessor :disable_clear_and_finalize, :resources_path_names
+      attr_accessor :default_url_options
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
@@ -235,8 +197,10 @@ module ActionDispatch
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.controller_namespaces = Set.new
+        self.default_url_options = {}
 
         @disable_clear_and_finalize = false
+        clear!
       end
 
       def draw(&block)
@@ -273,61 +237,155 @@ module ActionDispatch
         named_routes.install(destinations, regenerate_code)
       end
 
+      def url_helpers
+        @url_helpers ||= begin
+          router = self
+
+          Module.new do
+            extend ActiveSupport::Concern
+            include UrlFor
+
+            # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
+            # we can include?
+            # Yes plz - JP
+            included do
+              router.install_helpers(self)
+            end
+
+            define_method(:_router) { router }
+          end
+        end
+      end
+
       def empty?
         routes.empty?
       end
 
-      CONTROLLER_REGEXP = /[_a-zA-Z0-9]+/
-
-      def controller_constraints
-        @controller_constraints ||= begin
-          namespaces = controller_namespaces + in_memory_controller_namespaces
-          source = namespaces.map { |ns| "#{Regexp.escape(ns)}/#{CONTROLLER_REGEXP.source}" }
-          source << CONTROLLER_REGEXP.source
-          Regexp.compile(source.sort.reverse.join('|'))
-        end
-      end
-
-      def in_memory_controller_namespaces
-        namespaces = Set.new
-        ActionController::Base.subclasses.each do |klass|
-          controller_name = klass.underscore
-          namespaces << controller_name.split('/')[0...-1].join('/')
-        end
-        namespaces.delete('')
-        namespaces
-      end
-
-      def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil)
-        route = Route.new(app, conditions, requirements, defaults, name)
+      def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
+        route = Route.new(app, conditions, requirements, defaults, name, anchor)
         @set.add_route(*route)
         named_routes[name] = route if name
         routes << route
         route
       end
 
-      def options_as_params(options)
-        # If an explicit :controller was given, always make :action explicit
-        # too, so that action expiry works as expected for things like
-        #
-        #   generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
-        #
-        # (the above is from the unit tests). In the above case, because the
-        # controller was explicitly given, but no action, the action is implied to
-        # be "index", not the recalled action of "show".
-        #
-        # great fun, eh?
+      class Generator
+        attr_reader :options, :recall, :set, :script_name, :named_route
 
-        options_as_params = options.clone
-        options_as_params[:action] ||= 'index' if options[:controller]
-        options_as_params[:action] = options_as_params[:action].to_s if options_as_params[:action]
-        options_as_params
-      end
+        def initialize(options, recall, set, extras = false)
+          @script_name = options.delete(:script_name)
+          @named_route = options.delete(:use_route)
+          @options     = options.dup
+          @recall      = recall.dup
+          @set         = set
+          @extras      = extras
 
-      def build_expiry(options, recall)
-        recall.inject({}) do |expiry, (key, recalled_value)|
-          expiry[key] = (options.key?(key) && options[key].to_param != recalled_value.to_param)
-          expiry
+          normalize_options!
+          normalize_controller_action_id!
+          use_relative_controller!
+          controller.sub!(%r{^/}, '') if controller
+          handle_nil_action!
+        end
+
+        def controller
+          @controller ||= @options[:controller]
+        end
+
+        def current_controller
+          @recall[:controller]
+        end
+
+        def use_recall_for(key)
+          if @recall[key] && (!@options.key?(key) || @options[key] == @recall[key])
+            @options[key] = @recall.delete(key)
+          end
+        end
+
+        def normalize_options!
+          # If an explicit :controller was given, always make :action explicit
+          # too, so that action expiry works as expected for things like
+          #
+          #   generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
+          #
+          # (the above is from the unit tests). In the above case, because the
+          # controller was explicitly given, but no action, the action is implied to
+          # be "index", not the recalled action of "show".
+
+          if options[:controller]
+            options[:action]     ||= 'index'
+            options[:controller]   = options[:controller].to_s
+          end
+
+          if options[:action]
+            options[:action] = options[:action].to_s
+          end
+        end
+
+        # This pulls :controller, :action, and :id out of the recall.
+        # The recall key is only used if there is no key in the options
+        # or if the key in the options is identical. If any of
+        # :controller, :action or :id is not found, don't pull any
+        # more keys from the recall.
+        def normalize_controller_action_id!
+          @recall[:action] ||= 'index' if current_controller
+
+          use_recall_for(:controller) or return
+          use_recall_for(:action) or return
+          use_recall_for(:id)
+        end
+
+        # if the current controller is "foo/bar/baz" and :controller => "baz/bat"
+        # is specified, the controller becomes "foo/baz/bat"
+        def use_relative_controller!
+          if !named_route && different_controller?
+            old_parts = current_controller.split('/')
+            size = controller.count("/") + 1
+            parts = old_parts[0...-size] << controller
+            @controller = @options[:controller] = parts.join("/")
+          end
+        end
+
+        # This handles the case of :action => nil being explicitly passed.
+        # It is identical to :action => "index"
+        def handle_nil_action!
+          if options.has_key?(:action) && options[:action].nil?
+            options[:action] = 'index'
+          end
+          recall[:action] = options.delete(:action) if options[:action] == 'index'
+        end
+
+        def generate
+          error = ActionController::RoutingError.new("No route matches #{options.inspect}")
+          path, params = @set.generate(:path_info, named_route, options, recall, opts)
+
+          raise error unless path
+
+          params.reject! {|k,v| !v }
+
+          return [path, params.keys] if @extras
+
+          path << "?#{params.to_query}" if params.any?
+          "#{script_name}#{path}"
+        rescue Rack::Mount::RoutingError
+          raise error
+        end
+
+        def opts
+          parameterize = lambda do |name, value|
+            if name == :controller
+              value
+            elsif value.is_a?(Array)
+              value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
+            else
+              Rack::Mount::Utils.escape_uri(value.to_param)
+            end
+          end
+          {:parameterize => parameterize}
+        end
+
+        def different_controller?
+          return false unless current_controller
+          controller.to_param != current_controller.to_param
         end
       end
 
@@ -338,82 +396,44 @@ module ActionDispatch
       end
 
       def generate_extras(options, recall={})
-        generate(options, recall, :generate_extras)
+        generate(options, recall, true)
       end
 
-      def generate(options, recall = {}, method = :generate)
-        options, recall = options.dup, recall.dup
-        named_route = options.delete(:use_route)
+      def generate(options, recall = {}, extras = false)
+        Generator.new(options, recall, @set, extras).generate
+      end
 
-        options = options_as_params(options)
-        expire_on = build_expiry(options, recall)
+      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash]
 
-        recall[:action] ||= 'index' if options[:controller] || recall[:controller]
+      def url_for(options)
+        options = default_url_options.merge(options || {})
 
-        if recall[:controller] && (!options.has_key?(:controller) || options[:controller] == recall[:controller])
-          options[:controller] = recall.delete(:controller)
+        handle_positional_args(options)
 
-          if recall[:action] && (!options.has_key?(:action) || options[:action] == recall[:action])
-            options[:action] = recall.delete(:action)
+        rewritten_url = ""
 
-            if recall[:id] && (!options.has_key?(:id) || options[:id] == recall[:id])
-              options[:id] = recall.delete(:id)
-            end
-          end
+        path_segments = options.delete(:_path_segments)
+
+        unless options[:only_path]
+          rewritten_url << (options[:protocol] || "http")
+          rewritten_url << "://" unless rewritten_url.match("://")
+          rewritten_url << rewrite_authentication(options)
+
+          raise "Missing host to link to! Please provide :host parameter or set default_url_options[:host]" unless options[:host]
+
+          rewritten_url << options[:host]
+          rewritten_url << ":#{options.delete(:port)}" if options.key?(:port)
         end
 
-        options[:controller] = options[:controller].to_s if options[:controller]
+        path_options = options.except(*RESERVED_OPTIONS)
+        path_options = yield(path_options) if block_given?
+        path = generate(path_options, path_segments || {})
 
-        if !named_route && expire_on[:controller] && options[:controller] && options[:controller][0] != ?/
-          old_parts = recall[:controller].split('/')
-          new_parts = options[:controller].split('/')
-          parts = old_parts[0..-(new_parts.length + 1)] + new_parts
-          options[:controller] = parts.join('/')
-        end
+        # ROUTES TODO: This can be called directly, so script_name should probably be set in the router
+        rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
+        rewritten_url << "##{Rack::Utils.escape(options[:anchor].to_param.to_s)}" if options[:anchor]
 
-        options[:controller] = options[:controller][1..-1] if options[:controller] && options[:controller][0] == ?/
-
-        merged = options.merge(recall)
-        if options.has_key?(:action) && options[:action].nil?
-          options.delete(:action)
-          recall[:action] = 'index'
-        end
-        recall[:action] = options.delete(:action) if options[:action] == 'index'
-
-        opts = {}
-        opts[:parameterize] = lambda { |name, value|
-          if name == :controller
-            value
-          elsif value.is_a?(Array)
-            value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
-          else
-            Rack::Mount::Utils.escape_uri(value.to_param)
-          end
-        }
-
-        unless result = @set.generate(:path_info, named_route, options, recall, opts)
-          raise ActionController::RoutingError, "No route matches #{options.inspect}"
-        end
-
-        path, params = result
-        params.each do |k, v|
-          if v
-            params[k] = v
-          else
-            params.delete(k)
-          end
-        end
-
-        if path && method == :generate_extras
-          [path, params.keys]
-        elsif path
-          path << "?#{params.to_query}" if params.any?
-          path
-        else
-          raise ActionController::RoutingError, "No route matches #{options.inspect}"
-        end
-      rescue Rack::Mount::RoutingError
-        raise ActionController::RoutingError, "No route matches #{options.inspect}"
+        rewritten_url
       end
 
       def call(env)
@@ -431,9 +451,9 @@ module ActionDispatch
         end
 
         req = Rack::Request.new(env)
-        @set.recognize(req) do |route, params|
+        @set.recognize(req) do |route, matches, params|
           dispatcher = route.app
-          if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params)
+          if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, false)
             dispatcher.prepare_params!(params)
             return params
           end
@@ -441,6 +461,30 @@ module ActionDispatch
 
         raise ActionController::RoutingError, "No route matches #{path.inspect}"
       end
+
+      private
+        def handle_positional_args(options)
+          return unless args = options.delete(:_positional_args)
+
+          keys = options.delete(:_positional_keys)
+          keys -= options.keys if args.size < keys.size - 1 # take format into account
+
+          args = args.zip(keys).inject({}) do |h, (v, k)|
+            h[k] = v
+            h
+          end
+
+          # Tell url_for to skip default_url_options
+          options.merge!(args)
+        end
+
+        def rewrite_authentication(options)
+          if options[:user] && options[:password]
+            "#{Rack::Utils.escape(options.delete(:user))}:#{Rack::Utils.escape(options.delete(:password))}@"
+          else
+            ""
+          end
+        end
     end
   end
 end

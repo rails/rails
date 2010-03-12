@@ -3,17 +3,16 @@ require 'abstract_unit'
 class FormTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormTagHelper
 
-  include ActiveSupport::Configurable
-  DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG
+  # include ActiveSupport::Configurable
+  # DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG
 
   def setup
     super
-    @controller = Class.new do
+    @controller = Class.new(BasicController) do
       def url_for(options)
         "http://www.example.com"
       end
-    end
-    @controller = @controller.new
+    end.new
   end
 
   VALID_HTML_ID = /^[A-Za-z][-_:.A-Za-z0-9]*$/ # see http://www.w3.org/TR/html4/types.html#type-name
@@ -60,16 +59,14 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_with_block_in_erb
-    __in_erb_template = ''
-    form_tag("http://example.com") { concat "Hello world!" }
+    output_buffer = form_tag("http://example.com") { concat "Hello world!" }
 
     expected = %(<form action="http://example.com" method="post">Hello world!</form>)
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_tag_with_block_and_method_in_erb
-    __in_erb_template = ''
-    form_tag("http://example.com", :method => :put) { concat "Hello world!" }
+    output_buffer = form_tag("http://example.com", :method => :put) { concat "Hello world!" }
 
     expected = %(<form action="http://example.com" method="post"><div style='margin:0;padding:0;display:inline'><input type="hidden" name="_method" value="put" /></div>Hello world!</form>)
     assert_dom_equal expected, output_buffer
@@ -127,19 +124,19 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_select_tag
-    actual = select_tag "people", "<option>david</option>"
+    actual = select_tag "people", "<option>david</option>".html_safe
     expected = %(<select id="people" name="people"><option>david</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_multiple
-    actual = select_tag "colors", "<option>Red</option><option>Blue</option><option>Green</option>", :multiple => :true
+    actual = select_tag "colors", "<option>Red</option><option>Blue</option><option>Green</option>".html_safe, :multiple => :true
     expected = %(<select id="colors" multiple="multiple" name="colors"><option>Red</option><option>Blue</option><option>Green</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_disabled
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>", :disabled => :true
+    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :disabled => :true
     expected = %(<select id="places" disabled="disabled" name="places"><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
@@ -150,13 +147,13 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_select_tag_with_include_blank
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>", :include_blank => true
+    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :include_blank => true
     expected = %(<select id="places" name="places"><option value=""></option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_include_blank_with_string
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>", :include_blank => "string"
+    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :include_blank => "string"
     expected = %(<select id="places" name="places"><option value="">string</option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
@@ -282,9 +279,9 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, 'disabled' => true, :readonly => "yes")
     assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), check_box_tag("admin", 1, true, :disabled => false, :readonly => nil)
     assert_dom_equal %(<input type="checkbox" />), tag(:input, :type => "checkbox", :checked => false)
-    assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", "<option>david</option>", :multiple => true)
-    assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", "<option>david</option>", :multiple => true)
-    assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", "<option>david</option>", :multiple => nil)
+    assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", "<option>david</option>".html_safe, :multiple => true)
+    assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", "<option>david</option>".html_safe, :multiple => true)
+    assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", "<option>david</option>".html_safe, :multiple => nil)
   end
 
   def test_stringify_symbol_keys
@@ -333,26 +330,22 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_field_set_tag_in_erb
-    __in_erb_template = ''
-    field_set_tag("Your details") { concat "Hello world!" }
+    output_buffer = field_set_tag("Your details") { concat "Hello world!" }
 
     expected = %(<fieldset><legend>Your details</legend>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    self.output_buffer = ''.html_safe
-    field_set_tag { concat "Hello world!" }
+    output_buffer = field_set_tag { concat "Hello world!" }
 
     expected = %(<fieldset>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    self.output_buffer = ''.html_safe
-    field_set_tag('') { concat "Hello world!" }
+    output_buffer = field_set_tag('') { concat "Hello world!" }
 
     expected = %(<fieldset>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
-    self.output_buffer = ''.html_safe
-    field_set_tag('', :class => 'format') { concat "Hello world!" }
+    output_buffer = field_set_tag('', :class => 'format') { concat "Hello world!" }
 
     expected = %(<fieldset class="format">Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer

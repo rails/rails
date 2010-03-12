@@ -75,23 +75,6 @@ class SessionTest < Test::Unit::TestCase
     @session.delete_via_redirect(path, args, headers)
   end
 
-  def test_url_for_with_controller
-    options = {:action => 'show'}
-    mock_controller = mock()
-    mock_controller.expects(:url_for).with(options).returns('/show')
-    @session.stubs(:controller).returns(mock_controller)
-    assert_equal '/show', @session.url_for(options)
-  end
-
-  def test_url_for_without_controller
-    options = {:action => 'show'}
-    mock_rewriter = mock()
-    mock_rewriter.expects(:rewrite).with(options).returns('/show')
-    @session.stubs(:generic_url_rewriter).returns(mock_rewriter)
-    @session.stubs(:controller).returns(nil)
-    assert_equal '/show', @session.url_for(options)
-  end
-
   def test_get
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     @session.expects(:process).with(:get,path,params,headers)
@@ -195,8 +178,8 @@ class IntegrationTestTest < Test::Unit::TestCase
     session1 = @test.open_session { |sess| }
     session2 = @test.open_session # implicit session
 
-    assert_equal ::ActionController::Integration::Session, session1.class
-    assert_equal ::ActionController::Integration::Session, session2.class
+    assert_kind_of ::ActionController::Integration::Session, session1
+    assert_kind_of ::ActionController::Integration::Session, session2
     assert_not_equal session1, session2
   end
 
@@ -301,18 +284,13 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     end
   end
 
-  def test_cookie_monster
+  test 'response cookies are added to the cookie jar for the next request' do
     with_test_route_set do
       self.cookies['cookie_1'] = "sugar"
       self.cookies['cookie_2'] = "oatmeal"
       get '/cookie_monster'
-      assert_equal 410, status
-      assert_equal "Gone", status_message
-      assert_response 410
-      assert_response :gone
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
       assert_equal({"cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies.to_hash)
-      assert_equal "Gone", response.body
     end
   end
 
@@ -350,7 +328,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     with_test_route_set do
       get '/get_with_params?foo=bar'
       assert_equal '/get_with_params?foo=bar', request.env["REQUEST_URI"]
-      assert_equal '/get_with_params?foo=bar', request.request_uri
+      assert_equal '/get_with_params?foo=bar', request.fullpath
       assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal 'foo=bar', request.query_string
       assert_equal 'bar', request.parameters['foo']
@@ -363,8 +341,8 @@ class IntegrationProcessTest < ActionController::IntegrationTest
   def test_get_with_parameters
     with_test_route_set do
       get '/get_with_params', :foo => "bar"
-      assert_equal '/get_with_params', request.env["REQUEST_URI"]
-      assert_equal '/get_with_params', request.request_uri
+      assert_equal '/get_with_params', request.env["PATH_INFO"]
+      assert_equal '/get_with_params', request.path_info
       assert_equal 'foo=bar', request.env["QUERY_STRING"]
       assert_equal 'foo=bar', request.query_string
       assert_equal 'bar', request.parameters['foo']
@@ -401,16 +379,26 @@ class IntegrationProcessTest < ActionController::IntegrationTest
   private
     def with_test_route_set
       with_routing do |set|
-        set.draw do |map|
-          match ':action', :to => ::IntegrationProcessTest::IntegrationController
-          get 'get/:action', :to => ::IntegrationProcessTest::IntegrationController
+        controller = ::IntegrationProcessTest::IntegrationController.clone
+        controller.class_eval do
+          include set.url_helpers
         end
+
+        set.draw do |map|
+          match ':action', :to => controller
+          get 'get/:action', :to => controller
+        end
+
+        self.singleton_class.send(:include, set.url_helpers)
+
         yield
       end
     end
 end
 
 class MetalIntegrationTest < ActionController::IntegrationTest
+  include SharedTestRoutes.url_helpers
+
   class Poller
     def self.call(env)
       if env["PATH_INFO"] =~ /^\/success/

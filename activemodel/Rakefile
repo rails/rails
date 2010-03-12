@@ -1,19 +1,11 @@
 dir = File.dirname(__FILE__)
-require "#{dir}/lib/active_model/version"
-
-PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
-PKG_NAME      = 'activemodel'
-PKG_VERSION   = ActiveModel::VERSION::STRING + PKG_BUILD
-PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
-RELEASE_NAME  = "REL #{PKG_VERSION}"
-
 
 require 'rake/testtask'
 
 task :default => :test
 
 Rake::TestTask.new do |t|
-  t.libs << "#{dir}/test"
+  t.libs << "test"
   t.test_files = Dir.glob("#{dir}/test/cases/**/*_test.rb").sort
   t.warning = true
 end

@@ -17,9 +17,9 @@ module ActionController
       end
     end
 
-    def assign_parameters(controller_path, action, parameters = {})
+    def assign_parameters(router, controller_path, action, parameters = {})
       parameters = parameters.symbolize_keys.merge(:controller => controller_path, :action => action)
-      extra_keys = ActionController::Routing::Routes.extra_keys(parameters)
+      extra_keys = router.extra_keys(parameters)
       non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
         if value.is_a? Fixnum
@@ -220,7 +220,7 @@ module ActionController
     def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
       # Sanity check for required instance variables so we can give an
       # understandable error message.
-      %w(@controller @request @response).each do |iv_name|
+      %w(@router @controller @request @response).each do |iv_name|
         if !(instance_variable_names.include?(iv_name) || instance_variable_names.include?(iv_name.to_sym)) || instance_variable_get(iv_name).nil?
           raise "#{iv_name} is nil: make sure you set it in your test's setup method."
         end
@@ -236,7 +236,7 @@ module ActionController
       @request.env['REQUEST_METHOD'] = http_method
 
       parameters ||= {}
-      @request.assign_parameters(@controller.class.name.underscore.sub(/_controller$/, ''), action.to_s, parameters)
+      @request.assign_parameters(@router, @controller.class.name.underscore.sub(/_controller$/, ''), action.to_s, parameters)
 
       @request.session = ActionController::TestSession.new(session) unless session.nil?
       @request.session["flash"] = @request.flash.update(flash || {})
@@ -322,6 +322,8 @@ module ActionController
         @controller ||= klass.new rescue nil
       end
 
+      @request.env.delete('PATH_INFO')
+
       if @controller
         @controller.request = @request
         @controller.params = {}
@@ -335,13 +337,20 @@ module ActionController
 
     private
       def build_request_uri(action, parameters)
-        unless @request.env['REQUEST_URI']
-          options = @controller.__send__(:rewrite_options, parameters)
-          options.update(:only_path => true, :action => action)
+        unless @request.env["PATH_INFO"]
+          options = @controller.__send__(:url_options).merge(parameters)
+          options.update(
+            :only_path => true,
+            :action => action,
+            :relative_url_root => nil,
+            :_path_segments => @request.symbolized_path_parameters)
 
-          url = ActionController::UrlRewriter.new(@request, parameters)
-          @request.request_uri = url.rewrite(options)
+          url, query_string = @router.url_for(options).split("?", 2)
+
+          @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
+          @request.env["PATH_INFO"] = url
+          @request.env["QUERY_STRING"] = query_string || ""
         end
       end
-  end
+    end
 end

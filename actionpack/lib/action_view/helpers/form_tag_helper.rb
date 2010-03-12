@@ -10,6 +10,11 @@ module ActionView
     # NOTE: The HTML options <tt>disabled</tt>, <tt>readonly</tt>, and <tt>multiple</tt> can all be treated as booleans. So specifying
     # <tt>:disabled => true</tt> will give <tt>disabled="disabled"</tt>.
     module FormTagHelper
+      extend ActiveSupport::Concern
+
+      include UrlHelper
+      include TextHelper
+
       # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
@@ -90,9 +95,9 @@ module ActionView
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
         if blank = options.delete(:include_blank)
           if blank.kind_of?(String)
-            option_tags = "<option value=\"\">#{blank}</option>" + option_tags
+            option_tags = "<option value=\"\">#{blank}</option>".html_safe + option_tags
           else
-            option_tags = "<option value=\"\"></option>" + option_tags
+            option_tags = "<option value=\"\"></option>".html_safe + option_tags
           end
         end
         content_tag :select, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
@@ -279,7 +284,7 @@ module ActionView
         escape = options.key?("escape") ? options.delete("escape") : true
         content = html_escape(content) if escape
 
-        content_tag :textarea, content, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
+        content_tag :textarea, content.html_safe, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
       end
 
       # Creates a check box form input tag.
@@ -441,10 +446,10 @@ module ActionView
       #   # => <fieldset class="format"><p><input id="name" name="name" type="text" /></p></fieldset>
       def field_set_tag(legend = nil, options = nil, &block)
         content = capture(&block)
-        safe_concat(tag(:fieldset, options, true))
-        safe_concat(content_tag(:legend, legend)) unless legend.blank?
-        concat(content)
-        safe_concat("</fieldset>")
+        output = tag(:fieldset, options, true)
+        output.safe_concat(content_tag(:legend, legend)) unless legend.blank?
+        output.concat(content)
+        output.safe_concat("</fieldset>")
       end
 
       private
@@ -477,9 +482,10 @@ module ActionView
 
         def form_tag_in_block(html_options, &block)
           content = capture(&block)
-          safe_concat(form_tag_html(html_options))
-          concat(content)
-          safe_concat("</form>")
+          output = ActiveSupport::SafeBuffer.new
+          output.safe_concat(form_tag_html(html_options))
+          output << content
+          output.safe_concat("</form>")
         end
 
         def token_tag

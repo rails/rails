@@ -89,16 +89,23 @@ module ActionView
       end
 
       test "helper class that is being tested is always included in view instance" do
-        self.class.helper_class.module_eval do
-          def render_from_helper
-            render :partial => 'customer', :collection => @customers
+        # This ensure is a hidious hack to deal with these tests bleeding
+        # methods between eachother
+        begin
+          self.class.helper_class.module_eval do
+            def render_from_helper
+              render :partial => 'customer', :collection => @customers
+            end
           end
+
+          TestController.stubs(:controller_path).returns('test')
+
+          @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
+          assert_match /Hello: EloyHello: Manfred/, render(:partial => 'test/from_helper')
+
+        ensure
+          self.class.helper_class.send(:remove_method, :render_from_helper)
         end
-
-        TestController.stubs(:controller_path).returns('test')
-
-        @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
-        assert_match /Hello: EloyHello: Manfred/, render(:partial => 'test/from_helper')
       end
 
       test "no additional helpers should shared across test cases" do
@@ -107,7 +114,7 @@ module ActionView
       end
 
       test "is able to use routes" do
-        controller.request.assign_parameters('foo', 'index')
+        controller.request.assign_parameters(@router, 'foo', 'index')
         assert_equal '/foo', url_for
         assert_equal '/bar', url_for(:controller => 'bar')
       end
@@ -147,10 +154,16 @@ module ActionView
       end
 
       test "is able to make methods available to the view" do
-        _helpers.module_eval do
-          def render_from_helper; from_test_case end
+        # This ensure is a hidious hack to deal with these tests bleeding
+        # methods between eachother
+        begin
+          _helpers.module_eval do
+            def render_from_helper; from_test_case end
+          end
+          assert_equal 'Word!', render(:partial => 'test/from_helper')
+        ensure
+          _helpers.send(:remove_method, :render_from_helper)
         end
-        assert_equal 'Word!', render(:partial => 'test/from_helper')
       end
 
       def from_test_case; 'Word!'; end

@@ -30,19 +30,17 @@ when 'g', 'generate'
   require 'rails/commands/generate'
 when 'c', 'console'
   require 'rails/commands/console'
-  require APP_PATH
+  require ENV_PATH
   Rails::Console.start(Rails::Application)
 when 's', 'server'
   require 'rails/commands/server'
-  # Initialize the server first, so environment options are set
   server = Rails::Server.new
-  require APP_PATH
-
+  require ENV_PATH
   Dir.chdir(Rails::Application.root)
   server.start
 when 'db', 'dbconsole'
   require 'rails/commands/dbconsole'
-  require APP_PATH
+  require ENV_PATH
   Rails::DBConsole.start(Rails::Application)
 
 when 'application'
@@ -57,7 +55,7 @@ when 'profiler'
   require ENV_PATH
   require 'rails/commands/performance/profiler'
 when 'plugin'
-  require APP_PATH
+  require ENV_PATH
   require 'rails/commands/plugin'
 when 'runner'
   require 'rails/commands/runner'

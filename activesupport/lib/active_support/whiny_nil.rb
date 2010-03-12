@@ -25,16 +25,15 @@
 # By default it is on in development and test modes, and it is off in production
 # mode.
 class NilClass
-  WHINERS = [::Array]
-  WHINERS << ::ActiveRecord::Base if defined? ::ActiveRecord
-
   METHOD_CLASS_MAP = Hash.new
 
-  WHINERS.each do |klass|
+  def self.add_whiner(klass)
     methods = klass.public_instance_methods - public_instance_methods
     class_name = klass.name
     methods.each { |method| METHOD_CLASS_MAP[method.to_sym] = class_name }
   end
+
+  add_whiner ::Array
 
   # Raises a RuntimeError when you attempt to call +id+ on +nil+.
   def id

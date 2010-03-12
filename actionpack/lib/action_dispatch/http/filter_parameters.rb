@@ -25,9 +25,16 @@ module ActionDispatch
     module FilterParameters
       extend ActiveSupport::Concern
 
+      mattr_reader :compiled_parameter_filter_for
+      @@compiled_parameter_filter_for = {}
+
       # Return a hash of parameters with all sensitive data replaced.
       def filtered_parameters
-        @filtered_parameters ||= process_parameter_filter(parameters)
+        @filtered_parameters ||= if filtering_parameters?
+          process_parameter_filter(parameters)
+        else
+          parameters.dup
+        end
       end
       alias :fitered_params :filtered_parameters
 
@@ -46,10 +53,18 @@ module ActionDispatch
 
     protected
 
-      def compile_parameter_filter #:nodoc:
+      def filtering_parameters? #:nodoc:
+        @env["action_dispatch.parameter_filter"].present?
+      end
+
+      def process_parameter_filter(params) #:nodoc:
+        compiled_parameter_filter_for(@env["action_dispatch.parameter_filter"]).call(params)
+      end
+
+      def compile_parameter_filter(filters) #:nodoc:
         strings, regexps, blocks = [], [], []
 
-        Array(@env["action_dispatch.parameter_filter"]).each do |item|
+        filters.each do |item|
           case item
           when NilClass
           when Proc
@@ -65,34 +80,34 @@ module ActionDispatch
         [regexps, blocks]
       end
 
-      def filtering_parameters? #:nodoc:
-        @env["action_dispatch.parameter_filter"].present?
-      end
+      def compiled_parameter_filter_for(filters) #:nodoc:
+        @@compiled_parameter_filter_for[filters] ||= begin
+          regexps, blocks = compile_parameter_filter(filters)
 
-      def process_parameter_filter(original_params) #:nodoc:
-        return original_params.dup unless filtering_parameters?
+          lambda do |original_params|
+            filtered_params = {}
 
-        filtered_params = {}
-        regexps, blocks = compile_parameter_filter
+            original_params.each do |key, value|
+              if regexps.find { |r| key =~ r }
+                value = '[FILTERED]'
+              elsif value.is_a?(Hash)
+                value = process_parameter_filter(value)
+              elsif value.is_a?(Array)
+                value = value.map { |v| v.is_a?(Hash) ? process_parameter_filter(v) : v }
+              elsif blocks.present?
+                key = key.dup
+                value = value.dup if value.duplicable?
+                blocks.each { |b| b.call(key, value) }
+              end
 
-        original_params.each do |key, value|
-          if regexps.find { |r| key =~ r }
-            value = '[FILTERED]'
-          elsif value.is_a?(Hash)
-            value = process_parameter_filter(value)
-          elsif value.is_a?(Array)
-            value = value.map { |i| process_parameter_filter(i) }
-          elsif blocks.present?
-            key = key.dup
-            value = value.dup if value.duplicable?
-            blocks.each { |b| b.call(key, value) }
+              filtered_params[key] = value
+            end
+
+            filtered_params
           end
-
-          filtered_params[key] = value
         end
-
-        filtered_params
       end
+
     end
   end
 end

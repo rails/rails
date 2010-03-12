@@ -113,7 +113,7 @@ module ActiveRecord
       def transaction(options = {})
         options.assert_valid_keys :requires_new, :joinable
 
-        last_transaction_joinable = @transaction_joinable
+        last_transaction_joinable = defined?(@transaction_joinable) ? @transaction_joinable : nil
         if options.has_key?(:joinable)
           @transaction_joinable = options[:joinable]
         else

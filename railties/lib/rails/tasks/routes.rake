@@ -1,9 +1,9 @@
 desc 'Print out all defined routes in match order, with names. Target specific controller with CONTROLLER=x.'
 task :routes => :environment do
   Rails::Application.reload_routes!
-  all_routes = ENV['CONTROLLER'] ? ActionController::Routing::Routes.routes.select { |route| route.defaults[:controller] == ENV['CONTROLLER'] } : ActionController::Routing::Routes.routes
+  all_routes = ENV['CONTROLLER'] ? Rails.application.routes.routes.select { |route| route.defaults[:controller] == ENV['CONTROLLER'] } : Rails.application.routes.routes
   routes = all_routes.collect do |route|
-    name = ActionController::Routing::Routes.named_routes.routes.index(route).to_s
+    name = Rails.application.routes.named_routes.routes.index(route).to_s
     reqs = route.requirements.empty? ? "" : route.requirements.inspect
     {:name => name, :verb => route.verb.to_s, :path => route.path, :reqs => reqs}
   end

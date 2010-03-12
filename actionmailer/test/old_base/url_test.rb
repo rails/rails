@@ -4,12 +4,18 @@ require 'action_controller'
 class WelcomeController < ActionController::Base
 end
 
+AppRoutes = ActionDispatch::Routing::RouteSet.new
+
 class ActionMailer::Base
-  include ActionController::UrlFor
+  include AppRoutes.url_helpers
 end
 
 class TestMailer < ActionMailer::Base
   default_url_options[:host] = 'www.basecamphq.com'
+
+  configure do |c|
+    c.assets_dir = '' # To get the tests to pass
+  end
 
   def signed_up_with_url(recipient)
     @recipients   = recipient
@@ -61,7 +67,7 @@ class ActionMailerUrlTest < Test::Unit::TestCase
   def test_signed_up_with_url
     TestMailer.delivery_method = :test
     
-    ActionController::Routing::Routes.draw do |map|
+    AppRoutes.draw do |map|
       map.connect ':controller/:action/:id'
       map.welcome 'welcome', :controller=>"foo", :action=>"bar"
     end

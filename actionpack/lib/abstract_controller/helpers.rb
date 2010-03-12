@@ -1,6 +1,4 @@
 require 'active_support/dependencies'
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/module/delegation'
 
 module AbstractController
   module Helpers
@@ -27,7 +25,7 @@ module AbstractController
       def inherited(klass)
         helpers = _helpers
         klass._helpers = Module.new { include helpers }
-        klass.class_eval { default_helper_module! unless name.blank? }
+        klass.class_eval { default_helper_module! unless anonymous? }
         super
       end
 
@@ -99,7 +97,7 @@ module AbstractController
       def helper(*args, &block)
         self._helper_serial = AbstractController::Helpers.next_serial + 1
 
-        _modules_for_helpers(args).each do |mod|
+        modules_for_helpers(args).each do |mod|
           add_template_helper(mod)
         end
 
@@ -134,7 +132,7 @@ module AbstractController
       # ==== Returns
       # Array[Module]:: A normalized list of modules for the list of
       #   helpers provided.
-      def _modules_for_helpers(args)
+      def modules_for_helpers(args)
         args.flatten.map! do |arg|
           case arg
           when String, Symbol

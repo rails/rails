@@ -1,3 +1,5 @@
+require 'action_dispatch/middleware/flash'
+
 module ActionDispatch
   module TestProcess
     def assigns(key = nil)

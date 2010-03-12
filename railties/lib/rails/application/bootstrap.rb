@@ -1,3 +1,5 @@
+require "active_support/notifications"
+
 module Rails
   class Application
     module Bootstrap
@@ -46,20 +48,6 @@ module Rails
           if RAILS_CACHE.respond_to?(:middleware)
             config.middleware.insert_after(:"Rack::Lock", RAILS_CACHE.middleware)
           end
-        end
-      end
-
-      # Initialize rails subscriber on top of notifications.
-      initializer :initialize_subscriber do
-        require 'active_support/notifications'
-
-        if config.colorize_logging == false
-          Rails::Subscriber.colorize_logging = false
-          config.generators.colorize_logging = false
-        end
-
-        ActiveSupport::Notifications.subscribe do |*args|
-          Rails::Subscriber.dispatch(args)
         end
       end
 

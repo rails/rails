@@ -28,7 +28,7 @@ module ApplicationTests
         end
       RUBY
 
-      get "/"
+      get "/not/slash"
       assert_equal 200, last_response.status
       assert_equal "FooMetal", last_response.body
     end
@@ -50,7 +50,7 @@ module ApplicationTests
         end
       RUBY
 
-      get "/"
+      get "/not/slash"
       assert_equal 200, last_response.status
       assert_equal "Metal B", last_response.body
     end

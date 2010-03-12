@@ -12,9 +12,10 @@ module ActionView
       # prepend the key with a period, nothing is converted.
       def translate(key, options = {})
         options[:raise] = true
-        I18n.translate(scope_key_by_partial(key), options).html_safe
+        translation = I18n.translate(scope_key_by_partial(key), options)
+        translation.is_a?(Array) ? translation.map { |entry| entry.html_safe } : translation.html_safe
       rescue I18n::MissingTranslationData => e
-        keys = I18n.send(:normalize_translation_keys, e.locale, e.key, e.options[:scope])
+        keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
         content_tag('span', keys.join(', '), :class => 'translation_missing')
       end
       alias :t :translate
@@ -28,7 +29,7 @@ module ActionView
       private
 
         def scope_key_by_partial(key)
-          if key.to_s.first == "."
+          if (key.respond_to?(:join) ? key.join : key.to_s).first == "."
             if @_virtual_path
               @_virtual_path.gsub(%r{/_?}, ".") + key.to_s
             else

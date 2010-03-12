@@ -11,7 +11,7 @@ module ActionView
     # the assets exist before linking to them:
     #
     #   image_tag("rails.png")
-    #   # => <img alt="Rails src="/images/rails.png?1230601161" />
+    #   # => <img alt="Rails" src="/images/rails.png?1230601161" />
     #   stylesheet_link_tag("application")
     #   # => <link href="/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
     #
@@ -133,13 +133,6 @@ module ActionView
     # change. You can use something like Live HTTP Headers for Firefox to verify
     # that the cache is indeed working.
     module AssetTagHelper
-      assets_dir = defined?(Rails.public_path) ? Rails.public_path : "public"
-      ActionView::DEFAULT_CONFIG = {
-        :assets_dir => assets_dir,
-        :javascripts_dir => "#{assets_dir}/javascripts",
-        :stylesheets_dir => "#{assets_dir}/stylesheets",
-      }
-
       JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls', 'rails'].freeze unless const_defined?(:JAVASCRIPT_DEFAULT_SOURCES)
 
       # Returns a link tag that browsers and news readers can use to auto-detect
@@ -530,7 +523,7 @@ module ActionView
         options.symbolize_keys!
 
         src = options[:src] = path_to_image(source)
-        options[:alt]     ||= File.basename(src, '.*').split('.').first.to_s.capitalize
+        options[:alt]     ||= File.basename(src, '.*').capitalize
 
         if size = options.delete(:size)
           options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
@@ -648,8 +641,8 @@ module ActionView
             source = rewrite_asset_path(source)
 
             if has_request && include_host
-              unless source =~ %r{^#{ActionController::Base.relative_url_root}/}
-                source = "#{ActionController::Base.relative_url_root}#{source}"
+              unless source =~ %r{^#{controller.config.relative_url_root}/}
+                source = "#{controller.config.relative_url_root}#{source}"
               end
             end
           end
@@ -677,7 +670,7 @@ module ActionView
         # or the value returned from invoking the proc if it's a proc or the value from
         # invoking call if it's an object responding to call.
         def compute_asset_host(source)
-          if host = ActionController::Base.asset_host
+          if host = config.asset_host
             if host.is_a?(Proc) || host.respond_to?(:call)
               case host.is_a?(Proc) ? host.arity : host.method(:call).arity
               when 2

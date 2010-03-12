@@ -6,11 +6,17 @@ CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
 FILE_STORE_PATH = File.join(File.dirname(__FILE__), '/../temp/', CACHE_DIR)
 ActionController::Base.page_cache_directory = FILE_STORE_PATH
-ActionController::Base.cache_store = :file_store, FILE_STORE_PATH
 
-class PageCachingTestController < ActionController::Base
+class CachingController < ActionController::Base
+  abstract!
+
+  self.cache_store = :file_store, FILE_STORE_PATH
+end
+
+class PageCachingTestController < CachingController
   caches_page :ok, :no_content, :if => Proc.new { |c| !c.request.format.json? }
   caches_page :found, :not_found
+
 
   def ok
     head :ok
@@ -51,12 +57,13 @@ class PageCachingTest < ActionController::TestCase
 
     @request = ActionController::TestRequest.new
     @request.host = 'hostname.com'
+    @request.env.delete('PATH_INFO')
 
     @response   = ActionController::TestResponse.new
     @controller = PageCachingTestController.new
+    @controller.cache_store = :file_store, FILE_STORE_PATH
 
-    @params = {:controller => 'posts', :action => 'index', :only_path => true, :skip_relative_url_root => true}
-    @rewriter = ActionController::UrlRewriter.new(@request, @params)
+    @params = {:controller => 'posts', :action => 'index', :only_path => true}
 
     FileUtils.rm_rf(File.dirname(FILE_STORE_PATH))
     FileUtils.mkdir_p(FILE_STORE_PATH)
@@ -74,9 +81,9 @@ class PageCachingTest < ActionController::TestCase
         match '/', :to => 'posts#index', :as => :main
       end
       @params[:format] = 'rss'
-      assert_equal '/posts.rss', @rewriter.rewrite(@params)
+      assert_equal '/posts.rss', @router.url_for(@params)
       @params[:format] = nil
-      assert_equal '/', @rewriter.rewrite(@params)
+      assert_equal '/', @router.url_for(@params)
     end
   end
 
@@ -110,7 +117,7 @@ class PageCachingTest < ActionController::TestCase
   end
 
   def test_should_cache_ok_at_custom_path
-    @request.request_uri = "/index.html"
+    @request.env['PATH_INFO'] = '/index.html'
     get :ok
     assert_response :ok
     assert File.exist?("#{FILE_STORE_PATH}/index.html")
@@ -147,7 +154,7 @@ class PageCachingTest < ActionController::TestCase
     end
 end
 
-class ActionCachingTestController < ActionController::Base
+class ActionCachingTestController < CachingController
   rescue_from(Exception) { head 500 }
   if defined? ActiveRecord
     rescue_from(ActiveRecord::RecordNotFound) { head :not_found }
@@ -305,12 +312,9 @@ class ActionCacheTest < ActionController::TestCase
   end
 
   def test_action_cache_conditional_options
-    old_use_accept_header = ActionController::Base.use_accept_header
-    ActionController::Base.use_accept_header = true
     @request.env['HTTP_ACCEPT'] = 'application/json'
     get :index
     assert !fragment_exist?('hostname.com/action_caching_test')
-    ActionController::Base.use_accept_header = old_use_accept_header
   end
 
   def test_action_cache_with_store_options
@@ -511,6 +515,7 @@ class ActionCacheTest < ActionController::TestCase
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
       @controller = ActionCachingTestController.new
+      @controller.singleton_class.send(:include, @router.url_helpers)
       @request.host = 'hostname.com'
     end
 
@@ -523,7 +528,7 @@ class ActionCacheTest < ActionController::TestCase
     end
 end
 
-class FragmentCachingTestController < ActionController::Base
+class FragmentCachingTestController < CachingController
   def some_action; end;
 end
 
@@ -532,8 +537,8 @@ class FragmentCachingTest < ActionController::TestCase
     super
     ActionController::Base.perform_caching = true
     @store = ActiveSupport::Cache::MemoryStore.new
-    ActionController::Base.cache_store = @store
     @controller = FragmentCachingTestController.new
+    @controller.cache_store = @store
     @params = {:controller => 'posts', :action => 'index'}
     @request = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
@@ -631,7 +636,7 @@ class FragmentCachingTest < ActionController::TestCase
 
 end
 
-class FunctionalCachingController < ActionController::Base
+class FunctionalCachingController < CachingController
   def fragment_cached
   end
 
@@ -665,8 +670,8 @@ class FunctionalFragmentCachingTest < ActionController::TestCase
     super
     ActionController::Base.perform_caching = true
     @store = ActiveSupport::Cache::MemoryStore.new
-    ActionController::Base.cache_store = @store
     @controller = FunctionalCachingController.new
+    @controller.cache_store = @store
     @request = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
   end

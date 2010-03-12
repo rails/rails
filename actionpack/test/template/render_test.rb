@@ -33,17 +33,17 @@ module RenderTestCases
   end
 
   def test_render_file_with_localization
-    old_locale, I18n.locale = I18n.locale, :da
+    old_locale, @view.locale = @view.locale, :da
     assert_equal "Hey verden", @view.render(:file => "test/hello_world")
   ensure
-    I18n.locale = old_locale
+    @view.locale = old_locale
   end
 
   def test_render_file_with_dashed_locale
-    old_locale, I18n.locale = I18n.locale, :"pt-BR"
+    old_locale, @view.locale = @view.locale, :"pt-BR"
     assert_equal "Ola mundo", @view.render(:file => "test/hello_world")
   ensure
-    I18n.locale = old_locale
+    @view.locale = old_locale
   end
 
   def test_render_file_at_top_level
@@ -108,7 +108,7 @@ module RenderTestCases
     @view.render(:partial => "test/raise")
     flunk "Render did not raise Template::Error"
   rescue ActionView::Template::Error => e
-    assert_match "undefined local variable or method `doesnt_exist'", e.message
+    assert_match %r!method.*doesnt_exist!, e.message
     assert_equal "", e.sub_template_message
     assert_equal "1", e.line_number
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
@@ -118,7 +118,7 @@ module RenderTestCases
     @view.render(:file => "test/sub_template_raise")
     flunk "Render did not raise Template::Error"
   rescue ActionView::Template::Error => e
-    assert_match "undefined local variable or method `doesnt_exist'", e.message
+    assert_match %r!method.*doesnt_exist!, e.message
     assert_equal "Trace of template inclusion: #{File.expand_path("#{FIXTURE_LOAD_PATH}/test/sub_template_raise.html.erb")}", e.sub_template_message
     assert_equal "1", e.line_number
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
@@ -233,6 +233,11 @@ module RenderTestCases
       @view.render(:file => "test/nested_layout.erb", :layout => "layouts/yield")
   end
 
+  def test_render_with_file_in_layout
+    assert_equal %(\n<title>title</title>\n\n),
+      @view.render(:file => "test/layout_render_file.erb")
+  end
+ 
   if '1.9'.respond_to?(:force_encoding)
     def test_render_utf8_template_with_magic_comment
       with_external_encoding Encoding::ASCII_8BIT do
@@ -265,7 +270,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
   # Ensure view path cache is primed
   def setup
     view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::FileSystemResolverWithFallback, view_paths.first.class
+    assert_equal ActionView::FileSystemResolver, view_paths.first.class
     setup_view(view_paths)
   end
 end
@@ -276,9 +281,9 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   # Test the same thing as above, but make sure the view path
   # is not eager loaded
   def setup
-    path = ActionView::FileSystemResolverWithFallback.new(FIXTURE_LOAD_PATH)
+    path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
     view_paths = ActionView::Base.process_view_paths(path)
-    assert_equal ActionView::FileSystemResolverWithFallback, view_paths.first.class
+    assert_equal ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH), view_paths.first
     setup_view(view_paths)
   end
 end

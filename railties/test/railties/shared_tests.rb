@@ -133,7 +133,7 @@ module RailtiesTest
           end
         end
 
-        ActionController::Routing::Routes.draw do
+        Rails.application.routes.draw do
           match "/sprokkit", :to => Sprokkit
         end
       RUBY
@@ -170,7 +170,7 @@ module RailtiesTest
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
-        ActionController::Routing::Routes.draw do |map|
+        Rails.application.routes.draw do |map|
           match 'foo', :to => 'bar#index'
           match 'bar', :to => 'bar#index'
         end
@@ -254,22 +254,24 @@ YAML
       require 'rack/test'
       extend Rack::Test::Methods
 
-      get "/"
+      get "/not/slash"
       assert_equal 200, last_response.status
       assert_equal "FooMetal", last_response.body
     end
 
     def test_namespaced_controllers_with_namespaced_routes
       @plugin.write "config/routes.rb", <<-RUBY
-        ActionController::Routing::Routes.draw do
+        Rails.application.routes.draw do
           namespace :admin do
-            match "index", :to => "admin/foo#index"
+            namespace :foo do
+              match "bar", :to => "admin/foo/bar#index"
+            end
           end
         end
       RUBY
 
-      @plugin.write "app/controllers/admin/foo_controller.rb", <<-RUBY
-        class Admin::FooController < ApplicationController
+      @plugin.write "app/controllers/admin/foo/bar_controller.rb", <<-RUBY
+        class Admin::Foo::BarController < ApplicationController
           def index
             render :text => "Rendered from namespace"
           end
@@ -280,7 +282,7 @@ YAML
       require 'rack/test'
       extend Rack::Test::Methods
 
-      get "/admin/index"
+      get "/admin/foo/bar"
       assert_equal 200, last_response.status
       assert_equal "Rendered from namespace", last_response.body
     end

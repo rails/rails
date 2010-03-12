@@ -253,12 +253,14 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   end
 
   def test_assert_redirect_to_nested_named_route
+    @controller = Admin::InnerModuleController.new
+
     with_routing do |set|
       set.draw do |map|
         match 'admin/inner_module', :to => 'admin/inner_module#index', :as => :admin_inner_module
-        match ':controller/:action'
+        # match ':controller/:action'
+        map.connect ':controller/:action/:id'
       end
-      @controller = Admin::InnerModuleController.new
       process :redirect_to_index
       # redirection is <{"action"=>"index", "controller"=>"admin/admin/inner_module"}>
       assert_redirected_to admin_inner_module_path
@@ -266,12 +268,14 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   end
 
   def test_assert_redirected_to_top_level_named_route_from_nested_controller
+    @controller = Admin::InnerModuleController.new
+
     with_routing do |set|
       set.draw do |map|
         match '/action_pack_assertions/:id', :to => 'action_pack_assertions#index', :as => :top_level
-        match ':controller/:action'
+        # match ':controller/:action'
+        map.connect ':controller/:action/:id'
       end
-      @controller = Admin::InnerModuleController.new
       process :redirect_to_top_level_named_route
       # assert_redirected_to "http://test.host/action_pack_assertions/foo" would pass because of exact match early return
       assert_redirected_to "/action_pack_assertions/foo"
@@ -279,13 +283,15 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   end
 
   def test_assert_redirected_to_top_level_named_route_with_same_controller_name_in_both_namespaces
+    @controller = Admin::InnerModuleController.new
+
     with_routing do |set|
       set.draw do |map|
         # this controller exists in the admin namespace as well which is the only difference from previous test
         match '/user/:id', :to => 'user#index', :as => :top_level
-        match ':controller/:action'
+        # match ':controller/:action'
+        map.connect ':controller/:action/:id'
       end
-      @controller = Admin::InnerModuleController.new
       process :redirect_to_top_level_named_route
       # assert_redirected_to top_level_url('foo') would pass because of exact match early return
       assert_redirected_to top_level_path('foo')
@@ -463,9 +469,11 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_redirected_to '/some/path'
   end
 
-  def test_redirected_to_url_no_leadling_slash
+  def test_redirected_to_url_no_leading_slash_fails
     process :redirect_to_path
-    assert_redirected_to 'some/path'
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_redirected_to 'some/path'
+    end
   end
 
   def test_redirected_to_url_full_url

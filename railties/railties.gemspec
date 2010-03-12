@@ -1,9 +1,11 @@
+version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).strip
+
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'railties'
-  s.version     = '3.0.0.beta1'
-  s.summary     = 'Controls boot-up, rake tasks and generators for the Rails framework.'
-  s.description = 'Controls boot-up, rake tasks and generators for the Rails framework.'
+  s.version     = version
+  s.summary     = 'Tools for creating, working with, and running Rails applications.'
+  s.description = 'Rails internals: application bootup, plugins, generators, and rake tasks.'
   s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'David Heinemeier Hansson'
@@ -21,7 +23,7 @@ Gem::Specification.new do |s|
   s.has_rdoc = false
 
   s.add_dependency('rake',          '>= 0.8.3')
-  s.add_dependency('thor',          '~> 0.13')
-  s.add_dependency('activesupport', '= 3.0.0.beta1')
-  s.add_dependency('actionpack',    '= 3.0.0.beta1')
+  s.add_dependency('thor',          '~> 0.13.4')
+  s.add_dependency('activesupport', version)
+  s.add_dependency('actionpack',    version)
 end

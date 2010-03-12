@@ -28,7 +28,7 @@ module ApplicationTests
       ActiveSupport::Notifications.notifier.wait
     end
 
-    test "rails subscribers are added" do
+    test "rails log_subscribers are added" do
       add_to_config <<-RUBY
         config.colorize_logging = false
       RUBY

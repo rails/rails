@@ -6,14 +6,14 @@ end
 class Workshop
   extend ActiveModel::Naming
   include ActiveModel::Conversion
-  attr_accessor :id, :new_record
+  attr_accessor :id
 
-  def initialize(id, new_record)
-    @id, @new_record = id, new_record
+  def initialize(id)
+    @id = id
   end
 
-  def new_record?
-    @new_record
+  def persisted?
+    id.present?
   end
 
   def to_s
@@ -88,11 +88,11 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_to_existing_record
-    redirect_to Workshop.new(5, false)
+    redirect_to Workshop.new(5)
   end
 
   def redirect_to_new_record
-    redirect_to Workshop.new(5, true)
+    redirect_to Workshop.new(nil)
   end
 
   def redirect_to_nil
@@ -239,11 +239,11 @@ class RedirectTest < ActionController::TestCase
 
       get :redirect_to_existing_record
       assert_equal "http://test.host/workshops/5", redirect_to_url
-      assert_redirected_to Workshop.new(5, false)
+      assert_redirected_to Workshop.new(5)
 
       get :redirect_to_new_record
       assert_equal "http://test.host/workshops", redirect_to_url
-      assert_redirected_to Workshop.new(5, true)
+      assert_redirected_to Workshop.new(nil)
     end
   end
 

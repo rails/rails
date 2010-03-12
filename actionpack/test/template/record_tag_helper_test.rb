@@ -18,6 +18,7 @@ class RecordTagHelperTest < ActionView::TestCase
   def setup
     super
     @post = Post.new
+    @post.persisted = true
   end
 
   def test_content_tag_for

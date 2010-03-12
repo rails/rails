@@ -1,22 +1,22 @@
 require "abstract_unit"
-require "rails/subscriber/test_helper"
-require "action_view/railties/subscriber"
+require "rails/log_subscriber/test_helper"
+require "action_view/railties/log_subscriber"
 require "controller/fake_models"
 
-class AVSubscriberTest < ActiveSupport::TestCase
-  include Rails::Subscriber::TestHelper
+class AVLogSubscriberTest < ActiveSupport::TestCase
+  include Rails::LogSubscriber::TestHelper
 
   def setup
+    super
     @old_logger = ActionController::Base.logger
     @view = ActionView::Base.new(ActionController::Base.view_paths, {})
     Rails.stubs(:root).returns(File.expand_path(FIXTURE_LOAD_PATH))
-    Rails::Subscriber.add(:action_view, ActionView::Railties::Subscriber.new)
-    super
+    Rails::LogSubscriber.add(:action_view, ActionView::Railties::LogSubscriber.new)
   end
 
   def teardown
     super
-    Rails::Subscriber.subscribers.clear
+    Rails::LogSubscriber.log_subscribers.clear
     ActionController::Base.logger = @old_logger
   end
 

@@ -12,11 +12,10 @@ module ActionController #:nodoc:
     included do
       # Sets the token parameter name for RequestForgery. Calling +protect_from_forgery+
       # sets it to <tt>:authenticity_token</tt> by default.
-      cattr_accessor :request_forgery_protection_token
+      config.request_forgery_protection_token ||= :authenticity_token
 
       # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
-      class_attribute :allow_forgery_protection
-      self.allow_forgery_protection = true
+      config.allow_forgery_protection ||= true
 
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
@@ -80,9 +79,47 @@ module ActionController #:nodoc:
         self.request_forgery_protection_token ||= :authenticity_token
         before_filter :verify_authenticity_token, options
       end
+
+      def request_forgery_protection_token
+        config.request_forgery_protection_token
+      end
+
+      def request_forgery_protection_token=(val)
+        config.request_forgery_protection_token = val
+      end
+
+      def allow_forgery_protection
+        config.allow_forgery_protection
+      end
+
+      def allow_forgery_protection=(val)
+        config.allow_forgery_protection = val
+      end
     end
 
     protected
+
+      def protect_from_forgery(options = {})
+        self.request_forgery_protection_token ||= :authenticity_token
+        before_filter :verify_authenticity_token, options
+      end
+
+      def request_forgery_protection_token
+        config.request_forgery_protection_token
+      end
+
+      def request_forgery_protection_token=(val)
+        config.request_forgery_protection_token = val
+      end
+
+      def allow_forgery_protection
+        config.allow_forgery_protection
+      end
+
+      def allow_forgery_protection=(val)
+        config.allow_forgery_protection = val
+      end
+
       # The actual before_filter that is used.  Modify this to change how you handle unverified requests.
       def verify_authenticity_token
         verified_request? || raise(ActionController::InvalidAuthenticityToken)
@@ -109,7 +146,7 @@ module ActionController #:nodoc:
       end
 
       def protect_against_forgery?
-        self.class.allow_forgery_protection
+        config.allow_forgery_protection
       end
   end
 end

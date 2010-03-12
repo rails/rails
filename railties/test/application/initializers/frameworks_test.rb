@@ -32,6 +32,17 @@ module ApplicationTests
       ActionMailer::Base.view_paths.include?(File.expand_path("app/views", app_path))
     end
 
+    test "allows me to configure default url options for ActionMailer" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails::Application.configure do
+          config.action_mailer.default_url_options = { :host => "test.rails" }
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert "test.rails", ActionMailer::Base.default_url_options[:host]
+    end
+
     # AS
     test "if there's no config.active_support.bare, all of ActiveSupport is required" do
       use_frameworks []
@@ -54,7 +65,7 @@ module ApplicationTests
     test "database middleware doesn't initialize when session store is not active_record" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-        config.action_controller.session_store = :cookie_store
+        config.session_store :cookie_store, { :key => "blahblahblah" }
       RUBY
       require "#{app_path}/config/environment"
 
@@ -62,7 +73,7 @@ module ApplicationTests
     end
 
     test "database middleware initializes when session store is active record" do
-      add_to_config "config.action_controller.session_store = :active_record_store"
+      add_to_config "config.session_store :active_record_store"
 
       require "#{app_path}/config/environment"
 
@@ -80,7 +91,7 @@ module ApplicationTests
     test "database middleware doesn't initialize when activerecord is not in frameworks" do
       use_frameworks []
       require "#{app_path}/config/environment"
-      assert_nil defined?(ActiveRecord)
+      assert_nil defined?(ActiveRecord::Base)
     end
   end
 end

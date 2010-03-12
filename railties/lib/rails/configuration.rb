@@ -4,92 +4,6 @@ require 'rails/rack'
 
 module Rails
   module Configuration
-    # Holds coonfiguration shared between Railtie, Engine and Application.
-    module Shared
-      def middleware
-        @@default_middleware_stack ||= ActionDispatch::MiddlewareStack.new.tap do |middleware|
-          middleware.use('::ActionDispatch::Static', lambda { Rails.public_path }, :if => lambda { Rails.application.config.serve_static_assets })
-          middleware.use('::Rack::Lock', :if => lambda { !Rails.application.config.allow_concurrency })
-          middleware.use('::Rack::Runtime')
-          middleware.use('::Rails::Rack::Logger')
-          middleware.use('::ActionDispatch::ShowExceptions', lambda { Rails.application.config.consider_all_requests_local })
-          middleware.use('::ActionDispatch::Callbacks', lambda { !Rails.application.config.cache_classes })
-          middleware.use('::ActionDispatch::Cookies')
-          middleware.use(lambda { ActionController::Base.session_store }, lambda { ActionController::Base.session_options })
-          middleware.use('::ActionDispatch::Flash', :if => lambda { ActionController::Base.session_store })
-          middleware.use(lambda { Rails.application.metal_loader.build_middleware(Rails.application.config.metals) }, :if => lambda { Rails.application.metal_loader.metals.any? })
-          middleware.use('ActionDispatch::ParamsParser')
-          middleware.use('::Rack::MethodOverride')
-          middleware.use('::ActionDispatch::Head')
-        end
-      end
-
-      # Holds generators configuration:
-      #
-      #   config.generators do |g|
-      #     g.orm             :datamapper, :migration => true
-      #     g.template_engine :haml
-      #     g.test_framework  :rspec
-      #   end
-      #
-      # If you want to disable color in console, do:
-      #
-      #   config.generators.colorize_logging = false
-      #
-      def generators
-        @@generators ||= Rails::Configuration::Generators.new
-        if block_given?
-          yield @@generators
-        else
-          @@generators
-        end
-      end
-
-      def after_initialize_blocks
-        @@after_initialize_blocks ||= []
-      end
-
-      def after_initialize(&blk)
-        after_initialize_blocks << blk if blk
-      end
-
-      def to_prepare_blocks
-        @@to_prepare_blocks ||= []
-      end
-
-      def to_prepare(&blk)
-        to_prepare_blocks << blk if blk
-      end
-
-      def respond_to?(name)
-        super || name.to_s =~ config_key_regexp
-      end
-
-    private
-
-      def method_missing(name, *args, &blk)
-        if name.to_s =~ config_key_regexp
-          return $2 == '=' ? options[$1] = args.first : options[$1]
-        end
-        super
-      end
-
-      def config_key_regexp
-        bits = config_keys.map { |n| Regexp.escape(n.to_s) }.join('|')
-        /^(#{bits})(?:=)?$/
-      end
-
-      def config_keys
-        (Railtie.railtie_names + Engine.engine_names).map { |n| n.to_s }.uniq
-      end
-
-      def options
-        @@options ||= Hash.new { |h,k| h[k] = ActiveSupport::OrderedOptions.new }
-      end
-    end
-
-    # Generators configuration which uses method missing to wrap it in a nifty DSL.
-    # It also allows you to set generators fallbacks and aliases.
     class Generators #:nodoc:
       attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging
 
@@ -123,7 +37,6 @@ module Rails
       end
     end
 
-    # Holds configs deprecated in 3.0. Will be removed on 3.1.
     module Deprecated
       def frameworks(*args)
         raise "config.frameworks in no longer supported. See the generated " \

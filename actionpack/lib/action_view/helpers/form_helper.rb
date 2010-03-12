@@ -92,6 +92,10 @@ module ActionView
     # link:classes/ActionView/Helpers/DateHelper.html, and
     # link:classes/ActionView/Helpers/ActiveRecordHelper.html
     module FormHelper
+      extend ActiveSupport::Concern
+
+      include FormTagHelper
+
       # Creates a form and a scope around a specific model object that is used
       # as a base for questioning about values for the fields.
       #
@@ -309,21 +313,20 @@ module ActionView
 
         options[:html][:remote] = true if options.delete(:remote)
 
-        safe_concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}))
-        fields_for(object_name, *(args << options), &proc)
-        safe_concat('</form>')
+        output = form_tag(options.delete(:url) || {}, options.delete(:html) || {})
+        output << fields_for(object_name, *(args << options), &proc)
+        output.safe_concat('</form>')
       end
 
       def apply_form_for_options!(object_or_array, options) #:nodoc:
         object = object_or_array.is_a?(Array) ? object_or_array.last : object_or_array
-
         object = convert_to_model(object)
 
         html_options =
-          if object.respond_to?(:new_record?) && object.new_record?
-            { :class  => dom_class(object, :new),  :id => dom_id(object), :method => :post }
-          else
+          if object.respond_to?(:persisted?) && object.persisted?
             { :class  => dom_class(object, :edit), :id => dom_id(object, :edit), :method => :put }
+          else
+            { :class  => dom_class(object, :new),  :id => dom_id(object), :method => :post }
           end
 
         options[:html] ||= {}
@@ -529,7 +532,10 @@ module ActionView
         end
 
         builder = options[:builder] || ActionView::Base.default_form_builder
-        yield builder.new(object_name, object, self, options, block)
+
+        with_output_buffer do
+          yield builder.new(object_name, object, self, options, block)
+        end
       end
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
@@ -1150,7 +1156,7 @@ module ActionView
 
         def submit_default_value
           object = @object.respond_to?(:to_model) ? @object.to_model : @object
-          key    = object ? (object.new_record? ? :create : :update) : :submit
+          key    = object ? (object.persisted? ? :update : :create) : :submit
 
           model = if object.class.respond_to?(:model_name)
             object.class.model_name.human
@@ -1176,7 +1182,7 @@ module ActionView
           association = args.shift
           association = association.to_model if association.respond_to?(:to_model)
 
-          if association.respond_to?(:new_record?)
+          if association.respond_to?(:persisted?)
             association = [association] if @object.send(association_name).is_a?(Array)
           elsif !association.is_a?(Array)
             association = @object.send(association_name)
@@ -1184,9 +1190,11 @@ module ActionView
 
           if association.is_a?(Array)
             explicit_child_index = options[:child_index]
-            association.map do |child|
-              fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index(name)}]", child, options, block)
-            end.join
+            output = ActiveSupport::SafeBuffer.new
+            association.each do |child|
+              output << fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index(name)}]", child, options, block)
+            end
+            output
           elsif association
             fields_for_nested_model(name, association, options, block)
           end
@@ -1195,13 +1203,13 @@ module ActionView
         def fields_for_nested_model(name, object, options, block)
           object = object.to_model if object.respond_to?(:to_model)
 
-          if object.new_record?
-            @template.fields_for(name, object, options, &block)
-          else
+          if object.persisted?
             @template.fields_for(name, object, options) do |builder|
               block.call(builder)
               @template.concat builder.hidden_field(:id) unless builder.emitted_hidden_id?
             end
+          else
+            @template.fields_for(name, object, options, &block)
           end
         end
 
@@ -1212,8 +1220,10 @@ module ActionView
     end
   end
 
-  class Base
-    cattr_accessor :default_form_builder
-    @@default_form_builder = ::ActionView::Helpers::FormBuilder
+  ActionView.base_hook do
+    class ActionView::Base
+      cattr_accessor :default_form_builder
+      @@default_form_builder = ::ActionView::Helpers::FormBuilder
+    end
   end
 end

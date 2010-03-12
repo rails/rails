@@ -15,27 +15,11 @@ module ActionView
     def render(options = {}, locals = {}, &block) #:nodoc:
       case options
       when Hash
-        layout = options[:layout]
-        options[:locals] ||= {}
-
         if block_given?
-          return safe_concat(_render_partial(options.merge(:partial => layout), &block))
-        elsif options.key?(:partial)
-          return _render_partial(options)
-        end
-
-        template = if options[:file]
-          find(options[:file], {:formats => formats})
-        elsif options[:inline]
-          handler = Template.handler_class_for_extension(options[:type] || "erb")
-          Template.new(options[:inline], "inline template", handler, {})
-        elsif options[:text]
-          Template::Text.new(options[:text])
-        end
-
-        if template
-          layout = find(layout, {:formats => formats}) if layout
-          _render_template(template, layout, :locals => options[:locals])
+          content = _render_partial(options.merge(:partial => options[:layout]), &block)
+          safe_concat(content)
+        else
+          _render(options)
         end
       when :update
         update_page(&block)
@@ -44,61 +28,57 @@ module ActionView
       end
     end
 
-    # You can think of a layout as a method that is called with a block. _layout_for
-    # returns the contents that are yielded to the layout. If the user calls yield
-    # :some_name, the block, by default, returns content_for(:some_name). If the user
-    # calls yield, the default block returns content_for(:layout).
-    #
-    # The user can override this default by passing a block to the layout.
-    #
-    # ==== Example
-    #
-    #   # The template
-    #   <% render :layout => "my_layout" do %>Content<% end %>
-    #
-    #   # The layout
-    #   <html><% yield %></html>
-    #
-    # In this case, instead of the default block, which would return content_for(:layout),
-    # this method returns the block that was passed in to render layout, and the response
-    # would be <html>Content</html>.
-    #
-    # Finally, the block can take block arguments, which can be passed in by yield.
-    #
-    # ==== Example
-    #
-    #   # The template
-    #   <% render :layout => "my_layout" do |customer| %>Hello <%= customer.name %><% end %>
-    #
-    #   # The layout
-    #   <html><% yield Struct.new(:name).new("David") %></html>
-    #
-    # In this case, the layout would receive the block passed into <tt>render :layout</tt>,
-    # and the Struct specified in the layout would be passed into the block. The result
-    # would be <html>Hello David</html>.
-    def _layout_for(name = nil, &block)
-      return @_content_for[name || :layout] if !block_given? || name
-      capture(&block)
-    end
-
     # This is the API to render a ViewContext's template from a controller.
-    #
-    # Internal Options:
-    # _template:: The Template object to render
-    # _layout::   The layout, if any, to wrap the Template in
-    def render_template(options)
+    def render_template(options, &block)
       _evaluate_assigns_and_ivars
-      template, layout = options.values_at(:_template, :_layout)
-      _render_template(template, layout, options)
+
+      # TODO Layout for partials should be handled here, because inside the
+      # partial renderer it looks for the layout as a partial.
+      if options.key?(:partial) && options[:layout]
+        options[:layout] = _find_layout(options[:layout])
+      end
+
+      _render(options, &block)
     end
 
-    def _render_template(template, layout = nil, options = {})
+    # This method holds the common render logic for both controllers and
+    # views rendering stacks.
+    def _render(options) #:nodoc:
+      if options.key?(:partial)
+        _render_partial(options)
+      else
+        template = _determine_template(options)
+        yield template if block_given?
+        _render_template(template, options[:layout], options)
+      end
+    end
+
+    # Determine the template to be rendered using the given options.
+    def _determine_template(options) #:nodoc:
+      if options.key?(:inline)
+        handler = Template.handler_class_for_extension(options[:type] || "erb")
+        Template.new(options[:inline], "inline template", handler, {})
+      elsif options.key?(:text)
+        Template::Text.new(options[:text], self.formats.try(:first))
+      elsif options.key?(:_template)
+        options[:_template]
+      elsif options.key?(:file)
+        with_fallbacks { find(options[:file], options[:prefix]) }
+      elsif options.key?(:template)
+        find(options[:template], options[:prefix])
+      end
+    end
+
+    # Renders the given template. An string representing the layout can be
+    # supplied as well.
+    def _render_template(template, layout = nil, options = {}) #:nodoc:
       locals = options[:locals] || {}
+      layout = _find_layout(layout) if layout
 
       ActiveSupport::Notifications.instrument("action_view.render_template",
         :identifier => template.identifier, :layout => layout.try(:identifier)) do
 
-        content = template.render(self, locals)
+        content = template.render(self, locals) { |*name| _layout_for(*name) }
         @_content_for[:layout] = content
 
         if layout
@@ -110,8 +90,5 @@ module ActionView
       end
     end
 
-    def _render_layout(layout, locals, &block)
-      layout.render(self, locals){ |*name| _layout_for(*name, &block) }
-    end
   end
 end

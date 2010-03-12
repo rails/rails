@@ -1,13 +1,13 @@
-require 'rails/subscriber'
+require 'rails/log_subscriber'
 
 module Rails
-  class Subscriber
-    # Provides some helpers to deal with testing subscribers by setting up
+  class LogSubscriber
+    # Provides some helpers to deal with testing log subscribers by setting up
     # notifications. Take for instance ActiveRecord subscriber tests:
     #
-    #   class SyncSubscriberTest < ActiveSupport::TestCase
-    #     include Rails::Subscriber::TestHelper
-    #     Rails::Subscriber.add(:active_record, ActiveRecord::Railties::Subscriber.new)
+    #   class SyncLogSubscriberTest < ActiveSupport::TestCase
+    #     include Rails::LogSubscriber::TestHelper
+    #     Rails::LogSubscriber.add(:active_record, ActiveRecord::Railties::LogSubscriber.new)
     # 
     #     def test_basic_query_logging
     #       Developer.all
@@ -17,18 +17,18 @@ module Rails
     #       assert_match /SELECT \* FROM "developers"/, @logger.logged(:debug).last
     #     end
     # 
-    #     class SyncSubscriberTest < ActiveSupport::TestCase
-    #       include Rails::Subscriber::SyncTestHelper
-    #       include SubscriberTest
+    #     class SyncLogSubscriberTest < ActiveSupport::TestCase
+    #       include Rails::LogSubscriber::SyncTestHelper
+    #       include LogSubscriberTest
     #     end
     # 
-    #     class AsyncSubscriberTest < ActiveSupport::TestCase
-    #       include Rails::Subscriber::AsyncTestHelper
-    #       include SubscriberTest
+    #     class AsyncLogSubscriberTest < ActiveSupport::TestCase
+    #       include Rails::LogSubscriber::AsyncTestHelper
+    #       include LogSubscriberTest
     #     end
     #   end
     #
-    # All you need to do is to ensure that your subscriber is added to Rails::Subscriber,
+    # All you need to do is to ensure that your log subscriber is added to Rails::Subscriber,
     # as in the second line of the code above. The test helpers is reponsible for setting
     # up the queue, subscriptions and turning colors in logs off.
     #
@@ -42,8 +42,7 @@ module Rails
         @logger   = MockLogger.new
         @notifier = ActiveSupport::Notifications::Notifier.new(queue)
 
-        Rails::Subscriber.colorize_logging = false
-        @notifier.subscribe { |*args| Rails::Subscriber.dispatch(args) }
+        Rails::LogSubscriber.colorize_logging = false
 
         set_logger(@logger)
         ActiveSupport::Notifications.notifier = @notifier
@@ -80,7 +79,7 @@ module Rails
         @notifier.wait
       end
 
-      # Overwrite if you use another logger in your subscriber:
+      # Overwrite if you use another logger in your log subscriber:
       #
       #   def logger
       #     ActiveRecord::Base.logger = @logger

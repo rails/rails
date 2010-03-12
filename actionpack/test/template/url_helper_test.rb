@@ -1,22 +1,21 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'active_support/ordered_options'
 require 'controller/fake_controllers'
 
-RequestMock = Struct.new("Request", :request_uri, :protocol, :host_with_port, :env)
-
 class UrlHelperTest < ActionView::TestCase
-  include ActiveSupport::Configurable
-  DEFAULT_CONFIG = ActionView::DEFAULT_CONFIG
 
   def setup
     super
-    @controller = Class.new do
-      attr_accessor :url, :request
+    @controller = Class.new(BasicController) do
+      attr_accessor :url
       def url_for(options)
         url
       end
     end
+
     @controller = @controller.new
+    @request = @controller.request = ActionDispatch::TestRequest.new
     @controller.url = "http://www.example.com"
   end
 
@@ -38,12 +37,13 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_url_for_with_back
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show", nil, nil, {'HTTP_REFERER' => 'http://www.example.com/referer'})
+    @request.env['HTTP_REFERER'] = 'http://www.example.com/referer'
     assert_equal 'http://www.example.com/referer', url_for(:back)
   end
 
   def test_url_for_with_back_and_no_referer
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show", nil, nil, {})
+    @request.env['HOST_NAME'] = 'www.example.com'
+    @request.env['PATH_INFO'] = '/weblog/show'
     assert_equal 'javascript:history.back()', url_for(:back)
   end
 
@@ -122,7 +122,6 @@ class UrlHelperTest < ActionView::TestCase
     url = {:controller => 'weblog', :action => 'show'}
     @controller = ActionController::Base.new
     @controller.request = ActionController::TestRequest.new
-    @controller.url = ActionController::UrlRewriter.new(@controller.request, url)
     assert_dom_equal(%q{<a href="/weblog/show">Test Link</a>}, link_to('Test Link', url))
   end
 
@@ -131,7 +130,6 @@ class UrlHelperTest < ActionView::TestCase
     url = {:controller => 'weblog', :action => 'show', :host => 'www.example.com'}
     @controller = ActionController::Base.new
     @controller.request = ActionController::TestRequest.new
-    @controller.url = ActionController::UrlRewriter.new(@controller.request, url)
     assert_dom_equal(%q{<a href="http://www.example.com/weblog/show">Test Link</a>}, link_to('Test Link', url))
   end
 
@@ -144,22 +142,28 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_with_back
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show", nil, nil, {'HTTP_REFERER' => 'http://www.example.com/referer'})
+    @request.env['HOST_NAME'] = 'www.example.com'
+    @request.env['PATH_INFO'] = '/weblog/show'
+    @request.env['HTTP_REFERER'] = 'http://www.example.com/referer'
     assert_dom_equal "<a href=\"http://www.example.com/referer\">go back</a>", link_to('go back', :back)
   end
 
   def test_link_tag_with_back_and_no_referer
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show", nil, nil, {})
+    @request.env['HOST_NAME'] = 'www.example.com'
+    @request.env['PATH_INFO'] = '/weblog/show'
     assert_dom_equal "<a href=\"javascript:history.back()\">go back</a>", link_to('go back', :back)
   end
 
   def test_link_tag_with_back
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show", nil, nil, {'HTTP_REFERER' => 'http://www.example.com/referer'})
+    @request.env['HOST_NAME'] = 'www.example.com'
+    @request.env['PATH_INFO'] = '/weblog/show'
+    @request.env['HTTP_REFERER'] = 'http://www.example.com/referer'
     assert_dom_equal "<a href=\"http://www.example.com/referer\">go back</a>", link_to('go back', :back)
   end
 
   def test_link_tag_with_back_and_no_referer
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show", nil, nil, {})
+    @request.env['HOST_NAME'] = 'www.example.com'
+    @request.env['PATH_INFO'] = '/weblog/show'
     assert_dom_equal "<a href=\"javascript:history.back()\">go back</a>", link_to('go back', :back)
   end
 
@@ -263,55 +267,60 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_current_page_with_simple_url
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show")
+    @request.env['HTTP_HOST'] = 'www.example.com'
+    @request.env['PATH_INFO'] = '/weblog/show'
     @controller.url = "http://www.example.com/weblog/show"
     assert current_page?({ :action => "show", :controller => "weblog" })
     assert current_page?("http://www.example.com/weblog/show")
   end
 
   def test_current_page_ignoring_params
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
+    @request.env['HTTP_HOST'] = 'www.example.com'
+    @request.env['PATH_INFO'] = '/weblog/show'
+    @request.env['QUERY_STRING'] = 'order=desc&page=1'
     @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
     assert current_page?({ :action => "show", :controller => "weblog" })
     assert current_page?("http://www.example.com/weblog/show")
   end
 
   def test_current_page_with_params_that_match
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
+    @request.env['HTTP_HOST'] = 'www.example.com'
+    @request.env['PATH_INFO'] = '/weblog/show'
+    @request.env['QUERY_STRING'] = 'order=desc&page=1'
     @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
     assert current_page?({ :action => "show", :controller => "weblog", :order => "desc", :page => "1" })
     assert current_page?("http://www.example.com/weblog/show?order=desc&amp;page=1")
   end
 
   def test_link_unless_current
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show")
+    @request.env['HTTP_HOST'] = 'www.example.com'
+    @request.env['PATH_INFO'] = '/weblog/show'
     @controller.url = "http://www.example.com/weblog/show"
     assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
     assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show")
 
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc")
+    @request.env['QUERY_STRING'] = 'order=desc'
     @controller.url = "http://www.example.com/weblog/show"
     assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
     assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show")
 
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
+    @request.env['QUERY_STRING'] = 'order=desc&page=1'
     @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
     assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog", :order=>'desc', :page=>'1' })
     assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&page=1")
     assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&page=1")
 
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc")
+    @request.env['QUERY_STRING'] = 'order=desc'
     @controller.url = "http://www.example.com/weblog/show?order=asc"
     assert_equal "<a href=\"http://www.example.com/weblog/show?order=asc\">Showing</a>", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
     assert_equal "<a href=\"http://www.example.com/weblog/show?order=asc\">Showing</a>", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=asc")
 
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
+    @request.env['QUERY_STRING'] = 'order=desc&page=1'
     @controller.url = "http://www.example.com/weblog/show?order=desc&page=2"
     assert_equal "<a href=\"http://www.example.com/weblog/show?order=desc&page=2\">Showing</a>", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
     assert_equal "<a href=\"http://www.example.com/weblog/show?order=desc&amp;page=2\">Showing</a>", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&page=2")
 
-
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show")
+    @request.env['QUERY_STRING'] = ''
     @controller.url = "http://www.example.com/weblog/list"
     assert_equal "<a href=\"http://www.example.com/weblog/list\">Listing</a>",
       link_to_unless_current("Listing", :action => "list", :controller => "weblog")
@@ -346,7 +355,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_mail_to_with_img
-    assert_dom_equal %(<a href="mailto:feedback@example.com"><img src="/feedback.png" /></a>), mail_to('feedback@example.com', '<img src="/feedback.png" />')
+    assert_dom_equal %(<a href="mailto:feedback@example.com"><img src="/feedback.png" /></a>), mail_to('feedback@example.com', '<img src="/feedback.png" />'.html_safe)
   end
 
   def test_mail_to_with_hex
@@ -464,8 +473,6 @@ end
 class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
   def setup
     super
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
     @controller = TasksController.new
   end
 
@@ -499,14 +506,14 @@ end
 class Workshop
   extend ActiveModel::Naming
   include ActiveModel::Conversion
-  attr_accessor :id, :new_record
+  attr_accessor :id
 
-  def initialize(id, new_record)
-    @id, @new_record = id, new_record
+  def initialize(id)
+    @id = id
   end
 
-  def new_record?
-    @new_record
+  def persisted?
+    id.present?
   end
 
   def to_s
@@ -517,14 +524,14 @@ end
 class Session
   extend ActiveModel::Naming
   include ActiveModel::Conversion
-  attr_accessor :id, :workshop_id, :new_record
+  attr_accessor :id, :workshop_id
 
-  def initialize(id, new_record)
-    @id, @new_record = id, new_record
+  def initialize(id)
+    @id = id
   end
 
-  def new_record?
-    @new_record
+  def persisted?
+    id.present?
   end
 
   def to_s
@@ -534,12 +541,12 @@ end
 
 class WorkshopsController < ActionController::Base
   def index
-    @workshop = Workshop.new(1, true)
+    @workshop = Workshop.new(nil)
     render :inline => "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
   end
 
   def show
-    @workshop = Workshop.new(params[:id], false)
+    @workshop = Workshop.new(params[:id])
     render :inline => "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
   end
 
@@ -548,14 +555,14 @@ end
 
 class SessionsController < ActionController::Base
   def index
-    @workshop = Workshop.new(params[:workshop_id], false)
-    @session = Session.new(1, true)
+    @workshop = Workshop.new(params[:workshop_id])
+    @session = Session.new(nil)
     render :inline => "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
   end
 
   def show
-    @workshop = Workshop.new(params[:workshop_id], false)
-    @session = Session.new(params[:id], false)
+    @workshop = Workshop.new(params[:workshop_id])
+    @session = Session.new(params[:id])
     render :inline => "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
   end
 
@@ -565,8 +572,7 @@ end
 class PolymorphicControllerTest < ActionController::TestCase
   def setup
     super
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
+    @response = ActionController::TestResponse.new
   end
 
   def test_new_resource

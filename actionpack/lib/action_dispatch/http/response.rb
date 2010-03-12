@@ -32,30 +32,37 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response < Rack::Response
-    include ActionDispatch::Http::Cache::Response
-
     attr_accessor :request, :blank
 
     attr_writer :header, :sending_file
     alias_method :headers=, :header=
 
-    def initialize
-      @status = 200
-      @header = {}
-      @cache_control = {}
+    module Setup
+      def initialize(status = 200, header = {}, body = [])
+        @writer = lambda { |x| @body << x }
+        @block = nil
+        @length = 0
 
-      @writer = lambda { |x| @body << x }
-      @block = nil
-      @length = 0
+        @status, @header = status, header
+        self.body = body
 
-      @body, @cookie = [], []
-      @sending_file = false
+        @cookie = []
+        @sending_file = false
 
-      @blank = false
-      @etag = nil
+        @blank = false
 
-      yield self if block_given?
+        if content_type = self["Content-Type"]
+          type, charset = content_type.split(/;\s*charset=/)
+          @content_type = Mime::Type.lookup(type)
+          @charset = charset || "UTF-8"
+        end
+
+        yield self if block_given?
+      end
     end
+
+    include Setup
+    include ActionDispatch::Http::Cache::Response
 
     def status=(status)
       @status = Rack::Utils.status_code(status)
@@ -75,6 +82,18 @@ module ActionDispatch # :nodoc:
       Rack::Utils::HTTP_STATUS_CODES[@status]
     end
     alias_method :status_message, :message
+
+    def respond_to?(method)
+      if method.to_sym == :to_path
+        @body.respond_to?(:to_path)
+      else
+        super
+      end
+    end
+
+    def to_path
+      @body.to_path
+    end
 
     def body
       str = ''
@@ -120,7 +139,7 @@ module ActionDispatch # :nodoc:
       assign_default_content_type_and_charset!
       handle_conditional_get!
       self["Set-Cookie"] = @cookie.join("\n") unless @cookie.blank?
-      self["ETag"]       = @etag if @etag
+      self["ETag"]       = @_etag if @_etag
       super
     end
 

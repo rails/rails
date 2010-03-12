@@ -13,13 +13,13 @@ module ActionController
   autoload_under "metal" do
     autoload :Compatibility
     autoload :ConditionalGet
-    autoload :Configuration
     autoload :Cookies
     autoload :Flash
     autoload :Head
     autoload :Helpers
     autoload :HideActions
     autoload :HttpAuthentication
+    autoload :ImplicitRender
     autoload :Instrumentation
     autoload :MimeResponds
     autoload :RackDelegation
@@ -46,7 +46,6 @@ module ActionController
 
   eager_autoload do
     autoload :RecordIdentifier
-    autoload :UrlRewriter
 
     # TODO: Don't autoload exceptions, setup explicit
     # requires for files that need them

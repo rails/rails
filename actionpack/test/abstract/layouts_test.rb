@@ -8,41 +8,52 @@ module AbstractControllerTests
       include AbstractController::Rendering
       include AbstractController::Layouts
 
+      def _prefix
+        "template"
+      end
+
       self.view_paths = [ActionView::FixtureResolver.new(
-        "layouts/hello.erb"                     => "With String <%= yield %>",
-        "layouts/hello_override.erb"            => "With Override <%= yield %>",
-        "layouts/abstract_controller_tests/layouts/with_string_implied_child.erb" =>
-                                                   "With Implied <%= yield %>",
-        "layouts/overwrite.erb"                  => "Overwrite <%= yield %>",
-        "layouts/with_false_layout.erb"         => "False Layout <%= yield %>"
+        "abstract_controller_tests/layouts/with_string_implied_child.erb" =>
+                                           "With Implied <%= yield %>",
+        "layouts/hello.erb"             => "With String <%= yield %>",
+        "layouts/hello_override.erb"    => "With Override <%= yield %>",
+        "layouts/overwrite.erb"         => "Overwrite <%= yield %>",
+        "layouts/with_false_layout.erb" => "False Layout <%= yield %>"
       )]
     end
     
     class Blank < Base
-      self.view_paths = []
-      
+      self.view_paths = ActionView::FixtureResolver.new("template/index.erb" => "Hello blank!")
+
       def index
-        render :_template => ActionView::Template::Text.new("Hello blank!")
+        render 
       end
     end
     
     class WithString < Base
       layout "hello"
-      
+
+      append_view_path ActionView::FixtureResolver.new(
+        "template/index.erb"             => "Hello string!",
+        "template/overwrite_default.erb" => "Hello string!",
+        "template/overwrite_false.erb"   => "Hello string!",
+        "template/overwrite_string.erb"  => "Hello string!"
+      )
+
       def index
-        render :_template => ActionView::Template::Text.new("Hello string!")
+        render
       end
 
       def overwrite_default
-        render :_template => ActionView::Template::Text.new("Hello string!"), :layout => :default
+        render :layout => :default
       end
 
       def overwrite_false
-        render :_template => ActionView::Template::Text.new("Hello string!"), :layout => false
+        render :layout => false
       end
 
       def overwrite_string
-        render :_template => ActionView::Template::Text.new("Hello string!"), :layout => "overwrite"
+        render :layout => "overwrite"
       end
 
       def overwrite_skip
@@ -70,18 +81,28 @@ module AbstractControllerTests
     class WithProc < Base
       layout proc { |c| "overwrite" }
 
+      append_view_path ActionView::FixtureResolver.new(
+        "template/index.erb" => "Hello proc!"
+      )
+
       def index
-        render :_template => ActionView::Template::Text.new("Hello proc!")
+        render
       end
     end
 
     class WithSymbol < Base
       layout :hello
-      
+
+      append_view_path ActionView::FixtureResolver.new(
+        "template/index.erb" => "Hello symbol!"
+      )
+
       def index
-        render :_template => ActionView::Template::Text.new("Hello symbol!")
+        render
       end
-    private  
+
+    private
+
       def hello
         "overwrite"
       end
@@ -89,11 +110,17 @@ module AbstractControllerTests
     
     class WithSymbolReturningString < Base
       layout :no_hello
-      
+
+      append_view_path ActionView::FixtureResolver.new(
+        "template/index.erb" => "Hello missing symbol!"
+      )
+
       def index
-        render :_template => ActionView::Template::Text.new("Hello missing symbol!")
+        render
       end
-    private  
+
+    private
+
       def no_hello
         nil
       end
@@ -101,19 +128,28 @@ module AbstractControllerTests
     
     class WithSymbolReturningNil < Base
       layout :nilz
-      
+
+      append_view_path ActionView::FixtureResolver.new(
+        "template/index.erb" => "Hello nilz!"
+      )
+
       def index
-        render :_template => ActionView::Template::Text.new("Hello nilz!")
+        render
       end
       
-      def nilz() end
+      def nilz
+      end
     end
     
     class WithSymbolReturningObj < Base
       layout :objekt
-      
+
+      append_view_path ActionView::FixtureResolver.new(
+        "template/index.erb" => "Hello object!"
+      )
+
       def index
-        render :_template => ActionView::Template::Text.new("Hello nilz!")
+        render
       end
       
       def objekt
@@ -123,33 +159,49 @@ module AbstractControllerTests
     
     class WithSymbolAndNoMethod < Base
       layout :no_method
-      
+
+      append_view_path ActionView::FixtureResolver.new(
+        "template/index.erb" => "Hello boom!"
+      )
+
       def index
-        render :_template => ActionView::Template::Text.new("Hello boom!")
+        render
       end
     end
     
     class WithMissingLayout < Base
       layout "missing"
-      
+
+      append_view_path ActionView::FixtureResolver.new(
+        "template/index.erb" => "Hello missing!"
+      )
+
       def index
-        render :_template => ActionView::Template::Text.new("Hello missing!")
+        render
       end
     end
     
     class WithFalseLayout < Base
       layout false
-      
+
+      append_view_path ActionView::FixtureResolver.new(
+        "template/index.erb" => "Hello false!"
+      )
+
       def index
-        render :_template => ActionView::Template::Text.new("Hello false!")
+        render
       end
     end
     
     class WithNilLayout < Base
       layout nil
+
+      append_view_path ActionView::FixtureResolver.new(
+        "template/index.erb" => "Hello nil!"
+      )
       
       def index
-        render :_template => ActionView::Template::Text.new("Hello nil!")
+        render
       end
     end
     

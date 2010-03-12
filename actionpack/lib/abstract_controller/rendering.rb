@@ -1,7 +1,4 @@
 require "abstract_controller/base"
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/array/wrap'
 
 module AbstractController
   class DoubleRenderError < Error
@@ -12,32 +9,47 @@ module AbstractController
     end
   end
 
+  # This is a class to fix I18n global state. Whenever you provide I18n.locale during a request,
+  # it will trigger the lookup_context and consequently expire the cache.
+  # TODO Add some deprecation warnings to remove I18n.locale from controllers
+  class I18nProxy < ::I18n::Config #:nodoc:
+    attr_reader :i18n_config, :lookup_context
+
+    def initialize(i18n_config, lookup_context)
+      @i18n_config, @lookup_context = i18n_config, lookup_context
+    end
+
+    def locale
+      @i18n_config.locale
+    end
+
+    def locale=(value)
+      @i18n_config.locale = value
+      @lookup_context.update_details(:locale => @i18n_config.locale)
+    end
+  end
+
   module Rendering
     extend ActiveSupport::Concern
+    include AbstractController::ViewPaths
 
-    included do
-      class_attribute :_view_paths
-      delegate :_view_paths, :to => :'self.class'
-      self._view_paths = ActionView::PathSet.new
+    # Overwrite process to setup I18n proxy.
+    def process(*) #:nodoc:
+      old_config, I18n.config = I18n.config, I18nProxy.new(I18n.config, lookup_context)
+      super
+    ensure
+      I18n.config = old_config
     end
 
     # An instance of a view class. The default view class is ActionView::Base
     #
     # The view class must have the following methods:
-    # View.for_controller[controller] Create a new ActionView instance for a
-    #   controller
-    # View#render_partial[options]
-    #   - responsible for setting options[:_template]
-    #   - Returns String with the rendered partial
-    #   options<Hash>:: see _render_partial in ActionView::Base
-    # View#render_template[template, layout, options, partial]
-    #   - Returns String with the rendered template
-    #   template<ActionView::Template>:: The template to render
-    #   layout<ActionView::Template>:: The layout to render around the template
-    #   options<Hash>:: See _render_template_with_layout in ActionView::Base
-    #   partial<Boolean>:: Whether or not the template to render is a partial
+    # View.for_controller[controller]
+    #   Create a new ActionView instance for a controller
+    # View#render_template[options]
+    #   Returns String with the rendered template
     #
-    # Override this method in a to change the default behavior.
+    # Override this method in a module to change the default behavior.
     def view_context
       @_view_context ||= ActionView::Base.for_controller(self)
     end
@@ -45,57 +57,29 @@ module AbstractController
     # Mostly abstracts the fact that calling render twice is a DoubleRenderError.
     # Delegates render_to_body and sticks the result in self.response_body.
     def render(*args, &block)
-      options = _normalize_options(*args, &block)
+      options = _normalize_args(*args, &block)
+      _normalize_options(options)
       self.response_body = render_to_body(options)
     end
 
     # Raw rendering of a template to a Rack-compatible body.
-    #
-    # ==== Options
-    # _partial_object<Object>:: The object that is being rendered. If this
-    #   exists, we are in the special case of rendering an object as a partial.
-    #
     # :api: plugin
     def render_to_body(options = {})
-      # TODO: Refactor so we can just use the normal template logic for this
-      if options.key?(:partial)
-        _render_partial(options)
-      else
-        _determine_template(options)
-        _render_template(options)
-      end
+      _process_options(options)
+      _render_template(options)
     end
 
     # Raw rendering of a template to a string. Just convert the results of
     # render_to_body into a String.
-    #
     # :api: plugin
-    def render_to_string(*args)
-      options = _normalize_options(*args)
+    def render_to_string(options={})
+      _normalize_options(options)
       AbstractController::Rendering.body_to_s(render_to_body(options))
     end
 
-    # Renders the template from an object.
-    #
-    # ==== Options
-    # _template<ActionView::Template>:: The template to render
-    # _layout<ActionView::Template>:: The layout to wrap the template in (optional)
+    # Find and renders a template based on the options given.
     def _render_template(options)
-      view_context.render_template(options)
-    end
-
-    # Renders the given partial.
-    #
-    # ==== Options
-    # partial<String|Object>:: The partial name or the object to be rendered
-    def _render_partial(options)
-      view_context.render_partial(options)
-    end
-
-    # The list of view paths for this controller. See ActionView::ViewPathSet for
-    # more details about writing custom view paths.
-    def view_paths
-      _view_paths
+      view_context.render_template(options) { |template| _with_template_hook(template) }
     end
 
     # The prefix used in render "foo" shortcuts.
@@ -117,122 +101,42 @@ module AbstractController
 
   private
 
-    # Normalize options, by converting render "foo" to render :template => "prefix/foo"
-    # and render "/foo" to render :file => "/foo".
-    def _normalize_options(action=nil, options={})
+    # Normalize options by converting render "foo" to render :action => "foo" and
+    # render "foo/bar" to render :file => "foo/bar".
+    def _normalize_args(action=nil, options={})
       case action
+      when NilClass
       when Hash
         options, action = action, nil
       when String, Symbol
         action = action.to_s
-        case action.index("/")
-        when NilClass
-          options[:_prefix] = _prefix
-          options[:_template_name] = action
-        when 0
-          options[:file] = action
-        else
-          options[:template] = action
-        end
+        key = action.include?(?/) ? :file : :action
+        options[key] = action
+      else
+        options.merge!(:partial => action)
       end
 
       options
     end
 
-    # Take in a set of options and determine the template to render
-    #
-    # ==== Options
-    # _template<ActionView::Template>:: If this is provided, the search is over
-    # _template_name<#to_s>:: The name of the template to look up. Otherwise,
-    #   use the current action name.
-    # _prefix<String>:: The prefix to look inside of. In a file system, this corresponds
-    #   to a directory.
-    # _partial<TrueClass, FalseClass>:: Whether or not the file to look up is a partial
-    def _determine_template(options)
-      if options.key?(:text)
-        options[:_template] = ActionView::Template::Text.new(options[:text], format_for_text)
-      elsif options.key?(:inline)
-        handler  = ActionView::Template.handler_class_for_extension(options[:type] || "erb")
-        template = ActionView::Template.new(options[:inline], "inline template", handler, {})
-        options[:_template] = template
-      elsif options.key?(:template)
-        options[:_template_name] = options[:template]
-      elsif options.key?(:file)
-        options[:_template_name] = options[:file]
+    def _normalize_options(options)
+      if options[:partial] == true
+        options[:partial] = action_name
       end
-      name = (options[:_template_name] || options[:action] || action_name).to_s
-      options[:_prefix] ||= _prefix if (options.keys & [:partial, :file, :template]).empty?
 
-      details = _normalize_details(options)
-
-      options[:_template] ||= with_template_cache(name) do
-        find_template(name, details, options)
+      if (options.keys & [:partial, :file, :template]).empty?
+        options[:prefix] ||= _prefix
       end
+
+      options[:template] ||= (options[:action] || action_name).to_s
+      options
     end
 
-    def _normalize_details(options)
-      details = { :formats => formats }
-      details[:formats] = Array(options[:format]) if options[:format]
-      details[:locale]  = Array(options[:locale]) if options[:locale]
-      details
+    def _process_options(options)
     end
 
-    def find_template(name, details, options)
-      view_paths.find(name, details, options[:_prefix], options[:_partial])
-    end
-
-    def template_exists?(name, details, options)
-      view_paths.exists?(name, details, options[:_prefix], options[:_partial])
-    end
-
-    def with_template_cache(name)
-      yield
-    end
-
-    def format_for_text
-      Mime[:text]
-    end
-
-    module ClassMethods
-      def clear_template_caches!
-      end
-
-      # Append a path to the list of view paths for this controller.
-      #
-      # ==== Parameters
-      # path<String, ViewPath>:: If a String is provided, it gets converted into
-      # the default view path. You may also provide a custom view path
-      # (see ActionView::ViewPathSet for more information)
-      def append_view_path(path)
-        self.view_paths = view_paths.dup + Array.wrap(path)
-      end
-
-      # Prepend a path to the list of view paths for this controller.
-      #
-      # ==== Parameters
-      # path<String, ViewPath>:: If a String is provided, it gets converted into
-      # the default view path. You may also provide a custom view path
-      # (see ActionView::ViewPathSet for more information)
-      def prepend_view_path(path)
-        clear_template_caches!
-        self.view_paths = Array.wrap(path) + view_paths.dup
-      end
-
-      # A list of all of the default view paths for this controller.
-      def view_paths
-        _view_paths
-      end
-
-      # Set the view paths.
-      #
-      # ==== Parameters
-      # paths<ViewPathSet, Object>:: If a ViewPathSet is provided, use that;
-      #   otherwise, process the parameter into a ViewPathSet.
-      def view_paths=(paths)
-        clear_template_caches!
-        self._view_paths = paths.is_a?(ActionView::PathSet) ? paths : ActionView::Base.process_view_paths(paths)
-        _view_paths.freeze
-      end
+    def _with_template_hook(template)
+      self.formats = template.formats
     end
   end
 end
