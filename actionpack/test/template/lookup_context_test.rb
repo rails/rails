@@ -33,9 +33,7 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "does not allow details to be modified in place" do
-    assert_raise TypeError do
-      @lookup_context.details.clear
-    end
+    assert @lookup_context.details.frozen?
   end
 
   test "allows me to update an specific detail" do

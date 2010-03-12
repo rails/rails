@@ -13,18 +13,21 @@ module ActionView
     mattr_accessor :registered_details
     self.registered_details = []
 
-    def self.register_detail(name, options = {})
+    def self.register_detail(name, options = {}, &block)
       self.registered_details << name
 
-      Setters.send :define_method, :"#{name}=" do |value|
-        value = Array(value.presence || yield)
-        value |= [nil] unless options[:allow_nil] == false
+      Setters.send :define_method, :"_#{name}_defaults", &block
+      Setters.module_eval <<-METHOD, __FILE__, __LINE__ + 1
+        def #{name}=(value)
+          value = Array(value.presence || _#{name}_defaults)
+          #{"value << nil unless value.include?(nil)" unless options[:allow_nil] == false}
 
-        unless value == @details[name]
-          @details_key, @details = nil, @details.merge(name => value)
-          @details.freeze
+          unless value == @details[:#{name}]
+            @details_key, @details = nil, @details.merge(:#{name} => value)
+            @details.freeze
+          end
         end
-      end
+      METHOD
     end
 
     # Holds raw setters for the registered details.

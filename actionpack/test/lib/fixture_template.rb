@@ -12,7 +12,7 @@ module ActionView #:nodoc:
     def query(partial, path, exts)
       query = Regexp.escape(path)
       exts.each do |ext|
-        query << '(?:' << ext.map {|e| e && Regexp.escape(".#{e}") }.join('|') << ')'
+        query << '(' << ext.map {|e| e && Regexp.escape(".#{e}") }.join('|') << ')'
       end
 
       templates = []
@@ -21,7 +21,8 @@ module ActionView #:nodoc:
         templates << Template.new(source, path, handler,
           :partial => partial, :virtual_path => path, :format => format)
       end
-      templates.sort_by {|t| -t.formats.size }
+
+      templates.sort_by {|t| -t.identifier.match(/^#{query}$/).captures.reject(&:blank?).size }
     end
 
   end
