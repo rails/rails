@@ -65,6 +65,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal "Invalid application name 43-things. Please give a name which does not start with numbers.\n", content
   end
 
+  def test_application_name_raises_an_error_if_name_already_used_constant
+    %w{ String Hash Class Module Set Symbol }.each do |ruby_class|
+      content = capture(:stderr){ run_generator [File.join(destination_root, ruby_class)] }
+      assert_equal "Invalid application name #{ruby_class}, constant #{ruby_class} is already in use. Please choose another application name.\n", content
+    end
+  end
+
   def test_invalid_application_name_is_fixed
     run_generator [File.join(destination_root, "things-43")]
     assert_file "things-43/config/environment.rb", /Things43::Application\.initialize!/
