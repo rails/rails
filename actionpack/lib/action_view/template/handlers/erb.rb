@@ -3,52 +3,11 @@ require 'active_support/core_ext/string/output_safety'
 require 'erubis'
 
 module ActionView
-  class OutputBuffer
-    def initialize
-      @buffer = ActiveSupport::SafeBuffer.new
-    end
-
-    def safe_concat(value)
-      @buffer.safe_concat(value)
-    end
-
+  class OutputBuffer < ActiveSupport::SafeBuffer
     def <<(value)
-      @buffer << value.to_s
+      super(value.to_s)
     end
-
-    def length
-      @buffer.length
-    end
-
-    def [](*args)
-      @buffer[*args]
-    end
-
-    def to_s
-      @buffer.to_s
-    end
-
-    def to_str
-      @buffer.to_str
-    end
-
-    def empty?
-      @buffer.empty?
-    end
-
-    def html_safe?
-      @buffer.html_safe?
-    end
-
-    if "".respond_to?(:force_encoding)
-      def encoding
-        @buffer.encoding
-      end
-
-      def force_encoding(encoding)
-        @buffer.force_encoding(encoding)
-      end
-    end
+    alias :append= :<<
   end
 
   module Template::Handlers
@@ -64,14 +23,14 @@ module ActionView
 
       def add_expr_literal(src, code)
         if code =~ /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
-          src << '@output_buffer << ' << code
+          src << '@output_buffer.append= ' << code
         else
-          src << '@output_buffer << (' << code << ');'
+          src << '@output_buffer.append= (' << code << ');'
         end
       end
 
       def add_expr_escaped(src, code)
-        src << '@output_buffer << ' << escaped_expr(code) << ';'
+        src << '@output_buffer.append= ' << escaped_expr(code) << ';'
       end
 
       def add_postamble(src)
