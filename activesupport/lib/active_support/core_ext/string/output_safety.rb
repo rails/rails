@@ -104,6 +104,10 @@ module ActiveSupport #:nodoc:
     def to_s
       self
     end
+
+    def to_yaml
+      "".replace(self).to_yaml
+    end
   end
 end
 
