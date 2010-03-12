@@ -141,13 +141,16 @@ class AssetTagHelperTest < ActionView::TestCase
 
   ImageLinkToTag = {
     %(image_tag("xml.png")) => %(<img alt="Xml" src="/images/xml.png" />),
-    %(image_tag("..jpg")) => %(<img alt="" src="/images/..jpg" />),
+    %(image_tag("..jpg")) => %(<img alt="." src="/images/..jpg" />),
     %(image_tag("rss.gif", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.gif" />),
     %(image_tag("gold.png", :size => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
     %(image_tag("gold.png", "size" => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
     %(image_tag("error.png", "size" => "45")) => %(<img alt="Error" src="/images/error.png" />),
     %(image_tag("error.png", "size" => "45 x 70")) => %(<img alt="Error" src="/images/error.png" />),
     %(image_tag("error.png", "size" => "x")) => %(<img alt="Error" src="/images/error.png" />),
+    %(image_tag("google.com.png")) => %(<img alt="Google.com" src="/images/google.com.png" />),
+    %(image_tag("slash..png")) => %(<img alt="Slash." src="/images/slash..png" />),
+    %(image_tag(".pdf.png")) => %(<img alt=".pdf" src="/images/.pdf.png" />),
     %(image_tag("http://www.rubyonrails.com/images/rails.png")) => %(<img alt="Rails" src="http://www.rubyonrails.com/images/rails.png" />),
     %(image_tag("mouse.png", :mouseover => "/images/mouse_over.png")) => %(<img alt="Mouse" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" src="/images/mouse.png" />),
     %(image_tag("mouse.png", :mouseover => image_path("mouse_over.png"))) => %(<img alt="Mouse" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" src="/images/mouse.png" />)
