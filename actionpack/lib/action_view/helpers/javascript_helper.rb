@@ -71,7 +71,7 @@ module ActionView
       #
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +html_options+ as the first parameter.
-      #   <% javascript_tag :defer => 'defer' do -%>
+      #   <%= javascript_tag :defer => 'defer' do -%>
       #     alert('All is good')
       #   <% end -%>
       def javascript_tag(content_or_options_with_block = nil, html_options = {}, &block)
