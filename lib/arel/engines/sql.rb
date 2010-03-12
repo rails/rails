@@ -1,3 +1,4 @@
+require 'arel/engines/sql/attributes'
 require 'arel/engines/sql/engine'
 require 'arel/engines/sql/relations'
 require 'arel/engines/sql/primitives'

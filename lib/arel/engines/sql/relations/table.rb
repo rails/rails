@@ -41,7 +41,9 @@ module Arel
     def attributes
       return @attributes if defined?(@attributes)
       if table_exists?
-        @attributes = columns.collect { |column| Attribute.new(self, column.name.to_sym) }
+        @attributes = columns.collect do |column|
+          Sql::Attributes.for(column).new(column, self, column.name.to_sym)
+        end
       else
         []
       end
@@ -53,10 +55,6 @@ module Arel
 
     def hash
       @hash ||= :name.hash
-    end
-
-    def format(attribute, value)
-      attribute.column.type_cast(value)
     end
 
     def column_for(attribute)

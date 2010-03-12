@@ -1,6 +1,7 @@
 require 'set'
 
 module Arel
+  class TypecastError < StandardError ; end
   class Attribute
     attributes :relation, :name, :alias, :ancestor
     deriving :==
@@ -146,5 +147,35 @@ module Arel
       alias_method :to_ordering, :asc
     end
     include Orderings
+
+    module Types
+      def type_cast(value)
+        if root == self
+          raise NotImplementedError, "#type_cast should be implemented in a subclass."
+        else
+          root.type_cast(value)
+        end
+      end
+
+      def type_cast_to_numeric(value, method)
+        return unless value
+        if value.respond_to?(:to_str)
+          if value.to_str =~ /\A(-?(?:0|[1-9]\d*)(?:\.\d+)?|(?:\.\d+))\z/
+            $1.send(method)
+          else
+            value
+          end
+        elsif value.respond_to?(method)
+          value.send(method)
+        else
+          raise typecast_error(value)
+        end
+      end
+
+      def typecast_error(value)
+        raise TypecastError, "could not typecast #{value.inspect} to #{self.class.name.split('::').last}"
+      end
+    end
+    include Types
   end
 end

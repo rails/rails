@@ -7,7 +7,7 @@ module Arel
         [1, 'duck' ],
         [2, 'duck' ],
         [3, 'goose']
-      ], [:id, :name])
+      ], [[:id, Attributes::Integer], [:name, Attributes::String]])
     end
 
     describe '#attributes' do

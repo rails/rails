@@ -7,7 +7,7 @@ module Arel
         [1, 'bryan' ],
         [2, 'emilio' ],
         [3, 'nick']
-      ], [:id, :name])
+      ], [[:id, Attributes::Integer], [:name, Attributes::String]])
       @photos = Table.new(:photos)
       @photos.delete
       @photos.insert(@photos[:id] => 1, @photos[:user_id] => 1, @photos[:camera_id] => 6)

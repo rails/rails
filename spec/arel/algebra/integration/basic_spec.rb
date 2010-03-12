@@ -29,8 +29,10 @@ class Thing < Arel::Relation
   attr_reader :engine, :attributes
 
   def initialize(engine, attributes)
-    @engine = engine
-    @attributes = attributes.map { |a| a.to_attribute(self) }
+    @engine, @attributes = engine, []
+    attributes.each do |name, type|
+      @attributes << type.new(self, name)
+    end
   end
 
   def format(attribute, value)
@@ -95,26 +97,31 @@ share_examples_for 'A Relation' do
   end
 end
 
-describe "Arel::Relation" do
+module Arel
+  describe "Relation" do
 
-  before :all do
-    @engine   = Arel::Testing::Engine.new
-    @relation = Thing.new(@engine, [:id, :name, :age])
-  end
-
-  describe "..." do
     before :all do
-      @expected = (1..20).map { |i| @relation.insert([i, nil, 2 * i]) }
+      @engine   = Testing::Engine.new
+      @relation = Thing.new(@engine,
+        :id   => Attributes::Integer,
+        :name => Attributes::String,
+        :age  => Attributes::Integer)
     end
 
-    it_should_behave_like 'A Relation'
-  end
+    describe "..." do
+      before :all do
+        @expected = (1..20).map { |i| @relation.insert([i, nil, 2 * i]) }
+      end
 
-  describe "#insert" do
-    it "inserts the row into the engine" do
-      @relation.insert([1, 'Foo', 10])
-      @engine.rows.should == [[1, 'Foo', 10]]
+      it_should_behave_like 'A Relation'
     end
-  end
 
+    describe "#insert" do
+      it "inserts the row into the engine" do
+        @relation.insert([1, 'Foo', 10])
+        @engine.rows.should == [[1, 'Foo', 10]]
+      end
+    end
+
+  end
 end
