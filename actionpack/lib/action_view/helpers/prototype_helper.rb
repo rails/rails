@@ -35,7 +35,7 @@ module ActionView
     #
     # ...through a form...
     #
-    #  <% form_remote_tag :url => '/shipping' do -%>
+    #  <%= form_remote_tag :url => '/shipping' do -%>
     #    <div><%= submit_tag 'Recalculate Shipping' %></div>
     #  <% end -%>
     #
