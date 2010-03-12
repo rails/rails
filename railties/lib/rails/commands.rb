@@ -30,7 +30,7 @@ when 'g', 'generate'
   require 'rails/commands/generate'
 when 'c', 'console'
   require 'rails/commands/console'
-  require APP_PATH
+  require ENV_PATH
   Rails::Console.start(Rails::Application)
 when 's', 'server'
   require 'rails/commands/server'
