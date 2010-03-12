@@ -128,6 +128,7 @@ module Arel
 
     module DefaultOperations
       def attributes;             []  end
+      def projections;            []  end
       def wheres;                 []  end
       def orders;                 []  end
       def inserts;                []  end
