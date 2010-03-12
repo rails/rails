@@ -101,6 +101,7 @@ module ActiveRecord
           Array(@target)
         end
       end
+      alias_method :to_a, :to_ary
 
       def reset
         reset_target!
