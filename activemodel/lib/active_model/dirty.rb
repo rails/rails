@@ -107,7 +107,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changes # => { 'name' => ['bill', 'bob'] }
     def changes
-      changed.inject({}) { |h, attr| h[attr] = attribute_change(attr); h }
+      changed.inject(HashWithIndifferentAccess.new){ |h, attr| h[attr] = attribute_change(attr); h }
     end
 
     # Map of attributes that were changed when the model was saved.
