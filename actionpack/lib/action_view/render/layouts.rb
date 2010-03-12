@@ -13,7 +13,7 @@ module ActionView
     # ==== Example
     #
     #   # The template
-    #   <% render :layout => "my_layout" do %>Content<% end %>
+    #   <%= render :layout => "my_layout" do %>Content<% end %>
     #
     #   # The layout
     #   <html><% yield %></html>
@@ -27,7 +27,7 @@ module ActionView
     # ==== Example
     #
     #   # The template
-    #   <% render :layout => "my_layout" do |customer| %>Hello <%= customer.name %><% end %>
+    #   <%= render :layout => "my_layout" do |customer| %>Hello <%= customer.name %><% end %>
     #
     #   # The layout
     #   <html><% yield Struct.new(:name).new("David") %></html>
