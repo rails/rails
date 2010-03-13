@@ -1,4 +1,4 @@
-module BeLikeMatcher
+module Matchers
   class BeLike
     def initialize(expected)
       @expected = expected

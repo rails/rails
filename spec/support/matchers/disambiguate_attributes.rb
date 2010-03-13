@@ -1,4 +1,4 @@
-module DisambiguateAttributesMatcher
+module Matchers
   class DisambiguateAttributes
     def initialize(attributes)
       @attributes = attributes

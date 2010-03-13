@@ -7,12 +7,12 @@ require 'pp'
 require 'fileutils'
 require 'arel'
 
-Dir["#{dir}/support/*.rb"].each do |file|
+Dir["#{dir}/{support,shared}/*.rb"].each do |file|
   require file
 end
 
 Spec::Runner.configure do |config|
-  config.include BeLikeMatcher, HashTheSameAsMatcher, DisambiguateAttributesMatcher
+  config.include Matchers
   config.include AdapterGuards
   config.include Check
 

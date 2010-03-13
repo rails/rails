@@ -1,4 +1,4 @@
-module HashTheSameAsMatcher
+module Matchers
   class HashTheSameAs
     def initialize(expected)
       @expected = expected
