@@ -5,6 +5,11 @@ module Arel
              :column_for, :engine, :sources, :locked, :table_alias,
              :to => :relation
 
+    def self.requires(feature = nil)
+      @requires = feature if feature
+      @requires
+    end
+
     [:attributes, :wheres, :groupings, :orders, :havings, :projections].each do |operation_name|
       class_eval <<-OPERATION, __FILE__, __LINE__
         def #{operation_name}
@@ -19,6 +24,18 @@ module Arel
 
     def eql?(other)
       self == other
+    end
+
+    def engine
+      requires = self.class.requires
+      engine   = relation.engine
+
+      # Temporary check of whether or not the engine supports where.
+      if requires && engine.respond_to?(:supports) && !engine.supports(requires)
+        Memory::Engine.new
+      else
+        engine
+      end
     end
 
   private

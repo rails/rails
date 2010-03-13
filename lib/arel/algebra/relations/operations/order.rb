@@ -1,7 +1,8 @@
 module Arel
   class Order < Compound
     attributes :relation, :orderings
-    deriving :==
+    deriving   :==
+    requires   :ordering
 
     def initialize(relation, *orderings, &block)
       @relation = relation
