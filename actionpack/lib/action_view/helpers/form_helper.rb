@@ -28,7 +28,7 @@ module ActionView
     #
     #     # Note: a @person variable will have been created in the controller.
     #     # For example: @person = Person.new
-    #     <% form_for :person, @person, :url => { :action => "create" } do |f| %>
+    #     <%= form_for :person, @person, :url => { :action => "create" } do |f| %>
     #       <%= f.text_field :first_name %>
     #       <%= f.text_field :last_name %>
     #       <%= submit_tag 'Create' %>
@@ -44,7 +44,7 @@ module ActionView
     #
     # If you are using a partial for your form fields, you can use this shortcut:
     #
-    #     <% form_for :person, @person, :url => { :action => "create" } do |f| %>
+    #     <%= form_for :person, @person, :url => { :action => "create" } do |f| %>
     #       <%= render :partial => f %>
     #       <%= submit_tag 'Create' %>
     #     <% end %>
@@ -102,7 +102,7 @@ module ActionView
       # Rails provides succinct resource-oriented form generation with +form_for+
       # like this:
       #
-      #   <% form_for @offer do |f| %>
+      #   <%= form_for @offer do |f| %>
       #     <%= f.label :version, 'Version' %>:
       #     <%= f.text_field :version %><br />
       #     <%= f.label :author, 'Author' %>:
@@ -119,7 +119,7 @@ module ActionView
       # The generic way to call +form_for+ yields a form builder around a
       # model:
       #
-      #   <% form_for :person, :url => { :action => "update" } do |f| %>
+      #   <%= form_for :person, :url => { :action => "update" } do |f| %>
       #     <%= f.error_messages %>
       #     First name: <%= f.text_field :first_name %><br />
       #     Last name : <%= f.text_field :last_name %><br />
@@ -143,7 +143,7 @@ module ActionView
       # If the instance variable is not <tt>@person</tt> you can pass the actual
       # record as the second argument:
       #
-      #   <% form_for :person, person, :url => { :action => "update" } do |f| %>
+      #   <%= form_for :person, person, :url => { :action => "update" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -175,7 +175,7 @@ module ActionView
       # possible to use both the stand-alone FormHelper methods and methods
       # from FormTagHelper. For example:
       #
-      #   <% form_for :person, @person, :url => { :action => "update" } do |f| %>
+      #   <%= form_for :person, @person, :url => { :action => "update" } do |f| %>
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
@@ -195,37 +195,37 @@ module ActionView
       #
       # For example, if <tt>@post</tt> is an existing record you want to edit
       #
-      #   <% form_for @post do |f| %>
+      #   <%= form_for @post do |f| %>
       #     ...
       #   <% end %>
       #
       # is equivalent to something like:
       #
-      #   <% form_for :post, @post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
+      #   <%= form_for :post, @post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
       #     ...
       #   <% end %>
       #
       # And for new records
       #
-      #   <% form_for(Post.new) do |f| %>
+      #   <%= form_for(Post.new) do |f| %>
       #     ...
       #   <% end %>
       #
       # expands to
       #
-      #   <% form_for :post, Post.new, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
+      #   <%= form_for :post, Post.new, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
       #     ...
       #   <% end %>
       #
       # You can also overwrite the individual conventions, like this:
       #
-      #   <% form_for(@post, :url => super_post_path(@post)) do |f| %>
+      #   <%= form_for(@post, :url => super_post_path(@post)) do |f| %>
       #     ...
       #   <% end %>
       #
       # And for namespaced routes, like +admin_post_url+:
       #
-      #   <% form_for([:admin, @post]) do |f| %>
+      #   <%= form_for([:admin, @post]) do |f| %>
       #    ...
       #   <% end %>
       #
@@ -243,7 +243,7 @@ module ActionView
       #
       # Example:
       #
-      #   <% form_for(:post, @post, :remote => true, :html => { :id => 'create-post', :method => :put }) do |f| %>
+      #   <%= form_for(:post, @post, :remote => true, :html => { :id => 'create-post', :method => :put }) do |f| %>
       #     ...
       #   <% end %>
       #
@@ -263,7 +263,7 @@ module ActionView
       # custom builder. For example, let's say you made a helper to
       # automatically add labels to form inputs.
       #
-      #   <% form_for :person, @person, :url => { :action => "update" }, :builder => LabellingFormBuilder do |f| %>
+      #   <%= form_for :person, @person, :url => { :action => "update" }, :builder => LabellingFormBuilder do |f| %>
       #     <%= f.text_field :first_name %>
       #     <%= f.text_field :last_name %>
       #     <%= text_area :person, :biography %>
@@ -340,11 +340,11 @@ module ActionView
       #
       # === Generic Examples
       #
-      #   <% form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
       #     First name: <%= person_form.text_field :first_name %>
       #     Last name : <%= person_form.text_field :last_name %>
       #
-      #     <% fields_for @person.permission do |permission_fields| %>
+      #     <%= fields_for @person.permission do |permission_fields| %>
       #       Admin?  : <%= permission_fields.check_box :admin %>
       #     <% end %>
       #   <% end %>
@@ -352,13 +352,13 @@ module ActionView
       # ...or if you have an object that needs to be represented as a different
       # parameter, like a Client that acts as a Person:
       #
-      #   <% fields_for :person, @client do |permission_fields| %>
+      #   <%= fields_for :person, @client do |permission_fields| %>
       #     Admin?: <%= permission_fields.check_box :admin %>
       #   <% end %>
       #
       # ...or if you don't have an object, just a name of the parameter:
       #
-      #   <% fields_for :person do |permission_fields| %>
+      #   <%= fields_for :person do |permission_fields| %>
       #     Admin?: <%= permission_fields.check_box :admin %>
       #   <% end %>
       #
@@ -402,9 +402,9 @@ module ActionView
       #
       # This model can now be used with a nested fields_for, like so:
       #
-      #   <% form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
       #     ...
-      #     <% person_form.fields_for :address do |address_fields| %>
+      #     <%= person_form.fields_for :address do |address_fields| %>
       #       Street  : <%= address_fields.text_field :street %>
       #       Zip code: <%= address_fields.text_field :zip_code %>
       #     <% end %>
@@ -431,9 +431,9 @@ module ActionView
       # with a value that evaluates to +true+, you will destroy the associated
       # model (eg. 1, '1', true, or 'true'):
       #
-      #   <% form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
       #     ...
-      #     <% person_form.fields_for :address do |address_fields| %>
+      #     <%= person_form.fields_for :address do |address_fields| %>
       #       ...
       #       Delete: <%= address_fields.check_box :_destroy %>
       #     <% end %>
@@ -459,9 +459,9 @@ module ActionView
       # the nested fields_for call will be repeated for each instance in the
       # collection:
       #
-      #   <% form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
       #     ...
-      #     <% person_form.fields_for :projects do |project_fields| %>
+      #     <%= person_form.fields_for :projects do |project_fields| %>
       #       <% if project_fields.object.active? %>
       #         Name: <%= project_fields.text_field :name %>
       #       <% end %>
@@ -470,11 +470,11 @@ module ActionView
       #
       # It's also possible to specify the instance to be used:
       #
-      #   <% form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
       #     ...
       #     <% @person.projects.each do |project| %>
       #       <% if project.active? %>
-      #         <% person_form.fields_for :projects, project do |project_fields| %>
+      #         <%= person_form.fields_for :projects, project do |project_fields| %>
       #           Name: <%= project_fields.text_field :name %>
       #         <% end %>
       #       <% end %>
@@ -483,9 +483,9 @@ module ActionView
       #
       # Or a collection to be used:
       #
-      #   <% form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
       #     ...
-      #     <% person_form.fields_for :projects, @active_projects do |project_fields| %>
+      #     <%= person_form.fields_for :projects, @active_projects do |project_fields| %>
       #       Name: <%= project_fields.text_field :name %>
       #     <% end %>
       #   <% end %>
@@ -512,9 +512,9 @@ module ActionView
       # parameter with a value that evaluates to +true+
       # (eg. 1, '1', true, or 'true'):
       #
-      #   <% form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
       #     ...
-      #     <% person_form.fields_for :projects do |project_fields| %>
+      #     <%= person_form.fields_for :projects do |project_fields| %>
       #       Delete: <%= project_fields.check_box :_destroy %>
       #     <% end %>
       #   <% end %>
@@ -725,7 +725,7 @@ module ActionView
       # Unfortunately that workaround does not work when the check box goes
       # within an array-like parameter, as in
       #
-      #   <% fields_for "project[invoice_attributes][]", invoice, :index => nil do |form| %>
+      #   <%= fields_for "project[invoice_attributes][]", invoice, :index => nil do |form| %>
       #     <%= form.check_box :paid %>
       #     ...
       #   <% end %>
@@ -1115,7 +1115,7 @@ module ActionView
       # Add the submit button for the given form. When no value is given, it checks
       # if the object is a new resource or not to create the proper label:
       #
-      #   <% form_for @post do |f| %>
+      #   <%= form_for @post do |f| %>
       #     <%= f.submit %>
       #   <% end %>
       # 
