@@ -14,6 +14,10 @@ share_examples_for 'A Relation' do
     raise "@expected needs to have at least 6 items" unless @expected.length >= 6
   end
 
+  before :each do
+    @expected = @expected.dup
+  end
+
   describe "#each" do
     it "iterates over the rows in any order" do
       @relation.should have_rows(@expected)
@@ -87,6 +91,29 @@ share_examples_for 'A Relation' do
 
     describe "by two attributes" do
       it "works"
+    end
+  end
+
+  describe "#take" do
+    it "returns a relation" do
+      @relation.take(3).should be_a(Arel::Relation)
+    end
+
+    it "returns X items from the collection" do
+      length = @expected.length
+
+      @relation.take(3).each do |resource|
+        @expected.delete_if { |r| r.tuple == resource.tuple }
+      end
+
+      @expected.length.should == length - 3
+    end
+
+    it "works with ordering" do
+      expected = @expected.sort_by { |r| [r[@relation[:age]], r[@relation[:id]]] }.map { |r| r[@relation[:id]] }
+      actual   = @relation.order(@relation[:age].asc, @relation[:id].asc).take(3).map { |r| r[@relation[:id]] }
+
+      actual.should == expected[0,3]
     end
   end
 end
