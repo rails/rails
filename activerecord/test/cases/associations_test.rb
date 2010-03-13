@@ -180,17 +180,11 @@ class AssociationProxyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_splat_does_not_invoke_to_a_on_singular_targets
-    Kernel.module_eval do
-      alias original_to_a to_a
-      def to_a
-        [:_]
-      end
-    end
-    assert_not_equal [:_], [*posts(:welcome).author]
-  ensure
-    Kernel.module_eval do
-      alias to_a original_to_a
+  if RUBY_VERSION < '1.9'
+    def test_splat_does_not_invoke_to_a_on_singular_targets
+      author = posts(:welcome).author
+      author.reload.target.expects(:to_a).never
+      [*author]
     end
   end
 
