@@ -22,6 +22,7 @@ module ActionView
           _render_partial(options)
         else
           template = _determine_template(options)
+          self.formats = template.formats
           _render_template(template, options[:layout], options)
         end
       when :update
@@ -49,8 +50,6 @@ module ActionView
     # Renders the given template. An string representing the layout can be
     # supplied as well.
     def _render_template(template, layout = nil, options = {}) #:nodoc:
-      self.formats = template.formats
-
       locals = options[:locals] || {}
       layout = find_layout(layout) if layout
 
