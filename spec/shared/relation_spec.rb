@@ -116,4 +116,27 @@ share_examples_for 'A Relation' do
       actual.should == expected[0,3]
     end
   end
+
+  describe "#skip" do
+    it "returns a relation" do
+      @relation.skip(3).should be_a(Arel::Relation)
+    end
+
+    it "skips X items from the collection" do
+      length = @expected.length
+
+      @relation.skip(3).each do |resource|
+        @expected.delete_if { |r| r.tuple == resource.tuple }
+      end
+
+      @expected.length.should == 3
+    end
+
+    it "works with ordering" do
+      expected = @expected.sort_by { |r| [r[@relation[:age]], r[@relation[:id]]] }.map { |r| r[@relation[:id]] }
+      actual   = @relation.order(@relation[:age].asc, @relation[:id].asc).skip(3).map { |r| r[@relation[:id]] }
+
+      actual.should == expected[3..-1]
+    end
+  end
 end
