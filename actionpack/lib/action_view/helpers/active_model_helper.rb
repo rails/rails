@@ -129,7 +129,7 @@ module ActionView
         if (obj = (object.respond_to?(:errors) ? object : instance_variable_get("@#{object}"))) &&
           (errors = obj.errors[method])
           content_tag("div",
-            (options[:prepend_text].html_safe << errors.first).safe_concat(options[:append_text]),
+            "#{options[:prepend_text]}#{ERB::Util.h(errors.first)}#{options[:append_text]}".html_safe,
             :class => options[:css_class]
           )
         else
