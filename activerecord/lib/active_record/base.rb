@@ -1041,6 +1041,7 @@ module ActiveRecord #:nodoc:
 
           object.instance_variable_set(:'@attributes', record)
           object.instance_variable_set(:'@attributes_cache', {})
+          object.instance_variable_set(:@new_record, false)
 
           object.send(:_run_find_callbacks)
           object.send(:_run_initialize_callbacks)

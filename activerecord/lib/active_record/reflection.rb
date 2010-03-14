@@ -154,6 +154,11 @@ module ActiveRecord
         @klass ||= active_record.send(:compute_type, class_name)
       end
 
+      def initialize(macro, name, options, active_record)
+        super
+        @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
+      end
+
       # Returns a new, unsaved instance of the associated class. +options+ will
       # be passed to the class's constructor.
       def build_association(*options)
@@ -256,9 +261,6 @@ module ActiveRecord
       # association. Returns +true+ if the +macro+ is one of +has_many+ or
       # +has_and_belongs_to_many+, +false+ otherwise.
       def collection?
-        if @collection.nil?
-          @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
-        end
         @collection
       end
 
