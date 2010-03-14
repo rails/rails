@@ -2,18 +2,18 @@ namespace :rails do
   namespace :freeze do
     desc "The rails:freeze:gems is deprecated, please use bundle install instead"
     task :gems do
-      puts "The rails:freeze:gems is deprecated, please use bundle install instead"
+      abort "The rails:freeze:gems is deprecated, please use bundle install instead"
     end
 
     desc 'The freeze:edge command has been deprecated, specify the path setting in your app Gemfile instead and bundle install'
     task :edge do
-      puts 'The freeze:edge command has been deprecated, specify the path setting in your app Gemfile instead and bundle install'
+      abort 'The freeze:edge command has been deprecated, specify the path setting in your app Gemfile instead and bundle install'
     end
   end
 
   desc 'The unfreeze command has been deprecated, please use bundler commands instead'
   task :unfreeze do
-    puts 'The unfreeze command has been deprecated, please use bundler commands instead'
+    abort 'The unfreeze command has been deprecated, please use bundler commands instead'
   end
 
   desc "Update both configs, scripts and public/javascripts from Rails"
