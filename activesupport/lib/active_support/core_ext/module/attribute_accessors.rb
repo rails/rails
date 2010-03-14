@@ -2,7 +2,7 @@ require 'active_support/core_ext/array/extract_options'
 
 class Module
   def mattr_reader(*syms)
-    syms.extract_options!
+    options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         unless defined? @@#{sym}  # unless defined? @@pagination_options
@@ -12,11 +12,15 @@ class Module
         def self.#{sym}           # def self.pagination_options
           @@#{sym}                #   @@pagination_options
         end                       # end
-
-        def #{sym}                # def pagination_options
-          @@#{sym}                #   @@pagination_options
-        end                       # end
       EOS
+      
+      unless options[:instance_reader] == false
+        class_eval(<<-EOS, __FILE__, __LINE__)
+          def #{sym}              # def hair_colors
+            @@#{sym}              #   @@hair_colors
+          end                     # end
+        EOS
+      end
     end
   end
 
