@@ -5,26 +5,31 @@ module ActionController
     include ActionController::RackDelegation
     include AbstractController::Rendering
 
-    def process(*)
+    # Before processing, set the request formats in current controller formats.
+    def process_action(*) #:nodoc:
       self.formats = request.formats.map { |x| x.to_sym }
       super
     end
 
-    def render(*args)
+    # Check for double render errors and set the content_type after rendering.
+    def render(*args) #:nodoc:
       raise ::AbstractController::DoubleRenderError if response_body
       super
+      self.content_type ||= Mime[formats.first].to_s
       response_body
     end
 
     private
 
-      def _normalize_args(action=nil, options={}, &blk)
+      # Normalize arguments by catching blocks and setting them on :update.
+      def _normalize_args(action=nil, options={}, &blk) #:nodoc:
         options = super
         options[:update] = blk if block_given?
         options
       end
 
-      def _normalize_options(options)
+      # Normalize both text and status options.
+      def _normalize_options(options) #:nodoc:
         if options.key?(:text) && options[:text].respond_to?(:to_text)
           options[:text] = options[:text].to_text
         end
@@ -36,7 +41,8 @@ module ActionController
         super
       end
 
-      def _process_options(options)
+      # Process controller specific options, as status, content-type and location.
+      def _process_options(options) #:nodoc:
         status, content_type, location = options.values_at(:status, :content_type, :location)
 
         self.status = status if status
@@ -44,11 +50,6 @@ module ActionController
         self.headers["Location"] = url_for(location) if location
 
         super
-      end
-
-      def _with_template_hook(template)
-        super
-        self.content_type ||= template.mime_type.to_s
       end
 
   end

@@ -180,7 +180,6 @@ module ActionView
       # #include_helpers_from_context has nothing to overwrite.
       class JavaScriptGenerator #:nodoc:
         def initialize(context, &block) #:nodoc:
-          context._evaluate_assigns_and_ivars
           @context, @lines = context, []
           @context.update_details(:formats => [:js, :html]) do
             include_helpers_from_context

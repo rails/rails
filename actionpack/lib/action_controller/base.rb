@@ -2,7 +2,6 @@ module ActionController
   class Base < Metal
     abstract!
 
-    include AbstractController::Callbacks
     include AbstractController::Layouts
     include AbstractController::Translation
 
@@ -23,6 +22,7 @@ module ActionController
 
     # Rails 2.x compatibility
     include ActionController::Compatibility
+    include ActionController::ImplicitRender
 
     include ActionController::Cookies
     include ActionController::Flash
@@ -36,8 +36,12 @@ module ActionController
     # Add instrumentations hooks at the bottom, to ensure they instrument
     # all the methods properly.
     include ActionController::Instrumentation
-    include ImplicitRender
 
+    # Before callbacks should also be executed the earliest as possible, so
+    # also include them at the bottom.
+    include AbstractController::Callbacks
+
+    # The same with rescue, append it at the end to wrap as much as possible.
     include ActionController::Rescue
 
     def self.inherited(klass)

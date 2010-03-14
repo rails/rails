@@ -180,6 +180,14 @@ class AssociationProxyTest < ActiveRecord::TestCase
     end
   end
 
+  if RUBY_VERSION < '1.9'
+    def test_splat_does_not_invoke_to_a_on_singular_targets
+      author = posts(:welcome).author
+      author.reload.target.expects(:to_a).never
+      [*author]
+    end
+  end
+
   def setup_dangling_association
     josh = Author.create(:name => "Josh")
     p = Post.create(:title => "New on Edge", :body => "More cool stuff!", :author => josh)

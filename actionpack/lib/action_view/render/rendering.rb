@@ -12,44 +12,23 @@ module ActionView
     #
     # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
     # as the locals hash.
-    def render(options = {}, locals = {}, &block) #:nodoc:
+    def render(options = {}, locals = {}, &block)
       case options
       when Hash
         if block_given?
           content = _render_partial(options.merge(:partial => options[:layout]), &block)
           safe_concat(content)
+        elsif options.key?(:partial)
+          _render_partial(options)
         else
-          _render(options)
+          template = _determine_template(options)
+          self.formats = template.formats
+          _render_template(template, options[:layout], options)
         end
       when :update
         update_page(&block)
       else
         _render_partial(:partial => options, :locals => locals)
-      end
-    end
-
-    # This is the API to render a ViewContext's template from a controller.
-    def render_template(options, &block)
-      _evaluate_assigns_and_ivars
-
-      # TODO Layout for partials should be handled here, because inside the
-      # partial renderer it looks for the layout as a partial.
-      if options.key?(:partial) && options[:layout]
-        options[:layout] = _find_layout(options[:layout])
-      end
-
-      _render(options, &block)
-    end
-
-    # This method holds the common render logic for both controllers and
-    # views rendering stacks.
-    def _render(options) #:nodoc:
-      if options.key?(:partial)
-        _render_partial(options)
-      else
-        template = _determine_template(options)
-        yield template if block_given?
-        _render_template(template, options[:layout], options)
       end
     end
 
@@ -59,13 +38,12 @@ module ActionView
         handler = Template.handler_class_for_extension(options[:type] || "erb")
         Template.new(options[:inline], "inline template", handler, {})
       elsif options.key?(:text)
-        Template::Text.new(options[:text], self.formats.try(:first))
-      elsif options.key?(:_template)
-        options[:_template]
+        Template::Text.new(options[:text], formats.try(:first))
       elsif options.key?(:file)
-        with_fallbacks { find(options[:file], options[:prefix]) }
+        with_fallbacks { find_template(options[:file], options[:prefix]) }
       elsif options.key?(:template)
-        find(options[:template], options[:prefix])
+        options[:template].respond_to?(:render) ?
+          options[:template] : find_template(options[:template], options[:prefix])
       end
     end
 
@@ -73,7 +51,7 @@ module ActionView
     # supplied as well.
     def _render_template(template, layout = nil, options = {}) #:nodoc:
       locals = options[:locals] || {}
-      layout = _find_layout(layout) if layout
+      layout = find_layout(layout) if layout
 
       ActiveSupport::Notifications.instrument("action_view.render_template",
         :identifier => template.identifier, :layout => layout.try(:identifier)) do
@@ -89,6 +67,5 @@ module ActionView
         content
       end
     end
-
   end
 end

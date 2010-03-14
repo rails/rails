@@ -2,6 +2,8 @@
 require 'abstract_unit'
 
 class BaseTest < ActiveSupport::TestCase
+  # TODO Add some tests for implicity layout render and url helpers
+  # so we can get rid of old base tests altogether with old base.
   class BaseMailer < ActionMailer::Base
     self.mailer_name = "base_mailer"
 

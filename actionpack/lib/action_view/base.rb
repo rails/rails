@@ -194,7 +194,7 @@ module ActionView #:nodoc:
     attr_accessor :base_path, :assigns, :template_extension, :lookup_context
     attr_internal :captures, :request, :layout, :controller, :template, :config
 
-    delegate :find, :exists?, :formats, :formats=, :locale, :locale=,
+    delegate :find_template, :template_exists?, :formats, :formats=, :locale, :locale=,
              :view_paths, :view_paths=, :with_fallbacks, :update_details, :to => :lookup_context
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
@@ -263,15 +263,6 @@ module ActionView #:nodoc:
       flush_output_buffer
       response.body_parts << part
       nil
-    end
-
-    # Evaluates the local assigns and controller ivars, pushes them to the view.
-    def _evaluate_assigns_and_ivars #:nodoc:
-      if controller
-        variables = controller.instance_variable_names
-        variables -= controller.protected_instance_variables if controller.respond_to?(:protected_instance_variables)
-        variables.each { |name| instance_variable_set(name, controller.instance_variable_get(name)) }
-      end
     end
   end
 end

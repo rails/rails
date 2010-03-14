@@ -7,6 +7,7 @@ require 'config'
 
 require 'test/unit'
 require 'stringio'
+require 'mocha'
 
 require 'active_record'
 require 'active_support/dependencies'

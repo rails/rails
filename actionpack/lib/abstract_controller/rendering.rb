@@ -31,6 +31,8 @@ module AbstractController
 
   module Rendering
     extend ActiveSupport::Concern
+
+    include AbstractController::Assigns
     include AbstractController::ViewPaths
 
     # Overwrite process to setup I18n proxy.
@@ -54,8 +56,8 @@ module AbstractController
       @_view_context ||= ActionView::Base.for_controller(self)
     end
 
-    # Mostly abstracts the fact that calling render twice is a DoubleRenderError.
-    # Delegates render_to_body and sticks the result in self.response_body.
+    # Normalize arguments, options and then delegates render_to_body and
+    # sticks the result in self.response_body.
     def render(*args, &block)
       options = _normalize_args(*args, &block)
       _normalize_options(options)
@@ -78,8 +80,10 @@ module AbstractController
     end
 
     # Find and renders a template based on the options given.
-    def _render_template(options)
-      view_context.render_template(options) { |template| _with_template_hook(template) }
+    # :api: private
+    def _render_template(options) #:nodoc:
+      _evaluate_assigns(view_context)
+      view_context.render(options)
     end
 
     # The prefix used in render "foo" shortcuts.
@@ -133,10 +137,6 @@ module AbstractController
     end
 
     def _process_options(options)
-    end
-
-    def _with_template_hook(template)
-      self.formats = template.formats
     end
   end
 end

@@ -31,8 +31,8 @@ module ERBTest
       ActionView::Template::Handlers::Erubis.new(template).evaluate(context.new)
     end
 
-    test "percent equals works for content_tag" do
-      assert_equal "<div>Hello world</div>", render_content("content_tag(:div)", "Hello world")
+    test "percent equals works for content_tag and does not require parenthesis on method call" do
+      assert_equal "<div>Hello world</div>", render_content("content_tag :div", "Hello world")
     end
 
     test "percent equals works for javascript_tag" do

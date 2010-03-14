@@ -38,17 +38,18 @@ module ActionView
     register_detail(:locale)  { [I18n.locale] }
 
     class DetailsKey #:nodoc:
-      attr_reader :details
       alias :eql? :equal?
+      alias :object_hash :hash
 
+      attr_reader :hash
       @details_keys = Hash.new
 
       def self.get(details)
-        @details_keys[details] ||= new(details)
+        @details_keys[details] ||= new
       end
 
-      def initialize(details)
-        @details, @hash = details, details.hash
+      def initialize
+        @hash = object_hash
       end
     end
 
@@ -70,6 +71,7 @@ module ActionView
       def find(name, prefix = nil, partial = false)
         @view_paths.find(name, prefix, partial, details, details_key)
       end
+      alias :find_template :find
 
       def find_all(name, prefix = nil, partial = false)
         @view_paths.find_all(name, prefix, partial, details, details_key)
@@ -78,6 +80,7 @@ module ActionView
       def exists?(name, prefix = nil, partial = false)
         @view_paths.exists?(name, prefix, partial, details, details_key)
       end
+      alias :template_exists? :exists?
 
       # Add fallbacks to the view paths. Useful in cases you are rendering a :file.
       def with_fallbacks

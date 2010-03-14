@@ -9,6 +9,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def setup
     super
     Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+    @bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
   end
 
   def teardown
@@ -63,6 +64,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_invalid_application_name_raises_an_error
     content = capture(:stderr){ run_generator [File.join(destination_root, "43-things")] }
     assert_equal "Invalid application name 43-things. Please give a name which does not start with numbers.\n", content
+  end
+
+  def test_application_name_raises_an_error_if_name_already_used_constant
+    %w{ String Hash Class Module Set Symbol }.each do |ruby_class|
+      content = capture(:stderr){ run_generator [File.join(destination_root, ruby_class)] }
+      assert_equal "Invalid application name #{ruby_class}, constant #{ruby_class} is already in use. Please choose another application name.\n", content
+    end
   end
 
   def test_invalid_application_name_is_fixed
@@ -161,14 +169,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_dev_option
-    generator([destination_root], :dev => true).expects(:run).with("bundle install")
+    generator([destination_root], :dev => true).expects(:run).with("#{@bundle_command} install")
     silence(:stdout){ generator.invoke }
     rails_path = File.expand_path('../../..', Rails.root)
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
-    generator([destination_root], :edge => true).expects(:run).with("bundle install")
+    generator([destination_root], :edge => true).expects(:run).with("#{@bundle_command} install")
     silence(:stdout){ generator.invoke }
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$/
   end

@@ -242,12 +242,12 @@ module ActionView
       # == Caching multiple javascripts into one
       #
       # You can also cache multiple javascripts into one file, which requires less HTTP connections to download and can better be
-      # compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching
+      # compressed by gzip (leading to faster transfers). Caching will only happen if config.perform_caching
       # is set to <tt>true</tt> (which is the case by default for the Rails production environment, but not for the development
       # environment).
       #
       # ==== Examples
-      #   javascript_include_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
+      #   javascript_include_tag :all, :cache => true # when config.perform_caching is false =>
       #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
       #     <script type="text/javascript" src="/javascripts/effects.js"></script>
       #     ...
@@ -255,15 +255,15 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/shop.js"></script>
       #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
       #
-      #   javascript_include_tag :all, :cache => true # when ActionController::Base.perform_caching is true =>
+      #   javascript_include_tag :all, :cache => true # when config.perform_caching is true =>
       #     <script type="text/javascript" src="/javascripts/all.js"></script>
       #
-      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when ActionController::Base.perform_caching is false =>
+      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when config.perform_caching is false =>
       #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
       #     <script type="text/javascript" src="/javascripts/cart.js"></script>
       #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
       #
-      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when ActionController::Base.perform_caching is true =>
+      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when config.perform_caching is true =>
       #     <script type="text/javascript" src="/javascripts/shop.js"></script>
       #
       # The <tt>:recursive</tt> option is also available for caching:
@@ -275,11 +275,11 @@ module ActionView
         cache   = concat || options.delete("cache")
         recursive = options.delete("recursive")
 
-        if concat || (ActionController::Base.perform_caching && cache)
+        if concat || (config.perform_caching && cache)
           joined_javascript_name = (cache == true ? "all" : cache) + ".js"
           joined_javascript_path = File.join(joined_javascript_name[/^#{File::SEPARATOR}/] ? config.assets_dir : config.javascripts_dir, joined_javascript_name)
 
-          unless ActionController::Base.perform_caching && File.exists?(joined_javascript_path)
+          unless config.perform_caching && File.exists?(joined_javascript_path)
             write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources, recursive))
           end
           javascript_src_tag(joined_javascript_name, options)
@@ -390,25 +390,25 @@ module ActionView
       # == Caching multiple stylesheets into one
       #
       # You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be
-      # compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching
+      # compressed by gzip (leading to faster transfers). Caching will only happen if config.perform_caching
       # is set to true (which is the case by default for the Rails production environment, but not for the development
       # environment). Examples:
       #
       # ==== Examples
-      #   stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
+      #   stylesheet_link_tag :all, :cache => true # when config.perform_caching is false =>
       #     <link href="/stylesheets/style1.css"  media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/stylesheets/styleB.css"  media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/stylesheets/styleX2.css" media="screen" rel="stylesheet" type="text/css" />
       #
-      #   stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is true =>
+      #   stylesheet_link_tag :all, :cache => true # when config.perform_caching is true =>
       #     <link href="/stylesheets/all.css"  media="screen" rel="stylesheet" type="text/css" />
       #
-      #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when ActionController::Base.perform_caching is false =>
+      #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when config.perform_caching is false =>
       #     <link href="/stylesheets/shop.css"  media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/stylesheets/cart.css"  media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/stylesheets/checkout.css" media="screen" rel="stylesheet" type="text/css" />
       #
-      #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when ActionController::Base.perform_caching is true =>
+      #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when config.perform_caching is true =>
       #     <link href="/stylesheets/payment.css"  media="screen" rel="stylesheet" type="text/css" />
       #
       # The <tt>:recursive</tt> option is also available for caching:
@@ -426,11 +426,11 @@ module ActionView
         cache   = concat || options.delete("cache")
         recursive = options.delete("recursive")
 
-        if concat || (ActionController::Base.perform_caching && cache)
+        if concat || (config.perform_caching && cache)
           joined_stylesheet_name = (cache == true ? "all" : cache) + ".css"
           joined_stylesheet_path = File.join(joined_stylesheet_name[/^#{File::SEPARATOR}/] ? config.assets_dir : config.stylesheets_dir, joined_stylesheet_name)
 
-          unless ActionController::Base.perform_caching && File.exists?(joined_stylesheet_path)
+          unless config.perform_caching && File.exists?(joined_stylesheet_path)
             write_asset_file_contents(joined_stylesheet_path, compute_stylesheet_paths(sources, recursive))
           end
           stylesheet_tag(joined_stylesheet_name, options)
