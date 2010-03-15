@@ -26,6 +26,11 @@ class NumericData < ActiveRecord::Base
 end
 
 class DirtyTest < ActiveRecord::TestCase
+  # Dummy to force column loads so query counts are clean.
+  def setup
+    Person.create :first_name => 'foo'
+  end
+
   def test_attribute_changes
     # New record - no changes.
     pirate = Pirate.new
