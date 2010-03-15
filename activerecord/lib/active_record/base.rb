@@ -1042,6 +1042,9 @@ module ActiveRecord #:nodoc:
           object.instance_variable_set(:'@attributes', record)
           object.instance_variable_set(:'@attributes_cache', {})
           object.instance_variable_set(:@new_record, false)
+          object.instance_variable_set(:@readonly, false)
+          object.instance_variable_set(:@destroyed, false)
+          object.instance_variable_set(:@marked_for_destruction, false)
 
           object.send(:_run_find_callbacks)
           object.send(:_run_initialize_callbacks)
@@ -1508,6 +1511,9 @@ module ActiveRecord #:nodoc:
         @attributes_cache = {}
         @new_record = true
         @readonly = false
+        @destroyed = false
+        @marked_for_destruction = false
+
         ensure_proper_type
 
         if scope = self.class.send(:current_scoped_methods)
@@ -1599,12 +1605,12 @@ module ActiveRecord #:nodoc:
 
       # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet; otherwise, returns false.
       def new_record?
-        @new_record || false
+        @new_record
       end
 
       # Returns true if this object has been destroyed, otherwise returns false.
       def destroyed?
-        @destroyed || false
+        @destroyed
       end
 
       # Returns if the record is persisted, i.e. it's not a new record and it was not destroyed.
