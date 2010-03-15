@@ -54,7 +54,7 @@ module ActionController #:nodoc:
 
         self.class.benchmark "Cached fragment miss: #{key}" do
           key = fragment_cache_key(key)
-          content = content.html_safe.as_str if content.respond_to?(:html_safe)
+          content = content.html_safe.to_str if content.respond_to?(:html_safe)
           cache_store.write(key, content, options)
         end
 
