@@ -362,11 +362,11 @@ module ActionDispatch
           attr_reader :plural, :singular, :options
 
           def initialize(entities, options = {})
-            entities = entities.to_s
+            @name = entities.to_s
             @options = options
 
-            @plural   = entities.pluralize
-            @singular = entities.singularize
+            @plural   = @name.pluralize
+            @singular = @name.singularize
           end
 
           def default_actions
@@ -393,7 +393,7 @@ module ActionDispatch
           end
 
           def name
-            options[:as] || plural
+            options[:as] || @name
           end
 
           def controller
@@ -438,8 +438,8 @@ module ActionDispatch
             end
           end
 
-          def name
-            options[:as] || singular
+          def member_name
+            name
           end
         end
 
@@ -468,8 +468,8 @@ module ActionDispatch
               post   :create if resource.actions.include?(:create)
               put    :update if resource.actions.include?(:update)
               delete :destroy if resource.actions.include?(:destroy)
-              get    :new, :as => resource.singular if resource.actions.include?(:new)
-              get    :edit, :as => resource.singular if resource.actions.include?(:edit)
+              get    :new, :as => resource.name if resource.actions.include?(:new)
+              get    :edit, :as => resource.name if resource.actions.include?(:edit)
             end
           end
 

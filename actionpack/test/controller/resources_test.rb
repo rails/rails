@@ -16,6 +16,7 @@ class AccountsController <  ResourcesController; end
 class AdminController   <  ResourcesController; end
 class ProductsController < ResourcesController; end
 class ImagesController < ResourcesController; end
+class PreferencesController < ResourcesController; end
 
 module Backoffice
   class ProductsController < ResourcesController; end
@@ -1122,6 +1123,12 @@ class ResourcesTest < ActionController::TestCase
 
       assert_routing '/product', :controller => 'products', :action => 'show'
       assert set.recognize_path("/product", :method => :get)
+    end
+  end
+
+  def test_singleton_resource_name_is_not_singularized
+    with_singleton_resources(:preferences) do
+      assert_singleton_restful_for :preferences
     end
   end
 
