@@ -100,7 +100,7 @@ module ActionDispatch
       end
 
       def url_options
-        default_url_options
+        default_url_options({})
       end
 
       # Generate a url based on the options provided, default_url_options and the
