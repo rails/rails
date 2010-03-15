@@ -171,7 +171,7 @@ class ObjectTests < ActiveSupport::TestCase
 
   def test_metaclass
     string = "Hello"
-    string.metaclass.instance_eval do
+    string.singleton_class.instance_eval do
       define_method(:foo) { "bar" }
     end
     assert_equal "bar", string.foo
@@ -184,7 +184,7 @@ class ObjectTests < ActiveSupport::TestCase
 
   def test_metaclass_deprecated
     o = Object.new
-    assert_deprecated /use singleton_class instead/ do
+    assert_deprecated(/use singleton_class instead/) do
       assert_equal o.singleton_class, o.metaclass
     end
    end
