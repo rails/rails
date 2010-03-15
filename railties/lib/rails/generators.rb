@@ -202,6 +202,10 @@ module Rails
       rails.delete("app")
       print_list("rails", rails)
 
+      groups.delete("active_record") if options[:rails][:orm] == :active_record
+      groups.delete("test_unit")     if options[:rails][:test_framework] == :test_unit
+      groups.delete("erb")           if options[:rails][:template_engine] == :erb
+
       groups.sort.each { |b, n| print_list(b, n) }
     end
 

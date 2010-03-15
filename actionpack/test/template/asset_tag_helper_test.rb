@@ -50,7 +50,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def teardown
-    ActionController::Base.perform_caching = false
+    config.perform_caching = false
     ENV.delete('RAILS_ASSET_ID')
   end
 
@@ -141,7 +141,6 @@ class AssetTagHelperTest < ActionView::TestCase
 
   ImageLinkToTag = {
     %(image_tag("xml.png")) => %(<img alt="Xml" src="/images/xml.png" />),
-    %(image_tag("..jpg")) => %(<img alt="..jpg" src="/images/..jpg" />),
     %(image_tag("rss.gif", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.gif" />),
     %(image_tag("gold.png", :size => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
     %(image_tag("gold.png", "size" => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
@@ -422,7 +421,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_caching_javascript_include_tag_when_caching_on
     ENV["RAILS_ASSET_ID"] = ""
     @controller.config.asset_host = 'http://a0.example.com'
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     assert_dom_equal(
       %(<script src="http://a0.example.com/javascripts/all.js" type="text/javascript"></script>),
@@ -454,7 +453,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_caching_javascript_include_tag_when_caching_on_with_proc_asset_host
     ENV['RAILS_ASSET_ID'] = ''
     @controller.config.asset_host = Proc.new { |source| "http://a#{source.length}.example.com" }
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     assert_equal '/javascripts/scripts.js'.length, 23
     assert_dom_equal(
@@ -477,7 +476,7 @@ class AssetTagHelperTest < ActionView::TestCase
         "#{request.protocol}assets#{source.length}.example.com"
       end
     }
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     assert_equal '/javascripts/vanilla.js'.length, 23
     assert_dom_equal(
@@ -517,7 +516,7 @@ class AssetTagHelperTest < ActionView::TestCase
       end
     end.new
 
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     assert_equal '/javascripts/vanilla.js'.length, 23
     assert_dom_equal(
@@ -548,7 +547,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_caching_javascript_include_tag_when_caching_on_and_using_subdirectory
     ENV["RAILS_ASSET_ID"] = ""
     @controller.config.asset_host = 'http://a%d.example.com'
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     hash = '/javascripts/cache/money.js'.hash % 4
     assert_dom_equal(
@@ -564,7 +563,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_caching_javascript_include_tag_with_all_and_recursive_puts_defaults_at_the_start_of_the_file
     ENV["RAILS_ASSET_ID"] = ""
     @controller.config.asset_host = 'http://a0.example.com'
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     assert_dom_equal(
       %(<script src="http://a0.example.com/javascripts/combined.js" type="text/javascript"></script>),
@@ -585,7 +584,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_caching_javascript_include_tag_with_all_puts_defaults_at_the_start_of_the_file
     ENV["RAILS_ASSET_ID"] = ""
     @controller.config.asset_host = 'http://a0.example.com'
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     assert_dom_equal(
       %(<script src="http://a0.example.com/javascripts/combined.js" type="text/javascript"></script>),
@@ -606,7 +605,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_caching_javascript_include_tag_with_relative_url_root
     ENV["RAILS_ASSET_ID"] = ""
     @controller.config.relative_url_root = "/collaboration/hieraki"
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     assert_dom_equal(
       %(<script src="/collaboration/hieraki/javascripts/all.js" type="text/javascript"></script>),
@@ -629,7 +628,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_off
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.perform_caching = false
+    config.perform_caching = false
 
     assert_dom_equal(
       %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>\n<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>\n<script src="/javascripts/version.1.0.js" type="text/javascript"></script>),
@@ -658,7 +657,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_on_and_missing_javascript_file
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     assert_raise(Errno::ENOENT) {
       javascript_include_tag('bank', 'robber', 'missing_security_guard', :cache => true)
@@ -675,7 +674,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_javascript_include_tag_when_caching_off_and_missing_javascript_file
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.perform_caching = false
+    config.perform_caching = false
 
     assert_raise(Errno::ENOENT) {
       javascript_include_tag('bank', 'robber', 'missing_security_guard', :cache => true)
@@ -693,7 +692,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_caching_stylesheet_link_tag_when_caching_on
     ENV["RAILS_ASSET_ID"] = ""
     @controller.config.asset_host = 'http://a0.example.com'
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     assert_dom_equal(
       %(<link href="http://a0.example.com/stylesheets/all.css" media="screen" rel="stylesheet" type="text/css" />),
@@ -760,7 +759,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_stylesheet_link_tag_when_caching_on_and_missing_css_file
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     assert_raise(Errno::ENOENT) {
       stylesheet_link_tag('bank', 'robber', 'missing_security_guard', :cache => true)
@@ -781,7 +780,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_stylesheet_link_tag_when_caching_off_and_missing_css_file
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.perform_caching = false
+    config.perform_caching = false
 
     assert_raise(Errno::ENOENT) {
       stylesheet_link_tag('bank', 'robber', 'missing_security_guard', :cache => true)
@@ -803,7 +802,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_caching_stylesheet_link_tag_when_caching_on_with_proc_asset_host
     ENV["RAILS_ASSET_ID"] = ""
     @controller.config.asset_host = Proc.new { |source| "http://a#{source.length}.example.com" }
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     assert_equal '/stylesheets/styles.css'.length, 23
     assert_dom_equal(
@@ -820,7 +819,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_caching_stylesheet_link_tag_with_relative_url_root
     ENV["RAILS_ASSET_ID"] = ""
     @controller.config.relative_url_root = "/collaboration/hieraki"
-    ActionController::Base.perform_caching = true
+    config.perform_caching = true
 
     assert_dom_equal(
       %(<link href="/collaboration/hieraki/stylesheets/all.css" media="screen" rel="stylesheet" type="text/css" />),
@@ -845,7 +844,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_stylesheet_include_tag_when_caching_off
     ENV["RAILS_ASSET_ID"] = ""
-    ActionController::Base.perform_caching = false
+    config.perform_caching = false
 
     assert_dom_equal(
       %(<link href="/stylesheets/bank.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/robber.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/version.1.0.css" media="screen" rel="stylesheet" type="text/css" />),

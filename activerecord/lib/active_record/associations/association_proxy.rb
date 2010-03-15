@@ -49,7 +49,7 @@ module ActiveRecord
       alias_method :proxy_respond_to?, :respond_to?
       alias_method :proxy_extend, :extend
       delegate :to_param, :to => :proxy_target
-      instance_methods.each { |m| undef_method m unless m =~ /(^__|^nil\?$|^send$|proxy_|^object_id$)/ }
+      instance_methods.each { |m| undef_method m unless m =~ /^(?:nil\?|send|object_id|to_a)$|^__|proxy_/ }
 
       def initialize(owner, reflection)
         @owner, @reflection = owner, reflection

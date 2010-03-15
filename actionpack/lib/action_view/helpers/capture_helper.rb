@@ -140,7 +140,7 @@ module ActionView
       def with_output_buffer(buf = nil) #:nodoc:
         unless buf
           buf = ActionView::OutputBuffer.new
-          buf.force_encoding(output_buffer.encoding) if buf.respond_to?(:force_encoding)
+          buf.force_encoding(output_buffer.encoding) if output_buffer && buf.respond_to?(:force_encoding)
         end
         self.output_buffer, old_buffer = buf, output_buffer
         yield

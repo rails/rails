@@ -111,8 +111,11 @@ module ActiveRecord
     private
       # Gets the specified association instance if it responds to :loaded?, nil otherwise.
       def association_instance_get(name)
-        association = instance_variable_get("@#{name}")
-        association if association.respond_to?(:loaded?)
+        ivar = "@#{name}"
+        if instance_variable_defined?(ivar)
+          association = instance_variable_get(ivar)
+          association if association.respond_to?(:loaded?)
+        end
       end
 
       # Set the specified association instance.

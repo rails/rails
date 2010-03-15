@@ -1,8 +1,5 @@
-require 'active_support/core_ext/object/try'
-
 module ActionView
   module Layouts
-
     # You can think of a layout as a method that is called with a block. _layout_for
     # returns the contents that are yielded to the layout. If the user calls yield
     # :some_name, the block, by default, returns content_for(:some_name). If the user
@@ -46,13 +43,13 @@ module ActionView
     # This is the method which actually finds the layout using details in the lookup
     # context object. If no layout is found, it checkes if at least a layout with
     # the given name exists across all details before raising the error.
-    def _find_layout(layout) #:nodoc:
+    def find_layout(layout) #:nodoc:
       begin
         layout =~ /^\// ?
-          with_fallbacks { find(layout) } : find(layout)
+          with_fallbacks { find_template(layout) } : find_template(layout)
       rescue ActionView::MissingTemplate => e
         update_details(:formats => nil) do
-          raise unless exists?(layout)
+          raise unless template_exists?(layout)
         end
       end
     end

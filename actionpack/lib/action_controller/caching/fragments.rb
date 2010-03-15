@@ -41,9 +41,7 @@ module ActionController #:nodoc:
           else
             pos = buffer.length
             block.call
-            content = buffer[pos..-1]
-            content = content.as_str if content.respond_to?(:as_str)
-            write_fragment(name, content, options)
+            write_fragment(name, buffer[pos..-1], options)
           end
         else
           block.call
@@ -53,9 +51,10 @@ module ActionController #:nodoc:
       # Writes <tt>content</tt> to the location signified by <tt>key</tt> (see <tt>expire_fragment</tt> for acceptable formats)
       def write_fragment(key, content, options = nil)
         return content unless cache_configured?
-        key = fragment_cache_key(key)
 
+        key = fragment_cache_key(key)
         instrument_fragment_cache :write_fragment, key do
+          content = content.html_safe.to_str if content.respond_to?(:html_safe)
           cache_store.write(key, content, options)
         end
         content
@@ -64,10 +63,11 @@ module ActionController #:nodoc:
       # Reads a cached fragment from the location signified by <tt>key</tt> (see <tt>expire_fragment</tt> for acceptable formats)
       def read_fragment(key, options = nil)
         return unless cache_configured?
-        key = fragment_cache_key(key)
 
+        key = fragment_cache_key(key)
         instrument_fragment_cache :read_fragment, key do
-          cache_store.read(key, options)
+          result = cache_store.read(key, options)
+          result.respond_to?(:html_safe) ? result.html_safe : result
         end
       end
 

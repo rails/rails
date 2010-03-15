@@ -18,10 +18,14 @@ require 'models/developer'
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :owners, :pets, :toys, :jobs, :references, :companies
 
-  def test_associate_existing
-    assert_queries(2) { posts(:thinking);people(:david) }
+  # Dummies to force column loads so query counts are clean.
+  def setup
+    Person.create :first_name => 'gummy'
+    Reader.create :person_id => 0, :post_id => 0
+  end
 
-    posts(:thinking).people
+  def test_associate_existing
+    assert_queries(2) { posts(:thinking); people(:david) }
 
     assert_queries(1) do
       posts(:thinking).people << people(:david)

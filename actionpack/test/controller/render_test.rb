@@ -617,6 +617,15 @@ class TestController < ActionController::Base
     raise
   end
 
+  before_filter :only => :render_with_filters do
+    request.format = :xml
+  end
+
+  # Ensure that the before filter is executed *before* self.formats is set.
+  def render_with_filters
+    render :action => :formatted_xml_erb
+  end
+
   private
 
     def determine_layout
@@ -1032,6 +1041,11 @@ class RenderTest < ActionController::TestCase
   def test_render_with_explicit_string_template
     get :render_with_explicit_string_template
     assert_equal "<html>Hello world!</html>", @response.body
+  end
+
+  def test_render_with_filters
+    get :render_with_filters
+    assert_equal "<test>passed formatted xml erb</test>", @response.body
   end
 
   # :ported:

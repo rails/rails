@@ -6,8 +6,7 @@ module ActionView
       self.default_format = Mime::JS
 
       def compile(template)
-        "controller.response.content_type ||= Mime::JS;" +
-          "update_page do |page|;#{template.source}\nend"
+        "update_page do |page|;#{template.source}\nend"
       end
 
       def default_format

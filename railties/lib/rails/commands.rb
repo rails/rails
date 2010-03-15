@@ -34,13 +34,15 @@ when 'c', 'console'
   Rails::Console.start(Rails::Application)
 when 's', 'server'
   require 'rails/commands/server'
+  # Initialize the server first, so environment options are set
   server = Rails::Server.new
-  require ENV_PATH
+  require APP_PATH
+
   Dir.chdir(Rails::Application.root)
   server.start
 when 'db', 'dbconsole'
   require 'rails/commands/dbconsole'
-  require ENV_PATH
+  require APP_PATH
   Rails::DBConsole.start(Rails::Application)
 
 when 'application'
@@ -55,7 +57,7 @@ when 'profiler'
   require ENV_PATH
   require 'rails/commands/performance/profiler'
 when 'plugin'
-  require ENV_PATH
+  require APP_PATH
   require 'rails/commands/plugin'
 when 'runner'
   require 'rails/commands/runner'

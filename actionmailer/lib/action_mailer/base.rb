@@ -605,7 +605,7 @@ module ActionMailer #:nodoc:
 
         each_template(templates_path, templates_name) do |template|
           responses << {
-            :body => render(:_template => template),
+            :body => render(:template => template),
             :content_type => template.mime_type.to_s
           }
         end

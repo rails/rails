@@ -14,6 +14,14 @@ module ActiveRecord
 
     def initialize(klass, table)
       @klass, @table = klass, table
+
+      @readonly_value    = nil
+      @create_with_value = nil
+      @implicit_readonly = nil
+      @limit_value       = nil
+      @offset_value      = nil
+      @loaded            = nil
+
       (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
     end
 
