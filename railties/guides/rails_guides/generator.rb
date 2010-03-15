@@ -1,6 +1,14 @@
 require 'set'
 require 'fileutils'
 
+require 'active_support/core_ext/string/output_safety'
+require 'action_controller'
+require 'action_view'
+
+require 'rails_guides/indexer'
+require 'rails_guides/helpers'
+require 'rails_guides/levenshtein'
+
 module RailsGuides
   class Generator
     attr_reader :guides_dir, :source_dir, :output_dir 
@@ -56,7 +64,6 @@ module RailsGuides
 
       File.open(File.join(output_dir, output_file), 'w') do |f|
         view = ActionView::Base.new(source_dir)
-        view.output_buffer = ActiveSupport::SafeBuffer.new
         view.extend(Helpers)
         
         if guide =~ /\.textile\.erb$/
