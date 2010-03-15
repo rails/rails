@@ -634,6 +634,19 @@ class FragmentCachingTest < ActionController::TestCase
     assert_equal 'generated till now -> fragment content', buffer
   end
 
+  def test_html_safety
+    assert_nil @store.read('views/name')
+    content = 'value'.html_safe
+    assert_equal content, @controller.write_fragment('name', content)
+
+    cached = @store.read('views/name')
+    assert_equal content, cached
+    assert_equal String, cached.class
+
+    html_safe = @controller.read_fragment('name')
+    assert_equal content, html_safe
+    assert html_safe.html_safe?
+  end
 end
 
 class FunctionalCachingController < CachingController
