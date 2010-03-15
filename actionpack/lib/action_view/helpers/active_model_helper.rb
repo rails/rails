@@ -295,6 +295,10 @@ module ActionView
         end
       end
 
+      def error_message
+        object.errors[@method_name]
+      end
+
       def column_type
         object.send(:column_for_attribute, @method_name).type
       end
