@@ -34,17 +34,23 @@ module ActionController #:nodoc:
         ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)
       end
 
-      def fragment_for(buffer, name = {}, options = nil, &block) #:nodoc:
+      def fragment_for(name = {}, options = nil, &block) #:nodoc:
         if perform_caching
           if fragment_exist?(name, options)
-            buffer.safe_concat(read_fragment(name, options))
+            read_fragment(name, options)
           else
+            # VIEW TODO: Make #capture usable outside of ERB
+            # This dance is needed because Builder can't use capture
+            buffer = view_context.output_buffer
             pos = buffer.length
-            block.call
-            write_fragment(name, buffer[pos..-1], options)
+            yield
+            fragment = buffer[pos..-1]
+            write_fragment(name, fragment, options)
+            ActionView::NonConcattingString.new(fragment)
           end
         else
-          block.call
+          ret = yield
+          ActiveSupport::SafeBuffer.new(ret) if ret.is_a?(String)
         end
       end
 

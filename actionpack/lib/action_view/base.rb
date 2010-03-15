@@ -3,6 +3,9 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/class/attribute'
 
 module ActionView #:nodoc:
+  class NonConcattingString < ActiveSupport::SafeBuffer
+  end
+
   class ActionViewError < StandardError #:nodoc:
   end
 
