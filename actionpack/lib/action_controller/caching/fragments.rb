@@ -41,9 +41,7 @@ module ActionController #:nodoc:
           else
             pos = buffer.length
             block.call
-            content = buffer[pos..-1]
-            content = content.as_str if content.respond_to?(:as_str)
-            write_fragment(name, content, options)
+            write_fragment(name, buffer[pos..-1], options)
           end
         else
           block.call
@@ -54,9 +52,9 @@ module ActionController #:nodoc:
       def write_fragment(key, content, options = nil)
         return content unless cache_configured?
 
-        key = fragment_cache_key(key)
-
         self.class.benchmark "Cached fragment miss: #{key}" do
+          key = fragment_cache_key(key)
+          content = content.html_safe.as_str if content.respond_to?(:html_safe)
           cache_store.write(key, content, options)
         end
 
@@ -67,10 +65,10 @@ module ActionController #:nodoc:
       def read_fragment(key, options = nil)
         return unless cache_configured?
 
-        key = fragment_cache_key(key)
-
         self.class.benchmark "Cached fragment hit: #{key}" do
-          cache_store.read(key, options)
+          key = fragment_cache_key(key)
+          result = cache_store.read(key, options)
+          result.respond_to?(:html_safe) ? result.html_safe : result
         end
       end
 
