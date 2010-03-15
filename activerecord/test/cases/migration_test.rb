@@ -27,21 +27,45 @@ if ActiveRecord::Base.connection.supports_migrations?
   end
 
   class MigrationTableAndIndexTest < ActiveRecord::TestCase
-    def test_add_schema_info_respects_prefix_and_suffix
-      conn = ActiveRecord::Base.connection
+    def setup
+      @conn = ActiveRecord::Base.connection
+      @conn.drop_table(ActiveRecord::Migrator.schema_migrations_table_name) if @conn.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
+    end
 
-      conn.drop_table(ActiveRecord::Migrator.schema_migrations_table_name) if conn.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
+    def test_add_schema_migrations_respects_prefix_and_suffix
       # Use shorter prefix and suffix as in Oracle database identifier cannot be larger than 30 characters
       ActiveRecord::Base.table_name_prefix = 'p_'
       ActiveRecord::Base.table_name_suffix = '_s'
-      conn.drop_table(ActiveRecord::Migrator.schema_migrations_table_name) if conn.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
+      @conn.drop_table(ActiveRecord::Migrator.schema_migrations_table_name) if @conn.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
 
-      conn.initialize_schema_migrations_table
+      @conn.initialize_schema_migrations_table
 
-      assert_equal "p_unique_schema_migrations_s", conn.indexes(ActiveRecord::Migrator.schema_migrations_table_name)[0][:name]
+      assert_equal "p_unique_schema_migrations_s", @conn.indexes(ActiveRecord::Migrator.schema_migrations_table_name)[0][:name]
     ensure
       ActiveRecord::Base.table_name_prefix = ""
       ActiveRecord::Base.table_name_suffix = ""
+    end
+
+    def test_schema_migrations_columns
+      @conn.initialize_schema_migrations_table
+
+      columns =  @conn.columns(ActiveRecord::Migrator.schema_migrations_table_name).collect(&:name)
+      %w[version migrated_at].each { |col| assert columns.include?(col) }
+    end
+
+    def test_add_migrated_at_to_exisiting_schema_migrations
+      sm_table = ActiveRecord::Migrator.schema_migrations_table_name
+      @conn.create_table(sm_table, :id => false) do |schema_migrations_table|
+              schema_migrations_table.column :version, :string, :null => false
+            end
+      @conn.insert "INSERT INTO #{@conn.quote_table_name(sm_table)} (version) VALUES (100)"
+      @conn.insert "INSERT INTO #{@conn.quote_table_name(sm_table)} (version) VALUES (200)"
+
+      @conn.initialize_schema_migrations_table
+
+      m_ats = @conn.select_values("SELECT migrated_at FROM #{@conn.quote_table_name(sm_table)}")
+      assert_equal 2, m_ats.length
+      assert_equal 2, m_ats.compact.length
     end
   end
 

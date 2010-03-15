@@ -422,9 +422,17 @@ module ActiveRecord
       def initialize_schema_migrations_table
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
-        unless table_exists?(sm_table)
+        if table_exists?(sm_table)
+          cols = columns(sm_table).collect { |col| col.name }
+          unless cols.include?("migrated_at")
+            add_column sm_table, :migrated_at, :datetime
+            update "UPDATE #{quote_table_name(sm_table)} SET migrated_at = '#{quoted_date(Time.now)}' WHERE migrated_at IS NULL"
+            change_column sm_table, :migrated_at, :datetime, :null => false
+          end
+        else
           create_table(sm_table, :id => false) do |schema_migrations_table|
             schema_migrations_table.column :version, :string, :null => false
+            schema_migrations_table.column :migrated_at, :datetime, :null => false
           end
           add_index sm_table, :version, :unique => true,
             :name => "#{Base.table_name_prefix}unique_schema_migrations#{Base.table_name_suffix}"
