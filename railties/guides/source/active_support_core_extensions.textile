@@ -1057,6 +1057,8 @@ module ActiveRecord
 end
 </ruby>
 
+A model may find that option useful as a way to prevent mass-assignment from setting the attribute. 
+
 NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
 h4. Class Inheritable Attributes
