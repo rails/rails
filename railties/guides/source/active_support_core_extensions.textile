@@ -8,6 +8,8 @@ endprologue.
 
 h3. How to Load Core Extensions
 
+h4. Stand-Alone Active Support
+
 In order to have a near zero default footprint, Active Support does not load anything by default. It is broken in small pieces so that you may load just what you need, and also has some convenience entry points to load related extensions in one shot, even everything.
 
 Thus, after a simple require like:
@@ -18,7 +20,7 @@ require 'active_support'
 
 objects do not even respond to +blank?+, let's see how to load its definition.
 
-h4. Cherry-picking a Definition
+h5. Cherry-picking a Definition
 
 The most lightweight way to get +blank?+ is to cherry-pick the file that defines it.
 
@@ -34,7 +36,7 @@ require 'active_support/core_ext/object/blank'
 
 Active Support has been carefully revised so that cherry-picking a file loads only strictly needed dependencies, if any.
 
-h4. Loading Grouped Core Extensions
+h5. Loading Grouped Core Extensions
 
 The next level is to simply load all extensions to +Object+. As a rule of thumb, extensions to +SomeClass+ are available in one shot by loading +active_support/core_ext/some_class+.
 
@@ -44,7 +46,7 @@ Thus, if that would do, to have +blank?+ available we could just load all extens
 require 'active_support/core_ext/object'
 </ruby>
 
-h4. Loading All Core Extensions
+h5. Loading All Core Extensions
 
 You may prefer just to load all core extensions, there is a file for that:
 
@@ -52,7 +54,7 @@ You may prefer just to load all core extensions, there is a file for that:
 require 'active_support/core_ext'
 </ruby>
 
-h4. Loading All Active Support
+h5. Loading All Active Support
 
 And finally, if you want to have all Active Support available just issue:
 
@@ -61,6 +63,10 @@ require 'active_support/all'
 </ruby>
 
 That does not even put the entire Active Support in memory upfront indeed, some stuff is configured via +autoload+, so it is only loaded if used.
+
+h4. Active Support Within a Ruby on Rails Application
+
+A Ruby on Rails application loads all Active Support unless +config.active_support.bare+ is true. In that case, the application will only load what the framework itself cherry-picks for its own needs, and can still cherry-pick itself at any granularity level, as explained in the previous section.
 
 h3. Extensions to All Objects
 
