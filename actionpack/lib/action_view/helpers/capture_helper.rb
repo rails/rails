@@ -77,7 +77,7 @@ module ActionView
       #
       # Then, in another view, you could to do something like this:
       #
-      #   <%= link_to_remote 'Logout', :action => 'logout' %>
+      #   <%= link_to 'Logout', :action => 'logout', :remote => true %>
       #
       #   <% content_for :script do %>
       #     <%= javascript_include_tag :defaults %>
