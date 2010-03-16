@@ -726,7 +726,7 @@ CACHED
   def test_html_formatted_fragment_caching
     get :formatted_fragment_cached, :format => "html"
     assert_response :success
-    expected_body = "<body>\n<p>ERB</p>\n</body>"
+    expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
     assert_equal expected_body, @response.body
 
