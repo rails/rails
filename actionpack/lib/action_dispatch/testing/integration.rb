@@ -177,14 +177,8 @@ module ActionDispatch
         reset!
       end
 
-      def url_options
-        opts = super.reverse_merge(
-          :host => host,
-          :protocol => https? ? "https" : "http"
-        )
-
-        opts.merge!(:port => 443) if !opts.key?(:port) && https?
-        opts
+      def default_url_options
+        { :host => host, :protocol => https? ? "https" : "http" }
       end
 
       # Resets the instance. This can be used to reset the state information
