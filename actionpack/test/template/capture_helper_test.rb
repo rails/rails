@@ -7,6 +7,29 @@ class CaptureHelperTest < ActionView::TestCase
     @_content_for = Hash.new {|h,k| h[k] = "" }
   end
 
+  def test_capture_captures_the_temporary_output_buffer_in_its_block
+    assert_nil @av.output_buffer
+    string = @av.capture do
+      @av.output_buffer << 'foo'
+      @av.output_buffer << 'bar'
+    end
+    assert_nil @av.output_buffer
+    assert_equal 'foobar', string
+    assert_kind_of ActionView::NonConcattingString, string
+  end
+
+  def test_capture_captures_the_value_returned_by_the_block_in_the_temporary_buffer_is_blank
+    string = @av.capture('foo', 'bar') do |a, b|
+      a + b
+    end
+    assert_equal 'foobar', string
+    assert_kind_of ActionView::NonConcattingString, string
+  end
+
+  def test_capture_returns_nil_if_the_returned_value_is_not_a_string
+    assert_nil @av.capture { 1 }
+  end
+
   def test_content_for
     assert ! content_for?(:title)
     content_for :title, 'title'
