@@ -27,7 +27,7 @@ module ActiveSupport #:nodoc:
       def self.verify(string)
         if expression = valid_character
           # Splits the string on character boundaries, which are determined based on $KCODE.
-          string.split(//).all? { |c| expression.match(c) }
+          string.split(//).all? { |c| expression =~ c }
         else
           true
         end
