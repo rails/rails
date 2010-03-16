@@ -37,7 +37,7 @@ module TestUrlGeneration
 
     test "handling http protocol with https set" do
       https!
-      assert_equal "http://www.example.com/bar/foo", foo_url(:protocol => "http")
+      assert_equal "http://www.example.com/foo", foo_url(:protocol => "http")
     end
   end
 end
