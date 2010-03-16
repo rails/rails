@@ -15,12 +15,10 @@ module ActionView
 
     def self.register_detail(name, options = {}, &block)
       self.registered_details << name
-
       Setters.send :define_method, :"_#{name}_defaults", &block
       Setters.module_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{name}=(value)
           value = Array(value.presence || _#{name}_defaults)
-          #{"value << nil unless value.include?(nil)" unless options[:allow_nil] == false}
 
           unless value == @details[:#{name}]
             @details_key, @details = nil, @details.merge(:#{name} => value)
@@ -69,16 +67,16 @@ module ActionView
       end
 
       def find(name, prefix = nil, partial = false)
-        @view_paths.find(name, prefix, partial, details, details_key)
+        @view_paths.find(*args_for_lookup(name, prefix, partial))
       end
       alias :find_template :find
 
       def find_all(name, prefix = nil, partial = false)
-        @view_paths.find_all(name, prefix, partial, details, details_key)
+        @view_paths.find_all(*args_for_lookup(name, prefix, partial))
       end
 
       def exists?(name, prefix = nil, partial = false)
-        @view_paths.exists?(name, prefix, partial, details, details_key)
+        @view_paths.exists?(*args_for_lookup(name, prefix, partial))
       end
       alias :template_exists? :exists?
 
@@ -93,6 +91,32 @@ module ActionView
         yield
       ensure
         added_resolvers.times { view_paths.pop }
+      end
+
+    protected
+
+      def args_for_lookup(name, prefix, partial) #:nodoc:
+        name, prefix = normalize_name(name, prefix)
+        details_key  = self.details_key
+        details      = self.details.merge(:handlers => default_handlers)
+        [name, prefix, partial || false, details, details_key]
+      end
+
+      # Support legacy foo.erb names even though we now ignore .erb
+      # as well as incorrectly putting part of the path in the template
+      # name instead of the prefix.
+      def normalize_name(name, prefix) #:nodoc:
+        name  = name.to_s.gsub(handlers_regexp, '')
+        parts = name.split('/')
+        return parts.pop, [prefix, *parts].compact.join("/")
+      end
+
+      def default_handlers #:nodoc:
+        @detault_handlers ||= Template::Handlers.extensions
+      end
+
+      def handlers_regexp #:nodoc:
+        @handlers_regexp ||= /\.(?:#{default_handlers.join('|')})$/
       end
     end
 
@@ -113,7 +137,7 @@ module ActionView
       end
 
       # Overload formats= to reject [:"*/*"] values.
-      def formats=(value, freeze=true)
+      def formats=(value)
         value = nil if value == [:"*/*"]
         super(value)
       end
