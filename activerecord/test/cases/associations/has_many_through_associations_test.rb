@@ -291,7 +291,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     ], log.last(2)
 
     post.people_with_callbacks = [people(:michael),people(:david), Person.new(:first_name => "Julian"), Person.create!(:first_name => "Roger")]
-    assert_equal (%w(Ted Bob Sam Lary) * 2).sort, log[-12..-5].collect(&:last).sort
+    assert_equal((%w(Ted Bob Sam Lary) * 2).sort, log[-12..-5].collect(&:last).sort)
     assert_equal [
       [:added, :before, "Julian"],
       [:added, :after, "Julian"],
@@ -300,7 +300,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     ], log.last(4)
 
     post.people_with_callbacks.clear
-    assert_equal (%w(Michael David Julian Roger) * 2).sort, log.last(8).collect(&:last).sort
+    assert_equal((%w(Michael David Julian Roger) * 2).sort, log.last(8).collect(&:last).sort)
   end
 
   def test_dynamic_find_should_respect_association_include

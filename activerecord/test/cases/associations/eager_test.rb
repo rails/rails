@@ -805,7 +805,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_include_has_many_using_primary_key
-    expected = Firm.find(1).clients_using_primary_key.sort_by &:name
+    expected = Firm.find(1).clients_using_primary_key.sort_by(&:name)
     # Oracle adapter truncates alias to 30 characters
     if current_adapter?(:OracleAdapter)
       firm = Firm.find 1, :include => :clients_using_primary_key, :order => 'clients_using_primary_keys_companies'[0,30]+'.name'
