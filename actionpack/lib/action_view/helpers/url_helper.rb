@@ -206,7 +206,7 @@ module ActionView
         if block_given?
           options      = args.first || {}
           html_options = args.second
-          safe_concat(link_to(capture(&block), options, html_options))
+          link_to(capture(&block), options, html_options)
         else
           name         = args[0]
           options      = args[1] || {}
