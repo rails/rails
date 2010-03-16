@@ -2,6 +2,7 @@ require 'stringio'
 require 'uri'
 require 'active_support/core_ext/object/singleton_class'
 require 'rack/test'
+require 'test/unit/assertions'
 
 module ActionDispatch
   module Integration #:nodoc:
