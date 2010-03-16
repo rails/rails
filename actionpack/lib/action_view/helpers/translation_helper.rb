@@ -29,9 +29,10 @@ module ActionView
       private
 
         def scope_key_by_partial(key)
-          if (key.respond_to?(:join) ? key.join : key.to_s).first == "."
+          strkey = key.respond_to?(:join) ? key.join : key.to_s
+          if strkey.first == "."
             if @_virtual_path
-              @_virtual_path.gsub(%r{/_?}, ".") + key.to_s
+              @_virtual_path.gsub(%r{/_?}, ".") + strkey
             else
               raise "Cannot use t(#{key.inspect}) shortcut because path is not available"
             end
