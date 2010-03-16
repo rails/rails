@@ -46,7 +46,7 @@ module ActionController #:nodoc:
             yield
             fragment = buffer[pos..-1]
             write_fragment(name, fragment, options)
-            ActionView::NonConcattingString.new(fragment)
+            fragment.is_a?(String) ? ActionView::NonConcattingString.new(fragment) : fragment
           end
         else
           ret = yield
