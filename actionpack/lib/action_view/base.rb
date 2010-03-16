@@ -235,6 +235,10 @@ module ActionView #:nodoc:
             include controller._helpers
             self.helpers = controller._helpers
           end
+
+          if controller.respond_to?(:_router)
+            include controller._router.url_helpers
+          end
         end
       else
         klass = self

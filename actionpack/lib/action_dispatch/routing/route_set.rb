@@ -222,7 +222,6 @@ module ActionDispatch
         return if @finalized
         @finalized = true
         @set.add_route(NotFound)
-        install_helpers
         @set.freeze
       end
 

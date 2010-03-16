@@ -124,7 +124,8 @@ module ActionView
 
       def _view
         view = ActionView::Base.new(ActionController::Base.view_paths, _assigns, @controller)
-        view.class.send :include, _helpers
+        view.singleton_class.send :include, _helpers
+        view.singleton_class.send :include, @controller._router.url_helpers
         view.output_buffer = self.output_buffer
         view
       end

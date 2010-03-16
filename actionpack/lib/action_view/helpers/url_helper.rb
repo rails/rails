@@ -9,11 +9,18 @@ module ActionView
     # This allows you to use the same format for links in views
     # and controllers.
     module UrlHelper
+      extend ActiveSupport::Concern
+
+      include ActionDispatch::Routing::UrlFor
       include JavaScriptHelper
 
       # Need to map default url options to controller one.
       def default_url_options(*args) #:nodoc:
         controller.send(:default_url_options, *args)
+      end
+
+      def url_options
+        controller.url_options
       end
 
       # Returns the URL for the set of +options+ provided. This takes the
