@@ -791,7 +791,7 @@ class Account
 end
 </ruby>
 
-NOTE: Defined in +active_support/core_ext/module/delegation+.
+NOTE: Defined in +active_support/core_ext/module/delegation.rb+.
 
 h4. Parents
 
