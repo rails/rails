@@ -219,6 +219,8 @@ module ActionDispatch
       end
 
       def finalize!
+        return if @finalized
+        @finalized = true
         @set.add_route(NotFound)
         install_helpers
         @set.freeze
@@ -227,6 +229,7 @@ module ActionDispatch
       def clear!
         # Clear the controller cache so we may discover new ones
         @controller_constraints = nil
+        @finalized = false
         routes.clear
         named_routes.clear
         @set = ::Rack::Mount::RouteSet.new(:parameters_key => PARAMETERS_KEY)
@@ -406,6 +409,7 @@ module ActionDispatch
       RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash]
 
       def url_for(options)
+        finalize!
         options = default_url_options.merge(options || {})
 
         handle_positional_args(options)
@@ -437,6 +441,7 @@ module ActionDispatch
       end
 
       def call(env)
+        finalize!
         @set.call(env)
       end
 
