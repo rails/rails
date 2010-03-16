@@ -44,9 +44,8 @@ module ActionController #:nodoc:
             buffer = view_context.output_buffer
             pos = buffer.length
             yield
-            fragment = buffer[pos..-1]
+            fragment = buffer.slice!(pos..-1)
             write_fragment(name, fragment, options)
-            fragment.is_a?(String) ? ActionView::NonConcattingString.new(fragment) : fragment
           end
         else
           ret = yield
