@@ -47,25 +47,6 @@ class I18nValidationTest < ActiveRecord::TestCase
     @topic.valid?
   end
 
-  # validates_uniqueness_of w/o mocha
-
-  def test_validates_associated_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:taken => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:taken => 'global message'}}}
-
-    Topic.validates_uniqueness_of :title
-    unique_topic.valid?
-    assert_equal ['custom message'], unique_topic.errors[:replies]
-  end
-
-  def test_validates_associated_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:taken => 'global message'}}}
-
-    Topic.validates_uniqueness_of :title
-    unique_topic.valid?
-    assert_equal ['global message'], unique_topic.errors[:replies]
-  end
-
   # validates_associated w/ mocha
 
   def test_validates_associated_generates_message
