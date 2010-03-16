@@ -31,7 +31,9 @@ module ActionView
       format    = details[:format]
       format  ||= handler.default_format.to_sym if handler.respond_to?(:default_format)
       format  ||= :html
+
       @formats  = [format.to_sym]
+      @formats << :html if @formats.first == :js
     end
 
     def render(view, locals, &block)
