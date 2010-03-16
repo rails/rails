@@ -29,8 +29,9 @@ module ActionView
 
       private
         def scope_key_by_partial(key)
-          if (key.respond_to?(:join) ? key.join : key.to_s).first == "."
-            template.path_without_format_and_extension.gsub(%r{/_?}, ".") + key.to_s
+          strkey = key.respond_to?(:join) ? key.join : key.to_s
+          if strkey.first == "."
+            template.path_without_format_and_extension.gsub(%r{/_?}, ".") + strkey
           else
             key
           end

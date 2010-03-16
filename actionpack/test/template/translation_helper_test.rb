@@ -41,4 +41,10 @@ class TranslationHelperTest < Test::Unit::TestCase
     I18n.expects(:translate).with("people.index.foo", :locale => 'en', :raise => true).returns("")
     translate ".foo", :locale => 'en'
   end
+
+  def test_scoping_by_partial_of_an_array
+    I18n.expects(:translate).with("test.scoped_array_translation.foo.bar", :raise => true).returns(["foo", "bar"])
+    @view = ActionView::Base.new(ActionController::Base.view_paths, {})
+    assert_equal "foobar", @view.render(:file => "test/scoped_array_translation")
+  end
 end
