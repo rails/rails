@@ -1045,6 +1045,8 @@ module ActiveRecord #:nodoc:
           object.instance_variable_set(:@readonly, false)
           object.instance_variable_set(:@destroyed, false)
           object.instance_variable_set(:@marked_for_destruction, false)
+          object.instance_variable_set(:@previously_changed, {})
+          object.instance_variable_set(:@changed_attributes, {})
 
           object.send(:_run_find_callbacks)
           object.send(:_run_initialize_callbacks)
@@ -1513,6 +1515,8 @@ module ActiveRecord #:nodoc:
         @readonly = false
         @destroyed = false
         @marked_for_destruction = false
+        @previously_changed = {}
+        @changed_attributes = {}
 
         ensure_proper_type
 
