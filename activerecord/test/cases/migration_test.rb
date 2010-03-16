@@ -477,7 +477,7 @@ if ActiveRecord::Base.connection.supports_migrations?
             assert_not_equal "Z", bob.moment_of_truth.zone
             # US/Eastern is -5 hours from GMT
             assert_equal Rational(-5, 24), bob.moment_of_truth.offset
-            assert_match /\A-05:?00\Z/, bob.moment_of_truth.zone #ruby 1.8.6 uses HH:MM, prior versions use HHMM
+            assert_match(/\A-05:?00\Z/, bob.moment_of_truth.zone) #ruby 1.8.6 uses HH:MM, prior versions use HHMM
             assert_equal DateTime::ITALY, bob.moment_of_truth.start
           end
         end
@@ -493,7 +493,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
         ActiveRecord::Migration.add_column :people, :intelligence_quotient, :tinyint
         Person.reset_column_information
-        assert_match /tinyint/, Person.columns_hash['intelligence_quotient'].sql_type
+        assert_match(/tinyint/, Person.columns_hash['intelligence_quotient'].sql_type)
       ensure
         ActiveRecord::Migration.remove_column :people, :intelligence_quotient rescue nil
       end

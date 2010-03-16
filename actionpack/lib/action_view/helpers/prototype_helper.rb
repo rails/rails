@@ -689,6 +689,10 @@ module ActionView
         @generator << root if root
       end
 
+      def is_a?(klass)
+        klass == JavaScriptProxy
+      end
+
       private
         def method_missing(method, *arguments, &block)
           if method.to_s =~ /(.*)=$/

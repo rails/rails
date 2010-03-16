@@ -22,14 +22,14 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "normalizes details on initialization" do
-    formats = Mime::SET + [nil]
-    locale  = [I18n.locale, nil]
+    formats = Mime::SET
+    locale  = [I18n.locale]
     assert_equal Hash[:formats => formats, :locale => locale], @lookup_context.details
   end
 
   test "allows me to set details" do
     @lookup_context.details = { :formats => [:html], :locale => :pt }
-    assert_equal Hash[:formats => [:html, nil], :locale => [:pt, nil]], @lookup_context.details
+    assert_equal Hash[:formats => [:html], :locale => [:pt]], @lookup_context.details
   end
 
   test "does not allow details to be modified in place" do
@@ -39,17 +39,17 @@ class LookupContextTest < ActiveSupport::TestCase
   test "allows me to update an specific detail" do
     @lookup_context.update_details(:locale => :pt)
     assert_equal :pt, I18n.locale
-    formats = Mime::SET + [nil]
-    locale  = [I18n.locale, nil]
+    formats = Mime::SET
+    locale  = [I18n.locale]
     assert_equal Hash[:formats => formats, :locale => locale], @lookup_context.details
   end
 
   test "allows me to change some details to execute an specific block of code" do
-    formats = Mime::SET + [nil]
+    formats = Mime::SET
     @lookup_context.update_details(:locale => :pt) do
-      assert_equal Hash[:formats => formats, :locale => [:pt, nil]], @lookup_context.details
+      assert_equal Hash[:formats => formats, :locale => [:pt]], @lookup_context.details
     end
-    assert_equal Hash[:formats => formats, :locale => [:en, nil]], @lookup_context.details
+    assert_equal Hash[:formats => formats, :locale => [:en]], @lookup_context.details
   end
 
   test "provides getters and setters for formats" do

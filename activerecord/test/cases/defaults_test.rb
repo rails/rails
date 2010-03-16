@@ -24,7 +24,7 @@ class DefaultTest < ActiveRecord::TestCase
       assert_instance_of Fixnum, default.positive_integer
       assert_equal 1, default.positive_integer
       assert_instance_of Fixnum, default.negative_integer
-      assert_equal -1, default.negative_integer
+      assert_equal(-1, default.negative_integer)
       assert_instance_of BigDecimal, default.decimal_number
       assert_equal BigDecimal.new("2.78"), default.decimal_number
     end
@@ -33,7 +33,7 @@ class DefaultTest < ActiveRecord::TestCase
   if current_adapter?(:PostgreSQLAdapter)
     def test_multiline_default_text
       # older postgres versions represent the default with escapes ("\\012" for a newline)
-      assert ( "--- []\n\n" == Default.columns_hash['multiline_default'].default ||
+      assert( "--- []\n\n" == Default.columns_hash['multiline_default'].default ||
                "--- []\\012\\012" == Default.columns_hash['multiline_default'].default)
     end
   end

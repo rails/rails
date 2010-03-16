@@ -89,12 +89,8 @@ module ActiveSupport #:nodoc:
       self
     end
 
-    def as_str
-      ''.replace(self)
-    end
-
     def to_yaml(*args)
-      as_str.to_yaml(*args)
+      to_str.to_yaml(*args)
     end
   end
 end

@@ -116,19 +116,12 @@ module ActiveModel
     #   person.save
     #   person.previous_changes # => {'name' => ['bob, 'robert']}
     def previous_changes
-      previously_changed_attributes
+      @previously_changed
     end
 
     private
       # Map of change <tt>attr => original value</tt>.
-      def changed_attributes
-        @changed_attributes ||= {}
-      end
-
-      # Map of fields that were changed when the model was saved
-      def previously_changed_attributes
-        @previously_changed || {}
-      end
+      attr_reader :changed_attributes
 
       # Handle <tt>*_changed?</tt> for +method_missing+.
       def attribute_changed?(attr)

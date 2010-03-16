@@ -27,7 +27,7 @@ cd root_dir do
   puts
   puts "[CruiseControl] Bundling RubyGems"
   puts
-  build_results[:bundle] = system 'rm -rf ~/.bundle; env CI=1 bundle install'
+  build_results[:bundle] = system 'sudo rm -rf ~/.bundle; env CI=1 bundle install'
 end
 
 cd "#{root_dir}/activesupport" do

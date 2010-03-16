@@ -238,10 +238,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_using_block_in_erb
-    __in_erb_template = ''
-
-    link_to("http://example.com") { concat("Example site") }
-
+    output_buffer = link_to("http://example.com") { concat("Example site") }
     assert_equal '<a href="http://example.com">Example site</a>', output_buffer
   end
 

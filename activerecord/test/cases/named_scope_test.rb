@@ -83,8 +83,8 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_scopes_are_composable
-    assert_equal (approved = Topic.find(:all, :conditions => {:approved => true})), Topic.approved
-    assert_equal (replied = Topic.find(:all, :conditions => 'replies_count > 0')), Topic.replied
+    assert_equal((approved = Topic.find(:all, :conditions => {:approved => true})), Topic.approved)
+    assert_equal((replied = Topic.find(:all, :conditions => 'replies_count > 0')), Topic.replied)
     assert !(approved == replied)
     assert !(approved & replied).empty?
 

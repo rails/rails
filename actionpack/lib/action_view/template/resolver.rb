@@ -14,15 +14,8 @@ module ActionView
       @cached.clear
     end
 
-    def find(*args)
-      find_all(*args).first
-    end
-
     # Normalizes the arguments and passes it on to find_template.
     def find_all(name, prefix=nil, partial=false, details={}, key=nil)
-      name, prefix = normalize_name(name, prefix)
-      details = details.merge(:handlers => default_handlers)
-
       cached(key, prefix, name, partial) do
         find_templates(name, prefix, partial, details)
       end
@@ -34,26 +27,11 @@ module ActionView
       @caching ||= !defined?(Rails.application) || Rails.application.config.cache_classes
     end
 
-    def default_handlers
-      Template::Handlers.extensions + [nil]
-    end
-
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
     # normalized.
     def find_templates(name, prefix, partial, details)
       raise NotImplementedError
-    end
-
-    # Support legacy foo.erb names even though we now ignore .erb
-    # as well as incorrectly putting part of the path in the template
-    # name instead of the prefix.
-    def normalize_name(name, prefix)
-      handlers = Template::Handlers.extensions.join('|')
-      name = name.to_s.gsub(/\.(?:#{handlers})$/, '')
-
-      parts = name.split('/')
-      return parts.pop, [prefix, *parts].compact.join("/")
     end
 
     def cached(key, prefix, name, partial)
@@ -93,7 +71,7 @@ module ActionView
       query = File.join(@path, path)
 
       exts.each do |ext|
-        query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << '}'
+        query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << ',}'
       end
 
       Dir[query].reject { |p| File.directory?(p) }.map do |p|

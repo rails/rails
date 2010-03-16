@@ -315,7 +315,9 @@ module ActiveRecord
       end
 
       def announce(message)
-        text = "#{@version} #{name}: #{message}"
+        version = defined?(@version) ? @version : nil
+
+        text = "#{version} #{name}: #{message}"
         length = [0, 75 - text.length].max
         write "== %s %s" % [text, "=" * length]
       end

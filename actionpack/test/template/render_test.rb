@@ -228,6 +228,14 @@ module RenderTestCases
       @view.render(:file => "test/hello_world.erb", :layout => "layouts/yield")
   end
 
+  # TODO: Move to deprecated_tests.rb
+  def test_render_with_nested_layout_deprecated
+    assert_deprecated do
+      assert_equal %(<title>title</title>\n\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
+        @view.render(:file => "test/deprecated_nested_layout.erb", :layout => "layouts/yield")
+    end
+  end
+
   def test_render_with_nested_layout
     assert_equal %(<title>title</title>\n\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
       @view.render(:file => "test/nested_layout.erb", :layout => "layouts/yield")

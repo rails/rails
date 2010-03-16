@@ -20,7 +20,7 @@ module ERBTest
   end
 
   class DeprecatedViewContext < ViewContext
-    include ActionView::Helpers::DeprecatedBlockHelpers
+    # include ActionView::Helpers::DeprecatedBlockHelpers
   end
 
   module SharedTagHelpers
@@ -31,28 +31,36 @@ module ERBTest
       ActionView::Template::Handlers::Erubis.new(template).evaluate(context.new)
     end
 
+    def maybe_deprecated
+      if @deprecated
+        assert_deprecated { yield }
+      else
+        yield
+      end
+    end
+
     test "percent equals works for content_tag and does not require parenthesis on method call" do
-      assert_equal "<div>Hello world</div>", render_content("content_tag :div", "Hello world")
+      maybe_deprecated { assert_equal "<div>Hello world</div>", render_content("content_tag :div", "Hello world") }
     end
 
     test "percent equals works for javascript_tag" do
       expected_output = "<script type=\"text/javascript\">\n//<![CDATA[\nalert('Hello')\n//]]>\n</script>"
-      assert_equal expected_output, render_content("javascript_tag", "alert('Hello')")
+      maybe_deprecated { assert_equal expected_output, render_content("javascript_tag", "alert('Hello')") }
     end
 
     test "percent equals works for javascript_tag with options" do
       expected_output = "<script id=\"the_js_tag\" type=\"text/javascript\">\n//<![CDATA[\nalert('Hello')\n//]]>\n</script>"
-      assert_equal expected_output, render_content("javascript_tag(:id => 'the_js_tag')", "alert('Hello')")
+      maybe_deprecated { assert_equal expected_output, render_content("javascript_tag(:id => 'the_js_tag')", "alert('Hello')") }
     end
 
     test "percent equals works with form tags" do
       expected_output = "<form action=\"foo\" method=\"post\">hello</form>"
-      assert_equal expected_output, render_content("form_tag('foo')", "<%= 'hello' %>")
+      maybe_deprecated { assert_equal expected_output, render_content("form_tag('foo')", "<%= 'hello' %>") }
     end
 
     test "percent equals works with fieldset tags" do
       expected_output = "<fieldset><legend>foo</legend>hello</fieldset>"
-      assert_equal expected_output, render_content("field_set_tag('foo')", "<%= 'hello' %>")
+      maybe_deprecated { assert_equal expected_output, render_content("field_set_tag('foo')", "<%= 'hello' %>") }
     end
   end
 
@@ -75,6 +83,10 @@ module ERBTest
 
     def block_helper(str, rest)
       "<% __in_erb_template=true %><% #{str} do %>#{rest}<% end %>"
+    end
+
+    def setup
+      @deprecated = true
     end
 
     include SharedTagHelpers

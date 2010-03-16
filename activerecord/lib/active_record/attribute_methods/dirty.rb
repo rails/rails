@@ -34,7 +34,7 @@ module ActiveRecord
       # <tt>reload</tt> the record and clears changed attributes.
       def reload_with_dirty(*args) #:nodoc:
         reload_without_dirty(*args).tap do
-          previously_changed_attributes.clear
+          @previously_changed.clear
           changed_attributes.clear
         end
       end

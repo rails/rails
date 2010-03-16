@@ -16,8 +16,7 @@ module ActionView
       case options
       when Hash
         if block_given?
-          content = _render_partial(options.merge(:partial => options[:layout]), &block)
-          safe_concat(content)
+          _render_partial(options.merge(:partial => options[:layout]), &block)
         elsif options.key?(:partial)
           _render_partial(options)
         else

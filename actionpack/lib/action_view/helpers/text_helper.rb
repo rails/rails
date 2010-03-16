@@ -29,7 +29,7 @@ module ActionView
       end
 
       def safe_concat(string)
-        output_buffer.safe_concat(string)
+        output_buffer.respond_to?(:safe_concat) ? output_buffer.safe_concat(string) : concat(string)
       end
 
       # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>
