@@ -23,7 +23,6 @@ module ActionView
       @identifier = identifier
       @handler    = handler
 
-      @partial      = details[:partial]
       @virtual_path = details[:virtual_path]
       @method_names = {}
 
@@ -36,9 +35,9 @@ module ActionView
     end
 
     def render(view, locals, &block)
-      # TODO: Revisit this name
-      # This is only slow if it's being listened to. Do not instrument this in production.
-      ActiveSupport::Notifications.instrument("action_view.slow_render_template", :virtual_path => @virtual_path) do
+      # Notice that we use a bang in this instrumentation because you don't want to
+      # consume this in production. This is only slow if it's being listened to.
+      ActiveSupport::Notifications.instrument("action_view.render_template!", :virtual_path => @virtual_path) do
         method_name = compile(locals, view)
         view.send(method_name, locals, &block)
       end
@@ -61,10 +60,6 @@ module ActionView
 
     def counter_name
       @counter_name ||= "#{variable_name}_counter".to_sym
-    end
-
-    def partial?
-      @partial
     end
 
     def inspect

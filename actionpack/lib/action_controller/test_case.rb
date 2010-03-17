@@ -13,7 +13,7 @@ module ActionController
     def setup_subscriptions
       @partials = Hash.new(0)
       @templates = Hash.new(0)
-      ActiveSupport::Notifications.subscribe("action_view.slow_render_template") do |name, start, finish, id, payload|
+      ActiveSupport::Notifications.subscribe("action_view.render_template!") do |name, start, finish, id, payload|
         path = payload[:virtual_path]
         next unless path
         partial = path =~ /^.*\/_[^\/]*$/
@@ -28,7 +28,7 @@ module ActionController
     end
 
     def teardown_subscriptions
-      ActiveSupport::Notifications.unsubscribe("action_view.slow_render_template")
+      ActiveSupport::Notifications.unsubscribe("action_view.render_template!")
     end
 
     # Asserts that the request was rendered with the appropriate template file or partials
