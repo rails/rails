@@ -36,8 +36,12 @@ module ActionView
     end
 
     def render(view, locals, &block)
-      method_name = compile(locals, view)
-      view.send(method_name, locals, &block)
+      # TODO: Revisit this name
+      # This is only slow if it's being listened to. Do not instrument this in production.
+      ActiveSupport::Notifications.instrument("action_view.slow_render_template", :virtual_path => @virtual_path) do
+        method_name = compile(locals, view)
+        view.send(method_name, locals, &block)
+      end
     rescue Exception => e
       if e.is_a?(Template::Error)
         e.sub_template_of(self)

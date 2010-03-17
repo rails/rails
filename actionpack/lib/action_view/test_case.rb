@@ -42,6 +42,7 @@ module ActionView
     end
 
     include ActionDispatch::Assertions, ActionDispatch::TestProcess
+    include ActionController::TemplateAssertions
     include ActionView::Context
 
     include ActionController::PolymorphicRoutes
