@@ -37,7 +37,7 @@ module Rails
       # handle vendor Rails gems - they are identified by having loaded_from set to ""
       # we add them manually to the list, so that other gems can find them via dependencies
       Gem.loaded_specs.each do |n, s|
-        next if s.loaded_from.present?
+        next unless s.loaded_from.to_s.empty?
         vendor_gems[s.full_name] = s
       end
 
