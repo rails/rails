@@ -51,7 +51,9 @@ module ActionDispatch
               options.merge!(:to => to).delete(path) if path
             when using_match_shorthand?(args, options)
               path = args.first
-              options = { :to => path.gsub("/", "#"), :as => path.gsub("/", "_") }
+              options = { :to     => path.gsub("/", "#"),
+                          :as     => path.gsub("/", "_")
+                        }.merge(options || {})
             else
               path = args.first
             end
@@ -301,7 +303,6 @@ module ActionDispatch
           options = args.extract_options!
 
           options = (@scope[:options] || {}).merge(options)
-          options[:anchor] = true unless options.key?(:anchor)
 
           if @scope[:name_prefix] && !options[:as].blank?
             options[:as] = "#{@scope[:name_prefix]}_#{options[:as]}"
@@ -562,6 +563,8 @@ module ActionDispatch
 
         def match(*args)
           options = args.extract_options!
+
+          options[:anchor] = true unless options.key?(:anchor)
 
           if args.length > 1
             args.each { |path| match(path, options) }
