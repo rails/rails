@@ -4,6 +4,8 @@ require 'action_view'
 module ActionView
   class TestCase < ActiveSupport::TestCase
     class TestController < ActionController::Base
+      include ActionDispatch::TestProcess
+
       attr_accessor :request, :response, :params
 
       def self.controller_path
@@ -44,7 +46,7 @@ module ActionView
     end
 
     def config
-      @controller.config
+      @controller.config if @controller.respond_to?(:config)
     end
 
     def render(options = {}, local_assigns = {}, &block)

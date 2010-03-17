@@ -13,6 +13,13 @@ module ActionController
     def setup_subscriptions
       @partials = Hash.new(0)
       @templates = Hash.new(0)
+      @layouts = Hash.new(0)
+
+      ActiveSupport::Notifications.subscribe("action_view.render_template") do |name, start, finish, id, payload|
+        path = payload[:layout]
+        @layouts[path] += 1
+      end
+
       ActiveSupport::Notifications.subscribe("action_view.render_template!") do |name, start, finish, id, payload|
         path = payload[:virtual_path]
         next unless path
@@ -69,6 +76,19 @@ module ActionController
                     "expecting ? to be rendered ? time(s) but rendered ? time(s)",
                      expected_partial, expected_count, actual_count)
             assert(actual_count == expected_count.to_i, msg)
+          elsif options.key?(:layout)
+            msg = build_message(message,
+                    "expecting layout <?> but action rendered <?>",
+                    expected_layout, @layouts.keys)
+
+            case layout = options[:layout]
+            when String
+              assert(@layouts.include?(expected_layout), msg)
+            when Regexp
+              assert(@layouts.any? {|l| l =~ layout }, msg)
+            when nil
+              assert(@layouts.empty?, msg)
+            end
           else
             msg = build_message(message,
                     "expecting partial <?> but action rendered <?>",
