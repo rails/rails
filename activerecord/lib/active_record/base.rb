@@ -13,6 +13,7 @@ require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/object/singleton_class'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/module/remove_method'
 require 'arel'
 require 'active_record/errors'
 
