@@ -193,6 +193,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/login', url_for(:controller => 'sessions', :action => 'new', :only_path => true)
 
       assert_equal 'http://rubyonrails.org/login', Routes.url_for(:controller => 'sessions', :action => 'create')
+      assert_equal 'http://rubyonrails.org/login', Routes.url_helpers.login_url
     end
   end
 
