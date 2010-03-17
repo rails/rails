@@ -1,4 +1,5 @@
-require "erb"
+require 'erb'
+require 'active_support/core_ext/object/singleton_class'
 
 class ERB
   module Util
