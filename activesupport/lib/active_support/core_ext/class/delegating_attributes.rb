@@ -27,7 +27,9 @@ private
   # inheritance behavior, without having to store the object in an instance
   # variable and look up the superclass chain manually.
   def _stash_object_in_method(object, method, instance_reader = true)
+    singleton_class.send(:remove_possible_method, method)
     singleton_class.send(:define_method, method) { object }
+    remove_possible_method(method)
     define_method(method) { object } if instance_reader
   end
 
