@@ -15,7 +15,7 @@ module RailsGuides
 
     def initialize(output=nil)
       initialize_dirs(output)
-      reset_output_dir
+      create_output_dir_if_needed
     end
 
     def generate
@@ -30,14 +30,14 @@ module RailsGuides
       @output_dir = output || File.join(@guides_dir, "output")      
     end
 
-    def reset_output_dir
-      FileUtils.rm_rf(output_dir)
+    def create_output_dir_if_needed
       FileUtils.mkdir_p(output_dir)
     end  
 
     def generate_guides
       guides_to_generate.each do |guide|
-        generate_guide(guide)
+        output_file = output_file_for(guide)
+        generate_guide(guide, output_file) if generate?(guide, output_file)
       end
     end
 
@@ -58,10 +58,18 @@ module RailsGuides
       FileUtils.cp_r(File.join(guides_dir, 'files'), File.join(output_dir, 'files'))      
     end
 
-    def generate_guide(guide)
-      output_file = guide.sub(/\.textile(?:\.erb)?$/, '.html')
-      puts "Generating #{output_file}"
+    def output_file_for(guide)
+      guide.sub(/\.textile(?:\.erb)?$/, '.html')
+    end
+    
+    def generate?(source_file, output_file)
+      fin  = File.join(source_dir, source_file)
+      fout = File.join(output_dir, output_file)
+      ENV['ALL'] == '1' || !File.exists?(fout) || File.mtime(fout) < File.mtime(fin)
+    end
 
+    def generate_guide(guide, output_file)
+      puts "Generating #{output_file}"
       File.open(File.join(output_dir, output_file), 'w') do |f|
         view = ActionView::Base.new(source_dir)
         view.extend(Helpers)
