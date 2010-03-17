@@ -31,9 +31,6 @@ module ActionMailer
       # replies to this message.
       adv_attr_accessor :reply_to
 
-      # Specify additional headers to be added to the message.
-      adv_attr_accessor :headers
-
       # Specify the order in which parts should be sorted, based on content-type.
       # This defaults to the value for the +default_implicit_parts_order+.
       adv_attr_accessor :implicit_parts_order

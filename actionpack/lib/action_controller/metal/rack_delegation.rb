@@ -5,10 +5,8 @@ module ActionController
   module RackDelegation
     extend ActiveSupport::Concern
 
-    included do
-      delegate :headers, :status=, :location=, :content_type=,
-               :status, :location, :content_type, :to => "@_response"
-    end
+    delegate :headers, :status=, :location=, :content_type=,
+             :status, :location, :content_type, :to => "@_response"
 
     def dispatch(action, request)
       @_response = ActionDispatch::Response.new

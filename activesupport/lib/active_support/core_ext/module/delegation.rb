@@ -34,7 +34,7 @@ class Module
   #   class Foo
   #     CONSTANT_ARRAY = [0,1,2,3]
   #     @@class_array  = [4,5,6,7]
-  #     
+  #
   #     def initialize
   #       @instance_array = [8,9,10,11]
   #     end
@@ -120,6 +120,10 @@ class Module
         end
 
       module_eval(<<-EOS, file, line)
+        if instance_methods(false).map(&:to_s).include?("#{prefix}#{method}")
+          remove_method("#{prefix}#{method}")
+        end
+
         def #{prefix}#{method}(*args, &block)               # def customer_name(*args, &block)
           #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
         rescue NoMethodError                                # rescue NoMethodError
