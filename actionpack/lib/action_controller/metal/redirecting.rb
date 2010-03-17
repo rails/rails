@@ -76,7 +76,7 @@ module ActionController
         # The scheme name consist of a letter followed by any combination of
         # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
         # characters; and is terminated by a colon (":").
-        when %r{^\w[\w\d+.-]*:.*}
+        when %r{^\w[\w+.-]*:.*}
           options
         when String
           request.protocol + request.host_with_port + options

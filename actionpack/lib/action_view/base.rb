@@ -187,6 +187,7 @@ module ActionView #:nodoc:
     @@debug_rjs = false
 
     class_attribute :helpers
+    remove_method :helpers
     attr_reader :helpers
 
     class << self

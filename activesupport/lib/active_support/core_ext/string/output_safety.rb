@@ -23,11 +23,13 @@ class ERB
       end
     end
 
-    undef :h
+    remove_method(:h)
     alias h html_escape
 
-    module_function :html_escape
     module_function :h
+
+    singleton_class.send(:remove_method, :html_escape)
+    module_function :html_escape
 
     # A utility method for escaping HTML entities in JSON strings.
     # This method is also aliased as <tt>j</tt>.

@@ -78,8 +78,8 @@ module ActiveSupport
             @@ran_class_setup = true
           end
 
-          serialized = run_in_isolation do |runner|
-            super(runner)
+          serialized = run_in_isolation do |isolated_runner|
+            super(isolated_runner)
           end
 
           retval, proxy = Marshal.load(serialized)

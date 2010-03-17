@@ -853,5 +853,3 @@ module ActionView
     end
   end
 end
-
-require 'action_view/helpers/javascript_helper'
