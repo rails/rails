@@ -365,11 +365,10 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   # check if we were rendered by a file-based template?
   def test_rendered_action
     process :nothing
-    assert_nil @controller.template.rendered[:template]
+    assert_template nil
 
     process :hello_world
-    assert @controller.template.rendered[:template]
-    assert 'hello_world', @controller.template.rendered[:template].to_s
+    assert_template 'hello_world'
   end
 
   # check the redirection location

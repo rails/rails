@@ -2,27 +2,6 @@ require 'action_controller/test_case'
 require 'action_view'
 
 module ActionView
-  class Base
-    alias_method :initialize_without_template_tracking, :initialize
-    def initialize(*args)
-      @_rendered = { :template => nil, :partials => Hash.new(0) }
-      initialize_without_template_tracking(*args)
-    end
-
-    attr_internal :rendered
-  end
-
-  class Template
-    alias_method :render_without_tracking, :render
-    def render(view, locals, &blk)
-      rendered = view.rendered
-      rendered[:partials][self] += 1 if partial?
-      rendered[:template] ||= []
-      rendered[:template] << self
-      render_without_tracking(view, locals, &blk)
-    end
-  end
-
   class TestCase < ActiveSupport::TestCase
     class TestController < ActionController::Base
       attr_accessor :request, :response, :params
