@@ -5,6 +5,7 @@ require 'active_support/testing/deprecation'
 require 'active_support/testing/declarative'
 require 'active_support/testing/pending'
 require 'active_support/testing/isolation'
+require 'active_support/core_ext/kernel/reporting'
 
 begin
   silence_warnings { require 'mocha' }
