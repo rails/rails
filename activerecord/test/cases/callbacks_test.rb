@@ -139,7 +139,7 @@ class CallbackCancellationDeveloper < ActiveRecord::Base
   attr_reader   :after_save_called, :after_create_called, :after_update_called, :after_destroy_called
   attr_accessor :cancel_before_save, :cancel_before_create, :cancel_before_update, :cancel_before_destroy
 
-  before_save    { !@cancel_before_save    }
+  before_save    {defined?(@cancel_before_save) ? !@cancel_before_save : false}
   before_create  { !@cancel_before_create  }
   before_update  { !@cancel_before_update  }
   before_destroy { !@cancel_before_destroy }
