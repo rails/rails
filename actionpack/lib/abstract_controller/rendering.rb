@@ -32,7 +32,6 @@ module AbstractController
   module Rendering
     extend ActiveSupport::Concern
 
-    include AbstractController::Assigns
     include AbstractController::ViewPaths
 
     # Overwrite process to setup I18n proxy.
@@ -53,7 +52,8 @@ module AbstractController
     #
     # Override this method in a module to change the default behavior.
     def view_context
-      @_view_context ||= ActionView::Base.for_controller(self)
+      klass = ActionView::Base.for_controller(self)
+      klass.new(lookup_context, view_assigns, self)
     end
 
     # Normalize arguments, options and then delegates render_to_body and
@@ -82,7 +82,6 @@ module AbstractController
     # Find and renders a template based on the options given.
     # :api: private
     def _render_template(options) #:nodoc:
-      _evaluate_assigns(view_context)
       view_context.render(options)
     end
 
@@ -104,6 +103,17 @@ module AbstractController
     end
 
   private
+
+    # This method should return a hash with assigns.
+    # You can overwrite this configuration per controller.
+    # :api: public
+    def view_assigns
+      hash = {}
+      variables  = instance_variable_names
+      variables -= protected_instance_variables if respond_to?(:protected_instance_variables)
+      variables.each { |name| hash[name.to_s[1..-1]] = instance_variable_get(name) }
+      hash
+    end
 
     # Normalize options by converting render "foo" to render :action => "foo" and
     # render "foo/bar" to render :file => "foo/bar".

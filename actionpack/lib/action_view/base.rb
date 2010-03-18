@@ -250,8 +250,6 @@ module ActionView #:nodoc:
       else
         klass = self
       end
-
-      klass.new(controller.lookup_context, {}, controller)
     end
 
     def initialize(lookup_context = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:

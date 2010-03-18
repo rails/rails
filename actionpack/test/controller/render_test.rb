@@ -18,6 +18,13 @@ class TestController < ActionController::Base
 
   layout :determine_layout
 
+  def name
+    nil
+  end
+
+  private :name
+  helper_method :name
+
   def hello_world
   end
 
@@ -418,7 +425,6 @@ class TestController < ActionController::Base
 
   def rendering_with_conflicting_local_vars
     @name = "David"
-    def view_context.name() nil end
     render :action => "potential_conflicts"
   end
 
