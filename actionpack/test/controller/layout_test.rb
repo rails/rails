@@ -120,19 +120,19 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_set_when_using_default_layout
     @controller = DefaultLayoutController.new
     get :hello
-    assert @controller.template.layout.include?('layouts/layout_test')
+    assert_template :layout => "layouts/layout_test"
   end
 
   def test_layout_set_when_set_in_controller
     @controller = HasOwnLayoutController.new
     get :hello
-    assert @controller.template.layout.include?('layouts/item')
+    assert_template :layout => "layouts/item"
   end
   
   def test_layout_only_exception_when_included
     @controller = OnlyLayoutController.new
     get :hello
-    assert @controller.template.layout.include?('layouts/item')
+    assert_template :layout => "layouts/item"
   end
 
   def test_layout_only_exception_when_excepted
@@ -144,7 +144,7 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_except_exception_when_included
     @controller = ExceptLayoutController.new
     get :hello
-    assert @controller.template.layout.include?('layouts/item')
+    assert_template :layout => "layouts/item"
   end
 
   def test_layout_except_exception_when_excepted
@@ -156,19 +156,19 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_set_when_using_render
     @controller = SetsLayoutInRenderController.new
     get :hello
-    assert @controller.template.layout.include?('layouts/third_party_template_library')
+    assert_template :layout => "layouts/third_party_template_library"
   end
 
   def test_layout_is_not_set_when_none_rendered
     @controller = RendersNoLayoutController.new
     get :hello
-    assert_nil @controller.template.layout
+    assert_template :layout => nil
   end
 
   def test_layout_is_picked_from_the_controller_instances_view_path
     @controller = PrependsViewPathController.new
     get :hello
-    assert @controller.template.layout =~ /layouts\/alt\.\w+/
+    assert_template :layout => /layouts\/alt\.\w+/
   end
 
   def test_absolute_pathed_layout
@@ -219,7 +219,7 @@ unless RUBY_PLATFORM =~ /(:?mswin|mingw|bccwin)/
       @controller = LayoutSymlinkedTest.new
       get :hello
       assert_response 200
-      assert @controller.template.layout.include?("layouts/symlinked/symlinked_layout")
+      assert_template :layout => "layouts/symlinked/symlinked_layout"
     end
   end
 end

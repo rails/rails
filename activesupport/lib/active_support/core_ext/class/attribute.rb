@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/singleton_class'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/module/remove_method'
 
 class Class
   # Declare a class-level attribute whose value is inheritable and
@@ -45,12 +46,14 @@ class Class
       s.send(:define_method, attr) { }
       s.send(:define_method, :"#{attr}?") { !!send(attr) }
       s.send(:define_method, :"#{attr}=") do |value|
+        singleton_class.remove_possible_method(attr)
         singleton_class.send(:define_method, attr) { value }
       end
 
       define_method(attr) { self.class.send(attr) }
       define_method(:"#{attr}?") { !!send(attr) }
       define_method(:"#{attr}=") do |value|
+        singleton_class.remove_possible_method(attr)
         singleton_class.send(:define_method, attr) { value }
       end if instance_writer
     end

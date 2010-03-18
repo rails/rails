@@ -14,8 +14,8 @@ module ActiveSupport
     if RUBY_VERSION >= '1.9'
       undef_method :transliterate
       def transliterate(string)
-        warn "Ruby 1.9 doesn't support Unicode normalization yet"
-        string.dup
+        proxy = ActiveSupport::Multibyte.proxy_class.new(string)
+        proxy.normalize(:kd).gsub(/[^\x00-\x7F]+/, '')
       end
 
     # The iconv transliteration code doesn't function correctly

@@ -181,6 +181,8 @@ module Admin
   end
 end
 
+# require "action_dispatch/test_process"
+
 # a test case to exercise the new capabilities TestRequest & TestResponse
 class ActionPackAssertionsControllerTest < ActionController::TestCase
   # -- assertion-based testing ------------------------------------------------
@@ -303,14 +305,14 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   # make sure that the template objects exist
   def test_template_objects_alive
     process :assign_this
-    assert !@controller.template.instance_variable_get(:"@hi")
-    assert @controller.template.instance_variable_get(:"@howdy")
+    assert !@controller.instance_variable_get(:"@hi")
+    assert @controller.instance_variable_get(:"@howdy")
   end
 
   # make sure we don't have template objects when we shouldn't
   def test_template_object_missing
     process :nothing
-    assert_nil @controller.template.assigns['howdy']
+    assert_nil @controller.instance_variable_get(:@howdy)
   end
 
   # check the empty flashing
@@ -365,11 +367,10 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   # check if we were rendered by a file-based template?
   def test_rendered_action
     process :nothing
-    assert_nil @controller.template.rendered[:template]
+    assert_template nil
 
     process :hello_world
-    assert @controller.template.rendered[:template]
-    assert 'hello_world', @controller.template.rendered[:template].to_s
+    assert_template 'hello_world'
   end
 
   # check the redirection location

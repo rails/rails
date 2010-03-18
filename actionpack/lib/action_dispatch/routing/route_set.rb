@@ -65,7 +65,7 @@ module ActionDispatch
       # named routes.
       class NamedRouteCollection #:nodoc:
         include Enumerable
-        attr_reader :routes, :helpers
+        attr_reader :routes, :helpers, :module
 
         def initialize
           clear!
@@ -219,14 +219,16 @@ module ActionDispatch
       end
 
       def finalize!
+        return if @finalized
+        @finalized = true
         @set.add_route(NotFound)
-        install_helpers
         @set.freeze
       end
 
       def clear!
         # Clear the controller cache so we may discover new ones
         @controller_constraints = nil
+        @finalized = false
         routes.clear
         named_routes.clear
         @set = ::Rack::Mount::RouteSet.new(:parameters_key => PARAMETERS_KEY)
@@ -239,21 +241,29 @@ module ActionDispatch
 
       def url_helpers
         @url_helpers ||= begin
-          router = self
+          routes = self
 
-          Module.new do
+          helpers = Module.new do
             extend ActiveSupport::Concern
             include UrlFor
+
+            @routes = routes
+            class << self
+              delegate :url_for, :to => '@routes'
+            end
+            extend routes.named_routes.module
 
             # ROUTES TODO: install_helpers isn't great... can we make a module with the stuff that
             # we can include?
             # Yes plz - JP
             included do
-              router.install_helpers(self)
+              routes.install_helpers(self)
             end
 
-            define_method(:_router) { router }
+            define_method(:_router) { routes }
           end
+
+          helpers
         end
       end
 
@@ -406,6 +416,7 @@ module ActionDispatch
       RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash]
 
       def url_for(options)
+        finalize!
         options = default_url_options.merge(options || {})
 
         handle_positional_args(options)
@@ -437,6 +448,7 @@ module ActionDispatch
       end
 
       def call(env)
+        finalize!
         @set.call(env)
       end
 

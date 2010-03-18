@@ -187,6 +187,7 @@ module ActionView #:nodoc:
     @@debug_rjs = false
 
     class_attribute :helpers
+    remove_method :helpers
     attr_reader :helpers
 
     class << self
@@ -195,7 +196,7 @@ module ActionView #:nodoc:
     end
 
     attr_accessor :base_path, :assigns, :template_extension, :lookup_context
-    attr_internal :captures, :request, :layout, :controller, :template, :config
+    attr_internal :captures, :request, :controller, :template, :config
 
     delegate :find_template, :template_exists?, :formats, :formats=, :locale, :locale=,
              :view_paths, :view_paths=, :with_fallbacks, :update_details, :to => :lookup_context
@@ -204,6 +205,11 @@ module ActionView #:nodoc:
              :flash, :action_name, :controller_name, :to => :controller
 
     delegate :logger, :to => :controller, :allow_nil => true
+
+    # TODO: HACK FOR RJS
+    def view_context
+      self
+    end
 
     def self.xss_safe? #:nodoc:
       true
@@ -235,6 +241,10 @@ module ActionView #:nodoc:
             include controller._helpers
             self.helpers = controller._helpers
           end
+
+          if controller.respond_to?(:_router)
+            include controller._router.url_helpers
+          end
         end
       else
         klass = self
@@ -249,7 +259,7 @@ module ActionView #:nodoc:
       @helpers = self.class.helpers || Module.new
 
       @_controller   = controller
-      @_config       = ActiveSupport::InheritableOptions.new(controller.config) if controller
+      @_config       = ActiveSupport::InheritableOptions.new(controller.config) if controller && controller.respond_to?(:config)
       @_content_for  = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
       @_virtual_path = nil
 

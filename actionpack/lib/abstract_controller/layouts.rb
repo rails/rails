@@ -1,3 +1,5 @@
+require "active_support/core_ext/module/remove_method"
+
 module AbstractController
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
   # repeated setups. The inclusion pattern has pages that look like this:
@@ -237,6 +239,8 @@ module AbstractController
       # name, return that string. Otherwise, use the superclass'
       # layout (which might also be implied)
       def _write_layout_method
+        remove_possible_method(:_layout)
+
         case defined?(@_layout) ? @_layout : nil
         when String
           self.class_eval %{def _layout; #{@_layout.inspect} end}

@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/regexp'
+require 'action_controller/polymorphic_routes'
 
 module ActionDispatch
   # == Routing

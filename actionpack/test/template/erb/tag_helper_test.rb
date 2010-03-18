@@ -1,35 +1,9 @@
 require "abstract_unit"
+require "template/erb/helper"
 
 module ERBTest
-  class ViewContext
-    mock_controller = Class.new do
-      include SharedTestRoutes.url_helpers
-    end
-
-    include ActionView::Helpers::TagHelper
-    include ActionView::Helpers::JavaScriptHelper
-    include ActionView::Helpers::FormHelper
-
-    attr_accessor :output_buffer
-
-    def protect_against_forgery?() false end
-
-    define_method(:controller) do
-      mock_controller.new
-    end
-  end
-
-  class DeprecatedViewContext < ViewContext
-    # include ActionView::Helpers::DeprecatedBlockHelpers
-  end
-
   module SharedTagHelpers
     extend ActiveSupport::Testing::Declarative
-
-    def render_content(start, inside)
-      template = block_helper(start, inside)
-      ActionView::Template::Handlers::Erubis.new(template).evaluate(context.new)
-    end
 
     def maybe_deprecated
       if @deprecated
@@ -64,11 +38,7 @@ module ERBTest
     end
   end
 
-  class TagHelperTest < ActiveSupport::TestCase
-    def context
-      ViewContext
-    end
-
+  class TagHelperTest < BlockTestCase
     def block_helper(str, rest)
       "<%= #{str} do %>#{rest}<% end %>"
     end
@@ -76,11 +46,7 @@ module ERBTest
     include SharedTagHelpers
   end
 
-  class DeprecatedTagHelperTest < ActiveSupport::TestCase
-    def context
-      DeprecatedViewContext
-    end
-
+  class DeprecatedTagHelperTest < BlockTestCase
     def block_helper(str, rest)
       "<% __in_erb_template=true %><% #{str} do %>#{rest}<% end %>"
     end

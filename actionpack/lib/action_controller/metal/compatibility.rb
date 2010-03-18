@@ -40,15 +40,6 @@ module ActionController
     def initialize_template_class(*) end
     def assign_shortcuts(*) end
 
-    def template
-      @template ||= view_context
-    end
-
-    def process_action(*)
-      template
-      super
-    end
-
     def _normalize_options(options)
       if options[:action] && options[:action].to_s.include?(?/)
         ActiveSupport::Deprecation.warn "Giving a path to render :action is deprecated. " <<

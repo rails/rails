@@ -2,6 +2,7 @@ require 'stringio'
 require 'uri'
 require 'active_support/core_ext/object/singleton_class'
 require 'rack/test'
+require 'test/unit/assertions'
 
 module ActionDispatch
   module Integration #:nodoc:
@@ -287,6 +288,8 @@ module ActionDispatch
     end
 
     module Runner
+      include ActionDispatch::Assertions
+
       def app
         @app
       end
@@ -454,6 +457,7 @@ module ActionDispatch
   #   end
   class IntegrationTest < ActiveSupport::TestCase
     include Integration::Runner
+    include ActionController::TemplateAssertions
 
     @@app = nil
 

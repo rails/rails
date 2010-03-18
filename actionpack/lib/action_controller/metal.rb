@@ -34,7 +34,7 @@ module ActionController
     # and response object available. You might wish to control the
     # environment and response manually for performance reasons.
 
-    attr_internal :status, :headers, :content_type, :response, :request
+    attr_internal :headers, :response, :request
     delegate :session, :to => "@_request"
 
     def initialize(*)
@@ -60,6 +60,10 @@ module ActionController
 
     def location=(url)
       headers["Location"] = url
+    end
+
+    def status
+      @_status
     end
 
     def status=(status)

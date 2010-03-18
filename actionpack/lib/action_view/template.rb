@@ -2,7 +2,6 @@
 # This is so that templates compiled in this file are UTF-8
 
 require 'set'
-require "action_view/template/resolver"
 
 module ActionView
   class Template
@@ -24,19 +23,24 @@ module ActionView
       @identifier = identifier
       @handler    = handler
 
-      @partial      = details[:partial]
       @virtual_path = details[:virtual_path]
       @method_names = {}
 
       format    = details[:format]
       format  ||= handler.default_format.to_sym if handler.respond_to?(:default_format)
       format  ||= :html
+
       @formats  = [format.to_sym]
+      @formats << :html if @formats.first == :js
     end
 
     def render(view, locals, &block)
-      method_name = compile(locals, view)
-      view.send(method_name, locals, &block)
+      # Notice that we use a bang in this instrumentation because you don't want to
+      # consume this in production. This is only slow if it's being listened to.
+      ActiveSupport::Notifications.instrument("action_view.render_template!", :virtual_path => @virtual_path) do
+        method_name = compile(locals, view)
+        view.send(method_name, locals, &block)
+      end
     rescue Exception => e
       if e.is_a?(Template::Error)
         e.sub_template_of(self)
@@ -56,10 +60,6 @@ module ActionView
 
     def counter_name
       @counter_name ||= "#{variable_name}_counter".to_sym
-    end
-
-    def partial?
-      @partial
     end
 
     def inspect

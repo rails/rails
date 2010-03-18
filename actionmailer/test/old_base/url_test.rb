@@ -28,8 +28,12 @@ class TestMailer < ActionMailer::Base
   end
 
   class <<self
+    remove_method :received_body
+    remove_method :received_body=
     attr_accessor :received_body
   end
+
+  remove_method :receive
 
   def receive(mail)
     self.class.received_body = mail.body

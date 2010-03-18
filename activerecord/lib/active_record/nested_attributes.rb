@@ -244,6 +244,9 @@ module ActiveRecord
             #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes)
             # end
             class_eval <<-eoruby, __FILE__, __LINE__ + 1
+              if method_defined?(:#{association_name}_attributes=)
+                remove_method(:#{association_name}_attributes=)
+              end
               def #{association_name}_attributes=(attributes)
                 assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
               end

@@ -418,7 +418,7 @@ class TestController < ActionController::Base
 
   def rendering_with_conflicting_local_vars
     @name = "David"
-    def @template.name() nil end
+    def view_context.name() nil end
     render :action => "potential_conflicts"
   end
 
@@ -526,11 +526,11 @@ class TestController < ActionController::Base
   end
 
   def partial_with_form_builder
-    render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, @template, {}, Proc.new {})
+    render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {}, Proc.new {})
   end
 
   def partial_with_form_builder_subclass
-    render :partial => LabellingFormBuilder.new(:post, nil, @template, {}, Proc.new {})
+    render :partial => LabellingFormBuilder.new(:post, nil, view_context, {}, Proc.new {})
   end
 
   def partial_collection

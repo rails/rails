@@ -46,7 +46,7 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     respond_to do |format|
       if @<%= orm_instance.save %>
-        format.html { redirect_to(@<%= file_name %>, :notice => '<%= class_name %> was successfully created.') }
+        format.html { redirect_to(@<%= file_name %>, :notice => '<%= human_name %> was successfully created.') }
         format.xml  { render :xml => @<%= file_name %>, :status => :created, :location => @<%= file_name %> }
       else
         format.html { render :action => "new" }
@@ -62,7 +62,7 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     respond_to do |format|
       if @<%= orm_instance.update_attributes("params[:#{file_name}]") %>
-        format.html { redirect_to(@<%= file_name %>, :notice => '<%= class_name %> was successfully updated.') }
+        format.html { redirect_to(@<%= file_name %>, :notice => '<%= human_name %> was successfully updated.') }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }
