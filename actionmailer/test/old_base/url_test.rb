@@ -10,7 +10,7 @@ class ActionMailer::Base
   include AppRoutes.url_helpers
 end
 
-class TestMailer < ActionMailer::Base
+class UrlTestMailer < ActionMailer::Base
   default_url_options[:host] = 'www.basecamphq.com'
 
   configure do |c|
@@ -28,12 +28,8 @@ class TestMailer < ActionMailer::Base
   end
 
   class <<self
-    remove_method :received_body
-    remove_method :received_body=
     attr_accessor :received_body
   end
-
-  remove_method :receive
 
   def receive(mail)
     self.class.received_body = mail.body
@@ -69,7 +65,7 @@ class ActionMailerUrlTest < Test::Unit::TestCase
   end
 
   def test_signed_up_with_url
-    TestMailer.delivery_method = :test
+    UrlTestMailer.delivery_method = :test
     
     AppRoutes.draw do |map|
       map.connect ':controller/:action/:id'
@@ -84,14 +80,14 @@ class ActionMailerUrlTest < Test::Unit::TestCase
     expected.date    = Time.local(2004, 12, 12)
 
     created = nil
-    assert_nothing_raised { created = TestMailer.signed_up_with_url(@recipient) }
+    assert_nothing_raised { created = UrlTestMailer.signed_up_with_url(@recipient) }
     assert_not_nil created
 
     expected.message_id = '<123@456>'
     created.message_id = '<123@456>'
     assert_equal expected.encoded, created.encoded
 
-    assert_nothing_raised { TestMailer.signed_up_with_url(@recipient).deliver }
+    assert_nothing_raised { UrlTestMailer.signed_up_with_url(@recipient).deliver }
     assert_not_nil ActionMailer::Base.deliveries.first
     delivered = ActionMailer::Base.deliveries.first
     

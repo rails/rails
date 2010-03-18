@@ -1,6 +1,7 @@
 require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/array/wrap'
 
 module ActionView #:nodoc:
   class NonConcattingString < ActiveSupport::SafeBuffer
@@ -216,7 +217,7 @@ module ActionView #:nodoc:
     end
 
     def self.process_view_paths(value)
-      ActionView::PathSet.new(Array(value))
+      ActionView::PathSet.new(Array.wrap(value))
     end
 
     def self.for_controller(controller)
