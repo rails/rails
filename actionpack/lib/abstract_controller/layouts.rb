@@ -185,6 +185,8 @@ module AbstractController
         # ==== Returns
         # Boolean:: True if the action has a layout, false otherwise.
         def action_has_layout?
+          return unless super
+
           conditions = _layout_conditions
 
           if only = conditions[:only]
@@ -297,6 +299,16 @@ module AbstractController
       end
     end
 
+    attr_writer :action_has_layout
+
+    def initialize(*)
+      @action_has_layout = true
+    end
+
+    def action_has_layout?
+      @action_has_layout
+    end
+
   private
 
     # This will be overwritten by _write_layout_method
@@ -352,10 +364,6 @@ module AbstractController
 
     def _include_layout?(options)
       (options.keys & [:text, :inline, :partial]).empty? || options.key?(:layout)
-    end
-
-    def action_has_layout?
-      true
     end
   end
 end
