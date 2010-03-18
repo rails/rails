@@ -1,6 +1,6 @@
 require 'test/unit'
 require 'rbconfig'
-require 'active_support/core_ext/kernel/reporting'
+require 'lib/active_support/core_ext/kernel/reporting'
 
 class TestIsolated < Test::Unit::TestCase
   ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
