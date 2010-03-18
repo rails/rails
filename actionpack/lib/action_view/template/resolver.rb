@@ -57,7 +57,7 @@ module ActionView
 
     def find_templates(name, prefix, partial, details)
       path = build_path(name, prefix, partial, details)
-      query(partial, path, EXTENSION_ORDER.map { |ext| details[ext] })
+      query(path, EXTENSION_ORDER.map { |ext| details[ext] })
     end
 
     def build_path(name, prefix, partial, details)
@@ -67,7 +67,7 @@ module ActionView
       path
     end
 
-    def query(partial, path, exts)
+    def query(path, exts)
       query = File.join(@path, path)
 
       exts.each do |ext|
@@ -77,7 +77,7 @@ module ActionView
       Dir[query].reject { |p| File.directory?(p) }.map do |p|
         handler, format = extract_handler_and_format(p)
         Template.new(File.read(p), File.expand_path(p), handler,
-          :partial => partial, :virtual_path => path, :format => format)
+          :virtual_path => path, :format => format)
       end
     end
 
