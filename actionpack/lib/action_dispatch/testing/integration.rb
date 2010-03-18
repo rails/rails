@@ -288,6 +288,8 @@ module ActionDispatch
     end
 
     module Runner
+      include ActionDispatch::Assertions
+
       def app
         @app
       end
@@ -455,6 +457,7 @@ module ActionDispatch
   #   end
   class IntegrationTest < ActiveSupport::TestCase
     include Integration::Runner
+    include ActionController::TemplateAssertions
 
     @@app = nil
 
