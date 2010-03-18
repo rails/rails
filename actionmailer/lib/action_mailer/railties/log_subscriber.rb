@@ -1,8 +1,10 @@
+require 'active_support/core_ext/array/wrap'
+
 module ActionMailer
   module Railties
     class LogSubscriber < Rails::LogSubscriber
       def deliver(event)
-        recipients = Array(event.payload[:to]).join(', ')
+        recipients = Array.wrap(event.payload[:to]).join(', ')
         info("\nSent mail to #{recipients} (%1.fms)" % event.duration)
         debug(event.payload[:mail])
       end
