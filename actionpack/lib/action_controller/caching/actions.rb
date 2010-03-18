@@ -112,7 +112,7 @@ module ActionController #:nodoc:
 
       class ActionCacheFilter #:nodoc:
         def initialize(options, &block)
-          @cache_path, @store_options, @layout =
+          @cache_path, @store_options, @cache_layout =
             options.values_at(:cache_path, :store_options, :layout)
         end
 
@@ -126,10 +126,10 @@ module ActionController #:nodoc:
           cache_path = ActionCachePath.new(controller, path_options || {})
 
           if cache = controller.read_fragment(cache_path.path, @store_options)
-            controller._render_cache_fragment(cache, cache_path.extension, @layout == false)
+            controller._render_cache_fragment(cache, cache_path.extension, @cache_layout == false)
           else
             yield
-            controller._save_fragment(cache_path.path, @layout == false, @store_options)
+            controller._save_fragment(cache_path.path, @cache_layout == false, @store_options)
           end
         end
       end
