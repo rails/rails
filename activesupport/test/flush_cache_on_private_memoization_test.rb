@@ -1,3 +1,4 @@
+require 'abstract_unit'
 require 'active_support'
 require 'test/unit'
 
