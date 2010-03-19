@@ -1,4 +1,4 @@
-h2. Rails 3.0: Release Notes
+h2. Ruby on Rails 3.0 Release Notes
 
 Rails 3.0 is ponies and rainbows! It's going to cook you dinner and fold your laundry. You're going to wonder how life was ever possible before it arrived. It's the Best Version of Rails We've Ever Done! 
 
