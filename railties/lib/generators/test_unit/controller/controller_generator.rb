@@ -3,6 +3,7 @@ require 'generators/test_unit'
 module TestUnit
   module Generators
     class ControllerGenerator < Base
+      argument :actions, :type => :array, :default => [], :banner => "action action"
       check_class_collision :suffix => "ControllerTest"
 
       def create_test_files
