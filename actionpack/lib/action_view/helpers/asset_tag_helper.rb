@@ -3,6 +3,7 @@ require 'cgi'
 require 'action_view/helpers/url_helper'
 require 'action_view/helpers/tag_helper'
 require 'active_support/core_ext/file'
+require 'active_support/core_ext/object/blank'
 
 module ActionView
   module Helpers #:nodoc:
@@ -623,41 +624,37 @@ module ActionView
       @@cache_asset_timestamps = true
 
       private
+        def rewrite_extension?(source, dir, ext)
+          source_ext = File.extname(source)[1..-1]
+          ext && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(config.assets_dir, dir, "#{source}.#{ext}"))))
+        end
+
+        def rewrite_host_and_protocol(source, has_request)
+          host = compute_asset_host(source)
+          if has_request && host.present? && !is_uri?(host)
+            host = "#{controller.request.protocol}#{host}"
+          end
+          "#{host}#{source}"
+        end
+
         # Add the the extension +ext+ if not present. Return full URLs otherwise untouched.
         # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
         # roots. Rewrite the asset path for cache-busting asset ids. Include
         # asset host, if configured, with the correct request protocol.
         def compute_public_path(source, dir, ext = nil, include_host = true)
+          return source if is_uri?(source)
+
+          source += ".#{ext}" if rewrite_extension?(source, dir, ext)
+          source  = "/#{dir}/#{source}" unless source[0] == ?/
+          source  = rewrite_asset_path(source)
+
           has_request = controller.respond_to?(:request)
-
-          source_ext = File.extname(source)[1..-1]
-          if ext && !is_uri?(source) && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(config.assets_dir, dir, "#{source}.#{ext}"))))
-            source += ".#{ext}"
+          if has_request && include_host && source !~ %r{^#{controller.config.relative_url_root}/}
+            source = "#{controller.config.relative_url_root}#{source}"
           end
+          source = rewrite_host_and_protocol(source, has_request) if include_host
 
-          unless is_uri?(source)
-            source = "/#{dir}/#{source}" unless source[0] == ?/
-
-            source = rewrite_asset_path(source)
-
-            if has_request && include_host
-              unless source =~ %r{^#{controller.config.relative_url_root}/}
-                source = "#{controller.config.relative_url_root}#{source}"
-              end
-            end
-          end
-
-          if include_host && !is_uri?(source)
-            host = compute_asset_host(source)
-
-            if has_request && !host.blank? && !is_uri?(host)
-              host = "#{controller.request.protocol}#{host}"
-            end
-
-            "#{host}#{source}"
-          else
-            source
-          end
+          source
         end
 
         def is_uri?(path)
