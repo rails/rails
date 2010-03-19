@@ -74,10 +74,17 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    def custom_block(include_html=false)
+    def explicit_multipart_with_options(include_html = false)
       mail do |format|
         format.text(:content_transfer_encoding => "base64"){ render "welcome" }
         format.html{ render "welcome" } if include_html
+      end
+    end
+
+    def explicit_multipart_with_one_template(hash = {})
+      mail(hash) do |format|
+        format.html
+        format.text
       end
     end
 
@@ -148,6 +155,13 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Hello there", email.body.encoded)
   end
 
+  test "should set template content type if mail has only one part" do
+    mail = BaseMailer.html_only
+    assert_equal('text/html', mail.mime_type)
+    mail = BaseMailer.plain_text_only
+    assert_equal('text/plain', mail.mime_type)
+  end
+
   # Custom headers
   test "custom headers" do
     email = BaseMailer.welcome
@@ -162,7 +176,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal('1234@mikel.me.com', mail['In-Reply-To'].decoded)
   end
 
-  test "can pass random headers in as a hash" do
+  test "can pass random headers in as a hash to headers" do
     hash = {'X-Special-Domain-Specific-Header' => "SecretValue",
             'In-Reply-To' => '1234@mikel.me.com' }
     mail = BaseMailer.welcome_with_headers(hash)
@@ -366,6 +380,11 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("HTML Explicit Multipart", email.parts[1].body.encoded)
   end
 
+  test "explicit multipart have a boundary" do
+    mail = BaseMailer.explicit_multipart
+    assert_not_nil(mail.content_type_parameters[:boundary])
+  end
+
   test "explicit multipart does not sort order" do
     order = ["text/html", "text/plain"]
     with_default BaseMailer, :parts_order => order do
@@ -399,7 +418,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("TEXT Explicit Multipart Templates", email.parts[1].body.encoded)
   end
 
-  test "explicit multipart with any" do
+  test "explicit multipart with format.any" do
     email = BaseMailer.explicit_multipart_with_any
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
@@ -409,8 +428,8 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Format with any!", email.parts[1].body.encoded)
   end
 
-  test "explicit multipart with options" do
-    email = BaseMailer.custom_block(true)
+  test "explicit multipart with format(Hash)" do
+    email = BaseMailer.explicit_multipart_with_options(true)
     email.ready_to_send!
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
@@ -420,26 +439,21 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("7bit", email.parts[1].content_transfer_encoding)
   end
 
-  test "explicit multipart should be multipart" do
-    mail = BaseMailer.explicit_multipart
-    assert_not_nil(mail.content_type_parameters[:boundary])
-  end
-
-  test "should set a content type if only has an html part" do
-    mail = BaseMailer.html_only
-    assert_equal('text/html', mail.mime_type)
-  end
-  
-  test "should set a content type if only has an plain text part" do
-    mail = BaseMailer.plain_text_only
-    assert_equal('text/plain', mail.mime_type)
-  end
-
-  test "explicit multipart with one part is rendered as body" do
-    email = BaseMailer.custom_block
+  test "explicit multipart with one part is rendered as body and options are merged" do
+    email = BaseMailer.explicit_multipart_with_options
     assert_equal(0, email.parts.size)
     assert_equal("text/plain", email.mime_type)
     assert_equal("base64", email.content_transfer_encoding)
+  end
+
+  test "explicit multipart with one template has the expected format" do
+    email = BaseMailer.explicit_multipart_with_one_template
+    assert_equal(2, email.parts.size)
+    assert_equal("multipart/alternative", email.mime_type)
+    assert_equal("text/html", email.parts[0].mime_type)
+    assert_equal("[:html]", email.parts[0].body.encoded)
+    assert_equal("text/plain", email.parts[1].mime_type)
+    assert_equal("[:text]", email.parts[1].body.encoded)
   end
 
   # Class level API with method missing
