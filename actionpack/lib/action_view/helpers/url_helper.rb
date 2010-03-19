@@ -586,8 +586,6 @@ module ActionView
           add_confirm_to_attributes!(html_options, confirm) if confirm
           add_method_to_attributes!(html_options, method)   if method
 
-          html_options["data-url"] = options[:url] if options.is_a?(Hash) && options[:url]
-
           html_options
         end
 
