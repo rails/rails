@@ -7,27 +7,6 @@ module ActionView #:nodoc:
   class NonConcattingString < ActiveSupport::SafeBuffer
   end
 
-  class ActionViewError < StandardError #:nodoc:
-  end
-
-  class MissingTemplate < ActionViewError #:nodoc:
-    attr_reader :path
-
-    def initialize(paths, path, details, partial)
-      @path = path
-      display_paths = paths.compact.map{ |p| p.to_s.inspect }.join(", ")
-      template_type = if partial
-        "partial"
-      elsif path =~ /layouts/i
-        'layout'
-      else
-        'template'
-      end
-
-      super("Missing #{template_type} #{path} with #{details.inspect} in view paths #{display_paths}")
-    end
-  end
-
   # Action View templates can be written in three ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERb
   # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> (or <tt>.rxml</tt>) extension then Jim Weirich's Builder::XmlMarkup library is used.
   # If the template file has a <tt>.rjs</tt> extension then it will use ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.
