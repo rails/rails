@@ -49,6 +49,7 @@ module AbstractController
           Class.new(ActionView::Base) do
             if controller.respond_to?(:_helpers)
               include controller._helpers
+              include controller._router.url_helpers
               # TODO: Fix RJS to not require this
               self.helpers = controller._helpers
             end
@@ -61,6 +62,11 @@ module AbstractController
 
     def view_context_class
       @view_context_class || self.class.view_context_class
+    end
+
+    def initialize(*)
+      @view_context_class = nil
+      super
     end
 
     # An instance of a view class. The default view class is ActionView::Base

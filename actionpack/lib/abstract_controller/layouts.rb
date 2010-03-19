@@ -297,6 +297,7 @@ module AbstractController
 
     def initialize(*)
       @action_has_layout = true
+      super
     end
 
     def action_has_layout?
