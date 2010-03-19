@@ -38,7 +38,8 @@ module ActionController
     delegate :session, :to => "@_request"
 
     def initialize(*)
-      @_headers = {}
+      @_headers = {"Content-Type" => "text/html"}
+      @_status = 200
       super
     end
 
@@ -68,6 +69,11 @@ module ActionController
 
     def status=(status)
       @_status = Rack::Utils.status_code(status)
+    end
+
+    def response_body=(val)
+      body = val.respond_to?(:each) ? val : [val]
+      super body
     end
 
     # :api: private

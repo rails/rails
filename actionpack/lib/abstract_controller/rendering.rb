@@ -76,7 +76,7 @@ module AbstractController
     # :api: plugin
     def render_to_string(options={})
       _normalize_options(options)
-      AbstractController::Rendering.body_to_s(render_to_body(options))
+      render_to_body(options)
     end
 
     # Find and renders a template based on the options given.
@@ -88,18 +88,6 @@ module AbstractController
     # The prefix used in render "foo" shortcuts.
     def _prefix
       controller_path
-    end
-
-    # Return a string representation of a Rack-compatible response body.
-    def self.body_to_s(body)
-      if body.respond_to?(:to_str)
-        body
-      else
-        strings = []
-        body.each { |part| strings << part.to_s }
-        body.close if body.respond_to?(:close)
-        strings.join
-      end
     end
 
   private
