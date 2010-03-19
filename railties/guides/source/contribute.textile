@@ -11,7 +11,7 @@ h3. How to Contribute?
 * Guides are written in Textile, and reside at railties/guides/source in the docrails project.
 * All images are in the railties/guides/images directory.
 * Sample format : "Active Record Associations":http://github.com/lifo/docrails/blob/3e56a3832415476fdd1cb963980d0ae390ac1ed3/railties/guides/source/association_basics.textile
-* Sample output : "Active Record Associations":http://guides.rails.info/association_basics.html
+* Sample output : "Active Record Associations":association_basics.html
 * You can build the Guides during testing by running +rake generate_guides+ in the +railties+ directory.
 
 h3. What to Contribute?
