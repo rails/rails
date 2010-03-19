@@ -42,18 +42,38 @@ module AbstractController
       I18n.config = old_config
     end
 
+    module ClassMethods
+      def view_context_class
+        @view_context_class ||= begin
+          controller = self
+          Class.new(ActionView::Base) do
+            if controller.respond_to?(:_helpers)
+              include controller._helpers
+              # TODO: Fix RJS to not require this
+              self.helpers = controller._helpers
+            end
+          end
+        end
+      end
+    end
+
+    attr_writer :view_context_class
+
+    def view_context_class
+      @view_context_class || self.class.view_context_class
+    end
+
     # An instance of a view class. The default view class is ActionView::Base
     #
     # The view class must have the following methods:
-    # View.for_controller[controller]
+    # View.new[lookup_context, assigns, controller]
     #   Create a new ActionView instance for a controller
-    # View#render_template[options]
+    # View#render[options]
     #   Returns String with the rendered template
     #
     # Override this method in a module to change the default behavior.
     def view_context
-      klass = ActionView::Base.for_controller(self)
-      klass.new(lookup_context, view_assigns, self)
+      view_context_class.new(lookup_context, view_assigns, self)
     end
 
     # Normalize arguments, options and then delegates render_to_body and

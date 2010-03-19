@@ -220,38 +220,6 @@ module ActionView #:nodoc:
       ActionView::PathSet.new(Array.wrap(value))
     end
 
-    def self.for_controller(controller)
-      @views ||= {}
-
-      # TODO: Decouple this so helpers are a separate concern in AV just like
-      # they are in AC.
-      if controller.class.respond_to?(:_helper_serial)
-        klass = @views[controller.class._helper_serial] ||= Class.new(self) do
-          # Try to make stack traces clearer
-          class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
-            def self.name
-              "ActionView for #{controller.class}"
-            end
-
-            def inspect
-              "#<#{self.class.name}>"
-            end
-          ruby_eval
-
-          if controller.respond_to?(:_helpers)
-            include controller._helpers
-            self.helpers = controller._helpers
-          end
-
-          if controller.respond_to?(:_router)
-            include controller._router.url_helpers
-          end
-        end
-      else
-        klass = self
-      end
-    end
-
     def initialize(lookup_context = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:
       @config = nil
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
