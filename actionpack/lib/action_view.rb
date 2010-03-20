@@ -53,5 +53,6 @@ end
 
 require 'active_support/core_ext/string/output_safety'
 
+ActionView::SafeBuffer = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('ActionView::SafeBuffer', 'ActiveSupport::SafeBuffer')
 
 I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
