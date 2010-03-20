@@ -1,5 +1,3 @@
-require 'rails/info'
-
 class Rails::InfoController < ActionController::Base
   def properties
     if consider_all_requests_local? || local_request?

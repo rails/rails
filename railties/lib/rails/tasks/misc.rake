@@ -15,7 +15,6 @@ end
 
 desc 'Explain the current environment'
 task :about do
-  require 'rails/info'
   puts Rails::Info
 end
 
