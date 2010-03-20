@@ -9,7 +9,7 @@ module RenderTestCases
   def setup_view(paths)
     @assigns = { :secret => 'in the sauce' }
     @view = ActionView::Base.new(paths, @assigns)
-    @controller_view = ActionView::Base.for_controller(TestController.new)
+    @controller_view = TestController.new.view_context
 
     # Reload and register danish language for testing
     I18n.reload!

@@ -16,6 +16,7 @@ module Rails
       class_option :singleton, :type => :boolean, :desc => "Supply to create a singleton controller"
 
       def add_resource_route
+        return if options[:actions].present?
         route "resource#{:s unless options[:singleton]} :#{pluralize?(file_name)}"
       end
 

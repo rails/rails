@@ -7,27 +7,6 @@ module ActionView #:nodoc:
   class NonConcattingString < ActiveSupport::SafeBuffer
   end
 
-  class ActionViewError < StandardError #:nodoc:
-  end
-
-  class MissingTemplate < ActionViewError #:nodoc:
-    attr_reader :path
-
-    def initialize(paths, path, details, partial)
-      @path = path
-      display_paths = paths.compact.map{ |p| p.to_s.inspect }.join(", ")
-      template_type = if partial
-        "partial"
-      elsif path =~ /layouts/i
-        'layout'
-      else
-        'template'
-      end
-
-      super("Missing #{template_type} #{path} with #{details.inspect} in view paths #{display_paths}")
-    end
-  end
-
   # Action View templates can be written in three ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERb
   # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> (or <tt>.rxml</tt>) extension then Jim Weirich's Builder::XmlMarkup library is used.
   # If the template file has a <tt>.rjs</tt> extension then it will use ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.
@@ -218,40 +197,6 @@ module ActionView #:nodoc:
 
     def self.process_view_paths(value)
       ActionView::PathSet.new(Array.wrap(value))
-    end
-
-    def self.for_controller(controller)
-      @views ||= {}
-
-      # TODO: Decouple this so helpers are a separate concern in AV just like
-      # they are in AC.
-      if controller.class.respond_to?(:_helper_serial)
-        klass = @views[controller.class._helper_serial] ||= Class.new(self) do
-          # Try to make stack traces clearer
-          class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
-            def self.name
-              "ActionView for #{controller.class}"
-            end
-
-            def inspect
-              "#<#{self.class.name}>"
-            end
-          ruby_eval
-
-          if controller.respond_to?(:_helpers)
-            include controller._helpers
-            self.helpers = controller._helpers
-          end
-
-          if controller.respond_to?(:_router)
-            include controller._router.url_helpers
-          end
-        end
-      else
-        klass = self
-      end
-
-      klass.new(controller.lookup_context, {}, controller)
     end
 
     def initialize(lookup_context = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:

@@ -32,7 +32,6 @@ module AbstractController
   module Rendering
     extend ActiveSupport::Concern
 
-    include AbstractController::Assigns
     include AbstractController::ViewPaths
 
     # Overwrite process to setup I18n proxy.
@@ -43,17 +42,48 @@ module AbstractController
       I18n.config = old_config
     end
 
+    module ClassMethods
+      def view_context_class
+        @view_context_class ||= begin
+          controller = self
+          Class.new(ActionView::Base) do
+            if controller.respond_to?(:_helpers)
+              include controller._helpers
+
+              if controller.respond_to?(:_router)
+                include controller._router.url_helpers
+              end
+
+              # TODO: Fix RJS to not require this
+              self.helpers = controller._helpers
+            end
+          end
+        end
+      end
+    end
+
+    attr_writer :view_context_class
+
+    def view_context_class
+      @view_context_class || self.class.view_context_class
+    end
+
+    def initialize(*)
+      @view_context_class = nil
+      super
+    end
+
     # An instance of a view class. The default view class is ActionView::Base
     #
     # The view class must have the following methods:
-    # View.for_controller[controller]
+    # View.new[lookup_context, assigns, controller]
     #   Create a new ActionView instance for a controller
-    # View#render_template[options]
+    # View#render[options]
     #   Returns String with the rendered template
     #
     # Override this method in a module to change the default behavior.
     def view_context
-      @_view_context ||= ActionView::Base.for_controller(self)
+      view_context_class.new(lookup_context, view_assigns, self)
     end
 
     # Normalize arguments, options and then delegates render_to_body and
@@ -76,13 +106,12 @@ module AbstractController
     # :api: plugin
     def render_to_string(options={})
       _normalize_options(options)
-      AbstractController::Rendering.body_to_s(render_to_body(options))
+      render_to_body(options)
     end
 
     # Find and renders a template based on the options given.
     # :api: private
     def _render_template(options) #:nodoc:
-      _evaluate_assigns(view_context)
       view_context.render(options)
     end
 
@@ -91,19 +120,18 @@ module AbstractController
       controller_path
     end
 
-    # Return a string representation of a Rack-compatible response body.
-    def self.body_to_s(body)
-      if body.respond_to?(:to_str)
-        body
-      else
-        strings = []
-        body.each { |part| strings << part.to_s }
-        body.close if body.respond_to?(:close)
-        strings.join
-      end
-    end
-
   private
+
+    # This method should return a hash with assigns.
+    # You can overwrite this configuration per controller.
+    # :api: public
+    def view_assigns
+      hash = {}
+      variables  = instance_variable_names
+      variables -= protected_instance_variables if respond_to?(:protected_instance_variables)
+      variables.each { |name| hash[name.to_s[1..-1]] = instance_variable_get(name) }
+      hash
+    end
 
     # Normalize options by converting render "foo" to render :action => "foo" and
     # render "foo/bar" to render :file => "foo/bar".

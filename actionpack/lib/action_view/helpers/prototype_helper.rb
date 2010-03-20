@@ -148,11 +148,9 @@ module ActionView
       class JavaScriptGenerator #:nodoc:
         def initialize(context, &block) #:nodoc:
           @context, @lines = context, []
-          @context.update_details(:formats => [:js, :html]) do
-            include_helpers_from_context
-            @context.with_output_buffer(@lines) do
-              @context.instance_exec(self, &block)
-            end
+          include_helpers_from_context
+          @context.with_output_buffer(@lines) do
+            @context.instance_exec(self, &block)
           end
         end
 

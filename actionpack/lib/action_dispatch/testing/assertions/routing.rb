@@ -153,16 +153,16 @@ module ActionDispatch
         #
         # TODO: Make this unnecessary
         if @controller
-          @controller.singleton_class.send(:include, @router.url_helpers)
-          @controller.class._helper_serial += 1
-          @controller.view_context.singleton_class.send(:include, @router.url_helpers)
+          @controller.singleton_class.send(:include, _router.url_helpers)
+          @controller.view_context_class = Class.new(@controller.view_context_class) do
+            include _router.url_helpers
+          end
         end
         yield @router
       ensure
         @router = old_routes
         if @controller
           @controller = old_controller
-          @controller.class._helper_serial += 1 if @controller
         end
       end
 

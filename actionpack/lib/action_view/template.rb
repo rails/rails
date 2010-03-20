@@ -1,7 +1,7 @@
 # encoding: utf-8
 # This is so that templates compiled in this file are UTF-8
-
-require 'set'
+require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/object/blank'
 
 module ActionView
   class Template
@@ -26,12 +26,8 @@ module ActionView
       @virtual_path = details[:virtual_path]
       @method_names = {}
 
-      format    = details[:format]
-      format  ||= handler.default_format.to_sym if handler.respond_to?(:default_format)
-      format  ||= :html
-
-      @formats  = [format.to_sym]
-      @formats << :html if @formats.first == :js
+      format   = details[:format] || :html
+      @formats = Array.wrap(format).map(&:to_sym)
     end
 
     def render(view, locals, &block)

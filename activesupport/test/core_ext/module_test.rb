@@ -141,6 +141,20 @@ class ModuleTest < Test::Unit::TestCase
     assert_equal 0.0, nil_project.to_f
   end
 
+  def test_delegation_does_not_raise_error_when_removing_singleton_instance_methods
+    parent = Class.new do
+      def self.parent_method; end
+    end
+
+    assert_nothing_raised do
+      child = Class.new(parent) do
+        class << self
+          delegate :parent_method, :to => :superclass
+        end
+      end
+    end
+  end
+
   def test_parent
     assert_equal Yz::Zy, Yz::Zy::Cd.parent
     assert_equal Yz, Yz::Zy.parent

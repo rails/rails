@@ -51,6 +51,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert !Topic.find(2).approved?, "Second should have been unapproved"
   ensure
     class << Topic.connection
+      remove_method :commit_db_transaction
       alias :commit_db_transaction :real_commit_db_transaction rescue nil
     end
   end
@@ -382,28 +383,53 @@ class TransactionTest < ActiveRecord::TestCase
 
   private
     def add_exception_raising_after_save_callback_to_topic
-      Topic.class_eval "def after_save_for_transaction; raise 'Make the transaction rollback' end"
+      Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
+        remove_method(:after_save_for_transaction)
+        def after_save_for_transaction
+          raise 'Make the transaction rollback'
+        end
+      eoruby
     end
 
     def remove_exception_raising_after_save_callback_to_topic
-      Topic.class_eval "def after_save_for_transaction; end"
+      Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
+        remove_method :after_save_for_transaction
+        def after_save_for_transaction; end
+      eoruby
     end
 
     def add_exception_raising_after_create_callback_to_topic
-      Topic.class_eval "def after_create_for_transaction; raise 'Make the transaction rollback' end"
+      Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
+        remove_method(:after_create_for_transaction)
+        def after_create_for_transaction
+          raise 'Make the transaction rollback'
+        end
+      eoruby
     end
 
     def remove_exception_raising_after_create_callback_to_topic
-      Topic.class_eval "def after_create_for_transaction; end"
+      Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
+        remove_method :after_create_for_transaction
+        def after_create_for_transaction; end
+      eoruby
     end
 
     %w(validation save destroy).each do |filter|
       define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do
-        Topic.class_eval "def before_#{filter}_for_transaction() Book.create; false end"
+        Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
+          remove_method :before_#{filter}_for_transaction
+          def before_#{filter}_for_transaction
+            Book.create
+            false
+          end
+        eoruby
       end
 
       define_method("remove_cancelling_before_#{filter}_with_db_side_effect_to_topic") do
-        Topic.class_eval "def before_#{filter}_for_transaction; end"
+        Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
+          remove_method :before_#{filter}_for_transaction
+          def before_#{filter}_for_transaction; end
+        eoruby
       end
     end
 end

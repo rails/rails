@@ -51,7 +51,7 @@ module ActionView
         if formats.size == 1
           _find_layout(layout)
         else
-          update_details(:formats => self.formats[0,1]){ _find_layout(layout) }
+          update_details(:formats => self.formats.first){ _find_layout(layout) }
         end
       rescue ActionView::MissingTemplate => e
         update_details(:formats => nil) do

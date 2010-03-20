@@ -1,6 +1,5 @@
 require "pathname"
 require "active_support/core_ext/class"
-require "active_support/core_ext/array/wrap"
 require "action_view/template"
 
 module ActionView
@@ -57,7 +56,7 @@ module ActionView
 
     def find_templates(name, prefix, partial, details)
       path = build_path(name, prefix, partial, details)
-      query(path, EXTENSION_ORDER.map { |ext| details[ext] })
+      query(path, EXTENSION_ORDER.map { |ext| details[ext] }, details[:formats])
     end
 
     def build_path(name, prefix, partial, details)
@@ -67,7 +66,7 @@ module ActionView
       path
     end
 
-    def query(path, exts)
+    def query(path, exts, formats)
       query = File.join(@path, path)
 
       exts.each do |ext|
@@ -75,18 +74,24 @@ module ActionView
       end
 
       Dir[query].reject { |p| File.directory?(p) }.map do |p|
-        handler, format = extract_handler_and_format(p)
+        handler, format = extract_handler_and_format(p, formats)
         Template.new(File.read(p), File.expand_path(p), handler,
           :virtual_path => path, :format => format)
       end
     end
 
-    def extract_handler_and_format(path)
+    # Extract handler and formats from path. If a format cannot be a found neither
+    # from the path, or the handler, we should return the array of formats given
+    # to the resolver.
+    def extract_handler_and_format(path, default_formats)
       pieces = File.basename(path).split(".")
       pieces.shift
 
-      handler = Template.handler_class_for_extension(pieces.pop)
-      format  = pieces.last && Mime[pieces.last] && pieces.pop.to_sym
+      handler  = Template.handler_class_for_extension(pieces.pop)
+      format   = pieces.last && Mime[pieces.last] && pieces.pop.to_sym
+      format ||= handler.default_format if handler.respond_to?(:default_format)
+      format ||= default_formats
+
       [handler, format]
     end
   end

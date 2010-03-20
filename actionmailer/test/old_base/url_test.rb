@@ -26,14 +26,6 @@ class UrlTestMailer < ActionMailer::Base
     @recipient   = recipient
     @welcome_url = url_for :host => "example.com", :controller => "welcome", :action => "greeting"
   end
-
-  class <<self
-    attr_accessor :received_body
-  end
-
-  def receive(mail)
-    self.class.received_body = mail.body
-  end
 end
 
 class ActionMailerUrlTest < Test::Unit::TestCase

@@ -34,25 +34,6 @@ module ActionController #:nodoc:
         ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)
       end
 
-      def fragment_for(name = {}, options = nil, &block) #:nodoc:
-        if perform_caching
-          if fragment_exist?(name, options)
-            read_fragment(name, options)
-          else
-            # VIEW TODO: Make #capture usable outside of ERB
-            # This dance is needed because Builder can't use capture
-            buffer = view_context.output_buffer
-            pos = buffer.length
-            yield
-            fragment = buffer.slice!(pos..-1)
-            write_fragment(name, fragment, options)
-          end
-        else
-          ret = yield
-          ActiveSupport::SafeBuffer.new(ret) if ret.is_a?(String)
-        end
-      end
-
       # Writes <tt>content</tt> to the location signified by <tt>key</tt> (see <tt>expire_fragment</tt> for acceptable formats)
       def write_fragment(key, content, options = nil)
         return content unless cache_configured?

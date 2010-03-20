@@ -1,3 +1,5 @@
+require 'abstract_unit'
+
 class SetterTrap < ActiveSupport::BasicObject
   class << self
     def rollback_sets(obj)

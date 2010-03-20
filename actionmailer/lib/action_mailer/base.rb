@@ -605,6 +605,8 @@ module ActionMailer #:nodoc:
         templates_name = headers.delete(:template_name) || action_name
 
         each_template(templates_path, templates_name) do |template|
+          self.formats = template.formats
+
           responses << {
             :body => render(:template => template),
             :content_type => template.mime_type.to_s

@@ -258,6 +258,7 @@ module ActionDispatch
             # Yes plz - JP
             included do
               routes.install_helpers(self)
+              singleton_class.send(:define_method, :_router) { routes }
             end
 
             define_method(:_router) { routes }

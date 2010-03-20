@@ -6,6 +6,7 @@ module ActiveRecord
       (ActiveRecord::Relation::ASSOCIATION_METHODS + ActiveRecord::Relation::MULTI_VALUE_METHODS).each do |query_method|
         attr_accessor :"#{query_method}_values"
 
+        next if [:where, :having].include?(query_method)
         class_eval <<-CEVAL
           def #{query_method}(*args)
             new_relation = clone

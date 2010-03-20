@@ -5,15 +5,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments %w(product_line title:string price:integer)
 
-  def setup
-    super
-    routes = Rails::Generators::ResourceGenerator.source_root
-    routes = File.join(routes, "..", "..", "app", "templates", "config", "routes.rb")
-    destination = File.join(destination_root, "config")
-
-    FileUtils.mkdir_p(destination)
-    FileUtils.cp File.expand_path(routes), destination
-  end
+  setup :copy_routes
 
   def test_scaffold_on_invoke
     run_generator

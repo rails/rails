@@ -1,4 +1,5 @@
 require 'active_support/inflector'
+require 'active_support/core_ext/time/conversions'
 
 class DateTime
   # Ruby 1.9 has DateTime#to_time which internally relies on Time. We define our own #to_time which allows

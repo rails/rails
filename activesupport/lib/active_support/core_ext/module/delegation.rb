@@ -1,3 +1,5 @@
+require "active_support/core_ext/module/remove_method"
+
 class Module
   # Provides a delegate class method to easily expose contained objects' methods
   # as your own. Pass one or more methods (specified as symbols or strings)
@@ -121,7 +123,7 @@ class Module
 
       module_eval(<<-EOS, file, line)
         if instance_methods(false).map(&:to_s).include?("#{prefix}#{method}")
-          remove_method("#{prefix}#{method}")
+          remove_possible_method("#{prefix}#{method}")
         end
 
         def #{prefix}#{method}(*args, &block)               # def customer_name(*args, &block)

@@ -6,16 +6,10 @@ module AbstractController
 
     include Rendering
 
-    def self.next_serial
-      @helper_serial ||= 0
-      @helper_serial += 1
-    end
-
     included do
-      class_attribute :_helpers, :_helper_serial
+      class_attribute :_helpers
       delegate :_helpers, :to => :'self.class'
       self._helpers = Module.new
-      self._helper_serial = ::AbstractController::Helpers.next_serial
     end
 
     module ClassMethods
@@ -95,8 +89,6 @@ module AbstractController
       #   helper(:three, BlindHelper) { def mice() 'mice' end }
       #
       def helper(*args, &block)
-        self._helper_serial = AbstractController::Helpers.next_serial + 1
-
         modules_for_helpers(args).each do |mod|
           add_template_helper(mod)
         end

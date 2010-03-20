@@ -52,7 +52,9 @@ module ActionController
       ac.stylesheets_dir = paths.public.stylesheets.to_a.first
       ac.secret          = app.config.cookie_secret
 
-      ActionController.base_hook { self.config.replace(ac) }
+      ActionController.base_hook do
+        self.config.merge!(ac)
+      end
     end
 
     initializer "action_controller.initialize_framework_caches" do

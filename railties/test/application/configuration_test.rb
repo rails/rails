@@ -228,5 +228,32 @@ module ApplicationTests
       get "/"
       assert_equal File.expand_path(__FILE__), last_response.headers["X-Lighttpd-Send-File"]
     end
+
+    test "protect from forgery is the default in a new app" do
+      require "rails"
+      require "action_controller/railtie"
+
+      class MyApp < Rails::Application
+        config.session_store :disabled
+
+        routes.draw do
+          match "/" => "omg#index"
+        end
+
+        class ::OmgController < ActionController::Base
+          protect_from_forgery
+
+          def index
+            render :inline => "<%= csrf_meta_tag %>"
+          end
+        end
+      end
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get "/"
+      assert last_response.body =~ /csrf\-param/
+    end
   end
 end

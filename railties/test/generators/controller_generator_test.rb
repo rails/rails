@@ -5,6 +5,8 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments %w(Account foo bar)
 
+  setup :copy_routes
+
   def test_help_does_not_show_invoked_generators_options_if_they_already_exist
     content = run_generator ["--help"]
     assert_no_match /Helper options\:/, content
@@ -23,8 +25,6 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     Object.send :remove_const, :ObjectController
   end
 
-  # No need to spec content since it's already spec'ed on helper generator.
-  #
   def test_invokes_helper
     run_generator
     assert_file "app/helpers/account_helper.rb"
@@ -51,6 +51,11 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "app/views/account/foo.html.erb", /app\/views\/account\/foo/
     assert_file "app/views/account/bar.html.erb", /app\/views\/account\/bar/
+  end
+
+  def test_add_routes
+    run_generator
+    assert_file "config/routes.rb", /get "\/account\/foo" => "account#foo"/, /get "\/account\/bar" => "account#bar"/
   end
 
   def test_invokes_default_template_engine_even_with_no_action

@@ -1,6 +1,26 @@
 require "active_support/core_ext/enumerable"
 
 module ActionView
+  class ActionViewError < StandardError #:nodoc:
+  end
+
+  class MissingTemplate < ActionViewError #:nodoc:
+    attr_reader :path
+
+    def initialize(paths, path, details, partial)
+      @path = path
+      display_paths = paths.compact.map{ |p| p.to_s.inspect }.join(", ")
+      template_type = if partial
+        "partial"
+      elsif path =~ /layouts/i
+        'layout'
+      else
+        'template'
+      end
+
+      super("Missing #{template_type} #{path} with #{details.inspect} in view paths #{display_paths}")
+    end
+  end
   class Template
     # The Template::Error exception is raised when the compilation of the template fails. This exception then gathers a
     # bunch of intimate details and uses it to report a very precise exception message.
@@ -73,11 +93,11 @@ module ActionView
       end
 
       def to_s
-        "\n#{self.class} (#{message}) #{source_location}:\n" + 
+        "\n#{self.class} (#{message}) #{source_location}:\n" +
         "#{source_extract}\n    #{clean_backtrace.join("\n    ")}\n\n"
       end
 
-      # don't do anything nontrivial here. Any raised exception from here becomes fatal 
+      # don't do anything nontrivial here. Any raised exception from here becomes fatal
       # (and can't be rescued).
       def backtrace
         @backtrace
