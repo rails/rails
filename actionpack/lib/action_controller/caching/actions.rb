@@ -92,6 +92,8 @@ module ActionController #:nodoc:
         return unless caching_allowed?
 
         content = response_body
+        content = content.join if content.is_a?(Array)
+
         write_fragment(name, content, options)
       end
 
