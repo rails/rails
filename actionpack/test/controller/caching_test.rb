@@ -285,6 +285,8 @@ class ActionCacheTest < ActionController::TestCase
     assert_not_equal cached_time, @response.body
   end
 
+  include RackTestUtils
+
   def test_action_cache_with_layout
     get :with_layout
     cached_time = content_to_cache
@@ -294,8 +296,8 @@ class ActionCacheTest < ActionController::TestCase
 
     get :with_layout
     assert_not_equal cached_time, @response.body
-
-    assert_equal @response.body, read_fragment('hostname.com/action_caching_test/with_layout')
+    body = body_to_string(read_fragment('hostname.com/action_caching_test/with_layout'))
+    assert_equal @response.body, body
   end
 
   def test_action_cache_with_layout_and_layout_cache_false
@@ -308,7 +310,8 @@ class ActionCacheTest < ActionController::TestCase
     get :layout_false
     assert_not_equal cached_time, @response.body
 
-    assert_equal cached_time, read_fragment('hostname.com/action_caching_test/layout_false')
+    body = body_to_string(read_fragment('hostname.com/action_caching_test/layout_false'))
+    assert_equal cached_time, body
   end
 
   def test_action_cache_conditional_options
