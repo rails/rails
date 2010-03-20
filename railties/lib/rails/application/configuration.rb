@@ -78,7 +78,7 @@ module Rails
       end
 
       def builtin_controller
-        File.join(RAILTIES_PATH, "builtin", "rails_info") if Rails.env.development?
+        File.expand_path('../info_routes', __FILE__) if Rails.env.development?
       end
 
       def log_level
