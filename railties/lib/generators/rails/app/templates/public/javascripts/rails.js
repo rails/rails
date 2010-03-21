@@ -15,8 +15,7 @@ document.observe("dom:loaded", function() {
       params = element.serialize(true);
     } else {
       method = element.readAttribute('data-method') || 'get';
-      // TODO: data-url support is going away, just use href
-      url    = element.readAttribute('data-url') || element.readAttribute('href');
+      url    = element.readAttribute('href');
       params = {};
     }
 

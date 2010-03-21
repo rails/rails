@@ -1,5 +1,4 @@
 require 'fileutils'
-require 'rails/railties_path'
 require 'rails/plugin'
 require 'rails/engine'
 

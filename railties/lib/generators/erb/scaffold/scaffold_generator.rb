@@ -15,39 +15,27 @@ module Erb
         empty_directory File.join("app/views", controller_file_path)
       end
 
-      def copy_index_file
-        return if options[:singleton]
-        copy_view :index
-      end
+      def copy_view_files
+        views = available_views
+        views.delete("index") if options[:singleton]
 
-      def copy_edit_file
-        copy_view :edit
-      end
-
-      def copy_show_file
-        copy_view :show
-      end
-
-      def copy_new_file
-        copy_view :new
-      end
-
-      def copy_form_file
-        copy_view :_form
+        views.each do |view|
+          filename = filename_with_extensions(view)
+          template filename, File.join("app/views", controller_file_path, filename)
+        end
       end
 
       def copy_layout_file
         return unless options[:layout]
-        template "layout.html.erb",
-                 File.join("app/views/layouts", controller_class_path, "#{controller_file_name}.html.erb")
+        template filename_with_extensions(:layout),
+          File.join("app/views/layouts", controller_class_path, filename_with_extensions(controller_file_name))
       end
 
-      protected
+    protected
 
-        def copy_view(view)
-          template "#{view}.html.erb", File.join("app/views", controller_file_path, "#{view}.html.erb")
-        end
-
+      def available_views
+        %w(index edit show new _form)
+      end
     end
   end
 end

@@ -29,19 +29,19 @@ class MailerGeneratorTest < Rails::Generators::TestCase
   def test_invokes_default_test_framework
     run_generator
     assert_file "test/functional/notifier_test.rb", /class NotifierTest < ActionMailer::TestCase/
-    assert_file "test/fixtures/notifier/foo", /app\/views\/notifier\/foo/
-    assert_file "test/fixtures/notifier/bar", /app\/views\/notifier\/bar/
+    assert_file "test/fixtures/notifier/foo", /app\/views\/notifier\/foo$/
+    assert_file "test/fixtures/notifier/bar", /app\/views\/notifier\/bar$/
   end
 
   def test_invokes_default_template_engine
     run_generator
     assert_file "app/views/notifier/foo.text.erb" do |view|
-      assert_match /app\/views\/notifier\/foo/, view
+      assert_match /app\/views\/notifier\/foo$/, view
       assert_match /<%= @greeting %>/, view
     end
 
     assert_file "app/views/notifier/bar.text.erb" do |view|
-      assert_match /app\/views\/notifier\/bar/, view
+      assert_match /app\/views\/notifier\/bar$/, view
       assert_match /<%= @greeting %>/, view
     end
   end
