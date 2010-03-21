@@ -49,8 +49,8 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_template_engine
     run_generator
-    assert_file "app/views/account/foo.html.erb", /app\/views\/account\/foo/
-    assert_file "app/views/account/bar.html.erb", /app\/views\/account\/bar/
+    assert_file "app/views/account/foo.html.erb", %r(app/views/account/foo\.html\.erb)
+    assert_file "app/views/account/bar.html.erb", %r(app/views/account/bar\.html\.erb)
   end
 
   def test_add_routes

@@ -10,8 +10,9 @@ module Erb
         empty_directory base_path
 
         actions.each do |action|
-          @action, @path = action, File.join(base_path, action)
-          template filename_with_extensions(:view), filename_with_extensions(@path)
+          @action = action
+          @path = filename_with_extensions(File.join(base_path, action))
+          template filename_with_extensions(:view), @path
         end
       end
     end
