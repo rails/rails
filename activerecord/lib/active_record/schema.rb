@@ -46,10 +46,12 @@ module ActiveRecord
     #     ...
     #   end
     def self.define(info={}, &block)
+      Base.connection.drop_table(ActiveRecord::Migrator.schema_migrations_table_name)
+      initialize_schema_migrations_table
+
       schema = new
       schema.instance_eval(&block)
 
-      initialize_schema_migrations_table
       assume_migrated_upto_version(info[:version], schema.migrations_path) unless info[:version].blank?
     end
 

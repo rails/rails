@@ -35,12 +35,9 @@ module ActiveRecord
       def initialize(connection)
         @connection = connection
         @types = @connection.native_database_types
-        @version = Migrator::current_version rescue nil
       end
 
       def header(stream)
-        define_params = @version ? ":version => #{@version}" : ""
-
         stream.puts <<HEADER
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
@@ -54,7 +51,7 @@ module ActiveRecord
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(#{define_params}) do
+ActiveRecord::Schema.define do
 
 HEADER
       end
@@ -66,10 +63,11 @@ HEADER
       def migrations(stream)
         rows = @connection.select_all("SELECT * FROM #{@connection.quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)}")
         rows.each do |migration|
-          line = %Q(migration "#{migration['version']}")
+          line = %Q(  migration "#{migration['version']}")
           line << %Q(, "#{migration['name']}") unless migration['name'].blank?
           stream.puts line
         end
+        stream.puts ""
       end
 
       def tables(stream)
