@@ -39,4 +39,27 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
   end
 
+  class ActiveRecordSchemaMigrationsTest < ActiveRecordSchemaTest
+    def setup
+      super
+      @sm_table = ActiveRecord::Migrator.schema_migrations_table_name
+      @connection.execute "DELETE FROM #{@connection.quote_table_name(@sm_table)}"
+    end
+
+    def test_migration_adds_row_to_migrations_table
+      ActiveRecord::Schema.migration("123001")
+      ActiveRecord::Schema.migration("123002", "add_magic_power_to_unicorns")
+      rows = @connection.select_all("SELECT * FROM #{@connection.quote_table_name(@sm_table)}")
+      assert_equal 2, rows.length
+
+      assert_equal "123001", rows[0]["version"]
+      assert_equal "", rows[0]["name"]
+      assert_match /^2\d\d\d-/, rows[0]["migrated_at"]
+
+      assert_equal "123002", rows[1]["version"]
+      assert_equal "add_magic_power_to_unicorns", rows[1]["name"]
+      assert_match /^2\d\d\d-/, rows[1]["migrated_at"]
+    end
+  end
+
 end

@@ -17,6 +17,21 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "schema_migrations"}, output
   end
 
+  def test_schema_dump_includes_migrations
+    conn = ActiveRecord::Base.connection
+    sm_table = ActiveRecord::Migrator.schema_migrations_table_name
+    conn.execute "DELETE FROM #{conn.quote_table_name(sm_table)}"
+    conn.remove_column "people", "last_name" rescue nil
+    conn.drop_table "reminders" rescue nil
+    conn.drop_table "people_reminders" rescue nil
+    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
+
+    output = standard_dump
+    assert_match %r{migration "1", "people_have_last_names"}, output
+    assert_match %r{migration "2", "we_need_reminders"}, output
+    assert_match %r{migration "3", "innocent_jointable"}, output
+  end
+
   def test_schema_dump_excludes_sqlite_sequence
     output = standard_dump
     assert_no_match %r{create_table "sqlite_sequence"}, output

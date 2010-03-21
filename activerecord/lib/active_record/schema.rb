@@ -49,10 +49,19 @@ module ActiveRecord
       schema = new
       schema.instance_eval(&block)
 
-      unless info[:version].blank?
-        initialize_schema_migrations_table
-        assume_migrated_upto_version(info[:version], schema.migrations_path)
-      end
+      initialize_schema_migrations_table
+      assume_migrated_upto_version(info[:version], schema.migrations_path) unless info[:version].blank?
+    end
+
+    def self.migration(version, name="", options={})
+      name, options = "", name if name.is_a?(Hash)
+
+      table = Arel::Table.new(ActiveRecord::Migrator.schema_migrations_table_name)
+      table.insert(
+        table["version"]     => version,
+        table["name"]        => name,
+        table["migrated_at"] => Time.now
+      )
     end
   end
 end

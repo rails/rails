@@ -701,6 +701,7 @@ module ActiveRecord
           @migrated_versions.push(target.version).sort!
           table.insert(
             table["version"]     => target.version.to_s,
+            table["name"]        => File.basename(target.filename,'.rb').gsub(/^\d+_/,''),
             table["migrated_at"] => Time.now
           )
         end

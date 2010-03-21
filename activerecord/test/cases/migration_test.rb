@@ -50,10 +50,10 @@ if ActiveRecord::Base.connection.supports_migrations?
       @conn.initialize_schema_migrations_table
 
       columns =  @conn.columns(ActiveRecord::Migrator.schema_migrations_table_name).collect(&:name)
-      %w[version migrated_at].each { |col| assert columns.include?(col) }
+      %w[version name migrated_at].each { |col| assert columns.include?(col) }
     end
 
-    def test_add_migrated_at_to_exisiting_schema_migrations
+    def test_add_name_and_migrated_at_to_exisiting_schema_migrations
       sm_table = ActiveRecord::Migrator.schema_migrations_table_name
       @conn.create_table(sm_table, :id => false) do |schema_migrations_table|
               schema_migrations_table.column :version, :string, :null => false
@@ -63,9 +63,9 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       @conn.initialize_schema_migrations_table
 
-      m_ats = @conn.select_values("SELECT migrated_at FROM #{@conn.quote_table_name(sm_table)}")
-      assert_equal 2, m_ats.length
-      assert_equal 2, m_ats.compact.length
+      rows = @conn.select_all("SELECT * FROM #{@conn.quote_table_name(sm_table)}")
+      assert rows[0].has_key?("name")
+      assert rows[0].has_key?("migrated_at")
     end
   end
 
@@ -1499,15 +1499,19 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.table_name_suffix = ""
     end
 
-    def test_migration_row_includes_timestamp
+    def test_migration_row_includes_name_and_timestamp
       conn = ActiveRecord::Base.connection
       sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
       ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
 
-      conn.select_all("SELECT * FROM #{conn.quote_table_name(sm_table)}").each do |row|
-        assert_match /^2\d\d\d-/, row["migrated_at"], "missing migrated_at"
+      rows = conn.select_all("SELECT * FROM #{conn.quote_table_name(sm_table)}")
+      rows.each do |row|
+        assert_match( /^2\d\d\d-/, row["migrated_at"], "missing migrated_at" )
       end
+      assert_equal "people_have_last_names",  rows[0]["name"]
+      assert_equal "we_need_reminders",       rows[1]["name"]
+      assert_equal "innocent_jointable",      rows[2]["name"]
     end
 
     def test_proper_table_name

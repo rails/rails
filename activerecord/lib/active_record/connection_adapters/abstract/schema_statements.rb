@@ -429,9 +429,13 @@ module ActiveRecord
             update "UPDATE #{quote_table_name(sm_table)} SET migrated_at = '#{quoted_date(Time.now)}' WHERE migrated_at IS NULL"
             change_column sm_table, :migrated_at, :datetime, :null => false
           end
+          unless cols.include?("name")
+            add_column sm_table, :name, :string, :null => false, :default => ""
+          end
         else
           create_table(sm_table, :id => false) do |schema_migrations_table|
             schema_migrations_table.column :version, :string, :null => false
+            schema_migrations_table.column :name, :string, :null => false, :default => ""
             schema_migrations_table.column :migrated_at, :datetime, :null => false
           end
           add_index sm_table, :version, :unique => true,
