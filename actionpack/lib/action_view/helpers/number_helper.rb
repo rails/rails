@@ -132,7 +132,7 @@ module ActionView
       # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +false+)
       # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
       # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to "").
-      # * <tt>:strip_unsignificant_zeros</tt>  - If +true+ removes unsignificant zeros after the decimal separator (defaults to +false+)
+      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator (defaults to +false+)
       #
       # ==== Examples
       #  number_to_percentage(100)                                        # => 100.000%
@@ -221,7 +221,7 @@ module ActionView
       # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +false+)
       # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
       # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to "").
-      # * <tt>:strip_unsignificant_zeros</tt>  - If +true+ removes unsignificant zeros after the decimal separator (defaults to +false+)
+      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator (defaults to +false+)
       #
       # ==== Examples
       #  number_with_precision(111.2345)                                            # => 111.235
@@ -231,7 +231,7 @@ module ActionView
       #  number_with_precision(111.2345, :significant => true)                      # => 111
       #  number_with_precision(111.2345, :precision => 1, :significant => true)     # => 100
       #  number_with_precision(13, :precision => 5, :significant => true)           # => 13.000
-      #  number_with_precision(13, :precision => 5, :significant => true, strip_unsignificant_zeros => true)
+      #  number_with_precision(13, :precision => 5, :significant => true, strip_insignificant_zeros => true)
       #  # => 13
       #  number_with_precision(389.32314, :precision => 4, :significant => true)    # => 389.3
       #  number_with_precision(1111.2345, :precision => 2, :separator => ',', :delimiter => '.')
@@ -269,7 +269,7 @@ module ActionView
         options = options.reverse_merge(defaults)  # Allow the user to unset default values: Eg.: :significant => false
         precision = options.delete :precision
         significant = options.delete :significant
-        strip_unsignificant_zeros = options.delete :strip_unsignificant_zeros
+        strip_insignificant_zeros = options.delete :strip_insignificant_zeros
 
         if significant and precision > 0
           digits = (Math.log10(number) + 1).floor
@@ -280,7 +280,7 @@ module ActionView
           rounded_number = BigDecimal.new((number * (10 ** precision)).to_s).round.to_f / 10 ** precision
         end
         formatted_number = number_with_delimiter("%01.#{precision}f" % rounded_number, options)
-        if strip_unsignificant_zeros
+        if strip_insignificant_zeros
           escaped_separator = Regexp.escape(options[:separator])
           formatted_number.sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, '').html_safe
         else
@@ -303,7 +303,7 @@ module ActionView
       # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +true+)
       # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
       # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to "").
-      # * <tt>:strip_unsignificant_zeros</tt>  - If +true+ removes unsignificant zeros after the decimal separator (defaults to +true+)
+      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator (defaults to +true+)
       # ==== Examples
       #  number_to_human_size(123)                                          # => 123 Bytes
       #  number_to_human_size(1234)                                         # => 1.21 KB
@@ -316,7 +316,7 @@ module ActionView
       #  number_to_human_size(1234567, :precision => 2, :separator => ',')  # => 1,2 MB
       #
       # Unsignificant zeros after the fractional separator are stripped out by default (set
-      # <tt>:strip_unsignificant_zeros</tt> to +false+ to change that):
+      # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
       #  number_to_human_size(1234567890123, :precision => 5)        # => "1.1229 TB"
       #  number_to_human_size(524288000, :precision=>5)              # => "500 MB"
       #
@@ -349,8 +349,8 @@ module ActionView
         end
 
         options = options.reverse_merge(defaults)
-        #for backwards compatibility with those that didn't add strip_unsignificant_zeros to their locale files
-        options[:strip_unsignificant_zeros] = true if not options.key?(:strip_unsignificant_zeros)
+        #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
+        options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
         storage_units_format = I18n.translate(:'number.human.storage_units.format', :locale => options[:locale], :raise => true)
 
@@ -389,7 +389,7 @@ module ActionView
       # * <tt>:significant</tt>  - If +true+, precision will be the # of significant_digits. If +false+, the # of fractional digits (defaults to +true+)
       # * <tt>:separator</tt>  - Sets the separator between the fractional and integer digits (defaults to ".").
       # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to "").
-      # * <tt>:strip_unsignificant_zeros</tt>  - If +true+ removes unsignificant zeros after the decimal separator (defaults to +true+)
+      # * <tt>:strip_insignificant_zeros</tt>  - If +true+ removes insignificant zeros after the decimal separator (defaults to +true+)
       # * <tt>:units</tt> - A Hash of unit quantifier names. Or a string containing an i18n scope where to find this hash. It might have the following keys:
       #   * *integers*: <tt>:unit</tt>, <tt>:ten</tt>, <tt>:hundred</tt>, <tt>:thousand</tt>,  <tt>:million</tt>,  <tt>:billion</tt>, <tt>:trillion</tt>, <tt>:quadrillion</tt>
       #   * *fractionals*: <tt>:deci</tt>, <tt>:centi</tt>, <tt>:mili</tt>, <tt>:micro</tt>, <tt>:nano</tt>, <tt>:pico</tt>, <tt>:femto</tt>
@@ -416,7 +416,7 @@ module ActionView
       #                           :significant => false)               # => "1,2 Million"
       #
       # Unsignificant zeros after the decimal separator are stripped out by default (set
-      # <tt>:strip_unsignificant_zeros</tt> to +false+ to change that):
+      # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
       #  number_to_human(12345012345, :significant_digits => 6)       # => "12.345 Billion"
       #  number_to_human(500000000, :precision=>5)                    # => "500 Million"
       #
@@ -465,8 +465,8 @@ module ActionView
         defaults = defaults.merge(human)
 
         options = options.reverse_merge(defaults)
-        #for backwards compatibility with those that didn't add strip_unsignificant_zeros to their locale files
-        options[:strip_unsignificant_zeros] = true if not options.key?(:strip_unsignificant_zeros)
+        #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
+        options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
         units = options.delete :units
         unit_exponents = case units

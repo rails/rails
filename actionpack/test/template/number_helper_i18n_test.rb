@@ -6,13 +6,13 @@ class NumberHelperTest < ActionView::TestCase
   def setup
     I18n.backend.store_translations 'ts',
       :number => {
-        :format => { :precision => 3, :delimiter => ',', :separator => '.', :significant => false, :strip_unsignificant_zeros => false },
+        :format => { :precision => 3, :delimiter => ',', :separator => '.', :significant => false, :strip_insignificant_zeros => false },
         :currency => { :format => { :unit => '&$', :format => '%u - %n', :precision => 2 } },
         :human => {
           :format => {
             :precision => 2,
             :significant => true,
-            :strip_unsignificant_zeros => true
+            :strip_insignificant_zeros => true
           },
           :storage_units => {
             :format => "%n %u",
@@ -35,7 +35,7 @@ class NumberHelperTest < ActionView::TestCase
             }
           }
         },
-        :percentage => { :format => {:delimiter => '', :precision => 2, :strip_unsignificant_zeros => true} },
+        :percentage => { :format => {:delimiter => '', :precision => 2, :strip_insignificant_zeros => true} },
         :precision => { :format => {:delimiter => '', :significant => true} }
       },
       :custom_units_for_number_to_human => {:mili => "mm", :centi => "cm", :deci => "dm", :unit => "m", :ten => "dam", :hundred => "hm", :thousand => "km"}
@@ -60,7 +60,7 @@ class NumberHelperTest < ActionView::TestCase
   end
 
   def test_number_to_percentage
-    # to see if strip_unsignificant_zeros is true
+    # to see if strip_insignificant_zeros is true
     assert_equal("1%", number_to_percentage(1, :locale => 'ts'))
     # precision is 2, significant should be inherited
     assert_equal("1.24%", number_to_percentage(1.2434, :locale => 'ts'))

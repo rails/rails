@@ -58,7 +58,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("302.06%", number_to_percentage(302.0574, {:precision => 2}))
     assert_equal("100.000%", number_to_percentage("100"))
     assert_equal("1000.000%", number_to_percentage("1000"))
-    assert_equal("123.4%", number_to_percentage(123.400, :precision => 3, :strip_unsignificant_zeros => true))
+    assert_equal("123.4%", number_to_percentage(123.400, :precision => 3, :strip_insignificant_zeros => true))
     assert_equal("1.000,000%", number_to_percentage(1000, :delimiter => '.', :separator => ','))
   end
 
@@ -124,9 +124,9 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "5.392900", number_with_precision(5.3929, :precision => 7, :significant => true )
   end
 
-  def test_number_with_precision_with_strip_unsignificant_zeros
-    assert_equal "9775.43", number_with_precision(9775.43, :precision => 4, :strip_unsignificant_zeros => true )
-    assert_equal "9775.2", number_with_precision(9775.2, :precision => 6, :significant => true, :strip_unsignificant_zeros => true )
+  def test_number_with_precision_with_strip_insignificant_zeros
+    assert_equal "9775.43", number_with_precision(9775.43, :precision => 4, :strip_insignificant_zeros => true )
+    assert_equal "9775.2", number_with_precision(9775.2, :precision => 6, :significant => true, :strip_insignificant_zeros => true )
   end
 
   def test_number_with_precision_with_significant_true_and_zero_precision
@@ -181,7 +181,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '500 MB', number_to_human_size(524288000, :precision=>3)
     assert_equal '40 KB', number_to_human_size(41010, :precision => 1)
     assert_equal '40 KB', number_to_human_size(41100, :precision => 2)
-    assert_equal '1.0 KB',   number_to_human_size(kilobytes(1.0123), :precision => 2, :strip_unsignificant_zeros => false)
+    assert_equal '1.0 KB',   number_to_human_size(kilobytes(1.0123), :precision => 2, :strip_insignificant_zeros => false)
     assert_equal '1.012 KB',   number_to_human_size(kilobytes(1.0123), :precision => 3, :significant => false)
     assert_equal '1 KB',   number_to_human_size(kilobytes(1.0123), :precision => 0, :significant => true) #ignores significant it precision is 0
   end
@@ -212,7 +212,7 @@ class NumberHelperTest < ActionView::TestCase
      assert_equal '490 Thousand', number_to_human(489939, :precision => 2)
      assert_equal '489.9 Thousand', number_to_human(489939, :precision => 4)
      assert_equal '489 Thousand', number_to_human(489000, :precision => 4)
-     assert_equal '489.0 Thousand', number_to_human(489000, :precision => 4, :strip_unsignificant_zeros => false)
+     assert_equal '489.0 Thousand', number_to_human(489000, :precision => 4, :strip_insignificant_zeros => false)
      assert_equal '1.2346 Million', number_to_human(1234567, :precision => 4, :significant => false)
      assert_equal '1,2 Million', number_to_human(1234567, :precision => 1, :significant => false, :separator => ',')
      assert_equal '1 Million', number_to_human(1234567, :precision => 0, :significant => true, :separator => ',') #significant forced to false
@@ -289,8 +289,8 @@ class NumberHelperTest < ActionView::TestCase
     assert !number_to_human_size("<script></script>").html_safe?
     assert number_to_human_size("asdf".html_safe).html_safe?
 
-    assert number_with_precision(1, :strip_unsignificant_zeros => false).html_safe?
-    assert number_with_precision(1, :strip_unsignificant_zeros => true).html_safe?
+    assert number_with_precision(1, :strip_insignificant_zeros => false).html_safe?
+    assert number_with_precision(1, :strip_insignificant_zeros => true).html_safe?
     assert !number_with_precision("<script></script>").html_safe?
     assert number_with_precision("asdf".html_safe).html_safe?
 
