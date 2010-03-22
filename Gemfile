@@ -19,6 +19,8 @@ group :test do
   gem "mysql", ">= 2.8.1"
 end
 
+gem "system_timer"
+
 # AP
 gem "rack-test", "0.5.3", :require => 'rack/test'
 gem "RedCloth", ">= 4.2.2"
