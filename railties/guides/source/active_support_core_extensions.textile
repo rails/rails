@@ -799,6 +799,25 @@ end
 
 NOTE: Defined in +active_support/core_ext/module/delegation.rb+.
 
+h4. Method Removal
+
+h5. +remove_possible_method+
+
+The method +remove_possible_method+ is like the standard +remove_method+, except it silently returns on failure:
+
+<ruby>
+class A; end
+
+A.class_eval do
+  remove_method(:nonexistent)          # raises NameError
+  remove_possible_method(:nonexistent) # no problem, continue
+end
+</ruby>
+
+This may come in handy if you need to define a method that may already exist, since redefining a method issues a warning "method redefined; discarding old redefined_method_name".
+
+NOTE: Defined in +active_support/core_ext/module/remove_method.rb+.
+
 h4. Parents
 
 h5. +parent+
