@@ -14,7 +14,7 @@ end
 # AR
 gem "sqlite3-ruby", ">= 1.2.5", :require => 'sqlite3'
 
-group :test do
+group :db do
   gem "pg", ">= 0.9.0"
   gem "mysql", ">= 2.8.1"
 end
