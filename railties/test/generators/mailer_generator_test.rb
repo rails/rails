@@ -28,9 +28,11 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/functional/notifier_test.rb", /class NotifierTest < ActionMailer::TestCase/
-    assert_file "test/fixtures/notifier/foo", /app\/views\/notifier\/foo$/
-    assert_file "test/fixtures/notifier/bar", /app\/views\/notifier\/bar$/
+    assert_file "test/functional/notifier_test.rb" do |test|
+      assert_match /class NotifierTest < ActionMailer::TestCase/, test
+      assert_match /test "foo"/, test
+      assert_match /test "bar"/, test
+    end
   end
 
   def test_invokes_default_template_engine

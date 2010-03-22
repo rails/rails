@@ -9,13 +9,6 @@ module TestUnit
       def create_test_files
         template "functional_test.rb", File.join('test/functional', class_path, "#{file_name}_test.rb")
       end
-
-      def create_fixtures_files
-        actions.each do |action|
-          @action, @path = action, File.join(file_path, action)
-          template "fixture", File.join("test/fixtures", @path)
-        end
-      end
     end
   end
 end

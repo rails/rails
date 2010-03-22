@@ -11,7 +11,7 @@ module Erb
 
         actions.each do |action|
           @action = action
-          @path = filename_with_extensions(File.join(base_path, action))
+          @path = File.join(base_path, filename_with_extensions(action))
           template filename_with_extensions(:view), @path
         end
       end
