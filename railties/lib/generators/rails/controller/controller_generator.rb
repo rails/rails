@@ -10,7 +10,7 @@ module Rails
 
       def add_routes
         actions.reverse.each do |action|
-          route %{get "/#{file_name}/#{action}" => "#{file_name}##{action}"}
+          route %{get "#{file_name}/#{action}"}
         end
       end
 

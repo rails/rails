@@ -55,7 +55,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_add_routes
     run_generator
-    assert_file "config/routes.rb", /get "\/account\/foo" => "account#foo"/, /get "\/account\/bar" => "account#bar"/
+    assert_file "config/routes.rb", /get "account\/foo"/, /get "account\/bar"/
   end
 
   def test_invokes_default_template_engine_even_with_no_action
