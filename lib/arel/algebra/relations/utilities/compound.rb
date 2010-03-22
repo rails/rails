@@ -6,6 +6,7 @@ module Arel
              :to => :relation
 
     def self.requires(feature = nil)
+      @requires ||= nil
       @requires = feature if feature
       @requires
     end
