@@ -1,5 +1,5 @@
 module Arel
-  class Join < Relation
+  class Join
     def table_sql(formatter = Sql::TableReference.new(self))
       relation1.externalize.table_sql(formatter)
     end

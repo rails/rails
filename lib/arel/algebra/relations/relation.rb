@@ -1,5 +1,5 @@
 module Arel
-  class Relation
+  module Relation
     attr_reader :count
 
     def session

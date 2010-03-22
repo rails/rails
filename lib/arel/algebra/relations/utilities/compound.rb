@@ -1,5 +1,7 @@
 module Arel
-  class Compound < Relation
+  class Compound
+    include Relation
+
     attr_reader :relation
     delegate :joins, :join?, :inserts, :taken, :skipped, :name, :externalizable?,
              :column_for, :engine, :sources, :locked, :table_alias,

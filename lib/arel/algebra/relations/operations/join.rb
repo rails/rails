@@ -1,5 +1,7 @@
 module Arel
-  class Join < Relation
+  class Join
+    include Relation
+
     attributes :relation1, :relation2, :predicates
     deriving :==
     delegate :name, :to => :relation1
@@ -60,7 +62,7 @@ module Arel
     end
   end
 
-  class Relation
+  module Relation
     def join?
       false
     end

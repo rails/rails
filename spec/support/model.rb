@@ -22,7 +22,9 @@ module Arel
     end
   end
 
-  class Model < Relation
+  class Model
+    include Relation
+
     attr_reader :engine, :attributes
 
     def self.build

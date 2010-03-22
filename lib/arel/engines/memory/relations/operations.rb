@@ -50,7 +50,7 @@ module Arel
     end
   end
 
-  class Join < Relation
+  class Join
     def eval
       result = []
       relation1.call.each do |row1|

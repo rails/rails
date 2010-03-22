@@ -1,7 +1,7 @@
 require 'singleton'
 
 module Arel
-  class Nil < Relation
-    include Singleton
+  class Nil
+    include Relation, Singleton
   end
 end

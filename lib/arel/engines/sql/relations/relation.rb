@@ -1,5 +1,5 @@
 module Arel
-  class Relation
+  module Relation
     @@connection_tables_primary_keys = {}
 
     def compiler

@@ -1,5 +1,5 @@
 module Arel
-  class Compound < Relation
+  class Compound
     delegate :table, :table_sql, :to => :relation
 
     def build_query(*parts)

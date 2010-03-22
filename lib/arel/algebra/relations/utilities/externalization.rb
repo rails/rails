@@ -12,7 +12,7 @@ module Arel
     end
   end
 
-  class Relation
+  module Relation
     def externalize
       @externalized ||= externalizable?? Externalization.new(self) : self
     end

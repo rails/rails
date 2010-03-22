@@ -1,6 +1,6 @@
 module Arel
-  class Table < Relation
-    include Recursion::BaseCase
+  class Table
+    include Relation, Recursion::BaseCase
 
     cattr_accessor :engine, :tables
     attr_reader :name, :engine, :table_alias, :options

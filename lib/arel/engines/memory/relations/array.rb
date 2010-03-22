@@ -1,5 +1,7 @@
 module Arel
-  class Array < Relation
+  class Array
+    include Relation
+
     attributes :array,  :attribute_names_and_types
     include Recursion::BaseCase
     deriving :==, :initialize

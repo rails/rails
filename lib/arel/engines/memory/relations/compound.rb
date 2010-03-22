@@ -1,5 +1,5 @@
 module Arel
-  class Compound < Relation
+  class Compound
     delegate :array, :to => :relation
 
     def unoperated_rows
