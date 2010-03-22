@@ -3,6 +3,7 @@ require 'active_support/core_ext/float/rounding'
 
 module ActionView
   module Helpers #:nodoc:
+
     # Provides methods for converting numbers into formatted strings.
     # Methods are provided for phone numbers, currency, percentage,
     # precision, positional notation, file size and pretty printing.
@@ -10,6 +11,16 @@ module ActionView
     # Most methods expect a +number+ argument, and will return it
     # unchanged if can't be converted into a valid number.
     module NumberHelper
+
+      # Raised when argument +number+ param given to the helpers is invalid and
+      # the option :raise is set to  +true+.
+      class InvalidNumberError < StandardError
+        attr_accessor :number
+        def initialize(number)
+          @number = number
+        end
+      end
+
       # Formats a +number+ into a US phone number (e.g., (555) 123-9876). You can customize the format
       # in the +options+ hash.
       #
@@ -33,6 +44,17 @@ module ActionView
       def number_to_phone(number, options = {})
         return nil if number.nil?
 
+        begin
+          Float(number)
+          is_number_html_safe = true
+        rescue ArgumentError, TypeError
+          if options[:raise]
+            raise InvalidNumberError, number
+          else
+            is_number_html_safe = number.to_s.html_safe?
+          end
+        end
+
         number       = number.to_s.strip
         options      = options.symbolize_keys
         area_code    = options[:area_code] || nil
@@ -49,7 +71,7 @@ module ActionView
           number.starts_with?('-') ? number.slice!(1..-1) : number
         end
         str << " x #{extension}" unless extension.blank?
-        str
+        is_number_html_safe ? str.html_safe : str
       end
 
       # Formats a +number+ into a currency string (e.g., $13.65). You can customize the format
@@ -75,6 +97,8 @@ module ActionView
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
       #  # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
+        return nil if number.nil?
+
         options.symbolize_keys!
 
         defaults  = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
@@ -86,13 +110,18 @@ module ActionView
         unit      = options.delete(:unit)
         format    = options.delete(:format)
 
-        value = number_with_precision(number, options)
-
-        if value
+        begin
+          value = number_with_precision(number, options.merge(:raise => true))
           format.gsub(/%n/, value).gsub(/%u/, unit).html_safe
-        else
-          number
+        rescue InvalidNumberError => e
+          if options[:raise]
+            raise
+          else
+            formatted_number = format.gsub(/%n/, e.number).gsub(/%u/, unit)
+            e.number.to_s.html_safe? ? formatted_number.html_safe : formatted_number
+          end
         end
+
       end
 
       # Formats a +number+ as a percentage string (e.g., 65%). You can customize the
@@ -111,6 +140,8 @@ module ActionView
       #  number_to_percentage(1000, :delimiter => '.', :separator => ',') # => 1.000,000%
       #  number_to_percentage(302.24398923423, :precision => 5)           # => 302.24399%
       def number_to_percentage(number, options = {})
+        return nil if number.nil?
+
         options.symbolize_keys!
 
         defaults   = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
@@ -119,8 +150,15 @@ module ActionView
 
         options = options.reverse_merge(defaults)
 
-        value = number_with_precision(number, options)
-        value ? value + "%" : number
+        begin
+          "#{number_with_precision(number, options.merge(:raise => true))}%".html_safe
+        rescue InvalidNumberError => e
+          if options[:raise]
+            raise
+          else
+            e.number.to_s.html_safe? ? "#{e.number}%".html_safe : "#{e.number}%"
+          end
+        end
       end
 
       # Formats a +number+ with grouped thousands using +delimiter+ (e.g., 12,324). You can
@@ -147,6 +185,16 @@ module ActionView
         options = args.extract_options!
         options.symbolize_keys!
 
+        begin
+          Float(number)
+        rescue ArgumentError, TypeError
+          if options[:raise]
+            raise InvalidNumberError, number
+          else
+            return number
+          end
+        end
+
         defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
 
         unless args.empty?
@@ -159,12 +207,8 @@ module ActionView
         options = options.reverse_merge(defaults)
 
         parts = number.to_s.split('.')
-        if parts[0]
-          parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
-          parts.join(options[:separator])
-        else
-          number
-        end
+        parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
+        parts.join(options[:separator]).html_safe
 
       end
 
@@ -197,14 +241,19 @@ module ActionView
       # +precision+ as its optional second parameter:
       #   number_with_precision(111.2345, 2)   # => 111.23
       def number_with_precision(number, *args)
-        number = begin
-          Float(number)
-        rescue ArgumentError, TypeError
-          return number
-        end
 
         options = args.extract_options!
         options.symbolize_keys!
+
+        number = begin
+          Float(number)
+        rescue ArgumentError, TypeError
+          if options[:raise]
+            raise InvalidNumberError, number
+          else
+            return number
+          end
+        end
 
         defaults           = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
         precision_defaults = I18n.translate(:'number.precision.format', :locale => options[:locale], :default => {})
@@ -233,7 +282,7 @@ module ActionView
         formatted_number = number_with_delimiter("%01.#{precision}f" % rounded_number, options)
         if strip_unsignificant_zeros
           escaped_separator = Regexp.escape(options[:separator])
-          formatted_number.sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, '')
+          formatted_number.sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, '').html_safe
         else
           formatted_number
         end
@@ -276,14 +325,18 @@ module ActionView
       #  number_to_human_size(1234567, 1)    # => 1 MB
       #  number_to_human_size(483989, 2)     # => 470 KB
       def number_to_human_size(number, *args)
+        options = args.extract_options!
+        options.symbolize_keys!
+
         number = begin
           Float(number)
         rescue ArgumentError, TypeError
-          return number
+          if options[:raise]
+            raise InvalidNumberError, number
+          else
+            return number
+          end
         end
-
-        options = args.extract_options!
-        options.symbolize_keys!
 
         defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
         human    = I18n.translate(:'number.human.format', :locale => options[:locale], :default => {})
@@ -303,7 +356,7 @@ module ActionView
 
         if number.to_i < 1024
           unit = I18n.translate(:'number.human.storage_units.units.byte', :locale => options[:locale], :count => number.to_i, :raise => true)
-          storage_units_format.gsub(/%n/, number.to_i.to_s).gsub(/%u/, unit)
+          storage_units_format.gsub(/%n/, number.to_i.to_s).gsub(/%u/, unit).html_safe
         else
           max_exp  = STORAGE_UNITS.size - 1
           exponent = (Math.log(number) / Math.log(1024)).to_i # Convert to base 1024
@@ -314,7 +367,7 @@ module ActionView
           unit = I18n.translate(:"number.human.storage_units.units.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
 
           formatted_number = number_with_precision(number, options)
-          storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit)
+          storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit).html_safe
         end
       end
 
@@ -395,13 +448,17 @@ module ActionView
       #  number_to_human(0.34, :units => :distance)                                # => "34 centimeters"
       #
       def number_to_human(number, options = {})
+        options.symbolize_keys!
+
         number = begin
           Float(number)
         rescue ArgumentError, TypeError
-          return number
+          if options[:raise]
+            raise InvalidNumberError, number
+          else
+            return number
+          end
         end
-
-        options.symbolize_keys!
 
         defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
         human    = I18n.translate(:'number.human.format', :locale => options[:locale], :default => {})
@@ -438,7 +495,7 @@ module ActionView
 
         decimal_format = options[:format] || I18n.translate(:'number.human.decimal_units.format', :locale => options[:locale], :default => "%n %u")
         formatted_number = number_with_precision(number, options)
-        decimal_format.gsub(/%n/, formatted_number).gsub(/%u/, unit).strip
+        decimal_format.gsub(/%n/, formatted_number).gsub(/%u/, unit).strip.html_safe
       end
 
     end

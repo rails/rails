@@ -40,8 +40,6 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("+18005551212", number_to_phone(8005551212, :country_code => 1, :delimiter => ''))
     assert_equal("22-555-1212", number_to_phone(225551212))
     assert_equal("+45-22-555-1212", number_to_phone(225551212, :country_code => 45))
-    assert_equal("x", number_to_phone("x"))
-    assert_nil number_to_phone(nil)
   end
 
   def test_number_to_currency
@@ -52,9 +50,6 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("&pound;1234567890,50", number_to_currency(1234567890.50, {:unit => "&pound;", :separator => ",", :delimiter => ""}))
     assert_equal("$1,234,567,890.50", number_to_currency("1234567890.50"))
     assert_equal("1,234,567,890.50 K&#269;", number_to_currency("1234567890.50", {:unit => "K&#269;", :format => "%n %u"}))
-    assert_equal("$x.", number_to_currency("x."))
-    assert_equal("$x", number_to_currency("x"))
-    assert_nil number_to_currency(nil)
   end
 
   def test_number_to_percentage
@@ -63,10 +58,8 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("302.06%", number_to_percentage(302.0574, {:precision => 2}))
     assert_equal("100.000%", number_to_percentage("100"))
     assert_equal("1000.000%", number_to_percentage("1000"))
-    assert_equal("x%", number_to_percentage("x"))
     assert_equal("123.4%", number_to_percentage(123.400, :precision => 3, :strip_unsignificant_zeros => true))
     assert_equal("1.000,000%", number_to_percentage(1000, :delimiter => '.', :separator => ','))
-    assert_nil number_to_percentage(nil)
   end
 
   def test_number_with_delimiter
@@ -80,8 +73,6 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("123,456,789.78901", number_with_delimiter(123456789.78901))
     assert_equal("0.78901", number_with_delimiter(0.78901))
     assert_equal("123,456.78", number_with_delimiter("123456.78"))
-    assert_equal("x", number_with_delimiter("x"))
-    assert_nil number_with_delimiter(nil)
   end
 
   def test_number_with_delimiter_with_options_hash
@@ -111,11 +102,6 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("3268", number_with_precision((32.6751 * 100.00), :precision => 0))
     assert_equal("112", number_with_precision(111.50, :precision => 0))
     assert_equal("1234567892", number_with_precision(1234567891.50, :precision => 0))
-
-    # Return non-numeric params unchanged.
-    assert_equal("x.", number_with_precision("x."))
-    assert_equal("x", number_with_precision("x"))
-    assert_nil number_with_precision(nil)
   end
 
   def test_number_with_precision_with_custom_delimiter_and_separator
@@ -183,10 +169,6 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '10 KB',   number_to_human_size(kilobytes(10.000), :precision => 4)
     assert_equal '1 Byte',   number_to_human_size(1.1)
     assert_equal '10 Bytes', number_to_human_size(10)
-
-    # Return non-numeric params unchanged.
-    assert_equal "x", number_to_human_size('x')
-    assert_nil number_to_human_size(nil)
   end
 
   def test_number_to_human_size_with_options_hash
@@ -234,10 +216,6 @@ class NumberHelperTest < ActionView::TestCase
      assert_equal '1.2346 Million', number_to_human(1234567, :precision => 4, :significant => false)
      assert_equal '1,2 Million', number_to_human(1234567, :precision => 1, :significant => false, :separator => ',')
      assert_equal '1 Million', number_to_human(1234567, :precision => 0, :significant => true, :separator => ',') #significant forced to false
-
-     # Return non-numeric params unchanged.
-     assert_equal "x", number_to_human('x')
-     assert_nil number_to_human(nil)
   end
 
   def test_number_to_human_with_custom_units
@@ -276,6 +254,127 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '123 times Thousand', number_to_human(123456, :format => "%n times %u")
     volume = {:unit => "ml", :thousand => "lt", :million => "m3"}
     assert_equal '123.lt', number_to_human(123456, :units => volume, :format => "%n.%u")
+  end
+
+  def test_number_helpers_should_return_nil_when_given_nil
+    assert_nil number_to_phone(nil)
+    assert_nil number_to_currency(nil)
+    assert_nil number_to_percentage(nil)
+    assert_nil number_with_delimiter(nil)
+    assert_nil number_with_precision(nil)
+    assert_nil number_to_human_size(nil)
+    assert_nil number_to_human(nil)
+  end
+
+  def test_number_helpers_should_return_non_numeric_param_unchanged
+    assert_equal("+1-x x 123", number_to_phone("x", :country_code => 1, :extension => 123))
+    assert_equal("x", number_to_phone("x"))
+    assert_equal("$x.", number_to_currency("x."))
+    assert_equal("$x", number_to_currency("x"))
+    assert_equal("x%", number_to_percentage("x"))
+    assert_equal("x", number_with_delimiter("x"))
+    assert_equal("x.", number_with_precision("x."))
+    assert_equal("x", number_with_precision("x"))
+    assert_equal "x", number_to_human_size('x')
+    assert_equal "x", number_to_human('x')
+  end
+
+  def test_number_helpers_outputs_are_html_safe
+    assert number_to_human(1).html_safe?
+    assert !number_to_human("<script></script>").html_safe?
+    assert number_to_human("asdf".html_safe).html_safe?
+
+    assert number_to_human_size(1).html_safe?
+    assert number_to_human_size(1000000).html_safe?
+    assert !number_to_human_size("<script></script>").html_safe?
+    assert number_to_human_size("asdf".html_safe).html_safe?
+
+    assert number_with_precision(1, :strip_unsignificant_zeros => false).html_safe?
+    assert number_with_precision(1, :strip_unsignificant_zeros => true).html_safe?
+    assert !number_with_precision("<script></script>").html_safe?
+    assert number_with_precision("asdf".html_safe).html_safe?
+
+    assert number_to_currency(1).html_safe?
+    assert !number_to_currency("<script></script>").html_safe?
+    assert number_to_currency("asdf".html_safe).html_safe?
+
+    assert number_to_percentage(1).html_safe?
+    assert !number_to_percentage("<script></script>").html_safe?
+    assert number_to_percentage("asdf".html_safe).html_safe?
+
+    assert number_to_phone(1).html_safe?
+    assert !number_to_phone("<script></script>").html_safe?
+    assert number_to_phone("asdf".html_safe).html_safe?
+
+    assert number_with_delimiter(1).html_safe?
+    assert !number_with_delimiter("<script></script>").html_safe?
+    assert number_with_delimiter("asdf".html_safe).html_safe?
+  end
+
+  def test_number_helpers_should_raise_error_if_invalid_when_specified
+    assert_raise InvalidNumberError do
+      number_to_human("x", :raise => true)
+    end
+    begin
+      number_to_human("x", :raise => true)
+    rescue InvalidNumberError => e
+      assert_equal "x", e.number
+    end
+
+    assert_raise InvalidNumberError do
+      number_to_human_size("x", :raise => true)
+    end
+    begin
+      number_to_human_size("x", :raise => true)
+    rescue InvalidNumberError => e
+      assert_equal "x", e.number
+    end
+
+    assert_raise InvalidNumberError do
+      number_with_precision("x", :raise => true)
+    end
+    begin
+      number_with_precision("x", :raise => true)
+    rescue InvalidNumberError => e
+      assert_equal "x", e.number
+    end
+
+    assert_raise InvalidNumberError do
+      number_to_currency("x", :raise => true)
+    end
+    begin
+      number_with_precision("x", :raise => true)
+    rescue InvalidNumberError => e
+      assert_equal "x", e.number
+    end
+
+    assert_raise InvalidNumberError do
+      number_to_percentage("x", :raise => true)
+    end
+    begin
+      number_to_percentage("x", :raise => true)
+    rescue InvalidNumberError => e
+      assert_equal "x", e.number
+    end
+
+    assert_raise InvalidNumberError do
+     number_with_delimiter("x", :raise => true)
+    end
+    begin
+      number_with_delimiter("x", :raise => true)
+    rescue InvalidNumberError => e
+      assert_equal "x", e.number
+    end
+
+    assert_raise InvalidNumberError do
+     number_to_phone("x", :raise => true)
+    end
+    begin
+      number_to_phone("x", :raise => true)
+    rescue InvalidNumberError => e
+      assert_equal "x", e.number
+    end
+
   end
 
 end
