@@ -94,6 +94,39 @@ module RailtiesTest
       assert rescued, "Expected boot rails to fail"
     end
 
+    test "loads lib/rails/initializers/foo.rb" do
+      @plugin.write "lib/rails/initializers/foo.rb", <<-RUBY
+        $loaded = true
+      RUBY
+
+      boot_rails
+      assert $loaded
+    end
+
+    test "loads vendored rails/initializers/foo thats already in the $LOAD_PATH" do
+      $: << "#{app_path}/vendor/foo/lib"
+
+      app_file "vendor/foo/lib/rails/initializers/foo.rb", <<-RUBY
+        $loaded = true
+      RUBY
+
+      boot_rails
+      assert $loaded
+    end
+
+    test "skips init.rb if initializer is present" do
+      @plugin.write "lib/rails/initializers/foo.rb", <<-RUBY
+        $loaded = true
+      RUBY
+
+      @plugin.write "init.rb", <<-RUBY
+        raise "b00m"
+      RUBY
+
+      boot_rails
+      assert $loaded
+    end
+
     test "loads deprecated rails/init.rb" do
       @plugin.write "rails/init.rb", <<-RUBY
         $loaded = true
