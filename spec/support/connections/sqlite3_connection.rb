@@ -2,7 +2,7 @@ puts "Using native SQLite3"
 require "active_record"
 require 'logger'
 
-ActiveRecord::Base.logger = Logger.new("debug.log")
+ENV['ADAPTER'] = 'sqlite3'
 
 db_file = "spec/support/fixtures/fixture_database.sqlite3"
 
@@ -22,5 +22,3 @@ unless File.exist?(db_file)
   puts "Executing '#{sqlite_command}'"
   raise "Seems that there is no sqlite3 executable available" unless system(sqlite_command)
 end
-
-ActiveRecord::Base.establish_connection("unit")

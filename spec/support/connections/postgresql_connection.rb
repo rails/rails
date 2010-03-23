@@ -2,7 +2,7 @@ puts "Using native PostgreSQL"
 require "active_record"
 require 'logger'
 
-ActiveRecord::Base.logger = Logger.new("debug.log")
+ENV['ADAPTER'] = 'postgresql'
 
 ActiveRecord::Base.configurations = {
   'unit' => {
@@ -11,5 +11,3 @@ ActiveRecord::Base.configurations = {
     :database => 'arel_unit',
   }
 }
-
-ActiveRecord::Base.establish_connection 'unit'

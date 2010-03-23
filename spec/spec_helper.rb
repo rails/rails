@@ -7,6 +7,10 @@ require 'pp'
 require 'fileutils'
 require 'arel'
 
+if adapter = ENV['ADAPTER']
+  require "support/connections/#{adapter}_connection.rb"
+end
+
 Dir["#{dir}/{support,shared}/*.rb"].each do |file|
   require file
 end
@@ -16,13 +20,17 @@ Spec::Runner.configure do |config|
   config.include AdapterGuards
   config.include Check
 
-  config.before do
-    Arel::Table.engine = Arel::Sql::Engine.new(ActiveRecord::Base) if defined?(ActiveRecord::Base)
-  end
-end
+  if defined?(ActiveRecord::Base)
+    tmp = File.expand_path('../../tmp', __FILE__)
 
-# load corresponding adapter using ADAPTER environment variable when running single *_spec.rb file
-if adapter = ENV['ADAPTER']
-  require "#{dir}/support/connections/#{adapter}_connection.rb"
-  require "#{dir}/support/schemas/#{adapter}_schema.rb"
+    FileUtils.mkdir_p(tmp)
+    ActiveRecord::Base.logger = Logger.new("#{tmp}/debug.log")
+    ActiveRecord::Base.establish_connection("unit")
+
+    require "support/schemas/#{ENV['ADAPTER']}_schema.rb"
+
+    config.before do
+      Arel::Table.engine = Arel::Sql::Engine.new(ActiveRecord::Base)
+    end
+  end
 end

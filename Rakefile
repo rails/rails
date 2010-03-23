@@ -27,18 +27,21 @@ else
   end
 
   namespace :spec do
-    for adapter in %w[mysql sqlite3 postgresql oracle]
-      desc "Run specs with the #{adapter} database adapter"
+    %w[mysql sqlite3 postgresql oracle].each do |adapter|
+      task "set_env_for_#{adapter}" do
+        ENV['ADAPTER'] = adapter
+      end
+
       Spec::Rake::SpecTask.new(adapter) do |t|
         t.spec_opts = ['--options', "\"#{File.dirname(__FILE__)}/spec/spec.opts\""]
         t.libs << "#{File.dirname(__FILE__)}/vendor/rails/activerecord/lib"
         t.libs << "#{File.dirname(__FILE__)}/spec"
         # t.warning = true
-        t.spec_files =
-          ["spec/support/connections/#{adapter}_connection.rb"] +
-          ["spec/support/schemas/#{adapter}_schema.rb"] +
-          FileList['spec/**/*_spec.rb']
+        t.spec_files = FileList['spec/**/*_spec.rb']
       end
+
+      desc "Run specs with the #{adapter} database adapter"
+      task adapter => "set_env_for_#{adapter}"
     end
   end
 

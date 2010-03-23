@@ -2,10 +2,10 @@ puts "Using native Oracle"
 require "active_record"
 require 'logger'
 
+ENV['ADAPTER'] = 'oracle'
+
 # Prepend oracle_enhanced local development directory in front of load path
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../../oracle-enhanced/lib"
-
-ActiveRecord::Base.logger = Logger.new("debug.log")
 
 ActiveRecord::Base.configurations = {
   'unit' => {
@@ -15,5 +15,3 @@ ActiveRecord::Base.configurations = {
     :database => 'orcl',
   }
 }
-
-ActiveRecord::Base.establish_connection 'unit'
