@@ -6,7 +6,7 @@ require 'active_support/core_ext/object/blank'
 module Arel
   require 'arel/algebra'
   require 'arel/engines'
-  autoload :Session, 'arel/session'
+  require 'arel/version'
 
-  VERSION = "0.3.1"
+  autoload :Session, 'arel/session'
 end
