@@ -9,6 +9,7 @@ module Arel
 
     describe '#initialize' do
       it "manufactures nested where relations if multiple predicates are provided" do
+        pending "This is not true anymore"
         another_predicate = @relation[:name].lt(2)
         Where.new(@relation, @predicate, another_predicate). \
           should == Where.new(Where.new(@relation, another_predicate), @predicate)

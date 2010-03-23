@@ -1,7 +1,7 @@
 module Arel
   class Where < Compound
     def eval
-      unoperated_rows.select { |row| predicate.eval(row) }
+      unoperated_rows.select { |row| predicates.all? { |p| p.eval(row) } }
     end
   end
 
