@@ -7,8 +7,11 @@ gem "rails", "3.0.0.beta1"
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
 
-if RUBY_VERSION < '1.9'
-  gem "ruby-debug", ">= 0.10.3"
+group :mri do
+  gem "system_timer"
+  if RUBY_VERSION < '1.9'
+    gem "ruby-debug", ">= 0.10.3"
+  end
 end
 
 # AR
@@ -18,8 +21,6 @@ group :db do
   gem "pg", ">= 0.9.0"
   gem "mysql", ">= 2.8.1"
 end
-
-gem "system_timer"
 
 # AP
 gem "rack-test", "0.5.3", :require => 'rack/test'
