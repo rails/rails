@@ -25,7 +25,7 @@ namespace :rails do
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
 
     require 'rails/generators'
-    require 'generators/rails/app/app_generator'
+    require 'rails/generators/rails/app/app_generator'
     generator = Rails::Generators::AppGenerator.new [ Rails.root ], {}, :destination_root => Rails.root
     generator.apply template, :verbose => false
   end
@@ -38,7 +38,7 @@ namespace :rails do
     def app_generator
       @app_generator ||= begin
         require 'rails/generators'
-        require 'generators/rails/app/app_generator'
+        require 'rails/generators/rails/app/app_generator'
         gen = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
                                                              :destination_root => Rails.root
         gen.send(:valid_app_const?)
