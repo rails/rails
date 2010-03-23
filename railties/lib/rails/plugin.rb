@@ -47,20 +47,13 @@ module Rails
     end
 
     initializer :load_init_rb, :before => :load_application_initializers do |app|
-      initializers = Dir["#{root}/lib/rails/initializers/*.rb"]
+      lib_initializers = paths.lib.rails.initializers.to_a
+      files = %w(rails/init.rb init.rb).map { |path| File.expand_path(path, root) }
 
-      if initializers.any?
-        initializers.each do |initializer|
-          config = app.config
-          eval(File.read(initializer), binding, initializer)
-        end
-      else
-        files = %w(rails/init.rb init.rb).map { |path| File.expand_path path, root }
-        if initrb = files.find { |path| File.file? path }
-          ActiveSupport::Deprecation.warn "init.rb is deprecated: #{initrb}. Use lib/rails/initializers/#{name}.rb"
-          config = app.config
-          eval(File.read(initrb), binding, initrb)
-        end
+      if lib_initializers.empty? && initrb = files.find { |path| File.file?(path) }
+        ActiveSupport::Deprecation.warn "init.rb is deprecated: #{initrb}. Use lib/rails/initializers/#{name}.rb"
+        config = app.config
+        eval(File.read(initrb), binding, initrb)
       end
     end
 

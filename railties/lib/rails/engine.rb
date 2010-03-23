@@ -109,6 +109,13 @@ module Rails
       config.generators.templates.unshift(*paths.lib.templates.to_a)
     end
 
+    initializer :load_lib_initializers do |app|
+      paths.lib.rails.initializers.to_a.sort.each do |initializer|
+        config = app.config
+        eval(File.read(initializer), binding, initializer)
+      end
+    end
+
     initializer :load_application_initializers do
       paths.config.initializers.to_a.sort.each do |initializer|
         load(initializer)

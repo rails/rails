@@ -297,6 +297,16 @@ YAML
       assert $plugin_initializer
     end
 
+    def test_rails_plugin_initializers
+      $plugin_initializer = false
+      @plugin.write "lib/rails/initializers/foo.rb", <<-RUBY
+        $plugin_initializer = true
+      RUBY
+
+      boot_rails
+      assert $plugin_initializer
+    end
+
     def test_plugin_midleware_referenced_in_configuration
       @plugin.write "lib/bukkits.rb", <<-RUBY
         class Bukkits

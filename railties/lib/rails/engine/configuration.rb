@@ -14,23 +14,25 @@ module Rails
       def paths
         @paths ||= begin
           paths = Rails::Paths::Root.new(@root)
-          paths.app                 "app",                 :eager_load => true, :glob => "*"
-          paths.app.controllers     "app/controllers",     :eager_load => true
-          paths.app.helpers         "app/helpers",         :eager_load => true
-          paths.app.models          "app/models",          :eager_load => true
-          paths.app.mailers         "app/mailers",         :eager_load => true
-          paths.app.metals          "app/metal",           :eager_load => true
-          paths.app.views           "app/views",           :eager_load => true
-          paths.lib                 "lib",                 :load_path => true
-          paths.lib.tasks           "lib/tasks",           :glob => "**/*.rake"
-          paths.lib.templates       "lib/templates"
-          paths.config              "config"
-          paths.config.initializers "config/initializers", :glob => "**/*.rb"
-          paths.config.locales      "config/locales",      :glob => "*.{rb,yml}"
-          paths.config.routes       "config/routes.rb"
-          paths.public              "public"
-          paths.public.javascripts  "public/javascripts"
-          paths.public.stylesheets  "public/stylesheets"
+          paths.app                    "app",                    :eager_load => true, :glob => "*"
+          paths.app.controllers        "app/controllers",        :eager_load => true
+          paths.app.helpers            "app/helpers",            :eager_load => true
+          paths.app.models             "app/models",             :eager_load => true
+          paths.app.mailers            "app/mailers",            :eager_load => true
+          paths.app.metals             "app/metal",              :eager_load => true
+          paths.app.views              "app/views",              :eager_load => true
+          paths.lib                    "lib",                    :load_path => true
+          paths.lib.rails              "lib/rails",              :glob => "**/*.rake"
+          paths.lib.rails.initializers "lib/rails/initializers", :glob => "**/*.rb"
+          paths.lib.tasks              "lib/tasks",              :glob => "**/*.rake"
+          paths.lib.templates          "lib/templates"
+          paths.config                 "config"
+          paths.config.initializers    "config/initializers",    :glob => "**/*.rb"
+          paths.config.locales         "config/locales",         :glob => "*.{rb,yml}"
+          paths.config.routes          "config/routes.rb"
+          paths.public                 "public"
+          paths.public.javascripts     "public/javascripts"
+          paths.public.stylesheets     "public/stylesheets"
           paths
         end
       end
