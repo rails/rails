@@ -47,11 +47,11 @@ module Rails
     end
 
     initializer :load_init_rb, :before => :load_application_initializers do |app|
-      lib_initializers = paths.lib.rails.initializers.to_a
-      files = %w(rails/init.rb init.rb).map { |path| File.expand_path(path, root) }
-
-      if lib_initializers.empty? && initrb = files.find { |path| File.file?(path) }
-        ActiveSupport::Deprecation.warn "init.rb is deprecated: #{initrb}. Use lib/rails/initializers/#{name}.rb"
+      files = %w(rails/init.rb init.rb).map { |path| File.expand_path path, root }
+      if initrb = files.find { |path| File.file? path }
+        if initrb == files.first
+          ActiveSupport::Deprecation.warn "Use toplevel init.rb; rails/init.rb is deprecated: #{initrb}"
+        end
         config = app.config
         eval(File.read(initrb), binding, initrb)
       end

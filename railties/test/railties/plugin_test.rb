@@ -94,19 +94,6 @@ module RailtiesTest
       assert rescued, "Expected boot rails to fail"
     end
 
-    test "skips init.rb if initializer is present" do
-      @plugin.write "lib/rails/initializers/foo.rb", <<-RUBY
-        $loaded = true
-      RUBY
-
-      @plugin.write "init.rb", <<-RUBY
-        raise "b00m"
-      RUBY
-
-      boot_rails
-      assert $loaded
-    end
-
     test "loads deprecated rails/init.rb" do
       @plugin.write "rails/init.rb", <<-RUBY
         $loaded = true
