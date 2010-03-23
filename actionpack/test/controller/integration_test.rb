@@ -173,14 +173,12 @@ class IntegrationTestTest < Test::Unit::TestCase
   end
 
   def test_opens_new_session
-    @test.class.expects(:fixture_table_names).times(2).returns(['foo'])
-
     session1 = @test.open_session { |sess| }
     session2 = @test.open_session # implicit session
 
-    assert_kind_of ::ActionController::Integration::Session, session1
-    assert_kind_of ::ActionController::Integration::Session, session2
-    assert_not_equal session1, session2
+    assert session1.respond_to?(:assert_template), "open_session makes assert_template available"
+    assert session2.respond_to?(:assert_template), "open_session makes assert_template available"
+    assert !session1.equal?(session2)
   end
 
   # RSpec mixes Matchers (which has a #method_missing) into
