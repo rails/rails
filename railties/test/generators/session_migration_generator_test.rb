@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'generators/rails/session_migration/session_migration_generator'
+require 'rails/generators/rails/session_migration/session_migration_generator'
 
 class SessionMigrationGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper

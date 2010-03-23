@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'generators/rails/plugin/plugin_generator'
+require 'rails/generators/rails/plugin/plugin_generator'
 
 class PluginGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper

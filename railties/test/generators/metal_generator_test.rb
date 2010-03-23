@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'generators/rails/metal/metal_generator'
+require 'rails/generators/rails/metal/metal_generator'
 
 class MetalGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper

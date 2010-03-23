@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'generators/rails/migration/migration_generator'
+require 'rails/generators/rails/migration/migration_generator'
 
 class MigrationGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper

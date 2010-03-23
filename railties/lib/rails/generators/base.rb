@@ -25,7 +25,7 @@ module Rails
       def self.source_root
         @_rails_source_root ||= begin
           if base_name && generator_name
-            File.expand_path(File.join("../../generators", base_name, generator_name, 'templates'), File.dirname(__FILE__))
+            File.expand_path(File.join(base_name, generator_name, 'templates'), File.dirname(__FILE__))
           end
         end
       end
