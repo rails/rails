@@ -1109,8 +1109,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
 
       # now unload the migrations that have been defined
-      PeopleHaveLastNames.unloadable
-      ActiveSupport::Dependencies.remove_unloadable_constants!
+      Object.send(:remove_const, :PeopleHaveLastNames)
 
       ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", nil)
 
