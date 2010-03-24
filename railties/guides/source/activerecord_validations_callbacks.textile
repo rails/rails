@@ -244,7 +244,7 @@ The default error message for +validates_exclusion_of+  is "_is reserved_".
 
 h4. +validates_format_of+
 
-This helper validates the attributes' values by testing whether they match a given regular expresion, which is specified using the +:with+ option.
+This helper validates the attributes' values by testing whether they match a given regular expression, which is specified using the +:with+ option.
 
 <ruby>
 class Product < ActiveRecord::Base
