@@ -374,7 +374,7 @@ module ActiveRecord
       end
 
       def load_migration
-        require(filename)
+        require(File.expand_path(filename))
         name.constantize
       end
 
