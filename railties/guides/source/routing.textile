@@ -4,7 +4,7 @@ This guide covers the user-facing features of Rails routing. By referring to thi
 
 * Understand the purpose of routing
 * Decipher the code in +routes.rb+
-* Construct your own routes, using either the classic hash style or the now-preferred RESTful style
+* Construct your own routes, using either the @match@ method or the preferred RESTful style
 * Identify how a route will map to a controller and action
 
 endprologue.
@@ -37,7 +37,7 @@ Routing also works in reverse. If your application contains this code:
 
 Then the routing engine is the piece that translates that to a link to a URL such as +http://example.com/patients/17+. By using routing in this way, you can reduce the brittleness of your application as compared to one with hard-coded URLs, and make your code easier to read and understand.
 
-NOTE: Patient needs to be declared as a resource for this style of translation via a named route to be available.
+NOTE: Patient needs to be declared as a Restful resource for this style of translation to be available.
 
 h3. Quick Tour of +routes.rb+
 
@@ -55,11 +55,11 @@ In format, +routes.rb+ is nothing more than one big block sent to +ApplicationNa
 
 Each of these types of route is covered in more detail later in this guide.
 
-The +routes.rb+ file is processed from top to bottom when a request comes in. The request will be dispatched to the first matching route. If there is no matching route, then Rails returns HTTP status 404 to the caller.
+The +routes.rb+ file is processed from top to bottom when a request comes in. The request will be dispatched to the first matching route, and then proceeds to the next. If there is no matching route, then Rails returns HTTP status 404 to the caller.
 
 h4. RESTful Routes
 
-RESTful routes take advantage of the built-in REST orientation of Rails to wrap up a lot of routing information in a single declaration. A RESTful route looks like this:
+RESTful routes take advantage of the built-in REST orientation of Rails to wrap up a lot of routing information with a single declaration. A RESTful route looks like this:
 
 <ruby>
 resources :books
@@ -79,7 +79,7 @@ If you're coming from Rails 2, this route will be equivalent to:
 map.login '/login', :controller => 'sessions', :action => 'new'
 </ruby>
 
-You will also notice that +sessions#new+ is a shorthand for +:controller => 'sessions', :action => 'new'+
+You will also notice that +sessions#new+ is a shorthand for +:controller => 'sessions', :action => 'new'+. By declaring a named route such as this, you can use +login_path+ or +login_url+ in your controllers and views to generate the URLs for this route.
 
 h4. Nested Routes
 
@@ -101,13 +101,13 @@ match 'parts/:number' => 'inventory#show'
 
 h4. Default Routes
 
-The default routes are a safety net that catch otherwise-unrouted requests. Many Rails applications will contain this pair of default routes:
+The default route is a safety net that catches otherwise-unrouted requests. Many Rails applications will contain this default route:
 
 <ruby>
 match ':controller(/:action(/:id(.:format)))'
 </ruby>
 
-These default routes are automatically generated when you create a new Rails application. If you're using RESTful routing for everything in your application, you will probably want to remove them. But be sure you're not using the default routes before you remove them!
+In Rails 3, this route is commented out advising to use RESTful routes as much as possible. So if you're using RESTful routing for everything in your application, you will probably want to leave it like that.
 
 h3. RESTful Routing: the Rails Default
 
@@ -149,11 +149,9 @@ creates seven different routes in your application:
 
 For the specific routes (those that reference just a single resource), the identifier for the resource will be available within the corresponding controller action as +params[:id]+.
 
-TIP: If you consistently use RESTful routes in your application, you should disable the default routes in +routes.rb+ so that Rails will enforce the mapping between HTTP verbs and routes.
-
 h4. URLs and Paths
 
-Creating a RESTful route will also make available a pile of helpers within your application:
+Creating a RESTful route will also make available a pile of helpers within your application, something that requires explicit mention otherwise:
 
 * +photos_url+ and +photos_path+ map to the path for the index and create actions
 * +new_photo_url+ and +new_photo_path+ map to the path for the new action
@@ -221,12 +219,10 @@ Although the conventions of RESTful routing are likely to be sufficient for many
 * +:conditions+
 * +:as+
 * +:path_names+
-* +:path_prefix+
-* +:name_prefix+
 * +:only+
 * +:except+
 
-You can also add additional routes via the +:member+ and +:collection+ options, which are discussed later in this guide.
+You can also add additional routes via the +member+ and +collection+ blocks, which are discussed later in this guide.
 
 h5. Using +:controller+
 
@@ -254,10 +250,10 @@ h4. Controller Namespaces and Routing
 Rails allows you to group your controllers into namespaces by saving them in folders underneath +app/controllers+. The +:controller+ option provides a convenient way to use these routes. For example, you might have a resource whose controller is purely for admin users in the +admin+ folder:
 
 <ruby>
-resources :adminphotos, :controller => "admin/photos"
+resources :photos, :controller => "admin/photos"
 </ruby>
 
-If you use controller namespaces, you need to be aware of a subtlety in the Rails routing code: it always tries to preserve as much of the namespace from the previous request as possible. For example, if you are on a view generated from the +adminphoto_path+ helper, and you follow a link generated with +&lt;%= link_to "show", adminphoto(1) %&gt;+ you will end up on the view generated by +admin/photos/show+, but you will also end up in the same place if you have +&lt;%= link_to "show", {:controller => "photos", :action => "show"} %&gt;+ because Rails will generate the show URL relative to the current URL.
+If you use controller namespaces, you need to be aware of a subtlety in the Rails routing code: it always tries to preserve as much of the namespace from the previous request as possible. For example, if you are on a view generated from the +photo_path+ helper, and you follow a link generated with +&lt;%= link_to "show", photo_path(1) %&gt;+ you will end up on the view generated by +admin/photos/show+, but you will also end up in the same place if you have +&lt;%= link_to "show", {:controller => "photos", :action => "show"} %&gt;+ because Rails will generate the show URL relative to the current URL.
 
 TIP: If you want to guarantee that a link goes to a top-level controller, use a preceding slash to anchor the controller name: +&lt;%= link_to "show", {:controller => "/photos", :action => "show"} %&gt;+
 
@@ -275,7 +271,9 @@ namespace :admin do
 end
 </ruby>
 
-That would give you routing for +admin/photos+ and +admin/videos+ controllers.
+That would give you routing for +admin/photos+ and +admin/videos+ controllers. 
+
+The difference between generating routes through +namespace+ and the +:controller+ key is that the +namespace+ will add +admin+ to the generated helpers as well, so the above route generates +admin_photos_path+.
 
 h5. Using +:singular+
 
