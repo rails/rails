@@ -21,6 +21,10 @@ module Arel
     def inclusion_predicate_sql
       "IN"
     end
+    
+    def exclusion_predicate_sql
+      "NOT IN"
+    end
 
     def primary_key
       connection_id = engine.connection.object_id

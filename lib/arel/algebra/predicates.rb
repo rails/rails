@@ -33,12 +33,14 @@ module Arel
       end
     end
 
-    class Not                   < Binary; end
-    class GreaterThanOrEqualTo  < Binary; end
-    class GreaterThan           < Binary; end
-    class LessThanOrEqualTo     < Binary; end
-    class LessThan              < Binary; end
-    class Match                 < Binary; end
-    class In                    < Binary; end
+    class Not                   < Equality; end
+    class GreaterThanOrEqualTo  < Binary;   end
+    class GreaterThan           < Binary;   end
+    class LessThanOrEqualTo     < Binary;   end
+    class LessThan              < Binary;   end
+    class Match                 < Binary;   end
+    class NotMatch              < Binary;   end
+    class In                    < Binary;   end
+    class NotIn                 < Binary;   end
   end
 end

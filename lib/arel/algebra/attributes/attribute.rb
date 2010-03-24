@@ -110,12 +110,20 @@ module Arel
         Predicates::Match.new(self, regexp)
       end
 
+      def notmatches(regexp)
+        Predicates::NotMatch.new(self, regexp)
+      end
+      
       def in(array)
         if array.is_a?(Range) && array.exclude_end?
           [Predicates::GreaterThanOrEqualTo.new(self, array.begin), Predicates::LessThan.new(self, array.end)]
         else
           Predicates::In.new(self, array)
         end
+      end
+      
+      def notin(array)
+        Predicates::NotIn.new(self, array)
       end
     end
     include Predications

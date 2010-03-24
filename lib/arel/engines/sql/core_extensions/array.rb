@@ -12,6 +12,10 @@ module Arel
       def inclusion_predicate_sql
         "IN"
       end
+      
+      def exclusion_predicate_sql
+        "NOT IN"
+      end
 
       Array.send(:include, self)
     end

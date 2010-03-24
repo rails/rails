@@ -51,9 +51,17 @@ module Arel
     class Match < Binary
       def predicate_sql; 'LIKE' end
     end
+    
+    class NotMatch < Binary
+      def predicate_sql; 'NOT LIKE' end
+    end
 
     class In < Binary
       def predicate_sql; operand2.inclusion_predicate_sql end
+    end
+    
+    class NotIn < Binary
+      def predicate_sql; operand2.exclusion_predicate_sql end
     end
   end
 end

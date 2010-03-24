@@ -10,7 +10,7 @@ module Arel
       def operator; :== end
     end
 
-    class Not < Binary
+    class Not < Equality
       def eval(row)
         operand1.eval(row) != operand2.eval(row)
       end
@@ -35,9 +35,19 @@ module Arel
     class Match < Binary
       def operator; :=~ end
     end
+    
+    class NotMatch < Binary
+      def operator; :!~ end
+    end
 
     class In < Binary
       def operator; :include? end
+    end
+    
+    class NotIn < Binary
+      def eval(row)
+        !(operand1.eval(row).include?(operand2.eval(row)))
+      end
     end
   end
 end

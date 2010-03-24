@@ -61,12 +61,16 @@ share_examples_for 'A Relation' do
     end
 
     it "finds rows with a matches predicate"
+    
+    it "finds rows with a not matches predicate"
 
     it "finds rows with an in predicate" do
       pending
       set = @expected[1..(@expected.length/2+1)]
       @relation.all(:id.in => set.map { |r| r.id }).should have_resources(set)
     end
+    
+    it "finds rows with a not in predicate"
   end
 
   describe "#order" do
