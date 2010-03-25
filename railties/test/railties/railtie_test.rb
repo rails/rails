@@ -15,6 +15,23 @@ module RailtiesTest
       @app ||= Rails.application
     end
 
+    test "can find railtie by name" do
+      class TieA < Rails::Railtie; railtie_name :railtie_a; end
+      class TieB < Rails::Railtie; railtie_name :railtie_b; end
+      class EngineA < Rails::Engine; engine_name :engine_a; end
+      class EngineB < Rails::Engine; engine_name :engine_b; end
+
+      assert_equal TieA, Rails::Railtie.named(:railtie_a)
+      assert_equal TieB, Rails::Railtie.named(:railtie_b)
+      assert_nil Rails::Railtie.named(:railtie_x)
+      assert_nil Rails::Railtie.named(:engine_a)
+
+      assert_equal EngineA, Rails::Engine.named(:engine_a)
+      assert_equal EngineB, Rails::Engine.named(:engine_b)
+      assert_nil Rails::Engine.named(:engine_x)
+      assert_nil Rails::Engine.named(:railtie_a)
+    end
+
     test "Rails::Railtie itself does not respond to config" do
       assert !Rails::Railtie.respond_to?(:config)
     end
