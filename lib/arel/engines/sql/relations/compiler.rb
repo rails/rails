@@ -8,17 +8,17 @@ module Arel
       end
 
       def select_sql
-        build_query \
+        query = build_query \
           "SELECT     #{select_clauses.join(', ')}",
           "FROM       #{from_clauses}",
           (joins(self)                                   unless joins(self).blank? ),
           ("WHERE     #{where_clauses.join(" AND ")}"    unless wheres.blank?      ),
           ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
           ("HAVING    #{having_clauses.join(', ')}"      unless havings.blank?     ),
-          ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      ),
-          ("LIMIT     #{taken}"                          unless taken.blank?       ),
-          ("OFFSET    #{skipped}"                        unless skipped.blank?     ),
-          ("#{locked}"                                   unless locked.blank?)
+          ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      )
+          engine.add_limit_offset!(query,{ :limit => taken, :offset => skipped }) if taken || skipped
+          query << " #{locked}" unless locked.blank?
+          query
       end
 
       def delete_sql

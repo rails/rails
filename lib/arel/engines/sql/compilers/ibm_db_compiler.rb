@@ -31,20 +31,6 @@ module Arel
   module SqlCompiler
     class IBM_DBCompiler < GenericCompiler
 
-      def select_sql
-        query = build_query \
-          "SELECT     #{select_clauses.join(', ')}",
-          "FROM       #{from_clauses}",
-          (joins(self)                                   unless joins(self).blank? ),
-          ("WHERE     #{where_clauses.join(" AND ")}"    unless wheres.blank?      ),
-          ("GROUP BY  #{group_clauses.join(', ')}"       unless groupings.blank?   ),
-          ("HAVING    #{having_clauses.join(', ')}"      unless havings.blank?     ),
-          ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      )
-          engine.add_limit_offset!(query,{:limit=>taken,:offset=>skipped}) unless taken.blank?
-          query << "#{locked}" unless locked.blank?
-          query
-      end
-
       def limited_update_conditions(conditions, taken)
         quoted_primary_key = engine.quote_table_name(primary_key)
         update_conditions = "WHERE #{quoted_primary_key} IN (SELECT #{quoted_primary_key} FROM #{engine.connection.quote_table_name table.name} #{conditions} " #Note: - ')' not added, limit segment is to be appended
