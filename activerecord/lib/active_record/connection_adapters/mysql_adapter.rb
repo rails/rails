@@ -375,6 +375,18 @@ module ActiveRecord
         execute("RELEASE SAVEPOINT #{current_savepoint_name}")
       end
 
+      def add_limit_offset!(sql, options) #:nodoc:
+        limit, offset = options[:limit], options[:offset]
+        if limit && offset
+          sql << " LIMIT #{offset.to_i}, #{sanitize_limit(limit)}"
+        elsif limit
+          sql << " LIMIT #{sanitize_limit(limit)}"
+        elsif offset
+          sql << " OFFSET #{offset.to_i}"
+        end
+        sql
+      end
+
       # SCHEMA STATEMENTS ========================================
 
       def structure_dump #:nodoc:
