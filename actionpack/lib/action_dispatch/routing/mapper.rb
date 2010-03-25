@@ -479,7 +479,7 @@ module ActionDispatch
           scope(:path => resource.name.to_s, :controller => resource.controller) do
             with_scope_level(:resource, resource) do
 
-              scope(:name_prefix => resource.name.to_s) do
+              scope(:name_prefix => resource.name.to_s, :as => "") do
                 yield if block_given?
               end
 

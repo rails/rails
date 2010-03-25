@@ -25,6 +25,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       resource :session do
         get :create
+        post :reset
 
         resource :info
       end
@@ -247,6 +248,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/session/edit'
       assert_equal 'sessions#edit', @response.body
       assert_equal '/session/edit', edit_session_path
+
+      post '/session/reset'
+      assert_equal 'sessions#reset', @response.body
+      assert_equal '/session/reset', reset_session_path
     end
   end
 
