@@ -5,6 +5,7 @@ Gem::Specification.new do |s|
   s.name      = "arel"
   s.version   = Arel::VERSION
   s.authors   = ["Bryan Helmkamp", "Nick Kallen", "Emilio Tagua"]
+  s.date      = %q{2010-03-25}
   s.email     = "bryan@brynary.com"
   s.homepage  = "http://github.com/brynary/arel"
   s.summary   = "Arel is a relational algebra engine for Ruby"
