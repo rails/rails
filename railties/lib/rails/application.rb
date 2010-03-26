@@ -44,6 +44,8 @@ module Rails
       end
     end
 
+    delegate :metal_loader, :to => :config
+
     def require_environment!
       environment = config.paths.config.environment.to_a.first
       require environment if environment

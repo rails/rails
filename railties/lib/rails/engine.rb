@@ -10,8 +10,8 @@ module Rails
     class << self
       attr_accessor :called_from
 
-      alias :engine_name  :railtie_name
-      alias :engine_names :railtie_names
+      # TODO Remove this. It's deprecated.
+      alias :engine_name :railtie_name
 
       def inherited(base)
         unless base.abstract_railtie?
@@ -41,7 +41,7 @@ module Rails
       end
     end
 
-    delegate :middleware, :paths, :metal_loader, :root, :to => :config
+    delegate :middleware, :paths, :root, :to => :config
 
     def load_tasks
       super

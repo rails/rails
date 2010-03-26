@@ -10,7 +10,6 @@ module Rails
     include Initializable
 
     ABSTRACT_RAILTIES = %w(Rails::Railtie Rails::Plugin Rails::Engine Rails::Application)
-    RAILTIES_TYPES    = ABSTRACT_RAILTIES.map { |r| r.split('::').last }
 
     class << self
       def subclasses
@@ -24,17 +23,12 @@ module Rails
         end
       end
 
-      def railtie_name(railtie_name = nil)
-        @railtie_name = railtie_name if railtie_name
-        @railtie_name ||= default_name
+      def railtie_name(*)
+        ActiveSupport::Deprecation.warn "railtie_name is deprecated and has no effect", caller
       end
 
-      def railtie_names
-        subclasses.map { |p| p.railtie_name }
-      end
-
-      def log_subscriber(log_subscriber)
-        Rails::LogSubscriber.add(railtie_name, log_subscriber)
+      def log_subscriber(name, log_subscriber)
+        Rails::LogSubscriber.add(name, log_subscriber)
       end
 
       def rake_tasks(&blk)
@@ -51,14 +45,6 @@ module Rails
 
       def abstract_railtie?
         ABSTRACT_RAILTIES.include?(name)
-      end
-
-    protected
-
-      def default_name
-        namespaces = name.split("::")
-        namespaces.pop if RAILTIES_TYPES.include?(namespaces.last)
-        ActiveSupport::Inflector.underscore(namespaces.last).to_sym
       end
     end
 
