@@ -175,7 +175,7 @@ module ActiveRecord
     end
 
     def construct_relation_for_association_find(join_dependency)
-      relation = except(:includes, :eager_load, :preload, :select).select(@klass.send(:column_aliases, join_dependency))
+      relation = except(:includes, :eager_load, :preload, :select).select(column_aliases(join_dependency))
       apply_join_dependency(relation, join_dependency)
     end
 
@@ -184,7 +184,7 @@ module ActiveRecord
         relation = association.join_relation(relation)
       end
 
-      limitable_reflections = @klass.send(:using_limitable_reflections?, join_dependency.reflections)
+      limitable_reflections = using_limitable_reflections?(join_dependency.reflections)
 
       if !limitable_reflections && relation.limit_value
         limited_id_condition = construct_limited_ids_condition(relation.except(:select))
@@ -309,6 +309,15 @@ module ActiveRecord
       else
         @last ||= reverse_order.limit(1).to_a[0]
       end
+    end
+
+    def column_aliases(join_dependency)
+      join_dependency.joins.collect{|join| join.column_names_with_alias.collect{|column_name, aliased_name|
+          "#{connection.quote_table_name join.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"}}.flatten.join(", ")
+    end
+
+    def using_limitable_reflections?(reflections)
+      reflections.collect(&:collection?).length.zero?
     end
 
   end

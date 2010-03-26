@@ -87,7 +87,7 @@ module ActionController
     end
 
     add :update do |proc, options|
-      _evaluate_assigns(view_context)
+      view_context = self.view_context
       generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(view_context, &proc)
       self.content_type  = Mime::JS
       self.response_body = generator.to_s

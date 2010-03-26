@@ -10,7 +10,7 @@ require "action_controller/railtie"
 
 module ActiveRecord
   class Railtie < Rails::Railtie
-    railtie_name :active_record
+    config.active_record = ActiveSupport::OrderedOptions.new
 
     config.generators.orm :active_record, :migration => true,
                                           :timestamps => true
@@ -19,9 +19,8 @@ module ActiveRecord
       load "active_record/railties/databases.rake"
     end
 
-    # TODO If we require the wrong file, the error never comes up.
     require "active_record/railties/log_subscriber"
-    log_subscriber ActiveRecord::Railties::LogSubscriber.new
+    log_subscriber :active_record, ActiveRecord::Railties::LogSubscriber.new
 
     initializer "active_record.initialize_timezone" do
       ActiveRecord.base_hook do

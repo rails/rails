@@ -18,6 +18,13 @@ class TestController < ActionController::Base
 
   layout :determine_layout
 
+  def name
+    nil
+  end
+
+  private :name
+  helper_method :name
+
   def hello_world
   end
 
@@ -418,7 +425,6 @@ class TestController < ActionController::Base
 
   def rendering_with_conflicting_local_vars
     @name = "David"
-    def @template.name() nil end
     render :action => "potential_conflicts"
   end
 
@@ -507,10 +513,6 @@ class TestController < ActionController::Base
     end
   end
 
-  def partial_only_with_layout
-    render :partial => "partial_only", :layout => true
-  end
-
   def render_to_string_with_partial
     @partial_only = render_to_string :partial => "partial_only"
     @partial_with_locals = render_to_string :partial => "customer", :locals => { :customer => Customer.new("david") }
@@ -526,11 +528,11 @@ class TestController < ActionController::Base
   end
 
   def partial_with_form_builder
-    render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, @template, {}, Proc.new {})
+    render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {}, Proc.new {})
   end
 
   def partial_with_form_builder_subclass
-    render :partial => LabellingFormBuilder.new(:post, nil, @template, {}, Proc.new {})
+    render :partial => LabellingFormBuilder.new(:post, nil, view_context, {}, Proc.new {})
   end
 
   def partial_collection
@@ -634,8 +636,7 @@ class TestController < ActionController::Base
              "rendering_nothing_on_layout", "render_text_hello_world",
              "render_text_hello_world_with_layout",
              "hello_world_with_layout_false",
-             "partial_only", "partial_only_with_layout",
-             "accessing_params_in_template",
+             "partial_only", "accessing_params_in_template",
              "accessing_params_in_template_with_layout",
              "render_with_explicit_template",
              "render_with_explicit_string_template",
@@ -1196,11 +1197,6 @@ class RenderTest < ActionController::TestCase
   def test_should_render_html_partial_with_dot
     get :partial_dot_html
     assert_equal 'partial html', @response.body
-  end
-
-  def test_partial_only_with_layout
-    get :partial_only_with_layout
-    assert_equal "<html>only partial</html>", @response.body
   end
 
   def test_render_to_string_partial

@@ -674,10 +674,10 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_decrement_counter
     Topic.decrement_counter("replies_count", 2)
-    assert_equal -1, Topic.find(2).replies_count
+    assert_equal(-1, Topic.find(2).replies_count)
 
     Topic.decrement_counter("replies_count", 2)
-    assert_equal -2, Topic.find(2).replies_count
+    assert_equal(-2, Topic.find(2).replies_count)
   end
 
   def test_reset_counters
@@ -1533,7 +1533,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_auto_id
     auto = AutoId.new
     auto.save
-    assert (auto.id > 0)
+    assert(auto.id > 0)
   end
 
   def quote_column_name(name)
@@ -2181,7 +2181,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_inspect_new_instance
-    assert_match /Topic id: nil/, Topic.new.inspect
+    assert_match(/Topic id: nil/, Topic.new.inspect)
   end
 
   def test_inspect_limited_select_instance
@@ -2240,9 +2240,9 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.benchmark("Debug Topic Count", :level => :debug) { Topic.count }
     ActiveRecord::Base.benchmark("Warn Topic Count",  :level => :warn)  { Topic.count }
     ActiveRecord::Base.benchmark("Error Topic Count", :level => :error) { Topic.count }
-    assert_no_match /Debug Topic Count/, log.string
-    assert_match /Warn Topic Count/, log.string
-    assert_match /Error Topic Count/, log.string
+    assert_no_match(/Debug Topic Count/, log.string)
+    assert_match(/Warn Topic Count/, log.string)
+    assert_match(/Error Topic Count/, log.string)
   ensure
     ActiveRecord::Base.logger = original_logger
   end
@@ -2253,8 +2253,8 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = Logger.new(log)
     ActiveRecord::Base.benchmark("Logging", :level => :debug, :silence => true) { ActiveRecord::Base.logger.debug "Loud" }
     ActiveRecord::Base.benchmark("Logging", :level => :debug, :silence => false)  { ActiveRecord::Base.logger.debug "Quiet" }
-    assert_no_match /Loud/, log.string
-    assert_match /Quiet/, log.string
+    assert_no_match(/Loud/, log.string)
+    assert_match(/Quiet/, log.string)
   ensure
     ActiveRecord::Base.logger = original_logger
   end

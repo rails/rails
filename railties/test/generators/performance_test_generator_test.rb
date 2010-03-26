@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'generators/rails/performance_test/performance_test_generator'
+require 'rails/generators/rails/performance_test/performance_test_generator'
 
 class PerformanceTestGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper

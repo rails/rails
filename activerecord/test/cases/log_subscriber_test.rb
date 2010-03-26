@@ -26,8 +26,8 @@ class LogSubscriberTest < ActiveSupport::TestCase
     Developer.all
     wait
     assert_equal 1, @logger.logged(:debug).size
-    assert_match /Developer Load/, @logger.logged(:debug).last
-    assert_match /SELECT .*?FROM .?developers.?/, @logger.logged(:debug).last
+    assert_match(/Developer Load/, @logger.logged(:debug).last)
+    assert_match(/SELECT .*?FROM .?developers.?/, @logger.logged(:debug).last)
   end
 
   def test_cached_queries
@@ -37,7 +37,7 @@ class LogSubscriberTest < ActiveSupport::TestCase
     end
     wait
     assert_equal 2, @logger.logged(:debug).size
-    assert_match /CACHE/, @logger.logged(:debug).last
-    assert_match /SELECT .*?FROM .?developers.?/, @logger.logged(:debug).last
+    assert_match(/CACHE/, @logger.logged(:debug).last)
+    assert_match(/SELECT .*?FROM .?developers.?/, @logger.logged(:debug).last)
   end
 end

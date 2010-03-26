@@ -13,7 +13,7 @@ module ActionView
       def translate(key, options = {})
         options[:raise] = true
         translation = I18n.translate(scope_key_by_partial(key), options)
-        translation.is_a?(Array) ? translation.map { |entry| entry.html_safe } : translation.html_safe
+        (translation.respond_to?(:join) ? translation.join : translation).html_safe
       rescue I18n::MissingTranslationData => e
         keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
         content_tag('span', keys.join(', '), :class => 'translation_missing')
@@ -29,9 +29,10 @@ module ActionView
       private
 
         def scope_key_by_partial(key)
-          if (key.respond_to?(:join) ? key.join : key.to_s).first == "."
+          strkey = key.respond_to?(:join) ? key.join : key.to_s
+          if strkey.first == "."
             if @_virtual_path
-              @_virtual_path.gsub(%r{/_?}, ".") + key.to_s
+              @_virtual_path.gsub(%r{/_?}, ".") + strkey
             else
               raise "Cannot use t(#{key.inspect}) shortcut because path is not available"
             end

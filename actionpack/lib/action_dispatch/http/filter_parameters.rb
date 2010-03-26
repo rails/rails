@@ -25,7 +25,6 @@ module ActionDispatch
     module FilterParameters
       extend ActiveSupport::Concern
 
-      mattr_reader :compiled_parameter_filter_for
       @@compiled_parameter_filter_for = {}
 
       # Return a hash of parameters with all sensitive data replaced.

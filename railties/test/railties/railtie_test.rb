@@ -32,28 +32,25 @@ module RailtiesTest
     end
 
     test "config name is available for the railtie" do
-      class Foo < Rails::Railtie ; config.foo.greetings = "hello" ; end
+      class Foo < Rails::Railtie
+        config.foo = ActiveSupport::OrderedOptions.new
+        config.foo.greetings = "hello"
+      end
       assert_equal "hello", Foo.config.foo.greetings
     end
 
     test "railtie configurations are available in the application" do
-      class Foo < Rails::Railtie ; config.foo.greetings = "hello" ; end
+      class Foo < Rails::Railtie
+        config.foo = ActiveSupport::OrderedOptions.new
+        config.foo.greetings = "hello"
+      end
       require "#{app_path}/config/application"
       assert_equal "hello", AppTemplate::Application.config.foo.greetings
     end
 
-    test "railtie config merges are deep" do
-      class Foo < Rails::Railtie ; config.foo.greetings = 'hello' ; end
-      class Bar < Rails::Railtie
-        config.foo.bar = "bar"
-      end
-      assert_equal "hello", Bar.config.foo.greetings
-      assert_equal "bar",   Bar.config.foo.bar
-    end
-
     test "railtie can add log subscribers" do
       begin
-        class Foo < Rails::Railtie ; log_subscriber(Rails::LogSubscriber.new) ; end
+        class Foo < Rails::Railtie ; log_subscriber(:foo, Rails::LogSubscriber.new) ; end
         assert_kind_of Rails::LogSubscriber, Rails::LogSubscriber.log_subscribers[0]
       ensure
         Rails::LogSubscriber.log_subscribers.clear

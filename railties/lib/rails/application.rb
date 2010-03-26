@@ -1,5 +1,4 @@
 require 'fileutils'
-require 'rails/railties_path'
 require 'rails/plugin'
 require 'rails/engine'
 
@@ -81,6 +80,8 @@ module Rails
         instance.send(*args, &block)
       end
     end
+
+    delegate :metal_loader, :to => :config
 
     def require_environment!
       environment = config.paths.config.environment.to_a.first

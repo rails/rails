@@ -23,7 +23,7 @@ module Rails
 
       initializer :add_builtin_route do |app|
         if Rails.env.development?
-          app.routes_reloader.paths << File.join(RAILTIES_PATH, 'builtin', 'routes.rb')
+          app.routes_reloader.paths << File.expand_path('../../info_routes.rb', __FILE__)
         end
       end
 

@@ -53,8 +53,8 @@ module ActiveSupport #:nodoc:
                   \xf4        [\x80-\x8f] [\x80-\xbf] [\x80-\xbf])\z /xn,
       # Quick check for valid Shift-JIS characters, disregards the odd-even pairing
       'Shift_JIS' => /\A(?:
-                  [\x00-\x7e \xa1-\xdf]                                     |
-                  [\x81-\x9f \xe0-\xef] [\x40-\x7e \x80-\x9e \x9f-\xfc])\z /xn
+                  [\x00-\x7e\xa1-\xdf]                                     |
+                  [\x81-\x9f\xe0-\xef] [\x40-\x7e\x80-\x9e\x9f-\xfc])\z /xn
     }
   end
 end

@@ -45,18 +45,21 @@ module ActionDispatch
           def extract_path_and_options(args)
             options = args.extract_options!
 
-            case
-            when using_to_shorthand?(args, options)
+            if using_to_shorthand?(args, options)
               path, to = options.find { |name, value| name.is_a?(String) }
               options.merge!(:to => to).delete(path) if path
-            when using_match_shorthand?(args, options)
-              path = args.first
-              options = { :to => path.gsub("/", "#"), :as => path.gsub("/", "_") }
             else
               path = args.first
             end
 
-            [ normalize_path(path), options ]
+            path = normalize_path(path)
+
+            if using_match_shorthand?(path, options)
+              options[:to] ||= path[1..-1].sub(%r{/([^/]*)$}, '#\1')
+              options[:as] ||= path[1..-1].gsub("/", "_")
+            end
+
+            [ path, options ]
           end
 
           # match "account" => "account#index"
@@ -65,14 +68,13 @@ module ActionDispatch
           end
 
           # match "account/overview"
-          def using_match_shorthand?(args, options)
-            args.present? && options.except(:via, :anchor).empty? && !args.first.include?(':')
+          def using_match_shorthand?(path, options)
+            path && options.except(:via, :anchor, :to, :as).empty? && path =~ %r{^/[\w\/]+$}
           end
 
           def normalize_path(path)
-            path = "#{@scope[:path]}/#{path}"
-            raise ArgumentError, "path is required" if path.empty?
-            Mapper.normalize_path(path)
+            raise ArgumentError, "path is required" if @scope[:path].blank? && path.blank?
+            Mapper.normalize_path("#{@scope[:path]}/#{path}")
           end
 
           def app
@@ -144,8 +146,8 @@ module ActionDispatch
 
           def segment_keys
             @segment_keys ||= Rack::Mount::RegexpWithNamedGroups.new(
-                Rack::Mount::Strexp.compile(@path, requirements, SEPARATORS)
-              ).names
+              Rack::Mount::Strexp.compile(@path, requirements, SEPARATORS)
+            ).names
           end
 
           def to
@@ -301,7 +303,6 @@ module ActionDispatch
           options = args.extract_options!
 
           options = (@scope[:options] || {}).merge(options)
-          options[:anchor] = true unless options.key?(:anchor)
 
           if @scope[:name_prefix] && !options[:as].blank?
             options[:as] = "#{@scope[:name_prefix]}_#{options[:as]}"
@@ -562,6 +563,8 @@ module ActionDispatch
 
         def match(*args)
           options = args.extract_options!
+
+          options[:anchor] = true unless options.key?(:anchor)
 
           if args.length > 1
             args.each { |path| match(path, options) }

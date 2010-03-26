@@ -53,6 +53,7 @@ module ActiveRecord
 
       def initialize(owner, reflection)
         @owner, @reflection = owner, reflection
+        @updated = false
         reflection.check_validity!
         Array(reflection.options[:extend]).each { |ext| proxy_extend(ext) }
         reset

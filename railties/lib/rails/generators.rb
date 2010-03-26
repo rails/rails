@@ -242,7 +242,7 @@ module Rails
         paths = namespaces_to_paths(namespaces)
 
         paths.each do |raw_path|
-          ["rails_generators", "generators"].each do |base|
+          ["rails/generators", "generators"].each do |base|
             path = "#{base}/#{raw_path}_generator"
 
             begin
@@ -265,7 +265,7 @@ module Rails
         load_generators_from_railties!
 
         $LOAD_PATH.each do |base|
-          Dir[File.join(base, "{generators,rails_generators}", "**", "*_generator.rb")].each do |path|
+          Dir[File.join(base, "{rails/generators,generators}", "**", "*_generator.rb")].each do |path|
             begin
               require path
             rescue Exception => e

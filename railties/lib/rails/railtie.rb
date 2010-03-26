@@ -179,7 +179,7 @@ module Rails
 
     include Initializable
 
-    ABSTRACT_RAILTIES = %w(Rails::Plugin Rails::Engine Rails::Application)
+    ABSTRACT_RAILTIES = %w(Rails::Railtie Rails::Plugin Rails::Engine Rails::Application)
 
     class << self
       def subclasses
@@ -187,23 +187,18 @@ module Rails
       end
 
       def inherited(base)
-        unless abstract_railtie?(base)
+        unless base.abstract_railtie?
           base.send(:include, self::Configurable)
           subclasses << base
         end
       end
 
-      def railtie_name(railtie_name = nil)
-        @railtie_name = railtie_name if railtie_name
-        @railtie_name ||= default_name
+      def railtie_name(*)
+        ActiveSupport::Deprecation.warn "railtie_name is deprecated and has no effect", caller
       end
 
-      def railtie_names
-        subclasses.map { |p| p.railtie_name }
-      end
-
-      def log_subscriber(log_subscriber)
-        Rails::LogSubscriber.add(railtie_name, log_subscriber)
+      def log_subscriber(name, log_subscriber)
+        Rails::LogSubscriber.add(name, log_subscriber)
       end
 
       def rake_tasks(&blk)
@@ -218,14 +213,8 @@ module Rails
         @generators
       end
 
-    protected
-
-      def abstract_railtie?(base)
-        ABSTRACT_RAILTIES.include?(base.name)
-      end
-
-      def default_name
-        ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(name))
+      def abstract_railtie?
+        ABSTRACT_RAILTIES.include?(name)
       end
     end
 

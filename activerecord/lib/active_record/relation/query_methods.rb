@@ -6,6 +6,7 @@ module ActiveRecord
       (ActiveRecord::Relation::ASSOCIATION_METHODS + ActiveRecord::Relation::MULTI_VALUE_METHODS).each do |query_method|
         attr_accessor :"#{query_method}_values"
 
+        next if [:where, :having].include?(query_method)
         class_eval <<-CEVAL
           def #{query_method}(*args)
             new_relation = clone
@@ -133,13 +134,8 @@ module ActiveRecord
         arel = h.is_a?(String) ? arel.having(h) : arel.having(*h)
       end
 
-      if defined?(@limit_value) && @limit_value.present?
-        arel = arel.take(@limit_value)
-      end
-
-      if defined?(@offset_value) && @offset_value.present?
-        arel = arel.skip(@offset_value)
-      end
+      arel = arel.take(@limit_value) if @limit_value.present?
+      arel = arel.skip(@offset_value) if @offset_value.present?
 
       @group_values.uniq.each do |g|
         arel = arel.group(g) if g.present?
@@ -162,19 +158,14 @@ module ActiveRecord
         arel = arel.project(quoted_table_name + '.*')
       end
 
-      arel =
-        if defined?(@from_value) && @from_value.present?
-          arel.from(@from_value)
-        else
-          arel.from(quoted_table_name)
-        end
+      arel = @from_value.present? ? arel.from(@from_value) : arel.from(quoted_table_name)
 
       case @lock_value
       when TrueClass
         arel = arel.lock
       when String
         arel = arel.lock(@lock_value)
-      end if defined?(@lock_value)
+      end if @lock_value.present?
 
       arel
     end

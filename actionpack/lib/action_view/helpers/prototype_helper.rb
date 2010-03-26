@@ -102,39 +102,6 @@ module ActionView
                          :form, :with, :update, :script, :type ]).merge(CALLBACKS)
       end
 
-      # Returns a button with the given +name+ text that'll trigger a JavaScript +function+ using the
-      # onclick handler.
-      #
-      # The first argument +name+ is used as the button's value or display text.
-      #
-      # The next arguments are optional and may include the javascript function definition and a hash of html_options.
-      #
-      # The +function+ argument can be omitted in favor of an +update_page+
-      # block, which evaluates to a string when the template is rendered
-      # (instead of making an Ajax request first).
-      #
-      # The +html_options+ will accept a hash of html attributes for the link tag. Some examples are :class => "nav_button", :id => "articles_nav_button"
-      #
-      # Note: if you choose to specify the javascript function in a block, but would like to pass html_options, set the +function+ parameter to nil
-      #
-      # Examples:
-      #   button_to_function "Greeting", "alert('Hello world!')"
-      #   button_to_function "Delete", "if (confirm('Really?')) do_delete()"
-      #   button_to_function "Details" do |page|
-      #     page[:details].visual_effect :toggle_slide
-      #   end
-      #   button_to_function "Details", :class => "details_button" do |page|
-      #     page[:details].visual_effect :toggle_slide
-      #   end
-      def button_to_function(name, *args, &block)
-        html_options = args.extract_options!.symbolize_keys
-
-        function = block_given? ? update_page(&block) : args[0] || ''
-        onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function};"
-
-        tag(:input, html_options.merge(:type => 'button', :value => name, :onclick => onclick))
-      end
-
       # Returns the JavaScript needed for a remote function.
       # Takes the same arguments as link_to_remote.
       #
@@ -181,11 +148,9 @@ module ActionView
       class JavaScriptGenerator #:nodoc:
         def initialize(context, &block) #:nodoc:
           @context, @lines = context, []
-          @context.update_details(:formats => [:js, :html]) do
-            include_helpers_from_context
-            @context.with_output_buffer(@lines) do
-              @context.instance_exec(self, &block)
-            end
+          include_helpers_from_context
+          @context.with_output_buffer(@lines) do
+            @context.instance_exec(self, &block)
           end
         end
 
@@ -615,7 +580,7 @@ module ActionView
       #     page.hide 'spinner'
       #   end
       def update_page(&block)
-        JavaScriptGenerator.new(@template, &block).to_s.html_safe
+        JavaScriptGenerator.new(view_context, &block).to_s.html_safe
       end
 
       # Works like update_page but wraps the generated JavaScript in a <script>
@@ -687,6 +652,10 @@ module ActionView
       def initialize(generator, root = nil)
         @generator = generator
         @generator << root if root
+      end
+
+      def is_a?(klass)
+        klass == JavaScriptProxy
       end
 
       private
@@ -882,5 +851,3 @@ module ActionView
     end
   end
 end
-
-require 'action_view/helpers/javascript_helper'

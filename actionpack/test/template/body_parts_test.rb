@@ -8,9 +8,8 @@ class BodyPartsTest < ActionController::TestCase
 
     def index
       RENDERINGS.each do |rendering|
-        @template.punctuate_body! rendering
+        view_context.punctuate_body! rendering
       end
-      @performed_render = true
     end
   end
 

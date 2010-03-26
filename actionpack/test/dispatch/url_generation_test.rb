@@ -34,5 +34,10 @@ module TestUrlGeneration
       get "/foo", {}, 'SCRIPT_NAME' => "/new"
       assert_equal "/new/foo", response.body
     end
+
+    test "handling http protocol with https set" do
+      https!
+      assert_equal "http://www.example.com/foo", foo_url(:protocol => "http")
+    end
   end
 end

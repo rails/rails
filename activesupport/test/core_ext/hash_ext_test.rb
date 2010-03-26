@@ -757,6 +757,7 @@ class HashToXmlTest < Test::Unit::TestCase
       <expires-at type="dateTime">2007-12-25T12:34:56+0000</expires-at>
       <notes type="string"></notes>
       <illustration type="base64Binary">YmFiZS5wbmc=</illustration>
+      <caption type="binary" encoding="base64">VGhhdCdsbCBkbywgcGlnLg==</caption>
     </bacon>
     EOT
 
@@ -766,7 +767,8 @@ class HashToXmlTest < Test::Unit::TestCase
       :price => BigDecimal("12.50"),
       :expires_at => Time.utc(2007,12,25,12,34,56),
       :notes => "",
-      :illustration => "babe.png"
+      :illustration => "babe.png",
+      :caption => "That'll do, pig."
     }.stringify_keys
 
     assert_equal expected_bacon_hash, Hash.from_xml(bacon_xml)["bacon"]

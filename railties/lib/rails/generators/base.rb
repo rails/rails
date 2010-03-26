@@ -1,4 +1,12 @@
-require 'thor/group'
+begin
+  require 'thor/group'
+rescue LoadError
+  puts "Thor is not available.\nIf you ran this command from a git checkout " \
+       "of Rails, please make sure thor is installed,\nand run this command " \
+       "as `ruby /path/to/rails myapp --dev`"
+  exit
+end
+
 require 'rails/generators/actions'
 
 module Rails
@@ -17,7 +25,7 @@ module Rails
       def self.source_root
         @_rails_source_root ||= begin
           if base_name && generator_name
-            File.expand_path(File.join("../../generators", base_name, generator_name, 'templates'), File.dirname(__FILE__))
+            File.expand_path(File.join(base_name, generator_name, 'templates'), File.dirname(__FILE__))
           end
         end
       end

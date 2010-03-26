@@ -44,13 +44,15 @@ module ActionView
 
     autoload :Base
     autoload :LookupContext
-    autoload :MissingTemplate,    'action_view/base'
     autoload :Resolver,           'action_view/template/resolver'
     autoload :PathResolver,       'action_view/template/resolver'
     autoload :FileSystemResolver, 'action_view/template/resolver'
     autoload :PathSet,            'action_view/paths'
 
+    autoload :MissingTemplate,    'action_view/template/error'
+    autoload :ActionViewError,    'action_view/template/error'
     autoload :TemplateError,     'action_view/template/error'
+
     autoload :TemplateHandler,   'action_view/template'
     autoload :TemplateHandlers,  'action_view/template'
   end

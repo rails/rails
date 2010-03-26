@@ -19,6 +19,7 @@ module ActionController
     include SessionManagement
     include ActionController::Caching
     include ActionController::MimeResponds
+    include ActionController::PolymorphicRoutes
 
     # Rails 2.x compatibility
     include ActionController::Compatibility

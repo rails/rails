@@ -66,13 +66,14 @@ namespace :doc do
   task :plugins => plugins.collect { |plugin| "doc:plugins:#{plugin}" }
 
   desc "Remove plugin documentation"
-  task :clobber_plugins do 
+  task :clobber_plugins do
     rm_rf 'doc/plugins' rescue nil
   end
 
   desc "Generate Rails guides"
   task :guides do
-    require File.join(RAILTIES_PATH, "guides/rails_guides")
+    # FIXME: Reaching outside lib directory is a bad idea
+    require File.expand_path('../../../../guides/rails_guides', __FILE__)
     RailsGuides::Generator.new(Rails.root.join("doc/guides")).generate
   end
 
@@ -92,7 +93,7 @@ namespace :doc do
 
         files.include("#{plugin_base}/lib/**/*.rb")
         if File.exist?("#{plugin_base}/README")
-          files.include("#{plugin_base}/README")    
+          files.include("#{plugin_base}/README")
           options << "--main '#{plugin_base}/README'"
         end
         files.include("#{plugin_base}/CHANGELOG") if File.exist?("#{plugin_base}/CHANGELOG")

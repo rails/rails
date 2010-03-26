@@ -16,13 +16,12 @@ module ActionView
       case options
       when Hash
         if block_given?
-          content = _render_partial(options.merge(:partial => options[:layout]), &block)
-          safe_concat(content)
+          _render_partial(options.merge(:partial => options[:layout]), &block)
         elsif options.key?(:partial)
           _render_partial(options)
         else
           template = _determine_template(options)
-          self.formats = template.formats
+          _freeze_formats(template.formats)
           _render_template(template, options[:layout], options)
         end
       when :update
@@ -54,18 +53,23 @@ module ActionView
       layout = find_layout(layout) if layout
 
       ActiveSupport::Notifications.instrument("action_view.render_template",
-        :identifier => template.identifier, :layout => layout.try(:identifier)) do
+        :identifier => template.identifier, :layout => layout.try(:virtual_path)) do
 
         content = template.render(self, locals) { |*name| _layout_for(*name) }
         @_content_for[:layout] = content
 
-        if layout
-          @_layout = layout.identifier
-          content  = _render_layout(layout, locals)
-        end
-
+        content = _render_layout(layout, locals) if layout
         content
       end
+    end
+
+    # Freeze the current formats in the lookup context. By freezing them, you are guaranteeing
+    # that next template lookups are not going to modify the formats. The controller can also
+    # use this, to ensure that formats won't be further modified (as it does in respond_to blocks).
+    def _freeze_formats(formats) #:nodoc:
+      return if self.formats.frozen?
+      self.formats = formats
+      self.formats.freeze
     end
   end
 end

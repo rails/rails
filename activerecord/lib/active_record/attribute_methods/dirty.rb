@@ -18,7 +18,7 @@ module ActiveRecord
       def save_with_dirty(*args) #:nodoc:
         if status = save_without_dirty(*args)
           @previously_changed = changes
-          changed_attributes.clear
+          @changed_attributes.clear
         end
         status
       end
@@ -26,16 +26,16 @@ module ActiveRecord
       # Attempts to <tt>save!</tt> the record and clears changed attributes if successful.
       def save_with_dirty!(*args) #:nodoc:
         save_without_dirty!(*args).tap do
-          @previously_changed = changes 
-          changed_attributes.clear 
+          @previously_changed = changes
+          @changed_attributes.clear
         end
       end
 
       # <tt>reload</tt> the record and clears changed attributes.
       def reload_with_dirty(*args) #:nodoc:
         reload_without_dirty(*args).tap do
-          previously_changed_attributes.clear
-          changed_attributes.clear
+          @previously_changed.clear
+          @changed_attributes.clear
         end
       end
 
@@ -45,12 +45,12 @@ module ActiveRecord
           attr = attr.to_s
 
           # The attribute already has an unsaved change.
-          if changed_attributes.include?(attr)
-            old = changed_attributes[attr]
-            changed_attributes.delete(attr) unless field_changed?(attr, old, value)
+          if attribute_changed?(attr)
+            old = @changed_attributes[attr]
+            @changed_attributes.delete(attr) unless field_changed?(attr, old, value)
           else
             old = clone_attribute_value(:read_attribute, attr)
-            changed_attributes[attr] = old if field_changed?(attr, old, value)
+            @changed_attributes[attr] = old if field_changed?(attr, old, value)
           end
 
           # Carry on.

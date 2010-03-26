@@ -112,7 +112,6 @@ module ActiveModel
       #     end
       #   end
       #
-      # This usage applies to +validate_on_create+ and +validate_on_update as well+.
       def validate(*args, &block)
         options = args.last
         if options.is_a?(Hash) && options.key?(:on)

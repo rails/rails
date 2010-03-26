@@ -29,7 +29,7 @@ module ActionView
       end
 
       def safe_concat(string)
-        output_buffer.safe_concat(string)
+        output_buffer.respond_to?(:safe_concat) ? output_buffer.safe_concat(string) : concat(string)
       end
 
       # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>
@@ -576,7 +576,7 @@ module ActionView
         # each email is yielded and the result is used as the link text.
         def auto_link_email_addresses(text, html_options = {})
           body = text.dup
-          text.gsub(/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/) do
+          text.gsub(/([\w\.!#\$%\-+]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/) do
             text = $1
 
             if body.match(/<a\b[^>]*>(.*)(#{Regexp.escape(text)})(.*)<\/a>/)

@@ -1673,15 +1673,6 @@ module ActiveRecord
           reflection
         end
 
-        def using_limitable_reflections?(reflections)
-          reflections.collect(&:collection?).length.zero?
-        end
-
-        def column_aliases(join_dependency)
-          join_dependency.joins.collect{|join| join.column_names_with_alias.collect{|column_name, aliased_name|
-              "#{connection.quote_table_name join.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"}}.flatten.join(", ")
-        end
-
         def add_association_callbacks(association_name, options)
           callbacks = %w(before_add after_add before_remove after_remove)
           callbacks.each do |callback_name|

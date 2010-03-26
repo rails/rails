@@ -51,8 +51,6 @@ module ApplicationTests
       assert_path @paths.config.environment, "config", "environments", "development.rb"
 
       assert_equal root("app", "controllers"), @paths.app.controllers.to_a.first
-      assert_equal Pathname.new(File.dirname(__FILE__)).join("..", "..", "builtin", "rails_info").expand_path,
-        Pathname.new(@paths.app.controllers.to_a[1]).expand_path
     end
 
     test "booting up Rails yields a list of paths that are eager" do
@@ -80,21 +78,5 @@ module ApplicationTests
       assert_not_in_load_path "tmp"
       assert_not_in_load_path "tmp", "cache"
     end
-
-    test "controller paths include builtin in development mode" do
-      Rails.env.replace "development"
-      assert Rails::Application::Configuration.new("/").paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
-    end
-
-    test "controller paths does not have builtin_directories in test mode" do
-      Rails.env.replace "test"
-      assert !Rails::Application::Configuration.new("/").paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
-    end
-
-    test "controller paths does not have builtin_directories in production mode" do
-      Rails.env.replace "production"
-      assert !Rails::Application::Configuration.new("/").paths.app.controllers.paths.any? { |p| p =~ /builtin/ }
-    end
-
   end
 end

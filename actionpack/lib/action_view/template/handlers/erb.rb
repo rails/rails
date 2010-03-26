@@ -8,6 +8,13 @@ module ActionView
       super(value.to_s)
     end
     alias :append= :<<
+
+    def append_if_string=(value)
+      if value.is_a?(String) && !value.is_a?(NonConcattingString)
+        ActiveSupport::Deprecation.warn("<% %> style block helpers are deprecated. Please use <%= %>", caller)
+        self << value
+      end
+    end
   end
 
   module Template::Handlers
@@ -21,11 +28,21 @@ module ActionView
         src << "@output_buffer.safe_concat('" << escape_text(text) << "');"
       end
 
+      BLOCK_EXPR = /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
+
       def add_expr_literal(src, code)
-        if code =~ /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
+        if code =~ BLOCK_EXPR
           src << '@output_buffer.append= ' << code
         else
           src << '@output_buffer.append= (' << code << ');'
+        end
+      end
+
+      def add_stmt(src, code)
+        if code =~ BLOCK_EXPR
+          src << '@output_buffer.append_if_string= ' << code
+        else
+          super
         end
       end
 
