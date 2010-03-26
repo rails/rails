@@ -9,6 +9,32 @@ module Arel
         And.new(self, other_predicate)
       end
     end
+    
+    class Grouped < Predicate
+      attributes :operator, :operand1, :operands2
+      
+      def initialize(operator, operand1, *operands2)
+        @operator = operator
+        @operand1 = operand1
+        @operands2 = operands2.uniq
+      end
+      
+      def ==(other)
+        self.class === other          and
+        @operand1  ==  other.operand1 and
+        same_elements?(@operands2, other.operands2)
+      end
+      
+      private
+      
+      def same_elements?(a1, a2)
+        [:select, :inject, :size].each do |m|
+          return false unless [a1, a2].each {|a| a.respond_to?(m) }
+        end
+        a1.inject({}) { |h,e| h[e] = a1.select { |i| i == e }.size; h } ==
+        a2.inject({}) { |h,e| h[e] = a2.select { |i| i == e }.size; h }
+      end
+    end
 
     class Binary < Predicate
       attributes :operand1, :operand2

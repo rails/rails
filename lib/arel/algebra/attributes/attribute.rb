@@ -82,48 +82,44 @@ module Arel
     include Congruence
 
     module Predications
-      def eq(other)
-        Predicates::Equality.new(self, other)
-      end
-
-      def not(other)
-        Predicates::Not.new(self, other)
-      end
-
-      def lt(other)
-        Predicates::LessThan.new(self, other)
-      end
-
-      def lteq(other)
-        Predicates::LessThanOrEqualTo.new(self, other)
-      end
-
-      def gt(other)
-        Predicates::GreaterThan.new(self, other)
-      end
-
-      def gteq(other)
-        Predicates::GreaterThanOrEqualTo.new(self, other)
-      end
-
-      def matches(regexp)
-        Predicates::Match.new(self, regexp)
-      end
-
-      def notmatches(regexp)
-        Predicates::NotMatch.new(self, regexp)
-      end
+      methods = {
+        :eq => "Equality",
+        :not => "Not",
+        :lt => "LessThan",
+        :lteq => "LessThanOrEqualTo",
+        :gt => "GreaterThan",
+        :gteq => "GreaterThanOrEqualTo",
+        :matches => "Match",
+        :notmatches => "NotMatch",
+        :in => "In",
+        :notin => "NotIn"
+      }
       
-      def in(array)
-        if array.is_a?(Range) && array.exclude_end?
-          [Predicates::GreaterThanOrEqualTo.new(self, array.begin), Predicates::LessThan.new(self, array.end)]
-        else
-          Predicates::In.new(self, array)
+      def self.predication(name, klass)
+        methods = {
+          :operator => "
+            def #{name}(other)
+              Predicates::#{klass}.new(self, other)
+            end
+          ",
+          :any => "
+            def #{name}_any(*others)
+              Predicates::Any.new(Predicates::#{klass}, self, *others)
+            end
+          ",
+          :all => "
+            def #{name}_all(*others)
+              Predicates::All.new(Predicates::#{klass}, self, *others)
+            end
+          "
+        }
+        [:operator, :any, :all].each do |method_name|
+          module_eval methods[method_name], __FILE__, __LINE__
         end
       end
       
-      def notin(array)
-        Predicates::NotIn.new(self, array)
+      methods.each_pair do |method_name, class_name|
+        predication(method_name, class_name)
       end
     end
     include Predications
