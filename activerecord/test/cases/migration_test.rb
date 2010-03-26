@@ -1104,13 +1104,25 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal migrations[0].name, 'InnocentJointable'
     end
 
+    def test_relative_migrations
+      $".delete_if do |fname|
+        fname == (MIGRATIONS_ROOT + "/valid/1_people_have_last_names.rb")
+      end
+      Object.send(:remove_const, :PeopleHaveLastNames)
+
+      Dir.chdir(MIGRATIONS_ROOT) do
+        ActiveRecord::Migrator.up("valid/", 1)
+      end
+
+      assert defined?(PeopleHaveLastNames)
+    end
+
     def test_only_loads_pending_migrations
       # migrate up to 1
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
 
       # now unload the migrations that have been defined
-      PeopleHaveLastNames.unloadable
-      ActiveSupport::Dependencies.remove_unloadable_constants!
+      Object.send(:remove_const, :PeopleHaveLastNames)
 
       ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", nil)
 

@@ -124,11 +124,11 @@ class ControllerInstanceTests < Test::Unit::TestCase
 
   def test_action_methods
     @empty_controllers.each do |c|
-      assert_equal Set.new, c.class.__send__(:action_methods), "#{c.controller_path} should be empty!"
+      assert_equal Set.new, c.class.action_methods, "#{c.controller_path} should be empty!"
     end
 
     @non_empty_controllers.each do |c|
-      assert_equal Set.new(%w(public_action)), c.class.__send__(:action_methods), "#{c.controller_path} should not be empty!"
+      assert_equal Set.new(%w(public_action)), c.class.action_methods, "#{c.controller_path} should not be empty!"
     end
   end
 
@@ -191,7 +191,7 @@ class UrlOptionsTest < ActionController::TestCase
 
   def test_url_options_override
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         match 'from_view', :to => 'url_options#from_view', :as => :from_view
         match ':controller/:action'
       end
@@ -202,7 +202,18 @@ class UrlOptionsTest < ActionController::TestCase
       assert_equal 'http://www.override.com/from_view?locale=en', @controller.send(:from_view_url)
       assert_equal 'http://www.override.com/default_url_options/new?locale=en', @controller.url_for(:controller => 'default_url_options')
     end
-  end  
+  end 
+
+  def test_url_helpers_does_not_become_actions
+    with_routing do |set|
+      set.draw do
+        match "account/overview"
+      end
+
+      @controller.class.send(:include, set.url_helpers)
+      assert !@controller.class.action_methods.include?("account_overview_path")
+    end
+  end
 end
 
 class DefaultUrlOptionsTest < ActionController::TestCase
@@ -216,7 +227,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
 
   def test_default_url_options_override
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         match 'from_view', :to => 'default_url_options#from_view', :as => :from_view
         match ':controller/:action'
       end
@@ -231,7 +242,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
 
   def test_default_url_options_are_used_in_non_positional_parameters
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         scope("/:locale") do
           resources :descriptions
         end

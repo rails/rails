@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'generators/rails/controller/controller_generator'
+require 'rails/generators/rails/controller/controller_generator'
 
 class ControllerGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -49,13 +49,13 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_template_engine
     run_generator
-    assert_file "app/views/account/foo.html.erb", /app\/views\/account\/foo/
-    assert_file "app/views/account/bar.html.erb", /app\/views\/account\/bar/
+    assert_file "app/views/account/foo.html.erb", %r(app/views/account/foo\.html\.erb)
+    assert_file "app/views/account/bar.html.erb", %r(app/views/account/bar\.html\.erb)
   end
 
   def test_add_routes
     run_generator
-    assert_file "config/routes.rb", /get "\/account\/foo" => "account#foo"/, /get "\/account\/bar" => "account#bar"/
+    assert_file "config/routes.rb", /get "account\/foo"/, /get "account\/bar"/
   end
 
   def test_invokes_default_template_engine_even_with_no_action

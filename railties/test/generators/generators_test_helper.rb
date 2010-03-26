@@ -28,7 +28,7 @@ module GeneratorsTestHelper
   end
 
   def copy_routes
-    routes = File.expand_path("../../../lib/generators/rails/app/templates/config/routes.rb", __FILE__)
+    routes = File.expand_path("../../../lib/rails/generators/rails/app/templates/config/routes.rb", __FILE__)
     destination = File.join(destination_root, "config")
     FileUtils.mkdir_p(destination)
     FileUtils.cp File.expand_path(routes), destination

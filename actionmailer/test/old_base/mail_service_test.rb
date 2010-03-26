@@ -340,6 +340,8 @@ class ActionMailerTest < Test::Unit::TestCase
 
     @original_logger = TestMailer.logger
     @recipient = 'test@localhost'
+
+    TestMailer.delivery_method = :test
   end
 
   def teardown
@@ -1191,6 +1193,6 @@ class RespondToTest < Test::Unit::TestCase
       RespondToMailer.not_a_method
     end
 
-    assert_match(/undefined method.*not_a_method/, error.message)
+    assert_match(/method.*not_a_method/, error.message)
   end
 end

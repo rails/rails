@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'generators/rails/scaffold/scaffold_generator'
+require 'rails/generators/rails/scaffold/scaffold_generator'
 
 class ScaffoldGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper

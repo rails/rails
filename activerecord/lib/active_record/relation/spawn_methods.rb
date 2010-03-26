@@ -4,29 +4,13 @@ module ActiveRecord
       merged_relation = clone
       return merged_relation unless r
 
-      merged_relation = merged_relation.eager_load(r.eager_load_values).preload(r.preload_values).includes(r.includes_values)
-
-      merged_relation.readonly_value = r.readonly_value unless r.readonly_value.nil?
-      merged_relation.limit_value = r.limit_value if r.limit_value.present?
-      merged_relation.lock_value = r.lock_value unless merged_relation.lock_value
-      merged_relation.offset_value = r.offset_value if r.offset_value.present?
-
-      merged_relation = merged_relation.
-        joins(r.joins_values).
-        group(r.group_values).
-        select(r.select_values).
-        from(r.from_value).
-        having(r.having_values)
-
-      merged_relation.order_values = r.order_values if r.order_values.present?
-
-      merged_relation.create_with_value = @create_with_value
-
-      if @create_with_value && r.create_with_value
-        merged_relation.create_with_value = @create_with_value.merge(r.create_with_value)
-      else
-        merged_relation.create_with_value = r.create_with_value || @create_with_value
+      (ActiveRecord::Relation::ASSOCIATION_METHODS + ActiveRecord::Relation::MULTI_VALUE_METHODS).reject {|m| [:joins, :where].include?(m)}.each do |method|
+        unless (value = r.send(:"#{method}_values")).blank?
+          merged_relation.send(:"#{method}_values=", value)
+        end
       end
+
+      merged_relation = merged_relation.joins(r.joins_values)
 
       merged_wheres = @where_values
 
@@ -39,6 +23,14 @@ module ActiveRecord
       end
 
       merged_relation.where_values = merged_wheres
+
+      ActiveRecord::Relation::SINGLE_VALUE_METHODS.reject {|m| m == :lock}.each do |method|
+        unless (value = r.send(:"#{method}_value")).nil?
+          merged_relation.send(:"#{method}_value=", value)
+        end
+      end
+
+      merged_relation.lock_value = r.lock_value unless merged_relation.lock_value
 
       merged_relation
     end

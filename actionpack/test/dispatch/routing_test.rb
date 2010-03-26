@@ -34,6 +34,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'account/login', :to => redirect("/login")
 
       match 'account/overview'
+      match '/account/nested/overview'
 
       match 'account/modulo/:name', :to => redirect("/%{name}s")
       match 'account/proc/:name', :to => redirect {|params| "/#{params[:name].pluralize}" }
@@ -121,6 +122,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'articles/:year/:month/:day/:title', :to => "articles#show", :as => :article
 
       namespace :account do
+        match 'shorthand'
         match 'description', :to => "account#description", :as => "description"
         resource :subscription, :credit, :credit_card
 
@@ -652,6 +654,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/account/overview', account_overview_path
       get '/account/overview'
       assert_equal 'account#overview', @response.body
+    end
+  end
+
+  def test_convention_match_inside_namespace
+    with_test_routes do
+      assert_equal '/account/shorthand', account_shorthand_path
+      get '/account/shorthand'
+      assert_equal 'account#shorthand', @response.body
+    end
+  end
+
+  def test_convention_match_nested_and_with_leading_slash
+    with_test_routes do
+      assert_equal '/account/nested/overview', account_nested_overview_path
+      get '/account/nested/overview'
+      assert_equal 'account/nested#overview', @response.body
     end
   end
 
