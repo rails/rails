@@ -651,14 +651,12 @@ module ActiveRecord
         end
       end
 
-
       # Returns the list of all tables in the schema search path or a specified schema.
       def tables(name = nil)
-        schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
         query(<<-SQL, name).map { |row| row[0] }
           SELECT tablename
             FROM pg_tables
-           WHERE schemaname IN (#{schemas})
+           WHERE schemaname = ANY (current_schemas(false))
         SQL
       end
 
