@@ -32,6 +32,8 @@ module ActionDispatch
       end
 
       class Mapping
+        IGNORE_OPTIONS = [:to, :as, :controller, :action, :via, :on, :constraints, :defaults, :only, :except, :anchor]
+
         def initialize(set, scope, args)
           @set, @scope    = set, scope
           @path, @options = extract_path_and_options(args)
@@ -96,7 +98,15 @@ module ActionDispatch
           end
 
           def defaults
-            @defaults ||= if to.respond_to?(:call)
+            @defaults ||= (@options[:defaults] || {}).tap do |defaults|
+              defaults.merge!(default_controller_and_action)
+              defaults.reverse_merge!(@scope[:defaults]) if @scope[:defaults]
+              @options.each { |k, v| defaults[k] = v unless v.is_a?(Regexp) || IGNORE_OPTIONS.include?(k.to_sym) }
+            end
+          end
+
+          def default_controller_and_action
+            if to.respond_to?(:call)
               { }
             else
               defaults = case to
@@ -299,6 +309,10 @@ module ActionDispatch
           scope(:constraints => constraints) { yield }
         end
 
+        def defaults(defaults = {})
+          scope(:defaults => defaults) { yield }
+        end
+
         def match(*args)
           options = args.extract_options!
 
@@ -340,6 +354,10 @@ module ActionDispatch
           end
 
           def merge_constraints_scope(parent, child)
+            merge_options_scope(parent, child)
+          end
+
+          def merge_defaults_scope(parent, child)
             merge_options_scope(parent, child)
           end
 

@@ -121,6 +121,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       # misc
       match 'articles/:year/:month/:day/:title', :to => "articles#show", :as => :article
 
+      # default params
+      match 'inline_pages/(:id)', :to => 'pages#show', :id => 'home'
+      match 'default_pages/(:id)', :to => 'pages#show', :defaults => { :id => 'home' }
+      defaults :id => 'home' do
+        match 'scoped_pages/(:id)', :to => 'pages#show'
+      end
+
       namespace :account do
         match 'shorthand'
         match 'description', :to => "account#description", :as => "description"
@@ -766,6 +773,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/admin/descriptions/1'
       assert_equal 'admin/descriptions#show', @response.body
+    end
+  end
+
+  def test_default_params
+    with_test_routes do
+      get '/inline_pages'
+      assert_equal 'home', @request.params[:id]
+
+      get '/default_pages'
+      assert_equal 'home', @request.params[:id]
+
+      get '/scoped_pages'
+      assert_equal 'home', @request.params[:id]
     end
   end
 
