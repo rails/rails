@@ -1,19 +1,20 @@
-require File.dirname(__FILE__) + '/../lib/ruby_version_check'
+$:.unshift File.expand_path("../../lib", __FILE__)
+
+require 'ruby_version_check'
 Signal.trap("INT") { puts; exit }
 
-require File.dirname(__FILE__) + '/../lib/rails/version'
+require 'rails/version'
 if %w(--version -v).include? ARGV.first
   puts "Rails #{Rails::VERSION::STRING}"
   exit(0)
 end
 
 freeze   = ARGV.any? { |option| %w(--freeze -f).include?(option) }
-
 app_path = ARGV.first
 
-require File.dirname(__FILE__) + '/../lib/rails_generator'
-
+require 'rails_generator'
 require 'rails_generator/scripts/generate'
+
 Rails::Generator::Base.use_application_sources!
 Rails::Generator::Scripts::Generate.new.run(ARGV, :generator => 'app')
 
