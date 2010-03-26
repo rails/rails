@@ -9,7 +9,8 @@ module Rails
 
     include Initializable
 
-    ABSTRACT_RAILTIES = %w(Rails::Plugin Rails::Engine Rails::Application)
+    ABSTRACT_RAILTIES = %w(Rails::Railtie Rails::Plugin Rails::Engine Rails::Application)
+    RAILTIES_TYPES    = ABSTRACT_RAILTIES.map { |r| r.split('::').last }
 
     class << self
       def subclasses
@@ -17,7 +18,7 @@ module Rails
       end
 
       def inherited(base)
-        unless abstract_railtie?(base)
+        unless base.abstract_railtie?
           base.send(:include, self::Configurable)
           subclasses << base
         end
@@ -52,14 +53,16 @@ module Rails
         @generators
       end
 
-    protected
-
-      def abstract_railtie?(base)
-        ABSTRACT_RAILTIES.include?(base.name)
+      def abstract_railtie?
+        ABSTRACT_RAILTIES.include?(name)
       end
 
+    protected
+
       def default_name
-        ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(name))
+        namespaces = name.split("::")
+        namespaces.pop if RAILTIES_TYPES.include?(namespaces.last)
+        ActiveSupport::Inflector.underscore(namespaces.last).to_sym
       end
     end
 

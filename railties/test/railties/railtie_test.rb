@@ -15,6 +15,14 @@ module RailtiesTest
       @app ||= Rails.application
     end
 
+    test "name can be retrieved from namespaced railties" do
+      module ActiveRailtie
+        class Railtie < Rails::Railtie; end
+      end
+
+      assert_equal :active_railtie, ActiveRailtie::Railtie.railtie_name
+    end
+
     test "can find railtie by name" do
       class TieA < Rails::Railtie; railtie_name :railtie_a; end
       class TieB < Rails::Railtie; railtie_name :railtie_b; end

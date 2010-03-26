@@ -14,7 +14,7 @@ module Rails
       alias :engine_names :railtie_names
 
       def inherited(base)
-        unless abstract_railtie?(base)
+        unless base.abstract_railtie?
           base.called_from = begin
             # Remove the line number from backtraces making sure we don't leave anything behind
             call_stack = caller.map { |p| p.split(':')[0..-2].join(':') }
