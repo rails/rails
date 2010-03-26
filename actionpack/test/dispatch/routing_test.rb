@@ -18,10 +18,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       default_url_options :host => "rubyonrails.org"
 
       controller :sessions do
-        get  'login' => :new, :as => :login
+        get  'login' => :new
         post 'login' => :create
-
-        delete 'logout' => :destroy, :as => :logout
+        delete 'logout' => :destroy
       end
 
       resource :session do
@@ -35,6 +34,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       match 'account/overview'
       match '/account/nested/overview'
+      match 'sign_in' => "sessions#new"
 
       match 'account/modulo/:name', :to => redirect("/%{name}s")
       match 'account/proc/:name', :to => redirect {|params| "/#{params[:name].pluralize}" }
@@ -670,6 +670,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/account/nested/overview', account_nested_overview_path
       get '/account/nested/overview'
       assert_equal 'account/nested#overview', @response.body
+    end
+  end
+
+  def test_convention_with_explicit_end
+    with_test_routes do
+      get '/sign_in'
+      assert_equal 'sessions#new', @response.body
+      assert_equal '/sign_in', sign_in_path
     end
   end
 

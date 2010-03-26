@@ -55,10 +55,8 @@ module ActionDispatch
             path = normalize_path(path)
 
             if using_match_shorthand?(path, options)
-              options = {
-                :to => path[1..-1].sub(%r{/([^/]*)$}, '#\1'),
-                :as => path[1..-1].gsub("/", "_")
-              }.merge!(options)
+              options[:to] ||= path[1..-1].sub(%r{/([^/]*)$}, '#\1')
+              options[:as] ||= path[1..-1].gsub("/", "_")
             end
 
             [ path, options ]
@@ -71,7 +69,7 @@ module ActionDispatch
 
           # match "account/overview"
           def using_match_shorthand?(path, options)
-            path && options.except(:via, :anchor).empty? && !path.include?(':')
+            path && options.except(:via, :anchor, :to, :as).empty? && path =~ %r{^/[\w\/]+$}
           end
 
           def normalize_path(path)
