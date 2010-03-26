@@ -33,10 +33,6 @@ module Rails
         subclasses.map { |p| p.railtie_name }
       end
 
-      def named(name)
-        subclasses.detect { |r| r.railtie_name == name }
-      end
-
       def log_subscriber(log_subscriber)
         Rails::LogSubscriber.add(railtie_name, log_subscriber)
       end
