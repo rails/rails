@@ -14,42 +14,49 @@ require "active_support/core_ext/array"
 #  AppConfiguration.google_api_key = "overriding the api key!"
 class Module
   def mattr_reader(*syms)
+    options = syms.extract_options!
     syms.each do |sym|
       next if sym.is_a?(Hash)
-      class_eval(<<-EOS, __FILE__, __LINE__)
-        unless defined? @@#{sym}  # unless defined? @@pagination_options
-          @@#{sym} = nil          #   @@pagination_options = nil
-        end                       # end
-                                  #
-        def self.#{sym}           # def self.pagination_options
-          @@#{sym}                #   @@pagination_options
-        end                       # end
-                                  #
-        def #{sym}                # def pagination_options
-          @@#{sym}                #   @@pagination_options
-        end                       # end
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        unless defined? @@#{sym}
+          @@#{sym} = nil
+        end
+
+        def self.#{sym}
+          @@#{sym}
+        end
       EOS
+
+      unless options[:instance_reader] == false
+        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+          def #{sym}
+            @@#{sym}
+          end
+        EOS
+      end
     end
   end
   
   def mattr_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      class_eval(<<-EOS, __FILE__, __LINE__)
-        unless defined? @@#{sym}                       # unless defined? @@pagination_options
-          @@#{sym} = nil                               #   @@pagination_options = nil
-        end                                            # end
-                                                       #
-        def self.#{sym}=(obj)                          # def self.pagination_options=(obj)
-          @@#{sym} = obj                               #   @@pagination_options = obj
-        end                                            # end
-                                                       #
-        #{"                                            #
-        def #{sym}=(obj)                               # def pagination_options=(obj)
-          @@#{sym} = obj                               #   @@pagination_options = obj
-        end                                            # end
-        " unless options[:instance_writer] == false }  # # instance writer above is generated unless options[:instance_writer] == false
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        unless defined? @@#{sym}
+          @@#{sym} = nil
+        end
+
+        def self.#{sym}=(obj)
+          @@#{sym} = obj
+        end
       EOS
+
+      unless options[:instance_writer] == false
+        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+          def #{sym}=(obj)
+            @@#{sym} = obj
+          end
+        EOS
+      end
     end
   end
   
