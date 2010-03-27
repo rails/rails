@@ -9,11 +9,9 @@ if RUBY_VERSION < '1.9'
         time = _original_load(marshaled_time)
         time.instance_eval do
           if defined?(@marshal_with_utc_coercion)
-            remove_instance_variable("@marshal_with_utc_coercion")
-            utc
-          else
-            self
+            val = remove_instance_variable("@marshal_with_utc_coercion")
           end
+          val ? utc : self
         end
       end
     end
