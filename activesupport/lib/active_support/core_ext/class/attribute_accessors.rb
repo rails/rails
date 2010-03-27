@@ -11,7 +11,7 @@ require 'active_support/core_ext/array/extract_options'
 class Class
   def cattr_reader(*syms)
     options = syms.extract_options!
-    syms.flatten.each do |sym|
+    syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         unless defined? @@#{sym}  # unless defined? @@hair_colors
           @@#{sym} = nil          #   @@hair_colors = nil
@@ -33,7 +33,7 @@ class Class
 
   def cattr_writer(*syms)
     options = syms.extract_options!
-    syms.flatten.each do |sym|
+    syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         unless defined? @@#{sym}                       # unless defined? @@hair_colors
           @@#{sym} = nil                               #   @@hair_colors = nil
