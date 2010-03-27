@@ -4,6 +4,10 @@
 
 module ActiveSupport
   class HashWithIndifferentAccess < Hash
+    def extractable_options?
+      true
+    end
+
     def initialize(constructor = {})
       if constructor.is_a?(Hash)
         super()

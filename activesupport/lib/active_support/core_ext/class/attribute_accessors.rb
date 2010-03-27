@@ -10,8 +10,8 @@ require 'active_support/core_ext/array/extract_options'
 #  Person.hair_colors = [:brown, :black, :blonde, :red]
 class Class
   def cattr_reader(*syms)
+    options = syms.extract_options!
     syms.flatten.each do |sym|
-      next if sym.is_a?(Hash)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         unless defined? @@#{sym}  # unless defined? @@hair_colors
           @@#{sym} = nil          #   @@hair_colors = nil
@@ -20,11 +20,14 @@ class Class
         def self.#{sym}           # def self.hair_colors
           @@#{sym}                #   @@hair_colors
         end                       # end
-                                  #
-        def #{sym}                # def hair_colors
-          @@#{sym}                #   @@hair_colors
-        end                       # end
       EOS
+      unless options[:instance_reader] == false
+        class_eval(<<-EOS, __FILE__, __LINE__)
+          def #{sym}              # def hair_colors
+            @@#{sym}              #   @@hair_colors
+          end                     # end
+        EOS
+      end
     end
   end
 
