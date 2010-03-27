@@ -3,6 +3,7 @@ require 'action_view/helpers/form_helper'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/object/blank'
 
 module ActionView
   ActionView.base_hook do
