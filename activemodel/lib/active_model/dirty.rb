@@ -86,6 +86,11 @@ module ActiveModel
       attribute_method_affix :prefix => 'reset_', :suffix => '!'
     end
 
+    def initialize(*)
+      @changed_attributes = {}
+      super
+    end
+
     # Do any attributes have unsaved changes?
     #   person.changed? # => false
     #   person.name = 'bob'

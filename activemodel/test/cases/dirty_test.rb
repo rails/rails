@@ -6,6 +6,7 @@ class DirtyTest < ActiveModel::TestCase
     define_attribute_methods [:name]
 
     def initialize
+      super
       @name = nil
     end
 
