@@ -1,3 +1,4 @@
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/hash/conversions'
 
@@ -108,7 +109,7 @@ module ActiveModel
         end
 
         def serializable_method_attributes
-          Array(options[:methods]).inject([]) do |methods, name|
+          Array.wrap(options[:methods]).inject([]) do |methods, name|
             methods << MethodAttribute.new(name.to_s, @serializable) if @serializable.respond_to?(name.to_s)
             methods
           end
