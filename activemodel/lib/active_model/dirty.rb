@@ -1,3 +1,5 @@
+require 'active_support/hash_with_indifferent_access'
+
 module ActiveModel
   # <tt>ActiveModel::Dirty</tt> provides a way to track changes in your
   # object in the same way as ActiveRecord does.
