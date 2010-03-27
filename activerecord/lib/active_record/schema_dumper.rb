@@ -76,7 +76,6 @@ HEADER
       def table(table, stream)
         columns = @connection.columns(table)
         begin
-          column_specs = columns.dup
           tbl = StringIO.new
 
           # first dump primary key column
@@ -87,12 +86,9 @@ HEADER
           end
           
           tbl.print "  create_table #{table.inspect}"
-          if pkc = column_specs.detect { |c| c.name == pk }
-            if pkc.limit != @types[:primary_key][:limit]
-              tbl.print ", :id => false"
-            else
-              column_specs.delete(pkc)
-              tbl.print %Q(, :primary_key => "#{pk}") if pk != 'id'
+          if columns.detect { |c| c.name == pk }
+            if pk != 'id'
+              tbl.print %Q(, :primary_key => "#{pk}")
             end
           else
             tbl.print ", :id => false"
@@ -101,29 +97,27 @@ HEADER
           tbl.puts " do |t|"
 
           # then dump all non-primary key columns
-          column_specs.map! do |column|
+          column_specs = columns.map do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" if @types[column.type].nil?
+            next if column.name == pk
             spec = {}
             spec[:name]      = column.name.inspect
+            
+            # AR has an optimisation which handles zero-scale decimals as integers.  This
+            # code ensures that the dumper still dumps the column as a decimal.
+            spec[:type]      = if column.type == :integer && [/^numeric/, /^decimal/].any? { |e| e.match(column.sql_type) }
+                                 'decimal'
+                               else
+                                 column.type.to_s
+                               end
             spec[:limit]     = column.limit.inspect if column.limit != @types[column.type][:limit] && spec[:type] != 'decimal'
-            if column.name == pk
-              spec[:type]    = 'primary_key'
-            else
-              # AR has an optimisation which handles zero-scale decimals as integers.  This
-              # code ensures that the dumper still dumps the column as a decimal.
-              spec[:type]      = if column.type == :integer && [/^numeric/, /^decimal/].any? { |e| e.match(column.sql_type) }
-                                   'decimal'
-                                 else
-                                   column.type.to_s
-                                 end
-              spec[:precision] = column.precision.inspect if !column.precision.nil?
-              spec[:scale]     = column.scale.inspect if !column.scale.nil?
-              spec[:null]      = 'false' if !column.null
-              spec[:default]   = default_string(column.default) if column.has_default?
-            end
+            spec[:precision] = column.precision.inspect if !column.precision.nil?
+            spec[:scale]     = column.scale.inspect if !column.scale.nil?
+            spec[:null]      = 'false' if !column.null
+            spec[:default]   = default_string(column.default) if column.has_default?
             (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k.inspect} => ")}
             spec
-          end
+          end.compact
 
           # find all migration keys used in this table
           keys = [:name, :limit, :precision, :scale, :default, :null] & column_specs.map(&:keys).flatten

@@ -183,7 +183,7 @@ module ActiveRecord
       QUOTED_TRUE, QUOTED_FALSE = '1'.freeze, '0'.freeze
 
       NATIVE_DATABASE_TYPES = {
-        :primary_key => { :name => "DEFAULT NULL auto_increment PRIMARY KEY", :limit => 4 },
+        :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY".freeze,
         :string      => { :name => "varchar", :limit => 255 },
         :text        => { :name => "text" },
         :integer     => { :name => "int", :limit => 4 },
@@ -541,21 +541,15 @@ module ActiveRecord
 
       # Maps logical Rails types to MySQL-specific data types.
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
-        case type.to_s
-        when 'primary_key':
-          native = native_database_types[:primary_key]
-          return type_to_sql('integer', limit) + ' ' + native[:name]
-        when 'integer':
-          case limit
-          when 1; 'tinyint'
-          when 2; 'smallint'
-          when 3; 'mediumint'
-          when nil, 4, 11; 'int(11)'  # compatibility with MySQL default
-          when 5..8; 'bigint'
-          else raise(ActiveRecordError, "No integer type has byte size #{limit}")
-          end
-        else
-          super
+        return super unless type.to_s == 'integer'
+
+        case limit
+        when 1; 'tinyint'
+        when 2; 'smallint'
+        when 3; 'mediumint'
+        when nil, 4, 11; 'int(11)'  # compatibility with MySQL default
+        when 5..8; 'bigint'
+        else raise(ActiveRecordError, "No integer type has byte size #{limit}")
         end
       end
 
