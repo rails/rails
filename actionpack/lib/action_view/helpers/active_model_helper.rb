@@ -127,7 +127,7 @@ module ActionView
         object = convert_to_model(object)
 
         if (obj = (object.respond_to?(:errors) ? object : instance_variable_get("@#{object}"))) &&
-          (errors = obj.errors[method])
+          (errors = obj.errors[method]).presence
           content_tag("div",
             "#{options[:prepend_text]}#{ERB::Util.h(errors.first)}#{options[:append_text]}".html_safe,
             :class => options[:css_class]
