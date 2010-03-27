@@ -23,9 +23,12 @@ module ActionView
 
         def #{name}=(value)
           value = Array.wrap(value.presence || _#{name}_defaults)
-          @details_key = nil unless value == @details[:#{name}]
-          # Always set the value to handle frozen arrays
-          @details[:#{name}] = value
+
+          if value != @details[:#{name}]
+            @details_key = nil
+            @details = @details.dup if @details.frozen?
+            @details[:#{name}] = value.freeze
+          end
         end
       METHOD
     end
@@ -45,7 +48,7 @@ module ActionView
       @details_keys = Hash.new
 
       def self.get(details)
-        @details_keys[details] ||= new
+        @details_keys[details.freeze] ||= new
       end
 
       def initialize
@@ -55,6 +58,7 @@ module ActionView
 
     def initialize(view_paths, details = {})
       @details, @details_key = { :handlers => default_handlers }, nil
+      @frozen_formats = false
       self.view_paths = view_paths
       self.update_details(details, true)
     end
@@ -125,6 +129,15 @@ module ActionView
       # since the user cannot modify it explicitly.
       def details_key #:nodoc:
         @details_key ||= DetailsKey.get(@details)
+      end
+
+      # Freeze the current formats in the lookup context. By freezing them, you are guaranteeing
+      # that next template lookups are not going to modify the formats. The controller can also
+      # use this, to ensure that formats won't be further modified (as it does in respond_to blocks).
+      def freeze_formats(formats, unless_frozen=false) #:nodoc:
+        return if unless_frozen && @frozen_formats
+        self.formats = formats
+        @frozen_formats = true
       end
 
       # Overload formats= to reject [:"*/*"] values.
