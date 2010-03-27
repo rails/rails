@@ -4,7 +4,9 @@ module ActiveSupport
   # context, so only the relevant lines are included.
   #
   # If you need to reconfigure an existing BacktraceCleaner, like the one in Rails, to show as much as possible, you can always
-  # call BacktraceCleaner#remove_silencers!
+  # call BacktraceCleaner#remove_silencers! Also, if you need to reconfigure an existing BacktraceCleaner so that it does not
+  # filter or modify the paths of any lines of the backtrace, you can call BacktraceCleaner#remove_filters! These two methods
+  # will give you a completely untouched backtrace.
   #
   # Example:
   #
@@ -58,6 +60,10 @@ module ActiveSupport
     # you suspect a bug in the libraries you use.
     def remove_silencers!
       @silencers = []
+    end
+
+    def remove_filters!
+      @filters = []
     end
 
     private
