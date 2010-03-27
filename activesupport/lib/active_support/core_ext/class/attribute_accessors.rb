@@ -8,7 +8,7 @@
 #  Person.hair_colors = [:brown, :black, :blonde, :red]
 class Class
   def cattr_reader(*syms)
-    syms.flatten.each do |sym|
+    syms.each do |sym|
       next if sym.is_a?(Hash)
       class_eval(<<-EOS, __FILE__, __LINE__)
         unless defined? @@#{sym}  # unless defined? @@hair_colors
@@ -28,7 +28,7 @@ class Class
 
   def cattr_writer(*syms)
     options = syms.extract_options!
-    syms.flatten.each do |sym|
+    syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__)
         unless defined? @@#{sym}                       # unless defined? @@hair_colors
           @@#{sym} = nil                               #   @@hair_colors = nil
