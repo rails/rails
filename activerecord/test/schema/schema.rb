@@ -394,6 +394,10 @@ ActiveRecord::Schema.define do
     t.integer :price
   end
 
+  create_table :primary_key_limit, :force => true, :id => false do |t|
+    t.primary_key :id, :limit => 8
+  end
+
   create_table :projects, :force => true do |t|
     t.string :name
     t.string :type

@@ -45,7 +45,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       next if column_set.empty?
 
       lengths = column_set.map do |column|
-        if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean)\s+"/)
+        if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean|primary_key)\s+"/)
           match[0].length
         end
       end
@@ -186,6 +186,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t.text\s+"medium_text",\s+:limit => 16777215$}, output
       assert_match %r{t.text\s+"long_text",\s+:limit => 2147483647$}, output
     end
+
+    def test_mysql_schema_dump_should_honor_primary_keys_limits
+      output = standard_dump
+      match = output.match(%r{create_table "primary_key_limit",.*?:id => false\b.*? do (.*?)\bend$}m)
+      assert_not_nil(match, output)
+      assert_match %r(t.primary_key\s+"id",\s+:limit => \d+$), match[1], "limit option not found on primary key"
+    end
   end
 
   def test_schema_dump_includes_decimal_options
@@ -211,7 +218,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     if current_adapter?(:OracleAdapter)
       assert_match %r{t.integer\s+"atoms_in_universe",\s+:precision => 38,\s+:scale => 0}, output
     else
-      assert_match %r{t.decimal\s+"atoms_in_universe",\s+:precision => 55,\s+:scale => 0}, output
+      assert_match %r{t.decimal\s+"atoms_in_universe",\s+:limit => 55,\s+:precision => 55,\s+:scale => 0}, output
     end
   end
 
