@@ -18,8 +18,9 @@ module ActiveRecord
       self.record_timestamps = true
     end
     
-    # Updates only the record's updated_at/on attributes to the current time without checking validations.
-    # If an attribute name is passed, that attribute is used instead of the updated_at/on attributes.
+    # Saves the record with the updated_at/on attributes set to the current time.
+    # If the save fails because of validation errors, an ActiveRecord::RecordInvalid exception is raised.
+    # If an attribute name is passed, that attribute is used for the touch instead of the updated_at/on attributes.
     #
     # Examples:
     #
@@ -29,24 +30,13 @@ module ActiveRecord
       current_time = current_time_from_proper_timezone
 
       if attribute
-        update_attribute(attribute, current_time)
+        write_attribute(attribute, current_time)
       else
-        update_attribute('updated_at', current_time) if respond_to?(:updated_at)
-        update_attribute('updated_on', current_time) if respond_to?(:updated_on)
+        write_attribute('updated_at', current_time) if respond_to?(:updated_at)
+        write_attribute('updated_on', current_time) if respond_to?(:updated_on)
       end
-    end
-    
-    # Saves the entire record with the updated_at/on attributes set to the current time.
-    # If the save fails because of validation errors, an ActiveRecord::RecordInvalid exception is raised.
-    # If an attribute name is passed, that attribute is used for the touch instead of the updated_at/on attributes.
-    #
-    # Examples:
-    #
-    #   product.touch!               # updates updated_at
-    #   product.touch!(:designed_at) # updates the designed_at attribute
-    def touch!(attribute = nil)
-      raise ActiveRecord::RecordInvalid.new(self) unless valid?
-      touch(attribute)
+
+      save!
     end
 
 

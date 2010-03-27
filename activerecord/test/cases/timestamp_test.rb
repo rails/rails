@@ -30,34 +30,9 @@ class TimestampTest < ActiveRecord::TestCase
     assert @previously_updated_at != @developer.updated_at
   end
   
-  def test_touching_a_record_updates_its_timestamp_even_if_object_instance_is_invalid
-    @developer.name = nil
-    @developer.touch
-    
-    assert @previously_updated_at != @developer.updated_at
-  end
-  
-  def test_touch_bang_a_record_updates_its_timestamp
-    @developer.touch!
-    
-    assert @previously_updated_at != @developer.updated_at
-  end
-  
-  def test_touch_banging_a_record_fails_if_object_instance_is_invalid
-    @developer.name = nil
-    assert_raise(ActiveRecord::RecordInvalid) { @developer.touch! }
-  end
-  
   def test_touching_a_different_attribute
     previously_created_at = @developer.created_at
     @developer.touch(:created_at)
-
-    assert previously_created_at != @developer.created_at
-  end
-  
-  def test_touch_banging_a_different_attribute
-    previously_created_at = @developer.created_at
-    @developer.touch!(:created_at)
 
     assert previously_created_at != @developer.created_at
   end
