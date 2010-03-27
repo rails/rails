@@ -13,19 +13,20 @@ class Class
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        unless defined? @@#{sym}  # unless defined? @@hair_colors
-          @@#{sym} = nil          #   @@hair_colors = nil
-        end                       # end
-                                  #
-        def self.#{sym}           # def self.hair_colors
-          @@#{sym}                #   @@hair_colors
-        end                       # end
+        unless defined? @@#{sym}
+          @@#{sym} = nil
+        end
+
+        def self.#{sym}
+          @@#{sym}
+        end
       EOS
+
       unless options[:instance_reader] == false
-        class_eval(<<-EOS, __FILE__, __LINE__)
-          def #{sym}              # def hair_colors
-            @@#{sym}              #   @@hair_colors
-          end                     # end
+        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+          def #{sym}
+            @@#{sym}
+          end
         EOS
       end
     end
@@ -35,20 +36,22 @@ class Class
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        unless defined? @@#{sym}                       # unless defined? @@hair_colors
-          @@#{sym} = nil                               #   @@hair_colors = nil
-        end                                            # end
-                                                       #
-        def self.#{sym}=(obj)                          # def self.hair_colors=(obj)
-          @@#{sym} = obj                               #   @@hair_colors = obj
-        end                                            # end
-                                                       #
-        #{"                                            #
-        def #{sym}=(obj)                               # def hair_colors=(obj)
-          @@#{sym} = obj                               #   @@hair_colors = obj
-        end                                            # end
-        " unless options[:instance_writer] == false }  # # instance writer above is generated unless options[:instance_writer] == false
+        unless defined? @@#{sym}
+          @@#{sym} = nil
+        end
+
+        def self.#{sym}=(obj)
+          @@#{sym} = obj
+        end
       EOS
+
+      unless options[:instance_writer] == false
+        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+          def #{sym}=(obj)
+            @@#{sym} = obj
+          end
+        EOS
+      end
       self.send("#{sym}=", yield) if block_given?
     end
   end
