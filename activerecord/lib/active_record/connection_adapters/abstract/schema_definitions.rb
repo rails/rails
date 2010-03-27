@@ -274,7 +274,7 @@ module ActiveRecord
         column_options = {}
         column_options[:null] = null unless null.nil?
         column_options[:default] = default unless default.nil?
-        add_column_options!(column_sql, column_options)
+        add_column_options!(column_sql, column_options) unless type.to_sym == :primary_key
         column_sql
       end
 
@@ -334,8 +334,8 @@ module ActiveRecord
 
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
-      def primary_key(name, options = {})
-        column(name, :primary_key, options)
+      def primary_key(name)
+        column(name, :primary_key)
       end
 
       # Returns a ColumnDefinition for the column with name +name+.
@@ -357,7 +357,7 @@ module ActiveRecord
       #
       # Available options are (none of these exists by default):
       # * <tt>:limit</tt> -
-      #   Requests a maximum column length. This is number of characters for <tt>:string</tt> and <tt>:text</tt> columns and number of bytes for :binary, :integer and :primary_key columns.
+      #   Requests a maximum column length. This is number of characters for <tt>:string</tt> and <tt>:text</tt> columns and number of bytes for :binary and :integer columns.
       # * <tt>:default</tt> -
       #   The column's default value. Use nil for NULL.
       # * <tt>:null</tt> -
