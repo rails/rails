@@ -662,7 +662,7 @@ module ActiveRecord
       # Drops a schema
       #
       # Example:
-      #   drop_schema('products', 'postgres')
+      #   drop_schema('products')
       def drop_schema(schema_name)
         execute("DROP SCHEMA \"#{schema_name}\"")
       end
