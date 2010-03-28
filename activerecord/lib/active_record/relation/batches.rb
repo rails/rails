@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/blank'
+
 module ActiveRecord
   module Batches # :nodoc:
     # Yields each record that was found by the find +options+. The find is

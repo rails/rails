@@ -4,6 +4,7 @@ require 'csv'
 require 'zlib'
 require 'active_support/dependencies'
 require 'active_support/core_ext/logger'
+require 'active_support/core_ext/object/blank'
 
 if RUBY_VERSION < '1.9'
   module YAML #:nodoc:

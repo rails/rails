@@ -2,6 +2,7 @@ require 'mail'
 require 'action_mailer/tmail_compat'
 require 'action_mailer/collector'
 require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/object/blank'
 
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.

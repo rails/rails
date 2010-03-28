@@ -1,3 +1,4 @@
+require 'active_support/core_ext/object/blank'
 require 'action_view/helpers/tag_helper'
 
 module ActionView

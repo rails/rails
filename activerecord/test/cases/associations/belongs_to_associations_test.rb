@@ -439,9 +439,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal [author_address.id], AuthorAddress.destroyed_author_address_ids
   end
 
-  def test_invalid_belongs_to_dependent_option_raises_exception
+  def test_invalid_belongs_to_dependent_option_nullify_raises_exception
     assert_raise ArgumentError do
       Author.belongs_to :special_author_address, :dependent => :nullify
+    end
+  end
+  
+  def test_invalid_belongs_to_dependent_option_restrict_raises_exception
+    assert_raise ArgumentError do
+      Author.belongs_to :special_author_address, :dependent => :restrict
     end
   end
 end

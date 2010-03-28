@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/duplicable'
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module QueryCache
