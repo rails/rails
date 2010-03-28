@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/blank'
+
 module ActiveRecord
   class Relation
     JoinOperation = Struct.new(:relation, :join_class, :on)

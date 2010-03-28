@@ -1,4 +1,5 @@
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/object/blank'
 
 module ActionController
   def self.add_renderer(key, &block)

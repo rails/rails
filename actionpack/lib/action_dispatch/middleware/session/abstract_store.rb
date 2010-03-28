@@ -1,5 +1,6 @@
 require 'rack/utils'
 require 'rack/request'
+require 'active_support/core_ext/object/blank'
 
 module ActionDispatch
   module Session

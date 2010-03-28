@@ -1,5 +1,6 @@
 require 'active_support/core_ext/array/wrap'
 require "active_support/core_ext/module/anonymous"
+require 'active_support/core_ext/object/blank'
 
 module ActiveModel #:nodoc:
   # A simple base class that can be used along with 

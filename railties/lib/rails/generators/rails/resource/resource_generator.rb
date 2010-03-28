@@ -1,5 +1,6 @@
 require 'rails/generators/resource_helpers'
 require 'rails/generators/rails/model/model_generator'
+require 'active_support/core_ext/object/blank'
 
 module Rails
   module Generators

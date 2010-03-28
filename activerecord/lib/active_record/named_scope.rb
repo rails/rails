@@ -1,6 +1,7 @@
 require 'active_support/core_ext/array'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/singleton_class'
+require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
   module NamedScope

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/blank'
+
 module ActionDispatch
   class TestRequest < Request
     DEFAULT_ENV = Rack::MockRequest.env_for('/')
