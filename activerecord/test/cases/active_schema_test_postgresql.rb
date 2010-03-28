@@ -17,6 +17,13 @@ class PostgresqlActiveSchemaTest < Test::Unit::TestCase
     assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'latin1'), create_database(:aimonetti, :encoding => :latin1)
   end
 
+  def test_create_schema
+    assert_equal %(CREATE SCHEMA "rizwan" AUTHORIZATION "postgres"), create_schema(:rizwan, :postgres)
+  end
+
+  def test_drop_schema
+    assert_equal %(DROP SCHEMA "rizwan"), drop_schema(:rizwan)
+  end
   private
     def method_missing(method_symbol, *arguments)
       ActiveRecord::Base.connection.send(method_symbol, *arguments)
