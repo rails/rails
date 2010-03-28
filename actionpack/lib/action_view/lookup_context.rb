@@ -1,4 +1,4 @@
-require 'active_support/core_ext/object/try'
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
@@ -15,23 +15,26 @@ module ActionView
 
     def self.register_detail(name, options = {}, &block)
       self.registered_details << name
+      Accessors.send :define_method, :"_#{name}_defaults", &block
+      Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
+        def #{name}
+          @details[:#{name}]
+        end
 
-      Setters.send :define_method, :"_#{name}_defaults", &block
-      Setters.module_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{name}=(value)
-          value = Array(value.presence || _#{name}_defaults)
-          #{"value << nil unless value.include?(nil)" unless options[:allow_nil] == false}
+          value = Array.wrap(value.presence || _#{name}_defaults)
 
-          unless value == @details[:#{name}]
-            @details_key, @details = nil, @details.merge(:#{name} => value)
-            @details.freeze
+          if value != @details[:#{name}]
+            @details_key = nil
+            @details = @details.dup if @details.frozen?
+            @details[:#{name}] = value.freeze
           end
         end
       METHOD
     end
 
-    # Holds raw setters for the registered details.
-    module Setters #:nodoc:
+    # Holds accessors for the registered details.
+    module Accessors #:nodoc:
     end
 
     register_detail(:formats) { Mime::SET.symbols }
@@ -45,7 +48,7 @@ module ActionView
       @details_keys = Hash.new
 
       def self.get(details)
-        @details_keys[details] ||= new
+        @details_keys[details.freeze] ||= new
       end
 
       def initialize
@@ -54,9 +57,10 @@ module ActionView
     end
 
     def initialize(view_paths, details = {})
-      @details, @details_key = {}, nil
+      @details, @details_key = { :handlers => default_handlers }, nil
+      @frozen_formats = false
       self.view_paths = view_paths
-      self.details = details
+      self.update_details(details, true)
     end
 
     module ViewPaths
@@ -69,16 +73,16 @@ module ActionView
       end
 
       def find(name, prefix = nil, partial = false)
-        @view_paths.find(name, prefix, partial, details, details_key)
+        @view_paths.find(*args_for_lookup(name, prefix, partial))
       end
       alias :find_template :find
 
       def find_all(name, prefix = nil, partial = false)
-        @view_paths.find_all(name, prefix, partial, details, details_key)
+        @view_paths.find_all(*args_for_lookup(name, prefix, partial))
       end
 
       def exists?(name, prefix = nil, partial = false)
-        @view_paths.exists?(name, prefix, partial, details, details_key)
+        @view_paths.exists?(*args_for_lookup(name, prefix, partial))
       end
       alias :template_exists? :exists?
 
@@ -94,51 +98,80 @@ module ActionView
       ensure
         added_resolvers.times { view_paths.pop }
       end
+
+    protected
+
+      def args_for_lookup(name, prefix, partial) #:nodoc:
+        name, prefix = normalize_name(name, prefix)
+        [name, prefix, partial || false, @details, details_key]
+      end
+
+      # Support legacy foo.erb names even though we now ignore .erb
+      # as well as incorrectly putting part of the path in the template
+      # name instead of the prefix.
+      def normalize_name(name, prefix) #:nodoc:
+        name  = name.to_s.gsub(handlers_regexp, '')
+        parts = name.split('/')
+        return parts.pop, [prefix, *parts].compact.join("/")
+      end
+
+      def default_handlers #:nodoc:
+        @default_handlers ||= Template::Handlers.extensions
+      end
+
+      def handlers_regexp #:nodoc:
+        @handlers_regexp ||= /\.(?:#{default_handlers.join('|')})$/
+      end
     end
 
     module Details
-      attr_reader :details
-
-      def details=(given_details)
-        registered_details.each { |key| send(:"#{key}=", given_details[key]) }
-      end
-
-      def details_key
+      # Calculate the details key. Remove the handlers from calculation to improve performance
+      # since the user cannot modify it explicitly.
+      def details_key #:nodoc:
         @details_key ||= DetailsKey.get(@details)
       end
 
-      # Shortcut to read formats from details.
-      def formats
-        @details[:formats].compact
+      # Freeze the current formats in the lookup context. By freezing them, you are guaranteeing
+      # that next template lookups are not going to modify the formats. The controller can also
+      # use this, to ensure that formats won't be further modified (as it does in respond_to blocks).
+      def freeze_formats(formats, unless_frozen=false) #:nodoc:
+        return if unless_frozen && @frozen_formats
+        self.formats = formats
+        @frozen_formats = true
       end
 
       # Overload formats= to reject [:"*/*"] values.
-      def formats=(value, freeze=true)
-        value = nil if value == [:"*/*"]
+      def formats=(value)
+        value = nil    if value == [:"*/*"]
+        value << :html if value == [:js]
         super(value)
       end
 
-      # Shortcut to read locale.
+      # Overload locale to return a symbol instead of array
       def locale
-        I18n.locale
+        @details[:locale].first
       end
 
       # Overload locale= to also set the I18n.locale. If the current I18n.config object responds
       # to i18n_config, it means that it's has a copy of the original I18n configuration and it's
       # acting as proxy, which we need to skip.
       def locale=(value)
-        value = value.first if value.is_a?(Array)
-        config = I18n.config.respond_to?(:i18n_config) ? I18n.config.i18n_config : I18n.config
-        config.locale = value if value
+        if value
+          config = I18n.config.respond_to?(:i18n_config) ? I18n.config.i18n_config : I18n.config
+          config.locale = value
+        end
         super(I18n.locale)
       end
 
       # Update the details keys by merging the given hash into the current
       # details hash. If a block is given, the details are modified just during
       # the execution of the block and reverted to the previous value after.
-      def update_details(new_details)
-        old_details  = @details
-        self.details = old_details.merge(new_details)
+      def update_details(new_details, force=false)
+        old_details = @details.dup
+
+        registered_details.each do |key|
+          send(:"#{key}=", new_details[key]) if force || new_details.key?(key)
+        end
 
         if block_given?
           begin
@@ -150,7 +183,7 @@ module ActionView
       end
     end
 
-    include Setters
+    include Accessors
     include Details
     include ViewPaths
   end

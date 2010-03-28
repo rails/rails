@@ -31,9 +31,6 @@ module ActionMailer
       # replies to this message.
       adv_attr_accessor :reply_to
 
-      # Specify additional headers to be added to the message.
-      adv_attr_accessor :headers
-
       # Specify the order in which parts should be sorted, based on content-type.
       # This defaults to the value for the +default_implicit_parts_order+.
       adv_attr_accessor :implicit_parts_order
@@ -207,6 +204,7 @@ module ActionMailer
         @parts.unshift create_inline_part(@body)
       elsif @parts.empty? || @parts.all? { |p| p.content_disposition =~ /^attachment/ }
         lookup_context.find_all(@template, @mailer_name).each do |template|
+          self.formats = template.formats
           @parts << create_inline_part(render(:template => template), template.mime_type)
         end
 

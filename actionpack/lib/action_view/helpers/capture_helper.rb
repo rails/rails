@@ -2,22 +2,22 @@ module ActionView
   module Helpers
     # CaptureHelper exposes methods to let you extract generated markup which
     # can be used in other parts of a template or layout file.
-    # It provides a method to capture blocks into variables through capture and 
+    # It provides a method to capture blocks into variables through capture and
     # a way to capture a block of markup for use in a layout through content_for.
     module CaptureHelper
-      # The capture method allows you to extract part of a template into a 
-      # variable. You can then use this variable anywhere in your templates or layout. 
-      # 
+      # The capture method allows you to extract part of a template into a
+      # variable. You can then use this variable anywhere in your templates or layout.
+      #
       # ==== Examples
       # The capture method can be used in ERb templates...
-      # 
+      #
       #   <% @greeting = capture do %>
       #     Welcome to my shiny new web page!  The date and time is
       #     <%= Time.now %>
       #   <% end %>
       #
       # ...and Builder (RXML) templates.
-      # 
+      #
       #   @timestamp = capture do
       #     "The current timestamp is #{Time.now}."
       #   end
@@ -32,16 +32,18 @@ module ActionView
       #
       def capture(*args)
         value = nil
-        buffer = with_output_buffer { value = yield *args }
-        buffer.presence || value
+        buffer = with_output_buffer { value = yield(*args) }
+        if string = buffer.presence || value and string.is_a?(String)
+          NonConcattingString.new(string)
+        end
       end
 
       # Calling content_for stores a block of markup in an identifier for later use.
       # You can make subsequent calls to the stored content in other templates or the layout
       # by passing the identifier as an argument to <tt>yield</tt>.
-      # 
+      #
       # ==== Examples
-      # 
+      #
       #   <% content_for :not_authorized do %>
       #     alert('You are not authorized to do that!')
       #   <% end %>
@@ -75,7 +77,7 @@ module ActionView
       #
       # Then, in another view, you could to do something like this:
       #
-      #   <%= link_to_remote 'Logout', :action => 'logout' %>
+      #   <%= link_to 'Logout', :action => 'logout', :remote => true %>
       #
       #   <% content_for :script do %>
       #     <%= javascript_include_tag :defaults %>
@@ -92,7 +94,7 @@ module ActionView
       #   <% end %>
       #
       #   <%#  Add some other content, or use a different template: %>
-      # 
+      #
       #   <% content_for :navigation do %>
       #     <li><%= link_to 'Login', :action => 'login' %></li>
       #   <% end %>
@@ -109,13 +111,13 @@ module ActionView
       # for elements that will be fragment cached.
       def content_for(name, content = nil, &block)
         content = capture(&block) if block_given?
-        return @_content_for[name] << content if content
-        @_content_for[name]
+        @_content_for[name] << content if content
+        @_content_for[name] unless content
       end
 
       # content_for? simply checks whether any content has been captured yet using content_for
       # Useful to render parts of your layout differently based on what is in your views.
-      # 
+      #
       # ==== Examples
       #
       # Perhaps you will use different css in you layout if no content_for :right_column

@@ -1,19 +1,11 @@
 require 'generators/generators_test_helper'
-require 'generators/rails/resource/resource_generator'
+require 'rails/generators/rails/resource/resource_generator'
 
 class ResourceGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments %w(account)
 
-  def setup
-    super
-    routes = Rails::Generators::ResourceGenerator.source_root
-    routes = File.join(routes, "..", "..", "app", "templates", "config", "routes.rb")
-    destination = File.join(destination_root, "config")
-
-    FileUtils.mkdir_p(destination)
-    FileUtils.cp File.expand_path(routes), destination
-  end
+  setup :copy_routes
 
   def test_help_with_inherited_options
     content = run_generator ["--help"]

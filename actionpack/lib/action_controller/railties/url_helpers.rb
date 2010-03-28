@@ -1,5 +1,5 @@
 module ActionController
-  class Railtie
+  module Railties
     module UrlHelpers
       def self.with(router)
         Module.new do

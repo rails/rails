@@ -32,6 +32,8 @@ module ActionDispatch
       end
 
       class Mapping
+        IGNORE_OPTIONS = [:to, :as, :controller, :action, :via, :on, :constraints, :defaults, :only, :except, :anchor]
+
         def initialize(set, scope, args)
           @set, @scope    = set, scope
           @path, @options = extract_path_and_options(args)
@@ -45,18 +47,21 @@ module ActionDispatch
           def extract_path_and_options(args)
             options = args.extract_options!
 
-            case
-            when using_to_shorthand?(args, options)
+            if using_to_shorthand?(args, options)
               path, to = options.find { |name, value| name.is_a?(String) }
               options.merge!(:to => to).delete(path) if path
-            when using_match_shorthand?(args, options)
-              path = args.first
-              options = { :to => path.gsub("/", "#"), :as => path.gsub("/", "_") }
             else
               path = args.first
             end
 
-            [ normalize_path(path), options ]
+            path = normalize_path(path)
+
+            if using_match_shorthand?(path, options)
+              options[:to] ||= path[1..-1].sub(%r{/([^/]*)$}, '#\1')
+              options[:as] ||= path[1..-1].gsub("/", "_")
+            end
+
+            [ path, options ]
           end
 
           # match "account" => "account#index"
@@ -65,14 +70,13 @@ module ActionDispatch
           end
 
           # match "account/overview"
-          def using_match_shorthand?(args, options)
-            args.present? && options.except(:via, :anchor).empty? && !args.first.include?(':')
+          def using_match_shorthand?(path, options)
+            path && options.except(:via, :anchor, :to, :as).empty? && path =~ %r{^/[\w\/]+$}
           end
 
           def normalize_path(path)
-            path = "#{@scope[:path]}/#{path}"
-            raise ArgumentError, "path is required" if path.empty?
-            Mapper.normalize_path(path)
+            raise ArgumentError, "path is required" if @scope[:path].blank? && path.blank?
+            Mapper.normalize_path("#{@scope[:path]}/#{path}")
           end
 
           def app
@@ -94,7 +98,15 @@ module ActionDispatch
           end
 
           def defaults
-            @defaults ||= if to.respond_to?(:call)
+            @defaults ||= (@options[:defaults] || {}).tap do |defaults|
+              defaults.merge!(default_controller_and_action)
+              defaults.reverse_merge!(@scope[:defaults]) if @scope[:defaults]
+              @options.each { |k, v| defaults[k] = v unless v.is_a?(Regexp) || IGNORE_OPTIONS.include?(k.to_sym) }
+            end
+          end
+
+          def default_controller_and_action
+            if to.respond_to?(:call)
               { }
             else
               defaults = case to
@@ -144,8 +156,8 @@ module ActionDispatch
 
           def segment_keys
             @segment_keys ||= Rack::Mount::RegexpWithNamedGroups.new(
-                Rack::Mount::Strexp.compile(@path, requirements, SEPARATORS)
-              ).names
+              Rack::Mount::Strexp.compile(@path, requirements, SEPARATORS)
+            ).names
           end
 
           def to
@@ -297,11 +309,14 @@ module ActionDispatch
           scope(:constraints => constraints) { yield }
         end
 
+        def defaults(defaults = {})
+          scope(:defaults => defaults) { yield }
+        end
+
         def match(*args)
           options = args.extract_options!
 
           options = (@scope[:options] || {}).merge(options)
-          options[:anchor] = true unless options.key?(:anchor)
 
           if @scope[:name_prefix] && !options[:as].blank?
             options[:as] = "#{@scope[:name_prefix]}_#{options[:as]}"
@@ -339,6 +354,10 @@ module ActionDispatch
           end
 
           def merge_constraints_scope(parent, child)
+            merge_options_scope(parent, child)
+          end
+
+          def merge_defaults_scope(parent, child)
             merge_options_scope(parent, child)
           end
 
@@ -460,7 +479,7 @@ module ActionDispatch
           scope(:path => resource.name.to_s, :controller => resource.controller) do
             with_scope_level(:resource, resource) do
 
-              scope(:name_prefix => resource.name.to_s) do
+              scope(:name_prefix => resource.name.to_s, :as => "") do
                 yield if block_given?
               end
 
@@ -562,6 +581,8 @@ module ActionDispatch
 
         def match(*args)
           options = args.extract_options!
+
+          options[:anchor] = true unless options.key?(:anchor)
 
           if args.length > 1
             args.each { |path| match(path, options) }

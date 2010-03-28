@@ -1,4 +1,5 @@
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/keys'
 require 'active_model/errors'
@@ -112,11 +113,10 @@ module ActiveModel
       #     end
       #   end
       #
-      # This usage applies to +validate_on_create+ and +validate_on_update as well+.
       def validate(*args, &block)
         options = args.last
         if options.is_a?(Hash) && options.key?(:on)
-          options[:if] = Array(options[:if])
+          options[:if] = Array.wrap(options[:if])
           options[:if] << "@_on_validate == :#{options[:on]}"
         end
         set_callback(:validate, *args, &block)

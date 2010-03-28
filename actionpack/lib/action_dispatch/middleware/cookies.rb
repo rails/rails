@@ -84,6 +84,7 @@ module ActionDispatch
 
         options[:path] ||= "/"
         @set_cookies[key] = options
+        @delete_cookies.delete(key)
         value
       end
 

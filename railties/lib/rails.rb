@@ -26,6 +26,9 @@ else
 end
 
 module Rails
+  autoload :Info, 'rails/info'
+  autoload :InfoController, 'rails/info_controller'
+
   class << self
     def application
       @@application ||= nil

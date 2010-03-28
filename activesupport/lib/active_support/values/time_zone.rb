@@ -305,8 +305,8 @@ module ActiveSupport
 
     # TODO: Preload instead of lazy load for thread safety
     def tzinfo
-      require 'tzinfo' unless defined?(TZInfo)
-      @tzinfo ||= TZInfo::Timezone.get(MAPPING[name])
+      require 'tzinfo' unless defined?(::TZInfo)
+      @tzinfo ||= ::TZInfo::Timezone.get(MAPPING[name])
     end
 
     unless const_defined?(:ZONES)

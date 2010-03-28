@@ -27,6 +27,10 @@ module Rails
           @class_name ||= (class_path + [file_name]).map!{ |m| m.camelize }.join('::')
         end
 
+        def human_name
+          @human_name ||= singular_name.humanize
+        end
+
         def plural_name
           @plural_name ||= singular_name.pluralize
         end

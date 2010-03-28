@@ -85,8 +85,14 @@ namespace :db do
         end
       when 'postgresql'
         @encoding = config[:encoding] || ENV['CHARSET'] || 'utf8'
+        schema_search_path = config['schema_search_path'] || 'public'
+        first_in_schema_search_path = schema_search_path.split(',').first.strip
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
+          unless ActiveRecord::Base.connection.all_schemas.include?(first_in_schema_search_path)
+            ActiveRecord::Base.connection.create_schema(first_in_schema_search_path, config['username'])
+            $stderr.puts "Schema #{first_in_schema_search_path} has been created."
+          end
           ActiveRecord::Base.connection.create_database(config['database'], config.merge('encoding' => @encoding))
           ActiveRecord::Base.establish_connection(config)
         rescue
@@ -435,7 +441,7 @@ namespace :db do
     task :create => :environment do
       raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
       require 'rails/generators'
-      require 'generators/rails/session_migration/session_migration_generator'
+      require 'rails/generators/rails/session_migration/session_migration_generator'
       Rails::Generators::SessionMigrationGenerator.start [ ENV["MIGRATION"] || "add_sessions_table" ]
     end
 

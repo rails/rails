@@ -10,8 +10,6 @@ module ActionView
   # In order to work with ActionController, a Context
   # must implement:
   #
-  # Context.for_controller[controller] Create a new ActionView instance for a
-  #   controller
   # Context#render_partial[options]
   #   - responsible for setting options[:_template]
   #   - Returns String with the rendered partial

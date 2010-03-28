@@ -1545,15 +1545,19 @@ module ActiveRecord
 
             case name
               when :destroy, :delete
-                define_method(method_name) do
-                  association = send(reflection.name)
-                  association.send(name) if association
-                end
+                class_eval <<-eoruby, __FILE__, __LINE__ + 1
+                  def #{method_name}
+                    association = #{reflection.name}
+                    association.#{name} if association
+                  end
+                eoruby
               when :nullify
-                define_method(method_name) do
-                  association = send(reflection.name)
-                  association.update_attribute(reflection.primary_key_name, nil) if association
-                end
+                class_eval <<-eoruby, __FILE__, __LINE__ + 1
+                  def #{method_name}
+                    association = #{reflection.name}
+                    association.update_attribute(#{reflection.primary_key_name.inspect}, nil) if association
+                  end
+                eoruby
               else
                 raise ArgumentError, "The :dependent option expects either :destroy, :delete or :nullify (#{reflection.options[:dependent].inspect})"
             end
@@ -1571,10 +1575,12 @@ module ActiveRecord
             end
 
             method_name = :"belongs_to_dependent_#{name}_for_#{reflection.name}"
-            define_method(method_name) do
-              association = send(reflection.name)
-              association.send(name) if association
-            end
+            class_eval <<-eoruby, __FILE__, __LINE__ + 1
+              def #{method_name}
+                association = #{reflection.name}
+                association.#{name} if association
+              end
+            eoruby
             after_destroy method_name
           end
         end
@@ -1671,15 +1677,6 @@ module ActiveRecord
           end
 
           reflection
-        end
-
-        def using_limitable_reflections?(reflections)
-          reflections.collect(&:collection?).length.zero?
-        end
-
-        def column_aliases(join_dependency)
-          join_dependency.joins.collect{|join| join.column_names_with_alias.collect{|column_name, aliased_name|
-              "#{connection.quote_table_name join.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"}}.flatten.join(", ")
         end
 
         def add_association_callbacks(association_name, options)

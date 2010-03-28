@@ -5,9 +5,10 @@ require 'active_support/testing/deprecation'
 require 'active_support/testing/declarative'
 require 'active_support/testing/pending'
 require 'active_support/testing/isolation'
+require 'active_support/core_ext/kernel/reporting'
 
 begin
-  require 'mocha'
+  silence_warnings { require 'mocha' }
 rescue LoadError
   # Fake Mocha::ExpectationError so we can rescue it in #run. Bleh.
   Object.const_set :Mocha, Module.new

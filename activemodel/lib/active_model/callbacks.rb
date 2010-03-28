@@ -1,3 +1,4 @@
+require 'active_support/core_ext/array/wrap'
 require 'active_support/callbacks'
 
 module ActiveModel
@@ -91,7 +92,7 @@ module ActiveModel
       options = callbacks.extract_options!
       options = { :terminator => "result == false", :scope => [:kind, :name] }.merge(options)
 
-      types = Array(options.delete(:only))
+      types = Array.wrap(options.delete(:only))
       types = [:before, :around, :after] if types.empty?
 
       callbacks.each do |callback|
@@ -124,7 +125,7 @@ module ActiveModel
         def self.after_#{callback}(*args, &block)
           options = args.extract_options!
           options[:prepend] = true
-          options[:if] = Array(options[:if]) << "!halted && value != false"
+          options[:if] = Array.wrap(options[:if]) << "!halted && value != false"
           set_callback(:#{callback}, :after, *(args << options), &block)
         end
       CALLBACK

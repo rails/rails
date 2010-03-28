@@ -2,18 +2,18 @@ namespace :rails do
   namespace :freeze do
     desc "The rails:freeze:gems is deprecated, please use bundle install instead"
     task :gems do
-      puts "The rails:freeze:gems is deprecated, please use bundle install instead"
+      abort "The rails:freeze:gems is deprecated, please use bundle install instead"
     end
 
     desc 'The freeze:edge command has been deprecated, specify the path setting in your app Gemfile instead and bundle install'
     task :edge do
-      puts 'The freeze:edge command has been deprecated, specify the path setting in your app Gemfile instead and bundle install'
+      abort 'The freeze:edge command has been deprecated, specify the path setting in your app Gemfile instead and bundle install'
     end
   end
 
   desc 'The unfreeze command has been deprecated, please use bundler commands instead'
   task :unfreeze do
-    puts 'The unfreeze command has been deprecated, please use bundler commands instead'
+    abort 'The unfreeze command has been deprecated, please use bundler commands instead'
   end
 
   desc "Update both configs, scripts and public/javascripts from Rails"
@@ -25,7 +25,7 @@ namespace :rails do
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
 
     require 'rails/generators'
-    require 'generators/rails/app/app_generator'
+    require 'rails/generators/rails/app/app_generator'
     generator = Rails::Generators::AppGenerator.new [ Rails.root ], {}, :destination_root => Rails.root
     generator.apply template, :verbose => false
   end
@@ -38,10 +38,11 @@ namespace :rails do
     def app_generator
       @app_generator ||= begin
         require 'rails/generators'
-        require 'generators/rails/app/app_generator'
+        require 'rails/generators/rails/app/app_generator'
         gen = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
                                                              :destination_root => Rails.root
-        gen.send(:valid_app_const?)
+        File.exists?(Rails.root.join("config", "application.rb")) ?
+          gen.send(:app_const) : gen.send(:valid_app_const?)
         gen
       end
     end

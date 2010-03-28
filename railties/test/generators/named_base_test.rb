@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'generators/rails/scaffold_controller/scaffold_controller_generator'
+require 'rails/generators/rails/scaffold_controller/scaffold_controller_generator'
 
 # Mock out what we need from AR::Base.
 module ActiveRecord
@@ -15,6 +15,20 @@ class NamedBaseTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   tests Rails::Generators::ScaffoldControllerGenerator
 
+  def test_named_generator_with_underscore
+    g = generator ['line_item']
+    assert_name g, 'line_item',  :name
+    assert_name g, %w(),         :class_path
+    assert_name g, 'LineItem',   :class_name
+    assert_name g, 'line_item',  :file_path
+    assert_name g, 'line_item',  :file_name
+    assert_name g, 'Line item',  :human_name
+    assert_name g, 'line_item',  :singular_name
+    assert_name g, 'line_items', :plural_name
+    assert_name g, 'line_item',  :i18n_scope
+    assert_name g, 'line_items', :table_name
+  end
+
   def test_named_generator_attributes
     g = generator ['admin/foo']
     assert_name g, 'admin/foo',  :name
@@ -22,6 +36,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'Admin::Foo', :class_name
     assert_name g, 'admin/foo',  :file_path
     assert_name g, 'foo',        :file_name
+    assert_name g, 'Foo',        :human_name
     assert_name g, 'foo',        :singular_name
     assert_name g, 'foos',       :plural_name
     assert_name g, 'admin.foo',  :i18n_scope
@@ -36,6 +51,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'admin/foo',  :file_path
     assert_name g, 'foo',        :file_name
     assert_name g, 'foo',        :singular_name
+    assert_name g, 'Foo',        :human_name
     assert_name g, 'foos',       :plural_name
     assert_name g, 'admin.foo',  :i18n_scope
     assert_name g, 'admin_foos', :table_name
@@ -45,6 +61,8 @@ class NamedBaseTest < Rails::Generators::TestCase
     ActiveRecord::Base.pluralize_table_names = false
     g = generator ['admin/foo']
     assert_name g, 'admin_foo', :table_name
+  ensure
+    ActiveRecord::Base.pluralize_table_names = true
   end
 
   def test_scaffold_plural_names

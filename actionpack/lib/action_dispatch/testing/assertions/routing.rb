@@ -145,11 +145,25 @@ module ActionDispatch
         old_routes, @router = @router, ActionDispatch::Routing::RouteSet.new
         old_controller, @controller = @controller, @controller.clone if @controller
         _router = @router
-        @controller.singleton_class.send(:send, :include, @router.url_helpers) if @controller
+
+        # Unfortunately, there is currently an abstraction leak between AC::Base
+        # and AV::Base which requires having the URL helpers in both AC and AV.
+        # To do this safely at runtime for tests, we need to bump up the helper serial
+        # to that the old AV subclass isn't cached.
+        #
+        # TODO: Make this unnecessary
+        if @controller
+          @controller.singleton_class.send(:include, _router.url_helpers)
+          @controller.view_context_class = Class.new(@controller.view_context_class) do
+            include _router.url_helpers
+          end
+        end
         yield @router
       ensure
         @router = old_routes
-        @controller = old_controller if @controller
+        if @controller
+          @controller = old_controller
+        end
       end
 
       # ROUTES TODO: These assertions should really work in an integration context

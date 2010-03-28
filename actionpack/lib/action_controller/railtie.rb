@@ -1,16 +1,17 @@
 require "rails"
 require "action_controller"
+require "action_dispatch/railtie"
 require "action_view/railtie"
 require "active_support/core_ext/class/subclasses"
 require "active_support/deprecation/proxy_wrappers"
 require "active_support/deprecation"
 
+require "action_controller/railties/log_subscriber"
+require "action_controller/railties/url_helpers"
+
 module ActionController
   class Railtie < Rails::Railtie
-    railtie_name :action_controller
-
-    require "action_controller/railties/log_subscriber"
-    require "action_controller/railties/url_helpers"
+    config.action_controller = ActiveSupport::OrderedOptions.new
 
     ad = config.action_dispatch
     config.action_controller.singleton_class.send(:define_method, :session) do
@@ -37,7 +38,7 @@ module ActionController
       ad.session_store = val
     end
 
-    log_subscriber ActionController::Railties::LogSubscriber.new
+    log_subscriber :action_controller, ActionController::Railties::LogSubscriber.new
 
     initializer "action_controller.logger" do
       ActionController.base_hook { self.logger ||= Rails.logger }
@@ -52,7 +53,9 @@ module ActionController
       ac.stylesheets_dir = paths.public.stylesheets.to_a.first
       ac.secret          = app.config.cookie_secret
 
-      ActionController.base_hook { self.config.replace(ac) }
+      ActionController.base_hook do
+        self.config.merge!(ac)
+      end
     end
 
     initializer "action_controller.initialize_framework_caches" do
@@ -67,7 +70,7 @@ module ActionController
 
     initializer "action_controller.url_helpers" do |app|
       ActionController.base_hook do
-        extend ::ActionController::Railtie::UrlHelpers.with(app.routes)
+        extend ::ActionController::Railties::UrlHelpers.with(app.routes)
       end
 
       message = "ActionController::Routing::Routes is deprecated. " \

@@ -1,6 +1,7 @@
 require 'action_view/helpers/javascript_helper'
 require 'active_support/core_ext/array/access'
 require 'active_support/core_ext/hash/keys'
+require 'action_dispatch'
 
 module ActionView
   module Helpers #:nodoc:
@@ -9,11 +10,18 @@ module ActionView
     # This allows you to use the same format for links in views
     # and controllers.
     module UrlHelper
+      extend ActiveSupport::Concern
+
+      include ActionDispatch::Routing::UrlFor
       include JavaScriptHelper
 
       # Need to map default url options to controller one.
       def default_url_options(*args) #:nodoc:
         controller.send(:default_url_options, *args)
+      end
+
+      def url_options
+        controller.url_options
       end
 
       # Returns the URL for the set of +options+ provided. This takes the
@@ -206,7 +214,7 @@ module ActionView
         if block_given?
           options      = args.first || {}
           html_options = args.second
-          safe_concat(link_to(capture(&block), options, html_options))
+          link_to(capture(&block), options, html_options)
         else
           name         = args[0]
           options      = args[1] || {}
@@ -577,8 +585,6 @@ module ActionView
 
           add_confirm_to_attributes!(html_options, confirm) if confirm
           add_method_to_attributes!(html_options, method)   if method
-
-          html_options["data-url"] = options[:url] if options.is_a?(Hash) && options[:url]
 
           html_options
         end

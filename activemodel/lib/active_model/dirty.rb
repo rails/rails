@@ -1,3 +1,5 @@
+require 'active_support/hash_with_indifferent_access'
+
 module ActiveModel
   # <tt>ActiveModel::Dirty</tt> provides a way to track changes in your
   # object in the same way as ActiveRecord does.
@@ -86,12 +88,17 @@ module ActiveModel
       attribute_method_affix :prefix => 'reset_', :suffix => '!'
     end
 
+    def initialize(*)
+      @changed_attributes = {}
+      super
+    end
+
     # Do any attributes have unsaved changes?
     #   person.changed? # => false
     #   person.name = 'bob'
     #   person.changed? # => true
     def changed?
-      !changed_attributes.empty?
+      !@changed_attributes.empty?
     end
 
     # List of attributes with unsaved changes.
@@ -99,7 +106,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed # => ['name']
     def changed
-      changed_attributes.keys
+      @changed_attributes.keys
     end
 
     # Map of changed attrs => [original value, new value].
@@ -107,7 +114,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changes # => { 'name' => ['bill', 'bob'] }
     def changes
-      changed.inject({}) { |h, attr| h[attr] = attribute_change(attr); h }
+      changed.inject(HashWithIndifferentAccess.new){ |h, attr| h[attr] = attribute_change(attr); h }
     end
 
     # Map of attributes that were changed when the model was saved.
@@ -116,33 +123,23 @@ module ActiveModel
     #   person.save
     #   person.previous_changes # => {'name' => ['bob, 'robert']}
     def previous_changes
-      previously_changed_attributes
+      @previously_changed
     end
 
     private
-      # Map of change <tt>attr => original value</tt>.
-      def changed_attributes
-        @changed_attributes ||= {}
-      end
-
-      # Map of fields that were changed when the model was saved
-      def previously_changed_attributes
-        @previously_changed || {}
-      end
-
       # Handle <tt>*_changed?</tt> for +method_missing+.
       def attribute_changed?(attr)
-        changed_attributes.include?(attr)
+        @changed_attributes.include?(attr)
       end
 
       # Handle <tt>*_change</tt> for +method_missing+.
       def attribute_change(attr)
-        [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
+        [@changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
       end
 
       # Handle <tt>*_was</tt> for +method_missing+.
       def attribute_was(attr)
-        attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
+        attribute_changed?(attr) ? @changed_attributes[attr] : __send__(attr)
       end
 
       # Handle <tt>*_will_change!</tt> for +method_missing+.
@@ -153,12 +150,12 @@ module ActiveModel
         rescue TypeError, NoMethodError
         end
 
-        changed_attributes[attr] = value
+        @changed_attributes[attr] = value
       end
 
       # Handle <tt>reset_*!</tt> for +method_missing+.
       def reset_attribute!(attr)
-        __send__("#{attr}=", changed_attributes[attr]) if attribute_changed?(attr)
+        __send__("#{attr}=", @changed_attributes[attr]) if attribute_changed?(attr)
       end
   end
 end

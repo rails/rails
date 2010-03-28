@@ -6,25 +6,6 @@ require 'models/minimalistic'
 
 class SpecialDeveloper < Developer; end
 
-class TopicManualObserver
-  include Singleton
-
-  attr_reader :action, :object, :callbacks
-
-  def initialize
-    Topic.add_observer(self)
-    @callbacks = []
-  end
-
-  def update(callback_method, object)
-    @callbacks << { "callback_method" => callback_method, "object" => object }
-  end
-
-  def has_been_notified?
-    !@callbacks.empty?
-  end
-end
-
 class TopicaAuditor < ActiveRecord::Observer
   observe :topic
 
@@ -83,27 +64,6 @@ class LifecycleTest < ActiveRecord::TestCase
     original_count = Topic.count
     (topic_to_be_destroyed = Topic.find(1)).destroy
     assert_equal original_count - (1 + topic_to_be_destroyed.replies.size), Topic.count
-  end
-
-  def test_after_save
-    ActiveRecord::Base.observers = :topic_manual_observer
-    ActiveRecord::Base.instantiate_observers
-
-    topic = Topic.find(1)
-    topic.title = "hello"
-    topic.save
-
-    assert TopicManualObserver.instance.has_been_notified?
-    assert_equal :after_save, TopicManualObserver.instance.callbacks.last["callback_method"]
-  end
-
-  def test_observer_update_on_save
-    ActiveRecord::Base.observers = TopicManualObserver
-    ActiveRecord::Base.instantiate_observers
-
-    topic = Topic.find(1)
-    assert TopicManualObserver.instance.has_been_notified?
-    assert_equal :after_find, TopicManualObserver.instance.callbacks.first["callback_method"]
   end
 
   def test_auto_observer

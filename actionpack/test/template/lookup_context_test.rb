@@ -22,34 +22,35 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "normalizes details on initialization" do
-    formats = Mime::SET + [nil]
-    locale  = [I18n.locale, nil]
-    assert_equal Hash[:formats => formats, :locale => locale], @lookup_context.details
+    assert_equal Mime::SET, @lookup_context.formats
+    assert_equal :en, @lookup_context.locale
   end
 
-  test "allows me to set details" do
-    @lookup_context.details = { :formats => [:html], :locale => :pt }
-    assert_equal Hash[:formats => [:html, nil], :locale => [:pt, nil]], @lookup_context.details
-  end
-
-  test "does not allow details to be modified in place" do
-    assert @lookup_context.details.frozen?
+  test "allows me to update details" do
+    @lookup_context.update_details(:formats => [:html], :locale => :pt)
+    assert_equal [:html], @lookup_context.formats
+    assert_equal :pt, @lookup_context.locale
   end
 
   test "allows me to update an specific detail" do
     @lookup_context.update_details(:locale => :pt)
     assert_equal :pt, I18n.locale
-    formats = Mime::SET + [nil]
-    locale  = [I18n.locale, nil]
-    assert_equal Hash[:formats => formats, :locale => locale], @lookup_context.details
+    assert_equal :pt, @lookup_context.locale
+  end
+
+  test "allows me to freeze and retrieve frozen formats" do
+    @lookup_context.formats.freeze
+    assert @lookup_context.formats.frozen?
   end
 
   test "allows me to change some details to execute an specific block of code" do
-    formats = Mime::SET + [nil]
+    formats = Mime::SET
     @lookup_context.update_details(:locale => :pt) do
-      assert_equal Hash[:formats => formats, :locale => [:pt, nil]], @lookup_context.details
+      assert_equal formats, @lookup_context.formats
+      assert_equal :pt, @lookup_context.locale
     end
-    assert_equal Hash[:formats => formats, :locale => [:en, nil]], @lookup_context.details
+    assert_equal formats, @lookup_context.formats
+    assert_equal :en, @lookup_context.locale
   end
 
   test "provides getters and setters for formats" do
@@ -60,6 +61,11 @@ class LookupContextTest < ActiveSupport::TestCase
   test "handles */* formats" do
     @lookup_context.formats = [:"*/*"]
     assert_equal Mime::SET, @lookup_context.formats
+  end
+
+  test "adds :html fallback to :js formats" do
+    @lookup_context.formats = [:js]
+    assert_equal [:js, :html], @lookup_context.formats
   end
 
   test "provides getters and setters for locale" do
@@ -92,6 +98,13 @@ class LookupContextTest < ActiveSupport::TestCase
     @lookup_context.locale = :da
     template = @lookup_context.find("hello_world", "test")
     assert_equal "Hey verden", template.source
+  end
+
+  test "found templates respects given formats if one cannot be found from template or handler" do
+    ActionView::Template::Handlers::ERB.expects(:default_format).returns(nil)
+    @lookup_context.formats = [:text]
+    template = @lookup_context.find("hello_world", "test")
+    assert_equal [:text], template.formats
   end
 
   test "adds fallbacks to view paths when required" do

@@ -765,7 +765,7 @@ class RespondWithControllerTest < ActionController::TestCase
     Customer.any_instance.stubs(:errors).returns(errors)
 
     post :using_resource_with_action
-    assert_equal "foo - #{[:html].to_s}", @controller.response_body
+    assert_equal "foo - #{[:html].to_s}", @controller.response.body
   end
 
   def test_respond_as_responder_entry_point

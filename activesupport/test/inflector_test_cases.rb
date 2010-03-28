@@ -180,18 +180,10 @@ module InflectorTestCases
     "Test with + sign"                    => "test_with_sign"
   }
 
-  # Ruby 1.9 doesn't do Unicode normalization yet.
-  if RUBY_VERSION >= '1.9'
-    StringToParameterizedAndNormalized = {
-      "Malmö"                               => "malm",
-      "Garçons"                             => "gar-ons"
-    }
-  else
-    StringToParameterizedAndNormalized = {
-      "Malmö"                               => "malmo",
-      "Garçons"                             => "garcons"
-    }
-  end
+  StringToParameterizedAndNormalized = {
+    "Malmö"                               => "malmo",
+    "Garçons"                             => "garcons"
+  }
 
   UnderscoreToHuman = {
     "employee_salary" => "Employee salary",

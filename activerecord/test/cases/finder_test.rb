@@ -502,6 +502,18 @@ class FinderTest < ActiveRecord::TestCase
     assert_kind_of Time, Topic.find(:first, :conditions => ["id = :id", { :id => 1 }]).written_on
   end
 
+  class SimpleEnumerable
+    include Enumerable
+
+    def initialize(ary)
+      @ary = ary
+    end
+
+    def each(&b)
+      @ary.each(&b)
+    end
+  end
+
   def test_bind_enumerable
     quoted_abc = %(#{ActiveRecord::Base.connection.quote('a')},#{ActiveRecord::Base.connection.quote('b')},#{ActiveRecord::Base.connection.quote('c')})
 
@@ -511,12 +523,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal '1,2,3', bind(':a', :a => [1, 2, 3])
     assert_equal quoted_abc, bind(':a', :a => %w(a b c)) # '
 
-    require 'set'
-    assert_equal '1,2,3', bind('?', Set.new([1, 2, 3]))
-    assert_equal quoted_abc, bind('?', Set.new(%w(a b c)))
+    assert_equal '1,2,3', bind('?', SimpleEnumerable.new([1, 2, 3]))
+    assert_equal quoted_abc, bind('?', SimpleEnumerable.new(%w(a b c)))
 
-    assert_equal '1,2,3', bind(':a', :a => Set.new([1, 2, 3]))
-    assert_equal quoted_abc, bind(':a', :a => Set.new(%w(a b c))) # '
+    assert_equal '1,2,3', bind(':a', :a => SimpleEnumerable.new([1, 2, 3]))
+    assert_equal quoted_abc, bind(':a', :a => SimpleEnumerable.new(%w(a b c))) # '
   end
 
   def test_bind_empty_enumerable

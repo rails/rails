@@ -1014,7 +1014,7 @@ module ActionView
     class FormBuilder #:nodoc:
       # The methods which wrap a form helper call.
       class_inheritable_accessor :field_helpers
-      self.field_helpers = (FormHelper.instance_methods - ['form_for'])
+      self.field_helpers = (FormHelper.instance_method_names - ['form_for'])
 
       attr_accessor :object_name, :object, :options
 
@@ -1040,7 +1040,7 @@ module ActionView
       end
 
       (field_helpers - %w(label check_box radio_button fields_for hidden_field)).each do |selector|
-        src = <<-end_src
+        src, file, line = <<-end_src, __FILE__, __LINE__ + 1
           def #{selector}(method, options = {})  # def text_field(method, options = {})
             @template.send(                      #   @template.send(
               #{selector.inspect},               #     "text_field",
@@ -1049,7 +1049,7 @@ module ActionView
               objectify_options(options))        #     objectify_options(options))
           end                                    # end
         end_src
-        class_eval src, __FILE__, __LINE__
+        class_eval src, file, line
       end
 
       def fields_for(record_or_name_or_array, *args, &block)

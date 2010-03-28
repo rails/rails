@@ -43,6 +43,11 @@ class CallbackDeveloper < ActiveRecord::Base
   end
 end
 
+class CallbackDeveloperWithFalseValidation < CallbackDeveloper
+  before_validation proc { |model| model.history << [:before_validation, :returning_false]; return false }
+  before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
+end
+
 class ParentDeveloper < ActiveRecord::Base
   set_table_name 'developers'
   attr_accessor :after_save_called
@@ -139,7 +144,7 @@ class CallbackCancellationDeveloper < ActiveRecord::Base
   attr_reader   :after_save_called, :after_create_called, :after_update_called, :after_destroy_called
   attr_accessor :cancel_before_save, :cancel_before_create, :cancel_before_update, :cancel_before_destroy
 
-  before_save    { !@cancel_before_save    }
+  before_save    {defined?(@cancel_before_save) ? !@cancel_before_save : false}
   before_create  { !@cancel_before_create  }
   before_update  { !@cancel_before_update  }
   before_destroy { !@cancel_before_destroy }
@@ -437,10 +442,8 @@ class CallbacksTest < ActiveRecord::TestCase
   end
   private :assert_save_callbacks_not_called
 
-  def test_zzz_callback_returning_false # must be run last since we modify CallbackDeveloper
-    david = CallbackDeveloper.find(1)
-    CallbackDeveloper.before_validation proc { |model| model.history << [:before_validation, :returning_false]; return false }
-    CallbackDeveloper.before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
+  def test_callback_returning_false
+    david = CallbackDeveloperWithFalseValidation.find(1)
     david.save
     assert_equal [
       [ :after_find,            :method ],

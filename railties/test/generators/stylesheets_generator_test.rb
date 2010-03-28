@@ -1,5 +1,5 @@
 require 'generators/generators_test_helper'
-require 'generators/rails/stylesheets/stylesheets_generator'
+require 'rails/generators/rails/stylesheets/stylesheets_generator'
 
 class StylesheetsGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
