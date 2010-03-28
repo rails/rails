@@ -95,6 +95,11 @@ class DependentFirm < Company
   has_many :companies, :foreign_key => 'client_of', :dependent => :nullify
 end
 
+class RestrictedFirm < Company
+  has_one :account, :foreign_key => "firm_id", :dependent => :restrict, :order => "id"
+  has_many :companies, :foreign_key => 'client_of', :order => "id", :dependent => :restrict
+end
+
 class Client < Company
   belongs_to :firm, :foreign_key => "client_of"
   belongs_to :firm_with_basic_id, :class_name => "Firm", :foreign_key => "firm_id"
