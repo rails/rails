@@ -1019,8 +1019,8 @@ EOF
 
   def test_empty_header_values_omitted
     result = TestMailer.unnamed_attachment(@recipient).encoded
-    assert_match %r{Content-Type: application/octet-stream;}, result
-    assert_match %r{Content-Disposition: attachment;}, result
+    assert_match %r{Content-Type: application/octet-stream}, result
+    assert_match %r{Content-Disposition: attachment}, result
   end
 
   def test_headers_with_nonalpha_chars
