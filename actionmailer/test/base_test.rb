@@ -39,8 +39,15 @@ class BaseTest < ActiveSupport::TestCase
     end
 
     def attachment_with_hash
-      attachments['invoice.jpg'] = { :data => "you smiling", :mime_type => "image/x-jpg",
-        :transfer_encoding => "base64" }
+      attachments['invoice.jpg'] = { :data => "\312\213\254\232)b",
+                                     :mime_type => "image/x-jpg",
+                                     :transfer_encoding => "base64" }
+      mail
+    end
+
+    def attachment_with_hash_default_encoding
+      attachments['invoice.jpg'] = { :data => "\312\213\254\232)b",
+                                     :mime_type => "image/x-jpg" }
       mail
     end
 
@@ -199,6 +206,15 @@ class BaseTest < ActiveSupport::TestCase
 
   test "attachment with hash" do
     email = BaseMailer.attachment_with_hash
+    assert_equal(1, email.attachments.length)
+    assert_equal('invoice.jpg', email.attachments[0].filename)
+    expected = "\312\213\254\232)b"
+    expected.force_encoding(Encoding::BINARY) if '1.9'.respond_to?(:force_encoding)
+    assert_equal expected, email.attachments['invoice.jpg'].decoded
+  end
+
+  test "attachment with hash using default mail encoding" do
+    email = BaseMailer.attachment_with_hash_default_encoding
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.jpg', email.attachments[0].filename)
     expected = "\312\213\254\232)b"
