@@ -4,7 +4,7 @@ module ActiveModel
       def check_validity!
          raise ArgumentError, "An object with the method include? is required must be supplied as the " <<
                               ":in option of the configuration hash" unless options[:in].respond_to?(:include?)
-       end
+      end
 
       def validate_each(record, attribute, value)
         return if options[:in].include?(value)
