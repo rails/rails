@@ -1,3 +1,4 @@
+require 'active_support/core_ext/object/blank'
 require 'action_controller/test_case'
 require 'action_view'
 

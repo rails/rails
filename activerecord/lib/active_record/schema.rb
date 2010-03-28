@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/blank'
+
 module ActiveRecord
   # Allows programmers to programmatically define a schema in a portable
   # DSL. This means you can define tables, indexes, etc. without using SQL

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/blank'
+
 module ActiveRecord
   module FinderMethods
     # Find operates with four different retrieval approaches:

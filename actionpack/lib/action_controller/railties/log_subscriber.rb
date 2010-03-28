@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/blank'
+
 module ActionController
   module Railties
     class LogSubscriber < Rails::LogSubscriber

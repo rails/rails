@@ -14,6 +14,7 @@ require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/object/singleton_class'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/duplicable'
+require 'active_support/core_ext/object/blank'
 require 'arel'
 require 'active_record/errors'
 

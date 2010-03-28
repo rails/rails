@@ -1,4 +1,5 @@
 require "active_record/associations/through_association_scope"
+require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
   module Associations
