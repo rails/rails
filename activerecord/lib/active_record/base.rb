@@ -374,7 +374,7 @@ module ActiveRecord #:nodoc:
 
     ##
     # :singleton-method:
-    # Specify whether or not to use timestamps for migration numbers
+    # Specify whether or not to use timestamps for migration versions
     cattr_accessor :timestamped_migrations , :instance_writer => false
     @@timestamped_migrations = true
 
