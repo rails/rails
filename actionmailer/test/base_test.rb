@@ -135,13 +135,13 @@ class BaseTest < ActiveSupport::TestCase
                                :mime_version => '2.0',
                                :reply_to => 'reply-to@test.lindsaar.net',
                                :date => @time)
-    assert_equal(['bcc@test.lindsaar.net'],      email.bcc)
-    assert_equal(['cc@test.lindsaar.net'],       email.cc)
-    assert_equal('multipart/mixed',              email.content_type)
-    assert_equal('iso-8559-1',                   email.charset)
-    assert_equal('2.0',                          email.mime_version)
-    assert_equal(['reply-to@test.lindsaar.net'], email.reply_to)
-    assert_equal(@time,                          email.date)
+    assert_equal(['bcc@test.lindsaar.net'],             email.bcc)
+    assert_equal(['cc@test.lindsaar.net'],              email.cc)
+    assert_equal('multipart/mixed; charset=iso-8559-1', email.content_type)
+    assert_equal('iso-8559-1',                          email.charset)
+    assert_equal('2.0',                                 email.mime_version)
+    assert_equal(['reply-to@test.lindsaar.net'],        email.reply_to)
+    assert_equal(@time,                                 email.date)
   end
 
   test "mail() renders the template using the method being processed" do
