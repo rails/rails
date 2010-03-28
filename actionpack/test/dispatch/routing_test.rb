@@ -18,14 +18,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       default_url_options :host => "rubyonrails.org"
 
       controller :sessions do
-        get  'login' => :new, :as => :login
+        get  'login' => :new
         post 'login' => :create
-
-        delete 'logout' => :destroy, :as => :logout
+        delete 'logout' => :destroy
       end
 
       resource :session do
         get :create
+        post :reset
 
         resource :info
       end
@@ -34,6 +34,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'account/login', :to => redirect("/login")
 
       match 'account/overview'
+      match '/account/nested/overview'
+      match 'sign_in' => "sessions#new"
 
       match 'account/modulo/:name', :to => redirect("/%{name}s")
       match 'account/proc/:name', :to => redirect {|params| "/#{params[:name].pluralize}" }
@@ -120,7 +122,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       # misc
       match 'articles/:year/:month/:day/:title', :to => "articles#show", :as => :article
 
+      # default params
+      match 'inline_pages/(:id)', :to => 'pages#show', :id => 'home'
+      match 'default_pages/(:id)', :to => 'pages#show', :defaults => { :id => 'home' }
+      defaults :id => 'home' do
+        match 'scoped_pages/(:id)', :to => 'pages#show'
+      end
+
       namespace :account do
+        match 'shorthand'
         match 'description', :to => "account#description", :as => "description"
         resource :subscription, :credit, :credit_card
 
@@ -193,6 +203,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal '/login', url_for(:controller => 'sessions', :action => 'new', :only_path => true)
 
       assert_equal 'http://rubyonrails.org/login', Routes.url_for(:controller => 'sessions', :action => 'create')
+      assert_equal 'http://rubyonrails.org/login', Routes.url_helpers.login_url
     end
   end
 
@@ -237,6 +248,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/session/edit'
       assert_equal 'sessions#edit', @response.body
       assert_equal '/session/edit', edit_session_path
+
+      post '/session/reset'
+      assert_equal 'sessions#reset', @response.body
+      assert_equal '/session/reset', reset_session_path
     end
   end
 
@@ -654,6 +669,30 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_convention_match_inside_namespace
+    with_test_routes do
+      assert_equal '/account/shorthand', account_shorthand_path
+      get '/account/shorthand'
+      assert_equal 'account#shorthand', @response.body
+    end
+  end
+
+  def test_convention_match_nested_and_with_leading_slash
+    with_test_routes do
+      assert_equal '/account/nested/overview', account_nested_overview_path
+      get '/account/nested/overview'
+      assert_equal 'account/nested#overview', @response.body
+    end
+  end
+
+  def test_convention_with_explicit_end
+    with_test_routes do
+      get '/sign_in'
+      assert_equal 'sessions#new', @response.body
+      assert_equal '/sign_in', sign_in_path
+    end
+  end
+
   def test_redirect_with_complete_url
     with_test_routes do
       get '/account/google'
@@ -739,6 +778,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/admin/descriptions/1'
       assert_equal 'admin/descriptions#show', @response.body
+    end
+  end
+
+  def test_default_params
+    with_test_routes do
+      get '/inline_pages'
+      assert_equal 'home', @request.params[:id]
+
+      get '/default_pages'
+      assert_equal 'home', @request.params[:id]
+
+      get '/scoped_pages'
+      assert_equal 'home', @request.params[:id]
     end
   end
 

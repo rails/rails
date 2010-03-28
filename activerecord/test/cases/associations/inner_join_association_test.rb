@@ -15,12 +15,12 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_construct_finder_sql_ignores_empty_joins_hash
     sql = Author.joins({}).to_sql
-    assert_no_match /JOIN/i, sql
+    assert_no_match(/JOIN/i, sql)
   end
 
   def test_construct_finder_sql_ignores_empty_joins_array
     sql = Author.joins([]).to_sql
-    assert_no_match /JOIN/i, sql
+    assert_no_match(/JOIN/i, sql)
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_without_select

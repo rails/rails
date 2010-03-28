@@ -80,6 +80,7 @@ module ActionController #:nodoc:
         def caches_action(*actions)
           return unless cache_configured?
           options = actions.extract_options!
+          options[:layout] = true unless options.key?(:layout)
           filter_options = options.extract!(:if, :unless).merge(:only => actions)
           cache_options  = options.extract!(:layout, :cache_path).merge(:store_options => options)
 
@@ -87,14 +88,12 @@ module ActionController #:nodoc:
         end
       end
 
-      def _render_cache_fragment(cache, extension, layout)
-        render :text => cache, :layout => layout, :content_type => Mime[extension || :html]
-      end
-
-      def _save_fragment(name, layout, options)
+      def _save_fragment(name, options)
         return unless caching_allowed?
 
-        content = layout ? view_context.content_for(:layout) : response_body
+        content = response_body
+        content = content.join if content.is_a?(Array)
+
         write_fragment(name, content, options)
       end
 
@@ -112,7 +111,7 @@ module ActionController #:nodoc:
 
       class ActionCacheFilter #:nodoc:
         def initialize(options, &block)
-          @cache_path, @store_options, @layout =
+          @cache_path, @store_options, @cache_layout =
             options.values_at(:cache_path, :store_options, :layout)
         end
 
@@ -125,12 +124,19 @@ module ActionController #:nodoc:
 
           cache_path = ActionCachePath.new(controller, path_options || {})
 
-          if cache = controller.read_fragment(cache_path.path, @store_options)
-            controller._render_cache_fragment(cache, cache_path.extension, @layout == false)
-          else
+          body = controller.read_fragment(cache_path.path, @store_options)
+
+          unless body
+            controller.action_has_layout = false unless @cache_layout
             yield
-            controller._save_fragment(cache_path.path, @layout == false, @store_options)
+            controller.action_has_layout = true
+            body = controller._save_fragment(cache_path.path, @store_options)
           end
+
+          body = controller.render_to_string(:text => cache, :layout => true) unless @cache_layout
+
+          controller.response_body = body
+          controller.content_type = Mime[cache_path.extension || :html]
         end
       end
 

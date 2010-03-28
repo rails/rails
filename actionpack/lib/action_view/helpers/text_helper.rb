@@ -17,7 +17,7 @@ module ActionView
       #       concat "hello"
       #       # is the equivalent of <%= "hello" %>
       #
-      #       if (logged_in == true):
+      #       if logged_in
       #         concat "Logged in!"
       #       else
       #         concat link_to('login', :action => login)
@@ -29,7 +29,7 @@ module ActionView
       end
 
       def safe_concat(string)
-        output_buffer.safe_concat(string)
+        output_buffer.respond_to?(:safe_concat) ? output_buffer.safe_concat(string) : concat(string)
       end
 
       # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>
@@ -415,7 +415,7 @@ module ActionView
       #                {:first => 'Emily', :middle => 'Shannon', :maiden => 'Pike', :last => 'Hicks'},
       #               {:first => 'June', :middle => 'Dae', :last => 'Jones'}]
       #   <% @items.each do |item| %>
-      #     <tr class="<%= cycle("even", "odd", :name => "row_class") -%>">
+      #     <tr class="<%= cycle("odd", "even", :name => "row_class") -%>">
       #       <td>
       #         <% item.values.each do |value| %>
       #           <%# Create a named cycle "colors" %>
@@ -576,7 +576,7 @@ module ActionView
         # each email is yielded and the result is used as the link text.
         def auto_link_email_addresses(text, html_options = {})
           body = text.dup
-          text.gsub(/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/) do
+          text.gsub(/([\w\.!#\$%\-+]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/) do
             text = $1
 
             if body.match(/<a\b[^>]*>(.*)(#{Regexp.escape(text)})(.*)<\/a>/)

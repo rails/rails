@@ -14,6 +14,11 @@ module ActiveRecord
 
     def initialize(klass, table)
       @klass, @table = klass, table
+
+      @implicit_readonly = nil
+      @loaded            = nil
+
+      SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
       (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
     end
 
@@ -54,7 +59,7 @@ module ActiveRecord
 
       preload = @preload_values
       preload +=  @includes_values unless eager_loading?
-      preload.each {|associations| @klass.send(:preload_associations, @records, associations) } 
+      preload.each {|associations| @klass.send(:preload_associations, @records, associations) }
 
       # @readonly_value is true only if set explicity. @implicit_readonly is true if there are JOINS and no explicit SELECT.
       readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value

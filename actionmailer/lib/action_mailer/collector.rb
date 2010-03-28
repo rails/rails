@@ -11,7 +11,6 @@ module ActionMailer #:nodoc:
       @context = context
       @responses = []
       @default_render = block
-      @default_formats = context.formats
     end
 
     def any(*args, &block)
@@ -21,16 +20,11 @@ module ActionMailer #:nodoc:
     end
     alias :all :any
 
-    def custom(mime, options={}, &block)
+    def custom(mime, options={})
       options.reverse_merge!(:content_type => mime.to_s)
-      @context.formats = [mime.to_sym]
-      options[:body] = if block
-        block.call
-      else
-        @default_render.call
-      end
+      @context.freeze_formats([mime.to_sym])
+      options[:body] = block_given? ? yield : @default_render.call
       @responses << options
-      @context.formats = @default_formats
     end
   end
 end

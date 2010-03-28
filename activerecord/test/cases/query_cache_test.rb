@@ -10,6 +10,10 @@ require 'models/post'
 class QueryCacheTest < ActiveRecord::TestCase
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
+  def setup
+    Task.connection.clear_query_cache
+  end
+
   def test_find_queries
     assert_queries(2) { Task.find(1); Task.find(1) }
   end

@@ -63,7 +63,7 @@ module ActionController
       def ip_spoofing_check
         ActiveSupport::Deprecation.warn "ActionController::Base.ip_spoofing_check is deprecated. " <<
           "Configuring ip_spoofing_check on the application configures a middleware.", caller
-        Rails.application.config.action_disaptch.ip_spoofing_check
+        Rails.application.config.action_dispatch.ip_spoofing_check
       end
 
       def trusted_proxies=(value)

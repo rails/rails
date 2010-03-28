@@ -22,12 +22,6 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "Subscriber", Subscriber.model_name.human
   end
 
-  def test_column_null_not_null
-    subscriber = Subscriber.find(:first)
-    assert subscriber.column_for_attribute("name").null
-    assert !subscriber.column_for_attribute("nick").null
-  end
-
   def test_read_attribute_names
     assert_equal(
       %w( id title author_name author_email_address bonus_time written_on last_read content approved replies_count parent_id parent_title type ).sort,

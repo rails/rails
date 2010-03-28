@@ -1,8 +1,5 @@
-require 'active_support/core_ext/object/try'
-
 module ActionView
   module Layouts
-
     # You can think of a layout as a method that is called with a block. _layout_for
     # returns the contents that are yielded to the layout. If the user calls yield
     # :some_name, the block, by default, returns content_for(:some_name). If the user
@@ -13,7 +10,7 @@ module ActionView
     # ==== Example
     #
     #   # The template
-    #   <% render :layout => "my_layout" do %>Content<% end %>
+    #   <%= render :layout => "my_layout" do %>Content<% end %>
     #
     #   # The layout
     #   <html><% yield %></html>
@@ -27,7 +24,7 @@ module ActionView
     # ==== Example
     #
     #   # The template
-    #   <% render :layout => "my_layout" do |customer| %>Hello <%= customer.name %><% end %>
+    #   <%= render :layout => "my_layout" do |customer| %>Hello <%= customer.name %><% end %>
     #
     #   # The layout
     #   <html><% yield Struct.new(:name).new("David") %></html>
@@ -46,15 +43,26 @@ module ActionView
     # This is the method which actually finds the layout using details in the lookup
     # context object. If no layout is found, it checkes if at least a layout with
     # the given name exists across all details before raising the error.
-    def _find_layout(layout) #:nodoc:
+    #
+    # If self.formats contains several formats, just the first one is considered in
+    # the layout lookup.
+    def find_layout(layout)
       begin
-        layout =~ /^\// ?
-          with_fallbacks { find(layout) } : find(layout)
+        if formats.size == 1
+          _find_layout(layout)
+        else
+          update_details(:formats => self.formats.first){ _find_layout(layout) }
+        end
       rescue ActionView::MissingTemplate => e
         update_details(:formats => nil) do
-          raise unless exists?(layout)
+          raise unless template_exists?(layout)
         end
       end
+    end
+
+    def _find_layout(layout) #:nodoc:
+      layout =~ /^\// ?
+        with_fallbacks { find_template(layout) } : find_template(layout)
     end
 
     # Contains the logic that actually renders the layout.

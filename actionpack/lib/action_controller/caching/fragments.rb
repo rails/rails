@@ -34,26 +34,13 @@ module ActionController #:nodoc:
         ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)
       end
 
-      def fragment_for(buffer, name = {}, options = nil, &block) #:nodoc:
-        if perform_caching
-          if fragment_exist?(name, options)
-            buffer.safe_concat(read_fragment(name, options))
-          else
-            pos = buffer.length
-            block.call
-            write_fragment(name, buffer[pos..-1], options)
-          end
-        else
-          block.call
-        end
-      end
-
       # Writes <tt>content</tt> to the location signified by <tt>key</tt> (see <tt>expire_fragment</tt> for acceptable formats)
       def write_fragment(key, content, options = nil)
         return content unless cache_configured?
-        key = fragment_cache_key(key)
 
+        key = fragment_cache_key(key)
         instrument_fragment_cache :write_fragment, key do
+          content = content.html_safe.to_str if content.respond_to?(:html_safe)
           cache_store.write(key, content, options)
         end
         content
@@ -62,10 +49,11 @@ module ActionController #:nodoc:
       # Reads a cached fragment from the location signified by <tt>key</tt> (see <tt>expire_fragment</tt> for acceptable formats)
       def read_fragment(key, options = nil)
         return unless cache_configured?
-        key = fragment_cache_key(key)
 
+        key = fragment_cache_key(key)
         instrument_fragment_cache :read_fragment, key do
-          cache_store.read(key, options)
+          result = cache_store.read(key, options)
+          result.respond_to?(:html_safe) ? result.html_safe : result
         end
       end
 

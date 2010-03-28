@@ -3,6 +3,7 @@ require 'cgi'
 require 'action_view/helpers/url_helper'
 require 'action_view/helpers/tag_helper'
 require 'active_support/core_ext/file'
+require 'active_support/core_ext/object/blank'
 
 module ActionView
   module Helpers #:nodoc:
@@ -11,7 +12,7 @@ module ActionView
     # the assets exist before linking to them:
     #
     #   image_tag("rails.png")
-    #   # => <img alt="Rails src="/images/rails.png?1230601161" />
+    #   # => <img alt="Rails" src="/images/rails.png?1230601161" />
     #   stylesheet_link_tag("application")
     #   # => <link href="/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
     #
@@ -58,7 +59,7 @@ module ActionView
     # +asset_host+ to a proc like this:
     #
     #   ActionController::Base.asset_host = Proc.new { |source|
-    #     "http://assets#{rand(2) + 1}.example.com"
+    #     "http://assets#{source.hash % 2 + 1}.example.com"
     #   }
     #   image_tag("rails.png")
     #   # => <img alt="Rails" src="http://assets0.example.com/images/rails.png?1230601161" />
@@ -66,7 +67,7 @@ module ActionView
     #   # => <link href="http://assets1.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
     #
     # The example above generates "http://assets1.example.com" and
-    # "http://assets2.example.com" randomly. This option is useful for example if
+    # "http://assets2.example.com". This option is useful for example if
     # you need fewer/more than four hosts, custom host names, etc.
     #
     # As you see the proc takes a +source+ parameter. That's a string with the
@@ -242,12 +243,12 @@ module ActionView
       # == Caching multiple javascripts into one
       #
       # You can also cache multiple javascripts into one file, which requires less HTTP connections to download and can better be
-      # compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching
+      # compressed by gzip (leading to faster transfers). Caching will only happen if config.perform_caching
       # is set to <tt>true</tt> (which is the case by default for the Rails production environment, but not for the development
       # environment).
       #
       # ==== Examples
-      #   javascript_include_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
+      #   javascript_include_tag :all, :cache => true # when config.perform_caching is false =>
       #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
       #     <script type="text/javascript" src="/javascripts/effects.js"></script>
       #     ...
@@ -255,15 +256,15 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/shop.js"></script>
       #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
       #
-      #   javascript_include_tag :all, :cache => true # when ActionController::Base.perform_caching is true =>
+      #   javascript_include_tag :all, :cache => true # when config.perform_caching is true =>
       #     <script type="text/javascript" src="/javascripts/all.js"></script>
       #
-      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when ActionController::Base.perform_caching is false =>
+      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when config.perform_caching is false =>
       #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
       #     <script type="text/javascript" src="/javascripts/cart.js"></script>
       #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
       #
-      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when ActionController::Base.perform_caching is true =>
+      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when config.perform_caching is true =>
       #     <script type="text/javascript" src="/javascripts/shop.js"></script>
       #
       # The <tt>:recursive</tt> option is also available for caching:
@@ -275,11 +276,11 @@ module ActionView
         cache   = concat || options.delete("cache")
         recursive = options.delete("recursive")
 
-        if concat || (ActionController::Base.perform_caching && cache)
+        if concat || (config.perform_caching && cache)
           joined_javascript_name = (cache == true ? "all" : cache) + ".js"
           joined_javascript_path = File.join(joined_javascript_name[/^#{File::SEPARATOR}/] ? config.assets_dir : config.javascripts_dir, joined_javascript_name)
 
-          unless ActionController::Base.perform_caching && File.exists?(joined_javascript_path)
+          unless config.perform_caching && File.exists?(joined_javascript_path)
             write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources, recursive))
           end
           javascript_src_tag(joined_javascript_name, options)
@@ -390,25 +391,25 @@ module ActionView
       # == Caching multiple stylesheets into one
       #
       # You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be
-      # compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching
+      # compressed by gzip (leading to faster transfers). Caching will only happen if config.perform_caching
       # is set to true (which is the case by default for the Rails production environment, but not for the development
       # environment). Examples:
       #
       # ==== Examples
-      #   stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
+      #   stylesheet_link_tag :all, :cache => true # when config.perform_caching is false =>
       #     <link href="/stylesheets/style1.css"  media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/stylesheets/styleB.css"  media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/stylesheets/styleX2.css" media="screen" rel="stylesheet" type="text/css" />
       #
-      #   stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is true =>
+      #   stylesheet_link_tag :all, :cache => true # when config.perform_caching is true =>
       #     <link href="/stylesheets/all.css"  media="screen" rel="stylesheet" type="text/css" />
       #
-      #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when ActionController::Base.perform_caching is false =>
+      #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when config.perform_caching is false =>
       #     <link href="/stylesheets/shop.css"  media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/stylesheets/cart.css"  media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/stylesheets/checkout.css" media="screen" rel="stylesheet" type="text/css" />
       #
-      #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when ActionController::Base.perform_caching is true =>
+      #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when config.perform_caching is true =>
       #     <link href="/stylesheets/payment.css"  media="screen" rel="stylesheet" type="text/css" />
       #
       # The <tt>:recursive</tt> option is also available for caching:
@@ -426,11 +427,11 @@ module ActionView
         cache   = concat || options.delete("cache")
         recursive = options.delete("recursive")
 
-        if concat || (ActionController::Base.perform_caching && cache)
+        if concat || (config.perform_caching && cache)
           joined_stylesheet_name = (cache == true ? "all" : cache) + ".css"
           joined_stylesheet_path = File.join(joined_stylesheet_name[/^#{File::SEPARATOR}/] ? config.assets_dir : config.stylesheets_dir, joined_stylesheet_name)
 
-          unless ActionController::Base.perform_caching && File.exists?(joined_stylesheet_path)
+          unless config.perform_caching && File.exists?(joined_stylesheet_path)
             write_asset_file_contents(joined_stylesheet_path, compute_stylesheet_paths(sources, recursive))
           end
           stylesheet_tag(joined_stylesheet_name, options)
@@ -523,7 +524,7 @@ module ActionView
         options.symbolize_keys!
 
         src = options[:src] = path_to_image(source)
-        options[:alt]     ||= File.basename(src, '.*').split('.').first.to_s.capitalize
+        options[:alt]     ||= File.basename(src, '.*').capitalize
 
         if size = options.delete(:size)
           options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
@@ -623,41 +624,37 @@ module ActionView
       @@cache_asset_timestamps = true
 
       private
+        def rewrite_extension?(source, dir, ext)
+          source_ext = File.extname(source)[1..-1]
+          ext && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(config.assets_dir, dir, "#{source}.#{ext}"))))
+        end
+
+        def rewrite_host_and_protocol(source, has_request)
+          host = compute_asset_host(source)
+          if has_request && host.present? && !is_uri?(host)
+            host = "#{controller.request.protocol}#{host}"
+          end
+          "#{host}#{source}"
+        end
+
         # Add the the extension +ext+ if not present. Return full URLs otherwise untouched.
         # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
         # roots. Rewrite the asset path for cache-busting asset ids. Include
         # asset host, if configured, with the correct request protocol.
         def compute_public_path(source, dir, ext = nil, include_host = true)
+          return source if is_uri?(source)
+
+          source += ".#{ext}" if rewrite_extension?(source, dir, ext)
+          source  = "/#{dir}/#{source}" unless source[0] == ?/
+          source  = rewrite_asset_path(source)
+
           has_request = controller.respond_to?(:request)
-
-          source_ext = File.extname(source)[1..-1]
-          if ext && !is_uri?(source) && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(config.assets_dir, dir, "#{source}.#{ext}"))))
-            source += ".#{ext}"
+          if has_request && include_host && source !~ %r{^#{controller.config.relative_url_root}/}
+            source = "#{controller.config.relative_url_root}#{source}"
           end
+          source = rewrite_host_and_protocol(source, has_request) if include_host
 
-          unless is_uri?(source)
-            source = "/#{dir}/#{source}" unless source[0] == ?/
-
-            source = rewrite_asset_path(source)
-
-            if has_request && include_host
-              unless source =~ %r{^#{controller.config.relative_url_root}/}
-                source = "#{controller.config.relative_url_root}#{source}"
-              end
-            end
-          end
-
-          if include_host && !is_uri?(source)
-            host = compute_asset_host(source)
-
-            if has_request && !host.blank? && !is_uri?(host)
-              host = "#{controller.request.protocol}#{host}"
-            end
-
-            "#{host}#{source}"
-          else
-            source
-          end
+          source
         end
 
         def is_uri?(path)

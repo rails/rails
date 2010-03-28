@@ -147,6 +147,20 @@ class ActiveModelHelperTest < ActionView::TestCase
     )
   end
 
+  def test_field_error_proc
+    old_proc = ActionView::Base.field_error_proc
+    ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
+      %(<div class=\"fieldWithErrors\">#{html_tag} <span class="error">#{[instance.error_message].join(', ')}</span></div>).html_safe
+    end
+
+    assert_dom_equal(
+      %(<div class="fieldWithErrors"><input id="post_author_name" name="post[author_name]" size="30" type="text" value="" /> <span class="error">can't be empty</span></div>),
+      text_field("post", "author_name")
+    )
+  ensure
+    ActionView::Base.field_error_proc = old_proc if old_proc
+  end
+
   def test_form_with_string
     assert_dom_equal(
       %(<form action="create" method="post"><p><label for="post_title">Title</label><br /><input id="post_title" name="post[title]" size="30" type="text" value="Hello World" /></p>\n<p><label for="post_body">Body</label><br /><div class="fieldWithErrors"><textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea></div></p><input name="commit" type="submit" value="Create" /></form>),
@@ -250,6 +264,10 @@ class ActiveModelHelperTest < ActionView::TestCase
 
   def test_error_message_on_with_options_hash
     assert_dom_equal "<div class=\"differentError\">beforecan't be emptyafter</div>", error_message_on(:post, :author_name, :css_class => 'differentError', :prepend_text => 'before', :append_text => 'after')
+  end
+
+  def test_error_message_on_handles_empty_errors
+    assert_equal "", error_message_on(@post, :tag)
   end
 
   def test_error_messages_for_many_objects

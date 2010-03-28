@@ -1,6 +1,7 @@
 require 'action_view/helpers/javascript_helper'
 require 'active_support/core_ext/array/access'
 require 'active_support/core_ext/hash/keys'
+require 'action_dispatch'
 
 module ActionView
   module Helpers #:nodoc:
@@ -9,11 +10,18 @@ module ActionView
     # This allows you to use the same format for links in views
     # and controllers.
     module UrlHelper
+      extend ActiveSupport::Concern
+
+      include ActionDispatch::Routing::UrlFor
       include JavaScriptHelper
 
       # Need to map default url options to controller one.
       def default_url_options(*args) #:nodoc:
         controller.send(:default_url_options, *args)
+      end
+
+      def url_options
+        controller.url_options
       end
 
       # Returns the URL for the set of +options+ provided. This takes the
@@ -162,7 +170,7 @@ module ActionView
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERb example:
       #
-      #   <% link_to(@profile) do %>
+      #   <%= link_to(@profile) do %>
       #     <strong><%= @profile.name %></strong> -- <span>Check it out!</span>
       #   <% end %>
       #   # => <a href="/profiles/1">
@@ -206,7 +214,7 @@ module ActionView
         if block_given?
           options      = args.first || {}
           html_options = args.second
-          safe_concat(link_to(capture(&block), options, html_options))
+          link_to(capture(&block), options, html_options)
         else
           name         = args[0]
           options      = args[1] || {}
@@ -224,7 +232,7 @@ module ActionView
           end
 
           href_attr = "href=\"#{url}\"" unless href
-          ("<a #{href_attr}#{tag_options}>".html_safe << (name || url)).safe_concat("</a>")
+          "<a #{href_attr}#{tag_options}>#{ERB::Util.h(name || url)}</a>".html_safe
         end
       end
 
@@ -577,8 +585,6 @@ module ActionView
 
           add_confirm_to_attributes!(html_options, confirm) if confirm
           add_method_to_attributes!(html_options, method)   if method
-
-          html_options["data-url"] = options[:url] if options.is_a?(Hash) && options[:url]
 
           html_options
         end

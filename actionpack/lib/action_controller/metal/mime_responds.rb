@@ -261,7 +261,8 @@ module ActionController #:nodoc:
       block.call(collector) if block_given?
 
       if format = request.negotiate_mime(collector.order)
-        self.formats = [format.to_sym]
+        self.content_type ||= format.to_s
+        lookup_context.freeze_formats([format.to_sym])
         collector.response_for(format)
       else
         head :not_acceptable

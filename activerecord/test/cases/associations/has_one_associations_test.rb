@@ -186,15 +186,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal account, firm.account
   end
 
-  def test_failing_build_association
-    firm = Firm.new("name" => "GlobalMegaCorp")
-    firm.save
-
-    account = firm.build_account
-    assert !account.save
-    assert_equal ["can't be empty"], account.errors["credit_limit"]
-  end
-
   def test_build_association_twice_without_saving_affects_nothing
     count_of_account = Account.count
     firm = Firm.find(:first)

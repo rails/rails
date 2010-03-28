@@ -88,7 +88,7 @@ class DependenciesTest < Test::Unit::TestCase
       old_warnings, ActiveSupport::Dependencies.warnings_on_first_load = ActiveSupport::Dependencies.warnings_on_first_load, true
 
       filename = "check_warnings"
-      expanded = File.expand_path("test/dependencies/#{filename}")
+      expanded = File.expand_path("#{File.dirname(__FILE__)}/dependencies/#{filename}")
       $check_warnings_load_count = 0
 
       assert !ActiveSupport::Dependencies.loaded.include?(expanded)

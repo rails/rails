@@ -244,14 +244,14 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :accounts
 
   def test_without_complete_instantiation
-    assert_nil @first
-    assert_nil @topics
-    assert_nil @developers
-    assert_nil @accounts
+    assert !defined?(@first)
+    assert !defined?(@topics)
+    assert !defined?(@developers)
+    assert !defined?(@accounts)
   end
 
   def test_fixtures_from_root_yml_without_instantiation
-    assert_nil @unknown
+    assert !defined?(@unknown), "@unknown is not defined"
   end
 
   def test_accessor_methods
@@ -279,7 +279,7 @@ class FixturesWithoutInstanceInstantiationTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :accounts
 
   def test_without_instance_instantiation
-    assert_nil @first
+    assert !defined?(@first), "@first is not defined"
     assert_not_nil @topics
     assert_not_nil @developers
     assert_not_nil @accounts

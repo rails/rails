@@ -340,6 +340,8 @@ class ActionMailerTest < Test::Unit::TestCase
 
     @original_logger = TestMailer.logger
     @recipient = 'test@localhost'
+
+    TestMailer.delivery_method = :test
   end
 
   def teardown
@@ -443,9 +445,6 @@ class ActionMailerTest < Test::Unit::TestCase
     expected.body    = "Hello there, \n\nMr. #{@recipient}"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
-
-    # Stub the render method so no alternative renderers need be present.
-    ActionView::Base.any_instance.stubs(:render).returns("Hello there, \n\nMr. #{@recipient}")
 
     # Now that the template is registered, there should be one part. The text/plain part.
     created = nil
@@ -1194,6 +1193,6 @@ class RespondToTest < Test::Unit::TestCase
       RespondToMailer.not_a_method
     end
 
-    assert_match(/undefined method.*not_a_method/, error.message)
+    assert_match(/method.*not_a_method/, error.message)
   end
 end

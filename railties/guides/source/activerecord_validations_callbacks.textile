@@ -240,11 +240,11 @@ end
 
 The +validates_exclusion_of+ helper has an option +:in+ that receives the set of values that will not be accepted for the validated attributes. The +:in+ option has an alias called +:within+  that you can use for the same purpose, if you'd like to. This example uses the +:message+ option to show how you can include the attribute's value.
 
-The default error message for +validates_exclusion_of+  is "_is not included in the list_".
+The default error message for +validates_exclusion_of+  is "_is reserved_".
 
 h4. +validates_format_of+
 
-This helper validates the attributes' values by testing whether they match a given regular expresion, which is specified using the +:with+ option.
+This helper validates the attributes' values by testing whether they match a given regular expression, which is specified using the +:with+ option.
 
 <ruby>
 class Product < ActiveRecord::Base

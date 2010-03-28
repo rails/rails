@@ -117,7 +117,7 @@ module RenderActionWithApplicationLayout
   # # ==== Render actions with layouts ====
   class BasicController < ::ApplicationController
     # Set the view path to an application view structure with layouts
-    self.view_paths = self.view_paths = [ActionView::FixtureResolver.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "render_action_with_application_layout/basic/hello_world.html.erb" => "Hello World!",
       "render_action_with_application_layout/basic/hello.html.builder"   => "xml.p 'Hello'",
       "layouts/application.html.erb"                                     => "Hi <%= yield %> OK, Bye",
@@ -202,7 +202,7 @@ end
 
 module RenderActionWithControllerLayout
   class BasicController < ActionController::Base
-    self.view_paths = self.view_paths = [ActionView::FixtureResolver.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "render_action_with_controller_layout/basic/hello_world.html.erb" => "Hello World!",
       "layouts/render_action_with_controller_layout/basic.html.erb"     => "With Controller Layout! <%= yield %> Bye"
     )]

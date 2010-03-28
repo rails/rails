@@ -2,6 +2,7 @@ require 'stringio'
 require 'uri'
 require 'active_support/core_ext/object/singleton_class'
 require 'rack/test'
+require 'test/unit/assertions'
 
 module ActionDispatch
   module Integration #:nodoc:
@@ -177,14 +178,8 @@ module ActionDispatch
         reset!
       end
 
-      def url_options
-        opts = super.reverse_merge(
-          :host => host,
-          :protocol => https? ? "https" : "http"
-        )
-
-        opts.merge!(:port => 443) if !opts.key?(:port) && https?
-        opts
+      def default_url_options
+        { :host => host, :protocol => https? ? "https" : "http" }
       end
 
       # Resets the instance. This can be used to reset the state information
@@ -293,6 +288,8 @@ module ActionDispatch
     end
 
     module Runner
+      include ActionDispatch::Assertions
+
       def app
         @app
       end
@@ -300,7 +297,7 @@ module ActionDispatch
       # Reset the current session. This is useful for testing multiple sessions
       # in a single test case.
       def reset!
-        @integration_session = open_session
+        @integration_session = Integration::Session.new(app)
       end
 
       %w(get post put head delete cookies assigns
@@ -326,30 +323,9 @@ module ActionDispatch
       # can use this method to open multiple sessions that ought to be tested
       # simultaneously.
       def open_session(app = nil)
-        session = Integration::Session.new(app || self.app)
-
-        # delegate the fixture accessors back to the test instance
-        extras = Module.new { attr_accessor :delegate, :test_result }
-        if self.class.respond_to?(:fixture_table_names)
-          self.class.fixture_table_names.each do |table_name|
-            name = table_name.tr(".", "_")
-            next unless respond_to?(name)
-            extras.__send__(:define_method, name) { |*args|
-              delegate.send(name, *args)
-            }
-          end
+        dup.tap do |session|
+          yield session if block_given?
         end
-
-        # delegate add_assertion to the test case
-        extras.__send__(:define_method, :add_assertion) {
-          test_result.add_assertion
-        }
-        session.extend(extras)
-        session.delegate = self
-        session.test_result = @_result
-
-        yield session if block_given?
-        session
       end
 
       # Copy the instance variables from the current session instance into the
@@ -460,6 +436,7 @@ module ActionDispatch
   #   end
   class IntegrationTest < ActiveSupport::TestCase
     include Integration::Runner
+    include ActionController::TemplateAssertions
 
     @@app = nil
 

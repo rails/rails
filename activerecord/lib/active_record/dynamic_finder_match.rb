@@ -7,6 +7,9 @@ module ActiveRecord
 
     def initialize(method)
       @finder = :first
+      @bang   = false
+      @instantiator = nil
+
       case method.to_s
       when /^find_(all_by|last_by|by)_([_a-zA-Z]\w*)$/
         @finder = :last if $1 == 'last_by'

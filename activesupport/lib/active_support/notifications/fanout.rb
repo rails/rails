@@ -44,7 +44,7 @@ module ActiveSupport
             when Regexp, NilClass
               pattern
             else
-              /^#{Regexp.escape(pattern.to_s)}/
+              /^#{Regexp.escape(pattern.to_s)}$/
             end
         end
 

@@ -27,6 +27,8 @@ class JsonSerializationTest < ActiveRecord::TestCase
     @contact = NamespacedContact.new :name => 'whatever'
     json = @contact.to_json
     assert_match %r{^\{"namespaced_contact":\{}, json
+  ensure
+    NamespacedContact.include_root_in_json = false
   end
 
   def test_should_include_root_in_json

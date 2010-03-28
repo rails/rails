@@ -382,7 +382,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     Developer.send(:with_scope, :find => { :conditions => "salary < 100000" }) do
       Developer.send(:with_scope, :find => { :offset => 1, :order => 'id asc' }) do
         # Oracle adapter does not generated space after asc therefore trailing space removed from regex
-        assert_sql /ORDER BY  id asc/ do
+        assert_sql(/ORDER BY  id asc/) do
           assert_equal(poor_jamis, Developer.find(:first, :order => 'id asc'))
         end
       end

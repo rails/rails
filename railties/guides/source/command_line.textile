@@ -12,15 +12,18 @@ NOTE: This tutorial assumes you have basic Rails knowledge from reading the "Get
 
 endprologue.
 
+WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
+
 h3. Command Line Basics
 
 There are a few commands that are absolutely critical to your everyday usage of Rails. In the order of how much you'll probably use them are:
 
-* console
-* server
+* rails console
+* rails server
 * rake
-* generate
-* rails
+* rails generate
+* rails dbconsole
+* rails app_name
 
 Let's create a simple Rails application to step through each of these commands in context.
 
@@ -28,33 +31,35 @@ h4. +rails+
 
 The first thing we'll want to do is create a new Rails application by running the +rails+ command after installing Rails.
 
-WARNING: You know you need the rails gem installed by typing +gem install rails+ first, right? Okay, okay, just making sure.
+WARNING: You know you need the rails gem installed by typing +gem install rails+ first, if you don't have this installed, follow the instructions in the "Rails 3 Release Notes":/3_0_release_notes.textile
 
 <shell>
 $ rails commandsapp
-
-     create
-     create  app/controllers
-     create  app/helpers
-     create  app/models
+     create  
+     create  README
+     create  .gitignore
+     create  Rakefile
+     create  config.ru
+     create  Gemfile
+     create  app
      ...
-     ...
-     create  log/production.log
-     create  log/development.log
-     create  log/test.log
+     create  tmp/cache
+     create  tmp/pids
+     create  vendor/plugins
+     create  vendor/plugins/.gitkeep
 </shell>
 
 Rails will set you up with what seems like a huge amount of stuff for such a tiny command! You've got the entire Rails directory structure now with all the code you need to run our simple application right out of the box.
 
 INFO: This output will seem very familiar when we get to the +generate+ command. Creepy foreshadowing!
 
-h4. +server+
+h4. +rails server+
 
-Let's try it! The +server+ command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to view your work through a web browser.
+Let's try it! The +rails server+ command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to view your work through a web browser.
 
 INFO: WEBrick isn't your only option for serving Rails. We'll get to that in a later section.
 
-Without any prodding of any kind, +server+ will run our new shiny Rails app:
+Without any prodding of any kind, +rails server+ will run our new shiny Rails app:
 
 <shell>
 $ cd commandsapp
@@ -67,13 +72,11 @@ $ rails server
 [2008-11-04 10:11:38] INFO  WEBrick::HTTPServer#start: pid=18994 port=3000
 </shell>
 
-WHOA. With just three commands we whipped up a Rails server listening on port 3000. Go! Go right now to your browser and go to http://localhost:3000. I'll wait.
+With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open "http://localhost:3000":http://localhost:3000, you will see a basic rails app running.
 
-See? Cool! It doesn't do much yet, but we'll change that.
+h4. +rails generate+
 
-h4. +generate+
-
-The +generate+ command uses templates to create a whole lot of things. You can always find out what's available by running +generate+ by itself. Let's do that:
+The +rails generate+ command uses templates to create a whole lot of things. You can always find out what's available by running +rails generate+ by itself. Let's do that:
 
 <shell>
 $ rails generate
@@ -82,16 +85,18 @@ Usage: rails generate generator [options] [args]
 ...
 ...
 
-Installed Generators
-  Built-in: controller, integration_test, mailer, migration, model, observer, performance_test, plugin, resource, scaffold, session_migration
+Please choose a generator below.
 
-...
-...
+Rails:
+  controller
+  generator
+  ...
+  ...
 </shell>
 
 NOTE: You can install more generators through generator gems, portions of plugins you'll undoubtedly install, and you can even create your own!
 
-Using generators will save you a large amount of time by writing *boilerplate code* for you -- necessary for the darn thing to work, but not necessary for you to spend time writing. That's what we have computers for, right?
+Using generators will save you a large amount of time by writing *boilerplate code*, code that is necessary for the app to work, but not necessary for you to spend time writing. That's what we have computers for.
 
 Let's make our own controller with the controller generator. But what command should we use? Let's ask the generator:
 
@@ -123,34 +128,34 @@ Modules Example:
         Test:       test/functional/admin/credit_card_controller_test.rb
 </shell>
 
-Ah, the controller generator is expecting parameters in the form of +generate controller ControllerName action1 action2+. Let's make a +Greetings+ controller with an action of *hello*, which will say something nice to us.
+The controller generator is expecting parameters in the form of +generate controller ControllerName action1 action2+. Let's make a +Greetings+ controller with an action of *hello*, which will say something nice to us.
 
 <shell>
 $ rails generate controller Greetings hello
-     exists  app/controllers/
-     exists  app/helpers/
-     create  app/views/greetings
-     exists  test/functional/
      create  app/controllers/greetings_controller.rb
-     create  test/functional/greetings_controller_test.rb
-     create  app/helpers/greetings_helper.rb
-     create  app/views/greetings/hello.html.erb
+     invoke  erb
+     create    app/views/greetings
+     create    app/views/greetings/hello.html.erb
+      error  rspec [not found]
+     invoke  helper
+     create    app/helpers/greetings_helper.rb
+      error    rspec [not found]
 </shell>
 
-Look there! Now what all did this generate? It looks like it made sure a bunch of directories were in our application, and created a controller file, a functional test file, a helper for the view, and a view file.
+What all did this generate?  It made sure a bunch of directories were in our application, and created a controller file, a functional test file, a helper for the view, and a view file.
 
-Let's check out the controller and modify it a little (in +app/controllers/greetings_controller.rb+):
+Check out the controller and modify it a little (in +app/controllers/greetings_controller.rb+):ma
 
 <ruby>
 class GreetingsController < ApplicationController
   def hello
-    @message = "Hello, how are you today? I am exuberant!"
+    @message = "Hello, how are you today?"
   end
 
 end
 </ruby>
 
-Then the view, to display our nice message (in +app/views/greetings/hello.html.erb+):
+Then the view, to display our message (in +app/views/greetings/hello.html.erb+):
 
 <html>
 <h1>A Greeting for You!</h1>
@@ -166,11 +171,11 @@ $ rails server
 
 WARNING: Make sure that you do not have any "tilde backup" files in +app/views/(controller)+, or else WEBrick will _not_ show the expected output. This seems to be a *bug* in Rails 2.3.0.
 
-The URL will be +http://localhost:3000/greetings/hello+. I'll wait for you to be suitably impressed.
+The URL will be "http://localhost:3000/greetings/hello":http://localhost:3000/greetings/hello.
 
 INFO: With a normal, plain-old Rails application, your URLs will generally follow the pattern of http://(host)/(controller)/(action), and a URL like http://(host)/(controller) will hit the *index* action of that controller.
 
-"What about data, though?", you ask over a cup of coffee. Rails comes with a generator for data models too. Can you guess its generator name?
+Rails comes with a generator for data models too:
 
 <shell>
 $ rails generate model
@@ -181,7 +186,6 @@ Usage: rails generate model ModelName [field:type, field:type]
 Examples:
     rails generate model account
 
-        creates an Account model, test, fixture, and migration:
             Model:      app/models/account.rb
             Test:       test/unit/account_test.rb
             Fixtures:   test/fixtures/accounts.yml
@@ -189,12 +193,12 @@ Examples:
 
     rails generate model post title:string body:text published:boolean
 
-        creates a Post model with a string title, text body, and published flag.
+        Creates a Post model with a string title, text body, and published flag.
 </shell>
 
 But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A *scaffold* in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.
 
-Let's set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
+We will set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
 
 <shell>
 $ rails generate scaffold HighScore game:string score:integer
@@ -227,19 +231,17 @@ dependency  model
     create    db/migrate/20081217071914_create_high_scores.rb
 </shell>
 
-Taking it from the top - the generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the +high_scores+ table and fields), takes care of the route for the *resource*, and new tests for everything.
+The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the +high_scores+ table and fields), takes care of the route for the *resource*, and new tests for everything.
 
-The migration requires that we *migrate*, that is, run some Ruby code (living in that +20081217071914_create_high_scores.rb+) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the +rake db:migrate+ command. We'll talk more about Rake in-depth in a little while.
-
-CAUTION: Hey. Install the sqlite3-ruby gem while you're at it. +gem install sqlite3-ruby+
+The migration requires that we *migrate*, that is, run some Ruby code (living in that +20100209025147_create_high_scores.rb+) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the +rake db:migrate+ command. We'll talk more about Rake in-depth in a little while.
 
 <shell>
 $ rake db:migrate
-(in /home/commandsapp)
-  CreateHighScores: migrating
-    create_table(:high_scores)
-    -> 0.0070s
-  CreateHighScores: migrated (0.0077s)
+(in /Users/mikel/rails_programs/commandsapp)
+==  CreateHighScores: migrating ===============================================
+-- create_table(:high_scores)
+   -> 0.0026s
+==  CreateHighScores: migrated (0.0028s) ======================================
 </shell>
 
 INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions about code. In unit testing, we take a little part of code, say a method of a model, and test its inputs and outputs. Unit tests are your friend. The sooner you make peace with the fact that your quality of life will drastically increase when you unit test your code, the better. Seriously. We'll make one in a moment.
@@ -248,22 +250,22 @@ Let's see the interface Rails created for us. rails server; http://localhost:300
 
 We can create new high scores (55,160 on Space Invaders!)
 
-h4. +console+
+h4. +rails console+
 
 The +console+ command lets you interact with your Rails application from the command line. On the underside, +rails console+ uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
 
-h4. +dbconsole+
+h4. +rails dbconsole+
 
-+dbconsole+ figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL, SQLite and SQLite3.
++rails dbconsole+ figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL, SQLite and SQLite3.
 
-h4. +plugin+
+h4. +rails plugin+
 
-The +plugin+ command simplifies plugin management; think a miniature version of the Gem utility. Let's walk through installing a plugin. You can call the sub-command *discover*, which sifts through repositories looking for plugins, or call *source* to add a specific repository of plugins, or you can specify the plugin location directly.
+The +rails plugin+ command simplifies plugin management; think a miniature version of the Gem utility. Let's walk through installing a plugin. You can call the sub-command *discover*, which sifts through repositories looking for plugins, or call *source* to add a specific repository of plugins, or you can specify the plugin location directly.
 
 Let's say you're creating a website for a client who wants a small accounting system. Every event having to do with money must be logged, and must never be deleted. Wouldn't it be great if we could override the behavior of a model to never actually take its record out of the database, but *instead*, just set a field?
 
 There is such a thing! The plugin we're installing is called "acts_as_paranoid", and it lets models implement a "deleted_at" column that gets set when you call destroy. Later, when calling find, the plugin will tack on a database check to filter out "deleted" things.
-
+==================================================================================
 <shell>
 $ rails plugin install http://svn.techno-weenie.net/projects/plugins/acts_as_paranoid
 + ./CHANGELOG

@@ -11,6 +11,13 @@ module DelegatingFixtures
 
   class Mokopuna < Child
   end
+
+  class PercysMom
+    superclass_delegating_accessor :superpower
+  end
+
+  class Percy < PercysMom
+  end
 end
 
 class DelegatingAttributesTest < Test::Unit::TestCase
@@ -70,18 +77,17 @@ class DelegatingAttributesTest < Test::Unit::TestCase
   end
 
   def test_delegation_stops_at_the_right_level
-    assert_nil Mokopuna.some_attribute
-    assert_nil Child.some_attribute
-    Child.some_attribute="1"
-    assert_equal "1", Mokopuna.some_attribute
-  ensure
-    Child.some_attribute=nil
+    assert_nil Percy.superpower
+    assert_nil PercysMom.superpower
+
+    PercysMom.superpower = :heatvision
+    assert_equal :heatvision, Percy.superpower
   end
-  
+
   def test_delegation_stops_for_nil
     Mokopuna.some_attribute = nil
     Child.some_attribute="1"
-    
+
     assert_equal "1", Child.some_attribute
     assert_nil Mokopuna.some_attribute
   ensure

@@ -1,7 +1,6 @@
 ORIG_ARGV = ARGV.dup
 
 require File.expand_path("../../../load_paths", __FILE__)
-$:.unshift File.expand_path("../../builtin/rails_info", __FILE__)
 
 require 'stringio'
 require 'test/unit'

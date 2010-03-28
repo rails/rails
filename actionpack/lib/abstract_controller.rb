@@ -12,6 +12,7 @@ require 'active_support/i18n'
 module AbstractController
   extend ActiveSupport::Autoload
 
+  autoload :Assigns
   autoload :Base
   autoload :Callbacks
   autoload :Collector

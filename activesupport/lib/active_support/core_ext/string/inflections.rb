@@ -1,5 +1,3 @@
-require 'active_support/inflector'
-
 # String inflections define new methods on the String class to transform names for different purposes.
 # For instance, you can figure out the name of a database from the name of a class.
 #

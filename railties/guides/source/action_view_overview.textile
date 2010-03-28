@@ -33,13 +33,13 @@ gem install actionpack
 gem install rack
 </shell>
 
-Now we'll create a simple "Hello World" application that uses the +titleize+ method provided by Action View.
+Now we'll create a simple "Hello World" application that uses the +titleize+ method provided by Active Support.
 
 *hello_world.rb:*
 
 <ruby>
 require 'rubygems'
-require 'action_view'
+require 'active_support/core_ext/string/inflections'
 require 'rack'
 
 def hello_world(env)

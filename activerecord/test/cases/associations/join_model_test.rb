@@ -52,18 +52,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal 1, authors(:mary).unique_categorized_posts.find_all_by_title("So I was thinking").size
   end
 
-  def test_polymorphic_has_many
-    assert posts(:welcome).taggings.include?(taggings(:welcome_general))
-  end
-
-  def test_polymorphic_has_one
-    assert_equal taggings(:welcome_general), posts(:welcome).tagging
-  end
-
-  def test_polymorphic_belongs_to
-    assert_equal posts(:welcome), posts(:welcome).taggings.first.taggable
-  end
-
   def test_polymorphic_has_many_going_through_join_model
     assert_equal tags(:general), tag = posts(:welcome).tags.first
     assert_no_queries do

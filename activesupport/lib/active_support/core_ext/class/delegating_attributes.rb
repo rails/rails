@@ -1,6 +1,7 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/object/singleton_class'
+require 'active_support/core_ext/module/remove_method'
 
 class Class
   def superclass_delegating_accessor(name, options = {})
@@ -27,7 +28,9 @@ private
   # inheritance behavior, without having to store the object in an instance
   # variable and look up the superclass chain manually.
   def _stash_object_in_method(object, method, instance_reader = true)
+    singleton_class.remove_possible_method(method)
     singleton_class.send(:define_method, method) { object }
+    remove_possible_method(method)
     define_method(method) { object } if instance_reader
   end
 
@@ -35,7 +38,7 @@ private
     singleton_class.send(:define_method, "#{name}=") do |value|
       _stash_object_in_method(value, name, options[:instance_reader] != false)
     end
-    self.send("#{name}=", nil)
+    send("#{name}=", nil)
   end
 
 end

@@ -285,7 +285,7 @@ class TestGetTextString < Test::Unit::TestCase
 
   def test_percent
     assert_equal("% 1", "%% %<num>d" % {:num => 1.0})
-    assert_equal("%{num} %<num>d", "%%{num} %%<num>d" % {:num => 1})
+    assert_equal("%{num} %<num>d 1", "%%{num} %%<num>d %<num>d" % {:num => 1})
   end
 
   def test_sprintf_percent_in_replacement
@@ -443,6 +443,10 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string = string.concat(13)
     assert_equal "hello".concat(13), string
     assert string.html_safe?
+  end
+
+  test 'emits normal string yaml' do
+    assert_equal 'foo'.to_yaml, 'foo'.html_safe.to_yaml(:foo => 1)
   end
 end
 

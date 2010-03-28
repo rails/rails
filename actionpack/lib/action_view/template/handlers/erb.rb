@@ -3,46 +3,16 @@ require 'active_support/core_ext/string/output_safety'
 require 'erubis'
 
 module ActionView
-  class OutputBuffer
-    def initialize
-      @buffer = ActiveSupport::SafeBuffer.new
-    end
-
-    def safe_concat(value)
-      @buffer.safe_concat(value)
-    end
-
+  class OutputBuffer < ActiveSupport::SafeBuffer
     def <<(value)
-      @buffer << value.to_s
+      super(value.to_s)
     end
+    alias :append= :<<
 
-    def length
-      @buffer.length
-    end
-
-    def [](*args)
-      @buffer[*args]
-    end
-
-    def to_s
-      @buffer.to_s
-    end
-
-    def to_str
-      @buffer.to_str
-    end
-
-    def empty?
-      @buffer.empty?
-    end
-
-    def html_safe?
-      @buffer.html_safe?
-    end
-
-    if "".respond_to?(:force_encoding)
-      def force_encoding(encoding)
-        @buffer.force_encoding(encoding)
+    def append_if_string=(value)
+      if value.is_a?(String) && !value.is_a?(NonConcattingString)
+        ActiveSupport::Deprecation.warn("<% %> style block helpers are deprecated. Please use <%= %>", caller)
+        self << value
       end
     end
   end
@@ -58,16 +28,26 @@ module ActionView
         src << "@output_buffer.safe_concat('" << escape_text(text) << "');"
       end
 
+      BLOCK_EXPR = /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
+
       def add_expr_literal(src, code)
-        if code =~ /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
-          src << '@output_buffer << ' << code
+        if code =~ BLOCK_EXPR
+          src << '@output_buffer.append= ' << code
         else
-          src << '@output_buffer << (' << code << ');'
+          src << '@output_buffer.append= (' << code << ');'
+        end
+      end
+
+      def add_stmt(src, code)
+        if code =~ BLOCK_EXPR
+          src << '@output_buffer.append_if_string= ' << code
+        else
+          super
         end
       end
 
       def add_expr_escaped(src, code)
-        src << '@output_buffer << ' << escaped_expr(code) << ';'
+        src << '@output_buffer.append= ' << escaped_expr(code) << ';'
       end
 
       def add_postamble(src)

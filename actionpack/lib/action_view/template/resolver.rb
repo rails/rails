@@ -1,6 +1,5 @@
 require "pathname"
 require "active_support/core_ext/class"
-require "active_support/core_ext/array/wrap"
 require "action_view/template"
 
 module ActionView
@@ -14,15 +13,8 @@ module ActionView
       @cached.clear
     end
 
-    def find(*args)
-      find_all(*args).first
-    end
-
     # Normalizes the arguments and passes it on to find_template.
     def find_all(name, prefix=nil, partial=false, details={}, key=nil)
-      name, prefix = normalize_name(name, prefix)
-      details = details.merge(:handlers => default_handlers)
-
       cached(key, prefix, name, partial) do
         find_templates(name, prefix, partial, details)
       end
@@ -34,26 +26,11 @@ module ActionView
       @caching ||= !defined?(Rails.application) || Rails.application.config.cache_classes
     end
 
-    def default_handlers
-      Template::Handlers.extensions + [nil]
-    end
-
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
     # normalized.
     def find_templates(name, prefix, partial, details)
       raise NotImplementedError
-    end
-
-    # Support legacy foo.erb names even though we now ignore .erb
-    # as well as incorrectly putting part of the path in the template
-    # name instead of the prefix.
-    def normalize_name(name, prefix)
-      handlers = Template::Handlers.extensions.join('|')
-      name = name.to_s.gsub(/\.(?:#{handlers})$/, '')
-
-      parts = name.split('/')
-      return parts.pop, [prefix, *parts].compact.join("/")
     end
 
     def cached(key, prefix, name, partial)
@@ -79,7 +56,7 @@ module ActionView
 
     def find_templates(name, prefix, partial, details)
       path = build_path(name, prefix, partial, details)
-      query(partial, path, EXTENSION_ORDER.map { |ext| details[ext] })
+      query(path, EXTENSION_ORDER.map { |ext| details[ext] }, details[:formats])
     end
 
     def build_path(name, prefix, partial, details)
@@ -89,26 +66,32 @@ module ActionView
       path
     end
 
-    def query(partial, path, exts)
+    def query(path, exts, formats)
       query = File.join(@path, path)
 
       exts.each do |ext|
-        query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << '}'
+        query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << ',}'
       end
 
       Dir[query].reject { |p| File.directory?(p) }.map do |p|
-        handler, format = extract_handler_and_format(p)
+        handler, format = extract_handler_and_format(p, formats)
         Template.new(File.read(p), File.expand_path(p), handler,
-          :partial => partial, :virtual_path => path, :format => format)
+          :virtual_path => path, :format => format)
       end
     end
 
-    def extract_handler_and_format(path)
+    # Extract handler and formats from path. If a format cannot be a found neither
+    # from the path, or the handler, we should return the array of formats given
+    # to the resolver.
+    def extract_handler_and_format(path, default_formats)
       pieces = File.basename(path).split(".")
       pieces.shift
 
-      handler = Template.handler_class_for_extension(pieces.pop)
-      format  = pieces.last && Mime[pieces.last] && pieces.pop.to_sym
+      handler  = Template.handler_class_for_extension(pieces.pop)
+      format   = pieces.last && Mime[pieces.last] && pieces.pop.to_sym
+      format ||= handler.default_format if handler.respond_to?(:default_format)
+      format ||= default_formats
+
       [handler, format]
     end
   end

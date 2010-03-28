@@ -1,9 +1,6 @@
 require 'abstract_unit'
 require 'action_controller'
 
-require 'rails/info'
-require 'rails/info_controller'
-
 module ActionController
   class Base
     include ActionController::Testing

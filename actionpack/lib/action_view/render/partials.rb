@@ -123,7 +123,7 @@ module ActionView
   # You can also apply a layout to a block within any template:
   #
   #   <%# app/views/users/_chief.html.erb &>
-  #   <% render(:layout => "administrator", :locals => { :user => chief }) do %>
+  #   <%= render(:layout => "administrator", :locals => { :user => chief }) do %>
   #     Title: <%= chief.title %>
   #   <% end %>
   #
@@ -146,7 +146,7 @@ module ActionView
   #   </div>
   #
   #   <%# app/views/users/index.html.erb &>
-  #   <% render :layout => @users do |user| %>
+  #   <%= render :layout => @users do |user| %>
   #     Title: <%= user.title %>
   #   <% end %>
   #
@@ -162,7 +162,7 @@ module ActionView
   #   </div>
   #
   #   <%# app/views/users/index.html.erb &>
-  #   <% render :layout => @users do |user, section| %>
+  #   <%= render :layout => @users do |user, section| %>
   #     <%- case section when :header -%>
   #       Title: <%= user.title %>
   #     <%- when :footer -%>
@@ -294,7 +294,7 @@ module ActionView
       def find_template(path=@path)
         return path unless path.is_a?(String)
         prefix = @view.controller_path unless path.include?(?/)
-        @view.find(path, prefix, true)
+        @view.find_template(path, prefix, true)
       end
 
       def partial_path(object = @object)

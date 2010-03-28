@@ -625,6 +625,22 @@ module ActiveResource
         "#{prefix(prefix_options)}#{collection_name}/#{id}.#{format.extension}#{query_string(query_options)}"
       end
 
+      # Gets the new element path for REST resources.
+      #
+      # ==== Options
+      # * +prefix_options+ - A hash to add a prefix to the request for nested URLs (e.g., <tt>:account_id => 19</tt>
+      #   would yield a URL like <tt>/accounts/19/purchases/new.xml</tt>).
+      #
+      # ==== Examples
+      #   Post.new_element_path
+      #   # => /posts/new.xml
+      #
+      #   Comment.collection_path(:post_id => 5)
+      #   # => /posts/5/comments/new.xml
+      def new_element_path(prefix_options = {})
+        "#{prefix(prefix_options)}#{collection_name}/new.#{format.extension}"
+      end
+
       # Gets the collection path for the REST resources.  If the +query_options+ parameter is omitted, Rails
       # will split from the +prefix_options+.
       #
@@ -652,6 +668,19 @@ module ActiveResource
       end
 
       alias_method :set_primary_key, :primary_key=  #:nodoc:
+
+      # Builds a new, unsaved record using the default values from the remote server so
+      # that it can be used with RESTful forms.
+      #
+      # ==== Options
+      # * +attributes+ - A hash that overrides the default values from the server.
+      #
+      # Returns the new resource instance.
+      #
+      def build(attributes = {})
+        attrs = connection.get("#{new_element_path}").merge(attributes)
+        self.new(attrs)
+      end
 
       # Creates a new resource instance and makes a request to the remote service
       # that it be saved, making it equivalent to the following simultaneous calls:
@@ -988,6 +1017,22 @@ module ActiveResource
       id.nil?
     end
     alias :new_record? :new?
+
+    # Returns +true+ if this object has been saved, otherwise returns +false+.
+    #
+    # ==== Examples
+    #   persisted = Computer.create(:brand => 'Apple', :make => 'MacBook', :vendor => 'MacMall')
+    #   persisted.persisted? # => true
+    #
+    #   not_persisted = Computer.new(:brand => 'IBM', :make => 'Thinkpad', :vendor => 'IBM')
+    #   not_persisted.persisted? # => false
+    #
+    #   not_persisted.save
+    #   not_persisted.persisted? # => true
+    #
+    def persisted?
+      !new?
+    end
 
     # Gets the <tt>\id</tt> attribute of the resource.
     def id
@@ -1344,6 +1389,10 @@ module ActiveResource
 
       def element_path(options = nil)
         self.class.element_path(to_param, options || prefix_options)
+      end
+
+      def new_element_path
+        self.class.new_element_path(prefix_options)
       end
 
       def collection_path(options = nil)

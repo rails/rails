@@ -1,14 +1,21 @@
+require "active_support/core_ext/module/remove_method"
+
 class Module
   # Provides a delegate class method to easily expose contained objects' methods
   # as your own. Pass one or more methods (specified as symbols or strings)
-  # and the name of the target object as the final <tt>:to</tt> option (also a symbol
-  # or string).  At least one method and the <tt>:to</tt> option are required.
+  # and the name of the target object via the <tt>:to</tt> option (also a symbol
+  # or string). At least one method and the <tt>:to</tt> option are required.
   #
   # Delegation is particularly useful with Active Record associations:
   #
   #   class Greeter < ActiveRecord::Base
-  #     def hello()   "hello"   end
-  #     def goodbye() "goodbye" end
+  #     def hello
+  #       "hello"
+  #     end
+  #
+  #     def goodbye
+  #       "goodbye"
+  #     end
   #   end
   #
   #   class Foo < ActiveRecord::Base
@@ -34,7 +41,7 @@ class Module
   #   class Foo
   #     CONSTANT_ARRAY = [0,1,2,3]
   #     @@class_array  = [4,5,6,7]
-  #     
+  #
   #     def initialize
   #       @instance_array = [8,9,10,11]
   #     end
@@ -72,9 +79,9 @@ class Module
   #   invoice.customer_name    # => "John Doe"
   #   invoice.customer_address # => "Vimmersvej 13"
   #
-  # If the object to which you delegate can be nil, you may want to use the
-  # :allow_nil option. In that case, it returns nil instead of raising a
-  # NoMethodError exception:
+  # If the delegate object is +nil+ an exception is raised, and that happens
+  # no matter whether +nil+ responds to the delegated method. You can get a
+  # +nil+ instead with the +:allow_nil+ option.
   #
   #  class Foo
   #    attr_accessor :bar
@@ -120,11 +127,15 @@ class Module
         end
 
       module_eval(<<-EOS, file, line)
+        if instance_methods(false).map(&:to_s).include?("#{prefix}#{method}")
+          remove_possible_method("#{prefix}#{method}")
+        end
+
         def #{prefix}#{method}(*args, &block)               # def customer_name(*args, &block)
           #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
         rescue NoMethodError                                # rescue NoMethodError
           if #{to}.nil?                                     #   if client.nil?
-            #{on_nil}
+            #{on_nil}                                       #     return # depends on :allow_nil
           else                                              #   else
             raise                                           #     raise
           end                                               #   end

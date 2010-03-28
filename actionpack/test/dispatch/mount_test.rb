@@ -1,12 +1,12 @@
 require 'abstract_unit'
 
 class TestRoutingMount < ActionDispatch::IntegrationTest
-  SprocketsApp = lambda { |env|
-    [200, {"Content-Type" => "text/html"}, ["#{env["SCRIPT_NAME"]} -- #{env["PATH_INFO"]}"]]
-  }
-
   Router = ActionDispatch::Routing::RouteSet.new
   Router.draw do
+    SprocketsApp = lambda { |env|
+      [200, {"Content-Type" => "text/html"}, ["#{env["SCRIPT_NAME"]} -- #{env["PATH_INFO"]}"]]
+    }
+
     mount SprocketsApp, :at => "/sprockets"
     mount SprocketsApp => "/shorthand"
 

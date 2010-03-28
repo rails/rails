@@ -202,6 +202,10 @@ module Rails
       rails.delete("app")
       print_list("rails", rails)
 
+      groups.delete("active_record") if options[:rails][:orm] == :active_record
+      groups.delete("test_unit")     if options[:rails][:test_framework] == :test_unit
+      groups.delete("erb")           if options[:rails][:template_engine] == :erb
+
       groups.sort.each { |b, n| print_list(b, n) }
     end
 
@@ -238,7 +242,7 @@ module Rails
         paths = namespaces_to_paths(namespaces)
 
         paths.each do |raw_path|
-          ["rails_generators", "generators"].each do |base|
+          ["rails/generators", "generators"].each do |base|
             path = "#{base}/#{raw_path}_generator"
 
             begin
@@ -261,7 +265,7 @@ module Rails
         load_generators_from_railties!
 
         $LOAD_PATH.each do |base|
-          Dir[File.join(base, "{generators,rails_generators}", "**", "*_generator.rb")].each do |path|
+          Dir[File.join(base, "{rails/generators,generators}", "**", "*_generator.rb")].each do |path|
             begin
               require path
             rescue Exception => e

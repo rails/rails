@@ -34,11 +34,12 @@ module ActionController
     # and response object available. You might wish to control the
     # environment and response manually for performance reasons.
 
-    attr_internal :status, :headers, :content_type, :response, :request
+    attr_internal :headers, :response, :request
     delegate :session, :to => "@_request"
 
     def initialize(*)
-      @_headers = {}
+      @_headers = {"Content-Type" => "text/html"}
+      @_status = 200
       super
     end
 
@@ -62,8 +63,17 @@ module ActionController
       headers["Location"] = url
     end
 
+    def status
+      @_status
+    end
+
     def status=(status)
       @_status = Rack::Utils.status_code(status)
+    end
+
+    def response_body=(val)
+      body = val.respond_to?(:each) ? val : [val]
+      super body
     end
 
     # :api: private

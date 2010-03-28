@@ -61,7 +61,7 @@ module ActiveRecord
         begin
           require_library_or_gem('mysql')
         rescue LoadError
-          $stderr.puts '!!! The bundled mysql.rb driver has been removed from Rails 2.2. Please install the mysql gem and try again: gem install mysql.'
+          $stderr.puts '!!! Please install the mysql gem and try again: gem install mysql.'
           raise
         end
       end
@@ -373,6 +373,18 @@ module ActiveRecord
 
       def release_savepoint
         execute("RELEASE SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def add_limit_offset!(sql, options) #:nodoc:
+        limit, offset = options[:limit], options[:offset]
+        if limit && offset
+          sql << " LIMIT #{offset.to_i}, #{sanitize_limit(limit)}"
+        elsif limit
+          sql << " LIMIT #{sanitize_limit(limit)}"
+        elsif offset
+          sql << " OFFSET #{offset.to_i}"
+        end
+        sql
       end
 
       # SCHEMA STATEMENTS ========================================

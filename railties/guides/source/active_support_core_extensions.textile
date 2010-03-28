@@ -6,6 +6,68 @@ By referring to this guide you will learn the extensions to the Ruby core classe
 
 endprologue.
 
+h3. How to Load Core Extensions
+
+h4. Stand-Alone Active Support
+
+In order to have a near zero default footprint, Active Support does not load anything by default. It is broken in small pieces so that you may load just what you need, and also has some convenience entry points to load related extensions in one shot, even everything.
+
+Thus, after a simple require like:
+
+<ruby>
+require 'active_support'
+</ruby>
+
+objects do not even respond to +blank?+, let's see how to load its definition.
+
+h5. Cherry-picking a Definition
+
+The most lightweight way to get +blank?+ is to cherry-pick the file that defines it.
+
+For every single method defined as a core extension this guide has a note that says where is such a method defined. In the case of +blank?+ the note reads:
+
+NOTE: Defined in +active_support/core_ext/object/blank.rb+.
+
+That means that this single call is enough:
+
+<ruby>
+require 'active_support/core_ext/object/blank'
+</ruby>
+
+Active Support has been carefully revised so that cherry-picking a file loads only strictly needed dependencies, if any.
+
+h5. Loading Grouped Core Extensions
+
+The next level is to simply load all extensions to +Object+. As a rule of thumb, extensions to +SomeClass+ are available in one shot by loading +active_support/core_ext/some_class+.
+
+Thus, if that would do, to have +blank?+ available we could just load all extensions to +Object+:
+
+<ruby>
+require 'active_support/core_ext/object'
+</ruby>
+
+h5. Loading All Core Extensions
+
+You may prefer just to load all core extensions, there is a file for that:
+
+<ruby>
+require 'active_support/core_ext'
+</ruby>
+
+h5. Loading All Active Support
+
+And finally, if you want to have all Active Support available just issue:
+
+<ruby>
+require 'active_support/all'
+</ruby>
+
+That does not even put the entire Active Support in memory upfront indeed, some stuff is configured via +autoload+, so it is only loaded if used.
+
+h4. Active Support Within a Ruby on Rails Application
+
+A Ruby on Rails application loads all Active Support unless +config.active_support.bare+ is true. In that case, the application will only load what the framework itself cherry-picks for its own needs, and can still cherry-pick itself at any granularity level, as explained in the previous section.
+
 h3. Extensions to All Objects
 
 h4. +blank?+ and +present?+
@@ -138,16 +200,19 @@ end
 
 NOTE: Defined in +active_support/core_ext/object/try.rb+.
 
-h4. +metaclass+
+h4. +singleton_class+
 
-The method +metaclass+ returns the singleton class on any object:
+The method +singleton_class+ returns the singleton class of the receiver:
 
 <ruby>
-String.metaclass     # => #<Class:String>
-String.new.metaclass # => #<Class:#<String:0x17a1d1c>>
+String.singleton_class     # => #<Class:String>
+String.new.singleton_class # => #<Class:#<String:0x17a1d1c>>
 </ruby>
 
-NOTE: Defined in +active_support/core_ext/object/metaclass.rb+.
+WARNING: Fixnums and symbols have no singleton classes, +singleton_class+
+raises +TypeError+ on them.
+
+NOTE: Defined in +active_support/core_ext/object/singleton_class.rb+.
 
 h4. +class_eval(*args, &block)+
 
@@ -168,7 +233,7 @@ class Proc
 end
 </ruby>
 
-NOTE: Defined in +active_support/core_ext/object/metaclass.rb+.
+NOTE: Defined in +active_support/core_ext/object/singleton_class.rb+.
 
 h4. +acts_like?(duck)+
 
@@ -323,6 +388,40 @@ TIP: Since +with_options+ forwards calls to its receiver they can be nested. Eac
 
 NOTE: Defined in +active_support/core_ext/object/with_options.rb+.
 
+h5. +subclasses_of+
+
+The method +subclasses_of+ receives an arbitrary number of class objects and returns all their anonymous or reachable descendants as a single array:
+
+<ruby>
+class C; end
+subclasses_of(C) # => []
+
+subclasses_of(Integer) # => [Bignum, Fixnum]
+
+module M
+  class A; end
+  class B1 < A; end
+  class B2 < A; end
+end
+
+module N
+  class C < M::B1; end
+end
+
+subclasses_of(M::A) # => [N::C, M::B2, M::B1]
+</ruby>
+
+The order in which these classes are returned is unspecified. The returned collection may have duplicates:
+
+<ruby>
+subclasses_of(Numeric, Integer)
+# => [Bignum, Float, Fixnum, Integer, Date::Infinity, Rational, BigDecimal, Bignum, Fixnum]
+</ruby>
+
+See also +Class#subclasses+ in "Extensions to +Class+ FIX THIS LINK":FIXME.
+
+NOTE: Defined in +active_support/core_ext/object/extending.rb+.
+
 h4. Instance Variables
 
 Active Support provides several methods to ease access to instance variables.
@@ -341,7 +440,7 @@ end
 C.new(0, 1).instance_variable_names # => ["@y", "@x"]
 </ruby>
 
-WARNING: The order in which the names are returned is unespecified, and it indeed depends on the version of the interpreter.
+WARNING: The order in which the names are returned is unspecified, and it indeed depends on the version of the interpreter.
 
 NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
 
@@ -422,11 +521,23 @@ end
 
 NOTE: Defined in +active_support/core_ext/kernel/reporting.rb+.
 
+h4. +require_library_or_gem+
+
+The convenience method +require_library_or_gem+ tries to load its argument with a regular +require+ first. If it fails loads +rubygems+ and tries again.
+
+If the first attempt is a failure and +rubygems+ can't be loaded the method raises +LoadError+. On the other hand, if +rubygems+ is available but the argument is not loadable as a gem, the method gives up and +LoadError+ is also raised.
+
+For example, that's the way the MySQL adapter loads the MySQL library:
+
+<ruby>
+require_library_or_gem('mysql')
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/kernel/requires.rb+.
+
 h3. Extensions to +Module+
 
-h4. Aliasing
-
-h5. +alias_method_chain+
+h4. +alias_method_chain+
 
 Using plain Ruby you can wrap methods with other methods, that's called _alias chaining_.
 
@@ -476,6 +587,8 @@ Rails uses +alias_method_chain+ all over the code base. For example validations 
 
 NOTE: Defined in +active_support/core_ext/module/aliasing.rb+.
 
+h4. Attributes
+
 h5. +alias_attribute+
 
 Model attributes have a reader, a writer, and a predicate. You can aliase a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (my mnemonic is they go in the same order as if you did an assignment):
@@ -490,13 +603,453 @@ end
 
 NOTE: Defined in +active_support/core_ext/module/aliasing.rb+.
 
-h4. Delegation
+h5. +attr_accessor_with_default+
 
-The class method +delegate+
+The method +attr_accessor_with_default+ serves the same purpose as the Ruby macro +attr_accessor+ but allows you to set a default value for the attribute:
+
+<ruby>
+class Url
+  attr_accessor_with_default :port, 80
+end
+
+Url.new.port # => 80
+</ruby>
+
+The default value can be also specified with a block, which is called in the context of the corresponding object:
+
+<ruby>
+class User
+  attr_accessor :name, :surname
+  attr_accessor_with_default(:full_name) {
+	[name, surname].compact.join(" ")
+  }
+end
+
+u = User.new
+u.name = 'Xavier'
+u.surname = 'Noria'
+u.full_name # => "Xavier Noria"
+</ruby>
+
+The result is not cached, the block is invoked in each call to the reader.
+
+You can overwrite the default with the writer:
+
+<ruby>
+url = Url.new
+url.host # => 80
+url.host = 8080
+url.host # => 8080
+</ruby>
+
+The default value is returned as long as the attribute is unset. The reader does not rely on the value of the attribute to know whether it has to return the default. It rather monitors the writer: if there's any assignment the value is no longer considered to be unset.
+
+Active Resource uses this macro to set a default value for the +:primary_key+ attribute:
+
+<ruby>
+attr_accessor_with_default :primary_key, 'id'
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/attr_accessor_with_default.rb+.
+
+h5. Internal Attributes
+
+When you are defining an attribute in a class that is meant to be subclassed name collisions are a risk. That's remarkably important for libraries.
+
+Active Support defines the macros +attr_internal_reader+, +attr_internal_writer+, and +attr_internal_accessor+. They behave like their Ruby builtin +attr_*+ counterparts, except they name the unerlying instace variable in a way that makes collisions less likely.
+
+The macro +attr_internal+ is a synonim for +attr_internal_accessor+:
+
+<ruby>
+# library
+class ThirdPartyLibrary::Crawler
+  attr_internal :log_level
+end
+
+# client code
+class MyCrawler < ThirdPartyLibrary::Crawler
+  attr_accessor :log_level
+end
+</ruby>
+
+In the previous example it could be the case that +:log_level+ does not belong to the public interface of the library and it is only used for development. The client code, unaware of the potential conflict, subclasses and defines its own +:log_level+. Thanks to +attr_internal+ there's no collision.
+
+By default the internal instance variable is named with a leading underscore, +@_log_level+ in the example above. That's configurable via +Module.attr_internal_naming_format+ though, you can pass any +sprintf+-like format string with a leading +@+ and a +%s+ somewhere, which is where the name will be placed. The default is +"@_%s"+.
+
+Rails uses internal attributes in a few spots, for examples for views:
+
+<ruby>
+module ActionView
+  class Base
+    attr_internal :captures
+    attr_internal :request, :layout
+    attr_internal :controller, :template
+  end
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/attr_internal.rb+.
+
+h5. Module Attributes
+
+The macros +mattr_reader+, +mattr_writer+, and +mattr_accessor+ are analogous to the +cattr_*+ macros defined for class. Check "Class Attributes":#class-attributes.
+
+For example, the dependencies mechanism uses them:
+
+<ruby>
+module ActiveSupport
+  module Dependencies
+    mattr_accessor :warnings_on_first_load
+    mattr_accessor :history
+    mattr_accessor :loaded
+    mattr_accessor :mechanism
+    mattr_accessor :load_paths
+    mattr_accessor :load_once_paths
+    mattr_accessor :autoloaded_constants
+    mattr_accessor :explicitly_unloadable_constants
+    mattr_accessor :logger
+    mattr_accessor :log_activity
+    mattr_accessor :constant_watch_stack
+    mattr_accessor :constant_watch_stack_mutex
+  end
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/attribute_accessors.rb+.
+
+h4. Method Delegation
+
+The class method +delegate+ offers an easy way to forward methods.
+
+For example, if +User+ has some details like the age factored out to +Profile+, it could be handy to still be able to acces such attribute directly, <tt>user.age</tt>, instead of having to explicit the chain <tt>user.profile.age</tt>.
+
+That can be accomplished by hand:
+
+<ruby>
+class User
+  has_one :profile
+
+  def age
+    profile.age
+  end
+end
+</ruby>
+
+But with +delegate+ you can make that shorter and the intention even more obvious:
+
+<ruby>
+class User
+  has_one :profile
+
+  delegate :age, to => :profile
+end
+</ruby>
+
+The macro accepts more than one method:
+
+<ruby>
+class User
+  has_one :profile
+
+  delegate :age, :avatar, :twitter_username, to => :profile
+end
+</ruby>
+
+Methods can be delegated to objects returned by methods, as in the examples above, but also to instance variables, class variables, and constants. Just pass their names as symbols or strings, including the at signs in the last cases.
+
+For example, +ActionView::Base+ delegates +erb_trim_mode=+:
+
+<ruby>
+module ActionView
+  class Base
+    delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
+  end
+end
+</ruby>
+
+In fact, you can delegate to any expression passed as a string. It will be evaluated in the context of the receiver. Controllers for example delegate alerts and notices to the current flash:
+
+<ruby>
+delegate :alert, :notice, :to => "request.flash"
+</ruby>
+
+If the target is +nil+ calling any delegated method will raise an exception even if +nil+ responds to such method. You can override this behavior setting the option +:allow_nil+ to true, in which case the forwarded call will simply return +nil+.
+
+If the target is a method, the name of delegated methods can also be prefixed. If the +:prefix+ option is set to (exactly) the +true+ object, the value of the +:to+ option is prefixed:
+
+<ruby>
+class Invoice
+  belongs_to :customer
+
+  # defines a method called customer_name
+  delegate :name, :to => :customer, :prefix => true
+end
+</ruby>
+
+And a custom prefix can be set as well, in that case it does not matter wheter the target is a method or not:
+
+<ruby>
+class Account
+  belongs_to :user
+
+  # defines a method called admin_email
+  delegate :email, :to => :user, :prefix => 'admin'
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/delegation.rb+.
+
+h4. Method Removal
+
+h5. +remove_possible_method+
+
+The method +remove_possible_method+ is like the standard +remove_method+, except it silently returns on failure:
+
+<ruby>
+class A; end
+
+A.class_eval do
+  remove_method(:nonexistent)          # raises NameError
+  remove_possible_method(:nonexistent) # no problem, continue
+end
+</ruby>
+
+This may come in handy if you need to define a method that may already exist, since redefining a method issues a warning "method redefined; discarding old redefined_method_name".
+
+NOTE: Defined in +active_support/core_ext/module/remove_method.rb+.
+
+h4. Parents
+
+h5. +parent+
+
+The +parent+ method on a nested named module returns the module that contains its corresponding constant:
+
+<ruby>
+module X
+  module Y
+    module Z
+    end
+  end
+end
+M = X::Y::Z
+
+X::Y::Z.parent # => X::Y
+M.parent       # => X::Y
+</ruby>
+
+If the module is anonymous or belongs to the top-level, +parent+ returns +Object+.
+
+WARNING: Note that in that case +parent_name+ returns +nil+.
+
+NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
+
+h5. +parent_name+
+
+The +parent_name+ method on a nested named module returns the fully-qualified name of the module that contains its corresponding constant:
+
+<ruby>
+module X
+  module Y
+    module Z
+    end
+  end
+end
+M = X::Y::Z
+
+X::Y::Z.parent_name # => "X::Y"
+M.parent_name       # => "X::Y"
+</ruby>
+
+For top-level or anonymous modules +parent_name+ returns +nil+.
+
+WARNING: Note that in that case +parent+ returns +Object+.
+
+NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
+
+h5. +parents+
+
+The method +parents+ calls +parent+ on the receiver and upwards until +Object+ is reached. The chain is returned in an array, from bottom to top:
+
+<ruby>
+module X
+  module Y
+    module Z
+    end
+  end
+end
+M = X::Y::Z
+
+X::Y::Z.parents # => [X::Y, X, Object]
+M.parents       # => [X::Y, X, Object]
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
+
+h4. Constants
+
+The method +local_constants+ returns the names of the constants that have been defined in the receiver module:
+
+<ruby>
+module X
+  X1 = 1
+  X2 = 2
+  module Y
+    Y1 = :y1
+    X1 = :overrides_X1_above
+  end
+end
+
+X.local_constants    # => ["X2", "X1", "Y"], assumes Ruby 1.8
+X::Y.local_constants # => ["X1", "Y1"], assumes Ruby 1.8
+</ruby>
+
+The names are returned as strings in Ruby 1.8, and as symbols in Ruby 1.9. The method +local_constant_names+ returns always strings.
+
+WARNING: This method is exact if running under Ruby 1.9. In previous versions it may miss some constants if their value in some ancestor stores the exact same object than in the receiver.
+
+NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
+
+h4. Synchronization
+
+The +synchronize+ macro declares a method to be synchronized:
+
+<ruby>
+class Counter
+  @@mutex = Mutex.new
+  attr_reader :value
+
+  def initialize
+    @value = 0
+  end
+
+  def incr
+    @value += 1 # non-atomic
+  end
+  synchronize :incr, :with => '@@mutex'
+end
+</ruby>
+
+The method receives the name of an action, and a +:with+ option with code. The code is evaluated in the context of the receiver each time the method is invoked, and it should evaluate to a +Mutex+ instance or any other object that responds to +synchronize+ and accepts a block. 
+
+NOTE: Defined in +active_support/core_ext/module/synchronization.rb+.
+
+h4. Reachable
+
+A named module is reachable if it is stored in its correspoding constant. It means you can reach the module object via the constant.
+
+That is what ordinarily happens, if a module is called "M", the +M+ constant exists and holds it:
+
+<ruby>
+module M
+end
+
+M.reachable? # => true
+</ruby>
+
+But since constants and modules are indeed kind of decoupled, module objects can become unreachable:
+
+<ruby>
+module M
+end
+
+orphan = Object.send(:remove_const, :M)
+
+# The module object is orphan now but it still has a name.
+orphan.name # => "M"
+
+# You cannot reach it via the constant M because it does not even exist.
+orphan.reachable? # => false
+
+# Let's define a module called "M" again.
+module M
+end
+
+# The constant M exists now again, and it stores a module
+# object called "M", but it is a new instance.
+orphan.reachable? # => false
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/module/reachable.rb+.
+
+h4. Anonymous
+
+A module may or may not have a name:
+
+<ruby>
+module M
+end
+M.name # => "M"
+
+N = Module.new
+N.name # => "N"
+
+Module.new.name # => "" in 1.8, nil in 1.9
+</ruby>
+
+You can check whether a module has a name with the predicate +anonymous?+:
+
+<ruby>
+module M
+end
+M.anonymous? # => false
+
+Module.new.anonymous? # => true
+</ruby>
+
+Note that being unreachable does not imply being anonymous:
+
+<ruby>
+module M
+end
+
+m = Object.send(:remove_const, :M)
+
+m.reachable? # => false
+m.anonymous? # => false
+</ruby>
+
+though an anonymous module is unreachable by definition.
+
+NOTE: Defined in +active_support/core_ext/module/anonymous.rb+.
 
 h3. Extensions to +Class+
 
-h4. Class Attribute Accessors
+h4. Class Attributes
+
+The method +Class#class_attribute+ declares one or more inheritable class attributes that can be overriden at any level down the hierarchy:
+
+<ruby>
+class A
+  class_attribute :x
+end
+
+class B < A; end
+
+class C < B; end
+
+A.x = :a
+B.x # => :a
+C.x # => :a
+
+B.x = :b
+A.x # => :a
+C.x # => :b
+
+C.x = :c
+A.x # => :a
+B.x # => :b
+</ruby>
+
+For example that's the way the +allow_forgery_protection+ flag is implemented for controllers:
+
+<ruby>
+class_attribute :allow_forgery_protection
+self.allow_forgery_protection = true
+</ruby>
+
+For convenience +class_attribute+ defines also a predicate, so that declaration also generates +allow_forgery_protection?+. Such predicate returns the double boolean negation of the value.
+
+NOTE: Defined in +active_support/core_ext/class/attribute.rb+
 
 The macros +cattr_reader+, +cattr_writer+, and +cattr_accessor+ are analogous to their +attr_*+ counterparts but for classes. They initialize a class variable to +nil+ unless it already exists, and generate the corresponding class methods to access it:
 
@@ -528,6 +1081,8 @@ module ActiveRecord
   end
 end
 </ruby>
+
+A model may find that option useful as a way to prevent mass-assignment from setting the attribute. 
 
 NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
@@ -587,9 +1142,11 @@ If for whatever reason an application loads the definition of a mailer class and
 
 NOTE: Defined in +active_support/core_ext/class/delegating_attributes.rb+.
 
-h4. Subclasses
+h4. Descendants
 
-The +subclasses+ method returns the names of all subclasses of a given class as an array of strings. That comprises not only direct subclasses, but all descendants down the hierarchy:
+h5. +subclasses+
+
+The +subclasses+ method returns the names of all the anonymous or reachable descendants of its receiver as an array of strings:
 
 <ruby>
 class C; end
@@ -614,56 +1171,76 @@ The order in which these class names are returned is unspecified.
 
 See also +Object#subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
 
-NOTE: Defined in +active_support/core_ext/class/removal.rb+.
+WARNING: This method is redefined in some Rails core classes.
 
-h4. Class Removal
-
-Roughly speaking, the +remove_class+ method removes the class objects passed as arguments:
-
-<ruby>
-Class.remove_class(Hash, Dir) # => [Hash, Dir]
-Hash # => NameError: uninitialized constant Hash
-Dir  # => NameError: uninitialized constant Dir
-</ruby>
-
-More specifically, +remove_class+ attempts to remove constants with the same name as the passed class objects from their parent modules. So technically this method does not guarantee the class objects themselves are not still valid and alive somewhere after the method call:
-
-<ruby>
-module M
-  class A; end
-  class B < A; end
-end
-
-A2 = M::A
-
-M::A.object_id            # => 13053950
-Class.remove_class(M::A)
-
-M::B.superclass.object_id # => 13053950 (same object as before)
-A2.name                   # => "M::A" (name is hard-coded in object)
-</ruby>
-
-WARNING: Removing fundamental classes like +String+ can result in really funky behaviour.
-
-The method +remove_subclasses+ provides a shortcut for removing all descendants of a given class, where "removing" has the meaning explained above:
-
-<ruby>
-class A; end
-class B1 < A; end
-class B2 < A; end
-class C < A; end
-
-A.subclasses        # => ["C", "B2", "B1"]
-A.remove_subclasses
-A.subclasses        # => []
-C                   # => NameError: uninitialized constant C
-</ruby>
-
-See also +Object#remove_subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
-
-NOTE: Defined in +active_support/core_ext/class/removal.rb+.
+NOTE: Defined in +active_support/core_ext/class/subclasses.rb+.
 
 h3. Extensions to +String+
+
+h4. Output Safety
+
+Inserting data into HTML templates needs extra care. For example you can't just interpolate +@review.title+ verbatim into an HTML page. On one hand if the review title is "Flanagan & Matz rules!" the output won't be well-formed because an ampersand has to be escaped as "&amp;amp;". On the other hand, depending on the application that may be a big security hole because users can inject malicious HTML setting a hand-crafted review title. Check out the "section about cross-site scripting in the Security guide":security.html#cross-site-scripting-xss for further information about the risks.
+
+Active Support has the concept of <i>(html) safe</i> strings since Rails 3. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
+
+Strings are considered to be <i>unsafe</i> by default:
+
+<ruby>
+"".html_safe? # => false
+</ruby>
+
+You can obtain a safe string from a given one with the +html_safe+ method:
+
+<ruby>
+s = "".html_safe
+s.html_safe? # => true
+</ruby>
+
+It is important to understand that +html_safe+ performs no escaping whatsoever, it is just an assertion:
+
+<ruby>
+s = "<script>...</script>".html_safe
+s.html_safe? # => true
+s            # => "<script>...</script>"
+</ruby>
+
+It is your responsability to ensure calling +html_safe+ on a particular string is fine.
+
+NOTE: For performance reasons safe strings are implemented in a way that cannot offer an in-place +html_safe!+ variant.
+
+If you append onto a safe string, either in-place with +concat+/<tt><<</tt>, or with <tt>+</tt>, the result is a safe string. Unsafe arguments are escaped:
+
+<ruby>
+"".html_safe + "<" # => "&lt;"
+</ruby>
+
+Safe arguments are directly appended:
+
+<ruby>
+"".html_safe + "<".html_safe # => "<"
+</ruby>
+
+These methods should not be used in ordinary views. In Rails 3 unsafe values are automatically escaped:
+
+<erb>
+<%= @review.title %> <%# fine in Rails 3, escaped if needed %>
+</erb>
+
+To insert something verbatim use the +raw+ helper rather than calling +html_safe+:
+
+<erb>
+<%= raw @cms.current_template %> <%# inserts @cms.current_template as is %>
+</erb>
+
+The +raw+ helper calls +html_safe+ for you:
+
+<ruby>
+def raw(stringish)
+  stringish.to_s.html_safe
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/output_safety.rb+.
 
 h4. +squish+
 
@@ -755,6 +1332,338 @@ The call +str.last(n)+ is equivalent to +str.from(-n)+ if +n+ > 0, and returns a
 
 NOTE: Defined in +active_support/core_ext/string/access.rb+.
 
+h4. Inflections
+
+h5. +pluralize+
+
+The method +pluralize+ returns the plural of its receiver:
+
+<ruby>
+"table".pluralize     # => "tables"
+"ruby".pluralize      # => "rubies"
+"equipment".pluralize # => "equipment"
+</ruby>
+
+As the previous example shows, Active Support knows some irregular plurals and uncountable nouns. Builtin rules can be extended in +config/initializers/inflections.rb+. That file is generated by the +rails+ command and has instructions in comments.
+
+Active Record uses this method to compute the default table name that corresponds to a model:
+
+<ruby>
+# active_record/base.rb
+def undecorated_table_name(class_name = base_class.name)
+  table_name = class_name.to_s.demodulize.underscore
+  table_name = table_name.pluralize if pluralize_table_names
+  table_name
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +singularize+
+
+The inverse of +pluralize+:
+
+<ruby>
+"tables".singularize    # => "table"
+"rubies".singularize    # => "ruby"
+"equipment".singularize # => "equipment"
+</ruby>
+
+Associations compute the name of the corresponding default associated class using this method:
+
+<ruby>
+# active_record/reflection.rb
+def derive_class_name
+  class_name = name.to_s.camelize
+  class_name = class_name.singularize if collection?
+  class_name
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +camelize+
+
+The method +camelize+ returns its receiver in camel case:
+
+<ruby>
+"product".camelize    # => "Product"
+"admin_user".camelize # => "AdminUser"
+</ruby>
+
+As a rule of thumb you can think of this method as the one that transforms paths into Ruby class or module names, where slashes separate namespaces:
+
+<ruby>
+"backoffice/session".camelize # => "Backoffice::Session"
+</ruby>
+
+For example, Action Pack uses this method to load the class that provides a certain session store:
+
+<ruby>
+# action_controller/metal/session_management.rb
+def session_store=(store)
+  if store == :active_record_store
+    self.session_store = ActiveRecord::SessionStore
+  else
+    @@session_store = store.is_a?(Symbol) ?
+      ActionDispatch::Session.const_get(store.to_s.camelize) :
+      store
+  end
+end
+</ruby>
+
++camelize+ accepts an optional argument, it can be +:upper+ (default), or +:lower+. With the latter the first letter becomes lowercase:
+
+<ruby>
+"visual_effect".camelize(:lower) # => "visualEffect"
+</ruby>
+
+That may be handy to compute method names in a language that follows that convention, for example JavaScript.
+
++camelize+ is aliased to +camelcase+.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +underscore+
+
+The method +underscore+ is the inverse of +camelize+, explained above:
+
+<ruby>
+"Product".underscore   # => "product"
+"AdminUser".underscore # => "admin_user"
+</ruby>
+
+Also converts "::" back to "/":
+
+<ruby>
+"Backoffice::Session".underscore # => "backoffice/session"
+</ruby>
+
+and understands strings that start with lowercase:
+
+<ruby>
+"visualEffect".underscore # => "visual_effect"
+</ruby>
+
++underscore+ accepts no argument though.
+
+Rails class and module autoloading uses +underscore+ to infer the relative path without extension of a file that would define a given missing constant:
+
+<ruby>
+# active_support/dependencies.rb
+def load_missing_constant(from_mod, const_name)
+  ...
+  qualified_name = qualified_name_for from_mod, const_name
+  path_suffix = qualified_name.underscore
+  ...
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +titleize+
+
+The method +titleize+ capitalizes the words in the receiver:
+
+<ruby>
+"alice in wonderland".titleize # => "Alice In Wonderland"
+"fermat's enigma".titleize     # => "Fermat's Enigma"
+</ruby>
+
++titleize+ is aliased to +titlecase+.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +dasherize+
+
+The method +dasherize+ replaces the underscores in the receiver with dashes:
+
+<ruby>
+"name".dasherize         # => "name"
+"contact_data".dasherize # => "contact-data"
+</ruby>
+
+The XML serializer of models uses this method to dasherize node names:
+
+<ruby>
+# active_model/serializers/xml.rb
+def reformat_name(name)
+  name = name.camelize if camelize?
+  dasherize? ? name.dasherize : name
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +demodulize+
+
+Given a string with a qualified constant reference expression, +demodulize+ returns the very constant name, that is, the rightmost part of it:
+
+<ruby>
+"Product".demodulize                        # => "Product"
+"Backoffice::UsersController".demodulize    # => "UsersController"
+"Admin::Hotel::ReservationUtils".demodulize # => "ReservationUtils"
+</ruby>
+
+Active Record for example uses this method to compute the name of a counter cache column:
+
+<ruby>
+# active_record/reflection.rb
+def counter_cache_column
+  if options[:counter_cache] == true
+    "#{active_record.name.demodulize.underscore.pluralize}_count"
+  elsif options[:counter_cache]
+    options[:counter_cache]
+  end
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +parameterize+
+
+The method +parameterize+ normalizes its receiver in a way that can be used in pretty URLs.
+
+<ruby>
+"John Smith".parameterize # => "john-smith"
+"Kurt Gödel".parameterize # => "kurt-godel"
+</ruby>
+
+In fact, the result string is wrapped in an instance of +ActiveSupport::Multibyte::Chars+.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +tableize+
+
+The method +tableize+ is +underscore+ followed by +pluralize+.
+
+<ruby>
+"Person".tableize      # => "people"
+"Invoice".tableize     # => "invoices"
+"InvoiceLine".tableize # => "invoice_lines"
+</ruby>
+
+As a rule of thumb, +tableize+ returns the table name that corresponds to a given model for simple cases. The actual implementation in Active Record is not straight +tableize+ indeed, because it also demodulizes de class name and checks a few options that may affect the returned string.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +classify+
+
+The method +classify+ is the inverse of +tableize+. It gives you the class name corresponding to a table name:
+
+<ruby>
+"people".classify        # => "Person"
+"invoices".classify      # => "Invoice"
+"invoice_lines".classify # => "InvoiceLine"
+</ruby>
+
+The method understands qualified table names:
+
+<ruby>
+"highrise_production.companies".classify # => "Company"
+</ruby>
+
+Note that +classify+ returns a class name as a string. You can get the actual class object invoking +constantize+ on it, explained next.
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +constantize+
+
+The method +constantize+ resolves the constant reference expression in its receiver:
+
+<ruby>
+"Fixnum".constantize # => Fixnum
+
+module M
+  X = 1
+end
+"M::X".constantize # => 1
+</ruby>
+
+If the string evaluates to no known constant, or its content is not even a valid constant name, +constantize+ raises +NameError+.
+
+Constant name resolution by +constantize+ starts always at the top-level +Object+ even if there is no leading "::".
+
+<ruby>
+X = :in_Object
+module M
+  X = :in_M
+
+  X                 # => :in_M
+  "::X".constantize # => :in_Object
+  "X".constantize   # => :in_Object (!)
+end
+</ruby>
+
+So, it is in general not equivalent to what Ruby would do in the same spot, had a real constant be evaluated.
+
+Mailer test cases obtain the mailer being tested from the name of the test class using +constantize+:
+
+<ruby>
+# action_mailer/test_case.rb
+def determine_default_mailer(name)
+  name.sub(/Test$/, '').constantize
+rescue NameError => e
+  raise NonInferrableMailerError.new(name)
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +humanize+
+
+The method +humanize+ gives you a sensible name for display out of an attribute name. To do so it replaces underscores with spaces, removes any "_id" suffix, and capitalizes the first word:
+
+<ruby>
+"name".humanize           # => "Name"
+"author_id".humanize      # => "Author"
+"comments_count".humanize # => "Comments count"
+</ruby>
+
+The helper method +full_messages+ uses +humanize+ as a fallback to include attribute names:
+
+<ruby>
+def full_messages
+  full_messages = []
+
+  each do |attribute, messages|
+    ...
+    attr_name = attribute.to_s.gsub('.', '_').humanize
+    attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+    ...
+  end
+
+  full_messages
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +foreign_key+
+
+The method +foreign_key+ gives a foreign key column name from a class name. To do so it demodulizes, underscores, and adds "_id":
+
+<ruby>
+"User".foreign_key           # => "user_id"
+"InvoiceLine".foreign_key    # => "invoice_line_id"
+"Admin::Session".foreign_key # => "session_id"
+</ruby>
+
+Pass a false argument if you do not want the underscore in "_id":
+
+<ruby>
+"User".foreign_key(false) # => "userid"
+</ruby>
+
+Associations use this method to infer foreign keys, for example +has_one+ and +has_many+ do this:
+
+<ruby>
+# active_record/associations.rb
+foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
 h3. Extensions to +Numeric+
 
 h4. Bytes
@@ -816,7 +1725,15 @@ NOTE: Defined in +active_support/core_ext/integer/inflections.rb+.
 
 h3. Extensions to +Float+
 
-...
+h4. +round+
+
+The builtin method +Float#round+ rounds a float to the nearest integer. Active Support adds an optional parameter to let you specify a precision:
+
+<ruby>
+Math::E.round(4) # => 2.7183
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/float/rounding.rb+.
 
 h3. Extensions to +BigDecimal+
 
@@ -1765,7 +2682,7 @@ File.atomic_write(joined_asset_path) do |cache|
 end
 </ruby>
 
-To accomplish this +atomic_write+ creates a temporary file. That's the file the code in the block actually writes to. On completion, the temporary file is renamed. If the target file exists +atomic_write+ overwrites it and keeps owners and permissions.
+To accomplish this +atomic_write+ creates a temporary file. That's the file the code in the block actually writes to. On completion, the temporary file is renamed, which is an atomic operation on POSIX systems. If the target file exists +atomic_write+ overwrites it and keeps owners and permissions.
 
 WARNING. Note you can't append with +atomic_write+.
 
@@ -1799,20 +2716,11 @@ NOTE: Defined in +active_support/core_ext/name_error.rb+.
 
 h3. Extensions to +LoadError+
 
-Rails hijacks +LoadError.new+ to return a +MissingSourceFile+ exception:
+Active Support adds +is_missing?+ to +LoadError+, and also assigns that class to the constant +MissingSourceFile+ for backwards compatibility.
 
-<shell>
-$ ruby -e 'require "nonexistent"'
-...: no such file to load -- nonexistent (LoadError)
-...
-$ rails runner 'require "nonexistent"'
-...: no such file to load -- nonexistent (MissingSourceFile)
-...
-</shell>
+Given a path name +is_missing?+ tests whether the exception was raised due to that particular file (except perhaps for the ".rb" extension).
 
-The class +MissingSourceFile+ is a subclass of +LoadError+, so any code that rescues +LoadError+ as usual still works as expected. Point is these exception objects respond to +is_missing?+, which given a path name tests whether the exception was raised due to that particular file (except perhaps for the ".rb" extension).
-
-For example, when an action of +PostsController+ is called Rails tries to load +posts_helper.rb+, but that file may not exist. That's fine, the helper module is not mandatory so Rails silences a load error. But it could be the case that the helper module does exist, but it in turn requires another library that is missing. In that case Rails must reraise the exception. The method +is_missing?+ provides a way to distinguish both cases:
+For example, when an action of +PostsController+ is called Rails tries to load +posts_helper.rb+, but that file may not exist. That's fine, the helper module is not mandatory so Rails silences a load error. But it could be the case that the helper module does exist and in turn requires another library that is missing. In that case Rails must reraise the exception. The method +is_missing?+ provides a way to distinguish both cases:
 
 <ruby>
 def default_helper_module!
@@ -1820,7 +2728,7 @@ def default_helper_module!
   module_path = module_name.underscore
   helper module_path
 rescue MissingSourceFile => e
-  raise e unless e.is_missing? "#{module_path}_helper"
+  raise e unless e.is_missing? "helpers/#{module_path}_helper"
 rescue NameError => e
   raise e unless e.missing_name? "#{module_name}Helper"
 end

@@ -140,7 +140,7 @@ module ApplicationTests
         require "#{app_path}/config/environment"
       end
     end
-    
+
     test "filter_parameters should be able to set via config.filter_parameters" do
       add_to_config <<-RUBY
         config.filter_parameters += [ :foo, 'bar', lambda { |key, value|
@@ -172,16 +172,27 @@ module ApplicationTests
       assert $prepared
     end
 
-    test "config.action_dispatch.x_sendfile_header defaults to X-Sendfile" do
+    def make_basic_app
       require "rails"
       require "action_controller/railtie"
 
-      class MyApp < Rails::Application
-        config.cookie_secret = "3b7cd727ee24e8444053437c36cc66c4"
-        config.session_store :cookie_store, :key => "_myapp_session"
+      app = Class.new(Rails::Application)
+
+      yield app if block_given?
+
+      app.config.session_store :disabled
+      app.initialize!
+
+      app.routes.draw do
+        match "/" => "omg#index"
       end
 
-      MyApp.initialize!
+      require 'rack/test'
+      extend Rack::Test::Methods
+    end
+
+    test "config.action_dispatch.x_sendfile_header defaults to ''" do
+      make_basic_app
 
       class ::OmgController < ActionController::Base
         def index
@@ -189,28 +200,29 @@ module ApplicationTests
         end
       end
 
-      MyApp.routes.draw do
-        match "/" => "omg#index"
+      get "/"
+      assert_equal File.read(__FILE__), last_response.body
+    end
+
+    test "config.action_dispatch.x_sendfile_header can be set" do
+      make_basic_app do |app|
+        app.config.action_dispatch.x_sendfile_header = "X-Sendfile"
       end
 
-      require 'rack/test'
-      extend Rack::Test::Methods
+      class ::OmgController < ActionController::Base
+        def index
+          send_file __FILE__
+        end
+      end
 
       get "/"
       assert_equal File.expand_path(__FILE__), last_response.headers["X-Sendfile"]
     end
 
     test "config.action_dispatch.x_sendfile_header is sent to Rack::Sendfile" do
-      require "rails"
-      require "action_controller/railtie"
-
-      class MyApp < Rails::Application
-        config.cookie_secret = "3b7cd727ee24e8444053437c36cc66c4"
-        config.session_store :cookie_store, :key => "_myapp_session"
-        config.action_dispatch.x_sendfile_header = 'X-Lighttpd-Send-File'
+      make_basic_app do |app|
+        app.config.action_dispatch.x_sendfile_header = 'X-Lighttpd-Send-File'
       end
-
-      MyApp.initialize!
 
       class ::OmgController < ActionController::Base
         def index
@@ -218,15 +230,23 @@ module ApplicationTests
         end
       end
 
-      MyApp.routes.draw do
-        match "/" => "omg#index"
-      end
-
-      require 'rack/test'
-      extend Rack::Test::Methods
-
       get "/"
       assert_equal File.expand_path(__FILE__), last_response.headers["X-Lighttpd-Send-File"]
+    end
+
+    test "protect from forgery is the default in a new app" do
+      make_basic_app
+
+      class ::OmgController < ActionController::Base
+        protect_from_forgery
+
+        def index
+          render :inline => "<%= csrf_meta_tag %>"
+        end
+      end
+
+      get "/"
+      assert last_response.body =~ /csrf\-param/
     end
   end
 end
