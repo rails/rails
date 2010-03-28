@@ -784,7 +784,7 @@ EOF
     expected.date    = Time.local 2004, 12, 12
 
     created = TestMailer.utf8_body @recipient
-    assert_match(/åœö blah/, created.encoded)
+    assert_match(/åœö blah/, created.decoded)
   end
 
   def test_multiple_utf8_recipients
