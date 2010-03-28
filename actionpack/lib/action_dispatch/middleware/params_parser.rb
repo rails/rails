@@ -25,7 +25,9 @@ module ActionDispatch
 
         return false if request.content_length.zero?
 
-        mime_type = content_type_from_legacy_post_data_format_header(env) || request.content_type
+        mime_type = content_type_from_legacy_post_data_format_header(env) ||
+          request.content_mime_type
+
         strategy = @parsers[mime_type]
 
         return false unless strategy
@@ -53,7 +55,7 @@ module ActionDispatch
 
         raise
           { "body"           => request.raw_post,
-            "content_type"   => request.content_type,
+            "content_type"   => request.content_mime_type,
             "content_length" => request.content_length,
             "exception"      => "#{e.message} (#{e.class})",
             "backtrace"      => e.backtrace }

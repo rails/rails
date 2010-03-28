@@ -96,11 +96,11 @@ module ActionDispatch
     end
 
     def forgery_whitelisted?
-      method == :get || xhr? || content_type.nil? || !content_type.verify_request?
+      method == :get || xhr? || content_mime_type.nil? || !content_mime_type.verify_request?
     end
 
     def media_type
-      content_type.to_s
+      content_mime_type.to_s
     end
 
     # Returns the content length of the request as an integer.
@@ -157,7 +157,7 @@ module ActionDispatch
     end
 
     def form_data?
-      FORM_DATA_MEDIA_TYPES.include?(content_type.to_s)
+      FORM_DATA_MEDIA_TYPES.include?(content_mime_type.to_s)
     end
 
     def body_stream #:nodoc:

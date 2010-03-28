@@ -295,7 +295,7 @@ class RequestTest < ActiveSupport::TestCase
 
   test "content type" do
     request = stub_request 'CONTENT_TYPE' => 'text/html'
-    assert_equal Mime::HTML, request.content_type
+    assert_equal Mime::HTML, request.content_mime_type
   end
 
   test "can override format with parameter" do
@@ -310,17 +310,17 @@ class RequestTest < ActiveSupport::TestCase
 
   test "no content type" do
     request = stub_request
-    assert_equal nil, request.content_type
+    assert_equal nil, request.content_mime_type
   end
 
   test "content type is XML" do
     request = stub_request 'CONTENT_TYPE' => 'application/xml'
-    assert_equal Mime::XML, request.content_type
+    assert_equal Mime::XML, request.content_mime_type
   end
 
   test "content type with charset" do
     request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8'
-    assert_equal Mime::XML, request.content_type
+    assert_equal Mime::XML, request.content_mime_type
   end
 
   test "user agent" do
