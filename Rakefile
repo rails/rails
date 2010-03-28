@@ -88,6 +88,7 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('actionpack/README')
   rdoc.rdoc_files.include('actionpack/CHANGELOG')
   rdoc.rdoc_files.include('actionpack/lib/action_controller/**/*.rb')
+  rdoc.rdoc_files.include('actionpack/lib/action_dispatch/**/*.rb')
   rdoc.rdoc_files.include('actionpack/lib/action_view/**/*.rb')
   rdoc.rdoc_files.exclude('actionpack/lib/action_controller/vendor/*')
 
