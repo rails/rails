@@ -205,6 +205,16 @@ module ActiveRecord
   # including <tt>after_*</tt> hooks. Note, however, that in that case the client
   # needs to be aware of it because an ordinary +save+ will raise such exception
   # instead of quietly returning +false+.
+  #
+  # == Debugging callbacks
+  #
+  # To list the methods and procs registered with a particular callback, append <tt>_callback_chain</tt> to the callback name that you wish to list and send that to your class from the Rails console:
+  #
+  #   >> Topic.after_save_callback_chain
+  #   => [#<ActiveSupport::Callbacks::Callback:0x3f6a448
+  #       @method=#<Proc:0x03f9a42c@/Users/foo/bar/app/models/topic.rb:43>, kind:after_save, identifiernil,
+  #       options{}]
+  #
   module Callbacks
     extend ActiveSupport::Concern
 

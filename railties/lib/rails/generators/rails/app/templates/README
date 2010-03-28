@@ -36,7 +36,8 @@ link:files/vendor/rails/actionpack/README.html.
 
 == Web Servers
 
-By default, Rails will try to use Mongrel if it's are installed when started with <tt>rails server</tt>, otherwise Rails will use WEBrick, the webserver that ships with Ruby. But you can also use Rails
+By default, Rails will try to use Mongrel if it's installed when started with <tt>rails server</tt>, otherwise
+Rails will use WEBrick, the webserver that ships with Ruby. But you can also use Rails
 with a variety of other web servers.
 
 Mongrel is a Ruby-based webserver with a C component (which requires compilation) that is
@@ -207,7 +208,7 @@ app/views/layouts
 
 app/helpers
   Holds view helpers that should be named like weblogs_helper.rb. These are generated
-  for you automatically when using <tt>rails generate</tt> for controllers. Helpers can be used to
+  for you automatically when using rails generate for controllers. Helpers can be used to
   wrap functionality for your views into methods.
 
 config
@@ -234,7 +235,7 @@ script
   Helper scripts for automation and generation.
 
 test
-  Unit and functional tests along with fixtures. When using the <tt>rails generate</tt> scripts, template
+  Unit and functional tests along with fixtures. When using the rails generate command, template
   test files will be generated for you and placed in this directory.
 
 vendor

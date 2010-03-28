@@ -4,7 +4,7 @@ module ActionView
       # Produces a wrapper DIV element with id and class parameters that
       # relate to the specified Active Record object. Usage example:
       #
-      #    <% div_for(@person, :class => "foo") do %>
+      #    <%= div_for(@person, :class => "foo") do %>
       #       <%=h @person.name %>
       #    <% end %>
       #
@@ -19,7 +19,7 @@ module ActionView
       # content_tag_for creates an HTML element with id and class parameters
       # that relate to the specified Active Record object. For example:
       #
-      #    <% content_tag_for(:tr, @person) do %>
+      #    <%= content_tag_for(:tr, @person) do %>
       #      <td><%=h @person.first_name %></td>
       #      <td><%=h @person.last_name %></td>
       #    <% end %>
@@ -31,7 +31,7 @@ module ActionView
       #
       # If you require the HTML id attribute to have a prefix, you can specify it:
       #
-      #    <% content_tag_for(:tr, @person, :foo) do %> ...
+      #    <%= content_tag_for(:tr, @person, :foo) do %> ...
       #
       # produces:
       #
@@ -41,7 +41,7 @@ module ActionView
       # additional HTML attributes. If you specify a <tt>:class</tt> value, it will be combined
       # with the default class name for your object. For example:
       #
-      #    <% content_tag_for(:li, @person, :class => "bar") %>...
+      #    <%= content_tag_for(:li, @person, :class => "bar") %>...
       #
       # produces:
       #

@@ -591,7 +591,7 @@ module ActionMailer #:nodoc:
       responses, parts_order = [], nil
 
       if block_given?
-        collector = ActionMailer::Collector.new(self) { render(action_name) }
+        collector = ActionMailer::Collector.new(lookup_context) { render(action_name) }
         yield(collector)
         parts_order = collector.responses.map { |r| r[:content_type] }
         responses  = collector.responses

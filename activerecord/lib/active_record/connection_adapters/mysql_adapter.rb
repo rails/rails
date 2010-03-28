@@ -61,7 +61,7 @@ module ActiveRecord
         begin
           require_library_or_gem('mysql')
         rescue LoadError
-          $stderr.puts '!!! The bundled mysql.rb driver has been removed from Rails 2.2. Please install the mysql gem and try again: gem install mysql.'
+          $stderr.puts '!!! Please install the mysql gem and try again: gem install mysql.'
           raise
         end
       end

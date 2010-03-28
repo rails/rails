@@ -293,7 +293,7 @@ form_for(@article)
 
 ## Editing an existing article
 # long-style:
-form_for(:article, @article, :url => article_path(@article), :method => "put")
+form_for(:article, @article, :url => article_path(@article), :html => { :method => "put" })
 # short-style:
 form_for(@article)
 </ruby>

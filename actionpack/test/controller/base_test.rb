@@ -56,6 +56,16 @@ protected
   end
 end
 
+class AnotherMethodMissingController < ActionController::Base
+  cattr_accessor :_exception
+  rescue_from Exception, :with => :_exception=
+
+  protected
+  def method_missing(*attrs, &block)
+    super
+  end
+end
+
 class DefaultUrlOptionsController < ActionController::Base
   def from_view
     render :inline => "<%= #{params[:route]} %>"
@@ -171,6 +181,12 @@ class PerformActionTest < ActionController::TestCase
     get :method_missing
     assert_response :success
     assert_equal 'method_missing', @response.body
+  end
+
+  def test_method_missing_should_recieve_symbol
+    use_controller AnotherMethodMissingController
+    get :some_action
+    assert_kind_of NameError, @controller._exception
   end
 
   def test_get_on_hidden_should_fail

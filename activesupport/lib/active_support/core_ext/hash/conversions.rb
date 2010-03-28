@@ -54,6 +54,15 @@ class Hash
       "string"       => Proc.new  { |string|  string.to_s },
       "yaml"         => Proc.new  { |yaml|    YAML::load(yaml) rescue yaml },
       "base64Binary" => Proc.new  { |bin|     ActiveSupport::Base64.decode64(bin) },
+      "binary"       => Proc.new do |bin, entity|
+        case entity['encoding']
+	  when 'base64'
+	    ActiveSupport::Base64.decode64(bin)
+	  # TODO: Add support for other encodings
+	  else
+	    bin
+	end
+      end,
       "file"         => Proc.new do |file, entity|
         f = StringIO.new(ActiveSupport::Base64.decode64(file))
         f.extend(FileLike)

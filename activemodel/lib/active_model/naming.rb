@@ -1,6 +1,7 @@
 require 'active_support/inflector'
 
 module ActiveModel
+
   class Name < String
     attr_reader :singular, :plural, :element, :collection, :partial_path
     alias_method :cache_key, :collection
@@ -57,4 +58,5 @@ module ActiveModel
       @_model_name ||= ActiveModel::Name.new(self)
     end
   end
+  
 end

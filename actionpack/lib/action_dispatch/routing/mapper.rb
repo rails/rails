@@ -32,6 +32,8 @@ module ActionDispatch
       end
 
       class Mapping
+        IGNORE_OPTIONS = [:to, :as, :controller, :action, :via, :on, :constraints, :defaults, :only, :except, :anchor]
+
         def initialize(set, scope, args)
           @set, @scope    = set, scope
           @path, @options = extract_path_and_options(args)
@@ -55,10 +57,8 @@ module ActionDispatch
             path = normalize_path(path)
 
             if using_match_shorthand?(path, options)
-              options = {
-                :to => path[1..-1].sub(%r{/([^/]*)$}, '#\1'),
-                :as => path[1..-1].gsub("/", "_")
-              }.merge!(options)
+              options[:to] ||= path[1..-1].sub(%r{/([^/]*)$}, '#\1')
+              options[:as] ||= path[1..-1].gsub("/", "_")
             end
 
             [ path, options ]
@@ -71,7 +71,7 @@ module ActionDispatch
 
           # match "account/overview"
           def using_match_shorthand?(path, options)
-            path && options.except(:via, :anchor).empty? && !path.include?(':')
+            path && options.except(:via, :anchor, :to, :as).empty? && path =~ %r{^/[\w\/]+$}
           end
 
           def normalize_path(path)
@@ -98,7 +98,15 @@ module ActionDispatch
           end
 
           def defaults
-            @defaults ||= if to.respond_to?(:call)
+            @defaults ||= (@options[:defaults] || {}).tap do |defaults|
+              defaults.merge!(default_controller_and_action)
+              defaults.reverse_merge!(@scope[:defaults]) if @scope[:defaults]
+              @options.each { |k, v| defaults[k] = v unless v.is_a?(Regexp) || IGNORE_OPTIONS.include?(k.to_sym) }
+            end
+          end
+
+          def default_controller_and_action
+            if to.respond_to?(:call)
               { }
             else
               defaults = case to
@@ -301,6 +309,10 @@ module ActionDispatch
           scope(:constraints => constraints) { yield }
         end
 
+        def defaults(defaults = {})
+          scope(:defaults => defaults) { yield }
+        end
+
         def match(*args)
           options = args.extract_options!
 
@@ -342,6 +354,10 @@ module ActionDispatch
           end
 
           def merge_constraints_scope(parent, child)
+            merge_options_scope(parent, child)
+          end
+
+          def merge_defaults_scope(parent, child)
             merge_options_scope(parent, child)
           end
 
@@ -463,7 +479,7 @@ module ActionDispatch
           scope(:path => resource.name.to_s, :controller => resource.controller) do
             with_scope_level(:resource, resource) do
 
-              scope(:name_prefix => resource.name.to_s) do
+              scope(:name_prefix => resource.name.to_s, :as => "") do
                 yield if block_given?
               end
 

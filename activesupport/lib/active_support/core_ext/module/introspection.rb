@@ -3,7 +3,7 @@ require 'active_support/inflector'
 class Module
   # Returns the name of the module containing this one.
   #
-  #   p M::N.parent_name # => "M"
+  #   M::N.parent_name # => "M"
   def parent_name
     unless defined? @parent_name
       @parent_name = name =~ /::[^:]+\Z/ ? $`.freeze : nil
@@ -19,13 +19,13 @@ class Module
   #   end
   #   X = M::N
   #
-  #   p M::N.parent # => M
-  #   p X.parent    # => M
+  #   M::N.parent # => M
+  #   X.parent    # => M
   #
   # The parent of top-level and anonymous modules is Object.
   #
-  #   p M.parent          # => Object
-  #   p Module.new.parent # => Object
+  #   M.parent          # => Object
+  #   Module.new.parent # => Object
   #
   def parent
     parent_name ? ActiveSupport::Inflector.constantize(parent_name) : Object
@@ -40,9 +40,9 @@ class Module
   #   end
   #   X = M::N
   #
-  #   p M.parents    # => [Object]
-  #   p M::N.parents # => [M, Object]
-  #   p X.parents    # => [M, Object]
+  #   M.parents    # => [Object]
+  #   M::N.parents # => [M, Object]
+  #   X.parents    # => [M, Object]
   #
   def parents
     parents = []

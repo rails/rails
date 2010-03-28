@@ -1,70 +1,95 @@
 require 'set'
+require 'fileutils'
 
-class String
-  def html_safe!
-    self
-  end unless "post 9415935902f120a9bac0bfce7129725a0db38ed3".respond_to?(:html_safe!)
-end
+require 'active_support/core_ext/string/output_safety'
+require 'action_controller'
+require 'action_view'
+
+require 'rails_guides/indexer'
+require 'rails_guides/helpers'
+require 'rails_guides/levenshtein'
 
 module RailsGuides
   class Generator
-    attr_reader :output, :view_path, :view, :guides_dir
+    attr_reader :guides_dir, :source_dir, :output_dir 
 
-    def initialize(output = nil)
-      @guides_dir = File.join(File.dirname(__FILE__), '..')
-
-      @output = output || File.join(@guides_dir, "output")
-
-      unless ENV["ONLY"]
-        FileUtils.rm_r(@output) if File.directory?(@output)
-        FileUtils.mkdir(@output)
-      end
-
-      @view_path = File.join(@guides_dir, "source")
+    def initialize(output=nil)
+      initialize_dirs(output)
+      create_output_dir_if_needed
     end
 
     def generate
-      guides = Dir.entries(view_path).find_all {|g| g =~ /\.textile(?:\.erb)?$/ }
-
-      if ENV["ONLY"]
-        only = ENV["ONLY"].split(",").map{|x| x.strip }.map {|o| "#{o}.textile" }
-        guides = guides.find_all {|g| only.include?(g) }
-        puts "GENERATING ONLY #{guides.inspect}"
-      end
-
-      guides.each do |guide|
-        generate_guide(guide)
-      end
-
-      # Copy images and css files to html directory
-      FileUtils.cp_r File.join(guides_dir, 'images'), File.join(output, 'images')
-      FileUtils.cp_r File.join(guides_dir, 'files'), File.join(output, 'files')
+      generate_guides
+      copy_assets
     end
 
-    def generate_guide(guide)
-      guide =~ /(.*?)\.textile(?:\.erb)?$/
-      name = $1
+    private
+    def initialize_dirs(output)
+      @guides_dir = File.join(File.dirname(__FILE__), '..')
+      @source_dir = File.join(@guides_dir, "source")
+      @output_dir = output || File.join(@guides_dir, "output")      
+    end
 
-      puts "Generating #{name}"
+    def create_output_dir_if_needed
+      FileUtils.mkdir_p(output_dir)
+    end  
 
-      file = File.join(output, "#{name}.html")
-      File.open(file, 'w') do |f|
-        @view = ActionView::Base.new(view_path)
-        @view.extend(Helpers)
+    def generate_guides
+      guides_to_generate.each do |guide|
+        output_file = output_file_for(guide)
+        generate_guide(guide, output_file) if generate?(guide, output_file)
+      end
+    end
 
+    def guides_to_generate
+      guides = Dir.entries(source_dir).grep(/\.textile(?:\.erb)?$/)
+      ENV.key?("ONLY") ? select_only(guides) : guides
+    end
+
+    def select_only(guides)
+      prefixes = ENV["ONLY"].split(",").map(&:strip)
+      guides.select do |guide|
+        prefixes.any? {|p| guide.start_with?(p)}
+      end
+    end
+
+    def copy_assets
+      FileUtils.cp_r(File.join(guides_dir, 'images'), File.join(output_dir, 'images'))
+      FileUtils.cp_r(File.join(guides_dir, 'files'), File.join(output_dir, 'files'))      
+    end
+
+    def output_file_for(guide)
+      guide.sub(/\.textile(?:\.erb)?$/, '.html')
+    end
+    
+    def generate?(source_file, output_file)
+      fin  = File.join(source_dir, source_file)
+      fout = File.join(output_dir, output_file)
+      ENV['ALL'] == '1' || !File.exists?(fout) || File.mtime(fout) < File.mtime(fin)
+    end
+
+    def generate_guide(guide, output_file)
+      puts "Generating #{output_file}"
+      File.open(File.join(output_dir, output_file), 'w') do |f|
+        view = ActionView::Base.new(source_dir)
+        view.extend(Helpers)
+        
         if guide =~ /\.textile\.erb$/
           # Generate the erb pages with textile formatting - e.g. index/authors
           result = view.render(:layout => 'layout', :file => guide)
-          f.write textile(result)
+          result = textile(result)
         else
-          body = File.read(File.join(view_path, guide))
-          body = set_header_section(body, @view)
-          body = set_index(body, @view)
+          body = File.read(File.join(source_dir, guide))
+          body = set_header_section(body, view)
+          body = set_index(body, view)
 
-          result = view.render(:layout => 'layout', :text => textile(body).html_safe!)
-          f.write result
+          result = view.render(:layout => 'layout', :text => textile(body))
+
           warn_about_broken_links(result) if ENV.key?("WARN_BROKEN_LINKS")
         end
+        
+        result = insert_edge_badge(result) if ENV.key?('INSERT_EDGE_BADGE')
+        f.write result
       end
     end
 
@@ -77,8 +102,8 @@ module RailsGuides
 
       header = textile(header)
 
-      view.content_for(:page_title) { page_title.html_safe! }
-      view.content_for(:header_section) { header.html_safe! }
+      view.content_for(:page_title) { page_title.html_safe }
+      view.content_for(:header_section) { header.html_safe }
       new_body
     end
 
@@ -94,22 +119,22 @@ module RailsGuides
 
       # Set index for 2 levels
       i.level_hash.each do |key, value|
-        link = view.content_tag(:a, :href => key[:id]) { textile(key[:title]) }
+        link = view.content_tag(:a, :href => key[:id]) { textile(key[:title]).html_safe }
 
         children = value.keys.map do |k|
-          l = view.content_tag(:a, :href => k[:id]) { textile(k[:title]) }
-          view.content_tag(:li, l)
+          l = view.content_tag(:a, :href => k[:id]) { textile(k[:title]).html_safe }
+          view.content_tag(:li, l.html_safe)
         end
 
-        children_ul = view.content_tag(:ul, children.join(" "))
+        children_ul = view.content_tag(:ul, children.join(" ").html_safe)
 
-        index << view.content_tag(:li, link + children_ul)
+        index << view.content_tag(:li, link.html_safe + children_ul.html_safe)
       end
 
       index << '</ol>'
       index << '</div>'
 
-      view.content_for(:index_section) { index.html_safe! }
+      view.content_for(:index_section) { index.html_safe }
 
       i.result
     end
@@ -173,6 +198,10 @@ module RailsGuides
           puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."
         end
       end
+    end
+    
+    def insert_edge_badge(html)
+      html.sub(/<body[^>]*>/, '\&<img src="images/edge_badge.png" style="position:fixed; right:0px; top:0px; border:none; z-index:100"/>')
     end
   end
 end

@@ -17,7 +17,7 @@ module ActionView
       #       concat "hello"
       #       # is the equivalent of <%= "hello" %>
       #
-      #       if (logged_in == true):
+      #       if logged_in
       #         concat "Logged in!"
       #       else
       #         concat link_to('login', :action => login)
@@ -415,7 +415,7 @@ module ActionView
       #                {:first => 'Emily', :middle => 'Shannon', :maiden => 'Pike', :last => 'Hicks'},
       #               {:first => 'June', :middle => 'Dae', :last => 'Jones'}]
       #   <% @items.each do |item| %>
-      #     <tr class="<%= cycle("even", "odd", :name => "row_class") -%>">
+      #     <tr class="<%= cycle("odd", "even", :name => "row_class") -%>">
       #       <td>
       #         <% item.values.each do |value| %>
       #           <%# Create a named cycle "colors" %>

@@ -152,7 +152,7 @@ expire_fragment('all_available_products')
 
 h4. Sweepers
 
-Cache sweeping is a mechanism which allows you to get around having a ton of +expire_{page,action,fragment}+ calls in your code.  It does this by moving all the work required to expire cached content into a +ActionController::Caching::Sweeper+ class.  This class is an Observer and looks for changes to an object via callbacks, and when a change occurs it expires the caches associated with that object in an around or after filter.
+Cache sweeping is a mechanism which allows you to get around having a ton of +expire_{page,action,fragment}+ calls in your code.  It does this by moving all the work required to expire cached content into an +ActionController::Caching::Sweeper+ subclass.  This class is an observer and looks for changes to an object via callbacks, and when a change occurs it expires the caches associated with that object in an around or after filter.
 
 Continuing with our Product controller example, we could rewrite it with a sweeper like this:
 

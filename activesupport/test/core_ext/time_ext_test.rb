@@ -761,7 +761,7 @@ class TimeExtMarshalingTest < Test::Unit::TestCase
     marshaled = Marshal.dump t
     unmarshaled = Marshal.load marshaled
     assert_equal t, unmarshaled
-    assert_equal t.zone, unmarshaled.zone
+    assert_equal "UTC", unmarshaled.zone
   end
 
   def test_marshaling_with_local_instance
@@ -777,7 +777,7 @@ class TimeExtMarshalingTest < Test::Unit::TestCase
     marshaled = Marshal.dump t
     unmarshaled = Marshal.load marshaled
     assert_equal t, unmarshaled
-    assert_equal t.zone, unmarshaled.zone
+    assert_equal "UTC", unmarshaled.zone
   end
 
   def test_marshaling_with_frozen_local_instance

@@ -72,7 +72,7 @@ module ActionDispatch
     # you can do that by including ActionController::UrlFor in your class:
     #
     #   class User < ActiveRecord::Base
-    #     include ActionController::UrlFor
+    #     include Rails.application.routes.url_helpers
     #
     #     def base_uri
     #       user_path(self)

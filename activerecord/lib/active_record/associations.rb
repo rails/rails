@@ -1210,7 +1210,7 @@ module ActiveRecord
       # * <tt>Developer#projects.empty?</tt>
       # * <tt>Developer#projects.size</tt>
       # * <tt>Developer#projects.find(id)</tt>
-      # * <tt>Developer#clients.exists?(...)</tt>
+      # * <tt>Developer#projects.exists?(...)</tt>
       # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("project_id" => id)</tt>)
       # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("project_id" => id); c.save; c</tt>)
       # The declaration may include an options hash to specialize the behavior of the association.
@@ -1545,15 +1545,19 @@ module ActiveRecord
 
             case name
               when :destroy, :delete
-                define_method(method_name) do
-                  association = send(reflection.name)
-                  association.send(name) if association
-                end
+                class_eval <<-eoruby, __FILE__, __LINE__ + 1
+                  def #{method_name}
+                    association = #{reflection.name}
+                    association.#{name} if association
+                  end
+                eoruby
               when :nullify
-                define_method(method_name) do
-                  association = send(reflection.name)
-                  association.update_attribute(reflection.primary_key_name, nil) if association
-                end
+                class_eval <<-eoruby, __FILE__, __LINE__ + 1
+                  def #{method_name}
+                    association = #{reflection.name}
+                    association.update_attribute(#{reflection.primary_key_name.inspect}, nil) if association
+                  end
+                eoruby
               else
                 raise ArgumentError, "The :dependent option expects either :destroy, :delete or :nullify (#{reflection.options[:dependent].inspect})"
             end
@@ -1571,10 +1575,12 @@ module ActiveRecord
             end
 
             method_name = :"belongs_to_dependent_#{name}_for_#{reflection.name}"
-            define_method(method_name) do
-              association = send(reflection.name)
-              association.send(name) if association
-            end
+            class_eval <<-eoruby, __FILE__, __LINE__ + 1
+              def #{method_name}
+                association = #{reflection.name}
+                association.#{name} if association
+              end
+            eoruby
             after_destroy method_name
           end
         end

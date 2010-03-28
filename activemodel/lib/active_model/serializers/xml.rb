@@ -1,3 +1,4 @@
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/hash/conversions'
 
@@ -85,8 +86,8 @@ module ActiveModel
           @options[:except] = Array.wrap(@options[:except]).map { |n| n.to_s }
         end
 
-        # To replicate the behavior in ActiveRecord#attributes,
-        # <tt>:except</tt> takes precedence over <tt>:only</tt>.  If <tt>:only</tt> is not set
+        # To replicate the behavior in ActiveRecord#attributes, <tt>:except</tt> 
+        # takes precedence over <tt>:only</tt>.  If <tt>:only</tt> is not set
         # for a N level model but is set for the N+1 level models,
         # then because <tt>:except</tt> is set to a default value, the second
         # level model can have both <tt>:except</tt> and <tt>:only</tt> set.  So if
@@ -108,7 +109,7 @@ module ActiveModel
         end
 
         def serializable_method_attributes
-          Array(options[:methods]).inject([]) do |methods, name|
+          Array.wrap(options[:methods]).inject([]) do |methods, name|
             methods << MethodAttribute.new(name.to_s, @serializable) if @serializable.respond_to?(name.to_s)
             methods
           end

@@ -53,7 +53,6 @@ module ActiveModel
   module AttributeMethods
     extend ActiveSupport::Concern
 
-    # Declare and check for suffixed attribute methods.
     module ClassMethods
       # Defines an "attribute" method (like +inheritance_column+ or
       # +table_name+). A new (class) method will be created with the
@@ -298,6 +297,7 @@ module ActiveModel
         end
       end
 
+      # Returns true if the attribute methods defined have been generated.
       def attribute_methods_generated?
         @attribute_methods_generated ||= nil
       end
