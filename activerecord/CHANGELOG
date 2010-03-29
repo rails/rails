@@ -1,5 +1,7 @@
 *2.3.6 (pending)*
 
+* To prefix the table names of all models in a module, define self.table_name_prefix on the module.  #4032 [Andrew White]
+
 * Association inverses for belongs_to, has_one, and has_many. Optimization to reduce database queries.  #3533 [Murray Steele]
 
     # post.comments sets each comment's post without needing to :include

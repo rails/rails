@@ -78,4 +78,32 @@ class ModulesTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_module_table_name_prefix
+    assert_equal 'prefixed_companies', MyApplication::Business::Prefixed::Company.table_name, 'inferred table_name for ActiveRecord model in module with table_name_prefix'
+    assert_equal 'prefixed_companies', MyApplication::Business::Prefixed::Nested::Company.table_name, 'table_name for ActiveRecord model in nested module with a parent table_name_prefix'
+    assert_equal 'companies', MyApplication::Business::Prefixed::Firm.table_name, 'explicit table_name for ActiveRecord model in module with table_name_prefix should not be prefixed'
+  end
+
+  def test_module_table_name_prefix_with_global_prefix
+    classes = [ MyApplication::Business::Company,
+                MyApplication::Business::Firm,
+                MyApplication::Business::Client,
+                MyApplication::Business::Client::Contact,
+                MyApplication::Business::Developer,
+                MyApplication::Business::Project,
+                MyApplication::Business::Prefixed::Company,
+                MyApplication::Business::Prefixed::Nested::Company,
+                MyApplication::Billing::Account ]
+
+    ActiveRecord::Base.table_name_prefix = 'global_'
+    classes.each(&:reset_table_name)
+    assert_equal 'global_companies', MyApplication::Business::Company.table_name, 'inferred table_name for ActiveRecord model in module without table_name_prefix'
+    assert_equal 'prefixed_companies', MyApplication::Business::Prefixed::Company.table_name, 'inferred table_name for ActiveRecord model in module with table_name_prefix'
+    assert_equal 'prefixed_companies', MyApplication::Business::Prefixed::Nested::Company.table_name, 'table_name for ActiveRecord model in nested module with a parent table_name_prefix'
+    assert_equal 'companies', MyApplication::Business::Prefixed::Firm.table_name, 'explicit table_name for ActiveRecord model in module with table_name_prefix should not be prefixed'
+  ensure
+    ActiveRecord::Base.table_name_prefix = ''
+    classes.each(&:reset_table_name)
+  end
 end
