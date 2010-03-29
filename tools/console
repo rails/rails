@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+require File.expand_path('../../load_paths', __FILE__)
+require 'rails/all'
+require 'active_support/all'
+require 'irb'
+require 'irb/completion'
+IRB.start
