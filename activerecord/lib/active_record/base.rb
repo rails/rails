@@ -1290,7 +1290,7 @@ module ActiveRecord #:nodoc:
         # <tt>options</tt> argument is the same as in find.
         #
         #   class Person < ActiveRecord::Base
-        #     default_scope :order => 'last_name, first_name'
+        #     default_scope order('last_name, first_name')
         #   end
         def default_scope(options = {})
           self.default_scoping << construct_finder_arel(options)
