@@ -758,33 +758,29 @@ end
 class TimeExtMarshalingTest < Test::Unit::TestCase
   def test_marshaling_with_utc_instance
     t = Time.utc(2000)
-    marshaled = Marshal.dump t
-    unmarshaled = Marshal.load marshaled
-    assert_equal t, unmarshaled
+    unmarshaled = Marshal.load(Marshal.dump(t))
     assert_equal "UTC", unmarshaled.zone
+    assert_equal t, unmarshaled
   end
 
   def test_marshaling_with_local_instance
     t = Time.local(2000)
-    marshaled = Marshal.dump t
-    unmarshaled = Marshal.load marshaled
-    assert_equal t, unmarshaled
+    unmarshaled = Marshal.load(Marshal.dump(t))
     assert_equal t.zone, unmarshaled.zone
+    assert_equal t, unmarshaled
   end
 
   def test_marshaling_with_frozen_utc_instance
     t = Time.utc(2000).freeze
-    marshaled = Marshal.dump t
-    unmarshaled = Marshal.load marshaled
-    assert_equal t, unmarshaled
+    unmarshaled = Marshal.load(Marshal.dump(t))
     assert_equal "UTC", unmarshaled.zone
+    assert_equal t, unmarshaled
   end
 
   def test_marshaling_with_frozen_local_instance
     t = Time.local(2000).freeze
-    marshaled = Marshal.dump t
-    unmarshaled = Marshal.load marshaled
-    assert_equal t, unmarshaled
+    unmarshaled = Marshal.load(Marshal.dump(t))
     assert_equal t.zone, unmarshaled.zone
+    assert_equal t, unmarshaled
   end
 end
