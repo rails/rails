@@ -21,7 +21,7 @@ Examples:
         For ActiveRecord and TestUnit it creates:
 
             Model:      app/models/account.rb
-            Test:       test/models/account_test.rb
+            Test:       test/unit/account_test.rb
             Fixtures:   test/fixtures/accounts.yml
             Migration:  db/migrate/XXX_add_accounts.rb
 
