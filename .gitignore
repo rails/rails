@@ -15,7 +15,6 @@ activesupport/test/fixtures/isolation_test
 railties/test/500.html
 railties/test/fixtures/tmp
 railties/test/initializer/root/log
-railties/doc/guides/html/images
-railties/doc/guides/html/stylesheets
+railties/doc
 railties/guides/output
 railties/tmp
