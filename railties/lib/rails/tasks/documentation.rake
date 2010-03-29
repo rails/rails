@@ -1,7 +1,11 @@
 namespace :doc do
   def gem_path(gem_name)
-    @specs ||= Bundler.load.specs
-    @specs.find{|s| s.name == gem_name}.full_gem_path
+    if defined? Bundler
+      @specs ||= Bundler.load.specs
+      @specs.find{|s| s.name == gem_name}.full_gem_path
+    else
+      "#{ENV['RAILS_PATH']}/#{gem_name}"
+    end
   end
 
   desc "Generate documentation for the application. Set custom template with TEMPLATE=/path/to/rdoc/template.rb or title with TITLE=\"Custom Title\""
@@ -16,42 +20,53 @@ namespace :doc do
     rdoc.rdoc_files.include('lib/**/*.rb')
   }
 
-  desc 'Generate documentation for the Rails framework.'
-  Rake::RDocTask.new("rails") { |rdoc|
-    rdoc.rdoc_dir = 'doc/api'
-    rdoc.template = "#{ENV['template']}.rb" if ENV['template']
-    rdoc.title    = "Rails Framework Documentation"
-    rdoc.options << '--line-numbers' << '--inline-source'
-    rdoc.rdoc_files.include('README')
-
-    %w(README CHANGELOG MIT-LICENSE lib/action_mailer/base.rb).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('actionmailer')}/#{file}")
+  desc 'Generate documentation for the Rails framework. Uses gem paths or the RAILS_PATH environment variable.'
+  path = ENV['RAILS_PATH']
+  unless defined?(Bundler) || (path && File.directory?(path))
+    task :rails do
+    if path
+      $stderr.puts "Skipping doc:rails, missing Rails directory at #{path}"
+    else
+      $stderr.puts "Skipping doc:rails, RAILS_PATH environment variable is not set"
     end
+  else
+    desc 'Generate documentation for the Rails framework.'
+    Rake::RDocTask.new("rails") { |rdoc|
+      rdoc.rdoc_dir = 'doc/api'
+      rdoc.template = "#{ENV['template']}.rb" if ENV['template']
+      rdoc.title    = "Rails Framework Documentation"
+      rdoc.options << '--line-numbers' << '--inline-source'
+      rdoc.rdoc_files.include('README')
 
-    %w(README CHANGELOG MIT-LICENSE lib/action_controller/**/*.rb lib/action_view/**/*.rb).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('actionpack')}/#{file}")
-    end
+      %w(README CHANGELOG MIT-LICENSE lib/action_mailer/base.rb).each do |file|
+        rdoc.rdoc_files.include("#{gem_path('actionmailer')}/#{file}")
+      end
 
-    %w(README CHANGELOG MIT-LICENSE lib/active_model/**/*.rb).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('activemodel')}/#{file}")
-    end
+      %w(README CHANGELOG MIT-LICENSE lib/action_controller/**/*.rb lib/action_view/**/*.rb).each do |file|
+        rdoc.rdoc_files.include("#{gem_path('actionpack')}/#{file}")
+      end
 
-    %w(README CHANGELOG lib/active_record/**/*.rb).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('activerecord')}/#{file}")
-    end
+      %w(README CHANGELOG MIT-LICENSE lib/active_model/**/*.rb).each do |file|
+        rdoc.rdoc_files.include("#{gem_path('activemodel')}/#{file}")
+      end
 
-    %w(README CHANGELOG lib/active_resource.rb lib/active_resource/*).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('activeresource')}/#{file}")
-    end
+      %w(README CHANGELOG lib/active_record/**/*.rb).each do |file|
+        rdoc.rdoc_files.include("#{gem_path('activerecord')}/#{file}")
+      end
 
-    %w(README CHANGELOG lib/active_support/**/*.rb).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('activesupport')}/#{file}")
-    end
+      %w(README CHANGELOG lib/active_resource.rb lib/active_resource/*).each do |file|
+        rdoc.rdoc_files.include("#{gem_path('activeresource')}/#{file}")
+      end
 
-    %w(README CHANGELOG lib/{*.rb,commands/*.rb,generators/*.rb}).each do |file|
-      rdoc.rdoc_files.include("#{gem_path('railties')}/#{file}")
-    end
-  }
+      %w(README CHANGELOG lib/active_support/**/*.rb).each do |file|
+        rdoc.rdoc_files.include("#{gem_path('activesupport')}/#{file}")
+      end
+
+      %w(README CHANGELOG lib/{*.rb,commands/*.rb,generators/*.rb}).each do |file|
+        rdoc.rdoc_files.include("#{gem_path('railties')}/#{file}")
+      end
+    }
+  end
 
   plugins = FileList['vendor/plugins/**'].collect { |plugin| File.basename(plugin) }
 
