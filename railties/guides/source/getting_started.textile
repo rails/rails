@@ -1255,8 +1255,8 @@ You'll also need to modify +views/posts/_form.html.erb+ to include the tags:
     </p>
     <% unless tag_form.object.nil? || tag_form.object.new_record? %>
       <p>
-        <%= tag_form.label :_delete, 'Remove:' %>
-        <%= tag_form.check_box :_delete %>
+        <%= tag_form.label :_destroy, 'Remove:' %>
+        <%= tag_form.check_box :_destroy %>
       </p>
     <% end %>
   <% end %>
