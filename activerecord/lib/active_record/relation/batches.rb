@@ -50,6 +50,10 @@ module ActiveRecord
     def find_in_batches(options = {})
       relation = self
 
+       if orders.present? || taken.present?
+         ActiveRecord::Base.logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
+       end
+
       if (finder_options = options.except(:start, :batch_size)).present?
         raise "You can't specify an order, it's forced to be #{batch_order}" if options[:order].present?
         raise "You can't specify a limit, it's forced to be the batch_size"  if options[:limit].present?
