@@ -133,7 +133,7 @@ h4. Configuring Action Controller
 
 * +config.action_controller.asset_host+ provides a string that is prepended to all of the URL-generating helpers in +AssetHelper+. This is designed to allow moving all javascript, CSS, and image files to a separate asset host.
 
-* +config.action_controller.asset_template_path+ allows you to override the default asset path generation by providing your own instructions.
+* +config.action_controller.asset_path+ allows you to override the default asset path generation by providing your own instructions.
 
 * +config.action_controller.consider_all_requests_local+ is generally set to +true+ during development and +false+ during production; if it is set to +true+, then any error will cause detailed debugging information to be dumped in the HTTP response. For finer-grained control, set this to +false+ and implement +local_request?+ to specify which requests should provide debugging information on errors.
 

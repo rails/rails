@@ -373,8 +373,15 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal %(<img alt="Rails" src="/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
 
+  def test_string_asset_id
+    @controller.config.asset_path = "/assets.v12345%s"
+
+    expected_path = "/assets.v12345/images/rails.png"
+    assert_equal %(<img alt="Rails" src="#{expected_path}" />), image_tag("rails.png")
+  end
+
   def test_proc_asset_id
-    @controller.config.asset_path_template = Proc.new do |asset_path|
+    @controller.config.asset_path = Proc.new do |asset_path|
       "/assets.v12345#{asset_path}"
     end
 

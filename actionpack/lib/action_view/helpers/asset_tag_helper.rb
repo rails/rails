@@ -108,7 +108,7 @@ module ActionView
     #     "http://asset%d.example.com", "https://asset1.example.com"
     #   )
     #
-    # === Using asset path templates
+    # === Customizing the asset path
     #
     # By default, Rails appends asset's timestamps to all asset paths. This allows
     # you to set a cache-expiration date for the asset far into the future, but
@@ -144,7 +144,7 @@ module ActionView
     # The easiest is to define the RAILS_ASSET_ID environment variable. The
     # contents of this variable will always be used in preference to
     # calculated timestamps. A more complex but flexible way is to set
-    # <tt>ActionController::Base.config.asset_path_template</tt> to a proc
+    # <tt>ActionController::Base.config.asset_path</tt> to a proc
     # that takes the unmodified asset path and returns the path needed for
     # your asset caching to work. Typically you'd do something like this in
     # <tt>config/environments/production.rb</tt>:
@@ -163,7 +163,7 @@ module ActionView
     #   stylesheet_link_tag("application")
     #   # => <link href="/release-12345/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
     #
-    # Changing the asset_path_template does require that your web servers have
+    # Changing the asset_path does require that your web servers have
     # knowledge of the asset template paths that you rewrite to so it's not
     # suitable for out-of-the-box use. To use the example given above you
     # could use something like this in your Apache VirtualHost configuration:
@@ -705,12 +705,7 @@ module ActionView
 
           source += ".#{ext}" if rewrite_extension?(source, dir, ext)
           source  = "/#{dir}/#{source}" unless source[0] == ?/
-          asset_path_template = config.asset_path_template
-          if asset_path_template && asset_path_template.respond_to?(:call)
-            source = asset_path_template.call(source)
-          else
-            source = rewrite_asset_path(source)
-          end
+          source = rewrite_asset_path(source, config.asset_path)
 
           has_request = controller.respond_to?(:request)
           if has_request && include_host && source !~ %r{^#{controller.config.relative_url_root}/}
@@ -774,7 +769,13 @@ module ActionView
 
         # Break out the asset path rewrite in case plugins wish to put the asset id
         # someplace other than the query string.
-        def rewrite_asset_path(source)
+        def rewrite_asset_path(source, path = nil)
+          if path && path.respond_to?(:call)
+            return path.call(source)
+          elsif path && path.is_a?(String)
+            return path % [source]
+          end
+
           asset_id = rails_asset_id(source)
           if asset_id.blank?
             source
