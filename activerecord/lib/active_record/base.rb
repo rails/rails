@@ -2223,6 +2223,7 @@ module ActiveRecord #:nodoc:
     extend QueryCache::ClassMethods
     extend ActiveSupport::Benchmarkable
 
+    include ActiveModel::Conversion
     include Validations
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
@@ -2232,12 +2233,10 @@ module ActiveRecord #:nodoc:
     include AttributeMethods::Dirty
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
-    include ActiveModel::Conversion
 
     # AutosaveAssociation needs to be included before Transactions, because we want
     # #save_with_autosave_associations to be wrapped inside a transaction.
     include AutosaveAssociation, NestedAttributes
-
     include Aggregations, Transactions, Reflection, Serialization
 
     NilClass.add_whiner(self) if NilClass.respond_to?(:add_whiner)
