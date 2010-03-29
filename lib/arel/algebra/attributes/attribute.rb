@@ -111,7 +111,11 @@ module Arel
       end
 
       def in(array)
-        Predicates::In.new(self, array)
+        if array.is_a?(Range) && array.exclude_end?
+          [Predicates::GreaterThanOrEqualTo.new(self, array.begin), Predicates::LessThan.new(self, array.end)]
+        else
+          Predicates::In.new(self, array)
+        end
       end
     end
     include Predications
