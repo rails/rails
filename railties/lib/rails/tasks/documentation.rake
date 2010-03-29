@@ -1,11 +1,6 @@
 namespace :doc do
   def gem_path(gem_name)
-    if defined? Bundler
-      @specs ||= Bundler.load.specs
-      @specs.find{|s| s.name == gem_name}.full_gem_path
-    else
-      "#{ENV['RAILS_PATH']}/#{gem_name}"
-    end
+    File.dirname($LOAD_PATH.grep(/#{gem_name}[\w\-\.]*\/lib$/).first)
   end
 
   desc "Generate documentation for the application. Set custom template with TEMPLATE=/path/to/rdoc/template.rb or title with TITLE=\"Custom Title\""
