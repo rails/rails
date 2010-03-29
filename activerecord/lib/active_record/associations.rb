@@ -2031,7 +2031,7 @@ module ActiveRecord
                   [aliased_table[foreign_key].eq(parent_table[reflection.options[:primary_key] || parent.primary_key])]
                 end
               when :belongs_to
-                [aliased_table[reflection.klass.primary_key].eq(parent_table[options[:foreign_key] || reflection.primary_key_name])]
+                [aliased_table[options[:primary_key] || reflection.klass.primary_key].eq(parent_table[options[:foreign_key] || reflection.primary_key_name])]
               end
 
               unless klass.descends_from_active_record?

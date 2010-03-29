@@ -32,6 +32,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:first_firm).name, client.firm_with_primary_key.name
   end
 
+  def test_belongs_to_with_primary_key_joins_on_correct_column
+    sql = Client.joins(:firm_with_primary_key).to_sql
+    assert_no_match /"firm_with_primary_keys_companies"\."id"/, sql
+    assert_match /"firm_with_primary_keys_companies"\."name"/, sql
+  end
+
   def test_proxy_assignment
     account = Account.find(1)
     assert_nothing_raised { account.firm = account.firm }
@@ -59,6 +65,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     citibank = Client.create("name" => "Primary key client")
     citibank.firm_with_primary_key = apple
     assert_equal apple.name, citibank.firm_name
+  end
+
+  def test_eager_loading_with_primary_key
+    apple = Firm.create("name" => "Apple")
+    citibank = Client.create("name" => "Citibank", :firm_name => "Apple")
+    citibank_result = Client.find(:first, :conditions => {:name => "Citibank"}, :include => :firm_with_primary_key)
+    assert_not_nil citibank_result.instance_variable_get("@firm_with_primary_key")
   end
 
   def test_no_unexpected_aliasing
