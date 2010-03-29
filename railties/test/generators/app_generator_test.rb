@@ -37,11 +37,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
       public/javascripts
       public/stylesheets
       script/rails
-      test/controllers
       test/fixtures
-      test/helpers
-      test/models
+      test/functional
+      test/integration
       test/performance
+      test/unit
       vendor
       vendor/plugins
       tmp/sessions

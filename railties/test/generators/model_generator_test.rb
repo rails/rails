@@ -153,7 +153,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/models/account_test.rb", /class AccountTest < ActiveSupport::TestCase/
+    assert_file "test/unit/account_test.rb", /class AccountTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/accounts.yml", /name: MyString/, /age: 1/
   end
 

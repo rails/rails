@@ -11,7 +11,7 @@ module TestUnit
 
       def create_test_files
         template 'functional_test.rb',
-                 File.join('test/controllers', controller_class_path, "#{controller_file_name}_controller_test.rb")
+                 File.join('test/functional', controller_class_path, "#{controller_file_name}_controller_test.rb")
       end
     end
   end

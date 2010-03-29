@@ -40,7 +40,7 @@ end
 
 desc 'Run all unit, functional and integration tests'
 task :test do
-  errors = %w(test:models test:controllers test:helpers).collect do |task|
+  errors = %w(test:units test:functionals test:integration).collect do |task|
     begin
       Rake::Task[task].invoke
       nil
@@ -55,10 +55,8 @@ namespace :test do
   Rake::TestTask.new(:recent => "db:test:prepare") do |t|
     since = TEST_CHANGES_SINCE
     touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
-      recent_tests('app/models/**/*.rb', 'test/models', since) +
-      recent_tests('app/models/**/*_observer.rb', 'test/observers', since) +
-      recent_tests('app/controllers/**/*.rb', 'test/controllers', since) +
-      recent_tests('app/helpers/**/*.rb', 'test/helpers', since)
+      recent_tests('app/models/**/*.rb', 'test/unit', since) +
+      recent_tests('app/controllers/**/*.rb', 'test/functional', since)
 
     t.libs << 'test'
     t.test_files = touched.uniq
@@ -76,39 +74,35 @@ namespace :test do
       end
 
       models      = changed_since_checkin.select { |path| path =~ /app[\\\/]models[\\\/].*\.rb$/ }
-      observers   = changed_since_checkin.select { |path| path =~ /app[\\\/]models[\\\/].*_observer\.rb$/ }
       controllers = changed_since_checkin.select { |path| path =~ /app[\\\/]controllers[\\\/].*\.rb$/ }
-      helpers     = changed_since_checkin.select { |path| path =~ /app[\\\/]helpers[\\\/].*\.rb$/ }
 
-      model_tests      = models.map { |model| "test/models/#{File.basename(model, '.rb')}_test.rb" }
-      observer_tests   = observers.map { |observer| "test/observers/#{File.basename(observer, '.rb')}_test.rb" }
-      controller_tests = controllers.map { |controller| "test/controllers/#{File.basename(controller, '.rb')}_test.rb" }
-      helper_tests     = helpers.map { |helper| "test/helpers/#{File.basename(helper, '.rb')}_test.rb" }
+      unit_tests       = models.map { |model| "test/unit/#{File.basename(model, '.rb')}_test.rb" }
+      functional_tests = controllers.map { |controller| "test/functional/#{File.basename(controller, '.rb')}_test.rb" }
 
-      (model_tests + observer_tests + controller_tests + helper_tests).uniq
+      unit_tests.uniq + functional_tests.uniq
     end
 
     t.libs << 'test'
   end
   Rake::Task['test:uncommitted'].comment = "Test changes since last checkin (only Subversion and Git)"
 
-  Rake::TestTask.new(:models => "db:test:prepare") do |t|
+  Rake::TestTask.new(:units => "db:test:prepare") do |t|
     t.libs << "test"
-    t.pattern = ['test/models/**/*_test.rb', 'test/observers/**/*_test.rb']
+    t.pattern = 'test/unit/**/*_test.rb'
   end
-  Rake::Task['test:models'].comment = "Run the unit tests in test/models and test/observers"
+  Rake::Task['test:units'].comment = "Run the unit tests in test/unit"
 
-  Rake::TestTask.new(:controllers => "db:test:prepare") do |t|
+  Rake::TestTask.new(:functionals => "db:test:prepare") do |t|
     t.libs << "test"
-    t.pattern = 'test/controllers/**/*_test.rb'
+    t.pattern = 'test/functional/**/*_test.rb'
   end
-  Rake::Task['test:controllers'].comment = "Run the functional and integration tests in test/controllers"
+  Rake::Task['test:functionals'].comment = "Run the functional tests in test/functional"
 
-  Rake::TestTask.new(:helpers => "db:test:prepare") do |t|
+  Rake::TestTask.new(:integration => "db:test:prepare") do |t|
     t.libs << "test"
-    t.pattern = 'test/helpers/**/*_test.rb'
+    t.pattern = 'test/integration/**/*_test.rb'
   end
-  Rake::Task['test:helpers'].comment = "Run the unit tests in test/helpers"
+  Rake::Task['test:integration'].comment = "Run the integration tests in test/integration"
 
   Rake::TestTask.new(:benchmark => 'db:test:prepare') do |t|
     t.libs << 'test'

@@ -54,7 +54,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_helper_are_invoked_with_a_pluralized_name
     run_generator
     assert_file "app/helpers/users_helper.rb", /module UsersHelper/
-    assert_file "test/helpers/users_helper_test.rb", /class UsersHelperTest < ActionView::TestCase/
+    assert_file "test/unit/helpers/users_helper_test.rb", /class UsersHelperTest < ActionView::TestCase/
   end
 
   def test_views_are_generated
@@ -72,7 +72,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_functional_tests
     run_generator
 
-    assert_file "test/controllers/users_controller_test.rb" do |content|
+    assert_file "test/functional/users_controller_test.rb" do |content|
       assert_match /class UsersControllerTest < ActionController::TestCase/, content
       assert_match /test "should get index"/, content
     end
@@ -85,7 +85,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_no_match /def index/, content
     end
 
-    assert_file "test/controllers/users_controller_test.rb" do |content|
+    assert_file "test/functional/users_controller_test.rb" do |content|
       assert_no_match /test "should get index"/, content
     end
 
@@ -95,7 +95,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_skip_helper_if_required
     run_generator ["User", "name:string", "age:integer", "--no-helper"]
     assert_no_file "app/helpers/users_helper.rb"
-    assert_no_file "test/helpers/users_helper_test.rb"
+    assert_no_file "test/unit/helpers/users_helper_test.rb"
   end
 
   def test_skip_layout_if_required
