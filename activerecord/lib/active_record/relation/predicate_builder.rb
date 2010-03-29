@@ -27,12 +27,7 @@ module ActiveRecord
             values = value.to_a
             attribute.in(values)
           when Range
-            # TODO : Arel should handle ranges with excluded end.
-            if value.exclude_end?
-              [attribute.gteq(value.begin), attribute.lt(value.end)]
-            else
-              attribute.in(value)
-            end
+            attribute.in(value)
           else
             attribute.eq(value)
           end
