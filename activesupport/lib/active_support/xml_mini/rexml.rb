@@ -27,7 +27,13 @@ module ActiveSupport
         data.ungetc(char)
         silence_warnings { require 'rexml/document' } unless defined?(REXML::Document)
         doc = REXML::Document.new(data)
-        merge_element!({}, doc.root)
+
+        if doc.root
+          merge_element!({}, doc.root)
+        else
+          raise REXML::ParseException,
+            "The document #{doc.to_s.inspect} does not have a valid root"
+        end
       end
     end
 
