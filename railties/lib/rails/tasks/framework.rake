@@ -17,7 +17,7 @@ namespace :rails do
   end
 
   desc "Update both configs, scripts and public/javascripts from Rails"
-  task :update => [ "update:configs", "update:javascripts", "update:scripts", "update:application_controller" ]
+  task :update => [ "update:configs", "update:javascripts", "update:scripts", "update:application_controller", "update:test_directory" ]
 
   desc "Applies the template supplied by LOCATION=/path/to/template"
   task :template do
@@ -71,6 +71,51 @@ namespace :rails do
         FileUtils.mv(old_style, new_style)
         puts "#{old_style} has been renamed to #{new_style}, update your SCM as necessary"
       end
+    end
+
+    desc "Move test directories to new locations"
+    task :test_directory do
+      if File.exists?(Rails.root.join('test'))
+        FileUtils.mkdir(Rails.root.join('test/controllers')) unless File.exists?(Rails.root.join('test/controllers'))
+        [Rails.root.join('test/functional'), Rails.root.join('test/integration')].each do |controller_test_dir|
+          if File.exists?(controller_test_dir)
+            puts "#{controller_test_dir} exists"
+            FileUtils.mv(Dir["#{controller_test_dir}/**/*"], Rails.root.join('test/controllers'), :force => true)
+            FileUtils.rm_rf(controller_test_dir)
+          end
+        end
+
+        if File.exists?(Rails.root.join('test/unit/helpers'))
+          FileUtils.mkdir(Rails.root.join('test/helpers')) unless File.exists?(Rails.root.join('test/helpers'))
+          FileUtils.mv(Dir[Rails.root.join('test/unit/helpers/**/*')], Rails.root.join('test/helpers'), :force => true)
+        else
+          unless File.exists?(Rails.root.join('test/helpers'))
+            FileUtils.mkdir(Rails.root.join('test/helpers'))
+          end
+        end
+        
+        if File.exists?(Rails.root.join('test/unit'))
+          observer_tests = "#{Rails.root}/test/unit/**/*_observer_test.rb"
+          unless observer_tests.empty?
+            FileUtils.mkdir(Rails.root.join('test/observers')) unless File.exists?(Rails.root.join('test/observers'))
+            FileUtils.mv(observer_tests, Rails.root.join('test/observers'), :force => true)
+          end
+          FileUtils.mkdir(Rails.root.join('test/models')) unless File.exists?(Rails.root.join('test/models'))
+          FileUtils.mv(Dir[Rails.root.join('test/unit/*')], Rails.root.join('test/models'), :force => true)
+          FileUtils.rm_rf(Rails.root.join('test/unit'))
+        end
+      end
+      
+      puts <<-TEST
+      
+      All test directories have been updated:
+      
+      test/functional                   ->      test/controllers
+      test/functional                   ->      test/controllers
+      test/unit/helpers                 ->      test/helpers
+      test/unit/**/*_observer_test.rb   ->      test/observers
+      test/unit                         ->      test/models
+      TEST
     end
   end
 end

@@ -1,5 +1,7 @@
 *Edge*
 
+* Reorganized app/test directory. Run rake update:test_directory to reorganize your apps [Rizwan Reza]
+
 * Added "rake about" as a replacement for script/about [DHH]
 
 * Removed all the default commands in script/* and replaced them with script/rails and a rails command that'll act the same when run from within the app [DHH]. Example:

@@ -12,7 +12,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Model
     assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
-    assert_file "test/unit/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
+    assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
     assert_migration "db/migrate/create_product_lines.rb"
 
@@ -59,7 +59,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_file "test/functional/product_lines_controller_test.rb",
+    assert_file "test/controllers/product_lines_controller_test.rb",
                 /class ProductLinesControllerTest < ActionController::TestCase/
 
     # Views
@@ -74,7 +74,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_file "app/helpers/product_lines_helper.rb"
-    assert_file "test/unit/helpers/product_lines_helper_test.rb"
+    assert_file "test/helpers/product_lines_helper_test.rb"
 
     # Stylesheets
     assert_file "public/stylesheets/scaffold.css"
@@ -86,7 +86,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Model
     assert_no_file "app/models/product_line.rb"
-    assert_no_file "test/unit/product_line_test.rb"
+    assert_no_file "test/models/product_line_test.rb"
     assert_no_file "test/fixtures/product_lines.yml"
     assert_no_migration "db/migrate/create_product_lines.rb"
 
@@ -97,7 +97,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Controller
     assert_no_file "app/controllers/product_lines_controller.rb"
-    assert_no_file "test/functional/product_lines_controller_test.rb"
+    assert_no_file "test/controllers/product_lines_controller_test.rb"
 
     # Views
     assert_no_file "app/views/product_lines"
@@ -105,7 +105,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_no_file "app/helpers/product_lines_helper.rb"
-    assert_no_file "test/unit/helpers/product_lines_helper_test.rb"
+    assert_no_file "test/helpers/product_lines_helper_test.rb"
 
     # Stylesheets (should not be removed)
     assert_file "public/stylesheets/scaffold.css"
