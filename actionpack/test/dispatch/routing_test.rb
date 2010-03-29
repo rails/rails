@@ -113,7 +113,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       resources :posts, :only => [:index, :show] do
         resources :comments, :except => :destroy
       end
-      
+
       resources :sheep
 
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
@@ -532,11 +532,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_raise(ActionController::RoutingError) { delete '/posts/1/comments' }
     end
   end
-  
+
   def test_resources_for_uncountable_names
     with_test_routes do
       assert_equal '/sheep', sheep_index_path
       assert_equal '/sheep/1', sheep_path(1)
+      assert_equal '/sheep/new', new_sheep_path
+      assert_equal '/sheep/1/edit', edit_sheep_path(1)
     end
   end
 

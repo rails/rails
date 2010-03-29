@@ -425,10 +425,11 @@ module ActionDispatch
             singular
           end
 
+          # Checks for uncountable plurals, and appends "_index" if they're.
           def collection_name
             uncountable? ? "#{plural}_index" : plural
           end
-          
+
           def uncountable?
             singular == plural
           end
