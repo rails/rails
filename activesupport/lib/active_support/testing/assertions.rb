@@ -67,6 +67,13 @@ module ActiveSupport
       def assert_blank(object)
         assert object.blank?, "#{object.inspect} is not blank"
       end
+      
+      # Test if an expression is not blank. Passes if object.present? is true.
+      #
+      #   assert_present {:data => 'x' } # => true
+      def assert_present(object)
+        assert object.present?, "#{object.inspect} is blank"
+      end
     end
   end
 end
