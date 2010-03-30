@@ -430,3 +430,50 @@ class MetalIntegrationTest < ActionController::IntegrationTest
     assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
   end
 end
+
+class ApplicationIntegrationTest < ActionController::IntegrationTest
+  class TestController < ActionController::Base
+    def index
+      render :text => "index"
+    end
+  end
+
+  def self.call(env)
+    routes.call(env)
+  end
+
+  def self.routes
+    @routes ||= ActionDispatch::Routing::RouteSet.new
+  end
+
+  routes.draw do
+    match 'foo', :to => 'application_integration_test/test#index', :as => :foo
+    match 'bar', :to => 'application_integration_test/test#index', :as => :bar
+  end
+
+  def app
+    self.class
+  end
+
+  test "includes route helpers" do
+    assert_equal '/foo', foo_path
+    assert_equal '/bar', bar_path
+  end
+
+  test "route helpers after controller access" do
+    get '/foo'
+    assert_equal '/foo', foo_path
+
+    get '/bar'
+    assert_equal '/bar', bar_path
+  end
+
+  test "missing route helper before controller access" do
+    assert_raise(NameError) { missing_path }
+  end
+
+  test "missing route helper after controller access" do
+    get '/foo'
+    assert_raise(NameError) { missing_path }
+  end
+end

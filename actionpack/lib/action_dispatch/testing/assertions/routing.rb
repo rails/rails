@@ -168,7 +168,7 @@ module ActionDispatch
 
       # ROUTES TODO: These assertions should really work in an integration context
       def method_missing(selector, *args, &block)
-        if @controller && @router.named_routes.helpers.include?(selector)
+        if @controller && @router && @router.named_routes.helpers.include?(selector)
           @controller.send(selector, *args, &block)
         else
           super
