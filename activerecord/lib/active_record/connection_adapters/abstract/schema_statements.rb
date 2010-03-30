@@ -291,7 +291,7 @@ module ActiveRecord
       # Remove the index named by_branch_party in the accounts table.
       #   remove_index :accounts, :name => :by_branch_party
       def remove_index(table_name, options = {})
-        execute "DROP INDEX #{quote_column_name(index_name(table_name, options))} ON #{table_name}"
+        execute "DROP INDEX #{quote_column_name(index_name(table_name, options))} ON #{quote_table_name(table_name)}"
       end
 
       def index_name(table_name, options) #:nodoc:
