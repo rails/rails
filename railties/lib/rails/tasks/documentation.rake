@@ -1,6 +1,10 @@
 namespace :doc do
   def gem_path(gem_name)
-    File.dirname($LOAD_PATH.grep(/#{gem_name}[\w\-\.]*\/lib$/).first)
+    path = $LOAD_PATH.grep(/#{gem_name}[\w\-\.]*\/lib$/).first
+
+    if path
+      yield File.dirname(path)
+    end
   end
 
   desc "Generate documentation for the application. Set custom template with TEMPLATE=/path/to/rdoc/template.rb or title with TITLE=\"Custom Title\""
@@ -26,32 +30,46 @@ namespace :doc do
       rdoc.options << '--line-numbers' << '--inline-source'
       rdoc.rdoc_files.include('README')
 
-      %w(README CHANGELOG MIT-LICENSE lib/action_mailer/base.rb).each do |file|
-        rdoc.rdoc_files.include("#{gem_path('actionmailer')}/#{file}")
+      gem_path('actionmailer') do |actionmailer|
+        %w(README CHANGELOG MIT-LICENSE lib/action_mailer/base.rb).each do |file|
+          rdoc.rdoc_files.include("#{actionmailer}/#{file}")
+        end
       end
 
-      %w(README CHANGELOG MIT-LICENSE lib/action_controller/**/*.rb lib/action_view/**/*.rb).each do |file|
-        rdoc.rdoc_files.include("#{gem_path('actionpack')}/#{file}")
+      gem_path('actionpack') do |actionpack|
+        %w(README CHANGELOG MIT-LICENSE lib/action_controller/**/*.rb lib/action_view/**/*.rb).each do |file|
+          rdoc.rdoc_files.include("#{actionpack}/#{file}")
+        end
       end
 
-      %w(README CHANGELOG MIT-LICENSE lib/active_model/**/*.rb).each do |file|
-        rdoc.rdoc_files.include("#{gem_path('activemodel')}/#{file}")
+      gem_path('activemodel') do |activemodel|
+        %w(README CHANGELOG MIT-LICENSE lib/active_model/**/*.rb).each do |file|
+          rdoc.rdoc_files.include("#{activemodel}/#{file}")
+        end
       end
 
-      %w(README CHANGELOG lib/active_record/**/*.rb).each do |file|
-        rdoc.rdoc_files.include("#{gem_path('activerecord')}/#{file}")
+      gem_path('activerecord') do |activerecord|
+        %w(README CHANGELOG lib/active_record/**/*.rb).each do |file|
+          rdoc.rdoc_files.include("#{activerecord}/#{file}")
+        end
       end
 
-      %w(README CHANGELOG lib/active_resource.rb lib/active_resource/*).each do |file|
-        rdoc.rdoc_files.include("#{gem_path('activeresource')}/#{file}")
+      gem_path('activeresource') do |activeresource|
+        %w(README CHANGELOG lib/active_resource.rb lib/active_resource/*).each do |file|
+          rdoc.rdoc_files.include("#{activeresource}/#{file}")
+        end
       end
 
-      %w(README CHANGELOG lib/active_support/**/*.rb).each do |file|
-        rdoc.rdoc_files.include("#{gem_path('activesupport')}/#{file}")
+      gem_path('activesupport') do |activesupport|
+        %w(README CHANGELOG lib/active_support/**/*.rb).each do |file|
+          rdoc.rdoc_files.include("#{activesupport}/#{file}")
+        end
       end
 
-      %w(README CHANGELOG lib/{*.rb,commands/*.rb,generators/*.rb}).each do |file|
-        rdoc.rdoc_files.include("#{gem_path('railties')}/#{file}")
+      gem_path('railties') do |railties|
+        %w(README CHANGELOG lib/{*.rb,commands/*.rb,generators/*.rb}).each do |file|
+          rdoc.rdoc_files.include("#{railties}/#{file}")
+        end
       end
     }
   else
