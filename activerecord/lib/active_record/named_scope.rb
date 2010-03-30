@@ -167,7 +167,14 @@ module ActiveRecord
       end
 
       def ==(other)
-        other.respond_to?(:to_ary) ? to_a == other.to_a : false
+        case other
+        when Scope
+          to_sql == other.to_sql
+        when Relation
+          other == self
+        when Array
+          to_a == other.to_a
+        end
       end
 
       private
