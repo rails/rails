@@ -35,7 +35,7 @@ share_examples_for 'A Relation' do
       @relation.where(@relation[:age].eq(@pivot[@relation[:age]])).should have_rows(expected)
     end
 
-    it "finds rows with a not predicate" do
+    it "finds rows with a noteq predicate" do
       expected = @expected.select { |r| r[@relation[:age]] != @pivot[@relation[:age]] }
       @relation.where(@relation[:age].noteq(@pivot[@relation[:age]])).should have_rows(expected)
     end
@@ -60,17 +60,40 @@ share_examples_for 'A Relation' do
       @relation.where(@relation[:age].gteq(@pivot[@relation[:age]])).should have_rows(expected)
     end
 
-    it "finds rows with a matches predicate"
-    
-    it "finds rows with a not matches predicate"
-
-    it "finds rows with an in predicate" do
-      pending
-      set = @expected[1..(@expected.length/2+1)]
-      @relation.all(:id.in => set.map { |r| r.id }).should have_resources(set)
+    it "finds rows with a matches predicate" do
+      expected = @expected.select { |r| r[@relation[:name]] =~ /#{@pivot[@relation[:name]]}/ }
+      @relation.where(@relation[:name].matches(/#{@pivot[@relation[:name]]}/)).should have_rows(expected)
     end
     
-    it "finds rows with a not in predicate"
+    it "finds rows with a not matches predicate" do
+      expected = @expected.select { |r| r[@relation[:name]] !~ /#{@pivot[@relation[:name]]}/ }
+      @relation.where(@relation[:name].notmatches(/#{@pivot[@relation[:name]]}/)).should have_rows(expected)
+    end
+
+    it "finds rows with an in predicate" do
+      expected = @expected.select {|r| r[@relation[:age]] >=3 && r[@relation[:age]] <= 20}
+      @relation.where(@relation[:age].in(3..20)).should have_rows(expected)
+    end
+    
+    it "finds rows with a not in predicate" do
+      expected = @expected.select {|r| !(r[@relation[:age]] >=3 && r[@relation[:age]] <= 20)}
+      @relation.where(@relation[:age].notin(3..20)).should have_rows(expected)
+    end
+    
+    it "finds rows with a not predicate" do
+      expected = @expected.select {|r| !(r[@relation[:age]] >= 3 && r[@relation[:age]] <= 20)}
+      @relation.where(@relation[:age].in(3..20).not).should have_rows(expected)
+    end
+    
+    it "finds rows with a grouped predicate of class Any" do
+      expected = @expected.select {|r| [2,4,8,16].include?(r[@relation[:age]])}
+      @relation.where(@relation[:age].in_any([2,4], [8, 16])).should have_rows(expected)
+    end
+    
+    it "finds rows with a grouped predicate of class All" do
+      expected = @expected.select {|r| r[@relation[:name]] =~ /Name/ && r[@relation[:name]] =~ /1/}
+      @relation.where(@relation[:name].matches_all(/Name/, /1/)).should have_rows(expected)
+    end
   end
 
   describe "#order" do

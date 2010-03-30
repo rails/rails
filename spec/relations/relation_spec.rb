@@ -14,7 +14,7 @@ describe "Arel" do
 
   describe "Relation" do
     before :all do
-      @expected = (1..20).map { |i| @relation.insert([i, nil, 2 * i]) }
+      @expected = (1..20).map { |i| @relation.insert([i, "Name#{i}", 2 * i]) }
     end
 
     it_should_behave_like 'A Relation'

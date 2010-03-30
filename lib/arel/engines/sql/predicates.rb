@@ -30,11 +30,11 @@ module Arel
       def predicate_sql; "AND" end
     end
     
-    class GroupedPredicate < Grouped
+    class GroupedPredicate < Polyadic
       def to_sql(formatter = nil)
         "(" + 
-          operands2.inject([]) { |predicates, operand|
-            predicates << operator.new(operand1, operand).to_sql
+          additional_operands.inject([]) { |predicates, operand|
+            predicates << operator.new(operand1, operand).to_sql(formatter)
           }.join(" #{predicate_sql} ") +
         ")"
       end

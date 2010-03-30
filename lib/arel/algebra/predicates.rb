@@ -14,19 +14,28 @@ module Arel
       end
     end
     
-    class Grouped < Predicate
-      attributes :operator, :operand1, :operands2
+    class Polyadic < Predicate
+      attributes :operator, :operand1, :additional_operands
       
-      def initialize(operator, operand1, *operands2)
+      def initialize(operator, operand1, *additional_operands)
         @operator = operator
         @operand1 = operand1
-        @operands2 = operands2.uniq
+        @additional_operands = additional_operands.uniq
       end
       
       def ==(other)
         self.class === other          and
+        @operator  ==  operator       and
         @operand1  ==  other.operand1 and
-        same_elements?(@operands2, other.operands2)
+        same_elements?(@additional_operands, other.additional_operands)
+      end
+      
+      def bind(relation)
+        self.class.new(
+          operator,
+          operand1.find_correlate_in(relation),
+          *additional_operands.map {|o| o.find_correlate_in(relation)}
+        )
       end
       
       private
@@ -43,6 +52,10 @@ module Arel
     class Unary < Predicate
       attributes :operand
       deriving :initialize, :==
+      
+      def bind(relation)
+        self.class.new(operand.find_correlate_in(relation))
+      end
     end
 
     class Binary < Predicate
