@@ -9,9 +9,7 @@ endprologue.
 
 This guide first describes the process of +rails server+ then explains the Passenger + Rack method, before delving into the common initialize pattern these two go through.
 
-h2. The Boot Process
-
-h3. +rails server+
+h3. Launch!
 
 As of Rails 3, +script/server+ has become +rails server+. This was done to centralise all rails related commands to one common file.
 
@@ -53,7 +51,7 @@ Before we dive into what _config/boot.rb_ encompasses, we'll just glimpse at wha
 
 Passenger will require _config/environment.rb_ by way of its +PhusionPassenger::Railz::ApplicationSpawner#preload_application+ method. _config/environment.rb_ requires _config/application.rb_ which requires _config/boot.rb_. That's how the Rails boot process begins with Passenger in a nutshell.
 
-h2. _config/boot.rb_
+h3. _config/boot.rb_
 
 _config/boot.rb_ is the first stop for everything for initializing your application. This boot process does quite a bit of work for you and so this section attempts to go in-depth enough to explain what each of the pieces does.
 
@@ -205,9 +203,7 @@ If you'd still like to use the old school method of using a frozen Rails you may
   # require 'rubygems'
 </ruby>
 
-
-
-h2. Requiring Rails
+h3. Requiring Rails
 
 The final non-commented line in _config/boot.rb_, +require rails/all+, does exactly that: requires all of Rails. If you'd like a certain gem to not be required, you may comment out or remove this line and uncomment the last 6 lines and pick-and-choose which you want to be included. If for example you didn't want to include ActiveResource the final lines of your _config/boot.rb_ would look like this:
 
@@ -249,7 +245,7 @@ This file (_railties/lib/rails.rb_) requires the very, very basics that Rails ne
   require 'rails/application'
   require 'rails/version'
   require 'rails/deprecation'
-  require 'rails/subscriber'
+  require 'rails/log_subscriber'
   require 'rails/ruby_version_check'
 
   require 'active_support/railtie'
@@ -509,9 +505,11 @@ h3. +require 'rails/deprecation'+
 
 This sets up a couple of familiar constants: +RAILS_ENV+, +RAILS_ROOT+ and +RAILS_DEFAULT_LOGGER+ to still be usable, but raise a deprecation warning when they are. Their alternatives (explained previously) are now +Rails.env+, +Rails.root+ and +Rails.logger+ respectively.
 
-h3. +require 'rails/subscriber'+
+h3. +require 'rails/log_subscriber'+
 
-TODO: Explain Rails 3 subscribers. They appear to be a system outside the scope of Rails that is notified when certain events happen. The documentation explains it, but really need to see it in a larger context to make sense of what this does.
+The +Rails::LogSubscriber+ provides a central location for logging in Rails 3 so as to not slow down the main thread. When you call one of the logging methods (+info+, +debug+, +warn+, +error+, +fatal+ or +unknown+) from the +Rails::LogSubscriber+ class or one of its subclasses this will notify the Rails logger to log this call in the fashion you specify, but will not write it to the file. The file writing is done at the end of the request, courtesy of the +Rails::Rack::Logger+ middleware. 
+
+Each Railtie defines its own class that descends from +Rails::LogSubscriber+ with each defining its own methods for logging individual tasks.
 
 h3. +require 'rails/ruby_version_check'+
 
@@ -705,7 +703,7 @@ Inside the ActiveRecord Railtie the +ActiveRecord::Railtie+ class is defined:
   end
 </ruby>
 
-TODO: LogSubscriber, what does this do?
+TODO: Explain the logger.
 
 By doing this the +ActiveRecord::Railtie+ class gains access to the methods contained within +Rails::Railtie+ such as +rake_tasks+, +log_subscriber+ and +initiailizer+, all of which the Railtie is using in this case. The initializers defined here are:
 
@@ -718,7 +716,9 @@ By doing this the +ActiveRecord::Railtie+ class gains access to the methods cont
 * active_record.load_observers
 * active_record.set_dispatch_hooks
 
-As with the engine initializers, these are explained later. 
+As with the engine initializers, these are explained later.
+
+h4. +require 'active_record/_
 
 
 h3. ActiveModel Railtie
@@ -1002,6 +1002,24 @@ This re-opens the +ActiveSupport::Deprecation+ module which was already defined 
   require 'active_support/deprecation/proxy_wrappers'
 </ruby>
 
+The remainder of this file goes about setting up the +silenced+ and +debug+ accessors:
+
+<ruby>
+  module ActiveSupport
+    module Deprecation #:nodoc:
+      class << self
+        # The version the deprecated behavior will be removed, by default.
+        attr_accessor :deprecation_horizon
+      end
+      self.deprecation_horizon = '3.0'
+
+      # By default, warnings are not silenced and debugging is off.
+      self.silenced = false
+      self.debug = false
+    end
+  end
+</ruby>
+
 h4. +require "active_support/deprecation/behaviors"+
 
 This sets up some default behavior for the warnings raised by +ActiveSupport::Deprecation+, defining different ones for _development_ and _test_ and nothing for production, as we never want deprecation warnings in production:
@@ -1042,6 +1060,52 @@ This file also defines a +silence+ method on the module also which you can pass 
 </ruby>
 
 TODO: may have to correct this example.
+
+h4. +require 'active_support/deprecation/method_wrappers'+
+
+This file defines a class method on +ActiveSupport::Deprecation+ called +deprecate_methods+. This method is used in _activesupport/lib/active_support/core_ext/module/deprecation.rb_ to allow you to declare deprecated methods on modules:
+
+<ruby>
+  class Module
+    # Declare that a method has been deprecated.
+    #   deprecate :foo
+    #   deprecate :bar => 'message'
+    #   deprecate :foo, :bar, :baz => 'warning!', :qux => 'gone!'
+    def deprecate(*method_names)
+      ActiveSupport::Deprecation.deprecate_methods(self, *method_names)
+    end
+  end
+</ruby>
+
+h4. +require 'action_controller/railtie'+
+
+Inside +ActionController::Railtie+ there are another two requires:
+
+<ruby>
+  require "action_controller/railties/log_subscriber"
+  require "action_controller/railties/url_helpers"
+</ruby>
+
+
+h4. +require 'action_controller/railties/log_subscriber'+
+
++ActionController::Railties::LogSubscriber+ inherits from +Rails::LogSubscriber+ and defines methods for logging such things as action processing and file sending.
+
+h4. +require 'action_controller/railties/url_helpers'+
+
+This file defines a +with+ method on +ActionController::Railtie::UrlHelpers+ which is later used in the +action_controller.url_helpers+ initializer. For more information see the +action_controller.url_helpers+ initializer section.
+
+h4. ActionController Railtie
+
+After these requires it deprecates a couple of ex-ActionController methods and points whomever references them to their ActionDispatch equivalents. These methods are +session+, +session=+, +session_store+ and +session_store=+.
+
+After the deprecations, Rails defines the +log_subscriber+ to be a new instance of +ActionController::Railties::LogSubscriber+ and then go about defining the following initializers, keeping in mind that these are added to the list of initializers defined before hand:
+
+* action_controller.logger
+* action_controller.set_configs
+* action_controller.initialize_framework_caches
+* action_controller.set_helpers_path
+* action_controller.url_helpers
 
 h3. ActionView Railtie
 
@@ -1291,7 +1355,7 @@ For more information see the ActiveSupport Extensions guide TODO: link to releva
 
 And "the REXML security fix detailed here":[http://weblog.rubyonrails.org/2008/8/23/dos-vulnerabilities-in-rexml]
 
-h2. Firing it up!
+h3. Firing it up!
 
 Now that we've covered the boot process of Rails the next line best to cover would be what happens after _script/rails_ has loaded _config/boot.rb_. That's quite simply that it then +require 'rails/commands'+ which is located at _railties/lib/rails/commands.rb_. Remember how +exec+ passed the arguments to +script/rails+? This is where they're used. _rails/commands.rb_ is quite a large file in Rails 3, as it contains all the Rails commands like console, about, generate and, of course, server. Because we've called +rails server+ the first argument in +ARGV+ is of course +"server"+. So assuming this we can determine that the +ARGV.shift+ in _commands.rb_ is going to return +"server"+, therefore it'll match this +when+:
 
@@ -1528,7 +1592,7 @@ As you can see, there's a require in here for _config/application.rb_, and this 
 These options (and their siblings) are explained in a later section. What's important to note for this file currently is that this is where the +YourApp::Application+ class is initialized and that it's a subclass of +Rails::Application+. This is the first point where your application begins to initialize Rails and as you can see all of this is configuration stuff which your initializers and really, the rest of your application will depend on. These options and what they do will be covered later.
 
 
-h2. Rails Initialization Process
+h3. Rails Initialization Process
 
 Now begins the actual initialization of Rails. Previously we have covered how _rails server_ and Passenger get to this stage and the parts of Rails that they have both loaded.
 
@@ -2903,10 +2967,7 @@ This class is subclassed from +WEBrick::HTTPServlet::AbstractServlet+ which is a
 
 +Rack::Server+ has handlers for the request and by default the handler for a _rails server_ server is 
 
-h4. Passenger
-
-
-h2. Cruft!
+h3. Cruft!
 
 The final line of _config/environment.rb_:
 
@@ -2966,7 +3027,7 @@ Since we have default options, the server is obviously going to be +Rack::Handle
   end
 </ruby>
 
-h2. +Rails::Paths+
+h3. +Rails::Paths+
 
 
 The +super+ method it references comes from +Rails::Engine::Configuration+ which defines these paths:
