@@ -333,6 +333,12 @@ uses_memcached 'memcached backed store' do
       assert_equal 'bat', @cache.read('baz')
       assert_equal nil, @cache.read('foo')
     end
+
+    def test_delete_should_only_pass_key_to_data
+      key = 'foo'
+      @data.expects(:delete).with(key)
+      @cache.delete(key)
+    end
   end
 
   class CompressedMemCacheStore < ActiveSupport::TestCase

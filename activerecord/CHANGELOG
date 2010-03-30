@@ -1,9 +1,11 @@
-*Edge*
+*Rails 3.0.0 [Beta 2] (pending)*
+
+* To prefix the table names of all models in a module, define self.table_name_prefix on the module.  #4032 [Andrew White]
 
 * Silenced "SHOW FIELDS" and "SET SQL_AUTO_IS_NULL=0" statements from the MySQL driver to improve log signal to noise ration in development [DHH]
 
 
-*Rails 3.0 [Beta] (February 4th, 2010)*
+*Rails 3.0.0 [Beta 1] (February 4th, 2010)*
 
 * PostgreSQLAdapter: set time_zone to UTC when Base.default_timezone == :utc so that Postgres doesn't incorrectly offset-adjust values inserted into TIMESTAMP WITH TIME ZONE columns. #3777 [Jack Christensen]
 

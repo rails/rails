@@ -76,8 +76,8 @@ module ActionController
     # method that replaces all characters that are invalid inside DOM ids, with valid ones. You need to
     # make sure yourself that your dom ids are valid, in case you overwrite this method.
     def record_key_for_dom_id(record)
-      return record.id unless record.respond_to?(:to_model)
-      key = record.to_model.to_key
+      record = record.to_model if record.respond_to?(:to_model)
+      key = record.to_key
       key ? sanitize_dom_id(key.join('_')) : key
     end
 

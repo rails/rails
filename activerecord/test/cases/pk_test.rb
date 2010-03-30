@@ -23,6 +23,12 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal keyboard.to_key, [keyboard.id]
   end
 
+  def test_to_key_with_primary_key_after_destroy
+    topic = Topic.find(1)
+    topic.destroy
+    assert_equal topic.to_key, [1]
+  end
+
   def test_integer_key
     topic = Topic.find(1)
     assert_equal(topics(:first).author_name, topic.author_name)

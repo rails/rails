@@ -180,8 +180,13 @@ module Rails
 
     initializer :add_view_paths do
       views = paths.app.views.to_a
-      ActionController.base_hook { prepend_view_path(views) } if defined?(ActionController)
-      ActionMailer.base_hook { prepend_view_path(views) } if defined?(ActionMailer)
+      ActiveSupport.on_load(:action_controller) do
+        prepend_view_path(views)
+      end
+
+      ActiveSupport.on_load(:action_mailer) do
+        prepend_view_path(views)
+      end
     end
 
     initializer :add_metals do |app|

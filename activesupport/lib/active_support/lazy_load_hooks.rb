@@ -1,25 +1,17 @@
 module ActiveSupport
-  module LazyLoadHooks
-    def _setup_base_hooks
-      @base_hooks ||= Hash.new {|h,k| h[k] = [] }
-      @base ||= {}
+  @load_hooks = Hash.new {|h,k| h[k] = [] }
+  @loaded = {}
+
+  def self.on_load(name, &block)
+    if base = @loaded[name]
+      base.instance_eval(&block)
+    else
+      @load_hooks[name] << block
     end
+  end
 
-    def base_hook(name = nil, &block)
-      _setup_base_hooks
-
-      if base = @base[name]
-        base.instance_eval(&block)
-      else
-        @base_hooks[name] << block
-      end
-    end
-
-    def run_base_hooks(base, name = nil)
-      _setup_base_hooks
-
-      @base_hooks[name].each { |hook| base.instance_eval(&hook) } if @base_hooks
-      @base[name] = base
-    end
+  def self.run_load_hooks(name, base = Object)
+    @load_hooks[name].each { |hook| base.instance_eval(&hook) }
+    @loaded[name] = base
   end
 end

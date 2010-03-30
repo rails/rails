@@ -41,7 +41,7 @@ module ActionController
     log_subscriber :action_controller, ActionController::Railties::LogSubscriber.new
 
     initializer "action_controller.logger" do
-      ActionController.base_hook { self.logger ||= Rails.logger }
+      ActiveSupport.on_load(:action_controller) { self.logger ||= Rails.logger }
     end
 
     initializer "action_controller.set_configs" do |app|
@@ -53,23 +53,23 @@ module ActionController
       ac.stylesheets_dir = paths.public.stylesheets.to_a.first
       ac.secret          = app.config.cookie_secret
 
-      ActionController.base_hook do
+      ActiveSupport.on_load(:action_controller) do
         self.config.merge!(ac)
       end
     end
 
     initializer "action_controller.initialize_framework_caches" do
-      ActionController.base_hook { self.cache_store ||= RAILS_CACHE }
+      ActiveSupport.on_load(:action_controller) { self.cache_store ||= RAILS_CACHE }
     end
 
     initializer "action_controller.set_helpers_path" do |app|
-      ActionController.base_hook do
+      ActiveSupport.on_load(:action_controller) do
         self.helpers_path = app.config.paths.app.helpers.to_a
       end
     end
 
     initializer "action_controller.url_helpers" do |app|
-      ActionController.base_hook do
+      ActiveSupport.on_load(:action_controller) do
         extend ::ActionController::Railties::UrlHelpers.with(app.routes)
       end
 

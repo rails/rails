@@ -23,18 +23,18 @@ module ActiveRecord
     log_subscriber :active_record, ActiveRecord::Railties::LogSubscriber.new
 
     initializer "active_record.initialize_timezone" do
-      ActiveRecord.base_hook do
+      ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true
         self.default_timezone = :utc
       end
     end
 
     initializer "active_record.logger" do
-      ActiveRecord.base_hook { self.logger ||= ::Rails.logger }
+      ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
     initializer "active_record.set_configs" do |app|
-      ActiveRecord.base_hook do
+      ActiveSupport.on_load(:active_record) do
         app.config.active_record.each do |k,v|
           send "#{k}=", v
         end
@@ -44,7 +44,7 @@ module ActiveRecord
     # This sets the database configuration from Configuration#database_configuration
     # and then establishes the connection.
     initializer "active_record.initialize_database" do |app|
-      ActiveRecord.base_hook do
+      ActiveSupport.on_load(:active_record) do
         self.configurations = app.config.database_configuration
         establish_connection
       end
@@ -53,7 +53,7 @@ module ActiveRecord
     # Expose database runtime to controller for logging.
     initializer "active_record.log_runtime" do |app|
       require "active_record/railties/controller_runtime"
-      ActionController.base_hook do
+      ActiveSupport.on_load(:action_controller) do
         include ActiveRecord::Railties::ControllerRuntime
       end
     end
@@ -71,9 +71,9 @@ module ActiveRecord
     end
 
     initializer "active_record.load_observers" do
-      ActiveRecord.base_hook { instantiate_observers }
+      ActiveSupport.on_load(:active_record) { instantiate_observers }
 
-      ActiveRecord.base_hook do
+      ActiveSupport.on_load(:active_record) do
         ActionDispatch::Callbacks.to_prepare(:activerecord_instantiate_observers) do
           ActiveRecord::Base.instantiate_observers
         end
@@ -81,7 +81,7 @@ module ActiveRecord
     end
 
     initializer "active_record.set_dispatch_hooks", :before => :set_clear_dependencies_hook do |app|
-      ActiveRecord.base_hook do
+      ActiveSupport.on_load(:active_record) do
         unless app.config.cache_classes
           ActionDispatch::Callbacks.after do
             ActiveRecord::Base.reset_subclasses

@@ -173,7 +173,7 @@ module ActionView #:nodoc:
       delegate :logger, :to => 'ActionController::Base', :allow_nil => true
     end
 
-    ActionView.run_base_hooks(self)
+    ActiveSupport.run_load_hooks(:action_view, self)
 
     attr_accessor :base_path, :assigns, :template_extension, :lookup_context
     attr_internal :captures, :request, :controller, :template, :config

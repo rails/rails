@@ -6,7 +6,7 @@ require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
-  ActionView.base_hook do
+  ActiveSupport.on_load(:action_view) do
     class ActionView::Base
       @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>".html_safe }
       cattr_accessor :field_error_proc
@@ -97,10 +97,10 @@ module ActionView
       end
 
       # Returns a string containing the error message attached to the +method+ on the +object+ if one exists.
-      # This error message is wrapped in a <tt>DIV</tt> tag, which can be extended to include a <tt>:prepend_text</tt>
-      # and/or <tt>:append_text</tt> (to properly explain the error), and a <tt>:css_class</tt> to style it
-      # accordingly. +object+ should either be the name of an instance variable or the actual object. The method can be
-      # passed in either as a string or a symbol.
+      # This error message is wrapped in a <tt>DIV</tt> tag by default or with <tt>:html_tag</tt> if specified,
+      # which can be extended to include a <tt>:prepend_text</tt> and/or <tt>:append_text</tt> (to properly explain
+      # the error), and a <tt>:css_class</tt> to style it accordingly. +object+ should either be the name of an
+      # instance variable or the actual object. The method can be passed in either as a string or a symbol.
       # As an example, let's say you have a model <tt>@post</tt> that has an error message on the +title+ attribute:
       #
       #   <%= error_message_on "post", "title" %>
@@ -112,25 +112,28 @@ module ActionView
       #   <%= error_message_on "post", "title",
       #       :prepend_text => "Title simply ",
       #       :append_text => " (or it won't work).",
+      #       :html_tag => "span",
       #       :css_class => "inputError" %>
+      #   # => <span class="inputError">Title simply can't be empty (or it won't work).</span>
       def error_message_on(object, method, *args)
         options = args.extract_options!
         unless args.empty?
           ActiveSupport::Deprecation.warn('error_message_on takes an option hash instead of separate ' +
-            'prepend_text, append_text, and css_class arguments', caller)
+            'prepend_text, append_text, html_tag, and css_class arguments', caller)
 
           options[:prepend_text] = args[0] || ''
           options[:append_text] = args[1] || ''
-          options[:css_class] = args[2] || 'formError'
+          options[:html_tag] = args[2] || 'div'
+          options[:css_class] = args[3] || 'formError'
         end
-        options.reverse_merge!(:prepend_text => '', :append_text => '', :css_class => 'formError')
+        options.reverse_merge!(:prepend_text => '', :append_text => '', :html_tag => 'div', :css_class => 'formError')
 
         object = convert_to_model(object)
 
         if (obj = (object.respond_to?(:errors) ? object : instance_variable_get("@#{object}"))) &&
           (errors = obj.errors[method]).presence
-          content_tag("div",
-            "#{options[:prepend_text]}#{ERB::Util.h(errors.first)}#{options[:append_text]}".html_safe,
+          content_tag(options[:html_tag],
+            (options[:prepend_text].html_safe << errors.first).safe_concat(options[:append_text]),
             :class => options[:css_class]
           )
         else

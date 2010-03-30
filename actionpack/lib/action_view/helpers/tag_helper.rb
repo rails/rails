@@ -1,3 +1,4 @@
+require 'active_support/core_ext/object/blank'
 require 'set'
 
 module ActionView

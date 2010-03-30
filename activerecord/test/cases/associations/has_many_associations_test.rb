@@ -836,6 +836,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal num_accounts, Account.count
   end
 
+  def test_restrict
+    firm = RestrictedFirm.new(:name => 'restrict')
+    firm.save!
+    child_firm = firm.companies.create(:name => 'child')
+    assert !firm.companies.empty?
+    assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
+  end
+
   def test_included_in_collection
     assert companies(:first_firm).clients.include?(Client.find(2))
   end

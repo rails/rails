@@ -67,13 +67,11 @@ module ActiveRecord
 
         if value.nil? || (options[:case_sensitive] || !column.text?)
           sql = "#{sql_attribute} #{operator}"
-          params = [value]
         else
-          sql = "LOWER(#{sql_attribute}) #{operator}"
-          params = [value.mb_chars.downcase]
+          sql = "LOWER(#{sql_attribute}) = LOWER(?)"
         end
 
-        [sql, params]
+        [sql, [value]]
       end
     end
 

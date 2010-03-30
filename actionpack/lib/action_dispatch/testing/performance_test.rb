@@ -1,7 +1,7 @@
 require 'active_support/testing/performance'
 require 'active_support/testing/default'
 
-if defined?(ActiveSupport::Testing::Performance)
+begin
   module ActionDispatch
     # An integration test that runs a code profiler on your test methods.
     # Profiling output for combinations of each test method, measurement, and
@@ -14,4 +14,6 @@ if defined?(ActiveSupport::Testing::Performance)
       include ActiveSupport::Testing::Default
     end
   end
+rescue NameError
+  $stderr.puts "Specify ruby-prof as application's dependency in Gemfile to run benchmarks."
 end
