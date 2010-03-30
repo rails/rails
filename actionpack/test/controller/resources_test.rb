@@ -126,7 +126,7 @@ class ResourcesTest < ActionController::TestCase
 
   def test_with_custom_conditions
     with_restful_routing :messages, :conditions => { :subdomain => 'app' } do
-      assert @router.recognize_path("/messages", :method => :get, :subdomain => 'app')
+      assert @routes.recognize_path("/messages", :method => :get, :subdomain => 'app')
     end
   end
 
@@ -395,7 +395,7 @@ class ResourcesTest < ActionController::TestCase
       assert_restful_routes_for :messages do |options|
         assert_recognizes(options.merge(:action => "new"), :path => "/messages/new", :method => :get)
         assert_raise(ActionController::RoutingError) do
-          @router.recognize_path("/messages/new", :method => :post)
+          @routes.recognize_path("/messages/new", :method => :post)
         end
       end
     end
@@ -505,7 +505,7 @@ class ResourcesTest < ActionController::TestCase
 
   def test_restful_routes_dont_generate_duplicates
     with_restful_routing :messages do
-      routes = @router.routes
+      routes = @routes.routes
       routes.each do |route|
         routes.each do |r|
           next if route === r # skip the comparison instance
@@ -1169,8 +1169,8 @@ class ResourcesTest < ActionController::TestCase
         options[:shallow_options] = options[:options]
       end
 
-      new_action    = @router.resources_path_names[:new] || "new"
-      edit_action   = @router.resources_path_names[:edit] || "edit"
+      new_action    = @routes.resources_path_names[:new] || "new"
+      edit_action   = @routes.resources_path_names[:edit] || "edit"
 
       if options[:path_names]
         new_action  = options[:path_names][:new] if options[:path_names][:new]
@@ -1237,7 +1237,7 @@ class ResourcesTest < ActionController::TestCase
       end
 
       @controller = "#{options[:options][:controller].camelize}Controller".constantize.new
-      @controller.singleton_class.send(:include, @router.url_helpers)
+      @controller.singleton_class.send(:include, @routes.url_helpers)
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
       get :index, options[:options]
@@ -1307,7 +1307,7 @@ class ResourcesTest < ActionController::TestCase
     def assert_singleton_named_routes_for(singleton_name, options = {})
       (options[:options] ||= {})[:controller] ||= singleton_name.to_s.pluralize
       @controller = "#{options[:options][:controller].camelize}Controller".constantize.new
-      @controller.singleton_class.send(:include, @router.url_helpers)
+      @controller.singleton_class.send(:include, @routes.url_helpers)
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
       get :show, options[:options]
