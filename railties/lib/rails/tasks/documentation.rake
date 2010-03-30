@@ -17,14 +17,7 @@ namespace :doc do
 
   desc 'Generate documentation for the Rails framework. Uses gem paths or the RAILS_PATH environment variable.'
   path = ENV['RAILS_PATH']
-  unless defined?(Bundler) || (path && File.directory?(path))
-    task :rails do
-    if path
-      $stderr.puts "Skipping doc:rails, missing Rails directory at #{path}"
-    else
-      $stderr.puts "Skipping doc:rails, RAILS_PATH environment variable is not set"
-    end
-  else
+  if defined?(Bundler) || (path && File.directory?(path))
     desc 'Generate documentation for the Rails framework.'
     Rake::RDocTask.new("rails") { |rdoc|
       rdoc.rdoc_dir = 'doc/api'
@@ -61,6 +54,14 @@ namespace :doc do
         rdoc.rdoc_files.include("#{gem_path('railties')}/#{file}")
       end
     }
+  else
+    task :rails do
+      if path = ENV['RAILS_PATH']
+        $stderr.puts "Skipping doc:rails, missing Rails directory at #{path.inspect}"
+      else
+        $stderr.puts "Skipping doc:rails, RAILS_PATH environment variable is not set"
+      end
+    end
   end
 
   plugins = FileList['vendor/plugins/**'].collect { |plugin| File.basename(plugin) }
