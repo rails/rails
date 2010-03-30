@@ -533,6 +533,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_resource_with_slugs_in_ids
+    with_test_routes do
+      get '/posts/rails-rocks'
+      assert_equal 'posts#show', @response.body
+      assert_equal '/posts/rails-rocks', post_path(:id => 'rails-rocks')
+    end
+  end
+
   def test_resources_for_uncountable_names
     with_test_routes do
       assert_equal '/sheep', sheep_index_path
