@@ -2245,4 +2245,4 @@ end
 
 # TODO: Remove this and make it work with LAZY flag
 require 'active_record/connection_adapters/abstract_adapter'
-ActiveRecord.run_base_hooks(ActiveRecord::Base)
+ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)

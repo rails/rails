@@ -64,8 +64,7 @@ module ActionController
       filter
     end
 
-    ActionController.run_base_hooks(self)
-
+    ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end
 

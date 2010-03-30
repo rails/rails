@@ -6,7 +6,7 @@ require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
-  ActionView.base_hook do
+  ActiveSupport.on_load(:action_view) do
     class ActionView::Base
       @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>".html_safe }
       cattr_accessor :field_error_proc

@@ -1221,7 +1221,7 @@ module ActionView
     end
   end
 
-  ActionView.base_hook do
+  ActiveSupport.on_load(:action_view) do
     class ActionView::Base
       cattr_accessor :default_form_builder
       @@default_form_builder = ::ActionView::Helpers::FormBuilder
