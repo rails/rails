@@ -8,6 +8,10 @@ module Arel
       def and(other_predicate)
         And.new(self, other_predicate)
       end
+      
+      def not
+        Not.new(self)
+      end
     end
     
     class Grouped < Predicate
@@ -35,6 +39,11 @@ module Arel
         a2.inject({}) { |h,e| h[e] = a2.select { |i| i == e }.size; h }
       end
     end
+    
+    class Unary < Predicate
+      attributes :operand
+      deriving :initialize, :==
+    end
 
     class Binary < Predicate
       attributes :operand1, :operand2
@@ -59,7 +68,7 @@ module Arel
       end
     end
 
-    class Not                   < Equality; end
+    class Inequality            < Equality; end
     class GreaterThanOrEqualTo  < Binary;   end
     class GreaterThan           < Binary;   end
     class LessThanOrEqualTo     < Binary;   end

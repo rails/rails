@@ -84,7 +84,7 @@ module Arel
     module Predications
       methods = {
         :eq => "Equality",
-        :not => "Not",
+        :noteq => "Inequality",
         :lt => "LessThan",
         :lteq => "LessThanOrEqualTo",
         :gt => "GreaterThan",

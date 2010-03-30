@@ -37,7 +37,7 @@ share_examples_for 'A Relation' do
 
     it "finds rows with a not predicate" do
       expected = @expected.select { |r| r[@relation[:age]] != @pivot[@relation[:age]] }
-      @relation.where(@relation[:age].not(@pivot[@relation[:age]])).should have_rows(expected)
+      @relation.where(@relation[:age].noteq(@pivot[@relation[:age]])).should have_rows(expected)
     end
 
     it "finds rows with a less than predicate" do

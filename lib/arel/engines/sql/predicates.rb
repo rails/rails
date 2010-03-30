@@ -5,6 +5,16 @@ module Arel
         "#{operand1.to_sql} #{predicate_sql} #{operand1.format(operand2)}"
       end
     end
+    
+    class Unary < Predicate
+      def to_sql(formatter = nil)
+        "#{predicate_sql} (#{operand.to_sql(formatter)})"
+      end
+    end
+    
+    class Not < Unary
+      def predicate_sql; "NOT" end
+    end
 
     class CompoundPredicate < Binary
       def to_sql(formatter = nil)
@@ -44,10 +54,8 @@ module Arel
       end
     end
 
-    class Not < Binary
-      def predicate_sql
-        operand2.not_predicate_sql
-      end
+    class Inequality < Equality
+      def predicate_sql; '!=' end
     end
 
     class GreaterThanOrEqualTo < Binary
@@ -75,11 +83,11 @@ module Arel
     end
 
     class In < Binary
-      def to_sql
+      def to_sql(formatter = nil)
         if operand2.is_a?(Range) && operand2.exclude_end?
           GreaterThanOrEqualTo.new(operand1, operand2.begin).and(
             LessThan.new(operand1, operand2.end)
-          ).to_sql
+          ).to_sql(formatter)
         else
           super
         end

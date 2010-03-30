@@ -10,7 +10,7 @@ module Arel
       def operator; :== end
     end
 
-    class Not < Equality
+    class Inequality < Equality
       def eval(row)
         operand1.eval(row) != operand2.eval(row)
       end
