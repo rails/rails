@@ -1,6 +1,6 @@
 namespace :doc do
   def gem_path(gem_name)
-    path = $LOAD_PATH.grep(/#{gem_name}[\w\-\.]*\/lib$/).first
+    path = $LOAD_PATH.grep(/#{gem_name}[\w.-]*\/lib$/).first
     yield File.dirname(path) if path
   end
 
