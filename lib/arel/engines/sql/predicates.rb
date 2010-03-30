@@ -75,6 +75,16 @@ module Arel
     end
 
     class In < Binary
+      def to_sql
+        if operand2.is_a?(Range) && operand2.exclude_end?
+          GreaterThanOrEqualTo.new(operand1, operand2.begin).and(
+            LessThan.new(operand1, operand2.end)
+          ).to_sql
+        else
+          super
+        end
+      end
+      
       def predicate_sql; operand2.inclusion_predicate_sql end
     end
     
