@@ -10,6 +10,7 @@ $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
 require 'test/unit'
 require 'active_support/core_ext/kernel/reporting'
+require 'empty_bool'
 
 silence_warnings { require 'mocha' }
 

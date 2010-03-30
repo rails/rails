@@ -86,14 +86,6 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   end
 end
 
-class EmptyTrue
-  def empty?() true; end
-end
-
-class EmptyFalse
-  def empty?() false; end
-end
-
 class AssertBlankTest < ActiveSupport::TestCase
   BLANK = [ EmptyTrue.new, nil, false, '', '   ', "  \n\t  \r ", [], {} ]
   NOT_BLANK = [ EmptyFalse.new, Object.new, true, 0, 1, 'x', [nil], { nil => 0 } ]
