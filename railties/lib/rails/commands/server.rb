@@ -54,6 +54,11 @@ module Rails
       trap(:INT) { exit }
       puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
 
+      #Create required tmp directories if not found
+      %w(cache pids sessions sockets).each do |dir_to_make|
+        FileUtils.mkdir_p(Rails.root.join('tmp', dir_to_make))
+      end
+
       super
     ensure
       # The '-h' option calls exit before @options is set.
