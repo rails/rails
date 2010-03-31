@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'test/unit'
+require 'empty_bool'
 
 ENV['NO_RELOAD'] = '1'
 
