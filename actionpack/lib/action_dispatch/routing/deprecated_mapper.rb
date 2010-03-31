@@ -73,7 +73,7 @@ module ActionDispatch
     # supplying you with methods to create them in your routes.rb file.
     #
     # Read more about REST at http://en.wikipedia.org/wiki/Representational_State_Transfer
-    class DeprecatedMapper #:doc:
+    class DeprecatedMapper #:nodoc:
       def initialize(set) #:nodoc:
         @set = set
       end
