@@ -11,7 +11,9 @@ require 'rails_guides/levenshtein'
 
 module RailsGuides
   class Generator
-    attr_reader :guides_dir, :source_dir, :output_dir 
+    attr_reader :guides_dir, :source_dir, :output_dir
+
+    GUIDES_RE = /\.(?:textile|html\.erb)$/
 
     def initialize(output=nil)
       initialize_dirs(output)
@@ -42,7 +44,7 @@ module RailsGuides
     end
 
     def guides_to_generate
-      guides = Dir.entries(source_dir).grep(/\.textile(?:\.erb)?$/)
+      guides = Dir.entries(source_dir).grep(GUIDES_RE)
       ENV.key?("ONLY") ? select_only(guides) : guides
     end
 
@@ -59,7 +61,7 @@ module RailsGuides
     end
 
     def output_file_for(guide)
-      guide.sub(/\.textile(?:\.erb)?$/, '.html')
+      guide.sub(GUIDES_RE, '.html')
     end
     
     def generate?(source_file, output_file)
@@ -74,10 +76,9 @@ module RailsGuides
         view = ActionView::Base.new(source_dir)
         view.extend(Helpers)
         
-        if guide =~ /\.textile\.erb$/
+        if guide =~ /\.html\.erb$/
           # Generate the erb pages with textile formatting - e.g. index/authors
           result = view.render(:layout => 'layout', :file => guide)
-          result = textile(result)
         else
           body = File.read(File.join(source_dir, guide))
           body = set_header_section(body, view)
@@ -87,12 +88,9 @@ module RailsGuides
 
           warn_about_broken_links(result) if ENV.key?("WARN_BROKEN_LINKS")
         end
-        
-        # FIXME: If the doctype is in the layout textile escapes it.
-        # Things should be set up in a way that prevents that, a doctype
-        # belongs to the layout.
-        result = insert_doctype(result)
+
         result = insert_edge_badge(result) if ENV.key?('INSERT_EDGE_BADGE')
+
         f.write result
       end
     end
@@ -202,13 +200,6 @@ module RailsGuides
           puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."
         end
       end
-    end
-
-    def insert_doctype(html)
-      <<EOS + html
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-EOS
     end
     
     def insert_edge_badge(html)
