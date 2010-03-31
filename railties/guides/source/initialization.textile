@@ -16,28 +16,51 @@ As of Rails 3, +script/server+ has become +rails server+. This was done to centr
 The actual +rails+ command is kept in _railties/bin/rails_ and goes like this:
 
 <ruby>
-  if File.exists?(Dir.getwd + '/script/rails')
-    exec(Dir.getwd + '/script/rails', *ARGV)
-  else
-    railties_path = File.expand_path('../../lib', __FILE__)
-    $:.unshift(railties_path) if File.directory?(railties_path) && !$:.include?(railties_path)
+  require 'rbconfig'
 
-    require 'rails/ruby_version_check'
-    Signal.trap("INT") { puts; exit }
+  module Rails
+    module ScriptRailsLoader
+      RUBY = File.join(*RbConfig::CONFIG.values_at("bindir", "ruby_install_name")) + RbConfig::CONFIG["EXEEXT"]
+      SCRIPT_RAILS = File.join('script', 'rails')
 
-    require 'rails/commands/application'
+      def self.exec_script_rails!
+        cwd = Dir.pwd
+        exec RUBY, SCRIPT_RAILS, *ARGV if File.exists?(SCRIPT_RAILS)
+        Dir.chdir("..") do
+          # Recurse in a chdir block: if the search fails we want to be sure
+          # the application is generated in the original working directory.
+          exec_script_rails! unless cwd == Dir.pwd
+        end
+      rescue SystemCallError
+        # could not chdir, no problem just return
+      end
+    end
   end
+
+  Rails::ScriptRailsLoader.exec_script_rails!
+
+  railties_path = File.expand_path('../../lib', __FILE__)
+  $:.unshift(railties_path) if File.directory?(railties_path) && !$:.include?(railties_path)
+
+  require 'rails/ruby_version_check'
+  Signal.trap("INT") { puts; exit }
+
+  require 'rails/commands/application'
 </ruby>
 
-As we can see here it will check for a _script/rails_ file and if it exists it will +exec+ it. We'll get to that in a moment. If the file doesn't exist it will generate the application using the _rails/commands/application_ generator. The +exec+ method is +Kernel#exec+ and will run the file it's given, and the second argument will be passed in as the arguments for that file. In +script/rails+ we see the following:
+The +Rails::ScriptRailsLoader+ module here defines two constants: +RUBY+ and +SCRIPT_RAILS+. +RUBY+ is the full path to your ruby executable, on a Snow Leopard system it's _/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby_. +SCRIPT_RAILS+ is simply _script/rails_. When +exec_script_rails+ is invoked, this will attempt to +exec+ the _rails_ file in the _script_ directory using the path to your Ruby executable, +RUBY+. If +exec+ is invoked, the program will stop at this point. If the _script/rails_ file doesn't exist in the current directory, Rails will recurse upwards until it finds it by calling +exec_script_rails+ from inside the +Dir.chdir("..")+. This is handy if you're currently in one of the sub-directories of the rails application and wish to launch a server or a console.
+
+If Rails cannot execute _script/rails_ then it will fall back to the standard +rails+ command task of generating an application.
+
+In +script/rails+ we see the following:
 
 <ruby>
+  #!/usr/bin/env ruby
   # This command will automatically be run when you run "rails" with Rails 3 gems installed from the root of your application.
 
   ENV_PATH  = File.expand_path('../../config/environment',  __FILE__)
   BOOT_PATH = File.expand_path('../../config/boot',  __FILE__)
   APP_PATH  = File.expand_path('../../config/application',  __FILE__)
-  ROOT_PATH = File.expand_path('../..',  __FILE__)
 
   require BOOT_PATH
   require 'rails/commands'
@@ -63,31 +86,7 @@ _config/boot.rb_ is the first stop for everything for initializing your applicat
     require 'rubygems'
     require 'bundler'
     Bundler.setup
-
-    # To use 2.x style vendor/rails and RubyGems
-    #
-    # vendor_rails = File.expand_path('../../vendor/rails', __FILE__)
-    # if File.exist?(vendor_rails)
-    #   Dir["#{vendor_rails}/*/lib"].each { |path| $:.unshift(path) }
-    # end
-    #
-    # require 'rubygems'
   end
-
-  require 'rails/all'
-
-  # To pick the frameworks you want, remove 'require "rails/all"'
-  # and list the framework railties that you want:
-  #
-  # require "active_support/railtie"
-  # require "active_model/railtie"
-  # require "active_record/railtie"
-  # require "action_controller/railtie"
-  # require "action_view/railtie"
-  # require "action_mailer/railtie"
-  # require "active_resource/railtie"
-  # require "rails/test_unit/railtie"
-
 
 </ruby>
 
@@ -101,60 +100,67 @@ Rails 3 now uses Bundler and the README for the project explains it better than 
 Now with Rails 3 we have a Gemfile which defines the basics our application needs to get going:
 
 <ruby>
-   Edit this Gemfile to bundle your application's dependencies.
-  source :gemcutter
+  source 'http://rubygems.org'
 
+  gem 'rails', '3.0.0.beta1'
 
-  gem "rails", "3.0.0.beta"
+  # Bundle edge Rails instead:
+  # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
-  ## Bundle edge rails:
-  # gem "rails", :git => "git://github.com/rails/rails.git"
+  gem 'sqlite3-ruby', :require => 'sqlite3'
 
-  # ActiveRecord requires a database adapter. By default,
-  # Rails has selected sqlite3.
-  gem "sqlite3-ruby"
+  # Use unicorn as the web server
+  # gem 'unicorn'
 
-  ## Bundle the gems you use:
-  # gem "bj"
-  # gem "hpricot", "0.6"
-  # gem "sqlite3-ruby", :require_as => "sqlite3"
-  # gem "aws-s3", :require_as => "aws/s3"
+  # Deploy with Capistrano
+  # gem 'capistrano'
 
-  ## Bundle gems used only in certain environments:
-  # gem "rspec", :only => :test
-  # only :test do
-  #   gem "webrat"
+  # Bundle the extra gems:
+  # gem 'bj'
+  # gem 'nokogiri', '1.4.1'
+  # gem 'sqlite3-ruby', :require => 'sqlite3'
+  # gem 'aws-s3', :require => 'aws/s3'
+
+  # Bundle gems for certain environments:
+  # gem 'rspec', :group => :test
+  # group :test do
+  #   gem 'webrat'
   # end
+
 </ruby>
 
 Here the only two gems we need are +rails+ and +sqlite3-ruby+, so it seems. This is until you run +bundle pack+. This command freezes all the gems required by your application into _vendor/cache_. The gems installed by default are:
 
-* +abstract (1.0.0)+
-* +actionmailer (3.0.0.beta)+
-* +actionpack (3.0.0.beta)+
-* +activemodel (3.0.0.beta)+
-* +activerecord (3.0.0.beta)+
-* +activeresource (3.0.0.beta)+
-* +activesupport (3.0.0.beta)+
-* +arel (0.2.0)+
-* +builder (2.1.2)+
-* +bundler (0.9.1)+
-* +erubis (2.6.5)+
-* +i18n (0.3.3)+
-* +mail (2.1.2)+
-* +memcache-client+
-* +mime-types+
-* +rack (1.1.0)+
-* +rack-mount (0.4.5)+
-* +rack-test (0.5.3)+
-* +rails (3.0.0.beta)+
-* +railties (3.0.0.beta)+
-* +rake (0.8.7)+
-* +sqlite3-ruby+
-* +text-format (1.0.0)+
-* +text-hyphen (1.0.0)+
-* +thor (0.13.0)+
-* +tzinfo (0.3.16)+
+* abstract-1.0.0.gem
+* actionmailer-3.0.0.beta1.gem
+* actionpack-3.0.0.beta1.gem
+* activemodel-3.0.0.beta1.gem
+* activerecord-3.0.0.beta1.gem
+* activeresource-3.0.0.beta1.gem
+* activesupport-3.0.0.beta1.gem
+* arel-0.3.3.gem
+* builder-2.1.2.gem
+* bundler-0.9.14.gem
+* erubis-2.6.5.gem
+* i18n-0.3.6.gem
+* mail-2.1.5.3.gem
+* memcache-client-1.8.1.gem
+* mime-types-1.16.gem
+* polyglot-0.3.1.gem
+* rack-1.1.0.gem
+* rack-mount-0.6.1.gem
+* rack-test-0.5.3.gem
+* rails-3.0.0.beta1.gem
+* railties-3.0.0.beta1.gem
+* rake-0.8.7.gem
+* sqlite3-ruby-1.2.5.gem
+* text-format-1.0.0.gem
+* text-hyphen-1.0.0.gem
+* thor-0.13.4.gem
+* treetop-1.4.5.gem
+* tzinfo-0.3.18.gem
+
+TODO: Prettify when it becomes more stable.
 
 I won't go into what each of these gems are, as that is really something that needs covering on a case-by-case basis. We will however just dig a little under the surface of Bundler.
 
@@ -186,91 +192,39 @@ Now we will go down the alternate timeline where we generate a _.bundle/environm
 
 The _.bundle/environment.rb_ file adds the _lib_ directory of all the gems specified in +Gemfile.lock+ to +$LOAD_PATH+.
 
-
-
-h3. Frozen Rails (2.x)
-
-If you'd still like to use the old school method of using a frozen Rails you may, by putting it into _vendor/rails_ and uncommenting these lines in _config/boot.rb_:
-
-<ruby>
-  # To use 2.x style vendor/rails and RubyGems
-  #
-  # vendor_rails = File.expand_path('../../vendor/rails', __FILE__)
-  # if File.exist?(vendor_rails)
-  #   Dir["#{vendor_rails}/*/lib"].each { |path| $:.unshift(path) }
-  # end
-  #
-  # require 'rubygems'
-</ruby>
-
 h3. Requiring Rails
 
-The final non-commented line in _config/boot.rb_, +require rails/all+, does exactly that: requires all of Rails. If you'd like a certain gem to not be required, you may comment out or remove this line and uncomment the last 6 lines and pick-and-choose which you want to be included. If for example you didn't want to include ActiveResource the final lines of your _config/boot.rb_ would look like this:
+After _config/boot.rb_ is loaded, there's this +require+:
 
 <ruby>
-  #require 'rails/all'
-
-  # To pick the frameworks you want, remove 'require "rails/all"'
-  # and list the framework railties that you want:
-  #
-  require "active_support/railtie"
-  require "active_model/railtie"
-  require "active_record/railtie"
-  require "action_controller/railtie"
-  require "action_view/railtie"
-  require "action_mailer/railtie"
-  #require "active_resource/railtie"
-  require "rails/test_unit/railtie"
+  require 'rails/commands'
 </ruby>
 
-h3. +require "rails/all"+
-
-Now we'll dive into the internals of the pre-initialization stage of Rails. The file that is being required is _railties/lib/rails/all.rb_. The first line in this file is:
+In this file, _railties/lib/rails/commands.rb_, there is a case statement for +ARGV.shift+:
 
 <ruby>
-  require 'rails'
+  case ARGV.shift
+  ...
+  when 's', 'server'
+    require 'rails/commands/server'
+    # Initialize the server first, so environment options are set
+    server = Rails::Server.new
+    require APP_PATH
+  ...
+  end
 </ruby>
 
-h3. +require 'rails'+
-
-This file (_railties/lib/rails.rb_) requires the very, very basics that Rails needs to get going. I'm not going to delve into these areas yet, just cover them briefly for now. Later on we will go through the ones that are important to the boot procedure.
+We're running +rails server+ and this means it will make a require out to _rails/commands/server_ (_railties/lib/rails/commands/server.rb_). Firstly, this file makes a couple of requires of its own:
 
 <ruby>
-  require 'pathname'
-
-  require 'active_support'
-  require 'active_support/core_ext/kernel/reporting'
-  require 'active_support/core_ext/logger'
-
-  require 'rails/application'
-  require 'rails/version'
-  require 'rails/deprecation'
-  require 'rails/log_subscriber'
-  require 'rails/ruby_version_check'
-
-  require 'active_support/railtie'
-  require 'action_dispatch/railtie'
+  require 'fileutils'
+  require 'optparse'
+  require 'action_dispatch'
 </ruby>
 
-+require 'pathname'+ requires the Pathname class which is used for returning a Pathname object for +Rails.root+ so that instead of doing:
+The first two are Ruby core and this guide does not cover what they do, but _action_dispatch_ (_actionpack/lib/action_dispatch.rb_) is important. This file firstly make a require to _active_support_ (_activesupport/lib/active_support.rb_) which defines the +ActiveSupport+ module.
 
-<ruby>
-  File.join(Rails.root, "app/controllers")
-</ruby>
-
-You may do:
-
-<ruby>
-  Rails.root.join("app/controllers")
-</ruby>
-
-Although this is not new to Rails 3 (it was available in 2.3.5), it is something worthwhile pointing out.
-
-This is the file that defines the helper methods such as +Rails.root+, +Rails.env+, +Rails.logger+ and +Rails.application+.
-
-The first facet of Rails to be included here is +active_support+.
-
-h3. +require 'active_support'+
+h4. +require 'active_support'+
 
 _activesupport/lib/active_support.rb_ sets up +module ActiveSupport+:
 
@@ -354,6 +308,7 @@ As you can see for the duration of the +eager_autoload+ block the class variable
       autoload :Deprecation
       autoload :Gzip
       autoload :Inflector
+      autoload :JSON
       autoload :Memoizable
       autoload :MessageEncryptor
       autoload :MessageVerifier
@@ -371,13 +326,260 @@ As you can see for the duration of the +eager_autoload+ block the class variable
     autoload :SafeBuffer, "active_support/core_ext/string/output_safety"
     autoload :TestCase
   end
+
+  autoload :I18n, "active_support/i18n"
 </ruby>
 
-So we know the ones in +eager_autoload+ are eagerly loaded and it does this by storing them in an +@@autoloads+ hash object. This is then referenced by the +ActiveSupport::Autoload.eager_autoload!+ method which will go through and +require+ all the files specified. This method is called in an initializer and will be covered much later in this guide.
+So we know the ones in +eager_autoload+ are eagerly loaded and it does this by storing them in an +@@autoloads+ hash object. This is then referenced by the +ActiveSupport::Autoload.eager_autoload!+ method which will go through and +require+ all the files specified. This method is called in the +preload_frameworks+ initializer and will be covered much later in this guide.
 
 The ones that are not +eager_autoload+'d are automatically loaded as they are called. 
 
 Note: What it means to be autoloaded. An example of this would be calling the +ActiveSupport::TestCase+ class which hasn't yet been initialized. Because it's been specified as an +autoload+ Ruby will require the file that it's told to. The file it requires is not defined in the +autoload+ call here but, as you may have seen, in the +ActiveSupport::Autoload.autoload+ definition. So once that file has been required Ruby will try again and then if it still can't find it it will throw the all-too-familiar +uninitialized constant+ error.
+
+h4. +require 'action_dispatch'+
+
+Back in _actionpack/lib/action_dispatch.rb_, the next require after _active_support_ is to _active_support/dependencies/autoload_ but this file has already been loaded by _activesupport/lib/active_support.rb_ and so will not be loaded again. The next require is to Rack itself:
+
+<ruby>
+  require 'rack'
+</ruby>
+
+As mentioned previously, Bundler has added the gems' _lib_ directories to the load path so this _rack_ file that is referenced lives in the Rack gem: _lib/rack.rb_. This loads Rack so we can use it later on when we define +Rails::Server+ to descend from +Rack::Server+.
+
+This file then goes on to define the +ActionDispatch+ module and it's related autoloads:
+
+<ruby>
+  module Rack
+    autoload :Test, 'rack/test'
+  end
+
+  module ActionDispatch
+    extend ActiveSupport::Autoload
+
+    autoload_under 'http' do
+      autoload :Request
+      autoload :Response
+    end
+
+    autoload_under 'middleware' do
+      autoload :Callbacks
+      autoload :Cascade
+      autoload :Cookies
+      autoload :Flash
+      autoload :Head
+      autoload :ParamsParser
+      autoload :RemoteIp
+      autoload :Rescue
+      autoload :ShowExceptions
+      autoload :Static
+    end
+
+    autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
+    autoload :Routing
+
+    module Http
+      extend ActiveSupport::Autoload
+
+      autoload :Cache
+      autoload :Headers
+      autoload :MimeNegotiation
+      autoload :Parameters
+      autoload :FilterParameters
+      autoload :Upload
+      autoload :UploadedFile, 'action_dispatch/http/upload'
+      autoload :URL
+    end
+
+    module Session
+      autoload :AbstractStore, 'action_dispatch/middleware/session/abstract_store'
+      autoload :CookieStore,   'action_dispatch/middleware/session/cookie_store'
+      autoload :MemCacheStore, 'action_dispatch/middleware/session/mem_cache_store'
+    end
+
+    autoload_under 'testing' do
+      autoload :Assertions
+      autoload :Integration
+      autoload :PerformanceTest
+      autoload :TestProcess
+      autoload :TestRequest
+      autoload :TestResponse
+    end
+  end
+
+  autoload :Mime, 'action_dispatch/http/mime_type'
+</ruby>
+
+h4. +require "rails/commands/server"+
+
+Now that Rails has required Action Dispatch and it has required Rack, Rails can now go about defining the +Rails::Server+ class:
+
+<ruby>
+  module Rails
+    class Server < ::Rack::Server
+    
+      ...
+      
+      def initialize(*)
+        super
+        set_environment
+      end
+      
+      ...
+      
+      def set_environment
+        ENV["RAILS_ENV"] ||= options[:environment]
+      end
+      ...
+    end
+  end
+</ruby>
+
+h4. +require "rails/commands"+
+
+Back in _rails/commands_ Rails calls +Rails::Server.new+ which calls the +initialize+ method on the +Rails::Server+ class, which calls +super+, meaning it's actually calling +Rack::Server#initialize+, with it being defined like this:
+
+<ruby>
+  def initialize(options = nil)
+    @options = options
+  end
+</ruby>
+
+The +options+ method like this:
+
+<ruby>
+  def options
+    @options ||= parse_options(ARGV)
+  end
+</ruby>
+
+The +parse_options+ method like this:
+
+<ruby>
+  def parse_options(args)
+    options = default_options
+
+    # Don't evaluate CGI ISINDEX parameters.
+    # http://hoohoo.ncsa.uiuc.edu/cgi/cl.html
+    args.clear if ENV.include?("REQUEST_METHOD")
+
+    options.merge! opt_parser.parse! args
+    options
+  end
+</ruby>
+
+And +default_options+ like this:
+
+<ruby>
+  def default_options
+    {
+      :environment => "development",
+      :pid         => nil,
+      :Port        => 9292,
+      :Host        => "0.0.0.0",
+      :AccessLog   => [],
+      :config      => "config.ru"
+    }
+  end  
+</ruby>
+
+Here it is important to note that the default environment is _development_. After +Rack::Server#initialize+ has done its thing it returns to +Rails::Server#initialize+ which calls +set_environment+:
+
+<ruby>
+  def set_environment
+    ENV["RAILS_ENV"] ||= options[:environment]
+  end
+</ruby>
+
+From the information given we can determine that +ENV["RAILS_ENV"]+ will be set to _development_ if no other environment is specified.
+
+Finally, after +Rails::Server.new+ has executed, there is one more require:
+
+<ruby>
+  require APP_PATH
+</ruby>
+
++APP_PATH+ was previously defined as _config/application.rb_ in the application's root, and so that is where Rails will go next.
+
+h4. +require APP_PATH+
+
+This file is _config/application.rb_ in your application and makes two requires to begin with:
+
+<ruby>
+  require File.expand_path('../boot', __FILE__)
+  require 'rails/all'
+</ruby>
+
+The +../boot+ file it references is +config/boot.rb+, which was loaded earlier in the initialization process and so will not be loaded again.
+
+If you generate the application with the +-O+ option this will put a couple of pick-and-choose requirements at the top of your _config/application.rb_ instead:
+
+<ruby>
+  # Pick the frameworks you want:
+  # require "active_record/railtie"
+  require "action_controller/railtie"
+  require "action_mailer/railtie"
+  require "active_resource/railtie"
+  require "rails/test_unit/railtie"
+</ruby>
+
+For the purposes of this guide, will will assume only:
+
+<ruby>
+  require 'rails/all
+</ruby>
+
+h4. +require "rails/all"+
+
+Now we'll dive into the internals of the pre-initialization stage of Rails. The file that is being required is _railties/lib/rails/all.rb_. The first line in this file is:
+
+<ruby>
+  require 'rails'
+</ruby>
+
+h4. +require 'rails'+
+
+This file (_railties/lib/rails.rb_) requires the very, very basics that Rails needs to get going. I'm not going to delve into these areas yet, just cover them briefly for now. Later on we will go through the ones that are important to the boot procedure.
+
+<ruby>
+  require 'pathname'
+
+  require 'active_support'
+  require 'active_support/core_ext/kernel/reporting'
+  require 'active_support/core_ext/logger'
+
+  require 'rails/application'
+  require 'rails/version'
+  require 'rails/deprecation'
+  require 'rails/log_subscriber'
+  require 'rails/ruby_version_check'
+
+  require 'active_support/railtie'
+  require 'action_dispatch/railtie'
+</ruby>
+
++require 'pathname'+ requires the Pathname class which is used for returning a Pathname object for +Rails.root+ so that instead of doing:
+
+<ruby>
+  File.join(Rails.root, "app/controllers")
+</ruby>
+
+You may do:
+
+<ruby>
+  Rails.root.join("app/controllers")
+</ruby>
+
+Although this is not new to Rails 3 (it was available in 2.3.5), it is something worthwhile pointing out.
+
+Inside this file there are other helpful helper methods defined, such as +Rails.root+, +Rails.env+, +Rails.logger+ and +Rails.application+.
+
+The first require:
+
+<ruby>
+  require 'active_support'
+</ruby>
+
+Is not ran as this was already required by _actionpack/lib/action_dispatch.rb_.
 
 
 h3. +require 'active_support/core_ext/kernel/reporting'+
@@ -410,6 +612,7 @@ Alternatively you could just silence one of the other streams by using +silence+
 
 Now you won't get any SQL output in your logs.
 
+
 h3. +require 'rails/application'+
 
 Here's where +Rails::Application+ is defined. This is the superclass of +YourApp::Application+ from _config/application.rb_ and the subclass of +Rails::Engine+ This is the main entry-point into the Rails initialization process as when your application is initialized, your class is the basis of its configuration.
@@ -434,6 +637,12 @@ Firstly this file requires _rails/engine.rb_, which defines our +Rails::Engine+ 
 
 This file defines a class called +Rails::Plugin+ which descends from +Rails::Engine+.
 
+This defines the first few initializers for the Rails stack:
+
+* load_init_rb
+* sanity_check_railties_collisons
+
+These are explained in the Initialization section. TODO: First write initialization section then come back here and link.
 TODO: Expand.
 
 h3. +require 'rails/engine'+
@@ -453,7 +662,7 @@ This file requires _rails/railtie.rb_ which defines +Rails::Railtie+.
 * load_application_initializers
 * load_application_classes
 
-How these are loaded and run is covered later on.
+These are explained in the Initialization section. TODO: First write initialization section then come back here and link.
 
 Also in here we see that a couple of methods are +delegate+'d:
 
