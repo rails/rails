@@ -168,12 +168,12 @@ module ActionDispatch
 
     class SignedCookieJar < CookieJar #:nodoc:
       def initialize(parent_jar)
-        unless ActionController::Base.cookie_verifier_secret
-          raise "You must set ActionController::Base.cookie_verifier_secret to use signed cookies"
+        unless ActionController::Base.config.secret
+          raise "You must set ActionController::Base.config.secret"
         end
 
         @parent_jar = parent_jar
-        @verifier = ActiveSupport::MessageVerifier.new(ActionController::Base.cookie_verifier_secret)
+        @verifier = ActiveSupport::MessageVerifier.new(ActionController::Base.config.secret)
       end
 
       def [](name)

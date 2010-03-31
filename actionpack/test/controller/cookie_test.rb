@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-ActionController::Base.cookie_verifier_secret = "thisISverySECRET123"
+ActionController::Base.config.secret = "thisISverySECRET123"
 
 class CookieTest < ActionController::TestCase
   class TestController < ActionController::Base

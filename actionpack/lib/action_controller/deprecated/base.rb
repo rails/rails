@@ -66,6 +66,18 @@ module ActionController
         Rails.application.config.action_dispatch.ip_spoofing_check
       end
 
+      def cookie_verifier_secret=(value)
+        ActiveSupport::Deprecation.warn "ActionController::Base.cookie_verifier_secret= is deprecated. " <<
+          "Please configure it on your application with config.cookie_secret=", caller
+        ActionController::Base.config.secret = value
+      end
+
+      def cookie_verifier_secret
+        ActiveSupport::Deprecation.warn "ActionController::Base.cookie_verifier_secret is deprecated. " <<
+          "Please use ActionController::Base.config.secret instead.", caller
+        ActionController::Base.config.secret
+      end
+
       def trusted_proxies=(value)
         ActiveSupport::Deprecation.warn "ActionController::Base.trusted_proxies= is deprecated. " <<
           "Please configure it on your application with config.action_dispatch.trusted_proxies=", caller
