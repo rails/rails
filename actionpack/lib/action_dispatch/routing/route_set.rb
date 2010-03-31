@@ -11,7 +11,7 @@ module ActionDispatch
 
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
-      class Dispatcher
+      class Dispatcher #:nodoc:
         def initialize(options={})
           @defaults = options[:defaults]
           @glob_param = options.delete(:glob)
@@ -281,7 +281,7 @@ module ActionDispatch
         route
       end
 
-      class Generator
+      class Generator #:nodoc:
         attr_reader :options, :recall, :set, :script_name, :named_route
 
         def initialize(options, recall, set, extras = false)

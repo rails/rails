@@ -220,11 +220,11 @@ module ActionDispatch
     autoload :RouteSet, 'action_dispatch/routing/route_set'
     autoload :UrlFor, 'action_dispatch/routing/url_for'
 
-    SEPARATORS = %w( / . ? )
-    HTTP_METHODS = [:get, :head, :post, :put, :delete, :options]
+    SEPARATORS = %w( / . ? ) #:nodoc:
+    HTTP_METHODS = [:get, :head, :post, :put, :delete, :options] #:nodoc:
 
     # A helper module to hold URL related helpers.
-    module Helpers
+    module Helpers #:nodoc:
       include ActionController::PolymorphicRoutes
     end
   end

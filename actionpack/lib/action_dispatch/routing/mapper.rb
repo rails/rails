@@ -3,7 +3,7 @@ require 'active_support/core_ext/hash/except'
 module ActionDispatch
   module Routing
     class Mapper
-      class Constraints
+      class Constraints #:nodoc:
         def self.new(app, constraints = [])
           if constraints.any?
             super(app, constraints)
@@ -31,7 +31,7 @@ module ActionDispatch
         end
       end
 
-      class Mapping
+      class Mapping #:nodoc:
         IGNORE_OPTIONS = [:to, :as, :controller, :action, :via, :on, :constraints, :defaults, :only, :except, :anchor]
 
         def initialize(set, scope, args)
@@ -179,7 +179,7 @@ module ActionDispatch
       end
 
       module Base
-        def initialize(set)
+        def initialize(set) #:nodoc:
           @set = set
         end
 
@@ -251,7 +251,7 @@ module ActionDispatch
       end
 
       module Scoping
-        def initialize(*args)
+        def initialize(*args) #:nodoc:
           @scope = {}
           super
         end
@@ -371,7 +371,7 @@ module ActionDispatch
       end
 
       module Resources
-        CRUD_ACTIONS = [:index, :show, :create, :update, :destroy]
+        CRUD_ACTIONS = [:index, :show, :create, :update, :destroy] #:nodoc:
 
         class Resource #:nodoc:
           def self.default_actions
@@ -462,7 +462,7 @@ module ActionDispatch
           end
         end
 
-        def initialize(*args)
+        def initialize(*args) #:nodoc:
           super
           @scope[:resources_path_names] = @set.resources_path_names
         end
@@ -628,7 +628,7 @@ module ActionDispatch
         end
 
         protected
-          def parent_resource
+          def parent_resource #:nodoc:
             @scope[:scope_level_resource]
           end
 
