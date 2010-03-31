@@ -252,9 +252,14 @@ This file goes on to define some classes that will be automatically loaded using
 
 <ruby>
   require "active_support/inflector/methods"
-
+  require "active_support/lazy_load_hooks"
+  
   module ActiveSupport
     module Autoload
+      def self.extended(base)
+        base.extend(LazyLoadHooks)
+      end
+
       @@autoloads = {}
       @@under_path = nil
       @@at_path = nil
@@ -275,6 +280,33 @@ This file goes on to define some classes that will be automatically loaded using
   end
 </ruby>
 
+h4. Lazy Hooks
+
+At the top if the +ActiveSupport::Autoload+ module is the +def self.extended+ method:
+
+<ruby>
+  def self.extended(base)
+     base.extend(LazyLoadHooks)
+   end
+</ruby>
+
+This is called when we extend this module into one of our classes or modules, such is the case later on when we call +extend ActiveSupport::LazyLoadHooks+ not only in the +ActiveSupport+ module, but in all of the Railtie modules (+ActiveRecord+ and so on), as well as in a couple of places.
+
++ActiveSupport::LazyLoadHooks+ is responsible for defining methods used for running hooks that are defined during the initialization process, such as the one defined inside the +active_record.initialize_timezone+ initializer:
+
+<ruby>
+  initializer "active_record.initialize_timezone" do
+    ActiveRecord.base_hook do
+      self.time_zone_aware_attributes = true
+      self.default_timezone = :utc
+    end
+  end
+</ruby>
+
+When the initializer is ran it defines a +base_hook+ for +ActiveRecord+ and will only run it when +run_base_hooks+ is called, which in the case of Active Record, is ran after the entirety of +activerecord/lib/active_record/base.rb+ has been evaluated.
+
+h4. +require 'active_support'+
+
 Then it uses the method +eager_autoload+ also defined in _active_support/dependencies/autoload.rb_:
 
 <ruby>
@@ -286,7 +318,7 @@ Then it uses the method +eager_autoload+ also defined in _active_support/depende
   end
 </ruby>
 
-As you can see for the duration of the +eager_autoload+ block the class variable +@@eager_autoload+ is set to +true+, which has the consequence of when +autoload+ is called that the location of the file for that specific +autoload+'d constant is added to the +@@autoloads+ hash initialized at the beginning of this module declaration. So now that you have part of the context, here's the other, the code:
+As you can see for the duration of the +eager_autoload+ block the class variable +@@eager_autoload+ is set to +true+, which has the consequence of when +autoload+ is called that the location of the file for that specific +autoload+'d constant is added to the +@@autoloads+ hash initialized at the beginning of this module declaration. So now that you have part of the context, here's the other, the code from _activesupport/lib/active_support.rb_:
 
 <ruby>
   require "active_support/dependencies/autoload"
@@ -334,7 +366,9 @@ So we know the ones in +eager_autoload+ are eagerly loaded and it does this by s
 
 The ones that are not +eager_autoload+'d are automatically loaded as they are called. 
 
+
 Note: What it means to be autoloaded. An example of this would be calling the +ActiveSupport::TestCase+ class which hasn't yet been initialized. Because it's been specified as an +autoload+ Ruby will require the file that it's told to. The file it requires is not defined in the +autoload+ call here but, as you may have seen, in the +ActiveSupport::Autoload.autoload+ definition. So once that file has been required Ruby will try again and then if it still can't find it it will throw the all-too-familiar +uninitialized constant+ error.
+
 
 h4. +require 'action_dispatch'+
 
@@ -628,7 +662,7 @@ h4. +require 'rails/engine'+
 
 This file requires _rails/railtie.rb_ which defines +Rails::Railtie+.
 
-+Rails::Engine+ defines a couple of initializers for your application:
++Rails::Engine+ defines a couple of further initializers for your application:
 
 * set_load_path
 * set_autoload_paths
@@ -655,29 +689,78 @@ This means when you call either the +middleware+, +paths+ or +root+ methods you 
 
 h4. +require 'rails/railtie'+
 
-+Rails::Railtie+ provides a method of classes to hook into Rails, providing them with methods to add generators, rake tasks and subscribers. Some of the more noticeable railties are ActionMailer, ActiveRecord and ActiveResource and as you've probably already figured out, the engines that you use are railties too. Plugins also can be railties, but they do not have to be.
++Rails::Railtie+ (_pronounced Rail-tie, as in a bowtie_), provides a method of classes to hook into Rails, providing them with methods to add generators, rake tasks and subscribers. All of the facets of Rails are their own Railtie. and as you've probably already figured out, the engines that you use are railties too. Plugins also can be railties, but they do not have to be.
 
 Here there's requires to _rails/initializable.rb_ and and _rails/configurable.rb_.
 
 h4. +require 'rails/initializable'+
 
-The +Rails::Initializable+ module includes methods helpful for the initialization process in rails, such as the method to define initializers: +initializer+. This is included into +Rails::Railtie+ so it's available in +Rails::Engine+, +Rails::Application+ and +YourApp::Application+. In here we also see the class definition for +Rails::Initializer+, the class for all initializer objects.
+The +Rails::Initializable+ module includes methods helpful for the initialization process in rails, such as the method to define initializers: +initializer+. This is included into +Rails::Railtie+ so it's available there as well as +Rails::Engine+, +Rails::Application+ and +YourApp::Application+. In here we also see the class definition for +Rails::Initializer+, the class for all initializer objects.
 
 h4. +require 'rails/configuration'+
 
 The +Rails::Configuration+ module sets up shared configuration for applications, engines and plugins alike.
 
-At the top of this file _rails/paths.rb_ and _rails/rack.rb_ are +require+'d.
+At the top of this file there are three +require+s:
 
-TODO: Expand on this section.
+<ruby>
+  require 'active_support/ordered_options'
+  require 'rails/paths'
+  require 'rails/rack'
+</ruby>
+
+h4. +require 'active_support/ordered_options'+
+
++ActiveSupport::OrderedOptions+ is a special-purpose +OrderedHash+, used for keeping track of the options specified in the configuration of your application.
+
+TODO: expand.
 
 h4. +require 'rails/paths'+
 
-TODO: Figure out the usefulness of this code. Potentially used for specifying paths to applications/engines/plugins?
+This file is used to set up the +Rails::Paths+ module which is used to set up helpers for referencing paths to the folders of your Rails application, such as in _railties/lib/rails/engine/configuration.rb_ where it is used to firstly define them:
+
+<ruby>
+  def paths
+    @paths ||= begin
+      paths = Rails::Paths::Root.new(@root)
+      paths.app                 "app",                 :eager_load => true, :glob => "*"
+      paths.app.controllers     "app/controllers",     :eager_load => true
+      paths.app.helpers         "app/helpers",         :eager_load => true
+      paths.app.models          "app/models",          :eager_load => true
+      paths.app.mailers         "app/mailers",         :eager_load => true
+      paths.app.metals          "app/metal",           :eager_load => true
+      paths.app.views           "app/views",           :eager_load => true
+      paths.lib                 "lib",                 :load_path => true
+      paths.lib.tasks           "lib/tasks",           :glob => "**/*.rake"
+      paths.lib.templates       "lib/templates"
+      paths.config              "config"
+      paths.config.initializers "config/initializers", :glob => "**/*.rb"
+      paths.config.locales      "config/locales",      :glob => "*.{rb,yml}"
+      paths.config.routes       "config/routes.rb"
+      paths.public              "public"
+      paths.public.javascripts  "public/javascripts"
+      paths.public.stylesheets  "public/stylesheets"
+      paths
+    end
+  end
+</ruby>
+
+You can then get to these helper methods by calling +YourApp::Application.config.paths+.
 
 h4. +require 'rails/rack'+
 
-This file sets up some +autoload+'d modules for Rails::Rack.
+This file sets up some +autoload+'d constants for +Rails::Rack+:
+
+<ruby>
+  module Rails
+    module Rack
+      autoload :Debugger,  "rails/rack/debugger"
+      autoload :Logger,    "rails/rack/logger"
+      autoload :LogTailer, "rails/rack/log_tailer"
+      autoload :Static,    "rails/rack/static"
+    end
+  end
+</ruby>
 
 h4. +require 'rails/version'+
 
@@ -691,7 +774,9 @@ The code in this file declares +Rails::VERSION+ so that the version number can e
 
 h4. +require 'rails/deprecation'+
 
-This sets up a couple of familiar constants: +RAILS_ENV+, +RAILS_ROOT+ and +RAILS_DEFAULT_LOGGER+ to still be usable, but raise a deprecation warning when they are. Their alternatives (explained previously) are now +Rails.env+, +Rails.root+ and +Rails.logger+ respectively.
+This sets up a couple of familiar constants: +RAILS_ENV+, +RAILS_ROOT+ and +RAILS_DEFAULT_LOGGER+ to still be usable, but raise a deprecation warning when they are. Their alternatives are now +Rails.env+, +Rails.root+ and +Rails.logger+ respectively.
+
+If you wish to know more about how they're deprecated see the +require 'active_support/deprecation/proxy_wrappers'+ section. TODO: link to section.
 
 h4. +require 'rails/log_subscriber'+
 
@@ -718,7 +803,6 @@ This file declares two Railties, one for ActiveSupport and the other for I18n. I
 * i18n.initialize
 
 This Railtie also defines an an +after_initialize+ block, which will (as the name implies) be ran after the initialization process. More on this later. TODO: When you write the section you can link to it.
-
 
 h4. +require 'action_dispatch/railtie'+
 
@@ -1439,15 +1523,55 @@ Next, the Railtie itself is defined:
   end
 </ruby> 
 
-TODO: Explain LogSubscriber.
+The +ActionView::LogSubscriber+ sets up a method called +render_template+ which is called when a template is rendered. TODO: Templates only or partials and layouts also? I would imagine these fall under the templates category, but there needs to research to ensure this is correct.
 
-The initializer defined here, _action_view.cache_asset_timestamps_ is responsible for caching the timestamps on the ends of your assets. If you've ever seen a link generated by +image_tag+ or +stylesheet_link_tag+ you would know that I mean that this timestamp is the number after the _?_ in this example: _/javascripts/prototype.js?1265442620_. This initializer will do nothing if +cache_classes+ is set to false in any of your application's configuration. TODO: Elaborate.
-
-WARNING: EVERYTHING AFTER THIS POINT HAS NOT BEEN UPDATED TO REFLECT THE RAILS 3 BETA RELEASE. HERE BE DRAGONS. DANGER, WILL ROBINSON, DANGER. CONTINUE AT YOUR OWN PERIL!!!
-
-
+The sole initializer defined here, _action_view.cache_asset_timestamps_ is responsible for caching the timestamps on the ends of your assets. If you've ever seen a link generated by +image_tag+ or +stylesheet_link_tag+ you would know that I mean that this timestamp is the number after the _?_ in this example: _/javascripts/prototype.js?1265442620_. This initializer will do nothing if +cache_classes+ is set to false in any of your application's configuration. TODO: Elaborate.
 
 h4. ActionMailer Railtie
+
+The ActionMailer Railtie is responsible for including all the emailing functionality into Rails by way of the ActionMailer gem itself. ActionMailer is:
+
+Action Mailer is a framework for designing email-service layers. These layers
+are used to consolidate code for sending out forgotten passwords, welcome
+wishes on signup, invoices for billing, and any other use case that requires
+a written notification to either a person or another system.
+
+Action Mailer is in essence a wrapper around Action Controller and the 
+Mail gem.  It provides a way to make emails using templates in the same
+way that Action Controller renders views using templates.
+
+TODO: Quotify.
+
+h5. +require 'action_mailer/railtie'+
+
+This file first makes two requires:
+
+<ruby>
+  require "action_mailer"
+  require "rails"
+</ruby>
+
+h5. +require 'action_mailer'+
+
+This file makes a few requires firstly:
+
+<ruby>
+  require 'abstract_controller'
+  require 'action_view'
+
+  # Common ActiveSupport usage in ActionMailer
+  require 'active_support/core_ext/class'
+  require 'active_support/core_ext/object/blank'
+  require 'active_support/core_ext/array/uniq_by'
+  require 'active_support/core_ext/module/attr_internal'
+  require 'active_support/core_ext/module/delegation'
+  require 'active_support/core_ext/string/inflections'
+  require 'active_support/lazy_load_hooks'
+</ruby>
+
+_abstract_controller_ is covered in the "ActionController Railtie" section. TODO: Cover AbstractController there and link to it.
+
+For the core extensions you may reference the "Core Extensions" guide. TODO: Link to guide.
 
 h4. ActiveResource Railtie
 
