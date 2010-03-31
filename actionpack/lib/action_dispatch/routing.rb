@@ -136,20 +136,32 @@ module ActionDispatch
   #
   # == HTTP Methods
   #
-  # With conditions you can define restrictions on routes. Currently the only valid condition is <tt>:method</tt>.
+  # Using the <tt>:via</tt> option when specifying a route allows you to restrict it to a specific HTTP method.
+  # Possible values are <tt>:post</tt>, <tt>:get</tt>, <tt>:put</tt>, <tt>:delete</tt> and <tt>:any</tt>. 
+  # If your route needs to respond to more than one method you can use an array, e.g. <tt>[ :get, :post ]</tt>. 
+  # The default value is <tt>:any</tt> which means that the route will respond to any of the HTTP methods.
   #
-  # * <tt>:method</tt> - Allows you to specify which HTTP method(s) can access the route. Possible values are
-  #   <tt>:post</tt>, <tt>:get</tt>, <tt>:put</tt>, <tt>:delete</tt> and <tt>:any</tt>. Use an array to specify more
-  #   than one method, e.g. <tt>[ :get, :post ]</tt>. The default value is <tt>:any</tt>, <tt>:any</tt> means that any
-  #   method can access the route.
+  # Examples:
   #
-  # Example:
-  #
-  #   get  'post/:id' => 'posts#show'
-  #   post 'post/:id' => "posts#create_comment'
+  #   match 'post/:id' => 'posts#show', :via => :get
+  #   match 'post/:id' => "posts#create_comment', :via => :post
   #
   # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
-  # URL will route to the <tt>show</tt> action.
+  # URL will route to the <tt>show</tt> action. 
+  #
+  # === HTTP helper methods
+  #
+  # An alternative method of specifying which HTTP method a route should respond to is to use the helper
+  # methods <tt>get</tt>, <tt>post</tt>, <tt>put</tt> and <tt>delete</tt>.
+  #
+  # Examples:
+  #
+  #   get 'post/:id' => 'posts#show'
+  #   post 'post/:id' => "posts#create_comment'
+  #
+  # This syntax is less verbose and the intention is more apparent to someone else reading your code,
+  # however if your route needs to respond to more than one HTTP method (or all methods) then using the
+  # <tt>:via</tt> option on <tt>match</tt> is preferable.
   #
   # == Reloading routes
   #
