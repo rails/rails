@@ -31,8 +31,8 @@ module Rails::Generators
     class_option :edge, :type => :boolean, :default => false,
                         :desc => "Setup the application with Gemfile pointing to Rails repository"
 
-    class_option :skip_bundler, :type => :boolean, :default => false,
-                                     :desc => "Skip Bundler files"
+    class_option :skip_gemfile, :type => :boolean, :default => false,
+                                     :desc => "Don't create a Gemfile"
 
     class_option :skip_activerecord, :type => :boolean, :aliases => "-O", :default => false,
                                      :desc => "Skip ActiveRecord files"
@@ -74,7 +74,7 @@ module Rails::Generators
       copy_file "gitignore", ".gitignore" unless options[:skip_git]
       template "Rakefile"
       template "config.ru"
-      template "Gemfile" unless options[:skip_bundler]
+      template "Gemfile" unless options[:skip_gemfile]
     end
 
     def create_app_files

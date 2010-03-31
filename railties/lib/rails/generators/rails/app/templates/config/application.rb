@@ -11,11 +11,10 @@ require "active_resource/railtie"
 require "rails/test_unit/railtie"
 <% end -%>
 
-<% unless options[:skip_bundler] -%>
-# Auto-require default libraries and those for the current Rails environment.
-Bundler.require :default, Rails.env
+# If you have a Gemfile, require the gems listed there, including any gems
+# you've limited to :test, :development, or :production.
+Bundler.require(:default, Rails.env) if defined?(Bundler)
 
-<% end -%>
 module <%= app_const_base %>
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.
