@@ -128,7 +128,7 @@ module RailsGuides
           view.content_tag(:li, l.html_safe)
         end
 
-        children_ul = view.content_tag(:ul, children.join(" ").html_safe)
+        children_ul = children.empty? ? "" : view.content_tag(:ul, children.join(" ").html_safe)
 
         index << view.content_tag(:li, link.html_safe + children_ul.html_safe)
       end
