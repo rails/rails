@@ -582,11 +582,11 @@ The first require:
 Is not ran as this was already required by _actionpack/lib/action_dispatch.rb_.
 
 
-h3. +require 'active_support/core_ext/kernel/reporting'+
+h4. +require 'active_support/core_ext/kernel/reporting'+
 
 This file extends the +Kernel+ module, providing the methods +silence_warnings+, +enable_warnings+, +with_warnings+, +silence_stderr+, +silence_stream+ and +suppress+. The API documentation on these overridden methods is fairly good and if you wish to know more "have a read.":http://api.rubyonrails.org/classes/Kernel.html
 
-h3. +require 'active_support/core_ext/logger'+
+h4. +require 'active_support/core_ext/logger'+
 
 The first line in this file is +require 'active_support/core_ext/class/attribute_accessors'+ which defines methods such as +cattr_accessor+, +cattr_reader+ and +cattr_writer+ which are used later when the +Logger+ class is extended.
 
@@ -613,14 +613,14 @@ Alternatively you could just silence one of the other streams by using +silence+
 Now you won't get any SQL output in your logs.
 
 
-h3. +require 'rails/application'+
+h4. +require 'rails/application'+
 
 Here's where +Rails::Application+ is defined. This is the superclass of +YourApp::Application+ from _config/application.rb_ and the subclass of +Rails::Engine+ This is the main entry-point into the Rails initialization process as when your application is initialized, your class is the basis of its configuration.
 
 This file requires three important files before +Rails::Application+ is defined: _rails/railties_path.rb_, _rails/plugin.rb_ and _rails/engine.rb_.
 
 
-h3. +require 'rails/railties_path'+
+h4. +require 'rails/railties_path'+
 
 This file serves one purpose:
 
@@ -631,7 +631,7 @@ This file serves one purpose:
 Helpful, hey? One must wonder why they just didn't define it outright.
 
 
-h3. +require 'rails/plugin'+
+h4. +require 'rails/plugin'+
 
 Firstly this file requires _rails/engine.rb_, which defines our +Rails::Engine+ class, explained in the very next section.
 
@@ -645,7 +645,7 @@ This defines the first few initializers for the Rails stack:
 These are explained in the Initialization section. TODO: First write initialization section then come back here and link.
 TODO: Expand.
 
-h3. +require 'rails/engine'+
+h4. +require 'rails/engine'+
 
 This file requires _rails/railtie.rb_ which defines +Rails::Railtie+.
 
@@ -674,17 +674,17 @@ This means when you call either the +middleware+, +paths+ or +root+ methods you 
 
 +Rails::Engine+ descends from +Rails::Railtie+.
 
-h3. +require 'rails/railtie'+
+h4. +require 'rails/railtie'+
 
 +Rails::Railtie+ provides a method of classes to hook into Rails, providing them with methods to add generators, rake tasks and subscribers. Some of the more noticeable railties are ActionMailer, ActiveRecord and ActiveResource and as you've probably already figured out, the engines that you use are railties too. Plugins also can be railties, but they do not have to be.
 
 Here there's requires to _rails/initializable.rb_ and and _rails/configurable.rb_.
 
-h3. +require 'rails/initializable'+
+h4. +require 'rails/initializable'+
 
 The +Rails::Initializable+ module includes methods helpful for the initialization process in rails, such as the method to define initializers: +initializer+. This is included into +Rails::Railtie+ so it's available in +Rails::Engine+, +Rails::Application+ and +YourApp::Application+. In here we also see the class definition for +Rails::Initializer+, the class for all initializer objects.
 
-h3. +require 'rails/configuration'+
+h4. +require 'rails/configuration'+
 
 The +Rails::Configuration+ module sets up shared configuration for applications, engines and plugins alike.
 
@@ -692,15 +692,15 @@ At the top of this file _rails/paths.rb_ and _rails/rack.rb_ are +require+'d.
 
 TODO: Expand on this section.
 
-h3. +require 'rails/paths'+
+h4. +require 'rails/paths'+
 
 TODO: Figure out the usefulness of this code. Potentially used for specifying paths to applications/engines/plugins?
 
-h3. +require 'rails/rack'+
+h4. +require 'rails/rack'+
 
 This file sets up some +autoload+'d modules for Rails::Rack.
 
-h3. +require 'rails/version'+
+h4. +require 'rails/version'+
 
 Now we're back to _rails.rb_. The line after +require 'rails/application'+ in _rails.rb_ is:
 
@@ -710,17 +710,17 @@ Now we're back to _rails.rb_. The line after +require 'rails/application'+ in _r
 
 The code in this file declares +Rails::VERSION+ so that the version number can easily be accessed. It stores it in constants, with the final version number being attainable by calling +Rails::VERSION::STRING+.
 
-h3. +require 'rails/deprecation'+
+h4. +require 'rails/deprecation'+
 
 This sets up a couple of familiar constants: +RAILS_ENV+, +RAILS_ROOT+ and +RAILS_DEFAULT_LOGGER+ to still be usable, but raise a deprecation warning when they are. Their alternatives (explained previously) are now +Rails.env+, +Rails.root+ and +Rails.logger+ respectively.
 
-h3. +require 'rails/log_subscriber'+
+h4. +require 'rails/log_subscriber'+
 
 The +Rails::LogSubscriber+ provides a central location for logging in Rails 3 so as to not slow down the main thread. When you call one of the logging methods (+info+, +debug+, +warn+, +error+, +fatal+ or +unknown+) from the +Rails::LogSubscriber+ class or one of its subclasses this will notify the Rails logger to log this call in the fashion you specify, but will not write it to the file. The file writing is done at the end of the request, courtesy of the +Rails::Rack::Logger+ middleware. 
 
 Each Railtie defines its own class that descends from +Rails::LogSubscriber+ with each defining its own methods for logging individual tasks.
 
-h3. +require 'rails/ruby_version_check'+
+h4. +require 'rails/ruby_version_check'+
 
 This file ensures that you're running a minimum of 1.8.7. If you're running an older version, it will tell you:
 
@@ -729,7 +729,7 @@ This file ensures that you're running a minimum of 1.8.7. If you're running an o
   You're running [your Ruby version here]; please upgrade to continue.
 </pre>
 
-h3. +require 'activesupport/railtie'+
+h4. +require 'activesupport/railtie'+
 
 This file declares two Railties, one for ActiveSupport and the other for I18n. In these Railties there's the following initializers defined:
 
@@ -741,7 +741,7 @@ This file declares two Railties, one for ActiveSupport and the other for I18n. I
 This Railtie also defines an an +after_initialize+ block, which will (as the name implies) be ran after the initialization process. More on this later. TODO: When you write the section you can link to it.
 
 
-h3. +require 'action_dispatch/railtie'+
+h4. +require 'action_dispatch/railtie'+
 
 This file first makes a require out to the _action_dispatch_ file which is explained in the ActionDispatch Railtie section, next it makes a require to _rails_ which is _railties/lib/rails.rb_ which is already required.
 
@@ -764,7 +764,7 @@ This file then extends the +ActionDispatch+ module defined when we called +requi
 
 This defines just the one initializer: +action_dispatch.prepare_dispatcher+. More on this later. TODO: link when written
 
-h3. Return to _rails/all.rb_
+h4. Return to _rails/all.rb_
 
 Now that we've covered the extensive process of what the first line does in this file, lets cover the remainder:
 
@@ -783,7 +783,7 @@ Now that we've covered the extensive process of what the first line does in this
   end
 </ruby>
 
-h3. ActiveRecord Railtie
+h4. ActiveRecord Railtie
 
 The ActiveRecord Railtie takes care of hooking ActiveRecord into Rails. This depends on ActiveSupport, ActiveModel and Arel. From ActiveRecord's readme:
 
@@ -801,7 +801,7 @@ TODO: Quotify.
   gap of functionality between the data mapper and active record approach.
 </text>
 
-h4. +require "active_record/railtie"+
+h5. +require "active_record/railtie"+
 
 The _activerecord/lib/active_record/railtie.rb_ file defines the Railtie for ActiveRecord.
 
@@ -815,7 +815,7 @@ This file first requires ActiveRecord, the _railties/lib/rails.rb_ file which ha
 
 ActiveModel's Railtie is covered in the next section. TODO: Section.
 
-h4. +require "active_record"+
+h5. +require "active_record"+
 
 TODO: Why are +activesupport_path+ and +activemodel_path+ defined here?
 
@@ -828,11 +828,11 @@ The first three requires require ActiveSupport, ActiveModel and ARel in that ord
 </ruby>
 
 
-h4. +require "active_support"+
+h5. +require "active_support"+
 
 This was loaded earlier by _railties/lib/rails.rb_. This line is here as a safeguard for when ActiveRecord is loaded outside the scope of Rails.
 
-h4. +require "active_model"+
+h5. +require "active_model"+
 
 TODO: Again with the +activesupport_path+!
 
@@ -848,7 +848,7 @@ The +require 'active_support/i18n'+ just loads I18n and adds ActiveSupport's def
 </ruby>
 
 
-h4. +require "arel"+
+h5. +require "arel"+
 
 This file in _arel/lib/arel.rb_ loads a couple of ActiveSupport things first:
 
@@ -860,7 +860,7 @@ This file in _arel/lib/arel.rb_ loads a couple of ActiveSupport things first:
 
 These files are explained in the "Common Includes" section.
 
-h4. +require 'arel'+
+h5. +require 'arel'+
 
 Back in _arel/lib/arel.rb_, the next two lines require ActiveRecord parts:
 
@@ -871,13 +871,13 @@ Back in _arel/lib/arel.rb_, the next two lines require ActiveRecord parts:
 
 Because we're currently loading _active_record.rb_, it skips right over it.
 
-h4. +require 'active_record/connection_adapters/abstract/quoting'+
+h5. +require 'active_record/connection_adapters/abstract/quoting'+
 
 _activerecord/lib/active_record/connection_adapters/abstract/quoting.rb_ defines methods used for quoting fields and table names in ActiveRecord.
 
 TODO: Explain why this is loaded especially.
 
-h4. +require 'active_record'+
+h5. +require 'active_record'+
 
 Back the initial require from the _railtie.rb_.
 
@@ -887,19 +887,19 @@ There's a new method here called +autoload_under+ which is defined in +ActiveSup
 
 Inside this file the +AttributeMethods+, +Locking+ and +ConnectionAdapter+ modules are defined inside the +ActiveRecord+ module. The second to last line tells Arel what SQL engine we want to use. In this case it's +ActiveRecord::Base+. The final line adds in the translations for ActiveRecord which are only for if a record is invalid or non-unique.
 
-h4. +require 'rails'+
+h5. +require 'rails'+
 
 As mentioned previously this is skipped over as it has been already loaded. If you'd still like to see what this file does go to section TODO: section.
 
-h4. +require 'active_model/railtie'+
+h5. +require 'active_model/railtie'+
 
 This is covered in the ActiveModel Railtie section. TODO: link there.
 
-h4. +require 'action_controller/railtie'+
+h5. +require 'action_controller/railtie'+
 
 This is covered in the ActionController Railtie section. TODO: link there.
 
-h4. The ActiveRecord Railtie
+h5. The ActiveRecord Railtie
 
 Inside the ActiveRecord Railtie the +ActiveRecord::Railtie+ class is defined:
 
@@ -927,10 +927,8 @@ By doing this the +ActiveRecord::Railtie+ class gains access to the methods cont
 
 As with the engine initializers, these are explained later.
 
-h4. +require 'active_record/_
 
-
-h3. ActiveModel Railtie
+h4. ActiveModel Railtie
 
 This Railtie is +require+'d by ActiveRecord's Railtie.
 
@@ -945,7 +943,7 @@ From the ActiveModel readme:
 </text>
 
 
-h4. +require "active_model/railtie"+
+h5. +require "active_model/railtie"+
 
 This Railtie file, _activemodel/lib/active_model/railtie.rb_ is quite small and only requires in +active_model+. As mentioned previously, the require to _rails_ is skipped over as it has been already loaded. If you'd still like to see what this file does go to section TODO: section.
 
@@ -954,15 +952,15 @@ This Railtie file, _activemodel/lib/active_model/railtie.rb_ is quite small and 
   require "rails"
 </ruby>
 
-h4. +require "active_model"+
+h5. +require "active_model"+
 
 ActiveModel depends on ActiveSupport and ensures it is required by making a +require 'active_support'+ call. It has already been loaded from _railties/lib/rails.rb_ so will not be reloaded for us here. The file goes on to define the +ActiveModel+ module and all of its autoloaded classes. This file also defines the english translations for some of the validation messages provided by ActiveModel, such as "is not included in the list" and "is reserved".
 
-h3. Action Controller Railtie
+h4. Action Controller Railtie
 
 The ActionController Railtie takes care of all the behind-the-scenes code for your controllers; it puts the C into MVC; and does so by implementing the +ActionController::Base+ class which you may recall is where your +ApplicationController+ class descends from.
 
-h4. +require 'action_controller/railtie'+
+h5. +require 'action_controller/railtie'+
 
 This first makes a couple of requires:
 
@@ -974,11 +972,11 @@ This first makes a couple of requires:
 
 The _action_controller_ file is explained in the very next section. The require to _rails_ is requiring the already-required _railties/lib/rails.rb_. If you wish to know about the require to _action_view/railtie_ this is explained in the ActionView Railtie section. 
 
-h4. +require 'action_controller+
+h5. +require 'action_controller+
 
 This file, _actionpack/lib/action_controller.rb_, defines the ActionController module and its relative autoloads. Before it does any of that it makes two requires: one to _abstract_controller_, explored next, and the other to _action_dispatch_, explored directly after that.
 
-h4. +require 'abstract_controller'+
+h5. +require 'abstract_controller'+
 
 +AbstractController+ provides the functionality of TODO.
 
@@ -996,23 +994,23 @@ The next thing in this file four +require+ calls:
 After these require calls the +AbstractController+ module is defined with some standard +autoload+'d classes.
 
 
-h4. +require 'active_support/ruby/shim'+
+h5. +require 'active_support/ruby/shim'+
 
 This file is explained in the "Common Includes" section beneath.
 
-h4. +require 'active_support/dependencies/autoload+
+h5. +require 'active_support/dependencies/autoload+
 
 This file was loaded upon the first require of +active_support+ and is not included. If you wish to be refreshed on what this file performs visit TODO: link to section.
 
-h4. +require 'active_support/core_ext/module/attr_internal'+
+h5. +require 'active_support/core_ext/module/attr_internal'+
 
 This file is explained in the "Common Includes" section as it is required again later on. See the TODO: section. I also think this may be explained in the ActiveSupport Extensions guide.
 
-h4. +require 'active_support/core_ext/module/delegation'+
+h5. +require 'active_support/core_ext/module/delegation'+
 
 This file is explained in the "Common Includes" section as it has already been required by Arel at this point in the initialization process (see: section TODO: LINK!).
 
-h4. +require 'action_controller'+
+h5. +require 'action_controller'+
 
 Back to _actionpack/lib/action_controller.rb_.
 
@@ -1058,49 +1056,49 @@ At the end of this file there are a couple more requires:
   require 'active_support/inflector'
 </ruby>
 
-h4. +require 'action_view'+
+h5. +require 'action_view'+
 
 This is best covered in the ActionView Railtie section, so skip there by TODO: Link / page?
 
-h4. +require 'action_controller/vendor/html-scanner'+
+h5. +require 'action_controller/vendor/html-scanner'+
 
 TODO: What is the purpose of this? Find out.
 
-h4. +require 'active_support/concern'+
+h5. +require 'active_support/concern'+
 
 TODO: I can kind of understand the purpose of this.. need to see where @_dependencies is used however.
 
-h4. +require 'active_support/core_ext/class/attribute_accessors'+
+h5. +require 'active_support/core_ext/class/attribute_accessors'+
 
 This file defines, as the path implies, attribute accessors for class. These are +cattr_reader+, +cattr_writer+, +cattr_accessor+.
 
-h4. +require 'active_support/core_ext/load_error'+
+h5. +require 'active_support/core_ext/load_error'+
 
 The ActiveSupport Core Extensions (TODO: LINK!) guide has a great coverage of what this file precisely provides.
 
-h4. +require 'active_support/core_ext/module/attr_internal'+
+h5. +require 'active_support/core_ext/module/attr_internal'+
 
-This file is explained in the "Common Includes" section.
+This file is explained in the "Core Extension" guide.
 
 This file was required through the earlier _abstract_controller.rb_ require.
 
-h4. +require 'active_support/core_ext/module/delegation'+
+h5. +require 'active_support/core_ext/module/delegation'+
 
 This file is explained in the "Common Includes" section.
 
 This file was required earlier by Arel and so is not required again.
 
-h4. +require 'active_support/core_ext/name_error'+
+h5. +require 'active_support/core_ext/name_error'+
 
 This file includes extensions to the +NameError+ class, providing the +missing_name+ and +missing_name?+ methods. For more information see the ActiveSupport extensions guide.
 
-h4. +require 'active_support/inflector'+
+h5. +require 'active_support/inflector'+
 
 This file is explained in the "Common Includes" section.
 
 This file was earlier required by Arel and so is not required again.
 
-h4. ActionController Railtie
+h5. ActionController Railtie
 
 So now we come back to the ActionController Railtie with a couple more requires to go before +ActionController::Railtie+ is defined:
 
@@ -1113,18 +1111,18 @@ So now we come back to the ActionController Railtie with a couple more requires 
 
 As explained previously the +action_view/railtie+ file will be explained in the ActionView Railtie section. TODO: link to it.
 
-h4. +require 'active_support/core_ext/class/subclasses'+
+h5. +require 'active_support/core_ext/class/subclasses'+
 
 For an explanation of this file _activesupport/lib/active_support/core_ext/class/subclasses_, see the ActiveSupport Core Extension guide.
 
-h4. +require 'active_support/deprecation/proxy_wrappers'+
+h5. +require 'active_support/deprecation/proxy_wrappers'+
 
 This file, _activesupport/lib/active_support/deprecation/proxy_wrappers.rb_, defines a couple of deprecation classes, which are +DeprecationProxy+, +DeprecationObjectProxy+, +DeprecationInstanceVariableProxy+, +DeprecationConstantProxy+ which are all namespaced into +ActiveSupport::Deprecation+. These last three are all subclasses of +DeprecationProxy+. 
 
 Why do we mention them here? Beside the obvious-by-now fact that we're covering just about everything about the initialization process in this guide, if you're deprecating something in your library and you use ActiveSupport, you too can use the +DeprecationProxy+ class (and it's subclasses) too. 
 
 
-h5. +DeprecationProxy+
+h6. +DeprecationProxy+
 
 This class is used only in _railties/lib/rails/deprecation.rb_, loaded further on in the initialization process. It's used in this way:
 
@@ -1152,7 +1150,7 @@ This class is used only in _railties/lib/rails/deprecation.rb_, loaded further o
 
 There is similar definitions for the other constants of +RAILS_ENV+ and +RAILS_DEFAULT_LOGGER+. All three of these constants are in the midst of being deprecated (most likely in Rails 3.1) so Rails will tell you if you reference them that they're deprecated using the +DeprecationProxy+ class. Whenever you call +RAILS_ROOT+ this will raise a warning, telling you: "RAILS_ROOT is deprecated! Use Rails.root instead".... TODO: investigate if simply calling it does raise this warning. This same rule applies to +RAILS_ENV+ and +RAILS_DEFAULT_LOGGER+, their new alternatives are +Rails.env+ and +Rails.logger+ respectively. 
 
-h5. +DeprecatedObjectProxy+
+h6. +DeprecatedObjectProxy+
 
 This is used in one place _actionpack/lib/action_controller/railtie.rb_, which you may remember is how we got to the +DeprecationProxy+ section:
 
@@ -1179,11 +1177,11 @@ This makes more sense in the wider scope of the initializer:
 +ActionController::Routing::Routes+ was the previous constant used in defining routes in Rails 2 applications, now it's simply a method on +Rails.application+ rather than it's own individual class: +Rails.application.routes+. Both of these still call the +draw+ method on the returned object to end up defining the routes. 
 
 
-h5. +DeprecatedInstanceVariableProxy+
+h6. +DeprecatedInstanceVariableProxy+
 
 This isn't actually used anywhere in Rails anymore. It was used previously for when +@request+ and +@params+ were deprecated in Rails 2. It has been kept around as it could be useful for the same purposes in libraries that use ActiveSupport.
 
-h5. +DeprecatedConstantProxy+
+h6. +DeprecatedConstantProxy+
 
 This method is used in a couple of places, _activesupport/lib/active_support/json/encoding.rb_ and _railties/lib/rails/rack.rb_.
 
@@ -1200,7 +1198,7 @@ Now when you reference +ActiveSupport::JSON::CircularReferenceError+ you'll rece
   ActiveSupport::JSON::CircularReferenceError is deprecated! Use Encoding::CircularReferenceError instead.
 </text>
 
-h4. +require "active_support/deprecation"+
+h5. +require "active_support/deprecation"+
 
 This re-opens the +ActiveSupport::Deprecation+ module which was already defined by our deprecation proxies. Before this happens however we have 4 requires:
 
@@ -1229,7 +1227,7 @@ The remainder of this file goes about setting up the +silenced+ and +debug+ acce
   end
 </ruby>
 
-h4. +require "active_support/deprecation/behaviors"+
+h5. +require "active_support/deprecation/behaviors"+
 
 This sets up some default behavior for the warnings raised by +ActiveSupport::Deprecation+, defining different ones for _development_ and _test_ and nothing for production, as we never want deprecation warnings in production:
 
@@ -1256,7 +1254,7 @@ This sets up some default behavior for the warnings raised by +ActiveSupport::De
 
 In the _test_ environment, we will see the deprecation errors displayed in +$stderr+ and in _development_ mode, these are sent to +Rails.logger+ if it exists, otherwise it is output to +$stderr+ in a very similar fashion to the _test_ environment. These are both defined as procs, so ActiveSupport can pass arguments to the +call+ method we call on it when ActiveSupport +warn+.
 
-h4. +require 'active_support/deprecation/reporting'+
+h5. +require 'active_support/deprecation/reporting'+
 
 This file defines further extensions to the +ActiveSupport::Deprecation+ module, including the +warn+ method which is used from ActiveSupport's +DeprecationProxy+ class and an +attr_accessor+ on the class called +silenced+. This checks that we have a behavior defined, which we do in the _test_ and _development_ environments, and that we're not +silenced+ before warning about deprecations by +call+'ing the +Proc+ time.
 
@@ -1270,7 +1268,7 @@ This file also defines a +silence+ method on the module also which you can pass 
 
 TODO: may have to correct this example.
 
-h4. +require 'active_support/deprecation/method_wrappers'+
+h5. +require 'active_support/deprecation/method_wrappers'+
 
 This file defines a class method on +ActiveSupport::Deprecation+ called +deprecate_methods+. This method is used in _activesupport/lib/active_support/core_ext/module/deprecation.rb_ to allow you to declare deprecated methods on modules:
 
@@ -1286,7 +1284,7 @@ This file defines a class method on +ActiveSupport::Deprecation+ called +depreca
   end
 </ruby>
 
-h4. +require 'action_controller/railtie'+
+h5. +require 'action_controller/railtie'+
 
 Inside +ActionController::Railtie+ there are another two requires:
 
@@ -1296,15 +1294,15 @@ Inside +ActionController::Railtie+ there are another two requires:
 </ruby>
 
 
-h4. +require 'action_controller/railties/log_subscriber'+
+h5. +require 'action_controller/railties/log_subscriber'+
 
 +ActionController::Railties::LogSubscriber+ inherits from +Rails::LogSubscriber+ and defines methods for logging such things as action processing and file sending.
 
-h4. +require 'action_controller/railties/url_helpers'+
+h5. +require 'action_controller/railties/url_helpers'+
 
 This file defines a +with+ method on +ActionController::Railtie::UrlHelpers+ which is later used in the +action_controller.url_helpers+ initializer. For more information see the +action_controller.url_helpers+ initializer section.
 
-h4. ActionController Railtie
+h5. ActionController Railtie
 
 After these requires it deprecates a couple of ex-ActionController methods and points whomever references them to their ActionDispatch equivalents. These methods are +session+, +session=+, +session_store+ and +session_store=+.
 
@@ -1316,15 +1314,15 @@ After the deprecations, Rails defines the +log_subscriber+ to be a new instance 
 * action_controller.set_helpers_path
 * action_controller.url_helpers
 
-h3. ActionView Railtie
+h4. ActionView Railtie
 
 The ActionView Railtie provides the backend code for your views and it puts the C into MVC. This implements the +ActionView::Base+ of which all views and partials are objects of.
 
-h4. +require 'action_view/railtie'+
+h5. +require 'action_view/railtie'+
 
 The Railtie is defined in a file called _actionpack/lib/action_view/railtie.rb_ and initially makes a call to +require 'action_view'+.
 
-h4. +require 'action_view'+
+h5. +require 'action_view'+
 
 Here again we have the addition of the path to ActiveSupport to the load path attempted, but because it's already in the load path it will not be added. Similarly, we have two requires:
 
@@ -1364,11 +1362,11 @@ This file goes on to define the +ActionView+ module and its +autoload+'d modules
   require 'action_view/base'
 </ruby>
 
-h4. +require 'active_support/core_ext/string/output_safety'+
+h5. +require 'active_support/core_ext/string/output_safety'+
 
 The _actionpack/lib/active_support/core_ext/string/output_saftey.rb_ file is responsible for the code used in escaping HTML and JSON, namely the +html_escape+ and +json_escape+ methods. It does this by overriding these methods in +Erb::Util+ which is later included into +ActionView::Base+. This also defines +ActiveSupport::SafeBuffer+ which descends from +String+ and is used for concatenating safe output from your views to ERB templates.
 
-h4. +require 'action_view/base'+
+h5. +require 'action_view/base'+
 
 This file initially makes requires to the following files:
 
@@ -1386,7 +1384,7 @@ The remainder of this file sets up the +ActionView+ module and the +ActionView::
   include Helpers, Rendering, Partials, Layouts, ::ERB::Util, Context
 </ruby>
 
-h4. +ActionView::Helpers+
+h5. +ActionView::Helpers+
 
 This module, from _actionpack/lib/action_view/helpers.rb_, initially sets up the +autoload+'s for the various +ActionView::Helpers+ modules (TODO: mysteriously not using +autoload_under+). This also sets up a +ClassMethods+ module which is included automatically into wherever +ActionView::Helpers+ is included by defining a +self.included+ method:
 
@@ -1416,27 +1414,27 @@ This module is also included into Active Record and +AbstractController+, meanin
 
 After including +ActiveSupport::Benchmarkable+, the helpers which we have declared to be +autoload+'d are included. I will not go through and cover what each of these helpers do, as their names should be fairly explicit about it, and it's not really within the scope of this guide.
 
-h4. +ActionView::Rendering+
+h5. +ActionView::Rendering+
 
 This module, from _actionpack/lib/action_view/render/rendering.rb_ defines a method you may be a little too familiar with: +render+. This is the +render+ use for rendering all kinds of things, such as partials, templates and text. 
 
-h4. +ActionView::Partials+
+h5. +ActionView::Partials+
 
 This module, from _actionpack/lib/action_view/render/partials.rb_, defines +ActionView::Partials::PartialRenderer+ which you can probably guess is used for rendering partials. 
 
-h4. +ActionView::Layouts+
+h5. +ActionView::Layouts+
 
 This module, from _actionpack/lib/action_view/render/layouts.rb_, defines +ActionView::Layouts+ which defines methods such as +find_layout+ for locating layouts.
 
-h4. +ERB::Util+
+h5. +ERB::Util+
 
 The +ERB::Util+ module from Ruby core, as the document describes it: "A utility module for conversion routines, often handy in HTML generation". It offers two methods +html_escape+ and +url_encode+, with a third called +json_escape+ being added in by the requirement of _actionpack/lib/active_support/core_ext/string/output_saftey.rb_ earlier. As explained earlier, +html_escape+ is overridden to return a string marked as safe.
 
-h4. +ActionView::Context+
+h5. +ActionView::Context+
 
 TODO: Not entirely sure what this is all about. Something about the context of view rendering... can't work it out.
 
-h4. +ActionView Railtie+
+h5. ActionView Railtie
 
 Now that _actionpack/lib/action_view.rb_ has been required, the next step is to +require 'rails'+, but this will be skipped as the file was required by _railties/lib/rails/all.rb_ way back in the beginnings of the initialization process.
 
@@ -1466,15 +1464,17 @@ TODO: Explain LogSubscriber.
 
 The initializer defined here, _action_view.cache_asset_timestamps_ is responsible for caching the timestamps on the ends of your assets. If you've ever seen a link generated by +image_tag+ or +stylesheet_link_tag+ you would know that I mean that this timestamp is the number after the _?_ in this example: _/javascripts/prototype.js?1265442620_. This initializer will do nothing if +cache_classes+ is set to false in any of your application's configuration. TODO: Elaborate.
 
+WARNING: EVERYTHING AFTER THIS POINT HAS NOT BEEN UPDATED TO REFLECT THE RAILS 3 BETA RELEASE. HERE BE DRAGONS. DANGER, WILL ROBINSON, DANGER. CONTINUE AT YOUR OWN PERIL!!!
 
 
-h3. ActionMailer Railtie
 
-h3. ActiveResource Railtie
+h4. ActionMailer Railtie
 
-h3. ActionDispatch Railtie
+h4. ActiveResource Railtie
 
-h4. +require 'action_dispatch+
+h4. ActionDispatch Railtie
+
+h5. +require 'action_dispatch'+
 
 This file, _lib/actionpack/lib/action_dispatch.rb_ is initially required through the _railties/lib/rails.rb_ file earlier on in the initilization process. We will cover again what it does.
 
@@ -2710,17 +2710,7 @@ The +I18n::Railtie+ also defines an +after_initialize+ which we will return to l
 * set_load_path
 * set_autoload_paths
 * add_routing_paths
-********************************************
-********************************************
-********************************************
-********************************************
 
-EVERYTHING AFTER THIS POINT HAS NOT BEEN UPDATED TO REFLECT THE RAILS 3 BETA RELEASE. HERE BE DRAGONS. DANGER, WILL ROBINSON, DANGER. CONTINUE AT YOUR OWN PERIL!!!
-
-********************************************
-********************************************
-********************************************
-********************************************
 
 h4. +Rails::Engine.new+
 
