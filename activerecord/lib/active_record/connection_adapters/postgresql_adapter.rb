@@ -114,6 +114,12 @@ module ActiveRecord
             # Object identifier types
             when /^oid$/
               :integer
+            # UUID type
+            when /^uuid$/
+              :string
+            # Small and big integer types
+            when /^(?:small|big)int$/
+              :integer
             # Pass through all types that are not specific to PostgreSQL.
             else
               super
