@@ -46,7 +46,6 @@ module ActionMailer
   autoload :DeprecatedApi
   autoload :MailHelper
   autoload :OldApi
-  autoload :Quoting
   autoload :TestCase
   autoload :TestHelper
 end
