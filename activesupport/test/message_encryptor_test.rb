@@ -4,7 +4,7 @@ require 'active_support/time'
 class MessageEncryptorTest < Test::Unit::TestCase
   def setup
     @encryptor = ActiveSupport::MessageEncryptor.new(ActiveSupport::SecureRandom.hex(64))
-    @data = {:some=>"data", :now=>Time.now}
+    @data = { :some => "data", :now => Time.local(2010) }
   end
   
   def test_simple_round_tripping

@@ -198,10 +198,12 @@ module ActiveSupport
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo
+      @current_period = nil
     end
 
     def utc_offset
-      @utc_offset ||= tzinfo.current_period.utc_offset
+      @current_period ||= tzinfo.current_period
+      @current_period.utc_offset
     end
 
     # Returns the offset of this time zone as a formatted string, of the
@@ -362,13 +364,14 @@ module ActiveSupport
                  "Wellington" ],
        [ 46_800, "Nuku'alofa" ]].
       each do |offset, *places|
-        places.sort.each do |place|
+        places.each do |place|
           place.freeze
           zone = new(place, offset)
           ZONES << zone
           ZONES_MAP[place] = zone
         end
       end
+      ZONES.sort!
       ZONES.freeze
       ZONES_MAP.freeze
 

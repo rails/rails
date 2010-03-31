@@ -13,6 +13,8 @@ require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/object/singleton_class'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/object/duplicable'
+require 'active_support/core_ext/object/blank'
 require 'arel'
 require 'active_record/errors'
 
@@ -336,6 +338,9 @@ module ActiveRecord #:nodoc:
     # Accessor for the name of the prefix string to prepend to every table name. So if set to "basecamp_", all
     # table names will be named like "basecamp_projects", "basecamp_people", etc. This is a convenient way of creating a namespace
     # for tables in a shared database. By default, the prefix is the empty string.
+    #
+    # If you are organising your models within modules you can add a prefix to the models within a namespace by defining
+    # a singleton method in the parent module called table_name_prefix which returns your chosen prefix.
     cattr_accessor :table_name_prefix, :instance_writer => false
     @@table_name_prefix = ""
 
@@ -763,12 +768,16 @@ module ActiveRecord #:nodoc:
               contained = contained.singularize if parent.pluralize_table_names
               contained << '_'
             end
-            name = "#{table_name_prefix}#{contained}#{undecorated_table_name(base.name)}#{table_name_suffix}"
+            name = "#{full_table_name_prefix}#{contained}#{undecorated_table_name(base.name)}#{table_name_suffix}"
           end
 
         @quoted_table_name = nil
         set_table_name(name)
         name
+      end
+
+      def full_table_name_prefix #:nodoc:
+        (parents.detect{ |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
       # Defines the column name for use with single table inheritance
@@ -1288,7 +1297,7 @@ module ActiveRecord #:nodoc:
         # <tt>options</tt> argument is the same as in find.
         #
         #   class Person < ActiveRecord::Base
-        #     default_scope :order => 'last_name, first_name'
+        #     default_scope order('last_name, first_name')
         #   end
         def default_scope(options = {})
           self.default_scoping << construct_finder_arel(options)
@@ -2214,6 +2223,7 @@ module ActiveRecord #:nodoc:
     extend QueryCache::ClassMethods
     extend ActiveSupport::Benchmarkable
 
+    include ActiveModel::Conversion
     include Validations
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
@@ -2223,12 +2233,10 @@ module ActiveRecord #:nodoc:
     include AttributeMethods::Dirty
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
-    include ActiveModel::Conversion
 
     # AutosaveAssociation needs to be included before Transactions, because we want
     # #save_with_autosave_associations to be wrapped inside a transaction.
     include AutosaveAssociation, NestedAttributes
-
     include Aggregations, Transactions, Reflection, Serialization
 
     NilClass.add_whiner(self) if NilClass.respond_to?(:add_whiner)
@@ -2237,4 +2245,4 @@ end
 
 # TODO: Remove this and make it work with LAZY flag
 require 'active_record/connection_adapters/abstract_adapter'
-ActiveRecord.run_base_hooks(ActiveRecord::Base)
+ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)

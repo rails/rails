@@ -11,6 +11,8 @@ group :mri do
   if RUBY_VERSION < '1.9'
     gem "system_timer"
     gem "ruby-debug", ">= 0.10.3"
+  elsif RUBY_VERSION < '1.9.2'
+    gem "ruby-debug19"
   end
 end
 

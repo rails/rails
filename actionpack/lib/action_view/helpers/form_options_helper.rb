@@ -1,6 +1,7 @@
 require 'cgi'
 require 'erb'
 require 'action_view/helpers/form_helper'
+require 'active_support/core_ext/object/blank'
 
 module ActionView
   module Helpers

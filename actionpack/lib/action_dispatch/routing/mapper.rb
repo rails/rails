@@ -1,4 +1,5 @@
 require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/object/blank'
 
 module ActionDispatch
   module Routing
@@ -258,6 +259,7 @@ module ActionDispatch
 
         def scope(*args)
           options = args.extract_options!
+          options = options.dup
 
           case args.first
           when String
@@ -423,8 +425,13 @@ module ActionDispatch
             singular
           end
 
+          # Checks for uncountable plurals, and appends "_index" if they're.
           def collection_name
-            plural
+            uncountable? ? "#{plural}_index" : plural
+          end
+
+          def uncountable?
+            singular == plural
           end
 
           def name_for_action(action)
@@ -438,6 +445,32 @@ module ActionDispatch
 
           def id_segment
             ":#{singular}_id"
+          end
+
+          def constraints
+            options[:constraints] || {}
+          end
+
+          def id_constraint?
+            options[:id] && options[:id].is_a?(Regexp) || constraints[:id] && constraints[:id].is_a?(Regexp)
+          end
+
+          def id_constraint
+            options[:id] || constraints[:id]
+          end
+
+          def collection_options
+            (options || {}).dup.tap do |options|
+              options.delete(:id)
+              options[:constraints] = options[:constraints].dup if options[:constraints]
+              options[:constraints].delete(:id) if options[:constraints].is_a?(Hash)
+            end
+          end
+
+          def nested_options
+            options = { :name_prefix => member_name }
+            options["#{singular}_id".to_sym] = id_constraint if id_constraint?
+            options
           end
         end
 
@@ -483,12 +516,14 @@ module ActionDispatch
                 yield if block_given?
               end
 
-              get    :show if resource.actions.include?(:show)
-              post   :create if resource.actions.include?(:create)
-              put    :update if resource.actions.include?(:update)
-              delete :destroy if resource.actions.include?(:destroy)
-              get    :new, :as => resource.name if resource.actions.include?(:new)
-              get    :edit, :as => resource.name if resource.actions.include?(:edit)
+              scope(resource.options) do
+                get    :show if resource.actions.include?(:show)
+                post   :create if resource.actions.include?(:create)
+                put    :update if resource.actions.include?(:update)
+                delete :destroy if resource.actions.include?(:destroy)
+                get    :new, :as => resource.name if resource.actions.include?(:new)
+                get    :edit, :as => resource.name if resource.actions.include?(:edit)
+              end
             end
           end
 
@@ -509,17 +544,21 @@ module ActionDispatch
               yield if block_given?
 
               with_scope_level(:collection) do
-                get  :index if resource.actions.include?(:index)
-                post :create if resource.actions.include?(:create)
-                get  :new, :as => resource.singular if resource.actions.include?(:new)
+                scope(resource.collection_options) do
+                  get  :index if resource.actions.include?(:index)
+                  post :create if resource.actions.include?(:create)
+                  get  :new, :as => resource.singular if resource.actions.include?(:new)
+                end
               end
 
               with_scope_level(:member) do
                 scope(':id') do
-                  get    :show if resource.actions.include?(:show)
-                  put    :update if resource.actions.include?(:update)
-                  delete :destroy if resource.actions.include?(:destroy)
-                  get    :edit, :as => resource.singular if resource.actions.include?(:edit)
+                  scope(resource.options) do
+                    get    :show if resource.actions.include?(:show)
+                    put    :update if resource.actions.include?(:update)
+                    delete :destroy if resource.actions.include?(:destroy)
+                    get    :edit, :as => resource.singular if resource.actions.include?(:edit)
+                  end
                 end
               end
             end
@@ -558,7 +597,7 @@ module ActionDispatch
           end
 
           with_scope_level(:nested) do
-            scope(parent_resource.id_segment, :name_prefix => parent_resource.member_name) do
+            scope(parent_resource.id_segment, parent_resource.nested_options) do
               yield
             end
           end

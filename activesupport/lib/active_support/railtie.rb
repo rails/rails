@@ -35,7 +35,7 @@ module I18n
     config.i18n.load_path = []
 
     initializer "i18n.initialize" do
-      ActiveSupport.base_hook(:i18n) do
+      ActiveSupport.on_load(:i18n) do
         I18n.reload!
 
         ActionDispatch::Callbacks.to_prepare do

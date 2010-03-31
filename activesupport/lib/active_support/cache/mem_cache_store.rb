@@ -91,7 +91,7 @@ module ActiveSupport
 
       def delete(key, options = nil) # :nodoc:
         super do
-          response = @data.delete(key, expires_in(options))
+          response = @data.delete(key)
           response == Response::DELETED
         end
       rescue MemCache::MemCacheError => e

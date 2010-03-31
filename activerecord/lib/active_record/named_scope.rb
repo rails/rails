@@ -1,6 +1,7 @@
 require 'active_support/core_ext/array'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/singleton_class'
+require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
   module NamedScope
@@ -101,7 +102,8 @@ module ActiveRecord
         name = name.to_sym
 
         if !scopes[name] && respond_to?(name, true)
-          raise ArgumentError, "Cannot define scope :#{name} because #{self.name}.#{name} method already exists."
+          logger.warn "Creating scope :#{name}. " \
+                      "Overwriting existing method #{self.name}.#{name}."
         end
 
         scopes[name] = lambda do |parent_scope, *args|
@@ -165,7 +167,14 @@ module ActiveRecord
       end
 
       def ==(other)
-        other.respond_to?(:to_ary) ? to_a == other.to_a : false
+        case other
+        when Scope
+          to_sql == other.to_sql
+        when Relation
+          other == self
+        when Array
+          to_a == other.to_a
+        end
       end
 
       private

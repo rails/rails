@@ -27,7 +27,7 @@ module Rails
 
         routes.clear!
         paths.each { |path| load(path) }
-        ActionController.base_hook { routes.finalize! }
+        ActiveSupport.on_load(:action_controller) { routes.finalize! }
 
         nil
       ensure

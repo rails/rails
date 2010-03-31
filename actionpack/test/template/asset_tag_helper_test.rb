@@ -373,6 +373,22 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal %(<img alt="Rails" src="/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
 
+  def test_string_asset_id
+    @controller.config.asset_path = "/assets.v12345%s"
+
+    expected_path = "/assets.v12345/images/rails.png"
+    assert_equal %(<img alt="Rails" src="#{expected_path}" />), image_tag("rails.png")
+  end
+
+  def test_proc_asset_id
+    @controller.config.asset_path = Proc.new do |asset_path|
+      "/assets.v12345#{asset_path}"
+    end
+
+    expected_path = "/assets.v12345/images/rails.png"
+    assert_equal %(<img alt="Rails" src="#{expected_path}" />), image_tag("rails.png")
+  end
+
   def test_timebased_asset_id_with_relative_url_root
     @controller.config.relative_url_root = "/collaboration/hieraki"
     expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s

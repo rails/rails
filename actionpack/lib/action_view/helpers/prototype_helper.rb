@@ -1,6 +1,7 @@
 require 'set'
 require 'active_support/json'
 require 'active_support/core_ext/object/returning'
+require 'active_support/core_ext/object/blank'
 
 module ActionView
   module Helpers

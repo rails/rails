@@ -1,4 +1,5 @@
 require 'rack/session/abstract/id'
+require 'active_support/core_ext/object/blank'
 
 module ActionController
   module TemplateAssertions
@@ -117,9 +118,9 @@ module ActionController
       end
     end
 
-    def assign_parameters(router, controller_path, action, parameters = {})
+    def assign_parameters(routes, controller_path, action, parameters = {})
       parameters = parameters.symbolize_keys.merge(:controller => controller_path, :action => action)
-      extra_keys = router.extra_keys(parameters)
+      extra_keys = routes.extra_keys(parameters)
       non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
         if value.is_a? Fixnum
@@ -321,7 +322,7 @@ module ActionController
     def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
       # Sanity check for required instance variables so we can give an
       # understandable error message.
-      %w(@router @controller @request @response).each do |iv_name|
+      %w(@routes @controller @request @response).each do |iv_name|
         if !(instance_variable_names.include?(iv_name) || instance_variable_names.include?(iv_name.to_sym)) || instance_variable_get(iv_name).nil?
           raise "#{iv_name} is nil: make sure you set it in your test's setup method."
         end
@@ -337,7 +338,7 @@ module ActionController
       @request.env['REQUEST_METHOD'] = http_method
 
       parameters ||= {}
-      @request.assign_parameters(@router, @controller.class.name.underscore.sub(/_controller$/, ''), action.to_s, parameters)
+      @request.assign_parameters(@routes, @controller.class.name.underscore.sub(/_controller$/, ''), action.to_s, parameters)
 
       @request.session = ActionController::TestSession.new(session) unless session.nil?
       @request.session["flash"] = @request.flash.update(flash || {})
@@ -446,7 +447,7 @@ module ActionController
             :relative_url_root => nil,
             :_path_segments => @request.symbolized_path_parameters)
 
-          url, query_string = @router.url_for(options).split("?", 2)
+          url, query_string = @routes.url_for(options).split("?", 2)
 
           @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
           @request.env["PATH_INFO"] = url

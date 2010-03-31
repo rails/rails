@@ -30,7 +30,7 @@ end
 
 class ActionController::TestCase
   setup do
-    @router = Rails.application.routes
+    @routes = Rails.application.routes
   end
 end
 

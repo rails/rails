@@ -371,8 +371,21 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_named_scopes_with_reserved_names
-    [:where, :with_scope].each do |protected_method|
-      assert_raises(ArgumentError) { Topic.scope protected_method }
+    class << Topic
+      def public_method; end
+      public :public_method
+
+      def protected_method; end
+      protected :protected_method
+
+      def private_method; end
+      private :private_method
+    end
+
+    [:public_method, :protected_method, :private_method].each do |reserved_method|
+      assert Topic.respond_to?(reserved_method, true)
+      ActiveRecord::Base.logger.expects(:warn)
+      Topic.scope(reserved_method)
     end
   end
 
@@ -393,6 +406,12 @@ class NamedScopeTest < ActiveRecord::TestCase
     approved = Topic.approved.order('id ASC')
     assert_equal topics(:second), approved[0]
     assert approved.loaded?
+  end
+
+  def test_nested_named_scopes_queries_size
+    assert_queries(1) do
+      Topic.approved.by_lifo.replied.written_before(Time.now).all
+    end
   end
 end
 

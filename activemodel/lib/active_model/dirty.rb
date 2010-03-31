@@ -1,4 +1,7 @@
+require 'active_model/attribute_methods'
+require 'active_support/concern'
 require 'active_support/hash_with_indifferent_access'
+require 'active_support/core_ext/object/duplicable'
 
 module ActiveModel
   # <tt>ActiveModel::Dirty</tt> provides a way to track changes in your

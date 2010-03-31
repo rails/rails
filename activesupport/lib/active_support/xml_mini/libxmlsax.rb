@@ -1,4 +1,5 @@
 require 'libxml'
+require 'active_support/core_ext/object/blank'
 
 # = XmlMini LibXML implementation using a SAX-based parser
 module ActiveSupport

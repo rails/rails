@@ -266,6 +266,10 @@ class ActiveModelHelperTest < ActionView::TestCase
     assert_dom_equal "<div class=\"differentError\">beforecan't be emptyafter</div>", error_message_on(:post, :author_name, :css_class => 'differentError', :prepend_text => 'before', :append_text => 'after')
   end
 
+  def test_error_message_on_with_tag_option_in_options_hash
+    assert_dom_equal "<span class=\"differentError\">beforecan't be emptyafter</span>", error_message_on(:post, :author_name, :html_tag => "span", :css_class => 'differentError', :prepend_text => 'before', :append_text => 'after')
+  end
+
   def test_error_message_on_handles_empty_errors
     assert_equal "", error_message_on(@post, :tag)
   end

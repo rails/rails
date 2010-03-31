@@ -478,8 +478,8 @@ XML
   end
 
   def test_with_routing_places_routes_back
-    assert @router
-    routes_id = @router.object_id
+    assert @routes
+    routes_id = @routes.object_id
 
     begin
       with_routing { raise 'fail' }
@@ -487,8 +487,8 @@ XML
     rescue RuntimeError
     end
 
-    assert @router
-    assert_equal routes_id, @router.object_id
+    assert @routes
+    assert_equal routes_id, @routes.object_id
   end
 
   def test_remote_addr

@@ -111,10 +111,10 @@ module ActiveRecord
 
   autoload :TestCase
   autoload :TestFixtures, 'active_record/fixtures'
+end
 
-  base_hook do
-    Arel::Table.engine = Arel::Sql::Engine.new(self)
-  end
+ActiveSupport.on_load(:active_record) do
+  Arel::Table.engine = Arel::Sql::Engine.new(self)
 end
 
 I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'

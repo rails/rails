@@ -95,7 +95,7 @@ module ActiveSupport
         map.connect ':controller/:action/:id'
       end
 
-      ActionController::IntegrationTest.app.router.draw do |map|
+      ActionController::IntegrationTest.app.routes.draw do |map|
         # FIXME: match ':controller(/:action(/:id))'
         map.connect ':controller/:action/:id'
       end
@@ -104,12 +104,11 @@ module ActiveSupport
 end
 
 class RoutedRackApp
-  attr_reader :router
-  alias routes router
+  attr_reader :routes
 
-  def initialize(router, &blk)
-    @router = router
-    @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@router)
+  def initialize(routes, &blk)
+    @routes = routes
+    @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@routes)
   end
 
   def call(env)
@@ -234,7 +233,7 @@ module ActionView
     # Must repeat the setup because AV::TestCase is a duplication
     # of AC::TestCase
     setup do
-      @router = SharedTestRoutes
+      @routes = SharedTestRoutes
     end
   end
 end
@@ -250,7 +249,7 @@ module ActionController
     include ActionDispatch::TestProcess
 
     setup do
-      @router = SharedTestRoutes
+      @routes = SharedTestRoutes
     end
   end
 end

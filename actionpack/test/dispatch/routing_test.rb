@@ -114,6 +114,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :comments, :except => :destroy
       end
 
+      resources :sheep
+
       match 'sprockets.js' => ::TestRoutingMapper::SprocketsApp
 
       match 'people/:id/update', :to => 'people#update', :as => :update_person
@@ -171,6 +173,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :descriptions
         root :to => 'projects#index'
       end
+
+      resources :products, :constraints => { :id => /\d{4}/ } do
+        resources :images
+      end
+
+      resource :dashboard, :constraints => { :ip => /192\.168\.1\.\d{1,3}/ }
     end
   end
 
@@ -525,6 +533,23 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_resource_with_slugs_in_ids
+    with_test_routes do
+      get '/posts/rails-rocks'
+      assert_equal 'posts#show', @response.body
+      assert_equal '/posts/rails-rocks', post_path(:id => 'rails-rocks')
+    end
+  end
+
+  def test_resources_for_uncountable_names
+    with_test_routes do
+      assert_equal '/sheep', sheep_index_path
+      assert_equal '/sheep/1', sheep_path(1)
+      assert_equal '/sheep/new', new_sheep_path
+      assert_equal '/sheep/1/edit', edit_sheep_path(1)
+    end
+  end
+
   def test_path_names
     with_test_routes do
       get '/es/projeto'
@@ -791,6 +816,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/scoped_pages'
       assert_equal 'home', @request.params[:id]
+    end
+  end
+
+  def test_resource_constraints
+    with_test_routes do
+      assert_raise(ActionController::RoutingError) { get '/products/1' }
+      get '/products'
+      assert_equal 'products#index', @response.body
+      get '/products/0001'
+      assert_equal 'products#show', @response.body
+
+      assert_raise(ActionController::RoutingError) { get '/products/1/images' }
+      get '/products/0001/images'
+      assert_equal 'images#index', @response.body
+      get '/products/0001/images/1'
+      assert_equal 'images#show', @response.body
+
+      assert_raise(ActionController::RoutingError) { get '/dashboard', {}, {'REMOTE_ADDR' => '10.0.0.100'} }
+      get '/dashboard', {}, {'REMOTE_ADDR' => '192.168.1.100'}
+      assert_equal 'dashboards#show', @response.body
     end
   end
 

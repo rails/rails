@@ -1,5 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/kernel/requires'
+require 'active_support/core_ext/object/blank'
 
 begin
   require_library_or_gem 'pg'
@@ -299,7 +300,7 @@ module ActiveRecord
       # QUOTING ==================================================
 
       # Escapes binary strings for bytea input to the database.
-      def escape_bytea(value)
+      def escape_bytea(original_value)
         if @connection.respond_to?(:escape_bytea)
           self.class.instance_eval do
             define_method(:escape_bytea) do |value|
@@ -323,13 +324,13 @@ module ActiveRecord
             end
           end
         end
-        escape_bytea(value)
+        escape_bytea(original_value)
       end
 
       # Unescapes bytea output from a database to the binary string it represents.
       # NOTE: This is NOT an inverse of escape_bytea! This is only to be used
       #       on escaped binary output from database drive.
-      def unescape_bytea(value)
+      def unescape_bytea(original_value)
         # In each case, check if the value actually is escaped PostgreSQL bytea output
         # or an unescaped Active Record attribute that was just written.
         if PGconn.respond_to?(:unescape_bytea)
@@ -369,7 +370,7 @@ module ActiveRecord
             end
           end
         end
-        unescape_bytea(value)
+        unescape_bytea(original_value)
       end
 
       # Quotes PostgreSQL-specific data types for SQL input.
@@ -394,7 +395,7 @@ module ActiveRecord
       end
 
       # Quotes strings for use in SQL input in the postgres driver for better performance.
-      def quote_string(s) #:nodoc:
+      def quote_string(original_value) #:nodoc:
         if @connection.respond_to?(:escape)
           self.class.instance_eval do
             define_method(:quote_string) do |s|
@@ -414,7 +415,7 @@ module ActiveRecord
             remove_method(:quote_string)
           end
         end
-        quote_string(s)
+        quote_string(original_value)
       end
 
       # Checks the following cases:

@@ -10,14 +10,14 @@ module ActionView
 
     initializer "action_view.cache_asset_timestamps" do |app|
       unless app.config.cache_classes
-        ActionView.base_hook do
+        ActiveSupport.on_load(:action_view) do
           ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
         end
       end
     end
 
     initializer "action_view.set_configs" do |app|
-      ActionView.base_hook do
+      ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k,v|
           send "#{k}=", v
         end

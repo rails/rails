@@ -80,7 +80,7 @@ module ActionDispatch
         expected_path = "/#{expected_path}" unless expected_path[0] == ?/
         # Load routes.rb if it hasn't been loaded.
 
-        generated_path, extra_keys = @router.generate_extras(options, defaults)
+        generated_path, extra_keys = @routes.generate_extras(options, defaults)
         found_extras = options.reject {|k, v| ! extra_keys.include? k}
 
         msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
@@ -125,7 +125,7 @@ module ActionDispatch
       end
 
       # A helper to make it easier to test different route configurations.
-      # This method temporarily replaces @router
+      # This method temporarily replaces @routes
       # with a new RouteSet instance.
       #
       # The new instance is yielded to the passed block. Typically the block
@@ -142,9 +142,9 @@ module ActionDispatch
       #   end
       #
       def with_routing
-        old_routes, @router = @router, ActionDispatch::Routing::RouteSet.new
+        old_routes, @routes = @routes, ActionDispatch::Routing::RouteSet.new
         old_controller, @controller = @controller, @controller.clone if @controller
-        _router = @router
+        _routes = @routes
 
         # Unfortunately, there is currently an abstraction leak between AC::Base
         # and AV::Base which requires having the URL helpers in both AC and AV.
@@ -153,14 +153,14 @@ module ActionDispatch
         #
         # TODO: Make this unnecessary
         if @controller
-          @controller.singleton_class.send(:include, _router.url_helpers)
+          @controller.singleton_class.send(:include, _routes.url_helpers)
           @controller.view_context_class = Class.new(@controller.view_context_class) do
-            include _router.url_helpers
+            include _routes.url_helpers
           end
         end
-        yield @router
+        yield @routes
       ensure
-        @router = old_routes
+        @routes = old_routes
         if @controller
           @controller = old_controller
         end
@@ -168,7 +168,7 @@ module ActionDispatch
 
       # ROUTES TODO: These assertions should really work in an integration context
       def method_missing(selector, *args, &block)
-        if @controller && @router.named_routes.helpers.include?(selector)
+        if @controller && @routes && @routes.named_routes.helpers.include?(selector)
           @controller.send(selector, *args, &block)
         else
           super
@@ -185,7 +185,7 @@ module ActionDispatch
           request.env["REQUEST_METHOD"] = request_method.to_s.upcase if request_method
           request.path = path
 
-          params = @router.recognize_path(path, { :method => request.method })
+          params = @routes.recognize_path(path, { :method => request.method })
           request.path_parameters = params.with_indifferent_access
 
           request

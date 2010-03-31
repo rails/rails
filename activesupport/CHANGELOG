@@ -1,5 +1,7 @@
 *Rails 3.0 (pending)*
 
+* New assertions assert_blank and assert_present.  #4299 [Juanjo Bazan] 
+
 * Use Object#singleton_class instead of #metaclass. Prefer Ruby's choice.  [Jeremy Kemper]
 
 * JSON backend for YAJL. Preferred if available.  #2666 [Brian Lopez]

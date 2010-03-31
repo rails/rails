@@ -5,7 +5,7 @@ module ActionDispatch
       #
       # For backward compatibility, the post \format is extracted from the
       # X-Post-Data-Format HTTP header if present.
-      def content_type
+      def content_mime_type
         @env["action_dispatch.request.content_type"] ||= begin
           if @env['CONTENT_TYPE'] =~ /^([^,\;]*)/
             Mime::Type.lookup($1.strip.downcase)
@@ -15,13 +15,17 @@ module ActionDispatch
         end
       end
 
+      def content_type
+        content_mime_type && content_mime_type.to_s
+      end
+
       # Returns the accepted MIME type for the request.
       def accepts
         @env["action_dispatch.request.accepts"] ||= begin
           header = @env['HTTP_ACCEPT'].to_s.strip
 
           if header.empty?
-            [content_type]
+            [content_mime_type]
           else
             Mime::Type.parse(header)
           end

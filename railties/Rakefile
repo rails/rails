@@ -1,5 +1,3 @@
-require File.expand_path('../../load_paths', __FILE__)
-
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
@@ -60,10 +58,8 @@ Rake::RDocTask.new { |rdoc|
   rdoc.options << '--charset' << 'utf-8'
   rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
   rdoc.rdoc_files.include('README', 'CHANGELOG')
-  rdoc.rdoc_files.include('lib/*.rb')
-  rdoc.rdoc_files.include('lib/rails/*.rb')
-  rdoc.rdoc_files.include('lib/rails/generators/*.rb')
-  rdoc.rdoc_files.include('lib/rails/commands/**/*.rb')
+  rdoc.rdoc_files.include('lib/**/*.rb')
+  rdoc.rdoc_files.exclude('lib/rails/generators/**/templates/*')
 }
 
 # Generate GEM ----------------------------------------------------------------------------

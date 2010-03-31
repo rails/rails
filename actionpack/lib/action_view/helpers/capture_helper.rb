@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/blank'
+
 module ActionView
   module Helpers
     # CaptureHelper exposes methods to let you extract generated markup which
