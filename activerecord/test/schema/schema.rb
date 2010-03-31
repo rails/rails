@@ -99,6 +99,10 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :collections, :force => true do |t|
+    t.string :name
+  end
+
   create_table :colnametests, :force => true do |t|
     t.integer :references, :null => false
   end
@@ -394,6 +398,11 @@ ActiveRecord::Schema.define do
     t.integer :price
   end
 
+  create_table :products, :force => true do |t|
+    t.references :collection
+    t.string     :name
+  end
+
   create_table :projects, :force => true do |t|
     t.string :name
     t.string :type
@@ -497,6 +506,11 @@ ActiveRecord::Schema.define do
     t.column :name, :string
     t.column :looter_id, :integer
     t.column :looter_type, :string
+  end
+
+  create_table :variants, :force => true do |t|
+    t.references :product
+    t.string     :name
   end
 
   create_table :vertices, :force => true do |t|

@@ -1,8 +1,9 @@
 require "cases/helper"
 require 'models/company_in_module'
+require 'models/shop'
 
 class ModulesTest < ActiveRecord::TestCase
-  fixtures :accounts, :companies, :projects, :developers
+  fixtures :accounts, :companies, :projects, :developers, :collections, :products, :variants
 
   def setup
     # need to make sure Object::Firm and Object::Client are not defined,
@@ -109,5 +110,35 @@ class ModulesTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.table_name_prefix = ''
     classes.each(&:reset_table_name)
+  end
+
+  def test_compute_type_can_infer_class_name_of_sibling_inside_module
+    old = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = true
+    assert_equal MyApplication::Business::Firm, MyApplication::Business::Client.send(:compute_type, "Firm")
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old
+  end
+
+  def test_nested_models_should_not_raise_exception_when_using_delete_all_dependency_on_association
+    old = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = true
+
+    collection = Shop::Collection.find(:first)
+    assert !collection.products.empty?, "Collection should have products"
+    assert_nothing_raised { collection.destroy }
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old
+  end
+
+  def test_nested_models_should_not_raise_exception_when_using_nullify_dependency_on_association
+    old = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = true
+
+    product = Shop::Product.find(:first)
+    assert !product.variants.empty?, "Product should have variants"
+    assert_nothing_raised { product.destroy }
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old
   end
 end

@@ -1080,16 +1080,6 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Nest the type name in the same module as this class.
-        # Bar is "MyApp::Business::Bar" relative to MyApp::Business::Foo
-        def type_name_with_module(type_name)
-          if store_full_sti_class
-            type_name
-          else
-            (/^::/ =~ type_name) ? type_name : "#{parent.name}::#{type_name}"
-          end
-        end
-
         def construct_finder_arel(options = {}, scope = nil)
           relation = options.is_a?(Hash) ? unscoped.apply_finder_options(options) : unscoped.merge(options)
           relation = scope.merge(relation) if scope
@@ -1316,13 +1306,26 @@ module ActiveRecord #:nodoc:
         # Returns the class type of the record using the current module as a prefix. So descendants of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
-          modularized_name = type_name_with_module(type_name)
-          silence_warnings do
-            begin
-              class_eval(modularized_name, __FILE__)
-            rescue NameError
-              class_eval(type_name, __FILE__)
+          if type_name.match(/^::/)
+            # If the type is prefixed with a scope operator then we assume that
+            # the type_name is an absolute reference.
+            type_name.constantize
+          else
+            # Build a list of candidates to search for
+            candidates = []
+            name.scan(/::|$/) { candidates.unshift "#{$`}::#{type_name}" }
+            candidates << type_name
+
+            candidates.each do |candidate|
+              begin
+                constant = candidate.constantize
+                return constant if candidate == constant.to_s
+              rescue NameError
+              rescue ArgumentError
+              end
             end
+
+            raise NameError, "uninitialized constant #{candidates.first}"
           end
         end
 
