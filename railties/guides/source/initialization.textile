@@ -305,9 +305,9 @@ This is called when we extend this module into one of our classes or modules, su
 
 When the initializer is ran it defines a +base_hook+ for +ActiveRecord+ and will only run it when +run_base_hooks+ is called, which in the case of Active Record, is ran after the entirety of +activerecord/lib/active_record/base.rb+ has been evaluated.
 
-h4. +require 'active_support'+
+h4. +require 'active_support'+ cont'd.
 
-Then it uses the method +eager_autoload+ also defined in _active_support/dependencies/autoload.rb_:
+This file also uses the method +eager_autoload+ also defined in _active_support/dependencies/autoload.rb_:
 
 <ruby>
   def eager_autoload
@@ -362,13 +362,11 @@ As you can see for the duration of the +eager_autoload+ block the class variable
   autoload :I18n, "active_support/i18n"
 </ruby>
 
-So we know the ones in +eager_autoload+ are eagerly loaded and it does this by storing them in an +@@autoloads+ hash object. This is then referenced by the +ActiveSupport::Autoload.eager_autoload!+ method which will go through and +require+ all the files specified. This method is called in the +preload_frameworks+ initializer and will be covered much later in this guide.
+So we know the ones in +eager_autoload+ are eagerly loaded and it does this by storing them in an +@@autoloads+ hash object and then loading them via +eager_autoload!+ which is called via the +preload_frameworks+ initializer defined in _railties/lib/rails/application/bootstrap.rb_. 
 
-The ones that are not +eager_autoload+'d are automatically loaded as they are called. 
+The classes and modules that are not +eager_autoload+'d are automatically loaded as they are references
 
-
-Note: What it means to be autoloaded. An example of this would be calling the +ActiveSupport::TestCase+ class which hasn't yet been initialized. Because it's been specified as an +autoload+ Ruby will require the file that it's told to. The file it requires is not defined in the +autoload+ call here but, as you may have seen, in the +ActiveSupport::Autoload.autoload+ definition. So once that file has been required Ruby will try again and then if it still can't find it it will throw the all-too-familiar +uninitialized constant+ error.
-
+Note: What does it means to be autoloaded? An example of this would be calling the +ActiveSupport::TestCase+ class which hasn't yet been initialized. Because it's been specified as an +autoload+ Ruby will require the file that it's told to. The file it requires is not defined in the +autoload+ call here but, as you may have seen, in the +ActiveSupport::Autoload.autoload+ definition. So once that file has been required Ruby will try again and then if it still can't find it it will throw the all-too-familiar +uninitialized constant+ error.
 
 h4. +require 'action_dispatch'+
 
@@ -806,26 +804,7 @@ This Railtie also defines an an +after_initialize+ block, which will (as the nam
 
 h4. +require 'action_dispatch/railtie'+
 
-This file first makes a require out to the _action_dispatch_ file which is explained in the ActionDispatch Railtie section, next it makes a require to _rails_ which is _railties/lib/rails.rb_ which is already required.
-
-This file then extends the +ActionDispatch+ module defined when we called +require "action_dispatch"+ like this:
-
-<ruby>
-  module ActionDispatch
-    class Railtie < Rails::Railtie
-      railtie_name :action_dispatch
-
-      # Prepare dispatcher callbacks and run 'prepare' callbacks
-      initializer "action_dispatch.prepare_dispatcher" do |app|
-        # TODO: This used to say unless defined?(Dispatcher). Find out why and fix.
-        require 'rails/dispatcher'
-        ActionDispatch::Callbacks.to_prepare { app.routes_reloader.reload_if_changed }
-      end
-    end
-  end
-</ruby>
-
-This defines just the one initializer: +action_dispatch.prepare_dispatcher+. More on this later. TODO: link when written
+This file is explained in the ActionDispatch Railtie Section. TODO: link
 
 h4. Return to _rails/all.rb_
 
@@ -845,6 +824,19 @@ Now that we've covered the extensive process of what the first line does in this
     end
   end
 </ruby>
+
+As you may be able to tell from the code, this is going through and loading all the Railties for ActiveRecord, ActionController, ActionMailer, ActiveResource. Two other Railties, one for ActiveSupport and one for ActionDispatch were required earlier, but are still covered in this section for continuity reasons. TODO: link.
+
+h4. ActiveSupport Railtie
+
+From ActiveSupport's README:
+
+Active Support is a collection of various utility classes and standard library extensions that were found useful for Rails.
+
+TODO: Quotify.
+
+h5. +require 'active_support/railtie'+
+
 
 h4. ActiveRecord Railtie
 
@@ -1551,9 +1543,7 @@ This file first makes two requires:
   require "rails"
 </ruby>
 
-h5. +require 'action_mailer'+
-
-This file makes a few requires firstly:
+The requires in +action_mailer+ are already loaded or are core extensions:
 
 <ruby>
   require 'abstract_controller'
@@ -1570,102 +1560,227 @@ This file makes a few requires firstly:
 </ruby>
 
 _abstract_controller_ is covered in the "ActionController Railtie" section. TODO: Cover AbstractController there and link to it.
+_action_view_ was required by the ActionView Railtie and will not be required again.
 
 For the core extensions you may reference the "Core Extensions" guide. TODO: Link to guide.
 
+_active_support/lazy_load_hooks_ was covered earlier in the guide and since it has already been required at this point in the initialization process, it will not be required again.
+
+The +require "rails"+ is referencing the _railties/lib/rails.rb_ file which was included back in TODO: link to section.
+
+_actionmailer/lib/action_mailer.rb_ then goes on to define the +ActionMailer+ module:
+
+<ruby>
+  module ActionMailer
+    extend ::ActiveSupport::Autoload
+
+    autoload :AdvAttrAccessor
+    autoload :Collector
+    autoload :Base
+    autoload :DeliveryMethods
+    autoload :DeprecatedApi
+    autoload :MailHelper
+    autoload :OldApi
+    autoload :Quoting
+    autoload :TestCase
+    autoload :TestHelper
+  end
+</ruby>
+
+And a +Text+ module too:
+
+<ruby>
+  module Text
+    extend ActiveSupport::Autoload
+
+    autoload :Format, 'text/format'
+  end
+</ruby>
+
+which is used by the +ActionMailer::MailerHelper+ method +block_format+:
+
+<ruby>
+  def block_format(text)
+    formatted = text.split(/\n\r\n/).collect { |paragraph|
+      Text::Format.new(
+        :columns => 72, :first_indent => 2, :body_indent => 2, :text => paragraph
+      ).format
+    }.join("\n")
+  
+    # Make list points stand on their own line
+    formatted.gsub!(/[ ]*([*]+) ([^*]*)/) { |s| "  #{$1} #{$2.strip}\n" }
+    formatted.gsub!(/[ ]*([#]+) ([^#]*)/) { |s| "  #{$1} #{$2.strip}\n" }
+
+    formatted
+  end
+</ruby>
+
+h5. ActionMailer Railtie
+
+The Railtie defines the +log_subscriber+ as +ActionMailer::Railties::LogSubscriber.new+, with this class having two logging methods: one for delivery called +deliver+ and one for receipt called +receive+.
+
+The initializers defined in this Railtie are:
+
+* action_mailer.url_for
+* action_mailer.logger
+* action_mailer.set_configs
+
+These are covered later on the Initialization section. TODO: first write then link to Initialization section.
+
 h4. ActiveResource Railtie
+
+The ActiveResource Railtie is responsible for creating an interface into remote sites that offer a REST API. The ActiveResource Railtie depends on ActiveSupport and ActiveModel.
+
+h5. +require 'active_resource/railtie'+
+
+This file defines the ActiveResource Railtie:
+
+<ruby>
+  require "active_resource"
+  require "rails"
+
+  module ActiveResource
+    class Railtie < Rails::Railtie
+      railtie_name :active_resource
+
+      require "active_resource/railties/log_subscriber"
+      log_subscriber ActiveResource::Railties::LogSubscriber.new
+
+      initializer "active_resource.set_configs" do |app|
+        app.config.active_resource.each do |k,v|
+          ActiveResource::Base.send "#{k}=", v
+        end
+      end
+    end
+  end
+</ruby>
+
+The +require 'rails'+ has already been done back in TODO: link to section.
+
+h5. +require 'active_resource'+
+
+This file, _activeresource/lib/active_resource.rb_, defines the +ActiveResource+ module, first off this will add the path to ActiveSupport and ActiveModel to the load path if it's not already there, then require both +active_support+ (_activesupport/lib/active_support.rb_) and +active_model+ (_activemodel/lib/active_model.rb_)
+
+<ruby>
+  activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
+  $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
+
+  activemodel_path = File.expand_path('../../../activemodel/lib', __FILE__)
+  $:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include?(activemodel_path)
+
+  require 'active_support'
+  require 'active_model'
+
+  module ActiveResource
+    extend ActiveSupport::Autoload
+
+    autoload :Base
+    autoload :Connection
+    autoload :CustomMethods
+    autoload :Formats
+    autoload :HttpMock
+    autoload :Observing
+    autoload :Schema
+    autoload :Validations
+  end
+</ruby>
+
+h5. ActiveResource Railtie
+
+The Railtie itself is fairly short as ActiveResource is the smallest component of Rails.
+
+<ruby>
+  module ActiveResource
+    class Railtie < Rails::Railtie
+      railtie_name :active_resource
+
+      require "active_resource/railties/log_subscriber"
+      log_subscriber ActiveResource::Railties::LogSubscriber.new
+
+      initializer "active_resource.set_configs" do |app|
+        app.config.active_resource.each do |k,v|
+          ActiveResource::Base.send "#{k}=", v
+        end
+      end
+    end
+  end
+</ruby>
+
+The Railtie defines the +log_subscriber+ as +ActiveResource::Railties::LogSubscriber.new+ which has one method defined: +request+. +request+ is used whenever a request is made to an external service.
+
+There is only one initializer defined here: +set_configs+. This is covered later in the Initialization section.
+
 
 h4. ActionDispatch Railtie
 
+ActionDispatch handles all dispatch work for Rails. It interfaces with ActionController to determine what action to undertake when a request comes in. TODO: I would quote the README but it is strangely absent. Flyin' blind here! 
+
+The ActionDispatch Railtie was previously required when we called +require 'rails'+, but we will cover the Railtie here too.
+
+ActionDispatch depends on ActiveSupport.
+
+h5. +require 'action_dispatch/railtie'+
+
+This file defines the ActionDispatch Railtie:
+
+<ruby>
+  require "action_dispatch"
+  require "rails"
+
+  module ActionDispatch
+    class Railtie < Rails::Railtie
+      railtie_name :action_dispatch
+
+      config.action_dispatch.x_sendfile_header = "X-Sendfile"
+      config.action_dispatch.ip_spoofing_check = true
+
+      # Prepare dispatcher callbacks and run 'prepare' callbacks
+      initializer "action_dispatch.prepare_dispatcher" do |app|
+        # TODO: This used to say unless defined?(Dispatcher). Find out why and fix.
+        require 'rails/dispatcher'
+        ActionDispatch::Callbacks.to_prepare { app.routes_reloader.reload_if_changed }
+      end
+    end
+  end
+</ruby>
+
+The +require 'rails'+ has already been done back in TODO: link to section.
+
+
 h5. +require 'action_dispatch'+
 
-This file, _lib/actionpack/lib/action_dispatch.rb_ is initially required through the _railties/lib/rails.rb_ file earlier on in the initilization process. We will cover again what it does.
+This file was already loaded earlier in the initialization process. TODO: link to it.
 
- requires +ActionDispatch+ which is responsible for serving the requests and responses for your application. In it there are three initial requires:
+h5. ActionDispatch Railtie
 
-<ruby>
-  require 'active_support'
-  require 'active_support/dependencies/autoload'
-
-  require 'rack'
-</ruby>
-
-At this point in the application _active_support_ and _active_support/dependencies/autoload_ have already been loaded (TODO: link to sections) and so it's up the last require of _rack_.
-
-h3. Common Includes
-
-This section is for all the common includes in the Railties.
-
-h4. +require 'active_support/inflector'+
-
-This file is _activesupport/lib/active_support/inflector.rb_ and makes a couple of requires out different files tasked with putting inflections in place:
+The ActionDispatch Railtie is almost as short as the ActiveResource Railtie:
 
 <ruby>
-  require 'active_support/inflector/inflections'
-  require 'active_support/inflector/transliterate'
-  require 'active_support/inflector/methods'
+  require "action_dispatch"
+  require "rails"
 
-  require 'active_support/inflections'
-  require 'active_support/core_ext/string/inflections'
-</ruby>
+  module ActionDispatch
+    class Railtie < Rails::Railtie
+      railtie_name :action_dispatch
 
-The files included here define methods for modifying strings, such as +transliterate+ which will convert a Unicode string to its ASCII version, +parameterize+ for making strings into url-safe versions, +camelize+ for camel-casing a string such as +string_other+ into +StringOther+ and +ordinalize+ converting a string such as +101+ into +101st+. More information about these methods can be found in the ActiveSupport Guide. TODO: Link to AS Guide. 
+      config.action_dispatch.x_sendfile_header = "X-Sendfile"
+      config.action_dispatch.ip_spoofing_check = true
 
-h4. +require 'active_support/core_ext/module/delegation'+
-
-_activesupport/lib/active_support/core_ext/module/delegation.rb_ defines the +delegate+ method which can be used to delegate methods to other methods in your code. Take the following code example:
-
-<ruby>
-  class Client < ActiveRecord::Base
-    has_one :address
-    
-    delegate :address_line_1, :to => :address
-  end
-</ruby>
-
-This defines an +address_line_1+ method which is defined as:
-
-<ruby>
-  def address_line_1(*args, &block)
-    address.__send__(:address_line_1, *args, &block)
-    rescue NoMethodError
-      if address.nil?
-        raise "address_line_1 is delegated to address.address_line_1, but address is nil: #{client.inspect}"
+      # Prepare dispatcher callbacks and run 'prepare' callbacks
+      initializer "action_dispatch.prepare_dispatcher" do |app|
+        # TODO: This used to say unless defined?(Dispatcher). Find out why and fix.
+        require 'rails/dispatcher'
+        ActionDispatch::Callbacks.to_prepare { app.routes_reloader.reload_if_changed }
       end
+    end
   end
 </ruby>
 
-h4. +require 'active_support/core_ext/class/attribute_accessors'+
+The +config+ method here is from +Rails::Railtie+ and pertains to your application's configuration. In this case, it is setting up some defaults which you can later override in _config/application.rb_.
 
-The file, _activesupport/lib/active_support/core_ext/class/attribute_accessors.rb_, defines the class accessor methods +cattr_writer+, +cattr_reader+ and +cattr_accessor+. +cattr_accessor+ defines a +cattr_reader+ and +cattr_writer+ for the symbol passed in. These methods work by defining class variables when you call their dynamic methods.
+This Railtie does not define a +log_subscriber+ and only defines one initializer: +prepare_dispatcher+.
 
-Throughout the Railties there a couple of common includes. They are listed here for your convenience. 
 
-h4. +require 'active_support/core_ext/module/attr_internal+
-
-This file defines three methods +attr_internal_reader+, +attr_internal_writer+ and +attr_internal_accessor+. These work very similar to the +attr_reader+, +attr_writer+ and +attr_accessor+ methods, except the variables they define begin with +@_+. This was done to ensure that they do not clash with variables used people using Rails, as people are less-likely to define say, +@_request+ than they are to define +@request+. An example of where this method is used is for +params+ in the +ActionController::Metal+ class.
-
-h4. +require 'active_support/ruby/shim'+
-
-The _activesupport/lib/active_support/ruby/shim.rb_ file requires methods that have been implemented in Ruby versions greater than 1.9. This is done so you can use Rails 3 on versions earlier than 1.9, such as 1.8.7. These methods are:
-
-* +Date#next_month+
-* +Date#next_year+
-* +DateTime#to_date+
-* +DateTime#to_datetime+
-* +DateTime#xmlschema+
-* +Enumerable#group_by+
-* +Enumerable#each_with_object+
-* +Enumerable#none?+
-* +Process#daemon+
-* +String#ord+
-* +Time#to_date+
-* +Time.to_time+
-* +Time.to_datetime+
-
-For more information see the ActiveSupport Extensions guide TODO: link to relevant sections for each method.
-
-And "the REXML security fix detailed here":[http://weblog.rubyonrails.org/2008/8/23/dos-vulnerabilities-in-rexml]
 
 h3. Firing it up!
 
@@ -3456,3 +3571,81 @@ Here, +is_utf8?+ calls a +consumes+ method on the not-yet-loaded +ActiveSupport:
 
 The +Chars+ class defines, along with +consumes?+, other methods such as the "spaceship" method +<=>+. This method is referenced by the methods defined in the included +Comparable+ module and will return either +-1+, +0+ or +1+ depending on if the word is before, identical or after the compared word. For example, +'é'.mb_chars <=> 'ü'.mb_chars+ returns +-1+ as e comes before u in the alphabet. Other methods are the commonly used +split+, +=~+, +insert+ and +include?+.
 
+
+
+h3. Common Includes
+
+TODO: I feel this section would be better at the end of the guide as it breaks the flow.
+
+This section is for all the common includes in the Railties.
+
+h4. +require 'active_support/inflector'+
+
+This file is _activesupport/lib/active_support/inflector.rb_ and makes a couple of requires out different files tasked with putting inflections in place:
+
+<ruby>
+  require 'active_support/inflector/inflections'
+  require 'active_support/inflector/transliterate'
+  require 'active_support/inflector/methods'
+
+  require 'active_support/inflections'
+  require 'active_support/core_ext/string/inflections'
+</ruby>
+
+The files included here define methods for modifying strings, such as +transliterate+ which will convert a Unicode string to its ASCII version, +parameterize+ for making strings into url-safe versions, +camelize+ for camel-casing a string such as +string_other+ into +StringOther+ and +ordinalize+ converting a string such as +101+ into +101st+. More information about these methods can be found in the ActiveSupport Guide. TODO: Link to AS Guide. 
+
+h4. +require 'active_support/core_ext/module/delegation'+
+
+_activesupport/lib/active_support/core_ext/module/delegation.rb_ defines the +delegate+ method which can be used to delegate methods to other methods in your code. Take the following code example:
+
+<ruby>
+  class Client < ActiveRecord::Base
+    has_one :address
+    
+    delegate :address_line_1, :to => :address
+  end
+</ruby>
+
+This defines an +address_line_1+ method which is defined as:
+
+<ruby>
+  def address_line_1(*args, &block)
+    address.__send__(:address_line_1, *args, &block)
+    rescue NoMethodError
+      if address.nil?
+        raise "address_line_1 is delegated to address.address_line_1, but address is nil: #{client.inspect}"
+      end
+  end
+</ruby>
+
+h4. +require 'active_support/core_ext/class/attribute_accessors'+
+
+The file, _activesupport/lib/active_support/core_ext/class/attribute_accessors.rb_, defines the class accessor methods +cattr_writer+, +cattr_reader+ and +cattr_accessor+. +cattr_accessor+ defines a +cattr_reader+ and +cattr_writer+ for the symbol passed in. These methods work by defining class variables when you call their dynamic methods.
+
+Throughout the Railties there a couple of common includes. They are listed here for your convenience. 
+
+h4. +require 'active_support/core_ext/module/attr_internal+
+
+This file defines three methods +attr_internal_reader+, +attr_internal_writer+ and +attr_internal_accessor+. These work very similar to the +attr_reader+, +attr_writer+ and +attr_accessor+ methods, except the variables they define begin with +@_+. This was done to ensure that they do not clash with variables used people using Rails, as people are less-likely to define say, +@_request+ than they are to define +@request+. An example of where this method is used is for +params+ in the +ActionController::Metal+ class.
+
+h4. +require 'active_support/ruby/shim'+
+
+The _activesupport/lib/active_support/ruby/shim.rb_ file requires methods that have been implemented in Ruby versions greater than 1.9. This is done so you can use Rails 3 on versions earlier than 1.9, such as 1.8.7. These methods are:
+
+* +Date#next_month+
+* +Date#next_year+
+* +DateTime#to_date+
+* +DateTime#to_datetime+
+* +DateTime#xmlschema+
+* +Enumerable#group_by+
+* +Enumerable#each_with_object+
+* +Enumerable#none?+
+* +Process#daemon+
+* +String#ord+
+* +Time#to_date+
+* +Time.to_time+
+* +Time.to_datetime+
+
+For more information see the ActiveSupport Extensions guide TODO: link to relevant sections for each method.
+
+And "the REXML security fix detailed here":[http://weblog.rubyonrails.org/2008/8/23/dos-vulnerabilities-in-rexml]
