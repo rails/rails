@@ -525,7 +525,7 @@ If you generate the application with the +-O+ option this will put a couple of p
 For the purposes of this guide, will will assume only:
 
 <ruby>
-  require 'rails/all
+  require 'rails/all'
 </ruby>
 
 h4. +require "rails/all"+
@@ -586,32 +586,11 @@ h4. +require 'active_support/core_ext/kernel/reporting'+
 
 This file extends the +Kernel+ module, providing the methods +silence_warnings+, +enable_warnings+, +with_warnings+, +silence_stderr+, +silence_stream+ and +suppress+. The API documentation on these overridden methods is fairly good and if you wish to know more "have a read.":http://api.rubyonrails.org/classes/Kernel.html
 
+For information on this file see the "Core Extensions" guide. TODO: link to guide.
+
 h4. +require 'active_support/core_ext/logger'+
 
-The first line in this file is +require 'active_support/core_ext/class/attribute_accessors'+ which defines methods such as +cattr_accessor+, +cattr_reader+ and +cattr_writer+ which are used later when the +Logger+ class is extended.
-
-This is another class that is "well documented":http://api.rubyonrails.org/classes/Logger.html except for a set of the methods it defines which are the around helpers specified for all levels of logging: +debug+, +info+, +error+ and +fatal+. The benefit of these methods is that if you want to output your debugging information wrapped in say, 50 stars top and bottom, you can do this in your (TODO: pick a file, any file.)
-
-<ruby>
-  ActiveRecord::Base.logger.around_info(["*" * 50], ["*" * 50]) do
-    Post.first
-  end
-</ruby>
-  
-Your info output will now have 50 stars above it, and 50 below it. This is handy for locating the relevant information in a massive output.
-
-Alternatively you could just silence one of the other streams by using +silence+:
-
-<ruby>
-  ActiveRecord::Base.logger.silence("info") do
-    1..999.times do |n|
-      Blog.find_by_id(n)
-    end
-  end
-</ruby>
-
-Now you won't get any SQL output in your logs.
-
+For information on this file see the "Core Extensions" guide. TODO: link to guide.
 
 h4. +require 'rails/application'+
 
