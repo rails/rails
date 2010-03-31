@@ -157,6 +157,11 @@ module ActiveRecord
             association_proxy.__send__(:set_inverse_instance, associated_record, mapped_record)
           end
         end
+
+        id_to_record_map.each do |id, records|
+          next if seen_keys.include?(id.to_s)
+          records.each {|record| record.send("set_#{reflection_name}_target", nil) }            
+        end
       end
 
       # Given a collection of ActiveRecord objects, constructs a Hash which maps
