@@ -7,7 +7,7 @@ rescue LoadError
   require 'rubygems'
 
   # And set up the gems listed in the Gemfile.
-  if File.exist?(File.expand_path('../../Gemfile'))
+  if File.exist?(File.expand_path('../../Gemfile', __FILE__))
     require 'bundler'
     Bundler.setup
   end
