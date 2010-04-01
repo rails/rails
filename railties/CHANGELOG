@@ -1,5 +1,16 @@
 *Edge*
 
+* Session store configuration has changed [YK & CL]
+
+    config.session_store :cookie_store, {:key => "..."}
+    config.cookie_secret = "fdsfhisdghfidugnfdlg"
+
+* railtie_name and engine_name are deprecated. You can now add any object to
+  the configuration object: config.your_plugin = {} [JK]
+
+* Added config.generators.templates to provide alternative paths for the generators
+  to look for templates [JV]
+
 * Added "rake about" as a replacement for script/about [DHH]
 
 * Removed all the default commands in script/* and replaced them with script/rails and a rails command that'll act the same when run from within the app [DHH]. Example:

@@ -1,5 +1,10 @@
 *Rails 3.0 (pending)*
 
+* Reduced load time by deferring configuration of classes using
+  ActiveSupport::on_load(:component_name) [YK]
+
+* Rename #metaclass to #singleton_class now that ruby-core has decided [JK]
+
 * New assertions assert_blank and assert_present.  #4299 [Juanjo Bazan] 
 
 * Use Object#singleton_class instead of #metaclass. Prefer Ruby's choice.  [Jeremy Kemper]

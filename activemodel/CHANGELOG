@@ -1,5 +1,17 @@
 *Edge*
 
+* #new_record? and #destroyed? were removed from ActiveModel::Lint. Use
+  persisted? instead. A model is persisted if it's not a new_record? and it was 
+  not destroyed? [MG]
+
+* Added validations reflection in ActiveModel::Validations [JV]
+
+    Model.validators
+    Model.validators_on(:field)
+
+* #to_key was added to ActiveModel::Lint so we can generate DOM IDs for
+  AMo objects with composite keys [MG]
+
 * ActiveModel::Observer#add_observer!
 
   It has a custom hook to define after_find that should really be in a
