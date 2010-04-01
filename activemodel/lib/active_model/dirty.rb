@@ -91,17 +91,12 @@ module ActiveModel
       attribute_method_affix :prefix => 'reset_', :suffix => '!'
     end
 
-    def initialize(*)
-      @changed_attributes = {}
-      super
-    end
-
     # Do any attributes have unsaved changes?
     #   person.changed? # => false
     #   person.name = 'bob'
     #   person.changed? # => true
     def changed?
-      !@changed_attributes.empty?
+      !changed_attributes.empty?
     end
 
     # List of attributes with unsaved changes.
@@ -109,7 +104,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed # => ['name']
     def changed
-      @changed_attributes.keys
+      changed_attributes.keys
     end
 
     # Map of changed attrs => [original value, new value].
@@ -130,19 +125,24 @@ module ActiveModel
     end
 
     private
+      # Map of change <tt>attr => original value</tt>.
+      def changed_attributes
+        @changed_attributes ||= {}
+      end
+
       # Handle <tt>*_changed?</tt> for +method_missing+.
       def attribute_changed?(attr)
-        @changed_attributes.include?(attr)
+        changed_attributes.include?(attr)
       end
 
       # Handle <tt>*_change</tt> for +method_missing+.
       def attribute_change(attr)
-        [@changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
+        [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
       end
 
       # Handle <tt>*_was</tt> for +method_missing+.
       def attribute_was(attr)
-        attribute_changed?(attr) ? @changed_attributes[attr] : __send__(attr)
+        attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
       end
 
       # Handle <tt>*_will_change!</tt> for +method_missing+.
@@ -153,12 +153,12 @@ module ActiveModel
         rescue TypeError, NoMethodError
         end
 
-        @changed_attributes[attr] = value
+        changed_attributes[attr] = value
       end
 
       # Handle <tt>reset_*!</tt> for +method_missing+.
       def reset_attribute!(attr)
-        __send__("#{attr}=", @changed_attributes[attr]) if attribute_changed?(attr)
+        __send__("#{attr}=", changed_attributes[attr]) if attribute_changed?(attr)
       end
   end
 end
