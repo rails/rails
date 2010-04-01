@@ -1,4 +1,4 @@
-*Edge*
+*Rails 3.0.0 [beta 2] (pending)*
 
 * #concat is now deprecated in favor of using <%= %> helpers [YK]
 
@@ -27,6 +27,8 @@
 
     # for just url_for
     include Rails.application.router.url_for
+
+*Rails 3.0.0 [beta 1] (February 4, 2010)*
 
 * Fixed that PrototypeHelper#update_page should return html_safe [DHH]
 

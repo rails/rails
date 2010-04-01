@@ -1,4 +1,4 @@
-*Edge*
+*Rails 3.0.0 [beta 2] (pending)*
 
 * Session store configuration has changed [YK & CL]
 
@@ -10,6 +10,8 @@
 
 * Added config.generators.templates to provide alternative paths for the generators
   to look for templates [JV]
+
+*Rails 3.0.0 [beta 1] (February 4, 2010)*
 
 * Added "rake about" as a replacement for script/about [DHH]
 
