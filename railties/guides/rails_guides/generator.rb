@@ -203,7 +203,7 @@ module RailsGuides
     end
     
     def insert_edge_badge(html)
-      html.sub(/<body[^>]*>/, '\&<img src="images/edge_badge.png" style="position:fixed; right:0px; top:0px; border:none; z-index:100"/>')
+      html.sub(/<body[^>]*>/, '\&<div><img src="images/edge_badge.png" alt="edge badge" style="position:fixed; right:0px; top:0px; border:none; z-index:100"/></div>')
     end
   end
 end
