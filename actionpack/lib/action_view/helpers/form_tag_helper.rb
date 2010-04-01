@@ -78,6 +78,9 @@ module ActionView
       #   #    <option>Paris</option><option>Rome</option></select>
       def select_tag(name, option_tags = nil, options = {})
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
+        if Array === option_tags
+          ActiveSupport::Deprecation.warn 'Passing an array of option_tags to select_tag implicitly joins them without marking them as HTML-safe. Pass option_tags.join.html_safe instead.', caller
+        end
         content_tag :select, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
       end
 
