@@ -540,7 +540,7 @@ build_customer
 create_customer
 </ruby>
 
-h6. association(force_reload = false)
+h6. _association_(force_reload = false)
 
 The <tt><em>association</em></tt> method returns the associated object, if any. If no associated object is found, it returns +nil+.
 
@@ -550,7 +550,7 @@ The <tt><em>association</em></tt> method returns the associated object, if any. 
 
 If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), pass +true+ as the +force_reload+ argument.
 
-h6. association=(associate)
+h6. _association_=(associate)
 
 The <tt><em>association</em>=</tt> method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
 
