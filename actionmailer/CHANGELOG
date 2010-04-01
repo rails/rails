@@ -1,4 +1,4 @@
-*Rails 3.0.0 [beta 2] (pending)*
+*Rails 3.0.0 [beta 2] (April 1st, 2010)*
 
 * Added interceptors and observers from Mail [ML]
 
@@ -6,6 +6,7 @@
     ActionMailer::Base.register_observer calls Mail.register_observer
 
 * Whole new API added with tests.  See base.rb for full details.  Old API is deprecated.
+
 
 *Rails 3.0.0 [beta 1] (February 4, 2010)*
 

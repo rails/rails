@@ -1,4 +1,4 @@
-*Rails 3.0.0 [beta 2] (pending)*
+*Rails 3.0.0 [beta 2] (April 1st, 2010)*
 
 * #new_record? and #destroyed? were removed from ActiveModel::Lint. Use
   persisted? instead. A model is persisted if it's not a new_record? and it was 
@@ -11,6 +11,7 @@
 
 * #to_key was added to ActiveModel::Lint so we can generate DOM IDs for
   AMo objects with composite keys [MG]
+
 
 *Rails 3.0.0 [beta 1] (February 4, 2010)*
 
