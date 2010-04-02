@@ -320,6 +320,10 @@ module ActiveRecord
       end
     end
 
+    def inspect
+      to_a.inspect
+    end
+
     protected
 
     def method_missing(method, *args, &block)
