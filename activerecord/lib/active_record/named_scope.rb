@@ -142,22 +142,6 @@ module ActiveRecord
         relation.merge(scope)
       end
 
-      def first(*args)
-        if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
-          to_a.first(*args)
-        else
-          args.first.present? ? apply_finder_options(args.first).first : super
-        end
-      end
-
-      def last(*args)
-        if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
-          to_a.last(*args)
-        else
-          args.first.present? ? apply_finder_options(args.first).last : super
-        end
-      end
-
       def ==(other)
         case other
         when Scope
