@@ -128,8 +128,6 @@ module ActiveRecord
     end
 
     class Scope < Relation
-      attr_accessor :current_scoped_methods_when_defined
-
       delegate :scopes, :with_scope, :with_exclusive_scope, :scoped_methods, :scoped, :to => :klass
 
       def self.init(klass, options, &block)
@@ -141,10 +139,7 @@ module ActiveRecord
           options ? klass.scoped.merge(options) : klass.scoped
         end
 
-        relation = relation.merge(scope)
-
-        relation.current_scoped_methods_when_defined = klass.send(:current_scoped_methods)
-        relation
+        relation.merge(scope)
       end
 
       def first(*args)
@@ -178,13 +173,7 @@ module ActiveRecord
 
       def method_missing(method, *args, &block)
         if klass.respond_to?(method)
-          with_scope(self) do
-            if current_scoped_methods_when_defined && !scoped_methods.include?(current_scoped_methods_when_defined) && !scopes.include?(method)
-              with_scope(current_scoped_methods_when_defined) { klass.send(method, *args, &block) }
-            else
-              klass.send(method, *args, &block)
-            end
-          end
+          with_scope(self) { klass.send(method, *args, &block) }
         else
           super
         end
