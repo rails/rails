@@ -11,13 +11,14 @@ require 'rails_guides/levenshtein'
 
 module RailsGuides
   class Generator
-    attr_reader :guides_dir, :source_dir, :output_dir
+    attr_reader :guides_dir, :source_dir, :output_dir, :edge
 
     GUIDES_RE = /\.(?:textile|html\.erb)$/
 
     def initialize(output=nil)
       initialize_dirs(output)
       create_output_dir_if_needed
+      set_edge
     end
 
     def generate
@@ -34,7 +35,11 @@ module RailsGuides
 
     def create_output_dir_if_needed
       FileUtils.mkdir_p(output_dir)
-    end  
+    end
+
+    def set_edge
+      @edge = ENV['EDGE_GUIDES'] == '1'
+    end
 
     def generate_guides
       guides_to_generate.each do |guide|
@@ -56,8 +61,8 @@ module RailsGuides
     end
 
     def copy_assets
-      FileUtils.cp_r(File.join(guides_dir, 'images'), File.join(output_dir, 'images'))
-      FileUtils.cp_r(File.join(guides_dir, 'files'), File.join(output_dir, 'files'))      
+      FileUtils.cp_r(File.join(guides_dir, 'images'), output_dir)
+      FileUtils.cp_r(File.join(guides_dir, 'files'), output_dir)
     end
 
     def output_file_for(guide)
@@ -73,11 +78,11 @@ module RailsGuides
     def generate_guide(guide, output_file)
       puts "Generating #{output_file}"
       File.open(File.join(output_dir, output_file), 'w') do |f|
-        view = ActionView::Base.new(source_dir)
+        view = ActionView::Base.new(source_dir, :edge => edge)
         view.extend(Helpers)
-        
+
         if guide =~ /\.html\.erb$/
-          # Generate the erb pages with textile formatting - e.g. index/authors
+          # Generate the special pages like the home.
           result = view.render(:layout => 'layout', :file => guide)
         else
           body = File.read(File.join(source_dir, guide))
@@ -88,8 +93,6 @@ module RailsGuides
 
           warn_about_broken_links(result) if ENV.key?("WARN_BROKEN_LINKS")
         end
-
-        result = insert_edge_badge(result) if ENV.key?('INSERT_EDGE_BADGE')
 
         f.write result
       end
@@ -200,10 +203,6 @@ module RailsGuides
           puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."
         end
       end
-    end
-    
-    def insert_edge_badge(html)
-      html.sub(/<body[^>]*>/, '\&<div><img src="images/edge_badge.png" alt="edge badge" style="position:fixed; right:0px; top:0px; border:none; z-index:100"/></div>')
     end
   end
 end
