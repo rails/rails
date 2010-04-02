@@ -4,7 +4,7 @@ module ActiveRecord
   class Relation
     JoinOperation = Struct.new(:relation, :join_class, :on)
     ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
-    MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :extends]
+    MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having]
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :create_with, :from]
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
