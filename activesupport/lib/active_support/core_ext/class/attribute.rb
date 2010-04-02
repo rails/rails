@@ -50,7 +50,7 @@ class Class
         singleton_class.send(:define_method, attr) { value }
       end
 
-      define_method(attr) { self.class.send(attr) }
+      define_method(attr) { self.singleton_class.send(attr) }
       define_method(:"#{attr}?") { !!send(attr) }
       define_method(:"#{attr}=") do |value|
         singleton_class.remove_possible_method(attr)
