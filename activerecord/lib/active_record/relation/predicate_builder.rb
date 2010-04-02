@@ -23,7 +23,7 @@ module ActiveRecord
           attribute = table[column]
 
           case value
-          when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope
+          when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation
             values = value.to_a
             attribute.in(values)
           when Range

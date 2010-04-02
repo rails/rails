@@ -311,11 +311,22 @@ module ActiveRecord
       @should_eager_load ||= (@eager_load_values.any? || (@includes_values.any? && references_eager_loaded_tables?))
     end
 
+    def ==(other)
+      case other
+      when Relation
+        other.to_sql == to_sql
+      when Array
+        to_a == other.to_a
+      end
+    end
+
     protected
 
     def method_missing(method, *args, &block)
       if Array.method_defined?(method)
         to_a.send(method, *args, &block)
+      elsif @klass.scopes[method]
+        merge(@klass.send(method, *args, &block))
       elsif @klass.respond_to?(method)
         @klass.send(:with_scope, self) { @klass.send(method, *args, &block) }
       elsif arel.respond_to?(method)

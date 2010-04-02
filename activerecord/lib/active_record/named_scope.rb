@@ -25,7 +25,8 @@ module ActiveRecord
       # You can define a scope that applies to all finders using ActiveRecord::Base.default_scope.
       def scoped(options = {}, &block)
         if options.present?
-          Scope.init(self, options, &block)
+          relation = scoped.apply_finder_options(options)
+          block_given? ? relation.extending(Module.new(&block)) : relation
         else
           current_scoped_methods ? unscoped.merge(current_scoped_methods) : unscoped.clone
         end
@@ -107,13 +108,22 @@ module ActiveRecord
         end
 
         scopes[name] = lambda do |parent_scope, *args|
-          Scope.init(parent_scope, case options
-            when Hash, Relation
-              options
-            when Proc
-              options.call(*args)
-          end, &block)
+          scope_options = case options
+          when Hash, Relation
+            options
+          when Proc
+            options.call(*args)
+          end
+
+          relation = if scope_options.is_a?(Hash)
+            parent_scope.scoped.apply_finder_options(scope_options)
+          else
+            scope_options ? parent_scope.scoped.merge(scope_options) : parent_scope.scoped
+          end
+
+          block_given? ? relation.extending(Module.new(&block)) : relation
         end
+
         singleton_class.instance_eval do
           define_method name do |*args|
             scopes[name].call(self, *args)
@@ -125,34 +135,6 @@ module ActiveRecord
         ActiveSupport::Deprecation.warn("Base.named_scope has been deprecated, please use Base.scope instead", caller)
         scope(*args, &block)
       end
-    end
-
-    class Scope < Relation
-      delegate :scopes, :with_scope, :with_exclusive_scope, :scoped_methods, :scoped, :to => :klass
-
-      def self.init(klass, options, &block)
-        relation = new(klass, klass.arel_table, &block)
-
-        scope = if options.is_a?(Hash)
-          klass.scoped.apply_finder_options(options)
-        else
-          options ? klass.scoped.merge(options) : klass.scoped
-        end
-
-        relation.merge(scope)
-      end
-
-      def ==(other)
-        case other
-        when Scope
-          to_sql == other.to_sql
-        when Relation
-          other == self
-        when Array
-          to_a == other.to_a
-        end
-      end
-
     end
 
   end
