@@ -293,13 +293,15 @@ module ActiveSupport
     end
 
     def tzinfo
-      @tzinfo ||= find_tzinfo
+      @tzinfo ||= TimeZone.find_tzinfo(name)
     end
 
     # TODO: Preload instead of lazy load for thread safety
-    def find_tzinfo
+    def self.find_tzinfo(name)
       require 'tzinfo' unless defined?(TZInfo)
-      ::TZInfo::Timezone.get(MAPPING[name])
+      ::TZInfo::Timezone.get(MAPPING[name] || name)
+    rescue TZInfo::InvalidTimezoneIdentifier
+      nil
     end
 
     unless const_defined?(:ZONES)
@@ -364,7 +366,6 @@ module ActiveSupport
       end
       ZONES.sort!
       ZONES.freeze
-      ZONES_MAP.freeze
 
       US_ZONES = ZONES.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
       US_ZONES.freeze
@@ -395,7 +396,7 @@ module ActiveSupport
       def [](arg)
         case arg
           when String
-            ZONES_MAP[arg]
+            ZONES_MAP[arg] ||= lookup(arg)
           when Numeric, ActiveSupport::Duration
             arg *= 3600 if arg.abs <= 13
             all.find { |z| z.utc_offset == arg.to_i }
@@ -409,6 +410,12 @@ module ActiveSupport
       def us_zones
         US_ZONES
       end
+      
+      private
+
+        def lookup(name)
+          (tzinfo = find_tzinfo(name)) && create(tzinfo.name.freeze)
+        end
     end
   end
 end
