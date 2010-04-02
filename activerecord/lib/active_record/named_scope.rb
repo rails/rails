@@ -133,18 +133,15 @@ module ActiveRecord
       delegate :scopes, :with_scope, :with_exclusive_scope, :scoped_methods, :scoped, :to => :klass
 
       def self.init(klass, options, &block)
-        relation = new(klass, klass.arel_table)
+        relation = new(klass, klass.arel_table, &block)
 
         scope = if options.is_a?(Hash)
-          klass.scoped.apply_finder_options(options.except(:extend))
+          klass.scoped.apply_finder_options(options)
         else
           options ? klass.scoped.merge(options) : klass.scoped
         end
 
         relation = relation.merge(scope)
-
-        Array.wrap(options[:extend]).each {|extension| relation.send(:extend, extension) } if options.is_a?(Hash)
-        relation.send(:extend, Module.new(&block)) if block_given?
 
         relation.current_scoped_methods_when_defined = klass.send(:current_scoped_methods)
         relation

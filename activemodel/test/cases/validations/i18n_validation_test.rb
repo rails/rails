@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 require "cases/helper"
 require 'cases/tests_database'
 require 'models/person'
@@ -39,6 +41,14 @@ class I18nValidationTest < ActiveModel::TestCase
   def test_errors_add_on_blank_generates_message_with_custom_default_message
     @person.errors.expects(:generate_message).with(:title, :blank, {:default => 'custom'})
     @person.errors.add_on_blank :title, 'custom'
+  end
+
+  def test_full_message_encoding
+    I18n.backend.store_translations('en', :errors => {
+      :messages => { :too_short => '猫舌' }})
+    Person.validates_length_of :title, :within => 3..5
+    @person.valid?
+    assert_equal ['Title 猫舌'], @person.errors.full_messages
   end
 
   def test_errors_full_messages_translates_human_attribute_name_for_model_attributes

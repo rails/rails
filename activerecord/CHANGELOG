@@ -1,5 +1,15 @@
 *Rails 3.0.0 [Beta 2] (pending)*
 
+* Add Relation extensions. [Pratik Naik]
+
+  users = User.where(:admin => true).extending(User::AdminPowers)
+
+  latest_users = User.order('created_at DESC') do
+    def posts_count
+      Post.count(:user_id => to_a.map(&:id))
+    end
+  end
+
 * To prefix the table names of all models in a module, define self.table_name_prefix on the module.  #4032 [Andrew White]
 
 * Silenced "SHOW FIELDS" and "SET SQL_AUTO_IS_NULL=0" statements from the MySQL driver to improve log signal to noise ration in development [DHH]

@@ -13,8 +13,9 @@ module ActiveRecord
     delegate :insert, :to => :arel
 
     attr_reader :table, :klass
+    attr_accessor :extensions
 
-    def initialize(klass, table)
+    def initialize(klass, table, &block)
       @klass, @table = klass, table
 
       @implicit_readonly = nil
@@ -22,6 +23,9 @@ module ActiveRecord
 
       SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
       (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
+      @extensions = []
+
+      apply_modules(Module.new(&block)) if block_given?
     end
 
     def new(*args, &block)

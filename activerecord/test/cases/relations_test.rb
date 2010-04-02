@@ -572,4 +572,20 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.all, all_posts.all
   end
 
+  def test_anonymous_extension
+    relation = Post.where(:author_id => 1).order('id ASC') do
+      def author
+        'lifo'
+      end
+    end
+
+    assert_equal "lifo", relation.author
+    assert_equal "lifo", relation.limit(1).author
+  end
+
+  def test_named_extension
+    relation = Post.where(:author_id => 1).order('id ASC').extending(Post::NamedExtension)
+    assert_equal "lifo", relation.author
+    assert_equal "lifo", relation.limit(1).author
+  end
 end
