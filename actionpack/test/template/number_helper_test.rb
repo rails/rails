@@ -102,6 +102,9 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("3268", number_with_precision((32.6751 * 100.00), :precision => 0))
     assert_equal("112", number_with_precision(111.50, :precision => 0))
     assert_equal("1234567892", number_with_precision(1234567891.50, :precision => 0))
+    assert_equal("0", number_with_precision(0, :precision => 0))
+    assert_equal("0.00100", number_with_precision(0.001, :precision => 5))
+    assert_equal("0.001", number_with_precision(0.00111, :precision => 3))
   end
 
   def test_number_with_precision_with_custom_delimiter_and_separator
@@ -122,11 +125,17 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "53", number_with_precision(52.7923, :precision => 2, :significant => true )
     assert_equal "9775.00", number_with_precision(9775, :precision => 6, :significant => true )
     assert_equal "5.392900", number_with_precision(5.3929, :precision => 7, :significant => true )
+    assert_equal "0.0", number_with_precision(0, :precision => 2, :significant => true )
+    assert_equal "0", number_with_precision(0, :precision => 1, :significant => true )    
+    assert_equal "0.0001", number_with_precision(0.0001, :precision => 1, :significant => true )
+    assert_equal "0.000100", number_with_precision(0.0001, :precision => 3, :significant => true )
+    assert_equal "0.0001", number_with_precision(0.0001111, :precision => 1, :significant => true )
   end
 
   def test_number_with_precision_with_strip_insignificant_zeros
     assert_equal "9775.43", number_with_precision(9775.43, :precision => 4, :strip_insignificant_zeros => true )
     assert_equal "9775.2", number_with_precision(9775.2, :precision => 6, :significant => true, :strip_insignificant_zeros => true )
+    assert_equal "0", number_with_precision(0, :precision => 6, :significant => true, :strip_insignificant_zeros => true )
   end
 
   def test_number_with_precision_with_significant_true_and_zero_precision

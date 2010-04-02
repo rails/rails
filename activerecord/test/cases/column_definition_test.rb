@@ -67,4 +67,21 @@ class ColumnDefinitionTest < ActiveRecord::TestCase
       assert !text_column.has_default?
     end
   end
+
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_bigint_column_should_map_to_integer
+      bigint_column = ActiveRecord::ConnectionAdapters::PostgreSQLColumn.new('number', nil, "bigint")
+      assert_equal bigint_column.type, :integer
+    end
+
+    def test_smallint_column_should_map_to_integer
+      smallint_column = ActiveRecord::ConnectionAdapters::PostgreSQLColumn.new('number', nil, "smallint")
+      assert_equal smallint_column.type, :integer
+    end
+
+    def test_uuid_column_should_map_to_string
+      uuid_column = ActiveRecord::ConnectionAdapters::PostgreSQLColumn.new('unique_id', nil, "uuid")
+      assert_equal uuid_column.type, :string
+    end
+  end
 end

@@ -1,4 +1,35 @@
-*Edge*
+*Rails 3.0.0 [beta 2] (April 1st, 2010)*
+
+* #concat is now deprecated in favor of using <%= %> helpers [YK]
+
+* Block helpers now return Strings, so you can use <%= form_for @foo do |f| %>.
+  <% form_for do |f| %> still works with deprecation notices [YK]
+
+* Add a new #mount method on the router that does not anchor the PATH_INFO
+  at the end [YK & CL]
+
+* Create a new LookupContext object that is responsible for performantly
+  finding a template for a given pattern [JV]
+
+* Removed relative_url_for in favor of respecting SCRIPT_NAME [YK & CL]
+
+* Changed file streaming to use Rack::Sendfile middleware [YK]
+
+* ActionDispatch::Request#content_type returns a String to be compatible with
+  Rack::Request. Use #content_mime_type for the Mime::Type instance [YK]
+
+* Updated Prototype to 1.6.1 and Scriptaculous to 1.8.3 [ML] 
+
+* Change the preferred way that URL helpers are included into a class[YK & CL]
+
+    # for all helpers including named routes
+    include Rails.application.router.url_helpers
+
+    # for just url_for
+    include Rails.application.router.url_for
+
+
+*Rails 3.0.0 [beta 1] (February 4, 2010)*
 
 * Fixed that PrototypeHelper#update_page should return html_safe [DHH]
 
@@ -14,9 +45,9 @@
 
     flash[:notice] = 'Post was created'
     redirect_to(@post)
-  
+
   ...becomes:
-  
+
     redirect_to(@post, :notice => 'Post was created')
 
 * Added ActionController::Base#notice/= and ActionController::Base#alert/= as a convenience accessors in both the controller and the view for flash[:notice]/= and flash[:alert]/= [DHH]
@@ -147,14 +178,14 @@
 
     # Instead of <%= render :partial => "account" %>
     <%= render "account" %>
-    
+
     # Instead of <%= render :partial => "account", :locals => { :account => @buyer } %>
     <%= render "account", :account => @buyer %>
-    
+
     # @account is an Account instance, so it uses the RecordIdentifier to replace
     # <%= render :partial => "accounts/account", :locals => { :account => @account } %>
     <%= render(@account) %>
-    
+
     # @posts is an array of Post instances, so it uses the RecordIdentifier to replace
     # <%= render :partial => "posts/post", :collection => @posts %>
     <%= render(@posts) %>
@@ -245,7 +276,7 @@
 
 * Make PrototypeHelper#submit_to_remote a wrapper around PrototypeHelper#button_to_remote. [Tarmo Tänav]
 
-* Set HttpOnly for the cookie session store's cookie.  #1046 
+* Set HttpOnly for the cookie session store's cookie.  #1046
 
 * Added FormTagHelper#image_submit_tag confirm option #784 [Alastair Brunton]
 
@@ -262,7 +293,7 @@
     Completed in 0.10000 (4 reqs/sec) | Rendering: 0.04000 (40%) | DB: 0.00400 (4%) | 200 OK [http://example.com]
 
   ...to:
-  
+
     Completed in 100ms (View: 40, DB: 4) | 200 OK [http://example.com]
 
 * Add support for shallow nesting of routes. #838 [S. Brent Faulkner]
@@ -347,7 +378,7 @@
 * Deprecated TemplateHandler line offset [Josh Peek]
 
 * Allow caches_action to accept cache store options. #416. [José Valim]. Example:
-  
+
   caches_action :index, :redirected, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
 
 * Remove define_javascript_functions, javascript_include_tag and friends are far superior. [Michael Koziarski]
@@ -357,7 +388,7 @@
 * Add :as option to render a collection of partials with a custom local variable name. #509 [Simon Jefford, Pratik Naik]
 
   render :partial => 'other_people', :collection => @people, :as => :person
-  
+
   This will let you access objects of @people as 'person' local variable inside 'other_people' partial template.
 
 * time_zone_select: support for regexp matching of priority zones. Resolves #195 [Ernie Miller]
@@ -511,7 +542,7 @@
 
 * Remove support for multivalued (e.g., '&'-delimited) cookies. [Jamis Buck]
 
-* Fix problem with render :partial collections, records, and locals. #11057 [lotswholetime] 
+* Fix problem with render :partial collections, records, and locals. #11057 [lotswholetime]
 
 * Added support for naming concrete classes in sweeper declarations [David Heinemeier Hansson]
 
@@ -534,7 +565,7 @@
 * Make assert_routing aware of the HTTP method used.  #8039 [mpalmer]
   e.g. assert_routing({ :method => 'put', :path => '/product/321' }, { :controller => "product", :action => "update", :id => "321" })
 
-* Make map.root accept a single symbol as an argument to declare an alias.  #10818 [bscofield] 
+* Make map.root accept a single symbol as an argument to declare an alias.  #10818 [bscofield]
 
   e.g.  map.dashboard '/dashboard', :controller=>'dashboard'
         map.root      :dashboard
@@ -543,7 +574,7 @@
 
 * Add label_tag helper for generating elements. #10802 [DefV]
 
-* Introduce TemplateFinder to handle view paths and lookups.  #10800 [Pratik Naik] 
+* Introduce TemplateFinder to handle view paths and lookups.  #10800 [Pratik Naik]
 
 * Performance: optimize route recognition. Large speedup for apps with many resource routes.  #10835 [oleganza]
 
@@ -768,7 +799,7 @@
 
 * ActionController::Routing::DynamicSegment#interpolation_chunk should call #to_s on all values before calling URI.escape.  [Rick Olson]
 
-* Only accept session ids from cookies, prevents session fixation attacks.  [bradediger] 
+* Only accept session ids from cookies, prevents session fixation attacks.  [bradediger]
 
 
 *2.0.0 [Preview Release]* (September 29th, 2007) [Includes duplicates of changes from 1.12.2 - 1.13.3]
@@ -827,7 +858,7 @@
 
       def index
         @posts = Post.find(:all)
-        
+
         respond_to do |format|
           format.html   # => renders index.html.erb and uses "text/html" as the content type
           format.iphone # => renders index.iphone.erb and uses "text/html" as the content type
@@ -921,7 +952,7 @@
 
   After filters will *no longer* be run if an around_filter fails to yield, users relying on
   this behaviour are advised to put the code in question after a yield statement in an around filter.
-  
+
 
 * Allow you to delete cookies with options. Closes #3685 [Josh Peek, Chris Wanstrath]
 
@@ -1021,13 +1052,13 @@
 
 * Update to Prototype 1.5.1.  [Sam Stephenson]
 
-* Allow routes to be decalred under namespaces [Tobias Lütke]: 
-  
+* Allow routes to be decalred under namespaces [Tobias Lütke]:
+
   map.namespace :admin do |admin|
-    admin.root :controller => "products"       
+    admin.root :controller => "products"
     admin.feed 'feed.xml', :controller => 'products', :action => 'feed', :format => 'xml'
   end
-  
+
 * Update to script.aculo.us 1.7.1_beta3.  [Thomas Fuchs]
 
 * observe_form always sends the serialized form.  #5271 [Manfred Stienstra, normelton@gmail.com]
@@ -1039,7 +1070,7 @@
 * Added url_for usage on render :location, which allows for record identification [David Heinemeier Hansson]. Example:
 
     render :xml => person, :status => :created, :location => person
-  
+
   ...expands the location to person_url(person).
 
 * Introduce the request.body stream. Lazy-read to parse parameters rather than always setting RAW_POST_DATA. Reduces the memory footprint of large binary PUT requests.  [Jeremy Kemper]
@@ -1067,21 +1098,21 @@
     <% form_for(@post) do |f| %>
       ...
     <% end %>
-  
+
   This will expand to be the same as:
-  
+
     <% form_for :post, @post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
       ...
     <% end %>
-  
+
   And for new records:
-  
+
     <% form_for(Post.new) do |f| %>
       ...
     <% end %>
-  
+
   This will expand to be the same as:
-  
+
     <% form_for :post, @post, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
       ...
     <% end %>
@@ -1093,7 +1124,7 @@
     redirect_to(post)         # => redirect_to(posts_url(post))         => Location: http://example.com/posts/1
     link_to(post.title, post) # => link_to(post.title, posts_url(post)) => <a href="/posts/1">Hello world</a>
 
-  Any method that calls url_for on its parameters will automatically benefit from this. 
+  Any method that calls url_for on its parameters will automatically benefit from this.
 
 * Removed deprecated parameters_for_method_reference concept (legacy from before named routes) [David Heinemeier Hansson]
 
@@ -1137,14 +1168,14 @@
 * Added map.namespace to deal with the common situation of admin sections and the like [David Heinemeier Hansson]
 
     Before:
-    
+
       map.resources :products, :path_prefix => "admin", :controller => "admin/products", :collection => { :inventory => :get }, :member => { :duplicate => :post }
       map.resources :tags, :name_prefix => 'admin_product_', :path_prefix => "admin/products/:product_id", :controller => "admin/product_tags"
       map.resources :images, :name_prefix => 'admin_product_', :path_prefix => "admin/products/:product_id", :controller => "admin/product_images"
       map.resources :variants, :name_prefix => 'admin_product_', :path_prefix => "admin/products/:product_id", :controller => "admin/product_variants"
 
     After:
-    
+
       map.namespace(:admin) do |admin|
         admin.resources :products,
           :collection => { :inventory => :get },
@@ -1160,28 +1191,28 @@
         emails.resources :comments,    :name_prefix => "email_"
         emails.resources :attachments, :name_prefix => "email_"
       end
-      
+
     After:
 
       map.resources :emails do |emails|
         emails.resources :comments
         emails.resources :attachments
       end
-    
+
     This does mean that if you intended to have comments_url go to /emails/5/comments, then you'll have to set :name_prefix to nil explicitly.
 
 * Added :has_many and :has_one for declaring plural and singular resources beneath the current [David Heinemeier Hansson]
 
     Before:
-      
+
       map.resources :notes do |notes|
         notes.resources :comments
         notes.resources :attachments
         notes.resource :author
       end
-    
+
     After:
-    
+
       map.resources :notes, :has_many => [ :comments, :attachments ], :has_one => :author
 
 * Added that render :xml will try to call to_xml if it can [David Heinemeier Hansson]. Makes these work:
@@ -1209,9 +1240,9 @@
 
   * Default xml template goes from #{action_name}.rxml => #{action_name}.xml.builder.
   * Default rjs template goes from #{action_name}.rjs => #{action_name}.js.rjs.
-  
+
   You can still specify your old templates:
-  
+
     respond_to do |format|
       format.xml do
         render :action => "#{action_name}.rxml"
@@ -1239,8 +1270,8 @@
 * Allow configuration of the default action cache path for #caches_action calls.  [Rick Olson]
 
   class ListsController < ApplicationController
-    caches_action :index, :cache_path => Proc.new { |controller| 
-      controller.params[:user_id] ? 
+    caches_action :index, :cache_path => Proc.new { |controller|
+      controller.params[:user_id] ?
         controller.send(:user_lists_url, c.params[:user_id]) :
         controller.send(:lists_url) }
   end
@@ -1313,7 +1344,7 @@ Roos]
       <link href="/stylesheets/style1.css"  media="screen" rel="Stylesheet" type="text/css" />
       <link href="/stylesheets/styleB.css"  media="screen" rel="Stylesheet" type="text/css" />
       <link href="/stylesheets/styleX2.css" media="screen" rel="Stylesheet" type="text/css" />
- 
+
     stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is true =>
       <link href="/stylesheets/all.css"  media="screen" rel="Stylesheet" type="text/css" />
 
@@ -1469,7 +1500,7 @@ superclass' view_paths.  [Rick Olson]
 * Add singleton resources. [Rick Olson]
 
   map.resource :account
-  
+
   GET /account
   GET /account;edit
   UPDATE /account
@@ -1508,7 +1539,7 @@ superclass' view_paths.  [Rick Olson]
 * Added the option for extension aliases to mime type registration [David Heinemeier Hansson]. Example (already in the default routes):
 
     Mime::Type.register "text/html", :html, %w( application/xhtml+xml ), %w( xhtml )
-  
+
   ...will respond on both .html and .xhtml.
 
 * @response.redirect_url works with 201 Created responses: just return headers['Location'] rather than checking the response status.  [Jeremy Kemper]
@@ -1577,7 +1608,7 @@ superclass' view_paths.  [Rick Olson]
    <% content_tag :div, :class => "strong" %>
      Hello world!
    <% end %>
-  
+
   Will output:
     <div class="strong">Hello world!</div>
 
@@ -1636,7 +1667,7 @@ superclass' view_paths.  [Rick Olson]
   Gives:
 
     <script defer="true" type="text/javascript">...</script>
-    
+
   Which is needed for dealing with the IE6 DOM when it's not yet fully loaded.
 
 * Fixed that rescue template path shouldn't be hardcoded, then it's easier to hook in your own #6295 [Mike Naberezny]
@@ -1693,9 +1724,9 @@ superclass' view_paths.  [Rick Olson]
 * Added proper getters and setters for content type and charset [David Heinemeier Hansson]. Example of what we used to do:
 
     response.headers["Content-Type"] = "application/atom+xml; charset=utf-8"
-  
+
   ...now:
-  
+
     response.content_type = Mime::ATOM
     response.charset      = "utf-8"
 
@@ -1738,7 +1769,7 @@ superclass' view_paths.  [Rick Olson]
 * Fixed JavaScriptHelper#link_to_function and JavaScriptHelper#button_to_function to have the script argument be optional [David Heinemeier Hansson]. So what used to require a nil, like this:
 
     link_to("Hider", nil, :class => "hider_link") { |p| p[:something].hide }
-  
+
   ...can be written like this:
 
     link_to("Hider", :class => "hider_link") { |p| p[:something].hide }
@@ -1756,7 +1787,7 @@ superclass' view_paths.  [Rick Olson]
 
 * Fixed that AssetTagHelper#image_tag and others using compute_public_path should not modify the incoming source argument (closes #5102) [eule@space.ch]
 
-* Deprecated the auto-appending of .png to AssetTagHelper#image_tag calls that doesn't have an extension [David Heinemeier Hansson] 
+* Deprecated the auto-appending of .png to AssetTagHelper#image_tag calls that doesn't have an extension [David Heinemeier Hansson]
 
 * Fixed FormOptionsHelper#select to respect :selected value #5813
 
@@ -1953,7 +1984,7 @@ superclass' view_paths.  [Rick Olson]
   class WeblogController < ActionController::Base
     def index
       @posts = Post.find :all
-      
+
       respond_to do |format|
         format.html
         format.xml { render :xml => @posts.to_xml }
@@ -1961,26 +1992,26 @@ superclass' view_paths.  [Rick Olson]
       end
     end
   end
-  
+
   # returns HTML when requested by a browser, since the browser
   # has the HTML mimetype at the top of its priority list
   Accept: text/html
-  GET /weblog 
-  
-  # returns the XML 
-  Accept: application/xml
-  GET /weblog 
+  GET /weblog
 
-  # returns the HTML 
+  # returns the XML
+  Accept: application/xml
+  GET /weblog
+
+  # returns the HTML
   Accept: application/xml
   GET /weblog.html
 
   # returns the XML
   Accept: text/html
   GET /weblog.xml
-  
+
   All this relies on the fact that you have a route that includes .:format.
-  
+
 * Expanded :method option in FormTagHelper#form_tag, FormHelper#form_for, PrototypeHelper#remote_form_for, PrototypeHelper#remote_form_tag, and PrototypeHelper#link_to_remote to allow for verbs other than GET and POST by automatically creating a hidden form field named _method, which will simulate the other verbs over post [David Heinemeier Hansson]
 
 * Added :method option to UrlHelper#link_to, which allows for using other verbs than GET for the link. This replaces the :post option, which is now deprecated. Example: link_to "Destroy", person_url(:id => person), :method => :delete [David Heinemeier Hansson]
@@ -2016,12 +2047,12 @@ superclass' view_paths.  [Rick Olson]
 * Fixes bad rendering of JavaScriptMacrosHelper rdoc (closes #4910) [Frederick Ros]
 
 * Allow error_messages_for to report errors for multiple objects, as well as support for customizing the name of the object in the error summary header. Closes #4186. [andrew@redlinesoftware.com, Marcel Molina Jr.]
-  
+
   error_messages_for :account, :user, :subscription, :object_name => :account
 
 * Enhance documentation for setting headers in integration tests. Skip auto HTTP prepending when its already there. Closes #4079. [Rick Olson]
 
-* Documentation for AbstractRequest. Closes #4895. [Kevin Clark] 
+* Documentation for AbstractRequest. Closes #4895. [Kevin Clark]
 
 * Refactor various InstanceTag instance method to class methods. Closes #4800. [Stefan Kaes]
 
@@ -2054,8 +2085,8 @@ superclass' view_paths.  [Rick Olson]
 * Modify routing so that you can say :require => { :method => :post } for a route, and the route will never be selected unless the request method is POST. Only works for route recognition, not for route generation. [Jamis Buck]
 
 * Added :add_headers option to verify which merges a hash of name/value pairs into the response's headers hash if the prerequisites cannot be satisfied. [Sam Stephenson]
-  ex. verify :only => :speak, :method => :post, 
-             :render => { :status => 405, :text => "Must be post" }, 
+  ex. verify :only => :speak, :method => :post,
+             :render => { :status => 405, :text => "Must be post" },
              :add_headers => { "Allow" => "POST" }
 
 * Added ActionController.filter_parameter_logging that makes it easy to remove passwords, credit card numbers, and other sensitive information from being logged when a request is handled #1897 [jeremye@bsa.ca.gov]
@@ -2221,7 +2252,7 @@ superclass' view_paths.  [Rick Olson]
    <% content_tag :div, :class => "strong" %>
      Hello world!
    <% end %>
-  
+
   Will output:
     <div class="strong">Hello world!</div>
 
@@ -2274,7 +2305,7 @@ superclass' view_paths.  [Rick Olson]
   Gives:
 
     <script defer="true" type="text/javascript">...</script>
-    
+
   Which is needed for dealing with the IE6 DOM when it's not yet fully loaded.
 
 * Fixed that rescue template path shouldn't be hardcoded, then it's easier to hook in your own #6295 [Mike Naberezny]
@@ -2329,9 +2360,9 @@ superclass' view_paths.  [Rick Olson]
 * Added proper getters and setters for content type and charset [David Heinemeier Hansson]. Example of what we used to do:
 
     response.headers["Content-Type"] = "application/atom+xml; charset=utf-8"
-  
+
   ...now:
-  
+
     response.content_type = Mime::ATOM
     response.charset      = "utf-8"
 
@@ -2366,7 +2397,7 @@ superclass' view_paths.  [Rick Olson]
 * Fixed JavaScriptHelper#link_to_function and JavaScriptHelper#button_to_function to have the script argument be optional [David Heinemeier Hansson]. So what used to require a nil, like this:
 
     link_to("Hider", nil, :class => "hider_link") { |p| p[:something].hide }
-  
+
   ...can be written like this:
 
     link_to("Hider", :class => "hider_link") { |p| p[:something].hide }
@@ -2380,7 +2411,7 @@ superclass' view_paths.  [Rick Olson]
 
 * Fixed that AssetTagHelper#image_tag and others using compute_public_path should not modify the incoming source argument (closes #5102) [eule@space.ch]
 
-* Deprecated the auto-appending of .png to AssetTagHelper#image_tag calls that doesn't have an extension [David Heinemeier Hansson] 
+* Deprecated the auto-appending of .png to AssetTagHelper#image_tag calls that doesn't have an extension [David Heinemeier Hansson]
 
 * Fixed FormOptionsHelper#select to respect :selected value #5813
 
@@ -2546,7 +2577,7 @@ superclass' view_paths.  [Rick Olson]
   class WeblogController < ActionController::Base
     def index
       @posts = Post.find :all
-      
+
       respond_to do |format|
         format.html
         format.xml { render :xml => @posts.to_xml }
@@ -2554,26 +2585,26 @@ superclass' view_paths.  [Rick Olson]
       end
     end
   end
-  
+
   # returns HTML when requested by a browser, since the browser
   # has the HTML mimetype at the top of its priority list
   Accept: text/html
-  GET /weblog 
-  
-  # returns the XML 
-  Accept: application/xml
-  GET /weblog 
+  GET /weblog
 
-  # returns the HTML 
+  # returns the XML
+  Accept: application/xml
+  GET /weblog
+
+  # returns the HTML
   Accept: application/xml
   GET /weblog.html
 
   # returns the XML
   Accept: text/html
   GET /weblog.xml
-  
+
   All this relies on the fact that you have a route that includes .:format.
-  
+
 * Expanded :method option in FormTagHelper#form_tag, FormHelper#form_for, PrototypeHelper#remote_form_for, PrototypeHelper#remote_form_tag, and PrototypeHelper#link_to_remote to allow for verbs other than GET and POST by automatically creating a hidden form field named _method, which will simulate the other verbs over post [David Heinemeier Hansson]
 
 * Added :method option to UrlHelper#link_to, which allows for using other verbs than GET for the link. This replaces the :post option, which is now deprecated. Example: link_to "Destroy", person_url(:id => person), :method => :delete [David Heinemeier Hansson]
@@ -2595,7 +2626,7 @@ superclass' view_paths.  [Rick Olson]
 * Use #flush between switching from #write to #syswrite. Closes #4907. [Blair Zajac <blair@orcaware.com>]
 
 * Allow error_messages_for to report errors for multiple objects, as well as support for customizing the name of the object in the error summary header. Closes #4186. [andrew@redlinesoftware.com, Marcel Molina Jr.]
-  
+
   error_messages_for :account, :user, :subscription, :object_name => :account
 
 * Fix assert_redirected_to tests according to real-world usage.  Also, don't fail if you add an extra :controller option: [Rick Olson]
@@ -2617,8 +2648,8 @@ superclass' view_paths.  [Rick Olson]
 * Modify routing so that you can say :require => { :method => :post } for a route, and the route will never be selected unless the request method is POST. Only works for route recognition, not for route generation. [Jamis Buck]
 
 * Added :add_headers option to verify which merges a hash of name/value pairs into the response's headers hash if the prerequisites cannot be satisfied. [Sam Stephenson]
-  ex. verify :only => :speak, :method => :post, 
-             :render => { :status => 405, :text => "Must be post" }, 
+  ex. verify :only => :speak, :method => :post,
+             :render => { :status => 405, :text => "Must be post" },
              :add_headers => { "Allow" => "POST" }
 
 
@@ -2683,7 +2714,7 @@ superclass' view_paths.  [Rick Olson]
 * Added automated timestamping to AssetTagHelper methods for stylesheets, javascripts, and images when Action Controller is run under Rails [David Heinemeier Hansson]. Example:
 
     image_tag("rails.png") # => '<img alt="Rails" src="/images/rails.png?1143664135" />'
-  
+
   ...to avoid frequent stats (not a problem for most people), you can set RAILS_ASSET_ID in the ENV to avoid stats:
 
     ENV["RAILS_ASSET_ID"] = "2345"
@@ -2703,9 +2734,9 @@ superclass' view_paths.  [Rick Olson]
 * Change #form_for and #fields_for so that the second argument is not required [Dave Thomas]
 
     <% form_for :post, @post, :url => { :action => 'create' } do |f| -%>
-    
+
   becomes...
-  
+
     <% form_for :post, :url => { :action => 'create' } do |f| -%>
 
 * Update to script.aculo.us 1.6 [Thomas Fuchs]
@@ -2723,11 +2754,11 @@ superclass' view_paths.  [Rick Olson]
 * Added nicer message for assert_redirected_to (closes #4294) [court3nay]
 
     assert_redirected_to :action => 'other_host', :only_path => false
-    
+
   when it was expecting...
-  
+
     redirected_to :action => 'other_host', :only_path => true, :host => 'other.test.host'
-  
+
   gives the error message...
 
     response is not a redirection to all of the options supplied (redirection is <{:only_path=>false, :host=>"other.test.host", :action=>"other_host"}>), difference: <{:only_path=>"true", :host=>"other.test.host"}>
@@ -2774,11 +2805,11 @@ superclass' view_paths.  [Rick Olson]
 * CHANGED DEFAULT: The default content type for .rxml is now application/xml instead of type/xml, see http://www.xml.com/pub/a/2004/07/21/dive.html for reason [David Heinemeier Hansson]
 
 * Added option to render action/template/file of a specific extension (and here by template type). This means you can have multiple templates with the same name but a different extension [David Heinemeier Hansson]. Example:
-  
+
     class WeblogController < ActionController::Base
       def index
         @posts = Post.find :all
-  
+
         respond_to do |type|
           type.html # using defaults, which will render weblog/index.rhtml
           type.xml  { render :action => "index.rxml" }
@@ -2792,7 +2823,7 @@ superclass' view_paths.  [Rick Olson]
     class WeblogController < ActionController::Base
       def create
         @post = Post.create(params[:post])
-      
+
         respond_to do |type|
           type.js   { render }  # renders create.rjs
           type.html { redirect_to :action => "index" }
@@ -2818,16 +2849,16 @@ superclass' view_paths.  [Rick Olson]
 * Added plugin support for parameter parsers, which allows for better support for REST web services. By default, posts submitted with the application/xml content type is handled by creating a XmlSimple hash with the same name as the root element of the submitted xml. More handlers can easily be registered like this:
 
     # Assign a new param parser to a new content type
-    ActionController::Base.param_parsers['application/atom+xml'] = Proc.new do |data| 
-      node = REXML::Document.new(post) 
+    ActionController::Base.param_parsers['application/atom+xml'] = Proc.new do |data|
+      node = REXML::Document.new(post)
      { node.root.name => node.root }
     end
 
     # Assign the default XmlSimple to a new content type
     ActionController::Base.param_parsers['application/backpack+xml'] = :xml_simple
- 
+
 Default YAML web services were retired, ActionController::Base.param_parsers carries an example which shows how to get this functionality back. As part of this new plugin support, request.[formatted_post?, xml_post?, yaml_post? and post_format] were all deprecated in favor of request.content_type [Tobias Lütke]
- 
+
 * Fixed Effect.Appear in effects.js to work with floats in Safari #3524, #3813, #3044 [Thomas Fuchs]
 
 * Fixed that default image extension was not appended when using a full URL with AssetTagHelper#image_tag #4032, #3728 [rubyonrails@beautifulpixel.com]
@@ -2865,7 +2896,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     page['blank_slate']                  # => $('blank_slate');
     page['blank_slate'].show             # => $('blank_slate').show();
     page['blank_slate'].show('first').up # => $('blank_slate').show('first').up();
-    
+
     page.select('p')                      # => $$('p');
     page.select('p.welcome b').first      # => $$('p.welcome b').first();
     page.select('p.welcome b').first.hide # => $$('p.welcome b').first().hide();
@@ -3003,7 +3034,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 * Add session ID to default logging, but remove the verbose description of every step [David Heinemeier Hansson]
 
 * Add the following RJS methods: [Sam Stephenson]
-  
+
     * alert - Displays an alert() dialog
     * redirect_to - Changes window.location.href to simulate a browser redirect
     * call - Calls a JavaScript function
@@ -3085,13 +3116,13 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
       page.visual_effect :highlight, 'list'
       page.hide 'status-indicator', 'cancel-link'
     end
-  
+
   generates the following JavaScript:
-  
+
     new Insertion.Bottom("list", "<li>Last item</li>");
     new Effect.Highlight("list");
     ["status-indicator", "cancel-link"].each(Element.hide);
-  
+
 * Refactored JavaScriptHelper into PrototypeHelper and ScriptaculousHelper [Sam Stephenson]
 
 * Update to latest script.aculo.us version (as of [3031])
@@ -3114,12 +3145,12 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
   <% form_for :person, person, :url => { :action => "update" } do |person_form| %>
     First name: <%= person_form.text_field :first_name %>
     Last name : <%= person_form.text_field :last_name %>
-    
+
     <% fields_for :permission => person.permission do |permission_fields| %>
       Admin?  : <%= permission_fields.check_box :admin %>
     <% end %>
   <% end %>
-  
+
 * options_for_select allows any objects which respond_to? :first and :last rather than restricting to Array and Range.  #2824 [Jacob Robbins <jrobbins@cmj.com>, Jeremy Kemper]
 
 * The auto_link text helper accepts an optional block to format the link text for each url and email address.  Example: auto_link(post.body) { |text| truncate(text, 10) }  [Jeremy Kemper]
@@ -3150,11 +3181,11 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     class ApplicationController < ActionController::Base
       before_filter :authenticate
     end
-    
+
     class WeblogController < ApplicationController
       # will run the :authenticate filter
     end
-    
+
     class SignupController < ActionController::Base
       # will not run the :authenticate filter
       skip_before_filter :authenticate
@@ -3300,7 +3331,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 * Added easy assignment of fragment cache store through use of symbols for included stores (old way still works too)
 
   Before:
-    ActionController::Base.fragment_cache_store = 
+    ActionController::Base.fragment_cache_store =
       ActionController::Base::Caching::Fragments::FileStore.new("/path/to/cache/directory")
 
   After:
@@ -3463,7 +3494,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
   * Added incremental and local autocompleting and loads of documentation to controls.js [Ivan Krstic]
   * Extended the auto_complete_field helper to accept tokens option
   * Changed object extension mechanism to favor Object.extend to make script.aculo.us easily adaptable to support 3rd party libs like IE7.js [David Zülke]
-  
+
 * Fixed that named routes didn't use the default values for action and possible other parameters #1534 [Nicholas Seckar]
 
 * Fixed JavascriptHelper#visual_effect to use camelize such that :blind_up will work #1639 [pelletierm@eastmedia.net]
@@ -3519,13 +3550,13 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 * Added support for graceful error handling of Ajax calls #1217 [Jamis Buck/Thomas Fuchs]. Example:
 
     link_to_remote(
-      "test", 
-      :url => { :action => "faulty" }, 
+      "test",
+      :url => { :action => "faulty" },
       :update => { :success => "good", :failure => "bad" },
       403 => "alert('Forbidden- got ya!')",
-      404 => "alert('Nothing there...?')", 
+      404 => "alert('Nothing there...?')",
       :failure => "alert('Unkown error ' + request.status)")
-  
+
 * Attempt to explicitly flush the output at the end of CgiProcess#out
 
 * Fixed assert_redirected_to to handle absolute controller paths properly #1472 [Rick Olson/Nicholas Seckar]
@@ -3536,7 +3567,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Fixed prototype to consider all fields it doesn't know as text (such as Safari's search) just like the browser in its serialization #1497 [Sean Treadway]
 
-* Improved performance of Routes generation by a factor of 5 #1434 [Nicholas Seckar] 
+* Improved performance of Routes generation by a factor of 5 #1434 [Nicholas Seckar]
 
 * Added named routes (NEEDS BETTER DESCRIPTION) #1434 [Nicholas Seckar]
 
@@ -3567,8 +3598,8 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Correct distance_of_time_in_words for integer arguments and make the second arg optional, treating the first arg as a duration in seconds.  #1458 [madrobby <thomas@fesch.at>]
 
-* Fixed query parser to deal gracefully with equal signs inside keys and values #1345 [gorou]. 
-  Example: /?sig=abcdef=:foobar=&x=y will pass now. 
+* Fixed query parser to deal gracefully with equal signs inside keys and values #1345 [gorou].
+  Example: /?sig=abcdef=:foobar=&x=y will pass now.
 
 * Added Cuba to country list #1351 [todd]
 
@@ -3588,7 +3619,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Ensure that helpers are only available to the controllers where they are defined and their subclasses.  #1394 [kdole@tamu.edu]
 
-* render("foo/bar") works with a layout again 
+* render("foo/bar") works with a layout again
 
 * Fixed double-singularization on scaffolded pagination call (Address would be turned into Addres) #1216, #1404 [nilsga]
 
@@ -3636,7 +3667,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     | render_text "hello world!"                                    | render :text => "hello world!"                        |
     | render_partial_collection "person", @people, nil, :a => 1     | render :partial => "person", :collection => @people,  |
     |                                                               |        :locals => { :a => 1 }                         |
-    +---------------------------------------------------------------+-------------------------------------------------------+      
+    +---------------------------------------------------------------+-------------------------------------------------------+
 
 * Deprecated redirect_to_path and redirect_to_url in favor of letting redirect_to do the right thing when passed either a path or url.
 
@@ -3664,7 +3695,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
     Content-Type: application/xml
     <request><item><content>HelloWorld</content></item></request>
-  
+
   ...is the same as:
 
     Content-Type: application/x-yaml
@@ -3673,11 +3704,11 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
       content: HelloWorld
 
   ...is the same as:
-  
+
     item[content]=HelloWorld
-  
+
   Which in the end turns into { "item" => { "content" => "HelloWorld" } }. This makes it a lot easier to publish REST web services on top of your regular actions (as they won't care).
-  
+
   Example Curl call:
 
     curl -H 'Content-Type: application/xml' -d '<request><item><content>KillMeMore</content></item></request>' http://www.example.com/service
@@ -3721,11 +3752,11 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 * Removed dumping of template assigns on the rescue page as it would very easily include a ton of data making page loads take seconds (and the information was rarely helpful) #1222
 
 * Added BenchmarkHelper that can measure the execution time of a block in a template and reports the result to the log. Example:
-  
+
     <% benchmark "Notes section" do %>
       <%= expensive_notes_operation %>
     <% end %>
-  
+
    Will add something like "Notes section (0.345234)" to the log.
 
 * Added ActionController::Caching::Sweeper as an improved an easier to use sweeper. The new sweepers work on a single-step approach instead of two-steps like the old ones. Before
@@ -3733,7 +3764,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     def after_save(record)
       @list = record.is_a?(List) ? record : record.list
     end
-    
+
     def filter(controller)
       controller.expire_page(:controller => "lists", :action => %w( show public feed ), :id => @list.id)
       controller.expire_action(:controller => "lists", :action => "all")
@@ -3750,7 +3781,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     end
 
   The new sweepers can also observe on the actions themselves by implementing methods according to (before|after)_$controller_$action. Example of a callback that'll be called after PagesController#update_title has been performed:
-  
+
       def after_pages_update_title
         expire_fragment(%r{pages/#{controller.assigns["page"].id}/.*})
       end
@@ -3789,16 +3820,16 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Added a wide range of new Javascript effects:
     * Effect.Puff zooms the element out and makes it smoothly transparent at the same time, giving a "puff" illusion #996 [thomas@fesch.at]
-      After the animation is completed, the display property will be set to none. 
+      After the animation is completed, the display property will be set to none.
       This effect will work on relative and absolute positioned elements.
-      
+
     * Effect.Appear as the opposite of Effect.Fade #990 [thomas@fesch.at]
       You should return elements with style="display:none;" or a like class for this to work best and have no chance of flicker.
-      
+
     * Effect.Squish for scaling down an element and making it disappear at the end #972 [thomas@fesch.at]
-    
+
     * Effect.Scale for smoothly scaling images or text up and down #972 [thomas@fesch.at]
-    
+
     * Effect.Fade which smoothly turns opacity from 100 to 0 and then hides the element #960 [thomas@fesch.at]
 
 * Added Request#xml_http_request? (and an alias xhr?) to that'll return true when the request came from one of the Javascript helper methods (Ajax). This can be used to give one behavior for modern browsers supporting Ajax, another to old browsers #1127 [Sam Stephenson]
@@ -3806,11 +3837,11 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 * Changed render_partial to take local assigns as the second parameter instead of an explicit object and then the assigns. So the API changes from:
 
     <%= render_partial "account", person, "rules" => regulations.rules %>
-    
+
   ...to:
-  
+
     <%= render_partial "account", :account => person, :rules => regulations.rules %>
-  
+
   The old API will still work, though, and render_partial "account" will still assume :account => @account.
 
 * Added support for web servers that use PATH_INFO instead of REQUEST_URI like IIS #1014 [BradG/Nicholas Seckar]
@@ -3951,7 +3982,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
           flash.now[:message] = 'Save failed, review'
           render_action 'edit'
         end
-      end    
+      end
     end
 
 * Added to_param call for parameters when composing an url using url_for from something else than strings #812 [Sam Stephenson]. Example:
@@ -3989,7 +4020,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
   A request for /categories/top-level-cat, would give @params[:path_info] with "top-level-cat".
   A request for /categories/top-level-cat/level-1-cat, would give @params[:path_info] with "top-level-cat/level-1-cat" and so forth.
-  
+
   The @params[:path_info] return is really an array, but where to_s has been overwritten to do join("/").
 
 * Fixed options_for_select on selected line issue #624 [Florian Weber]
@@ -4110,11 +4141,11 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     def test_create_post
       post :create, "post" => { "title" => "Exciting!" }
       assert_redirected_to :action => "show"
-      
+
       follow_redirect
       assert_rendered_file "post/show"
     end
-  
+
   Limitation: Only works for redirects to other actions within the same controller.
 
 * Fixed double requiring of models with the same name as the controller
@@ -4139,9 +4170,9 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
       <%= text_field "student[]", "last_name" %>
       <%= text_field "student[]", "grade", :size => "5" %>
     <% end %>
-  
+
   ...would produce, for say David Black with id 123 and a grace of C+:
-  
+
     <input id="student_123_first_name" name="student[123][first_name]" size="20"     size="30" type="text" value="David" />
     <input id="student_123_last_name" name="student[123][last_name]" size="30"  type="text" value="Black" />
     <input id="student_123_grade" name="student[123][grade]" size="5" type="text"  value="C+" />
@@ -4171,7 +4202,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
     class WeblogController
       before_filter { |c| c.send(:redirect_to_url("http://www.farfaraway.com")}) }
-      
+
       def hello
         render_text "I will never be called"
       end
@@ -4184,7 +4215,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
       redirect_to :action => "elsewhere"
       render_action "overthere"
     end
-  
+
   Only the redirect happens. The rendering call is simply ignored.
 
 
@@ -4194,12 +4225,12 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Added assert_cookie_equal to assert the contents of a named cookie
 
-* Fixed bug in page caching that prevented it from working at all 
+* Fixed bug in page caching that prevented it from working at all
 
 
 *1.3.0* (January 17th, 2005)
 
-* Added an extensive caching module that offers three levels of granularity (page, action, fragment) and a variety of stores. 
+* Added an extensive caching module that offers three levels of granularity (page, action, fragment) and a variety of stores.
   Read more in ActionController::Caching.
 
 * Added the option of passing a block to ActiveRecordHelper#form in order to add more to the auto-generated form #469 [dom@sisna.com]
@@ -4238,9 +4269,9 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Fixed three issues with retrying breakpoints #417 [Florian Gross]
 
-  1. Don't screw up pages that use multiple values for the same parameter (?foo=bar&foo=qux was converted to ?foo=barqux) 
-  2. Don't screw up all forms when you click the "Retry with Breakpoint" link multiple times instead of reloading 
-     (This caused the parameters to be added multiple times for GET forms leading to trouble.) 
+  1. Don't screw up pages that use multiple values for the same parameter (?foo=bar&foo=qux was converted to ?foo=barqux)
+  2. Don't screw up all forms when you click the "Retry with Breakpoint" link multiple times instead of reloading
+     (This caused the parameters to be added multiple times for GET forms leading to trouble.)
   3. Don't add ?BP-RETRY=1 multiple times
 
 * Added that all renders and redirects now return false, so they can be used as the last line in before_filters to stop execution.
@@ -4252,7 +4283,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
         return false
       end
     end
-  
+
   After:
     def authenticate
       redirect_to(:controller => "account", :action => "login") unless @session[:authenticated]
@@ -4263,7 +4294,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     class JournalController < ActionController::Base
       # only require authentication if the current action is edit or delete
       before_filter :authorize, :only_on => [ :edit, :delete ]
-    
+
       private
         def authorize
           # redirect to login unless authenticated
@@ -4307,7 +4338,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 * Added more informative exception when using helper :some_helper and the helper requires another file that fails, you'll get an
   error message tells you what file actually failed to load, rather than falling back on assuming it was the helper file itself #346 [dblack]
 
-* Added use of *_before_type_cast for all input and text fields. This is helpful for getting "100,000" back on a integer-based 
+* Added use of *_before_type_cast for all input and text fields. This is helpful for getting "100,000" back on a integer-based
   validation where the value would normally be "100".
 
 * Added Request#port_string to get something like ":8080" back on 8080 and "" on 80 (or 443 with https).
@@ -4354,15 +4385,15 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
       scaffold :<%= singular_name %>
     <% end %>
       helper :post
-  
+
   ...produces this on post as singular_name:
 
     class SomeController < ApplicationController
-    
+
       scaffold :post
-    
+
       helper :post
-  
+
   ...where as:
 
     class SomeController < ApplicationController
@@ -4370,18 +4401,18 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
       scaffold :<%= singular_name %>
     <% end -%>
       helper :post
-  
+
   ...produces:
 
     class SomeController < ApplicationController
       scaffold :post
       helper :post
-  
+
   [This undocumented gem for ERb was uncovered by bitsweat]
 
 * Fixed CgiRequest so that it'll now accept session options with Symbols as keys (as the documentation points out) [Suggested by Andreas]
 
-* Added that render_partial will always by default include a counter with value 1 unless there is a counter passed in via the 
+* Added that render_partial will always by default include a counter with value 1 unless there is a counter passed in via the
   local_assigns hash that overrides it. As a result, render_collection_of_partials can still be written in terms of render_partial
   and partials that make use of a counter can be called without problems from both render_collection_of_partials as well as
   render_partial #295 [Marcel Molina Jr.]
@@ -4396,12 +4427,12 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     link:classes/ActionController/Base.html#M000021. It's also possible to pass a string instead of an options hash to
     get a link tag that just points without consideration. The <tt>html_options</tt> works jointly for the image and ahref tag by
     letting the following special values enter the options on the image and the rest goes to the ahref:
-    
+
     ::alt: If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
     ::size: Supplied as "XxY", so "30x45" becomes width="30" and height="45"
     ::align: Sets the alignment, no special features
-    
-    The +src+ can be supplied as a... 
+
+    The +src+ can be supplied as a...
     * full path, like "/my_images/image.gif"
     * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
     * file name without extension, like "logo", that gets expanded to "/images/logo.png"
@@ -4416,10 +4447,10 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
     # Calls Controller#miletone with a GET request
     process :milestone
-    
+
     # Calls Controller#miletone with a POST request that has parameters
     post :milestone, { "name" => "David" }
-    
+
     # Calls Controller#milestone with a HEAD request that has both parameters and session data
     head :milestone, { "id" => 1 }, { "user_id" => 23 }
 
@@ -4429,7 +4460,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Added indifference to whether @headers["Content-Type"], @headers["Content-type"], or @headers["content-type"] is used.
 
-* Added TestSession#session_id that returns an empty string to make it easier to functional test applications that doesn't use 
+* Added TestSession#session_id that returns an empty string to make it easier to functional test applications that doesn't use
   cookie-based sessions #275 [jcf]
 
 * Fixed that cached template loading would still check the file system to see if the file existed #258 [Andreas Schwarz]
@@ -4444,9 +4475,9 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
     cookies["user_name"] = "david" # => Will set a simple session cookie
     cookies["login"] = { "value" => "XJ-122", "expires" => Time.now + 360} # => Will set a cookie that expires in 1 hour
-    
+
   Examples for reading:
-  
+
     cookies["user_name"] # => "david"
     cookies.size         # => 2
 
@@ -4481,14 +4512,14 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     class MsgController < ApplicationController
       helper :msg
     end
-    
+
   ...you can just do:
-  
+
     class MsgController < ApplicationController
     end
 
 * Added dependencies_on(layer) to query the dependencies of a controller. Examples:
-  
+
     MsgController.dependencies_on(:model)    # => [ :post, :comment, :attachment ]
     MsgController.dependencies_on(:service)  # => [ :notification_service ]
     MsgController.dependencies_on(:observer) # => [ :comment_observer ]
@@ -4543,7 +4574,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     class WeblogController < ActionController::Base
       include WeblogHelper
     end
-    
+
   After:
 
     module WeblogHelper
@@ -4579,10 +4610,10 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Changed scaffolding of forms to use <label> tags instead of <b> to please W3C [evl]
 
-* Added DateHelper#distance_of_time_in_words_to_now(from_time) that works like distance_of_time_in_words, 
+* Added DateHelper#distance_of_time_in_words_to_now(from_time) that works like distance_of_time_in_words,
   but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
 
-* Added assert_flash_equal(expected, key, message), assert_session_equal(expected, key, message), 
+* Added assert_flash_equal(expected, key, message), assert_session_equal(expected, key, message),
   assert_assigned_equal(expected, key, message) to test the contents of flash, session, and template assigns.
 
 * Improved the failure report on assert_success when the action triggered a redirection [alexey].
@@ -4607,7 +4638,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
         xml.description "Basecamp: Recent items"
         xml.language "en-us"
         xml.ttl "40"
-    
+
         for item in @recent_items
           xml.item do
             xml.title(item_title(item))
@@ -4615,7 +4646,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
             xml.pubDate(item_pubDate(item))
             xml.guid(@person.firm.account.url + @recent_items.url(item))
             xml.link(@person.firm.account.url + @recent_items.url(item))
-        
+
             xml.tag!("dc:creator", item.author_name) if item_has_creator?(item)
           end
         end
@@ -4652,12 +4683,12 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
   of the tag you want. Options for the tag can be specified as a hash parameter to that method.
 
   Builder-based templates can be mixed and matched with the regular ERb ones. The only thing that differentiates them is the extension.
-  No new methods have been added to the public interface to handle them. 
-  
+  No new methods have been added to the public interface to handle them.
+
   Action Pack ships with a version of Builder, but it will use the RubyGems version if you have one installed.
-  
+
   Read more about Builder on: http://onestepback.org/index.cgi/Tech/Ruby/StayingSimple.rdoc
-  
+
   [Builder is created by Jim Weirich]
 
 * Added much improved support for functional testing [what-a-day].
@@ -4668,9 +4699,9 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
       @request.action = "authenticate"
       @request.request_parameters["user_name"] = "nop"
       @request.request_parameters["password"]  = ""
-  
+
       response = LoginController.process_test(@request)
-  
+
       assert_equal "The username and/or password you entered is invalid.", response.session["flash"]["alert"]
       assert_equal "http://37signals.basecamp.com/login/", response.headers["location"]
     end
@@ -4684,7 +4715,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
   See a full example on http://codepaste.org/view/paste/334
 
-* Increased performance by up to 100% with a revised cookie class that fixes the performance problems with the 
+* Increased performance by up to 100% with a revised cookie class that fixes the performance problems with the
   default one that ships with 1.8.1 and below. It replaces the inheritance on SimpleDelegator with DelegateClass(Array)
   following the suggestion from Matz on:
   http://groups.google.com/groups?th=e3a4e68ba042f842&seekm=c3sioe%241qvm%241%40news.cybercity.dk#link14
@@ -4694,9 +4725,9 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 * Added implicit counter variable to render_collection_of_partials [Marcel Molina Jr.]. From the docs:
 
     <%= render_collection_of_partials "ad", @advertisements %>
-    
+
     This will render "advertiser/_ad.rhtml" and pass the local variable +ad+ to the template for display. An iteration counter
-    will automatically be made available to the template with a name of the form +partial_name_counter+. In the case of the 
+    will automatically be made available to the template with a name of the form +partial_name_counter+. In the case of the
     example above, the template would be fed +ad_counter+.
 
 * Fixed problems with two sessions being maintained on reset_session that would particularly screw up ActiveRecordStore.
@@ -4712,15 +4743,15 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Added JavaScript confirm feature to link_to. Documentation:
 
-    The html_options have a special feature for creating javascript confirm alerts where if you pass 
+    The html_options have a special feature for creating javascript confirm alerts where if you pass
     :confirm => 'Are you sure?', the link will be guarded with a JS popup asking that question.
     If the user accepts, the link is processed, otherwise not.
 
 * Added link_to_unless_current as a UrlHelper method [Sam Stephenson]. Documentation:
 
-    Creates a link tag of the given +name+ using an URL created by the set of +options+, unless the current 
+    Creates a link tag of the given +name+ using an URL created by the set of +options+, unless the current
     controller, action, and id are the same as the link's, in which case only the name is returned (or the
-    given block is yielded, if one exists). This is useful for creating link bars where you don't want to link 
+    given block is yielded, if one exists). This is useful for creating link bars where you don't want to link
     to the page currently being viewed.
 
 * Fixed that UrlRewriter (the driver for url_for, link_to, etc) would blow up when the anchor was an integer [alexey]
@@ -4740,9 +4771,9 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 * Added the possibility for shared partials. Example:
 
     <%= render_partial "advertisement/ad", ad %>
-  
+
   This will render the partial "advertisement/_ad.rhtml" regardless of which controller this is being called from.
-  
+
   [Jacob Fugal]
 
 * Fixed crash when encountering forms that have empty-named fields [James Prudente]
@@ -4768,7 +4799,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
   ...can now be as:
 
     before_filter { |controller| return false if controller.params["stop_action"] }
-  
+
   [Jeremy Kemper]
 
 * Made the following methods public (was protected): url_for, controller_class_name, controller_name, action_name
@@ -4781,7 +4812,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 * Changed base class setup from AbstractTemplate/ERbTemplate to ActionView::Base. This change should be harmless unless you were
   accessing Action View directly in which case you now need to reference the Base class.\
 
-* Added that render_collection_of_partials returns nil if the collection is empty. This makes showing a “no items” message easier. 
+* Added that render_collection_of_partials returns nil if the collection is empty. This makes showing a “no items” message easier.
   For example: <%= render_collection_of_partials("message", @messages) || "No messages found." %> [Sam Stephenson]
 
 * Added :month_before_year as an option to date_select to get the month select before the year. Especially useful for credit card forms.
@@ -4809,42 +4840,42 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Introduced passing of locally scoped variables between templates:
 
-    You can pass local variables to sub templates by using a hash of with the variable 
+    You can pass local variables to sub templates by using a hash of with the variable
     names as keys and the objects as values:
-    
+
       <%= render "shared/header", { "headline" => "Welcome", "person" => person } %>
-    
+
     These can now be accessed in shared/header with:
-    
+
       Headline: <%= headline %>
       First name: <%= person.first_name %>
-    
+
 * Introduced the concept of partials as a certain type of sub templates:
 
-    There's also a convenience method for rendering sub templates within the current 
-    controller that depends on a single object (we call this kind of sub templates for 
+    There's also a convenience method for rendering sub templates within the current
+    controller that depends on a single object (we call this kind of sub templates for
     partials). It relies on the fact that partials should follow the naming convention
     of being prefixed with an underscore -- as to separate them from regular templates
     that could be rendered on their own. In the template for Advertiser#buy, we could have:
-    
+
       <% for ad in @advertisements %>
         <%= render_partial "ad", ad %>
       <% end %>
-    
-    This would render "advertiser/_ad.rhtml" and pass the local variable +ad+ 
+
+    This would render "advertiser/_ad.rhtml" and pass the local variable +ad+
     for the template to display.
-    
+
     == Rendering a collection of partials
-    
+
     The example of partial use describes a familar pattern where a template needs
-    to iterate over a array and render a sub template for each of the elements. 
-    This pattern has been implemented as a single method that accepts an array and 
-    renders a partial by the same name of as the elements contained within. So the 
+    to iterate over a array and render a sub template for each of the elements.
+    This pattern has been implemented as a single method that accepts an array and
+    renders a partial by the same name of as the elements contained within. So the
     three-lined example in "Using partials" can be rewritten with a single line:
-    
+
       <%= render_collection_of_partials "ad", @advertisements %>
-    
-    So this will render "advertiser/_ad.rhtml" and pass the local variable +ad+ for 
+
+    So this will render "advertiser/_ad.rhtml" and pass the local variable +ad+ for
     the template to display.
 
 * Improved send_file by allowing a wide range of options to be applied [Jeremy Kemper]:
@@ -4852,36 +4883,36 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     Sends the file by streaming it 4096 bytes at a time. This way the
     whole file doesn't need to be read into memory at once.  This makes
     it feasible to send even large files.
-    
+
     Be careful to sanitize the path parameter if it coming from a web
     page.  send_file(@params['path'] allows a malicious user to
     download any file on your server.
-    
+
     Options:
-    * <tt>:filename</tt> - specifies the filename the browser will see.  
+    * <tt>:filename</tt> - specifies the filename the browser will see.
       Defaults to File.basename(path).
-    * <tt>:type</tt> - specifies an HTTP content type.  
+    * <tt>:type</tt> - specifies an HTTP content type.
       Defaults to 'application/octet-stream'.
-    * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
+    * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
       Valid values are 'inline' and 'attachment' (default).
     * <tt>:buffer_size</tt> - specifies size (in bytes) of the buffer used to stream
       the file.  Defaults to 4096.
-    
+
     The default Content-Type and Content-Disposition headers are
     set to download arbitrary binary files in as many browsers as
     possible.  IE versions 4, 5, 5.5, and 6 are all known to have
     a variety of quirks (especially when downloading over SSL).
-    
+
     Simple download:
       send_file '/path/to.zip'
-    
+
     Show a JPEG in browser:
       send_file '/path/to.jpeg', :type => 'image/jpeg', :disposition => 'inline'
-    
+
     Read about the other Content-* HTTP headers if you'd like to
     provide the user with more information (such as Content-Description).
     http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11
-    
+
     Also be aware that the document may be cached by proxies and browsers.
     The Pragma and Cache-Control headers declare how the file may be cached
     by intermediaries.  They default to require clients to validate with
@@ -4908,74 +4939,74 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Added select, collection_select, and country_select to make it easier for Active Records to set attributes through
   drop-down lists of options. Example:
-  
+
     <%= select "person", "gender", %w( Male Female ) %>
-    
+
   ...would give the following:
-  
+
     <select name="person[gender]" id="person_gender"><option>Male</option><option>Female</option></select>
 
 * Added an option for getting multiple values on a single form name into an array instead of having the last one overwrite.
   This is especially useful for groups of checkboxes, which can now be written as:
-  
+
     <input type="checkbox" name="rights[]" value="CREATE" />
     <input type="checkbox" name="rights[]" value="UPDATE" />
     <input type="checkbox" name="rights[]" value="DELETE" />
-  
+
   ...and retrieved in the controller action with:
-  
+
     @params["rights"] # => [ "CREATE", "UPDATE", "DELETE" ]
-  
-  The old behavior (where the last one wins, "DELETE" in the example) is still available. Just don't add "[]" to the 
+
+  The old behavior (where the last one wins, "DELETE" in the example) is still available. Just don't add "[]" to the
   end of the name. [Scott Baron]
-  
+
 * Added send_file which uses the new render_text block acceptance to make it feasible to send large files.
-  The files is sent with a bunch of voodoo HTTP headers required to get arbitrary files to download as 
+  The files is sent with a bunch of voodoo HTTP headers required to get arbitrary files to download as
   expected in as many browsers as possible (eg, IE hacks). Example:
-  
+
   def play_movie
     send_file "/movies/that_movie.avi"
   end
-  
+
   [Jeremy Kemper]
 
-* render_text now accepts a block for deferred rendering. Useful for streaming large files, displaying 
+* render_text now accepts a block for deferred rendering. Useful for streaming large files, displaying
   a “please wait” message during a complex search, etc. Streaming example:
-  
+
     render_text do |response|
       File.open(path, 'rb') do |file|
         while buf = file.read(1024)
-          print buf 
-        end 
+          print buf
+        end
       end
     end
-  
+
   [Jeremy Kemper]
 
 * Added a new Tag Helper that can generate generic tags programmatically insted of through HTML. Example:
-    
+
     tag("br", "clear" => "all") => <br clear="all" />
-  
-  ...that's usually not terribly interesting (unless you have a lot of options already in a hash), but it 
+
+  ...that's usually not terribly interesting (unless you have a lot of options already in a hash), but it
   gives way for more specific tags, like the new form tag:
-  
+
     form_tag({ :controller => "weblog", :action => "update" }, { :multipart => "true", "style" => "width: 200px"}) =>
       <form action="/weblog/update" enctype="multipart/formdata" style="width: 200px">
-    
+
   There's even a "pretty" version for people who don't like to open tags in code and close them in HTML:
-  
+
     <%= start_form_tag :action => "update" %>
       # all the input fields
     <%= end_form_tag %>
-  
+
   (end_form_tag just returns "</form>")
 
-* The selected parameter in options_for_select may now also an array of values to be selected when 
+* The selected parameter in options_for_select may now also an array of values to be selected when
   using a multiple select. Example:
 
     options_for_select([ "VISA", "Mastercard", "Discover" ], ["VISA", "Discover"]) =>
       <option selected>VISA</option>\n<option>Mastercard</option>\n<option selected>Discover</option>
-      
+
   [Scott Baron]
 
 * Changed the URL rewriter so controller_prefix and action_prefix can be used in isolation. You can now do:
@@ -4983,7 +5014,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     url_for(:controller_prefix => "clients")
 
   ...or:
-  
+
     url_for(:action_prefix => "category/messages")
 
   Neither would have worked in isolation before (:controller_prefix required a :controller and :action_prefix required an :action)
@@ -4991,7 +5022,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 * Started process of a cleaner separation between Action Controller and ERb-based Action Views by introducing an
   abstract base class for views. And Amita adapter could be fitted in more easily now.
 
-* The date helper methods date_select and datetime_select now also use the field error wrapping 
+* The date helper methods date_select and datetime_select now also use the field error wrapping
   (div with class fieldWithErrors by default).
 
 * The date helper methods date_select and datetime_select can now discard selects
@@ -5003,7 +5034,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     end
 
   ...would give the following on a Post#title (text field) error:
-  
+
     <p>Title can't be empty</p>
     <div style='background-color: red'>
       <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
@@ -5036,18 +5067,18 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
       layout "layouts/weblog"
       scaffold :post
     end
-  
+
   [Suggested by Scott]
 
 * Changed url_for (and all the that drives, like redirect_to, link_to, link_for) so you can pass it a symbol instead of a hash.
   This symbol is a method reference which is then called to calculate the url. Example:
-  
+
     class WeblogController < ActionController::Base
       def update
         # do some update
         redirect_to :dashboard_url
       end
-      
+
       protected
         def dashboard_url
           if @project.active?
@@ -5057,23 +5088,23 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
           end
         end
     end
-      
+
 * Added default_url_options to specialize behavior for all url_for (and friends) calls:
 
-    Overwrite to implement a number of default options that all url_for-based methods will use. 
-    The default options should come in form of a hash, just like the one you would use for 
+    Overwrite to implement a number of default options that all url_for-based methods will use.
+    The default options should come in form of a hash, just like the one you would use for
     url_for directly. Example:
-    
+
       def default_url_options(options)
         { :controller_prefix => @project.active? ? "projects/" : "accounts/" }
       end
-    
-    As you can infer from the example, this is mostly useful for situations where you want to 
+
+    As you can infer from the example, this is mostly useful for situations where you want to
     centralize dynamic dissions about the urls as they stem from the business domain. Please note
     that any individual url_for call can always override the defaults set by this method.
-    
 
-* Changed url_for so that an "id" passed in the :params is not treated special. You need to use the dedicated :id to get 
+
+* Changed url_for so that an "id" passed in the :params is not treated special. You need to use the dedicated :id to get
   the special auto path-params treatment. Considering the url http://localhost:81/friends/list
 
     url_for(:action => "show", :params => { "id" => 5 })
@@ -5091,7 +5122,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 *0.7.8*
 
-* Fixed session bug where you couldn't store any objects that didn't exist in the standard library 
+* Fixed session bug where you couldn't store any objects that didn't exist in the standard library
   (such as Active Record objects).
 
 * Added reset_session method for Action Controller objects to clear out all objects in the session.
@@ -5102,22 +5133,22 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
     class WeblogController < ActionController::Base
       around_filter BenchmarkingFilter.new
-      
+
       # Before this action is performed, BenchmarkingFilter#before(controller) is executed
       def index
       end
       # After this action has been performed, BenchmarkingFilter#after(controller) is executed
     end
-    
+
     class BenchmarkingFilter
       def initialize
         @runtime
       end
-      
+
       def before
         start_timer
       end
-      
+
       def after
         stop_timer
         report_result
@@ -5128,7 +5159,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
     text_field "post", "title"
       ...just gives: <input id="post_title" name="post[title]" size="30" type="text" value="" />
-      
+
     text_field "post", "title", "id" => "title_for_post", "name" => "first_post_title"
       ...can now give: <input id="title_for_post" name="first_post_title" size="30" type="text" value="" />
 
@@ -5156,7 +5187,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 * Included ERB::Util so all templates can easily escape HTML content with <%=h @person.content %>
 
 * All requests are now considered local by default, so everyone will be exposed to detailed debugging screens on errors.
-  When the application is ready to go public, set ActionController::Base.consider_all_requests_local to false, 
+  When the application is ready to go public, set ActionController::Base.consider_all_requests_local to false,
   and implement the protected method local_request? in the controller to determine when debugging screens should be shown.
 
 * Fixed three bugs with the url_for/redirect_to/link_to handling. Considering the url http://localhost:81/friends/show/1
@@ -5164,7 +5195,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     url_for(:action => "list")
       ...used to give http://localhost:81/friends/list/1
       ......now gives http://localhost:81/friends/list
-    
+
     url_for(:controller => "friends", :action => "destroy", :id => 5)
       ...used to give http://localhost:81/friends/destroy
       ......now gives http://localhost:81/friends/destroy/5
@@ -5174,7 +5205,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
     url_for(:action => "list", :id => 5)
       ...used to give http://localhost:81/5eachers/list/t
       ......now gives http://localhost:81/teachers/list/5
-  
+
   [Reported by David Morton & Radsaq]
 
 * Logs exception to logfile in addition to showing them for local requests

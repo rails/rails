@@ -1,6 +1,14 @@
-*Rails 3.0 (pending)*
+*Rails 3.0.0 [beta 2] (April 1st, 2010)*
+
+* Added interceptors and observers from Mail [ML]
+
+    ActionMailer::Base.register_interceptor calls Mail.register_interceptor
+    ActionMailer::Base.register_observer calls Mail.register_observer
 
 * Whole new API added with tests.  See base.rb for full details.  Old API is deprecated.
+
+
+*Rails 3.0.0 [beta 1] (February 4, 2010)*
 
 * The Mail::Message class has helped methods for all the field types that return 'common' defaults for the common use case, so to get the subject, mail.subject will give you a string, mail.date will give you a DateTime object, mail.from will give you an array of address specs (mikel@test.lindsaar.net) etc.  If you want to access the field object itself, call mail[:field_name] which will return the field object you want, which you can then chain, like mail[:from].formatted
 

@@ -2,7 +2,7 @@ path File.dirname(__FILE__)
 source 'http://rubygems.org'
 
 gem "arel", :git => "git://github.com/rails/arel.git"
-gem "rails", "3.0.0.beta1"
+gem "rails", "3.0.0.beta2"
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"

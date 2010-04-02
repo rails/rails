@@ -158,6 +158,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_select_tag_with_array_options
+    assert_deprecated /array/ do
+      select_tag "people", ["<option>david</option>"]
+    end
+  end
+
   def test_text_area_tag_size_string
     actual = text_area_tag "body", "hello world", "size" => "20x40"
     expected = %(<textarea cols="20" id="body" name="body" rows="40">hello world</textarea>)
