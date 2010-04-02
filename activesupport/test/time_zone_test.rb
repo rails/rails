@@ -75,10 +75,14 @@ class TimeZoneTest < Test::Unit::TestCase
 
   def test_unknown_timezones_delegation_to_tzinfo
     zone = ActiveSupport::TimeZone['America/Montevideo']
-    assert_equal ActiveSupport::TimeZone, zone.class
-    assert_equal zone.object_id, ActiveSupport::TimeZone['America/Montevideo'].object_id
-    assert_equal Time.utc(2010, 1, 31, 22), zone.utc_to_local(Time.utc(2010, 2)) # daylight saving offset -0200
-    assert_equal Time.utc(2010, 3, 31, 21), zone.utc_to_local(Time.utc(2010, 4)) # standard offset -0300
+    if defined?(TZInfo::TimeZone)
+      assert_equal ActiveSupport::TimeZone, zone.class
+      assert_equal zone.object_id, ActiveSupport::TimeZone['America/Montevideo'].object_id
+      assert_equal Time.utc(2010, 1, 31, 22), zone.utc_to_local(Time.utc(2010, 2)) # daylight saving offset -0200
+      assert_equal Time.utc(2010, 3, 31, 21), zone.utc_to_local(Time.utc(2010, 4)) # standard offset -0300
+    else
+      assert_nil zone
+    end
   end
 
   def test_today
