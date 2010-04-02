@@ -194,6 +194,21 @@ module ActionDispatch
           self
         end
 
+        def mount(app, options = nil)
+          if options
+            path = options.delete(:at)
+          else
+            options = app
+            app, path = options.find { |k, v| k.respond_to?(:call) }
+            options.delete(app) if app
+          end
+
+          raise "A rack application must be specified" unless path
+
+          match(path, options.merge(:to => app, :anchor => false))
+          self
+        end
+
         def default_url_options=(options)
           @set.default_url_options = options
         end
@@ -380,14 +395,13 @@ module ActionDispatch
             [:index, :create, :new, :show, :update, :destroy, :edit]
           end
 
-          attr_reader :plural, :singular, :options
+          attr_reader :controller, :path, :options
 
           def initialize(entities, options = {})
-            @name = entities.to_s
-            @options = options
-
-            @plural   = @name.pluralize
-            @singular = @name.singularize
+            @name       = entities.to_s
+            @path       = options.delete(:path) || @name
+            @controller = options.delete(:controller) || @name.to_s.pluralize
+            @options    = options
           end
 
           def default_actions
@@ -417,8 +431,12 @@ module ActionDispatch
             options[:as] || @name
           end
 
-          def controller
-            options[:controller] || plural
+          def plural
+            name.to_s.pluralize
+          end
+
+          def singular
+            name.to_s.singularize
           end
 
           def member_name
@@ -509,7 +527,7 @@ module ActionDispatch
 
           resource = SingletonResource.new(resources.pop, options)
 
-          scope(:path => resource.name.to_s, :controller => resource.controller) do
+          scope(:path => resource.path, :controller => resource.controller) do
             with_scope_level(:resource, resource) do
 
               scope(:name_prefix => resource.name.to_s, :as => "") do
@@ -539,7 +557,7 @@ module ActionDispatch
 
           resource = Resource.new(resources.pop, options)
 
-          scope(:path => resource.name.to_s, :controller => resource.controller) do
+          scope(:path => resource.path, :controller => resource.controller) do
             with_scope_level(:resources, resource) do
               yield if block_given?
 
@@ -601,21 +619,6 @@ module ActionDispatch
               yield
             end
           end
-        end
-
-        def mount(app, options = nil)
-          if options
-            path = options.delete(:at)
-          else
-            options = app
-            app, path = options.find { |k, v| k.respond_to?(:call) }
-            options.delete(app) if app
-          end
-
-          raise "A rack application must be specified" unless path
-
-          match(path, options.merge(:to => app, :anchor => false))
-          self
         end
 
         def match(*args)

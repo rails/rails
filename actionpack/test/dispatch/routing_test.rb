@@ -58,8 +58,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get 'admin/accounts' => "queenbee#accounts"
       end
 
-      scope 'es' do
-        resources :projects, :path_names => { :edit => 'cambiar' }, :as => 'projeto'
+      scope 'pt', :name_prefix => 'pt' do
+        resources :projects, :path_names => { :edit => 'editar' }, :path => 'projetos'
+        resource  :admin,    :path_names => { :new => 'novo' },    :path => 'administrador'
       end
 
       resources :projects, :controller => :project do
@@ -74,8 +75,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           resource  :avatar, :controller => :avatar
         end
 
-        resources :images do
+        resources :images, :as => :funny_images do
           post :revise, :on => :member
+        end
+
+        resource :manager, :as => :super_manager do
+          post :fire
         end
 
         resources :people do
@@ -144,7 +149,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       namespace :forum do
-        resources :products, :as => '' do
+        resources :products, :path => '' do
           resources :questions
         end
       end
@@ -430,15 +435,35 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_project_manager
+    with_test_routes do
+      get '/projects/1/manager'
+      assert_equal 'managers#show', @response.body
+      assert_equal '/projects/1/manager', project_super_manager_path(:project_id => '1')
+
+      get '/projects/1/manager/new'
+      assert_equal 'managers#new', @response.body
+      assert_equal '/projects/1/manager/new', new_project_super_manager_path(:project_id => '1')
+
+      post '/projects/1/manager/fire'
+      assert_equal 'managers#fire', @response.body
+      assert_equal '/projects/1/manager/fire', fire_project_super_manager_path(:project_id => '1')
+    end
+  end
+
   def test_project_images
     with_test_routes do
       get '/projects/1/images'
       assert_equal 'images#index', @response.body
-      assert_equal '/projects/1/images', project_images_path(:project_id => '1')
+      assert_equal '/projects/1/images', project_funny_images_path(:project_id => '1')
+
+      get '/projects/1/images/new'
+      assert_equal 'images#new', @response.body
+      assert_equal '/projects/1/images/new', new_project_funny_image_path(:project_id => '1')
 
       post '/projects/1/images/1/revise'
       assert_equal 'images#revise', @response.body
-      assert_equal '/projects/1/images/1/revise', revise_project_image_path(:project_id => '1', :id => '1')
+      assert_equal '/projects/1/images/1/revise', revise_project_funny_image_path(:project_id => '1', :id => '1')
     end
   end
 
@@ -552,11 +577,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_path_names
     with_test_routes do
-      get '/es/projeto'
+      get '/pt/projetos'
       assert_equal 'projects#index', @response.body
+      assert_equal '/pt/projetos', pt_projects_path
 
-      get '/es/projeto/1/cambiar'
+      get '/pt/projetos/1/editar'
       assert_equal 'projects#edit', @response.body
+      assert_equal '/pt/projetos/1/editar', edit_pt_project_path(1)
+
+      get '/pt/administrador'
+      assert_equal 'admins#show', @response.body
+      assert_equal '/pt/administrador', pt_admin_path
+
+      get '/pt/administrador/novo'
+      assert_equal 'admins#new', @response.body
+      assert_equal '/pt/administrador/novo', new_pt_admin_path
     end
   end
 
