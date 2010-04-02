@@ -22,3 +22,5 @@ gems:
   version: >= 2.2.3
 - name: sqlite3-ruby
   version: >= 1.2.5
+- name: tzinfo
+  version: >= 0.3.18
