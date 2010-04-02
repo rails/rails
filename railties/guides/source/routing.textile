@@ -79,7 +79,7 @@ If you're coming from Rails 2, this route will be equivalent to:
 map.login '/login', :controller => 'sessions', :action => 'new'
 </ruby>
 
-You will also notice that +sessions#new+ is a shorthand for +:controller => 'sessions', :action => 'new'+. By declaring a named route such as this, you can use +login_path+ or +login_url+ in your controllers and views to generate the URLs for this route.
+You will also notice that +sessions#new+ is a shorthand for +:controller => 'sessions', :action => 'new'+. By declaring a named route such as this, you can use +login_path+ or +login_url+ in your controllers and views to generate the URLs for this route. A RESTful generates named routes without the need to explicitly generate a named route via +as+ key.
 
 h4. Nested Routes
 
@@ -215,8 +215,7 @@ Although the conventions of RESTful routing are likely to be sufficient for many
 
 * +:controller+
 * +:singular+
-* +:requirements+
-* +:conditions+
+* +:constraints+
 * +:as+
 * +:path_names+
 * +:only+
@@ -257,13 +256,7 @@ If you use controller namespaces, you need to be aware of a subtlety in the Rail
 
 TIP: If you want to guarantee that a link goes to a top-level controller, use a preceding slash to anchor the controller name: +&lt;%= link_to "show", {:controller => "/photos", :action => "show"} %&gt;+
 
-You can also specify a controller namespace with the +:namespace+ option instead of a path:
-
-<ruby>
-resources :adminphotos, :namespace => "admin", :controller => "photos"
-</ruby>
-
-This can be especially useful when map multiple namespaced routes together using +namespace+ block by:
+You can also specify a controller namespace with the +namespace+ method instead of a path. This can be especially useful when mapping multiple namespaced routes together:
 
 <ruby>
 namespace :admin do
@@ -285,19 +278,15 @@ resources :teeth, :singular => "tooth"
 
 TIP: Depending on the other code in your application, you may prefer to add additional rules to the +Inflector+ class instead.
 
-h5. Using +:requirements+
+h5. Using +:constraints+
 
-You can use the +:requirements+ option in a RESTful route to impose a format on the implied +:id+ parameter in the singular routes. For example:
+You can use the +:constraints+ option in a RESTful route to impose a format on the implied parameter in routes. For example:
 
 <ruby>
-resources :photos, :requirements => {:id => /[A-Z][A-Z][0-9]+/}
+resources :photos, :constraints => {:id => /[A-Z][A-Z][0-9]+/}
 </ruby>
 
 This declaration constrains the +:id+ parameter to match the supplied regular expression. So, in this case, +/photos/1+ would no longer be recognized by this route, but +/photos/RR27+ would.
-
-h5. Using +:conditions+
-
-Conditions in Rails routing are currently used only to set the HTTP verb for individual routes. Although in theory you can set this for RESTful routes, in practice there is no good reason to do so. (You'll learn more about conditions in the discussion of classic routing later in this guide.)
 
 h5. Using +:as+
 
@@ -343,37 +332,15 @@ TIP: If you find yourself wanting to change this option uniformly for all of you
 config.action_controller.resources_path_names = { :new => 'make', :edit => 'change' }
 </ruby>
 
-h5. Using +:path_prefix+
-
-The +:path_prefix+ option lets you add additional parameters that will be prefixed to the recognized paths. For example, suppose each photo in your application belongs to a particular photographer. In that case, you might declare this route:
-
-<ruby>
-resources :photos, :path_prefix => '/photographers/:photographer_id'
-</ruby>
-
-Routes recognized by this entry would include:
-
-<pre>
-/photographers/1/photos/2
-/photographers/1/photos
-</pre>
-
-NOTE: In most cases, it's simpler to recognize URLs of this sort by creating nested resources, as discussed in the next section.
-
-NOTE: You can also use +:path_prefix+ with non-RESTful routes.
-
 h5. Using +:name_prefix+
 
 You can use the :name_prefix option to avoid collisions between routes. This is most useful when you have two resources with the same name that use +:path_prefix+ to map differently. For example:
 
 <ruby>
-resources :photos, :path_prefix => '/photographers/:photographer_id',
-  :name_prefix => 'photographer_'
-resources :photos, :path_prefix => '/agencies/:agency_id',
-  :name_prefix => 'agency_'
+resources :photos :name_prefix => 'photographer'
 </ruby>
 
-This combination will give you route helpers such as +photographer_photos_path+ and +agency_edit_photo_path+ to use in your code.
+This combination will give you route helpers such as +photographer_photos_path+ to use in your code.
 
 NOTE: You can also use +:name_prefix+ with non-RESTful routes.
 
@@ -394,8 +361,6 @@ resources :photos, :except => :destroy
 </ruby>
 
 In this case, all of the normal routes except the route for +destroy+ (a +DELETE+ request to +/photos/<em>id</em>+) will be generated.
-
-In addition to an action or a list of actions, you can also supply the special symbols +:all+ or +:none+ to the +:only+ and +:except+ options.
 
 TIP: If your application has many RESTful routes, using +:only+ and +:except+ to generate only the routes that you actually need can cut down on memory use and speed up the routing process.
 
@@ -421,8 +386,6 @@ resources :magazines do
 end
 </ruby>
 
-TIP: Further below you'll learn about a convenient shortcut for this construct:<br/>+resources :magazines, :has_many => :ads+
-
 In addition to the routes for magazines, this declaration will also create routes for ads, each of which requires the specification of a magazine in the URL:
 
 |_.HTTP verb|_.URL                    |_.controller|_.action |_.used for|
@@ -447,38 +410,7 @@ resources :magazines do
 end
 </ruby>
 
-This will create routing helpers such as +periodical_ads_url+ and +periodical_edit_ad_path+. You can even use +:name_prefix+ to suppress the prefix entirely:
-
-<ruby>
-resources :magazines do
-  resources :ads, :name_prefix => nil
-end
-</ruby>
-
-This will create routing helpers such as +ads_url+ and +edit_ad_path+. Note that calling these will still require supplying an article id:
-
-<ruby>
-ads_url(@magazine)
-edit_ad_path(@magazine, @ad)
-</ruby>
-
-h5. Using +:has_one+ and +:has_many+
-
-The +:has_one+ and +:has_many+ options provide a succinct notation for simple nested routes. Use +:has_one+ to nest a singleton resource, or +:has_many+ to nest a plural resource:
-
-<ruby>
-resources :photos, :has_one => :photographer, :has_many => [:publications, :versions]
-</ruby>
-
-This has the same effect as this set of declarations:
-
-<ruby>
-resources :photos do
-  resource :photographer
-  resources :publications
-  resources :versions
-end
-</ruby>
+This will create routing helpers such as +periodical_ads_url+ and +periodical_edit_ad_path+. 
 
 h5. Limits to Nesting
 
@@ -492,7 +424,7 @@ resources :publishers do
 end
 </ruby>
 
-However, without the use of +name_prefix => nil+, deeply-nested resources quickly become cumbersome. In this case, for example, the application would recognize URLs such as
+Deeply-nested resources quickly become cumbersome. In this case, for example, the application would recognize URLs such as
 
 <pre>
 /publishers/1/magazines/2/photos/3
@@ -524,11 +456,7 @@ This will enable recognition of (among others) these routes:
 /photos/3               ==> photo_path(3)
 </pre>
 
-With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with. If you like, you can combine shallow nesting with the +:has_one+ and +:has_many+ options:
-
-<ruby>
-resources :publishers, :has_many => { :magazines => :photos }, :shallow => true
-</ruby>
+With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with. 
 
 h4. Route Generation from Arrays
 
@@ -556,19 +484,25 @@ This format is especially useful when you might not know until runtime which of 
 
 h4. Namespaced Resources
 
-It's possible to do some quite complex things by combining +:path_prefix+ and +:name_prefix+. For example, you can use the combination of these two options to move administrative resources to their own folder in your application:
+It's possible to do some quite complex things by combining +scope+ and +:name_prefix+. For example, you can use the combination of these two options to move administrative resources to their own folder in your application:
 
 <ruby>
-resources :photos, :path_prefix => 'admin', :controller => 'admin/photos'
-resources :tags, :name_prefix => 'admin_photo_', :path_prefix => 'admin/photos/:photo_id', :controller => 'admin/photo_tags'
-resources :ratings, :name_prefix => 'admin_photo_', :path_prefix => 'admin/photos/:photo_id', :controller => 'admin/photo_ratings'
+scope 'admin' do
+  resources :photos, :name_prefix => "admin", :controller => 'admin/photos'
+  scope 'photos' do
+    resources :tags, :name_prefix => 'admin_photo', :controller => 'admin/photo_tags'
+    resources :ratings, :name_prefix => 'admin_photo', :controller => 'admin/photo_ratings'
+  end
+end
 </ruby>
 
 The good news is that if you find yourself using this level of complexity, you can stop. Rails supports _namespaced resources_ to make placing resources in their own folder a snap. Here's the namespaced version of those same three routes:
 
 <ruby>
 namespace :admin do
-	resources :photos, :has_many => { :tags, :ratings }
+  resources :photos do
+    resources :tags, :ratings
+  end
 end
 </ruby>
 
@@ -592,7 +526,7 @@ end
 
 This will enable Rails to recognize URLs such as +/photos/1/preview+ using the GET HTTP verb, and route them to the preview action of the Photos controller. It will also create the +preview_photo_url+ and +preview_photo_path+ route helpers.
 
-Within the block of member routes, each route name specifies the HTTP verb that it will recognize. You can use +get+, +put+, +post+, +delete+, or +any+ here. If you don't have multiple +member+ route, you can also passing +:on+ to the routing.
+Within the block of member routes, each route name specifies the HTTP verb that it will recognize. You can use +get+, +put+, +post+, or +delete+ here. If you don't have multiple +member+ route, you can also passing +:on+ to the routing.
 
 <ruby>
 resources :photos do
@@ -649,7 +583,7 @@ When you set up a regular route, you supply a series of symbols that Rails maps 
 match ':controller(/:action(/:id))'
 </ruby>
 
-If an incoming request of +/photos/show/1+ is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the +show+ action of the +Photos+ controller, and to make the final parameter (1) available as +params[:id]+.
+If an incoming request of +/photos/show/1+ is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the +show+ action of the +Photos+ controller, and to make the final parameter (1) available as +params[:id]+. This route will also route the incoming request of +/photos+ to PhotosController, since +:action+ and +:id+ are optional parameters, denoted by parenthesis.
 
 h4. Wildcard Components
 
@@ -709,12 +643,12 @@ match 'logout' => 'sessions#destroy', :as => :logout
 
 This will do two things. First, requests to +/logout+ will be sent to the +destroy+ action of the +Sessions+ controller. Second, Rails will maintain the +logout_path+ and +logout_url+ helpers for use within your code.
 
-h4. Route Requirements
+h4. Route Constraints
 
-You can use the +:requirements+ option to enforce a format for any parameter in a route:
+You can use the +:constraints+ option to enforce a format for any parameter in a route:
 
 <ruby>
-match 'photo/:id' => 'photos#show', :requirements => { :id => /[A-Z]\d{5}/ }
+match 'photo/:id' => 'photos#show', :constraints => { :id => /[A-Z]\d{5}/ }
 </ruby>
 
 This route would respond to URLs such as +/photo/A12345+. You can more succinctly express the same route this way:
@@ -722,16 +656,6 @@ This route would respond to URLs such as +/photo/A12345+. You can more succinctl
 <ruby>
 match 'photo/:id' => 'photos#show', :id => /[A-Z]\d{5}/
 </ruby>
-
-h4. Route Conditions
-
-Route conditions (introduced with the +:conditions+ option) are designed to implement restrictions on routes. Currently, the only supported restriction is +:method+:
-
-<ruby>
-match 'photo/:id' => 'photos#show', :conditions => { :method => :get }
-</ruby>
-
-As with conditions in RESTful routes, you can specify +:get+, +:post+, +:put+, +:delete+, or +:any+ for the acceptable method.
 
 h4. Route Globbing
 
@@ -742,20 +666,6 @@ match 'photo/*other' => 'photos#unknown'
 </ruby>
 
 This route would match +photo/12+ or +/photo/long/path/to/12+ equally well, creating an array of path segments as the value of +params[:other]+.
-
-h4. Route Options
-
-You can use +:with_options+ to simplify defining groups of similar routes:
-
-<ruby>
-map.with_options :controller => 'photo' do |photo|
-  photo.list '', :action => 'index'
-  photo.delete ':id/delete', :action => 'delete'
-  photo.edit ':id/edit', :action => 'edit'
-end
-</ruby>
-
-The importance of +map.with_options+ has declined with the introduction of RESTful routes.
 
 h3. Formats and +respond_to+
 
@@ -899,6 +809,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/3
 
+* April 2, 2010: Updated guide to match new Routing DSL in Rails 3, by Rizwan Reza
 * Febuary 1, 2010: Modifies the routing documentation to match new routing DSL in Rails 3, by Prem Sichanugrist
 * October 4, 2008: Added additional detail on specifying verbs for resource member/collection routes, by "Mike Gunderloy":credits.html#mgunderloy
 * September 23, 2008: Added section on namespaced controllers and routing, by "Mike Gunderloy":credits.html#mgunderloy
