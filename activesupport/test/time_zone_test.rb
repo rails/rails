@@ -39,9 +39,8 @@ class TimeZoneTest < Test::Unit::TestCase
       assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone[zone.name]
     end
 
-    define_method("test_utc_offset_for_#{name}") do
-      period = zone.tzinfo.current_period
-      assert_equal period.utc_offset, zone.utc_offset
+    define_method("test_zones_map_for_#{name}") do
+      assert_equal ActiveSupport::TimeZone::ZONES_MAP[zone.name], zone
     end
   end
 

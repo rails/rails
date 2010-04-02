@@ -177,7 +177,7 @@ module ActiveSupport
     # offset is the number of seconds that this time zone is offset from UTC
     # (GMT). Seconds were chosen as the offset unit because that is the unit that
     # Ruby uses to represent time zone offsets (see Time#utc_offset).
-    def initialize(name, utc_offset, tzinfo = nil)
+    def initialize(name, utc_offset = nil, tzinfo = nil)
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo
@@ -185,8 +185,12 @@ module ActiveSupport
     end
 
     def utc_offset
-      @current_period ||= tzinfo.current_period
-      @current_period.utc_offset
+      if @utc_offset
+        @utc_offset
+      else
+        @current_period ||= tzinfo.current_period
+        @current_period.utc_offset
+      end
     end
 
     # Returns the offset of this time zone as a formatted string, of the
@@ -288,10 +292,14 @@ module ActiveSupport
       tzinfo.period_for_local(time, dst)
     end
 
-    # TODO: Preload instead of lazy load for thread safety
     def tzinfo
+      @tzinfo ||= find_tzinfo
+    end
+
+    # TODO: Preload instead of lazy load for thread safety
+    def find_tzinfo
       require 'tzinfo' unless defined?(TZInfo)
-      @tzinfo ||= TZInfo::Timezone.get(MAPPING[name])
+      ::TZInfo::Timezone.get(MAPPING[name])
     end
 
     unless const_defined?(:ZONES)
