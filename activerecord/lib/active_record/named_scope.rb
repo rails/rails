@@ -169,16 +169,6 @@ module ActiveRecord
         end
       end
 
-      private
-
-      def method_missing(method, *args, &block)
-        if klass.respond_to?(method)
-          with_scope(self) { klass.send(method, *args, &block) }
-        else
-          super
-        end
-      end
-
     end
 
   end
