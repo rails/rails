@@ -121,7 +121,7 @@ module ActionView
       # The generic way to call +form_for+ yields a form builder around a
       # model:
       #
-      #   <%= form_for :person do |f| %>
+      #   <%= form_for :person, :url => { :action => "create" } do |f| %>
       #     <%= f.error_messages %>
       #     First name: <%= f.text_field :first_name %><br />
       #     Last name : <%= f.text_field :last_name %><br />
@@ -145,7 +145,7 @@ module ActionView
       # If the instance variable is not <tt>@person</tt> you can pass the actual
       # record as the second argument:
       #
-      #   <%= form_for :person, person do |f| %>
+      #   <%= form_for :person, person, :url => { :action => "create" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -177,7 +177,7 @@ module ActionView
       # possible to use both the stand-alone FormHelper methods and methods
       # from FormTagHelper. For example:
       #
-      #   <%= form_for :person, @person do |f| %>
+      #   <%= form_for :person, @person, :url => { :action => "create" } do |f| %>
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
@@ -265,7 +265,7 @@ module ActionView
       # custom builder. For example, let's say you made a helper to
       # automatically add labels to form inputs.
       #
-      #   <%= form_for :person, @person, :builder => LabellingFormBuilder do |f| %>
+      #   <%= form_for :person, @person, :url => { :action => "create" }, :builder => LabellingFormBuilder do |f| %>
       #     <%= f.text_field :first_name %>
       #     <%= f.text_field :last_name %>
       #     <%= text_area :person, :biography %>
@@ -354,13 +354,13 @@ module ActionView
       # ...or if you have an object that needs to be represented as a different
       # parameter, like a Client that acts as a Person:
       #
-      #   <%= fields_for :person, @client do |permission_fields| %>
+      #   <%= fields_for :person, @client, :url => { :action => "create" } do |permission_fields| %>
       #     Admin?: <%= permission_fields.check_box :admin %>
       #   <% end %>
       #
       # ...or if you don't have an object, just a name of the parameter:
       #
-      #   <%= fields_for :person do |permission_fields| %>
+      #   <%= fields_for :person, :url => { :action => "create" } do |permission_fields| %>
       #     Admin?: <%= permission_fields.check_box :admin %>
       #   <% end %>
       #
