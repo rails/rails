@@ -29,16 +29,13 @@ module ActionView #:nodoc:
     autoload :TranslationHelper
     autoload :UrlHelper
 
-    def self.included(base)
-      base.extend(ClassMethods)
-    end
+    extend ActiveSupport::Concern
 
-    module ClassMethods
-      include SanitizeHelper::ClassMethods
+    included do
+      extend SanitizeHelper::ClassMethods
     end
 
     include ActiveSupport::Benchmarkable
-
     include ActiveModelHelper
     include AssetTagHelper
     include AtomFeedHelper

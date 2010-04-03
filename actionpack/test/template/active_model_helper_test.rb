@@ -118,13 +118,12 @@ class ActiveModelHelperTest < ActionView::TestCase
     setup_user
 
     @response = ActionController::TestResponse.new
+  end
 
-    @controller = Object.new
-    def @controller.url_for(options)
-      options = options.symbolize_keys
+  def url_for(options)
+    options = options.symbolize_keys
 
-      [options[:action], options[:id].to_param].compact.join('/')
-    end
+    [options[:action], options[:id].to_param].compact.join('/')
   end
 
   def test_generic_input_tag

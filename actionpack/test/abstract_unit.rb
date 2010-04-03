@@ -57,6 +57,18 @@ module RackTestUtils
   extend self
 end
 
+module RenderERBUtils
+  def render_erb(string)
+    template = ActionView::Template.new(
+      string.strip,
+      "test template",
+      ActionView::Template::Handlers::ERB,
+      {})
+
+    template.render(self, {}).strip
+  end
+end
+
 module SetupOnce
   extend ActiveSupport::Concern
 
@@ -222,6 +234,14 @@ class Rack::TestCase < ActionController::IntegrationTest
 
   def assert_header(name, value)
     assert_equal value, response.headers[name]
+  end
+end
+
+class ActionController::Base
+  def self.test_routes(&block)
+    router = ActionDispatch::Routing::RouteSet.new
+    router.draw(&block)
+    include router.url_helpers
   end
 end
 

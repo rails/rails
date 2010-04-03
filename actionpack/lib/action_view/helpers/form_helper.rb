@@ -96,6 +96,7 @@ module ActionView
       extend ActiveSupport::Concern
 
       include FormTagHelper
+      include UrlHelper
 
       # Creates a form and a scope around a specific model object that is used
       # as a base for questioning about values for the fields.
