@@ -709,7 +709,7 @@ module ActionView
 
       # You can enable or disable the asset tag timestamps cache.
       # With the cache enabled, the asset tag helper methods will make fewer
-      # expense file system calls. However this prevents you from modifying
+      # expensive file system calls. However this prevents you from modifying
       # any asset files while the server is running.
       #
       #   ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
