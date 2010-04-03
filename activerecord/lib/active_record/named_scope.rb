@@ -107,7 +107,7 @@ module ActiveRecord
                       "Overwriting existing method #{self.name}.#{name}."
         end
 
-        scopes[name] = lambda do |parent_scope, *args|
+        scopes[name] = lambda do |*args|
           scope_options = case options
           when Hash, Relation
             options
@@ -116,9 +116,9 @@ module ActiveRecord
           end
 
           relation = if scope_options.is_a?(Hash)
-            parent_scope.scoped.apply_finder_options(scope_options)
+            scoped.apply_finder_options(scope_options)
           else
-            scope_options ? parent_scope.scoped.merge(scope_options) : parent_scope.scoped
+            scope_options ? scoped.merge(scope_options) : scoped
           end
 
           block_given? ? relation.extending(Module.new(&block)) : relation
@@ -126,7 +126,7 @@ module ActiveRecord
 
         singleton_class.instance_eval do
           define_method name do |*args|
-            scopes[name].call(self, *args)
+            scopes[name].call(*args)
           end
         end
       end
