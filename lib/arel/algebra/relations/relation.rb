@@ -84,14 +84,7 @@ module Arel
 
     module AttributeAccessable
       def [](index)
-        attr = attributes[index]
-
-        # Handles a strange ActiveRecord case
-        if !attr && (index.is_a?(String) || index.is_a?(Symbol))
-          attr = Attribute.new(self, index)
-        end
-
-        attr
+        attributes[index]
       end
 
       def find_attribute_matching_name(name)

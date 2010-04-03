@@ -18,8 +18,15 @@ module Arel
       end
     end
 
-    it "finds attributes by name" do
-      @relation.attributes[:name].should == Attributes::String.new(@relation, :name)
+    describe "attribute lookup" do
+      it "finds attributes by name" do
+        @relation.attributes[:name].should == Attributes::String.new(@relation, :name)
+      end
+
+      it "returns nil if no attribute is found" do
+        @relation.attributes[:does_not_exist].should be_nil
+        @relation[:does_not_exist].should be_nil
+      end
     end
 
     describe "#union" do
