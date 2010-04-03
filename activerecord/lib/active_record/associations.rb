@@ -1493,7 +1493,7 @@ module ActiveRecord
         # The +extra_conditions+ parameter, which is not used within the main
         # Active Record codebase, is meant to allow plugins to define extra
         # finder conditions.
-        def configure_dependency_for_has_many(reflection)
+        def configure_dependency_for_has_many(reflection, extra_conditions = nil)
           if reflection.options.include?(:dependent)
             case reflection.options[:dependent]
               when :destroy
@@ -1508,7 +1508,7 @@ module ActiveRecord
                   record,
                   reflection.name,
                   reflection.klass,
-                  reflection.dependent_conditions(record, self.class))
+                  reflection.dependent_conditions(record, self.class, extra_conditions))
                 end
               when :nullify
                 before_destroy do |record|
@@ -1517,7 +1517,7 @@ module ActiveRecord
                   reflection.name,
                   reflection.klass,
                   reflection.primary_key_name,
-                  reflection.dependent_conditions(record, self.class))
+                  reflection.dependent_conditions(record, self.class, extra_conditions))
                 end
               when :restrict
                 method_name = "has_many_dependent_restrict_for_#{reflection.name}".to_sym
