@@ -3,58 +3,73 @@ require 'abstract_unit'
 require 'active_support/ordered_options'
 require 'controller/fake_controllers'
 
-class UrlHelperTest < ActionView::TestCase
+class UrlHelperTest < ActiveSupport::TestCase
 
-  def setup
-    super
-    @controller = Class.new(BasicController) do
-      attr_accessor :url
-      def url_for(options)
-        url
-      end
-    end
+  # In a few cases, the helper proxies to 'controller'
+  # or request.
+  #
+  # In those cases, we'll set up a simple mock
+  attr_accessor :controller, :request
 
-    @controller = @controller.new
-    @request = @controller.request = ActionDispatch::TestRequest.new
-    @controller.url = "http://www.example.com"
+  routes = ActionDispatch::Routing::RouteSet.new
+  routes.draw do
+    match "/" => "foo#bar"
+    match "/other" => "foo#other"
   end
 
+  include routes.url_helpers
+
+  include ActionView::Helpers::UrlHelper
+  include ActionDispatch::Assertions::DomAssertions
+  include ActionView::Context
+  include RenderERBUtils
+
+  # self.default_url_options = {:host => "www.example.com"}
+
+  # TODO: This shouldn't be needed (see template.rb:53)
+  def assigns
+    {}
+  end
+
+  def abcd(hash = {})
+    hash_for(:a => :b, :c => :d).merge(hash)
+  end
+
+  def hash_for(opts = {})
+    {:controller => "foo", :action => "bar"}.merge(opts)
+  end
+  alias url_hash hash_for
+
   def test_url_for_escapes_urls
-    @controller.url = "http://www.example.com?a=b&c=d"
-    assert_equal "http://www.example.com?a=b&c=d", url_for(:a => 'b', :c => 'd')
-    assert_equal "http://www.example.com?a=b&amp;c=d", url_for(:a => 'b', :c => 'd', :escape => true)
-    assert_equal "http://www.example.com?a=b&c=d", url_for(:a => 'b', :c => 'd', :escape => false)
+    assert_equal "/?a=b&c=d", url_for(abcd)
+    assert_equal "/?a=b&amp;c=d", url_for(abcd(:escape => true))
+    assert_equal "/?a=b&c=d", url_for(abcd(:escape => false))
   end
 
   def test_url_for_escaping_is_safety_aware
-    assert url_for(:a => 'b', :c => 'd', :escape => true).html_safe?, "escaped urls should be html_safe?"
-    assert !url_for(:a => 'b', :c => 'd', :escape => false).html_safe?, "non-escaped urls shouldn't be safe"
+    assert url_for(abcd(:escape => true)).html_safe?, "escaped urls should be html_safe?"
+    assert !url_for(abcd(:escape => false)).html_safe?, "non-escaped urls should not be html_safe?"
   end
 
   def test_url_for_escapes_url_once
-    @controller.url = "http://www.example.com?a=b&amp;c=d"
-    assert_equal "http://www.example.com?a=b&amp;c=d", url_for("http://www.example.com?a=b&amp;c=d")
+    assert_equal "/?a=b&amp;c=d", url_for("/?a=b&amp;c=d")
   end
 
   def test_url_for_with_back
-    @request.env['HTTP_REFERER'] = 'http://www.example.com/referer'
+    referer = 'http://www.example.com/referer'
+    @controller = Struct.new(:request).new(Struct.new(:env).new({"HTTP_REFERER" => referer}))
+
     assert_equal 'http://www.example.com/referer', url_for(:back)
   end
 
   def test_url_for_with_back_and_no_referer
-    @request.env['HOST_NAME'] = 'www.example.com'
-    @request.env['PATH_INFO'] = '/weblog/show'
+    @controller = Struct.new(:request).new(Struct.new(:env).new({}))
     assert_equal 'javascript:history.back()', url_for(:back)
   end
 
   def test_url_for_from_hash_doesnt_escape_ampersand
-    @controller = TestController.new
-    @view = ActionView::Base.new
-    @view.controller = @controller
-
-    path = @view.url_for(:controller => :cheeses, :foo => :bar, :baz => :quux)
-
-    assert_equal '/cheeses?baz=quux&foo=bar', sort_query_string_params(path)
+    path = url_for(hash_for(:foo => :bar, :baz => :quux))
+    assert_equal '/?baz=quux&foo=bar', sort_query_string_params(path)
   end
 
   # todo: missing test cases
@@ -118,65 +133,54 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_without_host_option
-    ActionController::Base.class_eval { attr_accessor :url }
-    url = {:controller => 'weblog', :action => 'show'}
-    @controller = ActionController::Base.new
-    @controller.request = ActionController::TestRequest.new
-    assert_dom_equal(%q{<a href="/weblog/show">Test Link</a>}, link_to('Test Link', url))
+    assert_dom_equal(%q{<a href="/">Test Link</a>}, link_to('Test Link', url_hash))
   end
 
   def test_link_tag_with_host_option
-    ActionController::Base.class_eval { attr_accessor :url }
-    url = {:controller => 'weblog', :action => 'show', :host => 'www.example.com'}
-    @controller = ActionController::Base.new
-    @controller.request = ActionController::TestRequest.new
-    assert_dom_equal(%q{<a href="http://www.example.com/weblog/show">Test Link</a>}, link_to('Test Link', url))
+    hash = hash_for(:host => "www.example.com")
+    expected = %q{<a href="http://www.example.com/">Test Link</a>}
+    assert_dom_equal(expected, link_to('Test Link', hash))
   end
 
   def test_link_tag_with_query
-    assert_dom_equal "<a href=\"http://www.example.com?q1=v1&amp;q2=v2\">Hello</a>", link_to("Hello", "http://www.example.com?q1=v1&amp;q2=v2")
+    expected = %{<a href="http://www.example.com?q1=v1&amp;q2=v2">Hello</a>}
+    assert_dom_equal expected, link_to("Hello", "http://www.example.com?q1=v1&amp;q2=v2")
   end
 
   def test_link_tag_with_query_and_no_name
-    assert_dom_equal "<a href=\"http://www.example.com?q1=v1&amp;q2=v2\">http://www.example.com?q1=v1&amp;q2=v2</a>", link_to(nil, "http://www.example.com?q1=v1&amp;q2=v2")
+    link = link_to(nil, "http://www.example.com?q1=v1&amp;q2=v2")
+    expected = %{<a href="http://www.example.com?q1=v1&amp;q2=v2">http://www.example.com?q1=v1&amp;q2=v2</a>}
+    assert_dom_equal expected, link
   end
 
   def test_link_tag_with_back
-    @request.env['HOST_NAME'] = 'www.example.com'
-    @request.env['PATH_INFO'] = '/weblog/show'
-    @request.env['HTTP_REFERER'] = 'http://www.example.com/referer'
-    assert_dom_equal "<a href=\"http://www.example.com/referer\">go back</a>", link_to('go back', :back)
+    env = {"HTTP_REFERER" => "http://www.example.com/referer"}
+    @controller = Struct.new(:request).new(Struct.new(:env).new(env))
+    expected = %{<a href="#{env["HTTP_REFERER"]}">go back</a>}
+    assert_dom_equal expected, link_to('go back', :back)
   end
 
   def test_link_tag_with_back_and_no_referer
-    @request.env['HOST_NAME'] = 'www.example.com'
-    @request.env['PATH_INFO'] = '/weblog/show'
-    assert_dom_equal "<a href=\"javascript:history.back()\">go back</a>", link_to('go back', :back)
-  end
-
-  def test_link_tag_with_back
-    @request.env['HOST_NAME'] = 'www.example.com'
-    @request.env['PATH_INFO'] = '/weblog/show'
-    @request.env['HTTP_REFERER'] = 'http://www.example.com/referer'
-    assert_dom_equal "<a href=\"http://www.example.com/referer\">go back</a>", link_to('go back', :back)
-  end
-
-  def test_link_tag_with_back_and_no_referer
-    @request.env['HOST_NAME'] = 'www.example.com'
-    @request.env['PATH_INFO'] = '/weblog/show'
-    assert_dom_equal "<a href=\"javascript:history.back()\">go back</a>", link_to('go back', :back)
+    @controller = Struct.new(:request).new(Struct.new(:env).new({}))
+    link = link_to('go back', :back)
+    assert_dom_equal %{<a href="javascript:history.back()">go back</a>}, link
   end
 
   def test_link_tag_with_img
-    assert_dom_equal "<a href=\"http://www.example.com\"><img src='/favicon.jpg' alt=\"Favicon\"  /></a>", link_to(image_tag("/favicon.jpg"), "http://www.example.com")
+    link = link_to("<img src='/favicon.jpg' />".html_safe, "/")
+    expected = %{<a href="/"><img src='/favicon.jpg' /></a>}
+    assert_dom_equal expected, link
   end
 
   def test_link_with_nil_html_options
-    assert_dom_equal "<a href=\"http://www.example.com\">Hello</a>", link_to("Hello", {:action => 'myaction'}, nil)
+    link = link_to("Hello", url_hash, nil)
+    assert_dom_equal %{<a href="/">Hello</a>}, link
   end
 
   def test_link_tag_with_custom_onclick
-    assert_dom_equal "<a href=\"http://www.example.com\" onclick=\"alert('yay!')\">Hello</a>", link_to("Hello", "http://www.example.com", :onclick => "alert('yay!')")
+    link = link_to("Hello", "http://www.example.com", :onclick => "alert('yay!')")
+    expected = %{<a href="http://www.example.com" onclick="alert('yay!')">Hello</a>}
+    assert_dom_equal expected, link
   end
 
   def test_link_tag_with_javascript_confirm
@@ -238,91 +242,106 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_using_block_in_erb
-    output_buffer = link_to("http://example.com") { concat("Example site") }
-    assert_equal '<a href="http://example.com">Example site</a>', output_buffer
+    out = render_erb %{<%= link_to('/') do %>Example site<% end %>}
+    assert_equal '<a href="/">Example site</a>', out
   end
 
   def test_link_to_unless
-    assert_equal "Showing", link_to_unless(true, "Showing", :action => "show", :controller => "weblog")
-    assert_dom_equal "<a href=\"http://www.example.com\">Listing</a>", link_to_unless(false, "Listing", :action => "list", :controller => "weblog")
-    assert_equal "Showing", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1)
-    assert_equal "<strong>Showing</strong>", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1) { |name, options, html_options|
-      "<strong>#{name}</strong>"
-    }
-    assert_equal "<strong>Showing</strong>", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1) { |name|
-      "<strong>#{name}</strong>"
-    }
-    assert_equal "test", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1) {
-      "test"
-    }
+    assert_equal "Showing", link_to_unless(true, "Showing", url_hash)
+
+    assert_dom_equal %{<a href="/">Listing</a>},
+      link_to_unless(false, "Listing", url_hash)
+
+    assert_equal "Showing", link_to_unless(true, "Showing", url_hash)
+
+    assert_equal "<strong>Showing</strong>",
+      link_to_unless(true, "Showing", url_hash) { |name|
+        "<strong>#{name}</strong>"
+      }
+
+    assert_equal "<strong>Showing</strong>",
+      link_to_unless(true, "Showing", url_hash) { |name|
+        "<strong>#{name}</strong>"
+      }
+
+    assert_equal "test",
+      link_to_unless(true, "Showing", url_hash) {
+        "test"
+      }
   end
 
   def test_link_to_if
-    assert_equal "Showing", link_to_if(false, "Showing", :action => "show", :controller => "weblog")
-    assert_dom_equal "<a href=\"http://www.example.com\">Listing</a>", link_to_if(true, "Listing", :action => "list", :controller => "weblog")
-    assert_equal "Showing", link_to_if(false, "Showing", :action => "show", :controller => "weblog", :id => 1)
+    assert_equal "Showing", link_to_if(false, "Showing", url_hash)
+    assert_dom_equal %{<a href="/">Listing</a>}, link_to_if(true, "Listing", url_hash)
+    assert_equal "Showing", link_to_if(false, "Showing", url_hash)
+  end
+
+  def request_for_url(url)
+    env = Rack::MockRequest.env_for("http://www.example.com#{url}")
+    ActionDispatch::Request.new(env)
   end
 
   def test_current_page_with_simple_url
-    @request.env['HTTP_HOST'] = 'www.example.com'
-    @request.env['PATH_INFO'] = '/weblog/show'
-    @controller.url = "http://www.example.com/weblog/show"
-    assert current_page?({ :action => "show", :controller => "weblog" })
-    assert current_page?("http://www.example.com/weblog/show")
+    @request = request_for_url("/")
+    assert current_page?(url_hash)
+    assert current_page?("http://www.example.com/")
   end
 
   def test_current_page_ignoring_params
-    @request.env['HTTP_HOST'] = 'www.example.com'
-    @request.env['PATH_INFO'] = '/weblog/show'
-    @request.env['QUERY_STRING'] = 'order=desc&page=1'
-    @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
-    assert current_page?({ :action => "show", :controller => "weblog" })
-    assert current_page?("http://www.example.com/weblog/show")
+    @request = request_for_url("/?order=desc&page=1")
+
+    assert current_page?(url_hash)
+    assert current_page?("http://www.example.com/")
   end
 
   def test_current_page_with_params_that_match
-    @request.env['HTTP_HOST'] = 'www.example.com'
-    @request.env['PATH_INFO'] = '/weblog/show'
-    @request.env['QUERY_STRING'] = 'order=desc&page=1'
-    @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
-    assert current_page?({ :action => "show", :controller => "weblog", :order => "desc", :page => "1" })
-    assert current_page?("http://www.example.com/weblog/show?order=desc&amp;page=1")
+    @request = request_for_url("/?order=desc&page=1")
+
+    assert current_page?(hash_for(:order => "desc", :page => "1"))
+    assert current_page?("http://www.example.com/?order=desc&amp;page=1")
   end
 
   def test_link_unless_current
-    @request.env['HTTP_HOST'] = 'www.example.com'
-    @request.env['PATH_INFO'] = '/weblog/show'
-    @controller.url = "http://www.example.com/weblog/show"
-    assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
-    assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show")
+    @request = request_for_url("/")
 
-    @request.env['QUERY_STRING'] = 'order=desc'
-    @controller.url = "http://www.example.com/weblog/show"
-    assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
-    assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show")
+    assert_equal "Showing",
+      link_to_unless_current("Showing", url_hash)
+    assert_equal "Showing",
+      link_to_unless_current("Showing", "http://www.example.com/")
 
-    @request.env['QUERY_STRING'] = 'order=desc&page=1'
-    @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
-    assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog", :order=>'desc', :page=>'1' })
-    assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&page=1")
-    assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&page=1")
+    @request = request_for_url("/?order=desc")
 
-    @request.env['QUERY_STRING'] = 'order=desc'
-    @controller.url = "http://www.example.com/weblog/show?order=asc"
-    assert_equal "<a href=\"http://www.example.com/weblog/show?order=asc\">Showing</a>", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
-    assert_equal "<a href=\"http://www.example.com/weblog/show?order=asc\">Showing</a>", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=asc")
+    assert_equal "Showing",
+      link_to_unless_current("Showing", url_hash)
+    assert_equal "Showing",
+      link_to_unless_current("Showing", "http://www.example.com/")
 
-    @request.env['QUERY_STRING'] = 'order=desc&page=1'
-    @controller.url = "http://www.example.com/weblog/show?order=desc&page=2"
-    assert_equal "<a href=\"http://www.example.com/weblog/show?order=desc&page=2\">Showing</a>", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
-    assert_equal "<a href=\"http://www.example.com/weblog/show?order=desc&amp;page=2\">Showing</a>", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&page=2")
+    @request = request_for_url("/?order=desc&page=1")
 
-    @request.env['QUERY_STRING'] = ''
-    @controller.url = "http://www.example.com/weblog/list"
-    assert_equal "<a href=\"http://www.example.com/weblog/list\">Listing</a>",
-      link_to_unless_current("Listing", :action => "list", :controller => "weblog")
-    assert_equal "<a href=\"http://www.example.com/weblog/list\">Listing</a>",
-      link_to_unless_current("Listing", "http://www.example.com/weblog/list")
+    assert_equal "Showing",
+      link_to_unless_current("Showing", hash_for(:order=>'desc', :page=>'1'))
+    assert_equal "Showing",
+      link_to_unless_current("Showing", "http://www.example.com/?order=desc&page=1")
+
+    @request = request_for_url("/?order=desc")
+
+    assert_equal %{<a href="/?order=asc">Showing</a>},
+      link_to_unless_current("Showing", hash_for(:order => :asc))
+    assert_equal %{<a href="http://www.example.com/?order=asc">Showing</a>},
+      link_to_unless_current("Showing", "http://www.example.com/?order=asc")
+
+    @request = request_for_url("/?order=desc")
+    assert_equal %{<a href="/?order=desc&page=2\">Showing</a>},
+      link_to_unless_current("Showing", hash_for(:order => "desc", :page => 2))
+    assert_equal %{<a href="http://www.example.com/?order=desc&amp;page=2">Showing</a>},
+      link_to_unless_current("Showing", "http://www.example.com/?order=desc&page=2")
+
+    @request = request_for_url("/show")
+
+    assert_equal %{<a href="/">Listing</a>},
+      link_to_unless_current("Listing", url_hash)
+    assert_equal %{<a href="http://www.example.com/">Listing</a>},
+      link_to_unless_current("Listing", "http://www.example.com/")
   end
 
   def test_mail_to
@@ -352,7 +371,8 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_mail_to_with_img
-    assert_dom_equal %(<a href="mailto:feedback@example.com"><img src="/feedback.png" /></a>), mail_to('feedback@example.com', '<img src="/feedback.png" />'.html_safe)
+    assert_dom_equal %(<a href="mailto:feedback@example.com"><img src="/feedback.png" /></a>),
+      mail_to('feedback@example.com', '<img src="/feedback.png" />'.html_safe)
   end
 
   def test_mail_to_with_hex
@@ -369,6 +389,7 @@ class UrlHelperTest < ActionView::TestCase
     assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%22%3e%6d%65%28%61%74%29%64%6f%6d%61%69%6e%28%64%6f%74%29%63%6f%6d%3c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", nil, :encode => "javascript", :replace_at => "(at)", :replace_dot => "(dot)")
   end
 
+  # TODO: button_to looks at this ... why?
   def protect_against_forgery?
     false
   end
@@ -383,6 +404,15 @@ end
 
 class UrlHelperControllerTest < ActionController::TestCase
   class UrlHelperController < ActionController::Base
+    test_routes do |map|
+      match 'url_helper_controller_test/url_helper/show_named_route',
+        :to => 'url_helper_controller_test/url_helper#show_named_route',
+        :as => :show_named_route
+
+      map.connect ":controller/:action/:id"
+      # match "/:controller(/:action(/:id))"
+    end
+
     def show_url_for
       render :inline => "<%= url_for :controller => 'url_helper_controller_test/url_helper', :action => 'show_url_for' %>"
     end
@@ -406,17 +436,14 @@ class UrlHelperControllerTest < ActionController::TestCase
   end
 
   def test_named_route_url_shows_host_and_path
-    with_url_helper_routing do
-      get :show_named_route, :kind => 'url'
-      assert_equal 'http://test.host/url_helper_controller_test/url_helper/show_named_route', @response.body
-    end
+    get :show_named_route, :kind => 'url'
+    assert_equal 'http://test.host/url_helper_controller_test/url_helper/show_named_route',
+      @response.body
   end
 
   def test_named_route_path_shows_only_path
-    with_url_helper_routing do
-      get :show_named_route, :kind => 'path'
-      assert_equal '/url_helper_controller_test/url_helper/show_named_route', @response.body
-    end
+    get :show_named_route, :kind => 'path'
+    assert_equal '/url_helper_controller_test/url_helper/show_named_route', @response.body
   end
 
   def test_url_for_nil_returns_current_path
@@ -431,24 +458,16 @@ class UrlHelperControllerTest < ActionController::TestCase
       end
     end
 
-    with_url_helper_routing do
-      get :show_named_route, :kind => 'url'
-      assert_equal 'http://testtwo.host/url_helper_controller_test/url_helper/show_named_route', @response.body
-    end
+    get :show_named_route, :kind => 'url'
+    assert_equal 'http://testtwo.host/url_helper_controller_test/url_helper/show_named_route', @response.body
   end
-
-  protected
-    def with_url_helper_routing
-      with_routing do |set|
-        set.draw do |map|
-          match 'url_helper_controller_test/url_helper/show_named_route', :to => 'url_helper_controller_test/url_helper#show_named_route', :as => :show_named_route
-        end
-        yield
-      end
-    end
 end
 
 class TasksController < ActionController::Base
+  test_routes do
+    resources :tasks
+  end
+
   def index
     render_default
   end
@@ -468,36 +487,19 @@ class TasksController < ActionController::Base
 end
 
 class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
-  def setup
-    super
-    @controller = TasksController.new
-  end
+  tests TasksController
 
   def test_link_to_unless_current_to_current
-    with_restful_routing do
-      get :index
-      assert_equal "tasks\ntasks", @response.body
-    end
+    get :index
+    assert_equal "tasks\ntasks", @response.body
   end
 
   def test_link_to_unless_current_shows_link
-    with_restful_routing do
-      get :show, :id => 1
-      assert_equal "<a href=\"/tasks\">tasks</a>\n" +
-        "<a href=\"#{@request.protocol}#{@request.host_with_port}/tasks\">tasks</a>",
-        @response.body
-    end
+    get :show, :id => 1
+    assert_equal "<a href=\"/tasks\">tasks</a>\n" +
+      "<a href=\"#{@request.protocol}#{@request.host_with_port}/tasks\">tasks</a>",
+      @response.body
   end
-
-  protected
-    def with_restful_routing
-      with_routing do |set|
-        set.draw do |map|
-          resources :tasks
-        end
-        yield
-      end
-    end
 end
 
 class Workshop
@@ -537,6 +539,12 @@ class Session
 end
 
 class WorkshopsController < ActionController::Base
+  test_routes do
+    resources :workshops do
+      resources :sessions
+    end
+  end
+
   def index
     @workshop = Workshop.new(nil)
     render :inline => "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
@@ -551,6 +559,12 @@ class WorkshopsController < ActionController::Base
 end
 
 class SessionsController < ActionController::Base
+  test_routes do
+    resources :workshops do
+      resources :sessions
+    end
+  end
+
   def index
     @workshop = Workshop.new(params[:workshop_id])
     @session = Session.new(nil)
@@ -567,56 +581,31 @@ class SessionsController < ActionController::Base
 end
 
 class PolymorphicControllerTest < ActionController::TestCase
-  def setup
-    super
-    @response = ActionController::TestResponse.new
-  end
-
   def test_new_resource
     @controller = WorkshopsController.new
 
-    with_restful_routing do
-      get :index
-      assert_equal "/workshops\n<a href=\"/workshops\">Workshop</a>", @response.body
-    end
+    get :index
+    assert_equal "/workshops\n<a href=\"/workshops\">Workshop</a>", @response.body
   end
 
   def test_existing_resource
     @controller = WorkshopsController.new
 
-    with_restful_routing do
-      get :show, :id => 1
-      assert_equal "/workshops/1\n<a href=\"/workshops/1\">Workshop</a>", @response.body
-    end
+    get :show, :id => 1
+    assert_equal "/workshops/1\n<a href=\"/workshops/1\">Workshop</a>", @response.body
   end
 
   def test_new_nested_resource
     @controller = SessionsController.new
 
-    with_restful_routing do
-      get :index, :workshop_id => 1
-      assert_equal "/workshops/1/sessions\n<a href=\"/workshops/1/sessions\">Session</a>", @response.body
-    end
+    get :index, :workshop_id => 1
+    assert_equal "/workshops/1/sessions\n<a href=\"/workshops/1/sessions\">Session</a>", @response.body
   end
-
+  
   def test_existing_nested_resource
     @controller = SessionsController.new
-
-    with_restful_routing do
-      get :show, :workshop_id => 1, :id => 1
-      assert_equal "/workshops/1/sessions/1\n<a href=\"/workshops/1/sessions/1\">Session</a>", @response.body
-    end
+  
+    get :show, :workshop_id => 1, :id => 1
+    assert_equal "/workshops/1/sessions/1\n<a href=\"/workshops/1/sessions/1\">Session</a>", @response.body
   end
-
-  protected
-    def with_restful_routing
-      with_routing do |set|
-        set.draw do |map|
-          resources :workshops do
-            resources :sessions
-          end
-        end
-        yield
-      end
-    end
 end

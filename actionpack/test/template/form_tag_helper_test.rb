@@ -8,11 +8,15 @@ class FormTagHelperTest < ActionView::TestCase
 
   def setup
     super
-    @controller = Class.new(BasicController) do
-      def url_for(options)
-        "http://www.example.com"
-      end
-    end.new
+    @controller = BasicController.new
+  end
+
+  def url_for(options)
+    if options.is_a?(Hash)
+      "http://www.example.com"
+    else
+      super
+    end
   end
 
   VALID_HTML_ID = /^[A-Za-z][-_:.A-Za-z0-9]*$/ # see http://www.w3.org/TR/html4/types.html#type-name

@@ -179,7 +179,7 @@ module ActionView
 
       def initialize(view_context, options, block)
         @view           = view_context
-        @partial_names  = PARTIAL_NAMES[@view.controller.class]
+        @partial_names  = PARTIAL_NAMES[@view.controller.class.name]
 
         setup(options, block)
       end
@@ -300,7 +300,7 @@ module ActionView
       end
 
       def partial_path(object = @object)
-        @partial_names[object.class] ||= begin
+        @partial_names[object.class.name] ||= begin
           object = object.to_model if object.respond_to?(:to_model)
 
           object.class.model_name.partial_path.dup.tap do |partial|
