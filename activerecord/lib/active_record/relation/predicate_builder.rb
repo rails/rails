@@ -20,7 +20,9 @@ module ActiveRecord
             table = Arel::Table.new(table_name, :engine => @engine)
           end
 
-          attribute = table[column]
+          unless attribute = table[column]
+            raise StatementInvalid, "No attribute named `#{column}` exists for table `#{table.name}`"
+          end
 
           case value
           when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation
