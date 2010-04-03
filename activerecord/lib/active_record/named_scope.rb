@@ -99,7 +99,7 @@ module ActiveRecord
       #
       #   expected_options = { :conditions => { :colored => 'red' } }
       #   assert_equal expected_options, Shirt.colored('red').proxy_options
-      def scope(name, options = {}, &block)
+      def scope(name, scope_options = {}, &block)
         name = name.to_sym
 
         if !scopes[name] && respond_to?(name, true)
@@ -108,19 +108,10 @@ module ActiveRecord
         end
 
         scopes[name] = lambda do |*args|
-          scope_options = case options
-          when Hash, Relation
-            options
-          when Proc
-            options.call(*args)
-          end
+          options = scope_options.is_a?(Proc) ? scope_options.call(*args) : scope_options
 
-          relation = if scope_options.is_a?(Hash)
-            scoped.apply_finder_options(scope_options)
-          else
-            scope_options ? scoped.merge(scope_options) : scoped
-          end
-
+          relation = scoped
+          relation = options.is_a?(Hash) ? relation.apply_finder_options(options) : scoped.merge(options) if options
           block_given? ? relation.extending(Module.new(&block)) : relation
         end
 
