@@ -29,7 +29,7 @@ module Arel
       end
 
       def hash
-        @hash ||= history.size + name.hash + relation.hash
+        @hash ||= name.hash + root.relation.hash
       end
 
       def as(aliaz = nil)

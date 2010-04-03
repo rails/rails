@@ -13,12 +13,16 @@ module Arel
       @requires
     end
 
-    [:attributes, :wheres, :groupings, :orders, :havings, :projections].each do |operation_name|
+    [:wheres, :groupings, :orders, :havings, :projections].each do |operation_name|
       class_eval <<-OPERATION, __FILE__, __LINE__
         def #{operation_name}
           @#{operation_name} ||= relation.#{operation_name}.collect { |o| o.bind(self) }
         end
       OPERATION
+    end
+
+    def attributes
+      @attributes ||= relation.attributes.bind(self)
     end
 
     def hash

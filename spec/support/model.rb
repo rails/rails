@@ -25,7 +25,7 @@ module Arel
   class Model
     include Relation
 
-    attr_reader :engine, :attributes
+    attr_reader :engine
 
     def self.build
       relation = new
@@ -44,6 +44,10 @@ module Arel
 
     def attribute(name, type)
       @attributes << type.new(self, name)
+    end
+
+    def attributes
+      Header.new(@attributes)
     end
 
     def format(attribute, value)

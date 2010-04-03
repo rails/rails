@@ -19,8 +19,7 @@ module Arel
     end
 
     def attributes
-      @attributes ||= (relation1.externalize.attributes +
-        relation2.externalize.attributes).collect { |a| a.bind(self) }
+      @attributes ||= (relation1.externalize.attributes | relation2.externalize.attributes).bind(self)
     end
 
     def wheres

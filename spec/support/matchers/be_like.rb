@@ -1,12 +1,12 @@
 module Matchers
   class BeLike
     def initialize(expected)
-      @expected = expected
+      @expected = expected.gsub(/\s+/, ' ').strip
     end
 
     def matches?(actual)
-      @actual = actual
-      @expected.gsub(/\s+/, ' ').strip == @actual.gsub(/\s+/, ' ').strip
+      @actual = actual.gsub(/\s+/, ' ').strip
+      @expected == @actual
     end
 
     def failure_message

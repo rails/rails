@@ -42,11 +42,14 @@ module Arel
     def attributes
       return @attributes if defined?(@attributes)
       if table_exists?
-        @attributes = columns.collect do |column|
-          Sql::Attributes.for(column).new(column, self, column.name.to_sym)
+        @attributes ||= begin
+          attrs = columns.collect do |column|
+            Sql::Attributes.for(column).new(column, self, column.name.to_sym)
+          end
+          Header.new(attrs)
         end
       else
-        []
+        Header.new
       end
     end
 
@@ -67,7 +70,8 @@ module Arel
     end
 
     def reset
-      @attributes = @columns = nil
+      @columns = nil
+      @attributes = Header.new([])
     end
 
     def ==(other)

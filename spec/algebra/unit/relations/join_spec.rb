@@ -18,8 +18,7 @@ module Arel
     describe '#attributes' do
       it 'combines the attributes of the two relations' do
         join = InnerJoin.new(@relation1, @relation2, @predicate)
-        join.attributes.should ==
-          (@relation1.attributes + @relation2.attributes).collect { |a| a.bind(join) }
+        join.attributes.should == (@relation1.attributes | @relation2.attributes).bind(join)
       end
     end
   end

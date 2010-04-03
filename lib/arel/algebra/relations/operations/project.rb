@@ -10,7 +10,7 @@ module Arel
     end
 
     def attributes
-      @attributes ||= projections.collect { |p| p.bind(self) }
+      @attributes ||= Header.new(projections).bind(self)
     end
 
     def externalizable?

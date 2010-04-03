@@ -15,9 +15,12 @@ module Arel
     end
 
     def attributes
-      @attributes ||= @attribute_names_and_types.collect do |attribute, type|
-        attribute = type.new(self, attribute) if Symbol === attribute
-        attribute
+      @attributes ||= begin
+        attrs = @attribute_names_and_types.collect do |attribute, type|
+          attribute = type.new(self, attribute) if Symbol === attribute
+          attribute
+        end
+        Header.new(attrs)
       end
     end
 

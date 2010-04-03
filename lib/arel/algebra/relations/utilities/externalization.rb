@@ -8,7 +8,7 @@ module Arel
     end
 
     def attributes
-      @attributes ||= relation.attributes.collect { |a| a.to_attribute(self) }
+      @attributes ||= Header.new(relation.attributes.map { |a| a.to_attribute(self) })
     end
   end
 

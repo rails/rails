@@ -84,16 +84,14 @@ module Arel
 
     module AttributeAccessable
       def [](index)
-        @cached_attributes ||= {}
-        @cached_attributes[index] ||= case index
-        when Symbol, String
-          find_attribute_matching_name(index)
-        when Attribute, Expression
-          find_attribute_matching_attribute(index)
-        when ::Array
-          # TESTME
-          index.collect { |i| self[i] }
+        attr = attributes[index]
+
+        # Handles a strange ActiveRecord case
+        if !attr && (index.is_a?(String) || index.is_a?(Symbol))
+          attr = Attribute.new(self, index)
         end
+
+        attr
       end
 
       def find_attribute_matching_name(name)
@@ -127,18 +125,18 @@ module Arel
     include AttributeAccessable
 
     module DefaultOperations
-      def attributes;             []  end
-      def projections;            []  end
-      def wheres;                 []  end
-      def orders;                 []  end
-      def inserts;                []  end
-      def groupings;              []  end
-      def havings;                []  end
-      def joins(formatter = nil); nil end # FIXME
-      def taken;                  nil end
-      def skipped;                nil end
-      def sources;                []  end
-      def locked;                 []  end
+      def attributes;             Header.new  end
+      def projections;            []          end
+      def wheres;                 []          end
+      def orders;                 []          end
+      def inserts;                []          end
+      def groupings;              []          end
+      def havings;                []          end
+      def joins(formatter = nil); nil         end # FIXME
+      def taken;                  nil         end
+      def skipped;                nil         end
+      def sources;                []          end
+      def locked;                 []          end
     end
     include DefaultOperations
   end
