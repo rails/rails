@@ -411,7 +411,7 @@ NOTE: +assert_valid(record)+ has been deprecated. Please use +assert(record.vali
 |_.Assertion                                                                        |_.Purpose|
 |+assert_valid(record)+                                                             |Ensures that the passed record is valid by Active Record standards and returns any error messages if it is not.|
 |+assert_difference(expressions, difference = 1, message = nil) {...}+           |Test numeric difference between the return value of an expression as a result of what is evaluated in the yielded block.|
-|+assert_no_difference(expressions, message = nil, &block)+                         |Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
+|+assert_no_difference(expressions, message = nil, &amp;block)+                         |Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
 |+assert_recognizes(expected_options, path, extras={}, message=nil)+                |Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
 |+assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)+  |Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
 |+assert_response(type, message = nil)+                                             |Asserts that the response comes with a specific status code. You can specify +:success+ to indicate 200,  +:redirect+ to indicate 300-399, +:missing+ to indicate 404, or +:error+ to match the 500-599 range|
@@ -940,6 +940,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/8
 
+* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":credits.html#jaimeiniesta
 * November 13, 2008: Revised based on feedback from Pratik Naik by "Akshay Surve":credits.html#asurve (not yet approved for publication)
 * October 14, 2008: Edit and formatting pass by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
 * October 12, 2008: First draft by "Akshay Surve":credits.html#asurve (not yet approved for publication)
