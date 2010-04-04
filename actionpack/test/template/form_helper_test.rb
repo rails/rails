@@ -63,15 +63,15 @@ class FormHelperTest < ActionView::TestCase
     @post.body        = "Back to the hill and over it again!"
     @post.secret      = 1
     @post.written_on  = Date.new(2004, 6, 15)
+  end
 
-    @controller = Class.new do
-      attr_reader :url_for_options
-      def url_for(options)
-        @url_for_options = options
-        "http://www.example.com"
-      end
+  def url_for(object)
+    @url_for_options = object
+    if object.is_a?(Hash)
+      "http://www.example.com"
+    else
+      super
     end
-    @controller = @controller.new
   end
 
   def test_label
@@ -1348,8 +1348,8 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_hash_url_option
     form_for(:post, @post, :url => {:controller => 'controller', :action => 'action'}) do |f| end
 
-    assert_equal 'controller', @controller.url_for_options[:controller]
-    assert_equal 'action', @controller.url_for_options[:action]
+    assert_equal 'controller', @url_for_options[:controller]
+    assert_equal 'action', @url_for_options[:action]
   end
 
   def test_form_for_with_record_url_option

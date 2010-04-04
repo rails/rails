@@ -35,12 +35,7 @@ module ActionView
 
     def cached(key, prefix, name, partial)
       return yield unless key && caching?
-      scope = @cached[key][prefix][name]
-      if scope.key?(partial)
-        scope[partial]
-      else
-        scope[partial] = yield
-      end
+      @cached[key][prefix][name][partial] ||= yield
     end
   end
 

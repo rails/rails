@@ -833,4 +833,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preloading_empty_polymorphic_parent
+    t = Tagging.create!(:taggable_type => 'Post', :taggable_id => Post.maximum(:id) + 1, :tag => tags(:general))
+
+    assert_queries(2) { @tagging = Tagging.preload(:taggable).find(t.id) }
+    assert_no_queries { assert ! @tagging.taggable }
+  end
 end

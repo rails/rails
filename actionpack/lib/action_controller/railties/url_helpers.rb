@@ -1,11 +1,11 @@
 module ActionController
   module Railties
     module UrlHelpers
-      def self.with(router)
+      def self.with(routes)
         Module.new do
           define_method(:inherited) do |klass|
             super(klass)
-            klass.send(:include, router.url_helpers)
+            klass.send(:include, routes.url_helpers)
           end
         end
       end

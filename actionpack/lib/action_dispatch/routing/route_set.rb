@@ -11,7 +11,7 @@ module ActionDispatch
 
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
-      class Dispatcher
+      class Dispatcher #:nodoc:
         def initialize(options={})
           @defaults = options[:defaults]
           @glob_param = options.delete(:glob)
@@ -187,18 +187,19 @@ module ActionDispatch
 
       attr_accessor :routes, :named_routes
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options
+      attr_accessor :default_url_options, :request_class
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
       end
 
-      def initialize
+      def initialize(request_class = ActionDispatch::Request)
         self.routes = []
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.controller_namespaces = Set.new
         self.default_url_options = {}
+        self.request_class = request_class
 
         @disable_clear_and_finalize = false
         clear!
@@ -232,7 +233,10 @@ module ActionDispatch
         @finalized = false
         routes.clear
         named_routes.clear
-        @set = ::Rack::Mount::RouteSet.new(:parameters_key => PARAMETERS_KEY)
+        @set = ::Rack::Mount::RouteSet.new(
+          :parameters_key => PARAMETERS_KEY,
+          :request_class  => request_class
+        )
       end
 
       def install_helpers(destinations = [ActionController::Base, ActionView::Base], regenerate_code = false)
@@ -281,7 +285,7 @@ module ActionDispatch
         route
       end
 
-      class Generator
+      class Generator #:nodoc:
         attr_reader :options, :recall, :set, :script_name, :named_route
 
         def initialize(options, recall, set, extras = false)

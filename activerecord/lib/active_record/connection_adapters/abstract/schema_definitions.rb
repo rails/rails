@@ -23,7 +23,8 @@ module ActiveRecord
       #
       # +name+ is the column's name, such as <tt>supplier_id</tt> in <tt>supplier_id int(11)</tt>.
       # +default+ is the type-casted default value, such as +new+ in <tt>sales_stage varchar(20) default 'new'</tt>.
-      # +sql_type+ is only used to extract the column's length, if necessary. For example +60+ in <tt>company_name varchar(60)</tt>.
+      # +sql_type+ is used to extract the column's length, if necessary. For example +60+ in <tt>company_name varchar(60)</tt>.
+      # It will be mapped to one of the standard Rails SQL types in the <tt>type</tt> attribute.
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type = nil, null = true)
         @name, @sql_type, @null = name, sql_type, null

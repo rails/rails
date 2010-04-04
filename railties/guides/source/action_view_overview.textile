@@ -1079,7 +1079,7 @@ h4. JavaScriptHelper
 
 Provides functionality for working with JavaScript in your views.
 
-Rails includes the Prototype JavaScript framework and the Scriptaculous JavaScript controls and visual effects library. If you wish to use these libraries and their helpers, make sure +<%= javascript_include_tag :defaults, :cache => true %>+ is in the HEAD section of your page. This function will include the necessary JavaScript files Rails generated in the public/javascripts directory.
+Rails includes the Prototype JavaScript framework and the Scriptaculous JavaScript controls and visual effects library. If you wish to use these libraries and their helpers, make sure +&lt;%= javascript_include_tag :defaults, :cache => true %&gt;+ is in the HEAD section of your page. This function will include the necessary JavaScript files Rails generated in the public/javascripts directory.
 
 h5. button_to_function
 

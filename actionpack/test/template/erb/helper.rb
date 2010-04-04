@@ -1,20 +1,13 @@
 module ERBTest
   class ViewContext
-    mock_controller = Class.new do
-      include SharedTestRoutes.url_helpers
-    end
-
+    include SharedTestRoutes.url_helpers
     include ActionView::Helpers::TagHelper
     include ActionView::Helpers::JavaScriptHelper
     include ActionView::Helpers::FormHelper
 
-    attr_accessor :output_buffer
+    attr_accessor :output_buffer, :controller
 
     def protect_against_forgery?() false end
-
-    define_method(:controller) do
-      mock_controller.new
-    end
   end
 
   class BlockTestCase < ActiveSupport::TestCase

@@ -545,7 +545,7 @@ This view iterates over the contents of the +@posts+ array to display content an
 * +link_to+ builds a hyperlink to a particular destination
 * +edit_post_path+ is a helper that Rails provides as part of RESTful routing. You'll see a variety of these helpers for the different actions that the controller includes.
 
-NOTE. In previous versions of Rails, you had to use +<%=h post.name %>+ so that any HTML would be escaped before being inserted into the page.  In Rails 3.0, this is now the default.  To get unescaped HTML, you now use +<%= raw post.name %>+.
+NOTE. In previous versions of Rails, you had to use +&lt;%=h post.name %&gt;+ so that any HTML would be escaped before being inserted into the page.  In Rails 3.0, this is now the default.  To get unescaped HTML, you now use +&lt;%= raw post.name %&gt;+.
 
 TIP: For more details on the rendering process, see "Layouts and Rendering in Rails":layouts_and_rendering.html.
 
@@ -597,7 +597,7 @@ The +new.html.erb+ view displays this empty Post to the user:
 <%= link_to 'Back', posts_path %>
 </erb>
 
-The +<%= render 'form' %>+ line is our first introduction to _partials_ in Rails.  A partial is a snippet of HTML and Ruby code that can be reused in multiple locations.  In this case, the form used to make a new post, is basically identical to a form used to edit a post, both have text fields for the name and title and a text area for the content with a button to make a new post or update the existing post.
+The +&lt;%= render 'form' %&gt;+ line is our first introduction to _partials_ in Rails.  A partial is a snippet of HTML and Ruby code that can be reused in multiple locations.  In this case, the form used to make a new post, is basically identical to a form used to edit a post, both have text fields for the name and title and a text area for the content with a button to make a new post or update the existing post.
 
 If you take a look at +views/posts/_form.html.erb+ file, you will see the following:
 

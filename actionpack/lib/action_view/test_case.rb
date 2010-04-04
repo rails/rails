@@ -142,8 +142,13 @@ module ActionView
         end
       end
 
+      def _router
+        @controller._router if @controller.respond_to?(:_router)
+      end
+
       def method_missing(selector, *args)
-        if @controller._router.named_routes.helpers.include?(selector)
+        if @controller.respond_to?(:_router) &&
+        @controller._router.named_routes.helpers.include?(selector)
           @controller.__send__(selector, *args)
         else
           super

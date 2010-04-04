@@ -47,19 +47,18 @@ class PrototypeHelperBaseTest < ActionView::TestCase
   def setup
     super
     @template = self
-    @controller = Class.new do
-      def url_for(options)
-        if options.is_a?(String)
-          options
-        else
-          url =  "http://www.example.com/"
-          url << options[:action].to_s if options and options[:action]
-          url << "?a=#{options[:a]}" if options && options[:a]
-          url << "&b=#{options[:b]}" if options && options[:a] && options[:b]
-          url
-        end
-      end
-    end.new
+  end
+
+  def url_for(options)
+    if options.is_a?(String)
+      options
+    else
+      url =  "http://www.example.com/"
+      url << options[:action].to_s if options and options[:action]
+      url << "?a=#{options[:a]}" if options && options[:a]
+      url << "&b=#{options[:b]}" if options && options[:a] && options[:b]
+      url
+    end
   end
 
   protected

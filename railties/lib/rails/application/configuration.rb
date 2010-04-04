@@ -132,7 +132,7 @@ module Rails
           middleware.use('::Rack::Lock', :if => lambda { !allow_concurrency })
           middleware.use('::Rack::Runtime')
           middleware.use('::Rails::Rack::Logger')
-          middleware.use('::ActionDispatch::ShowExceptions', lambda { consider_all_requests_local })
+          middleware.use('::ActionDispatch::ShowExceptions', lambda { consider_all_requests_local }, :if => lambda { action_dispatch.show_exceptions })
           middleware.use("::ActionDispatch::RemoteIp", lambda { action_dispatch.ip_spoofing_check }, lambda { action_dispatch.trusted_proxies })
           middleware.use('::Rack::Sendfile', lambda { action_dispatch.x_sendfile_header })
           middleware.use('::ActionDispatch::Callbacks', lambda { !cache_classes })

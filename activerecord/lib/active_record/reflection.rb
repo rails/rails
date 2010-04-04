@@ -277,6 +277,17 @@ module ActiveRecord
         !options[:validate].nil? ? options[:validate] : (options[:autosave] == true || macro == :has_many)
       end
 
+      def dependent_conditions(record, base_class, extra_conditions)
+        dependent_conditions = []
+        dependent_conditions << "#{primary_key_name} = #{record.send(name).send(:owner_quoted_id)}"
+        dependent_conditions << "#{options[:as]}_type = '#{base_class.name}'" if options[:as]
+        dependent_conditions << klass.send(:sanitize_sql, options[:conditions]) if options[:conditions]
+        dependent_conditions << extra_conditions if extra_conditions
+        dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
+        dependent_conditions = dependent_conditions.gsub('@', '\@')
+        dependent_conditions
+      end
+
       private
         def derive_class_name
           class_name = name.to_s.camelize

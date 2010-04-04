@@ -439,3 +439,14 @@ spurious blank area below with the box background. */
 div.important p, div.caution p, div.warning p, div.note p, div.info p {
     margin-bottom: 0px;
 }
+
+/* Edge Badge
+--------------------------------------- */
+
+#edge-badge {
+  position: fixed;
+  right: 0px;
+  top: 0px;
+  z-index: 100;
+  border: none;
+}

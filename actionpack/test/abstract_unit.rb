@@ -57,6 +57,18 @@ module RackTestUtils
   extend self
 end
 
+module RenderERBUtils
+  def render_erb(string)
+    template = ActionView::Template.new(
+      string.strip,
+      "test template",
+      ActionView::Template::Handlers::ERB,
+      {})
+
+    template.render(self, {}).strip
+  end
+end
+
 module SetupOnce
   extend ActiveSupport::Concern
 
@@ -95,7 +107,7 @@ module ActiveSupport
         map.connect ':controller/:action/:id'
       end
 
-      ActionController::IntegrationTest.app.router.draw do |map|
+      ActionController::IntegrationTest.app.routes.draw do |map|
         # FIXME: match ':controller(/:action(/:id))'
         map.connect ':controller/:action/:id'
       end
@@ -104,12 +116,11 @@ module ActiveSupport
 end
 
 class RoutedRackApp
-  attr_reader :router
-  alias routes router
+  attr_reader :routes
 
-  def initialize(router, &blk)
-    @router = router
-    @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@router)
+  def initialize(routes, &blk)
+    @routes = routes
+    @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@routes)
   end
 
   def call(env)
@@ -226,6 +237,14 @@ class Rack::TestCase < ActionController::IntegrationTest
   end
 end
 
+class ActionController::Base
+  def self.test_routes(&block)
+    router = ActionDispatch::Routing::RouteSet.new
+    router.draw(&block)
+    include router.url_helpers
+  end
+end
+
 class ::ApplicationController < ActionController::Base
 end
 
@@ -234,7 +253,7 @@ module ActionView
     # Must repeat the setup because AV::TestCase is a duplication
     # of AC::TestCase
     setup do
-      @router = SharedTestRoutes
+      @routes = SharedTestRoutes
     end
   end
 end
@@ -250,7 +269,7 @@ module ActionController
     include ActionDispatch::TestProcess
 
     setup do
-      @router = SharedTestRoutes
+      @routes = SharedTestRoutes
     end
   end
 end

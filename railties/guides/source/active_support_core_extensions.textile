@@ -210,7 +210,7 @@ String.new.singleton_class # => #<Class:#<String:0x17a1d1c>>
 </ruby>
 
 WARNING: Fixnums and symbols have no singleton classes, +singleton_class+
-raises +TypeError+ on them.
+raises +TypeError+ on them. Moreover, the singleton classes of +nil+, +true+, and +false+, are +NilClass+, +TrueClass+, and +FalseClass+, respectively.
 
 NOTE: Defined in +active_support/core_ext/object/singleton_class.rb+.
 

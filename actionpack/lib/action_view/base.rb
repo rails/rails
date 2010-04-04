@@ -168,6 +168,8 @@ module ActionView #:nodoc:
     remove_method :helpers
     attr_reader :helpers
 
+    class_attribute :_router
+
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
       delegate :logger, :to => 'ActionController::Base', :allow_nil => true
@@ -204,7 +206,10 @@ module ActionView #:nodoc:
       @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
       @helpers = self.class.helpers || Module.new
 
-      @_controller   = controller
+      if @_controller = controller
+        @_request = controller.request if controller.respond_to?(:request)
+      end
+
       @_config       = ActiveSupport::InheritableOptions.new(controller.config) if controller && controller.respond_to?(:config)
       @_content_for  = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
       @_virtual_path = nil

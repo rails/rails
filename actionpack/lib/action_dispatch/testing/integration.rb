@@ -263,16 +263,15 @@ module ActionDispatch
             "HTTP_HOST"      => host,
             "REMOTE_ADDR"    => remote_addr,
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
-            "HTTP_ACCEPT"    => accept,
-
-            "action_dispatch.show_exceptions" => false
+            "HTTP_ACCEPT"    => accept
           }
+
+          session = Rack::Test::Session.new(@mock_session)
 
           (rack_environment || {}).each do |key, value|
             env[key] = value
           end
 
-          session = Rack::Test::Session.new(@mock_session)
           session.request(path, env)
 
           @request_count += 1

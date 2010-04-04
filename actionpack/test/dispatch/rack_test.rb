@@ -142,7 +142,7 @@ class RackRequestTest < BaseRackTest
     assert_equal "google.com", @request.remote_host
     assert_equal "kevin", @request.remote_ident
     assert_equal "kevin", @request.remote_user
-    assert_equal :get, @request.request_method
+    assert_equal "GET", @request.request_method
     assert_equal "/dispatch.fcgi", @request.script_name
     assert_equal "glu.ttono.us", @request.server_name
     assert_equal 8007, @request.server_port

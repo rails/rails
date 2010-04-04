@@ -59,4 +59,10 @@ class ClassAttributeTest < ActiveSupport::TestCase
     object = Class.new { class_attribute :setting, :instance_writer => false }.new
     assert_raise(NoMethodError) { object.setting = 'boom' }
   end
+
+  test 'works well with singleton classes' do
+    object = @klass.new
+    object.singleton_class.setting = 'foo'
+    assert_equal 'foo', object.setting
+  end
 end

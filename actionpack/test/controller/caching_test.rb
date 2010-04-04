@@ -81,9 +81,9 @@ class PageCachingTest < ActionController::TestCase
         match '/', :to => 'posts#index', :as => :main
       end
       @params[:format] = 'rss'
-      assert_equal '/posts.rss', @router.url_for(@params)
+      assert_equal '/posts.rss', @routes.url_for(@params)
       @params[:format] = nil
-      assert_equal '/', @router.url_for(@params)
+      assert_equal '/', @routes.url_for(@params)
     end
   end
 
@@ -518,7 +518,7 @@ class ActionCacheTest < ActionController::TestCase
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
       @controller = ActionCachingTestController.new
-      @controller.singleton_class.send(:include, @router.url_helpers)
+      @controller.singleton_class.send(:include, @routes.url_helpers)
       @request.host = 'hostname.com'
     end
 
