@@ -330,7 +330,7 @@ h5. Apply the Patch
 
 h5. Configure and Install
 
-The following will install ruby in your home directory's +/rubygc+ directory. Make sure to replace +<homedir>+ with a full patch to your actual home directory.
+The following will install ruby in your home directory's +/rubygc+ directory. Make sure to replace +&lt;homedir&gt;+ with a full patch to your actual home directory.
 
 <shell>
 [lifo@null ruby-version]$ ./configure --prefix=/<homedir>/rubygc
