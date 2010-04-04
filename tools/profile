@@ -60,8 +60,14 @@ after = GC.allocated_size
 usage = (after - before) / 1024.0
 
 if mode
-  File.open("#{File.basename(path, '.rb')}.#{mode}.callgrind", 'w') do |out|
-    RubyProf::CallTreePrinter.new(results).print(out)
+  if RubyProf.const_defined?(:CallStackPrinter)
+    File.open("#{File.basename(path, '.rb')}.#{mode}.html", 'w') do |out|
+      RubyProf::CallStackPrinter.new(results).print(out)
+    end
+  else
+    File.open("#{File.basename(path, '.rb')}.#{mode}.callgrind", 'w') do |out|
+      RubyProf::CallTreePrinter.new(results).print(out)
+    end
   end
 end
 
