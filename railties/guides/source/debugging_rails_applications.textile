@@ -286,7 +286,7 @@ condition  down     finish  list    ps    save     thread  var
 continue   edit     frame   method  putl  set      tmate   where
 </shell>
 
-TIP: To view the help menu for any command use +help <command-name>+ in active debug mode. For example: _+help var+_
+TIP: To view the help menu for any command use +help &lt;command-name&gt;+ in active debug mode. For example: _+help var+_
 
 The next command to learn is one of the most useful: +list+. You can also abbreviate ruby-debug commands by supplying just enough letters to distinguish them from other commands, so you can also use +l+ for the +list+ command.
 
@@ -704,6 +704,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/5
 
+* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":credits.html#jaimeiniesta
 * November 3, 2008: Accepted for publication. Added RJS, memory leaks and plugins chapters by "Emilio Tagua":credits.html#miloops
 * October 19, 2008: Copy editing pass by "Mike Gunderloy":credits.html#mgunderloy
 * September 16, 2008: initial version by "Emilio Tagua":credits.html#miloops

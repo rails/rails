@@ -121,7 +121,7 @@ module ActionView
       # The generic way to call +form_for+ yields a form builder around a
       # model:
       #
-      #   <%= form_for :person, :url => { :action => "update" } do |f| %>
+      #   <%= form_for :person, :url => { :action => "create" } do |f| %>
       #     <%= f.error_messages %>
       #     First name: <%= f.text_field :first_name %><br />
       #     Last name : <%= f.text_field :last_name %><br />
@@ -145,7 +145,7 @@ module ActionView
       # If the instance variable is not <tt>@person</tt> you can pass the actual
       # record as the second argument:
       #
-      #   <%= form_for :person, person, :url => { :action => "update" } do |f| %>
+      #   <%= form_for :person, person, :url => { :action => "create" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -177,7 +177,7 @@ module ActionView
       # possible to use both the stand-alone FormHelper methods and methods
       # from FormTagHelper. For example:
       #
-      #   <%= form_for :person, @person, :url => { :action => "update" } do |f| %>
+      #   <%= form_for :person, @person, :url => { :action => "create" } do |f| %>
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
@@ -265,7 +265,7 @@ module ActionView
       # custom builder. For example, let's say you made a helper to
       # automatically add labels to form inputs.
       #
-      #   <%= form_for :person, @person, :url => { :action => "update" }, :builder => LabellingFormBuilder do |f| %>
+      #   <%= form_for :person, @person, :url => { :action => "create" }, :builder => LabellingFormBuilder do |f| %>
       #     <%= f.text_field :first_name %>
       #     <%= f.text_field :last_name %>
       #     <%= text_area :person, :biography %>
@@ -342,7 +342,7 @@ module ActionView
       #
       # === Generic Examples
       #
-      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person do |person_form| %>
       #     First name: <%= person_form.text_field :first_name %>
       #     Last name : <%= person_form.text_field :last_name %>
       #
@@ -354,13 +354,13 @@ module ActionView
       # ...or if you have an object that needs to be represented as a different
       # parameter, like a Client that acts as a Person:
       #
-      #   <%= fields_for :person, @client do |permission_fields| %>
+      #   <%= fields_for :person, @client, :url => { :action => "create" } do |permission_fields| %>
       #     Admin?: <%= permission_fields.check_box :admin %>
       #   <% end %>
       #
       # ...or if you don't have an object, just a name of the parameter:
       #
-      #   <%= fields_for :person do |permission_fields| %>
+      #   <%= fields_for :person, :url => { :action => "create" } do |permission_fields| %>
       #     Admin?: <%= permission_fields.check_box :admin %>
       #   <% end %>
       #
@@ -404,7 +404,7 @@ module ActionView
       #
       # This model can now be used with a nested fields_for, like so:
       #
-      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person do |person_form| %>
       #     ...
       #     <%= person_form.fields_for :address do |address_fields| %>
       #       Street  : <%= address_fields.text_field :street %>
@@ -433,7 +433,7 @@ module ActionView
       # with a value that evaluates to +true+, you will destroy the associated
       # model (eg. 1, '1', true, or 'true'):
       #
-      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person do |person_form| %>
       #     ...
       #     <%= person_form.fields_for :address do |address_fields| %>
       #       ...
@@ -461,7 +461,7 @@ module ActionView
       # the nested fields_for call will be repeated for each instance in the
       # collection:
       #
-      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person do |person_form| %>
       #     ...
       #     <%= person_form.fields_for :projects do |project_fields| %>
       #       <% if project_fields.object.active? %>
@@ -472,7 +472,7 @@ module ActionView
       #
       # It's also possible to specify the instance to be used:
       #
-      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person do |person_form| %>
       #     ...
       #     <% @person.projects.each do |project| %>
       #       <% if project.active? %>
@@ -485,7 +485,7 @@ module ActionView
       #
       # Or a collection to be used:
       #
-      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person do |person_form| %>
       #     ...
       #     <%= person_form.fields_for :projects, @active_projects do |project_fields| %>
       #       Name: <%= project_fields.text_field :name %>
@@ -514,7 +514,7 @@ module ActionView
       # parameter with a value that evaluates to +true+
       # (eg. 1, '1', true, or 'true'):
       #
-      #   <%= form_for @person, :url => { :action => "update" } do |person_form| %>
+      #   <%= form_for @person do |person_form| %>
       #     ...
       #     <%= person_form.fields_for :projects do |project_fields| %>
       #       Delete: <%= project_fields.check_box :_destroy %>
