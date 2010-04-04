@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'iconv'
+require 'kconv'
 require 'active_support/core_ext/string/multibyte'
 
 module ActiveSupport
@@ -44,6 +45,8 @@ module ActiveSupport
     #   <%= link_to(@person.name, person_path(@person)) %>
     #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
     def parameterize(string, sep = '-')
+      # remove malformed utf8 characters
+      string = string.toutf8 unless string.is_utf8?
       # replace accented chars with their ascii equivalents
       parameterized_string = transliterate(string)
       # Turn unwanted chars into the separator
