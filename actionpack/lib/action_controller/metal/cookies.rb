@@ -7,10 +7,11 @@ module ActionController #:nodoc:
     included do
       helper_method :cookies
     end
-    
+
     private
       def cookies
-        request.cookie_jar
+        raise "You must set config.cookie_secret in your app's config" if config.secret.blank?
+        request.cookie_jar(:signing_secret => config.secret)
       end
   end
 end
