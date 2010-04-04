@@ -207,6 +207,10 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_grouped_options_for_select_returns_html_safe_string
+    assert grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]]).html_safe?
+  end
+
   def test_optgroups_with_with_options_with_hash
     assert_dom_equal(
        "<optgroup label=\"Europe\"><option value=\"Denmark\">Denmark</option>\n<option value=\"Germany\">Germany</option></optgroup><optgroup label=\"North America\"><option value=\"United States\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup>",
