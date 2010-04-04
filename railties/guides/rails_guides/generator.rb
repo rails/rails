@@ -107,8 +107,7 @@ module RailsGuides
     end
 
     def copy_assets
-      FileUtils.cp_r(File.join(guides_dir, 'images'), output_dir)
-      FileUtils.cp_r(File.join(guides_dir, 'files'), output_dir)
+      FileUtils.cp_r(Dir.glob("#{guides_dir}/assets/*"), output_dir)
     end
 
     def output_file_for(guide)
