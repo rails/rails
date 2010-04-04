@@ -1138,5 +1138,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_instance_eval_in_association_proxy
     assert_equal 'Welcome to the weblog', Comment.all.map { |comment| comment.post }.sort_by(&:id).first.instance_eval{title}
   end
+
+  def test_defining_has_many_association_with_delete_all_dependency_lazily_evaluates_target_class
+    ActiveRecord::Reflection::AssociationReflection.any_instance.expects(:class_name).never
+    class_eval <<-EOF
+      class DeleteAllModel < ActiveRecord::Base
+        has_many :nonentities, :dependent => :delete_all
+      end
+    EOF
+  end
+
+  def test_defining_has_many_association_with_nullify_dependency_lazily_evaluates_target_class
+    ActiveRecord::Reflection::AssociationReflection.any_instance.expects(:class_name).never
+    class_eval <<-EOF
+      class NullifyModel < ActiveRecord::Base
+        has_many :nonentities, :dependent => :nullify
+      end
+    EOF
+  end
 end
 

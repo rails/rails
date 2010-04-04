@@ -1415,14 +1415,6 @@ module ActiveRecord
         # finder conditions.
         def configure_dependency_for_has_many(reflection, extra_conditions = nil)
           if reflection.options.include?(:dependent)
-            # Add polymorphic type if the :as option is present
-            dependent_conditions = []
-            dependent_conditions << "#{reflection.primary_key_name} = \#{record.#{reflection.name}.send(:owner_quoted_id)}"
-            dependent_conditions << "#{reflection.options[:as]}_type = '#{base_class.name}'" if reflection.options[:as]
-            dependent_conditions << sanitize_sql(reflection.options[:conditions], reflection.quoted_table_name) if reflection.options[:conditions]
-            dependent_conditions << extra_conditions if extra_conditions
-            dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
-            dependent_conditions = dependent_conditions.gsub('@', '\@')
             case reflection.options[:dependent]
               when :destroy
                 method_name = "has_many_dependent_destroy_for_#{reflection.name}".to_sym
@@ -1431,24 +1423,22 @@ module ActiveRecord
                 end
                 before_destroy method_name
               when :delete_all
-                module_eval %Q{
-                  before_destroy do |record|                  # before_destroy do |record|
-                    delete_all_has_many_dependencies(record,  #   delete_all_has_many_dependencies(record,
-                      "#{reflection.name}",                   #     "posts",
-                      #{reflection.class_name},               #     Post,
-                      %@#{dependent_conditions}@)             #     %@...@) # this is a string literal like %(...)
-                  end                                         # end
-                }
+                before_destroy do |record|
+                  record.class.send(:delete_all_has_many_dependencies,
+                  record,
+                  reflection.name,
+                  reflection.klass,
+                  reflection.dependent_conditions(record, record.class, extra_conditions))
+                end
               when :nullify
-                module_eval %Q{
-                  before_destroy do |record|                  # before_destroy do |record|
-                    nullify_has_many_dependencies(record,     #   nullify_has_many_dependencies(record,
-                      "#{reflection.name}",                   #     "posts",
-                      #{reflection.class_name},               #     Post,
-                      "#{reflection.primary_key_name}",       #     "user_id",
-                      %@#{dependent_conditions}@)             #     %@...@) # this is a string literal like %(...)
-                  end                                         # end
-                }
+                before_destroy do |record|
+                  record.class.send(:nullify_has_many_dependencies,
+                  record,
+                  reflection.name,
+                  reflection.klass,
+                  reflection.primary_key_name,
+                  reflection.dependent_conditions(record, record.class, extra_conditions))
+                end
               else
                 raise ArgumentError, "The :dependent option expects either :destroy, :delete_all, or :nullify (#{reflection.options[:dependent].inspect})"
             end
