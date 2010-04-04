@@ -18,7 +18,7 @@ module ActionView
 
     attr_reader :source, :identifier, :handler, :virtual_path, :formats
 
-    def self.finalizer_for(method_name)
+    Finalizer = proc do |method_name|
       proc do
         ActionView::CompiledTemplates.module_eval do
           remove_possible_method method_name
@@ -77,7 +77,6 @@ module ActionView
     private
       def compile(locals, view)
         method_name = build_method_name(locals)
-
         return method_name if view.respond_to?(method_name)
 
         locals_code = locals.keys.map! { |key| "#{key} = local_assigns[:#{key}];" }.join
@@ -106,7 +105,8 @@ module ActionView
 
         begin
           ActionView::CompiledTemplates.module_eval(source, identifier, line)
-          ObjectSpace.define_finalizer(self, self.class.finalizer_for(method_name))
+          ObjectSpace.define_finalizer(self, Finalizer[method_name])
+
           method_name
         rescue Exception => e # errors from template code
           if logger = (view && view.logger)
