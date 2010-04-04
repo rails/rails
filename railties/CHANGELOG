@@ -1,4 +1,18 @@
-*Edge*
+*Rails 3.0.0 [beta 2] (April 1st, 2010)*
+
+* Session store configuration has changed [YK & CL]
+
+    config.session_store :cookie_store, {:key => "..."}
+    config.cookie_secret = "fdsfhisdghfidugnfdlg"
+
+* railtie_name and engine_name are deprecated. You can now add any object to
+  the configuration object: config.your_plugin = {} [JK]
+
+* Added config.generators.templates to provide alternative paths for the generators
+  to look for templates [JV]
+
+
+*Rails 3.0.0 [beta 1] (February 4, 2010)*
 
 * Added "rake about" as a replacement for script/about [DHH]
 

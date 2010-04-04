@@ -6,6 +6,7 @@ Gem::Specification.new do |s|
   s.version     = version
   s.summary     = 'A toolkit of support libraries and Ruby core extensions extracted from the Rails framework.'
   s.description = 'A toolkit of support libraries and Ruby core extensions extracted from the Rails framework. Rich support for multibyte strings, internationalization, time zones, and testing.'
+
   s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'David Heinemeier Hansson'

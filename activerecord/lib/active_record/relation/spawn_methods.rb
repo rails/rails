@@ -6,10 +6,9 @@ module ActiveRecord
       merged_relation = clone
       return merged_relation unless r
 
-      (ActiveRecord::Relation::ASSOCIATION_METHODS + ActiveRecord::Relation::MULTI_VALUE_METHODS).reject {|m| [:joins, :where].include?(m)}.each do |method|
-        unless (value = r.send(:"#{method}_values")).blank?
-          merged_relation.send(:"#{method}_values=", value)
-        end
+      (Relation::ASSOCIATION_METHODS + Relation::MULTI_VALUE_METHODS).reject {|m| [:joins, :where].include?(m)}.each do |method|
+        value = r.send(:"#{method}_values")
+        merged_relation.send(:"#{method}_values=", value) if value.present?
       end
 
       merged_relation = merged_relation.joins(r.joins_values)
@@ -26,13 +25,16 @@ module ActiveRecord
 
       merged_relation.where_values = merged_wheres
 
-      ActiveRecord::Relation::SINGLE_VALUE_METHODS.reject {|m| m == :lock}.each do |method|
+      Relation::SINGLE_VALUE_METHODS.reject {|m| m == :lock}.each do |method|
         unless (value = r.send(:"#{method}_value")).nil?
           merged_relation.send(:"#{method}_value=", value)
         end
       end
 
       merged_relation.lock_value = r.lock_value unless merged_relation.lock_value
+
+      # Apply scope extension modules
+      merged_relation.send :apply_modules, r.extensions
 
       merged_relation
     end
@@ -69,7 +71,7 @@ module ActiveRecord
       result
     end
 
-    VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,
+    VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset, :extend,
                            :order, :select, :readonly, :group, :having, :from, :lock ]
 
     def apply_finder_options(options)
@@ -84,6 +86,7 @@ module ActiveRecord
 
       relation = relation.where(options[:conditions]) if options.has_key?(:conditions)
       relation = relation.includes(options[:include]) if options.has_key?(:include)
+      relation = relation.extending(options[:extend]) if options.has_key?(:extend)
 
       relation
     end

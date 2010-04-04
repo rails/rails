@@ -18,6 +18,14 @@ module ActionView
 
     attr_reader :source, :identifier, :handler, :virtual_path, :formats
 
+    def self.finalizer_for(method_name)
+      proc do
+        ActionView::CompiledTemplates.module_eval do
+          remove_possible_method method_name
+        end
+      end
+    end
+
     def initialize(source, identifier, handler, details)
       @source     = source
       @identifier = identifier
@@ -98,6 +106,7 @@ module ActionView
 
         begin
           ActionView::CompiledTemplates.module_eval(source, identifier, line)
+          ObjectSpace.define_finalizer(self, self.class.finalizer_for(method_name))
           method_name
         rescue Exception => e # errors from template code
           if logger = (view && view.logger)

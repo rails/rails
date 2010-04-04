@@ -135,7 +135,7 @@ module ActiveRecord
       def build_through_conditions
         conditions = @reflection.through_reflection.options[:conditions]
         if conditions.is_a?(Hash)
-          interpolate_sql(sanitize_sql(conditions)).gsub(
+          interpolate_sql(@reflection.through_reflection.klass.send(:sanitize_sql, conditions)).gsub(
             @reflection.quoted_table_name,
             @reflection.through_reflection.quoted_table_name)
         elsif conditions

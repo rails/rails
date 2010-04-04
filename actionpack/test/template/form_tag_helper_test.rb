@@ -8,11 +8,15 @@ class FormTagHelperTest < ActionView::TestCase
 
   def setup
     super
-    @controller = Class.new(BasicController) do
-      def url_for(options)
-        "http://www.example.com"
-      end
-    end.new
+    @controller = BasicController.new
+  end
+
+  def url_for(options)
+    if options.is_a?(Hash)
+      "http://www.example.com"
+    else
+      super
+    end
   end
 
   VALID_HTML_ID = /^[A-Za-z][-_:.A-Za-z0-9]*$/ # see http://www.w3.org/TR/html4/types.html#type-name
@@ -156,6 +160,12 @@ class FormTagHelperTest < ActionView::TestCase
     actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :include_blank => "string"
     expected = %(<select id="places" name="places"><option value="">string</option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
+  end
+
+  def test_select_tag_with_array_options
+    assert_deprecated /array/ do
+      select_tag "people", ["<option>david</option>"]
+    end
   end
 
   def test_text_area_tag_size_string

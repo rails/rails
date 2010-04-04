@@ -1,4 +1,10 @@
 class Post < ActiveRecord::Base
+  module NamedExtension
+    def author
+      'lifo'
+    end
+  end
+
   scope :containing_the_letter_a, where("body LIKE '%a%'")
   scope :ranked_by_comments, order("comments_count DESC")
   scope :limit_by, lambda {|l| limit(l) }

@@ -34,9 +34,7 @@ class AssetTagHelperTest < ActionView::TestCase
       )
     end
 
-    @controller = Class.new(BasicController) do
-      def url_for(*args) "http://www.example.com" end
-    end.new
+    @controller = BasicController.new
 
     @request = Class.new do
       def protocol() 'http://' end
@@ -47,6 +45,10 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller.request = @request
 
     ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
+  end
+
+  def url_for(*args)
+    "http://www.example.com"
   end
 
   def teardown
@@ -893,23 +895,17 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
 
   def setup
     super
-    @controller = Class.new(BasicController) do
-      def url_for(options)
-        "http://www.example.com/collaboration/hieraki"
-      end
-    end.new
-
+    @controller = BasicController.new
     @controller.config.relative_url_root = "/collaboration/hieraki"
 
-    @request = Class.new do
-      def protocol
-        'gopher://'
-      end
-    end.new
-
+    @request = Struct.new(:protocol).new("gopher://")
     @controller.request = @request
 
     ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
+  end
+
+  def url_for(options)
+    "http://www.example.com/collaboration/hieraki"
   end
 
   def test_should_compute_proper_path

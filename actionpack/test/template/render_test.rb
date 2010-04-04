@@ -281,6 +281,10 @@ class CachedViewRenderTest < ActiveSupport::TestCase
     assert_equal ActionView::FileSystemResolver, view_paths.first.class
     setup_view(view_paths)
   end
+
+  def teardown
+    GC.start
+  end
 end
 
 class LazyViewRenderTest < ActiveSupport::TestCase
@@ -293,5 +297,9 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     view_paths = ActionView::Base.process_view_paths(path)
     assert_equal ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH), view_paths.first
     setup_view(view_paths)
+  end
+
+  def teardown
+    GC.start
   end
 end

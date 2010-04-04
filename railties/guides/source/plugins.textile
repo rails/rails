@@ -35,14 +35,14 @@ h4. Create the Basic Application
 
 The examples in this guide require that you have a working rails application.  To create a simple rails app execute:
 
-<pre>
+<shell>
 gem install rails
 rails yaffle_guide
 cd yaffle_guide
 rails generate scaffold bird name:string
 rake db:migrate
 rails server
-</pre>
+</shell>
 
 Then navigate to http://localhost:3000/birds.  Make sure you have a functioning rails app before continuing.
 
@@ -56,22 +56,22 @@ Rails ships with a plugin generator which creates a basic plugin skeleton. Pass 
 This creates a plugin in 'vendor/plugins' including an 'init.rb' and 'README' as well as standard 'lib', 'task', and 'test' directories.
 
 Examples:
-<pre>
+<shell>
 rails generate plugin yaffle
 rails generate plugin yaffle --with-generator
-</pre>
+</shell>
 
 To get more detailed help on the plugin generator, type +rails generate plugin+.
 
 Later on this guide will describe how to work with generators, so go ahead and generate your plugin with the +--with-generator+ option now:
 
-<pre>
+<shell>
 rails generate plugin yaffle --with-generator
-</pre>
+</shell>
 
 You should see the following output:
 
-<pre>
+<shell>
 create  vendor/plugins/yaffle/lib
 create  vendor/plugins/yaffle/tasks
 create  vendor/plugins/yaffle/test
@@ -89,20 +89,20 @@ create  vendor/plugins/yaffle/generators/yaffle
 create  vendor/plugins/yaffle/generators/yaffle/templates
 create  vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb
 create  vendor/plugins/yaffle/generators/yaffle/USAGE
-</pre>
+</shell>
 
 h4. Organize Your Files
 
 To make it easy to organize your files and to make the plugin more compatible with GemPlugins, start out by altering your file system to look like this:
 
-<pre>
+<shell>
 |-- lib
 |   |-- yaffle
 |   `-- yaffle.rb
 `-- rails
     |
     `-- init.rb
-</pre>
+</shell>
 
 *vendor/plugins/yaffle/init.rb*
 
@@ -124,7 +124,7 @@ h4. Test Setup
 
 *vendor/plugins/yaffle/test/database.yml:*
 
-<pre>
+<yaml>
 sqlite:
   :adapter: sqlite
   :dbfile: vendor/plugins/yaffle/test/yaffle_plugin.sqlite.db
@@ -146,7 +146,7 @@ mysql:
   :username: root
   :password: password
   :database: yaffle_plugin_test
-</pre>
+</yaml>
 
 For this guide you'll need 2 tables/models, Hickwalls and Wickwalls, so add the following:
 
@@ -239,10 +239,10 @@ end
 
 To run this, go to the plugin directory and run +rake+:
 
-<pre>
+<shell>
 cd vendor/plugins/yaffle
 rake
-</pre>
+</shell>
 
 You should see output like:
 
@@ -1511,4 +1511,5 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/32-update-plugins-guide
 
+* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":credits.html#jaimeiniesta
 * November 17, 2008: Major revision by Jeff Dean

@@ -213,11 +213,11 @@ h4. Understanding the Output
 
 Performance tests generate different outputs inside +tmp/performance+ directory depending on their mode and metric.
 
-h5. Benchmarking
+h5(#output-benchmarking). Benchmarking
 
 In benchmarking mode, performance tests generate two types of outputs:
 
-h6. Command Line
+h6(#output-command-line). Command Line
 
 This is the primary form of output in benchmarking mode. Example:
 
@@ -258,7 +258,7 @@ measurement,created_at,app,rails,ruby,platform
 0.00771250000000012,2009-01-09T15:46:03Z,,2.3.0.master.859e150,ruby-1.8.6.110,i686-darwin9.0.0
 </shell>
 
-h5. Profiling
+h5(#output-profiling). Profiling
 
 In profiling mode, you can choose from four types of output.
 
@@ -330,7 +330,7 @@ h5. Apply the Patch
 
 h5. Configure and Install
 
-The following will install ruby in your home directory's +/rubygc+ directory. Make sure to replace +<homedir>+ with a full patch to your actual home directory.
+The following will install ruby in your home directory's +/rubygc+ directory. Make sure to replace +&lt;homedir&gt;+ with a full patch to your actual home directory.
 
 <shell>
 [lifo@null ruby-version]$ ./configure --prefix=/<homedir>/rubygc

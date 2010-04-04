@@ -1,4 +1,9 @@
-*Rails 3.0 (pending)*
+*Rails 3.0.0 [beta 2] (April 1st, 2010)*
+
+* Reduced load time by deferring configuration of classes using
+  ActiveSupport::on_load(:component_name) [YK]
+
+* Rename #metaclass to #singleton_class now that ruby-core has decided [JK]
 
 * New assertions assert_blank and assert_present.  #4299 [Juanjo Bazan] 
 
@@ -7,7 +12,7 @@
 * JSON backend for YAJL. Preferred if available.  #2666 [Brian Lopez]
 
 
-*Rails 3.0.0 [beta] (February 4, 2010)*
+*Rails 3.0.0 [beta 1] (February 4, 2010)*
 
 * Introduce class_attribute to declare inheritable class attributes. Writing an attribute on a subclass behaves just like overriding the superclass reader method.  Unifies and replaces most usage of cattr_accessor, class_inheritable_attribute, superclass_delegating_attribute, and extlib_inheritable_attribute.  [Jeremy Kemper, Yehuda Katz]
 

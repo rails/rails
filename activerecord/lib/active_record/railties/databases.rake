@@ -84,7 +84,7 @@ namespace :db do
           end
         end
       when 'postgresql'
-        @encoding = config[:encoding] || ENV['CHARSET'] || 'utf8'
+        @encoding = config['encoding'] || ENV['CHARSET'] || 'utf8'
         schema_search_path = config['schema_search_path'] || 'public'
         first_in_schema_search_path = schema_search_path.split(',').first.strip
         begin

@@ -510,7 +510,7 @@ def show
 end
 </ruby>
 
-Make sure you use +and return+ and not +&& return+ because while the former will work, the latter will not due to operator precedence in the Ruby Language.
+Make sure you use +and return+ and not +&amp;&amp; return+ because while the former will work, the latter will not due to operator precedence in the Ruby Language.
 
 Note that the implicit render done by ActionController detects if +render+ has been called, and thus avoids this error. Therefore, the following will work without errors:
 
@@ -747,7 +747,7 @@ You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
 h5. Linking to CSS Files with +stylesheet_link_tag+
 
-The +stylesheet_link_tag+ helper returns an HTML +<link>+ tag for each source provided. Rails looks in +public/stylesheets+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/stylesheets/main.cs+:
+The +stylesheet_link_tag+ helper returns an HTML +&lt;link&gt;+ tag for each source provided. Rails looks in +public/stylesheets+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/stylesheets/main.cs+:
 
 <erb>
 <%= stylesheet_link_tag "main" %>
@@ -1197,6 +1197,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15
 
+* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":credits.html#jaimeiniesta
 * January 25, 2010: Rails 3.0 Update by "Mikel Lindsaar":credits.html#raasdnil
 * December 27, 2008: Merge patch from Rodrigo Rosenfeld Rosas covering subtemplates
 * December 27, 2008: Information on new rendering defaults by "Mike Gunderloy":credits.html#mgunderloy
