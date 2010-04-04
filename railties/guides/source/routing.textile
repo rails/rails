@@ -65,7 +65,7 @@ RESTful routes take advantage of the built-in REST orientation of Rails to wrap 
 resources :books
 </ruby>
 
-h4. Named Routes
+h4(#quick-tour-named-routes). Named Routes
 
 Named routes give you very readable links in your code, as well as handling incoming requests. Here's a typical named route:
 
@@ -91,7 +91,7 @@ resources :assemblies do
 end
 </ruby>
 
-h4. Regular Routes
+h4(#quick-tour-regular-routes). Regular Routes
 
 In many applications, you'll also see non-RESTful routing, which explicitly connects the parts of a URL to a particular action. For example,
 
@@ -400,7 +400,7 @@ In addition to the routes for magazines, this declaration will also create route
 
 This will also create routing helpers such as +magazine_ads_url+ and +edit_magazine_ad_path+.
 
-h5. Using +:name_prefix+
+h5(#nested-name-prefix). Using +:name_prefix+
 
 The +:name_prefix+ option overrides the automatically-generated prefix in nested route helpers. For example,
 

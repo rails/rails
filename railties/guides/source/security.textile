@@ -611,7 +611,7 @@ h4. SQL Injection
 
 -- _Thanks to clever methods, this is hardly a problem in most Rails applications. However, this is a very devastating and common attack in web applications, so it is important to understand the problem._
 
-h5. Introduction
+h5(#sql-injection-introduction). Introduction
 
 SQL injection attacks aim at influencing database queries by manipulating web application parameters. A popular goal of SQL injection attacks is to bypass authorization. Another goal is to carry out data manipulation or reading arbitrary data. Here is an example of how not to use user input data in a query:
 
@@ -668,7 +668,7 @@ The result won't be a list of projects (because there is no project with an empt
 
 Also, the second query renames some columns with the AS statement so that the web application displays the values from the user table. Be sure to update your Rails "to at least 2.1.1":http://www.rorsecurity.info/2008/09/08/sql-injection-issue-in-limit-and-offset-parameter/.
 
-h5. Countermeasures
+h5(#sql-injection-countermeasures). Countermeasures
 
 Ruby on Rails has a built in filter for special SQL characters, which will escape ' , " , NULL character and line breaks. <em class="highlight">Using +Model.find(id)+ or +Model.find_by_some thing(something)+ automatically applies this countermeasure</em>. But in SQL fragments, especially <em class="highlight">in conditions fragments (+:conditions => "..."+), the +connection.execute()+ or +Model.find_by_sql()+ methods, it has to be applied manually</em>.
 
@@ -760,7 +760,7 @@ http://www.cbsnews.com/stories/2002/02/15/weather_local/main501644.shtml?zipcode
   <script src=http://www.securitylab.ru/test/sc.js></script><!--
 </plain>
 
-h6. Countermeasures
+h6(#html-injection-countermeasures). Countermeasures
 
 _(highlight)It is very important to filter malicious input, but it is also important to escape the output of the web application_.
 
@@ -850,7 +850,7 @@ In the end, he got a 4 KB worm, which he injected into his profile page.
 
 The "moz-binding":http://www.securiteam.com/securitynews/5LP051FHPE.html CSS property proved to be another way to introduce JavaScript in CSS in Gecko-based browsers (Firefox, for example).
 
-h5. Countermeasures
+h5(#css-injection-countermeasures). Countermeasures
 
 This example, again, showed that a blacklist filter is never complete. However, as custom CSS in web applications is a quite rare feature, I am not aware of a whitelist CSS filter. _(highlight)If you want to allow custom colours or images, you can allow the user to choose them and build the CSS in the web application_. Use Rails' +sanitize()+ method as a model for a whitelist CSS filter, if you really need one.
 
@@ -879,7 +879,7 @@ RedCloth.new("<a href='javascript:alert(1)'>hello</a>", [:filter_html]).to_html
 # => "<p><a href="javascript:alert(1)">hello</a></p>"
 </ruby>
 
-h5. Countermeasures
+h5(#textile-injection-countermeasures). Countermeasures
 
 It is recommended to _(highlight)use RedCloth in combination with a whitelist input filter_, as described in the countermeasures against XSS section.
 

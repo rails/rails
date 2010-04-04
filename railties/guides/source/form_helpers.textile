@@ -501,7 +501,7 @@ Date.civil(params[:start_date][:year].to_i, params[:start_date][:month].to_i, pa
 
 The +:prefix+ option is the key used to retrieve the hash of date components from the +params+ hash. Here it was set to +start_date+, if omitted it will default to +date+.
 
-h4. Model Object Helpers
+h4(#select-model-object-helpers). Model Object Helpers
 
 +select_date+ does not work well with forms that update or create Active Record objects as Active Record expects each element of the +params+ hash to correspond to one attribute.
 The model object helpers for dates and times submit parameters with special names,  when Active Record sees parameters with such names it knows they must be combined with the other parameters and given to a constructor appropriate to the column type. For example:

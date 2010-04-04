@@ -1414,7 +1414,7 @@ Replaces the inner HTML of the DOM element with the given id.
 page.replace_html 'person-45', :partial => 'person', :object => @person
 </ruby>
 
-h5. select
+h5(#prototype-select). select
 
 Returns a collection reference by finding it through a CSS pattern in the DOM.
 

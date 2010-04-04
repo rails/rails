@@ -227,7 +227,7 @@ module RailsGuides
       anchors = Set.new
       html.scan(/<h\d\s+id="([^"]+)/).flatten.each do |anchor|
         if anchors.member?(anchor)
-          puts "*** DUPLICATE HEADER ID: #{anchor}, please consider rewording"
+          puts "*** DUPLICATE ID: #{anchor}, please put and explicit ID, e.g. h4(#explicit-id), or consider rewording"
         else
           anchors << anchor
         end
