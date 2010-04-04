@@ -5,20 +5,20 @@ module ActionDispatch
   module Routing
     class Mapper
       class Constraints #:nodoc:
-        def self.new(app, constraints = [])
+        def self.new(app, constraints, request = Rack::Request)
           if constraints.any?
-            super(app, constraints)
+            super(app, constraints, request)
           else
             app
           end
         end
 
-        def initialize(app, constraints = [])
-          @app, @constraints = app, constraints
+        def initialize(app, constraints, request)
+          @app, @constraints, @request = app, constraints, request
         end
 
         def call(env)
-          req = Rack::Request.new(env)
+          req = @request.new(env)
 
           @constraints.each { |constraint|
             if constraint.respond_to?(:matches?) && !constraint.matches?(req)
@@ -83,7 +83,8 @@ module ActionDispatch
           def app
             Constraints.new(
               to.respond_to?(:call) ? to : Routing::RouteSet::Dispatcher.new(:defaults => defaults),
-              blocks
+              blocks,
+              @set.request_class
             )
           end
 

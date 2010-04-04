@@ -108,7 +108,7 @@ module ActionController #:nodoc:
     end
 
     def verify_method(options) # :nodoc:
-      [*options[:method]].all? { |v| request.method != v.to_sym } if options[:method]
+      [*options[:method]].all? { |v| request.method_symbol != v.to_sym } if options[:method]
     end
 
     def verify_request_xhr_status(options) # :nodoc:

@@ -216,7 +216,7 @@ module ActionController #:nodoc:
     # the verb is POST.
     #
     def default_action
-      @action ||= ACTIONS_FOR_VERBS[request.method]
+      @action ||= ACTIONS_FOR_VERBS[request.method_symbol]
     end
   end
 end

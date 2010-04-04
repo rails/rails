@@ -187,6 +187,63 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  class TestAltApp < ActionController::IntegrationTest
+    class AltRequest
+      def initialize(env)
+        @env = env
+      end
+
+      def path_info
+        "/"
+      end
+
+      def request_method
+        "GET"
+      end
+
+      def x_header
+        @env["HTTP_X_HEADER"] || ""
+      end
+    end
+
+    class XHeader
+      def call(env)
+        [200, {"Content-Type" => "text/html"}, ["XHeader"]]
+      end
+    end
+
+    class AltApp
+      def call(env)
+        [200, {"Content-Type" => "text/html"}, ["Alternative App"]]
+      end
+    end
+
+    AltRoutes = ActionDispatch::Routing::RouteSet.new(AltRequest)
+    AltRoutes.draw do
+      get "/" => XHeader.new, :constraints => {:x_header => /HEADER/}
+      get "/" => AltApp.new
+    end
+
+    def app
+      AltRoutes
+    end
+
+    def test_alt_request_without_header
+      get "/"
+      assert_equal "Alternative App", @response.body
+    end
+
+    def test_alt_request_with_matched_header
+      get "/", {}, "HTTP_X_HEADER" => "HEADER"
+      assert_equal "XHeader", @response.body
+    end
+
+    def test_alt_request_with_unmatched_header
+      get "/", {}, "HTTP_X_HEADER" => "NON_MATCH"
+      assert_equal "Alternative App", @response.body
+    end
+  end
+
   def app
     Routes
   end

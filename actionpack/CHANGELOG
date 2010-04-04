@@ -1,3 +1,18 @@
+*Rails 3.0.0 [Edge] (pending)*
+
+* Changed the object used in routing constraints to be an instance of
+  ActionDispatch::Request rather than Rack::Request
+
+* Changed ActionDispatch::Request#method to return a String, to be compatible
+  with Rack::Request. Added ActionDispatch::Request#method_symbol to
+  return a symbol form of the request method.
+
+* Changed ActionDispatch::Request#method to return the original
+  method and #request_method to return the overridden method in the
+  case of methodoverride being used (this means that #method returns
+  "HEAD" and #request_method returns "GET" in HEAD requests). This
+  is for compatibility with Rack::Request
+
 *Rails 3.0.0 [beta 2] (April 1st, 2010)*
 
 * #concat is now deprecated in favor of using <%= %> helpers [YK]

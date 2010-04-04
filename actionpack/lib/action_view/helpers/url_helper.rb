@@ -10,6 +10,12 @@ module ActionView
     # This allows you to use the same format for links in views
     # and controllers.
     module UrlHelper
+      # This helper may be included in any class that includes the
+      # URL helpers of a router (router.url_helpers). Some methods
+      # provided here will only work in the context of a request
+      # (link_to_unless_current, for instance), which must be provided
+      # as a method called #request on the context.
+
       extend ActiveSupport::Concern
 
       include ActionDispatch::Routing::UrlFor
@@ -307,7 +313,6 @@ module ActionView
       #   #       </div>
       #   #     </form>"
       #   #
-
       def button_to(name, options = {}, html_options = {})
         html_options = html_options.stringify_keys
         convert_boolean_attributes!(html_options, %w( disabled ))

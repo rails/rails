@@ -45,47 +45,65 @@ module ActionDispatch
     HTTP_METHODS = %w(get head put post delete options)
     HTTP_METHOD_LOOKUP = HTTP_METHODS.inject({}) { |h, m| h[m] = h[m.upcase] = m.to_sym; h }
 
-    # Returns the true HTTP request \method as a lowercase symbol, such as
-    # <tt>:get</tt>. If the request \method is not listed in the HTTP_METHODS
-    # constant above, an UnknownHttpMethod exception is raised.
+    # Returns the HTTP \method that the application should see.
+    # In the case where the \method was overridden by a middleware
+    # (for instance, if a HEAD request was converted to a GET,
+    # or if a _method parameter was used to determine the \method
+    # the application should use), this \method returns the overridden
+    # value, not the original.
     def request_method
-      method = env["rack.methodoverride.original_method"] || env["REQUEST_METHOD"]
-      HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
-    end
-
-    # Returns the HTTP request \method used for action processing as a
-    # lowercase symbol, such as <tt>:post</tt>. (Unlike #request_method, this
-    # method returns <tt>:get</tt> for a HEAD request because the two are
-    # functionally equivalent from the application's perspective.)
-    def method
       method = env["REQUEST_METHOD"]
       HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
+      method
     end
 
-    # Is this a GET (or HEAD) request?  Equivalent to <tt>request.method == :get</tt>.
+    # Returns a symbol form of the #request_method
+    def request_method_symbol
+      HTTP_METHOD_LOOKUP[request_method]
+    end
+
+    # Returns the original value of the environment's REQUEST_METHOD,
+    # even if it was overridden by middleware. See #request_method for
+    # more information.
+    def method
+      method = env["rack.methodoverride.original_method"] || env['REQUEST_METHOD']
+      HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
+      method
+    end
+
+    # Returns a symbol form of the #method
+    def method_symbol
+      HTTP_METHOD_LOOKUP[method]
+    end
+
+    # Is this a GET (or HEAD) request?
+    # Equivalent to <tt>request.request_method == :get</tt>.
     def get?
-      method == :get
+      HTTP_METHOD_LOOKUP[request_method] == :get
     end
 
-    # Is this a POST request?  Equivalent to <tt>request.method == :post</tt>.
+    # Is this a POST request?
+    # Equivalent to <tt>request.request_method == :post</tt>.
     def post?
-      method == :post
+      HTTP_METHOD_LOOKUP[request_method] == :post
     end
 
-    # Is this a PUT request?  Equivalent to <tt>request.method == :put</tt>.
+    # Is this a PUT request?
+    # Equivalent to <tt>request.request_method == :put</tt>.
     def put?
-      method == :put
+      HTTP_METHOD_LOOKUP[request_method] == :put
     end
 
-    # Is this a DELETE request?  Equivalent to <tt>request.method == :delete</tt>.
+    # Is this a DELETE request?
+    # Equivalent to <tt>request.request_method == :delete</tt>.
     def delete?
-      method == :delete
+      HTTP_METHOD_LOOKUP[request_method] == :delete
     end
 
-    # Is this a HEAD request? Since <tt>request.method</tt> sees HEAD as <tt>:get</tt>,
-    # this \method checks the actual HTTP \method directly.
+    # Is this a HEAD request?
+    # Equivalent to <tt>request.method == :head</tt>.
     def head?
-      request_method == :head
+      HTTP_METHOD_LOOKUP[method] == :head
     end
 
     # Provides access to the request's HTTP headers, for example:
@@ -96,7 +114,7 @@ module ActionDispatch
     end
 
     def forgery_whitelisted?
-      method == :get || xhr? || content_mime_type.nil? || !content_mime_type.verify_request?
+      get? || xhr? || content_mime_type.nil? || !content_mime_type.verify_request?
     end
 
     def media_type

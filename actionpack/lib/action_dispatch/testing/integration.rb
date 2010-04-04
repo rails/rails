@@ -266,11 +266,12 @@ module ActionDispatch
             "HTTP_ACCEPT"    => accept
           }
 
+          session = Rack::Test::Session.new(@mock_session)
+
           (rack_environment || {}).each do |key, value|
             env[key] = value
           end
 
-          session = Rack::Test::Session.new(@mock_session)
           session.request(path, env)
 
           @request_count += 1

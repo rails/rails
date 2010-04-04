@@ -71,7 +71,7 @@ class VerificationTest < ActionController::TestCase
     end
 
     def guarded_by_method
-      render :text => "#{request.method}"
+      render :text => "#{request.method.downcase}"
     end
 
     def guarded_by_xhr

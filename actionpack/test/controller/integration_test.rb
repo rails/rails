@@ -236,7 +236,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     end
 
     def method
-      render :text => "method: #{request.method}"
+      render :text => "method: #{request.method.downcase}"
     end
 
     def cookie_monster
