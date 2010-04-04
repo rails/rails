@@ -9,8 +9,8 @@ module ActionView
       #
       #   config/routes.rb:
       #     Basecamp::Application.routes.draw do |map|
-      #       map.resources :posts
-      #       map.root :controller => "posts"
+      #       resources :posts
+      #       root :to => "posts#index"
       #     end
       #
       #   app/controllers/posts_controller.rb:

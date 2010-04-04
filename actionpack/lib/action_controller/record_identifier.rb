@@ -6,7 +6,7 @@ module ActionController
   # the view actions to a higher logical level. Example:
   #
   #   # routes
-  #   map.resources :posts
+  #   resources :posts
   #
   #   # view
   #   <% div_for(post) do %>     <div id="post_45" class="post">

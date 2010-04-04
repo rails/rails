@@ -1572,7 +1572,7 @@ module ActiveRecord #:nodoc:
       # or nil if this record's unsaved.
       #
       # For example, suppose that you have a User model, and that you have a
-      # <tt>map.resources :users</tt> route. Normally, +user_path+ will
+      # <tt>resources :users</tt> route. Normally, +user_path+ will
       # construct a path with the user object's 'id' in it:
       #
       #   user = User.find_by_name('Phusion')

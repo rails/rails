@@ -63,7 +63,7 @@ module ActionDispatch
     # named routes. For example, suppose that you have a 'users' resource in your
     # <b>routes.rb</b>:
     #
-    #   map.resources :users
+    #   resources :users
     #
     # This generates, among other things, the method <tt>users_path</tt>. By default,
     # this method is accessible from your controllers, views and mailers. If you need
