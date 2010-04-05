@@ -2021,7 +2021,7 @@ This sets up a couple of important things initially. If you specify a gem like t
   gem 'rails', "2.3.4"
 </ruby>
 
-This sets +options+ to be an empty hash, but +version+ to be +"2.3.4"+. TODO: How does one pass options and versions?
+This sets +options+ to be an empty hash, but +version+ to be +"2.3.4"+. TODO: How does one pass options and versions at the same time?
 
 In the Gemfile for a default Rails project, the first +gem+ line is:
 
@@ -2054,7 +2054,54 @@ This line will check that +options+ contains no deprecated options by using the 
   end
 </ruby>
 
-+_normalize_hash+ will convert all the keys in the +opts+ hash to strings.
++_normalize_hash+ will convert all the keys in the +opts+ hash to strings. There is neither a +git+ or a +path+ key in the +opts+ hash so the next couple of lines are ignored, then the +source+ and +group+ keys are set up.
+
+TODO: Maybe it is best to cover what would happen in the case these lines did exist?
+
+The next line goes about defining a dependency for this gem:
+
+<ruby>
+  @dependencies << Dependency.new(name, version, options)
+</ruby>
+
+This class is defined like this:
+
+<ruby>
+  module Bundler
+    class Dependency < Gem::Dependency
+      attr_reader :autorequire
+      attr_reader :groups
+
+      def initialize(name, version, options = {}, &blk)
+        super(name, version)
+
+        @autorequire = nil
+        @groups      = Array(options["group"] || :default).map { |g| g.to_sym }
+        @source      = options["source"]
+
+        if options.key?('require')
+          @autorequire = Array(options['require'] || [])
+        end
+      end
+    end
+  end
+</ruby>
+
+The +initialize+ method in +Gem::Dependency+ is defined:
+
+<ruby>
+  def initialize(name, version_requirements, type=:runtime)
+    @name = name
+    unless TYPES.include? type
+      raise ArgumentError, "Valid types are #{TYPES.inspect}, not #{@type.inspect}"
+    end
+    @type = type
+    @version_requirements = Gem::Requirement.create version_requirements
+    @version_requirement = nil   # Avoid warnings.
+  end
+</ruby>
+
+
 
 
 
