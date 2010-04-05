@@ -1,6 +1,6 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/object/singleton_class'
+require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/remove_method'
 
 class Class
