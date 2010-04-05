@@ -784,6 +784,56 @@ module ActionView
       def radio_button(object_name, method, tag_value, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_radio_button_tag(tag_value, options)
       end
+
+      # Returns a text_field of type "search".
+      def search_field(object_name, method, options = {})
+        options = options.stringify_keys
+
+        if options["autosave"]
+          if options["autosave"] == true
+            options["autosave"] = request.host.split(".").reverse.join(".")
+          end
+          options["results"] ||= 10
+        end
+
+        if options["onsearch"]
+          options["incremental"] = true unless options.has_key?("incremental")
+        end
+
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("search", options)
+      end
+
+      # Returns a text_field of type "tel".
+      def telephone_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("tel", options)
+      end
+      alias phone_field telephone_field
+
+      # Returns a text_field of type "url".
+      def url_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("url", options)
+      end
+
+      # Returns a text_field of type "email".
+      def email_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("email", options)
+      end
+
+      # Returns an input tag of type "number".
+      #
+      # ==== Options
+      # * Accepts same options as number_field_tag
+      def number_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("number", options)
+      end
+
+      # Returns an input tag of type "range".
+      #
+      # ==== Options
+      # * Accepts same options as range_field_tag
+      def range_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("range", options)
+      end
     end
 
     module InstanceTagMethods #:nodoc:
@@ -845,6 +895,14 @@ module ActionView
         options["value"] &&= html_escape(options["value"])
         add_default_name_and_id(options)
         tag("input", options)
+      end
+
+      def to_number_field_tag(field_type, options = {})
+        options = options.stringify_keys
+        if range = options.delete("in") || options.delete("within")
+          options.update("min" => range.min, "max" => range.max)
+        end
+        to_input_field_tag(field_type, options)
       end
 
       def to_radio_button_tag(tag_value, options = {})
