@@ -1432,7 +1432,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2
 
-* April 1, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":credits.html#jaimeiniesta
+* April 1, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * February 8, 2010: Full re-write for Rails 3.0-beta, added helpers and before_filters, refactored code by "Mikel Lindsaar":credits:html#raasdnil
 * January 24, 2010: Re-write for Rails 3.0 by "Mikel Lindsaar":credits:html#raasdnil
 * July 18, 2009: Minor cleanup in anticipation of Rails 2.3.3 by "Mike Gunderloy":credits.html#mgunderloy

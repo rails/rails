@@ -1197,7 +1197,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15
 
-* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":credits.html#jaimeiniesta
+* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * January 25, 2010: Rails 3.0 Update by "Mikel Lindsaar":credits.html#raasdnil
 * December 27, 2008: Merge patch from Rodrigo Rosenfeld Rosas covering subtemplates
 * December 27, 2008: Information on new rendering defaults by "Mike Gunderloy":credits.html#mgunderloy
