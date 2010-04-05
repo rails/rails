@@ -49,6 +49,11 @@ module AbstractController
         render "index.erb"
       end
       
+
+      def index_to_string
+        self.response_body = render_to_string "index.erb"
+      end
+
       def action_with_ivars
         @my_ivar = "Hello"
         render "action_with_ivars.erb"
@@ -77,6 +82,11 @@ module AbstractController
         assert_equal "Hello from index.erb", @controller.response_body
       end
       
+      test "render_to_string works with a String as an argument" do
+        @controller.process(:index_to_string)
+        assert_equal "Hello from index.erb", @controller.response_body
+      end
+
       test "rendering passes ivars to the view" do
         @controller.process(:action_with_ivars)
         assert_equal "Hello from index_with_ivars.erb", @controller.response_body
