@@ -704,7 +704,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/5
 
-* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":credits.html#jaimeiniesta
+* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * November 3, 2008: Accepted for publication. Added RJS, memory leaks and plugins chapters by "Emilio Tagua":credits.html#miloops
 * October 19, 2008: Copy editing pass by "Mike Gunderloy":credits.html#mgunderloy
 * September 16, 2008: initial version by "Emilio Tagua":credits.html#miloops

@@ -940,7 +940,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/8
 
-* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":credits.html#jaimeiniesta
+* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * November 13, 2008: Revised based on feedback from Pratik Naik by "Akshay Surve":credits.html#asurve (not yet approved for publication)
 * October 14, 2008: Edit and formatting pass by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
 * October 12, 2008: First draft by "Akshay Surve":credits.html#asurve (not yet approved for publication)

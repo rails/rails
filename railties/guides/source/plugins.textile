@@ -1511,5 +1511,5 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/32-update-plugins-guide
 
-* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":credits.html#jaimeiniesta
+* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * November 17, 2008: Major revision by Jeff Dean
