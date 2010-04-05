@@ -20,7 +20,6 @@ module Rails
   #   # lib/my_engine.rb
   #   module MyEngine
   #     class Engine < Rails::Engine
-  #       engine_name :my_engine
   #     end
   #   end
   #
@@ -38,11 +37,12 @@ module Rails
   # Example:
   #
   #   class MyEngine < Rails::Engine
-  #     # config.middleware is shared configururation
-  #     config.middleware.use MyEngine::Middleware
-  #
   #     # Add a load path for this specific Engine
   #     config.load_paths << File.expand_path("../lib/some/path", __FILE__)
+  #
+  #     initializer "my_engine.add_middleware" do |app|
+  #       app.middlewares.use MyEngine::Middleware
+  #     end
   #   end
   # 
   # == Paths
