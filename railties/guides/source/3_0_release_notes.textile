@@ -302,6 +302,8 @@ More Information:
 
 h4. Action View
 
+h5. Unobtrusive JavaScript
+
 Major re-write was done in the Action View helpers, implementing Unobtrusive JavaScript (UJS) hooks and removing the old inline AJAX commands.  This enables Rails to use any compliant UJS driver to implement the UJS hooks in the helpers.
 
 What this means is that all previous <tt>remote_<method></tt> helpers have been removed from Rails core and put into the "Prototype Legacy Helper":http://github.com/rails/prototype_legacy_helper.  To get UJS hooks into your HTML, you now pass <tt>:remote => true</tt> instead.  For example:
@@ -315,6 +317,22 @@ Produces:
 <html>
 <form action="http://host.com" id="create-post" method="post" data-remote="true">
 </html>
+
+h5. Helpers with Blocks
+
+Helpers like +form_for+ or +div_for+ that insert content from a block use +<%=+ now:
+
+<erb>
+<%= form_for @post do |f| %>
+  ...
+<% end %>
+<erb>
+
+Your own helpers of that kind are expected to return a string, rather than appending to the output buffer by hand.
+
+Helpers that do something else, like +cache+ or +content_for+, are not affected by this change, they need +<%+ as before.
+
+h5. Other Changes
 
 * You no longer need to call <tt>h(string)</tt> to escape HTML output, it is on by default in all view templates. If you want the unescaped string, call <tt>raw(string)</tt>.
 * Helpers now output HTML 5 by default.
@@ -380,6 +398,13 @@ end
 class Person < ActiveRecord::Base
   validates :title, :presence => true, :title => true
 end
+</ruby>
+
+There's also support for introspection:
+
+<ruby>
+User.validators
+User.validators_on(:login)
 </ruby>
 
 More Information:
@@ -512,6 +537,7 @@ These are the main changes in Active Support:
 * <tt>MissingSourceFile</tt> exists as a constant but it is now just equals to <tt>LoadError</tt>.
 * Added <tt>Class#class_attribute</tt>, to be able to declare a class-level attribute whose value is inheritable and overwritable by subclasses.
 * Finally removed +DeprecatedCallbacks+ in <tt>ActiveRecord::Associations</tt>.
+* +Object#metaclass+ is now +Kernel#singleton_class+ to match Ruby.
 
 The following methods have been removed because they are now available in Ruby 1.8.7 and 1.9.
 
