@@ -159,7 +159,7 @@ module ActionController
 
         # Authenticate with HTTP Digest, returns true or false
         def authenticate_with_http_digest(realm = "Application", &password_procedure)
-          HttpAuthentication::Digest.authenticate(config.secret, request, realm, &password_procedure)
+          HttpAuthentication::Digest.authenticate(request, realm, &password_procedure)
         end
 
         # Render output including the HTTP Digest authentication header
@@ -169,14 +169,15 @@ module ActionController
       end
 
       # Returns false on a valid response, true otherwise
-      def authenticate(secret_key, request, realm, &password_procedure)
-        request.authorization && validate_digest_response(secret_key, request, realm, &password_procedure)
+      def authenticate(request, realm, &password_procedure)
+        request.authorization && validate_digest_response(request, realm, &password_procedure)
       end
 
       # Returns false unless the request credentials response value matches the expected value.
       # First try the password as a ha1 digest password. If this fails, then try it as a plain
       # text password.
-      def validate_digest_response(secret_key, request, realm, &password_procedure)
+      def validate_digest_response(request, realm, &password_procedure)
+        secret_key  = secret_token(request)
         credentials = decode_credentials_header(request)
         valid_nonce = validate_nonce(secret_key, request, credentials[:nonce])
 
@@ -225,7 +226,7 @@ module ActionController
       end
 
       def authentication_header(controller, realm)
-        secret_key = controller.config.secret
+        secret_key = secret_token(controller.request)
         nonce = self.nonce(secret_key)
         opaque = opaque(secret_key)
         controller.headers["WWW-Authenticate"] = %(Digest realm="#{realm}", qop="auth", algorithm=MD5, nonce="#{nonce}", opaque="#{opaque}")
@@ -236,6 +237,12 @@ module ActionController
         authentication_header(controller, realm)
         controller.response_body = message
         controller.status = 401
+      end
+
+      def secret_token(request)
+        secret = request.env["action_dispatch.secret_token"]
+        raise "You must set config.secret_token in your app's config" if secret.blank?
+        secret
       end
 
       # Uses an MD5 digest based on time to generate a value to be used only once.

@@ -2,7 +2,7 @@ module ActionController
   class Base < Metal
     abstract!
 
-    def self.modules_without(*modules)
+    def self.without_modules(*modules)
       modules = modules.map do |m|
         m.is_a?(Symbol) ? ActionController.const_get(m) : m
       end

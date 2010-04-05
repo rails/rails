@@ -23,7 +23,6 @@ module Rails
           paths.app.views           "app/views",           :eager_load => true
           paths.lib                 "lib",                 :load_path => true
           paths.lib.tasks           "lib/tasks",           :glob => "**/*.rake"
-          paths.lib.templates       "lib/templates"
           paths.config              "config"
           paths.config.initializers "config/initializers", :glob => "**/*.rb"
           paths.config.locales      "config/locales",      :glob => "*.{rb,yml}"

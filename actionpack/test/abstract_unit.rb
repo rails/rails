@@ -192,10 +192,6 @@ end
 
 # Temporary base class
 class Rack::TestCase < ActionController::IntegrationTest
-  setup do
-    ActionController::Base.config.secret = "abc" * 30
-  end
-
   def self.testing(klass = nil)
     if klass
       @testing = "/#{klass.name.underscore}".sub!(/_controller$/, '')

@@ -234,6 +234,22 @@ module ApplicationTests
       assert_equal File.expand_path(__FILE__), last_response.headers["X-Lighttpd-Send-File"]
     end
 
+    test "config.secret_token is sent in env" do
+      make_basic_app do |app|
+        app.config.secret_token = 'ThisIsASECRET123'
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          cookies.signed[:some_key] = "some_value"
+          render :text => env["action_dispatch.secret_token"]
+        end
+      end
+
+      get "/"
+      assert_equal 'ThisIsASECRET123', last_response.body
+    end
+
     test "protect from forgery is the default in a new app" do
       make_basic_app
 
