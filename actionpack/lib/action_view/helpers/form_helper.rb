@@ -300,15 +300,16 @@ module ActionView
 
         case record_or_name_or_array
         when String, Symbol
+          ActiveSupport::Deprecation.warn("Use the option :object_name => ... instead of a Symbol or String as a the first argument", caller)
           object_name = record_or_name_or_array
         when Array
           object = record_or_name_or_array.last
-          object_name = ActionController::RecordIdentifier.singular_class_name(object)
+          object_name = options[:object_name] || ActionController::RecordIdentifier.singular_class_name(object)
           apply_form_for_options!(record_or_name_or_array, options)
           args.unshift object
         else
           object = record_or_name_or_array
-          object_name = ActionController::RecordIdentifier.singular_class_name(object)
+          object_name = options[:object_name] || ActionController::RecordIdentifier.singular_class_name(object)
           apply_form_for_options!([object], options)
           args.unshift object
         end
@@ -326,9 +327,13 @@ module ActionView
 
         html_options =
           if object.respond_to?(:persisted?) && object.persisted?
-            { :class  => dom_class(object, :edit), :id => dom_id(object, :edit), :method => :put }
+            { :class  => options[:object_name] ? "#{options[:object_name]}_edit" : dom_class(object, :edit),
+              :id => options[:object_name] ? "#{options[:object_name]}_edit" : dom_id(object, :edit),
+              :method => :put }
           else
-            { :class  => dom_class(object, :new),  :id => dom_id(object), :method => :post }
+            { :class  => options[:object_name] ? "#{options[:object_name]}_new" : dom_class(object, :new),
+              :id => options[:object_name] ? "#{options[:object_name]}_new" : dom_id(object),
+              :method => :post }
           end
 
         options[:html] ||= {}
