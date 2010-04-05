@@ -440,7 +440,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_symbol_object_name
-    form_for(@post, :object_name => "other_name", :html => { :id => 'create-post' }) do |f|
+    form_for(@post, :as => "other_name", :html => { :id => 'create-post' }) do |f|
       concat f.label(:title)
       concat f.text_field(:title)
       concat f.text_area(:body)
@@ -504,12 +504,10 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_without_object
-    assert_deprecated do
-      form_for(:post, :html => { :id => 'create-post' }) do |f|
-        concat f.text_field(:title)
-        concat f.text_area(:body)
-        concat f.check_box(:secret)
-      end
+    form_for(:post, :html => { :id => 'create-post' }) do |f|
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
     end
 
     expected =
@@ -603,10 +601,8 @@ class FormHelperTest < ActionView::TestCase
   def test_submit_without_object_and_locale_strings
     old_locale, I18n.locale = I18n.locale, :submit
 
-    assert_deprecated do
-      form_for(:post) do |f|
-        concat f.submit :class => "extra"
-      end
+    form_for(:post) do |f|
+      concat f.submit :class => "extra"
     end
 
     expected = "<form action='http://www.example.com' method='post'>" +
