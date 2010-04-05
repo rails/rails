@@ -413,6 +413,15 @@ class NamedScopeTest < ActiveRecord::TestCase
       Topic.approved.by_lifo.replied.written_before(Time.now).all
     end
   end
+
+  def test_named_scopes_are_cached_on_associations
+    post = posts(:welcome)
+
+    assert_equal post.comments.containing_the_letter_e.object_id, post.comments.containing_the_letter_e.object_id
+
+    post.comments.containing_the_letter_e.all # force load
+    assert_no_queries { post.comments.containing_the_letter_e.all }
+  end
 end
 
 class DynamicScopeMatchTest < ActiveRecord::TestCase
