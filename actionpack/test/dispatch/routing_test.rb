@@ -96,8 +96,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       scope 'pt', :name_prefix => 'pt' do
-        resources :projects, :path_names => { :edit => 'editar' }, :path => 'projetos'
-        resource  :admin,    :path_names => { :new => 'novo' },    :path => 'administrador'
+        resources :projects, :path_names => { :edit => 'editar', :new => 'novo' }, :path => 'projetos' do
+          post :preview, :on => :new
+        end
+        resource  :admin,    :path_names => { :new => 'novo' },    :path => 'administrador' do
+          post :preview, :on => :new
+        end
+        resources :products, :path_names => { :new => 'novo' } do
+          new do
+            post :preview
+          end
+        end
       end
 
       resources :projects, :controller => :project do
@@ -146,6 +155,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :replies do
+        new do
+          post :preview
+        end
+
         member do
           put :answer, :to => :mark_as_answer
           delete :answer, :to => :unmark_as_answer
@@ -234,6 +247,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       match "whatever/:controller(/:action(/:id))"
+
+      resource :profile do
+        get :settings
+
+        new do
+          post :preview
+        end
+      end
     end
   end
 
@@ -1074,6 +1095,31 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_assert_recognizes_account_overview
     with_test_routes do
       assert_recognizes({:controller => "account", :action => "overview"}, "/account/overview")
+    end
+  end
+
+  def test_resource_new_actions
+    with_test_routes do
+      assert_equal '/replies/new/preview', preview_new_reply_path
+      assert_equal '/pt/projetos/novo/preview', preview_new_pt_project_path
+      assert_equal '/pt/administrador/novo/preview', preview_new_pt_admin_path
+      assert_equal '/pt/products/novo/preview', preview_new_pt_product_path
+      assert_equal '/profile/new/preview', preview_new_profile_path
+
+      post '/replies/new/preview'
+      assert_equal 'replies#preview', @response.body
+
+      post '/pt/projetos/novo/preview'
+      assert_equal 'projects#preview', @response.body
+
+      post '/pt/administrador/novo/preview'
+      assert_equal 'admins#preview', @response.body
+
+      post '/pt/products/novo/preview'
+      assert_equal 'products#preview', @response.body
+
+      post '/profile/new/preview'
+      assert_equal 'profiles#preview', @response.body
     end
   end
 

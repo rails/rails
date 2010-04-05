@@ -476,6 +476,10 @@ module ActionDispatch
             name.to_s.singularize
           end
 
+          def member_prefix
+            ':id'
+          end
+
           def member_name
             singular
           end
@@ -522,6 +526,10 @@ module ActionDispatch
             end
           end
 
+          def nested_prefix
+            id_segment
+          end
+
           def nested_options
             options = { :name_prefix => member_name }
             options["#{singular}_id".to_sym] = id_constraint if id_constraint?
@@ -549,8 +557,20 @@ module ActionDispatch
             end
           end
 
+          def member_prefix
+            ''
+          end
+
           def member_name
             name
+          end
+
+          def nested_prefix
+            ''
+          end
+
+          def nested_options
+            { :name_prefix => member_name }
           end
         end
 
@@ -571,17 +591,17 @@ module ActionDispatch
           scope(:path => resource.path, :controller => resource.controller) do
             with_scope_level(:resource, resource) do
 
-              scope(:name_prefix => resource.name.to_s, :as => "") do
-                yield if block_given?
-              end
+              yield if block_given?
 
-              scope(resource.options) do
-                get    :show if resource.actions.include?(:show)
-                post   :create if resource.actions.include?(:create)
-                put    :update if resource.actions.include?(:update)
-                delete :destroy if resource.actions.include?(:destroy)
-                get    :new, :as => resource.name if resource.actions.include?(:new)
-                get    :edit, :as => resource.name if resource.actions.include?(:edit)
+              with_scope_level(:member) do
+                scope(resource.options) do
+                  get    :show if resource.actions.include?(:show)
+                  post   :create if resource.actions.include?(:create)
+                  put    :update if resource.actions.include?(:update)
+                  delete :destroy if resource.actions.include?(:destroy)
+                  get    :new, :as => resource.name if resource.actions.include?(:new)
+                  get    :edit, :as => resource.name if resource.actions.include?(:edit)
+                end
               end
             end
           end
@@ -645,31 +665,36 @@ module ActionDispatch
         end
 
         def member
-          unless [:resources, :resource].include?(@scope[:scope_level])
-            raise ArgumentError, "You can't use member action outside resources and resource scope."
+          unless resource_scope?
+            raise ArgumentError, "can't use member outside resource(s) scope"
           end
 
-          case @scope[:scope_level]
-          when :resources
-            with_scope_level(:member) do
-              scope(':id', :name_prefix => parent_resource.member_name, :as => "") do
-                yield
-              end
+          with_scope_level(:member) do
+            scope(parent_resource.member_prefix, :name_prefix => parent_resource.member_name, :as => "") do
+              yield
             end
-          when :resource
-            with_scope_level(:member) do
+          end
+        end
+
+        def new
+          unless resource_scope?
+            raise ArgumentError, "can't use new outside resource(s) scope"
+          end
+          
+          with_scope_level(:new) do
+            scope(new_scope_prefix, :name_prefix => parent_resource.member_name, :as => "") do
               yield
             end
           end
         end
 
         def nested
-          unless @scope[:scope_level] == :resources
-            raise ArgumentError, "can't use nested outside resources scope"
+          unless resource_scope?
+            raise ArgumentError, "can't use nested outside resource(s) scope"
           end
 
           with_scope_level(:nested) do
-            scope(parent_resource.id_segment, parent_resource.nested_options) do
+            scope(parent_resource.nested_prefix, parent_resource.nested_options) do
               yield
             end
           end
@@ -701,7 +726,7 @@ module ActionDispatch
                 @scope[:path] = old_path
               end
             else
-              with_exclusive_name_prefix(action) do
+              with_exclusive_name_prefix(action_name_prefix(action, options)) do
                 return match("#{action_path(action, path_names)}(.:format)", options.reverse_merge(:to => action))
               end
             end
@@ -714,10 +739,16 @@ module ActionDispatch
             return collection { match(*args) }
           when :member
             return member { match(*args) }
+          when :new
+            return new { match(*args) }
           end
 
-          if @scope[:scope_level] == :resources
-            raise ArgumentError, "can't define route directly in resources scope"
+          if @scope[:scope_level] == :resource
+            return member { match(*args) }
+          end
+
+          if resource_scope?
+            raise ArgumentError, "can't define route directly in resource(s) scope"
           end
 
           super
@@ -739,6 +770,10 @@ module ActionDispatch
             path_names[name.to_sym] || name.to_s
           end
 
+          def action_name_prefix(action, options = {})
+            (options[:on] == :new || @scope[:scope_level] == :new) ? "#{action}_new" : action
+          end
+
           def apply_common_behavior_for(method, resources, options, &block)
             if resources.length > 1
               resources.each { |r| send(method, r, options, &block) }
@@ -752,7 +787,7 @@ module ActionDispatch
               return true
             end
 
-            if @scope[:scope_level] == :resources
+            if resource_scope?
               nested do
                 send(method, resources.pop, options, &block)
               end
@@ -760,6 +795,14 @@ module ActionDispatch
             end
 
             false
+          end
+
+          def new_scope_prefix
+            @scope[:path_names][:new] || 'new'
+          end
+
+          def resource_scope?
+            [:resource, :resources].include?(@scope[:scope_level])
           end
 
           def with_exclusive_name_prefix(prefix)
