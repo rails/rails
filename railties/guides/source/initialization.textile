@@ -1747,6 +1747,8 @@ This file defines the ActionDispatch Railtie:
 The +require 'rails'+ has already been done back in TODO: link to section.
 
 
+
+
 h5. +require 'action_dispatch'+
 
 This file was already loaded earlier in the initialization process. TODO: link to it.
@@ -1779,6 +1781,281 @@ The ActionDispatch Railtie is almost as short as the ActiveResource Railtie:
 The +config+ method here is from +Rails::Railtie+ and pertains to your application's configuration. In this case, it is setting up some defaults which you can later override in _config/application.rb_.
 
 This Railtie does not define a +log_subscriber+ and only defines one initializer: +prepare_dispatcher+.
+
+h3. Return to _config/application.rb_
+
+Now that Rails has finished loading all the Railties by way of +require 'rails/all'+ Rails can now move on to the next line:
+
+<ruby>
+  Bundler.require :default, Rails.env
+</ruby>
+
+Bundler was +require+'d back in _config/boot.rb_ and now we'll dive into the internals of Bundler to determine precisely what this line accomplishes.
+
+h4. +Bundler.require+
+
++Bundler.require+ is defined in _lib/bundler.rb_:
+
+<ruby>
+  def require(*groups)
+    gemfile = default_gemfile
+    load(gemfile).require(*groups)
+  end
+</ruby>
+
+The +groups+ variable here would be a two-element array of the arguments passed to +Bundler.require+. In this case we're going to assume, +Rails.env+ is +"development"+.
+
+h4. Locating the Gemfile
+
++default_gemfile+ is defined in _lib/bundler.rb_ and makes a call out to the +SharedHelpers+ module:
+
+<ruby>
+  def default_gemfile
+    SharedHelpers.default_gemfile
+  end
+</ruby>
+
++SharedHelpers+ defines +default_gemfile+ like this:
+
+<ruby>
+  def default_gemfile
+    gemfile = find_gemfile
+    gemfile or raise GemfileNotFound, "The default Gemfile was not found"
+    Pathname.new(gemfile)
+  end
+</ruby>
+
++find_gemfile+ is defined like this:
+
+<ruby>
+  def find_gemfile
+    return ENV['BUNDLE_GEMFILE'] if ENV['BUNDLE_GEMFILE']
+
+    previous = nil
+    current  = File.expand_path(Dir.pwd)
+
+    until !File.directory?(current) || current == previous
+      filename = File.join(current, 'Gemfile')
+      return filename if File.file?(filename)
+      current, previous = File.expand_path("..", current), current
+    end
+  end
+</ruby>
+
+The first line of course means if you define the environment variable +BUNDLE_GEMFILE+ this is the name of the file that will be used and returned. If not, then Bundler will look for a file called _Gemfile_ in the current directory and if it can find it then it will return the filename. If it cannot, it will recurse up the directory structure until it does. Once the file is found a +Pathname+ is made from the expanded path to _Gemfile_.
+
+If the file cannot be found at all then +GemfileNotFound+ will be raised back in +default_gemfile+. 
+
+h4. Loading the Gemfile
+
+Now that Bundler has determined what the _Gemfile_ is, it goes about loading it:
+
+<ruby>
+  def require(*groups)
+    gemfile = default_gemfile
+    load(gemfile).require(*groups)
+  end
+</ruby>
+
++load+ is defined like this in _lib/bundler.rb_:
+
+<ruby>
+  def load(gemfile = default_gemfile)
+    root = Pathname.new(gemfile).dirname
+    Runtime.new root, definition(gemfile)
+  end
+</ruby>
+
+The next method to be called here would be +definition+  and it is defined like this:
+
+<ruby>
+  def definition(gemfile = default_gemfile)
+    configure
+    root = Pathname.new(gemfile).dirname
+    lockfile = root.join("Gemfile.lock")
+    if lockfile.exist?
+      Definition.from_lock(lockfile)
+    else
+      Definition.from_gemfile(gemfile)
+    end
+  end
+</ruby>
+
++configure+ is responsible for setting up the path to gem home and gem path:
+
+<ruby>
+  def configure
+    @configured ||= begin
+      configure_gem_home_and_path
+      true
+    end
+  end
+</ruby>
+
++configure_gem_home_and_path+ defined like this:
+
+<ruby>
+  def configure_gem_home_and_path
+    if settings[:disable_shared_gems]
+      ENV['GEM_HOME'] = File.expand_path(bundle_path, root)
+      ENV['GEM_PATH'] = ''
+    else
+      gem_home, gem_path = Gem.dir, Gem.path
+      ENV["GEM_PATH"] = [gem_home, gem_path].flatten.compact.join(File::PATH_SEPARATOR)
+      ENV["GEM_HOME"] = bundle_path.to_s
+    end
+
+    Gem.clear_paths
+  end
+</ruby>
+
+We do not have +settings[:disabled_shared_gems]+ set to true so this will execute the code under the +else+. The +ENV["GEM_PATH"]+ will resemble +/usr/local/lib/ruby/gems/1.9.1:/home/you/.gem/ruby/1.9.1:/usr/local/lib/ruby/gems/1.9.1+
+
+TODO: Why the duplicates? Added an issue: http://github.com/carlhuda/bundler/issues#issue/249
+
+And +ENV["GEM_HOME"]+ will be the path to the gems installed into your home directory by Bundler, something resembling +/home/you/.bundle/ruby/1.9.1+.
+
+After +configure_gem_home_and_path+ is done the +definition+ method goes about creating a +Definition+ from either +Gemfile.lock+ if it exists, or the +gemfile+ previously located. +Gemfile.lock+ only exists if +bundle lock+ has been ran and so far it has not.
+
++Definition.from_lock+ is defined in _lib/definition.rb_:
+
+<ruby>
+  def self.from_gemfile(gemfile)
+    gemfile = Pathname.new(gemfile).expand_path
+
+    unless gemfile.file?
+      raise GemfileNotFound, "#{gemfile} not found"
+    end
+
+    Dsl.evaluate(gemfile)
+  end
+</ruby>
+
+Now that the +gemfile+ is located +Dsl.evaluate+ goes about loading it. The code for this can be found in _lib/dsl.rb_:
+
+<ruby>
+  def self.evaluate(gemfile)
+    builder = new
+    builder.instance_eval(File.read(gemfile.to_s), gemfile.to_s, 1)
+    builder.to_definition
+  end
+</ruby>
+
++new+ here will, of course, call +initialize+ which sets up a couple of variables:
+
+<ruby>
+  def initialize
+    @source  = nil
+    @sources = []
+    @dependencies = []
+    @group = nil
+  end
+</ruby>
+
+When Bundler calls +instance_eval+ on the new +Bundler::Dsl+ object it evaluates the content of the +gemfile+ file within the context of this instance. The Gemfile for a default Rails 3 project with all the comments stripped out looks like this:
+
+<ruby>
+  source 'http://rubygems.org'
+
+  gem 'rails', '3.0.0.beta1'
+
+  # Bundle edge Rails instead:
+  # gem 'rails', :git => 'git://github.com/rails/rails.git'
+
+  gem 'sqlite3-ruby', :require => 'sqlite3'
+</ruby>
+
+When Bundler loads this file it firstly calls the +source+ method on the +Bundler::Dsl+ object:
+
+<ruby>
+  def source(source, options = {})
+    @source = case source
+    when :gemcutter, :rubygems, :rubyforge then Source::Rubygems.new("uri" => "http://gemcutter.org")
+    when String then Source::Rubygems.new("uri" => source)
+    else source
+    end
+
+    options[:prepend] ? @sources.unshift(@source) : @sources << @source
+
+    yield if block_given?
+    @source
+  ensure
+    @source = nil
+  end
+</ruby>
+
+TODO: Perhaps make this a side-note. However you do that.
+
+The interesting thing to note about this method is that it takes a block, so you may do:
+
+<ruby>
+  source 'http://someothergemhost.com' do
+    gem 'your_favourite_gem'
+  end
+</ruby>
+
+if you wish to install _your_favourite_gem_ from _http://someothergemhost.com_.
+
+In this instance however a block is not specified so this sets up the +@source+ instance variable to be +'http://rubygems.org'+.
+
+The next method that is called is +gem+:
+
+<ruby>
+  def gem(name, *args)
+    options = Hash === args.last ? args.pop : {}
+    version = args.last || ">= 0"
+    if options[:group]
+      options[:group] = options[:group].to_sym
+    end
+
+    _deprecated_options(options)
+    _normalize_options(name, version, options)
+
+    @dependencies << Dependency.new(name, version, options)
+  end
+</ruby>
+
+This sets up a couple of important things initially. If you specify a gem like the following:
+
+<ruby>
+  gem 'rails', "2.3.4"
+</ruby>
+
+This sets +options+ to be an empty hash, but +version+ to be +"2.3.4"+. TODO: How does one pass options and versions?
+
+In the Gemfile for a default Rails project, the first +gem+ line is:
+
+<ruby>
+  gem 'rails', '3.0.0.beta2'
+</ruby>
+
+TODO: change version number.
+
+This line will check that +options+ contains no deprecated options by using the +_deprecated_options+ method, but the +options+ hash is empty. This is of course until +_normalize_options+ has its way:
+
+<ruby>
+  def _normalize_options(name, version, opts)
+    _normalize_hash(opts)
+
+    group = opts.delete("group") || @group
+
+    # Normalize git and path options
+    ["git", "path"].each do |type|
+      if param = opts[type]
+        options = _version?(version) ? opts.merge("name" => name, "version" => version) : opts.dup
+        source = send(type, param, options, :prepend => true)
+        opts["source"] = source
+      end
+    end
+
+    opts["source"] ||= @source
+
+    opts["group"] = group
+  end
+</ruby>
+
++_normalize_hash+ will convert all the keys in the +opts+ hash to strings.
+
 
 
 
