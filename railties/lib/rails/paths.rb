@@ -3,6 +3,8 @@ require 'set'
 module Rails
   module Paths
     module PathParent
+      attr_reader :children
+
       def method_missing(id, *args)
         name = id.to_s
 
@@ -37,15 +39,15 @@ module Rails
       end
 
       def load_once
-        filter { |path| path.paths if path.load_once? }
+        filter_by(:load_once?)
       end
 
       def eager_load
-        filter { |path| path.paths if path.eager_load? }
+        filter_by(:eager_load?)
       end
 
       def load_paths
-        filter { |path| path.paths if path.load_path? }
+        filter_by(:load_path?)
       end
 
       def push(*)
@@ -58,8 +60,16 @@ module Rails
 
     protected
 
-      def filter(&block)
-        all_paths.map(&block).compact.flatten.uniq.select { |p| File.exists?(p) }
+      def filter_by(constraint)
+        all_paths.map do |path|
+          if path.send(constraint)
+            paths  = path.paths
+            paths -= path.children.values.map { |p| p.send(constraint) ? [] : p.paths }.flatten
+            paths
+          else
+            []
+          end
+        end.flatten.uniq.select { |p| File.exists?(p) }
       end
     end
 
@@ -129,10 +139,12 @@ module Rails
 
       def paths
         raise "You need to set a path root" unless @root.path
+
         result = @paths.map do |p|
           path = File.expand_path(p, @root.path)
           @glob ? Dir[File.join(path, @glob)] : path
         end
+
         result.flatten!
         result.uniq!
         result
