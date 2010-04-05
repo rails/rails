@@ -183,7 +183,7 @@ module ActionView
       # Creates a file upload field.  If you are using file uploads then you will also need
       # to set the multipart option for the form tag:
       #
-      #   <% form_tag '/upload', :multipart => true do %>
+      #   <%= form_tag '/upload', :multipart => true do %>
       #     <label for="file">File to Upload</label> <%= file_field_tag "file" %>
       #     <%= submit_tag %>
       #   <% end %>
