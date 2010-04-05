@@ -25,12 +25,6 @@ module Erb
         end
       end
 
-      def copy_layout_file
-        return unless options[:layout]
-        template filename_with_extensions(:layout),
-          File.join("app/views/layouts", controller_class_path, filename_with_extensions(controller_file_name))
-      end
-
     protected
 
       def available_views
