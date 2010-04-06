@@ -41,14 +41,9 @@ module Rails
     }
 
     DEFAULT_OPTIONS = {
-      :erb => {
-        :layout => true
-      },
-
       :rails => {
         :force_plural => false,
         :helper => true,
-        :layout => true,
         :orm => nil,
         :integration_tool => nil,
         :performance_tool => nil,

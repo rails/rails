@@ -8,7 +8,6 @@ module Erb
 
       argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
 
-      class_option :layout,    :type => :boolean
       class_option :singleton, :type => :boolean, :desc => "Supply to skip index view"
 
       def create_root_folder
