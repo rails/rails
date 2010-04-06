@@ -66,7 +66,7 @@ A basic search form
 <% end %>
 </html>
 
-TIP: +search_path+ can be a named route specified in "routes.rb": <pre>map.search "search", :controller => "search"</pre>
+TIP: +search_path+ can be a named route specified in "routes.rb": <br /><tt>map.search "search", :controller => "search"</tt>
 
 The above view code will result in the following markup:
 
@@ -429,7 +429,7 @@ As with other helpers, if you were to use the +select+ helper on a form builder 
 <%= f.select(:city_id, ...) %>
 </erb>
 
-WARNING: If you are using +select+ (or similar helpers such as +collection_select+, +select_tag+) to set a +belongs_to+ association you must pass the name of the foreign key (in the example above +city_id+), not the name of association itself.  If you specify +city+ instead of +city_id+ Active Record will raise an error along the lines of <pre> ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) </pre> when you pass the +params+ hash to +Person.new+ or +update_attributes+. Another way of looking at this is that form helpers only edit attributes.  You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly. You may wish to consider the use of +attr_protected+ and +attr_accessible+. For further details on this, see the "Ruby On Rails Security Guide":security.html#_mass_assignment.
+WARNING: If you are using +select+ (or similar helpers such as +collection_select+, +select_tag+) to set a +belongs_to+ association you must pass the name of the foreign key (in the example above +city_id+), not the name of association itself.  If you specify +city+ instead of +city_id+ Active Record will raise an error along the lines of <tt> ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) </tt> when you pass the +params+ hash to +Person.new+ or +update_attributes+. Another way of looking at this is that form helpers only edit attributes.  You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly. You may wish to consider the use of +attr_protected+ and +attr_accessible+. For further details on this, see the "Ruby On Rails Security Guide":security.html#_mass_assignment.
 
 h4. Option Tags from a Collection of Arbitrary Objects
 
@@ -631,7 +631,7 @@ action for a Person model, +params[:model]+ would usually be a hash of all the a
 
 Fundamentally HTML forms don't know about any sort of structured data, all they generate is name–value pairs, where pairs are just plain strings. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.
 
-TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example <pre> ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789" # => {"name"=>"fred", "phone"=>"0123456789"} </pre>
+TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example <tt> ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789" # => {"name"=>"fred", "phone"=>"0123456789"} </tt>
 
 h4. Basic Structures
 
@@ -761,6 +761,8 @@ Many apps grow beyond simple forms editing a single object. For example when cre
 h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/1
+
+* April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 
 h3. Authors
 
