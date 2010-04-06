@@ -712,7 +712,7 @@ end
 </ruby>
 
 <erb>
-<% form_for(@product) do |f| %>
+<%= form_for(@product) do |f| %>
   <%= f.error_messages %>
   <p>
     <%= f.label :description %><br />
