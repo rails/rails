@@ -306,7 +306,7 @@ h5. Unobtrusive JavaScript
 
 Major re-write was done in the Action View helpers, implementing Unobtrusive JavaScript (UJS) hooks and removing the old inline AJAX commands.  This enables Rails to use any compliant UJS driver to implement the UJS hooks in the helpers.
 
-What this means is that all previous <tt>remote_<method></tt> helpers have been removed from Rails core and put into the "Prototype Legacy Helper":http://github.com/rails/prototype_legacy_helper.  To get UJS hooks into your HTML, you now pass <tt>:remote => true</tt> instead.  For example:
+What this means is that all previous <tt>remote_&lt;method&gt;</tt> helpers have been removed from Rails core and put into the "Prototype Legacy Helper":http://github.com/rails/prototype_legacy_helper.  To get UJS hooks into your HTML, you now pass <tt>:remote => true</tt> instead.  For example:
 
 <ruby>
 form_for @post, :remote => true
@@ -320,17 +320,17 @@ Produces:
 
 h5. Helpers with Blocks
 
-Helpers like +form_for+ or +div_for+ that insert content from a block use +<%=+ now:
+Helpers like +form_for+ or +div_for+ that insert content from a block use +&lt;%=+ now:
 
 <erb>
 <%= form_for @post do |f| %>
   ...
 <% end %>
-<erb>
+</erb>
 
 Your own helpers of that kind are expected to return a string, rather than appending to the output buffer by hand.
 
-Helpers that do something else, like +cache+ or +content_for+, are not affected by this change, they need +<%+ as before.
+Helpers that do something else, like +cache+ or +content_for+, are not affected by this change, they need +&lt;%+ as before.
 
 h5. Other Changes
 
