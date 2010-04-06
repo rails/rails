@@ -602,7 +602,7 @@ The +&lt;%= render 'form' %&gt;+ line is our first introduction to _partials_ in
 If you take a look at +views/posts/_form.html.erb+ file, you will see the following:
 
 <erb>
-<% form_for(@post) do |f| %>
+<%= form_for(@post) do |f| %>
   <%= f.error_messages %>
 
   <div class="field">
@@ -906,7 +906,7 @@ So first, we'll wire up the Post show template (+/app/views/posts/show.html.erb+
 </p>
 
 <h2>Add a comment:</h2>
-<% form_for([@post, @post.comments.build]) do |f| %>
+<%= form_for([@post, @post.comments.build]) do |f| %>
   <%= f.error_messages %>
 
   <div class="field">
@@ -1041,7 +1041,7 @@ Then in the +app/views/posts/show.html.erb+ you can change it to look like the f
            :collection => @post.comments %>
 
 <h2>Add a comment:</h2>
-<% form_for([@post, @post.comments.build]) do |f| %>
+<%= form_for([@post, @post.comments.build]) do |f| %>
   <%= f.error_messages %>
 
   <div class="field">
@@ -1070,7 +1070,7 @@ h4. Rendering a Partial Form
 Lets also move that new comment section out to it's own partial, again, you create a file +app/views/comments/_form.html.erb+ and in it you put:
 
 <erb>
-<% form_for([@post, @post.comments.build]) do |f| %>
+<%= form_for([@post, @post.comments.build]) do |f| %>
   <%= f.error_messages %>
 
   <div class="field">
@@ -1278,7 +1278,7 @@ We will modify +views/posts/_form.html.erb+ to render a partial to make a tag:
 
 <erb>
 <% @post.tags.build %>
-<% form_for(@post) do |post_form| %>
+<%= form_for(@post) do |post_form| %>
   <%= post_form.error_messages %>
 
   <div class="field">

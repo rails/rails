@@ -21,7 +21,7 @@ h3. Dealing with Basic Forms
 The most basic form helper is +form_tag+.
 
 <erb>
-<% form_tag do %>
+<%= form_tag do %>
   Form contents
 <% end %>
 </erb>
@@ -59,7 +59,7 @@ To create this form you will use +form_tag+, +label_tag+, +text_field_tag+, and 
 A basic search form
 
 <html>
-<% form_tag(search_path, :method => "get") do %>
+<%= form_tag(search_path, :method => "get") do %>
   <%= label_tag(:q, "Search for:") %>
   <%= text_field_tag(:q) %>
   <%= submit_tag("Search") %>
@@ -222,7 +222,7 @@ end
 The corresponding view +app/views/articles/new.html.erb+ using +form_for+ looks like this:
 
 <erb>
-<% form_for :article, @article, :url => { :action => "create" }, :html => {:class => "nifty_form"} do |f| %>
+<%= form_for :article, @article, :url => { :action => "create" }, :html => {:class => "nifty_form"} do |f| %>
   <%= f.text_field :title %>
   <%= f.text_area :body, :size => "60x12" %>
   <%= submit_tag "Create" %>
@@ -253,7 +253,7 @@ The helper methods called on the form builder are identical to the model object 
 You can create a similar binding without actually creating  +&lt;form&gt;+ tags with the +fields_for+ helper. This is useful for editing additional model objects with the same form. For example if you had a Person model with an associated ContactDetail model you could create a form for creating both like so:
 
 <erb>
-<% form_for :person, @person, :url => { :action => "create" } do |person_form| %>
+<%= form_for :person, @person, :url => { :action => "create" } do |person_form| %>
   <%= person_form.text_field :name %>
   <% fields_for @person.contact_detail do |contact_details_form| %>
     <%= contact_details_form.text_field :phone_number %>
@@ -554,11 +554,11 @@ A common task is uploading some sort of file, whether it's a picture of a person
 The following two forms both upload a file.
 
 <erb>
-<% form_tag({:action => :upload}, :multipart => true) do %>
+<%= form_tag({:action => :upload}, :multipart => true) do %>
   <%= file_field_tag 'picture' %>
 <% end %>
 
-<% form_for @person, :html => {:multipart => true} do |f| %>
+<%= form_for @person, :html => {:multipart => true} do |f| %>
   <%= f.file_field :picture %>
 <% end %>
 </erb>
@@ -591,7 +591,7 @@ h3. Customizing Form Builders
 As mentioned previously the object yielded by +form_for+ and +fields_for+ is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example
 
 <erb>
-<% form_for @person do |f| %>
+<%= form_for @person do |f| %>
   <%= text_field_with_label f, :first_name %>
 <% end %>
 </erb>
@@ -599,7 +599,7 @@ As mentioned previously the object yielded by +form_for+ and +fields_for+ is an 
 can be replaced with
 
 <erb>
-<% form_for @person, :builder => LabellingFormBuilder do |f| %>
+<%= form_for @person, :builder => LabellingFormBuilder do |f| %>
   <%= f.text_field :first_name %>
 <% end %>
 </erb>
@@ -694,7 +694,7 @@ The previous sections did not use the Rails form helpers at all. While you can c
 You might want to render a form with a set of edit fields for each of a person's addresses. For example:
 
 <erb>
-<% form_for @person do |person_form| %>
+<%= form_for @person do |person_form| %>
   <%= person_form.text_field :name %>
   <% for address in @person.addresses %>
     <% person_form.fields_for address, :index => address do |address_form|%>
