@@ -255,12 +255,12 @@ The +destroy+ action redirects to the application's +root_url+, where the messag
 <html>
   <!-- <head/> -->
   <body>
-    <% if flash[:notice] -%>
+    <% if flash[:notice] %>
       <p class="notice"><%= flash[:notice] %></p>
-    <% end -%>
-    <% if flash[:error] -%>
+    <% end %>
+    <% if flash[:error] %>
       <p class="error"><%= flash[:error] %></p>
-    <% end -%>
+    <% end %>
     <!-- more content -->
   </body>
 </html>
@@ -494,7 +494,7 @@ If you generate a form like this:
 <ruby>
 <%= form_for @user do |f| %>
   <%= f.text_field :username %>
-  <%= f.text_field :password -%>
+  <%= f.text_field :password %>
 <% end %>
 </ruby>
 
