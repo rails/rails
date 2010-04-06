@@ -385,7 +385,7 @@ You can unpack or install a single gem by specifying +GEM=_gem_name_+ on the com
 h4. Other Railties Changes
 
 * If you're a fan of the "Thin":http://code.macournoyer.com/thin/ web server, you'll be happy to know that +script/server+ now supports Thin directly.
-* +script/plugin install <plugin> -r <revision>+ now works with git-based as well as svn-based plugins.
+* +script/plugin install &lt;plugin&gt; -r &lt;revision&gt;+ now works with git-based as well as svn-based plugins.
 * +script/console+ now supports a +--debugger+ option
 * Instructions for setting up a continuous integration server to build Rails itself are included in the Rails source
 * +rake notes:custom ANNOTATION=MYFLAG+ lets you list out custom annotations.
