@@ -349,7 +349,7 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
-  def search_field
+  def test_search_field
     expected = %{<input id="contact_notes_query" size="30" name="contact[notes_query]" type="search" />}
     assert_dom_equal(expected, search_field("contact", "notes_query"))
   end
