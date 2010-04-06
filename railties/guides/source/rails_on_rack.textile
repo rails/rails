@@ -28,7 +28,7 @@ h3. Rails on Rack
 
 h4. Rails Application's Rack Object
 
-<tt>ActionController::Dispatcher.new</tt> is the primary Rack application object of a Rails application. Any Rack compliant web server should be using +ActionController::Dispatcher.new+ object to serve a Rails application.</p>
+<tt>ActionController::Dispatcher.new</tt> is the primary Rack application object of a Rails application. Any Rack compliant web server should be using +ActionController::Dispatcher.new+ object to serve a Rails application.
 
 h4. +rails server+
 
