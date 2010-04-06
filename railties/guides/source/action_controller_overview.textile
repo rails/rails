@@ -492,10 +492,10 @@ The way this is done is to add a non-guessable token which is only known to your
 If you generate a form like this:
 
 <ruby>
-<% form_for @user do |f| -%>
+<%= form_for @user do |f| %>
   <%= f.text_field :username %>
   <%= f.text_field :password -%>
-<% end -%>
+<% end %>
 </ruby>
 
 You will see how the token gets added as a hidden field:
