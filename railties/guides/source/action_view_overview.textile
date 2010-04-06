@@ -1304,7 +1304,7 @@ h4. PrototypeHelper::JavaScriptGenerator::GeneratorMethods
 
 JavaScriptGenerator generates blocks of JavaScript code that allow you to change the content and presentation of multiple DOM elements. Use this in your Ajax response bodies, either in a +script+ tag or as plain JavaScript sent with a Content-type of "text/javascript".
 
-h5. <<
+h5(#push). <<
 
 Writes raw JavaScript to the page.
 
@@ -1312,7 +1312,7 @@ Writes raw JavaScript to the page.
 page << "alert('JavaScript with Prototype.');"
 </ruby>
 
-h5. []
+h5(#at). []
 
 Returns a element reference by finding it through it's id in the DOM.
 

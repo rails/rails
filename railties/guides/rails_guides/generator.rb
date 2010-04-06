@@ -48,6 +48,7 @@ require 'set'
 require 'fileutils'
 
 require 'active_support/core_ext/string/output_safety'
+require 'active_support/core_ext/object/blank'
 require 'action_controller'
 require 'action_view'
 
@@ -57,14 +58,14 @@ require 'rails_guides/levenshtein'
 
 module RailsGuides
   class Generator
-    attr_reader :guides_dir, :source_dir, :output_dir, :edge
+    attr_reader :guides_dir, :source_dir, :output_dir, :edge, :warnings, :all
 
     GUIDES_RE = /\.(?:textile|html\.erb)$/
 
     def initialize(output=nil)
       initialize_dirs(output)
       create_output_dir_if_needed
-      set_edge
+      set_flags_from_environment
     end
 
     def generate
@@ -83,8 +84,10 @@ module RailsGuides
       FileUtils.mkdir_p(output_dir)
     end
 
-    def set_edge
-      @edge = ENV['EDGE'] == '1'
+    def set_flags_from_environment
+      @edge     = ENV['EDGE']     == '1'
+      @warnings = ENV['WARNINGS'] == '1'
+      @all      = ENV['ALL']      == '1'
     end
 
     def generate_guides
@@ -117,7 +120,7 @@ module RailsGuides
     def generate?(source_file, output_file)
       fin  = File.join(source_dir, source_file)
       fout = File.join(output_dir, output_file)
-      ENV['ALL'] == '1' || !File.exists?(fout) || File.mtime(fout) < File.mtime(fin)
+      all || !File.exists?(fout) || File.mtime(fout) < File.mtime(fin)
     end
 
     def generate_guide(guide, output_file)
@@ -136,7 +139,7 @@ module RailsGuides
 
           result = view.render(:layout => 'layout', :text => textile(body))
 
-          warn_about_broken_links(result) if ENV['WARNINGS'] == '1'
+          warn_about_broken_links(result) if @warnings
         end
 
         f.write result
@@ -164,16 +167,16 @@ module RailsGuides
         <ol class="chapters">
       INDEX
 
-      i = Indexer.new(body)
+      i = Indexer.new(body, warnings)
       i.index
 
       # Set index for 2 levels
       i.level_hash.each do |key, value|
-        link = view.content_tag(:a, :href => key[:id]) { textile(key[:title]).html_safe }
+        link = view.content_tag(:a, :href => key[:id]) { textile(key[:title], true).html_safe }
 
         children = value.keys.map do |k|
-          l = view.content_tag(:a, :href => k[:id]) { textile(k[:title]).html_safe }
-          view.content_tag(:li, l.html_safe)
+          view.content_tag(:li,
+            view.content_tag(:a, :href => k[:id]) { textile(k[:title], true).html_safe })
         end
 
         children_ul = children.empty? ? "" : view.content_tag(:ul, children.join(" ").html_safe)
@@ -189,11 +192,12 @@ module RailsGuides
       i.result
     end
 
-    def textile(body)
+    def textile(body, lite_mode=false)
       # If the issue with notextile is fixed just remove the wrapper.
       with_workaround_for_notextile(body) do |body|
         t = RedCloth.new(body)
         t.hard_breaks = false
+        t.lite_mode = lite_mode
         t.to_html(:notestuff, :plusplus, :code, :tip)
       end
     end
