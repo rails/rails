@@ -118,11 +118,6 @@ class ObjectTests < ActiveSupport::TestCase
     assert duck.acts_like?(:time)
     assert !duck.acts_like?(:date)
   end
-
-  def test_singleton_class
-    o = Object.new
-    assert_equal class << o; self end, o.singleton_class
-  end
 end
 
 class ObjectInstanceVariableTest < Test::Unit::TestCase

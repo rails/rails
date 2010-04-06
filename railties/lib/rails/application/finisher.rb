@@ -3,6 +3,10 @@ module Rails
     module Finisher
       include Initializable
 
+      initializer :add_generator_templates do
+        config.generators.templates.unshift(*paths.lib.templates.to_a)
+      end
+
       initializer :ensure_load_once_paths_as_subset do
         extra = ActiveSupport::Dependencies.load_once_paths -
                 ActiveSupport::Dependencies.load_paths

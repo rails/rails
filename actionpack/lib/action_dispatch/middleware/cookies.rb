@@ -1,7 +1,9 @@
+require "active_support/core_ext/object/blank"
+
 module ActionDispatch
   class Request
-    def cookie_jar(config = {})
-      env['action_dispatch.cookies'] ||= Cookies::CookieJar.build(self, config)
+    def cookie_jar
+      env['action_dispatch.cookies'] ||= Cookies::CookieJar.build(self)
     end
   end
 
@@ -51,17 +53,17 @@ module ActionDispatch
   #   only HTTP. Defaults to +false+.
   class Cookies
     class CookieJar < Hash #:nodoc:
-      def self.build(request, config = {})
-        new(config).tap do |hash|
+      def self.build(request)
+        secret = request.env["action_dispatch.secret_token"]
+        new(secret).tap do |hash|
           hash.update(request.cookies)
         end
       end
 
-      def initialize(config = {})
-        @config = config
+      def initialize(secret=nil)
+        @secret = secret
         @set_cookies = {}
         @delete_cookies = {}
-
         super()
       end
 
@@ -112,7 +114,7 @@ module ActionDispatch
       #   cookies.permanent.signed[:remember_me] = current_user.id
       #   # => Set-Cookie: discount=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
       def permanent
-        @permanent ||= PermanentCookieJar.new(self, @config)
+        @permanent ||= PermanentCookieJar.new(self, @secret)
       end
 
       # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
@@ -120,7 +122,7 @@ module ActionDispatch
       # cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception will
       # be raised.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's config.cookie_secret.
+      # This jar requires that you set a suitable secret for the verification on your app's config.secret_token.
       #
       # Example:
       #
@@ -129,7 +131,7 @@ module ActionDispatch
       #
       #   cookies.signed[:discount] # => 45
       def signed
-        @signed ||= SignedCookieJar.new(self, @config)
+        @signed ||= SignedCookieJar.new(self, @secret)
       end
 
       def write(response)
@@ -139,9 +141,8 @@ module ActionDispatch
     end
 
     class PermanentCookieJar < CookieJar #:nodoc:
-      def initialize(parent_jar, config = {})
-        @parent_jar = parent_jar
-        @config = config
+      def initialize(parent_jar, secret)
+        @parent_jar, @secret = parent_jar, secret
       end
 
       def []=(key, options)
@@ -156,7 +157,7 @@ module ActionDispatch
       end
 
       def signed
-        @signed ||= SignedCookieJar.new(self, @config)
+        @signed ||= SignedCookieJar.new(self, @secret)
       end
 
       def method_missing(method, *arguments, &block)
@@ -165,11 +166,10 @@ module ActionDispatch
     end
 
     class SignedCookieJar < CookieJar #:nodoc:
-      def initialize(parent_jar, config = {})
-        raise 'Missing cookie signing secret' if config[:signing_secret].blank?
+      def initialize(parent_jar, secret)
+        raise "You must set config.secret_token in your app's config" if secret.blank?
         @parent_jar = parent_jar
-        @config = config
-        @verifier = ActiveSupport::MessageVerifier.new(config[:signing_secret])
+        @verifier   = ActiveSupport::MessageVerifier.new(secret)
       end
 
       def [](name)

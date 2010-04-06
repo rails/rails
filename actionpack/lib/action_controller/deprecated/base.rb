@@ -6,6 +6,15 @@ module ActionController
         deprecated_config_writer(option, message)
       end
 
+      # This method has been moved to ActionDispatch::Request.filter_parameters
+      def filter_parameter_logging(*args, &block)
+        ActiveSupport::Deprecation.warn("Setting filter_parameter_logging in ActionController is deprecated and has no longer effect, please set 'config.filter_parameters' in config/application.rb instead", caller)
+        filter = Rails.application.config.filter_parameters
+        filter.concat(args)
+        filter << block if block
+        filter
+      end
+
       def deprecated_config_reader(option, message = nil)
         message ||= "Reading #{option} directly from ActionController::Base is deprecated. " \
                     "Please read it from config.#{option}"
@@ -68,14 +77,11 @@ module ActionController
 
       def cookie_verifier_secret=(value)
         ActiveSupport::Deprecation.warn "ActionController::Base.cookie_verifier_secret= is deprecated. " <<
-          "Please configure it on your application with config.cookie_secret=", caller
-        ActionController::Base.config.secret = value
+          "Please configure it on your application with config.secret_token=", caller
       end
 
       def cookie_verifier_secret
-        ActiveSupport::Deprecation.warn "ActionController::Base.cookie_verifier_secret is deprecated. " <<
-          "Please use ActionController::Base.config.secret instead.", caller
-        ActionController::Base.config.secret
+        ActiveSupport::Deprecation.warn "ActionController::Base.cookie_verifier_secret is deprecated.", caller
       end
 
       def trusted_proxies=(value)

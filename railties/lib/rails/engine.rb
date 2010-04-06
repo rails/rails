@@ -20,7 +20,6 @@ module Rails
   #   # lib/my_engine.rb
   #   module MyEngine
   #     class Engine < Rails::Engine
-  #       engine_name :my_engine
   #     end
   #   end
   #
@@ -38,11 +37,12 @@ module Rails
   # Example:
   #
   #   class MyEngine < Rails::Engine
-  #     # config.middleware is shared configururation
-  #     config.middleware.use MyEngine::Middleware
-  #
   #     # Add a load path for this specific Engine
   #     config.load_paths << File.expand_path("../lib/some/path", __FILE__)
+  #
+  #     initializer "my_engine.add_middleware" do |app|
+  #       app.middlewares.use MyEngine::Middleware
+  #     end
   #   end
   # 
   # == Paths
@@ -193,17 +193,13 @@ module Rails
       app.metal_loader.paths.unshift(*paths.app.metals.to_a)
     end
 
-    initializer :add_generator_templates do |app|
-      config.generators.templates.unshift(*paths.lib.templates.to_a)
-    end
-
-    initializer :load_application_initializers do
+    initializer :load_config_initializers do
       paths.config.initializers.to_a.sort.each do |initializer|
         load(initializer)
       end
     end
 
-    initializer :load_application_classes do |app|
+    initializer :load_app_classes do |app|
       next if $rails_rake_task
 
       if app.config.cache_classes

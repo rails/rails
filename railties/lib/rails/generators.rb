@@ -3,7 +3,7 @@ $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.inc
 
 require 'active_support'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/object/singleton_class'
+require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/module/attribute_accessors'
@@ -26,7 +26,6 @@ module Rails
         :orm => '-o',
         :resource_controller => '-c',
         :scaffold_controller => '-c',
-        :stylesheets => '-y',
         :template_engine => '-e',
         :test_framework => '-t'
       },
@@ -42,21 +41,15 @@ module Rails
     }
 
     DEFAULT_OPTIONS = {
-      :erb => {
-        :layout => true
-      },
-
       :rails => {
         :force_plural => false,
         :helper => true,
-        :layout => true,
         :orm => nil,
         :integration_tool => nil,
         :performance_tool => nil,
         :resource_controller => :controller,
         :scaffold_controller => :scaffold_controller,
         :singleton => false,
-        :stylesheets => true,
         :test_framework => nil,
         :template_engine => :erb
       },

@@ -1,3 +1,7 @@
+* A new application now comes with a layout and a stylesheet. [JV]
+
+* Renamed config.cookie_secret to config.secret_token and pass it as env key. [JV]
+
 *Rails 3.0.0 [beta 2] (April 1st, 2010)*
 
 * Session store configuration has changed [YK & CL]
@@ -6,11 +10,10 @@
     config.cookie_secret = "fdsfhisdghfidugnfdlg"
 
 * railtie_name and engine_name are deprecated. You can now add any object to
-  the configuration object: config.your_plugin = {} [JK]
+  the configuration object: config.your_plugin = {} [JV]
 
 * Added config.generators.templates to provide alternative paths for the generators
   to look for templates [JV]
-
 
 *Rails 3.0.0 [beta 1] (February 4, 2010)*
 

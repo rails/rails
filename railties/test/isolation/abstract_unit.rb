@@ -100,7 +100,7 @@ module TestHelpers
         end
       end
 
-      add_to_config 'config.cookie_secret = "3b7cd727ee24e8444053437c36cc66c4"; config.session_store :cookie_store, :key => "_myapp_session"'
+      add_to_config 'config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"; config.session_store :cookie_store, :key => "_myapp_session"'
     end
 
     class Bukkit

@@ -405,6 +405,9 @@ module ActiveRecord
             else
               super
             end
+          elsif @reflection.klass.scopes[method]
+            @_scopes ||= {}
+            @_scopes[method] ||= with_scope(construct_scope) { @reflection.klass.send(method, *args) }
           else
             with_scope(construct_scope) do
               if block_given?
