@@ -135,7 +135,6 @@ module ActionController #:nodoc:
     def to_format
       default_render
     rescue ActionView::MissingTemplate => e
-      raise unless resourceful?
       api_behavior(e)
     end
 
@@ -154,6 +153,8 @@ module ActionController #:nodoc:
 
     # This is the common behavior for "API" requests, like :xml and :json.
     def api_behavior(error)
+      raise error unless resourceful?
+
       if get?
         display resource
       elsif has_errors?
