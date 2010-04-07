@@ -39,6 +39,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       match 'account/modulo/:name', :to => redirect("/%{name}s")
       match 'account/proc/:name', :to => redirect {|params| "/#{params[:name].pluralize}" }
+      match 'account/proc_req' => redirect {|params, req| "/#{req.method}" }
+
       match 'account/google' => redirect('http://www.google.com/')
 
       match 'openid/login', :via => [:get, :post], :to => "openid#login"
@@ -347,6 +349,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/account/proc/person'
       assert_equal 301, @response.status
       assert_equal 'http://www.example.com/people', @response.headers['Location']
+      assert_equal 'Moved Permanently', @response.body
+    end
+  end
+
+  def test_redirect_proc_with_request
+    with_test_routes do
+      get '/account/proc_req'
+      assert_equal 301, @response.status
+      assert_equal 'http://www.example.com/GET', @response.headers['Location']
       assert_equal 'Moved Permanently', @response.body
     end
   end

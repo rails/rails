@@ -61,7 +61,7 @@ module Rails
       @config ||= Engine::Configuration.new
     end
 
-    initializer :load_init_rb, :before => :load_application_initializers do |app|
+    initializer :load_init_rb, :before => :load_config_initializers do |app|
       files = %w(rails/init.rb init.rb).map { |path| File.expand_path path, root }
       if initrb = files.find { |path| File.file? path }
         if initrb == files.first

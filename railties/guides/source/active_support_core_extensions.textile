@@ -212,7 +212,7 @@ String.new.singleton_class # => #<Class:#<String:0x17a1d1c>>
 WARNING: Fixnums and symbols have no singleton classes, +singleton_class+
 raises +TypeError+ on them. Moreover, the singleton classes of +nil+, +true+, and +false+, are +NilClass+, +TrueClass+, and +FalseClass+, respectively.
 
-NOTE: Defined in +active_support/core_ext/object/singleton_class.rb+.
+NOTE: Defined in +active_support/core_ext/kernel/singleton_class.rb+.
 
 h4. +class_eval(*args, &block)+
 
@@ -233,7 +233,7 @@ class Proc
 end
 </ruby>
 
-NOTE: Defined in +active_support/core_ext/object/singleton_class.rb+.
+NOTE: Defined in +active_support/core_ext/kernel/singleton_class.rb+.
 
 h4. +acts_like?(duck)+
 
@@ -866,7 +866,7 @@ WARNING: Note that in that case +parent+ returns +Object+.
 
 NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
 
-h5. +parents+
+h5(#module-parents). +parents+
 
 The method +parents+ calls +parent+ on the receiver and upwards until +Object+ is reached. The chain is returned in an array, from bottom to top:
 
@@ -2191,9 +2191,9 @@ NOTE: Defined in +active_support/core_ext/array/grouping.rb+.
 
 h3. Extensions to +Hash+
 
-h4. Conversions
+h4(#hash-conversions). Conversions
 
-h5. +to_xml+
+h5(#hash-to-xml). +to_xml+
 
 The method +to_xml+ returns a string containing an XML representation of its receiver:
 

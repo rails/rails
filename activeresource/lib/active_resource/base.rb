@@ -251,6 +251,9 @@ module ActiveResource
     # The logger for diagnosing and tracing Active Resource calls.
     cattr_accessor :logger
 
+    # Controls the top-level behavior of JSON serialization
+    cattr_accessor :include_root_in_json, :instance_writer => false
+
     class << self
       # Creates a schema for this resource - setting the attributes that are
       # known prior to fetching an instance from the remote system.
@@ -1240,6 +1243,12 @@ module ActiveResource
       case self.class.format
         when ActiveResource::Formats::XmlFormat
           self.class.format.encode(attributes, {:root => self.class.element_name}.merge(options))
+        when ActiveResource::Formats::JsonFormat 
+          if ActiveResource::Base.include_root_in_json
+            self.class.format.encode({self.class.element_name => attributes}, options)
+          else
+            self.class.format.encode(attributes, options)
+          end
         else
           self.class.format.encode(attributes, options)
       end

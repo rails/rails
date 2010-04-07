@@ -172,6 +172,18 @@ module ApplicationTests
       assert $prepared
     end
 
+    test "config.encoding sets the default encoding" do
+      add_to_config <<-RUBY
+        config.encoding = "utf-8"
+      RUBY
+
+      require "#{app_path}/config/application"
+
+      unless RUBY_VERSION < '1.9'
+        assert_equal Encoding.find("utf-8"), Encoding.default_external
+      end
+    end
+
     def make_basic_app
       require "rails"
       require "action_controller/railtie"
@@ -232,6 +244,22 @@ module ApplicationTests
 
       get "/"
       assert_equal File.expand_path(__FILE__), last_response.headers["X-Lighttpd-Send-File"]
+    end
+
+    test "config.secret_token is sent in env" do
+      make_basic_app do |app|
+        app.config.secret_token = 'ThisIsASECRET123'
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          cookies.signed[:some_key] = "some_value"
+          render :text => env["action_dispatch.secret_token"]
+        end
+      end
+
+      get "/"
+      assert_equal 'ThisIsASECRET123', last_response.body
     end
 
     test "protect from forgery is the default in a new app" do

@@ -41,8 +41,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   setup do
     # Used as secret in generating nonce to prevent tampering of timestamp
     @secret = "session_options_secret"
-    @controller.config.secret = @secret
-    # @old_secret, ActionController::Base.config.secret[:secret] = ActionController::Base.session_options[:secret], @secret
+    @request.env["action_dispatch.secret_token"] = @secret
   end
 
   teardown do
@@ -206,7 +205,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   test "validate_digest_response should fail with nil returning password_procedure" do
     @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => nil, :password => nil)
-    assert !ActionController::HttpAuthentication::Digest.validate_digest_response(@secret, @request, "SuperSecret"){nil}
+    assert !ActionController::HttpAuthentication::Digest.validate_digest_response(@request, "SuperSecret"){nil}
   end
 
   private

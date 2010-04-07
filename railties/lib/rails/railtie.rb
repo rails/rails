@@ -39,7 +39,6 @@ module Rails
   #   # lib/my_gem/railtie.rb
   #   module MyGem
   #     class Railtie < Rails::Railtie
-  #       railtie_name :mygem
   #     end
   #   end
   # 
@@ -51,24 +50,8 @@ module Rails
   # 
   #   module MyGem
   #     class Railtie < Rails::Railtie
-  #       railtie_name :mygem
   #     end
   #   end
-  #   
-  # * Make sure your Gem loads the railtie.rb file if Rails is loaded first, an easy
-  #   way to check is by checking for the Rails constant which will exist if Rails
-  #   has started:
-  # 
-  #   # lib/my_gem.rb
-  #   module MyGem
-  #     require 'lib/my_gem/railtie' if defined?(Rails)
-  #   end
-  # 
-  # * Or instead of doing the require automatically, you can ask your users to require
-  #   it for you in their Gemfile:
-  # 
-  #   # #{USER_RAILS_ROOT}/Gemfile
-  #   gem "my_gem", :require_as => ["my_gem", "my_gem/railtie"]
   #
   # == Initializers
   #
@@ -82,13 +65,11 @@ module Rails
   #   end
   #
   # If specified, the block can also receive the application object, in case you 
-  # need to access some application specific configuration:
+  # need to access some application specific configuration, like middleware:
   #
   #   class MyRailtie < Rails::Railtie
   #     initializer "my_railtie.configure_rails_initialization" do |app|
-  #       if app.config.cache_classes
-  #         # some initialization behavior
-  #       end
+  #       app.middlewares.use MyRailtie::Middleware
   #     end
   #   end
   #
@@ -103,9 +84,6 @@ module Rails
   #   class MyRailtie < Rails::Railtie
   #     # Customize the ORM
   #     config.generators.orm :my_railtie_orm
-  #
-  #     # Add a middleware
-  #     config.middlewares.use MyRailtie::Middleware
   #
   #     # Add a to_prepare block which is executed once in production
   #     # and before which request in development
@@ -160,7 +138,7 @@ module Rails
   # By registering it:
   #
   #   class MyRailtie < Railtie
-  #     subscriber MyRailtie::Subscriber.new
+  #     subscriber :my_gem, MyRailtie::Subscriber.new
   #   end
   #
   # Take a look in Rails::Subscriber docs for more information.

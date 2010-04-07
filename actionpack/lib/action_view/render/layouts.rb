@@ -1,37 +1,51 @@
 module ActionView
   module Layouts
-    # You can think of a layout as a method that is called with a block. _layout_for
-    # returns the contents that are yielded to the layout. If the user calls yield
-    # :some_name, the block, by default, returns content_for(:some_name). If the user
-    # calls yield, the default block returns content_for(:layout).
+    # Returns the contents that are yielded to a layout, given a name or a block.
     #
-    # The user can override this default by passing a block to the layout.
+    # You can think of a layout as a method that is called with a block. If the user calls
+    # <tt>yield :some_name</tt>, the block, by default, returns <tt>content_for(:some_name)</tt>.
+    # If the user calls simply +yield+, the default block returns <tt>content_for(:layout)</tt>.
     #
-    # ==== Example
-    #
-    #   # The template
-    #   <%= render :layout => "my_layout" do %>Content<% end %>
-    #
-    #   # The layout
-    #   <html><% yield %></html>
-    #
-    # In this case, instead of the default block, which would return content_for(:layout),
-    # this method returns the block that was passed in to render layout, and the response
-    # would be <html>Content</html>.
-    #
-    # Finally, the block can take block arguments, which can be passed in by yield.
-    #
-    # ==== Example
+    # The user can override this default by passing a block to the layout:
     #
     #   # The template
-    #   <%= render :layout => "my_layout" do |customer| %>Hello <%= customer.name %><% end %>
+    #   <%= render :layout => "my_layout" do %>
+    #     Content
+    #   <% end %>
     #
     #   # The layout
-    #   <html><% yield Struct.new(:name).new("David") %></html>
+    #   <html>
+    #     <%= yield %>
+    #   </html>
+    #
+    # In this case, instead of the default block, which would return <tt>content_for(:layout)</tt>,
+    # this method returns the block that was passed in to <tt>render :layout</tt>, and the response
+    # would be
+    #
+    #   <html>
+    #     Content
+    #   </html>
+    #
+    # Finally, the block can take block arguments, which can be passed in by +yield+:
+    #
+    #   # The template
+    #   <%= render :layout => "my_layout" do |customer| %>
+    #     Hello <%= customer.name %>
+    #   <% end %>
+    #
+    #   # The layout
+    #   <html>
+    #     <%= yield Struct.new(:name).new("David") %>
+    #   </html>
     #
     # In this case, the layout would receive the block passed into <tt>render :layout</tt>,
-    # and the Struct specified in the layout would be passed into the block. The result
-    # would be <html>Hello David</html>.
+    # and the struct specified would be passed into the block as an argument. The result
+    # would be
+    #
+    #   <html>
+    #     Hello David
+    #   </html>
+    #
     def _layout_for(name = nil, &block) #:nodoc:
       if !block || name
         @_content_for[name || :layout]

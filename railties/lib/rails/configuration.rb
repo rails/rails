@@ -104,6 +104,18 @@ module Rails
           "please do paths.app.controllers instead", caller
         paths.app.controllers.to_a.uniq
       end
+
+      def cookie_secret=(value)
+        ActiveSupport::Deprecation.warn "config.cookie_secret= is deprecated, " <<
+          "please use config.secret_token= instead", caller
+        self.secret_token = value
+      end
+
+      def cookie_secret
+        ActiveSupport::Deprecation.warn "config.cookie_secret is deprecated, " <<
+          "please use config.secret_token instead", caller
+        self.secret_token
+      end
     end
   end
 end

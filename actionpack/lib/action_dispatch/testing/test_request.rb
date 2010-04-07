@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/reverse_merge'
 
 module ActionDispatch
   class TestRequest < Request
@@ -9,6 +10,7 @@ module ActionDispatch
     end
 
     def initialize(env = {})
+      env = Rails.application.env_defaults.merge(env) if defined?(Rails.application)
       super(DEFAULT_ENV.merge(env))
 
       self.host        = 'test.host'

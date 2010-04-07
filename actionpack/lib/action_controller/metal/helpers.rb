@@ -36,7 +36,7 @@ module ActionController
   #
   #   <% @events.each do |event| -%>
   #     <p>
-  #       <% format_time(event.time, :short, "N/A") %> | <%= event.name %>
+  #       <%= format_time(event.time, :short, "N/A") %> | <%= event.name %>
   #     </p>
   #   <% end -%>
   #

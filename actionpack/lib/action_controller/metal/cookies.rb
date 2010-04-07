@@ -7,7 +7,7 @@ module ActionController #:nodoc:
     included do
       helper_method :cookies
     end
-    
+
     private
       def cookies
         request.cookie_jar

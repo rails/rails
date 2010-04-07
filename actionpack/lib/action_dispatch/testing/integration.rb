@@ -1,6 +1,6 @@
 require 'stringio'
 require 'uri'
-require 'active_support/core_ext/object/singleton_class'
+require 'active_support/core_ext/kernel/singleton_class'
 require 'rack/test'
 require 'test/unit/assertions'
 
@@ -137,7 +137,10 @@ module ActionDispatch
       end
 
       # The hostname used in the last request.
-      attr_accessor :host
+      def host
+        @host || DEFAULT_HOST
+      end
+      attr_writer :host
 
       # The remote_addr used in the last request.
       attr_accessor :remote_addr
@@ -148,7 +151,7 @@ module ActionDispatch
       # A map of the cookies returned by the last response, and which will be
       # sent with the next request.
       def cookies
-        @mock_session.cookie_jar
+        _mock_session.cookie_jar
       end
 
       # A reference to the controller instance used by the last request.
@@ -189,8 +192,8 @@ module ActionDispatch
       #   session.reset!
       def reset!
         @https = false
-        @mock_session = Rack::MockSession.new(@app, DEFAULT_HOST)
         @controller = @request = @response = nil
+        @_mock_session = nil
         @request_count = 0
 
         self.host        = DEFAULT_HOST
@@ -234,6 +237,9 @@ module ActionDispatch
       end
 
       private
+        def _mock_session
+          @_mock_session ||= Rack::MockSession.new(@app, host)
+        end
 
         # Performs the actual request.
         def process(method, path, parameters = nil, rack_environment = nil)
@@ -254,7 +260,7 @@ module ActionDispatch
             :method => method,
             :params => parameters,
 
-            "SERVER_NAME"     => host,
+            "SERVER_NAME"     => host.split(':')[0],
             "SERVER_PORT"     => (https? ? "443" : "80"),
             "HTTPS"           => https? ? "on" : "off",
             "rack.url_scheme" => https? ? "https" : "http",
@@ -266,17 +272,25 @@ module ActionDispatch
             "HTTP_ACCEPT"    => accept
           }
 
-          session = Rack::Test::Session.new(@mock_session)
+          session = Rack::Test::Session.new(_mock_session)
 
           (rack_environment || {}).each do |key, value|
             env[key] = value
           end
 
-          session.request(path, env)
+          # NOTE: rack-test v0.5 doesn't build a default uri correctly
+          # Make sure requested path is always a full uri
+          uri = URI.parse('/')
+          uri.scheme ||= env['rack.url_scheme']
+          uri.host   ||= env['SERVER_NAME']
+          uri.port   ||= env['SERVER_PORT'].try(:to_i)
+          uri += path
+
+          session.request(uri.to_s, env)
 
           @request_count += 1
           @request  = ActionDispatch::Request.new(session.last_request.env)
-          response = @mock_session.last_response
+          response = _mock_session.last_response
           @response = ActionDispatch::TestResponse.new(response.status, response.headers, response.body)
           @html_document = nil
 

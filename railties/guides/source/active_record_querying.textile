@@ -742,7 +742,7 @@ end
 The above code will execute just <strong>2</strong> queries, as opposed to <strong>11</strong> queries in the previous case:
 
 <sql>
-SELECT * FROM clients
+SELECT * FROM clients LIMIT 10
 SELECT addresses.* FROM addresses
   WHERE (addresses.client_id IN (1,2,3,4,5,6,7,8,9,10))
 </sql>

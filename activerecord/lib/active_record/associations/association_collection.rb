@@ -105,6 +105,7 @@ module ActiveRecord
 
       def reset
         reset_target!
+        reset_named_scopes_cache!
         @loaded = false
       end
 
@@ -162,6 +163,7 @@ module ActiveRecord
         load_target
         delete(@target)
         reset_target!
+        reset_named_scopes_cache!
       end
       
       # Calculate sum using SQL, not Enumerable
@@ -250,6 +252,7 @@ module ActiveRecord
         load_target
         destroy(@target)
         reset_target!
+        reset_named_scopes_cache!
       end
 
       def create(attrs = {})
@@ -405,6 +408,9 @@ module ActiveRecord
             else
               super
             end
+          elsif @reflection.klass.scopes[method]
+            @_named_scopes_cache ||= {}
+            @_named_scopes_cache[method] ||= with_scope(construct_scope) { @reflection.klass.send(method, *args) }
           else
             with_scope(construct_scope) do
               if block_given?
@@ -423,6 +429,10 @@ module ActiveRecord
 
         def reset_target!
           @target = Array.new
+        end
+
+        def reset_named_scopes_cache!
+          @_named_scopes_cache = {}
         end
 
         def find_target

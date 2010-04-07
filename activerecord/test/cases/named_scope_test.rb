@@ -413,6 +413,25 @@ class NamedScopeTest < ActiveRecord::TestCase
       Topic.approved.by_lifo.replied.written_before(Time.now).all
     end
   end
+
+  def test_named_scopes_are_cached_on_associations
+    post = posts(:welcome)
+
+    assert_equal post.comments.containing_the_letter_e.object_id, post.comments.containing_the_letter_e.object_id
+
+    post.comments.containing_the_letter_e.all # force load
+    assert_no_queries { post.comments.containing_the_letter_e.all }
+  end
+
+  def test_named_scopes_are_reset_on_association_reload
+    post = posts(:welcome)
+
+    [:destroy_all, :reset, :delete_all].each do |method|
+      before = post.comments.containing_the_letter_e
+      post.comments.send(method)
+      assert before.object_id != post.comments.containing_the_letter_e.object_id, "AssociationCollection##{method} should reset the named scopes cache"
+    end
+  end
 end
 
 class DynamicScopeMatchTest < ActiveRecord::TestCase

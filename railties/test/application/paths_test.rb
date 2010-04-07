@@ -71,6 +71,7 @@ module ApplicationTests
       assert_in_load_path "lib"
       assert_in_load_path "vendor"
 
+      assert_not_in_load_path "app", "views"
       assert_not_in_load_path "app", "metal"
       assert_not_in_load_path "config"
       assert_not_in_load_path "config", "locales"

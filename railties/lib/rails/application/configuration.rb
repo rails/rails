@@ -6,21 +6,29 @@ module Rails
       include ::Rails::Configuration::Deprecated
 
       attr_accessor :allow_concurrency, :cache_classes, :cache_store,
-                    :cookie_secret, :consider_all_requests_local, :dependency_loading,
+                    :encoding, :consider_all_requests_local, :dependency_loading,
                     :filter_parameters,  :log_level, :logger, :metals,
                     :plugins, :preload_frameworks, :reload_engines, :reload_plugins,
-                    :serve_static_assets, :time_zone, :whiny_nils
+                    :secret_token, :serve_static_assets, :time_zone, :whiny_nils
 
       def initialize(*)
         super
-        @allow_concurrency   = false
-        @filter_parameters   = []
-        @dependency_loading  = true
+        @allow_concurrency = false
+        @consider_all_requests_local = false
+        @encoding = "utf-8"
+        @filter_parameters = []
+        @dependency_loading = true
         @serve_static_assets = true
-        @time_zone           = "UTC"
-        @consider_all_requests_local = true
         @session_store = :cookie_store
         @session_options = {}
+        @time_zone = "UTC"
+      end
+
+      def encoding=(value)
+        @encoding = value
+        if defined?(Encoding) && Encoding.respond_to?(:default_external=)
+          Encoding.default_external = value
+        end
       end
 
       def middleware
@@ -37,6 +45,7 @@ module Rails
           paths.app.controllers << builtin_controller if builtin_controller
           paths.config.database    "config/database.yml"
           paths.config.environment "config/environments", :glob => "#{Rails.env}.rb"
+          paths.lib.templates      "lib/templates"
           paths.log                "log/#{Rails.env}.log"
           paths.tmp                "tmp"
           paths.tmp.cache          "tmp/cache"
@@ -123,7 +132,7 @@ module Rails
 
       def session_options
         return @session_options unless @session_store == :cookie_store
-        @session_options.merge(:secret => @cookie_secret)
+        @session_options.merge(:secret => @secret_token)
       end
 
       def default_middleware_stack

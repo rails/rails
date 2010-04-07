@@ -13,7 +13,7 @@ module Rails
 
       add_gem_filters
 
-      add_silencer { |line| !APP_DIRS.any? { |dir| line =~ /^#{dir}/ } }
+      add_silencer { |line| !APP_DIRS.any? { |dir| line =~ /^\/?#{dir}/ } }
     end
 
     private

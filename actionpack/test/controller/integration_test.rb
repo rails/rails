@@ -245,6 +245,15 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       render :text => "Gone", :status => 410
     end
 
+    def set_cookie
+      cookies["foo"] = 'bar'
+      head :ok
+    end
+
+    def get_cookie
+      render :text => cookies["foo"]
+    end
+
     def redirect
       redirect_to :action => "get"
     end
@@ -289,6 +298,42 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       get '/cookie_monster'
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
       assert_equal({"cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies.to_hash)
+    end
+  end
+
+  test 'cookie persist to next request' do
+    with_test_route_set do
+      get '/set_cookie'
+      assert_response :success
+
+      assert_equal "foo=bar; path=/", headers["Set-Cookie"]
+      assert_equal({"foo"=>"bar"}, cookies.to_hash)
+
+      get '/get_cookie'
+      assert_response :success
+      assert_equal "bar", body
+
+      assert_equal nil, headers["Set-Cookie"]
+      assert_equal({"foo"=>"bar"}, cookies.to_hash)
+    end
+  end
+
+  test 'cookie persist to next request on another domain' do
+    with_test_route_set do
+      host! "37s.backpack.test"
+
+      get '/set_cookie'
+      assert_response :success
+
+      assert_equal "foo=bar; path=/", headers["Set-Cookie"]
+      assert_equal({"foo"=>"bar"}, cookies.to_hash)
+
+      get '/get_cookie'
+      assert_response :success
+      assert_equal "bar", body
+
+      assert_equal nil, headers["Set-Cookie"]
+      assert_equal({"foo"=>"bar"}, cookies.to_hash)
     end
   end
 

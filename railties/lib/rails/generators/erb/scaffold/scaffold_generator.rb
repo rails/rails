@@ -8,7 +8,6 @@ module Erb
 
       argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
 
-      class_option :layout,    :type => :boolean
       class_option :singleton, :type => :boolean, :desc => "Supply to skip index view"
 
       def create_root_folder
@@ -23,12 +22,6 @@ module Erb
           filename = filename_with_extensions(view)
           template filename, File.join("app/views", controller_file_path, filename)
         end
-      end
-
-      def copy_layout_file
-        return unless options[:layout]
-        template filename_with_extensions(:layout),
-          File.join("app/views/layouts", controller_class_path, filename_with_extensions(controller_file_name))
       end
 
     protected

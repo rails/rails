@@ -208,7 +208,7 @@ h4. Follow the Coding Conventions
 Rails follows a simple set of coding style conventions.
 
 * Two spaces, no tabs
-* Prefer +&&+/+||+ over +and+/+or+
+* Prefer +&amp;&amp;+/+||+ over +and+/+or+
 * +MyClass.my_method(my_arg)+ not +my_method( my_arg )+ or +my_method my_arg+
 * Follow the conventions you see used in the source already
 
@@ -273,7 +273,6 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/64
 
+* April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * August 1, 2009: Updates/amplifications by "Mike Gunderloy":credits.html#mgunderloy
 * March 2, 2009: Initial draft by "Mike Gunderloy":credits.html#mgunderloy
-
-

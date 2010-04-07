@@ -1,3 +1,4 @@
+require 'active_support/core_ext/hash/reverse_merge'
 require 'fileutils'
 require 'rails/plugin'
 require 'rails/engine'
@@ -128,8 +129,14 @@ module Rails
     end
 
     def call(env)
-      env["action_dispatch.parameter_filter"] = config.filter_parameters
-      app.call(env)
+      app.call(env.reverse_merge!(env_defaults))
+    end
+
+    def env_defaults
+      @env_defaults ||= {
+        "action_dispatch.parameter_filter" => config.filter_parameters,
+        "action_dispatch.secret_token" => config.secret_token
+      }
     end
 
     def initializers

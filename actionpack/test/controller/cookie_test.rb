@@ -1,7 +1,5 @@
 require 'abstract_unit'
 
-ActionController::Base.config.secret = "thisISverySECRET123"
-
 class CookieTest < ActionController::TestCase
   class TestController < ActionController::Base
     def authenticate
@@ -76,6 +74,7 @@ class CookieTest < ActionController::TestCase
 
   def setup
     super
+    @request.env["action_dispatch.secret_token"] = "thisISverySECRET123"
     @request.host = "www.nextangle.com"
   end
 

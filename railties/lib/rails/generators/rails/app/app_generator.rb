@@ -137,7 +137,7 @@ module Rails::Generators
     end
 
     def create_public_stylesheets_files
-      empty_directory_with_gitkeep "public/stylesheets"
+      directory "public/stylesheets"
     end
 
     def create_prototype_files
