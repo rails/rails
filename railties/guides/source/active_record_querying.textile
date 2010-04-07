@@ -934,6 +934,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16
 
+* April 7, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * February 3, 2010: Update to Rails 3 by "James Miller":credits.html#bensie
 * February 7, 2009: Second version by "Pratik":credits.html#lifo
 * December 29 2008: Initial version by "Ryan Bigg":credits.html#radar
