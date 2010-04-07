@@ -603,11 +603,11 @@ The +belongs_to+ association supports these options:
 * +:touch+
 * +:validate+
 
-h6. +:autosave+
+h6(#belongs_to-autosave). +:autosave+
 
 If you set the +:autosave+ option to +true+, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.
 
-h6. +:class_name+
+h6(#belongs_to-class_name). +:class_name+
 
 If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if an order belongs to a customer, but the actual name of the model containing customers is +Patron+, you'd set things up this way:
 
@@ -617,7 +617,7 @@ class Order < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:conditions+
+h6(#belongs_to-conditions). +:conditions+
 
 The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL +WHERE+ clause).
 
@@ -666,13 +666,13 @@ end
 
 Counter cache columns are added to the containing model's list of read-only attributes through +attr_readonly+.
 
-h6. +:dependent+
+h6(#belongs_to-dependent). +:dependent+
 
 If you set the +:dependent+ option to +:destroy+, then deleting this object will call the +destroy+ method on the associated object to delete that object. If you set the +:dependent+ option to +:delete+, then deleting this object will delete the associated object _without_ calling its +destroy+ method.
 
 WARNING: You should not specify this option on a +belongs_to+ association that is connected with a +has_many+ association on the other class. Doing so can lead to orphaned records in your database.
 
-h6. +:foreign_key+
+h6(#belongs_to-foreign_key). +:foreign_key+
 
 By convention, Rails guesses that the column used to hold the foreign key on this model is the name of the association with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
 
@@ -685,7 +685,7 @@ end
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
 
-h6. +:include+
+h6(#belongs_to-includes). +:include+
 
 You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
 
@@ -727,11 +727,11 @@ h6. +:polymorphic+
 
 Passing +true+ to the +:polymorphic+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
 
-h6. +:readonly+
+h6(#belongs_to-readonly). +:readonly+
 
 If you set the +:readonly+ option to +true+, then the associated object will be read-only when retrieved via the association.
 
-h6. +:select+
+h6(#belongs_to-select). +:select+
 
 The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.
 
@@ -759,11 +759,11 @@ class Order < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:validate+
+h6(#belongs_to-validate). +:validate+
 
 If you set the +:validate+ option to +true+, then associated objects will be validated whenever you save this object. By default, this is +false+: associated objects will not be validated when this object is saved.
 
-h5. How To Know Whether There's an Associated Object?
+h5(#belongs_to-how_to_know_whether_theres_an_associated_object). How To Know Whether There's an Associated Object?
 
 To know whether there's and associated object just check <tt><em>association</em>.nil?</tt>:
 
@@ -773,7 +773,7 @@ if @order.customer.nil?
 end
 </ruby>
 
-h5. When are Objects Saved?
+h5(#belongs_to-when_are_objects_saved). When are Objects Saved?
 
 Assigning an object to a +belongs_to+ association does _not_ automatically save the object. It does not save the associated object either.
 
@@ -869,15 +869,15 @@ The +has_one+ association supports these options:
 * +:through+
 * +:validate+
 
-h6. +:as+
+h6(#has_one-as). +:as+
 
 Setting the +:as+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
 
-h6. +:autosave+
+h6(#has_one-autosave). +:autosave+
 
 If you set the +:autosave+ option to +true+, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.
 
-h6. +:class_name+
+h6(#has_one-class_name). +:class_name+
 
 If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if a supplier has an account, but the actual name of the model containing accounts is +Billing+, you'd set things up this way:
 
@@ -887,7 +887,7 @@ class Supplier < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:conditions+
+h6(#has_one-conditions). +:conditions+
 
 The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL +WHERE+ clause).
 
@@ -897,11 +897,11 @@ class Supplier < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:dependent+
+h6(#has_one-dependent). +:dependent+
 
 If you set the +:dependent+ option to +:destroy+, then deleting this object will call the +destroy+ method on the associated object to delete that object. If you set the +:dependent+ option to +:delete+, then deleting this object will delete the associated object _without_ calling its +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the association object to +NULL+.
 
-h6. +:foreign_key+
+h6(#has_one-foreign_key). +:foreign_key+
 
 By convention, Rails guesses that the column used to hold the foreign key on the other model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
 
@@ -913,7 +913,7 @@ end
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
 
-h6. +:include+
+h6(#has_one-include). +:include+
 
 You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
 
@@ -949,39 +949,39 @@ class Representative < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:order+
+h6(#has_one-order). +:order+
 
 The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause). Because a +has_one+ association will only retrieve a single associated object, this option should not be needed.
 
-h6. +:primary_key+
+h6(#has_one-primary_key). +:primary_key+
 
 By convention, Rails guesses that the column used to hold the primary key of this model is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
 
-h6. +:readonly+
+h6(#has_one-readonly). +:readonly+
 
 If you set the +:readonly+ option to +true+, then the associated object will be read-only when retrieved via the association.
 
-h6. +:select+
+h6(#has_one-select). +:select+
 
 The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.
 
-h6. +:source+
+h6(#has_one-source). +:source+
 
 The +:source+ option specifies the source association name for a +has_one :through+ association.
 
-h6. +:source_type+
+h6(#has_one-source_type). +:source_type+
 
 The +:source_type+ option specifies the source association type for a +has_one :through+ association that proceeds through a polymorphic association.
 
-h6. +:through+
+h6(#has_one-through). +:through+
 
 The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations were discussed in detail <a href="#the-has-one-through-association">earlier in this guide</a>.
 
-h6. +:validate+
+h6(#has_one-validate). +:validate+
 
 If you set the +:validate+ option to +true+, then associated objects will be validated whenever you save this object. By default, this is +false+: associated objects will not be validated when this object is saved.
 
-h5. How To Know Whether There's an Associated Object?
+h5(#has_one-how_to_know_whether_theres_an_associated_object). How To Know Whether There's an Associated Object?
 
 To know whether there's and associated object just check <tt><em>association</em>.nil?</tt>:
 
@@ -991,7 +991,7 @@ if @supplier.account.nil?
 end
 </ruby>
 
-h5. When are Objects Saved?
+h5(#has_one-when_are_objects_saved). When are Objects Saved?
 
 When you assign an object to a +has_one+ association, that object is automatically saved (in order to update its foreign key). In addition, any object being replaced is also automatically saved, because its foreign key will change too.
 
@@ -1005,7 +1005,7 @@ h4. +has_many+ Association Reference
 
 The +has_many+ association creates a one-to-many relationship with another model. In database terms, this association says that the other class will have a foreign key that refers to instances of this class.
 
-h5. Methods Added
+h5. Methods Added by +has_many+
 
 When you declare a +has_many+ association, the declaring class automatically gains 13 methods related to the association:
 
@@ -1049,7 +1049,7 @@ orders.build(attributes = {}, ...)
 orders.create(attributes = {})
 </ruby>
 
-h6. <tt><em>collection</em>(force_reload = false)</tt>
+h6(#has_many-collection). <tt><em>collection</em>(force_reload = false)</tt>
 
 The <tt><em>collection</em></tt> method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
 
@@ -1057,7 +1057,7 @@ The <tt><em>collection</em></tt> method returns an array of all of the associate
 @orders = @customer.orders
 </ruby>
 
-h6. <tt><em>collection</em><<(object, ...)</tt>
+h6(#has_many-collection-lt_lt). <tt><em>collection</em><<(object, ...)</tt>
 
 The <tt><em>collection</em><<</tt> method adds one or more objects to the collection by setting their foreign keys to the primary key of the calling model.
 
@@ -1065,7 +1065,7 @@ The <tt><em>collection</em><<</tt> method adds one or more objects to the collec
 @customer.orders << @order1
 </ruby>
 
-h6. <tt><em>collection</em>.delete(object, ...)</tt>
+h6(#has_many-collection-delete). <tt><em>collection</em>.delete(object, ...)</tt>
 
 The <tt><em>collection</em>.delete</tt> method removes one or more objects from the collection by setting their foreign keys to +NULL+.
 
@@ -1076,11 +1076,11 @@ The <tt><em>collection</em>.delete</tt> method removes one or more objects from 
 WARNING: Objects will be in addition destroyed if they're associated with +:dependent => :destroy+, and deleted if they're associated with +:dependent => :delete_all+.
 
 
-h6. <tt><em>collection</em>=objects</tt>
+h6(#has_many-collection_equal). <tt><em>collection</em>=objects</tt>
 
 The <tt><em>collection</em>=</tt> method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
-h6. <tt><em>collection_singular</em>_ids</tt>
+h6(#has_many-collection_singular). <tt><em>collection_singular</em>_ids</tt>
 
 The <tt><em>collection_singular</em>_ids</tt> method returns an array of the ids of the objects in the collection.
 
@@ -1088,11 +1088,11 @@ The <tt><em>collection_singular</em>_ids</tt> method returns an array of the ids
 @order_ids = @customer.order_ids
 </ruby>
 
-h6. <tt><em>collection_singular</em>_ids=ids</tt>
+h6(#has_many-collection_singular_ids_ids). <tt><em>collection_singular</em>_ids=ids</tt>
 
 The <tt><em>collection_singular</em>_ids=</tt> method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
 
-h6. <tt><em>collection</em>.clear</tt>
+h6(#has_many-collection_clear). <tt><em>collection</em>.clear</tt>
 
 The <tt><em>collection</em>.clear</tt> method removes every object from the collection. This destroys the associated objects if they are associated with +:dependent => :destroy+, deletes them directly from the database if +:dependent => :delete_all+, and otherwise sets their foreign keys to +NULL+.
 
@@ -1179,7 +1179,7 @@ The +has_many+ association supports these options:
 * +:uniq+
 * +:validate+
 
-h6. +:as+
+h6(#has_many-as). +:as+
 
 Setting the +:as+ option indicates that this is a polymorphic association, as discussed <a href="#polymorphic-associations">earlier in this guide</a>.
 
@@ -1187,7 +1187,7 @@ h6. +:autosave+
 
 If you set the +:autosave+ option to +true+, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.
 
-h6. +:class_name+
+h6(#has_many-class_name). +:class_name+
 
 If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if a customer has many orders, but the actual name of the model containing orders is +Transaction+, you'd set things up this way:
 
@@ -1197,7 +1197,7 @@ class Customer < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:conditions+
+h6(#has_many-conditions). +:conditions+
 
 The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL +WHERE+ clause).
 
@@ -1230,27 +1230,27 @@ end
 
 Be sure to use single quotes.
 
-h6. +:counter_sql+
+h6(#has_many-counter_sql). +:counter_sql+
 
 Normally Rails automatically generates the proper SQL to count the association members. With the +:counter_sql+ option, you can specify a complete SQL statement to count them yourself.
 
 NOTE: If you specify +:finder_sql+ but not +:counter_sql+, then the counter SQL will be generated by substituting +SELECT COUNT(*) FROM+ for the +SELECT ... FROM+ clause of your +:finder_sql+ statement.
 
-h6. +:dependent+
+h6(#has_many-dependent). +:dependent+
 
 If you set the +:dependent+ option to +:destroy+, then deleting this object will call the +destroy+ method on the associated objects to delete those objects. If you set the +:dependent+ option to +:delete_all+, then deleting this object will delete the associated objects _without_ calling their +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the associated objects to +NULL+.
 
 NOTE: This option is ignored when you use the +:through+ option on the association.
 
-h6. +:extend+
+h6(#has_many-extend). +:extend+
 
 The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#association-extensions">later in this guide</a>.
 
-h6. +:finder_sql+
+h6(#has_many-finder_sql). +:finder_sql+
 
 Normally Rails automatically generates the proper SQL to fetch the association members. With the +:finder_sql+ option, you can specify a complete SQL statement to fetch them yourself. If fetching objects requires complex multi-table SQL, this may be necessary.
 
-h6. +:foreign_key+
+h6(#has_many-foreign_key). +:foreign_key+
 
 By convention, Rails guesses that the column used to hold the foreign key on the other model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
 
@@ -1262,7 +1262,7 @@ end
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
 
-h6. +:group+
+h6(:has_many-group). +:group+
 
 The +:group+ option supplies an attribute name to group the result set by, using a +GROUP BY+ clause in the finder SQL.
 
@@ -1272,7 +1272,7 @@ class Customer < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:include+
+h6(#has_many-include). +:include+
 
 You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
 
@@ -1308,7 +1308,7 @@ class LineItem < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:limit+
+h6(#has_many-limit). +:limit+
 
 The +:limit+ option lets you restrict the total number of objects that will be fetched through an association.
 
@@ -1319,11 +1319,11 @@ class Customer < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:offset+
+h6(#has_many-offset). +:offset+
 
 The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 11 records.
 
-h6. +:order+
+h6(#has_many-order). +:order+
 
 The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause).
 
@@ -1333,41 +1333,41 @@ class Customer < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:primary_key+
+h6(#has_many-primary_key). +:primary_key+
 
 By convention, Rails guesses that the column used to hold the primary key of the association is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
 
-h6. +:readonly+
+h6(#has_many-readonly). +:readonly+
 
 If you set the +:readonly+ option to +true+, then the associated objects will be read-only when retrieved via the association.
 
-h6. +:select+
+h6(#has_many-select). +:select+
 
 The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated objects. By default, Rails retrieves all columns.
 
 WARNING: If you specify your own +:select+, be sure to include the primary key and foreign key columns of the associated model. If you do not, Rails will throw an error.
 
-h6. +:source+
+h6(#has_many-source). +:source+
 
 The +:source+ option specifies the source association name for a +has_many :through+ association. You only need to use this option if the name of the source association cannot be automatically inferred from the association name.
 
-h6. +:source_type+
+h6(#has_many-source_type). +:source_type+
 
 The +:source_type+ option specifies the source association type for a +has_many :through+ association that proceeds through a polymorphic association.
 
-h6. +:through+
+h6(#has_many-through). +:through+
 
 The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed <a href="#the-has-many-through-association">earlier in this guide</a>.
 
-h6. +:uniq+
+h6(#has_many-uniq). +:uniq+
 
 Specify the +:uniq => true+ option to remove duplicates from the collection. This is most useful in conjunction with the +:through+ option.
 
-h6. +:validate+
+h6(#has_many-validate). +:validate+
 
 If you set the +:validate+ option to +false+, then associated objects will not be validated whenever you save this object. By default, this is +true+: associated objects will be validated when this object is saved.
 
-h5. When are Objects Saved?
+h5(#has_many-when_are_objects_saved). When are Objects Saved?
 
 When you assign an object to a +has_many+ association, that object is automatically saved (in order to update its foreign key). If you assign multiple objects in one statement, then they are all saved.
 
@@ -1381,7 +1381,7 @@ h4. +has_and_belongs_to_many+ Association Reference
 
 The +has_and_belongs_to_many+ association creates a many-to-many relationship with another model. In database terms, this associates two classes via an intermediate join table that includes foreign keys referring to each of the classes.
 
-h5. Methods Added
+h5. Methods Added by +has_and_belongs_to_many+
 
 When you declare a +has_and_belongs_to_many+ association, the declaring class automatically gains 13 methods related to the association:
 
@@ -1478,7 +1478,7 @@ h6. <tt><em>collection</em>.clear</tt>
 
 The <tt><em>collection</em>.clear</tt> method removes every object from the collection by deleting the rows from the joining table. This does not destroy the associated objects.
 
-h6. <tt><em>collection</em>.empty?</tt>
+h6(#has_and_belongs_to_many-collection-empty). <tt><em>collection</em>.empty?</tt>
 
 The <tt><em>collection</em>.empty?</tt> method returns +true+ if the collection does not contain any associated objects.
 
@@ -1488,7 +1488,7 @@ The <tt><em>collection</em>.empty?</tt> method returns +true+ if the collection 
 <% end %>
 </ruby>
 
-h6. <tt><em>collection</em>.size</tt>
+h6(#has_and_belongs_to_many-collection-size). <tt><em>collection</em>.size</tt>
 
 The <tt><em>collection</em>.size</tt> method returns the number of objects in the collection.
 
@@ -1496,7 +1496,7 @@ The <tt><em>collection</em>.size</tt> method returns the number of objects in th
 @assembly_count = @part.assemblies.size
 </ruby>
 
-h6. <tt><em>collection</em>.find(...)</tt>
+h6(#has_and_belongs_to_many-collection-find). <tt><em>collection</em>.find(...)</tt>
 
 The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as +ActiveRecord::Base.find+. It also adds the additional condition that the object must be in the collection.
 
@@ -1505,7 +1505,7 @@ The <tt><em>collection</em>.find</tt> method finds objects within the collection
   :conditions => ["created_at > ?", 2.days.ago])
 </ruby>
 
-h6. <tt><em>collection</em>.exists?(...)</tt>
+h6(#has_and_belongs_to_many-collection-exists). <tt><em>collection</em>.exists?(...)</tt>
 
 The <tt><em>collection</em>.exists?</tt> method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as +ActiveRecord::Base.exists?+.
 
@@ -1518,7 +1518,7 @@ The <tt><em>collection</em>.build</tt> method returns a new object of the associ
   {:assembly_name => "Transmission housing"})
 </ruby>
 
-h6. <tt><em>collection</em>.create(attributes = {})</tt>
+h6(#has_and_belongs_to_many-create-attributes). <tt><em>collection</em>.create(attributes = {})</tt>
 
 The <tt><em>collection</em>.create</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through the join table will be created, and the associated object _will_ be saved (assuming that it passes any validations).
 
@@ -1575,11 +1575,11 @@ class User < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:autosave+
+h6(#has_and_belongs_to_many-autosave). +:autosave+
 
 If you set the +:autosave+ option to +true+, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.
 
-h6. +:class_name+
+h6(#has_and_belongs_to_many-class_name). +:class_name+
 
 If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if a part has many assemblies, but the actual name of the model containing assemblies is +Gadget+, you'd set things up this way:
 
@@ -1589,7 +1589,7 @@ class Parts < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:conditions+
+h6(#has_and_belongs_to_many-conditions). +:conditions+
 
 The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL +WHERE+ clause).
 
@@ -1611,7 +1611,7 @@ end
 
 If you use a hash-style +:conditions+ option, then record creation via this association will be automatically scoped using the hash. In this case, using +@parts.assemblies.create+ or +@parts.assemblies.build+ will create orders where the +factory+ column has the value "Seattle".
 
-h6. +:counter_sql+
+h6(#has_and_belongs_to_many-counter_sql). +:counter_sql+
 
 Normally Rails automatically generates the proper SQL to count the association members. With the +:counter_sql+ option, you can specify a complete SQL statement to count them yourself.
 
@@ -1621,15 +1621,15 @@ h6. +:delete_sql+
 
 Normally Rails automatically generates the proper SQL to remove links between the associated classes. With the +:delete_sql+ option, you can specify a complete SQL statement to delete them yourself.
 
-h6. +:extend+
+h6(#has_and_belongs_to_many-extend). +:extend+
 
 The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#association-extensions">later in this guide</a>.
 
-h6. +:finder_sql+
+h6(#has_and_belongs_to_many-finder_sql). +:finder_sql+
 
 Normally Rails automatically generates the proper SQL to fetch the association members. With the +:finder_sql+ option, you can specify a complete SQL statement to fetch them yourself. If fetching objects requires complex multi-table SQL, this may be necessary.
 
-h6. +:foreign_key+
+h6(#has_and_belongs_to_many-foreign_key). +:foreign_key+
 
 By convention, Rails guesses that the column in the join table used to hold the foreign key pointing to this model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
 
@@ -1641,7 +1641,7 @@ class User < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:group+
+h6(#has_and_belongs_to_many-group). +:group+
 
 The +:group+ option supplies an attribute name to group the result set by, using a +GROUP BY+ clause in the finder SQL.
 
@@ -1651,7 +1651,7 @@ class Parts < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:include+
+h6(#has_and_belongs_to_many-include). +:include+
 
 You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used.
 
@@ -1663,7 +1663,7 @@ h6. +:join_table+
 
 If the default name of the join table, based on lexical ordering, is not what you want, you can use the +:join_table+ option to override the default.
 
-h6. +:limit+
+h6(#has_and_belongs_to_many-limit). +:limit+
 
 The +:limit+ option lets you restrict the total number of objects that will be fetched through an association.
 
@@ -1674,11 +1674,11 @@ class Parts < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:offset+
+h6(#has_and_belongs_to_many-offset). +:offset+
 
 The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 11 records.
 
-h6. +:order+
+h6(#has_and_belongs_to_many-order). +:order+
 
 The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause).
 
@@ -1688,23 +1688,23 @@ class Parts < ActiveRecord::Base
 end
 </ruby>
 
-h6. +:readonly+
+h6(#has_and_belongs_to_many-readonly). +:readonly+
 
 If you set the +:readonly+ option to +true+, then the associated objects will be read-only when retrieved via the association.
 
-h6. +:select+
+h6(#has_and_belongs_to_many-select). +:select+
 
 The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated objects. By default, Rails retrieves all columns.
 
-h6. +:uniq+
+h6(#has_and_belongs_to_many-uniq). +:uniq+
 
 Specify the +:uniq => true+ option to remove duplicates from the collection.
 
-h6. +:validate+
+h6(#has_and_belongs_to_many-validate). +:validate+
 
 If you set the +:validate+ option to +false+, then associated objects will not be validated whenever you save this object. By default, this is +true+: associated objects will be validated when this object is saved.
 
-h5. When are Objects Saved?
+h5(#has_and_belongs_to_many-when_are_objects_saved). When are Objects Saved?
 
 When you assign an object to a +has_and_belongs_to_many+ association, that object is automatically saved (in order to update the join table). If you assign multiple objects in one statement, then they are all saved.
 
@@ -1809,6 +1809,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/11
 
+* April 7, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * April 19, 2009: Added +:touch+ option to +belongs_to+ associations by "Mike Gunderloy":credits.html#mgunderloy
 * February 1, 2009: Added +:autosave+ option "Mike Gunderloy":credits.html#mgunderloy
 * September 28, 2008: Corrected +has_many :through+ diagram, added polymorphic diagram, some reorganization by "Mike Gunderloy":credits.html#mgunderloy . First release version.
