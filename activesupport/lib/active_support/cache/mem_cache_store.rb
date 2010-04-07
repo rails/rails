@@ -64,7 +64,7 @@ module ActiveSupport
           @data.get(key, raw?(options))
         end
       rescue MemCache::MemCacheError => e
-        logger.error("MemCacheError (#{e}): #{e.message}")
+        logger.error("MemCacheError (#{e}): #{e.message}") if logger
         nil
       end
 
@@ -85,7 +85,7 @@ module ActiveSupport
           response == Response::STORED
         end
       rescue MemCache::MemCacheError => e
-        logger.error("MemCacheError (#{e}): #{e.message}")
+        logger.error("MemCacheError (#{e}): #{e.message}") if logger
         false
       end
 
@@ -95,7 +95,7 @@ module ActiveSupport
           response == Response::DELETED
         end
       rescue MemCache::MemCacheError => e
-        logger.error("MemCacheError (#{e}): #{e.message}")
+        logger.error("MemCacheError (#{e}): #{e.message}") if logger
         false
       end
 
