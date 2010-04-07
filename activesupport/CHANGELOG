@@ -1,3 +1,8 @@
+*Rails 3.0.0 [beta 3] (pending)*
+
+* Speed up and add Ruby 1.9 support for ActiveSupport::Multibyte::Chars#tidy_bytes.  #4350 [Norman Clarke]
+
+
 *Rails 3.0.0 [beta 2] (April 1st, 2010)*
 
 * Reduced load time by deferring configuration of classes using
