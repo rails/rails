@@ -174,6 +174,7 @@ module ActionController
             #
             named_helper_module_eval <<-end_eval # We use module_eval to avoid leaks
               def #{selector}(*args)                                                        # def users_url(*args)
+                args.compact!                                                               #
                                                                                             #
                 #{generate_optimisation_block(route, kind)}                                 #   #{generate_optimisation_block(route, kind)}
                                                                                             #
