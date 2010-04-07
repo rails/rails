@@ -518,24 +518,30 @@ module ActionView
       #   <link href="/images/favicon.ico?4649789979" rel="shortcut icon" type="image/vnd.microsoft.icon" />
       #
       # The helper accepts an additional options hash where you can override "rel" and "type".
-      def favicon_link_tag(source=nil, options={})
+      def favicon_link_tag(source='/favicon.ico', options={})
         tag('link', {
           :rel  => 'shortcut icon',
           :type => 'image/vnd.microsoft.icon',
-          :href => image_path(source || '/favicon.ico')
+          :href => image_path(source)
         }.merge(options.symbolize_keys))
       end
 
       # Returns a link tag for an icon targetted at iPod Touch, iPhone, and iPad.
       #
-      #   <%= apple_touch_icon_link_tag 'my_site.png' %>
+      #   <%= apple_touch_icon_link_tag %>
       #
       # generates
       #
-      #   <link href="/images/my_site.png?4233872383" rel="apple-touch-icon" />
+      #   <link href="/apple-touch-icon.png?4233872383" rel="apple-touch-icon" />
       #
-      # The source argument is passed to +image_path+ as is.
-      def apple_touch_icon_link_tag(source)
+      # You can specify a different icon file:
+      #
+      #   <%= apple_touch_icon_link_tag "my_site.png" %>
+      #
+      # That's passed to +image_path+ as is, so the example above would render
+      #
+      #   <link href="/images/my_site.png?4233872383" rel="apple-touch-icon" />
+      def apple_touch_icon_link_tag(source='/apple-touch-icon.png')
         tag('link', :rel => 'apple-touch-icon', :href => image_path(source))
       end
 

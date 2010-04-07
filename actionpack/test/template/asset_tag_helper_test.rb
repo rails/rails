@@ -165,6 +165,7 @@ class AssetTagHelperTest < ActionView::TestCase
   }
 
   AppleTouchIconLinkToTag = {
+    %(apple_touch_icon_link_tag) => %(<link href="/apple-touch-icon.png" rel="apple-touch-icon" />),
     %(apple_touch_icon_link_tag 'my_site.png') => %(<link href="/images/my_site.png" rel="apple-touch-icon" />)
   }
 
