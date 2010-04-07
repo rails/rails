@@ -274,7 +274,7 @@ Client.where(
 
 This makes for clearer readability if you have a large number of variable conditions.
 
-h5. Range Conditions
+h5(#array-range_conditions). Range Conditions
 
 If you're looking for a range inside of a table (for example, users created in a certain timeframe) you can use the conditions option coupled with the +IN+ SQL statement for this. If you had two dates coming in from a controller you could do something like this to look for a range:
 
@@ -353,7 +353,7 @@ The field name does not have to be a symbol it can also be a string:
 Client.where({ 'locked' => true })
 </ruby>
 
-h5. Range Conditions
+h5(#hash-range_conditions). Range Conditions
 
 The good thing about this is that we can pass in a range for our fields without it generating a large query as shown in the preamble of this section.
 
