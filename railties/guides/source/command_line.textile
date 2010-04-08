@@ -246,9 +246,13 @@ $ rake db:migrate
 
 INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions about code. In unit testing, we take a little part of code, say a method of a model, and test its inputs and outputs. Unit tests are your friend. The sooner you make peace with the fact that your quality of life will drastically increase when you unit test your code, the better. Seriously. We'll make one in a moment.
 
-Let's see the interface Rails created for us. rails server; http://localhost:3000/high_scores
+Let's see the interface Rails created for us.
 
-We can create new high scores (55,160 on Space Invaders!)
+<shell>
+$ rails server
+</shell>
+
+Go to your browser and open "http://localhost:3000/high_scores":http://localhost:3000/high_scores, now we can create new high scores (55,160 on Space Invaders!)
 
 h4. +rails console+
 
