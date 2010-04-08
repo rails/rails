@@ -12,7 +12,9 @@ module InflectorTestCases
     "stack"       => "stacks",
     "wish"        => "wishes",
     "fish"        => "fish",
-
+    "jeans"       => "jeans",
+    "funky jeans" => "funky jeans",
+    
     "category"    => "categories",
     "query"       => "queries",
     "ability"     => "abilities",
