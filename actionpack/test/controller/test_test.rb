@@ -189,6 +189,12 @@ XML
     assert_equal Hash.new, @request.session.to_hash
   end
 
+  def test_response_and_request_have_nice_accessors
+    process :no_op
+    assert_equal @response, response
+    assert_equal @request, request
+  end
+
   def test_process_with_request_uri_with_no_params
     process :test_uri
     assert_equal "/test_test/test/test_uri", @response.body
