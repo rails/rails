@@ -18,12 +18,12 @@ h3. Command Line Basics
 
 There are a few commands that are absolutely critical to your everyday usage of Rails. In the order of how much you'll probably use them are:
 
-* rails console
-* rails server
-* rake
-* rails generate
-* rails dbconsole
-* rails app_name
+* <tt>rails console</tt>
+* <tt>rails server</tt>
+* <tt>rake</tt>
+* <tt>rails generate</tt>
+* <tt>rails dbconsole</tt>
+* <tt>rails app_name</tt>
 
 Let's create a simple Rails application to step through each of these commands in context.
 
