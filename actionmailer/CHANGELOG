@@ -5,6 +5,8 @@
     ActionMailer::Base.register_interceptor calls Mail.register_interceptor
     ActionMailer::Base.register_observer calls Mail.register_observer
 
+* Mail::Part now no longer has nil as a default charset, it is always set to something, and defaults to UTF-8
+
 * Added explict setting of charset in set_fields! method to make sure Mail has the user defined default
 
 * Removed quoting.rb and refactored for Mail to take responsibility of all quoting and auto encoding requirements for the header.
