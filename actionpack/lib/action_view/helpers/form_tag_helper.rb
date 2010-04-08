@@ -199,8 +199,8 @@ module ActionView
       #   file_field_tag 'attachment'
       #   # => <input id="attachment" name="attachment" type="file" />
       #
-      #   file_field_tag 'avatar', :class => 'profile-input'
-      #   # => <input class="profile-input" id="avatar" name="avatar" type="file" />
+      #   file_field_tag 'avatar', :class => 'profile_input'
+      #   # => <input class="profile_input" id="avatar" name="avatar" type="file" />
       #
       #   file_field_tag 'picture', :disabled => true
       #   # => <input disabled="disabled" id="picture" name="picture" type="file" />
@@ -244,8 +244,8 @@ module ActionView
       #   password_field_tag 'confirm_pass', nil, :disabled => true
       #   # => <input disabled="disabled" id="confirm_pass" name="confirm_pass" type="password" />
       #
-      #   password_field_tag 'pin', '1234', :maxlength => 4, :size => 6, :class => "pin-input"
-      #   # => <input class="pin-input" id="pin" maxlength="4" name="pin" size="6" type="password" value="1234" />
+      #   password_field_tag 'pin', '1234', :maxlength => 4, :size => 6, :class => "pin_input"
+      #   # => <input class="pin_input" id="pin" maxlength="4" name="pin" size="6" type="password" value="1234" />
       def password_field_tag(name = "password", value = nil, options = {})
         text_field_tag(name, value, options.update("type" => "password"))
       end
@@ -374,8 +374,8 @@ module ActionView
       #   submit_tag nil, :class => "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
-      #   submit_tag "Edit", :disable_with => "Editing...", :class => "edit-button"
-      #   # => <input class="edit-button" data-disable_with="Editing..."
+      #   submit_tag "Edit", :disable_with => "Editing...", :class => "edit_button"
+      #   # => <input class="edit_button" data-disable_with="Editing..."
       #   #    name="commit" type="submit" value="Edit" />
       #
       #   submit_tag "Save", :confirm => "Are you sure?"
@@ -414,11 +414,11 @@ module ActionView
       #   image_submit_tag("purchase.png", :disabled => true)
       #   # => <input disabled="disabled" src="/images/purchase.png" type="image" />
       #
-      #   image_submit_tag("search.png", :class => 'search-button')
-      #   # => <input class="search-button" src="/images/search.png" type="image" />
+      #   image_submit_tag("search.png", :class => 'search_button')
+      #   # => <input class="search_button" src="/images/search.png" type="image" />
       #
-      #   image_submit_tag("agree.png", :disabled => true, :class => "agree-disagree-button")
-      #   # => <input class="agree-disagree-button" disabled="disabled" src="/images/agree.png" type="image" />
+      #   image_submit_tag("agree.png", :disabled => true, :class => "agree_disagree_button")
+      #   # => <input class="agree_disagree_button" disabled="disabled" src="/images/agree.png" type="image" />
       def image_submit_tag(source, options = {})
         options.stringify_keys!
 
