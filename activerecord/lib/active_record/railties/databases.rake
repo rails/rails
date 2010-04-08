@@ -84,15 +84,9 @@ namespace :db do
           end
         end
       when 'postgresql'
-        @encoding = config['encoding'] || ENV['CHARSET'] || 'utf8'
-        schema_search_path = config['schema_search_path'] || 'public'
-        first_in_schema_search_path = schema_search_path.split(',').first.strip
+        @encoding = config[:encoding] || ENV['CHARSET'] || 'utf8'
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
-          unless ActiveRecord::Base.connection.all_schemas.include?(first_in_schema_search_path)
-            ActiveRecord::Base.connection.create_schema(first_in_schema_search_path, config['username'])
-            $stderr.puts "Schema #{first_in_schema_search_path} has been created."
-          end
           ActiveRecord::Base.connection.create_database(config['database'], config.merge('encoding' => @encoding))
           ActiveRecord::Base.establish_connection(config)
         rescue
