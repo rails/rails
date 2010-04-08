@@ -386,7 +386,7 @@ module ActionView
         options.stringify_keys!
 
         if disable_with = options.delete("disable_with")
-          options["data-disable-with"] = disable_with if disable_with
+          options["data-disable-with"] = disable_with
         end
 
         if confirm = options.delete("confirm")
