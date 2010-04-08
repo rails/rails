@@ -35,7 +35,7 @@ module Kernel
   #   puts 'But this will'
   def silence_stream(stream)
     old_stream = stream.dup
-    stream.reopen(RUBY_PLATFORM =~ /mswin/ ? 'NUL:' : '/dev/null')
+    stream.reopen(RUBY_PLATFORM =~ /(:?mswin|mingw)/ ? 'NUL:' : '/dev/null')
     stream.sync = true
     yield
   ensure
