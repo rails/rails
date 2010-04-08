@@ -45,8 +45,8 @@ module ActionView
     #
     # If you are using a partial for your form fields, you can use this shortcut:
     #
-    #     <%= form_for :person, @person do |form| %>
-    #       <%= render :partial => f %>
+    #     <%= form_for @person do |form| %>
+    #       <%= render form %>
     #       <%= submit_tag 'Create' %>
     #     <% end %>
     #
@@ -129,9 +129,8 @@ module ActionView
       #     Admin?    : <%= f.check_box :admin %><br />
       #   <% end %>
       #
-      # There, the first argument is a symbol or string with the name of the
-      # object the form is about, and also the name of the instance variable
-      # the object is stored in.
+      # There, the argument is a symbol or string with the name of the
+      # object the form is about.
       #
       # The form builder acts as a regular form helper that somehow carries the
       # model. Thus, the idea is that
@@ -142,26 +141,7 @@ module ActionView
       #
       #   <%= text_field :person, :first_name %>
       #
-      # If the instance variable is not <tt>@person</tt> you can pass the actual
-      # record as the second argument:
-      #
-      #   <%= form_for :person, person do |f| %>
-      #     ...
-      #   <% end %>
-      #
-      # In that case you can think
-      #
-      #   <%= f.text_field :first_name %>
-      #
-      # gets expanded to
-      #
-      #   <%= text_field :person, :first_name, :object => person %>
-      #
-      # You can even display error messages of the wrapped model this way:
-      #
-      #   <%= f.error_messages %>
-      #
-      # In any of its variants, the rightmost argument to +form_for+ is an
+      # The rightmost argument to +form_for+ is an
       # optional hash of options:
       #
       # * <tt>:url</tt> - The URL the form is submitted to. It takes the same
@@ -177,7 +157,7 @@ module ActionView
       # possible to use both the stand-alone FormHelper methods and methods
       # from FormTagHelper. For example:
       #
-      #   <%= form_for :person, @person do |f| %>
+      #   <%= form_for @person do |f| %>
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
@@ -203,7 +183,7 @@ module ActionView
       #
       # is equivalent to something like:
       #
-      #   <%= form_for :post, @post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
+      #   <%= form_for @post, :as => :post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -213,15 +193,22 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # expands to
+      # is equivalent to something like:
       #
-      #   <%= form_for :post, Post.new, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
+      #   <%= form_for @post, :as => :post, :url => post_path(@post), :html => { :class => "new_post", :id => "new_post" } do |f| %>
       #     ...
       #   <% end %>
       #
       # You can also overwrite the individual conventions, like this:
       #
       #   <%= form_for(@post, :url => super_post_path(@post)) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # If you have an object that needs to be represented as a different
+      # parameter, like a Client that acts as a Person:
+      #
+      #   <%= form_for(@post, :as => :client do |f| %>
       #     ...
       #   <% end %>
       #
@@ -245,13 +232,13 @@ module ActionView
       #
       # Example:
       #
-      #   <%= form_for(:post, @post, :remote => true, :html => { :id => 'create-post', :method => :put }) do |f| %>
+      #   <%= form_for(@post, :remote => true) do |f| %>
       #     ...
       #   <% end %>
       #
       # The HTML generated for this would be:
       #
-      #   <form action='http://www.example.com' id='create-post' method='post' data-remote='true'>
+      #   <form action='http://www.example.com' method='post' data-remote='true'>
       #     <div style='margin:0;padding:0;display:inline'>
       #       <input name='_method' type='hidden' value='put' />
       #     </div>
@@ -265,7 +252,7 @@ module ActionView
       # custom builder. For example, let's say you made a helper to
       # automatically add labels to form inputs.
       #
-      #   <%= form_for :person, @person, :url => { :action => "create" }, :builder => LabellingFormBuilder do |f| %>
+      #   <%= form_for @person, :url => { :action => "create" }, :builder => LabellingFormBuilder do |f| %>
       #     <%= f.text_field :first_name %>
       #     <%= f.text_field :last_name %>
       #     <%= text_area :person, :biography %>

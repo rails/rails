@@ -1,5 +1,7 @@
 *Rails 3.0.0 [beta 3] (pending)*
 
+* New option :as added to form_for allows to change the object name. The old <% form_for :client, @post %> becomes <% form_for @post, :as => :client %> [spastorino]
+
 * Removed verify method in controllers. [JV]
   It's now available as a plugin at http://github.com/rails/verification
 
