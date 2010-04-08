@@ -184,6 +184,15 @@ module ApplicationTests
       end
     end
 
+    test "config.paths.public sets Rails.public_path" do
+      add_to_config <<-RUBY
+        config.paths.public = "somewhere"
+      RUBY
+
+      require "#{app_path}/config/application"
+      assert_equal File.join(app_path, "somewhere"), Rails.public_path
+    end
+
     def make_basic_app
       require "rails"
       require "action_controller/railtie"
