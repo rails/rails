@@ -44,6 +44,12 @@ module ActionController
       ActiveSupport.on_load(:action_controller) { self.logger ||= Rails.logger }
     end
 
+    initializer "action_controller.page_cache_directory" do
+      ActiveSupport.on_load(:action_controller) do
+        self.page_cache_directory = Rails.public_path
+      end
+    end
+
     initializer "action_controller.set_configs" do |app|
       paths = app.config.paths
       ac = app.config.action_controller

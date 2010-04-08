@@ -32,8 +32,6 @@ module ActionController
       def rescue_action(env)
         raise env["action_dispatch.rescue.exception"]
       end
-
-      self.page_cache_directory = defined?(Rails.public_path) ? Rails.public_path : ""
     end
 
     # For old tests

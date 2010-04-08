@@ -147,7 +147,7 @@ module ActiveRecord
       #     has_many :books
       #   end
       #
-      #   Author.find(:first).books.transaction do
+      #   Author.first.books.transaction do
       #     # same effect as calling Book.transaction
       #   end
       def transaction(*args)
