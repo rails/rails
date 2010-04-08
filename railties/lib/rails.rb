@@ -79,6 +79,10 @@ module Rails
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
     end
 
+    def env=(environment)
+      @_env = ActiveSupport::StringInquirer.new(environment)
+    end
+
     def cache
       RAILS_CACHE
     end
