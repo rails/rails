@@ -264,12 +264,12 @@ h4. +rails dbconsole+
 
 h4. +rails plugin+
 
-The +rails plugin+ command simplifies plugin management; think a miniature version of the Gem utility. Let's walk through installing a plugin. You can call the sub-command *discover*, which sifts through repositories looking for plugins, or call *source* to add a specific repository of plugins, or you can specify the plugin location directly.
+The +rails plugin+ command simplifies plugin management; think a miniature version of the Gem utility. Let's walk through installing a plugin. You can call the sub-command +discover+, which sifts through repositories looking for plugins, or call +source+ to add a specific repository of plugins, or you can specify the plugin location directly.
 
-Let's say you're creating a website for a client who wants a small accounting system. Every event having to do with money must be logged, and must never be deleted. Wouldn't it be great if we could override the behavior of a model to never actually take its record out of the database, but *instead*, just set a field?
+Let's say you're creating a website for a client who wants a small accounting system. Every event having to do with money must be logged, and must never be deleted. Wouldn't it be great if we could override the behavior of a model to never actually take its record out of the database, but instead, just set a field?
 
-There is such a thing! The plugin we're installing is called "acts_as_paranoid", and it lets models implement a "deleted_at" column that gets set when you call destroy. Later, when calling find, the plugin will tack on a database check to filter out "deleted" things.
-==================================================================================
+There is such a thing! The plugin we're installing is called +acts_as_paranoid+, and it lets models implement a +deleted_at+ column that gets set when you call destroy. Later, when calling find, the plugin will tack on a database check to filter out "deleted" things.
+
 <shell>
 $ rails plugin install http://svn.techno-weenie.net/projects/plugins/acts_as_paranoid
 + ./CHANGELOG
