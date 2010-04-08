@@ -567,7 +567,6 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def test_iso_charset
     TestMailer.delivery_method = :test
-
     expected = new_mail( "iso-8859-1" )
     expected.to      = @recipient
     expected.subject = encode "testing isø charsets", "iso-8859-1"
@@ -868,15 +867,16 @@ EOF
     assert_match(/#{regex}/, mail.encoded)
     string = "Foo áëô îü"
     string.force_encoding('UTF-8') if string.respond_to?(:force_encoding)
-    assert_match(string, mail.subject.decoded)
+    assert_match(string, mail.subject)
   end
 
   def test_implicitly_multipart_with_utf8
     mail = TestMailer.implicitly_multipart_with_utf8
     regex = Regexp.escape('Subject: =?UTF-8?Q?Foo_=C3=A1=C3=AB=C3=B4_=C3=AE=C3=BC=?=')
     assert_match(/#{regex}/, mail.encoded)
+    string = "Foo áëô îü"
     string.force_encoding('UTF-8') if string.respond_to?(:force_encoding)
-    assert_match(string, mail.subject.decoded)
+    assert_match(string, mail.subject)
   end
 
   def test_explicitly_multipart_messages
