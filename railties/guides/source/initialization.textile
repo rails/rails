@@ -1790,6 +1790,8 @@ Now that Rails has finished loading all the Railties by way of +require 'rails/a
   Bundler.require :default, Rails.env
 </ruby>
 
+NOTE: It is worth mentioning here that you are not tied to using Bundler with Rails 3, but it is (of course) advised that you do. To "turn off" Bundler, comment out or remove the corresponding lines in _config/application.rb_ and _config/boot.rb_.
+
 Bundler was +require+'d back in _config/boot.rb_ and now we'll dive into the internals of Bundler to determine precisely what this line accomplishes.
 
 h4. +Bundler.require+
@@ -2100,6 +2102,8 @@ The +initialize+ method in +Gem::Dependency+ is defined:
     @version_requirement = nil   # Avoid warnings.
   end
 </ruby>
+
+The +version_requirements+ that was passed in here 
 
 
 
