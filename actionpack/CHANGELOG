@@ -1,7 +1,5 @@
 *Rails 3.0.0 [Edge] (pending)*
 
-* New helpers #favicon_link_tag and #apple_touch_icon_link_tag [fxn]
-
 * Added all the new HTML5 form types as individual form tag methods (search, url, number, etc) #3646 [Stephen Celis]
 
 * Changed the object used in routing constraints to be an instance of

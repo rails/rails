@@ -157,18 +157,6 @@ class AssetTagHelperTest < ActionView::TestCase
     %(image_tag("mouse.png", :mouseover => image_path("mouse_over.png"))) => %(<img alt="Mouse" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" src="/images/mouse.png" />)
   }
 
-  FaviconLinkToTag = {
-    %(favicon_link_tag) => %(<link href="/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />),
-    %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />),
-    %(favicon_link_tag 'favicon.ico', :rel => 'foo') => %(<link href="/images/favicon.ico" rel="foo" type="image/vnd.microsoft.icon" />),
-    %(favicon_link_tag 'favicon.ico', :rel => 'foo', :type => 'bar') => %(<link href="/images/favicon.ico" rel="foo" type="bar" />)
-  }
-
-  AppleTouchIconLinkToTag = {
-    %(apple_touch_icon_link_tag) => %(<link href="/apple-touch-icon.png" rel="apple-touch-icon" />),
-    %(apple_touch_icon_link_tag 'my_site.png') => %(<link href="/images/my_site.png" rel="apple-touch-icon" />)
-  }
-
   VideoPathToTag = {
     %(video_path("xml"))          => %(/videos/xml),
     %(video_path("xml.ogg"))      => %(/videos/xml.ogg),
@@ -341,14 +329,6 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_image_tag
     ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
-  end
-
-  def test_favicon_link_tag
-    FaviconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
-  end
-
-  def test_apple_touch_link_tag
-    AppleTouchIconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_image_tag_windows_behaviour

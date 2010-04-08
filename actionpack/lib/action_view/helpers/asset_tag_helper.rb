@@ -501,50 +501,6 @@ module ActionView
         end
       end
 
-      # Returns a link tag for a favicon.
-      #
-      #   <%= favicon_link_tag %>
-      #
-      # generates
-      #
-      #   <link href="/favicon.ico?4649789979" rel="shortcut icon" type="image/vnd.microsoft.icon" />
-      #
-      # You can specify a different icon file in the first argument:
-      #
-      #   <%= favicon_link_tag 'favicon.ico' %>
-      #
-      # That's passed to +image_path+ as is, so the example above would render
-      #
-      #   <link href="/images/favicon.ico?4649789979" rel="shortcut icon" type="image/vnd.microsoft.icon" />
-      #
-      # The helper accepts an additional options hash where you can override "rel" and "type".
-      def favicon_link_tag(source='/favicon.ico', options={})
-        tag('link', {
-          :rel  => 'shortcut icon',
-          :type => 'image/vnd.microsoft.icon',
-          :href => image_path(source)
-        }.merge(options.symbolize_keys))
-      end
-
-      # Returns a link tag for an icon targetted at iPod Touch, iPhone, and iPad.
-      #
-      #   <%= apple_touch_icon_link_tag %>
-      #
-      # generates
-      #
-      #   <link href="/apple-touch-icon.png?4233872383" rel="apple-touch-icon" />
-      #
-      # You can specify a different icon file:
-      #
-      #   <%= apple_touch_icon_link_tag "my_site.png" %>
-      #
-      # That's passed to +image_path+ as is, so the example above would render
-      #
-      #   <link href="/images/my_site.png?4233872383" rel="apple-touch-icon" />
-      def apple_touch_icon_link_tag(source='/apple-touch-icon.png')
-        tag('link', :rel => 'apple-touch-icon', :href => image_path(source))
-      end
-
       # Computes the path to an image asset in the public images directory.
       # Full paths from the document root will be passed through.
       # Used internally by +image_tag+ to build the image path.
