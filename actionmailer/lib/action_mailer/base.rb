@@ -579,6 +579,7 @@ module ActionMailer #:nodoc:
 
     def set_fields!(headers, charset) #:nodoc:
       m = @_message
+      m.charset = charset
       m.subject  ||= headers.delete(:subject)  if headers[:subject]
       m.to       ||= headers.delete(:to)       if headers[:to]
       m.from     ||= headers.delete(:from)     if headers[:from]

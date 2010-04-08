@@ -5,6 +5,8 @@
     ActionMailer::Base.register_interceptor calls Mail.register_interceptor
     ActionMailer::Base.register_observer calls Mail.register_observer
 
+* Added explict setting of charset in set_fields! method to make sure Mail has the user defined default
+
 * Removed quoting.rb and refactored for Mail to take responsibility of all quoting and auto encoding requirements for the header.
 
 * Fixed several tests which had incorrect encoding.
