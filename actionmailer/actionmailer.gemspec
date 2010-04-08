@@ -20,6 +20,6 @@ Gem::Specification.new do |s|
   s.has_rdoc = true
 
   s.add_dependency('actionpack',  version)
-  s.add_dependency('mail',        '~> 2.1.5.5')
+  s.add_dependency('mail',        '~> 2.1.5.6')
   s.add_dependency('text-format', '~> 1.0.0')
 end

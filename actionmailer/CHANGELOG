@@ -5,6 +5,12 @@
     ActionMailer::Base.register_interceptor calls Mail.register_interceptor
     ActionMailer::Base.register_observer calls Mail.register_observer
 
+* Removed quoting.rb and refactored for Mail to take responsibility of all quoting and auto encoding requirements for the header.
+
+* Fixed several tests which had incorrect encoding.
+
+* Changed all utf-8 to UTF-8 for consistency
+
 * Whole new API added with tests.  See base.rb for full details.  Old API is deprecated.
 
 

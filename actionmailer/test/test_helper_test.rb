@@ -34,7 +34,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
   
   def test_charset_is_utf_8
-    assert_equal "utf-8", charset
+    assert_equal "UTF-8", charset
   end
 
   def test_encode
