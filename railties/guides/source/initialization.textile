@@ -2214,6 +2214,25 @@ And if they do will call +write_rb_lock+:
 
 This will write out to _.bundler/environment.rb_ the state of the current environment.
 
+Now a quick refresher. Bundler is still evaulating the code for the +require+ in _lib/bundler.rb_, and the +groups+ variable here is an +Array+ containing two elements: +:default+ and the current Rails environment: +development+:
+
+<ruby>
+  def require(*groups)
+    gemfile = default_gemfile
+    load(gemfile).require(*groups)
+  end
+</ruby>
+
+The second +require+ method here:
+
+<ruby>
+  load(gemfile).require(*groups)
+</ruby>
+
+Is defined on _bundler/runtime.rb_
+
+
+
 
 h3. Firing it up!
 
