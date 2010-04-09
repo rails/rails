@@ -1,5 +1,7 @@
 *Rails 3.0.0 [Edge] (pending)*
 
+* Added #favicon_link_tag, it uses #image_path so in particular the favicon gets an asset ID [fxn]
+
 * Fixed that default locale templates should be used if the current locale template is missing [DHH]
 
 * Added all the new HTML5 form types as individual form tag methods (search, url, number, etc) #3646 [Stephen Celis]
