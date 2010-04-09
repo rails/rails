@@ -126,7 +126,7 @@ class Module
           %(raise "#{self}##{prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
         end
 
-      module_eval(<<-EOS, file, line)
+      module_eval(<<-EOS, file, line - 5)
         if instance_methods(false).map(&:to_s).include?("#{prefix}#{method}")
           remove_possible_method("#{prefix}#{method}")
         end

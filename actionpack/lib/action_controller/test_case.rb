@@ -284,6 +284,8 @@ module ActionController
     include ActionDispatch::TestProcess
     include ActionController::TemplateAssertions
 
+    attr_reader :response, :request
+
     # Executes a request simulating GET HTTP method and set/volley the response
     def get(action, parameters = nil, session = nil, flash = nil)
       process(action, parameters, session, flash, "GET")

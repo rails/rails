@@ -265,7 +265,7 @@ module ActionView
       # using the +link_to+ method with the <tt>:method</tt> modifier as described in
       # the +link_to+ documentation.
       #
-      # The generated form element has a class name of <tt>button-to</tt>
+      # The generated form element has a class name of <tt>button_to</tt>
       # to allow styling of the form itself and its children. You can control
       # the form submission and input element behavior using +html_options+.
       # This method accepts the <tt>:method</tt> and <tt>:confirm</tt> modifiers
@@ -289,14 +289,14 @@ module ActionView
       #
       # ==== Examples
       #   <%= button_to "New", :action => "new" %>
-      #   # => "<form method="post" action="/controller/new" class="button-to">
+      #   # => "<form method="post" action="/controller/new" class="button_to">
       #   #      <div><input value="New" type="submit" /></div>
       #   #    </form>"
       #
       #
       #   <%= button_to "Delete Image", { :action => "delete", :id => @image.id },
       #             :confirm => "Are you sure?", :method => :delete %>
-      #   # => "<form method="post" action="/images/delete/1" class="button-to">
+      #   # => "<form method="post" action="/images/delete/1" class="button_to">
       #   #      <div>
       #   #        <input type="hidden" name="_method" value="delete" />
       #   #        <input data-confirm='Are you sure?' value="Delete" type="submit" />
@@ -306,7 +306,7 @@ module ActionView
       #
       #   <%= button_to('Destroy', 'http://www.example.com', :confirm => 'Are you sure?',
       #             :method => "delete", :remote => true, :disable_with => 'loading...') %>
-      #   # => "<form class='button-to' method='post' action='http://www.example.com' data-remote='true'>
+      #   # => "<form class='button_to' method='post' action='http://www.example.com' data-remote='true'>
       #   #       <div>
       #   #         <input name='_method' value='delete' type='hidden' />
       #   #         <input value='Destroy' type='submit' disable_with='loading...' data-confirm='Are you sure?' />
@@ -338,7 +338,7 @@ module ActionView
 
         html_options.merge!("type" => "submit", "value" => name)
 
-        ("<form method=\"#{form_method}\" action=\"#{escape_once url}\" #{"data-remote=\"true\"" if remote} class=\"button-to\"><div>" +
+        ("<form method=\"#{form_method}\" action=\"#{escape_once url}\" #{"data-remote=\"true\"" if remote} class=\"button_to\"><div>" +
           method_tag + tag("input", html_options) + request_token_tag + "</div></form>").html_safe
       end
 

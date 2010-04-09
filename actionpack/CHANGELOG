@@ -1,6 +1,6 @@
 *Rails 3.0.0 [Edge] (pending)*
 
-* New helpers #favicon_link_tag and #apple_touch_icon_link_tag [fxn]
+* Fixed that default locale templates should be used if the current locale template is missing [DHH]
 
 * Added all the new HTML5 form types as individual form tag methods (search, url, number, etc) #3646 [Stephen Celis]
 

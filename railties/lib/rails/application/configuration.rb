@@ -137,7 +137,7 @@ module Rails
 
       def default_middleware_stack
         ActionDispatch::MiddlewareStack.new.tap do |middleware|
-          middleware.use('::ActionDispatch::Static', lambda { Rails.public_path }, :if => lambda { serve_static_assets })
+          middleware.use('::ActionDispatch::Static', lambda { paths.public.to_a.first }, :if => lambda { serve_static_assets })
           middleware.use('::Rack::Lock', :if => lambda { !allow_concurrency })
           middleware.use('::Rack::Runtime')
           middleware.use('::Rails::Rack::Logger')

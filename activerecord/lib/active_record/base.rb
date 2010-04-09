@@ -56,15 +56,15 @@ module ActiveRecord #:nodoc:
   #
   #   class User < ActiveRecord::Base
   #     def self.authenticate_unsafely(user_name, password)
-  #       find(:first, :conditions => "user_name = '#{user_name}' AND password = '#{password}'")
+  #       where("user_name = '#{user_name}' AND password = '#{password}'").first
   #     end
   #
   #     def self.authenticate_safely(user_name, password)
-  #       find(:first, :conditions => [ "user_name = ? AND password = ?", user_name, password ])
+  #       where("user_name = ? AND password = ?", user_name, password).first
   #     end
   #
   #     def self.authenticate_safely_simply(user_name, password)
-  #       find(:first, :conditions => { :user_name => user_name, :password => password })
+  #       where(:user_name => user_name, :password => password).first
   #     end
   #   end
   #
@@ -77,30 +77,30 @@ module ActiveRecord #:nodoc:
   # question mark is supposed to represent. In those cases, you can resort to named bind variables instead. That's done by replacing
   # the question marks with symbols and supplying a hash with values for the matching symbol keys:
   #
-  #   Company.find(:first, :conditions => [
+  #   Company.where(
   #     "id = :id AND name = :name AND division = :division AND created_at > :accounting_date",
   #     { :id => 3, :name => "37signals", :division => "First", :accounting_date => '2005-01-01' }
-  #   ])
+  #   ).first
   #
   # Similarly, a simple hash without a statement will generate conditions based on equality with the SQL AND
   # operator. For instance:
   #
-  #   Student.find(:all, :conditions => { :first_name => "Harvey", :status => 1 })
-  #   Student.find(:all, :conditions => params[:student])
+  #   Student.where(:first_name => "Harvey", :status => 1)
+  #   Student.where(params[:student])
   #
   # A range may be used in the hash to use the SQL BETWEEN operator:
   #
-  #   Student.find(:all, :conditions => { :grade => 9..12 })
+  #   Student.where(:grade => 9..12)
   #
   # An array may be used in the hash to use the SQL IN operator:
   #
-  #   Student.find(:all, :conditions => { :grade => [9,11,12] })
+  #   Student.where(:grade => [9,11,12])
   #
   # When joining tables, nested hashes or keys written in the form 'table_name.column_name' can be used to qualify the table name of a
   # particular condition. For instance:
   #
-  #   Student.find(:all, :conditions => { :schools => { :type => 'public' }}, :joins => :schools)
-  #   Student.find(:all, :conditions => { 'schools.type' => 'public' }, :joins => :schools)
+  #   Student.joins(:schools).where(:schools => { :type => 'public' })
+  #   Student.joins(:schools).where('schools.type' => 'public' )
   #
   # == Overwriting default accessors
   #
@@ -153,18 +153,18 @@ module ActiveRecord #:nodoc:
   # Dynamic attribute-based finders are a cleaner way of getting (and/or creating) objects by simple queries without turning to SQL. They work by
   # appending the name of an attribute to <tt>find_by_</tt>, <tt>find_last_by_</tt>, or <tt>find_all_by_</tt>, so you get finders like <tt>Person.find_by_user_name</tt>,
   # <tt>Person.find_all_by_last_name</tt>, and <tt>Payment.find_by_transaction_id</tt>. So instead of writing
-  # <tt>Person.find(:first, :conditions => ["user_name = ?", user_name])</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
-  # And instead of writing <tt>Person.find(:all, :conditions => ["last_name = ?", last_name])</tt>, you just do <tt>Person.find_all_by_last_name(last_name)</tt>.
+  # <tt>Person.where(:user_name => user_name).first</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
+  # And instead of writing <tt>Person.where(:last_name => last_name).all</tt>, you just do <tt>Person.find_all_by_last_name(last_name)</tt>.
   #
   # It's also possible to use multiple attributes in the same find by separating them with "_and_", so you get finders like
   # <tt>Person.find_by_user_name_and_password</tt> or even <tt>Payment.find_by_purchaser_and_state_and_country</tt>. So instead of writing
-  # <tt>Person.find(:first, :conditions => ["user_name = ? AND password = ?", user_name, password])</tt>, you just do
+  # <tt>Person.where(:user_name => user_name, :password => password).first</tt>, you just do
   # <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
   #
-  # It's even possible to use all the additional parameters to find. For example, the full interface for <tt>Payment.find_all_by_amount</tt>
-  # is actually <tt>Payment.find_all_by_amount(amount, options)</tt>. And the full interface to <tt>Person.find_by_user_name</tt> is
-  # actually <tt>Person.find_by_user_name(user_name, options)</tt>. So you could call <tt>Payment.find_all_by_amount(50, :order => "created_on")</tt>.
-  # Also you may call <tt>Payment.find_last_by_amount(amount, options)</tt> returning the last record matching that amount and options.
+  # It's even possible to call these dynamic finder methods on relations and named scopes. For example :
+  #
+  #   Payment.order("created_on").find_all_by_amount(50)
+  #   Payment.pending.find_last_by_amount(100)
   #
   # The same dynamic finder style can be used to create the object if it doesn't already exist. This dynamic finder is called with
   # <tt>find_or_create_by_</tt> and will return the object if it already exists and otherwise creates it, then returns it. Protected attributes won't be set unless they are given in a block. For example:
@@ -224,7 +224,7 @@ module ActiveRecord #:nodoc:
   #   class PriorityClient < Client; end
   #
   # When you do <tt>Firm.create(:name => "37signals")</tt>, this record will be saved in the companies table with type = "Firm". You can then
-  # fetch this row again using <tt>Company.find(:first, "name = '37signals'")</tt> and it will return a Firm object.
+  # fetch this row again using <tt>Company.where(:name => '37signals').first</tt> and it will return a Firm object.
   #
   # If you don't have a type column defined in your table, single-table inheritance won't be triggered. In that case, it'll work just
   # like normal subclasses with no special magic for differentiating between them or reloading the right type with find.
@@ -1117,10 +1117,6 @@ module ActiveRecord #:nodoc:
         # It's even possible to use all the additional parameters to +find+. For example, the full interface for +find_all_by_amount+
         # is actually <tt>find_all_by_amount(amount, options)</tt>.
         #
-        # Also enables dynamic scopes like scoped_by_user_name(user_name) and scoped_by_user_name_and_password(user_name, password) that
-        # are turned into scoped(:conditions => ["user_name = ?", user_name]) and scoped(:conditions => ["user_name = ? AND password = ?", user_name, password])
-        # respectively.
-        #
         # Each dynamic finder, scope or initializer/creator is also defined in the class after it is first invoked, so that future
         # attempts to use it do not run through method_missing.
         def method_missing(method_id, *arguments, &block)
@@ -1196,12 +1192,12 @@ module ActiveRecord #:nodoc:
 
       protected
         # Scope parameters to method calls within the block.  Takes a hash of method_name => parameters hash.
-        # method_name may be <tt>:find</tt> or <tt>:create</tt>. <tt>:find</tt> parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
-        # <tt>:include</tt>, <tt>:offset</tt>, <tt>:limit</tt>, and <tt>:readonly</tt> options. <tt>:create</tt> parameters are an attributes hash.
+        # method_name may be <tt>:find</tt> or <tt>:create</tt>. <tt>:find</tt> parameter is <tt>Relation</tt> while
+        # <tt>:create</tt> parameters are an attributes hash.
         #
         #   class Article < ActiveRecord::Base
         #     def self.create_with_scope
-        #       with_scope(:find => { :conditions => "blog_id = 1" }, :create => { :blog_id => 1 }) do
+        #       with_scope(:find => where(:blog_id => 1), :create => { :blog_id => 1 }) do
         #         find(1) # => SELECT * from articles WHERE blog_id = 1 AND id = 1
         #         a = create(1)
         #         a.blog_id # => 1
@@ -1210,20 +1206,20 @@ module ActiveRecord #:nodoc:
         #   end
         #
         # In nested scopings, all previous parameters are overwritten by the innermost rule, with the exception of
-        # <tt>:conditions</tt>, <tt>:include</tt>, and <tt>:joins</tt> options in <tt>:find</tt>, which are merged.
+        # <tt>where</tt>, <tt>includes</tt>, and <tt>joins</tt> operations in <tt>Relation</tt>, which are merged.
         #
-        # <tt>:joins</tt> options are uniqued so multiple scopes can join in the same table without table aliasing
+        # <tt>joins</tt> operations are uniqued so multiple scopes can join in the same table without table aliasing
         # problems.  If you need to join multiple tables, but still want one of the tables to be uniqued, use the
         # array of strings format for your joins.
         #
         #   class Article < ActiveRecord::Base
         #     def self.find_with_scope
-        #       with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }, :create => { :blog_id => 1 }) do
-        #         with_scope(:find => { :limit => 10 }) do
-        #           find(:all) # => SELECT * from articles WHERE blog_id = 1 LIMIT 10
+        #       with_scope(:find => where(:blog_id => 1).limit(1), :create => { :blog_id => 1 }) do
+        #         with_scope(:find => limit(10)) do
+        #           all # => SELECT * from articles WHERE blog_id = 1 LIMIT 10
         #         end
-        #         with_scope(:find => { :conditions => "author_id = 3" }) do
-        #           find(:all) # => SELECT * from articles WHERE blog_id = 1 AND author_id = 3 LIMIT 1
+        #         with_scope(:find => where(:author_id => 3)) do
+        #           all # => SELECT * from articles WHERE blog_id = 1 AND author_id = 3 LIMIT 1
         #         end
         #       end
         #     end
@@ -1233,9 +1229,9 @@ module ActiveRecord #:nodoc:
         #
         #   class Article < ActiveRecord::Base
         #     def self.find_with_exclusive_scope
-        #       with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }) do
-        #         with_exclusive_scope(:find => { :limit => 10 })
-        #           find(:all) # => SELECT * from articles LIMIT 10
+        #       with_scope(:find => where(:blog_id => 1).limit(1)) do
+        #         with_exclusive_scope(:find => limit(10))
+        #           all # => SELECT * from articles LIMIT 10
         #         end
         #       end
         #     end

@@ -161,12 +161,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(favicon_link_tag) => %(<link href="/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />),
     %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />),
     %(favicon_link_tag 'favicon.ico', :rel => 'foo') => %(<link href="/images/favicon.ico" rel="foo" type="image/vnd.microsoft.icon" />),
-    %(favicon_link_tag 'favicon.ico', :rel => 'foo', :type => 'bar') => %(<link href="/images/favicon.ico" rel="foo" type="bar" />)
-  }
-
-  AppleTouchIconLinkToTag = {
-    %(apple_touch_icon_link_tag) => %(<link href="/apple-touch-icon.png" rel="apple-touch-icon" />),
-    %(apple_touch_icon_link_tag 'my_site.png') => %(<link href="/images/my_site.png" rel="apple-touch-icon" />)
+    %(favicon_link_tag 'favicon.ico', :rel => 'foo', :type => 'bar') => %(<link href="/images/favicon.ico" rel="foo" type="bar" />),
+    %(favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png') => %(<link href="/images/mb-icon.png" rel="apple-touch-icon" type="image/png" />)
   }
 
   VideoPathToTag = {
@@ -345,10 +341,6 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_favicon_link_tag
     FaviconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
-  end
-
-  def test_apple_touch_link_tag
-    AppleTouchIconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_image_tag_windows_behaviour
