@@ -104,12 +104,12 @@ module Arel
           ",
           :any => "
             def #{name}_any(*others)
-              Predicates::Any.new(Predicates::#{klass}, self, *others)
+              Predicates::Any.build(Predicates::#{klass}, self, *others)
             end
           ",
           :all => "
             def #{name}_all(*others)
-              Predicates::All.new(Predicates::#{klass}, self, *others)
+              Predicates::All.build(Predicates::#{klass}, self, *others)
             end
           "
         }

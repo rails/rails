@@ -13,7 +13,25 @@ module Arel
     end
     
     class Not < Unary
-      def operator; '!' end
+      def eval(row)
+        !operand.eval(row)
+      end
+    end
+    
+    class Polyadic < Predicate
+      def eval(row)
+        predicates.send(compounder) do |operation|
+          operation.eval(row)
+        end
+      end
+    end
+    
+    class Any < Polyadic
+      def compounder; :any? end
+    end
+    
+    class All < Polyadic
+      def compounder; :all? end
     end
     
     class CompoundPredicate < Binary
@@ -28,25 +46,6 @@ module Arel
 
     class And < CompoundPredicate
       def operator; :and end
-    end
-    
-    class GroupedPredicate < Polyadic
-      def eval(row)
-        group = additional_operands.inject([]) do |results, operand|
-          results << operator.new(operand1, operand)
-        end
-        group.send(compounder) do |operation|
-          operation.eval(row)
-        end
-      end
-    end
-    
-    class Any < GroupedPredicate
-      def compounder; :any? end
-    end
-    
-    class All < GroupedPredicate
-      def compounder; :all? end
     end
 
     class Equality < Binary

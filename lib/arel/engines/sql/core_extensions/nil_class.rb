@@ -4,6 +4,10 @@ module Arel
       def equality_predicate_sql
         'IS'
       end
+      
+      def inequality_predicate_sql
+        'IS NOT'
+      end
 
       def not_predicate_sql
         'IS NOT'

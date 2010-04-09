@@ -30,21 +30,19 @@ module Arel
       def predicate_sql; "AND" end
     end
     
-    class GroupedPredicate < Polyadic
+    class Polyadic < Predicate
       def to_sql(formatter = nil)
         "(" + 
-          additional_operands.inject([]) { |predicates, operand|
-            predicates << operator.new(operand1, operand).to_sql(formatter)
-          }.join(" #{predicate_sql} ") +
+          predicates.map {|p| p.to_sql(formatter)}.join(" #{predicate_sql} ") +
         ")"
       end
     end
     
-    class Any < GroupedPredicate
+    class Any < Polyadic
       def predicate_sql; "OR" end
     end
     
-    class All < GroupedPredicate
+    class All < Polyadic
       def predicate_sql; "AND" end
     end
 
@@ -55,7 +53,9 @@ module Arel
     end
 
     class Inequality < Equality
-      def predicate_sql; '!=' end
+      def predicate_sql
+        operand2.inequality_predicate_sql
+      end
     end
 
     class GreaterThanOrEqualTo < Binary

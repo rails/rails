@@ -8,6 +8,10 @@ module Arel
       def equality_predicate_sql
         '='
       end
+      
+      def inequality_predicate_sql
+        '!='
+      end
 
       def not_predicate_sql
         '!='
