@@ -1,5 +1,3 @@
-* A new application now comes with a layout and a stylesheet. [JV]
-
 * Renamed config.cookie_secret to config.secret_token and pass it as env key. [JV]
 
 *Rails 3.0.0 [beta 2] (April 1st, 2010)*

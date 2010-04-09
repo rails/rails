@@ -70,10 +70,14 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       show
       _form
     ).each { |view| assert_file "app/views/product_lines/#{view}.html.erb" }
+    assert_no_file "app/views/layouts/product_lines.html.erb"
 
     # Helpers
     assert_file "app/helpers/product_lines_helper.rb"
     assert_file "test/unit/helpers/product_lines_helper_test.rb"
+
+    # Stylesheets
+    assert_file "public/stylesheets/scaffold.css"
   end
 
   def test_scaffold_on_revoke
@@ -97,9 +101,13 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Views
     assert_no_file "app/views/product_lines"
+    assert_no_file "app/views/layouts/product_lines.html.erb"
 
     # Helpers
     assert_no_file "app/helpers/product_lines_helper.rb"
     assert_no_file "test/unit/helpers/product_lines_helper_test.rb"
+
+    # Stylesheets (should not be removed)
+    assert_file "public/stylesheets/scaffold.css"
   end
 end

@@ -7,6 +7,7 @@ module Rails
       remove_class_option :actions
 
       hook_for :scaffold_controller, :required => true
+      hook_for :stylesheets
     end
   end
 end
