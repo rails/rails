@@ -501,6 +501,40 @@ module ActionView
         end
       end
 
+      # Web browsers cache favicons. If you just throw a <tt>favicon.ico</tt> into the document
+      # root of your application and it changes later, clients that have it in their cache
+      # won't see the update. Using this helper prevents that because it appends an asset ID:
+      #
+      #   <%= favicon_link_tag %>
+      #
+      # generates
+      #
+      #   <link href="/favicon.ico?4649789979" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+      #
+      # You may specify a different file in the first argument:
+      #
+      #   <%= favicon_link_tag 'favicon.ico' %>
+      #
+      # That's passed to +image_path+ as is, so it gives
+      #
+      #   <link href="/images/favicon.ico?4649789979" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+      #
+      # The helper accepts an additional options hash where you can override "rel" and "type".
+      #
+      # For example, Mobile Safari looks for a different LINK tag, pointing to an image that
+      # will be used if you add the page to the home screen of an iPod Touch, iPhone, or iPad.
+      # The following call would generate such a tag:
+      #
+      #   <%= favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png' %>
+      #
+      def favicon_link_tag(source='/favicon.ico', options={})
+        tag('link', {
+          :rel  => 'shortcut icon',
+          :type => 'image/vnd.microsoft.icon',
+          :href => image_path(source)
+        }.merge(options.symbolize_keys))
+      end
+
       # Computes the path to an image asset in the public images directory.
       # Full paths from the document root will be passed through.
       # Used internally by +image_tag+ to build the image path.
