@@ -78,12 +78,7 @@ module Rails::Generators
     end
 
     def create_app_files
-      directory "app/controllers"
-      directory "app/helpers"
-      directory "app/models"
-      inside "app/views/layouts" do
-        template "application.html.erb"
-      end
+      directory 'app'
     end
 
     def create_config_files
