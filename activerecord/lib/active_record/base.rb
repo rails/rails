@@ -1134,7 +1134,7 @@ module ActiveRecord #:nodoc:
             attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
             if match.scope?
-              self.class_eval %{
+              self.class_eval <<-METHOD, __FILE__, __LINE__ + 1
                 def self.#{method_id}(*args)                        # def self.scoped_by_user_name_and_password(*args)
                   options = args.extract_options!                   #   options = args.extract_options!
                   attributes = construct_attributes_from_arguments( #   attributes = construct_attributes_from_arguments(
@@ -1143,7 +1143,7 @@ module ActiveRecord #:nodoc:
                                                                     #
                   scoped(:conditions => attributes)                 #   scoped(:conditions => attributes)
                 end                                                 # end
-              }, __FILE__, __LINE__
+              METHOD
               send(method_id, *arguments)
             end
           else
@@ -1314,9 +1314,9 @@ module ActiveRecord #:nodoc:
           modularized_name = type_name_with_module(type_name)
           silence_warnings do
             begin
-              class_eval(modularized_name, __FILE__, __LINE__)
+              class_eval(modularized_name, __FILE__)
             rescue NameError
-              class_eval(type_name, __FILE__, __LINE__)
+              class_eval(type_name, __FILE__)
             end
           end
         end

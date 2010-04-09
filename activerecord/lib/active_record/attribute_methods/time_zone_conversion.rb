@@ -17,7 +17,7 @@ module ActiveRecord
           # This enhanced read method automatically converts the UTC time stored in the database to the time zone stored in Time.zone.
           def define_method_attribute(attr_name)
             if create_time_zone_conversion_attribute?(attr_name, columns_hash[attr_name])
-              method_body = <<-EOV
+              method_body, line = <<-EOV, __LINE__ + 1
                 def #{attr_name}(reload = false)
                   cached = @attributes_cache['#{attr_name}']
                   return cached if cached && !reload
@@ -25,7 +25,7 @@ module ActiveRecord
                   @attributes_cache['#{attr_name}'] = time.acts_like?(:time) ? time.in_time_zone : time
                 end
               EOV
-              generated_attribute_methods.module_eval(method_body, __FILE__, __LINE__)
+              generated_attribute_methods.module_eval(method_body, __FILE__, line)
             else
               super
             end
@@ -35,7 +35,7 @@ module ActiveRecord
           # This enhanced write method will automatically convert the time passed to it to the zone stored in Time.zone.
           def define_method_attribute=(attr_name)
             if create_time_zone_conversion_attribute?(attr_name, columns_hash[attr_name])
-              method_body = <<-EOV
+              method_body, line = <<-EOV, __LINE__ + 1
                 def #{attr_name}=(time)
                   unless time.acts_like?(:time)
                     time = time.is_a?(String) ? Time.zone.parse(time) : time.to_time rescue time
@@ -44,7 +44,7 @@ module ActiveRecord
                   write_attribute(:#{attr_name}, time)
                 end
               EOV
-              generated_attribute_methods.module_eval(method_body, __FILE__, __LINE__)
+              generated_attribute_methods.module_eval(method_body, __FILE__, line)
             else
               super
             end

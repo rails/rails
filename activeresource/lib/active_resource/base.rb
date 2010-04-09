@@ -588,11 +588,11 @@ module ActiveResource
         @prefix_parameters = nil
 
         # Redefine the new methods.
-        code = <<-end_code
+        code, line = <<-end_code, __LINE__ + 1
           def prefix_source() "#{value}" end
           def prefix(options={}) "#{prefix_call}" end
         end_code
-        silence_warnings { instance_eval code, __FILE__, __LINE__ }
+        silence_warnings { instance_eval code, __FILE__, line }
       rescue
         logger.error "Couldn't set prefix: #{$!}\n  #{code}" if logger
         raise
