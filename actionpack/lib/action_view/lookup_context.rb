@@ -38,7 +38,7 @@ module ActionView
     end
 
     register_detail(:formats) { Mime::SET.symbols }
-    register_detail(:locale)  { [I18n.locale] }
+    register_detail(:locale)  { [I18n.locale, I18n.default_locale] }
 
     class DetailsKey #:nodoc:
       alias :eql? :equal?
@@ -160,7 +160,7 @@ module ActionView
           config = I18n.config.respond_to?(:i18n_config) ? I18n.config.i18n_config : I18n.config
           config.locale = value
         end
-        super(I18n.locale)
+        super(_locale_defaults)
       end
 
       # Update the details keys by merging the given hash into the current
