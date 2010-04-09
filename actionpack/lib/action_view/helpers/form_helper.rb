@@ -977,7 +977,7 @@ module ActionView
       end
 
       (field_helpers - %w(label check_box radio_button fields_for hidden_field)).each do |selector|
-        src, line = <<-end_src, __FILE__ + 1
+        src, line = <<-end_src, __LINE__ + 1
           def #{selector}(method, options = {})  # def text_field(method, options = {})
             @template.send(                      #   @template.send(
               #{selector.inspect},               #     "text_field",
