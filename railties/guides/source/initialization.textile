@@ -2229,9 +2229,44 @@ The second +require+ method here:
   load(gemfile).require(*groups)
 </ruby>
 
-Is defined on _bundler/runtime.rb_
+Is defined on _bundler/runtime.rb_:
 
+<ruby>
+  def require(*groups)
+    groups.map! { |g| g.to_sym }
+    groups = [:default] if groups.empty?
+    autorequires = autorequires_for_groups(*groups)
 
+    groups.each do |group|
+      (autorequires[group] || [[]]).each do |path, explicit|
+        if explicit
+          Kernel.require(path)
+        else
+          begin
+            Kernel.require(path)
+          rescue LoadError
+          end
+        end
+      end
+    end
+  end
+</ruby>
+
+This method does TODO: Describe what magic this undertakes.
+
+The first method to be called here is +autorequires_for_groups+:
+
+<ruby>
+  def autorequires_for_groups(*groups)
+    groups.map! { |g| g.to_sym }
+    autorequires = Hash.new { |h,k| h[k] = [] }
+
+    ordered_deps = []
+    specs_for(*groups).each do |g|
+      dep = @definition.dependencies.find{|d| d.name == g.name }
+      ordered_deps << dep if dep && !ordered_deps.include?(dep)
+    end
+</ruby>
 
 
 h3. Firing it up!
