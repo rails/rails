@@ -217,8 +217,6 @@ module ActionView
         InstanceTag.new(object, method, self, options.delete(:object)).to_grouped_collection_select_tag(collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options)
       end
 
-
-
       # Return select and option tags for the given object and method, using
       # #time_zone_options_for_select to generate the list of option tags.
       #
