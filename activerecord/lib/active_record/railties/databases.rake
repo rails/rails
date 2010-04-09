@@ -446,6 +446,8 @@ namespace :db do
   end
 end
 
+task 'test:prepare' => 'db:test:prepare'
+
 def drop_database(config)
   case config['adapter']
   when 'mysql'
