@@ -1,5 +1,7 @@
 *Edge*
 
+* Fixed that default locale templates should be used if the current locale template is missing [DHH]
+
 * Fixed that PrototypeHelper#update_page should return html_safe [DHH]
 
 * Fixed that much of DateHelper wouldn't return html_safe? strings [DHH]

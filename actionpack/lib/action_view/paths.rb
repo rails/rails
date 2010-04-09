@@ -47,14 +47,22 @@ module ActionView #:nodoc:
       each do |load_path|
         if format && (template = load_path["#{template_path}.#{I18n.locale}.#{format}"])
           return template
+        # Try the default locale version if the current locale doesn't have one
+        # (i.e. you haven't translated this view to German yet, but you have the English version on hand)
+        elsif format && (template = load_path["#{template_path}.#{I18n.default_locale}.#{format}"]) 
+          return template
         elsif format && (template = load_path["#{template_path}.#{format}"])
           return template
         elsif template = load_path["#{template_path}.#{I18n.locale}"]
+          return template
+        elsif template = load_path["#{template_path}.#{I18n.default_locale}"]
           return template
         elsif template = load_path[template_path]
           return template
         # Try to find html version if the format is javascript
         elsif format == :js && html_fallback && template = load_path["#{template_path}.#{I18n.locale}.html"]
+          return template
+        elsif format == :js && html_fallback && template = load_path["#{template_path}.#{I18n.default_locale}.html"]
           return template
         elsif format == :js && html_fallback && template = load_path["#{template_path}.html"]
           return template
